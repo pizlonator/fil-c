@@ -1,0 +1,148 @@
+'\" t
+.\"     Title: shadow
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "SHADOW" "5" "2024-06-18" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+shadow \- 影子化了的密码文件
+.SH "描述"
+.PP
+shadow
+is a file which contains the password information for the system\*(Aqs accounts and optional aging information\&.
+.PP
+如果没有维护好密码安全，此文件绝对不能让普通用户可读。
+.PP
+Each line of this file contains 9 fields, separated by colons (\(lq:\(rq), in the following order:
+.PP
+\fBlogin name\fR
+.RS 4
+必须是有效的账户名，且已经存在于系统中。
+.RE
+.PP
+\fBencrypted password\fR
+.RS 4
+This field may be empty, in which case no passwords are required to authenticate as the specified login name\&. However, some applications which read the
+/etc/shadow
+file may decide not to permit any access at all if the password field is empty\&.
+.sp
+A password field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the password field before the password was locked\&.
+.sp
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.sp
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, the user will not be able to use a unix password to log in (but the user may log in the system by other means)\&.
+.RE
+.PP
+\fBdate of last password change\fR
+.RS 4
+The date of the last password change, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+The value 0 has a special meaning, which is that the user should change her password the next time she will log in the system\&.
+.sp
+空字段表示密码年龄功能被禁用。
+.RE
+.PP
+\fBminimum password age\fR
+.RS 4
+最小密码年龄是指，用户一次更改密码之后，要等多长时间才再次被允许更改密码。
+.sp
+An empty field and value 0 mean that there is no minimum password age\&.
+.RE
+.PP
+\fBmaximum password age\fR
+.RS 4
+最大密码年龄是指，这写天之后，用户必须更改密码。
+.sp
+这写天之后，密码仍然可用。用户将会在下次登录的时候被要求更改密码。
+.sp
+空字段表示没有最大密码年龄，没有密码警告时间段，没有密码禁用时间段(请看下边)。
+.sp
+如果最大密码年龄小于最小密码年龄，用户将会不能更改密码。
+.RE
+.PP
+\fBpassword warning period\fR
+.RS 4
+密码过期之前，提前警告用户的的天数(请参考上边的密码的最大年龄)。
+.sp
+空字段或者 0 表示没有密码警告期。
+.RE
+.PP
+\fBpassword inactivity period\fR
+.RS 4
+密码过期(查看上边的密码最大年龄)后，仍然接受此密码的天数(在此期间，用户应该在下次登录时修改密码)。
+.sp
+After expiration of the password and this expiration period is elapsed, no login is possible for the user\&. The user should contact her administrator\&.
+.sp
+空字段表示没有强制密码过期。
+.RE
+.PP
+\fBaccount expiration date\fR
+.RS 4
+The date of expiration of the account, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+Note that an account expiration differs from a password expiration\&. In case of an account expiration, the user shall not be allowed to login\&. In case of a password expiration, the user is not allowed to login using her password\&.
+.sp
+空字段表示账户永不过期。
+.sp
+应该避免使用 0，因为它既能理解成永不过期也能理解成在1970年1月1日过期。
+.RE
+.PP
+\fBreserved field\fR
+.RS 4
+此字段保留作将来使用。
+.RE
+.SH "文件"
+.PP
+/etc/passwd
+.RS 4
+用户账户信息。
+.RE
+.PP
+/etc/shadow
+.RS 4
+安全用户账户信息。
+.RE
+.PP
+/etc/shadow\-
+.RS 4
+/etc/shadow 的备份文件。
+.sp
+注意，此文件由 shadow 工具集使用，而不是所有的用户和密码管理工具都会使用。
+.RE
+.SH "参见"
+.PP
+\fBchage\fR(1),
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBpasswd\fR(5),
+\fBpwck\fR(8),
+\fBpwconv\fR(8),
+\fBpwunconv\fR(8),
+\fBsu\fR(1),
+\fBsulogin\fR(8)\&.

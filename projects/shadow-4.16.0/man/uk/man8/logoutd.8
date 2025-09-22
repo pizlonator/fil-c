@@ -1,0 +1,57 @@
+'\" t
+.\"     Title: logoutd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "logoutd" "8" "18/06/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+logoutd \- примусово застосувати обмеження щодо часу входу
+.SH "КОРОТКИЙ ОГЛЯД"
+.HP \w'\fBlogoutd\fR\ 'u
+\fBlogoutd\fR
+.SH "ОПИС"
+.PP
+\fBlogoutd\fR
+enforces the login time and port restrictions specified in
+/etc/porttime\&.
+\fBlogoutd\fR
+should be started from
+/etc/rc\&. The
+/var/run/utmp
+file is scanned periodically and each user name is checked to see if the named user is permitted on the named port at the current time\&. Any login session which is violating the restrictions in
+/etc/porttime
+is terminated\&.
+.SH "ФАЙЛИ"
+.PP
+/etc/porttime
+.RS 4
+Файл, у якому містяться дані доступу до портів\&.
+.RE
+.PP
+/var/run/utmp
+.RS 4
+Список поточних сеансів входу до системи\&.
+.RE

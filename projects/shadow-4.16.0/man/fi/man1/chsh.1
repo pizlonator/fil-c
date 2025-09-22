@@ -1,0 +1,49 @@
+.\" ** You probably do not want to edit this file directly **
+.\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
+.\" Instead of manually editing it, you probably should edit the DocBook XML
+.\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
+.TH "CHSH" "1" "03/07/2006" "Käyttäjän sovellukset" "Käyttäjän sovellukset"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+chsh \- vaihda sisäänkirjautumiskuorta
+.SH "SYNOPSIS"
+.HP 5
+\fBchsh\fR [\-s\ \fIsisäänkirjautumiskuori\fR] [\fIkäyttäjä\fR]
+.SH "KUVAUS"
+.PP
+\fBchsh\fR
+vaihtaa käyttäjän sisäänkirjautumiskuorta. Tämä määrittää käyttäjän ensimmäisen kirjautumiskomennon. Tavallinen käyttäjä voi vaihtaa ainoastaan oman tunnuksensa kirjautumiskuorta, mutta pääkäyttäjä voi vaihtaa kenen tahansa kirjautumiskuoren.
+.PP
+Ainoa rajoitus kirjautumiskuorelle on, että komennon nimen täytyy olla lueteltuna tiedostossa
+\fI/etc/shells\fR
+ellei komentoa käynnistänyt pääkäyttäjä, jolloin mikä tahansa arvo voidaan lisätä. Tunnus, jolla on rajoitettu kirjautumiskuori, ei voi vaihtaa omaa kirjautumiskuortaan. Tästä syystä komennon
+\fI/bin/rsh\fR
+lisääminen tiedostoon
+\fI/etc/shells\fR
+ei ole suositeltavaa, koska käyttäjän vahingossa vaihtaessa rajoitettuun kuoreen, ei hän voi koskaan vaihtaa kirjautumiskuortaan takaisin alkuperäiseen arvoon.
+.SH "VALITSIMET"
+.PP
+Mikäli valitsinta
+\fB\-s\fR
+ei ole annettu,
+\fBchsh\fR
+toimii interaktiivisesti kysyen käyttäjältä kirjautumiskuorta. Syöttämällä uuden arvon vaihdetaan kuorta, ja antamalla tyhjän syötteen, vanha kuori jää voimaan. Nykyinen kuori tulostetaan
+\fI[ ]\fR\-merkkiparin välissä.
+.SH "TIEDOSTOT"
+.TP
+\fI/etc/passwd\fR
+käyttäjätunnuksien tiedot
+.TP
+\fI/etc/shells\fR
+luettelo sallituista kirjautumiskuorista
+.TP
+\fI/etc/login.defs\fR
+varjosalasanakaluston asetukset
+.SH "KATSO MYÖS"
+.PP
+\fBchfn\fR(1),
+\fBlogin.defs\fR(5),
+\fBpasswd\fR(5)

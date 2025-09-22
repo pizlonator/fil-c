@@ -1,0 +1,153 @@
+#!/bin/sh
+
+set -e
+
+export LC_ALL=C
+unset LANG
+unset LANGUAGE
+. common/config.sh
+
+USE_PAM="yes"
+FAILURE_TESTS="yes"
+
+succeeded=0
+failed=0
+failed_tests=""
+
+run_test()
+{
+	[ -f RUN_TEST.STOP ] && exit 1
+
+	passed=0
+	if $1 > $1.log 2>&1
+	then
+		passed=1
+	fi
+
+	if [ -n "$2" ]; then # ignore failure
+		printf '.'
+	elif [ $passed -eq 1 ]; then
+		succeeded=$((succeeded+1))
+		printf '+'
+	else
+		failed=$((failed+1))
+		failed_tests="$failed_tests $1"
+		printf '-'
+	fi
+	cat $1.log >> testsuite.log
+	[ -f /etc/passwd.lock ] && echo $1 /etc/passwd.lock || true
+	[ -f /etc/group.lock ] && echo $1 /etc/group.lock || true
+	[ -f /etc/shadow.lock ] && echo $1 /etc/shadow.lock || true
+	[ -f /etc/gshadow.lock ] && echo $1 /etc/gshadow.lock || true
+	[ -f /etc/gshadow.lock ] && echo $1 /etc/gshadow.lock || true
+	rm -rf /tmp/test-uidmap
+	if [ "$(stat -c"%G" /etc/shadow)" != "shadow" ]
+	then
+		echo $1
+		ls -l /etc/shadow
+		chgrp shadow /etc/shadow
+	fi
+	if [ -d /nonexistent ]
+	then
+		echo $1 /nonexistent
+		rmdir /nonexistent
+	fi
+}
+
+echo "+: test passed"
+echo "-: test failed"
+
+# Empty the complete log.
+> testsuite.log
+
+find "${build_path}" -name "*.gcda" -delete
+# ignore the result of the first test.  ~magic~
+run_test ./su/01/su_user.test ignore_failure
+run_test ./su/01/su_user.test
+run_test ./su/01/su_root.test
+find "${build_path}" -name "*.gcda" -exec chmod a+rw {} \;
+run_test ./su/02/env_FOO-options_--login
+run_test ./su/02/env_FOO-options_--login_bash
+run_test ./su/02/env_FOO-options_--preserve-environment
+run_test ./su/02/env_FOO-options_--preserve-environment_bash
+run_test ./su/02/env_FOO-options_-
+run_test ./su/02/env_FOO-options_-_bash
+run_test ./su/02/env_FOO-options_-l-m
+run_test ./su/02/env_FOO-options_-l-m_bash
+run_test ./su/02/env_FOO-options_-l
+run_test ./su/02/env_FOO-options_-l_bash
+run_test ./su/02/env_FOO-options_-m_bash
+run_test ./su/02/env_FOO-options_-m
+run_test ./su/02/env_FOO-options_-p
+run_test ./su/02/env_FOO-options_-p_bash
+run_test ./su/02/env_FOO-options__bash
+run_test ./su/02/env_FOO-options_
+run_test ./su/02/env_FOO-options_-p-
+run_test ./su/02/env_FOO-options_-p-_bash
+run_test ./su/02/env_special-options_-l-p
+run_test ./su/02/env_special-options_-l
+run_test ./su/02/env_special-options_-l-p_bash
+run_test ./su/02/env_special-options_-l_bash
+run_test ./su/02/env_special-options_-p
+run_test ./su/02/env_special-options_-p_bash
+run_test ./su/02/env_special-options_
+run_test ./su/02/env_special-options__bash
+run_test ./su/02/env_special_root-options_-l-p
+run_test ./su/02/env_special_root-options_-l-p_bash
+run_test ./su/02/env_special_root-options_-l
+run_test ./su/02/env_special_root-options_-l_bash
+run_test ./su/02/env_special_root-options_-p
+run_test ./su/02/env_special_root-options_-p_bash
+run_test ./su/02/env_special_root-options_
+run_test ./su/02/env_special_root-options__bash
+run_test ./su/03/su_run_command01.test
+run_test ./su/03/su_run_command02.test
+run_test ./su/03/su_run_command03.test
+run_test ./su/03/su_run_command04.test
+run_test ./su/03/su_run_command05.test
+run_test ./su/03/su_run_command06.test
+run_test ./su/03/su_run_command07.test
+run_test ./su/03/su_run_command08.test
+run_test ./su/03/su_run_command09.test
+run_test ./su/03/su_run_command10.test
+run_test ./su/03/su_run_command11.test
+run_test ./su/03/su_run_command12.test
+run_test ./su/03/su_run_command13.test
+run_test ./su/03/su_run_command14.test
+run_test ./su/03/su_run_command15.test
+run_test ./su/03/su_run_command16.test
+run_test ./su/03/su_run_command17.test
+run_test ./su/04/su_wrong_user.test
+run_test ./su/04/su_user_wrong_passwd.test
+run_test ./su/04/su_user_wrong_passwd_syslog.test
+run_test ./su/05/su_user_wrong_passwd_syslog.test
+run_test ./su/06/su_user_syslog.test
+run_test ./su/07/su_user_syslog.test
+run_test ./su/08/env_special-options_
+run_test ./su/08/env_special_root-options_
+run_test ./su/09/env_special-options_
+run_test ./su/09/env_special_root-options_
+run_test ./su/10_su_sulog_success/su.test
+run_test ./su/11_su_sulog_failure/su.test
+run_test ./su/12_su_child_failure/su.test
+run_test ./su/13_su_child_success/su.test
+run_test ./libsubid/01_list_ranges/list_ranges.test
+run_test ./libsubid/02_get_subid_owners/get_subid_owners.test
+run_test ./libsubid/03_add_remove/add_remove_subids.test
+run_test ./newuidmap/01_newuidmap/newuidmap.test
+run_test ./newuidmap/02_newuidmap_relaxed_gid_check/newuidmap.test
+run_test ./newgidmap/01_newgidmap/newgidmap.test
+run_test ./newgidmap/02_newgidmap_relaxed_gid_check/newgidmap.test
+run_test ./libsubid/04_nss/subidnss.test
+run_test ./usertools/62_usermod_remove_supplementary_groups/usermod.test
+
+echo
+echo "$succeeded test(s) passed"
+echo "$failed test(s) failed"
+echo "log written in 'testsuite.log'"
+if [ "$failed" != 0 ]
+then
+	echo "the following tests failed:"
+	echo "$failed_tests"
+	exit 1
+fi

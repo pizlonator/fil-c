@@ -1,0 +1,80 @@
+.\"$Id$
+.\"
+.\" Japanese Version Copyright (c) 2001 Yuichi SATO
+.\"         all rights reserved.
+.\" Translated Sat Dec  1 20:09:17 JST 2001
+.\"         by Yuichi SATO <ysato@h4.dion.ne.jp>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH PWCONV 8 "26 Sep 1997"
+.SH 名前
+pwconv, pwunconv, grpconv, grpunconv \- パスワード・グループの shadow 化と、通常ファイルへの逆変換
+.SH 書式
+.B pwconv
+.br
+.B pwunconv
+.br
+.B grpconv
+.br
+.B grpunconv
+.SH 説明
+これら 4 つのプログラムは、
+通常のパスワードファイル・グループファイルと、
+shadow 化されたパスワードファイル・グループファイルである
+\fI/etc/passwd\fR ", " \fI/etc/group\fR ", " \fI/etc/shadow\fR ", " \fI/etc/gshadow\fR
+を操作する。
+
+\fBpwconv\fR は \fIpasswd\fR から \fIshadow\fR を作成する
+(すでに存在する場合は \fIshadow\fR の情報も用いる)。
+\fBpwunconv\fR は \fIpasswd\fR と \fIshadow\fR から
+\fIpasswd\fR を作成し、\fIshadow\fR を削除する。
+\fBgrpconv\fR は \fIgroup\fR から \fIgshadow\fR を作成する
+(すでに存在する場合は \fIgshadow\fR の情報も用いる)。
+\fBgrpunconv\fR は \fIgroup\fR と \fIgshadow\fR から
+\fIgroup\fR を作成し、\fIgshadow\fR を削除する。
+
+各プログラムは変換前に、必要なロックを要求する。
+
+.B pwconv 
+と
+.B grpconv
+とは以下の点で類似している。
+まず、shadow 化ファイルにあるエントリのうち、
+通常ファイルにないものは、削除される。
+また、shadow 化ファイルにあるエントリのうち、
+通常ファイルでパスワードが `x' になっていないものは、更新される。
+最後に、通常ファイルに書かれたパスワードは `x' に置き換えられる。
+これらのプログラムは、初めて変換を行うときにも、
+また通常のファイルを手動で編集した際に、
+shadow 化ファイルを更新するときにも利用できる。
+
+\fI/etc/shadow\fR に新しいエントリを追加するとき、
+\fBpwconv\fR は \fI/etc/login.defs\fR
+の
+.BR PASS_MIN_DAYS ", " PASS_MAX_DAYS ", " PASS_WARN_AGE
+の値を使う。
+
+同じように、
+\fBpwunconv\fR と \fBgrpunconv\fR
+とは以下の点で類似している。
+通常ファイルのパスワードは、
+shadow 化ファイルのもので更新される。
+通常ファイルにあるエントリは、
+shadow 化ファイルにはそのエントリがなくても、
+そのまま置かれ続ける。
+最後に、 shadow 化ファイルは削除される。
+
+パスワードの有効期限情報の一部は、
+.B pwunconv 
+によって失われる。変換できるものは変換される。
+.SH バグ
+(不正なエントリや重複したエントリといった)
+エラーがパスワードファイルやグループファイルにあると、
+プログラムは永遠にループしたり、おかしな形で失敗するかもしれない。
+shadow パスワード・グループへの変換や
+shadow 化ファイルからの逆変換を行う前に、
+\fBpwck\fR と \fBgrpck\fR を実行してエラーを修正すること。
+.SH 関連項目
+.BR login.defs (5),
+.BR grpck (8),
+.BR pwck (8)

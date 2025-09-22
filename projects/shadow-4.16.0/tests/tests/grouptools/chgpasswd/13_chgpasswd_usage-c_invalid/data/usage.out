@@ -1,0 +1,13 @@
+chgpasswd: unsupported crypt method: SHA513
+Usage: chgpasswd [options]
+
+Options:
+  -c, --crypt-method METHOD     the crypt method (one of NONE DES MD5 SHA256 SHA512)
+  -e, --encrypted               supplied passwords are encrypted
+  -h, --help                    display this help message and exit
+  -m, --md5                     encrypt the clear text password using
+                                the MD5 algorithm
+  -R, --root CHROOT_DIR         directory to chroot into
+  -s, --sha-rounds              number of SHA rounds for the SHA*
+                                crypt algorithms
+

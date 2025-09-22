@@ -1,0 +1,139 @@
+.\" SPDX-FileCopyrightText: 1998, 1999, 2002, Red Hat, Inc.
+.\" SPDX-FileCopyrightText: Cristian Gafton, 1998, <gafton@redhat.com>
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+ 
+.TH passwd 1 "3 Ocak 1998" "Red Hat Linux" "Kullanıcı Araçları"
+.nh
+.SH İSİM  
+passwd - 
+kullanıcının parolasını günceller
+
+.SH KULLANIM
+
+.nf
+
+\fBpasswd \fR[\fB-k\fR] [\fB-l\fR] [\fB-u \fR[\fB-f\fR]] [\fB-d\fR] [\fB-n \fR\fIasgari_ömür\fR] [\fB-x \fR\fIazami_ömür\fR] 
+       [\fB-w \fR\fIuyarı_süresi\fR] [\fB-i \fR\fIaskı_süresi\fR] [\fB-S\fR] [\fIkullanıcı\fR]
+
+.fi
+
+
+
+.SH AÇIKLAMA
+
+\fBpasswd\fR, bir kullanıcının parolasını günceller
+
+\fBpasswd\fR, \fBLinux-PAM API\fR´si aracılığı ile çalışmak üzere ayarlanmıştır. Aslında, \fBpasswd\fR, kendisini Linux-Pam ile birlikte bir "passdw" servisi olarak başlatır ve  yetkilendirme için ayarlanmış parola modüllerini kullanır. Daha sonra kullanıcının parolası güncellenir.
+
+Bu servis için, Linux-PAM ayar dosyası, basitçe, şu şekilde olurdu: 
+
+.nf
+
+#
+# bir parola güncellenmeden önce, bu önerilen parolanın sağlamlığını
+# kontrol eden passwd servis girdisi.
+#
+passwd password requisite \
+            /usr/lib/security/pam_cracklib.so retry=3
+passwd password required \
+            /usr/lib/security/pam_unix.so use_authtok
+#
+
+.fi
+
+
+NOT: Bu uygulamanın düzgün çalışması için, diğer modül türlerine ihtiyaç yoktur.
+
+.SH SEÇENEKLER
+
+
+.br
+.ns
+.TP 
+\fB-k\fR
+Bu seçenek, güncellemenin, sadece geçerlilik süresi bitmiş parolaları kapsadığı anlamaına gelir. Kullanıcı geçerlilik süresi dolmamış parolalarını kullanmaya devam edebilir.
+
+.TP 
+\fB-l\fR
+Bu seçeneği sadece root kullanıcı kullanabilir. Belirtilen hesabı 
+kilitlemeye yarar. Kilitleme işlemi; şifrelenmiş parolanın sözdizimi geçersiz hale getirilerek uygulanır (şifreli sözdiziminin başına ! getirmek suretiyle).
+
+.TP 
+\fB--stdin\fR
+Bu seçenek, yeni parolanın borulanabilen standart girdiden okunacağı anlamına gelir.     
+
+.TP 
+\fB-u\fR
+\fB-l\fR seçeneğinin tersidir. Kilitlenmiş hesap parolalarının önündeki ! önekini kaldırarak, hesabı kullanıma açar. Bu seçenek, sadece root kullanıcıya tahsis edilmiştir. Öntanımlı olarak, \fBpassdw\fR, parolasız bir hesap oluşturmayı reddedecektir (parola olarak sadece ! işaretine sahip bir hesabın kilidini kaldıramaz). \fB-f\fR seçeneği, bu korumayı aşmak için kullanılabilir. 
+
+.TP 
+\fB-d\fR
+Bu seçenek, bir hesabın parolasını yok etmenin en kolay ve hızlı yoludur. Belirtilen hesabın parolasız açılmasını sağlar. Sadece root kullanıcı bu seçeneği kullanabilir. 
+
+.TP 
+\fB-n\fR
+Kullanıcının hesabı parola için bir geçerlilik süresi tanımlanmasını destekliyorsa, bu seçenekle parolanın geçerli olduğu asgari süre gün cinsinden belirtilebilir. Sadece root kullanıcı bu seçeneği kullanabilir. 
+
+.TP 
+\fB-x\fR
+Kullanıcının hesabı parola için bir geçerlilik süresi tanımlanmasını destekliyorsa, bu seçenekle parolanın geçerli olduğu azami süre gün cinsinden belirtilebilir. Sadece root kullanıcı bu seçeneği kullanabilir. 
+
+.TP 
+\fB-w\fR
+Kullanıcının hesabı parola için bir geçerlilik süresi tanımlanmasını destekliyorsa, bu seçenekle, kullanıcının parolasının zamanaşımına uğrayacağı tarihten kaç gün önceden itibaren uyarılacağı gün cinsinden belirtilebilir. Sadece root kullanıcı bu seçeneği kullanabilir.
+
+.TP 
+\fB-i\fR
+Kullanıcının hesabı parola için bir geçerlilik süresi tanımlanmasını destekliyorsa, kullanıcı parolası zamanaşımına uğradıktan sonra kullanıcı hesabı tamamen iptal edilene kadar kaç gün süreyle bekleneceği belirtilir. Sadece root kullanıcı bu seçeneği kullanabilir.
+
+.PP
+
+.SH İKİ ÖNEMLİ KURAL
+.SS Parolanızı koruyun
+
+Parolanızı herhangi bir yere not etmeyin. Bunun yerine ezberinizde tutun. Parolanızı şifrelenmemiş bir dosya içine yazıp, ortalıkta bırakmayın. Birbirinden bağımsız parolalar kullanın. Her yere aynı parola ile üye olmayın. Bilgisayar destek veya satış görevlileri ile parolanızı paylaşmayın. Parolanızı yazarken, kimsenin sizi izlemesine izin vermeyin. Güvenli olduğuna inanmadığınız bir sistemden, parolanız aracılığı ile giriş yapmayın. Parolanız için geçerlilik süreleri tahsis edin ve parolanızı düzenli olarak değiştirin. Bir sistemdeki parolanız sizin her şeyinizdir. Bu konuda paronoyak davranmak, vurdumduymazlıktan daha mantıklı bir yöntemdir.
+
+.SS Tahmin edilmesi güç bir parola seçin
+
+\fBpasswd\fR, sizin kötü bir parola seçmenizi önlemeye çalışacaktır, fakat bu çok güvenilir bir sistem değildir. Parolalarınızı, mantıklı bir şekilde oluşturun. Herhangi bir sözlükte (hangi dilde olursa olsun) bulunabilecek kelimeler kullanmayın. Çocuğunuzun, en sevdiğiniz film kahramanınızın, evcil hayvanlarınızın, ana-babanızın, mekanların ve ünlü kişilerin adlarını parola olarak seçmeyin. Telefon numarası, araç plakanız, doğum tarihiniz, SSK numaranız gibi başkaları tarafından ulaşılabilecek bilgileri, parola olarak kullanmayınız. Basit şablonlu parolalardan uzak durun. Bunun yerine, küçük ve büyük harflerin karışımından oluşan ve mümkünse içerisinde rakamlar bulunan parolalar seçin. Uzun parolalar kullanın. Noktalama işaretlerinin kullanıldığı kelime çiftleri oldukça iyi bir seçim olacaktır. Uzun ve akılda kalır bir cümlenin ilk harflerinden oluşmuş anlamsız bir kelime de oldukça iyi bir seçim sayılır. 
+
+
+
+Sistem, sizi bu iki kurala uymak konusunda biraz zorlayacaktır ama buradaki en önemli etken "insan"dır. Sistemlerin daha güvenli hale gelmesini sağlayan en önemli etken uyanık kullanıcılardır.
+
+.SH ÇIKIŞ DURUMU
+
+Çıkış durumu olarak \fB0\fR, işlemin başarıyla tamamlandığını gösterir. Hata oluştuğu durumlarda \fB1\fR ile çıkar. Metin olarak çıktılanabilen hatalar standart hataya yazılır.
+
+.SH UYUMLULUK
+
+Linux-PAM (Linux için Eklenebilir Kimlik Kanıtlama modülleri).
+.br
+Şayet, elinizdeki Linux-PAM sürümü, Linux dosya sistemi standartları ile uyumlu ise, modülleri /usr/lib/security dizini (örnekte gösterilen) yerine /lib/security altında bulabilirsiniz.
+
+.SH İLGİLİ DOSYALAR
+
+\fB/etc/pam.d/passwd\fR - \fBLinux-PAM\fR yapılandırma dosyası
+
+.SH YAZILIM HATALARI
+
+Bilinen herhangi bir yazılım hatası yoktur.
+.SH İLGİLİ BELGELER
+
+\fBpam_chauthok\fR(2),
+\fBpam\fR(8).
+
+\fBLinux-PAM\fR ile bu uygulamanın birlikte nasıl yapılandırıldığı hakkında daha ayrıntılı bilgiyi
+.br
+http://parc.power.net/morgan/Linux-PAM/index.html
+.br
+adresindeki, \fBLinux-PAM System Administrators´ Guide\fR içinde bulabilirsiniz.
+
+.SH YAZAN
+
+Cristian Gafton  <gafton (at) redhat.com> tarafından yazılmıştır.
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Aralık 2003
+

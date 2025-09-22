@@ -1,0 +1,235 @@
+'\" t
+.\"     Title: groupadd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "groupadd" "8" "06/18/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+groupadd \- создаёт новую группу
+.SH "СИНТАКСИС"
+.HP \w'\fBgroupadd\fR\ 'u
+\fBgroupadd\fR [\fIOPTIONS\fR] \fINEWGROUP\fR
+.SH "ОПИСАНИЕ"
+.PP
+The
+\fBgroupadd\fR
+command creates a new group account using the values specified on the command line plus the default values from the system\&. The new group will be entered into the system files as needed\&.
+.PP
+Groupnames may contain only lower and upper case letters, digits, underscores, or dashes\&. They can end with a dollar sign\&. Dashes are not allowed at the beginning of the groupname\&. Fully numeric groupnames and groupnames \&. or \&.\&. are also disallowed\&.
+.PP
+Groupnames may only be up to 32 characters long\&.
+.SH "ПАРАМЕТРЫ"
+.PP
+The options which apply to the
+\fBgroupadd\fR
+command are:
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+This option causes the command to simply exit with success status if the specified group already exists\&. When used with
+\fB\-g\fR, and the specified GID already exists, another (unique) GID is chosen (i\&.e\&.
+\fB\-g\fR
+is turned off)\&.
+.RE
+.PP
+\fB\-g\fR, \fB\-\-gid\fR\ \&\fIGID\fR
+.RS 4
+The numerical value of the group\*(Aqs ID\&.
+\fIGID\fR
+must be unique, unless the
+\fB\-o\fR
+option is used\&. The value must be non\-negative\&. The default is to use the smallest ID value greater than or equal to
+\fBGID_MIN\fR
+and greater than every other group\&.
+.sp
+See also the
+\fB\-r\fR
+option and the
+\fBGID_MAX\fR
+description\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показать краткую справку и закончить работу\&.
+.RE
+.PP
+\fB\-K\fR, \fB\-\-key\fR\ \&\fIKEY\fR=\fIVALUE\fR
+.RS 4
+Overrides
+/etc/login\&.defs
+defaults (GID_MIN, GID_MAX and others)\&. Multiple
+\fB\-K\fR
+options can be specified\&.
+.sp
+Example:
+\fB\-K\fR\ \&\fIGID_MIN\fR=\fI100\fR\ \&
+\fB\-K\fR\ \&\fIGID_MAX\fR=\fI499\fR
+.sp
+Note:
+\fB\-K\fR\ \&\fIGID_MIN\fR=\fI10\fR,\fIGID_MAX\fR=\fI499\fR
+doesn\*(Aqt work yet\&.
+.RE
+.PP
+\fB\-o\fR, \fB\-\-non\-unique\fR
+.RS 4
+permits the creation of a group with an already used numerical ID\&. As a result, for this
+\fIGID\fR, the mapping towards group
+\fINEWGROUP\fR
+may not be unique\&.
+.RE
+.PP
+\fB\-p\fR, \fB\-\-password\fR\ \&\fIPASSWORD\fR
+.RS 4
+defines an initial password for the group account\&. PASSWORD is expected to be encrypted, as returned by
+\fBcrypt \fR(3)\&.
+.sp
+Without this option, the group account will be locked and with no password defined, i\&.e\&. a single exclamation mark in the respective field of ths system account file
+/etc/group
+or
+/etc/gshadow\&.
+.sp
+\fBNote:\fR
+This option is not recommended because the password (or encrypted password) will be visible by users listing the processes\&.
+.sp
+Вы должны проверить, что пароль соответствует политике системных паролей\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-system\fR
+.RS 4
+Создать системную группу\&.
+.sp
+The numeric identifiers of new system groups are chosen in the
+\fBSYS_GID_MIN\fR\-\fBSYS_GID_MAX\fR
+range, defined in
+login\&.defs, instead of
+\fBGID_MIN\fR\-\fBGID_MAX\fR\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes to configuration files under the root filesystem found under the directory
+\fIPREFIX_DIR\fR\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-U\fR, \fB\-\-users\fR
+.RS 4
+A list of usernames to add as members of the group\&.
+.sp
+The default behavior (if the
+\fB\-g\fR,
+\fB\-N\fR, and
+\fB\-U\fR
+options are not specified) is defined by the
+\fBUSERGROUPS_ENAB\fR
+variable in
+/etc/login\&.defs\&.
+.RE
+.SH "НАСТРОЙКА"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛЫ"
+.PP
+/etc/group
+.RS 4
+содержит информацию о группах
+.RE
+.PP
+/etc/gshadow
+.RS 4
+содержит защищаемую информацию о группах
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+содержит конфигурацию подсистемы теневых паролей
+.RE
+.SH "ПРЕДОСТЕРЕЖЕНИЯ"
+.PP
+Нельзя добавить группу NIS или LDAP\&. Это необходимо делать на соответствующем сервере\&.
+.PP
+If the groupname already exists in an external group database such as NIS or LDAP,
+\fBgroupadd\fR
+will deny the group creation request\&.
+.SH "ВОЗВРАЩАЕМЫЕ ЗНАЧЕНИЯ"
+.PP
+The
+\fBgroupadd\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI2\fR
+.RS 4
+invalid command syntax
+.RE
+.PP
+\fI3\fR
+.RS 4
+invalid argument to option
+.RE
+.PP
+\fI4\fR
+.RS 4
+GID is already used (when called without
+\fB\-o\fR)
+.RE
+.PP
+\fI9\fR
+.RS 4
+group name is already used
+.RE
+.PP
+\fI10\fR
+.RS 4
+can\*(Aqt update group file
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBlogin.defs\fR(5),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8)\&.

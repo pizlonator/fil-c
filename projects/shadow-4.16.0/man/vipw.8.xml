@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1997       , Marek Michałkiewicz
+   SPDX-FileCopyrightText: 2001 - 2006, Tomasz Kłoczko
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='vipw.8'>
+  <!--  $Id$  -->
+  <refentryinfo>
+    <author>
+      <firstname>Marek</firstname>
+      <surname>Michałkiewicz</surname>
+      <contrib>Creation, 1997</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>vipw</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>vipw</refname>
+    <refname>vigr</refname>
+    <refpurpose>
+      edit the password, group, shadow-password or shadow-group file
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>vipw</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>                                                                                           
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>vigr</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>                                                                                           
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>vipw</command> and <command>vigr</command> commands edit
+      the files <filename>/etc/passwd</filename> and
+      <filename>/etc/group</filename>, respectively. With the
+      <option>-s</option> flag, they will edit the shadow versions of those
+      files, <filename>/etc/shadow</filename> and
+      <filename>/etc/gshadow</filename>, respectively. The programs will set
+      the appropriate locks to prevent file corruption. When looking for an
+      editor, the programs will first try the environment variable
+      <envar>$VISUAL</envar>, then the environment variable
+      <envar>$EDITOR</envar>, and finally the default editor,
+      <citerefentry><refentrytitle>vi</refentrytitle>
+      <manvolnum>1</manvolnum></citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>vipw</command> and
+      <command>vigr</command> commands are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-g</option>, <option>--group</option></term>
+	<listitem>
+	  <para>Edit group database.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-p</option>, <option>--passwd</option></term>
+	<listitem>
+	  <para>Edit passwd database.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-q</option>, <option>--quiet</option></term>
+	<listitem>
+	  <para>Quiet mode.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-s</option>, <option>--shadow</option></term>
+	<listitem>
+	  <para>Edit shadow or gshadow database.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="tcb">
+	<term><option>-u</option>, <option>--user</option></term>
+	<listitem>
+	  <para>Indicates which user's tcb shadow file to edit.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='configuration' condition="tcb">
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &USE_TCB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='environment'>
+    <title>ENVIRONMENT</title>
+    <variablelist>
+      <varlistentry>
+	<term><option>VISUAL</option></term>
+	<listitem>
+	  <para>Editor to be used.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>EDITOR</option></term>
+	<listitem>
+	  <para>Editor to be used if <option>VISUAL</option> is not set.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>vi</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>gshadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>
+      <citerefentry condition="tcb">
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry condition="tcb">
+	<refentrytitle>tcb</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

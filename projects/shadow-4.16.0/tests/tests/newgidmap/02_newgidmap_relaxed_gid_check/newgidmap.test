@@ -1,0 +1,67 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "setup uid mapping when primary groups don't match"
+
+save_config
+
+unpriv_userns=$( sysctl -n kernel.unprivileged_userns_clone )
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; \
+	rm -rf /tmp/test-gidmap; \
+        sysctl -q kernel.unprivileged_userns_clone=$unpriv_userns' 0
+
+change_config
+
+sysctl -q kernel.unprivileged_userns_clone=1
+
+echo -n "Create world writable tmp directory..."
+rm -rf /tmp/test-gidmap
+mkdir -m 0777 /tmp/test-gidmap
+echo "OK"
+
+echo -n "setup gidmapping... "
+base=$(id -g foo)
+runuser foo -g foo -c "unshare -U sleep 10 & pid=\$!; \
+        sleep 2s; newgidmap \$pid 0 $base 1 1 1000000 1000; ret=\$?; \
+        cat /proc/\$pid/gid_map >/tmp/test-gidmap/gid_map;
+        kill \$pid; exit \$ret"
+../../common/compare_file.pl /tmp/test-gidmap/gid_map data/gid_map
+echo "OK"
+
+# This next test should fail if setgroups on the ns is not
+# USERNS_SETGROUPS_ALLOWED ("allow")
+# TODO let's figure out what to do about this.  For now skip
+# that test.
+log_status "$0" "SUCCESS"
+
+sysctl -q kernel.unprivileged_userns_clone=$unpriv_userns
+rm -rf /tmp/test-gidmap;
+
+restore_config
+trap '' 0
+exit 0
+
+echo -n "setup gidmapping with different primary group... "
+runuser foo -g bar -c "unshare -U sleep 10 & pid=\$!; \
+        sleep 2s; newgidmap \$pid 0 $base 1 1 1000000 1000; ret=\$?; \
+        cat /proc/\$pid/gid_map >/tmp/test-gidmap/gid_map;
+        kill \$pid; exit \$ret"
+../../common/compare_file.pl /tmp/test-gidmap/gid_map data/gid_map.bar
+echo "OK"
+
+log_status "$0" "SUCCESS"
+
+sysctl -q kernel.unprivileged_userns_clone=$unpriv_userns
+rm -rf /tmp/test-gidmap;
+
+restore_config
+trap '' 0
+

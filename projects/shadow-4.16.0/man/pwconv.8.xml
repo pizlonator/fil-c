@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1996 - 1998, Marek Michałkiewicz
+   SPDX-FileCopyrightText: 2000 - 2006, Tomasz Kłoczko
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY PASS_MAX_DAYS         SYSTEM "login.defs.d/PASS_MAX_DAYS.xml">
+<!ENTITY PASS_MIN_DAYS         SYSTEM "login.defs.d/PASS_MIN_DAYS.xml">
+<!ENTITY PASS_WARN_AGE         SYSTEM "login.defs.d/PASS_WARN_AGE.xml">
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='pwconv.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Marek</firstname>
+      <surname>Michałkiewicz</surname>
+      <contrib>Creation, 1996</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>pwconv</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>pwconv</refname>
+    <refname>pwunconv</refname>
+    <refname>grpconv</refname>
+    <refname>grpunconv</refname>
+    <refpurpose>convert to and from shadow passwords and groups</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>pwconv</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>pwunconv</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>grpconv</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>grpunconv</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>pwconv</command> command creates <emphasis
+      remap='I'>shadow</emphasis> from <emphasis remap='I'>passwd</emphasis>
+      and an optionally existing <emphasis remap='I'>shadow</emphasis>.
+    </para>
+    <para condition="tcb">
+      <command>pwconv</command> does not work with
+      <option>USE_TCB</option> enabled. To convert to tcb passwords, you
+      should first use <command>pwconv</command> to convert to shadowed
+      passwords by disabling <option>USE_TCB</option> in
+      <filename>login.defs</filename> and then convert to tcb password
+      using <command>tcb_convert</command> (and re-enable
+      <option>USE_TCB</option> in <filename>login.defs</filename>.)
+    </para>
+
+    <para>
+      The <command>pwunconv</command> command creates <emphasis
+      remap='I'>passwd</emphasis> from <emphasis remap='I'>passwd</emphasis>
+      and <emphasis remap='I'>shadow</emphasis> and then removes <emphasis
+      remap='I'>shadow</emphasis>.
+    </para>
+    <para condition="tcb">
+      <command>pwunconv</command> does not work with
+      <option>USE_TCB</option> enabled. You should first switch back from
+      tcb to shadowed passwords using <command>tcb_unconvert</command>,
+      and then disable <option>USE_TCB</option> in
+      <filename>login.defs</filename> before using
+      <command>pwunconv</command>.
+    </para>
+
+    <para>
+      The <command>grpconv</command> command creates <emphasis
+      remap='I'>gshadow</emphasis> from <emphasis remap='I'>group</emphasis>
+      and an optionally existing <emphasis remap='I'>gshadow</emphasis>.
+    </para>
+
+    <para>
+      The <command>grpunconv</command> command creates <emphasis
+      remap='I'>group</emphasis> from <emphasis remap='I'>group</emphasis>
+      and <emphasis remap='I'>gshadow</emphasis> and then removes <emphasis
+      remap='I'>gshadow</emphasis>.
+    </para>
+
+    <para>
+      These four programs all operate on the normal and shadow password and
+      group files: <filename>/etc/passwd</filename>,
+      <filename>/etc/group</filename>, <filename>/etc/shadow</filename>, and
+      <filename>/etc/gshadow</filename>.
+    </para>
+
+    <para>
+      Each program acquires the necessary locks before conversion. 
+      <command>pwconv</command> and <command>grpconv</command> are similar. 
+      First, entries in the shadowed file which don't exist in the main file
+      are removed. Then, shadowed entries which don't have `x' as the
+      password in the main file are updated. Any missing shadowed entries
+      are added. Finally, passwords in the main file are replaced with `x'. 
+      These programs can be used for initial conversion as well to update
+      the shadowed file if the main file is edited by hand.
+    </para>
+
+    <para>
+      <command>pwconv</command> will use the values of <emphasis
+      remap='I'>PASS_MIN_DAYS</emphasis>, <emphasis
+      remap='I'>PASS_MAX_DAYS</emphasis>, and <emphasis
+      remap='I'>PASS_WARN_AGE</emphasis> from
+      <filename>/etc/login.defs</filename> when adding new entries to
+      <filename>/etc/shadow</filename>.
+    </para>
+
+    <para>
+      Likewise <command>pwunconv</command> and <command>grpunconv</command>
+      are similar. Passwords in the main file are updated from the shadowed
+      file. Entries which exist in the main file but not in the shadowed
+      file are left alone. Finally, the shadowed file is removed. Some
+      password aging information is lost by <command>pwunconv</command>. It
+      will convert what it can.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>pwconv</command>,
+      <command>pwunconv</command>, <command>grpconv</command>, and
+      <command>grpunconv</command> commands are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='bugs'>
+    <title>BUGS</title>
+    <para>
+      Errors in the password or group files (such as invalid or duplicate
+      entries) may cause these programs to loop forever or fail in other
+      strange ways. Please run <command>pwck</command> and
+      <command>grpck</command> to correct any such errors before converting
+      to or from shadow passwords or groups.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variable in
+      <filename>/etc/login.defs</filename> changes the behavior of
+      <command>grpconv</command> and <command>grpunconv</command>:
+    </para>
+    <variablelist>
+      &MAX_MEMBERS_PER_GROUP;
+    </variablelist>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of
+      <command>pwconv</command>:
+    </para>
+    <variablelist>
+      &PASS_MAX_DAYS;
+      &PASS_MIN_DAYS;
+      &PASS_WARN_AGE;
+      &USE_TCB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>grpck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pwck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry><phrase condition="tcb">,
+      <citerefentry>
+	<refentrytitle>tcb_convert</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>tcb_unconvert</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry></phrase>.
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "grpunconv exits successfully when the gshadow file does not exist"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Remove the gshadow file..."
+rm -f /etc/gshadow
+echo "done"
+
+echo -n "Convert the group files (grpunconv)..."
+grpunconv
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+test ! -f /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

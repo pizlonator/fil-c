@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# This test check if passwd or login provide files also distributed by
+# another package.
+# The goal is to detect new package for the Replaces or Conflicts fields,
+# or to tighten these relationships.
+#
+# It supposes that we will at least Replaces/Conflicts on the i386
+# architecture.
+
+wget -c http://ftp2.fr.debian.org/debian/dists/unstable/Contents-i386.gz
+
+for pkg in login passwd
+    do
+    dpkg -L $pkg | sed -e 's/^\///' |
+    {
+        while read file
+        do
+            [ -f "/$file" ] && echo "^$file	"
+        done
+    } > files
+
+    echo "List of files that the $pkg package currently replaces:"
+    zgrep -E -f files Contents-i386.gz | grep -Ev " admin/(login|passwd)$"
+done
+
+rm -f files Contents-i386.gz
+

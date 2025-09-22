@@ -1,0 +1,31 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/sh
+send "if \[ \$(id -u) -eq 0 \]; then PS1='# '; else PS1='$ '; fi\r"
+expect "# "
+
+send "grpck\r"
+expect "'foo3' is a member of the 'foo' group in /etc/gshadow but not in /etc/group"
+expect "'foo2' is a member of the 'foo' group in /etc/gshadow but not in /etc/group"
+expect "shadow group foo: no administrative user foo3"
+expect "delete administrative member 'foo3'? "
+send "yes\r"
+expect "shadow group foo: no administrative user foo4"
+expect "delete administrative member 'foo4'? "
+send "yes\r"
+expect "shadow group foo: no user foo3"
+expect "delete member 'foo3'? "
+send "yes\r"
+expect "shadow group foo: no user foo2"
+expect "delete member 'foo2'? "
+send "yes\r"
+expect "grpck: the files have been updated"
+expect "# "
+send "echo \$?\r"
+expect "2"
+send "exit\r"
+puts "OK\n"
+exit 0

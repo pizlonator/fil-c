@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Add a new user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 with homedir (useradd --create-home test1)..."
+useradd --create-home test1
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl 01_useradd_add_user/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl 01_useradd_add_user/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 01_useradd_add_user/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl 01_useradd_add_user/gshadow /etc/gshadow
+echo "OK"
+echo -n "homedir created..."
+test -d /home/test1
+echo "OK"
+echo -n "Check if skeleton files were added..."
+diff -rauN /etc/skel /home/test1
+echo "OK"
+rm -rf /home/test1
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "chsh can change a user in a chroot"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; clean_chroot; restore_config' 0
+
+change_config
+
+prepare_chroot
+
+echo -n "Change user in chroot (chsh --root $PWD/tmp/root -s /bin/dash root)..."
+chsh --root $PWD/tmp/root -s /bin/dash root
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+../../../common/compare_file.pl data/passwd tmp/root/etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+../../../common/compare_file.pl config_chroot/etc/group tmp/root/etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+../../../common/compare_file.pl config_chroot/etc/shadow tmp/root/etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+../../../common/compare_file.pl config_chroot/etc/gshadow tmp/root/etc/gshadow
+echo "OK"
+
+rm -f tmp/root/etc/.pwd.lock
+rm -f tmp/root/etc/passwd-
+rm -f tmp/root/etc/group-
+rm -f tmp/root/etc/shadow-
+rm -f tmp/root/etc/gshadow-
+clean_chroot
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

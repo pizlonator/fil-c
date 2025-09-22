@@ -1,0 +1,44 @@
+.\" SPDX-FileCopyrightText: 1990 - 1994 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" $Id$
+.\"
+.TH CHFN 1
+.SH 名前
+chfn \- ユーザの氏名や情報を変更する。
+.SH 書式
+.TP 5
+\fBchfn\fR [\fB\-f\fR \fIfull_name\fR] [\fB\-r\fR \fIroom_no\fR]
+.br
+[\fB\-w\fR \fIwork_ph\fR] [\fB\-h\fR \fIhome_ph\fR] [\fB\-o\fR \fIother\fR]
+[\fIuser\fR]
+.SH 説明
+\fBchfn\fR は、ユーザのフルネーム・オフィスの部屋番号・内線番号・
+自宅の電話番号といったアカウント情報を変更する。
+この情報は \fBfinger\fR(1) のようなプログラムによって表示される。
+一般ユーザは自分自身のアカウント情報のみを変更できる。
+スーパーユーザは全てのアカウントに対して情報を変更できる。
+また \fB\-o\fR オプションを用いて
+GECOS 欄の未定義部分を変更できるのもスーパーユーザだけである。
+.PP
+各フィールドに書く内容に関する制限は、
+コントロール文字・コンマ・コロン・等号を含んでいてはならない、
+ということのみである。
+\fIother\fR 欄に対してはこの制限はないので、
+他のアプリケーションが用いるアカウンティング情報の記録に利用される。
+.PP
+いずれのオプションも指定されないと
+\fBchfn\fR は対話的に動作する。
+全ての欄に対して各々現在の設定値を表示し、新しい値の入力を促す。
+新しい値を設定する場合はそれを入力し、
+現在の値を使うなら空行のままリターンキーを押せばよい。
+現在の値は \fB[ ]\fR 記号の間に表示される。
+オプションを指定しなかった場合、
+chfn は現在のユーザアカウントに対して動作する。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.SH 関連項目
+.BR passwd (5)
+.SH 著者
+Julianne Frances Haugh <julie78787@gmail.com>

@@ -1,0 +1,142 @@
+'\" t
+.\"     Title: suauth
+.\"    Author: Marek Micha\(/lkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "suauth" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+suauth \- докладний файл керування su
+.SH "КОРОТКИЙ ОГЛЯД"
+.HP \w'\fB/etc/suauth\fR\ 'u
+\fB/etc/suauth\fR
+.SH "ОПИС"
+.PP
+The file
+/etc/suauth
+is referenced whenever the su command is called\&. It can change the behaviour of the su command, based upon:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+1) користувача призначення su
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+2) користувача, від імені якого віддано команду su (або будь\-яких груп, учасником яких він є)
+.PP
+Форматування файла описано нижче\&. Рядки, які починаються з символу #, вважатимуться коментарями\&. Такі рядки буде проігноровано;
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+ідентифікатор\-призначення:похідний\-ідентифікатор:ДІЯ
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Where to\-id is either the word
+\fIALL\fR, a list of usernames delimited by "," or the words
+\fIALL EXCEPT\fR
+followed by a list of usernames delimited by ","\&.
+.PP
+from\-id is formatted the same as to\-id except the extra word
+\fIGROUP\fR
+is recognized\&.
+\fIALL EXCEPT GROUP\fR
+is perfectly valid too\&. Following
+\fIGROUP\fR
+appears one or more group names, delimited by ","\&. It is not sufficient to have primary group id of the relevant group, an entry in
+\fB/etc/group\fR(5)
+is necessary\&.
+.PP
+Дією може бути лише один із наведених нижче підтримуваних у поточній версії варіантів\&.
+.PP
+\fIDENY\fR
+.RS 4
+Спробу su буде зупинено навіть до того, як буде надіслано запит щодо пароля\&.
+.RE
+.PP
+\fINOPASS\fR
+.RS 4
+Спроба виконати su автоматично успішна; запит щодо пароля не виконуватиметься\&.
+.RE
+.PP
+\fIOWNPASS\fR
+.RS 4
+Для успішного виконання команди su користувач має ввести власний пароль\&. Програма попросить його це зробити\&.
+.RE
+.PP
+Зауважте, що передбачено три окремих поля, які відокремлено двокрапками\&. Ніяких пробілів навколо двокрапок не повинно бути\&. Також зауважте, що файл буде оброблено рядок за рядком\&. Бдуе використано перше придатне правило без вивчення решти\&. Це уможливлює для адміністратора встановлення бажаного рівня керування доступом\&.
+.SH "ПРИКЛАД"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# приклад файла /etc/suauth
+#
+# Двійко привілейованих користувачів можуть
+# виконувати su до root із власним паролем\&.
+#
+root:chris,birddog:OWNPASS
+#
+# Усі інші не можуть виконувати su до root, якщо
+# не у групі wheel\&. Так роблять у BSD\&.
+#
+root:ALL EXCEPT GROUP wheel:DENY
+#
+# Можливо, облікові записи terry і birddog належать
+# одній особі\&.
+# Можна налаштувати доступ між ними
+# без пароля\&.
+#
+terry:birddog:NOPASS birddog:terry:NOPASS
+#
+.fi
+.if n \{\
+.RE
+.\}
+.SH "ФАЙЛИ"
+.PP
+/etc/suauth
+.RS 4
+.RE
+.SH "ВАДИ"
+.PP
+Може бути доволі багато проблем\&. Зокрема, обробник файла не пробачає синтаксичних помилок, не дає додавати пробіли у довільні місця (окрім початку і кінця рядків) і має специфічні правила щодо розмежування записів\&.
+.SH "ДІАГНОСТИКА"
+.PP
+An error parsing the file is reported using
+\fBsyslogd\fR(8)
+as level ERR on facility AUTH\&.
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBsu\fR(1)\&.

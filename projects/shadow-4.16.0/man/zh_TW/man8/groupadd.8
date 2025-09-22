@@ -1,0 +1,64 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH GROUPADD 8
+.SH 名稱
+groupadd \- 建 立 新 群 組
+.SH 語法
+\fBgroupadd\fR [\fB\-g\fR \fIgid\fR [\fB\-o\fR]] [\fB\-f\fR] \fIgroup\fR
+.SH 描述
+\fBgroupadd\fR
+可 指 定 群 組 名 稱 來 建 立 新 的 群 組 帳 號 。
+需 要 時 可 從 系 統 中 取 得 新 群 組 值 。
+\fBgroupadd\fR 有 下 列 選 項 可 用 。
+.IP \fB\-f\fR
+This is \fIforce\fR flag. 
+新 增 一 個 已 經 存 在 的 群 組 帳 號 ， 系 統 會 出
+現 錯 誤 訊 息 然 後 結 束 \fBgroupadd\fR 。
+ 如 果 是 這 樣 的 情 況 ， 不 會 新 增 這 個 群 組 
+( 如 果 是 這 個 情 況 下 ， 系 統 不 會 再 新 增 一 次 )
+.br
+也 可 同 時 加 上 \fB\-g\fR 選 項
+當 你 加 上 一 個 \fIgid\fR ， 此 時  \fIgid\fR
+就 不 用 是 唯 一 值 ， 可 不 加 \fB\-o\fR 參 數 ，
+建 好 群 組 後 會 顯 結 果  
+(adding a group as neither \fB\-g\fR or \fB\-o\fR options were
+specified).
+
+.IP "\fB\-g \fIgid\fR"
+group's ID 值 。
+除  非 使 用 \fB\-o\fR 參 數 不 然 該 值 必 須 是 唯 一 ， 不 可 相 同 。
+數 值 不 可 為 負 。
+預 設 為 最 小  不  得 小 於 500 而 逐 次 增 加 。 0~999 傳 統 上
+是 保 留 給 \fI系統帳號\fR 使 用 。
+.IP \fB\-r\fR
+此 參 數 是 用 來 建 立 \fI系統帳號\fR 。
+的  UID 會 比 定 義 在 系 統 檔 上 /etc/login.defs.
+的 UID_MIN 來 的 小 。 注 意 useradd 此 用 法 所 建
+立  的 帳 號 不 會 建 立 使 用 者 目 錄 ， 也 不 會
+在 乎 紀 錄 在 /etc/login.defs. 的 定 義 值  。  如
+果  你 想 要 有 使 用 者 目 錄 須 額 外 指 定 \-m 參
+數 來 建 立 系 統 帳 號 。 這 是 RED HAT 額  外  增
+設 的 選 項 。
+它 會 自 動 幫 你 選 定 一 個 小 於 999 的 \fIgif\fR
+不 需 要 再 加 上 \fB\-g\fR 參 數 。
+.br
+這 是 RED HAT 額  外  增 設 的 選 項 。
+
+.br
+這 是 RED HAT 額  外  增 設 的 選 項 。
+.SH 檔案
+\fI/etc/group\fR \- 群 組 資 訊
+.br
+\fI/etc/gshadow\fR \- 群 組 資 訊 加 密
+.SH 相關文件
+.BR chfn (1),
+.BR chsh (1),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8),
+.BR passwd (1),
+.BR groupdel (8),
+.BR groupmod (8)
+.SH 作者
+Julianne Frances Haugh (jfh@tab.com)

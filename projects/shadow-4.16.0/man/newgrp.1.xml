@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY SYSLOG_SG_ENAB        SYSTEM "login.defs.d/SYSLOG_SG_ENAB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='newgrp.1'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>newgrp</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>newgrp</refname>
+    <refpurpose>log in to a new group</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>newgrp</command>    <arg choice='opt'>- </arg>
+      <arg choice='opt'><replaceable>group</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+  <title>DESCRIPTION</title>
+    <para>
+      The <command>newgrp</command> command is used to change the current
+      group ID during a login session. If the optional <option>-</option>
+      flag is given, the user's environment will be reinitialized as though
+      the user had logged in, otherwise the current environment, including
+      current working directory, remains unchanged.
+    </para>
+
+    <para>
+      <command>newgrp</command> changes the current real group ID to the
+      named group, or to the default group listed in
+      <filename>/etc/passwd</filename> if no group name is given. 
+      <command>newgrp</command> also tries to add the group to the user
+      groupset. If not root, the user will be prompted for a password if she
+      does not have a password (in <filename>/etc/shadow</filename> if this
+      user has an entry in the shadowed password file, or in
+      <filename>/etc/passwd</filename> otherwise) and the group does, or if
+      the user is not listed as a member and the group has a password. The
+      user will be denied access if the group password is empty and the user
+      is not listed as a member.
+    </para>
+
+    <para condition="gshadow">
+      If there is an entry for this group in
+      <filename>/etc/gshadow</filename>, then the list of members and the
+      password of this group will be taken from this file, otherwise, the
+      entry in <filename>/etc/group</filename> is considered.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &SYSLOG_SG_ENAB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	 </listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>id</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sg</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>gpasswd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry><phrase condition="gshadow">,
+	<citerefentry condition="gshadow">
+	  <refentrytitle>gshadow</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>
+      </phrase>.
+    </para>
+  </refsect1>
+</refentry>

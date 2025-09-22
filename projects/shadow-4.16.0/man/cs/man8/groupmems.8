@@ -1,0 +1,85 @@
+.TH "GROUPMEMS" "8" "10/20/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+groupmems \- Spravuje členy uživatelovy primární skupiny
+.SH "POUŽITÍ"
+.HP 10
+\fBgroupmems\fR \-a\ \fIuživatel\fR \-d\ \fIuživatel\fR \-l \-D [\-g\ \fIskupina\fR]
+.SH "POPIS"
+.PP
+Nástroj
+\fBgroupmems\fR
+umožňuje uživatelům spravovat členství ve své primární skupině, aniž
+by museli mít superuživatelská práva. Nástroj
+\fBgroupmems\fR
+je zamýšlen pro systémy, které pro každého uživatele vytváří vlastní
+primární skupinu (tj. novak / novak).
+.PP
+Pouze superuživatel (root) může použít
+\fBgroupmems\fR
+ke změně členství v ostatních skupinách.
+.SH "VOLBY"
+.PP
+Příkaz
+\fBgroupmems\fR
+akceptuje následující volby:
+.TP
+\fB\-a\fR \fIuživatel\fR
+Přidá do seznamu členů skupiny nového uživatele.
+.TP
+\fB\-d\fR \fIuživatel\fR
+Ze seznamu členů skupiny odebere daného uživatele.
+.TP
+\fB\-D\fR
+Ze seznamu členů skupiny odebere všechny uživatele.
+.TP
+\fB\-g\fR \fIskupina\fR
+Superuživatel může zadat skupinu, které se mají změny týkat.
+.TP
+\fB\-l\fR
+Vypíše seznam členů skupiny.
+.SH "NASTAVENÍ"
+.PP
+Příkaz
+\fBgroupmems\fR
+by měl mít nastavena práva
+2710
+a měl by jej vlastnit uživatel
+\fIroot\fR
+a skupina
+\fIgroups\fR. Správce systému může uživatelům povolit
+používání nástroje
+\fBgroupmems\fR
+tím, že přidá uživatele do skupiny groups. Uživatelé si pak mohou sami
+spravovat členství ve skupinách.
+.sp
+.nf
+	$ groupadd \-r groups
+	$ chmod 2710 groupmems
+	$ chown root.groups groupmems
+	$ groupmems \-g groups \-a gk4
+
+.fi
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.SH "VIZ TAKÉ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).
+.SH "AUTOR"
+.PP
+George Kraft IV (gk4@us.ibm.com)

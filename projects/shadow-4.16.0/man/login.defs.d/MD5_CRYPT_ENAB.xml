@@ -1,0 +1,36 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>MD5_CRYPT_ENAB</option> (boolean)</term>
+  <listitem>
+    <para>
+      Indicate if passwords must be encrypted using the MD5-based
+      algorithm. If set to <replaceable>yes</replaceable>, new passwords
+      will be encrypted using the MD5-based algorithm compatible with the
+      one used by recent releases of FreeBSD. It supports passwords of
+      unlimited length and longer salt strings. Set to
+      <replaceable>no</replaceable> if you need to copy encrypted
+      passwords to other systems which don't understand the new algorithm.
+      Default is <replaceable>no</replaceable>.
+    </para>
+    <para>
+      This variable is superseded by the <option>ENCRYPT_METHOD</option>
+      variable or by any command line option used to configure the
+      encryption algorithm.
+    </para>
+    <para>
+      This variable is deprecated. You should use
+      <option>ENCRYPT_METHOD</option>.
+    </para>
+    <para condition="pam">
+      Note: This only affect the generation of group passwords.
+      The generation of user passwords is done by PAM and subject to the
+      PAM configuration. It is recommended to set this variable
+      consistently with the PAM configuration.
+    </para>
+  </listitem>
+</varlistentry>

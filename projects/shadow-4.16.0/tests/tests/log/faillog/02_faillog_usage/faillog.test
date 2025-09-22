@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "faillog can display its usage message"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Get faillog usage (faillog -h)..."
+faillog -h >tmp/usage.out
+echo "OK"
+
+echo "faillog reported:"
+echo "======================================================================="
+cat tmp/usage.out
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/usage.out tmp/usage.out
+echo "usage message OK."
+rm -f tmp/usage.out
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

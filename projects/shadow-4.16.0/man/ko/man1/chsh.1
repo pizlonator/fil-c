@@ -1,0 +1,43 @@
+.\" $Id$
+.\" (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\" this program is free software.  you can redistribute it and
+.\" modify it under the terms of the gnu general public license.
+.\" there is no warranty.
+.TH CHSH 1 "October 13 1994" "chsh" "Linux Reference Manual"
+.SH NAME
+chsh \- 사용자 로그인 쉘을 바꾼다.
+.SH SYNOPSIS
+.B chsh
+[\ \-s\ shell\ ] [\ \-l\ ] [\ \-u\ ] [\ \-v\ ] [\ username\ ]
+.SH DESCRIPTION
+.B chsh
+명령은 사용자가 사용하고 있는 로그인 쉘을 바꾸는데, 사용된다. 
+(이말은 exit 명령을 사용했을 때 로그아웃되는 쉘을 말한다.)
+명령행에서 쉘을 지정하지 않으면, 사용자에게 물어본다.
+.SS VALID SHELLS
+.B chsh
+명령에서는 절대 경로를 지정하는 어떠한 실행파일도 지정이 가능하다. 
+하지만, 
+.I /etc/shells
+파일에서 지정되어 있지 않는 풀그림을 사용할 경우에는 경고 메시지를 보여준다.
+.SH OPTIONS
+.TP
+.I "\-s, \-\-shell"
+지정하는 쉘을 앞으로 사용할 로그인 쉘로 바꾼다.
+.TP
+.I "\-l, \-\-list\-shells"
+.I /etc/shells
+파일 안에 지정된 쉘을 나열하고 마친다.
+.TP
+.I "\-u, \-\-help"
+도움말을 보여주고 마친다.
+.TP
+.I "\-v, \-\-version"
+버전 정보를 보여주고 마친다.
+.SH "SEE ALSO"
+.BR login (1),
+.BR passwd (5),
+.BR shells (5)
+.SH AUTHOR
+Salvatore Valente <svalente@mit.edu>

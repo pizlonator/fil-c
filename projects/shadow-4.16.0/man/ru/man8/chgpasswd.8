@@ -1,0 +1,140 @@
+'\" t
+.\"     Title: chgpasswd
+.\"    Author: Thomas K\(/loczko <kloczek@pld.org.pl>
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "chgpasswd" "8" "06/18/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+chgpasswd \- обновляет пароли групп в пакетном режиме
+.SH "СИНТАКСИС"
+.HP \w'\fBchgpasswd\fR\ 'u
+\fBchgpasswd\fR [\fIoptions\fR]
+.SH "ОПИСАНИЕ"
+.PP
+The
+\fBchgpasswd\fR
+command reads a list of group name and password pairs from standard input and uses this information to update a set of existing groups\&. Each line is of the format:
+.PP
+\fIgroup_name\fR:\fIpassword\fR
+.PP
+By default the supplied password must be in clear\-text, and is encrypted by
+\fBchgpasswd\fR\&.
+.PP
+The default encryption algorithm can be defined for the system with the
+\fBENCRYPT_METHOD\fR
+variable of
+/etc/login\&.defs, and can be overwritten with the
+\fB\-e\fR,
+\fB\-m\fR, or
+\fB\-c\fR
+options\&.
+.PP
+Данная команда предназначена для работы в крупных системных средах, где за один раз заводится несколько учётных записей\&.
+.SH "ПАРАМЕТРЫ"
+.PP
+The options which apply to the
+\fBchgpasswd\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR
+.RS 4
+Использовать указанный метод для шифрования паролей\&.
+.sp
+The available methods are
+\fIDES\fR,
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR
+and
+\fINONE\fR
+if your libc supports these methods\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-encrypted\fR
+.RS 4
+Передаваемые пароли заданы в шифрованном виде\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показать краткую справку и закончить работу\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-md5\fR
+.RS 4
+Использовать алгоритм шифрования MD5 вместо DES, если пароли передаются не шифрованными\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR
+.RS 4
+Использовать указанное количество раундов шифрования паролей\&.
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default number of rounds is 5000\&.
+.RE
+.SH "ПРЕДОСТЕРЕЖЕНИЯ"
+.PP
+Не забудьте установить права или umask, чтобы не позволить чтение не шифрованных файлов другими пользователями\&.
+.PP
+Вы должны проверить, что пароль и метод шифрования соответствует политике системных паролей\&.
+.SH "НАСТРОЙКА"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛЫ"
+.PP
+/etc/group
+.RS 4
+содержит информацию о группах
+.RE
+.PP
+/etc/gshadow
+.RS 4
+содержит защищаемую информацию о группах
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+содержит конфигурацию подсистемы теневых паролей
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBgpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBlogin.defs\fR(5)\&.

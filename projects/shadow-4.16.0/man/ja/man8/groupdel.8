@@ -1,0 +1,40 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated & Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH GROUPDEL 8
+.SH 名前
+groupdel \- グループを削除する
+.SH 書式
+\fBgroupdel\fR \fIgroup\fR
+.SH 説明
+\fBgroupdel\fR コマンドは、システムアカウントファイルを修正し、
+グループ \fIgroup\fR に対応するすべてのエントリを削除する。
+指定されたグループは存在していなければならない。
+.PP
+全てのファイルシステムに、
+指定したグループの ID を持つファイルが残っていないことを、
+手作業で確認しなくてはならない。
+.SH 警告
+存在するユーザの主グループを削除してはならない。
+グループを削除する前にそのユーザを削除しなければならない。
+.SH ファイル
+\fI/etc/group\fR \- グループ情報
+.br
+\fI/etc/gshadow\fR \- 安全なグループ情報
+.SH 関連項目
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupmod (8),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

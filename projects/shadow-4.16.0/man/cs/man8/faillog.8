@@ -1,0 +1,86 @@
+.TH "FAILLOG" "8" "11/05/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+faillog \- zobrazí záznamy faillogu nebo nastaví limity na chybná přihlášení
+.SH "POUŽITÍ"
+.HP 8
+\fBfaillog\fR [\fIvolby\fR]
+.SH "POPIS"
+.PP
+\fBfaillog\fR
+formátuje obsah souboru
+\fI/var/log/faillog\fR,
+ve kterém se zaznamenávají neúspěšné pokusy o přihlášení. Také jej
+můžete použít pro správu počitadel neúspěšných přihlášení a pro
+nastavení limitů. Spuštení programu
+\fBfaillog\fR
+bez argumentů vypíše záznamy o neúspěšném přihlášení těch uživatelů,
+u kterých je zaznamenáno alespoň jedno chybné přihlášení.
+.SH "VOLBY"
+.PP
+Příkaz
+\fBfaillog\fR
+akceptuje následující volby:
+.TP
+\fB\-a\fR, \fB\-\-all\fR
+Zobrazí záznamy faillogu všech uživatelů.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Zobrazí nápovědu a skončí.
+.TP
+\fB\-l\fR, \fB\-\-lock\-time\fR \fISEK\fR
+Po neúspěšném přihlášení zamkne účet na
+\fISEK\fR
+sekund.
+.TP
+\fB\-m\fR, \fB\-\-maximum\fR \fIMAX\fR
+Nastaví maximální počet chybných přihlášení na MAX. Poté se účet
+zablokuje. Hodnotou 0 tento limit zrušíte. Pro uživatele
+\fIroot\fR
+by hodnota
+\fIMAX\fR
+měla být vždy 0, abyste předešli útokům typu odepření služby.
+.TP
+\fB\-r\fR, \fB\-\-reset\fR
+Vynuluje počitadla chybných přihlášení všech uživatelů. Při použití s
+parametrem \-u
+\fIÚČET\fR
+vynuluje počitadlo pouze pro daný účet. Tato operace vyžaduje práva
+zápisu k souboru
+\fI/var/log/faillog\fR.
+.TP
+\fB\-t\fR, \fB\-\-time\fR \fIDNŮ\fR
+Zobrazí záznamy faillogu novější než
+\fIDNŮ\fR. Volba
+\fB\-t\fR
+má vyšší prioritu než
+\fB\-u\fR.
+.TP
+\fB\-u\fR, \fB\-\-user\fR \fIÚČET\fR
+Zobrazí záznamy faillogu (resp. s volbami
+\fB\-l\fR,
+\fB\-m\fR
+nebo
+\fB\-r\fR
+upraví počitadla nebo limity chybných přihlášení) pouze pro uživatele
+\fIÚČET\fR.
+.SH "ZÁLUDNOSTI"
+.PP
+\fBfaillog\fR
+vypíše pouze uživatele, bez úspěšného přihlášení od poslední
+chyby. Chcete-li vypsat i uživatele, kteří se od poslední chyby
+úspěšně přihlásili, musíte si je explicitně vyžádat volbou
+\fB\-u\fR
+nebo
+\fB\-a\fR.
+.SH "SOUBORY"
+.TP
+\fI/var/log/faillog\fR
+soubor pro záznam chybných pokusů o přihlášení
+.SH "VIZ TAKÉ"
+.PP
+\fBlogin\fR(1),
+\fBfaillog\fR(5).

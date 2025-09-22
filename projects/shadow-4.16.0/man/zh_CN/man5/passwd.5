@@ -1,0 +1,193 @@
+'\" t
+.\"     Title: passwd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "PASSWD" "5" "2024-06-18" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+passwd \- 密码文件
+.SH "描述"
+.PP
+/etc/passwd
+contains one line for each user account, with seven fields delimited by colons (\(lq:\(rq)\&. These fields are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+登录名
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+可选的加密后的密码
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+数字用户 ID
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+数字组 ID
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+用户名和注释字段
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+用户主目录
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+可选的用户命令解释器
+.RE
+.PP
+If the
+\fIpassword\fR
+field is a lower\-case
+\(lqx\(rq, then the encrypted password is actually stored in the
+\fBshadow\fR(5)
+file instead; there
+\fImust\fR
+be a corresponding line in the
+/etc/shadow
+file, or else the user account is invalid\&.
+.PP
+The encrypted
+\fIpassword\fR
+field may be empty, in which case no password is required to authenticate as the specified login name\&. However, some applications which read the
+/etc/passwd
+file may decide not to permit
+\fIany\fR
+access at all if the
+\fIpassword\fR
+field is blank\&.
+.PP
+A
+\fIpassword\fR
+field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the
+\fIpassword\fR
+field before the password was locked\&.
+.PP
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.PP
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, the user will not be able to use a unix password to log in (but the user may log in the system by other means)\&.
+.PP
+The comment field, also known as the gecos field, is used by various system utilities, such as
+\fBfinger\fR(1)\&. The use of an ampersand here will be replaced by the capitalised login name when the field is used or displayed by such system utilities\&.
+.PP
+The home directory field provides the name of the initial working directory\&. The
+\fBlogin\fR
+program uses this information to set the value of the
+\fB$HOME\fR
+environmental variable\&.
+.PP
+The command interpreter field provides the name of the user\*(Aqs command language interpreter, or the name of the initial program to execute\&. The
+\fBlogin\fR
+program uses this information to set the value of the
+\fB$SHELL\fR
+environmental variable\&. If this field is empty, it defaults to the value
+/bin/sh\&.
+.SH "文件"
+.PP
+/etc/passwd
+.RS 4
+用户账户信息。
+.RE
+.PP
+/etc/shadow
+.RS 4
+可选的加密后的密码文件
+.RE
+.PP
+/etc/passwd\-
+.RS 4
+/etc/passwd 的备份文件。
+.sp
+注意，此文件由 shadow 工具集使用，而不是所有的用户和密码管理工具都会使用。
+.RE
+.SH "参见"
+.PP
+\fBcrypt\fR(3),
+\fBgetent\fR(1),
+\fBgetpwnam\fR(3),
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBpwck\fR(8),
+\fBpwconv\fR(8),
+\fBpwunconv\fR(8),
+\fBshadow\fR(5),
+\fBsu\fR(1),
+\fBsulogin\fR(8)\&.

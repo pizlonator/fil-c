@@ -1,0 +1,68 @@
+.\"
+.\"  chfn.1 -- change your finger information
+.\"  (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\"  this program is free software.  you can redistribute it and
+.\"  modify it under the terms of the gnu general public license.
+.\"  there is no warranty.
+.\"
+.\"  $Author: kloczek $
+.\"  $Revision: 1.2 $
+.\"  $Date: 2005/12/01 20:38:25 $
+.\" Proofread by Raimo Koski, Nov-Dec. 1999
+.\" Translated into Finnish by Lauri Nurmi (lanurmi@kauhajoki.fi)
+.\" Proofread by Juhana Siren (Juhana.Siren@oulu.fi)
+.\"
+.TH CHFN 1 "24. huhtikuuta 1998" "chfn" "Käyttäjän sovellusohjelmat"
+.SH NIMI
+chfn \- muuta finger-tietojasi
+.SH "YLEISKATSAUS"
+.B chfn
+[\ \-f\ koko nimi\ ] [\ \-o\ toimisto\ ] [\ \-p\ toimiston puhelin\ ]
+[\ \-h\ kotipuhelin\ ] [\ \-u\ ] [\ \-v\ ] [\ käyttäjänimi\ ]
+.SH KUVAUS
+.B chfn:ää
+käytetään finger-tietojen muuttamiseen. Nämä tiedot ovat
+.I /etc/passwd
+-tiedostossa, ja niitä voidaan katsoa
+.B finger\fR-ohjelmalla.
+Linuxin
+.B finger\fR-komento
+näyttää neljä tietoa, joita voidaan muuttaa
+.B chfn\fR:llä
+: todellinen nimesi, työhuoneesi ja puhelin, sekä kotipuhelimesi.
+.SS KOMENTORIVI
+Jokainen neljästä tiedosta voidaan määritellä komentorivillä. Jos
+komentorivillä ei anneta tietoja,
+.B chfn
+käynnistyy vuorovaikutteisessa tilassa.
+.SS VUOROVAIKUTTEINEN TILA
+Vuorovaikutteisessa tilassa
+.B chfn
+kysyy erikseen jokaista kenttää. Voit syöttää kenttään uuden tiedon, tai
+painaa Enteriä jättääksesi kentän ennalleen. Syötä sana "none" saadaksesi
+kentän tyhjäksi.
+.SH OPTIOT
+.TP
+.I "\-f, \-\-full-name"
+Määritä todellinen nimesi.
+.TP
+.I "\-o, \-\-office"
+Määritä toimistohuoneesi numero.
+.TP
+.I "\-p, \-\-office-phone"
+Määritä toimistohuoneesi puhelinnumero.
+.TP
+.I "\-h, \-\-home-phone"
+Määritä kotipuhelinnumerosi.
+.TP
+.I "\-u, \-\-help"
+Näytä lyhyt ohje komennoista.
+.TP
+.I "-v, \-\-version"
+Näytä versiotiedot.
+.SH TEKIJÄ
+Salvatore Valente <svalente@mit.edu>
+.SH "KATSO MYÖS"
+.BR finger (1),
+.BR passwd (5),

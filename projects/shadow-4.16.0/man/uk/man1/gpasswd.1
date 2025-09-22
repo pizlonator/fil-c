@@ -1,0 +1,160 @@
+'\" t
+.\"     Title: gpasswd
+.\"    Author: Rafal Maszkowski
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "gpasswd" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+gpasswd \- administer /etc/group and /etc/gshadow
+.SH "КОРОТКИЙ ОГЛЯД"
+.HP \w'\fBgpasswd\fR\ 'u
+\fBgpasswd\fR [\fIoption\fR] \fIgroup\fR
+.SH "ОПИС"
+.PP
+The
+\fBgpasswd\fR
+command is used to administer
+/etc/group, and /etc/gshadow\&. Every group can have
+administrators,
+members and a password\&.
+.PP
+System administrators can use the
+\fB\-A\fR
+option to define group administrator(s) and the
+\fB\-M\fR
+option to define members\&. They have all rights of group administrators and members\&.
+.PP
+\fBgpasswd\fR
+called by
+a group administrator
+with a group name only prompts for the new password of the
+\fIgroup\fR\&.
+.PP
+If a password is set the members can still use
+\fBnewgrp\fR(1)
+without a password, and non\-members must supply the password\&.
+.SS "Нотатки щодо паролів груп"
+.PP
+Паролі груп мають неусувну проблему захисту, оскільки пароль знатимуть декілька осіб\&. Втім, групи є корисним інструментом для забезпечення взаємодії між різними користувачами\&.
+.SH "ПАРАМЕТРИ"
+.PP
+Except for the
+\fB\-A\fR
+and
+\fB\-M\fR
+options, the options cannot be combined\&.
+.PP
+The options which apply to the
+\fBgpasswd\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-add\fR\ \&\fIuser\fR
+.RS 4
+Add the
+\fIuser\fR
+to the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-d\fR, \fB\-\-delete\fR\ \&\fIuser\fR
+.RS 4
+Remove the
+\fIuser\fR
+from the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показати довідкове повідомлення і завершити роботу\&.
+.RE
+.PP
+\fB\-Q\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-remove\-password\fR
+.RS 4
+Remove the password from the named
+\fIgroup\fR\&. The group password will be empty\&. Only group members will be allowed to use
+\fBnewgrp\fR
+to join the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-restrict\fR
+.RS 4
+Restrict the access to the named
+\fIgroup\fR\&. The group password is set to "!"\&. Only group members with a password will be allowed to use
+\fBnewgrp\fR
+to join the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-A\fR, \fB\-\-administrators\fR\ \&\fIuser\fR,\&.\&.\&.
+.RS 4
+Встановити список адміністративних користувачів\&.
+.RE
+.PP
+\fB\-M\fR, \fB\-\-members\fR\ \&\fIuser\fR,\&.\&.\&.
+.RS 4
+Встановити список учасників групи\&.
+.RE
+.SH "ЗАСТЕРЕЖЕННЯ"
+.PP
+This tool only operates on the
+/etc/group
+and /etc/gshadow files\&.
+Thus you cannot change any NIS or LDAP group\&. This must be performed on the corresponding server\&.
+.SH "НАЛАШТУВАННЯ"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛИ"
+.PP
+/etc/group
+.RS 4
+Відомості щодо груп облікових записів\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Відомості щодо захищених груп облікових записів\&.
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBnewgrp\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBgrpck\fR(8),
+\fBgroup\fR(5), \fBgshadow\fR(5)\&.

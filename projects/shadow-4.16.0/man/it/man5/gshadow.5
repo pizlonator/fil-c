@@ -1,0 +1,101 @@
+'\" t
+.\"     Title: gshadow
+.\"    Author: Nicolas Fran\(,cois <nicolas.francois@centraliens.net>
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "GSHADOW" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+gshadow \- file shadow per i gruppi
+.SH "DESCRIZIONE"
+.PP
+/etc/gshadow
+contains the shadowed information for group accounts\&.
+.PP
+Questo file non deve essere leggibile dagli utenti normali se si vuole mantenere la sicurezza sulle password\&.
+.PP
+Ogni riga di questo file contiene questi campi separati da due punti:
+.PP
+\fBgroup name\fR
+.RS 4
+Deve essere un nome di gruppo valido, che esista nel sistema\&.
+.RE
+.PP
+\fBencrypted password\fR
+.RS 4
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.sp
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, users will not be able to use a unix password to access the group (but group members do not need the password)\&.
+.sp
+The password is used when a user who is not a member of the group wants to gain the permissions of this group (see
+\fBnewgrp\fR(1))\&.
+.sp
+Questo campo pu\(`o essere vuoto, nel qual caso solo i membri del gruppo possono ottenere i permessi del gruppo\&.
+.sp
+A password field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the password field before the password was locked\&.
+.sp
+This password supersedes any password specified in
+/etc/group\&.
+.RE
+.PP
+\fBadministrators\fR
+.RS 4
+Deve essere una lista di nomi utente separati da virgole\&.
+.sp
+Gli amministratori possono cambiare la password o i membri del gruppo\&.
+.sp
+Gli amministratori hanno anche gli stessi permessi dei membri (vedere sotto),
+.RE
+.PP
+\fBmembers\fR
+.RS 4
+Deve essere una lista di nomi utente separati da virgole\&.
+.sp
+I membri possono accedere al gruppo senza che ne sia richiesta la password\&.
+.sp
+You should use the same list of users as in
+/etc/group\&.
+.RE
+.SH "FILE"
+.PP
+/etc/group
+.RS 4
+Informazioni sugli account di gruppo\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Informazioni sicure sugli account di gruppo\&.
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBgpasswd\fR(5),
+\fBgroup\fR(5),
+\fBgrpck\fR(8),
+\fBgrpconv\fR(8),
+\fBnewgrp\fR(1)\&.

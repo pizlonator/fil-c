@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+
+log_start "$0" "Running commands: su myuser -c 'ls config'"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo "/bin/su myuser -c 'ls config'> tmp/out 2> tmp/err"
+/bin/su myuser -c 'ls config'> tmp/out 2> tmp/err
+
+echo "su reported:"
+echo "=== stdout ==="
+cat tmp/out
+echo "=== stderr ==="
+cat tmp/err
+echo "=============="
+
+echo -n "Checking tmp/out..."
+diff -au data/ls.out tmp/out
+rm -f tmp/out
+echo "OK"
+
+echo -n "Checking tmp/err..."
+[ "$(wc -c tmp/err)" = "0 tmp/err" ] || false
+rm -f tmp/err
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

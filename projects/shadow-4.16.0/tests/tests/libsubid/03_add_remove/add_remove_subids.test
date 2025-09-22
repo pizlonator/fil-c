@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "add and remove subid ranges"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Existing ranges returned when possible..."
+res=$(${build_path}/src/new_subid_range foo 500)
+echo "debug"
+echo "res is $res"
+echo "wanted Subuid range 300000:10000"
+echo "end debug"
+[ "$res" = "Subuid range 300000:10000" ]
+[ $(grep -c foo /etc/subuid) -eq 1 ]
+echo "OK"
+
+echo -n "New range returned if requested..."
+res=$(${build_path}/src/new_subid_range foo 500 -n)
+[ "$res" = "Subuid range 310000:500" ]
+[ $(grep -c foo /etc/subuid) -eq 2 ]
+echo "OK"
+
+echo -n "Free works..."
+res=$(${build_path}/src/free_subid_range foo 310000 500)
+[ $(grep -c foo /etc/subuid) -eq 1 ]
+echo "OK"
+
+echo -n "Subgids work too..."
+res=$(${build_path}/src/new_subid_range -g foo 100000)
+echo "DEBUG: res is ${res}"
+[ "$res" = "Subuid range 501000:100000" ]
+echo "DEBUG: subgid is:"
+cat /etc/subgid
+[ $(grep -c foo /etc/subgid) -eq 2 ]
+
+echo -n "Subgid free works..."
+res=$(${build_path}/src/free_subid_range -g foo 501000 100000)
+echo "DEBUG: res is ${res}"
+echo "DEBUG: subgid is:"
+cat /etc/subgid
+[ $(grep -c foo /etc/subgid) -eq 1 ]
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

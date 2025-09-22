@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1992, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY ENV_HZ                SYSTEM "login.defs.d/ENV_HZ.xml">
+<!ENTITY ENV_TZ                SYSTEM "login.defs.d/ENV_TZ.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='sulogin.8'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>sulogin</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>sulogin</refname>
+    <refpurpose>Single-user login</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='syntax'>
+    <title>SYNTAX</title>
+    <para><command>sulogin</command> [<emphasis remap='I'>tty-device</emphasis>]
+    </para>
+  </refsect1>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>sulogin</command> command is invoked by <command>init</command>
+      prior to allowing the user access to the system when in single user mode.
+      This feature may only be available on certain systems where
+      <command>init</command> has been modified accordingly, or where the
+      <filename>/etc/inittab</filename> has an entry for a single user
+      login.
+    </para>
+
+    <para>The user is prompted</para>
+
+    <para>Type control-d to proceed with normal startup,
+      <!-- .br -->
+      (or give root password for system maintenance):
+    </para>
+
+    <para>
+      Input and output will be performed with the standard file descriptors
+      unless the optional device name argument is provided.
+    </para>
+
+    <para>
+      If the user enters the correct root password, a login session is
+      initiated. When <emphasis>EOF</emphasis> is pressed instead, the
+      system enters multi-user mode.
+    </para>
+
+    <para>
+      After the user exits the single-user shell, or presses
+      <emphasis>EOF</emphasis>, the system begins the initialization process
+      required to enter multi-user mode.
+    </para>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      This command can only be used if <command>init</command> has been
+      modified to call <command>sulogin</command> instead of
+      <filename>/bin/sh</filename>, or if the user has set the <emphasis
+      remap='I'>inittab</emphasis> to support a single user login. For
+      example, the line:
+    </para>
+
+    <para>co:s:respawn:/etc/sulogin /dev/console</para>
+
+    <para>should execute the sulogin command in single user mode.</para>
+
+    <para>
+      As complete an environment as possible is created. However, various
+      devices may be unmounted or uninitialized and many of the user
+      commands may be unavailable or nonfunctional as a result.
+    </para>
+  </refsect1>
+
+  <refsect1 condition="no_pam" id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &ENV_HZ;
+      &ENV_TZ;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>init</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

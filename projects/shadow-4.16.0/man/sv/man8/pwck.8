@@ -1,0 +1,314 @@
+'\" t
+.\"     Title: pwck
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18-06-2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Swedish
+.\"
+.TH "PWCK" "8" "18-06-2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAMN"
+pwck \- verify the integrity of password files
+.SH "SYNOPSIS"
+.HP \w'\fBpwck\fR\ 'u
+\fBpwck\fR [options] [\fIPASSWORDFILE\fR\ [\ \fISHADOWFILE\fR\ ]]
+.SH "BESKRIVNING"
+.PP
+The
+\fBpwck\fR
+command verifies the integrity of the users and authentication information\&. It checks that all entries in
+/etc/passwd
+and
+/etc/shadow
+have the proper format and contain valid data\&. The user is prompted to delete entries that are improperly formatted or which have other uncorrectable errors\&.
+.PP
+Kontroller g\(:ors f\(:or att validera att varje post har:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+korrekt antal f\(:alt
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a unique and valid user name
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+en giltig identifierare f\(:or anv\(:andare och grupp
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+en giltig prim\(:ar grupp
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+en giltig hemkatalog
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ett giltigt inloggningsskal
+.RE
+.PP
+Checks for shadowed password information are enabled when the second file parameter
+\fISHADOWFILE\fR
+is specified or when
+/etc/shadow
+exists on the system\&.
+.PP
+These checks are the following:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+every passwd entry has a matching shadow entry, and every shadow entry has a matching passwd entry
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+passwords are specified in the shadowed file
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+shadow entries have the correct number of fields
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+shadow entries are unique in shadow
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+the last password changes are not in the future
+.RE
+.PP
+The checks for correct number of fields and unique user name are fatal\&. If the entry has the wrong number of fields, the user will be prompted to delete the entire line\&. If the user does not answer affirmatively, all further checks are bypassed\&. An entry with a duplicated user name is prompted for deletion, but the remaining checks will still be made\&. All other errors are warnings and the user is encouraged to run the
+\fBusermod\fR
+command to correct the error\&.
+.PP
+The commands which operate on the
+/etc/passwd
+file are not able to alter corrupted or duplicated entries\&.
+\fBpwck\fR
+should be used in those circumstances to remove the offending entry\&.
+.SH "FLAGGOR"
+.PP
+The
+\fB\-r\fR
+and
+\fB\-s\fR
+options cannot be combined\&.
+.PP
+The options which apply to the
+\fBpwck\fR
+command are:
+.PP
+\fB\-\-badname\fR\ \&
+.RS 4
+Allow names that do not conform to standards\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Visa hj\(:alpmeddelande och avsluta\&.
+.RE
+.PP
+\fB\-q\fR, \fB\-\-quiet\fR
+.RS 4
+Report errors only\&. The warnings which do not require any action from the user won\*(Aqt be displayed\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-read\-only\fR
+.RS 4
+Execute the
+\fBpwck\fR
+command in read\-only mode\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sort\fR
+.RS 4
+Sort entries in
+/etc/passwd
+and
+/etc/shadow
+by UID\&.
+.RE
+.PP
+By default,
+\fBpwck\fR
+operates on the files
+/etc/passwd
+and
+/etc/shadow\&. The user may select alternate files with the
+\fIpasswd\fR
+and
+\fIshadow\fR
+parameters\&.
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "FILER"
+.PP
+/etc/group
+.RS 4
+Gruppkontoinformation\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+Anv\(:andarkontoinformation\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+S\(:aker anv\(:andarkontoinformation\&.
+.RE
+.SH "AVSLUTNINGSV\(:ARDEN"
+.PP
+The
+\fBpwck\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI1\fR
+.RS 4
+invalid command syntax
+.RE
+.PP
+\fI2\fR
+.RS 4
+one or more bad password entries
+.RE
+.PP
+\fI3\fR
+.RS 4
+can\*(Aqt open password files
+.RE
+.PP
+\fI4\fR
+.RS 4
+can\*(Aqt lock password files
+.RE
+.PP
+\fI5\fR
+.RS 4
+can\*(Aqt update password files
+.RE
+.PP
+\fI6\fR
+.RS 4
+can\*(Aqt sort password files
+.RE
+.SH "SE OCKS\(oA"
+.PP
+\fBgroup\fR(5),
+\fBgrpck\fR(8),
+\fBpasswd\fR(5),
+\fBshadow\fR(5),
+\fBusermod\fR(8)\&.

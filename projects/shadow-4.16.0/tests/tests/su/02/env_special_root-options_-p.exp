@@ -1,0 +1,56 @@
+#!/usr/bin/expect
+
+if {$argc == 1} {
+	set command     [lindex $argv 0]
+} else {
+	set command     ""
+}
+
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "id\r"
+expect "uid=0(root) gid=0(root) groups=0(root)\r"
+expect "# "
+
+send "export PATH=bar:\$PATH\r"
+expect "# "
+send "echo \"PATH=\\\"\$PATH\\\"\"\r"
+expect -re "PATH=\"(.*)\"\r" {set PATH $expect_out(1,string)}
+send_user "PATH='$PATH'"
+expect "# "
+
+#=============================================================================
+#
+# su -p root, as for regular su, environment is preserved
+#
+#=============================================================================
+send "/bin/su $command -m\r"
+expect "# "
+
+send "id\n"
+expect "uid=0(root) gid=0(root) groups=0(root)\r"
+expect "# "
+
+send_user "\n# Even with -p, PATH is reset"
+send "\r"
+expect "# "
+
+send "echo \"PATH=\\\"\$PATH\\\"\"\r"
+expect "PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\r"
+expect "# "
+
+send "echo \"'\$HOME'\$USER'\$LOGNAME'\$SHELL'\"\r"
+expect "'/root'root'root'/bin/bash'\r"
+expect "# "
+
+send "exit\r"
+expect "# "
+
+puts "\nPASS"
+exit 0
+

@@ -1,0 +1,67 @@
+'\" t
+.\"     Title: login.access
+.\"    Author: Marek Micha\(/lkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "login\&.access" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+login.access \- таблиця керування доступом до входу до системи
+.SH "ОПИС"
+.PP
+The
+\fIlogin\&.access\fR
+file specifies (user, host) combinations and/or (user, tty) combinations for which a login will be either accepted or refused\&.
+.PP
+When someone logs in, the
+\fIlogin\&.access\fR
+is scanned for the first entry that matches the (user, host) combination, or, in case of non\-networked logins, the first entry that matches the (user, tty) combination\&. The permissions field of that table entry determines whether the login will be accepted or refused\&.
+.PP
+Кожен рядок таблиці керування доступом до входу до системи містить три поля, які відокремлено символом \(Fo:\(Fc:
+.PP
+\fIpermission\fR:\fIusers\fR:\fIorigins\fR
+.PP
+The first field should be a "\fI+\fR" (access granted) or "\fI\-\fR" (access denied) character\&. The second field should be a list of one or more login names, group names, or
+\fIALL\fR
+(always matches)\&. The third field should be a list of one or more tty names (for non\-networked logins), host names, domain names (begin with "\&."), host addresses, internet network numbers (end with "\&."),
+\fIALL\fR
+(always matches) or
+\fILOCAL\fR
+(matches any string that does not contain a "\&." character)\&. If you run NIS you can use @netgroupname in host or user patterns\&.
+.PP
+The
+\fIEXCEPT\fR
+operator makes it possible to write very compact rules\&.
+.PP
+Пошук у файлі груп відбуватиметься, лише якщо ім\*(Aqя не збігатиметься із іменем користувача, що увійшов до системи\&. Відповідними вважатимуться лише ті групи, користувачів яких вказано явно: програма не шукатиме у значення ідентифікаторів основної групи користувача\&.
+.SH "ФАЙЛИ"
+.PP
+/etc/login\&.defs
+.RS 4
+Налаштування комплексу для роботи з прихованими паролями\&.
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBlogin\fR(1)\&.

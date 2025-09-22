@@ -1,0 +1,58 @@
+'\" t
+.\"     Title: faillog
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual:  File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "faillog" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuratio"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+faillog \- файл журналу невдалих спроб увійти до системи
+.SH "ОПИС"
+.PP
+/var/log/faillog
+maintains a count of login failures and the limits for each account\&.
+.PP
+У файлі містяться записи фіксованої довжини, індексовані за числовим UID\&. Кожен запис містить кількість помилок при вході з моменту останнього успішного входу до системи; максимальну кількість помилок до вимикання облікового запису; рядок, на якому сталася помилка під час останньої спроби увійти до системи; дату останньої помилки під час спроби увійти до системи та період часу (у секундах), протягом якого обліковий запис буде заблоковано після помилки\&.
+.PP
+Структура файла:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+struct faillog { short fail_cnt; short fail_max; char fail_line[12]; time_t fail_time; long fail_locktime; };
+.fi
+.if n \{\
+.RE
+.\}
+.SH "ФАЙЛИ"
+.PP
+/var/log/faillog
+.RS 4
+Файл журналу помилок\&.
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBfaillog\fR(8)

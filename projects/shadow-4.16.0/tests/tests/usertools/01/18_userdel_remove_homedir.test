@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Add a new user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 with homedir (useradd --create-home test1)..."
+useradd --create-home test1
+echo "OK"
+echo -n "Delete user test1 with homedir (userdel --remove test1)..."
+userdel --remove test1 2>tmp/userdel.err
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check the userdel message..."
+diff -au 18_userdel_remove_homedir/userdel.err tmp/userdel.err
+echo "userdel message OK."
+rm -f tmp/userdel.err
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "homedir removed..."
+test ! -d /home/test1
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

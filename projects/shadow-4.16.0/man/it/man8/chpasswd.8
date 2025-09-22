@@ -1,0 +1,162 @@
+'\" t
+.\"     Title: chpasswd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "CHPASSWD" "8" "18/06/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+chpasswd \- aggiorna le password in modo non interattivo
+.SH "SINOSSI"
+.HP \w'\fBchpasswd\fR\ 'u
+\fBchpasswd\fR [\fIoptions\fR]
+.SH "DESCRIZIONE"
+.PP
+The
+\fBchpasswd\fR
+command reads a list of user name and password pairs from standard input and uses this information to update a group of existing users\&. Each line is of the format:
+.PP
+\fIuser_name\fR:\fIpassword\fR
+.PP
+By default the passwords must be supplied in clear\-text, and are encrypted by
+\fBchpasswd\fR\&. Also the password age will be updated, if present\&.
+.PP
+The default encryption algorithm can be defined for the system with the
+\fBENCRYPT_METHOD\fR
+or
+\fBMD5_CRYPT_ENAB\fR
+variables of
+/etc/login\&.defs, and can be overwritten with the
+\fB\-e\fR,
+\fB\-m\fR, or
+\fB\-c\fR
+options\&.
+.PP
+\fBchpasswd\fR
+first updates all the passwords in memory, and then commits all the changes to disk if no errors occurred for any user\&.
+.PP
+Questo comando \(`e appositamente pensato per grossi sistemi in cui si abbia la necessit\(`a di creare molti account nello stesso momento\&.
+.SH "OPZIONI"
+.PP
+The options which apply to the
+\fBchpasswd\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR\ \&\fIMETHOD\fR
+.RS 4
+Utilizza il metodo specificato per cifrare le password\&.
+.sp
+The available methods are
+\fIDES\fR,
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR
+and
+\fINONE\fR
+if your libc supports these methods\&.
+.sp
+By default (if none of the
+\fB\-c\fR,
+\fB\-m\fR, or
+\fB\-e\fR
+options are specified), the encryption method is defined by the
+\fBENCRYPT_METHOD\fR
+or
+\fBMD5_CRYPT_ENAB\fR
+variables of
+/etc/login\&.defs\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-encrypted\fR
+.RS 4
+Le password fornite sono in forma cifrata\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Mostra un messaggio di aiuto ed esce\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-md5\fR
+.RS 4
+Usa la cifratura MD5 anzich\('e DES quando le password fornite non sono cifrate\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes to configuration files under the root filesystem found under the directory
+\fIPREFIX_DIR\fR\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR\ \&\fIROUNDS\fR
+.RS 4
+Usa il numero specificato di cicli per cifrare la password\&.
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default number of rounds is 5000\&.
+.RE
+.SH "AVVISI/CAVEAT"
+.PP
+Ricordarsi di impostare i permessi o umask in modo da prevenire la lettura in chiaro da parte di altri utenti\&.
+.SH "CONFIGURAZIONE"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+
+.SH "FILE"
+.PP
+/etc/passwd
+.RS 4
+Informazioni sugli account utente\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informazioni sicure sugli account utente\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configurazione del pacchetto password shadow
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBpasswd\fR(1),
+\fBnewusers\fR(8),
+\fBlogin.defs\fR(5),
+\fBuseradd\fR(8)\&.

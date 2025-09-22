@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!-- TODO: TBC -->
+<varlistentry condition="no_pam">
+  <term><option>SU_WHEEL_ONLY</option> (boolean)</term>
+  <listitem>
+    <para>
+      If <replaceable>yes</replaceable>, the user must be listed as a
+      member of the first gid 0 group in <filename>/etc/group</filename>
+      (called <replaceable>root</replaceable> on most Linux systems) to be
+      able to <command>su</command> to uid 0 accounts.  If the group
+      doesn't exist or is empty, no one will be able to
+      <command>su</command> to uid 0.
+    </para>
+  </listitem>
+</varlistentry>

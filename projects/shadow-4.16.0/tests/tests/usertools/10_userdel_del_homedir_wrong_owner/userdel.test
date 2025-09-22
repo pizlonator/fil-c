@@ -1,0 +1,69 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "userdel does not delete the user's home directory if it is not owned by the user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /var/mail/foo /home/foo' 0
+
+change_config
+
+mkdir /home/foo
+echo toto > /home/foo/toto
+touch /var/mail/foo
+chown -R foo:foo /var/mail/foo
+chown -R root:root /home/foo
+
+echo -n "Delete user foo (userdel -r foo)..."
+userdel -r foo 2>tmp/userdel.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "12"
+echo "OK"
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/userdel.err tmp/userdel.err
+echo "error message OK."
+rm -f tmp/userdel.err
+
+echo "The user should have been removed."
+echo -n "Check the passwd file..."
+../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl data/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl data/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the user's home directory was not removed..."
+test -d /home/foo
+echo "OK"
+echo -n "Check the user's mail spool was removed..."
+test ! -f /var/mail/foo
+echo "OK"
+rm -rf /home/foo
+
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

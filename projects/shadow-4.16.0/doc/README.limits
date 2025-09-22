@@ -1,0 +1,65 @@
+
+ABOUT shadow-login limits:
+
+This code is merged into shadow login program from the original LShell 2.01
+written by Joel Katz. The port and some additional features have been added
+by Cristian Gafton (gafton@sorosis.ro).
+
+
+Changes:
+	- 96/04/16
+		- {spaces,tabs} allowed within limits string
+		- Warn via syslog multiple default limits
+		- added few paragraphs to the login man page
+	- 96/04/14
+		- code merged into lmain.c --cristiang
+
+TODO:	- support groups in the limits file
+	  (only usernames are supported at this moment :-( )
+
+Setting user limits for shadow login program
+
+First, make a root-only-readable file (/etc/limits by default or LIMITS_FILE
+defined config.h) that describes the resource limits you wish to impose. By
+default no quotas are imposed on 'root'. In fact, there is no way to impose
+limits via this procedure to root-equiv accounts (accounts with UID 0).
+
+Each line describes a limit for a user in the form:
+
+	user LIMITS_STRING
+
+The LIMITS_STRING is a string of a concatenated list of resource limits.
+Each limit consists of a letter identifier followed by a numerical limit.
+The valid identifiers are:
+
+	A: max address space (KB)
+	C: max core file size (KB)
+	D: max data size (KB)
+	F: maximum filesize (KB)
+	M: max locked-in-memory address space (KB)
+	N: max number of open files
+	R: max resident set size (KB)
+	S: max stack size (KB)
+	T: max CPU time (MIN)
+	U: max number of processes
+	L: max number of logins for this user
+
+For example, L2D2048N5 is a valid LIMITS_STRING. For reading convenience,
+the following entries are equivalent:
+
+username L2D2048N5
+username L2 D2048 N5
+
+Be aware that after <username> the rest of the line is considered a limit
+string, thus comments are not allowed. A invalid limits string will be
+rejected (not considered) by the login program.
+
+The default entry is denoted by username '*'. If you have multiple 'default'
+entries in your LIMITS_FILE, then the last one will be used as the default
+entry.
+
+To completely disable limits for a user, a single dash (-) will do.
+
+Also, please note that all limit settings are set PER LOGIN.  They are
+not global, nor are they permanent.  Perhaps global limits will come, but
+for now this will have to do ;)

@@ -1,0 +1,62 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "grpunconv checks if the group file is locked"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -f /etc/group.lock' 0
+
+change_config
+
+echo -n "Create lock file for /etc/group..."
+touch /etc/group.lock
+echo "done"
+
+echo -n "Convert the group files (grpunconv)..."
+grpunconv 2>tmp/grpunconv.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Delete lock file for /etc/group..."
+rm -f /etc/group.lock
+echo "done"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "5"
+echo "OK"
+
+echo "grpunconv reported:"
+echo "======================================================================="
+cat tmp/grpunconv.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/grpunconv.err tmp/grpunconv.err
+echo "error message OK."
+rm -f tmp/grpunconv.err
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

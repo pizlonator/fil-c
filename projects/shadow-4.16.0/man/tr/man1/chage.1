@@ -1,0 +1,64 @@
+.\" SPDX-FileCopyrightText: 1990 - 1994 Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+  
+.TH chage 1 "" "" ""
+.nh  
+.SH İSİM  
+chage - 
+kullanıcı parolasının son kullanma tarihini değiştirir
+  
+.SH KULLANIM
+
+.nf
+
+\fBchage\fR [\fB-m \fR\fIasgari-gün-sayısı\fR]  [\fB-M \fR\fIazami-gün-sayısı\fR]  [\fB-d \fR\fIson-gün\fR]
+      [\fB-I \fR\fIpasif\fR]  [\fB-E \fR\fIson-tarih\fR]  [\fB-W \fR\fIuyarı-gün-sayısı\fR]  \fIkullanıcı\fR
+
+\fBchage -l \fR\fIkullanıcı\fR
+
+.fi
+
+
+  
+.SH AÇIKLAMA
+
+
+\fBchage\fR, parolanın son değiştirilme tarihinden, değiştirilmesi gerekecek olan güne kadar geçen sürenin gün cinsinde miktarını değiştirir. Bu bilgi, sistem tarafından, kullanıcının ne zaman parolasını değiştirmesi gerektiğini bulmakta kullanılır. Bu komut root kullanıcıya tahsis edilmiştir. Sadece \fB-l\fR seçeneği, normal kullanıcılar tarafından, parola ve hesaplarının son kullanma tarihini görmek amacı ile kullanılabilir.
+
+\fB-m\fR seçeneği ile belirtilen \fIasgari-gün-sayısı\fR´nın değeri, parola değişiklikleri arasında geçecek  asgari gün sayısıdır. Buraya sıfır değeri verilirse, kullanıcı istediği bir zaman parolasını değiştirebilir.
+
+\fB-M\fR seçeneği ile belirtilen \fIazami-gün-sayısı\fR´nın değeri, parolanın geçerliliğinin biteceği güne kadar geçecek zamanın gün cinsinden miktarıdır.  \fIazami-gün-sayısı\fR artı \fIson-gün\fR, içinde bulunulan günden az ise, kullanıcı hesabını kullanmadan önce parolasını değiştirmek zorunda kalacaktır. Bu olay, \fB-W\fR seçeneğini kullanılarak da ayarlanabilir. Bu seçenek sayesinde kullanıcıya bu olay hakkında uyarı mesajı verebilirsiniz.
+
+\fB-d\fR seçeneği ile, \fIson-gün\fR´ün değeri 1 Ocak 1970´den parolanın son değişeceği güne kadar olan gün sayısıdır. YYYY-AA-GG biçiminde bir tarih olarak da belirtilebilir (veya  yaşadığınız bölgede kabul edilen tarih biçimi ile).
+
+\fB-E\fR seçeneği, kullanıcı hesabının hangi tarihten sonra erişilemez olduğunu ayarlamak için kullanılır. \fIson-tarih\fR´in değeri; 1 Ocak 1970´den hesabın kilitleneceği güne kadar olan sürenin gün cinsinden miktarıdır. YYYY-AA-GG biçiminde bir tarih olarak da belirtilebilir (veya  yaşadığınız bölgede kabul edilen tarih biçimi ile).  Hesabı kilitlenen bir kullanıcının hesabını tekrar kullanabilmesi için, mutlaka sistem yöneticisine baş vurması gerekmektedir.
+
+\fB-I\fR seçeneği, bir parolanın pasif hale geçmesi ile  hesabın kilitlenmesi arasında geçecek olan gün miktarını ayarlamak için kullanılır.  \fIpasif\fR seçeneği, pasif geçecek gün sayısıdır. 0 (sıfır) değeri bu özelliği etkisizleştirir.  Hesabı kilitlenen bir kullanıcının hesabını tekrar kullanabilmesi için, mutlaka sistem yöneticisine baş vurması gerekmektedir.
+
+\fB-W\fR seçeneği, bir parola değişikliğinin gerekeceği günden kaç gün önce uyarı verileceğini ayarlamak için kullanılır. \fIuyarı-gün-sayısı\fR seçeneği, kullanıcının parolasının geçersiz kalmasından önce kullanıcının uyarılacağı gün sayısıdır.
+
+Şayet hiçbir seçenek belirtilmezse, \fBchage\fR etkileşimli kipe geçer. O an için geçerli olan bütün değerleri ekrana yazar. Bu alanlardaki değerleri değiştirmek için yeni değerler girilir. Şayet geçerli değerleri kullanmak istiyorsanız bu satırları boş bırakın. Geçerli değerler \fB[ ]\fR işaretleri arasında gösterilir.
+
+.SH SINIRLAMALAR
+
+\fBchage\fR uygulamasının /etc/shadow dosyasına ihtiyacı vardır.  Şayet parolalar /etc/passwd dosyası içinde saklanıyorsa, \fBchage\fR uygulamasının işlevselliği ortadan kalkar.
+
+.SH İLGİLİ DOYALAR
+
+/etc/passwd - kullanıcı hesabı bilgileri
+.br
+/etc/shadow - gölge parolalı kullanıcı hesabı bilgileri
+
+.SH İLGİLİ DOYALAR
+
+\fBpasswd\fR(5), 
+\fBshadow\fR(5)    
+    
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+    
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Kasım 2003
+

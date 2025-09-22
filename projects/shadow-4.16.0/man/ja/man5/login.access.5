@@ -1,0 +1,69 @@
+.\"$Id$
+.\" this is comment
+.\"
+.\" This page is originally in the shadow package.
+.\" Translated Fri 14 Feb 1997
+.\"   by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 18 Sep 2002 by NAKNAO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH LOGIN.ACCESS 5
+.\" .Dt SKEY.ACCESS 5
+.\" .Os FreeBSD 1.2
+.SH 名前
+login.access \- ログインアクセスの制御表
+.SH 説明
+.I login.access
+ファイルには、ログインを許可または拒絶する、
+(ユーザ, ホスト) や (ユーザ, tty) の組み合わせを指定する。
+.PP
+誰かがログインすると、
+.I login.access
+ファイルがスキャンされ、最初にマッチする
+(ユーザ,ホスト) の組、
+あるいはネットワーク経由のログインでない場合は最初にマッチする
+(ユーザ, tty) の組を探す。
+このテーブルの許可フィールドによって、
+ログインが許可されるか拒絶されるかが決まる。
+.PP
+ログインアクセス制御表の各行は 3 つのフィールドからなり、
+文字 ":" で分割される。
+.sp 1
+.IR 	permission : users : origins
+.sp 1
+最初のフィールドは "\fB+\fR" (アクセスを許可する) か
+"\fB\-\fR" (アクセスを拒否する) でなければならない。
+二番目のフィールドは、一つ以上のログイン名やグループ名、
+もしくは
+.B ALL
+(必ずマッチする)
+でなければならない。
+三番目のフィールドは、
+tty 名 (ネットワーク経由でないログインの場合)、
+ホスト名、
+ドメイン名 ("\fB.\fR"で始まる)、
+ホストアドレス、
+インターネットのネットワーク番号 ("\fB.\fR"で終わる)、
+のひとつ以上の構成要素からなるリストであるか、
+.B ALL
+(必ずマッチする) または
+.B LOCAL
+("\fB.\fR"を全く含まない文字列全てにマッチする)
+のいずれかでなくてはならない。
+NIS を運用している場合は、ホストやユーザのパターンで
+@netgroupname が使える。
+.PP
+.B EXCEPT
+オペレータを用いると、
+非常に簡略にルールを指定できる。
+.PP
+group ファイルが検索されるのは、
+ログインするユーザ名が名前にマッチしなかった場合に限られる。
+マッチするグループは、
+group ファイル中でユーザ名が明示的にリストされているものに限られる。
+このプログラムはユーザの主グループの ID 番号までは見ない。
+.SH ファイル
+\fI/etc/login.access\fR
+.SH 関連項目
+.BR login (1)
+.SH 著者
+Guido van Rooij

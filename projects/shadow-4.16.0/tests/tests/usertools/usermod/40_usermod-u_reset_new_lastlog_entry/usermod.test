@@ -1,0 +1,74 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod does not create /var/log/lastlog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/lastlog (it will not be restored)..."
+touch /var/log/lastlog
+echo "OK"
+
+echo -n "Trigger a connection as foo..."
+./login.exp
+echo "OK"
+
+lastlog > tmp/lastlog.out
+
+echo "lastlog :"
+echo "======================================================================="
+cat tmp/lastlog.out
+echo "======================================================================="
+
+echo -n "Manually delete the user foo (to keep the lastlog entry)..."
+sed -e '/^foo:/d' -i /etc/passwd
+sed -e '/^foo:/d' -i /etc/shadow
+sed -e '/^foo:/d' -i /etc/group
+sed -e '/^foo:/d' -i /etc/gshadow
+echo "OK"
+
+echo -n "Change the user's UID to reuse foo's (usermod -u 1000 bar)..."
+usermod -u 1000 bar
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl data/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+lastlog > tmp/lastlog.out2
+
+echo "lastlog:"
+echo "======================================================================="
+cat tmp/lastlog.out2
+echo "======================================================================="
+
+echo -n "Check the lastlog message..."
+sed -e '/^foo /d' -i tmp/lastlog.out
+diff -au tmp/lastlog.out tmp/lastlog.out2
+echo "lastlog message OK."
+rm -f tmp/lastlog.out tmp/lastlog.out2
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

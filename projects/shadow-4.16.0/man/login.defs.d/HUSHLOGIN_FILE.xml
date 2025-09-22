@@ -1,0 +1,18 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>HUSHLOGIN_FILE</option> (string)</term>
+  <listitem>
+    <para>
+      If defined, this file can inhibit all the usual chatter during the
+      login sequence.  If a full pathname is specified, then hushed mode
+      will be enabled if the user's name or shell are found in the file.
+      If not a full pathname, then hushed mode will be enabled if the file
+      exists in the user's home directory.
+    </para>
+  </listitem>
+</varlistentry>

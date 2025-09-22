@@ -1,0 +1,35 @@
+.TH "FAILLOG" "5" "11/05/2005" "" ""
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+faillog \- Soubor pro zaznamenávání chybných pokusů o přihlášení
+.SH "POPIS"
+.PP
+\fI/var/log/faillog\fR
+uchovává pro každý účet počet chybných přihlášení a jejich
+limity. Záznamy v souboru mají pevnou délku a jsou indexovány
+číselným UID. Každý záznam obsahuje počet chybných pokusů o
+přihlášení od posledního úspěšného přihlášení, maximální počet
+chybných pokusů o přihlášení před zablokováním účtu, linku, na které
+byl zaznamenán poslední chybný pokus o přihlášení, a datum,
+kdy byl zaznamenán poslední chybný pokus o přihlášení.
+.PP
+Struktura souboru vypadá následovně:
+.sp
+.nf
+struct	faillog {
+	short   fail_cnt;
+	short   fail_max;
+	char    fail_line[12];
+	time_t  fail_time;
+};
+.fi
+.SH "SOUBORY"
+.TP
+\fI/var/log/faillog\fR
+soubor pro záznam chybných pokusů o přihlášení
+.SH "VIZ TAKÉ"
+.PP
+\fBfaillog\fR(8)

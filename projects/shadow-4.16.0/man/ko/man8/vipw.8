@@ -1,0 +1,36 @@
+.\" SPDX-FileCopyrightText: 1983, 1991 The Regents of the University of California.
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"     from: @(#)vipw.8	6.7 (Berkeley) 3/16/91
+.\"	$Id$
+.\"
+.Dd March 16, 1991
+.Dt VIPW 8
+.Os BSD 4
+.Sh NAME
+.Nm vipw
+.Nd 패스워드 파일 편집
+.Sh 사용법
+.Nm vipw
+.Sh 설명
+.Nm Vipw
+명령은 /etc/passwd 파일을 잠그고(lock) 편집하고, 
+편집이 끝나면, /etc/passwd 파일을 잠금해제(unlock)한다.
+이미 /etc/passwd 파일이 잠겨 있으면, 다음에 사용하라고 
+메시지를 보여준다.
+\fBvipw\fR에서 사용하는 기본 편집기는 \fBvi(1)\fR이다.
+.Sh 환경변수
+\fBvipw\fR는 다음 환경 변수를 사용한다.
+.Bl -tag -width EDITOR
+.It Ev EDITOR
+사용할 편집기 지정. 초기값은 vi
+.El
+.Sh 관련 항목
+.Xr passwd 1 ,
+.Xr vi 1 ,
+.Xr passwd 5
+.Sh 발자취
+.Nm
+명령은 
+.Bx 4.0 
+에서 처음 나타났다.

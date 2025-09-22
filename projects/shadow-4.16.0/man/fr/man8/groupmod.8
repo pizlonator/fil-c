@@ -1,0 +1,237 @@
+'\" t
+.\"     Title: groupmod
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: French
+.\"
+.TH "GROUPMOD" "8" "18/06/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOM"
+groupmod \- Modifier la d\('efinition d\*(Aqun groupe du syst\(`eme
+.SH "SYNOPSIS"
+.HP \w'\fBgroupmod\fR\ 'u
+\fBgroupmod\fR [\fIoptions\fR] \fIGROUP\fR
+.SH "DESCRIPTION"
+.PP
+The
+\fBgroupmod\fR
+command modifies the definition of the specified
+\fIGROUP\fR
+by modifying the appropriate entry in the group database\&.
+.SH "OPTIONS"
+.PP
+The options which apply to the
+\fBgroupmod\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-append\fR\ \&\fIGID\fR
+.RS 4
+If group members are specified with \-U, append them to the existing member list, rather than replacing it\&.
+.RE
+.PP
+\fB\-g\fR, \fB\-\-gid\fR\ \&\fIGID\fR
+.RS 4
+The group ID of the given
+\fIGROUP\fR
+will be changed to
+\fIGID\fR\&.
+.sp
+The value of
+\fIGID\fR
+must be a non\-negative decimal integer\&. This value must be unique, unless the
+\fB\-o\fR
+option is used\&.
+.sp
+Les utilisateurs qui utilisent ce groupe comme groupe primaire seront mis \(`a jour pour garder le groupe comme groupe primaire\&.
+.sp
+Any files that have the old group ID and must continue to belong to
+\fIGROUP\fR, must have their group ID changed manually\&.
+.sp
+No checks will be performed with regard to the
+\fBGID_MIN\fR,
+\fBGID_MAX\fR,
+\fBSYS_GID_MIN\fR, or
+\fBSYS_GID_MAX\fR
+from
+/etc/login\&.defs\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Afficher un message d\*(Aqaide et quitter\&.
+.RE
+.PP
+\fB\-n\fR, \fB\-\-new\-name\fR\ \&\fINEW_GROUP\fR
+.RS 4
+The name of the group will be changed from
+\fIGROUP\fR
+to
+\fINEW_GROUP\fR
+name\&.
+.RE
+.PP
+\fB\-o\fR, \fB\-\-non\-unique\fR
+.RS 4
+When used with the
+\fB\-g\fR
+option, allow to change the group
+\fIGID\fR
+to a non\-unique value\&.
+.RE
+.PP
+\fB\-p\fR, \fB\-\-password\fR\ \&\fIPASSWORD\fR
+.RS 4
+The encrypted password, as returned by
+\fBcrypt\fR(3)\&.
+.sp
+\fBNote:\fR
+This option is not recommended because the password (or encrypted password) will be visible by users listing the processes\&.
+.sp
+Il est n\('ecessaire de v\('erifier si le mot de passe respecte la politique de mots de passe du syst\(`eme\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes in the
+\fIPREFIX_DIR\fR
+directory and use the configuration files from the
+\fIPREFIX_DIR\fR
+directory\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-U\fR, \fB\-\-users\fR
+.RS 4
+A list of usernames to add as members of the group\&.
+.sp
+The default behavior (if the
+\fB\-g\fR,
+\fB\-N\fR, and
+\fB\-U\fR
+options are not specified) is defined by the
+\fBUSERGROUPS_ENAB\fR
+variable in
+/etc/login\&.defs\&.
+.RE
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "FICHIERS"
+.PP
+/etc/group
+.RS 4
+Informations sur les groupes\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Informations s\('ecuris\('ees sur les groupes\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configuration de la suite des mots de passe cach\('es \(Fo\ \&shadow password\ \&\(Fc\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+Informations sur les comptes des utilisateurs\&.
+.RE
+.SH "VALEURS DE RETOUR"
+.PP
+The
+\fBgroupmod\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+E_SUCCESS: success
+.RE
+.PP
+\fI2\fR
+.RS 4
+E_USAGE: invalid command syntax
+.RE
+.PP
+\fI3\fR
+.RS 4
+E_BAD_ARG: invalid argument to option
+.RE
+.PP
+\fI4\fR
+.RS 4
+E_GID_IN_USE: group id already in use
+.RE
+.PP
+\fI6\fR
+.RS 4
+E_NOTFOUND: specified group doesn\*(Aqt exist
+.RE
+.PP
+\fI9\fR
+.RS 4
+E_NAME_IN_USE: group name already in use
+.RE
+.PP
+\fI10\fR
+.RS 4
+E_GRP_UPDATE: can\*(Aqt update group file
+.RE
+.PP
+\fI11\fR
+.RS 4
+E_CLEANUP_SERVICE: can\*(Aqt setup cleanup service
+.RE
+.PP
+\fI12\fR
+.RS 4
+E_PAM_USERNAME: can\*(Aqt determine your username for use with pam
+.RE
+.PP
+\fI13\fR
+.RS 4
+E_PAM_ERROR: pam returned an error, see syslog facility id groupmod for the PAM error message
+.RE
+.SH "VOIR AUSSI"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBlogin.defs\fR(5),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8)\&.

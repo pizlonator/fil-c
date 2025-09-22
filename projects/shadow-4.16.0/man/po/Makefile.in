@@ -1,0 +1,255 @@
+# Makefile for PO directory in any package using GNU gettext.
+# Copyright (C) 1995-1997, 2000-2006 by Ulrich Drepper <drepper@gnu.ai.mit.edu>
+#
+# This file can be copied and used freely without restrictions.  It can
+# be used in projects which are not available under the GNU General Public
+# License but which still want to provide support for the GNU gettext
+# functionality.
+# Please note that the actual code of GNU gettext is covered by the GNU
+# General Public License and is *not* in the public domain.
+#
+# Origin: gettext-0.16
+# Modified to handle translations with xml2po by Nicolas François - 2007
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
+
+SHELL = /bin/sh
+@SET_MAKE@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+
+MSGFMT_ = @MSGFMT@
+MSGFMT_no = @MSGFMT@
+MSGFMT_yes = @MSGFMT_015@
+MSGFMT = $(MSGFMT_$(USE_MSGCTXT))
+XGETTEXT_ = @XGETTEXT@
+XGETTEXT_no = @XGETTEXT@
+XGETTEXT_yes = @XGETTEXT_015@
+XGETTEXT = $(XGETTEXT_$(USE_MSGCTXT))
+MSGMERGE = @MSGMERGE@ --previous
+MSGMERGE_UPDATE = @MSGMERGE@ --update --previous
+MSGINIT = msginit
+MSGCONV = msgconv
+MSGFILTER = msgfilter
+
+include $(srcdir)/LINGUAS
+DISTFILES = $(srcdir)/Makevars $(srcdir)/XMLFILES $(srcdir)/LINGUAS $(POFILES)
+
+include $(srcdir)/XMLFILES
+
+include $(srcdir)/Makevars
+
+.SUFFIXES:
+.SUFFIXES: .po .sed .sin .nop .po-create .po-update
+
+remove-potcdate.sin: $(top_srcdir)/po/remove-potcdate.sin
+	cp $? $@
+
+.sin.sed:
+	sed -e '/^#/d' $< > t-$@
+	mv t-$@ $@
+
+all: all-yes
+
+all-yes: stamp-po
+all-no:
+
+# $(srcdir)/$(DOMAIN).pot is only created when needed. When xgettext finds no
+# internationalized messages, no $(srcdir)/$(DOMAIN).pot is created (because
+# we don't want to bother translators with empty POT files). We assume that
+# LINGUAS is empty in this case, i.e. $(POFILES) and $(GMOFILES) are empty.
+# In this case, stamp-po is a nop (i.e. a phony target).
+
+# stamp-po is a timestamp denoting the last time at which the CATALOGS have
+# been loosely updated. Its purpose is that when a developer or translator
+# checks out the package via CVS, and the $(DOMAIN).pot file is not in CVS,
+# "make" will update the $(DOMAIN).pot and the $(CATALOGS), but subsequent
+# invocations of "make" will do nothing. This timestamp would not be necessary
+# if updating the $(CATALOGS) would always touch them; however, the rule for
+# $(POFILES) has been designed to not touch files that don't need to be
+# changed.
+stamp-po: $(srcdir)/$(DOMAIN).pot
+	@test ! -f $(srcdir)/$(DOMAIN).pot || { \
+	  echo "touch stamp-po" && \
+	  echo timestamp > stamp-poT && \
+	  mv stamp-poT stamp-po; \
+	}
+
+# Note: Target 'all' must not depend on target '$(DOMAIN).pot-update',
+# otherwise packages like GCC can not be built if only parts of the source
+# have been downloaded.
+
+# This target rebuilds $(DOMAIN).pot; it is an expensive operation.
+# Note that $(DOMAIN).pot is not touched if it doesn't need to be changed.
+# TODO: set MSGID_BUGS_ADDRESS, COPYRIGHT_HOLDER
+$(DOMAIN).pot-update: $(XMLFILES) $(srcdir)/XMLFILES
+	@set -ex; tmpdir=`mktemp -d`; \
+	origdir=`pwd`; \
+	cd $(top_srcdir)/man; \
+	cp *.xml $$tmpdir/; \
+	files=""; \
+	for file in $(notdir $(XMLFILES)); do \
+		base=`basename $$file`; \
+		outfile=$$tmpdir/$$base.out; \
+		if grep -q SHADOW-CONFIG-HERE $$file ; then \
+			sed -e 's/^<!-- SHADOW-CONFIG-HERE -->/<!ENTITY % config SYSTEM "config.xml">%config;/' $$file > $$outfile; \
+		else \
+			sed -e 's/^\(<!DOCTYPE .*docbookx.dtd"\)>/\1 [<!ENTITY % config SYSTEM "config.xml">%config;]>/' $$file > $$outfile; \
+		fi; \
+		files="$$files $$outfile"; \
+	done; \
+	itstool -d -o $$tmpdir/$(DOMAIN).po $$files; \
+	sed -i '1i \
+# To re-generate, run "cd man/po; make update-po"' $$tmpdir/$(DOMAIN).po; \
+	cd $$origdir; \
+	test ! -f $$tmpdir/$(DOMAIN).po || { \
+	  if test -f $(srcdir)/$(DOMAIN).pot; then \
+	    sed -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot > $$tmpdir/$(DOMAIN).1po && \
+	    sed -f remove-potcdate.sed < $$tmpdir/$(DOMAIN).po > $$tmpdir/$(DOMAIN).2po && \
+	    if ! cmp $$tmpdir/$(DOMAIN).1po $$tmpdir/$(DOMAIN).2po >/dev/null 2>&1; then \
+	      rm -f $(srcdir)/$(DOMAIN).pot && \
+	      mv $$tmpdir/$(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
+	    fi; \
+	  else \
+	    mv $$tmpdir/$(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
+	  fi; \
+	} ; rm -rf $$tmpdir
+
+# This rule has no dependencies: we don't need to update $(DOMAIN).pot at
+# every "make" invocation, only create it when it is missing.
+# Only "make $(DOMAIN).pot-update" or "make dist" will force an update.
+$(srcdir)/$(DOMAIN).pot:
+	$(MAKE) $(DOMAIN).pot-update
+
+# This target rebuilds a PO file if $(DOMAIN).pot has changed.
+# Note that a PO file is not touched if it doesn't need to be changed.
+$(POFILES): $(srcdir)/$(DOMAIN).pot
+	@lang=`echo $@ | sed -e 's,.*/,,' -e 's/\.po$$//'`; \
+	if test -f "$(srcdir)/$${lang}.po"; then \
+	  test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
+	  echo "$${cdcmd}$(MSGMERGE_UPDATE) $${lang}.po $(DOMAIN).pot"; \
+	  cd $(srcdir) && $(MSGMERGE_UPDATE) $${lang}.po $(DOMAIN).pot; \
+	else \
+	  $(MAKE) $${lang}.po-create; \
+	fi
+
+
+install: install-exec install-data
+install-exec:
+install-data:
+
+install-strip: install
+
+installdirs: installdirs-exec installdirs-data
+installdirs-exec:
+installdirs-data:
+
+# Define this as empty until I found a useful application.
+installcheck:
+
+uninstall: uninstall-exec uninstall-data
+uninstall-exec:
+uninstall-data:
+
+check: all
+
+info dvi ps pdf html tags TAGS ctags CTAGS ID:
+
+mostlyclean:
+	rm -f remove-potcdate.sed remove-potcdate.sin
+	rm -f stamp-poT
+	rm -f core core.* $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po
+
+clean: mostlyclean
+
+distclean: clean
+	rm -f Makefile
+
+maintainer-clean: distclean
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	rm -f stamp-po
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+dist distdir:
+	$(MAKE) update-po
+	@$(MAKE) dist2
+# This is a separate target because 'update-po' must be executed before.
+dist2: stamp-po $(DISTFILES)
+	dists="$(DISTFILES)"; \
+	if test -f $(srcdir)/$(DOMAIN).pot; then \
+	  dists="$$dists $(DOMAIN).pot stamp-po"; \
+	fi; \
+	if test -f $(srcdir)/ChangeLog; then \
+	  dists="$$dists ChangeLog"; \
+	fi; \
+	for i in 0 1 2 3 4 5 6 7 8 9; do \
+	  if test -f $(srcdir)/ChangeLog.$$i; then \
+	    dists="$$dists ChangeLog.$$i"; \
+	  fi; \
+	done; \
+	for file in $$dists; do \
+	  if test -f $$file; then \
+	    cp -p $$file $(distdir) || exit 1; \
+	  else \
+	    cp -p $(srcdir)/$$file $(distdir) || exit 1; \
+	  fi; \
+	done
+
+update-po: Makefile
+	$(MAKE) $(DOMAIN).pot-update
+	test -z "$(UPDATEPOFILES)" || $(MAKE) $(UPDATEPOFILES)
+
+# General rule for creating PO files.
+
+.nop.po-create:
+	@lang=`echo $@ | sed -e 's/\.po-create$$//'`; \
+	echo "File $$lang.po does not exist. If you are a translator, you can create it through 'msginit'." 1>&2; \
+	exit 1
+
+# General rule for updating PO files.
+
+.nop.po-update:
+	@lang=`echo $@ | sed -e 's/\.po-update$$//'`; \
+	ptmpdir=`mktemp -d`; \
+	echo "$$lang:"; \
+	test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
+	echo "$${cdcmd}$(MSGMERGE) $$lang.po $(DOMAIN).pot -o $$lang.new.po"; \
+	cd $(srcdir); \
+	if $(MSGMERGE) $$lang.po $(DOMAIN).pot -o $$ptmpdir/$$lang.new.po; then \
+	  sed -f remove-potcdate.sed < $$lang.po > $$ptmpdir/$$lang.1po; \
+	  sed -f remove-potcdate.sed < $$ptmpdir/$$lang.new.po > $$ptmpdir/$$lang.new.1po; \
+	  if ! cmp $$ptmpdir/$$lang.1po $$ptmpdir/$$lang.new.1po >/dev/null 2>&1; then \
+	    if mv -f $$ptmpdir/$$lang.new.po $$lang.po; then \
+	      :; \
+	    else \
+	      echo "msgmerge for $$lang.po failed: cannot move $$ptmpdir/$$lang.new.po to $$lang.po" 1>&2; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	else \
+	  echo "msgmerge for $$lang.po failed!" 1>&2; \
+	fi ; rm -rf $$ptmpdir
+
+$(DUMMYPOFILES):
+
+.PRECIOUS: Makefile
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@case '$?' in \
+	  *config.status*) \
+	    cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh;; \
+	  *) \
+	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
+	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
+	esac;
+
+$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+
+# Tell versions [3.59,3.63) of GNU make not to export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

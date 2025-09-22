@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>ENV_SUPATH</option> (string)</term>
+  <listitem>
+    <para>
+      If set, it will be used to define the PATH environment variable when
+      the superuser login. The value is a colon separated list of paths 
+      (for example
+      <replaceable>/sbin:/bin:/usr/sbin:/usr/bin</replaceable>) and can be
+      preceded by <replaceable>PATH=</replaceable>. The default value is
+      <replaceable>PATH=/sbin:/bin:/usr/sbin:/usr/bin</replaceable>.
+    </para>
+    <!-- TODO: it can in fact be used to set any other variable-->
+  </listitem>
+</varlistentry>

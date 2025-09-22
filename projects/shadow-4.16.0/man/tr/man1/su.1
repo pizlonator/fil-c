@@ -1,0 +1,84 @@
+
+.TH su 1 "Eylül 2001" "GNU sh-utils 2.0.11" "FSF"
+.nh
+.SH İSİM  
+su - 
+başka bir kullanıcı ve grup kimliği ile bir kabuk çalıştırır
+
+.SH KULLANIM
+
+
+\fBsu\fR [\fISEÇENEK\fR]... [-] [\fIKULLANICI\fR [\fIARGÜMANLAR\fR]...]
+
+
+
+.SH AÇIKLAMA
+
+Etkin kullanıcı ve grup kimliğini \fIKULLANICI\fR´nınkilerle ile değiştirir.    
+
+
+
+.br
+.ns
+.TP 
+\fB-\fR, \fB-l\fR, \fB--login\fR
+Kabuğu, giriş kabuğu haline dönüştürür.
+
+.TP 
+\fB-c\fR, \fB--commmand\fR=\fIKOMUT \fR
+Kabuğa \fB-c\fR ile tek bir \fIKOMUT\fR aktarır.
+
+.TP 
+\fB-f\fR, \fB--fast\fR
+Kabuğa \fB-f\fR aktarır (csh veya tcsh için).
+
+.TP 
+\fB-m\fR, \fB--preserve-environment\fR
+Ortam değişkenlerini sıfırlamaz.
+
+.TP 
+\fB-p\fR
+\fB-m\fR ile aynıdır.
+
+.TP 
+\fB-s\fR, \fB--shell\fR=\fIKABUK \fR
+/etc/shells izin verdiği taktirde \fIKABUK\fR kabuğunu çalıştırır.
+
+.TP 
+\fB--help\fR
+Bu yardım metnini görüntüler ve çıkar.      
+
+.TP 
+\fB--version\fR
+Sürüm bilgilerini görüntüler ve çıkar.        
+
+.PP
+
+
+Tek başına \fB-\fR verilirse \fB-l\fR verilmiş gibi işlem yapılır. \fIKULLANICI\fR belirtilmezse, kullanıcı root kabul edilir.
+
+.SH YAZAN
+
+David MacKenzie tarafından yazılmıştır.
+.SH GERİBİLDİRİM
+
+Lütfen, böcekleri ve hataları <bug-sh-utils (at) gnu.org> adresine bildirin.
+.SH TELİF HAKKI
+
+Telif hakkı © 2000 Free Software Foundation, Inc.
+.br
+Bu bir serbest yazılımdır; kopyalama koşulları için kaynak koduna bakınız. Hiçbir garantisi yoktur; hatta SATILABİLİRLİĞİ veya ŞAHSİ KULLANIMINIZA UYGUNLUĞU için bile garanti verilmez.
+
+.SH İLGİLİ BELGELER
+
+\fBsu\fR komutu ile ilgili kapsamlı bir kılavuz Texinfo olarak mevcuttur. Şayet \fBinfo\fR ve \fBsu\fR yazılımları düzgün bir şekilde sisteminizde mevcutsa, aşağıdaki komut ile bu kılavuzu görüntüleyebilirsiniz.
+
+.IP 
+
+\fBinfo su\fR
+.PP
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Kasım 2003
+

@@ -1,0 +1,30 @@
+.TH "LOGOUTD" "8" "11/05/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+logoutd \- Omezuje čas přihlášení
+.SH "POUŽITÍ"
+.HP 8
+\fBlogoutd\fR
+.SH "POPIS"
+.PP
+\fBlogoutd\fR
+omezí čas přihlášení a seznam povolených portů podle pravidel zadaných v
+\fI/etc/porttime\fR.
+\fBlogoutd\fR
+by se měl spouštět z
+\fI/etc/rc\fR. Program pak pravidelně kontroluje soubor
+\fI/var/run/utmp\fR
+a zkoumá, zda má daný uživatel oprávnění být přihlášen na daném portu
+v daný čas. Všechna sezení, která porušují pravidla zadaná v
+\fI/etc/porttime\fR,
+jsou ukončena.
+.SH "SOUBORY"
+.TP
+\fI/etc/porttime\fR
+oprávnění k portům a přihlášení
+.TP
+\fI/var/run/utmp\fR
+seznam aktuálních sezení

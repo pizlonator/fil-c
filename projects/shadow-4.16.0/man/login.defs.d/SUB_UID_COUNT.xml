@@ -1,0 +1,24 @@
+<!--
+   SPDX-FileCopyrightText: 2013, Eric W. Biederman
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="subids">
+  <term><option>SUB_UID_MIN</option> (number)</term>
+  <term><option>SUB_UID_MAX</option> (number)</term>
+  <term><option>SUB_UID_COUNT</option> (number)</term>
+  <listitem>
+    <para>
+      If <filename>/etc/subuid</filename> exists, the commands
+      <command>useradd</command> and <command>newusers</command> (unless
+      the user already have subordinate user IDs) allocate
+      <option>SUB_UID_COUNT</option> unused user IDs from the range
+      <option>SUB_UID_MIN</option> to <option>SUB_UID_MAX</option> for each
+      new user.
+    </para>
+    <para>
+      The default values for <option>SUB_UID_MIN</option>,
+      <option>SUB_UID_MAX</option>, <option>SUB_UID_COUNT</option>
+      are respectively 100000, 600100000 and 65536.
+    </para>
+  </listitem>
+</varlistentry>

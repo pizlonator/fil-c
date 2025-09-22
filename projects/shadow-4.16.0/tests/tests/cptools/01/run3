@@ -1,0 +1,57 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# Rational:
+# Test that useradd can add an user and userdel removes it.
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+	for i in passwd group shadow gshadow
+	do
+		[ -f /etc/$i  ] && cp /etc/$i  tmp/$i
+	done
+
+	true
+}
+
+restore()
+{
+	for i in passwd group shadow gshadow
+	do
+		[ -f tmp/$i  ] && cp tmp/$i  /etc/$i  && rm tmp/$i
+	done
+	rmdir tmp
+}
+
+save
+
+# restore the files on exit
+trap 'restore' 0
+
+for i in passwd group shadow gshadow
+do
+	cp data/$i /etc
+done
+
+lines_passwd=$(wc -l /etc/passwd | cut -f1 -d" ")
+lines_shadow=$(wc -l /etc/shadow | cut -f1 -d" ")
+lines_group=$(wc -l /etc/group | cut -f1 -d" ")
+lines_gshadow=$(wc -l /etc/gshadow | cut -f1 -d" ")
+
+echo -n "Copy shadow.new "
+cppw -s data/shadow.new
+echo "OK"
+
+echo -n "test if the password file was copied"
+diff -au /etc/shadow data/shadow.new
+echo "  OK"
+
+echo -n "check that the other files were not modified"
+diff -au /etc/group data/group
+diff -au /etc/gshadow data/gshadow
+diff -au /etc/passwd data/passwd
+echo "  OK"

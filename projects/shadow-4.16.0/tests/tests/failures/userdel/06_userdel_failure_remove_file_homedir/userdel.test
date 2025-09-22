@@ -1,0 +1,64 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "userdel -r reports failure to remove a file in the home directory"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an home directory for foo..."
+mkdir /home/foo
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /home/foo' 0
+mkdir /home/foo/bar
+touch /home/foo/bar/baz
+chown -R foo:foo /home/foo
+echo "OK"
+
+echo -n "delete user foo with its mail spool (userdel -r foo)..."
+LD_PRELOAD=../../../common/unlink_failure.so FAILURE_PATH=/home/foo/bar/baz userdel -r foo 2>tmp/userdel.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+ 
+echo -n "Check returned status ($status)..."
+test "$status" = "12"
+echo "OK"
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/userdel.err tmp/userdel.err
+echo "error message OK."
+rm -f tmp/userdel.err
+
+rm -rf /home/foo
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl data/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl data/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,35 @@
+.\" SPDX-FileCopyrightText: 1991 \- 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.TH GROUPS 1
+.SH NÉV
+groups \- kiírja a jelenlegi csoportazonosító neveket
+.SH ÁTTEKINTÉS
+.B groups
+.RI [ felhasználó ]
+.SH LEÍRÁS
+A
+.B groups
+parancs kiírja a jelenlegi csoportazonosító neveket vagy számértékeket. Ha
+nincs az értéknek megfelelő bejegyzés a \fI/etc/group\fR fájlban, akkor a
+csoport azonosító számát írja ki. Az opcionális \fIfelhasználó\fR paraméter
+esetén azokat a csoportokat írja ki, amelyekbe a megadott \fIfelhasználó\fR
+tartozik.
+.SH MEGJEGYZÉS
+Azok a rendszerek, amelyek nem támogatják a konkurrens csoportbeállításokat,
+a kiírt információkat a \fI/etc/group\fR fájlból gyűjtik. A felhasználónak
+muszáj a \fBnewgrp\fR vagy a \fBsg\fR parancsot használniuk, hogy
+megváltoztassák a jelenlegi valódi és effektív csoportazonosítójukat.
+.SH FÁJLOK
+\fI/etc/group\fR \- információ a csoportokról
+.SH LÁSD MÉG
+.BR newgrp (1),
+.BR getgid (2),
+.BR getgroups (2),
+.BR getuid (2)
+.SH AUTHOR
+Julianne Frances Haugh (jfh@tab.com)
+.SH MAGYAR FORDÍTÁS
+ifj. Dyekiss Emil <emil2@cds.hu>

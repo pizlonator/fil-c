@@ -1,0 +1,22 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-FileCopyrightText: 2018, Red Hat, inc.
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>LASTLOG_UID_MAX</option> (number)</term>
+  <listitem>
+    <para>
+      Highest user ID number for which the lastlog entries should be
+      updated. As higher user IDs are usually tracked by remote user
+      identity and authentication services there is no need to create
+      a huge sparse lastlog file for them.
+    </para>
+    <para>
+      No <option>LASTLOG_UID_MAX</option> option present in the configuration
+      means that there is no user ID limit for writing lastlog entries.
+    </para>
+  </listitem>
+</varlistentry>

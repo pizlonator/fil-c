@@ -1,0 +1,96 @@
+'\" t
+.\"     Title: porttime
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "PORTTIME" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+porttime \- port access time file
+.SH "DESCRIPTION"
+.PP
+\fIporttime\fR
+contains a list of tty devices, user names, and permitted login times\&.
+.PP
+Each entry consists of three colon separated fields\&. The first field is a comma separated list of tty devices, or an asterisk to indicate that all tty devices are matched by this entry\&. The second field is a comma separated list of user names, or an asterisk to indicated that all user names are matched by this entry\&. The third field is a comma separated list of permitted access times\&.
+.PP
+Each access time entry consists of zero or more days of the week, abbreviated
+\fISu\fR,
+\fIMo\fR,
+\fITu\fR,
+\fIWe\fR,
+\fITh\fR,
+\fIFr\fR, and
+\fISa\fR, followed by a pair of times separated by a hyphen\&. The abbreviation
+\fIWk\fR
+may be used to represent Monday thru Friday, and
+\fIAl\fR
+may be used to indicate every day\&. If no days are given,
+\fIAl\fR
+is assumed\&.
+.SH "EXAMPLES"
+.PP
+The following entry allows access to user
+\fBjfh\fR
+on every port during weekdays from 9am to 5pm\&.
+.PP
+*:jfh:Wk0900\-1700
+.PP
+The following entries allow access only to the users
+\fIroot\fR
+and
+\fIoper\fR
+on
+/dev/console
+at any time\&. This illustrates how the
+/etc/porttime
+file is an ordered list of access times\&. Any other user would match the second entry which does not permit access at any time\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      console:root,oper:Al0000\-2400
+      console:*:
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following entry allows access for the user
+\fIgames\fR
+on any port during non\-working hours\&.
+.PP
+*:games:Wk1700\-0900,SaSu0000\-2400
+.SH "FILES"
+.PP
+/etc/porttime
+.RS 4
+File containing port access\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBlogin\fR(1)\&.

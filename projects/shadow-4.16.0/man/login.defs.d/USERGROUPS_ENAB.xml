@@ -1,0 +1,22 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>USERGROUPS_ENAB</option> (boolean)</term>
+  <listitem>
+    <para condition="no_pam">
+      Enable setting of the umask group bits to be the same as owner bits
+      (examples: 022 -> 002, 077 -> 007) for non-root users, if the uid is
+      the same as gid, and username is the same as the primary group name.
+    </para>
+    <para>
+      If set to <replaceable>yes</replaceable>, <command>userdel</command>
+      will remove the user's group if it contains no more members, and
+      <command>useradd</command> will create by default a group with the
+      name of the user.
+    </para>
+  </listitem>
+</varlistentry>

@@ -1,0 +1,146 @@
+'\" t
+.\"     Title: suauth
+.\"    Author: Marek Micha\(/lkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "SUAUTH" "5" "2024-06-18" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+suauth \- 详细的 su 控制文件
+.SH "大纲"
+.HP \w'\fB/etc/suauth\fR\ 'u
+\fB/etc/suauth\fR
+.SH "描述"
+.PP
+The file
+/etc/suauth
+is referenced whenever the su command is called\&. It can change the behaviour of the su command, based upon:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      1) the user su is targeting
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+2) 执行 su 命令的用户 (或者他可能属于的组)
+.PP
+文件格式为：以 # 开头的行视为注视，并被忽略；
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      to\-id:from\-id:ACTION
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Where to\-id is either the word
+\fIALL\fR, a list of usernames delimited by "," or the words
+\fIALL EXCEPT\fR
+followed by a list of usernames delimited by ","\&.
+.PP
+from\-id is formatted the same as to\-id except the extra word
+\fIGROUP\fR
+is recognized\&.
+\fIALL EXCEPT GROUP\fR
+is perfectly valid too\&. Following
+\fIGROUP\fR
+appears one or more group names, delimited by ","\&. It is not sufficient to have primary group id of the relevant group, an entry in
+\fB/etc/group\fR(5)
+is necessary\&.
+.PP
+动作只可以使用如下当前支持的选项。
+.PP
+\fIDENY\fR
+.RS 4
+su 的尝试在询问密码之前就被拒绝。
+.RE
+.PP
+\fINOPASS\fR
+.RS 4
+su 尝试自动成功，而且不询问密码。
+.RE
+.PP
+\fIOWNPASS\fR
+.RS 4
+为了成功执行 su，用户必须提供自己的密码。将会提示他们这样。
+.RE
+.PP
+注意，有三个用冒号分割的字段。冒号旁边不能有空格。也请注意，这个文件会被一行一行地依次检查，会使用第一个可用的规则，而不会继续检查文件。这可以让系统管理员使系统尽量符合其期望。
+.SH "示例"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      # sample /etc/suauth file
+      #
+      # A couple of privileged usernames may
+      # su to root with their own password\&.
+      #
+      root:chris,birddog:OWNPASS
+      #
+      # Anyone else may not su to root unless in
+      # group wheel\&. This is how BSD does things\&.
+      #
+      root:ALL EXCEPT GROUP wheel:DENY
+      #
+      # Perhaps terry and birddog are accounts
+      # owned by the same person\&.
+      # Access can be arranged between them
+      # with no password\&.
+      #
+      terry:birddog:NOPASS
+      birddog:terry:NOPASS
+      #
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "文件"
+.PP
+/etc/suauth
+.RS 4
+.RE
+.SH "缺陷"
+.PP
+可能会有很多潜在问题。文件解析器尤其不能容忍语法错误，不能有无意义的空白符(除了行首和行尾)，并且使用特定的标记分割不同的事情。
+.SH "DIAGNOSTICS"
+.PP
+An error parsing the file is reported using
+\fBsyslogd\fR(8)
+as level ERR on facility AUTH\&.
+.SH "参见"
+.PP
+\fBsu\fR(1)\&.

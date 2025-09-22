@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 2013 Eric W. Biederman
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='newuidmap.1'>
+  <refentryinfo>
+    <author>
+      <firstname>Eric</firstname>
+      <surname>Biederman</surname>
+      <contrib>Creation, 2013</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>newuidmap</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>newuidmap</refname>
+    <refpurpose>set the uid mapping of a user namespace</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>newuidmap</command>
+      <arg choice='plain'>
+	<replaceable>pid</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>uid</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>loweruid</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>count</replaceable>
+      </arg>
+      <arg choice='opt'>
+	<arg choice='plain'>
+	  <replaceable>uid</replaceable>
+	</arg>
+	<arg choice='plain'>
+	  <replaceable>loweruid</replaceable>
+	</arg>
+	<arg choice='plain'>
+	  <replaceable>count</replaceable>
+	</arg>
+	<arg choice='opt'>
+	  <replaceable>...</replaceable>
+	</arg>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>newuidmap</command> sets <filename>/proc/[pid]/uid_map</filename>
+      based on its command line arguments and the uids allowed. Subuid
+      delegation can either be managed via <filename>/etc/subuid</filename> or
+      through the configured NSS subid module. These options are mutually
+      exclusive.
+    </para>
+
+    <para>
+      Note that the root user is not exempted from the requirement for a valid
+      <filename>/etc/subuid</filename> entry.
+    </para>
+
+    <para>
+      After the pid argument, <command>newuidmap</command> expects sets of 3 integers:
+      <variablelist>
+	<varlistentry>
+	  <term>uid</term>
+	  <listitem>
+	    <para>
+	      Beginning of the range of UIDs inside the user namespace.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>loweruid</term>
+	  <listitem>
+	    <para>
+	      Beginning of the range of UIDs outside the user namespace.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>count</term>
+	  <listitem>
+	    <para>
+	      Length of the ranges (both inside and outside the user namespace).
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <command>newuidmap</command> verifies that the caller is the owner
+      of the process indicated by <option>pid</option> and that for each
+      of the above sets, each of the UIDs in the range [loweruid,
+      loweruid+count) is allowed to the caller according to
+      <filename>/etc/subuid</filename> before setting
+      <filename>/proc/[pid]/uid_map</filename>.
+    </para>
+    <para>
+      Note that newuidmap may be used only once for a given process.
+    </para>
+    <para>
+      Instead of an integer process id, the first argument may be
+      specified as <replaceable>fd:N</replaceable>, where the integer N
+      is the file descriptor number for the calling process's opened
+      file descriptor for the directory <filename>/proc/[pid]</filename>.
+      In this case, <command>newuidmap</command> will use
+      <refentrytitle>openat</refentrytitle><manvolnum>2</manvolnum>
+      to open the <filename>uid_map</filename> file under that
+      directory, avoiding a TOCTTOU in case the process exits and
+      the pid is immediately reused.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      There currently are no options to the <command>newuidmap</command> command.
+    </para>
+    <variablelist remap='IP'>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/subuid</filename></term>
+	<listitem>
+	  <para>List of user's subordinate user IDs.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/proc/[pid]/uid_map</filename></term>
+	<listitem>
+	  <para>Mapping of uids from one between user namespaces.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newusers</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

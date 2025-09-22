@@ -1,0 +1,74 @@
+'\" t
+.\"     Title: expiry
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "expiry" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+expiry \- проверяет и изменяет пароль согласно политике устаревания
+.SH "СИНТАКСИС"
+.HP \w'\fBexpiry\fR\ 'u
+\fBexpiry\fR \fIoption\fR
+.SH "ОПИСАНИЕ"
+.PP
+The
+\fBexpiry\fR
+command checks (\fB\-c\fR) the current password expiration and forces (\fB\-f\fR) changes when required\&. It is callable as a normal user command\&.
+.SH "ПАРАМЕТРЫ"
+.PP
+The options which apply to the
+\fBexpiry\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-check\fR
+.RS 4
+Проверяет и изменяет срок действия пароля у текущего пользователя\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+Принудительно меняет пароль, если его срок действия истёк\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показать краткую справку и закончить работу\&.
+.RE
+.SH "ФАЙЛЫ"
+.PP
+/etc/passwd
+.RS 4
+содержит информацию о пользователях
+.RE
+.PP
+/etc/shadow
+.RS 4
+содержит защищаемую информацию о пользователях
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5)\&.

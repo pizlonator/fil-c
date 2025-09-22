@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 2013 Eric W. Biederman
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='subgid.5'>
+  <refentryinfo>
+    <author>
+      <firstname>Eric</firstname>
+      <surname>Biederman</surname>
+      <contrib>Creation, 2013</contrib>
+    </author>
+    <author>
+      <firstname>Iker</firstname>
+      <surname>Pedrosa</surname>
+      <contrib>Developer, 2021</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>subgid</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>subgid</refname>
+    <refpurpose>the configuration for subordinate group ids</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      Subgid authorizes a group id to map ranges of group ids from its namespace
+      into child namespaces.
+    </para>
+    <para>
+      The delegation of the subordinate gids can be configured via the
+      <replaceable>subid</replaceable> field in
+      <filename>/etc/nsswitch.conf</filename> file. Only one value can be set
+      as the delegation source. Setting this field to
+      <replaceable>files</replaceable> configures the delegation of gids to
+      <filename>/etc/subgid</filename>. Setting any other value treats
+      the delegation as a plugin following with a name of the form
+      <replaceable>libsubid_$value.so</replaceable>. If the value or plugin is
+      missing, then the subordinate gid delegation falls back to
+      <replaceable>files</replaceable>.
+    </para>
+    <para>
+      Note, that <command>groupadd</command> will only create entries in
+      <filename>/etc/subgid</filename> if subid delegation is managed via subid
+      files.
+    </para>
+  </refsect1>
+
+  <refsect1 id='local-subordinate-delegation'>
+    <title>LOCAL SUBORDINATE DELEGATION</title>
+    <para>
+      Each line in <filename>/etc/subgid</filename> contains
+      a user name and a range of subordinate group ids that user
+      is allowed to use.
+
+      This is specified with three fields delimited by colons
+      (<quote>:</quote>).
+      These fields are:
+    </para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>login name or UID</para>
+      </listitem>
+      <listitem>
+	<para>numerical subordinate group ID</para>
+      </listitem>
+      <listitem>
+	<para>numerical subordinate group ID count</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      This file specifies the group IDs that ordinary users can use, with
+      the <command>newgidmap</command> command, to configure gid mapping
+      in a user namespace.
+    </para>
+
+    <para>
+      Multiple ranges may be specified per user.
+    </para>
+
+    <para>
+      When large number of entries (10000-100000 or more) are defined in
+      <filename>/etc/subgid</filename>, parsing performance penalty will
+      become noticeable. In this case it is recommended to use UIDs
+      instead of login names. Benchmarks have shown speed-ups up to 20x.
+    </para>
+
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/subgid</filename></term>
+	<listitem>
+	  <para>Per user subordinate group IDs.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/subgid-</filename></term>
+	<listitem>
+	  <para>Backup file for /etc/subgid.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newgidmap</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newuidmap</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newusers</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>user_namespaces</refentrytitle><manvolnum>7</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

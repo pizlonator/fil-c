@@ -1,0 +1,22 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>CONSOLE</option> (string)</term>
+  <listitem>
+    <para>
+      If defined, either full pathname of a file containing device names
+      (one per line) or a ":" delimited list of device names.  Root logins will be
+      allowed only upon these devices.
+    </para>
+    <para>
+      If not defined, root will be allowed on any device.
+    </para>
+    <para>
+      The device should be specified without the /dev/ prefix.
+    </para>
+  </listitem>
+</varlistentry>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='shadow.3'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>shadow</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="sectdesc">Library Calls</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>shadow</refname>
+    <refname>getspnam</refname>
+    <refpurpose>encrypted password file routines</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='syntax'>
+    <title>SYNTAX</title>
+    <para>
+      <emphasis>#include &lt;shadow.h&gt;</emphasis>
+    </para>
+
+    <para>
+      <emphasis>struct spwd *getspent();</emphasis>
+    </para>
+
+    <para>
+      <emphasis>struct spwd *getspnam(char</emphasis> <emphasis
+      remap='I'>*name</emphasis><emphasis>);</emphasis>
+    </para>
+
+    <para>
+      <emphasis>void setspent();</emphasis>
+    </para>
+
+    <para>
+      <emphasis>void endspent();</emphasis>
+    </para>
+
+    <para>
+      <emphasis>struct spwd *fgetspent(FILE</emphasis> <emphasis
+      remap='I'>*fp</emphasis><emphasis>);</emphasis>
+    </para>
+
+    <para>
+      <emphasis>struct spwd *sgetspent(char</emphasis> <emphasis
+      remap='I'>*cp</emphasis><emphasis>);</emphasis>
+    </para>
+
+    <para>
+      <emphasis>int putspent(struct spwd</emphasis> <emphasis
+      remap='I'>*p,</emphasis> <emphasis>FILE</emphasis> <emphasis
+      remap='I'>*fp</emphasis><emphasis>);</emphasis>
+    </para>
+
+    <para>
+      <emphasis>int lckpwdf();</emphasis>
+    </para>
+
+    <para>
+      <emphasis>int ulckpwdf();</emphasis>
+    </para>
+  </refsect1>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <emphasis remap='I'>shadow</emphasis> manipulates the contents of the
+      shadow password file, <filename>/etc/shadow</filename>. The structure
+      in the <emphasis remap='I'>#include</emphasis> file is:
+    </para>
+    <programlisting>struct spwd {
+      char		*sp_namp; /* user login name */
+      char		*sp_pwdp; /* encrypted password */
+      long int		sp_lstchg; /* last password change */
+      long int		sp_min; /* days until change allowed. */
+      long int		sp_max; /* days before change required */
+      long int		sp_warn; /* days warning for expiration */
+      long int		sp_inact; /* days before account inactive */
+      long int		sp_expire; /* date when account expires */
+      unsigned long int	sp_flag; /* reserved for future use */
+}
+    </programlisting>
+    <para>The meanings of each field are:</para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>sp_namp - pointer to null-terminated user name</para>
+      </listitem>
+      <listitem>
+	<para>sp_pwdp - pointer to null-terminated password</para>
+      </listitem>
+      <listitem>
+	<para>sp_lstchg - days since Jan 1, 1970 password was last changed</para>
+      </listitem>
+      <listitem>
+	<para>sp_min - days before which password may not be changed</para>
+      </listitem>
+      <listitem>
+	<para>sp_max - days after which password must be changed</para>
+      </listitem>
+      <listitem>
+	 <para>sp_warn - days before password is to expire that user is warned of
+	   pending password expiration
+	 </para>
+      </listitem>
+      <listitem>
+	<para>sp_inact - days after password expires that account is considered
+	  inactive and disabled
+	</para>
+      </listitem>
+      <listitem>
+	<para>sp_expire - days since Jan 1, 1970 when account will be disabled</para>
+      </listitem>
+      <listitem>
+	<para>sp_flag - reserved for future use</para>
+      </listitem>
+    </itemizedlist>
+
+  </refsect1>
+
+  <refsect1 id='description2'>
+    <title>DESCRIPTION</title>
+    <para>
+      <emphasis>getspent</emphasis>, <emphasis>getspname</emphasis>,
+      <emphasis>fgetspent</emphasis>, and <emphasis>sgetspent</emphasis>
+      each return a pointer to a <emphasis>struct spwd</emphasis>.
+      <emphasis>getspent</emphasis> returns the next entry from the file,
+      and <emphasis>fgetspent</emphasis> returns the next entry from the
+      given stream, which is assumed to be a file of the proper format.
+      <emphasis>sgetspent</emphasis> returns a pointer to a <emphasis>struct
+      spwd</emphasis> using the provided string as input.
+      <emphasis>getspnam</emphasis> searches from the current position in
+      the file for an entry matching <emphasis>name</emphasis>.
+    </para>
+
+    <para>
+      <emphasis>setspent</emphasis> and <emphasis>endspent</emphasis> may be
+      used to begin and end, respectively, access to the shadow password
+      file.
+    </para>
+    
+    <para>
+      The <emphasis>lckpwdf</emphasis> and <emphasis>ulckpwdf</emphasis>
+      routines should be used to insure exclusive access to the
+      <filename>/etc/shadow</filename> file.  <emphasis>lckpwdf</emphasis>
+      attempts to acquire a lock using <emphasis>pw_lock</emphasis> for up
+      to 15 seconds. It continues by attempting to acquire a second lock
+      using <emphasis>spw_lock</emphasis> for the remainder of the initial
+      15 seconds. Should either attempt fail after a total of 15 seconds,
+      <emphasis>lckpwdf</emphasis> returns -1. When both locks are acquired
+      0 is returned.
+    </para>
+  </refsect1>
+
+  <refsect1 id='diagnostics'>
+    <title>DIAGNOSTICS</title>
+    <para>
+      Routines return NULL if no more entries are available or if an error
+      occurs during processing. Routines which have <emphasis>int</emphasis>
+      as the return value return 0 for success and
+      -1 for failure.
+    </para>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      These routines may only be used by the superuser as access to the
+      shadow password file is restricted.
+    </para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>getpwent</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

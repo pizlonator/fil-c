@@ -1,0 +1,48 @@
+#!/usr/bin/expect
+
+if {$argc == 1} {
+	set command     [lindex $argv 0]
+} else {
+	set command     ""
+}
+
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "id\r"
+expect "uid=0(root) gid=0(root) groups=0(root)\r"
+expect "# "
+
+send "export FOO=bar\r"
+expect "# "
+
+#=============================================================================
+#
+# su --preserve-environment, as for regular su, environment is preserved
+#
+#=============================================================================
+send "/bin/su $command -m myuser\r"
+expect "$ "
+
+send "id\n"
+expect "uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)\r"
+expect "$ "
+
+send_user "\n# FOO should be 'bar'"
+send "\r"
+expect "$ "
+
+send "echo \"FOO=\\\"\$FOO\\\"\"\r"
+expect "FOO=\"bar\"\r"
+expect "$ "
+
+send "exit\r"
+expect "# "
+
+puts "\nPASS"
+exit 0
+

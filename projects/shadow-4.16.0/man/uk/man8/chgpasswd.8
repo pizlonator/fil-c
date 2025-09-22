@@ -1,0 +1,140 @@
+'\" t
+.\"     Title: chgpasswd
+.\"    Author: Thomas K\(/loczko <kloczek@pld.org.pl>
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "chgpasswd" "8" "18/06/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+chgpasswd \- оновлення паролів груп у пакетному режимі
+.SH "КОРОТКИЙ ОГЛЯД"
+.HP \w'\fBchgpasswd\fR\ 'u
+\fBchgpasswd\fR [\fIoptions\fR]
+.SH "ОПИС"
+.PP
+The
+\fBchgpasswd\fR
+command reads a list of group name and password pairs from standard input and uses this information to update a set of existing groups\&. Each line is of the format:
+.PP
+\fIgroup_name\fR:\fIpassword\fR
+.PP
+By default the supplied password must be in clear\-text, and is encrypted by
+\fBchgpasswd\fR\&.
+.PP
+The default encryption algorithm can be defined for the system with the
+\fBENCRYPT_METHOD\fR
+variable of
+/etc/login\&.defs, and can be overwritten with the
+\fB\-e\fR,
+\fB\-m\fR, or
+\fB\-c\fR
+options\&.
+.PP
+Цю команду призначено для використання у великих системних середовищах, де одночасно створюють багато облікових записів\&.
+.SH "ПАРАМЕТРИ"
+.PP
+The options which apply to the
+\fBchgpasswd\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR
+.RS 4
+Скористатися для шифрування паролів вказаним методом\&.
+.sp
+The available methods are
+\fIDES\fR,
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR
+and
+\fINONE\fR
+if your libc supports these methods\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-encrypted\fR
+.RS 4
+Надані паролі подано у зашифрованій формі\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показати довідкове повідомлення і завершити роботу\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-md5\fR
+.RS 4
+Скористатися шифруванням MD5 замість DES, якщо надані паролі не зашифровано\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR
+.RS 4
+Використати вказану кількість циклів шифрування паролів\&.
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default number of rounds is 5000\&.
+.RE
+.SH "ЗАСТЕРЕЖЕННЯ"
+.PP
+Не забудьте встановити права доступу або umask, щоб запобігти доступності до читання нешифрованих файлів сторонніми користувачами\&.
+.PP
+Вам слід переконатися, що паролі і метод шифрування відповідає правилам поводження з паролями у системі\&.
+.SH "НАЛАШТУВАННЯ"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛИ"
+.PP
+/etc/group
+.RS 4
+Відомості щодо груп облікових записів\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Відомості щодо захищених груп облікових записів\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Налаштування комплексу для роботи з прихованими паролями\&.
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBgpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBlogin.defs\fR(5)\&.

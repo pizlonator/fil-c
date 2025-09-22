@@ -1,0 +1,19 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>PASS_MAX_LEN</option> (number)</term>
+  <term><option>PASS_MIN_LEN</option> (number)</term>
+  <listitem>
+    <para>
+      Number of significant characters in the password for crypt().
+      <option>PASS_MAX_LEN</option> is 8 by default. Don't change unless
+      your crypt() is better. This is ignored if
+      <option>MD5_CRYPT_ENAB</option> set to
+      <replaceable>yes</replaceable>.
+    </para>
+  </listitem>
+</varlistentry>

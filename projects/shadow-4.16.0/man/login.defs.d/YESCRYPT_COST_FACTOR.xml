@@ -1,0 +1,29 @@
+<!--
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="yescrypt">
+  <term><option>YESCRYPT_COST_FACTOR</option> (number)</term>
+  <listitem>
+    <para>
+      When <option>ENCRYPT_METHOD</option> is set to
+      <replaceable>YESCRYPT</replaceable>, this defines the cost factor
+      used by the encryption algorithm by default (when the cost factor
+      is not specified on the command line).
+    </para>
+    <para>
+      With a high cost factor, it is more difficult to brute force the
+      password. But note also that more CPU resources will be needed to
+      authenticate users.
+    </para>
+    <para>
+      The value must be inside the 1-11 range.
+    </para>
+    <para condition="pam">
+      Note: This only affect the generation of group passwords.
+      The generation of user passwords is done by PAM and subject to the
+      PAM configuration. It is recommended to set this variable
+      consistently with the PAM configuration.
+    </para>
+  </listitem>
+</varlistentry>

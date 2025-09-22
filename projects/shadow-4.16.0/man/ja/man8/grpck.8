@@ -1,0 +1,90 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1992 - 1993, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated & Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH GRPCK 8
+.SH 名前
+grpck \- グループファイルが正しいかどうか検査する
+.SH 書式
+\fBgrpck\fR [\fB\-r\fR] [\fIgroup\fR \fIshadow\fR]
+.SH 説明
+\fBgrpck\fR コマンドはシステムの認証情報が正しいかどうか検査する。
+\fI/etc/group\fR と \fI/etc/gshadow\fR
+各ファイルの全てのエントリに対し、
+各フィールドの書式が正しいか、
+そのデータが有効なものかどうかを検証する。
+書式が正しくないエントリや、
+修正不能な誤りを含むエントリは削除するようプロンプトを出す。
+.P
+各々のエントリに対して
+.sp
+.in +.5i
+\- フィールドの数が正しいか
+.br
+\- グループ名に重複がないか
+.br
+\- メンバーのリストと管理者のリストが正しいか
+.in -.5i
+.sp
+がチェックされる。
+.P
+フィールドの数が間違っていたり、
+グループ名が重複しているのは致命的なエラーである。
+フィールドの数が正しくない場合、
+ユーザーはそのエントリ行を削除するよう促される。
+削除に同意しなかった場合は、それ以降のチェックは行われない。
+重複したグループ名があった場合も削除を促されるが、
+この場合は削除しなくてもそれ以降のチェックは続行される。
+他の全てのエラーに対しては警告がなされる。
+\fBgroupmod\fR コマンドを実行してそのエラーを修正すると良いだろう。
+.P
+\fI/etc/group\fR ファイルを操作するコマンドは、
+壊れたエントリや重複したエントリを変更できない。
+そのような際に誤りのあるエントリを削除するには
+\fBgrpck\fR を用いるとよい。
+.SH オプション
+デフォルトでは \fBgrpck\fR は \fI/etc/group\fR ファイルと
+\fI/etc/gshadow\fR に対して動作する。
+\fIgroup\fR パラメータと \fIshadow\fR パラメータを用いて、
+別のファイルを選択することもできる。
+さらに \fB\-r\fR フラグを指定すれば、
+リードオンリーモードでコマンドを実行することもできる。
+この場合、変更を行うかどうかはユーザへ問い合わされず、
+自動的に \fBno\fR と回答される。
+.B grpck
+は
+\fI/etc/group\fR と \fI/etc/gshadow\fR
+のエントリを GID でソートすることもできる。
+ソートモードで動作させるには \fB\-s\fR フラグを与える。
+この場合チェックは行われず、単にソートするだけである。
+.SH ファイル
+\fI/etc/group\fR \  \- グループアカウント情報
+.br
+\fI/etc/gshadow\fR \- 暗号化されたパスワードとグループ管理者情報
+.br
+\fI/etc/passwd\fR \ \- ユーザー情報
+.SH 関連項目
+.BR group (5),
+.BR passwd (5),
+.BR shadow (5),
+.BR groupmod (8)
+.SH 返り値
+\fBgrpck\fR コマンドは終了時に以下の値を返す:
+.IP 0 5
+成功
+.IP 1 5
+構文エラー
+.IP 2 5
+誤ったグループエントリが存在する
+.IP 3 5
+グループファイルをオープンできない
+.IP 4 5
+グループファイルをロックできない
+.IP 5 5
+グループファイルを更新できない
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

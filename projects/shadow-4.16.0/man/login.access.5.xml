@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1996 - 2000, Marek Michałkiewicz
+   SPDX-FileCopyrightText: 2001 - 2006, Tomasz Kłoczko
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='login.access.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Marek</firstname>
+      <surname>Michałkiewicz</surname>
+      <contrib>Creation, 1996</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>login.access</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>login.access</refname>
+    <refpurpose>login access control table</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <emphasis remap='I'>login.access</emphasis> file specifies (user,
+      host) combinations and/or (user, tty) combinations for which a login
+      will be either accepted or refused.
+    </para>
+
+    <para>
+      When someone logs in, the <emphasis remap='I'>login.access</emphasis>
+      is scanned for the first entry that matches the (user, host)
+      combination, or, in case of non-networked logins, the first entry that
+      matches the (user, tty) combination. The permissions field of that
+      table entry determines whether the login will be accepted or refused.
+    </para>
+
+    <para>
+      Each line of the login access control table has three fields separated
+      by a ":" character:
+    </para>
+
+    <para>
+      <emphasis remap='I'>permission</emphasis>:<emphasis remap='I'>users</emphasis>:<emphasis remap='I'>origins</emphasis>
+    </para>
+
+    <para>
+      The first field should be a "<emphasis>+</emphasis>" (access granted)
+      or "<emphasis>-</emphasis>" (access denied) character. The second
+      field should be a list of one or more login names, group names, or
+      <emphasis>ALL</emphasis> (always matches). The third field should be a
+      list of one or more tty names (for non-networked logins), host names,
+      domain names (begin with "<literal>.</literal>"), host addresses,
+      internet network numbers (end with "<literal>.</literal>"),
+      <emphasis>ALL</emphasis> (always matches) or
+      <emphasis>LOCAL</emphasis> (matches any string that does not contain a
+      "<literal>.</literal>" character). If you run NIS you can use
+      @netgroupname in host or user patterns.
+    </para>
+
+    <para>
+      The <emphasis>EXCEPT</emphasis> operator makes it possible to write
+      very compact rules.
+    </para>
+
+    <para>
+      The group file is searched only when a name does not match that of the
+      logged-in user. Only groups are matched in which users are explicitly
+      listed: the program does not look at a user's primary group id value.
+    </para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

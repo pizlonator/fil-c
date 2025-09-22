@@ -1,0 +1,41 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "chgpasswd can use create SHA256 passwords and use the requested number of rounds"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Change nogroup and lp's password (chgpasswd --crypt-method SHA256 -s 9000)..."
+echo 'nogroup:test
+lp:test2' | chgpasswd --crypt-method SHA256 -s 9000
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl data/gshadow /etc/gshadow
+grep nogroup /etc/gshadow | grep -q ':\$5\$rounds=9000\$'
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

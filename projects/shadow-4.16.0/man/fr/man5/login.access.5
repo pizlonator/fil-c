@@ -1,0 +1,67 @@
+'\" t
+.\"     Title: login.access
+.\"    Author: Marek Micha\(/lkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: French
+.\"
+.TH "LOGIN\&.ACCESS" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOM"
+login.access \- table de contr\(^ole des connexions
+.SH "DESCRIPTION"
+.PP
+The
+\fIlogin\&.access\fR
+file specifies (user, host) combinations and/or (user, tty) combinations for which a login will be either accepted or refused\&.
+.PP
+When someone logs in, the
+\fIlogin\&.access\fR
+is scanned for the first entry that matches the (user, host) combination, or, in case of non\-networked logins, the first entry that matches the (user, tty) combination\&. The permissions field of that table entry determines whether the login will be accepted or refused\&.
+.PP
+Chaque ligne de la table de contr\(^ole des connexions (\(Fo\ \&login access control table\ \&\(Fc) est compos\('ee de trois champs s\('epar\('es par le caract\(`ere \(Fo\ \&:\ \&\(Fc\ \&:
+.PP
+\fIpermission\fR:\fIusers\fR:\fIorigins\fR
+.PP
+The first field should be a "\fI+\fR" (access granted) or "\fI\-\fR" (access denied) character\&. The second field should be a list of one or more login names, group names, or
+\fIALL\fR
+(always matches)\&. The third field should be a list of one or more tty names (for non\-networked logins), host names, domain names (begin with "\&."), host addresses, internet network numbers (end with "\&."),
+\fIALL\fR
+(always matches) or
+\fILOCAL\fR
+(matches any string that does not contain a "\&." character)\&. If you run NIS you can use @netgroupname in host or user patterns\&.
+.PP
+The
+\fIEXCEPT\fR
+operator makes it possible to write very compact rules\&.
+.PP
+Le fichier d\*(Aqinformations sur les groupes (/etc/group) n\*(Aqest utilis\('e que lorsqu\*(Aqun nom ne correspond \(`a aucun des utilisateurs connect\('es\&. Seuls les groupes pour lesquels la liste des utilisateurs est sp\('ecifi\('ee sont utilis\('es\ \&: le programme ne recherche pas parmi les groupes primaires des utilisateurs\&.
+.SH "FICHIERS"
+.PP
+/etc/login\&.defs
+.RS 4
+Configuration de la suite des mots de passe cach\('es \(Fo\ \&shadow password\ \&\(Fc\&.
+.RE
+.SH "VOIR AUSSI"
+.PP
+\fBlogin\fR(1)\&.

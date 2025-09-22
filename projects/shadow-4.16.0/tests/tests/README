@@ -1,0 +1,19 @@
+This testsuite is NOT SECURE: it will temporarily change your passwords file
+with known passwords.
+You should run it on a chroot, or on a secured dedicated system.
+
+
+
+To test a Debian system:
+	$ mkdir sid-chroot
+	$ sudo debootstrap sid sid-chroot/ http://deb.debian.org/debian/
+edit or copy a sources.list
+	$ sudo cp /etc/apt/sources.list sid-chroot/etc/apt/
+edit or copy a resolv.conf
+	$ sudo cp /etc/resolv.conf sid-chroot/etc/
+	$ su - root -c "chroot sid-chroot/ /bin/bash"
+	# mount -t proc proc /proc
+	# mount -t devpts devpts /dev/pts
+	# aptitude update
+	# aptitude install expect
+	# cd /dev ; mknod --mode=666 /dev/ptmx c 5 2

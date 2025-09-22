@@ -1,0 +1,119 @@
+.\"$Id$
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Jan  5 20:24:40 MET 1998 by Michael Haardt
+.\"  (michael@cantor.informatik.rwth-aachen.de)
+.\"
+.\" 한국어 번역 : ASPLINUX<man@asp-linux.co.kr>    2000년 7월 29일
+.\"
+.TH PASSWD 5 "January 5, 1998" "" "File formats"
+.SH 이름
+passwd \- 패스워드 파일 
+.SH 설명
+.B Passwd
+는 텍스트 파일로서, 시스템 계정의 목록을 포함하고 있고, 사용자 ID, 그룹 
+ID, 홈 디렉토리, 쉘 등의 각 계정에 대한 매우 유용한 정보를 제공한다. 
+종종, 각 계정에 대한 암호화된 패스워드를 포함한다. 
+Passwd는 일반적인 읽기 권한을 가져야 하지만, 수퍼 유저에게만 쓰기 접근이
+가능하다. 
+.PP
+예전에는 일반적인 읽기 권한으로인한 문제들이 없었다. 모든 사람들이
+암호화된 패스워드를 읽을 수 있었지만, 패스워드를 크랙하기에는 하드웨어가
+너무나 느렸고, 더우기, 기본적인 가정은 그들은 아주 친숙한 사용자
+공동체의 패스워드들이었다. 
+
+오늘날 많은 사람들이 쉐도우 패스워드의 일부 버전을 실행한다.
+ .I /etc/passwd는 암호화된  패스워드 대신 *로 된
+패스워드를 지니고, 암호화된 패스워드들은 수퍼유저만이 읽을 수 있는
+.I /etc/shadow에 저장된다. 
+.PP
+쉐도우 패스우드가 사용되는지에 상관없이, 많은 시스템 관리자들은 사용자가
+자기 자신을 패스워드를 사용하여 인증할 수 없도록 패스워드 필드내에 
+별표를 사용한다. 
+
+.PP
+만일 새로운 로그인을 만들면, 우선 패스워드 필드에 별표를 놓고, 이를
+설정하기 위해 .BR passwd (1)을 사용한다. 
+PP
+각 행마다 하나의 항목이 있고, 각 행은 다음의 형식을 지닌다. 
+.sp
+.RS
+계정:패스워드:UID:GID:GECOS:디렉토리:쉘
+.RE
+.sp
+각 필드에 대한 설명은 다음과 같다. 
+.sp
+.RS
+.TP 1.0in
+.I 계정
+시스템에서의 사용자 이름. 대문자를 사용해서는 안된다. 
+.TP
+.I 패스워드
+암호화된 사용자의 패스워드 혹은 별표
+.TP
+.I UID
+숫자로 표현되는 사용자 id
+.TP
+.I GID
+이 사용자에 대한 주 그룹 ID, 숫자로 표현됨
+.TP
+.I GECOS
+이 필드는 선택적이고, 오직 정보적인 목적으로만 사용된다. 보통, 이는
+사용자의 전체 이름을 포함한다. GECOS는 일반 전자 통합 운영체제로서, 
+GE의 거대 시스템이 Honeywell에 판매된 GCOS,로 다시 명명되었다. Dennis
+Ritchie는 말하기를, 때때로 우리는 프린터 출력 혹은 일괄 처리 작업들을
+GCOS 머신으로 전송하였다. 패스워드 파일에서 GCOS 필드는 $IDENTcard에 대한 
+정보를 숨겨두는 장소이다.
+.TP
+.I directory 
+사용자의 $HOME 디렉토리
+.TP
+.I shell(쉘)
+로그인시 실행하는 프로그램(만일 비었다면, .BR /bin/sh을 사용한다.)
+만일 존재하지 않는 실행파일로 설정되었다면, 사용자는 .BR login (1)을 통해
+로그인 할 수 없을 것이다.
+
+.RE
+.SH 주의
+여러분이 사용자 그룹을 만들고 싶다면, GID는 이와 동일하여야 하며, 
+\fI/etc/group\fP내에 항목들이 있거나, 그룹이 존재하지 않아야 한다. 
+.PP
+암호화된 패스워드가 별표로 설정된 경우, 사용자는 .BR login (1)로 로그일 할 수 없지만, 
+.BR rlogin (1)을 사용하여 로그인할 수 있을 수도 있다. 존재하는 프로세스들을 실행하고,
+.BR rsh (1)
+혹은
+.BR cron (1)
+혹은
+.BR at (1)
+을 초기화시키거나, 메일 필터를 시작한다. 
+단순히 쉘 필드를 변경시켜서 계정을 잠그는 것은 똑같은 결과를 가져오고, 
+.BR su (1)의 사용을 허용한다..
+.SH 파일
+.I /etc/passwd
+.SH 관련 항목
+.BR passwd (1),
+.BR login (1),
+.BR su (1),
+.BR group (5),
+.BR shadow (5)

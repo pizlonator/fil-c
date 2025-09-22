@@ -1,0 +1,37 @@
+.\" SPDX-FileCopyrightText: 1990, John F. Haugh II
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.TH CHSH 1
+.SH NÉV
+chsh \- bejelentkezési parancsértelmező (héj) állítása
+.SH ÁTTEKINTÉS
+.TP 5
+\fBchsh\fR
+[\fB\-s\fR \fIhéjprogram\fR] [\fIfelhasználó\fR]
+.SH LEÍRÁS
+A \fBchsh\fR parancs a felhasználó bejelentkezési parancsértelmezőjét változtatja meg.
+Normál felhasználó csak a saját parancsértelmezőjét állíthatja, a 
+rendszergazda bárkiét.
+.PP
+A héjprogrammal (shell) szemben támasztott követelmény, hogy szerepeljen
+a \fI/etc/shells\fR fájlban, kivéve ha a rendszergazdáé mert
+neki minden beállítás elfogadott.
+Korlátozott parancsértelmezőt nem lehet másikra átállítani.
+Ezért nem tanácsos a \fB/bin/rsh\fR\-nak a \fI/etc/shells\fR\-ben
+való felsorolása, mert ha a felhasználó átvált erre a héj\-ra
+nem válthat másikra.
+.PP
+A \fB\-s\fR opció nélkül a \fBchsh\fR interaktív módon
+működik. Be kell írni az új értéket, vagy üresen hagyni a sort, hogy
+az éppen aktuális beállítás maradjon, ami \fB[ ]\fR jelek között látható.
+.SH FÁJLOK
+\fI/etc/passwd\fR \- felhaszálói nyilvántartás
+.br
+\fI/etc/shells\fR \- engedélyezett parancsértelmezők listája
+.SH LÁSD MÉG
+.BR chfn (1),
+.BR passwd (5)
+.SH MAGYAR FORDÍTÁS
+Székely Krisztián <szekelyk@edasz.hu>

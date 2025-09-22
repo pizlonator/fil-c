@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1990, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY CONSOLE               SYSTEM "login.defs.d/CONSOLE.xml">
+<!ENTITY CONSOLE_GROUPS        SYSTEM "login.defs.d/CONSOLE_GROUPS.xml">
+<!ENTITY DEFAULT_HOME          SYSTEM "login.defs.d/DEFAULT_HOME.xml">
+<!ENTITY ENV_HZ                SYSTEM "login.defs.d/ENV_HZ.xml">
+<!ENTITY ENVIRON_FILE          SYSTEM "login.defs.d/ENVIRON_FILE.xml">
+<!ENTITY ENV_PATH              SYSTEM "login.defs.d/ENV_PATH.xml">
+<!ENTITY ENV_SUPATH            SYSTEM "login.defs.d/ENV_SUPATH.xml">
+<!ENTITY ENV_TZ                SYSTEM "login.defs.d/ENV_TZ.xml">
+<!ENTITY LOGIN_STRING          SYSTEM "login.defs.d/LOGIN_STRING.xml">
+<!ENTITY MAIL_CHECK_ENAB       SYSTEM "login.defs.d/MAIL_CHECK_ENAB.xml">
+<!ENTITY MAIL_DIR              SYSTEM "login.defs.d/MAIL_DIR.xml">
+<!ENTITY QUOTAS_ENAB           SYSTEM "login.defs.d/QUOTAS_ENAB.xml">
+<!ENTITY SULOG_FILE            SYSTEM "login.defs.d/SULOG_FILE.xml">
+<!ENTITY SU_NAME               SYSTEM "login.defs.d/SU_NAME.xml">
+<!ENTITY SU_WHEEL_ONLY         SYSTEM "login.defs.d/SU_WHEEL_ONLY.xml">
+<!ENTITY SYSLOG_SU_ENAB        SYSTEM "login.defs.d/SYSLOG_SU_ENAB.xml">
+<!ENTITY USERGROUPS_ENAB       SYSTEM "login.defs.d/USERGROUPS_ENAB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='su.1'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>su</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>su</refname>
+    <refpurpose>change user ID or become superuser</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>su</command>
+      <arg choice='opt'>
+          <replaceable>options</replaceable>
+      </arg>
+      <arg choice='opt'>
+          <replaceable>-</replaceable>
+      </arg>
+      <arg choice='opt'>
+          <replaceable>username</replaceable>
+          <arg choice='opt'>
+              <replaceable>args</replaceable>
+          </arg>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>su</command> command is used to become another user during a
+      login session. Invoked without a <option>username</option>,
+      <command>su</command> defaults to becoming the superuser. The
+      <option>-</option> option may be used to provide an environment similar
+      to what the user would expect had the user logged in directly. The
+      <option>-c</option> option may be used to treat the next argument as a
+      command by most shells.
+    </para>
+
+    <para>
+      Options are recognized everywhere in the argument list. You can use the
+      <option>--</option> argument to stop option parsing. The
+      <option>-</option> option is special: it is also recognized after
+      <option>--</option>, but has to be placed before
+      <option>username</option>.
+    </para>
+
+    <para>The user will be prompted for a password, if appropriate. Invalid
+      passwords will produce an error message. All attempts, both valid and
+      invalid, are logged to detect abuse of the system.
+    </para>
+
+    <para>
+      The current environment is passed to the new shell. The value of
+      <envar>$PATH</envar> is reset to <filename>/bin:/usr/bin</filename>
+      for normal users, or <filename>/sbin:/bin:/usr/sbin:/usr/bin</filename>
+      for the superuser. This may be changed with the
+      <option>ENV_PATH</option> and <option>ENV_SUPATH</option>
+      definitions in <filename>/etc/login.defs</filename>.
+    </para>
+
+    <para>
+      A subsystem login is indicated by the presence of a "*" as the first
+      character of the login shell. The given home directory will be used as
+      the root of a new file system which the user is actually logged into.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>The options which apply to the <command>su</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-c</option>, <option>--command</option>&nbsp;<replaceable>COMMAND</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Specify a command that will be invoked by the shell using its
+	    <option>-c</option>.
+	  </para>
+	  <para>
+	    The executed command will have no controlling terminal. This
+	    option cannot be used to execute interactive programs which
+	    need a controlling TTY.
+	    <!-- This avoids TTY hijacking when su is used to lower
+	         privileges -->
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-</option>, <option>-l</option>, <option>--login</option>
+	</term>
+	<listitem>
+	  <para>
+	    Provide an environment similar to what the user would expect had
+	    the user logged in directly.
+	  </para>
+	  <para>
+	    When <option>-</option> is used, it must be specified before any
+	    <option>username</option>.  For portability it is recommended
+	    to use it as last option, before any
+	    <option>username</option>.  The other forms
+	    (<option>-l</option> and <option>--login</option>)
+	    do not have this restriction.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--shell</option>&nbsp;<replaceable>SHELL</replaceable>
+	</term>
+	<listitem>
+	  <para>The shell that will be invoked.</para>
+	  <para>
+	    The invoked shell is chosen from (highest priority first):
+	    <!--This should be an ordered list, but lists inside another
+	        list does not work well with current docbook.
+	        - nekral - 2009.06.03 -->
+	    <variablelist>
+	      <varlistentry><term></term><listitem>
+		<para>The shell specified with --shell.</para>
+	      </listitem></varlistentry>
+	      <varlistentry><term></term><listitem>
+		<para>
+		  If <option>--preserve-environment</option> is used, the
+		  shell specified by the <envar>$SHELL</envar> environment
+		  variable.
+		</para>
+	      </listitem></varlistentry>
+	      <varlistentry><term></term><listitem>
+		<para>
+		  The shell indicated in the <filename>/etc/passwd</filename>
+		  entry for the target user.
+		</para>
+	      </listitem></varlistentry>
+	      <varlistentry><term></term><listitem>
+		<para><filename>/bin/sh</filename> if a shell could not be
+		found by any above method.</para>
+	      </listitem></varlistentry>
+	    </variablelist>
+	  </para>
+	  <para>
+	    If the target user has a restricted shell (i.e. the shell field of
+	    this user's entry in <filename>/etc/passwd</filename> is not
+	    listed in <filename>/etc/shells</filename>), then the
+	    <option>--shell</option> option or the <envar>$SHELL</envar>
+	    environment variable won't be taken into account, unless
+	    <command>su</command> is called by root.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-m</option>, <option>-p</option>,
+	  <option>--preserve-environment</option>
+	</term>
+	<listitem>
+	  <para>
+	    Preserve the current environment, except for:
+	    <variablelist>
+	      <varlistentry>
+		<term><envar>$PATH</envar></term>
+		<listitem>
+		  <para>
+		    reset according to the
+		    <filename>/etc/login.defs</filename> options
+		    <option>ENV_PATH</option> or
+		    <option>ENV_SUPATH</option> (see below);
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><envar>$IFS</envar></term>
+		<listitem>
+		  <para>
+		    reset to
+		    <quote>&lt;space&gt;&lt;tab&gt;&lt;newline&gt;</quote>,
+		    if it was set.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </para>
+	  <para>
+	    If the target user has a restricted shell, this option has no
+	    effect (unless <command>su</command> is called by root).
+	  </para>
+	  <para>
+	    Note that the default behavior for the environment is the
+	    following:
+	    <variablelist>
+	      <varlistentry><term></term><listitem>
+		  <para>
+		    The <envar>$HOME</envar>, <envar>$SHELL</envar>,
+		    <envar>$USER</envar>, <envar>$LOGNAME</envar>,
+		    <envar>$PATH</envar>, and <envar>$IFS</envar>
+		    environment variables are reset.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry><term></term><listitem>
+		  <para>
+		    If <option>--login</option> is not used, the
+		    environment is copied, except for the variables above.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry><term></term><listitem>
+		  <para>
+		    If <option>--login</option> is used, the
+		    <envar>$TERM</envar>, <envar>$COLORTERM</envar>,
+		    <envar>$DISPLAY</envar>, and
+		    <envar>$XAUTHORITY</envar> environment variables are
+		    copied if they were set.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry condition="no_pam"><term></term><listitem>
+		  <para>
+		    If <option>--login</option> is used, the
+		    <envar>$TZ</envar>, <envar>$HZ</envar>, and
+		    <envar>$MAIL</envar> environment
+		    variables are set according to the 
+		    <filename>/etc/login.defs</filename>
+		    options <option>ENV_TZ</option>,
+		    <option>ENV_HZ</option>, <option>MAIL_DIR</option>, and
+		    <option>MAIL_FILE</option> (see below).
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry condition="no_pam"><term></term><listitem>
+		  <para>
+		    If <option>--login</option> is used, other environment
+		    variables might be set by the
+		    <option>ENVIRON_FILE</option> file (see below).
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry condition="pam"><term></term><listitem>
+		  <para>
+		    Other environments might be set by PAM modules.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      This version of <command>su</command> has many compilation options,
+      only some of which may be in use at any particular site.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &CONSOLE;
+      &CONSOLE_GROUPS;
+      &DEFAULT_HOME;
+      &ENV_HZ;
+      &ENVIRON_FILE;
+      &ENV_PATH;
+      &ENV_SUPATH;
+      &ENV_TZ;
+      <phrase condition="no_pam">&LOGIN_STRING;</phrase>
+      &MAIL_CHECK_ENAB;
+      <phrase condition="no_pam">&MAIL_DIR;</phrase>
+      &QUOTAS_ENAB;
+      &SULOG_FILE;
+      &SU_NAME;
+      &SU_WHEEL_ONLY;
+      &SYSLOG_SU_ENAB;
+      <phrase condition="no_pam">&USERGROUPS_ENAB;</phrase>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      On success, <command>su</command> returns the exit value of the
+      command it executed.
+    </para>
+    <para>
+      If this command was terminated by a signal, <command>su</command>
+      returns the number of this signal plus 128.
+    </para>
+    <para>
+      If su has to kill the command (because it was asked to terminate,
+      and the command did not terminate in time), <command>su</command>
+      returns 255.
+    </para>
+    <para>
+      Some exit values from <command>su</command> are independent from the
+      executed command:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success (<option>--help</option> only)</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>System or authentication failure</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>126</replaceable></term>
+	  <listitem>
+	    <para>The requested command was not found</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>127</replaceable></term>
+	  <listitem>
+	    <para>The requested command could not be executed</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para><citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sg</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

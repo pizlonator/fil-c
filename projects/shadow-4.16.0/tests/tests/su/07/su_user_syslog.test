@@ -1,0 +1,44 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "su can be used to switch to a non-root user"
+
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+./run_su.exp myuser myuserF00barbaz '$ '
+
+echo
+echo -n "Syncing disks..."
+sync
+echo "OK"
+echo "auth.log contains:"
+echo "======================================================================="
+cat /var/log/auth.log
+echo "======================================================================="
+echo -n "Looking for 'Successful su for myuser by testsuite' in /var/log/auth.log..."
+grep -q "Successful su for myuser by testsuite" /var/log/auth.log
+echo "OK"
+echo -n "Looking for '+ pts/[0-9]+ tstsuite:myuser' in /var/log/auth.log..."
+grep -v -q -E "\+ pts/[0-9]+ testsuite:myuser" /var/log/auth.log
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,240 @@
+'\" t
+.\"     Title: grpck
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "GRPCK" "8" "2024-06-18" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+grpck \- 检查组文件的完整性
+.SH "大纲"
+.HP \w'\fBgrpck\fR\ 'u
+\fBgrpck\fR [options] [\fIgroup\fR\ [\ \fIshadow\fR\ ]]
+.SH "描述"
+.PP
+The
+\fBgrpck\fR
+command verifies the integrity of the groups information\&. It checks that all entries in
+/etc/group
+and /etc/gshadow
+have the proper format and contain valid data\&. The user is prompted to delete entries that are improperly formatted or which have other uncorrectable errors\&.
+.PP
+检查的项目有：
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+正确的字段数
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+一个唯一且有效的组名
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a valid group identifier
+(/etc/group only)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a valid list of members
+and administrators
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a corresponding entry in the
+/etc/gshadow
+file (respectively
+/etc/group
+for the
+gshadow
+checks)
+.RE
+.PP
+The checks for correct number of fields and unique group name are fatal\&. If an entry has the wrong number of fields, the user will be prompted to delete the entire line\&. If the user does not answer affirmatively, all further checks are bypassed\&. An entry with a duplicated group name is prompted for deletion, but the remaining checks will still be made\&. All other errors are warnings and the user is encouraged to run the
+\fBgroupmod\fR
+command to correct the error\&.
+.PP
+The commands which operate on the
+/etc/group
+and /etc/gshadow files
+are not able to alter corrupted or duplicated entries\&.
+\fBgrpck\fR
+should be used in those circumstances to remove the offending entries\&.
+.SH "选项"
+.PP
+The
+\fB\-r\fR
+and
+\fB\-s\fR
+options cannot be combined\&.
+.PP
+The options which apply to the
+\fBgrpck\fR
+command are:
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+显示帮助信息并退出。
+.RE
+.PP
+\fB\-r\fR, \fB\-\-read\-only\fR
+.RS 4
+Execute the
+\fBgrpck\fR
+command in read\-only mode\&. This causes all questions regarding changes to be answered
+\fIno\fR
+without user intervention\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sort\fR
+.RS 4
+Sort entries in
+/etc/group
+and /etc/gshadow
+by GID\&.
+.RE
+.PP
+\fB\-S\fR, \fB\-\-silence\-warnings\fR
+.RS 4
+Suppress more controversial warnings, in particular warnings about inconsistency between group members listed in
+/etc/group
+and
+/etc/ghadow\&.
+.RE
+.PP
+By default,
+\fBgrpck\fR
+operates on
+/etc/group
+and /etc/gshadow\&. The user may select alternate files with the
+\fIgroup\fR
+and \fIshadow\fR parameters\&.
+.SH "配置文件"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "文件"
+.PP
+/etc/group
+.RS 4
+组账户信息。
+.RE
+.PP
+/etc/gshadow
+.RS 4
+安全组账户信息。
+.RE
+.PP
+/etc/passwd
+.RS 4
+用户账户信息。
+.RE
+.SH "退出值"
+.PP
+The
+\fBgrpck\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI1\fR
+.RS 4
+invalid command syntax
+.RE
+.PP
+\fI2\fR
+.RS 4
+one or more bad group entries
+.RE
+.PP
+\fI3\fR
+.RS 4
+can\*(Aqt open group files
+.RE
+.PP
+\fI4\fR
+.RS 4
+can\*(Aqt lock group files
+.RE
+.PP
+\fI5\fR
+.RS 4
+can\*(Aqt update group files
+.RE
+.SH "参见"
+.PP
+\fBgroup\fR(5),
+\fBgroupmod\fR(8),
+\fBgshadow\fR(5),
+\fBpasswd\fR(5),
+\fBpwck\fR(8),
+\fBshadow\fR(5)\&.

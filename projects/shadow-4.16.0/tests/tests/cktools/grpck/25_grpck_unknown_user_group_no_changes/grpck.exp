@@ -1,0 +1,23 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/sh
+send "if \[ \$(id -u) -eq 0 \]; then PS1='# '; else PS1='$ '; fi\r"
+expect "# "
+
+send "grpck\r"
+expect "group foo: no user foo2"
+expect "delete member 'foo2'? "
+send "no\r"
+expect "shadow group foo: no user foo2"
+expect "delete member 'foo2'? "
+send "no\r"
+expect "grpck: no changes"
+expect "# "
+send "echo \$?\r"
+expect "2"
+send "exit\r"
+puts "OK\n"
+exit 0

@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "reports all entry from /var/log/faillog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/faillog (it will not be restored)..."
+> /var/log/faillog
+echo "OK"
+
+echo -n "Trigger a connection as foo..."
+./login.exp foo
+echo "OK"
+
+echo -n "Remove user bar from passwd and shadow..."
+cp -a /etc/passwd /etc/shadow tmp/
+sed -e '/^foo:/d' -i /etc/passwd
+sed -e '/^foo:/d' -i /etc/shadow
+echo "OK"
+
+echo -n "faillog -r -u 40-2000..."
+faillog -r -u 40-2000
+echo "OK."
+
+echo -n "Restore user foo..."
+mv tmp/passwd tmp/shadow /etc
+echo "OK"
+
+echo -n "faillog..."
+faillog -a> tmp/faillog.out
+echo "OK."
+
+echo "faillog :"
+echo "======================================================================="
+cat tmp/faillog.out
+echo "======================================================================="
+
+echo -n "Check the list of logged in users..."
+cut -c-28 tmp/faillog.out > tmp/faillog.list
+diff -au data/faillog.list tmp/faillog.list
+echo "OK."
+
+rm -f tmp/faillog.out tmp/faillog.list
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

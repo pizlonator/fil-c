@@ -1,0 +1,45 @@
+.\" SPDX-FileCopyrightText: 1992, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1992, Phillip Street
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	@(#)lastlog.8	3.3	08:24:58	29 Sep 1993 (National Guard Release)
+.\"	$Id$
+.\"
+.TH LASTLOG 8
+.SH NÉV
+lastlog \- a lastlog fájl vizsgálata
+.SH ÁTTEKINTÉS
+.B lastlog
+.RB [ -u
+.IR uid ]
+.RB [ -t
+.IR napok száma ]
+.SH LEÍRÁS
+
+A \fBlastlog\fR formázza és olvashatóan megjeleníti a
+\fB/var/log/lastlog\fR tartalmát. A listában szerepel a \fBlogin-név\fR, a
+\fBterminál (port) azonosítója\fR és a felhasználó \fBlegutolsó
+belépésének ideje\fR.  Paraméterek nélkül meghívva a
+felhasználó-azonosítók (UID) alapján sorbarendezve jelennek meg az
+értékek. A \fB-u \fIlogin-név\fR opció megadása esetén csak a megadott
+felhasználó utolsó belépésének ideje jelenik meg. A \fB-t \fInapok
+száma\fR opció megadásával csak a megadott számú napon belüli belépési
+idők jelennek meg. A \fB-r\fR opció felülírja a \fB-u\fR opciót.
+.PP
+Ha a felhasználó még soha nem lépett be, akkor a terminál és az idő
+helyett a \fB**Never logged in**\fR felirat jelenik meg.
+.SH FÁJLOK
+/var/log/lastlog \- a felhasználók legutóbbi belépéseit tartalmazza
+.SH MEGJEGYZÉS
+Ha a felhasználói azonosító számok (UID-k) között nagyobb üres tartományok
+vannak, akkor a lastlog futásakor megtörténhet, hogy hosszabb ideig
+nem jelenik meg semmi a képernyőn (pl ha a 170-es és a 800-as azonosítójú
+felhasználók között nincs több azonosító, akkor a 171 és 799 közötti
+számok kiértékelése alatt a képernyőn nem változik semmi).
+.SH SZERZŐK
+Julianne Frances Haugh (jfh@tab.com)
+.br
+Phillip Street
+.SH MAGYAR FORDÍTÁS
+Hermann Benedek (bence@intercom.hu)
+

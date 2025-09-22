@@ -1,0 +1,40 @@
+<!--
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="bcrypt">
+  <term><option>BCRYPT_MIN_ROUNDS</option> (number)</term>
+  <term><option>BCRYPT_MAX_ROUNDS</option> (number)</term>
+  <listitem>
+    <para>
+      When <option>ENCRYPT_METHOD</option> is set to
+      <replaceable>BCRYPT</replaceable>, this defines the number of
+      BCRYPT rounds used by the encryption algorithm by default (when the
+      number of rounds is not specified on the command line).
+    </para>
+    <para>
+      With a lot of rounds, it is more difficult to brute force the
+      password. But note also that more CPU resources will be needed to
+      authenticate users.
+    </para>
+    <para>
+      The values must be inside the 4-31 range.
+    </para>
+    <para>
+      If only one of the <option>BCRYPT_MIN_ROUNDS</option> or
+      <option>BCRYPT_MAX_ROUNDS</option> values is set, then this value
+      will be used.
+    </para>
+    <para>
+      If <option>BCRYPT_MIN_ROUNDS</option> &gt;
+      <option>BCRYPT_MAX_ROUNDS</option>, the highest value will be
+      used.
+    </para>
+    <para condition="pam">
+      Note: This only affect the generation of group passwords.
+      The generation of user passwords is done by PAM and subject to the
+      PAM configuration. It is recommended to set this variable
+      consistently with the PAM configuration.
+    </para>
+  </listitem>
+</varlistentry>

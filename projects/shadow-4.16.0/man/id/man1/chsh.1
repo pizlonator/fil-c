@@ -1,0 +1,53 @@
+.\"
+.\"  chsh.1 \-\- change your login shell
+.\"  (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\"  this program is free software.  you can redistribute it and
+.\"  modify it under the terms of the gnu general public license.
+.\"  there is no warranty.
+.\"
+.\"  $Author: kloczek $
+.\"  $Revision: 1.4 $
+.\"  $Date: 2005/08/29 13:59:29 $
+.\"
+.TH CHSH 1 "October 13 1994" "chsh" "Linux Reference Manual"
+.SH NAMA
+chsh \- merubah shell login
+.SH RINGKASAN
+.B chsh
+[\ \-s\ shell\ ] [\ \-l\ ] [\ \-u\ ] [\ \-v\ ] [\ username\ ]
+.SH PENJELASAN
+.B chsh
+digunakan untuk merubah shell login Anda.
+Bila shell tidak diberikan pada baris perintah maka
+.B chsh
+menampilkan prompt untuk memasukkan shell.
+.SS SHELL\-SHELL YANG BENAR
+.B chsh
+akan menerima pathname lengkap dari file executable pada sistem.
+Walau demikian, akan menampilkan peringatan bila shell tidak terdapat
+dalam file
+.I /etc/shells .
+.SH OPTION
+.TP
+.I "\-l, \-\-list\-shells"
+Menampilkan daftar shell yang ada dalam
+.I /etc/shells
+dan keluar atau exit.
+.TP
+.I "\-s, \-\-shell"
+Menentukan shell login Anda.
+.TP
+.I "\-u, \-\-help"
+Menampilkan cara penggunaan program.
+.TP
+.I "\-v, \-\-version"
+Menampilkan informasi versi program.
+.SH "LIHAT JUGA"
+.BR login (1),
+.BR passwd (5),
+.BR shells (5)
+.SH PEMBUAT
+Salvatore Valente <svalente@mit.edu>
+.SH PENTERJEMAH
+Rizqy Syarief <rizqy@rad.net.id>

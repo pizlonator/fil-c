@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1996       , Marek Michałkiewicz
+   SPDX-FileCopyrightText: 2001 - 2006, Tomasz Kłoczko
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='suauth.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Marek</firstname>
+      <surname>Michałkiewicz</surname>
+      <contrib>Creation, 1996</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>suauth</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>suauth</refname>
+    <refpurpose>detailed su control file</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>/etc/suauth</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The file <filename>/etc/suauth</filename> is referenced whenever the
+      su command is called. It can change the behaviour of the su command,
+      based upon:
+    </para>
+
+    <!-- .RS -->
+    <literallayout remap='.nf'>
+      1) the user su is targeting
+    </literallayout>
+    <!-- .fi -->
+    <para>
+      2) the user executing the su command (or any groups he might be
+      a member of)
+    </para>
+
+    <para>
+      The file is formatted like this, with lines starting with a # being
+      treated as comment lines and ignored;
+    </para>
+
+    <literallayout remap='RS'>
+      to-id:from-id:ACTION
+    </literallayout>
+
+    <para>
+      Where to-id is either the word <emphasis>ALL</emphasis>, a list of
+      usernames delimited by "," or the words <emphasis>ALL
+      EXCEPT</emphasis> followed by a list of usernames delimited by ",".
+    </para>
+
+    <para>
+      from-id is formatted the same as to-id except the extra word
+      <emphasis>GROUP</emphasis> is recognized. <emphasis>ALL EXCEPT
+      GROUP</emphasis> is perfectly valid too. Following
+      <emphasis>GROUP</emphasis> appears one or more group names, delimited
+      by ",". It is not sufficient to have primary group id of the relevant
+      group, an entry in
+      <citerefentry><refentrytitle>/etc/group</refentrytitle>
+      <manvolnum>5</manvolnum></citerefentry> is necessary.
+    </para>
+
+    <para> 
+      Action can be one only of the following currently supported options.
+    </para>
+    <variablelist remap='TP'>
+      <varlistentry>
+	<term>
+	  <emphasis>DENY</emphasis>
+	</term>
+	<listitem>
+	  <para>The attempt to su is stopped before a password is
+	    even asked for.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis>NOPASS</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    The attempt to su is automatically successful; no password is
+	    asked for.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis>OWNPASS</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    For the su command to be successful, the user must enter his or
+	    her own password. They are told this.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      Note there are three separate fields delimited by a colon. No
+      whitespace must surround this colon. Also note that the file is
+      examined sequentially line by line, and the first applicable rule is
+      used without examining the file further. This makes it possible for a
+      system administrator to exercise as fine control as he or she wishes.
+    </para>
+  </refsect1>
+
+  <refsect1 id='example'>
+    <title>EXAMPLE</title>
+    <literallayout remap='.nf'>
+      # sample /etc/suauth file
+      #
+      # A couple of privileged usernames may
+      # su to root with their own password.
+      #
+      root:chris,birddog:OWNPASS
+      #
+      # Anyone else may not su to root unless in
+      # group wheel. This is how BSD does things.
+      #
+      root:ALL EXCEPT GROUP wheel:DENY
+      #
+      # Perhaps terry and birddog are accounts
+      # owned by the same person.
+      # Access can be arranged between them
+      # with no password.
+      #
+      terry:birddog:NOPASS
+      birddog:terry:NOPASS
+      #
+    </literallayout>
+    <!-- .fi -->
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/suauth</filename></term>
+	<listitem><para></para></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='bugs'>
+    <title>BUGS</title>
+    <para>
+      There could be plenty lurking. The file parser is particularly
+      unforgiving about syntax errors, expecting no spurious whitespace
+      (apart from beginning and end of lines), and a specific token
+      delimiting different things.
+    </para>
+  </refsect1>
+
+  <refsect1 id='diagnostics'>
+    <title>DIAGNOSTICS</title>
+    <para>
+      An error parsing the file is reported using
+      <citerefentry><refentrytitle>syslogd</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+      as level ERR on facility AUTH.
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "groupmod checks if the passwd file is locked only if passwd is changed"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -f /etc/passwd.lock' 0
+
+change_config
+
+echo -n "Create lock file for /etc/passwd..."
+touch /etc/passwd.lock
+echo "done"
+
+echo -n "Change name of foo to bar (groupmod -n bar foo)..."
+groupmod -n bar foo
+echo "OK"
+
+echo -n "Delete lock file for /etc/gshadow..."
+rm -f /etc/passwd.lock
+echo "done"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl data/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

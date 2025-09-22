@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "pwck reports failure to write a passwd file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+cp data/passwd tmp/
+
+echo -n "Sort passwd (pwck -s tmp/passwd)..."
+LD_PRELOAD=../../../common/rename_failure.so FAILURE_PATH=tmp/passwd pwck -s tmp/passwd 2>tmp/pwck.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "5"
+echo "OK"
+
+echo "pwck reported:"
+echo "======================================================================="
+cat tmp/pwck.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/pwck.err tmp/pwck.err
+echo "error message OK."
+rm -f tmp/pwck.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+diff -au data/passwd tmp/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+rm -f tmp/passwd tmp/passwd+ tmp/passwd-
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

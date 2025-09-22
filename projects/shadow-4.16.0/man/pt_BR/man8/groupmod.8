@@ -1,0 +1,61 @@
+.\"	$Id$
+.\" Copyright 1991, Julianne Frances Haugh
+.\" Todos os direitos reservados.
+.\"
+.\" É permitida a confecção e distribuição deste manual, devidamente
+.\" acompanhado dos avisos de direitos autorais e desta permissão
+.\" em todas as cópias.
+.\"
+.\" É permitida a cópia e distribuição de versões modificadas deste manual
+.\" sob as condições acima, e que todo o trabalho derivado seja distribuído
+.\" sob  as mesmas condições deste manual.
+.\" 
+.\" Uma vez que o kernel do Linux e suas bibliotecas estão constantemente
+.\" mudando, esta página de manual poderá estar incorreta ou desatualizada.
+.\" O(s) autor(es) não assumem responsabilidade por erros ou omissões, 
+.\" ou por danos resultantes do uso das informações aqui contidas. 
+.\"
+.\" Versões formatadas ou processadas deste manual, desacompanhadas dos
+.\" fontes, devem conter a autorização e os direitos autorais dos autores do
+.\" trabalho.
+.\"
+.\" Você deve receber uma cópia da Licença Pública GNU
+.\" junto com este manual; caso contrário, escreva para a Free Software
+.\" Foundation, Inc., 675 mass Ave, Cambridge, MA 02139 USA ou
+.\" em português na Conectiva Informática Ltda. \- http://www.conectiva.com.br
+.TH GROUPMOD 8
+.SH NOME
+groupmod \- Modifica um grupo
+.SH SINOPSE
+\fBgroupmod\fR [\fB\-g\fR \fIgid\fR [\fB\-o\fR]] [\fB\-n\fR \fInome_grupo\fR] \fIgrupo\fR
+.SH DESCRIÇÃO
+O comando \fBgroupmod\fR modifica os arquivos de contas do sistema para as
+novas configuraXXes informadas na linha de comando. As opXXes que aplicam\-se
+ao comando \fIgroupmod\fR sXo:
+.IP "\fB\-g\fR \fIgid\fR"
+O valor numXrico de identificaXXo do grupo X denominada GID. Este valor deve
+ser Xnico, a menos que a opXXo \fB\-o\fR seja usada. O valor dever ser nXo
+negativo. Valores entre 0 e 999 sXo tipicamente reservados para grupos do
+sistema. Quaisquer arquivos com uma identificaXXo antiga de grupo devem ter
+o ID mudado manualmente.
+.IP "\fB\-n\fR \fInome_grupo\fR"
+O nome do grupo irá ser alterado de \fIgroup\fR para
+\fInome_grupo\fR.
+.SH ARQUIVOS
+\fI/etc/group\fR	\- Informações do grupo
+.br
+\fI/etc/gshadow\fR	\- informações seguras do grupo
+.SH VEJA TAMBÉM
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH AUTOR
+Julianne Frances Haugh (jfh@tab.com)
+.SH TRADUÇÃO E REVISÃO PARA A LÍNGUA PORTUGUESA
+Sandro Nunes Henrique <sandro@conectiva.com.br> (tradução)
+Rodrigo Stulzer Lopes <rodrigo@conectiva.com.br> (revisão)

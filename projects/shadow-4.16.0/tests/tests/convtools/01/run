@@ -1,0 +1,117 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# Rational:
+# Test that su can be used to switch to root and to a normal account
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+	for i in passwd group shadow gshadow
+	do
+		[ -f /etc/$i  ] && cp -dp /etc/$i  tmp/$i
+		[ -f /etc/$i- ] && cp -dp /etc/$i- tmp/$i-
+	done
+	DATE=$(date '+%s')
+	DATE=$(( DATE/3600/24 ))
+	WARN=$( grep -E "^PASS_WARN_AGE" /etc/login.defs | { read var val ; echo $val; } )
+	saveifs=$IFS
+	IFS=":"
+	cat data/2/shadow |
+		while read f1 f2 f3 f4 f5 f6 f7 f8 fres
+		do
+			echo "$f1:$f2:$DATE:$f4:$f5:$WARN:::"
+		done > tmp/shadow.2
+	IFS=$saveifs
+}
+
+restore()
+{
+	for i in passwd group shadow gshadow
+	do
+		[ -f tmp/$i  ] && cp -dp tmp/$i  /etc/$i  && rm tmp/$i
+		[ -f tmp/$i- ] && cp -dp tmp/$i- /etc/$i- && rm tmp/$i-
+	done
+	rm tmp/shadow.2
+	rmdir tmp
+}
+
+save
+
+# restore the files on exit
+trap 'restore' 0
+
+for i in passwd group shadow gshadow
+do
+	rm -f /etc/$i
+done
+for i in passwd group
+do
+	cp -f data/1/$i /etc/
+done
+
+echo -n "pwconv "
+pwconv
+echo -n "checking..."
+diff -au /etc/passwd  data/2/passwd
+diff -au /etc/shadow  tmp/shadow.2
+diff -au /etc/group   data/1/group
+perms=$(stat -c "%a %u %G" /etc/shadow)
+if [ "$perms" != "440 0 shadow" ]
+then
+	echo "Wrong mode or owners on /etc/shadow."
+	exit 1
+fi
+if [ -f /etc/gshadow ]
+then
+	echo "/etc/gshadow should not exist."
+	exit 1
+fi
+echo "OK"
+
+echo -n "grpconv "
+grpconv
+echo -n "checking..."
+diff -au /etc/passwd  data/2/passwd
+diff -au /etc/shadow  tmp/shadow.2
+diff -au /etc/group   data/2/group
+diff -au /etc/gshadow data/2/gshadow
+echo "OK"
+
+echo -n "pwunconv "
+pwunconv
+echo -n "checking..."
+diff -au /etc/passwd  data/1/passwd
+if [ -f /etc/shadow ]
+then
+	echo "/etc/shadow should not exist. "
+	exit 1
+fi
+diff -au /etc/group   data/2/group
+diff -au /etc/gshadow data/2/gshadow
+echo "OK"
+
+echo -n "grpunconv "
+grpunconv
+echo -n "checking..."
+diff -au /etc/passwd  data/1/passwd
+if [ -f /etc/shadow ]
+then
+	echo "/etc/shadow should not exist. "
+	exit 1
+fi
+diff -au /etc/group   data/1/group
+if [ -f /etc/gshadow ]
+then
+	echo "/etc/gshadow should not exist. "
+	exit 1
+fi
+echo "OK"
+

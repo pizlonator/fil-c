@@ -1,0 +1,19 @@
+#!/usr/bin/expect
+
+if {$argc == 1} {
+        set user     [lindex $argv 0]
+} else {
+        set user     "foo"
+}
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "login -f $user\r"
+expect "$ "
+
+send "exit\r"
+exit 0

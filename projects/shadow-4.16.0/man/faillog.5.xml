@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='faillog.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>faillog</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc"> File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>faillog</refname>
+    <refpurpose>login failure logging file</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <filename>/var/log/faillog</filename> maintains a count of login
+      failures and the limits for each account.
+    </para>
+    <para>
+      The file contains fixed length
+      records, indexed by numerical UID. Each record contains the count of
+      login failures since the last successful login; the maximum number of
+      failures before the account is disabled; the line on which the last login
+      failure occurred; the date of the last login failure;
+      and the duration (in seconds) during which the account will be locked after
+      a failure.
+    </para>
+
+    <para>The structure of the file is:</para>
+      <programlisting>
+struct	faillog {
+	short   fail_cnt;
+	short   fail_max;
+	char    fail_line[12];
+	time_t  fail_time;
+	long    fail_locktime;
+};</programlisting>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/var/log/faillog</filename></term>
+	<listitem>
+	  <para>Failure logging file.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>faillog</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>
+

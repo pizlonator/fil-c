@@ -1,0 +1,53 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "userdel can delete the user's home directory"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+mkdir /home/foo
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /home/foo' 0
+echo toto > /home/foo/toto
+touch /var/mail/foo
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /var/mail/foo /home/foo' 0
+chown -R foo:foo /var/mail/foo /home/foo
+
+echo -n "Delete user foo (userdel -r foo)..."
+userdel -r foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl data/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl data/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the user's home directory was removed..."
+test ! -d /home/foo
+echo "OK"
+echo -n "Check the user's mail spool was removed..."
+test ! -f /var/mail/foo
+echo "OK"
+
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

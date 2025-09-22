@@ -1,0 +1,60 @@
+.TH "GROUPDEL" "8" "11/05/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+groupdel \- Smaže skupinu
+.SH "POUŽITÍ"
+.HP 9
+\fBgroupdel\fR \fIskupina\fR
+.SH "POPIS"
+.PP
+Příkaz
+\fBgroupdel\fR
+upraví soubory se systémovými účty tak, že smaže všechy záznamy, které
+se odkazují na
+\fIskupinu\fR. Daná skupina musí existovat.
+.PP
+Abyste zajistili, že na souborových systémech nezůstanou soubory
+vlastněné mazanou skupinou, musíte je sami vyhledat a příslušně
+opravit.
+.SH "ZÁLUDNOSTI"
+.PP
+Nelze odstranit primární skupinu uživatele. Nejprve musíte odstranit
+uživatele a pak teprve danou skupinu.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.SH "NÁVRATOVÉ HODNOTY"
+.PP
+Příkaz
+\fBgroupdel\fR
+může skončit s následujícími návratovými hodnotami:
+.TP
+\fI0\fR
+úspěch
+.TP
+\fI2\fR
+chybná syntaxe příkazu
+.TP
+\fI8\fR
+nelze odstranit primární skupinu uživatele
+.TP
+\fI10\fR
+nelze aktualizovat soubor group
+.SH "VIZ TAKÉ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupadd\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8)

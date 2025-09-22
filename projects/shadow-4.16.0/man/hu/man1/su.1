@@ -1,0 +1,185 @@
+.\" You may copy, distribute and modify under the terms of the LDP General
+.\" Public License as specified in the LICENSE file that comes with the
+.\" gnumaniak distribution
+.\"
+.\" The author kindly requests that no comments regarding the "better"
+.\" suitability or up\-to\-date notices of any info documentation alternative
+.\" is added without contacting him first.
+.\"
+.\" (C) 1999 Ragnar Hojland Espinosa <ragnar@macula.net>
+.\"
+.\"     GNU su man page
+.\"     man pages are NOT obsolete!
+.\"     <ragnar@macula.net>
+.TH su 1 "18 August 1999" "GNU Shell Utilities 2.0"
+.SH NÉV
+su \- indít egy shellt más felhasználó\- és csoportazonosítóval
+.SH ÁTTEKINTÉS
+.B su
+.BI "[\-] [\-flmp] [\-c " parancs "] [\-s " shell "] [\-\-fast] [\-\-login]"
+.B [\-\-preserve\-environment]
+.BI "[\-\-command=" parancs "] [\-\-shell=" shell "]"
+.BI [ felhasználó " [" argumentum... ]]
+.sp
+.B su [\-\-help] [\-\-version]
+.SH LEÍRÁS
+Az
+.B su
+parancs lehetővé teszi, hogy ideiglenesen más felhasználóvá válhassunk 
+úgy, hogy egy új shell\-t indít a kért 
+.I felhasználó 
+valós és effektív felhasználói azonosítójával, csoportazonosítójával és 
+másodlagos csoportjaival. Ha nem adunk meg 
+.IR felhasználó \-t,
+az alapértelmezett érték a root (super\-user). Az a shell indul el, ami a 
+.I felhasználó 
+passwd bejegyzésében szerepel, ha ott nincs 
+semmi, akkor a /bin/sh. Ha a 
+.IR felhasználó \-nak
+van jelszava, akkor az
+.B su
+meg fogja azt kérdezni, kivéve ha root\-ként (a felhasználói azonosító 0) 
+futtatjuk.
+.PP
+Alapértelmezésben az
+.B su
+nem változtatja meg az aktuális könyvtárat. Átállítja a 
+.B HOME 
+és a
+.B SHELL 
+környezeti változókat a 
+.I felhasználó
+password bejegyzéséből kinézett értékekre, és ha a 
+.I felhasználó
+nem a root (a super\-user) a 
+.BR USER és LOGNAME 
+változókat a 
+.I felhasználó
+nevére állítja. Az alapértelmezés az, hogy az elinduló shell nem lesz 
+bejelentkezési shell.
+.PP
+Ha megadunk 
+.IR argumentum \-ként
+valamit, az is átadódik az induló shellnek.
+.PP
+Az 
+.B su
+se a /bin/sh\-t, se más shell\-eket nem kezel speciálisan.
+(ilyen az argv[0] "\-su"\-ra állítása, vagy a \-c paraméter csak 
+bizonyos shelleknek való átadása, stb.)
+.PP
+Azokon a rendszereken, ahol van
+.RB syslog (3) ,
+az
+.B su
+fordítható úgy is, hogy a sikertelen, vagy opcionálisan a 
+sikeres próbálkozásokat is naplóztassa a sysloggal.
+.SH OPCIÓK
+.TP
+.BI "\-c " parancs ", \-\-command=" parancs
+Csak a 
+.I parancs
+parancsot hajtatja végre a shell\-lel a
+.B \-c
+opció segítségével, így a shell nem interaktívan 
+indul el.
+.TP
+.B "\-f, \-\-fast"
+Beállítja a
+.B \-f
+opciót az induló shellnél. Ennek talán csak a 
+.BR csh (1)
+és a
+.BR tcsh (1),
+shelleknél van értelme ahol
+.B \-f
+opció megakadályozza, hogy a startup fájlt (.cshrc) a shell beolvassa.
+A Bourne\-hoz hasonló shelleknél a
+.B \-f
+opció letiltja a fájlnév minták kiterjesztését (filename pattern 
+expansion), ami általában nem kívánatos dolog. 
+.TP
+.B "\-, \-l, \-\-login"
+A shellt bejelentkezési shellként indítja. Ez a következőket jelenti: 
+törli az összes környezeti változót, kivéve a 
+.BR TERM "\-et, " HOME \-ot, 
+és a 
+.BR SHELL \-t 
+(amiket a fent leírt módon állít át), és a
+.BR USER "\-t és " LOGNAME \-t 
+(amiket szintén a fent leírt módon állít át
+a rootnak), továbbá a 
+.BR PATH \-t, 
+amit a fordításkor meghatározott 
+alapértékre állít. Az aktuális könyvtárat a 
+.I felhasználó
+home\-könyvtárára
+állítja. A shell neve elé egy 
+.B \- \-t 
+szúr be, így eléri azt, hogy
+az beolvassa a startup fájlját illetve fájljait.
+.TP
+.B "\-m, \-p, \-\-preserve\-environment"
+Nem állítja át a 
+.BR HOME ", " USER ", " LOGNAME ", és " SHELL
+környezeti változókat. Azt a shellt indítja, ami a 
+.B SHELL 
+változóban van a passwd fájlban lévő helyett, de csak akkor, ha az
+.B su
+parancsot vagy a superuser futtatja, vagy nem egy korlátozott
+(restricted) shellt akar futtatni. Az a shell korlátozott, ami nem
+szerepel a /etc/shells fájlban, vagy 
+az 
+.B su
+belső listájában, ha ez a fájl nem létezik. Az opció hatásainak egy részét a
+.B \-\-login
+és a
+.B \-\-shell
+opciók hatástalanítják.
+.TP
+.BI "\-s, \-\-shell " shell
+A 
+.IR shell "\-t indítja a " felhasználó 
+/etc/passwd fájlban szereplő
+shellje helyett, ha parancsot vagy a superuser futtatja,
+vagy ha nem korlátozott shellt akar futtatni. (Korlátozott 
+shell\-t lásd fentebb.)
+.TP
+.B "\-\-help"
+Használati útmutatót ír a standard kimenetre, majd sikeres visszatérési értékkel kilép.
+.TP
+.B "\-\-version"
+A program verziójáról ír ki információt a standard kimenetre, majd 
+sikeres visszatérési értékkel kilép.
+.SH Miért nem támogatja a GNU su a wheel csoportot? (Richard Stallman)
+
+Néha a rendszer fölötti teljes ellenőrzést egy néhány emberből 
+álló csoport akarja kézbe venni. Például 1984\-ben pár user a MIT AI
+laborban úgy döntött, hogy átveszik az irányítást a Twenex rendszer
+operátori jelszavának megváltoztatásával, és annak titokban tartásával. 
+(A puccsot sikerült leverni, és a felhasználókat jogaikba visszahelyezni 
+egy kernel patch segítségével, de Unix alatt ezt nem tudtam volna megcsinálni.)
+(A fordító megj.: a wheel csoportot ezzel a módszerrel könnyen
+önkényesen is leszűkíthetik a csoporttagok , így tulajdonképpen nincs sok értelme.)
+.PP
+Néha az uralmon levők elárulják a root jelszót. A szokásos su 
+mechanizmus szerint, ha valaki megtudja a root jelszót, és 
+szimpatizál a többi közönséges felhasználóval, elárulhatja nekik 
+is. A wheel csoport ezt lehetetlenné tenné, és így bebetonozná az 
+uralmon levő hatalmát.
+.PP
+Én a tömegek oldalán állok, nem az uralkodókén. Ha te mindig a 
+főnökök és a rendszergazdák oldalán állsz, bármit is tesznek, akkor 
+valószínűleg furcsálni fogod ezt a hozzáállást.
+.PP
+A fordító megjegyzése: 
+Valami jó azért mégis lenne a wheel csoportban: az, hogy ha a root 
+jelszó kitudódna azzal nem tudna bármelyik felhasználó közvetlenül 
+visszaélni. A wheel csoporthoz hasonló dolgot lehet elérni a
+.B sudo
+csomaggal.
+.SH MEGJEGYZÉS
+A hibákat a bug\-sh\-utils@gnu.org címen lehet jelenteni.
+Az oldalt Ragnar Hojland Espinosa <ragnar@macula.net> frissítette.
+.SH MAGYAR FORDÍTÁS
+Havasi Ferenc <hafy@prins.externet.hu> és Tímár András <timar_a@freemail.hu>

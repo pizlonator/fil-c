@@ -1,0 +1,101 @@
+'\" t
+.\"     Title: gshadow
+.\"    Author: Nicolas Fran\(,cois <nicolas.francois@centraliens.net>
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "GSHADOW" "5" "2024-06-18" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+gshadow \- 影子化了的组文件
+.SH "描述"
+.PP
+/etc/gshadow
+contains the shadowed information for group accounts\&.
+.PP
+如果没有维护好密码安全，此文件绝对不能让普通用户可读。
+.PP
+此文件的每行包含逗号分隔的如下字段：
+.PP
+\fBgroup name\fR
+.RS 4
+必须是系统中已经存在的有效组。
+.RE
+.PP
+\fBencrypted password\fR
+.RS 4
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.sp
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, users will not be able to use a unix password to access the group (but group members do not need the password)\&.
+.sp
+The password is used when a user who is not a member of the group wants to gain the permissions of this group (see
+\fBnewgrp\fR(1))\&.
+.sp
+此字段可以为空，此时，只有组成员可以获取组权限。
+.sp
+A password field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the password field before the password was locked\&.
+.sp
+This password supersedes any password specified in
+/etc/group\&.
+.RE
+.PP
+\fBadministrators\fR
+.RS 4
+必须是一个逗号分隔的用户名列表。
+.sp
+管理员可以更改组密码和成员。
+.sp
+管理员也有成员一样的权限(请看下边)。
+.RE
+.PP
+\fBmembers\fR
+.RS 4
+必须是一个逗号分隔的用户名列表。
+.sp
+成员可以免密码访问组。
+.sp
+You should use the same list of users as in
+/etc/group\&.
+.RE
+.SH "文件"
+.PP
+/etc/group
+.RS 4
+组账户信息。
+.RE
+.PP
+/etc/gshadow
+.RS 4
+安全组账户信息。
+.RE
+.SH "参见"
+.PP
+\fBgpasswd\fR(5),
+\fBgroup\fR(5),
+\fBgrpck\fR(8),
+\fBgrpconv\fR(8),
+\fBnewgrp\fR(1)\&.

@@ -1,0 +1,48 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 1996 - 2000, Marek Michałkiewicz
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>USERDEL_CMD</option> (string)</term>
+  <listitem>
+    <para>
+      If defined, this command is run when removing a user. It should
+      remove any at/cron/print jobs etc. owned by the user to be removed
+      (passed as the first argument).
+    </para>
+    <para>
+      The return code of the script is not taken into account.
+    </para>
+    <para>
+      Here is an example script, which removes the user's
+      cron, at and print jobs:
+      <programlisting>
+#! /bin/sh
+
+# Check for the required argument.
+if [ $# != 1 ]; then
+	echo "Usage: $0 username"
+	exit 1
+fi
+
+# Remove cron jobs.
+crontab -r -u $1
+
+# Remove at jobs.
+# Note that it will remove any jobs owned by the same UID,
+# even if it was shared by a different username.
+AT_SPOOL_DIR=/var/spool/cron/atjobs
+find $AT_SPOOL_DIR -name "[^.]*" -type f -user $1 -delete \;
+
+# Remove print jobs.
+lprm $1
+
+# All done.
+exit 0
+      </programlisting>
+    </para>
+  </listitem>
+</varlistentry>

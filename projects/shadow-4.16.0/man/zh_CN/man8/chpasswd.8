@@ -1,0 +1,162 @@
+'\" t
+.\"     Title: chpasswd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "CHPASSWD" "8" "2024-06-18" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+chpasswd \- 批量更新密码
+.SH "大纲"
+.HP \w'\fBchpasswd\fR\ 'u
+\fBchpasswd\fR [\fIoptions\fR]
+.SH "描述"
+.PP
+The
+\fBchpasswd\fR
+command reads a list of user name and password pairs from standard input and uses this information to update a group of existing users\&. Each line is of the format:
+.PP
+\fIuser_name\fR:\fIpassword\fR
+.PP
+By default the passwords must be supplied in clear\-text, and are encrypted by
+\fBchpasswd\fR\&. Also the password age will be updated, if present\&.
+.PP
+The default encryption algorithm can be defined for the system with the
+\fBENCRYPT_METHOD\fR
+or
+\fBMD5_CRYPT_ENAB\fR
+variables of
+/etc/login\&.defs, and can be overwritten with the
+\fB\-e\fR,
+\fB\-m\fR, or
+\fB\-c\fR
+options\&.
+.PP
+\fBchpasswd\fR
+first updates all the passwords in memory, and then commits all the changes to disk if no errors occurred for any user\&.
+.PP
+此命令一般用于需要一次创建很多用户的大型系统。
+.SH "选项"
+.PP
+The options which apply to the
+\fBchpasswd\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR\ \&\fIMETHOD\fR
+.RS 4
+使用指定的方法加密密码。
+.sp
+The available methods are
+\fIDES\fR,
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR
+and
+\fINONE\fR
+if your libc supports these methods\&.
+.sp
+By default (if none of the
+\fB\-c\fR,
+\fB\-m\fR, or
+\fB\-e\fR
+options are specified), the encryption method is defined by the
+\fBENCRYPT_METHOD\fR
+or
+\fBMD5_CRYPT_ENAB\fR
+variables of
+/etc/login\&.defs\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-encrypted\fR
+.RS 4
+提供的密码是已经加密了的
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+显示帮助信息并退出。
+.RE
+.PP
+\fB\-m\fR, \fB\-\-md5\fR
+.RS 4
+如果提供的密码没有加密，则使用 MD5 加密而不是 DES。
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes to configuration files under the root filesystem found under the directory
+\fIPREFIX_DIR\fR\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR\ \&\fIROUNDS\fR
+.RS 4
+使用指定次数的轮转来加密密码。
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default number of rounds is 5000\&.
+.RE
+.SH "CAVEATS"
+.PP
+记住要设置权限或者掩码来阻止其它用户对未加密文件的读取。
+.SH "配置文件"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+
+.SH "文件"
+.PP
+/etc/passwd
+.RS 4
+用户账户信息。
+.RE
+.PP
+/etc/shadow
+.RS 4
+安全用户账户信息。
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Shadow 密码套件配置。
+.RE
+.SH "参见"
+.PP
+\fBpasswd\fR(1),
+\fBnewusers\fR(8),
+\fBlogin.defs\fR(5),
+\fBuseradd\fR(8)\&.

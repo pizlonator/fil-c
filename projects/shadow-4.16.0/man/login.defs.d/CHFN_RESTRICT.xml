@@ -1,0 +1,27 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>CHFN_RESTRICT</option> (string)</term>
+  <listitem>
+    <para>
+      This parameter specifies which values in the <emphasis
+      remap='I'>gecos</emphasis> field of the
+      <filename>/etc/passwd</filename> file may be changed by regular
+      users using the <command>chfn</command> program. It can be any
+      combination of letters <replaceable>f</replaceable>,
+      <replaceable>r</replaceable>, <replaceable>w</replaceable>,
+      <replaceable>h</replaceable>, for Full name, Room number, Work
+      phone, and Home phone, respectively. For backward compatibility,
+      <replaceable>yes</replaceable> is equivalent to
+      <replaceable>rwh</replaceable> and <replaceable>no</replaceable> is
+      equivalent to <replaceable>frwh</replaceable>. If not specified,
+      only the superuser can make any changes. The most restrictive
+      setting is better achieved by not installing <command>chfn</command>
+      SUID.
+    </para>
+  </listitem>
+</varlistentry>

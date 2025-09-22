@@ -1,0 +1,58 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "usermod can move the user's home directory"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /home/foo /home/foo2' 0
+
+change_config
+
+mkdir /home/foo
+echo toto > /home/foo/toto
+chown -R foo:foo /home/foo
+
+echo -n "Change the user's home directory (usermod -m -d /home/foo2 foo)..."
+usermod -m -d /home/foo2 foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the user's home directory was removed..."
+test ! -d /home/foo
+echo "OK"
+echo -n "Check the user's home directory was moved..."
+test -d /home/foo2
+echo "OK"
+echo -n "Check content of /tmp/test-newusers..."
+stat --printf "%A %U:%G %N\n" /home/foo2/* /home/foo2/.* 2>/dev/null | sort > tmp/home_ls-a
+diff -rauN data/home_ls-a tmp/home_ls-a
+echo "OK"
+rm -f tmp/home_ls-a
+
+echo -n "Remove the new home directory..."
+rm -rf /home/foo2
+echo "done"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

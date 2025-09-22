@@ -1,0 +1,50 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+if {$argc != 0} {
+	puts "usage: run_groupmems.exp"
+	exit 1
+}
+
+# First, switch to the testsuite user
+# (otherwise, no password will be asked)
+send_user "# switch to the 'myuser' user\n"
+send_user "# and expect a '$ ' prompt\n"
+spawn /bin/su myuser
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n# make sure we are now 'myuser'"
+send_user "\n# id should return 'uid=424242(myuser) gid=424242(myuser) groups=424242(myuser),99(groupmems)'"
+send "\r"			;# restore the prompt for the logs
+send "id\r"			;# Verify we are really testsuite
+
+expect "uid=424242(myuser) gid=424242(myuser) groups=424242(myuser),99(groupmems)"
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n\n"
+send_user "# now add user utest1 to the myuser group\n"
+send_user "# and expect a password prompt"
+send "\r"			;# restore the prompt for the logs
+send "/usr/sbin/groupmems -a utest1\r"		;#
+expect "Password: "		;# Wait for the Password: prompt
+# Wait a little bit more (it is not ready to receive the password)
+sleep 0.1
+
+send "myuserF00barbaz\r"		;# Send the password
+
+send_user "\n# password 'myuserF00barbaz' sent\n\n"
+
+expect "groupmems: cannot lock /etc/gshadow; try again later."
+
+expect "$ "			;# Wait for the prompt
+send "echo $?\r"
+expect "2\r"
+expect "$ "			;# Wait for the prompt
+close
+
+puts "\nPASS"
+exit 0

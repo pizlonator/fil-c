@@ -1,0 +1,105 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: \" Copyright 1991 \- 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH USERMOD 8
+.SH 名稱
+usermod \- 修 改 使 用 者 帳 號
+.SH 語法
+.TP 8
+.B usermod
+.\" .RB [ \-A
+.\" .RI { method | \fBDEFAULT\fR "},... ]"
+.RB [ \-c
+.IR comment ]
+.RB [ \-d
+.IR home_dir " ["
+.BR \-m ]]
+.br
+.RB [ \-e
+.IR expire_date ]
+.RB [ \-f
+.IR inactive_time ]
+.br
+.RB [ \-g
+.IR initial_group ]
+.RB [ \-G
+.IR group [,...]]
+.br
+.RB [ \-l
+.IR login_name ]
+.RB [ \-s
+.IR shell ]
+.br
+.RB [ \-u
+.IR uid " ["
+.BR \-o ]]
+.I login
+.SH 描述
+\fBusermod\fR 命 令 會 參 照 你 命 令 列 上 指 定 的 部 份 修 改 系 統 帳 
+號 檔 。 下 列 為 \fBusermod\fR 可 選 用 的 參 數 。
+
+.\" .IP "\fB\-A \fImethod\fR|\fBDEFAULT\fR"
+.\" The new value of the user's authentication method.
+.\" The authentication method is the name of a program which is responsible
+.\" for validating the user's identity.
+.\" The string \fBDEFAULT\fR may be used to change the user's authentication
+.\" method to the standard system password method.
+.IP "\fB\-c\fR \fIcomment\fR"
+更 新 使 用 者 帳 號 password 檔 中 的 注 解 欄
+， 一 般 是 使 用 \fBchfn\fR(1) 來 修 改 。
+.IP "\fB\-d\fR \fIhome_dir\fR"
+更 新 使 用 者 新 的 登 入 目 錄 。
+如 果 給 定 \fB\-m\fR 選 項 ， 使 用 者 舊 目 錄 會 搬 到 新 的 目 錄 去 
+，如 舊 目 錄 不 存 在 則 建 個 新 的 。
+.IP "\fB\-e\fR \fIexpire_date\fR"
+加 上 使 用 者 帳 號 停 止 日 期 。 日 期 格 式 為 \fIMM/DD/YY\fR.
+.IP "\fB\-f\fR \fIinactive_days\fR"
+帳 號 過 期 幾 日 後 永 久 停 權。當 值 為  0  時
+帳  號 則 立 刻 被 停 權 。 而 當 值 為 \-1 時 則 關閉此功\能
+。預 設 值 為 \-1。
+.IP "\fB\-g\fR \fIinitial_group\fR"
+更 新 使 用 者 新 的 起 始 登 入 群 組 。 群 組 名 須 已 存 在 
+。群 組 ID 必 須 參 照 既 有 的 的 群 組 。 群 組 ID 預 設 值 為 1 。
+.IP "\fB\-G\fR \fIgroup,[...]\fR"
+定 義 使 用 者 為  一 堆 groups 的 成 員 。 每
+個 群 組 使 用 "," 區 格 開 來 ， 不 可 以 夾 雜 空
+白 字 元 。 群 組 名 同 \-g 選 項 的 限 制 。
+如 果 使 用 者 現 在 的 群 組 不 再 此 列 ， 則 將 使 用 者 由 該 
+群 組 中 移 除 。
+.IP "\fB\-l\fR \fIlogin_name\fR"
+變 更 使 用 者 \fIlogin\fR 時 的 名 稱 為 \fIlogin_name\fR 。
+其 於 不 變 。 特 別 是 ， 使 用 者 目 錄 名 應 該 也 會 跟 著 更 動 成 新 
+的 登 入 名 。
+.IP "\fB\-s\fR \fIshell\fR"
+指 定 新 登 入 shell 。 如 此 欄 留 白 ， 系 統 將 選 用 系 統 預 設 shell 。
+.IP "\fB\-u\fR \fIuid\fR"
+使 用 者 ID 值 。必 須 為 唯 一 的 ID 值 ， 除 非 用 \fI\-o\fR 選 項 。 數 
+字 不 可 為 負 值。預 設 為 最 小  不  得 小 於 999 而 逐 次 
+增 加 。 0~ 999 傳 統 上 是 保 留 給 系 統 帳 號 使 用 。
+使 用 者 目 錄 樹 下 所 有 的 檔 案 目 錄 其 user ID 會 自 動 改 變 。
+放 在 使 用 者 目 錄 外 的 檔 案 則 要 自 行 手 動 更 動 。
+.SH 警告
+\fBusermod\fR 不 允 許 你 改 變  正 在線 上 的 使 用 者 帳 號 名 稱 。
+當 usermod 用 來 改 變 user ID, 必 須 確 認 這 名 user 沒 在 電 腦 上 執 
+行 任 何 程 序。
+你 需 手 動 更 改 使 用 者 的 crontab 檔 。
+也 需 手 動 更 改 使 用 者 的 at 工 作 檔 。
+採 用 NIS server 須 在 server 上 更 動 相 關 的 NIS 設 定 。
+
+.SH 檔案
+\fI/etc/passwd\fR \- 使 用 者 帳 號 資 訊
+.br
+\fI/etc/shadow\fR \- 使 用 者 帳 號 資 訊 加 密
+.br
+\fI/etc/group\fR \- 群 組 資 訊
+.SH 相關文件
+.BR chfn (1),
+.BR chsh (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR passwd (1),
+.BR useradd (8),
+.BR userdel (8)
+.SH 作者
+Julianne Frances Haugh (jfh@tab.com)

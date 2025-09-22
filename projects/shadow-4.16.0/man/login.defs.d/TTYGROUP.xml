@@ -1,0 +1,33 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>TTYGROUP</option> (string)</term>
+  <term><option>TTYPERM</option> (string)</term>
+  <listitem>
+    <para>
+      The terminal permissions: the login tty will be owned by the
+      <option>TTYGROUP</option> group, and the permissions will be set to
+      <option>TTYPERM</option>.
+    </para>
+    <para>
+      <option>TTYGROUP</option> can be either the name of a group or a
+      numeric group identifier.
+    </para>
+    <para>
+      If TTYGROUP is not defined, then the group ownership of the terminal is
+      set to the user's primary group.  If TTYPERM is not defined, then the
+      permissions are set to
+      <replaceable>0600</replaceable>.
+    </para>
+    <para>
+      If you have a <command>write</command> program which is "setgid" to
+      a special group which owns the terminals, define TTYGROUP to the
+      group number and TTYPERM to 0620.  Otherwise leave TTYGROUP
+      commented out and assign TTYPERM to either 622 or 600.
+    </para>
+  </listitem>
+</varlistentry>

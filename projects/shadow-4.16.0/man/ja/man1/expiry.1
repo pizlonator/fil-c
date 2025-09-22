@@ -1,0 +1,30 @@
+.\" SPDX-FileCopyrightText: 1990 - 1994 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Modified for expiry by Ben Collins <bcollins@debian.org>, 1999
+.\" Translated Sun 3 Mar 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\" Modified Tue 16 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.\" $Id$
+.\"
+.TH EXPIRY 1
+.SH 名前
+expiry \- パスワードの期限切れポリシーのチェックと執行
+.SH 書式
+.TP 6
+\fBexpiry\fR [\fB\-c\fR] [\fB\-f\fR]
+.SH 説明
+.B expiry
+は現在のパスワード期限切れ情報をチェック (\fB\-c\fR) し、
+必要な場合は変更を強制する (\fB\-f\fR)。
+このコマンドは通常のユーザコマンドとして呼び出し可能である。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR \- shadow 化されたユーザアカウント情報
+.SH 関連項目
+.BR passwd (5),
+.BR shadow (5)
+.SH 著者
+Ben Collins <bcollins@debian.org>

@@ -1,0 +1,22 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "login myuser\r"
+expect "Password: "
+send "myuserF00barbaz\r"
+expect "$ "
+
+send "# expecting c--x-wx--T 88 424242/myuser 5/tty\r"
+expect "$ "
+send "stat -c '%A %t %u/%U %g/%G' `tty`\r"
+expect "crw------- 88 424242/myuser 5/tty\r"
+expect "$ "
+send "exit\r"
+
+exit 0
+

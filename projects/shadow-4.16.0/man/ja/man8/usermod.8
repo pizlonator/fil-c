@@ -1,0 +1,119 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated Tue Jan 23 17:21:08 JST 2001
+.\"         by Kentaro Shirakata <argrath@ub32.org>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.\"WORD:        initial group           主グループ
+.\"WORD:        supplementary group     補助グループ
+.\"
+.TH USERMOD 8
+.SH 名前
+usermod \- ユーザアカウントを修正する
+.SH 書式
+\fBusermod\fR [\fB\-c\fR \fIcomment\fR] [\fB\-d\fR \fIhome_dir\fR [\fB\-m\fR]]
+.br
+[\fB\-e\fR \fIexpire_date\fR] [\fB\-f\fR \fIinactive_time\fR]
+.br
+[\fB\-g\fR \fIinitial_group\fR] [\fB\-G\fR \fIgroup\fR [,...]]
+.br
+[\fB\-l\fR \fIlogin_name\fR] [\fB\-p\fR \fIpasswd\fR]
+.br
+[\fB\-s\fR \fIshell\fR] [\fB\-u\fR \fIuid\fR [\fB\-o\fR]] [\fB\-L\fR|\fB\-U\fR]
+\fIlogin\fR
+.SH 説明
+\fBusermod\fR コマンドは、
+コマンドライン上での指定によって、
+システムアカウントファイルを修正する。
+\fBusermod\fR コマンドに指定できるオプションは次の通り。
+.IP "\fB\-c\fR \fIcomment\fR"
+パスワードファイルのコメントフィールドに与える新しい値。
+通常は
+.BR chfn (1)
+ユーティリティによって変更される。
+.IP "\fB\-d\fR \fIhome_dir\fR"
+新しいログインディレクトリ。
+\fB\-m\fR オプションを用いると、
+現在のホームディレクトリの中身が新しいホームディレクトリに移動される
+(後者が存在しない場合は新たに作成される)。
+.IP "\fB\-e\fR \fIexpire_date\fR"
+そのユーザアカウントが使用不能になる日付。
+日付は \fIYYYY\-MM\-DD\fR という書式で指定する。
+.IP "\fB\-f\fR \fIinactive_days\fR"
+パスワードの使用期限が切れてからアカウントが永久に使用不能になるまでの日数。
+0 にすると、
+パスワードの期限が切れると同時にこのアカウントは使用不能になる。
+\-1 にするとこの機能が無効になる。デフォルト値は \-1。
+.IP "\fB\-g\fR \fIinitial_group\fR"
+
+新たにそのユーザのログイン時初期グループとするグループ名または ID。
+グループ名は既に存在していなければならない。
+グループ番号は既存のグループを参照していなければならない。
+デフォルトのグループ番号は 1。
+.IP "\fB\-G\fR \fIgroup,[...]\fR"
+ユーザが属する補助グループ (supplementary groups) のリスト。
+グループはコンマで区切り、間に空白文字を入れてはならない。
+指定できるグループには \fB\-g\fR オプションと同様の制限がある。
+現在そのユーザが、
+新しいリストにないグループのメンバーになっている場合は、
+そのグループから削除される。
+.IP "\fB\-l\fR \fIlogin_name\fR"
+ユーザのログイン名を \fIlogin\fR から \fIlogin_name\fR に変更する。
+他は何も変更しないので、
+おそらく新しいログイン名に合わせて
+ホームディレクトリの名前を変更する必要があるだろう。
+.IP "\fB\-p\fR \fIpasswd\fR"                                                
+\fBcrypt\fR(3) の返り値である暗号化パスワード。
+.IP "\fB\-s\fR \fIshell\fR"
+ユーザの新しいログインシェルの名前。
+このフィールドを空白にした場合は、
+システムがデフォルトのログインシェルを選択する。
+.IP "\fB\-u\fR \fIuid\fR"
+ユーザの ID 番号。
+この値は、\fB\-o\fR オプションを用いる場合を除き、他と重複してはならない。
+また非負値でなくてはならない。
+0 から 999 までの値は、通常システムアカウント用に予約されている。
+ホームディレクトリ以下の、
+そのユーザ所有のすべてのファイルのユーザ ID は、
+自動的に新しい値に変更される。
+ホームディレクトリ以下にないファイルは手作業で変更しなければならない。
+.IP "\fB\-L\fR"
+ユーザのパスワードをロックする。
+これは暗号化されたパスワードの前に '!' を追加し、
+実質的にパスワードを無効にする。
+このオプションを \fI\-p\fR や \fI\-U\fR と同時に用いることはできない。
+.IP "\fB\-U\fR"
+ユーザのパスワードをアンロックする。
+これは暗号化されたパスワードの先頭の '!' を取り除く。
+このオプションを \fI\-p\fR や \fI\-L\fR と同時に用いることはできない。
+.SH 警告
+\fBusermod\fR
+は現在ログインしているユーザの名前を変更できない。
+このコマンドを使用してユーザの ID 番号を変更する際には、
+指定したユーザのプロセスが一つも実行されていないことを
+事前に確認しなければならない。
+crontab ファイルの所有者は手作業で変更しなければならない。
+at ジョブの所有者は手作業で変更しなければならない。
+NIS に関する作業は NIS サーバ上で行なわなければならない。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR \- 安全なユーザアカウント情報
+.br
+\fI/etc/group\fR \ \- グループ情報
+.SH 関連項目
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR crypt (3),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR useradd (8),
+.BR userdel (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

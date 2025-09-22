@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1990       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY CHSH_AUTH             SYSTEM "login.defs.d/CHSH_AUTH.xml">
+<!ENTITY LOGIN_STRING          SYSTEM "login.defs.d/LOGIN_STRING.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='chsh.1'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1990</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>chsh</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>chsh</refname>
+    <refpurpose>change login shell</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>chsh</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='opt'>
+        <replaceable>LOGIN</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>chsh</command> command changes the user login shell.
+      This determines the name of the user's initial login command. A normal
+      user may only change the login shell for her own account; the
+      superuser may change the login shell for any account.
+    </para>
+
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>chsh</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--shell</option>&nbsp;<replaceable>SHELL</replaceable>
+	</term>
+        <listitem>                                                                                                                   
+	  <para>
+	    The name of the user's new login shell. Setting this field to
+	    blank causes the system to select the default login shell.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      If the <option>-s</option> option is not selected,
+      <command>chsh</command> operates in an interactive fashion, prompting
+      the user with the current login shell. Enter the new value to change
+      the shell, or leave the line blank to use the current one. The current
+      shell is displayed between a pair of <emphasis>[ ]</emphasis> marks.
+    </para>
+  </refsect1>
+
+  <refsect1 id='note'>
+    <title>NOTE</title>
+    <para condition="without_vendordir">
+      The only restriction placed on the login shell is that the command
+      name must be listed in <filename>/etc/shells</filename>, unless the
+      invoker is the superuser, and then any value may be added. An
+      account with a restricted login shell may not change her login shell.
+      For this reason, placing <filename>/bin/rsh</filename> in
+      <filename>/etc/shells</filename> is discouraged since accidentally
+      changing to a restricted shell would prevent the user from ever
+      changing her login shell back to its original value.
+    </para>
+    <para condition="with_vendordir">
+      The only restriction placed on the login shell is that the command
+      name must be listed in <filename>/etc/shells</filename>.
+      If this file does not exist, the definitions are taken from the files
+      <filename>%vendordir%/shells</filename>,
+      <filename>%vendordir%/shells.d/*</filename> and
+      <filename>/etc/shells.d/*</filename> in that order.
+      If <filename>/etc/shells.d/@filename@</filename> exists, then
+      <filename>%vendordir%/shells.d/@filename@</filename> will not be used.
+      If the invoker is the superuser any value may be added regardless what is
+      defined in the configuration files.
+      An account with a restricted login shell may not change her login shell.
+    </para>
+    <para>
+      For this reason, placing <filename>/bin/rsh</filename> in
+      <filename>/etc/shells</filename> is discouraged since accidentally
+      changing to a restricted shell would prevent the user from ever
+      changing her login shell back to its original value.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration' condition="no_pam">
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &CHSH_AUTH;
+      &LOGIN_STRING;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shells</filename></term>
+	<listitem condition="without_vendordir">
+	  <para>List of valid login shells.</para>
+	</listitem>
+	<listitem condition="with_vendordir">
+	  <para>User defined list of valid login shells.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+       <term><filename>%vendordir%/shells</filename></term>
+        <listitem>
+          <para>Default configuration file if
+	  <filename>/etc/shells</filename> does not exist.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term><filename>%vendordir%/shells.d</filename></term>
+        <listitem>
+          <para>Directory for additional vendor specific configuration files.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term><filename>/etc/shells.d</filename></term>
+        <listitem>
+          <para>Directory for additional user defined configuration files.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

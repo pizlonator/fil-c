@@ -1,0 +1,83 @@
+#!/usr/bin/expect
+
+set timeout 5
+
+proc expect_error {} {
+	expect {
+		"chage: error changing fields" {
+			expect {
+				eof {
+				} default {
+					puts "\nFAIL"
+					exit 1
+				}
+			}
+		} default {
+			puts "\nFAIL"
+			exit 1
+		}
+	}
+}
+
+
+# I've not been able to put the opening bracket in the regular expressions
+# If anyone knows...
+
+spawn /usr/bin/chage myuser
+expect -re "Minimum Password Age .0\]: "
+send -- "-2\r"
+expect_error
+
+spawn /usr/bin/chage myuser
+expect -re "Minimum Password Age .0\]: "
+send "foo\r"
+expect_error
+
+# chage accepts to be given only spaces
+#spawn /usr/bin/chage myuser
+#expect -re "Minimum Password Age .0\]: "
+#send -- "   \r"
+#expect_error
+#
+#chage may not parse all the arguments.
+#This may be a problem is a date is provided instead of just a number
+#spawn /usr/bin/chage myuser
+#expect -re "Minimum Password Age .0\]: "
+#send -- "1 2\r"
+#expect_error
+
+spawn /usr/bin/chage myuser
+expect -re "Minimum Password Age .0\]: "
+send "11\r"
+expect -re "Maximum Password Age .99999\]: "
+send -- "-2\r"
+expect_error
+
+spawn /usr/bin/chage myuser
+expect -re "Minimum Password Age .0\]: "
+send "\r"
+expect -re "Maximum Password Age .99999\]: "
+send "foo\r"
+expect_error
+
+# chage should verify the range of the arguments
+#spawn /usr/bin/chage myuser
+#expect -re "Minimum Password Age .0\]: "
+#send "\r"
+#expect -re "Maximum Password Age .99999\]: "
+#send "100000\r"
+#expect_error
+
+#spawn /usr/bin/chage myuser
+#expect -re "Minimum Password Age .0\]: "
+#send "\r"
+#expect -re "Maximum Password Age .99999\]: "
+#send "\r"
+#expect -re "Last Password Change \[(]YYYY-MM-DD\[)] .2005-07-25]: "
+#send "12\n"
+#expect_error
+
+
+puts "\nPASS"
+exit 0
+

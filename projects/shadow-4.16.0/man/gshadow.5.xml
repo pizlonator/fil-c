@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 2005 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='gshadow.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>Creation, 2005</contrib>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>gshadow</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>gshadow</refname>
+    <refpurpose>shadowed group file</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <filename>/etc/gshadow</filename> contains the shadowed information
+      for group accounts.
+    </para>
+
+    <para>
+      This file must not be readable by regular users if password security
+      is to be maintained.
+    </para>
+
+    <para>
+      Each line of this file contains the following colon-separated
+      fields:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><emphasis role="bold">group name</emphasis></term>
+	<listitem>
+	  <para>
+	    It must be a valid group name, which exist on the system.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis role="bold">encrypted password</emphasis></term>
+	<listitem>
+	  <para>
+	    Refer to <citerefentry><refentrytitle>crypt</refentrytitle>
+	    <manvolnum>3</manvolnum></citerefentry> for details on how
+	    this string is interpreted.
+	  </para>
+	  <para>
+	    If the password field contains some string that is not a valid
+	    result of <citerefentry><refentrytitle>crypt</refentrytitle>
+	    <manvolnum>3</manvolnum></citerefentry>, for instance ! or *,
+	    users will not be able to use a unix password to access the
+	    group (but group members do not need the password).
+	  </para>
+	  <para>
+	    The password is used when a user who is not a member of the
+	    group wants to gain the permissions of this group (see
+	    <citerefentry><refentrytitle>newgrp</refentrytitle>
+	    <manvolnum>1</manvolnum></citerefentry>).
+	  </para>
+	  <para>
+	    This field may be empty, in which case only the group members
+	    can gain the group permissions.
+	  </para>
+	  <para>
+	    A password field which starts with an exclamation mark means
+	    that the password is locked.  The remaining characters on the
+	    line represent the password field before the password was
+	    locked.
+	  </para>
+	  <para>
+	    This password supersedes any password specified in
+	    <filename>/etc/group</filename>.
+	  </para>
+
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis role="bold">administrators</emphasis></term>
+	<listitem>
+	  <para>
+	    It must be a comma-separated list of user names.
+	  </para>
+	  <para>
+	    Administrators can change the password or the members of the
+	    group.
+	  </para>
+	  <para>
+	    Administrators also have the same permissions as the members
+	    (see below).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><emphasis role="bold">members</emphasis></term>
+	<listitem>
+	  <para>
+	    It must be a comma-separated list of user names.
+	  </para>
+	  <para>
+	    Members can access the group without being prompted for a
+	    password.
+	  </para>
+	  <para>
+	    You should use the same list of users as in
+	    <filename>/etc/group</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>gpasswd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>grpck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>grpconv</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newgrp</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

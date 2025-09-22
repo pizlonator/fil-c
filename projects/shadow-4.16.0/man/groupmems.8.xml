@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 2000       , International Business Machines
+   SPDX-FileCopyrightText: 2000       , George Kraft IV, gk4@us.ibm.com, 03/23/2000
+   SPDX-FileCopyrightText: 2005       , Tomasz Kłoczko
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='groupmems.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>George</firstname>
+      <surname>Kraft</surname>
+      <lineage>IV</lineage>
+      <contrib>Creation, 2000</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>groupmems</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>groupmems</refname>
+    <refpurpose>administer members of a user's primary group</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>groupmems</command>
+      <group choice='plain'>
+	<arg choice='plain'>-a <replaceable>user_name</replaceable></arg>
+	<arg choice='plain'>-d <replaceable>user_name</replaceable></arg>
+	<arg choice='opt'>-g <replaceable>group_name</replaceable></arg>
+	<arg choice='plain'>-l </arg><arg choice='plain'>-p </arg>
+      </group>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>groupmems</command> command allows a user to administer
+      their own group membership list without the requirement of
+      superuser privileges. The <command>groupmems</command> utility is for
+      systems that configure its users to be in their own name sake primary
+      group (i.e., guest / guest).
+    </para>
+
+    <para>Only the superuser, as administrator, can use
+      <command>groupmems</command> to alter the memberships of other groups.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>groupmems</command> command
+      are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-a</option>, <option>--add</option>&nbsp;<replaceable>user_name</replaceable></term>
+	<listitem>
+	  <para>Add a user to the group membership list.</para>
+	  <para condition="gshadow">
+	    If the <filename>/etc/gshadow</filename> file exist, and the
+	    group has no entry in the <filename>/etc/gshadow</filename>
+	    file, a new entry will be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-d</option>, <option>--delete</option>&nbsp;<replaceable>user_name</replaceable></term>
+	<listitem>
+	  <para>Delete a user from the group membership list.</para>
+	  <para condition="gshadow">
+	    If the <filename>/etc/gshadow</filename> file exist, the user
+	    will be removed from the list of members and administrators of
+	    the group.
+	  </para>
+	  <para condition="gshadow">
+	    If the <filename>/etc/gshadow</filename> file exist, and the
+	    group has no entry in the <filename>/etc/gshadow</filename>
+	    file, a new entry will be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-g</option>, <option>--group</option>&nbsp;<replaceable>group_name</replaceable></term>
+	<listitem>
+	  <para>The superuser can specify which group membership
+	    list to modify.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-l</option>, <option>--list</option></term>
+	<listitem>
+	  <para>List the group membership list.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-p</option>, <option>--purge</option></term>
+	<listitem>
+	  <para>Purge all users from the group membership list.</para>
+	  <para condition="gshadow">
+	    If the <filename>/etc/gshadow</filename> file exist, and the
+	    group has no entry in the <filename>/etc/gshadow</filename>
+	    file, a new entry will be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='setup'>
+    <title>SETUP</title>
+    <para>
+      The <command>groupmems</command> executable should be in mode
+      <literal>2710</literal> as user <emphasis>root</emphasis> and in group
+      <emphasis>groups</emphasis>. The system administrator can add users to
+      group <emphasis>groups</emphasis> to allow or disallow them using the
+      <command>groupmems</command> utility to manage their own group
+      membership list.
+    </para>
+
+    <programlisting>
+	$ groupadd -r groups
+	$ chmod 2710 groupmems
+	$ chown root:groups groupmems
+	$ groupmems -g groups -a gk4
+    </programlisting>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &MAX_MEMBERS_PER_GROUP;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>secure group account information</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupadd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

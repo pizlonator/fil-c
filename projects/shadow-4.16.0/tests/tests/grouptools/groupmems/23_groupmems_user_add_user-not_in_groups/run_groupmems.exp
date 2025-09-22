@@ -1,0 +1,41 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+if {$argc != 0} {
+	puts "usage: run_groupmems.exp"
+	exit 1
+}
+
+# First, switch to the testsuite user
+# (otherwise, no password will be asked)
+send_user "# switch to the 'myuser' user\n"
+send_user "# and expect a '$ ' prompt\n"
+spawn /bin/su myuser
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n# make sure we are now 'myuser'"
+send_user "\n# id should return 'uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)'"
+send "\r"			;# restore the prompt for the logs
+send "id\r"			;# Verify we are really testsuite
+
+expect "uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)"
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n\n"
+send_user "# now add user utest1 to the myuser group\n"
+send_user "# and expect a password prompt"
+send "\r"			;# restore the prompt for the logs
+send "/usr/sbin/groupmems -a utest1\r"		;#
+expect "groupmems: Permission denied"
+expect "$ "			;# Wait for the prompt
+send "echo $?\r"
+expect "126\r"
+expect "$ "			;# Wait for the prompt
+close
+
+puts "\nPASS"
+exit 0

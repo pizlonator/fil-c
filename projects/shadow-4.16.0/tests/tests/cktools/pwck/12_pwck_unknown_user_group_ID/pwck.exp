@@ -1,0 +1,18 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/sh
+send "if \[ \$(id -u) -eq 0 \]; then PS1='# '; else PS1='$ '; fi\r"
+expect "# "
+
+send "pwck\r"
+expect "user 'foo': no group 1001"
+expect "pwck: no changes"
+expect "# "
+send "echo \$?\r"
+expect "2"
+send "exit\r"
+puts "OK\n"
+exit 0

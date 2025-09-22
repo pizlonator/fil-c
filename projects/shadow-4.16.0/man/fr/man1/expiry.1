@@ -1,0 +1,74 @@
+'\" t
+.\"     Title: expiry
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: French
+.\"
+.TH "EXPIRY" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOM"
+expiry \- V\('erifier et s\('ecuriser la dur\('ee de validit\('e des mots de passe
+.SH "SYNOPSIS"
+.HP \w'\fBexpiry\fR\ 'u
+\fBexpiry\fR \fIoption\fR
+.SH "DESCRIPTION"
+.PP
+The
+\fBexpiry\fR
+command checks (\fB\-c\fR) the current password expiration and forces (\fB\-f\fR) changes when required\&. It is callable as a normal user command\&.
+.SH "OPTIONS"
+.PP
+The options which apply to the
+\fBexpiry\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-check\fR
+.RS 4
+V\('erifier la dur\('ee de validit\('e du mot de passe de l\*(Aqutilisateur courant\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+Forcer le changement du mot de passe si l\*(Aqutilisateur courant poss\(`ede un mot de passe qui a expir\('e\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Afficher un message d\*(Aqaide et quitter\&.
+.RE
+.SH "FICHIERS"
+.PP
+/etc/passwd
+.RS 4
+Informations sur les comptes des utilisateurs\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informations s\('ecuris\('ees sur les comptes utilisateurs\&.
+.RE
+.SH "VOIR AUSSI"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5)\&.

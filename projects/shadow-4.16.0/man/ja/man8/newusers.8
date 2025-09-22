@@ -1,0 +1,45 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1996 HANATAKA Shinya
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Wed Nov 20 17:42:39 JST 1996
+.\"         by HANATAKA Shinya
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH NEWUSERS 8
+.SH 名前
+newusers \- ユーザの新規作成や情報更新をバッチ処理で行う
+.SH 書式
+\fBnewusers\fR [\fInew_users\fR]
+.SH 説明
+\fBnewusers\fR はユーザ名と平文パスワードとの組を記したファイルを読み、
+その情報をもとに既存のユーザ情報の変更や新規ユーザの作成を行う。
+このファイルの書式は、
+下記の点を除き標準的なパスワードファイル
+(\fBpasswd\fR(5) 参照) と同じである。
+.IP "\fIpw_passwd\fR" 10
+このフィールドが暗号化され、新しい暗号化パスワードとなる。
+.IP "\fIpw_age\fR"
+このフィールドは shadow ファイル向けの情報であるが、
+ユーザがすでに存在する場合は無視される。
+.IP "\fIpw_gid\fR"
+このフィールドに既存のグループを指定した場合は、
+ユーザはそのグループに加えられる。
+存在しないグループ ID を指定した場合は、
+そのグループ ID で新たなグループが作成される。
+.IP "\fIpw_dir\fR"
+このフィールドで指定したディレクトリがすでに存在するかチェックし、
+もし存在しなければ新たにディレクトリが作られる。
+このディレクトリの所有者は、
+新規作成されたユーザ、あるいは情報が変更されたユーザとなる。
+.PP
+このコマンドは、同時に大量のアカウントを作成するような、
+大規模なシステム環境で用いるために作られた。
+.SH 警告
+入力ファイルには暗号化されていないパスワードが含まれるため、
+適切に保護しておかなければならない。
+.SH 関連項目
+.BR passwd (1),
+.BR useradd (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

@@ -1,0 +1,219 @@
+'\" t
+.\"     Title: login.defs
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18.06.2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: German
+.\"
+.TH "LOGIN\&.DEFS" "5" "18.06.2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+login.defs \- Konfiguration der Shadow\-Passwort\-Programmsammlung
+.SH "BESCHREIBUNG"
+.PP
+The
+/etc/login\&.defs
+file defines the site\-specific configuration for the shadow password suite\&. This file is required\&. Absence of this file will not prevent system operation, but will probably result in undesirable operation\&.
+.PP
+Diese Datei ist eine lesbare Textdatei\&. Jede Zeile der Datei beschreibt einen Konfigurationsparameter und besteht aus dessen Namen und einem Wert; beides durch Leerraumzeichen voneinander getrennt\&. Leer\- und Kommentarzeilen werden nicht beachtet\&. Kommentare werden mit dem Rautezeichen \(Fc#\(Fo eingeleitet, wobei es das erste nicht leere Zeichen der Zeile sein muss\&.
+.PP
+Parameter values may be of four types: strings, booleans, numbers, and long numbers\&. A string is comprised of any printable characters\&. A boolean should be either the value
+\fIyes\fR
+or
+\fIno\fR\&. An undefined boolean parameter or one with a value other than these will be given a
+\fIno\fR
+value\&. Numbers (both regular and long) may be either decimal values, octal values (precede the value with
+\fI0\fR) or hexadecimal values (precede the value with
+\fI0x\fR)\&. The maximum value of the regular and long numeric parameters is machine\-dependent\&.
+.PP
+Folgende Merkmale k\(:onnen konfiguriert werden:
+.PP
+\fBPASS_MAX_DAYS\fR,
+\fBPASS_MIN_DAYS\fR
+and
+\fBPASS_WARN_AGE\fR
+are only used at the time of account creation\&. Any changes to these settings won\*(Aqt affect existing accounts\&.
+.SH "QUERVERWEISE"
+.PP
+Die folgenden Querverweise zeigen, welche Programme aus der Shadow\-Passwort\-Sammlung welche Parameter verwenden\&.
+.PP
+chfn
+.RS 4
+CHFN_AUTH
+CHFN_RESTRICT
+LOGIN_STRING
+.RE
+.PP
+chgpasswd
+.RS 4
+ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+chpasswd
+.RS 4
+ENCRYPT_METHOD MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+chsh
+.RS 4
+CHSH_AUTH LOGIN_STRING
+.RE
+.PP
+gpasswd
+.RS 4
+ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+groupadd
+.RS 4
+GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP SYS_GID_MAX SYS_GID_MIN
+.RE
+.PP
+groupdel
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+groupmems
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+groupmod
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpck
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpconv
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpunconv
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+lastlog
+.RS 4
+LASTLOG_UID_MAX
+.RE
+.PP
+login
+.RS 4
+CONSOLE
+CONSOLE_GROUPS DEFAULT_HOME
+ENV_HZ ENV_PATH ENV_SUPATH ENV_TZ ENVIRON_FILE
+ERASECHAR FAIL_DELAY
+FAILLOG_ENAB
+FAKE_SHELL
+FTMP_FILE
+HUSHLOGIN_FILE
+ISSUE_FILE
+KILLCHAR
+LASTLOG_ENAB LASTLOG_UID_MAX
+LOGIN_RETRIES
+LOGIN_STRING
+LOGIN_TIMEOUT LOG_OK_LOGINS LOG_UNKFAIL_ENAB
+MAIL_CHECK_ENAB MAIL_DIR MAIL_FILE MOTD_FILE NOLOGINS_FILE PORTTIME_CHECKS_ENAB QUOTAS_ENAB
+TTYGROUP TTYPERM TTYTYPE_FILE
+ULIMIT UMASK
+USERGROUPS_ENAB
+.RE
+.PP
+newgrp / sg
+.RS 4
+SYSLOG_SG_ENAB
+.RE
+.PP
+newusers
+.RS 4
+ENCRYPT_METHOD GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB HOME_MODE PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN UMASK
+.RE
+.PP
+passwd
+.RS 4
+ENCRYPT_METHOD MD5_CRYPT_ENAB OBSCURE_CHECKS_ENAB PASS_ALWAYS_WARN PASS_CHANGE_TRIES PASS_MAX_LEN PASS_MIN_LEN
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+pwck
+.RS 4
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+.RE
+.PP
+pwconv
+.RS 4
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+.RE
+.PP
+su
+.RS 4
+CONSOLE
+CONSOLE_GROUPS DEFAULT_HOME
+ENV_HZ ENVIRON_FILE
+ENV_PATH ENV_SUPATH
+ENV_TZ LOGIN_STRING MAIL_CHECK_ENAB MAIL_DIR MAIL_FILE QUOTAS_ENAB
+SULOG_FILE SU_NAME
+SU_WHEEL_ONLY
+SYSLOG_SU_ENAB
+USERGROUPS_ENAB
+.RE
+.PP
+sulogin
+.RS 4
+ENV_HZ ENV_TZ
+.RE
+.PP
+useradd
+.RS 4
+CREATE_HOME GID_MAX GID_MIN HOME_MODE LASTLOG_UID_MAX MAIL_DIR MAX_MEMBERS_PER_GROUP PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN UMASK
+.RE
+.PP
+userdel
+.RS 4
+MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP USERDEL_CMD USERGROUPS_ENAB
+.RE
+.PP
+usermod
+.RS 4
+LASTLOG_UID_MAX MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP
+.RE
+.SH "SIEHE AUCH"
+.PP
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBsu\fR(1),
+\fBpasswd\fR(5),
+\fBshadow\fR(5),
+\fBpam\fR(8)\&.

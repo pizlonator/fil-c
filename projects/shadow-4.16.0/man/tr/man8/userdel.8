@@ -1,0 +1,68 @@
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH userdel 8 "" "" ""
+.nh
+.SH İSİM  
+userdel - 
+Bir kullanıcı hesabını ve onunla ilgili dosyaları siler
+
+.SH KULLANIM
+
+.nf
+
+\fBuserdel\fR [ \fB-r\fR ] \fIkullanıcı\fR
+
+.fi
+
+
+.SH AÇIKLAMA
+
+\fBuserdel\fR, userdel komutu, \fIkullanıcı\fR ile belirtilen hesabı silerek, sistem hesap dosyalarını değiştirir. Silinmeye çalışan \fIkullanıcı\fR hesabı, sistemde var olan bir hesap olmalıdır. Var olmayan bir hesabı silemezsiniz.
+
+
+
+.br
+.ns
+.TP 
+\fB-r\fR
+Kullanıcının ev dizinindeki dosyalar, ev dizininin kendisi ve 
+kullanıcının posta havuzu silinir. Diğer dosya sistemlerinde bulunan dosyalar silinmez. Bu nedenle bu dosyaları bulmak ve onları silmek sistem yöneticisinin görevidir.
+
+.PP
+
+.SH İLGİLİ DOSYALAR    
+
+.nf
+
+/etc/passwd - kullanıcı hesap bilgileri
+/etc/shadow - güvenli kullanıcı hesap bilgileri
+/etc/group  - grup bilgileri 
+
+.fi
+  
+
+.SH YETERSİZLİKLER    
+
+Kullanıcı sisteme bağlı ise, \fBuserdel\fR komutu ile bu hesabı 
+kaldıramazsınız.  Silmeye çalıştığınız hesaba ait çalışan bütün süreçleri öldürmek zorundasınız. Bir NIS istemcisindeki NIS özniteliklerini kaldıramayabilirsiniz. Bu işlem, NIS sunucu üzerinde gerçekleştirilmelidir.
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBusermod\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından  yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Aralık 2003
+

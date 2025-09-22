@@ -1,0 +1,99 @@
+.\" Copyright (c) 1993 Michael Haardt (u31b3hs@pool.informatik.rwth-aachen.de), Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139,
+.\" USA.
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.TH PASSWD 5 "24 July 1993" "Linux" "Linux Programozói Kézikönyv"
+.SH NÉV
+passwd \- Jelszófájl
+.SH LEÍRÁS
+A
+.B Passwd
+egy, a felhasználók listáját és a belépésükhöz szükséges jelszavakat
+tartalmazó ASCII file. Mindenkinek tudnia kell olvasni (sok segédprogram, 
+pl. a
+.BR ls (1)
+ezt használja hogy a felhasználói azonosítókhoz (UID-khez) neveket
+rendeljen), de írási jogot csak a rendszergazdának szabad kapnia.
+.PP
+A régi szép időkben nem is volt ezzel semmi baj: mindenki olvashatta a
+felhasználók kódolt jelszavait, de mivel az akkori hardware-körülmények nem
+tették lehetővé a jól megválasztott jelszavak törését, és a felasználók
+alapvetően jóindulatűak voltak, ez nem okozott problémát.
+Manapság mindenki igyekszik shadow-zott jelszavakat használni, amikor is a 
+.I /etc/passwd
+file-ban a jelszavak helyett csak egy * karakter áll, és az igazi jelszavak
+a
+.I /etc/shadow
+file-ban találhatóak, amit csak a rendszergazda olvashat.
+.PP
+Amikor új felhasználót készítesz, célszerű a jelszó helyét
+üresen hagyni, és a \fBpasswd\fP(1) programmal kitölteni. Egy * karakter a
+jelszó helyén azt jelenti, hogy a \fBlogin\fP(1) szoltáltatáson keresztül
+a felhasználó nem tud belépni.
+.PP
+Soronként egy bejegyzés található, a következő formában:
+.sp
+.RS
+usernév:jelszó:UID:GID:valódi név:home mappa:shell
+.RE
+.sp
+, ahol a mezők jelentése:
+.sp
+.RS
+.TP 1.0in
+.I usernév
+a felhasználó belépési neve a rendszerben.
+.TP
+.I jelszó
+a felhasználó kódolt jelszava. 
+.TP
+.I UID
+A felhasználó azonosítószáma.
+.TP
+.I GID
+A felhasználó csoportjának azonosítószáma.
+.TP
+.I valódi név
+egy opcionális mező megjegyzések tárolására (gyakran a felhasználó teljes neve)
+.TP
+.I home mappa
+a felhasználó $HOME mappája.
+.TP
+.I shell
+a belépéskor elindítandó program (ha nincs megadva, a
+.IR /bin/sh -t használja).
+.RE
+.SH MEGJEGYZÉS
+Ha a root fájlrendszered a
+.IR /dev/ram
+-on van, a rendszer leállítása előtt rögzítened kell a megváltozott jelszófile-t a root fájlrendszer floppylemezén. Ha csoportokat is kezelni akarsz, meg kell egyezniük a GID-jüknek és be kell jegyezni őket a  \fI/etc/group\fP-ba.
+.SH FÁJLOK
+.I /etc/passwd
+.SH LÁSD MÉG
+.BR passwd (1),
+.BR login (1),
+.BR group (5),
+.BR shadow (5)
+.SH MAGYAR FORDÍTÁS
+Horváth András <horvatha@rs1.szif.hu>

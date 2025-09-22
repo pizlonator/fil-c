@@ -1,0 +1,59 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+if {$argc != 3} {
+	puts "usage: gpasswd.exp <run_user> <group> <user_prompt>"
+	exit 1
+}
+
+set run_user    [lindex $argv 0]
+set group       [lindex $argv 1]
+set user_prompt [lindex $argv 3]
+
+# First, switch to the testsuite user
+# (otherwise, no password will be asked)
+send_user "# switch to user '$run_user'\n"
+send_user "# and expect a '$user_prompt' prompt\n"
+spawn /bin/su $run_user
+
+expect "$user_prompt"		;# Wait for the prompt
+
+send_user "\n# make sure we are now '$run_user'"
+send_user "\n# whoami should return '$run_user'"
+send "\r"			;# restore the prompt for the logs
+send "whoami\r"			;# Verify we are really testsuite
+
+expect {
+	timeout {
+		puts "\ntimeout...FAIL"
+		exit 1
+	}
+	"$run_user"
+}
+
+expect "$user_prompt"			;# Wait for the prompt
+
+send_user "\n\n"
+send_user "# now change '$group' 's admins to 'root'\n"
+send_user "# and expect a permission denied"
+send "\r"			;# restore the prompt for the logs
+send "gpasswd -A root $group\r"		;# Change the password
+expect "gpasswd: Permission denied."	;# Not an admin
+
+send_user "\n"
+send_user "# expect prompt '$user_prompt'\n"
+
+expect {
+	# Wait for the new prompt
+	"$user_prompt" {
+		send "exit\r"
+		expect "$ "
+		puts "\nPASS"
+		exit 0
+	}
+}
+
+puts "\ntimeout...FAIL"
+exit 1

@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY BCRYPT_MIN_ROUNDS     SYSTEM "login.defs.d/BCRYPT_MIN_ROUNDS.xml">
+<!ENTITY ENCRYPT_METHOD        SYSTEM "login.defs.d/ENCRYPT_METHOD.xml">
+<!ENTITY MD5_CRYPT_ENAB        SYSTEM "login.defs.d/MD5_CRYPT_ENAB.xml">
+<!ENTITY OBSCURE_CHECKS_ENAB   SYSTEM "login.defs.d/OBSCURE_CHECKS_ENAB.xml">
+<!ENTITY PASS_ALWAYS_WARN      SYSTEM "login.defs.d/PASS_ALWAYS_WARN.xml">
+<!ENTITY PASS_CHANGE_TRIES     SYSTEM "login.defs.d/PASS_CHANGE_TRIES.xml">
+<!ENTITY PASS_MAX_LEN          SYSTEM "login.defs.d/PASS_MAX_LEN.xml">
+<!ENTITY SHA_CRYPT_MIN_ROUNDS  SYSTEM "login.defs.d/SHA_CRYPT_MIN_ROUNDS.xml">
+<!ENTITY YESCRYPT_COST_FACTOR  SYSTEM "login.defs.d/YESCRYPT_COST_FACTOR.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='passwd.1'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>passwd</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>passwd</refname>
+    <refpurpose>change user password</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>passwd</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='opt'>
+        <replaceable>LOGIN</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>passwd</command> command changes passwords for user accounts.
+      A normal user may only change the password for their own account, while
+      the superuser may change the password for any account.
+      <command>passwd</command> also changes the account or associated
+      password validity period.
+    </para>
+
+    <refsect2 id='password_changes'>
+      <title>Password Changes</title>
+      <para>
+	The user is first prompted for their old password, if one is
+	present. This password is then encrypted and compared against the
+	stored password. The user has only one chance to enter the correct
+	password. The superuser is permitted to bypass this step so that
+	forgotten passwords may be changed.
+      </para>
+
+      <para>
+	After the password has been entered, password aging information is
+	checked to see if the user is permitted to change the password at
+	this time. If not, <command>passwd</command> refuses to change the
+	password and exits.
+      </para>
+
+      <para>
+	The user is then prompted twice for a replacement password. The
+	second entry is compared against the first and both are required to
+	match in order for the password to be changed.
+      </para>
+
+      <para>
+	Then, the password is tested for complexity.
+	<command>passwd</command> will reject any password which is not
+	suitably complex.  Care must be taken not to include the system
+	default erase or kill characters.
+      </para>
+
+    </refsect2>
+
+    <refsect2 id='hints_for_user_passwords'>
+      <title>Hints for user passwords</title>
+      <para>
+	The security of a password depends upon the strength of the
+	encryption algorithm and the size of the key space. The legacy
+	<emphasis>UNIX</emphasis> System encryption method is based on the
+	NBS DES algorithm. More recent methods are now recommended (see
+	<option>ENCRYPT_METHOD</option>). The size of the key space
+	depends upon the randomness of the password which is selected.
+      </para>
+
+      <para>
+	Compromises in password security normally result from careless
+	password selection or handling. For this reason, you should not
+	select a password which appears in a dictionary or which must be
+	written down. The password should also not be a proper name, your
+	license number, birth date, or street address. Any of these may be
+	used as guesses to violate system security.
+      </para>
+
+      <para>
+	As a general guideline, passwords should be long and random.  It's
+	fine to use simple character sets, such as passwords consisting
+	only of lowercase letters, if that helps memorizing longer
+	passwords.  For a password consisting only of lowercase English
+	letters randomly chosen, and a length of 32, there are 26^32
+	(approximately 2^150) different possible combinations.  Being an
+	exponential equation, it's apparent that the exponent (the length)
+	is more important than the base (the size of the character set).
+      </para>
+
+      <para>
+	You can find advice on how to choose a strong password on
+	http://en.wikipedia.org/wiki/Password_strength
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>passwd</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-a</option>, <option>--all</option>
+	</term>
+	<listitem>
+	  <para>
+	    This option can be used only with <option>-S</option> and causes show
+	    status for all users.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-d</option>, <option>--delete</option>
+	</term>
+	<listitem>
+	  <para>
+	    Delete a user's password (make it empty). This is a quick way
+	    to disable a password for an account. It will set the named
+	    account passwordless.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-e</option>, <option>--expire</option>
+	</term>
+	<listitem>
+	  <para>
+	    Immediately expire an account's password. This in effect can
+	    force a user to change their password at the user's next login.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-i</option>, <option>--inactive</option>&nbsp;<replaceable>INACTIVE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    This option is used to disable an account after the password has
+	    been expired for a number of days. After a user account has had
+	    an expired password for <replaceable>INACTIVE</replaceable>
+	    days, the user may no longer sign on to the account.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-k</option>, <option>--keep-tokens</option>
+	</term>
+	<listitem>
+	  <para>
+	    Indicate password change should be performed only for expired
+	    authentication tokens (passwords). The user wishes to keep their
+	    non-expired tokens as before.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-l</option>, <option>--lock</option>
+	</term>
+	<listitem>
+	  <para>
+	    Lock the password of the named account. This option disables a
+	    password by changing it to a value which matches no possible
+	    encrypted value (it adds a ´!´ at the beginning of the
+	    password).
+	  </para>
+	  <para>
+	    Note that this does not disable the account. The user may
+	    still be able to login using another authentication token
+	    (e.g. an SSH key). To disable the account, administrators
+	    should use <command>usermod --expiredate 1</command> (this set
+	    the account's expire date to Jan 2, 1970).
+	  </para>
+	  <para>
+	    Users with a locked password are not allowed to change their
+	    password.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-n</option>, <option>--mindays</option>&nbsp;<replaceable>MIN_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the minimum number of days between password changes to
+	    <replaceable>MIN_DAYS</replaceable>. A value of zero for this field
+	    indicates that the user may change their password at any time.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-q</option>, <option>--quiet</option>
+	</term>
+	<listitem>
+	  <para>
+	    Quiet mode.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--repository</option>&nbsp;<replaceable>REPOSITORY</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    change password in <replaceable>REPOSITORY</replaceable> repository
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes to configuration files under the root filesystem
+	    found under the directory <replaceable>PREFIX_DIR</replaceable>.
+	    This option does not chroot and is intended for preparing a cross-compilation
+	    target.  Some limitations: NIS and LDAP users/groups are
+	    not verified.  PAM authentication is using the host files.
+	    No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-S</option>, <option>--status</option>
+	</term>
+	<listitem>
+	  <para>
+	    Display account status information. The status information
+	    consists of 7 fields. The first field is the user's login name. 
+	    The second field indicates if the user account has a locked
+	    password (L),
+	    has no password (NP), or has a usable password (P). The third
+	    field gives the date of the last password change. The next four
+	    fields are the minimum age, maximum age, warning period, and
+	    inactivity period for the password. These ages are expressed in
+	    days.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--unlock</option>
+	</term>
+	<listitem>
+	  <para>
+	    Unlock the password of the named account. This option
+	    re-enables a password by changing the password back to its
+	    previous value (to the value before using the
+	    <option>-l</option> option).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-w</option>, <option>--warndays</option>&nbsp;<replaceable>WARN_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the number of days of warning before a password change is
+	    required. The <replaceable>WARN_DAYS</replaceable> option is
+	    the number of days prior to the password expiring that a user
+	    will be warned that their password is about to expire.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-x</option>, <option>--maxdays</option>&nbsp;<replaceable>MAX_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the maximum number of days a password remains valid. After
+	    <replaceable>MAX_DAYS</replaceable>, the password is required
+	    to be changed.
+	  </para>
+	  <para>
+	    Passing the number <emphasis remap='I'>-1</emphasis> as
+	    <replaceable>MAX_DAYS</replaceable> will remove checking a
+	    password's validity.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--stdin</option>
+	</term>
+	<listitem>
+	  <para>
+	    This option is used to indicate that passwd should read the new password from standard
+	    input, which can be a pipe.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      Password complexity checking may
+      vary from site to site. The user is urged to select a password as
+      complex as he or she feels comfortable with.
+    </para>
+    <para>
+      Users may not be able to 
+      change their password on a system if NIS is enabled and they are not 
+      logged into the NIS server.
+    </para>
+    <para condition="pam">
+      <command>passwd</command> uses PAM to authenticate users and to
+      change their passwords.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration' condition="no_pam">
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &ENCRYPT_METHOD;
+      &MD5_CRYPT_ENAB;
+      &OBSCURE_CHECKS_ENAB;
+      &PASS_ALWAYS_WARN;
+      &PASS_CHANGE_TRIES;
+      &PASS_MAX_LEN; <!-- documents also PASS_MIN_LEN -->
+      &SHA_CRYPT_MIN_ROUNDS;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="no_pam">
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="pam">
+	<term><filename>/etc/pam.d/passwd</filename></term>
+	<listitem>
+	  <para>PAM configuration for <command>passwd</command>.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>passwd</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>permission denied</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>invalid combination of options</para>
+	    </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>unexpected failure, nothing done</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>unexpected failure, <filename>passwd</filename> file missing</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>5</replaceable></term>
+	  <listitem>
+	    <para><filename>passwd</filename> file busy, try again</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>6</replaceable></term>
+	  <listitem>
+	    <para>invalid argument to option</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chpasswd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>makepasswd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <phrase condition="no_pam">
+	<citerefentry>
+	  <refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+
+    <para>
+	The following web page comically (yet correctly) compares the
+	strength of two different methods for choosing a password:
+	"https://xkcd.com/936/"
+    </para>
+  </refsect1>
+</refentry>

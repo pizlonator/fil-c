@@ -1,0 +1,54 @@
+.\" $Id$
+.\" (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\" this program is free software.  you can redistribute it and
+.\" modify it under the terms of the gnu general public license.
+.\" there is no warranty.
+.TH CHFN 1 "October 13 1994" "chfn" "Linux Reference Manual"
+.SH NAME
+chfn \- 사용자 finger 정보를 바꾼다.
+.SH SYNOPSIS
+\fBchfn\fR [\fB\-f\fR \fIfull\-name\fR] [\fB\-o\fR \fIoffice\fR] [\fB\-p\fR \fIoffice\-phone\fR]
+[\ \-h\ home\-phone\ ] [\ \-u\ ] [\ \-v\ ] [\ username\ ]
+.SH DESCRIPTION
+.B chfn
+명령은 사용자의 finger 정보를 바꾼다. 이것은 
+.I /etc/passwd
+파일의 정보를 바꾼다. 
+.B finger
+명령이 사용될 때 바로 이 파일을 참조하기 때문이다.
+.B finger
+명령은 
+.B chfn
+명령에서 바뀐 실재이름, 직장, 직장전화, 집전화번호를 보여준다.
+.SS COMMAND LINE
+아무 옵션 없이 이 명령을 사용하면, 직접 사용자에게 각각의 바꿀 정보를 
+물어보지만, 이 정보들을 명령행에서 직접 입력할 수도 있다.
+.SS INTERACTIVE MODE
+아무 옵션 없이 이 명령을 사용하면, 직접 사용자에게 각각의 바꿀 정보를 
+물어본다. 이때 정당한 값을 지정해 주고, 원래의 값을 바꾸지 않으려면, 
+그냥 Enter 글쇠를 누르면 된다.
+.SH OPTIONS
+.TP
+.I "\-f, \-\-full\-name"
+사용자 실재 이름
+.TP
+.I "\-o, \-\-office"
+사용자 직장
+.TP
+.I "\-p, \-\-office\-phone"
+사용자 직장 전화번호
+.TP
+.I "\-h, \-\-home\-phone"
+사용자 집 전화 번호
+.TP
+.I "\-u, \-\-help"
+도움말을 보여주고 마친다.
+.TP
+.I "\-v, \-\-version"
+버전 정보를 보여주고 마친다.
+.SH "SEE ALSO"
+.BR finger (1),
+.BR passwd (5)
+.SH AUTHOR
+Salvatore Valente <svalente@mit.edu>

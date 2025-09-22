@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1996       , Rafal Maszkowski
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY BCRYPT_MIN_ROUNDS     SYSTEM "login.defs.d/BCRYPT_MIN_ROUNDS.xml">
+<!ENTITY ENCRYPT_METHOD        SYSTEM "login.defs.d/ENCRYPT_METHOD.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY MD5_CRYPT_ENAB        SYSTEM "login.defs.d/MD5_CRYPT_ENAB.xml">
+<!ENTITY SHA_CRYPT_MIN_ROUNDS  SYSTEM "login.defs.d/SHA_CRYPT_MIN_ROUNDS.xml">
+<!ENTITY YESCRYPT_COST_FACTOR  SYSTEM "login.defs.d/YESCRYPT_COST_FACTOR.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='gpasswd.1'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Rafal</firstname>
+      <surname>Maszkowski</surname>
+      <contrib>Creation, 1996</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>gpasswd</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>gpasswd</refname>
+    <refpurpose>
+      <phrase condition="no_gshadow">
+	administer <filename>/etc/group</filename>
+      </phrase>
+      <phrase condition="gshadow">
+	administer <filename>/etc/group</filename> and
+	<filename>/etc/gshadow</filename>
+      </phrase>
+    </refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>gpasswd</command>
+      <arg choice='opt'>
+	<replaceable>option</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>group</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>gpasswd</command> command is used to administer
+      <filename>/etc/group</filename><phrase condition="gshadow">,
+      and <filename>/etc/gshadow</filename></phrase>.
+      Every group can have
+      <phrase condition="gshadow">administrators,</phrase>
+      members and a password.
+    </para>
+    <para condition="gshadow">
+      System administrators can use the <option>-A</option> option to define
+      group administrator(s) and the <option>-M</option> option to define
+      members. They have all rights of group administrators and members.
+    </para>
+    <para>
+      <command>gpasswd</command> called by
+      <phrase condition="gshadow">a group administrator</phrase>
+      <phrase condition="no_gshadow">a system administrator</phrase>
+      with a group name only prompts for the new password of the
+      <replaceable>group</replaceable>.
+    </para>
+    <para>
+      If a password is set the members can still use <citerefentry>
+      <refentrytitle>newgrp</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> without a password, and non-members must supply the
+      password.
+    </para>
+
+    <refsect2 id='notes_about_group_passwords'>
+      <title>Notes about group passwords</title>
+      <para>
+	Group passwords are an inherent security problem since more than one
+	person is permitted to know the password. However, groups are a
+	useful tool for permitting co-operation between different users.
+      </para>
+    </refsect2>
+
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para condition="gshadow">
+      Except for the <option>-A</option> and <option>-M</option> options,
+      the options cannot be combined.
+    </para>
+    <para condition="no_gshadow">
+      The options cannot be combined.
+    </para>
+    <para>
+      The options which apply to the <command>gpasswd</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-a</option>, <option>--add</option>&nbsp;<replaceable>user</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Add the <replaceable>user</replaceable> to the named
+	    <replaceable>group</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-d</option>, <option>--delete</option>&nbsp;<replaceable>user</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Remove the <replaceable>user</replaceable> from the named
+	    <replaceable>group</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-Q</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--remove-password</option>
+	</term>
+	<listitem>
+	  <para>
+	    Remove the password from the named <replaceable>group</replaceable>.
+	    The group password will be empty.
+	    Only group members will be allowed to use
+	    <command>newgrp</command> to join the named
+	    <replaceable>group</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--restrict</option>
+	</term>
+	<listitem>
+	  <para>
+	    Restrict the access to the named <replaceable>group</replaceable>.
+	    The group password is set to "!".
+	    Only group members with a password will be allowed to use
+	    <command>newgrp</command> to join the named
+	    <replaceable>group</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP' condition="gshadow">
+      <varlistentry>
+	<term>
+	  <option>-A</option>, <option>--administrators</option>&nbsp;<replaceable>user</replaceable>,...
+	</term>
+	<listitem>
+	  <para>
+	    Set the list of administrative users.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-M</option>, <option>--members</option>&nbsp;<replaceable>user</replaceable>,...
+	</term>
+	<listitem>
+	  <para>
+	    Set the list of group members.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      This tool only operates on the <filename>/etc/group</filename>
+      <phrase condition="gshadow"> and <filename>/etc/gshadow</filename>
+      files.</phrase>
+      <phrase condition="no_gshadow">file.</phrase>
+      Thus you cannot change any NIS or LDAP group. This must be performed
+      on the corresponding server.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &ENCRYPT_METHOD;
+      &MAX_MEMBERS_PER_GROUP;
+      &MD5_CRYPT_ENAB;
+      &SHA_CRYPT_MIN_ROUNDS; <!--This also document SHA_CRYPT_MAX_ROUNDS-->
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>newgrp</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupadd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupmod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>grpck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry><phrase condition="gshadow">,
+      <citerefentry>
+	<refentrytitle>gshadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry></phrase>.
+    </para>
+  </refsect1>
+</refentry>

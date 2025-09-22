@@ -1,0 +1,79 @@
+.TH "GROUPMOD" "8" "11/05/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+groupmod \- upraví skupinu
+.SH "POUŽITÍ"
+.HP 9
+\fBgroupmod\fR [\-g\ \fIgid\fR\ [\-o\ ]] [\-n\ \fInové_jméno_skupiny\fR] \fIskupina\fR
+.SH "POPIS"
+.PP
+Příkaz
+\fBgroupmod\fR
+upravuje soubory se systémovými účty tak, aby odpovídaly změnám
+zadaným na příkazové řádce.
+.SH "VOLBY"
+.PP
+Příkaz
+\fBgroupmod\fR
+akceptuje následující volby:
+.TP
+\fB\-g\fR \fIgid\fR
+Číselná hodnota skupinového ID. Tato hodnota musí být unikátní (s
+výjimkou volby
+\fB\-o\fR.
+Hodnota musí být nezáporné celé číslo. Hodnoty mezi 0 a 999 jsou
+obvykle rezervovány pro systémové účty. U souborů, které měly skupinu
+nastavenu na staré GID, ji musíte přenastavit na nové GID ručně.
+.TP
+\fB\-n\fR \fInové_jméno_skupiny\fR
+Jméno skupiny se změní ze
+\fIskupina\fR
+na
+\fInové_jméno_skupiny\fR.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.SH "NÁVRATOVÉ HODNOTY"
+.PP
+Příkaz
+\fBgroupmod\fR
+může skončit s následujícími návratovými hodnotami:
+.TP
+\fI0\fR
+úspěch
+.TP
+\fI2\fR
+chybná syntaxe příkazu
+.TP
+\fI3\fR
+chybný argument parametru
+.TP
+\fI4\fR
+zadaná skupina neexistuje
+.TP
+\fI6\fR
+zadaná skupina neexistuje
+.TP
+\fI9\fR
+skupina je již používána
+.TP
+\fI10\fR
+nelze aktualizovat soubor group
+.SH "VIZ TAKÉ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).

@@ -1,0 +1,116 @@
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH usermod 8 "" "" ""
+.nh
+.SH İSİM  
+usermod - 
+bir kullanıcı hesabını düzenler
+
+.SH KULLANIM
+
+.nf
+
+\fBusermod\fR [\fB-c \fR\fIaçıklama\fR] [\fB-d \fR\fIevdizini \fR[\fB-m\fR]]
+        [\fB-e \fR\fIbitiş_tarihi\fR] [\fB-f \fR\fIaskı_süresi\fR]
+        [\fB-g \fR\fIbirincil_grup\fR] [\fB-G \fR\fIgrup\fR[,...]]
+        [\fB-l \fR\fIkullanıcı-adı\fR]  [\fB-p \fR\fIparola\fR]
+        [\fB-s \fR\fIkabuk\fR] [\fB-u \fR\fIkull_kiml\fR [\fB-o\fR]] [\fB-L\fR|\fB-U\fR] \fIkullanıcı\fR
+
+.fi
+
+
+.SH AÇIKLAMA
+
+\fBusermod\fR komutu, sistem hesap dosyalarını düzenlemeye, üzerlerinde değişiklik yapmaya yarar. Bu komuta uygulanabilecek seçenekler şunlardır:
+
+
+
+.br
+.ns
+.TP 
+\fB-c \fR\fIaçıklama\fR
+Kullanıcı parola dosyasındaki açıklama alanına girilecek yeni değeri belirtir. Normalde \fBchfn\fR(1) komutu ile düzenlenir.
+
+.TP 
+\fB-d \fR\fIevdizini\fR
+Kullanıcının sisteme girişte kullanacağı ev dizinini belirtir. Şayet \fB-m\fR seçeneği belirtilmiş ise, kullanıcının hali hazırda kullanmakta olduğu ev dizininin içeriği yeni oluşturulan ev dizinine aktarılır.
+
+.TP 
+\fB-e \fR\fIbitiş_tarihi\fR
+Kullanıcı hesabının son kullanma tarihini belirtir. Tarih YYYY-AA-GG (Y: yıl, A: ay, G: gün) şeklinde belirtilir.
+
+.TP 
+\fB-f \fR\fIaskı_süresi\fR
+Kullanıcı parolasının son kullanma tarihinden itibaren, bu hesabın 
+tamamen kapatılacağı tarihe kadar geçecek olan sürenin gün cinsinden değeri belirtilir. Bu değer 0 olarak belirtilirse, parolanın son kullanma tarihinde hesap kapatılır. -1 değeri verilirse, bu özellik iptal edilmiş olur. -1 değeri öntanımlı değerdir. 
+
+.TP 
+\fB-g \fR\fIbirincil_grup\fR
+Kullanıcının üyesi olacağı birincil grubun adı veya numarası belirtilir. Belirtilen grup, sistemde önceden tanımlanmış olmalıdır. Öntanımlı değer 1 dir.
+
+.TP 
+\fB-g \fR\fIgrup\fR[,...]
+Kullanıcının üyesi olacağı ilave gruplar belirtilir. Her grup, diğerinden virgül ile ayrılır, arada boşluk bırakılmaz. Burada tanımlanan gruplar, \fB-g\fR ile tanımlanan grubun kısıtlamalarına tabidirler. Şayet kullanıcı listelenen gruplar haricinde bir grubun da üyesi ise, kullanıcı bu gruptan çıkarılır.  
+
+.TP 
+\fB-l \fR\fIkullanıcı-adı\fR
+Sisteme girişte kullanıcının kullanacağı yeni isim. Sadece isim değişir, başka hiçbir şey değişmez. Kullanıcının ev dizininin ismi, yeni kullanıcı ismi ile bağlantı yapılmasını sağlamak için \fIkullanıcı-adı\fR ile tanımlanan yeni isme dönüşür.
+
+.TP 
+\fB-p \fR\fIparola\fR
+\fBcrypt\fR(3) tarafından döndürülen şifrelenmiş paroladır.
+
+.TP 
+\fB-s \fR\fIkabuk\fR
+Kullanıcının sisteme girişte kullanacağı kabuğun adıdır. Bu alan boş bırakılırsa, sistemin öntanımlı kabuğunun seçilmesi sağlanır. 
+
+.TP 
+\fB-u \fR\fIkull_kiml\fR
+Kullanıcı kimliğinin sayısal değeridir. Bu değer, \fB-o\fR seçeneği kullanılmadığı sürece, eşsiz olmalıdır. Değer mutlaka pozitif bir sayı olmalıdır. 0 ile 99 arsındaki değerler sistem hesapları için ayrılmıştır. Bu değer değiştirildiği zaman; kullanıcının sahip olduğu bütün dosyaların ve kullanıcı ev dizinini kök dizin olarak kabul ederek, kullanıcı ev dizininin altındaki hiyeraşik yapı içindeki bütün dosyaların kullanıcı numarası otomatik olarak değişir. Kullanıcı ev dizininin dışındaki dosyaların kullanıcı iyelik numarası kullanıcı tarafından değiştirilmelidir.
+
+.TP 
+\fB-L\fR
+Kullanıcı parolasını kilitler. Parolayı devre dışı bırakmak için, şifreli parolanın önüne '!'  işareti koyar. Bu seçeneği \fB-p\fR veya \fB-U\fR seçenekleri ile birlikte kullanamazsınız.
+
+.TP 
+\fB-U\fR
+Devre dışı bırakılmış bir kullanıcı parolasını tekrar açar. Yaptığı iş şifreli parolanın önündeki '!' işaretini kaldırmaktır. Bu seçeneği \fB-p\fR veya \fB-L\fR seçenekleri ile birlikte kullanamazsınız.
+
+.PP
+.SH YETERSİZLİKLER
+
+\fBusermod\fR komutu ile, sisteme bağlı bir kullanıcının adını 
+değiştiremezsiniz. Kullanıcının tanımlayıcı numarasını değiştirmeye kalktığınız zaman, kullanıcının herhangi bir süreç çalıştırmadığından emin olun. Herhangi bir \fBcrontab\fR dosyasının sahibini kendiniz değiştirmelisiniz.  Çalışan herhangi bir işin sahibini de kendiniz değiştirmelisiniz. NIS sunuculardaki NIS ile alakalı bütün değişiklikleri kendiniz yapmalısınız
+ 
+.SH İLGİLİ DOSYALAR
+
+.nf
+
+\fB/etc/passwd\fR  - kullanıcı hesabı bilgileri
+\fB/etc/shadow\fR  - güvenli kullanıcı hesabı bilgileri
+\fB/etc/group\fR   - grup bilgileri
+
+.fi
+
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBcrypt\fR(3),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Ocak 2004
+

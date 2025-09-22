@@ -1,0 +1,57 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "reports all entry from /var/log/faillog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/faillog (it will not be restored)..."
+> /var/log/faillog
+echo "OK"
+
+cp data/faillog.out tmp/faillog.out1
+cp data/faillog.out tmp/faillog.out2
+TTY=$(ls /dev/pts | sort -n|tail -1)
+TTY=$((TTY+1))
+
+DATE=$(LC_ALL=C date +"%D %H:%M:%S %z")
+# pam_tally do not report the line of failure ?
+printf "%-9s   %5d    %5d   %s  %s\n" foo 1 0 "$DATE" "">> tmp/faillog.out1
+
+echo -n "Trigger a connection as foo..."
+./login.exp
+echo "OK"
+
+DATE=$(LC_ALL=C date +"%D %H:%M:%S %z")
+# pam_tally do not report the line of failure ?
+printf "%-9s   %5d    %5d   %s  %s\n" foo 1 0 "$DATE" "">> tmp/faillog.out2
+
+echo -n "faillog..."
+faillog > tmp/faillog.out
+echo "OK."
+
+echo "faillog :"
+echo "======================================================================="
+cat tmp/faillog.out
+echo "======================================================================="
+
+echo -n "Check the faillog message..."
+diff -au tmp/faillog.out tmp/faillog.out1 || diff -au tmp/faillog.out tmp/faillog.out2
+echo "faillog message OK."
+rm -f tmp/faillog.out tmp/faillog.out1 tmp/faillog.out2
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

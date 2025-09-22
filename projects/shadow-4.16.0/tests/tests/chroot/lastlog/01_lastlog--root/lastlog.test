@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "gpasswd can change a group in a chroot"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; rm -f tmp/root/var/log/lastlog; clean_chroot; restore_config' 0
+
+change_config
+
+prepare_chroot
+
+echo -n "Create an empty /var/log/lastlog in the chroot..."
+> tmp/root/var/log/lastlog
+echo "OK"
+
+echo -n "lastlog --root $PWD/tmp/root -u 424242..."
+lastlog --root $PWD/tmp/root -u 424242> tmp/lastlog.out
+echo "OK."
+
+echo "lastlog :"
+echo "======================================================================="
+cat tmp/lastlog.out
+echo "======================================================================="
+
+echo -n "Check the list of logged in users..."
+cat tmp/lastlog.out | cut -d" " -f1 > tmp/lastlog.list
+diff -au data/lastlog.list tmp/lastlog.list
+echo "OK."
+
+rm -f tmp/lastlog.out tmp/lastlog.list
+rm -f tmp/root/var/log/lastlog
+
+clean_chroot
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

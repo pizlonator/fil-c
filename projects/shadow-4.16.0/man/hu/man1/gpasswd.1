@@ -1,0 +1,81 @@
+.\" Copyright 1996, Rafal Maszkowski, rzm@pdi.net
+.\" All rights reserved. You can redistribute this man page and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"	$Id$
+.\"
+.TH GPASSWD 1
+.SH NÉV
+gpasswd \- az /etc/group fájlt adminisztrálja
+.br
+.SH ÁTTEKINTÉS
+.B gpasswd \fIcsoport\fR
+.br
+.B gpasswd
+.B \-a
+\fIfelhasználó\fR \fIcsoport\fR
+.br
+.B gpasswd
+.B \-d
+\fIfelhasználó\fR \fIcsoport\fR
+.br
+.B gpasswd
+.B \-R
+\fIcsoport\fR
+.br
+.B gpasswd
+.B \-r
+\fIcsoport\fR
+.br
+.B gpasswd
+.RB [ \-A
+\fIfelhasználó\fR,...]
+.RB [ \-M
+\fIfelhasználó\fR,...]
+\fIcsoport\fR
+.br
+.SH LEÍRÁS
+A
+.B gpasswd
+program segítségével adminisztrálhatjuk az /etc/group fájlt
+illetve az /etc/gshadow fájlt amennyiben a SHADOWGPR definiálva
+volt a fordítás alatt. Minden csoportban lehetnek adminisztrátorok,
+tagok és egy jelszó. A rendszeradminisztrátor a \fB\-A\fR opció
+segítségével definiálhat csoportadminisztrátor(oka)t és a \fB\-M\fR
+opcióval tagokat. A rendszeradminisztátor minden joggal rendelkezik,
+amellyel a csoportadminisztrátor és a csoport tagjai.
+.PP
+A csoportadminisztrátor a \fB\-a\fR kapcsolóval hozhat létre
+felhasználókat, és a \fB\-d\fR opcióval törölheti őket. Az 
+adminisztrátorok a \fB\-r\fR opcióval törölhetik a csoport
+jelszavát. Ha nincs jelszó beállítva, akkor csak a csoport
+tagjai használhatják a 
+.BR newgrp (1)
+parancsot a csatlakozáshoz. A \fB\-R\fR opció
+meggátolja a csoport elérését a 
+.BR newgrp (1)
+parancson keresztül.
+.PP
+Ha
+.B gpasswd
+parancsot a csoportadminisztrátor adja ki a csoport nevével,
+akkor csak a jelszót kell beírnia. Ha van jelszó, akkor a tagok
+be tudnak lépni a 
+.BR newgrp (1)
+paranccsal jelszó nélkül is, csak a csoporton kívüli felhasználóknak
+kell megadniuk a jelszót.
+
+.SH FÁJLOK
+\fI/etc/group\fR \- információ a csoportról
+.br
+\fI/etc/gshadow\fR \- információ a shadow csoportról
+.SH LÁSD MÉG
+.BR newgrp (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR grpck (8)
+.SH MAGYAR FORDÍTÁS
+Tímár András <timar_a@freemail.hu>

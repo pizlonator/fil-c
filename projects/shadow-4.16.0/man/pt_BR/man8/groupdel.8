@@ -1,0 +1,59 @@
+.\" Copyright 1991 \- 1993, Julianne Frances Haugh
+.\" All rights reserved.
+.\"
+.\" Todos os direitos reservados.
+.\"
+.\" É permitida a confecção e distribuição deste manual, devidamente
+.\" acompanhado dos avisos de direitos autorais e desta permissão
+.\" em todas as cópias.
+.\"
+.\" É permitida a cópia e distribuição de versões modificadas deste manual
+.\" sob as condições acima, e que todo o trabalho derivado seja distribuído
+.\" sob  as mesmas condições deste manual.
+.\" 
+.\" Uma vez que o kernel do Linux e suas bibliotecas estão constantemente
+.\" mudando, esta página de manual poderá estar incorreta ou desatualizada.
+.\" O(s) autor(es) não assumem responsabilidade por erros ou omissões, 
+.\" ou por danos resultantes do uso das informações aqui contidas. 
+.\"
+.\" Versões formatadas ou processadas deste manual, desacompanhadas dos
+.\" fontes, devem conter a autorização e os direitos autorais dos autores do
+.\" trabalho.
+.\"
+.\" Você deve receber uma cópia da Licença Pública GNU
+.\" junto com este manual; caso contrário, escreva para a Free Software
+.\" Foundation, Inc., 675 mass Ave, Cambridge, MA 02139 USA ou
+.\" em português na Conectiva Informática Ltda. \- http://www.conectiva.com.br.\"
+.\"
+.\"	$Id$
+.\"
+.TH GROUPDEL 8
+.SH NOME
+groupdel \- Apaga um grupo
+.SH SINOPSE
+.B groupdel
+.I grupo
+.SH DESCRIÇÃO
+O comando \fBgroupdel\fR modifica os arquivos de contas do sistema, apagando todas as referências ao \fIgrupo\fR. O grupo a ser apagado deve existir.
+.PP
+Deve\-se manualmente checar os sistemas de arquivos para garantir que nenhum dos arquivos permanece com o grupo ou com a sua identificação.
+.SH DICAS
+Não se deve remover o grupo primário de um grupo existente. Deve\-se remover os usuários, antes de se remover o grupo.
+.SH ARQUIVOS
+\fI/etc/group\fR \- informações do grupo
+.br
+\fI/etc/gshadow\fR \- informações seguras do grupo
+.SH VEJA TAMBÉM
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupmod (8),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH AUTOR
+Julianne Frances Haugh (jfh@tab.com)
+.SH TRADUÇÃO E REVISÃO PARA A LÍNGUA PORTUGUESA
+Sandro Nunes Henrique <sandro@conectiva.com.br> (tradução)
+Rodrigo Stulzer Lopes <rodrigo@conectiva.com.br> (revisão)

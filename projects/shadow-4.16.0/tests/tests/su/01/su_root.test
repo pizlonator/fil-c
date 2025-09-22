@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "su can be used to switch to root"
+
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+./run_su.exp root rootF00barbaz '# '
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

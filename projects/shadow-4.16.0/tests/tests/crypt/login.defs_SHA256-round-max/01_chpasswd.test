@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Add a new user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 (useradd test1)..."
+echo nobody:test | chpasswd
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 01_chpasswd/shadow /etc/shadow
+echo "OK"
+echo -n "Check the number of rounds..."
+grep -q '^nobody:\$5\$rounds=7000\$' /etc/shadow || {
+	grep "^nobody:" /etc/shadow
+	exit 1
+}
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,132 @@
+'\" t
+.\"     Title: lastlog
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18.06.2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: German
+.\"
+.TH "LASTLOG" "8" "18.06.2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+lastlog \- berichtet die letzte Anmeldung f\(:ur alle oder einen bestimmten Benutzer
+.SH "\(:UBERSICHT"
+.HP \w'\fBlastlog\fR\ 'u
+\fBlastlog\fR [\fIoptions\fR]
+.SH "BESCHREIBUNG"
+.PP
+\fBlastlog\fR
+formats and prints the contents of the last login log
+/var/log/lastlog
+file\&. The
+\fIlogin\-name\fR,
+\fIport\fR, and
+\fIlast login time\fR
+will be printed\&. The default (no flags) causes lastlog entries to be printed, sorted by their order in
+/etc/passwd\&.
+.SH "OPTIONEN"
+.PP
+The options which apply to the
+\fBlastlog\fR
+command are:
+.PP
+\fB\-b\fR, \fB\-\-before\fR\ \&\fIDAYS\fR
+.RS 4
+Print only lastlog records older than
+\fIDAYS\fR\&.
+.RE
+.PP
+\fB\-C\fR, \fB\-\-clear\fR
+.RS 4
+Clear lastlog record of a user\&. This option can be used only together with
+\fB\-u\fR
+(\fB\-\-user\fR))\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+zeigt die Hilfe an und beendet das Programm\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-S\fR, \fB\-\-set\fR
+.RS 4
+Set lastlog record of a user to the current time\&. This option can be used only together with
+\fB\-u\fR
+(\fB\-\-user\fR))\&.
+.RE
+.PP
+\fB\-t\fR, \fB\-\-time\fR\ \&\fIDAYS\fR
+.RS 4
+Print the lastlog records more recent than
+\fIDAYS\fR\&.
+.RE
+.PP
+\fB\-u\fR, \fB\-\-user\fR\ \&\fILOGIN\fR|\fIRANGE\fR
+.RS 4
+gibt nur die Lastlog\-Eintr\(:age f\(:ur die angegebenen Benutzer aus\&.
+.sp
+The users can be specified by a login name, a numerical user ID, or a
+\fIRANGE\fR
+of users\&. This
+\fIRANGE\fR
+of users can be specified with a min and max values (\fIUID_MIN\-UID_MAX\fR), a max value (\fI\-UID_MAX\fR), or a min value (\fIUID_MIN\-\fR)\&.
+.RE
+.PP
+If the user has never logged in the message
+\fI** Never logged in**\fR
+will be displayed instead of the port and time\&.
+.PP
+Es werden nur Eintr\(:age f\(:ur derzeit angelegte Benutzer angezeigt, Weitere zu gel\(:oschten Benutzern geh\(:orende Eintr\(:age k\(:onnen vorhanden sein\&.
+.SH "ANMERKUNGEN"
+.PP
+The
+lastlog
+file is a database which contains info on the last login of each user\&. You should not rotate it\&. It is a sparse file, so its size on the disk is usually much smaller than the one shown by "\fBls \-l\fR" (which can indicate a really big file if you have in
+passwd
+users with a high UID)\&. You can display its real size with "\fBls \-s\fR"\&.
+.SH "KONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "DATEIEN"
+.PP
+/var/log/lastlog
+.RS 4
+Datenbank mit Zeiten der letzten Anmeldung der Benutzer
+.RE
+.SH "WARNUNGEN"
+.PP
+Gro\(sse L\(:ucken in den Benutzerkennungen haben zur Folge, dass das Lastlog\-Programm l\(:angere Zeit nichts auf den Bildschirm ausgibt\&. Wenn sich z\&.B\&. in der Lastlog\-Datenbank kein Eintrag f\(:ur Benutzer mit der Kennung zwischen 170 und 800 befindet, wird es, w\(:ahrend der Verarbeitung der Eintr\(:age zu den Kennungen 171 bis 799, scheinen, als sei lastlog stehen geblieben\&.
+.PP
+Having high UIDs can create problems when handling the
+/var/log/lastlog
+with external tools\&. Although the actual file is sparse and does not use too much space, certain applications are not designed to identify sparse files by default and may require a specific option to handle them\&.

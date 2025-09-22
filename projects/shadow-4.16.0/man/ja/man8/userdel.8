@@ -1,0 +1,51 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated Fri Jan 12 JST 2000 by Kentaro Shirakata <argrath@ub32.org>
+.\" Updated Fri Mar  1 JST 2002 by Kentaro Shirakata <argrath@ub32.org>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH USERDEL 8
+.SH 名前
+userdel \- ユーザのアカウントと関連ファイルを削除する
+.SH 書式
+.B userdel
+[\fB\-r\fR]
+.I login
+.SH 説明
+\fBuserdel\fR コマンドは、システムアカウントファイルを修正し、
+ユーザ \fIlogin\fR に対応するすべてのエントリを削除する。
+削除されるユーザは存在していなければならない。
+\fBuserdel\fR コマンドに適用できるオプションは以下の通り。
+.IP \fB\-r\fR
+ユーザのホームディレクトリ中のファイルを削除する。
+ホームディレクトリ自体とユーザのメールスプールも消去する。
+ファイルシステム中のほかの場所にあるそのユーザのファイルは、
+手作業で探し出して削除しなければならない。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR \- 安全なユーザアカウント情報
+.br
+\fI/etc/group\fR \ \- グループ情報
+.SH 警告
+\fBuserdel\fR は、削除されるユーザが現在ログインしている場合は、
+そのアカウントの削除を許可しない。
+削除しようとしているアカウントに属する実行中のプロセスは、
+すべて kill しなければならない。
+NIS のクライアントからは、NIS の属性値は削除できない。
+削除は NIS のサーバで行わなければならない。
+.SH 関連項目
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR useradd (8),
+.BR usermod (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

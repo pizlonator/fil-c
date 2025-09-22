@@ -1,0 +1,17 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>NONEXISTENT</option> (string)</term>
+  <listitem>
+    <para>
+      If a system account intentionally does not have a home directory
+      that exists, this string can be provided in the /etc/passwd
+      entry for the account to indicate this.  The result is that pwck
+      will not emit a spurious warning for this account.
+    </para>
+  </listitem>
+</varlistentry>

@@ -1,0 +1,274 @@
+'\" t
+.\"     Title: limits
+.\"    Author: Luca Berra
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "LIMITS" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+limits \- resource limits definition
+.SH "DESCRIPTION"
+.PP
+The
+\fIlimits\fR
+file (/etc/limits
+by default or LIMITS_FILE defined
+config\&.h) describes the resource limits you wish to impose\&. It should be owned by root and readable by root account only\&.
+.PP
+By default no quota is imposed on \*(Aqroot\*(Aq\&. In fact, there is no way to impose limits via this procedure to root\-equiv accounts (accounts with UID 0)\&.
+.PP
+Each line describes a limit for a user in the form:
+.PP
+\fIuser LIMITS_STRING\fR
+.PP
+or in the form:
+.PP
+\fI@group LIMITS_STRING\fR
+.PP
+The
+\fILIMITS_STRING\fR
+is a string of a concatenated list of resource limits\&. Each limit consists of a letter identifier followed by a numerical limit\&.
+.PP
+The valid identifiers are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+A: max address space (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+C: max core file size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+D: max data size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+F: maximum file size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+K: file creation mask, set by
+\fBumask\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+I: max nice value (0\&.\&.39 which translates to 20\&.\&.\-19)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+L: max number of logins for this user
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+M: max locked\-in\-memory address space (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+N: max number of open files
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+O: max real time priority
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+P: process priority, set by
+\fBsetpriority\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+R: max resident set size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+S: max stack size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+T: max CPU time (MIN)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+U: max number of processes
+.RE
+.PP
+For example,
+\fIL2D2048N5\fR
+is a valid
+\fILIMITS_STRING\fR\&. For reading convenience, the following entries are equivalent:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      username L2D2048N5
+      username L2 D2048 N5
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Be aware that after
+\fIusername\fR
+the rest of the line is considered a limit string, thus comments are not allowed\&. An invalid limits string will be rejected (not considered) by the
+\fBlogin\fR
+program\&.
+.PP
+The default entry is denoted by username "\fI*\fR"\&. If you have multiple
+\fIdefault\fR
+entries in your
+\fILIMITS_FILE\fR, then the last one will be used as the default entry\&.
+.PP
+The limits specified in the form "\fI@group\fR" apply to the members of the specified
+\fIgroup\fR\&.
+.PP
+If more than one line with limits for a user exist, only the first line for this user will be considered\&.
+.PP
+If no lines are specified for a user, the last
+\fI@group\fR
+line matching a group whose the user is a member of will be considered, or the last line with default limits if no groups contain the user\&.
+.PP
+To completely disable limits for a user, a single dash "\fI\-\fR" will do\&.
+.PP
+To disable a limit for a user, a single dash "\fI\-\fR" can be used instead of the numerical value for this limit\&.
+.PP
+Also, please note that all limit settings are set PER LOGIN\&. They are not global, nor are they permanent\&. Perhaps global limits will come, but for now this will have to do ;)
+.SH "FILES"
+.PP
+/etc/limits
+.RS 4
+.RE
+.SH "SEE ALSO"
+.PP
+\fBlogin\fR(1),
+\fBsetpriority\fR(2),
+\fBsetrlimit\fR(2)\&.

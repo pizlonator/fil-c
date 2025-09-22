@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "groupmod checks if the specified GID is valid"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Change GID of bar to -1001 (groupmod -g -1001 bar)..."
+groupmod -g -1001 bar 2>tmp/groupmod.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "3"
+echo "OK"
+
+echo "groupmod reported:"
+echo "======================================================================="
+cat tmp/groupmod.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/groupmod.err tmp/groupmod.err
+echo "error message OK."
+rm -f tmp/groupmod.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

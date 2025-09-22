@@ -1,0 +1,68 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1989 - 1990, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 18 Sep 2002 by NAKNAO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH PORTTIME 5
+.SH 名前
+porttime \- ポートアクセス時間設定ファイル
+.SH 説明
+.I porttime
+は tty デバイス・ユーザ名・ログイン可能時間、のリストからなる。
+.PP
+それぞれのエントリは、コロンで区切られた三つのフィールドからなる。
+最初のフィールドはコンマで区切られた tty デバイスのリストで、
+アスタリスクを指定した場合はあらゆる tty デバイスにマッチする。
+二番目のフィールドはコンマで区切られたユーザ名のリストで、
+アスタリスクを指定した場合はあらゆるユーザにマッチする。
+三番目のフィールドは、
+コンマで区切られたログインを許可時間のリストである。
+.PP
+アクセス時間の各エントリは、
+\fBSu\fR, \fBMo\fR, \fBTu\fR, \fBWe\fR, \fBTh\fR, \fBFr\fR, \fBSa\fR
+で略記されたゼロ個以上の曜日と、
+ハイフンで区切られた 2 つの時刻とからなる。
+月曜日から金曜日までを指定する \fBWk\fR や、
+全ての日を指定する \fBAl\fR という略記法を用いることもできる。
+曜日の指定が無い場合は \fBAl\fR だとみなされる。
+.SH 例
+次のエントリは、ユーザ \fBjfh\fR が平日の午前9時から午後5時まで、
+全てのポートからアクセス可能であることを示す。
+.br
+.sp 1
+	*:jfh:Wk0900\-1700
+.br
+.sp 1
+次のエントリは、
+\fBroot\fR と \fBoper\fR 以外のユーザには、どの時間帯にも
+/dev/console からのアクセスを許可しない。
+この例は、\fI/etc/porttime\fR
+ファイルがアクセス可能時間のリストを
+どういう順序で扱うかも示している。
+他の全てのユーザは二番目のエントリにマッチし、
+したがって console からのアクセスは許可されない。
+.br
+.sp 1
+	console:root,oper:Al0000\-2400
+.br
+	console:*:
+.br
+.sp 1
+次のエントリは、
+ユーザ \fBgames\fR が、就業時間外なら
+あらゆるポートからアクセスできるように指定している。
+.br
+.sp 1
+	*:games:Wk1700\-0900,SaSu0000\-2400
+.br
+.sp 1
+.SH ファイル
+\fI/etc/porttime\fR \- ポートへのアクセス可能時間を記したファイル
+.SH 関連項目
+.BR login (1)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

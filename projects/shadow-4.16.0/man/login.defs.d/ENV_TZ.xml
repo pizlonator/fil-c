@@ -1,0 +1,24 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>ENV_TZ</option> (string)</term>
+  <listitem>
+    <para>
+      If set, it will be used to define the TZ environment variable when
+      a user login. The value can be the name of a timezone preceded by
+      <replaceable>TZ=</replaceable> (for example
+      <replaceable>TZ=CST6CDT</replaceable>), or the full path to the file
+      containing the timezone specification (for example
+      <filename>/etc/tzname</filename>).
+    </para>
+    <!-- TODO: it can in fact be used to set any other variable-->
+    <para>
+      If a full path is specified but the file does not exist or cannot be
+      read, the default is to use <replaceable>TZ=CST6CDT</replaceable>.
+    </para>
+  </listitem>
+</varlistentry>

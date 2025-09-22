@@ -1,0 +1,169 @@
+.\" SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated Wed Apr 26 17:22:36 JST 2000
+.\"         by Kentaro Shirakata <argrath@ub32.org>
+.\" Updated Sat Jan 13 09:24:04 JST 2001
+.\"         by Kentaro Shirakata <argrath@ub32.org>
+.\" Updated Tue 18 Sep 2002 by NAKNAO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.\" WORD: shadow login suite	shadow ログイン機能
+.TH LOGIN.DEFS 5
+.SH 名前
+/etc/login.defs \- shadow パスワード機能の設定
+.SH 説明
+.I /etc/login.defs
+ファイルは shadow ログイン機能に対するサイト固有の設定を定義する。
+このファイルは必ず存在しなければならない。
+このファイルが無くてもシステム運用は可能であるが、
+おそらく望まない結果となるだろう。
+.PP
+このファイルは読み取り可能なテキストファイルで、
+ファイル中の一行につき一つの設定パラメータを設定している。
+各行では、設定パラメータの名前とその値が空白で区切られて示される。
+空行とコメント行は無視される。
+コメント行は `#' 記号で始まる。
+記号`#'はその行での空白以外の最初の文字でなければならない。
+.PP
+パラメータ値は四つの型を取ることができる。
+文字列・ブール型・数値・倍精度数値、である。
+文字列には全ての印字可能文字を使える。
+ブール型パラメータの値は ``yes'' か ``no'' のいずれかでなければならない。
+値の指定されていないブール型パラメータや、
+``yes'', ``no'' 以外が指定されたブール型パラメータの値は ``no''とされる。
+(単精度および倍精度) 数値は、
+10 進数、
+(数値の前に ``0'' を付けた) 8 進数、
+(数値の前に ``0x'' を付けた) 16 進数のいずれかで指定する。
+単精度・倍精度数値パラメータの最大値は計算機に依存する。
+.PP
+以下に示すような設定項目がある:
+.\"
+.IP "CHFN_AUTH (ブール値)"
+もし
+.I yes
+なら、
+.BR chfn ", " chsh
+両プログラムは、スーパーユーザが起動したのでない限り
+何らかの変更を行なう前にパスワードを尋ねる。
+.\"
+.IP "CHFN_RESTRICT (文字列)"
+このパラメータは
+.I passwd
+ファイルの
+.I gecos
+フィールドのうち、
+一般ユーザが
+.B chfn
+を使って変更できるフィールドを指定する。
+指定する文字列は
+.IR f ,
+.IR r ,
+.IR w ,
+.I h
+各文字の任意の組み合わせで、それぞれフルネーム、部屋番号、
+職場電話番号、自宅電話番号を意味する。
+指定されなかった場合は、スーパーユーザだけが全ての項目を変更できる。
+最も制限をきつくしたい場合は、
+chfn を SUID ではインストールしなければよい。
+.\"
+.IP "GID_MAX (数値)"
+.IP "GID_MIN (数値)"
+.B useradd
+プログラムおよび
+.B groupadd
+プログラムがグループ ID を選択する時の範囲。
+.\"
+.IP "MAIL_DIR (文字列)"
+メールスプールディレクトリ。
+あるユーザアカウントが修正・削除された際に、
+そのユーザのメールボックスに対する作業のために必要となる。
+指定されないと、コンパイル時のデフォルト値が用いられる。
+.\"
+.IP "PASS_MAX_DAYS (数値)"
+一つのパスワードを使える最長日数。
+パスワードがこの日数よりも古い場合は、変更するよう強制される。
+指定されていない場合は \-1 となる (この制限機能を無効にする)。
+.IP "PASS_MIN_DAYS (数値)"
+パスワードを変更してから次に変更できるようになるまでの最短日数。
+この日数が経たないうちにパスワードを変更しようとしても拒否される。
+指定されていない場合は \-1 となる (この制限機能を無効にする)。
+.IP "PASS_WARN_AGE (数値)"
+パスワードの有効期限が来る前に警告を発する期間の日数。
+ゼロにしておくと、期限切れの当日にのみ警告を行い、
+負の数を指定した場合は一切警告を行わない。
+指定されていない場合は警告を行わない。
+.PP
+PASS_MAX_DAYS, PASS_MIN_DAYS, PASS_WARN_AGE
+はアカウントを作るときにだけ利用される。
+これらの設定を変更しても、既存のアカウントには影響しない。
+.\"
+.IP "UID_MAX (数値)"
+.IP "UID_MIN (数値)"
+.B useradd
+プログラムがユーザ ID を選択する時の範囲。
+.\"
+.IP "UMASK (数値)"
+許可属性マスクをこの値に初期化する。
+指定されていない場合は、許可属性マスクは 077 に初期化される。
+.\"
+.IP "USERDEL_CMD (文字列)"
+定義されていると、ユーザを削除するときにこのコマンドが実行される。
+削除されるユーザ (最初の引き数に渡される) の at/cron/print
+ジョブなどを削除するコマンドにしておくとよい。
+.\"
+.SH 参照表
+以下の参照表は、
+shadow パスワード機能のどのプログラムが
+どのパラメータを使用するかを示したものである。
+.na
+.IP chfn 12
+CHFN_AUTH CHFN_RESTRICT
+.IP chsh 12
+CHFN_AUTH
+.IP groupadd 12
+GID_MAX GID_MIN
+.IP newusers 12
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+UMASK
+.IP pwconv 12
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+.IP useradd 12
+GID_MAX GID_MIN
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+UID_MAX UID_MIN
+UMASK
+.IP userdel 12
+MAIL_DIR
+USERDEL_CMD
+.IP usermod 12
+MAIL_DIR
+.ad
+.SH バグ
+shadow パスワード機能によって提供されてきた機能の大部分は、
+現在は PAM によって処理されている。
+したがって、
+.BR login (1),
+.BR passwd (1),
+.BR su (1)
+などのプログラムは、もはや
+\fI/etc/login.defs\fR
+を用いない。
+対応する PAM の設定ファイルを調べるようにしてほしい。
+.SH 関連項目
+.BR login (1),
+.BR passwd (1),
+.BR su (1),
+.BR passwd (5),
+.BR shadow (5),
+.BR pam (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)
+.br
+Chip Rosenthal (chip@unicom.com)

@@ -1,0 +1,29 @@
+.TH GROUPS 1 "GNU Shell Utilities" "FSF" \" \-*\- nroff \-*\-
+.do hla cs
+.do hpf hyphen.cs
+.SH JMÉNO
+groups \- vypíše skupiny, jichž je uživatel členem
+.SH POUŽITÍ
+\fBgroups\fR [\fIuživatel...\fR]
+.SH POPIS
+Tato dokumentace není dále udržována a může být nepřesná nebo neúplná.
+Autoritativním zdrojem je Texinfo dokumentace.
+.PP
+Tato manuálová stránka popisuje GNU verzi příkazu
+.BR groups .
+Příkaz
+.B groups
+vypíše jména všech skupin, v nichž je zadaný \fIuživatel\fR nebo aktuální proces,
+pokud uživatel není zadán, členem. Pokud jsou zadána jména uživatelů, potom bude
+jméno každého z uživatelů vypsáno před seznam skupin, jichž je členem.
+.PP
+Seznam skupin je ekvivalentní s výstupem příkazu `id \-Gn'.
+.SH VOLBY
+Když je GNU příkaz \fBgroups\fR vyvolán právě s jedním parametrem,
+jsou rozpoznávány následující volby:
+.TP
+.I "\-\-help"
+Vypíše návod k použití na standardní výstup a bezchybně skončí.
+.TP
+.I "\-\-version"
+Vypíše číslo verze na standardní výstup a bezchybně skončí.

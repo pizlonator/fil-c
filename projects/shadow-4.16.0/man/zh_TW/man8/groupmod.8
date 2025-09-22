@@ -1,0 +1,39 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH GROUPMOD 8
+.SH 名稱
+groupmod \- 修 改 群 組
+.SH 語法
+\fBgroupmod\fR [\fB\-g\fR \fIgid \fR[\fB\-o\fR]] [\fB\-n\fR \fIgroup_name \fR] \fIgroup\fR
+.SH 描述
+
+\fBgroupmod\fR 命 令 會 參 照 你 命 令 列 上 指 定 的 部 份 
+修 改 系 統 帳 號 檔 。 下 列 為 \fIgroupmod\fR 可 選 用 的 參 數 。
+
+.IP "\fB\-g\fR \fIgid\fR"
+群 組 I D 值 。
+必 須 為 唯 一 的 ID 值 ， 除 非 用 \-o 選 項 。
+數 字 不 可 為 負 值。預 設 為 最
+小 不 得 小 於 999 而 逐 次 增 加 。 0~ 499 傳 統 上
+是 保 留 給 系 統 帳 號 使 用 。
+如 果 有 檔 案 使 用 舊 的 群 組 ID ， 而 這 時 候 你 新 增 的 群 組 ID
+恰 好 與 舊 的 相 同 ， 這 樣 的 話
+你 要 手 動 改 一 下 這 些 檔 案 的 群 組 ID 。
+.IP "\fB\-n\fR \fIgroup_name\fR"
+更 改 群 組 名 。
+.SH 檔案
+\fI/etc/group\fR \- 群 組 資 訊 
+.br
+\fI/etc/gshadow\fR \- 群 組 資 訊 加 密
+.SH 相關文件
+.BR chfn (1),
+.BR chsh (1),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupdel (8)
+.SH 作者
+Julianne Frances Haugh (jfh@tab.com)

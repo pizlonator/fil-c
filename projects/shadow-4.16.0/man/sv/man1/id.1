@@ -1,0 +1,62 @@
+'\" t
+.\"     Title: id
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18-06-2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Swedish
+.\"
+.TH "ID" "1" "18-06-2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAMN"
+id \- display current user and group ID names
+.SH "SYNOPSIS"
+.HP \w'\fBid\fR\ 'u
+\fBid\fR [\-a]
+.SH "BESKRIVNING"
+.PP
+The
+\fBid\fR
+command displays the current real and effective user and group ID names or values\&. If the value does not have a corresponding entry in
+/etc/passwd
+or
+/etc/group, the value will be displayed without the corresponding name\&. The optional
+\fB\-a\fR
+flag will display the group set on systems which support supplementary groups (see
+\fBinitgroups\fR(3))\&.
+.SH "FILER"
+.PP
+/etc/group
+.RS 4
+Gruppkontoinformation\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+Anv\(:andarkontoinformation\&.
+.RE
+.SH "SE OCKS\(oA"
+.PP
+\fBgetgid\fR(2),
+\fBgetgroups\fR(2),
+\fBgetuid\fR(2),
+\fBinitgroups\fR(3)

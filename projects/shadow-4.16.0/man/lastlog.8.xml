@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1992       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1992       , Phillip Street
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY LASTLOG_UID_MAX       SYSTEM "login.defs.d/LASTLOG_UID_MAX.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='lastlog.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1992</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>lastlog</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>lastlog</refname>
+    <refpurpose>reports the most recent login of all users or of a given user</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>lastlog</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <command>lastlog</command> formats and prints the contents of the last
+      login log <filename>/var/log/lastlog</filename> file. The
+      <emphasis>login-name</emphasis>, <emphasis>port</emphasis>, and
+      <emphasis>last login time</emphasis> will be printed.  The default (no
+      flags) causes lastlog entries to be printed, sorted by their order in
+      <filename>/etc/passwd</filename>.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>lastlog</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-b</option>, <option>--before</option>&nbsp;<replaceable>DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Print only lastlog records older than <replaceable>DAYS</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-C</option>, <option>--clear</option>
+	</term>
+	<listitem>
+	  <para>
+	    Clear lastlog record of a user. This option can be used only together
+	    with <option>-u</option> (<option>--user</option>)).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-h</option>, <option>--help</option>
+	</term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-S</option>, <option>--set</option>
+	</term>
+	<listitem>
+	  <para>
+	    Set lastlog record of a user to the current time. This option can be
+	    used only together with <option>-u</option> (<option>--user</option>)).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-t</option>, <option>--time</option>&nbsp;<replaceable>DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Print the lastlog records more recent than
+	    <replaceable>DAYS</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--user</option>&nbsp;<replaceable>LOGIN</replaceable>|<replaceable>RANGE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Print the lastlog record of the specified user(s).
+	  </para>
+	  <para>
+	    The users can be specified by a login name, a numerical user ID,
+	    or a <replaceable>RANGE</replaceable> of users. This
+	    <replaceable>RANGE</replaceable> of users can be specified with a
+	    min and max values (<replaceable>UID_MIN-UID_MAX</replaceable>), a
+	    max value (<replaceable>-UID_MAX</replaceable>), or a min value
+	    (<replaceable>UID_MIN-</replaceable>).
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      If the user has never logged in the message <emphasis>** Never logged
+      in**</emphasis> will be displayed instead of the port and time.
+    </para>
+
+    <para>
+      Only the entries for the current users of the system will be
+      displayed.  Other entries may exist for users that were deleted
+      previously.
+    </para>
+  </refsect1>
+
+  <refsect1 id='note'>
+    <title>NOTE</title>
+    <para>
+      The <filename>lastlog</filename> file is a database which contains info
+      on the last login of each user. You should not rotate it. It is a sparse
+      file, so its size on the disk is usually much smaller than the one shown
+      by "<command>ls -l</command>" (which can indicate a really big file if
+      you have in <filename>passwd</filename> users with a high UID). You can
+      display its real size with "<command>ls -s</command>".
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &LASTLOG_UID_MAX;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/var/log/lastlog</filename></term>
+	<listitem>
+	  <para>Database times of previous user logins.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      Large gaps in UID numbers will cause the lastlog program to run
+      longer with no output to the screen (i.e. if in lastlog database there
+      is no entries for users with UID between 170 and 800 lastlog will appear
+      to hang as it processes entries with UIDs 171-799).
+    </para>
+    <para>
+      Having high UIDs can create problems when handling the <filename>
+      /var/log/lastlog</filename> with external tools. Although the
+      actual file is sparse and does not use too much space, certain
+      applications are not designed to identify sparse files by default and may
+      require a specific option to handle them.
+    </para>
+  </refsect1>
+</refentry>

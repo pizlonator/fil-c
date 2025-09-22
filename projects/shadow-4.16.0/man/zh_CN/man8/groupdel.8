@@ -1,0 +1,135 @@
+'\" t
+.\"     Title: groupdel
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "GROUPDEL" "8" "2024-06-18" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+groupdel \- 删除一个组
+.SH "大纲"
+.HP \w'\fBgroupdel\fR\ 'u
+\fBgroupdel\fR [\fIoptions\fR] \fIGROUP\fR
+.SH "描述"
+.PP
+The
+\fBgroupdel\fR
+command modifies the system account files, deleting all entries that refer to
+\fIGROUP\fR\&. The named group must exist\&.
+.SH "选项"
+.PP
+The options which apply to the
+\fBgroupdel\fR
+command are:
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+This option forces the removal of the group, even if there\*(Aqs some user having the group as the primary one\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+显示帮助信息并退出。
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes in the
+\fIPREFIX_DIR\fR
+directory and use the configuration files from the
+\fIPREFIX_DIR\fR
+directory\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.SH "CAVEATS"
+.PP
+您不能移除现有用户的主组。在移除此组之前，必须先移除此用户。
+.PP
+您需要手动检查所有文件系统，以确保没有遗留的属于此组的文件。
+.SH "配置文件"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "文件"
+.PP
+/etc/group
+.RS 4
+组账户信息。
+.RE
+.PP
+/etc/gshadow
+.RS 4
+安全组账户信息。
+.RE
+.SH "退出值"
+.PP
+The
+\fBgroupdel\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI2\fR
+.RS 4
+invalid command syntax
+.RE
+.PP
+\fI6\fR
+.RS 4
+specified group doesn\*(Aqt exist
+.RE
+.PP
+\fI8\fR
+.RS 4
+can\*(Aqt remove user\*(Aqs primary group
+.RE
+.PP
+\fI10\fR
+.RS 4
+can\*(Aqt update group file
+.RE
+.SH "参见"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupadd\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8)\&.

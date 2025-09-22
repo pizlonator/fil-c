@@ -1,0 +1,74 @@
+'\" t
+.\"     Title: expiry
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18-06-2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Swedish
+.\"
+.TH "EXPIRY" "1" "18-06-2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAMN"
+expiry \- kontrollera och uppr\(:atth\(oall policy f\(:or l\(:osenordsutg\(oang
+.SH "SYNOPSIS"
+.HP \w'\fBexpiry\fR\ 'u
+\fBexpiry\fR \fIoption\fR
+.SH "BESKRIVNING"
+.PP
+The
+\fBexpiry\fR
+command checks (\fB\-c\fR) the current password expiration and forces (\fB\-f\fR) changes when required\&. It is callable as a normal user command\&.
+.SH "FLAGGOR"
+.PP
+The options which apply to the
+\fBexpiry\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-check\fR
+.RS 4
+Check the password expiration of the current user\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+Force a password change if the current user has an expired password\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Visa hj\(:alpmeddelande och avsluta\&.
+.RE
+.SH "FILER"
+.PP
+/etc/passwd
+.RS 4
+Anv\(:andarkontoinformation\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+S\(:aker anv\(:andarkontoinformation\&.
+.RE
+.SH "SE OCKS\(oA"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5)\&.

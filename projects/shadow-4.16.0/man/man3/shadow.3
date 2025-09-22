@@ -1,0 +1,245 @@
+'\" t
+.\"     Title: shadow
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: Library Calls
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "SHADOW" "3" "06/18/2024" "shadow\-utils 4\&.16\&.0" "Library Calls"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+shadow, getspnam \- encrypted password file routines
+.SH "SYNTAX"
+.PP
+\fI#include <shadow\&.h>\fR
+.PP
+\fIstruct spwd *getspent();\fR
+.PP
+\fIstruct spwd *getspnam(char\fR
+\fI*name\fR\fI);\fR
+.PP
+\fIvoid setspent();\fR
+.PP
+\fIvoid endspent();\fR
+.PP
+\fIstruct spwd *fgetspent(FILE\fR
+\fI*fp\fR\fI);\fR
+.PP
+\fIstruct spwd *sgetspent(char\fR
+\fI*cp\fR\fI);\fR
+.PP
+\fIint putspent(struct spwd\fR
+\fI*p,\fR
+\fIFILE\fR
+\fI*fp\fR\fI);\fR
+.PP
+\fIint lckpwdf();\fR
+.PP
+\fIint ulckpwdf();\fR
+.SH "DESCRIPTION"
+.PP
+\fIshadow\fR
+manipulates the contents of the shadow password file,
+/etc/shadow\&. The structure in the
+\fI#include\fR
+file is:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+struct spwd {
+      char		*sp_namp; /* user login name */
+      char		*sp_pwdp; /* encrypted password */
+      long int		sp_lstchg; /* last password change */
+      long int		sp_min; /* days until change allowed\&. */
+      long int		sp_max; /* days before change required */
+      long int		sp_warn; /* days warning for expiration */
+      long int		sp_inact; /* days before account inactive */
+      long int		sp_expire; /* date when account expires */
+      unsigned long int	sp_flag; /* reserved for future use */
+}
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The meanings of each field are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_namp \- pointer to null\-terminated user name
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_pwdp \- pointer to null\-terminated password
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_lstchg \- days since Jan 1, 1970 password was last changed
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_min \- days before which password may not be changed
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_max \- days after which password must be changed
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_warn \- days before password is to expire that user is warned of pending password expiration
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_inact \- days after password expires that account is considered inactive and disabled
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_expire \- days since Jan 1, 1970 when account will be disabled
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_flag \- reserved for future use
+.RE
+.SH "DESCRIPTION"
+.PP
+\fIgetspent\fR,
+\fIgetspname\fR,
+\fIfgetspent\fR, and
+\fIsgetspent\fR
+each return a pointer to a
+\fIstruct spwd\fR\&.
+\fIgetspent\fR
+returns the next entry from the file, and
+\fIfgetspent\fR
+returns the next entry from the given stream, which is assumed to be a file of the proper format\&.
+\fIsgetspent\fR
+returns a pointer to a
+\fIstruct spwd\fR
+using the provided string as input\&.
+\fIgetspnam\fR
+searches from the current position in the file for an entry matching
+\fIname\fR\&.
+.PP
+\fIsetspent\fR
+and
+\fIendspent\fR
+may be used to begin and end, respectively, access to the shadow password file\&.
+.PP
+The
+\fIlckpwdf\fR
+and
+\fIulckpwdf\fR
+routines should be used to insure exclusive access to the
+/etc/shadow
+file\&.
+\fIlckpwdf\fR
+attempts to acquire a lock using
+\fIpw_lock\fR
+for up to 15 seconds\&. It continues by attempting to acquire a second lock using
+\fIspw_lock\fR
+for the remainder of the initial 15 seconds\&. Should either attempt fail after a total of 15 seconds,
+\fIlckpwdf\fR
+returns \-1\&. When both locks are acquired 0 is returned\&.
+.SH "DIAGNOSTICS"
+.PP
+Routines return NULL if no more entries are available or if an error occurs during processing\&. Routines which have
+\fIint\fR
+as the return value return 0 for success and \-1 for failure\&.
+.SH "CAVEATS"
+.PP
+These routines may only be used by the superuser as access to the shadow password file is restricted\&.
+.SH "FILES"
+.PP
+/etc/shadow
+.RS 4
+Secure user account information\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBgetpwent\fR(3),
+\fBshadow\fR(5)\&.

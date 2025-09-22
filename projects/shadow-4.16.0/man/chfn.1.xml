@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1990 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY CHFN_AUTH             SYSTEM "login.defs.d/CHFN_AUTH.xml">
+<!ENTITY CHFN_RESTRICT         SYSTEM "login.defs.d/CHFN_RESTRICT.xml">
+<!ENTITY LOGIN_STRING          SYSTEM "login.defs.d/LOGIN_STRING.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='chfn.1'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1990</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>chfn</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>chfn</refname>
+    <refpurpose>change real user name and information</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>chfn</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='opt'>
+	<replaceable>LOGIN</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>chfn</command> command changes user fullname,
+      office room number, office phone number, and home phone number information
+      for a user's account. This information is typically printed by
+      <citerefentry><refentrytitle>finger</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> and similar programs. A normal user may only change
+      the fields for her own account, subject to the restrictions in
+      <filename>/etc/login.defs</filename>. (The default configuration is to
+      prevent users from changing their fullname.) The superuser may change
+      any field for any account. Additionally, only the superuser may use
+      the <option>-o</option> option to change the undefined portions of the
+      GECOS field.
+    </para>
+
+    <para>
+      These fields must not contain any colons. Except for the
+      <emphasis remap='I'>other</emphasis> field, they should not contain
+      any comma or equal sign. It is also recommended to avoid
+      non-US-ASCII characters, but this is only enforced for the phone
+      numbers. The <emphasis remap='I'>other</emphasis> field is used to
+      store accounting information used by other applications.
+    </para>
+
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>chfn</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-f</option>, <option>--full-name</option>&nbsp;<replaceable>FULL_NAME</replaceable>
+	</term>
+	<listitem>
+	  <para>Change the user's full name.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-h</option>, <option>--home-phone</option>&nbsp;<replaceable>HOME_PHONE</replaceable>
+	</term>
+	<listitem>
+	  <para>Change the user's home phone number.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-o</option>, <option>--other</option>&nbsp;<replaceable>OTHER</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Change the user's other GECOS information. This field is used to
+	    store accounting information used by other applications, and can
+	    be changed only by a superuser.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--room</option>&nbsp;<replaceable>ROOM_NUMBER</replaceable>
+	</term>
+	<listitem>
+	  <para>Change the user's room number.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--help</option>
+	</term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-w</option>, <option>--work-phone</option>&nbsp;<replaceable>WORK_PHONE</replaceable>
+	</term>
+	<listitem>
+	  <para>Change the user's office phone number.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      If none of the options are selected, <command>chfn</command>
+      operates in an interactive fashion, prompting the user with the
+      current values for all of the fields. Enter the new value to change
+      the field, or leave the line blank to use the current value. The
+      current value is displayed between a pair of <emphasis remap='B'>[
+      ]</emphasis> marks. Without options, <command>chfn</command>
+      prompts for the current user account.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &CHFN_AUTH;
+      &CHFN_RESTRICT;
+      &LOGIN_STRING;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

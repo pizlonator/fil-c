@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY BCRYPT_MIN_ROUNDS     SYSTEM "login.defs.d/BCRYPT_MIN_ROUNDS.xml">
+<!ENTITY ENCRYPT_METHOD        SYSTEM "login.defs.d/ENCRYPT_METHOD.xml">
+<!ENTITY MD5_CRYPT_ENAB        SYSTEM "login.defs.d/MD5_CRYPT_ENAB.xml">
+<!ENTITY SHA_CRYPT_MIN_ROUNDS  SYSTEM "login.defs.d/SHA_CRYPT_MIN_ROUNDS.xml">
+<!ENTITY YESCRYPT_COST_FACTOR  SYSTEM "login.defs.d/YESCRYPT_COST_FACTOR.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='chpasswd.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>chpasswd</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>chpasswd</refname>
+    <refpurpose>update passwords in batch mode</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>chpasswd</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>chpasswd</command> command reads a list of user name and
+      password pairs from standard input and uses this information to update
+      a group of existing users. Each line is of the format:
+    </para>
+    <para>
+      <emphasis remap='I'>user_name</emphasis>:<emphasis
+      remap='I'>password</emphasis>
+    </para>
+    <para>
+      By default the passwords must be supplied in clear-text, and are
+      encrypted by <command>chpasswd</command>.
+      Also the password age will be updated, if present.
+    </para>
+    <para condition="no_pam">
+      The default encryption algorithm can be defined for the system with
+      the <option>ENCRYPT_METHOD</option> or
+      <option>MD5_CRYPT_ENAB</option> variables of
+      <filename>/etc/login.defs</filename>, and can be overwritten with the
+      <option>-e</option>, <option>-m</option>, or <option>-c</option>
+      options.
+    </para>
+    <para condition="pam">
+      By default, passwords are encrypted by PAM, but (even if not
+      recommended) you can select a different encryption method with the
+      <option>-e</option>, <option>-m</option>, or <option>-c</option>
+      options.
+    </para>
+    <para>
+      <phrase condition="pam">Except when PAM is used to encrypt the
+      passwords,</phrase> <command>chpasswd</command> first updates all the
+      passwords in memory, and then commits all the changes to disk if no
+      errors occurred for any user.
+    </para>
+    <para condition="pam">
+      When PAM is used to encrypt the passwords (and update the passwords in
+      the system database) then if a password cannot be updated
+      <command>chpasswd</command> continues updating the passwords of the
+      next users, and will return an error code on exit.
+    </para>
+    <para>
+      This command is intended to be used in a large system environment
+      where many accounts are created at a single time.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>chpasswd</command> command
+      are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-c</option>, <option>--crypt-method</option>&nbsp;<replaceable>METHOD</replaceable>
+	</term>
+	<listitem>
+	  <para>Use the specified method to encrypt the passwords.</para>
+	  <para>
+	    The available methods are <phrase condition="bcrypt">
+	    <replaceable>BCRYPT</replaceable>,</phrase>
+	    <replaceable>DES</replaceable>,
+	    <replaceable>MD5</replaceable><phrase condition="sha_crypt">,
+	    <replaceable>SHA256</replaceable>,
+	    <replaceable>SHA512</replaceable></phrase><phrase condition="yescrypt">,
+	    <replaceable>YESCRYPT</replaceable></phrase> and
+	    <replaceable>NONE</replaceable>
+	    if your libc supports these methods.
+	  </para>
+	  <para condition="pam">
+	    By default, PAM is used to encrypt the passwords.
+	  </para>
+	  <para condition="no_pam">
+	    By default (if none of the <option>-c</option>,
+	    <option>-m</option>, or <option>-e</option> options are
+	    specified), the encryption method is defined by the 
+	    <option>ENCRYPT_METHOD</option> or
+	    <option>MD5_CRYPT_ENAB</option> variables of
+	    <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-e</option>, <option>--encrypted</option></term>
+	<listitem>
+	  <para>Supplied passwords are in encrypted form.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-m</option>, <option>--md5</option></term>
+	<listitem>
+	  <para>
+	    Use MD5 encryption instead of DES when the supplied passwords are
+	    not encrypted.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes to configuration files under the root filesystem
+	    found under the directory <replaceable>PREFIX_DIR</replaceable>.
+	    This option does not chroot and is intended for preparing a cross-compilation
+	    target.  Some limitations: NIS and LDAP users/groups are
+	    not verified.  PAM authentication is using the host files.
+	    No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="bcrypt;sha_crypt;yescrypt">
+	<term>
+	  <option>-s</option>, <option>--sha-rounds</option>&nbsp;<replaceable>ROUNDS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Use the specified number of rounds to encrypt the passwords.
+	  </para>
+	  <para>
+	    You can only use this option with crypt method:
+	    <phrase condition="bcrypt">
+	    <replaceable>BCRYPT</replaceable></phrase>
+	    <phrase condition="sha_crypt">
+	    <replaceable>SHA256</replaceable>
+	    <replaceable>SHA512</replaceable></phrase>
+	    <phrase condition="yescrypt">
+	    <replaceable>YESCRYPT</replaceable></phrase>
+	  </para>
+	  <para condition="bcrypt">
+	    By default, the number of rounds for BCRYPT is defined by the
+	    BCRYPT_MIN_ROUNDS and BCRYPT_MAX_ROUNDS variables in
+	    <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="bcrypt">
+	    A minimal value of 4 and a maximal value of 31
+	    will be enforced for BCRYPT. The default number of rounds is 13.
+	  </para>
+	  <para condition="sha_crypt">
+	    By default, the number of rounds for SHA256 or SHA512 is defined by
+	    the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+	    <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="sha_crypt">
+	    A minimal value of 1000 and a maximal value of 999,999,999
+	    will be enforced for SHA256 and SHA512. The default number of rounds
+	    is 5000.
+	  </para>
+	  <para condition="yescrypt">
+	    By default, the number of rounds for YESCRYPT is defined by the
+	    YESCRYPT_COST_FACTOR in <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="yescrypt">
+	    A minimal value of 1 and a maximal value of 11
+	    will be enforced for YESCRYPT. The default number of rounds is 5.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      Remember to set permissions or umask to prevent readability of
+      unencrypted files by other users.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist condition="no_pam">
+      &ENCRYPT_METHOD;
+      &MD5_CRYPT_ENAB;
+    </variablelist>
+    <variablelist>
+      &BCRYPT_MIN_ROUNDS; <!--documents also BCRYPT_MAX_ROUNDS-->
+      &SHA_CRYPT_MIN_ROUNDS; <!--documents also SHA_CRYPT_MAX_ROUNDS-->
+      &YESCRYPT_COST_FACTOR;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="pam">
+	<term><filename>/etc/pam.d/chpasswd</filename></term>
+	<listitem>
+	  <para>PAM configuration for <command>chpasswd</command>.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newusers</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <phrase>
+	<citerefentry>
+	  <refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,23 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/sh
+send "if \[ \$(id -u) -eq 0 \]; then PS1='# '; else PS1='$ '; fi\r"
+expect "# "
+
+send "pwck\r"
+expect "no matching password file entry in /etc/shadow"
+expect "add user 'foo' in /etc/shadow? "
+send "no\r"
+expect "invalid shadow password file entry"
+expect "delete line 'foo:!:12977:0:99999:7::'? "
+send "yes\r"
+expect "pwck: the files have been updated"
+expect "# "
+send "echo \$?\r"
+expect "2"
+send "exit\r"
+puts "OK\n"
+exit 0

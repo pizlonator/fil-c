@@ -1,0 +1,66 @@
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Hungarian translation by Peter Mamuzsics <zumu@mentha.hu>
+.\"
+.\"	$Id$
+.\"
+.TH NEWGRP 1
+.SH NÉV
+newgrp \- Csoportazonosító módosítása
+.br
+sg \- Parancs végrehajtása más csoportazonoító alatt
+.SH ÁTTEKINTÉS
+.BR newgrp " [" \- ]
+[\fIgroup\fR]
+.br
+.BR sg " [" \- ]
+[\fIgroup\fR [\fB\-c\fR \fIcommand\fR]]
+.SH LEÍRÁS
+A
+.B newgrp
+parancs a jelenlegi bejelentkezéshez tartozó csoportazonosító
+módosítására használható.  Ha a parancsot az elhagyható \fB\-\fR
+kapcsolóval hívtuk meg, akkor a rendszer úgy inicializálja újra
+a felhasználói környezetet, ahogy az a bejelelentkezés során 
+megtörténik, ellenkező esetben a jelenlegi környezet \- beleértve
+az aktuális munkakönyvtárat is \- változatlan marad.
+.PP
+A
+.B newgrp
+parancs lecseréli az aktuális csoportazonosítót a megnevezett
+vagy \- ha nincs megadva \- az \fI/etc/passwd\fR fájlban megadott
+alapértelmezett csoportra.  Ha a felhasználó nem rendelkezik jelszóval,
+de a csoport igen, vagy a felhasználó nem tagja a csoportnak,
+de a csoport rendelkezik jelszóval, akkor a rendszer bekéri a csoport
+jelszavát.
+Amennyiben a csoportnak nincs jelszava, és a felhasználó nem tagja a 
+csoportnak, akkor a hozzáférés nem lehetséges.
+.PP
+Az
+.B sg
+parancs működése hasonló a \fBnewgrp\fR parancs működéséhez,
+de ez nem cseréli le a felhasználó parancsértelmezőjét, így
+amikor kilépünk az \fBsg\fR parancsból, visszakapjuk az 
+eredeti csoportazonosítót.
+Az
+.B sg
+parancsnak egy másik, aposztrófok közé zárt parancsot is meg lehet
+adni, amely a \fB/bin/sh\fR parancsértelmezővel kerül végrehajtásra.
+.SH HIBÁK
+A \fBnewgrp\fR többféle fordítási beállítással rendelkezik,
+amelyeknek egy adott felhasználási környezetben csak egy részére
+lehet szükség.
+.SH FÁJLOK
+\fI/etc/passwd\fR	\- felhasználói információk
+.br
+\fI/etc/group\fR	\- csoportinfomációk
+.SH LÁSD MÉG
+.BR id (1),
+.BR login (1),
+.BR su (1)
+.SH SZERZŐ
+Julianne Frances Haugh (jfh@bga.com)
+.br
+.SH MAGYAR FORDÍTÁS
+Mamuzsics Péter <zumu@mentha.hu>

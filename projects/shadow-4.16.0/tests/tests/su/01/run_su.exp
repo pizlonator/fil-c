@@ -1,0 +1,73 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL (timeout)"; exit 1}
+
+if {$argc != 3} {
+	puts "usage: run_su.exp <user> <password> <prompt>"
+	exit 1
+}
+
+set user     [lindex $argv 0]
+set password [lindex $argv 1]
+set prompt   [lindex $argv 2]
+
+# First, switch to the testsuite user
+# (otherwise, no password will be asked)
+send_user "# switch to the passwordless 'testsuite' user\n"
+send_user "# and expect a '$ ' prompt\n"
+spawn /bin/su testsuite
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n# make sure we are now 'testsuite'"
+send_user "\n# id should return 'uid=424243(testsuite) gid=424243 groups=424243'"
+send "\r"			;# restore the prompt for the logs
+send "id\r"			;# Verify we are really testsuite
+
+expect {
+	timeout {
+		puts "\ntimeout...FAIL"
+		exit 1
+	}
+	"uid=424243(testsuite) gid=424243 groups=424243"
+}
+
+expect "$ "			;# Wait for the prompt
+
+send_user "\n\n"
+send_user "# now switch to user '$user'\n"
+send_user "# and expect a password prompt"
+send "\r"			;# restore the prompt for the logs
+send "su $user\r"		;# Switch to the user
+expect "Password: "		;# Wait for the Password: prompt
+# Wait a little bit more (su is not ready to receive the password)
+sleep 0.1
+
+send "$password\r"		;# Send the password
+
+send_user "\n# password '$password' sent\n\n"
+send_user "# expect prompt '$prompt'"
+
+expect {
+	# Wait for the new prompt
+	"$prompt" {
+		send_user "\n\n# make sure we are '$user'\n"
+		send_user "# id should return '($user).*($user).*($user)"
+		send "\r"	;# restore the prompt for the logs
+		send "id\r"	;# Verify the id
+
+		expect {
+			-re "\\($user\\).*\\($user\\).*\\($user\\)" {
+				expect "$prompt"
+				send "exit\r"
+				expect "$ "
+				puts "\nPASS"
+				exit 0
+			}
+		}
+	}
+}
+
+puts "\ntimeout...FAIL"
+exit 1

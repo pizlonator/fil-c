@@ -1,0 +1,46 @@
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"; 中文版版權所有 soloman, Laser www.linuxforum.net 2000
+.\"
+.\"
+.TH CHPASSWD 8
+.SH NAME
+chpasswd \- 成批更新使用者的口令
+.SH 總覽
+chpasswd [\-e]
+.SH 描述
+.B chpasswd
+從系統的標準輸入讀入使用者的名稱和口令，
+並利用這些信息來更新系統上已存在的使用者的口令。
+在沒有用 \-e 這個開關選項的情況下，口令將按明文的形式接收。
+如果使用了 \-e 選項，口令將只能以加密的方式傳遞。
+每行的具體格式如下所示：
+.sp 1
+		\fI使用者名\fR：\fI新口令\fR
+.sp 1
+使用者名必須是系統上已存在的使用者。
+輸入的密碼在必要時進行加密處理，
+如果口令檔案具有時間特性，則同時更新。
+.PP
+此命令適用於大型的系統，在此類系統中，
+使用者一般都是一次同時生成的，而用 adduser 和
+passwd 口令來對其一一進行設置一般說往往比較慢。
+.SH 注意事項
+.\" The \fBmkpasswd\fR command must be executed afterwards to update the
+.\" DBM password files.
+.\" This command may be discarded in favor of the newusers(8) command.
+因為可以使用檔案重定向進行輸入，
+即：chpasswd &lt; user&amp;passwd-filename， 
+如果輸入檔案是按非加密方式傳遞的話，請對該檔案進行適當的加密。
+.SH 又見
+passwd(1),useradd(8),newuser(8)
+.SH 作者
+Julianne Frances Haugh (jfh@bga.com)
+
+.SH "[中文版維護人]"
+.B 所羅門 <solomen@email.com.cn>
+.SH "[中文版最新更新]"
+2000/11/26
+.SH "[中國 Linux 論壇 man 手冊頁翻譯計劃]"
+.BI http://cmpp.linuxforum.net
+

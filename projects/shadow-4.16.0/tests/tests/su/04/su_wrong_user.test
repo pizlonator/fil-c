@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+
+log_start "$0" "su with a wrong user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo "/bin/su myuser2 -c pwd> tmp/out 2> tmp/err"
+/bin/su myuser2 -c pwd> tmp/out 2> tmp/err || {
+	status=$?
+}
+
+echo -n "Checking status=1..."
+test "$status" = "1"
+echo OK
+
+echo -n "Checking tmp/out..."
+[ "$(wc -c tmp/out)" = "0 tmp/out" ] || {
+	echo "FAIL"
+	echo "tmp/out is not empty:"
+	cat tmp/out
+	false
+}
+rm -f tmp/out
+echo "OK"
+
+echo -n "Checking tmp/err..."
+diff -au data/wrong_user.err tmp/err 
+rm -f tmp/err
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

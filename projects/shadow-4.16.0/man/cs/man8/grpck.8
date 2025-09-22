@@ -1,0 +1,111 @@
+.TH "GRPCK" "8" "11/05/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+grpck \- ověří integritu skupinových souborů
+.SH "POUŽITÍ"
+.HP 6
+\fBgrpck\fR [\-r] [\fIgroup\fR\ \fIshadow\fR]
+.SH "POPIS"
+.PP
+\fBgrpck\fR
+ověří integritu informací používaných při autentizaci vůči
+systému. Kontrolují se všechny záznamy v souborech
+\fI/etc/group\fR
+a
+\fI/etc/gshadow\fR,
+zda mají správný formát a zda jsou ve všech polích jen povolená
+data. Při nalezení chybně formátovaných a jinak neopravitelných
+záznamů je uživatel vybídnut, aby tyto záznamy smazal.
+.PP
+U každého záznamu se kontroluje, zda:
+.TP 3
+\(bu
+má správný počet polí
+.TP
+\(bu
+má unikátní název skupiny
+.TP
+\(bu
+obsahuje platný seznam členů a administrátorů
+.PP
+Kontroly na správný počet polí a unikátnost názvu skupiny jsou
+kritické. Pokud má záznam chybný počet polí, je uživatel vybídnut, aby
+záznam smazal. Nebude-li uživatel souhlasit, jsou všechny další
+kontroly přeskočeny. U záznamu s duplicitním názvem skupiny je
+uživatel taktéž vybídnut ke smazání záznamu, ovšem následné kontroly
+nejsou přeskočeny. Všechny ostatní chyby jsou považovány pouze za
+varování a uživatel je vyzván k nápravě chyby pomocí příkazu
+\fBgroupmod\fR.
+.PP
+Příkazy pracující se souborem
+\fI/etc/group\fR
+nemohou měnit porušené nebo duplicitní záznamy. V takových případech
+byste měli použít
+\fBgrpck\fR
+a chybné záznamy odstranit.
+.SH "VOLBY"
+.PP
+\fBgrpck\fR
+implicitně pracuje nad soubory
+\fI/etc/group\fR
+a
+\fI/etc/gshadow\fR. Uživatel může zvolit jiné soubory pomocí parametrů
+\fIgroup\fR
+a
+\fIshadow\fR.
+Uživatel dále může parametrem
+\fB\-r\fR
+zapnout režim jen pro čtení. Prakticky to znamená, že na všechny
+otázky ohledně změn se automaticky odpoví
+\fIne\fR.
+\fBgrpck\fR
+také umí setřítit záznamy v souborech
+\fI/etc/group\fR
+a
+\fI/etc/gshadow\fR
+podle GID. Pro třídící režim zadejte parametr
+\fB\-s\fR.
+V takovém případě se neprovádí žádné kontroly, soubory se pouze
+setřídí.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.TP
+\fI/etc/passwd\fR
+informace o uživatelských účtech
+.SH "NÁVRATOVÉ HODNOTY"
+.PP
+Příkaz
+\fBgrpck\fR
+může skončit s následujícími návratovými hodnotami:
+.TP
+\fI0\fR
+úspěch
+.TP
+\fI1\fR
+chybná syntaxe příkazu
+.TP
+\fI2\fR
+jeden či více chybných záznamů
+.TP
+\fI3\fR
+nelze otevřít soubory skupin
+.TP
+\fI4\fR
+nelze zamknout soubory skupin
+.TP
+\fI5\fR
+nelze aktualizovat soubory skupin
+.SH "VIZ TAKÉ"
+.PP
+\fBgroup\fR(5),
+\fBpasswd\fR(5),
+\fBshadow\fR(5),
+\fBgroupmod\fR(8).

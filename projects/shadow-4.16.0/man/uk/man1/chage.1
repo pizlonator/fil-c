@@ -1,0 +1,219 @@
+'\" t
+.\"     Title: chage
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "chage" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+chage \- зміна даних щодо завершення строку дії пароля користувача
+.SH "КОРОТКИЙ ОГЛЯД"
+.HP \w'\fBchage\fR\ 'u
+\fBchage\fR [\fIoptions\fR] \fILOGIN\fR
+.SH "ОПИС"
+.PP
+The
+\fBchage\fR
+command changes the number of days between password changes and the date of the last password change\&. This information is used by the system to determine when a user must change their password\&.
+.SH "ПАРАМЕТРИ"
+.PP
+The options which apply to the
+\fBchage\fR
+command are:
+.PP
+\fB\-d\fR, \fB\-\-lastday\fR\ \&\fILAST_DAY\fR
+.RS 4
+Set the number of days since January 1st, 1970 when the password was last changed\&. The date may also be expressed in the format YYYY\-MM\-DD (or the format more commonly used in your area)\&. If the
+\fILAST_DAY\fR
+is set to
+\fI0\fR
+the user is forced to change his password on the next log on\&.
+.RE
+.PP
+\fB\-E\fR, \fB\-\-expiredate\fR\ \&\fIEXPIRE_DATE\fR
+.RS 4
+Встановити дату або кількість днів з 1 січня 1970 року, коли слід заборонити доступ до облікового запису користувача\&. Дату може бути також вказано у форматі РРРР\-ММ\-ДД (або форматі, який поширений у вашій країні)\&. Користувач, чий обліковий запис заблоковано, має звернутися до адміністратора системи, перш ніж знову зможе користуватися системою\&.
+.sp
+Наприклад, наступною командою можна скористатися для встановлення строку дії облікового запису у 180 днів:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+chage \-E $(date \-d +180days +%Y\-%m\-%d)
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Passing the number
+\fI\-1\fR
+as the
+\fIEXPIRE_DATE\fR
+will remove an account expiration date\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показати довідкове повідомлення і завершити роботу\&.
+.RE
+.PP
+\fB\-i\fR, \fB\-\-iso8601\fR
+.RS 4
+При виведенні дат користуватися форматом РРРР\-ММ\-ДД\&.
+.RE
+.PP
+\fB\-I\fR, \fB\-\-inactive\fR\ \&\fIINACTIVE\fR
+.RS 4
+Set the number of days of inactivity after a password has expired before the account is locked\&. The
+\fIINACTIVE\fR
+option is the number of days of inactivity\&. A user whose account is locked must contact the system administrator before being able to use the system again\&.
+.sp
+Passing the number
+\fI\-1\fR
+as the
+\fIINACTIVE\fR
+will remove an account\*(Aqs inactivity\&.
+.RE
+.PP
+\fB\-l\fR, \fB\-\-list\fR
+.RS 4
+Показати відомості щодо застарівання облікового запису\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-mindays\fR\ \&\fIMIN_DAYS\fR
+.RS 4
+Set the minimum number of days between password changes to
+\fIMIN_DAYS\fR\&. A value of zero for this field indicates that the user may change their password at any time\&.
+.RE
+.PP
+\fB\-M\fR, \fB\-\-maxdays\fR\ \&\fIMAX_DAYS\fR
+.RS 4
+Set the maximum number of days during which a password is valid\&. When
+\fIMAX_DAYS\fR
+plus
+\fILAST_DAY\fR
+is less than the current day, the user will be required to change their password before being able to use their account\&. This occurrence can be planned for in advance by use of the
+\fB\-W\fR
+option, which provides the user with advance warning\&.
+.sp
+Passing the number
+\fI\-1\fR
+as
+\fIMAX_DAYS\fR
+will remove checking a password\*(Aqs validity\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes to configuration files under the root filesystem found under the directory
+\fIPREFIX_DIR\fR\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-W\fR, \fB\-\-warndays\fR\ \&\fIWARN_DAYS\fR
+.RS 4
+Set the number of days of warning before a password change is required\&. The
+\fIWARN_DAYS\fR
+option is the number of days prior to the password expiring that a user will be warned their password is about to expire\&.
+.RE
+.PP
+If none of the options are selected,
+\fBchage\fR
+operates in an interactive fashion, prompting the user with the current values for all of the fields\&. Enter the new value to change the field, or leave the line blank to use the current value\&. The current value is displayed between a pair of
+\fI[ ]\fR
+marks\&.
+.SH "ЗАУВАЖЕННЯ"
+.PP
+The
+\fBchage\fR
+program requires a shadow password file to be available\&.
+.PP
+Програма chage повідомлятиме дані лише на основі файла паролів shadow\&. Таким чином, налаштування з інших джерел (наприклад, LDAP або порожнього поля хешу пароля з файла passwd), які впливають на вхід користувачів до системи, не буде показано у виведених chage даних\&.
+.PP
+The
+\fBchage\fR
+program will also not report any inconsistency between the shadow and passwd files (e\&.g\&. missing x in the passwd file)\&. The
+\fBpwck\fR
+can be used to check for this kind of inconsistencies\&.
+.PP
+The
+\fBchage\fR
+command is restricted to the root user, except for the
+\fB\-l\fR
+option, which may be used by an unprivileged user to determine when their password or account is due to expire\&.
+.SH "НАЛАШТУВАННЯ"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛИ"
+.PP
+/etc/passwd
+.RS 4
+Відомості щодо облікових записів користувача\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Відомості щодо захищених облікових записів користувачів\&.
+.RE
+.SH "ЗНАЧЕННЯ ВИХОДУ"
+.PP
+The
+\fBchage\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI1\fR
+.RS 4
+permission denied
+.RE
+.PP
+\fI2\fR
+.RS 4
+invalid command syntax
+.RE
+.PP
+\fI15\fR
+.RS 4
+can\*(Aqt find the shadow password file
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5)\&.

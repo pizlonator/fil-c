@@ -1,0 +1,71 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1989 \- 1994, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH FAILLOG 8
+.SH 名前
+faillog \- faillog を調べ、login 失敗の制限を設定する
+.SH 書式
+\fBfaillog\fR [\fB\-u\fR \fIlogin\-name\fR] [\fB\-a\fR] [\fB\-t\fR \fIdays\fR]
+[\fB\-m\fR \fImax\fR] [\fB\-pr\fR] 
+.SH 説明
+\fBfaillog\fR はログインの失敗を記録するログファイル
+\fI/var/log/faillog\fR の内容を整形し、
+失敗の回数と制限値を記録・管理する。
+\fBfaillog\fR に与える引数の順序は重要であり、
+各引数は与えられた順に直ちに処理される。
+.PP
+\fB\-p\fR フラグを指定するとログイン失敗のエントリを UID 順に表示する。
+\fB\-u \fIlogin\-name\fR と入力すると、
+\fIlogin\-name\fR のログイン失敗記録のみを表示する。
+\fB\-t \fIdays\fR と入力すると、
+最近 \fIdays\fR 日以内のログイン失敗の記録を表示する。
+\fB\-u\fR フラグを指定すると \fB\-t\fR フラグは無視される。
+.\"nakano というのが実際の動作のような気がするのだけど...
+\fB\-a\fR フラグを用いると全ユーザに対する記録が表示される。
+このフラグを \fB\-p\fR フラグとともに用いると、
+これまでにログインに失敗した全てのユーザが表示される。
+\fB\-a\fR は \fB\-r\fR フラグと用いても意味が無い。
+.PP
+\fB\-r\fR フラグはログイン失敗回数の記録をリセットする。
+このオプションを用いるには
+\fI/var/log/faillog\fR への書き込み権限が必要である。
+\fB\-u \fIlogin\-name\fR と入力すると、
+\fIlogin\-name\fR のログイン失敗回数のみをリセットする。
+.PP
+\fB\-m\fR フラグは、
+アカウントが使用不能になるまでの最大のログイン失敗回数を設定する。
+このオプションを用いるには
+\fI/var/log/faillog\fR への書き込み権限が必要である。
+\fB\-m \fImax\fR と入力すると、
+全てのアカウントはログイン失敗回数が \fImax\fR になると使用不能になる。
+.\"nakano double meaning...
+\fB\-u \fIlogin\-name\fR を同時に用いると、
+この機能を \fIlogin\-name\fR だけに作用させることができる。
+\fImax\fR の値を 0 にするとログインの失敗回数には制限が無くなる。
+システムに対するサービス不能攻撃を防ぐため、
+\fBroot\fR の最大ログイン失敗回数は常に 0 にしておくべきである。
+.PP
+オプションはほぼどのように組み合わせても良い。
+\fB\-p\fR, \fB\-r\fR, \fB\-m\fR
+の各オプションは、
+\fB\-u\fR, \fB\-t\fR の指定による修正を受け、
+指定した順に実行される。
+.SH 警告
+\fBfaillog\fR は、
+最後に失敗して以降ログインに成功していないユーザのみを表示する。
+ログインに失敗した後に正しくログインできたユーザも表示させるには、
+\fB\-u\fR フラグを用いてそのユーザを明示的に指定するか、
+\fB\-a\fR フラグを用いて全ユーザを表示させなければならない。
+.SH ファイル
+\fI/var/log/faillog\fR \- 失敗を記録したファイル
+.SH 関連項目
+.BR login (1),
+.BR faillog (5)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

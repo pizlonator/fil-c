@@ -1,0 +1,76 @@
+.TH "GPASSWD" "1" "11/05/2005" "User Commands" "User Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+gpasswd \- spravuje soubor /etc/group
+.SH "POUŽITÍ"
+.HP 8
+\fBgpasswd\fR \fIskupina\fR
+.HP 8
+\fBgpasswd\fR \-a\ \fIuživatel\fR \fIskupina\fR
+.HP 8
+\fBgpasswd\fR \-d\ \fIuživatel\fR \fIskupina\fR
+.HP 8
+\fBgpasswd\fR \-R\ \fIskupina\fR
+.HP 8
+\fBgpasswd\fR \-r\ \fIskupina\fR
+.HP 8
+\fBgpasswd\fR [\-A\ \fIuživatel,\fR...] [\-M\ \fIuživatel,\fR...] \fIskupina\fR
+.SH "POPIS"
+.PP
+\fBgpasswd\fR
+se používá pro správu souboru
+\fI/etc/group\fR
+(a pokud je zkompilován s podporou SHADOWGRP, tak i
+\fI/etc/gshadow\fR).
+Každá skupina může mít správce, členy a heslo. Systémový správce může
+volbou
+\fB\-A\fR
+definovat správce skupiny, volbou
+\fB\-M\fR
+členy skupiny a má všechna práva skupinových správců a členů.
+.SS "Poznámka o skupinových heslech"
+.PP
+Skupinová hesla jsou samozřejmě bezpečnostním problémem, jelikož je
+heslo sdíleno více uživateli. Skupiny jsou nicméně užitečným nástrojem
+pro spolupráci mezi různými uživateli.
+.SH "VOLBY"
+.PP
+Správce skupiny může přidávat resp. mazat uživatele pomocí
+\fB\-a\fR
+resp.
+\fB\-d\fR.
+Správcové mohou odstranit skupinové heslo pomocí přepínače
+\fB\-r\fR.
+Pokud není heslo nastaveno, mohou použít příkaz
+\fBnewgrp\fR
+pro zapojení do skupiny pouze členové skupiny. Volba
+\fB\-R\fR
+zakáže přístup do skupiny skrze příkaz
+\fBnewgrp\fR
+(členové skupiny se do ní budou moci stále přepnout).
+.PP
+Pokud je
+\fBgpasswd\fR
+spušten správcem skupiny a jediným parametrem je jméno skupiny, zeptá
+se na skupinové heslo. Pokud je heslo nastaveno, mohou členové používat
+\fBnewgrp\fR(1)
+stále bez hesla, nečlenové musí heslo zadat.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.SH "VIZ TAKÉ"
+.PP
+\fBnewgrp\fR(1),
+\fBgshadow\fR(5),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBgrpck\fR(8),
+\fBgroup\fR(5).

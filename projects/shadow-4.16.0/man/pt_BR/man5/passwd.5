@@ -1,0 +1,133 @@
+.\" -*- nroff -*-
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de), Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Jan  5 20:24:40 MET 1998 by Michael Haardt
+.\"  (michael@cantor.informatik.rwth-aachen.de)
+.TH PASSWD 5 "5/01/1998" "" "Formatos de Arquivo"
+.SH NOME
+passwd \- arquivo de senhas
+.SH DESCRIÇÃO
+.B Passwd
+é um arquivo texto, que contém a lista de contas do sistema,
+fornecendo para cada conta qualquer informação útil como identificação numérica do usuário,
+identificação numérica do grupo, diretório do usuário, interpretador de comandos, etc.
+Freqüentemente ele contém as senhas criptografadas para cada conta.
+Ele deveria ter permissão total de leitura (muitos utilitários, como
+.BR ls (1)
+usa-o para mapear as identificações dos usuários para nome de usuários), mas
+a permissão de escrita é apenas para o superusuário.
+.PP
+Nos bons e velhos dias não havia grandes problemas com esta permissão total
+de leitura. Todos podiam ler as senhas criptografadas, mas o hardware era 
+muito lento para quebrar as senhas bem escolhidas, e além disso, a suposição fundamental
+usada era que toda comunidade de usuários era amigável. Atualmente muitas 
+pessoas executam alguma versão da suite shadow password, onde
+.I /etc/passwd
+tem *'s ao invéz de senhas criptografadas, e as senhas criptorafadas estão em
+.I /etc/shadow
+o qual é legível apenas para o superusuário.
+.PP
+Apesar de que senhas shadow serem usadas, muitos administradores de 
+sistemas usam
+estrelas no campo de senhas criptografadas para ter certeza que este usuário
+autentique-se a si mesmo(a) usando uma senha. (Mas veja as Notas abaixo.)
+.PP
+Se você cria um nova conta, primeiro coloque asteriscos no campo de 
+senhas, então use
+.BR passwd (1)
+para seleciona-lá.
+.PP
+Há apenas um lançamento por linha, e cada linha tem o formato:
+.sp
+.RS
+account:password:UID:GID:GECOS:directory:shell
+.RE
+.sp
+As descrições dos campos são:
+.sp
+.RS
+.TP 1.0in
+.I account
+o nome dos usuários do sistema. Ele não deveria conter letras maiúsculas.
+.TP
+.I password
+a senha criptografada do usuários ou asteriscos.
+.TP
+.I UID
+a identificação numérica do usuário.
+.TP
+.I GID
+a identificação do grupo primário para este usuário.
+.TP
+.I GECOS
+Este campo é opcional e somente usado para propósitos informativos.
+Usualmente, ele contém o nome completo do usuário. GECOS significa General Electric
+Comprehensive Operating System, que foi renomeado para GCOS quando
+a divissão de grandes sistemas da GE foi vendida para Honeywell. Dennis Ritchie havia
+relatado: "Algumas vezes nós mandamos uma saída para a impressora ou trabalhos em lote
+para um máquina GCOS. O campo gcos no arquivo de senhas estava no lugar 
+para esconder a informação para o $IDENTcard. Não elegante."
+.TP
+.I directory
+o diretório do usuário ($HOME).
+.TP
+.I shell
+o interpretador de comando usados depois do login (se vazio, usa o
+.BR /bin/sh ).
+Se selecionado um executável que não existe, o usuário ficará incapaz de
+logar através de
+.BR login (1).
+.RE
+.SH NOTAS
+Se você quiser criar grupos de usuários, as GIDs devem ser iguais e devem
+ter um lançamento no \fI/etc/group\fP, ou o grupo não existe.
+.PP
+Se a senha criptografada é selecionada como asteriscos, o usuário ficará
+apto para logar usando
+.BR login (1),
+mas talvez logar usando
+.BR rlogin (1),
+executar processos existentes e iniciar novos através de
+.BR rsh (1)
+ou
+.BR cron (1)
+ou
+.BR at (1)
+ou filtros de correio, etc. Tentativa para fechar um conta por simples 
+mudança do campo
+shell produz o mesmo resultado e adicionalmente permite o uso de
+.BR su (1).
+.SH ARQUIVOS
+.I /etc/passwd
+.SH "VEJA TAMBÉM"
+.BR passwd (1),
+.BR login (1),
+.BR su (1),
+.BR group (5),
+.BR shadow (5)
+.SH TRADUZIDO POR LDP-BR em 21/08/2000.
+\&\fR\&\f(CWAndré L. Fassone Canova <lonelywolf@blv.com.br> (tradução)\fR
+\&\fR\&\f(CWRoberto Selbach Teixeira <robteix@zaz.com.br> (revisão)\fR

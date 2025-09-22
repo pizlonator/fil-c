@@ -1,0 +1,51 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Remove an user with a duplicate ID"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 (useradd -u 4242 test1)..."
+useradd -u 4242 test1
+echo "OK"
+echo -n "Create user test2 with the same ID (useradd -u 4242 -o test2)..."
+useradd -u 4242 -o test2
+echo "OK"
+echo -n "Delete user test2 (userdel test2)..."
+userdel test2
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl 04_userdel_delete_user_with_non_unique_UID/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl 04_userdel_delete_user_with_non_unique_UID/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 04_userdel_delete_user_with_non_unique_UID/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl 04_userdel_delete_user_with_non_unique_UID/gshadow /etc/gshadow
+echo "OK"
+echo -n "no homedir /home/test1..."
+test -d /home/test1 && exit 1 || true
+echo "OK"
+echo -n "no homedir /home/test2..."
+test -d /home/test2 && exit 1 || true
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

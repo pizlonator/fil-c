@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY BCRYPT_MIN_ROUNDS     SYSTEM "login.defs.d/BCRYPT_MIN_ROUNDS.xml">
+<!ENTITY ENCRYPT_METHOD        SYSTEM "login.defs.d/ENCRYPT_METHOD.xml">
+<!ENTITY GID_MAX               SYSTEM "login.defs.d/GID_MAX.xml">
+<!ENTITY HOME_MODE             SYSTEM "login.defs.d/HOME_MODE.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY MD5_CRYPT_ENAB        SYSTEM "login.defs.d/MD5_CRYPT_ENAB.xml">
+<!ENTITY PASS_MAX_DAYS         SYSTEM "login.defs.d/PASS_MAX_DAYS.xml">
+<!ENTITY PASS_MIN_DAYS         SYSTEM "login.defs.d/PASS_MIN_DAYS.xml">
+<!ENTITY PASS_WARN_AGE         SYSTEM "login.defs.d/PASS_WARN_AGE.xml">
+<!ENTITY SHA_CRYPT_MIN_ROUNDS  SYSTEM "login.defs.d/SHA_CRYPT_MIN_ROUNDS.xml">
+<!ENTITY SUB_GID_COUNT         SYSTEM "login.defs.d/SUB_GID_COUNT.xml">
+<!ENTITY SUB_UID_COUNT         SYSTEM "login.defs.d/SUB_UID_COUNT.xml">
+<!ENTITY SYS_GID_MAX           SYSTEM "login.defs.d/SYS_GID_MAX.xml">
+<!ENTITY SYS_UID_MAX           SYSTEM "login.defs.d/SYS_UID_MAX.xml">
+<!ENTITY UID_MAX               SYSTEM "login.defs.d/UID_MAX.xml">
+<!ENTITY UMASK                 SYSTEM "login.defs.d/UMASK.xml">
+<!ENTITY YESCRYPT_COST_FACTOR  SYSTEM "login.defs.d/YESCRYPT_COST_FACTOR.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='newusers.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>newusers</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>newusers</refname>
+    <refpurpose>update and create new users in batch</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>newusers</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='opt'>
+	<replaceable>file</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>newusers</command> command reads a <replaceable>file</replaceable> (or the standard input by default)
+      and uses this information to update a set
+      of existing users or to create new users. Each line is in the same format
+      as the standard password file (see
+      <citerefentry><refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>) with the exceptions explained below:
+    </para>
+    <para>pw_name:pw_passwd:pw_uid:pw_gid:pw_gecos:pw_dir:pw_shell</para>
+
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_name</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This is the name of the user.
+	  </para>
+	  <para>
+	    It can be the name of a new user or the name of an existing
+	    user (or a user created before by
+	    <command>newusers</command>).  In case of an existing user,
+	    the user's information will be changed, otherwise a new user
+	    will be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_passwd</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field will be encrypted and used as the new value of the
+	    encrypted password.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_uid</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field is used to define the UID of the user.
+	  </para>
+	  <para>
+	    If the field is empty, a new (unused) UID will be defined
+	    automatically by <command>newusers</command>.
+	  </para>
+	  <para>
+	    If this field contains a number, this number will be used as
+	    the UID.
+	  </para>
+	  <para>
+	    If this field contains the name of an existing user (or the
+	    name of a user created before by
+	    <command>newusers</command>), the UID of the specified user
+	    will be used.
+	  </para>
+	  <para>
+	    If the UID of an existing user is changed, the files ownership
+	    of the user's file should be fixed manually.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_gid</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field is used to define the primary group ID for the user.
+	  </para>
+	  <para>
+	    If this field contains the name of an existing group (or a
+	    group created before by <command>newusers</command>), the GID
+	    of this group will be used as the primary group ID for the
+	    user.
+	  </para>
+	  <para>
+	    If this field is a number, this number will be used as the
+	    primary group ID of the user.  If no groups exist with this
+	    GID, a new group will be created with this GID, and the name
+	    of the user.
+	  </para>
+	  <para>
+	    If this field is empty, a new group will be created with the
+	    name of the user and a GID will be automatically defined by
+	    <command>newusers</command> to be used as the primary group ID
+	    for the user and as the GID for the new group.
+	  </para>
+	  <para>
+	    If this field contains the name of a group which does not
+	    exist (and was not created before by
+	    <command>newusers</command>), a new group will be created with
+	    the specified name and a GID will be automatically defined by
+	    <command>newusers</command> to be used as the primary group ID
+	    for the user and GID for the new group.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_gecos</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field is copied in the GECOS field of the user.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_dir</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field is used to define the home directory of the user.
+	  </para>
+	  <para>
+	    If this field does not specify an existing directory, the
+	    specified directory is created, with ownership set to the
+	    user being created or updated and its primary group. Note
+	    that <emphasis>newusers does not create parent directories
+	    </emphasis> of the new user's home directory. The newusers
+	    command will fail to create the home directory if the parent
+	    directories do not exist, and will send a message to stderr
+	    informing the user of the failure. The newusers command will
+	    not halt or return a failure to the calling shell if it fails
+	    to create the home directory, it will continue to process the
+	    batch of new users specified.
+	  </para>
+	  <para>
+	    If the home directory of an existing user is changed,
+	    <command>newusers</command> does not move or copy the content
+	    of the old directory to the new location. This should be done
+	    manually.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <emphasis remap='I'>pw_shell</emphasis>
+	</term>
+	<listitem>
+	  <para>
+	    This field defines the shell of the user.
+	    No checks are performed on this field.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      <command>newusers</command> first tries to create or change all the
+      specified users, and then write these changes to the user or group
+      databases. If an error occurs (except in the final writes to the
+      databases), no changes are committed to the databases.
+    </para>
+    <para condition="pam">
+      During this first pass, users are created with a locked password
+      (and passwords are not changed for the users which are not created).
+      A second pass is used to update the passwords using PAM.  Failures
+      to update a password are reported, but will not stop the other
+      password updates.
+    </para>
+
+    <para>
+      This command is intended to be used in a large system environment
+      where many accounts are updated at a single time.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>newusers</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>--badname</option>&nbsp;
+	</term>
+	<listitem>
+	  <para>
+        Allow names that do not conform to standards.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP' condition="no_pam">
+      <varlistentry>
+	<term><option>-c</option>, <option>--crypt-method</option></term>
+	<listitem>
+	  <para>Use the specified method to encrypt the passwords.</para>
+	  <para>
+	    The available methods are DES, MD5, NONE, and SHA256 or SHA512
+	    if your libc support these methods.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--system</option>
+	</term>
+	<listitem>
+	  <para>
+	    Create a system account.
+	  </para>
+	  <para>
+	    System users will be created with no aging information in
+	    <filename>/etc/shadow</filename>, and their numeric
+	    identifiers are chosen in the
+	    <option>SYS_UID_MIN</option>-<option>SYS_UID_MAX</option>
+	    range, defined in <filename>login.defs</filename>, instead of
+	    <option>UID_MIN</option>-<option>UID_MAX</option> (and their
+	    <option>GID</option> counterparts for the creation of groups).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist remap='IP' condition="no_pam">
+      <varlistentry condition="bcrypt;sha_crypt;yescrypt">
+	<term><option>-s</option>, <option>--sha-rounds</option></term>
+	<listitem>
+	  <para>
+	    Use the specified number of rounds to encrypt the passwords.
+	  </para>
+	  <para>
+	    You can only use this option with crypt method:
+	    <phrase condition="bcrypt">
+	    <replaceable>BCRYPT</replaceable></phrase>
+	    <phrase condition="sha_crypt">
+	    <replaceable>SHA256</replaceable>
+	    <replaceable>SHA512</replaceable></phrase>
+	    <phrase condition="yescrypt">
+	    <replaceable>YESCRYPT</replaceable></phrase>
+	  </para>
+	  <para condition="bcrypt">
+	    By default, the number of rounds for BCRYPT is defined by the
+	    BCRYPT_MIN_ROUNDS and BCRYPT_MAX_ROUNDS variables in
+	    <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="bcrypt">
+	    A minimal value of 4 and a maximal value of 31
+	    will be enforced for BCRYPT. The default is 13.
+	  </para>
+	  <para condition="sha_crypt">
+	    By default, the number of rounds for SHA256 or SHA512 is defined by the
+	    SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+	    <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="sha_crypt">
+	    A minimal value of 1000 and a maximal value of 999,999,999
+	    will be enforced for SHA256 and SHA512. The default is 5000.
+	  </para>
+	  <para condition="yescrypt">
+	    By default, the number of rounds for YESCRYPT is defined by the
+	    YESCRYPT_COST_FACTOR in <filename>/etc/login.defs</filename>.
+	  </para>
+	  <para condition="yescrypt">
+	    A minimal value of 1 and a maximal value of 11
+	    will be enforced for YESCRYPT. The default is 5.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      The input file must be protected since it contains unencrypted
+      passwords.
+    </para>
+    <para condition="no_pam">
+      You should make sure the passwords and the encryption method respect
+      the system's password policy.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist condition="no_pam">
+      &ENCRYPT_METHOD;
+    </variablelist>
+    <variablelist>
+      &GID_MAX; <!-- documents also GID_MIN -->
+      &HOME_MODE;
+      &MAX_MEMBERS_PER_GROUP;
+    </variablelist>
+    <variablelist condition="no_pam">
+      &MD5_CRYPT_ENAB;
+    </variablelist>
+    <variablelist>
+      &PASS_MAX_DAYS;
+      &PASS_MIN_DAYS;
+      &PASS_WARN_AGE;
+    </variablelist>
+    <variablelist condition="no_pam">
+      &SHA_CRYPT_MIN_ROUNDS; <!-- documents also SHA_CRYPT_MAX_ROUNDS-->
+    </variablelist>
+    <variablelist>
+      &SUB_GID_COUNT; <!-- documents also SUB_GID_MAX and SUB_GID_MIN -->
+      &SUB_UID_COUNT; <!-- documents also SUB_UID_MAX and SUB_UID_MIN -->
+      &SYS_GID_MAX; <!-- documents also SYS_GID_MIN -->
+      &SYS_UID_MAX; <!-- documents also SYS_UID_MIN -->
+      &UID_MAX; <!-- documents also UID_MIN -->
+      &UMASK;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="pam">
+	<term><filename>/etc/pam.d/newusers</filename></term>
+	<listitem>
+	  <para>PAM configuration for <command>newusers</command>.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subgid</filename></term>
+	<listitem>
+	  <para>Per user subordinate group IDs.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subuid</filename></term>
+	<listitem>
+	  <para>Per user subordinate user IDs.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <phrase condition="subids">
+	<citerefentry>
+	  <refentrytitle>subgid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+	<citerefentry>
+	  <refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

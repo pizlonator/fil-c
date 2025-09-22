@@ -1,0 +1,55 @@
+#!/usr/bin/expect
+
+if {$argc == 1} {
+	set command     [lindex $argv 0]
+} else {
+	set command     ""
+}
+
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "id\r"
+expect "uid=0(root) gid=0(root) groups=0(root)\r"
+expect "# "
+
+send "export PATH=bar:\$PATH\r"
+expect "# "
+send "echo \"PATH=\\\"\$PATH\\\"\"\r"
+expect "# "
+
+#=============================================================================
+#
+# Regular su, preserve environment
+# However, PATH is reset
+#
+#=============================================================================
+send "/bin/su myuser $command\r"
+expect "$ "
+
+send "id\n"
+expect "uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)\r"
+expect "$ "
+
+send_user "\n# PATH should be '/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games'"
+send "\r"
+expect "$ "
+
+send "echo \"PATH=\\\"\$PATH\\\"\"\r"
+expect "PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games\"\r"
+expect "$ "
+
+send "echo \"'\$HOME'\$USER'\$LOGNAME'\$SHELL'\"\r"
+expect "'/home/'myuser'myuser'/bin/sh'\r"
+expect "$ "
+
+send "exit\r"
+expect "# "
+
+puts "\nPASS"
+exit 0
+

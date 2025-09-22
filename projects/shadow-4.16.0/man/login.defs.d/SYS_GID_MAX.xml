@@ -1,0 +1,19 @@
+<!--
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>SYS_GID_MAX</option> (number)</term>
+  <term><option>SYS_GID_MIN</option> (number)</term>
+  <listitem>
+    <para>
+      Range of group IDs used for the creation of system groups by
+      <command>useradd</command>, <command>groupadd</command>, or
+      <command>newusers</command>.
+    </para>
+    <para>
+      The default value for <option>SYS_GID_MIN</option> (resp.
+      <option>SYS_GID_MAX</option>) is 101 (resp. <option>GID_MIN</option>-1).
+    </para>
+  </listitem>
+</varlistentry>

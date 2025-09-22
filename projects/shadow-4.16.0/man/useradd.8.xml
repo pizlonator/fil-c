@@ -1,0 +1,945 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY CREATE_HOME           SYSTEM "login.defs.d/CREATE_HOME.xml">
+<!ENTITY GID_MAX               SYSTEM "login.defs.d/GID_MAX.xml">
+<!ENTITY HOME_MODE             SYSTEM "login.defs.d/HOME_MODE.xml">
+<!ENTITY LASTLOG_UID_MAX       SYSTEM "login.defs.d/LASTLOG_UID_MAX.xml">
+<!ENTITY MAIL_DIR              SYSTEM "login.defs.d/MAIL_DIR.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY PASS_MAX_DAYS         SYSTEM "login.defs.d/PASS_MAX_DAYS.xml">
+<!ENTITY PASS_MIN_DAYS         SYSTEM "login.defs.d/PASS_MIN_DAYS.xml">
+<!ENTITY PASS_WARN_AGE         SYSTEM "login.defs.d/PASS_WARN_AGE.xml">
+<!ENTITY SUB_GID_COUNT         SYSTEM "login.defs.d/SUB_GID_COUNT.xml">
+<!ENTITY SUB_UID_COUNT         SYSTEM "login.defs.d/SUB_UID_COUNT.xml">
+<!ENTITY SYS_GID_MAX           SYSTEM "login.defs.d/SYS_GID_MAX.xml">
+<!ENTITY SYS_UID_MAX           SYSTEM "login.defs.d/SYS_UID_MAX.xml">
+<!ENTITY UID_MAX               SYSTEM "login.defs.d/UID_MAX.xml">
+<!ENTITY UMASK                 SYSTEM "login.defs.d/UMASK.xml">
+<!ENTITY TCB_AUTH_GROUP        SYSTEM "login.defs.d/TCB_AUTH_GROUP.xml">
+<!ENTITY TCB_SYMLINKS          SYSTEM "login.defs.d/TCB_SYMLINKS.xml">
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!ENTITY USERGROUPS_ENAB       SYSTEM "login.defs.d/USERGROUPS_ENAB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='useradd.8'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>useradd</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>useradd</refname>
+    <refpurpose>create a new user or update default new user information</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>useradd</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='plain'><replaceable>LOGIN</replaceable></arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>useradd</command>
+      <arg choice='plain'>-D </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>useradd</command>
+      <arg choice='plain'>-D </arg>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+      <para>
+	When invoked without the <option>-D</option> option, the
+	<command>useradd</command> command creates a new user account using
+	the values specified on the command line plus the default values from
+	the system. Depending on command line options, the
+	<command>useradd</command> command
+	will update system files and may also create the new user's home
+	directory and copy initial files.
+      </para>
+      <para>
+	By default, a group will also be created for the new user (see
+	<option>-g</option>, <option>-N</option>, <option>-U</option>, and
+	<option>USERGROUPS_ENAB</option>).
+      </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>The options which apply to the <command>useradd</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>--badname</option>&nbsp;
+	</term>
+	<listitem>
+	  <para>
+        Allow names that do not conform to standards.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-b</option>, <option>--base-dir</option>&nbsp;<replaceable>BASE_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The default base directory for the system if
+	    <option>-d</option>&nbsp;<replaceable>HOME_DIR</replaceable>
+	    is not specified.  <replaceable>BASE_DIR</replaceable> is
+	    concatenated with the account name to define the home
+	    directory.
+	  </para>
+	  <para>
+	    If this option is not specified, <command>useradd</command>
+	    will use the base directory specified by the
+	    <option>HOME</option> variable in
+	    <filename>/etc/default/useradd</filename>, or
+	    <filename>/home</filename> by default.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-c</option>, <option>--comment</option>&nbsp;<replaceable>COMMENT</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Any text string. It is generally a short description of the
+	    account, and is currently used as the field for the user's full
+	    name.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-d</option>, <option>--home-dir</option>&nbsp;<replaceable>HOME_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The new user will be created using
+	    <replaceable>HOME_DIR</replaceable> as the value for the
+	    user's login directory. The default is to append the
+	    <replaceable>LOGIN</replaceable> name to
+	    <replaceable>BASE_DIR</replaceable> and use that as the
+	    login directory name.  If the directory
+	    <replaceable>HOME_DIR</replaceable> does not exist, then
+	    it will be created unless the <option>-M</option> option
+	    is specified.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-D</option>, <option>--defaults</option>
+	</term>
+	<listitem>
+	  <para>
+	    See below, the subsection "Changing the default values".
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-e</option>, <option>--expiredate</option>&nbsp;<replaceable>EXPIRE_DATE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The date on which the user account will be disabled. The date is
+	    specified in the format <emphasis remap='I'>YYYY-MM-DD</emphasis>.
+	  </para>
+	  <para>
+	    If not specified, <command>useradd</command> will use the
+	    default expiry date specified by the <option>EXPIRE</option>
+	    variable in <filename>/etc/default/useradd</filename>, or
+	    an empty string (no expiry) by default.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-f</option>, <option>--inactive</option>&nbsp;<replaceable>INACTIVE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+            defines the number of days after the password exceeded its maximum
+            age where the user is expected to replace this password. The value
+            is stored in the shadow password file. An input of 0 will disable an
+            expired password with no delay. An input of -1 will blank the
+            respective field in the shadow password file. See <citerefentry>
+	    <refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+            </citerefentry>for more information.
+	  </para>
+	  <para>
+	    If not specified, <command>useradd</command> will use the
+	    default inactivity period specified by the
+	    <option>INACTIVE</option> variable in
+	    <filename>/etc/default/useradd</filename>, or -1 by default.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-F</option>, <option>--add-subids-for-system</option>
+	</term>
+	<listitem>
+	  <para>
+	    Update <filename>/etc/subuid</filename> and <filename>
+	    /etc/subgid</filename> even when creating a system account
+	    with <option>-r</option> option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-g</option>, <option>--gid</option>&nbsp;<replaceable>GROUP</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The name or the number of the user's primary group. The
+	    group name must exist. A group number must refer to an already
+	    existing group.
+	  </para>
+	  <para>
+	    If not specified, the behavior of <command>useradd</command>
+	    will depend on the <option>USERGROUPS_ENAB</option> variable
+	    in <filename>/etc/login.defs</filename>. If this variable is
+	    set to <replaceable>yes</replaceable> (or
+	    <option>-U/--user-group</option> is specified on the command
+	    line), a group will be created for the user, with the same
+	    name as her loginname. If the variable is set to
+	    <replaceable>no</replaceable> (or
+	    <option>-N/--no-user-group</option> is specified on the
+	    command line), useradd will set the primary group of the new
+	    user to the value specified by the <option>GROUP</option>
+	    variable in <filename>/etc/default/useradd</filename>, or
+	    1000 by default.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-G</option>, <option>--groups</option>&nbsp;<replaceable>GROUP1</replaceable>[<emphasis remap='I'>,GROUP2,...</emphasis>[<emphasis remap='I'>,GROUPN</emphasis>]]]
+	</term>
+	<listitem>
+	  <para>
+	    A list of supplementary groups which the user is also a member
+	    of. Each group is separated from the next by a comma, with no
+	    intervening whitespace. The groups are subject to the same
+	    restrictions as the group given with the <option>-g</option>
+	    option. The default is for the user to belong only to the
+	    initial group. In addition to passing in the -G flag, you can
+		add the option <option>GROUPS</option> to the file <filename>/etc/default/useradd</filename>
+		which in turn will add all users to those supplementary groups.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-k</option>, <option>--skel</option>&nbsp;<replaceable>SKEL_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The skeleton directory, which contains files and directories
+	    to be copied in the user's home directory, when the home
+	    directory is created by <command>useradd</command>.
+	  </para>
+	  <para>
+	    This option is only valid if the <option>-m</option> (or
+	    <option>--create-home</option>) option is specified.
+	  </para>
+	  <para>
+	    If this option is not set, the skeleton directory is defined
+	    by the <option>SKEL</option> variable in
+	    <filename>/etc/default/useradd</filename> or, by default,
+	    <filename>/etc/skel</filename>.
+	  </para>
+	  <para>
+	    Absolute symlinks that link back to the skel directory will have
+	    the <filename>/etc/skel</filename> prefix replaced with the user's
+	    home directory.
+	  </para>
+	  <para>
+	    If possible, the ACLs and extended attributes are copied.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-K</option>, <option>--key</option>&nbsp;<replaceable>KEY</replaceable>=<replaceable>VALUE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Overrides <filename>/etc/login.defs</filename> defaults
+	    (<option>UID_MIN</option>, <option>UID_MAX</option>,
+	    <option>UMASK</option>, <option>PASS_MAX_DAYS</option>
+	    and others).
+	  </para>
+	  <para>
+	    Example:
+	    <option>-K</option>&nbsp;<replaceable>PASS_MAX_DAYS
+	    </replaceable>=<replaceable>-1</replaceable> can be used
+	    when creating an account to turn off password aging.
+	    Multiple <option>-K</option> options can be specified,
+	    e.g.:
+	    <option>-K</option>&nbsp;<replaceable>UID_MIN</replaceable>
+	    =<replaceable>100</replaceable>&nbsp;<option>-K</option>&nbsp;
+	    <replaceable>UID_MAX</replaceable>=<replaceable>499</replaceable>
+	  </para>
+	  <!--para>
+	    Note: <option>-K</option>&nbsp;<replaceable>UID_MIN</replaceable>=<replaceable>10</replaceable>,<replaceable>UID_MAX</replaceable>=<replaceable>499</replaceable>
+	    doesn't work yet.
+	  </para-->
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-l</option>, <option>--no-log-init</option></term>
+	<listitem>
+	  <para>
+	    Do not add the user to the lastlog and faillog databases.
+	  </para>
+	  <para>
+	    By default, the user's entries in the lastlog and faillog
+	    databases are reset to avoid reusing the entry from a previously
+	    deleted user.
+	  </para>
+	  <para>
+	    If this option is not specified, <command>useradd</command>
+	    will also consult the variable <option>LOG_INIT</option> in
+	    the <filename>/etc/default/useradd</filename> if set to no
+		the user will not be added to the lastlog and faillog databases.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-m</option>, <option>--create-home</option>
+	</term>
+	<listitem>
+	  <para>
+	    Create the user's home directory if it does not exist. 
+	    The files and directories contained in the skeleton directory
+	    (which can be defined with the <option>-k</option> option)
+	    will be copied to the home directory.
+	  </para>
+	  <para>
+	    By default, if this option is not specified and
+	    <option>CREATE_HOME</option> is not enabled, no home
+	    directories are created.
+	  </para>
+	  <para>
+	    The directory where the user's home directory is created must
+	    exist and have proper SELinux context and permissions. Otherwise
+	    the user's home directory cannot be created or accessed.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	 <option>-M</option>, <option>--no-create-home</option>
+	</term>
+	<listitem>
+	  <para>
+	    Do not create the user's home directory, even if the system
+	    wide setting from <filename>/etc/login.defs</filename>
+	    (<option>CREATE_HOME</option>) is set to
+	    <replaceable>yes</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-N</option>, <option>--no-user-group</option>
+	</term>
+	<listitem>
+	  <para>
+	    Do not create a group with the same name as the user, but
+	    add the user to the group specified by the <option>-g</option>
+	    option or by the <option>GROUP</option> variable in
+	    <filename>/etc/default/useradd</filename>.
+	  </para>
+	  <para>
+	    The default behavior (if the <option>-g</option>,
+	    <option>-N</option>, and <option>-U</option> options are not
+	    specified) is defined by the <option>USERGROUPS_ENAB</option>
+	    variable in <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-o</option>, <option>--non-unique</option>
+	</term>
+	<listitem>
+	  <para>
+	    allows the creation of an account with an already existing
+	    UID.
+	  </para>
+	  <para>
+	    This option is only valid in combination with the
+	    <option>-u</option> option. As a user identity
+	    serves as
+	    key to map between users on one hand and permissions, file
+	    ownerships and other aspects that determine the system's
+	    behavior on the other hand, more than one login name
+	    will access the account of the given UID.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-p</option>, <option>--password</option>&nbsp;<replaceable>PASSWORD</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines an initial password for the account. PASSWORD is expected to
+	    be encrypted, as returned by <citerefentry><refentrytitle>crypt
+	    </refentrytitle><manvolnum>3</manvolnum></citerefentry>. Within a
+	    shell script, this option allows to create efficiently
+	    batches of users.
+	  </para>
+	  <para>
+            Without this option, the new account will be locked and
+            with no password defined, i.e. a single exclamation mark
+            in the respective field of
+            <filename>/etc/shadow</filename>. This is a state where the
+            user won't be able to access the account or to define a
+            password himself.
+	  </para>
+	  <para>
+	    <emphasis role="bold">Note:</emphasis>Avoid this option on the command  
+	     line because the password (or encrypted password) will
+	    be visible by users listing the processes.
+	  </para>
+	  <para>
+	    You should make sure the password respects the system's
+	    password policy.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--system</option>
+	</term>
+	<listitem>
+	  <para>
+	    Create a system account.
+	  </para>
+	  <para>
+	    System users will be created with no aging information in
+	    <filename>/etc/shadow</filename>, and their numeric
+	    identifiers are chosen in the
+	    <option>SYS_UID_MIN</option>-<option>SYS_UID_MAX</option>
+	    range, defined in <filename>/etc/login.defs</filename>, instead of
+	    <option>UID_MIN</option>-<option>UID_MAX</option> (and their
+	    <option>GID</option> counterparts for the creation of groups).
+	  </para>
+	  <para>
+	    Note that <command>useradd</command> will not create a home
+	    directory for such a user, regardless of the default setting
+	    in <filename>/etc/login.defs</filename>
+	    (<option>CREATE_HOME</option>). You have to specify the
+	    <option>-m</option> options if you want a home directory for a
+	    system account to be created.
+	  </para>
+	  <para>
+	    Note that this option will not update <filename>/etc/subuid
+	    </filename> and <filename>/etc/subgid</filename>. You have to
+	    specify the <option>-F</option> options if you want to update
+	    the files for a system account to be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes to configuration files under the root filesystem
+	    found under the directory <replaceable>PREFIX_DIR</replaceable>.
+	    This option does not chroot and is intended for preparing a cross-compilation
+	    target.  Some limitations: NIS and LDAP users/groups are
+	    not verified.  PAM authentication is using the host files.
+	    No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--shell</option>&nbsp;<replaceable>SHELL</replaceable>
+	</term>
+	<listitem>
+	  <para>
+            sets the path to the user's login shell. Without this option,
+            the system will use the <option>SHELL</option> variable specified
+	    in <filename>/etc/default/useradd</filename>, or, if that is as
+	    well not set, the field for the login shell in <filename>/etc/passwd
+	    </filename> remains empty.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--uid</option>&nbsp;<replaceable>UID</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The numerical value of the user's ID. This value must be unique,
+	    unless the <option>-o</option> option is used. The value must be
+	    non-negative. The default is to use the smallest ID value
+	    greater than or equal to <option>UID_MIN</option> and greater
+	    than every other user.
+	  </para>
+	  <para>
+	    See also the <option>-r</option> option and the
+	    <option>UID_MAX</option> description.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-U</option>, <option>--user-group</option>
+	</term>
+	<listitem>
+	  <para>
+	    Create a group with the same name as the user, and
+	    add the user to this group.
+	  </para>
+	  <para>
+	    The default behavior (if the <option>-g</option>,
+	    <option>-N</option>, and <option>-U</option> options are not
+	    specified) is defined by the <option>USERGROUPS_ENAB</option>
+	    variable in <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-Z</option>, <option>--selinux-user</option>&nbsp;<replaceable>SEUSER</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines the SELinux user for the new account. Without this
+	    option, SELinux uses the default user. Note that the
+	    shadow system doesn't store the selinux-user, it uses
+	    <citerefentry><refentrytitle>semanage</refentrytitle>
+	    <manvolnum>8</manvolnum></citerefentry> for that.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--selinux-range</option>&nbsp;<replaceable>SERANGE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines the SELinux MLS range for the new account. Without this
+	    option, SELinux uses the default range. Note that the
+	    shadow system doesn't store the selinux-range, it uses
+	    <citerefentry><refentrytitle>semanage</refentrytitle>
+	    <manvolnum>8</manvolnum></citerefentry> for that.
+	  </para>
+	  <para>
+	    This option is only valid if the <option>-Z</option> (or
+	    <option>--selinux-user</option>) option is specified.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <refsect2 id='changing_the_default_values'>
+      <title>Changing the default values</title>
+      <para>
+	When invoked with only the <option>-D</option> option,
+	<command>useradd</command> will display the current default values.
+	When invoked with <option>-D</option> plus other options,
+	<command>useradd</command> will update the default values for the
+	specified options. Valid default-changing options are:
+      </para>
+      <variablelist remap='IP'>
+	<varlistentry>
+	  <term>
+	    <option>-b</option>, <option>--base-dir</option>&nbsp;<replaceable>BASE_DIR</replaceable>
+	  </term>
+	  <listitem>
+	    <para>
+	      sets the path prefix for a new user's home directory. The
+	      user's name will be affixed to the end of
+	      <replaceable>BASE_DIR</replaceable> to form the new user's
+	      home directory name, if the <option>-d</option> option is not used
+	      when creating a new account.
+	    </para>
+	    <para>
+	      This option sets the <option>HOME</option> variable in
+	      <filename>/etc/default/useradd</filename>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    <option>-e</option>, <option>--expiredate</option>&nbsp;<replaceable>EXPIRE_DATE</replaceable>
+	  </term>
+	  <listitem>
+	    <para>sets the date on which newly created user accounts are disabled.</para>
+	    <para>
+	      This option sets the <option>EXPIRE</option> variable in
+	      <filename>/etc/default/useradd</filename>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    <option>-f</option>, <option>--inactive</option>&nbsp;<replaceable>INACTIVE</replaceable>
+	  </term>
+	  <listitem>
+	    <para>
+              defines the number of days after the password exceeded its maximum
+              age where the user is expected to replace this password. See <citerefentry>
+	      <refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+              </citerefentry>for more information.
+	    </para>
+	    <para>
+	      This option sets the <option>INACTIVE</option> variable in
+	      <filename>/etc/default/useradd</filename>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    <option>-g</option>, <option>--gid</option>&nbsp;<replaceable>GROUP</replaceable>
+	  </term>
+	  <listitem>
+	    <para>sets the default primary group for newly created users,
+	      accepting group names or a numerical group ID. The named
+	      group must exist, and the GID must have an
+	      existing entry.
+	    </para>
+	    <para>
+	      This option sets the <option>GROUP</option> variable in
+	      <filename>/etc/default/useradd</filename>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    <option>-s</option>, <option>--shell</option>&nbsp;<replaceable>SHELL</replaceable>
+	  </term>
+	  <listitem>
+	    <para>
+	      defines the default login shell for new users.
+	    </para>
+	    <para>
+	      This option sets the <option>SHELL</option> variable in
+	      <filename>/etc/default/useradd</filename>.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+    </refsect2>
+  </refsect1>
+
+  <refsect1 id='notes'>
+    <title>NOTES</title>
+    <para>The system administrator is responsible for placing the default
+      user files in the <filename>/etc/skel/</filename> directory (or any
+      other skeleton directory specified in
+      <filename>/etc/default/useradd</filename> or on the command line).
+    </para>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      You may not add a user to a NIS or LDAP group. This must be
+      performed on the corresponding server.
+    </para>
+
+    <para>
+      Similarly, if the username already exists in an external user
+      database such as NIS or LDAP, <command>useradd</command> will deny
+      the user account creation request.
+    </para>
+
+    <para>
+      Usernames may contain only lower and upper case letters, digits,
+      underscores, or dashes. They can end with a dollar sign.
+
+      Dashes are not allowed at the beginning of the username.
+      Fully numeric usernames and usernames . or .. are
+      also disallowed. It is not recommended to use usernames beginning
+      with . character as their home directories will be hidden in
+      the <command>ls</command> output.
+    </para>
+    <para>
+      Usernames may only be up to 256 characters long.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &CREATE_HOME;
+      &GID_MAX; <!-- documents also GID_MIN -->
+      &HOME_MODE;
+      &LASTLOG_UID_MAX;
+      &MAIL_DIR;
+      &MAX_MEMBERS_PER_GROUP;
+      &PASS_MAX_DAYS;
+      &PASS_MIN_DAYS;
+      &PASS_WARN_AGE;
+      &SUB_GID_COUNT; <!-- documents also SUB_GID_MAX and SUB_GID_MIN -->
+      &SUB_UID_COUNT; <!-- documents also SUB_UID_MAX and SUB_UID_MIN -->
+      &SYS_GID_MAX; <!-- documents also SYS_GID_MIN -->
+      &SYS_UID_MAX; <!-- documents also SYS_UID_MIN -->
+      &TCB_AUTH_GROUP;
+      &TCB_SYMLINKS;
+      &UID_MAX; <!-- documents also UID_MIN -->
+      &UMASK;
+      &USE_TCB;
+      &USERGROUPS_ENAB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/default/useradd</filename></term>
+	<listitem>
+	  <para>Default values for account creation.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow-maint/useradd-pre.d/*</filename>, <filename>/etc/shadow-maint/useradd-post.d/*</filename></term>
+	<listitem>
+	  <para>Run-part files to execute during user addition. The environment variable <command>ACTION</command> will be populated with useradd and <command>SUBJECT</command> with the <command>username</command>. <filename>useradd-pre.d</filename> will be executed prior to any user addition. <filename>useradd-post.d</filename> will execute after user addition. If a script exits non-zero then execution will terminate.</para>
+	</listitem>
+      </varlistentry>
+  <varlistentry>
+	<term><filename>/etc/skel/</filename></term>
+	<listitem>
+	  <para>Directory containing default files.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subgid</filename></term>
+	<listitem>
+	  <para>Per user subordinate group IDs.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subuid</filename></term>
+	<listitem>
+	  <para>Per user subordinate user IDs.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>useradd</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>can't update password file</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>invalid argument to option</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>UID already in use (and no <option>-o</option>)</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>6</replaceable></term>
+	  <listitem>
+	    <para>specified group doesn't exist</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>9</replaceable></term>
+	  <listitem>
+	    <para>username or group name already in use</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>10</replaceable></term>
+	  <listitem>
+	    <para>can't update group file</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>12</replaceable></term>
+	  <listitem>
+	    <para>can't create home directory</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>14</replaceable></term>
+	  <listitem>
+	    <para>can't update SELinux user mapping</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupadd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupmod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>newusers</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <phrase condition="subids">
+	<citerefentry>
+	  <refentrytitle>subgid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+	<citerefentry>
+	  <refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

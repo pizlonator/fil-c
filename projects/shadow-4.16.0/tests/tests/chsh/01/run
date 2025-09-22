@@ -1,0 +1,143 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# Rational:
+# Test chage options
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+	for i in passwd group shadow gshadow shells
+	do
+		[ -f /etc/$i  ] && cp /etc/$i  tmp/$i
+		[ -f /etc/$i- ] && cp /etc/$i- tmp/$i-
+	done
+
+	true
+}
+
+restore()
+{
+	for i in passwd group shadow gshadow shells
+	do
+		[ -f tmp/$i  ] && cp tmp/$i  /etc/$i  && rm tmp/$i
+		[ -f tmp/$i- ] && cp tmp/$i- /etc/$i- && rm tmp/$i-
+	done
+	rm -f tmp/out
+	rm -f tmp/shell tmp/sh:ell
+	rmdir tmp
+}
+
+save
+
+# restore the files on exit
+trap 'if [ "$?" != "0" ]; then echo "FAIL"; fi; restore' 0
+
+for i in passwd group shadow gshadow shells
+do
+	cp data/$i /etc
+done
+
+echo -n "changing to a restricted shell, by root..."
+cp /bin/bash tmp/shell
+chsh -s $(pwd)/tmp/shell myuser
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:"$(pwd)"/tmp/shell" ] || exit 1
+echo "OK"
+
+echo -n "changing from a restricted shell, by myuser..."
+su myuser -c "chsh -s /bin/bash" 2> tmp/out && exit 1
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:"$(pwd)"/tmp/shell" ] || exit 1
+diff -au data/chsh1 tmp/out
+echo "OK"
+
+echo -n "changing from a restricted shell, by root..."
+chsh -s /bin/bash myuser
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+echo "OK"
+
+# Need to be done by expect now (chage asks for a passwd if not root)
+#echo -n "changing to a restricted shell, by myuser..."
+#su myuser -c "chsh -s $(pwd)/tmp/shell" 2> tmp/out && exit 1
+#ent=$(getent passwd myuser)
+#[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+#grep "/tmp/shell is an invalid shell." tmp/out > /dev/null
+#[ $(wc -l tmp/out| cut -d" " -f1) = "1" ] || exit 1
+#echo "OK"
+
+#echo -n "changing to a new valid shell, by myuser..."
+#echo $(pwd)/tmp/shell >> /tmp/shells
+#su myuser -c "chsh -s $(pwd)/tmp/shell" 2> tmp/out && exit 1
+#ent=$(getent passwd myuser)
+#[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+#grep "/tmp/shell is an invalid shell." tmp/out > /dev/null
+#[ $(wc -l tmp/out| cut -d" " -f1) = "1" ] || exit 1
+#echo "OK"
+
+echo -n "changing another user's shell..."
+su myuser -c "chsh -s /bin/sh myuser2" 2> tmp/out && exit 1
+ent=$(getent passwd myuser2)
+[ "$ent" = "myuser2:x:424243:424242::/home:/bin/sh" ] || exit 1
+diff -au data/chsh2 tmp/out
+echo "OK"
+
+#echo -n "changing to a non-executable shell..."
+#chmod a-x tmp/shell
+#su myuser -c "chsh -s $(pwd)/tmp/shell myuser" 2> tmp/out && exit 1
+#ent=$(getent passwd myuser)
+#[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+#grep "/tmp/shell is an invalid shell." tmp/out > /dev/null
+#[ $(wc -l tmp/out| cut -d" " -f1) = "1" ] || exit 1
+#echo "OK"
+
+echo -n "changing to an invalid shell name..."
+cp /bin/bash tmp/sh:ell
+echo $(pwd)/tmp/sh:ell >> /etc/shells
+chsh -s $(pwd)/tmp/sh:ell myuser 2> tmp/out && exit 1
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+grep -E "chsh: Invalid entry: .*/tmp/sh:ell" tmp/out > /dev/null
+[ $(wc -l tmp/out| cut -d" " -f1) = "1" ] || exit 1
+echo "OK"
+
+echo "testing the interactive mode (1)..."
+rm -f tmp/out
+./run.exp /bin/bash myuser
+[ -f tmp/out ] && exit 1
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+echo "OK"
+
+#echo "testing the interactive mode (2)..."
+#rm -f tmp/out
+#su myuser -c "./run.exp /bin/bash"
+#[ -f tmp/out ] && exit 1
+#ent=$(getent passwd myuser)
+#[ "$ent" = "myuser:x:424242:424242::/home:/bin/bash" ] || exit 1
+#echo "OK"
+
+echo "testing the interactive mode (3)..."
+rm -f tmp/out
+./run.exp /bin/sh myuser
+[ -f tmp/out ] && exit 1
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:/bin/sh" ] || exit 1
+echo "OK"
+
+echo "testing the interactive mode (4)..."
+rm -f tmp/out
+./run.exp $(pwd)/tmp/sh:ell myuser && exit 1
+grep -E "chsh: Invalid entry: .*/tmp/sh:ell" tmp/out > /dev/null
+ent=$(getent passwd myuser)
+[ "$ent" = "myuser:x:424242:424242::/home:/bin/sh" ] || exit 1
+echo "OK"
+

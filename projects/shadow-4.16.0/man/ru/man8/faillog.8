@@ -1,0 +1,165 @@
+'\" t
+.\"     Title: faillog
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "faillog" "8" "06/18/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+faillog \- показывает записи из файла faillog или задаёт предел неудачных попыток входа в систему
+.SH "СИНТАКСИС"
+.HP \w'\fBfaillog\fR\ 'u
+\fBfaillog\fR [\fIoptions\fR]
+.SH "ОПИСАНИЕ"
+.PP
+\fBfaillog\fR
+displays the contents of the failure log database (/var/log/faillog)\&. It can also set the failure counters and limits\&. When
+\fBfaillog\fR
+is run without arguments, it only displays the faillog records of the users who had a login failure\&.
+.SH "ПАРАМЕТРЫ"
+.PP
+The options which apply to the
+\fBfaillog\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-all\fR
+.RS 4
+Display (or act on) faillog records for all users having an entry in the
+faillog
+database\&.
+.sp
+The range of users can be restricted with the
+\fB\-u\fR
+option\&.
+.sp
+В режиме вывода это ограничивает вывод списком существующих пользователей, но при этом для них выводятся даже пустые записи faillog\&.
+.sp
+With the
+\fB\-l\fR,
+\fB\-m\fR,
+\fB\-r\fR,
+\fB\-t\fR
+options, the users\*(Aq records are changed, even if the user does not exist on the system\&. This is useful to reset records of users that have been deleted or to set a policy in advance for a range of users\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Показать краткую справку и закончить работу\&.
+.RE
+.PP
+\fB\-l\fR, \fB\-\-lock\-secs\fR\ \&\fISEC\fR
+.RS 4
+Lock account for
+\fISEC\fR
+seconds after failed login\&.
+.sp
+Write access to
+/var/log/faillog
+is required for this option\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-maximum\fR\ \&\fIMAX\fR
+.RS 4
+Set the maximum number of login failures after the account is disabled to
+\fIMAX\fR\&.
+.sp
+Selecting a
+\fIMAX\fR
+value of 0 has the effect of not placing a limit on the number of failed logins\&.
+.sp
+The maximum failure count should always be 0 for
+\fIroot\fR
+to prevent a denial of services attack against the system\&.
+.sp
+Write access to
+/var/log/faillog
+is required for this option\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-reset\fR
+.RS 4
+Сбросить счётчик неудачных попыток входа\&.
+.sp
+Write access to
+/var/log/faillog
+is required for this option\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-t\fR, \fB\-\-time\fR\ \&\fIDAYS\fR
+.RS 4
+Display faillog records more recent than
+\fIDAYS\fR\&.
+.RE
+.PP
+\fB\-u\fR, \fB\-\-user\fR\ \&\fILOGIN\fR|\fIRANGE\fR
+.RS 4
+Display faillog record or maintains failure counters and limits (if used with
+\fB\-l\fR,
+\fB\-m\fR
+or
+\fB\-r\fR
+options) only for the specified user(s)\&.
+.sp
+The users can be specified by a login name, a numerical user ID, or a
+\fIRANGE\fR
+of users\&. This
+\fIRANGE\fR
+of users can be specified with a min and max values (\fIUID_MIN\-UID_MAX\fR), a max value (\fI\-UID_MAX\fR), or a min value (\fIUID_MIN\-\fR)\&.
+.RE
+.PP
+When none of the
+\fB\-l\fR,
+\fB\-m\fR, or
+\fB\-r\fR
+options are used,
+\fBfaillog\fR
+displays the faillog record of the specified user(s)\&.
+.SH "ПРЕДОСТЕРЕЖЕНИЯ"
+.PP
+\fBfaillog\fR
+only prints out users with no successful login since the last failure\&. To print out a user who has had a successful login since their last failure, you must explicitly request the user with the
+\fB\-u\fR
+flag, or print out all users with the
+\fB\-a\fR
+flag\&.
+.SH "ФАЙЛЫ"
+.PP
+/var/log/faillog
+.RS 4
+журнал неудавшихся попыток входа в систему
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBlogin\fR(1),
+\fBfaillog\fR(5)\&.

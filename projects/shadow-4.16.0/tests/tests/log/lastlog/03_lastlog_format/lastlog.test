@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "reports all entry from /var/log/lastlog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/lastlog (it will not be restored)..."
+> /var/log/lastlog
+echo "OK"
+
+cp data/lastlog.out tmp/lastlog.out1
+cp data/lastlog.out tmp/lastlog.out2
+TTY=0
+while true
+do
+	[ ! -e /dev/pts/$TTY ] && break
+	TTY=$((TTY+1))
+done
+	
+
+DATE=$(LC_ALL=C date +"%a %b %e %H:%M:%S %z %Y")
+printf "%-16s %-8.8s %-16.16s %s\n" foo "pts/$TTY" "" "$DATE" >> tmp/lastlog.out1
+
+echo -n "Trigger a connection as foo..."
+./login.exp
+echo "OK"
+
+DATE=$(LC_ALL=C date +"%a %b %e %H:%M:%S %z %Y")
+printf "%-16s %-8.8s %-16.16s %s\n" foo "pts/$TTY" "" "$DATE" >> tmp/lastlog.out2
+
+echo -n "lastlog..."
+lastlog > tmp/lastlog.out
+echo "OK."
+
+echo "lastlog :"
+echo "======================================================================="
+cat tmp/lastlog.out
+echo "======================================================================="
+
+echo -n "Check the lastlog message..."
+diff -au tmp/lastlog.out tmp/lastlog.out1 || diff -au tmp/lastlog.out tmp/lastlog.out2
+echo "lastlog message OK."
+rm -f tmp/lastlog.out tmp/lastlog.out1 tmp/lastlog.out2
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

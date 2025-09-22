@@ -1,0 +1,64 @@
+.TH SHADOW 5
+.do hla cs
+.do hpf hyphen.cs
+.SH JMÉNO
+shadow \- soubor se zašifrovanými hesly
+.SH POPIS
+.I shadow
+obsahuje informace o zašifrovaných heslech uživatelských účtů a
+volitelně může obsahovat informace o stárnutí hesel. Soubor obsahuje
+
+.IP "" .5i
+Přihlašovací jméno
+.IP "" .5i
+Zašifrované heslo
+.IP "" .5i
+Počet dnů od 1. ledna 1970, kdy bylo heslo naposledy změněno
+.IP "" .5i
+Počet dnů, po jejichž uplynutí může být heslo změněno
+.IP "" .5i
+Počet dnů, po jejichž uplynutí musí být heslo změněno
+.IP "" .5i
+Počet dnů před lhůtou, kdy je uživatel varován, že heslo vyprší
+.IP "" .5i
+Počet dnů, po jejichž uplynutí po propadnutí hesla je zablokován účet.
+.IP "" .5i
+Počet dnů od 1. ledna 1970, kdy byl účet zablokován
+.IP "" .5i
+Rezervované pole
+.PP
+Pole hesla musí být vyplněno. Zašifrované heslo se skládá ze 13 až 24
+znaků z 64 prvkové množiny znaků (a až z, A až Z, 0 až 9, \. a
+/). \fIcrypt(3)\fR obsahuje detailní informace o tom, jak
+interpretovat tento řetězec.
+.PP
+Datum poslední změny hesla je dáno počtem dní od 1. ledna 1970. Heslo
+nesmí býti znovu změněno dokud řádně neuplyne specifikovaný počet dní,
+a musí být změněno po uplynutí maximálního počtu dní. Pokud je
+minimální počet dnů platnosti hesla vyšší než maximální počet
+povolených dní, heslo nemůže být změněno uživatelem.
+.PP
+Účet je považován za neaktivní a bude zablokován, jestliže heslo není
+změněno během určeného počtu dní po vypršení platnosti hesla. Účet
+bude také zablokován v určený den nezávisle na ostatních informacích o
+vypršení hesla.
+.PP
+Tyto informace o heslu a době jeho platnosti mají prioritu před
+informacemi uloženými v souboru \fB/etc/passwd\fR.
+.PP
+Tento soubor nesmí být čitelný řádnými uživateli, má\-li být
+ochrana hesel účinná.
+.SH SOUBORY
+\fI/etc/passwd\fR \- informace o uživatelských účtech
+.br
+\fI/etc/shadow\fR \- zašifrovaná hesla uživatelů
+.SH DALŠÍ INFORMACE
+chage(1),
+login(1),
+passwd(1),
+su(1),
+sulogin(1M),
+shadow(3),
+passwd(5),
+pwconv(8),
+pwunconv(8)

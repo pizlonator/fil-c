@@ -1,0 +1,89 @@
+.\"$Id$
+.\"
+.\" Japanese Version Copyright (c) 2001 Maki KURODA
+.\"     all right reserved,
+.\" Translated Mon Nov  5 18:12:16 JST 2001
+.\" by Maki KURODA <mkuroda@aisys-jp.com>
+.\" Modified Tue 18 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH LIMITS 5
+.SH 名前
+limits \- リソース制限の定義
+.SH 説明
+.I limits
+ファイル (デフォルトでは /etc/limits。
+あるいは config.h で定義した LIMITS_FILE)
+には、設定したいリソース制限を記述する。
+このファイルは root が所有し、
+root アカウントのみが読み込み可能とするべきである．
+.PP
+デフォルトでは root に対する制限は設定できない。
+実は、root と同等のアカウント (UID 0 のアカウント)
+をこの手段によって制限することはできない。
+.PP
+各行には以下の形式でユーザに対する制限を記述する。
+.sp
+.I	user LIMITS_STRING
+.PP
+\fBLIMITS_STRING\fP はリソース制限の定義を連結させた文字列である。
+各制限の定義は、1 文字の識別子と、それに続く制限数値からなる。
+.PP
+有効な識別子は以下の通り。
+.sp
+A: アドレス空間の最大値 (KB)
+.br
+C: コアファイルサイズの最大値 (KB)
+.br
+D: データサイズの最大値 (KB)
+.br
+F: ファイルサイズの最大値 (KB)
+.br
+M: メモリ上にロックできるアドレス空間の最大値 (KB)
+.br
+N: ファイルオープン数の最大値
+.br
+R: レジデントセットサイズの最大値 (KB)
+.br
+S: スタックサイズの最大値 (KB)
+.br
+T: CPU 時間の最大値 (分)
+.br
+U: プロセス数の最大値
+.br
+K: \fBumask\fR(2) により設定される、ファイル作成時の mask
+.br
+L: このユーザの同時ログイン数の最大値
+.br
+P: \fBsetpriority\fR(2) によって設定されるプロセス優先度
+.PP
+例えば、\fIL2D2048N5\fP は正しい \fBLIMITS_STRING\fP である。
+以下の 2 つの例は等価である。2 番目のように読み易く書くこともできる。
+.sp
+username L2D2048N5
+.br
+username L2 D2048 N5
+.PP
+\fIusername\fP 以降の行の残りが制限用の文字列として扱われるので、
+コメントは書くことができない。
+login プログラムは、正しくない制限文字列は拒絶する (無視する)。
+.PP
+デフォルトのエントリは、ユーザ名が "\fB*\fP" となっているものである。
+\fBLIMITS_FILE\fP に複数の\fIデフォルト\fPを登録すると、
+最後のものがデフォルト指定として使用される。
+.PP
+あるユーザへの制限を完全に無効にするには、
+シングルダッシュ "\fB\-\fP" を使用する。
+.PP
+さらに、全ての制限の設定は「ログイン単位」で設定されていることに注意すること。
+制限はグローバルではなく、永続的でもない。
+グローバルな制限はいずれ可能になるだろうが、
+今のところは「TO DO」である。;)
+.\"nakano 二番目の文これでいいのかなあ。
+.SH ファイル
+\fI/etc/limits\fR
+.SH 関連項目
+.BR login (1),
+.BR setpriority (2),
+.BR setrlimit (2)
+.SH 著者
+Cristian Gafton (gafton@sorosis.ro)

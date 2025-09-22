@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "usermod can create overlapping subuid and subgid ranges"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create ranges of subuid and subgid for user foo (usermod -v 101000-101500 -w 100000-100501 -w 100500-101501 -v 100000-101000 -v 200000-200010 -v 200011-200020 -w 100000-100401 foo)..."
+usermod -v 101000-101500 -w 100000-100501 -w 100500-101501 -v 100000-101000 -v 200000-200010 -v 200011-200020 -w 100000-100401 foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the /etc/subgid file..."
+../../common/compare_file.pl data/subgid /etc/subgid
+echo "OK"
+echo -n "Check the /etc/subuid file..."
+../../common/compare_file.pl data/subuid /etc/subuid
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

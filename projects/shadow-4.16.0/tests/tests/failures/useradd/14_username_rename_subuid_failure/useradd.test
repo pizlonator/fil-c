@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "useradd reports failure to write /etc/subuid"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Add group foo (useradd foo)..."
+LD_PRELOAD=../../../common/rename_failure.so FAILURE_PATH=/etc/subuid useradd foo 2>tmp/useradd.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "16"
+echo "OK"
+
+echo "useradd reported:"
+echo "======================================================================="
+cat tmp/useradd.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/useradd.err tmp/useradd.err
+echo "error message OK."
+rm -f tmp/useradd.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl data/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl data/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl data/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the /etc/subgid file..."
+../../../common/compare_file.pl config/etc/subgid /etc/subgid
+echo "OK"
+echo -n "Check the /etc/subuid file..."
+../../../common/compare_file.pl config/etc/subuid /etc/subuid
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,31 @@
+#!/usr/bin/expect
+
+set timeout 5
+
+# I've not been able to put the opening bracket in the regular expressions
+# If anyone knows...
+
+spawn /usr/bin/chage myuser7
+expect -re "Minimum Password Age .13\]: "
+send "\r"
+expect -re "Maximum Password Age .14\]: "
+send "\r"
+expect -re "Last Password Change \[(]YYYY-MM-DD\[)] .2005-07-26\]: "
+send "\r"
+expect -re "Password Expiration Warning .9\]: "
+send "\r"
+expect -re "Password Inactive .35\]: "
+send "\r"
+expect -re "Account Expiration Date \[(]YYYY-MM-DD\[)] .2012-07-27\]: "
+send "\r"
+expect {
+	eof {
+	} default {
+		puts "\nFAIL"
+		exit 1
+	}
+}
+
+puts "\nPASS"
+exit 0
+

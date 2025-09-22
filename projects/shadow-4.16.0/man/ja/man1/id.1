@@ -1,0 +1,33 @@
+.\" SPDX-FileCopyrightText: 1991 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: Copyright (c) 2000 ISHIKAWA Keisuke
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Thu Nov  9 23:17:10 JST 2000
+.\"         by ISHIKAWA Keisuke
+.\" Modified Tue 16 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.\" $Id$
+.\"
+.TH ID 1
+.SH 名前
+id \- 現在のユーザ ID 名とグループ ID 名を表示する
+.SH 書式
+\fBid\fR [\fB\-a\fR]
+.SH 説明
+\fBid\fRは、現在の実ユーザ ID、実効ユーザ ID、実グループ ID、
+実効グループ ID の名前または値を表示する。
+値に対応するエントリが \fI/etc/passwd\fR や
+\fI/etc/group\fR に存在しない場合は、
+対応する名前は表示されずに値だけが表示される。
+ユーザが同時に複数のグループのメンバーになれるシステムでは、
+\fB\-a\fR オプションを指定するとグループの集合が表示される。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザーアカウント情報
+.br
+\fI/etc/group\fR \ \- グループ情報
+.SH 関連項目
+.BR getgid (2),
+.BR getgroups (2),
+.BR getuid (2)
+.SH 著者
+Julianne Frances Haugh <julie78787@gmail.com>

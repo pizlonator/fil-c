@@ -1,0 +1,3908 @@
+# translation of ru.po to Russian
+# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+#
+# Nikolai Prokoschenko <nikolai@prokoschenko.de>, 2004.
+# Eugene Konev <ejka@imfi.kspu.ru>, 2004.
+# alyoshin.s@gmail.com <alyoshin.s@gmail.com>, 2008.
+# Yuri Kozlov <kozlov.y@gmail.com>, 2004, 2005, 2006, 2007, 2008.
+# Yuri Kozlov <yuray@komyakino.ru>, 2009, 2011, 2012, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: shadow 4.1.5.1-1\n"
+"Report-Msgid-Bugs-To: pkg-shadow-devel@lists.alioth.debian.org\n"
+"POT-Creation-Date: 2024-06-18 16:40-0500\n"
+"PO-Revision-Date: 2017-03-05 11:14+0300\n"
+"Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
+"Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 2.0\n"
+"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#, c-format
+msgid "Warning: unknown group %s\n"
+msgstr "Предупреждение: неизвестная группа %s\n"
+
+msgid "Warning: too many groups\n"
+msgstr "Предупреждение: слишком много групп\n"
+
+msgid "Your password has expired."
+msgstr "Срок действия вашего пароля истёк."
+
+msgid "Your password is inactive."
+msgstr "Действие вашего пароля приостановлено."
+
+msgid "Your login has expired."
+msgstr "Срок действия вашей учётной записи истёк."
+
+msgid "  Contact the system administrator."
+msgstr "  Обратитесь к системному администратору."
+
+msgid "  Choose a new password."
+msgstr "  Выберите и введите новый пароль."
+
+msgid "You must change your password."
+msgstr "Вы должны изменить свой пароль."
+
+#, c-format
+msgid "Your password will expire in %ld days.\n"
+msgstr "Срок действия вашего пароля истекает через %ld дней.\n"
+
+msgid "Your password will expire tomorrow."
+msgstr "Срок действия вашего пароля истекает завтра."
+
+msgid "Your password will expire today."
+msgstr "Срок действия вашего пароля истекает сегодня."
+
+msgid "Cannot open audit interface - aborting.\n"
+msgstr ""
+"Не удалось открыть интерфейс протоколирования (audit) — прекращение работы.\n"
+
+#, c-format
+msgid "Unable to change owner or mode of tty stdin: %s"
+msgstr "Не удалось изменить владельца или права на tty stdin: %s"
+
+#, c-format
+msgid "%s: failed to unlock %s\n"
+msgstr "%s: не удалось разблокировать %s\n"
+
+#, c-format
+msgid ""
+"Multiple entries named '%s' in %s. Please fix this with pwck or grpck.\n"
+msgstr ""
+"Существует сразу несколько записей с именем «%s» в %s. Исправьте это с "
+"помощью pwck или grpck.\n"
+
+#, c-format
+msgid "%s: "
+msgstr "%s: "
+
+msgid ": "
+msgstr ": "
+
+#, c-format
+msgid "crypt method not supported by libcrypt? (%s)\n"
+msgstr "алгоритм шифрования не поддерживается libcrypt? (%s)\n"
+
+#, c-format
+msgid "You may not change $%s\n"
+msgstr "Вы не можете изменить $%s\n"
+
+#, c-format
+msgid ""
+"%d failure since last login.\n"
+"Last was %s on %s.\n"
+msgid_plural ""
+"%d failures since last login.\n"
+"Last was %s on %s.\n"
+msgstr[0] ""
+"%d неудачная попытка входа в систему.\n"
+"Последняя была %s на %s.\n"
+msgstr[1] ""
+"%d неудачных попытки входа в систему.\n"
+"Последняя была %s на %s.\n"
+msgstr[2] ""
+"%d неудачных попыток входа в систему.\n"
+"Последняя была %s на %s.\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX "
+"(%lu)\n"
+msgstr ""
+"%s: неверная настройка: SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Invalid configuration: GID_MIN (%lu), GID_MAX (%lu)\n"
+msgstr "%s: неверная настройка: GID_MIN (%lu), GID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Encountered error attempting to use preferred GID: %s\n"
+msgstr ""
+
+#, c-format
+msgid "%s: failed to allocate memory: %s\n"
+msgstr "%s: не удалось выделить память: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Can't get unique system GID (no more available GIDs)\n"
+msgid ""
+"%s: Can't get unique system GID (%s). Suppressing additional messages.\n"
+msgstr ""
+"%s: не удалось получить уникальный системный GID (кончились свободные GID-"
+"ы)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Can't get unique GID (no more available GIDs)\n"
+msgid "%s: Can't get unique GID (%s). Suppressing additional messages.\n"
+msgstr "%s: не удалось получить уникальный GID (кончились свободные GID-ы)\n"
+
+#, c-format
+msgid "%s: Can't get unique GID (no more available GIDs)\n"
+msgstr "%s: не удалось получить уникальный GID (кончились свободные GID-ы)\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: Invalid configuration: SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX "
+#| "(%lu)\n"
+msgid ""
+"%s: Invalid configuration: SUB_GID_MIN (%lu), SUB_GID_MAX (%lu), "
+"SUB_GID_COUNT (%lu)\n"
+msgstr ""
+"%s: неверная настройка: SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX (%lu)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: can't find subordinate user range\n"
+msgid "%s: Can't get unique subordinate GID range\n"
+msgstr "%s: не удалось найти подчинённый диапазон пользователей\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: Invalid configuration: SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX "
+#| "(%lu)\n"
+msgid ""
+"%s: Invalid configuration: SUB_UID_MIN (%lu), SUB_UID_MAX (%lu), "
+"SUB_UID_COUNT (%lu)\n"
+msgstr ""
+"%s: неверная настройка: SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX (%lu)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: can't find subordinate user range\n"
+msgid "%s: Can't get unique subordinate UID range\n"
+msgstr "%s: не удалось найти подчинённый диапазон пользователей\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX "
+"(%lu)\n"
+msgstr ""
+"%s: неверная настройка: SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Invalid configuration: UID_MIN (%lu), UID_MAX (%lu)\n"
+msgstr "%s: неверная настройка: UID_MIN (%lu), UID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Encountered error attempting to use preferred UID: %s\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: Can't get unique system UID (no more available UIDs)\n"
+msgid ""
+"%s: Can't get unique system UID (%s). Suppressing additional messages.\n"
+msgstr ""
+"%s: не удалось получить уникальный системный UID (кончились свободные UID-"
+"ы)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Can't get unique UID (no more available UIDs)\n"
+msgid "%s: Can't get unique UID (%s). Suppressing additional messages.\n"
+msgstr "%s: не удалось получить уникальный UID (кончились свободные UID-ы)\n"
+
+#, c-format
+msgid "%s: Can't get unique UID (no more available UIDs)\n"
+msgstr "%s: не удалось получить уникальный UID (кончились свободные UID-ы)\n"
+
+#, c-format
+msgid "configuration error - cannot parse %s value: '%s'"
+msgstr "ошибка настройки: не удалось разобрать значение %s: «%s»"
+
+msgid "Could not allocate space for config info.\n"
+msgstr "Не удалось выделить память для загрузки настроек.\n"
+
+#, c-format
+msgid "configuration error - unknown item '%s' (notify administrator)\n"
+msgstr "ошибка настройки: неизвестный элемент «%s» (сообщите администратору)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Authentication failure\n"
+msgid "%s: Memory allocation failure\n"
+msgstr "%s: не удалось пройти проверку подлинности\n"
+
+#, c-format
+msgid "%s: subuid overflow detected.\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: invalid field '%s'\n"
+msgid "%s: Invalid map file %s specified\n"
+msgstr "%s: неверное поле «%s»\n"
+
+#, c-format
+msgid "%s: Could not prctl(PR_SET_KEEPCAPS)\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "Could not set name for %s\n"
+msgid "%s: Could not seteuid to %d\n"
+msgstr "Невозможно задать имя для %s\n"
+
+#, fuzzy, c-format
+#| msgid "Could not set name for %s\n"
+msgid "%s: Could not set caps\n"
+msgstr "Невозможно задать имя для %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: stpeprintf failed!\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: open of %s failed: %s\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: write to %s failed: %s\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: closing %s failed: %s\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+msgid "Too many logins.\n"
+msgstr "Слишком много попыток входа в систему.\n"
+
+#, c-format
+msgid ""
+"\n"
+"%s login: "
+msgstr ""
+"\n"
+"Имя пользователя %s: "
+
+msgid "You have new mail."
+msgstr "Для вас есть новые почтовые сообщения."
+
+msgid "No mail."
+msgstr "Для вас нет почтовых сообщений."
+
+msgid "You have mail."
+msgstr "Для вас есть почтовые сообщения."
+
+#, c-format
+msgid "%s: nscd did not terminate normally (signal %d)\n"
+msgstr "%s: nscd завершился с ошибкой (по сигналу %d)\n"
+
+#, c-format
+msgid "%s: nscd exited with status %d\n"
+msgstr "%s: nscd завершился с кодом выхода %d\n"
+
+msgid "no change"
+msgstr "изменений не внесено"
+
+msgid "a palindrome"
+msgstr "палиндром"
+
+msgid "case changes only"
+msgstr "изменение только в регистре символов"
+
+msgid "too similar"
+msgstr "слишком похожий"
+
+msgid "rotated"
+msgstr "перестановка символов"
+
+msgid "too short"
+msgstr "слишком короткий"
+
+#, c-format
+msgid "Bad password: %s.  "
+msgstr "Неверный пароль: %s.  "
+
+#, c-format
+msgid "passwd: pam_start() failed, error %d\n"
+msgstr "passwd: не удалось выполнить pam_start(), ошибка %d\n"
+
+#, c-format
+msgid "passwd: %s\n"
+msgstr "passwd: %s\n"
+
+#
+msgid "passwd: password unchanged\n"
+msgstr "passwd: пароль не изменён\n"
+
+msgid "passwd: password updated successfully\n"
+msgstr "passwd: пароль успешно обновлён\n"
+
+#, c-format
+msgid "%s: PAM modules requesting echoing are not supported.\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: repository %s not supported\n"
+msgid "%s: conversation type %d not supported.\n"
+msgstr "%s: хранилище %s не поддерживается\n"
+
+#, fuzzy, c-format
+#| msgid "%s: pam_start: error %d\n"
+msgid "%s: (user %s) pam_start failure %d\n"
+msgstr "%s: pam_start: ошибка %d\n"
+
+#, fuzzy, c-format
+#| msgid "passwd: pam_start() failed, error %d\n"
+msgid ""
+"%s: (user %s) pam_chauthtok() failed, error:\n"
+"%s\n"
+msgstr "passwd: не удалось выполнить pam_start(), ошибка %d\n"
+
+msgid "Password: "
+msgstr "Пароль: "
+
+#, c-format
+msgid "%s's Password: "
+msgstr "Пароль пользователя %s: "
+
+#, c-format
+msgid "Incorrect password for %s.\n"
+msgstr "Неверный пароль для %s.\n"
+
+#, c-format
+msgid "%s: multiple --root options\n"
+msgstr "%s: несколько параметров --root\n"
+
+#, c-format
+msgid "%s: option '%s' requires an argument\n"
+msgstr "%s: для параметра «%s» требуется аргумент\n"
+
+#, c-format
+msgid "%s: failed to drop privileges (%s)\n"
+msgstr "%s: не удалось снизить уровень привилегий (%s)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: invalid chroot path '%s'\n"
+msgid "%s: invalid chroot path '%s', only absolute paths are supported.\n"
+msgstr "%s: некорректное значение пути chroot «%s»\n"
+
+#, c-format
+msgid "%s: cannot access chroot directory %s: %s\n"
+msgstr "%s: нет доступа к каталогу chroot %s: %s\n"
+
+#, c-format
+msgid "%s: unable to chroot to directory %s: %s\n"
+msgstr "%s: не удалось выполнить chroot в каталог %s: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot chdir to chroot directory %s: %s\n"
+msgid "%s: cannot chdir in chroot directory %s: %s\n"
+msgstr "%s: не удалось выполнить chdir в chroot-каталог %s: %s\n"
+
+#, c-format
+msgid ""
+"Invalid ENCRYPT_METHOD value: '%s'.\n"
+"Defaulting to DES.\n"
+msgstr ""
+"Неправильное значение для ENCRYPT_METHOD: «%s».\n"
+"Используется значение по умолчанию DES.\n"
+
+#, c-format
+msgid ""
+"Unable to generate a salt from setting \"%s\", check your settings in "
+"ENCRYPT_METHOD and the corresponding configuration for your selected hash "
+"method.\n"
+msgstr ""
+
+#, fuzzy
+#| msgid "Cannot open audit interface - aborting.\n"
+msgid "Cannot open audit interface.\n"
+msgstr ""
+"Не удалось открыть интерфейс протоколирования (audit) — прекращение работы.\n"
+
+#, c-format
+msgid "%s: can not get previous SELinux process context: %s\n"
+msgstr ""
+
+#, c-format
+msgid "[libsemanage]: %s\n"
+msgstr "[libsemanage]: %s\n"
+
+#, c-format
+msgid "Cannot create SELinux management handle\n"
+msgstr "Невозможно создать управляющий описатель SELinux\n"
+
+#, c-format
+msgid "SELinux policy not managed\n"
+msgstr "Политика SELinux не управляема\n"
+
+#, c-format
+msgid "Cannot read SELinux policy store\n"
+msgstr "Невозможно прочитать хранилище политики SELinux\n"
+
+#, c-format
+msgid "Cannot establish SELinux management connection\n"
+msgstr "Невозможно установить управляющее подключение SELinux\n"
+
+#, c-format
+msgid "Cannot begin SELinux transaction\n"
+msgstr "Невозможно начать транзакцию SELinux\n"
+
+#, c-format
+msgid "Could not query seuser for %s\n"
+msgstr "Не удалось запросить seuser для %s\n"
+
+#, fuzzy, c-format
+#| msgid "Could not set serange for %s\n"
+msgid "Could not set serange for %s to %s\n"
+msgstr "Не удалось назначить serange для %s\n"
+
+#, c-format
+msgid "Could not set sename for %s\n"
+msgstr "Не удалось назначить sename для %s\n"
+
+#, c-format
+msgid "Could not modify login mapping for %s\n"
+msgstr "Не удалось изменить сопоставление входа для %s\n"
+
+#, c-format
+msgid "Cannot create SELinux login mapping for %s\n"
+msgstr "Невозможно создать сопоставление входа SELinux для %s\n"
+
+#, c-format
+msgid "Could not set name for %s\n"
+msgstr "Невозможно задать имя для %s\n"
+
+#, c-format
+msgid "Could not set SELinux user for %s\n"
+msgstr "Невозможно задать пользователя SELinux для %s\n"
+
+#, c-format
+msgid "Could not add login mapping for %s\n"
+msgstr "Невозможно добавить сопоставление входа для %s\n"
+
+#, c-format
+msgid "Cannot init SELinux management\n"
+msgstr "Невозможно инициализировать управление SELinux\n"
+
+#, c-format
+msgid "Cannot create SELinux user key\n"
+msgstr "Невозможно создать ключ пользователя SELinux\n"
+
+#, c-format
+msgid "Cannot verify the SELinux user\n"
+msgstr "Невозможно проверить пользователя SELinux\n"
+
+#, c-format
+msgid "Cannot modify SELinux user mapping\n"
+msgstr "Невозможно изменить пользовательское сопоставление SELinux\n"
+
+#, c-format
+msgid "Cannot add SELinux user mapping\n"
+msgstr "Невозможно добавить пользовательское сопоставление SELinux\n"
+
+#, c-format
+msgid "Cannot commit SELinux transaction\n"
+msgstr "Невозможно зафиксировать транзакцию SELinux\n"
+
+#, c-format
+msgid "Login mapping for %s is not defined, OK if default mapping was used\n"
+msgstr ""
+"Сопоставление входа для %s не определено; нормально, если использовалось "
+"сопоставление по умолчанию\n"
+
+#, c-format
+msgid "Login mapping for %s is defined in policy, cannot be deleted\n"
+msgstr ""
+"Сопоставление входа для %s определено в политике и не может быть удалено\n"
+
+#, c-format
+msgid "Could not delete login mapping for %s"
+msgstr "Невозможно удалить сопоставление входа для %s"
+
+#, c-format
+msgid "Unable to cd to '%s'\n"
+msgstr "Невозможно перейти в каталог «%s»\n"
+
+msgid "No directory, logging in with HOME=/"
+msgstr ""
+"Каталог отсутствует или недоступен, вход в систему выполняется с HOME=/"
+
+#, c-format
+msgid "Cannot execute %s"
+msgstr "Не удалось выполнить %s"
+
+#, c-format
+msgid "Maximum subsystem depth reached\n"
+msgstr ""
+
+#, c-format
+msgid "Invalid root directory '%s'\n"
+msgstr "Неверный корневой каталог «%s»\n"
+
+#, c-format
+msgid "Can't change root directory to '%s'\n"
+msgstr "Не удалось изменить корневой каталог на «%s»\n"
+
+#, c-format
+msgid "%s: out of memory\n"
+msgstr "%s: нехватка памяти\n"
+
+#, c-format
+msgid "%s: Cannot stat %s: %s\n"
+msgstr "%s: не удалось выполнить функцию stat для %s: %s\n"
+
+#, c-format
+msgid "%s: %s is neither a directory, nor a symlink.\n"
+msgstr "%s: %s не является каталогом или символьной ссылкой\n"
+
+#, c-format
+msgid "%s: Cannot read symbolic link %s: %s\n"
+msgstr "%s: не удалось прочитать символьную ссылку %s: %s\n"
+
+#, c-format
+msgid "%s: Suspiciously long symlink: %s\n"
+msgstr "%s: вероятно, слишком длинная символьная ссылка: %s\n"
+
+#, c-format
+msgid "%s: Cannot create directory %s: %s\n"
+msgstr "%s: не удалось создать каталог %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot change owner of %s: %s\n"
+msgstr "%s: не удалось изменить владельца %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot change mode of %s: %s\n"
+msgstr "%s: не удалось изменить права доступа %s: %s\n"
+
+#, c-format
+msgid "%s: unlink: %s: %s\n"
+msgstr "%s: unlink: %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot remove directory %s: %s\n"
+msgstr "%s: не удалось удалить каталог %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot rename %s to %s: %s\n"
+msgstr "%s: не удалось переименовать каталог %s в %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot remove %s: %s\n"
+msgstr "%s: не удалось удалить %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot create symbolic link %s: %s\n"
+msgstr "%s: не удалось создать символьную ссылку %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot change owners of %s: %s\n"
+msgstr "%s: не удалось изменить владельцев %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot lstat %s: %s\n"
+msgstr "%s: не удалось выполнить функцию lstat для %s: %s\n"
+
+#, c-format
+msgid "%s: Warning, user %s has no tcb shadow file.\n"
+msgstr ""
+"%s: предупреждение: у пользователя %s отсутствует файл shadow в структуре "
+"tcb.\n"
+
+#, c-format
+msgid ""
+"%s: Emergency: %s's tcb shadow is not a regular file with st_nlink=1.\n"
+"The account is left locked.\n"
+msgstr ""
+"%s: чрезвычайная ситуация: файл shadow у %s в структуре tcb не является\n"
+"обычным файлом с st_nlink=1. Учётная запись остаётся заблокированной.\n"
+
+#, c-format
+msgid "%s: mkdir: %s: %s\n"
+msgstr "%s: mkdir: %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot open %s: %s\n"
+msgstr "%s: не удалось открыть %s: %s\n"
+
+#, c-format
+msgid "%s: user %s is currently logged in\n"
+msgstr "%s: пользователь %s сейчас работает в системе\n"
+
+#, fuzzy, c-format
+#| msgid "%s: user %s is currently logged in\n"
+msgid "%s: user %s is currently used by process %d\n"
+msgstr "%s: пользователь %s сейчас работает в системе\n"
+
+msgid "Unable to determine your tty name."
+msgstr "Не удалось определить название вашего tty."
+
+msgid "No"
+msgstr "Нет"
+
+#, c-format
+msgid ""
+"Usage: %s [options] LOGIN\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] ПОЛЬЗОВАТЕЛЬ\n"
+"\n"
+"Параметры:\n"
+
+msgid ""
+"  -d, --lastday LAST_DAY        set date of last password change to "
+"LAST_DAY\n"
+msgstr ""
+"  -d, --lastday ПОСЛ_ДЕНЬ       установить последний день смены пароля\n"
+"                                в ПОСЛ_ДЕНЬ\n"
+
+msgid ""
+"  -E, --expiredate EXPIRE_DATE  set account expiration date to EXPIRE_DATE\n"
+msgstr ""
+"  -E, --expiredate ДАТА_УСТ     установить дату окончания действия\n"
+"                                учётной записи в ДАТА_УСТ\n"
+
+msgid "  -h, --help                    display this help message and exit\n"
+msgstr ""
+"  -h, --help                    показать данное сообщение и закончить "
+"работу\n"
+
+#, fuzzy
+#| msgid "  -g, --group                   edit group database\n"
+msgid "  -i, --iso8601                 use YYYY-MM-DD when printing dates\n"
+msgstr "  -g, --group                   редактировать базу данных групп\n"
+
+msgid ""
+"  -I, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr ""
+"  -I, --inactive НЕАКТИВНОСТЬ   установить неактивность пароля после\n"
+"                                устаревания в значение НЕАКТИВНОСТЬ\n"
+
+msgid "  -l, --list                    show account aging information\n"
+msgstr "  -l, --list                    показать «возраст» учётной записи\n"
+
+msgid ""
+"  -m, --mindays MIN_DAYS        set minimum number of days before password\n"
+"                                change to MIN_DAYS\n"
+msgstr ""
+"  -m, --mindays МИН_ДНЕЙ        установить минимальное число дней перед\n"
+"                                сменой пароля в МИН_ДНЕЙ\n"
+
+#, fuzzy
+msgid ""
+"  -M, --maxdays MAX_DAYS        set maximum number of days before password\n"
+"                                change to MAX_DAYS\n"
+msgstr ""
+"  -M, --maxdays МАКС_ДНЕЙ       установить максимальное число дней перед\n"
+"                                сменой пароля в МАКС_ДНЕЙ\n"
+
+msgid "  -R, --root CHROOT_DIR         directory to chroot into\n"
+msgstr ""
+"  -R, --root КАТ_CHROOT         каталог, в который выполняется chroot\n"
+
+#, fuzzy
+#| msgid "  -R, --root CHROOT_DIR         directory to chroot into\n"
+msgid "  -P, --prefix PREFIX_DIR       directory prefix\n"
+msgstr ""
+"  -R, --root КАТ_CHROOT         каталог, в который выполняется chroot\n"
+
+msgid ""
+"  -W, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+msgstr ""
+"  -W, --warndays ПРЕДУП_ДНЕЙ    установить количество дней с выдачей\n"
+"                                предупреждения в ПРЕДУП_ДНЕЙ\n"
+
+msgid "Enter the new value, or press ENTER for the default"
+msgstr ""
+"Введите новое значение или нажмите ENTER для выбора значения по умолчанию"
+
+msgid "Minimum Password Age"
+msgstr "Минимальный срок действия пароля"
+
+msgid "Maximum Password Age"
+msgstr "Максимальный срок действия пароля"
+
+msgid "Last Password Change (YYYY-MM-DD)"
+msgstr "Последний раз пароль был изменён (ГГГГ-ММ-ДД)"
+
+msgid "Password Expiration Warning"
+msgstr "Предупреждать об истечении срока действия пароля за"
+
+msgid "Password Inactive"
+msgstr "Деактивировать учётную запись через"
+
+msgid "Account Expiration Date (YYYY-MM-DD)"
+msgstr "Дата истечения срока действия учётной записи (ГГГГ-ММ-ДД)"
+
+msgid "never"
+msgstr "никогда"
+
+msgid "future"
+msgstr ""
+
+msgid "Last password change\t\t\t\t\t: "
+msgstr "Последний раз пароль был изменён\t\t\t\t: "
+
+msgid "password must be changed"
+msgstr "пароль должен быть изменён"
+
+msgid "Password expires\t\t\t\t\t: "
+msgstr "Срок действия пароля истекает\t\t\t\t\t: "
+
+msgid "Password inactive\t\t\t\t\t: "
+msgstr "Пароль будет деактивирован через\t\t\t\t: "
+
+msgid "Account expires\t\t\t\t\t\t: "
+msgstr "Срок действия учётной записи истекает\t\t\t\t: "
+
+#, c-format
+msgid "Minimum number of days between password change\t\t: %ld\n"
+msgstr "Минимальное количество дней между сменой пароля\t\t\t: %ld\n"
+
+#, c-format
+msgid "Maximum number of days between password change\t\t: %ld\n"
+msgstr "Максимальное количество дней между сменой пароля\t\t: %ld\n"
+
+#, c-format
+msgid "Number of days of warning before password expires\t: %ld\n"
+msgstr "Количество дней с предупреждением перед деактивацией пароля\t: %ld\n"
+
+#, c-format
+msgid "%s: invalid date '%s'\n"
+msgstr "%s: неверная дата «%s»\n"
+
+#, c-format
+msgid "%s: invalid numeric argument '%s'\n"
+msgstr "%s: неверное числовое значение параметра «%s»\n"
+
+#, c-format
+msgid "%s: do not include \"l\" with other flags\n"
+msgstr "%s: не используйте «l» совместно с другими параметрами\n"
+
+#, c-format
+msgid "%s: Permission denied.\n"
+msgstr "%s: доступ запрещён.\n"
+
+#, c-format
+msgid "%s: Cannot determine your user name.\n"
+msgstr "%s: не удалось определить имя пользователя.\n"
+
+#, c-format
+msgid "%s: PAM: %s\n"
+msgstr "%s: PAM: %s\n"
+
+#, c-format
+msgid "%s: cannot lock %s; try again later.\n"
+msgstr "%s: не удалось заблокировать %s; попробуйте ещё раз позже.\n"
+
+#, c-format
+msgid "%s: cannot open %s\n"
+msgstr "%s: не удалось открыть %s\n"
+
+#, c-format
+msgid "%s: failure while writing changes to %s\n"
+msgstr "%s: ошибка при записи изменений в %s\n"
+
+#, c-format
+msgid "%s: failed to prepare the new %s entry '%s'\n"
+msgstr "%s: не удалось подготовить новую %s запись «%s»\n"
+
+#, c-format
+msgid "%s: the shadow password file is not present\n"
+msgstr "%s: отсутствует файл паролей shadow\n"
+
+#, c-format
+msgid "%s: user '%s' does not exist in %s\n"
+msgstr "%s: пользователь «%s» не существует в %s\n"
+
+#, c-format
+msgid "Changing the aging information for %s\n"
+msgstr "Изменение информации о сроках действия для %s\n"
+
+#, c-format
+msgid "%s: error changing fields\n"
+msgstr "%s: ошибка при изменении полей\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [LOGIN]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [ПОЛЬЗОВАТЕЛЬ]\n"
+"\n"
+"Параметры:\n"
+
+msgid "  -f, --full-name FULL_NAME     change user's full name\n"
+msgstr "  -f, --full-name ПОЛН_ИМЯ      смена полного имени пользователя\n"
+
+msgid "  -h, --home-phone HOME_PHONE   change user's home phone number\n"
+msgstr "  -h, --home-phone ДОМ_ТЕЛЕФОН  смена домашнего тел. пользователя\n"
+
+msgid "  -o, --other OTHER_INFO        change user's other GECOS information\n"
+msgstr ""
+"  -o, --other ДРУГАЯ_ИНФ        смена другой инф. GECOS о пользователе\n"
+
+msgid "  -r, --room ROOM_NUMBER        change user's room number\n"
+msgstr "  -r, --room НОМЕР_КОМНАТЫ      смена номера комнаты пользователя\n"
+
+msgid "  -u, --help                    display this help message and exit\n"
+msgstr ""
+"  -u, --help                    показать данное сообщение и закончить "
+"работу\n"
+
+msgid "  -w, --work-phone WORK_PHONE   change user's office phone number\n"
+msgstr ""
+"  -w, --work-phone РАБОЧИЙ_ТЕЛ  смена офисного номера тел. пользователя\n"
+
+msgid "Full Name"
+msgstr "Полное имя"
+
+#, c-format
+msgid "\t%s: %s\n"
+msgstr "\t%s: %s\n"
+
+msgid "Room Number"
+msgstr "Номер комнаты"
+
+msgid "Work Phone"
+msgstr "Рабочий телефон"
+
+msgid "Home Phone"
+msgstr "Домашний телефон"
+
+msgid "Other"
+msgstr "Другое"
+
+#, c-format
+msgid "%s: fields too long\n"
+msgstr "%s: поля слишком длинные\n"
+
+msgid "Cannot change ID to root.\n"
+msgstr "Не удалось получить права суперпользователя.\n"
+
+#, c-format
+msgid "%s: name with non-ASCII characters: '%s'\n"
+msgstr "%s: имя «%s» содержит не ASCII-символы\n"
+
+#, c-format
+msgid "%s: invalid name: '%s'\n"
+msgstr "%s: неверное имя «%s»\n"
+
+#, c-format
+msgid "%s: room number with non-ASCII characters: '%s'\n"
+msgstr "%s: номер комнаты «%s» содержит не ASCII-символы\n"
+
+#, c-format
+msgid "%s: invalid room number: '%s'\n"
+msgstr "%s: некорректное значение номера комнаты «%s»\n"
+
+#, c-format
+msgid "%s: invalid work phone: '%s'\n"
+msgstr "%s: некорректное значение номера телефона «%s»\n"
+
+#, c-format
+msgid "%s: invalid home phone: '%s'\n"
+msgstr "%s: некорректное значение номера домашнего телефона «%s»\n"
+
+#, c-format
+msgid "%s: '%s' contains non-ASCII characters\n"
+msgstr "%s: в «%s» содержатся не ASCII-символы\n"
+
+#, c-format
+msgid "%s: '%s' contains illegal characters\n"
+msgstr "%s: в «%s» содержатся недопустимые символы\n"
+
+#, c-format
+msgid "%s: user '%s' does not exist\n"
+msgstr "%s: пользователь «%s» не существует\n"
+
+#, c-format
+msgid "Changing the user information for %s\n"
+msgstr "Изменение информации о пользователе %s\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры]\n"
+"\n"
+"Параметры:\n"
+
+#, c-format
+msgid "  -c, --crypt-method METHOD     the crypt method (one of %s)\n"
+msgstr "  -c, --crypt-method МЕТОД      алгоритм шифрования (один из: %s)\n"
+
+msgid "  -e, --encrypted               supplied passwords are encrypted\n"
+msgstr "  -e, --encrypted               пароли передаются зашифрованными\n"
+
+msgid ""
+"  -m, --md5                     encrypt the clear text password using\n"
+"                                the MD5 algorithm\n"
+msgstr ""
+"  -m, --md5                     шифровать видимые пароли с помощью \n"
+"                                алгоритма MD5\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -s, --sha-rounds              number of SHA rounds for the SHA*\n"
+#| "                                crypt algorithms\n"
+msgid ""
+"  -s, --sha-rounds              number of rounds for the SHA, BCRYPT\n"
+"                                or YESCRYPT crypt algorithms\n"
+msgstr ""
+"  -s, --sha-rounds      количество раундов SHA для алгоритмов\n"
+"                        шифрования SHA*\n"
+
+#, fuzzy, c-format
+#| msgid "%s: unsupported crypt method: %s\n"
+msgid "%s: no crypt method defined\n"
+msgstr "%s: алгоритм шифрования %s не поддерживается\n"
+
+#, c-format
+msgid "%s: %s flag is only allowed with the %s flag\n"
+msgstr "%s: параметр %s разрешено использовать только вместе с параметром %s\n"
+
+#, c-format
+msgid "%s: the -c, -e, and -m flags are exclusive\n"
+msgstr "%s: параметры -c, -e и -m являются взаимоисключающими\n"
+
+#, c-format
+msgid "%s: unsupported crypt method: %s\n"
+msgstr "%s: алгоритм шифрования %s не поддерживается\n"
+
+#, c-format
+msgid "%s: line %d: line too long\n"
+msgstr "%s: строка %d: слишком длинная строка\n"
+
+#, c-format
+msgid "%s: line %d: missing new password\n"
+msgstr "%s: строка %d: отсутствует новый пароль\n"
+
+#, c-format
+msgid "%s: failed to crypt password with salt '%s': %s\n"
+msgstr "%s: не удалось зашифровать пароль с солью «%s»: %s\n"
+
+#, c-format
+msgid "%s: line %d: group '%s' does not exist\n"
+msgstr "%s: строка %d: группа «%s» не существует\n"
+
+#, c-format
+msgid "%s: line %d: failed to prepare the new %s entry '%s'\n"
+msgstr "%s: строка %d: не удалось подготовить новую %s запись «%s»\n"
+
+#, c-format
+msgid "%s: error detected, changes ignored\n"
+msgstr "%s: обнаружена ошибка, изменения не были сохранены\n"
+
+#, c-format
+msgid "%s: (line %d, user %s) password not changed\n"
+msgstr "%s: (строка %d, пользователь %s) пароль не изменён\n"
+
+#, c-format
+msgid "%s: line %d: user '%s' does not exist\n"
+msgstr "%s: строка %d: пользователь «%s» не существует\n"
+
+msgid "  -s, --shell SHELL             new login shell for the user account\n"
+msgstr ""
+"  -s, --shell ОБОЛОЧКА          новая регистрационная оболочка для учётной\n"
+"                                записи\n"
+
+msgid "Login Shell"
+msgstr "Командная оболочка"
+
+#, fuzzy, c-format
+#| msgid "%s: Cannot get the size of %s: %s\n"
+msgid "Cannot parse shell files: %s"
+msgstr "%s: не удалось получить размер %s: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot create new defaults file\n"
+msgid "Cannot evaluate entries in shell files: %s"
+msgstr "%s: не удалось создать новый файл значений по умолчанию\n"
+
+#, c-format
+msgid "You may not change the shell for '%s'.\n"
+msgstr "Вы не можете изменять командную оболочку у «%s».\n"
+
+#, c-format
+msgid "Changing the login shell for %s\n"
+msgstr "Изменение командной оболочки для %s\n"
+
+#, c-format
+msgid "%s: Invalid entry: %s\n"
+msgstr "%s: неверное значение %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: %s is an invalid shell\n"
+msgid "%s: Warning: %s is an invalid shell\n"
+msgstr "%s: %s не является допустимой оболочкой\n"
+
+#, c-format
+msgid "%s: %s is an invalid shell\n"
+msgstr "%s: %s не является допустимой оболочкой\n"
+
+#, c-format
+msgid "%s: Warning: %s does not exist\n"
+msgstr "%s: предупреждение: %s не существует\n"
+
+#, c-format
+msgid "%s: Warning: %s is not executable\n"
+msgstr "%s: предупреждение: %s не является исполняемым\n"
+
+msgid "  -c, --check                   check the user's password expiration\n"
+msgstr ""
+"  -c, --check                   проверить срок действия пароля пользователя\n"
+
+msgid ""
+"  -f, --force                   force password change if the user's "
+"password\n"
+"                                is expired\n"
+msgstr ""
+"  -f, --force                   принудительно сменить пароль, если срок\n"
+"                                действия пароля истёк\n"
+
+#, c-format
+msgid "%s: options %s and %s conflict\n"
+msgstr "%s: конфликт параметров %s и %s\n"
+
+#, c-format
+msgid "%s: unexpected argument: %s\n"
+msgstr "%s: неожиданный параметр: %s\n"
+
+msgid "  -a, --all                     display faillog records for all users\n"
+msgstr ""
+"  -a, --all                     показать записи faillog для всех "
+"пользователей\n"
+
+msgid ""
+"  -l, --lock-secs SEC           after failed login lock account for SEC "
+"seconds\n"
+msgstr ""
+"  -l, --lock-secs СЕК           заблокировать учётную запись после "
+"неудачных\n"
+"                                попытки входа на СЕК секунд\n"
+
+msgid ""
+"  -m, --maximum MAX             set maximum failed login counters to MAX\n"
+msgstr ""
+"  -m, --maximum МАКС             установить максимальное количество "
+"неудачных\n"
+"                                попыток входа равным МАКС\n"
+
+msgid "  -r, --reset                   reset the counters of login failures\n"
+msgstr ""
+"  -r, --reset                   сбросить счётчик неудачных попыток входа\n"
+
+msgid ""
+"  -t, --time DAYS               display faillog records more recent than "
+"DAYS\n"
+msgstr ""
+"  -t, --time ДНЕЙ               показать записи faillog за последнее\n"
+"                                количество ДНЕЙ\n"
+
+msgid ""
+"  -u, --user LOGIN/RANGE        display faillog record or maintains failure\n"
+"                                counters and limits (if used with -r, -m,\n"
+"                                or -l) only for the specified LOGIN(s)\n"
+msgstr ""
+"  -u, --user ПОЛЬЗ/ДИАПАЗОН     показать записи faillog или отказы по "
+"счётчикам\n"
+"                                поддержки и ограничений (если используется\n"
+"                                с -r, -m или -l) только для указанного\n"
+"                                ПОЛЬЗОВАТЕЛЯ(ЕЙ)\n"
+
+#, c-format
+msgid "%s: Failed to get the entry for UID %lu\n"
+msgstr "%s: не удалось получить запись для UID %lu\n"
+
+msgid "Login       Failures Maximum Latest                   On\n"
+msgstr "Уч.запись      Неуд. попыток  Максимум  Последний раз\n"
+
+#, c-format
+msgid " [%lus left]"
+msgstr " [осталось %lu]"
+
+#, c-format
+msgid " [%lds lock]"
+msgstr " [%ld блокировок]"
+
+#, c-format
+msgid "%s: Failed to reset fail count for UID %lu\n"
+msgstr "%s: не удалось сбросить счётчик неудачных попыток для UID %lu\n"
+
+#, c-format
+msgid "%s: Failed to set max for UID %lu\n"
+msgstr "%s: не удалось установить максимальное число попыток для UID %lu\n"
+
+#, c-format
+msgid "%s: Failed to set locktime for UID %lu\n"
+msgstr "%s: не удалось установить время блокировки для UID %lu\n"
+
+#, c-format
+msgid "%s: Unknown user or range: %s\n"
+msgstr "%s: неизвестный пользователь или диапазон: %s\n"
+
+#, c-format
+msgid "%s: Cannot get the size of %s: %s\n"
+msgstr "%s: не удалось получить размер %s: %s\n"
+
+#, c-format
+msgid "%s: Failed to write %s: %s\n"
+msgstr "%s: не удалось записать %s: %s\n"
+
+#, c-format
+msgid ""
+"Usage: %s [option] GROUP\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметр] ГРУППА\n"
+"\n"
+"Параметры:\n"
+
+msgid "  -a, --add USER                add USER to GROUP\n"
+msgstr "  -a, --add ПОЛЬЗ               добавить ПОЛЬЗОВАТЕЛЯ в ГРУППУ\n"
+
+msgid "  -d, --delete USER             remove USER from GROUP\n"
+msgstr "  -d, --delete ПОЛЬЗ            удалить ПОЛЬЗОВАТЕЛЯ из ГРУППЫ\n"
+
+msgid "  -Q, --root CHROOT_DIR         directory to chroot into\n"
+msgstr "  -Q, --root КАТ_CHROOT         каталог, который выполняется chroot\n"
+
+msgid "  -r, --remove-password         remove the GROUP's password\n"
+msgstr "  -r, --remove-password         удалить пароль ГРУППЫ\n"
+
+msgid ""
+"  -R, --restrict                restrict access to GROUP to its members\n"
+msgstr ""
+"  -R, --restrict                ограничить доступ в ГРУППУ её членами\n"
+
+msgid "  -M, --members USER,...        set the list of members of GROUP\n"
+msgstr "  -M, --members ПОЛЬЗ,…         задать список членов ГРУППЫ\n"
+
+msgid ""
+"  -A, --administrators ADMIN,...\n"
+"                                set the list of administrators for GROUP\n"
+msgstr ""
+"  -A, --administrators АДМИН,…\n"
+"                                задать список администраторов ГРУППЫ\n"
+
+msgid "Except for the -A and -M options, the options cannot be combined.\n"
+msgstr ""
+"За исключением параметров -A и -M, остальные не могут указываться\n"
+"одновременно.\n"
+
+#
+msgid "The options cannot be combined.\n"
+msgstr "Параметры не могут быть указаны одновременно.\n"
+
+#, c-format
+msgid "%s: shadow group passwords required for -A\n"
+msgstr "%s: для -A требуется поддержка теневого файла паролей групп\n"
+
+#, c-format
+msgid "%s: group '%s' does not exist in %s\n"
+msgstr "%s: группа «%s» не существует в %s\n"
+
+#, c-format
+msgid "%s: failure while closing read-only %s\n"
+msgstr "%s: ошибка при закрытии только для чтения %s\n"
+
+#, c-format
+msgid "Changing the password for group %s\n"
+msgstr "Изменение пароля для группы %s\n"
+
+msgid "New Password: "
+msgstr "Новый пароль: "
+
+msgid "Re-enter new password: "
+msgstr "Повторите новый пароль: "
+
+msgid "They don't match; try again"
+msgstr "Пароли не совпадают, попробуйте ещё раз"
+
+#, c-format
+msgid "%s: Try again later\n"
+msgstr "%s: попробуйте позже\n"
+
+#, c-format
+msgid "Adding user %s to group %s\n"
+msgstr "Добавление пользователя %s в группу %s\n"
+
+#, c-format
+msgid "Removing user %s from group %s\n"
+msgstr "Удаление пользователя %s из группы %s\n"
+
+#, c-format
+msgid "%s: user '%s' is not a member of '%s'\n"
+msgstr "%s: пользователь «%s» не является членом «%s»\n"
+
+#, c-format
+msgid "%s: Not a tty\n"
+msgstr "%s: не tty\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] GROUP\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] ГРУППА\n"
+"\n"
+"Параметры:\n"
+
+msgid ""
+"  -f, --force                   exit successfully if the group already "
+"exists,\n"
+"                                and cancel -g if the GID is already used\n"
+msgstr ""
+"  -f, --force                   закончить работу без ошибки, если группа\n"
+"                                существует и отменить -g, если GID уже\n"
+"                                используется\n"
+
+msgid "  -g, --gid GID                 use GID for the new group\n"
+msgstr ""
+"  -g, --gid GID                 для новой группы использовать указанный GID\n"
+
+msgid "  -K, --key KEY=VALUE           override /etc/login.defs defaults\n"
+msgstr ""
+"  -K, --key КЛЮЧ=ЗНАЧЕНИЕ       заменить значение по умолчанию\n"
+"                                из /etc/login.defs\n"
+
+msgid ""
+"  -o, --non-unique              allow to create groups with duplicate\n"
+"                                (non-unique) GID\n"
+msgstr ""
+"  -o, --non-unique              разрешить создание групп с повторяющимся\n"
+"                                (не уникальным) GID\n"
+
+msgid ""
+"  -p, --password PASSWORD       use this encrypted password for the new "
+"group\n"
+msgstr ""
+"  -p, --password ПАРОЛЬ         использовать этот шифрованный пароль для\n"
+"                                новой группы\n"
+
+msgid "  -r, --system                  create a system account\n"
+msgstr "  -r, --system                  создавать системную группу\n"
+
+#, fuzzy
+#| msgid "  -l, --list                    list the members of the group\n"
+msgid "  -U, --users USERS             list of user members of this group\n"
+msgstr "  -l, --list                    перечислить всех членов группы\n"
+
+#, fuzzy, c-format
+#| msgid "invalid user name '%s'\n"
+msgid "Invalid member username %s\n"
+msgstr "неверное имя пользователя «%s»\n"
+
+#, c-format
+msgid "%s: '%s' is not a valid group name\n"
+msgstr "%s: «%s» не может быть именем группы\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Cannot open %s: %s\n"
+msgid "%s: cannot open %s: %s\n"
+msgstr "%s: не удалось открыть %s: %s\n"
+
+#, c-format
+msgid "%s: invalid group ID '%s'\n"
+msgstr "%s: неверный ID группы «%s»\n"
+
+#, c-format
+msgid "%s: -K requires KEY=VALUE\n"
+msgstr "%s: для -К необходимо ИМЯ=ЗНАЧЕНИЕ\n"
+
+#, c-format
+msgid "%s: group '%s' already exists\n"
+msgstr "%s: группа «%s» уже существует\n"
+
+#, c-format
+msgid "%s: GID '%lu' already exists\n"
+msgstr "%s: GID «%lu» уже существует\n"
+
+#, c-format
+msgid "%s: Cannot setup cleanup service.\n"
+msgstr "%s: не удалось настроить службу очистки.\n"
+
+msgid ""
+"  -P, --prefix PREFIX_DIR       prefix directory where are located the /etc/"
+"* files\n"
+msgstr ""
+
+msgid ""
+"  -f, --force                   delete group even if it is the primary group "
+"of a user\n"
+msgstr ""
+"  -f, --force                   удалить группу, даже если она является "
+"первичной\n"
+"                                группой пользователя\n"
+
+#, c-format
+msgid "%s: cannot remove entry '%s' from %s\n"
+msgstr "%s: не удалось удалить запись «%s» из %s\n"
+
+#, c-format
+msgid "%s: cannot remove the primary group of user '%s'\n"
+msgstr "%s: не удалось удалить первичную группу пользователя «%s»\n"
+
+#, c-format
+msgid "%s: group '%s' does not exist\n"
+msgstr "%s: группа «%s» не существует\n"
+
+#, c-format
+msgid "%s: user '%s' is already a member of '%s'\n"
+msgstr "%s: пользователь «%s» является членом «%s»\n"
+
+#, c-format
+msgid "%s: Out of memory. Cannot update %s.\n"
+msgstr "%s: недостаточно памяти. Не удалось обновить %s.\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [action]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [действие]\n"
+"\n"
+"Параметры:\n"
+
+msgid ""
+"  -g, --group groupname         change groupname instead of the user's "
+"group\n"
+"                                (root only)\n"
+msgstr ""
+"  -g, --group имя_группы         использовать имя_группы вместо группы с "
+"именем\n"
+"                                пользователя (только для суперпользователя)\n"
+
+msgid "\n"
+msgstr "\n"
+
+msgid "Actions:\n"
+msgstr "Действия:\n"
+
+msgid ""
+"  -a, --add username            add username to the members of the group\n"
+msgstr "  -a, --add пользователь        добавить пользователя в группу\n"
+
+msgid ""
+"  -d, --delete username         remove username from the members of the "
+"group\n"
+msgstr "  -d, --delete пользователь     удалить пользователя из группы\n"
+
+msgid "  -p, --purge                   purge all members from the group\n"
+msgstr "  -p, --purge                   удалить всех пользователей из группы\n"
+
+msgid "  -l, --list                    list the members of the group\n"
+msgstr "  -l, --list                    перечислить всех членов группы\n"
+
+#, c-format
+msgid "%s: your groupname does not match your username\n"
+msgstr "%s: ваше имя_группы не совпадает с вашим пользовательским именем\n"
+
+#, c-format
+msgid "%s: only root can use the -g/--group option\n"
+msgstr "%s: только суперпользователь может использовать параметр -g/--group\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -a, --append                  append the user to the supplemental "
+#| "GROUPS\n"
+#| "                                mentioned by the -G option without "
+#| "removing\n"
+#| "                                the user from other groups\n"
+msgid ""
+"  -a, --append                  append the users mentioned by -U option to "
+"the group \n"
+"                                without removing existing user members\n"
+msgstr ""
+"  -a, --append                  добавить пользователя в дополнительные\n"
+"                                ГРУППЫ, указанные в параметре -G не удаляя\n"
+"                                пользователя из других групп\n"
+
+msgid "  -g, --gid GID                 change the group ID to GID\n"
+msgstr "  -g, --gid GID                 изменить ID группы на GID\n"
+
+msgid "  -n, --new-name NEW_GROUP      change the name to NEW_GROUP\n"
+msgstr "  -n, --new-name НОВАЯ_ГРУППА   изменить имя на НОВУЮ_ГРУППУ\n"
+
+msgid ""
+"  -o, --non-unique              allow to use a duplicate (non-unique) GID\n"
+msgstr ""
+"  -o, --non-unique              разрешить повторяющиеся (не уникальные) GID\n"
+
+msgid ""
+"  -p, --password PASSWORD       change the password to this (encrypted)\n"
+"                                PASSWORD\n"
+msgstr ""
+"  -p, --password ПАРОЛЬ         изменить пароль на заданный (шифрованный)\n"
+"                                ПАРОЛЬ\n"
+
+#, c-format
+msgid "%s: invalid group name '%s'\n"
+msgstr "%s: неверное имя группы «%s»\n"
+
+#, c-format
+msgid "%s: unknown user %s\n"
+msgstr "%s: неизвестный пользователь %s\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [group [gshadow]]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [файл_group [файл_gshadow]]\n"
+"\n"
+"Параметры:\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [group]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [группа]\n"
+"\n"
+"Параметры:\n"
+
+msgid ""
+"  -r, --read-only               display errors and warnings\n"
+"                                but do not change files\n"
+msgstr ""
+"  -r, --read-only               показывать ошибки и предупреждения,\n"
+"                                но не изменять файлы\n"
+
+msgid "  -s, --sort                    sort entries by UID\n"
+msgstr "  -s, --sort                    сортировать записи по UID\n"
+
+msgid ""
+"  -S, --silence-warnings        silence controversial/paranoid warnings\n"
+msgstr ""
+
+#, c-format
+msgid "%s: -s and -r are incompatible\n"
+msgstr "%s: -s и -r не могут использоваться одновременно\n"
+
+msgid "invalid group file entry"
+msgstr "неверная запись в файле групп"
+
+#, c-format
+msgid "delete line '%s'? "
+msgstr "удалить строку «%s»? "
+
+msgid "duplicate group entry"
+msgstr "повторяющаяся запись в файле групп"
+
+#, c-format
+msgid "invalid group name '%s'\n"
+msgstr "неверное имя группы «%s»\n"
+
+#, c-format
+msgid "invalid group ID '%lu'\n"
+msgstr "неверный ID группы «%lu»\n"
+
+#, c-format
+msgid "group %s: no user %s\n"
+msgstr "группа %s: пользователь %s не существует\n"
+
+#, c-format
+msgid "delete member '%s'? "
+msgstr "удалить члена группы «%s»? "
+
+#, c-format
+msgid "no matching group file entry in %s\n"
+msgstr "отсутствует соответствующая группа в файле %s\n"
+
+#, c-format
+msgid "add group '%s' in %s? "
+msgstr "добавить группу «%s» в %s ? "
+
+#, c-format
+msgid ""
+"group %s has an entry in %s, but its password field in %s is not set to 'x'\n"
+msgstr "для группы %s есть запись в %s, но её поле пароля в %s не равно «x»\n"
+
+msgid "invalid shadow group file entry"
+msgstr "неверная запись в теневом файле групп"
+
+msgid "duplicate shadow group entry"
+msgstr "повторяющаяся запись в теневом файле групп"
+
+#, c-format
+msgid "shadow group %s: no administrative user %s\n"
+msgstr "теневая группа %s: административный пользователь %s не существует\n"
+
+#, c-format
+msgid "delete administrative member '%s'? "
+msgstr "удалить административного члена «%s»? "
+
+#, c-format
+msgid "shadow group %s: no user %s\n"
+msgstr "теневая группа %s: пользователь %s не существует\n"
+
+#, c-format
+msgid "%s: the files have been updated\n"
+msgstr "%s: файлы были изменены\n"
+
+#, c-format
+msgid "%s: no changes\n"
+msgstr "%s: изменения не внесены\n"
+
+#, c-format
+msgid "%s: cannot delete %s\n"
+msgstr "%s: не удалось удалить %s\n"
+
+msgid "Usage: id [-a]\n"
+msgstr "Использование: id [-a]\n"
+
+msgid " groups="
+msgstr " группы="
+
+msgid ""
+"  -b, --before DAYS             print only lastlog records older than DAYS\n"
+msgstr ""
+"  -b, --before ДНЕЙ             показать записи lastlog за последние ДНЕЙ "
+"дней\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -C, --clear                   clear lastlog record of an user (usable "
+#| "only with -u)\n"
+msgid ""
+"  -C, --clear                   clear lastlog record of a user (usable only "
+"with -u)\n"
+msgstr ""
+"  -C, --clear                   очистить запись lastlog пользователя\n"
+"                                (только вместе с -u)\n"
+
+msgid ""
+"  -S, --set                     set lastlog record to current time (usable "
+"only with -u)\n"
+msgstr ""
+"  -S, --set                     поставить в записи lastlog текущее время\n"
+"                                (только вместе с -u)\n"
+
+msgid ""
+"  -t, --time DAYS               print only lastlog records more recent than "
+"DAYS\n"
+msgstr ""
+"  -t, --time ДНЕЙ               показать записи lastlog за последние ДНЕЙ "
+"дней\n"
+
+msgid ""
+"  -u, --user LOGIN              print lastlog record of the specified LOGIN\n"
+msgstr ""
+"  -u, --user ИМЯ                показать запись lastlog для учётной записи "
+"ИМЯ\n"
+
+#, fuzzy, c-format
+#| msgid "Username                Port     Latest"
+msgid "Username         Port     From%*sLatest\n"
+msgstr "Пользователь            Порт     Последний раз"
+
+msgid "Username                Port     Latest"
+msgstr "Пользователь            Порт     Последний раз"
+
+msgid "**Never logged in**"
+msgstr "**Никогда не входил в систему**"
+
+#, c-format
+msgid ""
+"%s: Selected uid(s) are higher than LASTLOG_UID_MAX (%lu),\n"
+"\tthe output might be incorrect.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: Failed to update the entry for UID %lu\n"
+msgstr "%s: не удалось обновить запись для UID %lu\n"
+
+#, c-format
+msgid ""
+"%s: Selected uid(s) are higher than LASTLOG_UID_MAX (%lu),\n"
+"\tthey will not be updated.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: Failed to update the lastlog file\n"
+msgstr "%s: не удалось обновить файл lastlog\n"
+
+#, c-format
+msgid "%s: Option -C cannot be used together with option -S\n"
+msgstr "%s: параметр -C нельзя использовать вместе с параметром -S\n"
+
+#, c-format
+msgid "%s: Options -C and -S require option -u to specify the user\n"
+msgstr ""
+"%s: для параметров -C и -S требуется указать пользователя в параметре -u\n"
+
+#, c-format
+msgid "Usage: %s [-p] [name]\n"
+msgstr "Использование: %s [-p] [имя пользователя]\n"
+
+#, c-format
+msgid "       %s [-p] [-h host] [-f name]\n"
+msgstr "                    %s [-p] [-h узел] [-f имя пользователя]\n"
+
+#, c-format
+msgid "configuration error - cannot parse %s value: '%d'"
+msgstr "ошибка настройки: не удалось разобрать значение %s: «%d»"
+
+msgid "Invalid login time"
+msgstr "Вход в систему сейчас запрещён"
+
+msgid ""
+"\n"
+"System closed for routine maintenance"
+msgstr ""
+"\n"
+"Система закрыта для проведения технического обслуживания"
+
+msgid ""
+"\n"
+"[Disconnect bypassed -- root login allowed.]"
+msgstr ""
+"\n"
+"[Отключение не выполнено — вход в систему для суперпользователя разрешён.]"
+
+#, c-format
+msgid "%s: Cannot possibly work without effective root\n"
+msgstr "%s: невозможно выполнить без прав суперпользователя\n"
+
+#, c-format
+msgid ""
+"\n"
+"Login timed out after %u seconds.\n"
+msgstr ""
+"\n"
+"Время выполнения входа в систему истекло (%u секунд).\n"
+
+#, c-format
+msgid "login: PAM Failure, aborting: %s\n"
+msgstr "login: ошибка PAM, аварийное завершение работы: %s\n"
+
+#, c-format
+msgid "%s login: "
+msgstr "%s имя пользователя: "
+
+msgid "login: "
+msgstr "имя пользователя: "
+
+#, c-format
+msgid "Maximum number of tries exceeded (%u)\n"
+msgstr "Превышено максимальное число попыток (%u)\n"
+
+msgid "login: abort requested by PAM\n"
+msgstr "login: аварийное завершение работы по запросу PAM\n"
+
+msgid "Login incorrect"
+msgstr "Неверное имя пользователя"
+
+#, c-format
+msgid "Cannot find user (%s)\n"
+msgstr "Невозможно найти пользователя (%s)\n"
+
+#, c-format
+msgid "%s: failure forking: %s"
+msgstr "%s: ошибка при вызове fork: %s"
+
+#, c-format
+msgid "TIOCSCTTY failed on %s"
+msgstr "Не удалось установить флаг TIOCSCTTY на %s"
+
+msgid "Warning: login re-enabled after temporary lockout."
+msgstr "Предупреждение: вход в систему снова возможен."
+
+#, c-format
+msgid "Last login: %s on %s"
+msgstr "Последний вход в систему: %s на %s"
+
+#, c-format
+msgid " from %.*s"
+msgstr " с %.*s"
+
+msgid ""
+"login time exceeded\n"
+"\n"
+msgstr ""
+"время входа в систему истекло\n"
+"\n"
+
+#
+msgid "Usage: logoutd\n"
+msgstr "Использование: logoutd\n"
+
+#, c-format
+msgid "%s: gid range [%lu-%lu) -> [%lu-%lu) not allowed\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"usage: %s [<pid|fd:<pidfd>] <gid> <lowergid> <count> [ <gid> <lowergid> "
+"<count> ] ... \n"
+msgstr ""
+
+#, c-format
+msgid "%s: kernel doesn't support setgroups restrictions\n"
+msgstr ""
+
+#, c-format
+msgid "%s: couldn't open process setgroups: %s\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: failed to remove %s\n"
+msgid "%s: failed to read setgroups: %s\n"
+msgstr "%s: не удалось удалить %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to remove %s\n"
+msgid "%s: failed to seek setgroups: %s\n"
+msgstr "%s: не удалось удалить %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to unlock %s\n"
+msgid "%s: failed to setgroups %s policy: %s\n"
+msgstr "%s: не удалось разблокировать %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Failed to create tcb directory for %s\n"
+msgid "%s: Could not stat directory for process\n"
+msgstr "%s: не удалось создать tcb-каталог для %s\n"
+
+#, c-format
+msgid ""
+"%s: Target process is owned by a different user: uid:%lu pw_uid:%lu st_uid:"
+"%lu, gid:%lu pw_gid:%lu st_gid:%lu\n"
+msgstr ""
+
+msgid "Usage: newgrp [-] [group]\n"
+msgstr "Использование: newgrp [-] [группа]\n"
+
+msgid "Usage: sg group [[-c] command]\n"
+msgstr "Использование: sg группа [[-c] команда]\n"
+
+#, c-format
+msgid "%s: failed to crypt password with previous salt: %s\n"
+msgstr "%s: не удалось зашифровать пароль с предыдущей солью: %s\n"
+
+msgid "Invalid password.\n"
+msgstr "Неправильный пароль.\n"
+
+#, c-format
+msgid "%s: failure forking: %s\n"
+msgstr "%s: ошибка при вызове fork: %s\n"
+
+#, c-format
+msgid "%s: GID '%lu' does not exist\n"
+msgstr "%s: GID «%lu» не существует\n"
+
+msgid "too many groups\n"
+msgstr "слишком много групп\n"
+
+#, c-format
+msgid "%s: uid range [%lu-%lu) -> [%lu-%lu) not allowed\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"usage: %s [<pid>|fd:<pidfd>] <uid> <loweruid> <count> [ <uid> <loweruid> "
+"<count> ] ... \n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: Failed to create tcb directory for %s\n"
+msgid "%s: Could not stat directory for target process\n"
+msgstr "%s: не удалось создать tcb-каталог для %s\n"
+
+#, fuzzy
+#| msgid "  -q, --quiet                   quiet mode\n"
+msgid "  -b, --badname                 allow bad names\n"
+msgstr ""
+"  -q, --quiet                   сократить количество выводимых сообщений\n"
+
+msgid "  -r, --system                  create system accounts\n"
+msgstr "  -r, --system                  создать системные учётные записи\n"
+
+#, c-format
+msgid "%s: group '%s' is a shadow group, but does not exist in /etc/group\n"
+msgstr ""
+"%s: группа «%s» является теневой группой, но не существует в /etc/group\n"
+
+#, c-format
+msgid "%s: invalid user ID '%s'\n"
+msgstr "%s: неверный пользовательский ID «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "%s: invalid user name '%s'\n"
+msgid "%s: invalid user name '%s': use --badname to ignore\n"
+msgstr "%s: неверное имя пользователя «%s»\n"
+
+#, c-format
+msgid "%s: Provide '--crypt-method' before number of rounds\n"
+msgstr ""
+
+#, c-format
+msgid "%s: line %d: invalid line\n"
+msgstr "%s: строка %d: некорректная строка\n"
+
+#, c-format
+msgid "%s: cannot update the entry of user %s (not in the passwd database)\n"
+msgstr ""
+"%s: не удалось обновить запись для пользователя %s (его нет в базе данных "
+"passwd)\n"
+
+#, c-format
+msgid "%s: line %d: can't create user\n"
+msgstr "%s: строка %d: не удалось создать пользователя\n"
+
+#, c-format
+msgid "%s: line %d: can't create group\n"
+msgstr "%s: строка %d: не удалось создать группу\n"
+
+#, c-format
+msgid "%s: line %d: user '%s' does not exist in %s\n"
+msgstr "%s: строка %d: пользователь «%s» не существует в %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: unlink: %s: %s\n"
+msgid "%s: line %d: %s\n"
+msgstr "%s: unlink: %s: %s\n"
+
+#, c-format
+msgid "%s: line %d: can't update password\n"
+msgstr "%s: строка %d: не удалось обновить пароль\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: mkdir %s failed: %s\n"
+msgid "%s: line %d: homedir must be an absolute path\n"
+msgstr "%s: строка %d: вызов mkdir %s завершился неудачно: %s\n"
+
+#, c-format
+msgid "%s: line %d: mkdir %s failed: %s\n"
+msgstr "%s: строка %d: вызов mkdir %s завершился неудачно: %s\n"
+
+#, c-format
+msgid "%s: line %d: chown %s failed: %s\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, c-format
+msgid "%s: line %d: can't update entry\n"
+msgstr "%s: строка %d: не удалось обновить запись\n"
+
+#, c-format
+msgid "%s: can't find subordinate user range\n"
+msgstr "%s: не удалось найти подчинённый диапазон пользователей\n"
+
+#, c-format
+msgid "%s: failed to prepare new %s entry\n"
+msgstr "%s: не удалось подготовить новую %s запись\n"
+
+#, c-format
+msgid "%s: can't find subordinate group range\n"
+msgstr "%s: не удалось найти подчинённый диапазон групп\n"
+
+msgid ""
+"  -a, --all                     report password status on all accounts\n"
+msgstr ""
+"  -a, --all                     показать состояние паролей всех учётных\n"
+"                                записей\n"
+
+msgid ""
+"  -d, --delete                  delete the password for the named account\n"
+msgstr ""
+"  -d, --delete                  удалить пароль заданной учётной записи\n"
+
+msgid ""
+"  -e, --expire                  force expire the password for the named "
+"account\n"
+msgstr ""
+"  -e, --expire                  просрочить пароль заданной учётной записи\n"
+
+msgid "  -k, --keep-tokens             change password only if expired\n"
+msgstr ""
+"  -k, --keep-tokens             изменять пароль только с истёкшим сроком\n"
+"                                действия\n"
+
+msgid ""
+"  -i, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr ""
+"  -i, --inactive НЕАКТИВНОСТЬ   установить неактивность пароля после\n"
+"                                истечения срока в значение НЕАКТИВНОСТЬ\n"
+
+msgid ""
+"  -l, --lock                    lock the password of the named account\n"
+msgstr ""
+"  -l, --lock                    заблокировать заданную учётную запись\n"
+
+msgid ""
+"  -n, --mindays MIN_DAYS        set minimum number of days before password\n"
+"                                change to MIN_DAYS\n"
+msgstr ""
+"  -n, --mindays МИН_ДНЕЙ        установить минимальное число дней перед\n"
+"                                сменой пароля в МИН_ДНЕЙ\n"
+
+msgid "  -q, --quiet                   quiet mode\n"
+msgstr ""
+"  -q, --quiet                   сократить количество выводимых сообщений\n"
+
+msgid ""
+"  -r, --repository REPOSITORY   change password in REPOSITORY repository\n"
+msgstr "  -r, --repository РЕПОЗИТОРИЙ  изменить пароль в РЕПОЗИТОРИИ\n"
+
+msgid ""
+"  -S, --status                  report password status on the named account\n"
+msgstr ""
+"  -S, --status                  показать состояние пароля заданной учётной\n"
+"                                записи\n"
+
+msgid ""
+"  -u, --unlock                  unlock the password of the named account\n"
+msgstr ""
+"  -u, --unlock                  разблокировать заданную учётную запись\n"
+
+msgid ""
+"  -w, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+msgstr ""
+"  -w, --warndays ПРЕДУП_ДНЕЙ    установить количество дней с\n"
+"                                выдачей предупреждения в ПРЕДУП_ДНЕЙ\n"
+
+msgid ""
+"  -x, --maxdays MAX_DAYS        set maximum number of days before password\n"
+"                                change to MAX_DAYS\n"
+msgstr ""
+"  -x, --maxdays МАКС_ДНЕЙ       установить максимальное число дней перед\n"
+"                                сменой пароля в МАКС_ДНЕЙ\n"
+
+#, fuzzy
+#| msgid "  -l, --list                    show account aging information\n"
+msgid "  -s, --stdin                   read new token from stdin\n"
+msgstr "  -l, --list                    показать «возраст» учётной записи\n"
+
+msgid "Old password: "
+msgstr "Старый пароль: "
+
+#, c-format
+msgid ""
+"Enter the new password (minimum of %d characters)\n"
+"Please use a combination of upper and lower case letters and numbers.\n"
+msgstr ""
+"Введите новый пароль (минимальная длина %d символов)\n"
+"Используйте комбинацию из символов в верхнем и нижнем регистре и цифры.\n"
+
+#, c-format
+msgid ""
+"Enter the new password (minimum of %d, maximum of %d characters)\n"
+"Please use a combination of upper and lower case letters and numbers.\n"
+msgstr ""
+"Введите новый пароль (минимальная длина %d, максимальная длина %d символов)\n"
+"Используйте комбинацию из символов в верхнем и нижнем регистре и цифры.\n"
+
+#, fuzzy
+#| msgid "%s: fields too long\n"
+msgid "Password is too long.\n"
+msgstr "%s: поля слишком длинные\n"
+
+msgid "New password: "
+msgstr "Новый пароль: "
+
+msgid "Try again."
+msgstr "Попробуйте ещё раз."
+
+msgid ""
+"\n"
+"Warning: weak password (enter it again to use it anyway)."
+msgstr ""
+"\n"
+"Предупреждение: слишком простой пароль (чтобы всё равно использовать этот "
+"пароль, введите его ещё раз)."
+
+msgid "They don't match; try again.\n"
+msgstr "Пароли не совпадают, попробуйте ещё раз.\n"
+
+#, c-format
+msgid "The password for %s cannot be changed.\n"
+msgstr "Пароль пользователя %s не может быть изменён.\n"
+
+#, c-format
+msgid "The password for %s cannot be changed yet.\n"
+msgstr "Пароль для %s пока не может быть изменён.\n"
+
+#, fuzzy, c-format
+#| msgid "%s: shadow passwords required for -e\n"
+msgid "%s: malformed password data obtained for user %s\n"
+msgstr "%s: для параметра -e необходима поддержка теневых паролей\n"
+
+#, c-format
+msgid ""
+"%s: unlocking the password would result in a passwordless account.\n"
+"You should set a password with usermod -p to unlock the password of this "
+"account.\n"
+msgstr ""
+"%s: разблокировка пароля приведёт к появлению беспарольной учётной\n"
+"записи. Вы должны задать пароль с помощью usermod -p для разблокировки "
+"учётной записи пользователя.\n"
+
+#, c-format
+msgid "%s: repository %s not supported\n"
+msgstr "%s: хранилище %s не поддерживается\n"
+
+#, fuzzy, c-format
+#| msgid "%s: only root can use the -g/--group option\n"
+msgid "%s: only root can use --stdin/-s option\n"
+msgstr "%s: только суперпользователь может использовать параметр -g/--group\n"
+
+#, fuzzy, c-format
+#| msgid "%s: %s is not authorized to change the password of %s\n"
+msgid "%s: root is not authorized by SELinux to change the password of %s\n"
+msgstr "%s: у %s нет прав изменять пароль %s\n"
+
+#, c-format
+msgid "%s: You may not view or modify password information for %s.\n"
+msgstr "%s: вы не можете посмотреть или изменить пароль %s.\n"
+
+#, c-format
+msgid "Changing password for %s\n"
+msgstr "Изменение пароля для %s\n"
+
+#, c-format
+msgid "The password for %s is unchanged.\n"
+msgstr "Пароль для %s не был изменён.\n"
+
+#, c-format
+msgid "%s: password changed.\n"
+msgstr "%s: пароль изменён.\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [passwd]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [passwd]\n"
+"\n"
+"Параметры:\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [passwd [shadow]]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] [passwd [shadow]]\n"
+"\n"
+"Параметры:\n"
+
+msgid "  -q, --quiet                   report errors only\n"
+msgstr ""
+"  -q, --quiet                   показывать только сообщения об ошибках\n"
+
+#, c-format
+msgid "%s: no alternative shadow file allowed when USE_TCB is enabled.\n"
+msgstr ""
+"%s: нельзя указать альтернативный файл shadow, если включён режим USE_TCB.\n"
+
+msgid "invalid password file entry"
+msgstr "неверная запись в файле паролей"
+
+msgid "duplicate password entry"
+msgstr "повторяющаяся запись в файле паролей"
+
+#, fuzzy, c-format
+#| msgid "%s: invalid user name '%s'\n"
+msgid "invalid user name '%s': use --badname to ignore\n"
+msgstr "%s: неверное имя пользователя «%s»\n"
+
+#, c-format
+msgid "invalid user ID '%lu'\n"
+msgstr "неверный пользовательский ID «%lu»\n"
+
+#, c-format
+msgid "user '%s': no group %lu\n"
+msgstr "пользователь «%s»: группа %lu не существует\n"
+
+#, c-format
+msgid "user '%s': directory '%s' does not exist\n"
+msgstr "пользователь «%s: каталог «%s» не существует\n"
+
+#, c-format
+msgid "user '%s': program '%s' does not exist\n"
+msgstr "пользователь «%s»: программа «%s» не существует\n"
+
+#, c-format
+msgid "no tcb directory for %s\n"
+msgstr "нет каталога tcb для %s\n"
+
+#, c-format
+msgid "create tcb directory for %s?"
+msgstr "создать каталог tcb для %s?"
+
+#, c-format
+msgid "failed to create tcb directory for %s\n"
+msgstr "не удалось создать каталог tcb для %s\n"
+
+#, c-format
+msgid "%s: cannot lock %s.\n"
+msgstr "%s: не удалось заблокировать %s.\n"
+
+#, c-format
+msgid "no matching password file entry in %s\n"
+msgstr "отсутствует соответствующая запись %s в файле паролей\n"
+
+#, c-format
+msgid "add user '%s' in %s? "
+msgstr "добавить пользователя «%s» в %s? "
+
+#, c-format
+msgid ""
+"user %s has an entry in %s, but its password field in %s is not set to 'x'\n"
+msgstr ""
+"для пользователя %s есть запись в %s, но её поле пароля в %s не равно «x»\n"
+
+msgid "invalid shadow password file entry"
+msgstr "неверная запись в теневом файле паролей"
+
+msgid "duplicate shadow password entry"
+msgstr "повторяющаяся запись в теневом файле паролей"
+
+#, c-format
+msgid "user %s: last password change in the future\n"
+msgstr "пользователь %s: время последнего изменения пароля в будущем\n"
+
+#, c-format
+msgid "%s: cannot sort entries in %s\n"
+msgstr "%s: не удалось отсортировать записи в %s\n"
+
+#, c-format
+msgid "%s: can't work with tcb enabled\n"
+msgstr "%s: с включённым режимом tcb работа невозможна\n"
+
+#, c-format
+msgid "%s: failed to change the mode of %s to 0600\n"
+msgstr "%s: не удалось изменить права %s на 0600\n"
+
+msgid "Access to su to that account DENIED.\n"
+msgstr "Доступ к su для этой учётной записи ЗАПРЕЩЁН.\n"
+
+msgid "Password authentication bypassed.\n"
+msgstr "Проверка подлинности по паролю пропущена.\n"
+
+msgid "Please enter your OWN password as authentication.\n"
+msgstr "Введите ваш СОБСТВЕННЫЙ пароль для аутентификации.\n"
+
+#, c-format
+msgid "%s: signal masking malfunction\n"
+msgstr "%s: неисправность в маскировке сигналов\n"
+
+#, c-format
+msgid "%s: Cannot fork user shell\n"
+msgstr "%s: невозможно выполнить fork пользовательской оболочки\n"
+
+#, c-format
+msgid "%s: signal malfunction\n"
+msgstr "%s: неисправность в сигналах\n"
+
+msgid "Session terminated, terminating shell..."
+msgstr "Сеанс завершён, выполняется завершение оболочки…"
+
+msgid " ...killed.\n"
+msgstr " … завершён.\n"
+
+msgid " ...waiting for child to terminate.\n"
+msgstr " … ожидает завершения потомка.\n"
+
+msgid " ...terminated.\n"
+msgstr " … завершён.\n"
+
+#, c-format
+msgid "%s: %s\n"
+msgstr "%s: %s\n"
+
+#, fuzzy
+#| msgid ""
+#| "Usage: su [options] [LOGIN]\n"
+#| "\n"
+#| "Options:\n"
+#| "  -c, --command COMMAND         pass COMMAND to the invoked shell\n"
+#| "  -h, --help                    display this help message and exit\n"
+#| "  -, -l, --login                make the shell a login shell\n"
+#| "  -m, -p,\n"
+#| "  --preserve-environment        do not reset environment variables, and\n"
+#| "                                keep the same shell\n"
+#| "  -s, --shell SHELL             use SHELL instead of the default in "
+#| "passwd\n"
+#| "\n"
+msgid ""
+"Usage: su [options] [-] [username [args]]\n"
+"\n"
+"Options:\n"
+"  -c, --command COMMAND         pass COMMAND to the invoked shell\n"
+"  -h, --help                    display this help message and exit\n"
+"  -, -l, --login                make the shell a login shell\n"
+"  -m, -p,\n"
+"  --preserve-environment        do not reset environment variables, and\n"
+"                                keep the same shell\n"
+"  -s, --shell SHELL             use SHELL instead of the default in passwd\n"
+"\n"
+"If no username is given, assume root.\n"
+msgstr ""
+"Использование: su [параметры] [ПОЛЬЗОВАТЕЛЬ]\n"
+"\n"
+"Параметры:\n"
+"  -c, --command КОМАНДА         передать КОМАНДУ вызываемой оболочке\n"
+"  -h, --help                    показать данное сообщение и закончить "
+"работу\n"
+"  -, -l, --login                запускать оболочку как регистрационную\n"
+"  -m, -p,\n"
+"  --preserve-environment        не сбрасывать переменные окружения и\n"
+"                                сохранить запустившую оболочку\n"
+"  -s, --shell ОБОЛОЧКА          использовать ОБОЛОЧКУ\n"
+"                                вместо значения из файла passwd\n"
+"\n"
+
+#, c-format
+msgid ""
+"%s: %s\n"
+"(Ignored)\n"
+msgstr ""
+"%s: %s\n"
+"(Игнорировано)\n"
+
+#, c-format
+msgid "Password field is empty, this is forbidden for all accounts.\n"
+msgstr ""
+
+#, c-format
+msgid "Password field is empty, this is forbidden for super-user.\n"
+msgstr ""
+
+#, c-format
+msgid "You are not authorized to su %s\n"
+msgstr "У вас нет прав на выполнение su %s\n"
+
+msgid "(Enter your own password)"
+msgstr "(Введите ваш собственный пароль)"
+
+#, c-format
+msgid "%s: Authentication failure\n"
+msgstr "%s: не удалось пройти проверку подлинности\n"
+
+#, c-format
+msgid "%s: You are not authorized to su at that time\n"
+msgstr "%s: у вас нет прав выполнять su в данный момент\n"
+
+#, c-format
+msgid "No passwd entry for user '%s'\n"
+msgstr "Отсутствует passwd-запись для пользователя «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "invalid user name '%s'\n"
+msgid "Overlong user name '%s'\n"
+msgstr "неверное имя пользователя «%s»\n"
+
+#, c-format
+msgid "%s: must be run from a terminal\n"
+msgstr "%s: должен запускаться из терминала\n"
+
+#, c-format
+msgid "%s: pam_start: error %d\n"
+msgstr "%s: pam_start: ошибка %d\n"
+
+#, c-format
+msgid "%s: Cannot drop the controlling terminal\n"
+msgstr "%s: не удалось сбросить управляющий терминал\n"
+
+#, c-format
+msgid "Cannot execute %s\n"
+msgstr "Не удалось выполнить %s\n"
+
+msgid "No password file"
+msgstr "Отсутствует файл паролей"
+
+msgid "TIOCSCTTY failed"
+msgstr "Не удалось установить флаг TIOCSCTTY"
+
+msgid "No password entry for 'root'"
+msgstr "Отсутствует запись для «root»"
+
+msgid ""
+"\n"
+"Type control-d to proceed with normal startup,\n"
+"(or give root password for system maintenance):"
+msgstr ""
+"\n"
+"Нажмите control-d для продолжения загрузки в обычном режиме,\n"
+"(или введите пароль суперпользователя для обслуживания системы):"
+
+msgid "Entering System Maintenance Mode"
+msgstr "Вход в режим системного обслуживания"
+
+#, c-format
+msgid "%s: %s was created, but could not be removed\n"
+msgstr "%s: каталог %s создан, но не может быть удалён\n"
+
+#, c-format
+msgid "%s: the %s configuration in %s will be ignored\n"
+msgstr "%s: настройка %s в %s будет проигнорирована\n"
+
+#, fuzzy, c-format
+#| msgid "%s: the %s configuration in %s will be ignored\n"
+msgid ""
+"%s: the '%s' configuration in %s has an invalid group, ignoring the bad "
+"group\n"
+msgstr "%s: настройка %s в %s будет проигнорирована\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot create new defaults file\n"
+msgid "%s: cannot create new defaults file: %s\n"
+msgstr "%s: не удалось создать новый файл значений по умолчанию\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot create new defaults file\n"
+msgid "%s: cannot create directory for defaults file\n"
+msgstr "%s: не удалось создать новый файл значений по умолчанию\n"
+
+#, c-format
+msgid "%s: cannot open new defaults file\n"
+msgstr "%s: не удалось открыть новый файл значений по умолчанию\n"
+
+#, c-format
+msgid "%s: line too long in %s: %s..."
+msgstr "%s: слишком длинная строка в %s: %s…"
+
+#, c-format
+msgid "%s: Cannot create backup file (%s): %s\n"
+msgstr "%s: не удалось создать резервную копию файла (%s): %s\n"
+
+#, c-format
+msgid "%s: rename: %s: %s\n"
+msgstr "%s: rename: %s: %s\n"
+
+#, c-format
+msgid "%s: too many groups specified (max %d).\n"
+msgstr "%s: указано слишком много групп (максимум %d).\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Out of memory. Cannot update %s.\n"
+msgid "%s: Out of memory. Cannot find group '%s'.\n"
+msgstr "%s: недостаточно памяти. Не удалось обновить %s.\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] LOGIN\n"
+"       %s -D\n"
+"       %s -D [options]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"Использование: %s [параметры] ПОЛЬЗОВАТЕЛЬ\n"
+"               %s -D\n"
+"               %s -D [параметры]\n"
+"\n"
+"Параметры:\n"
+
+#, fuzzy
+#| msgid "  -s, --shadow                  edit shadow or gshadow database\n"
+msgid "      --badname                 do not check for bad names\n"
+msgstr ""
+"  -s, --shadow                  редактировать базу данных shadow или "
+"gshadow\n"
+
+msgid ""
+"  -b, --base-dir BASE_DIR       base directory for the home directory of "
+"the\n"
+"                                new account\n"
+msgstr ""
+"  -b, --base-dir БАЗ_КАТ        базовый каталог для домашнего каталога "
+"новой\n"
+"                                учётной записи\n"
+
+msgid ""
+"      --btrfs-subvolume-home    use BTRFS subvolume for home directory\n"
+msgstr ""
+
+msgid "  -c, --comment COMMENT         GECOS field of the new account\n"
+msgstr "  -c, --comment КОММЕНТАРИЙ     поле GECOS новой учётной записи\n"
+
+msgid "  -d, --home-dir HOME_DIR       home directory of the new account\n"
+msgstr ""
+"  -d, --home-dir ДОМ_КАТ        домашний каталог новой учётной записи\n"
+
+msgid ""
+"  -D, --defaults                print or change default useradd "
+"configuration\n"
+msgstr ""
+"  -D, --defaults                показать или изменить настройки\n"
+"                                по умолчанию для useradd\n"
+
+msgid "  -e, --expiredate EXPIRE_DATE  expiration date of the new account\n"
+msgstr ""
+"  -e, --expiredate ДАТА_УСТ     дата устаревания новой учётной записи\n"
+
+msgid ""
+"  -f, --inactive INACTIVE       password inactivity period of the new "
+"account\n"
+msgstr ""
+"  -f, --inactive НЕАКТИВНОСТЬ   период неактивности пароля новой учётной "
+"записи\n"
+
+msgid ""
+"  -F, --add-subids-for-system   add entries to sub[ud]id even when adding a "
+"system user\n"
+msgstr ""
+
+msgid ""
+"  -g, --gid GROUP               name or ID of the primary group of the new\n"
+"                                account\n"
+msgstr ""
+"  -g, --gid ГРУППА              имя или ID первичной группы новой\n"
+"                                учётной записи\n"
+
+msgid ""
+"  -G, --groups GROUPS           list of supplementary groups of the new\n"
+"                                account\n"
+msgstr ""
+"  -G, --groups ГРУППЫ           список дополнительных групп новой\n"
+"                                учётной записи\n"
+
+msgid ""
+"  -k, --skel SKEL_DIR           use this alternative skeleton directory\n"
+msgstr ""
+"  -k, --skel КАБ_ШАБ            использовать альтернативный каталог с "
+"шаблонами\n"
+
+msgid ""
+"  -l, --no-log-init             do not add the user to the lastlog and\n"
+"                                faillog databases\n"
+msgstr ""
+"  -l, --no-log-init             не добавлять пользователя в базы данных "
+"lastlog и\n"
+"                                faillog\n"
+
+msgid "  -m, --create-home             create the user's home directory\n"
+msgstr ""
+"  -m, --create-home             создать домашний каталог пользователя\n"
+
+msgid ""
+"  -M, --no-create-home          do not create the user's home directory\n"
+msgstr ""
+"  -M, --no-create-home          не создавать домашний каталог пользователя\n"
+
+msgid ""
+"  -N, --no-user-group           do not create a group with the same name as\n"
+"                                the user\n"
+msgstr ""
+"  -N, --no-user-group           не создавать группу с тем же именем что и у\n"
+"                                пользователя\n"
+
+msgid ""
+"  -o, --non-unique              allow to create users with duplicate\n"
+"                                (non-unique) UID\n"
+msgstr ""
+"  -o, --non-unique              разрешить создание пользователей с\n"
+"                                повторяющимися (не уникальными) UID\n"
+
+msgid "  -p, --password PASSWORD       encrypted password of the new account\n"
+msgstr ""
+"  -p, --password ПАРОЛЬ         зашифрованный пароль новой учётной записи\n"
+
+msgid "  -s, --shell SHELL             login shell of the new account\n"
+msgstr ""
+"  -s, --shell ОБОЛОЧКА          регистрационная оболочка новой\n"
+"                                учётной записи\n"
+
+msgid "  -u, --uid UID                 user ID of the new account\n"
+msgstr ""
+"  -u, --uid UID                 пользовательский ID новой учётной записи\n"
+
+msgid ""
+"  -U, --user-group              create a group with the same name as the "
+"user\n"
+msgstr ""
+"  -U, --user-group              создать группу с тем же именем что и у\n"
+"                                пользователя\n"
+
+msgid ""
+"  -Z, --selinux-user SEUSER     use a specific SEUSER for the SELinux user "
+"mapping\n"
+msgstr ""
+"  -Z, --selinux-user SEUSER     использовать указанного SEUSER для\n"
+"                                пользовательского сопоставления SELinux\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -Z, --selinux-user SEUSER     use a specific SEUSER for the SELinux "
+#| "user mapping\n"
+msgid ""
+"      --selinux-range SERANGE   use a specific MLS range for the SELinux "
+"user mapping\n"
+msgstr ""
+"  -Z, --selinux-user SEUSER     использовать указанного SEUSER для\n"
+"                                пользовательского сопоставления SELinux\n"
+
+#, c-format
+msgid "%s: invalid base directory '%s'\n"
+msgstr "%s: неверный базовый каталог «%s»\n"
+
+#, c-format
+msgid "%s: invalid comment '%s'\n"
+msgstr "%s: неверный комментарий «%s»\n"
+
+#, c-format
+msgid "%s: invalid home directory '%s'\n"
+msgstr "%s: неверный домашний каталог «%s»\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -e\n"
+msgstr "%s: для параметра -e необходима поддержка теневых паролей\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -f\n"
+msgstr "%s: для параметра -f необходима поддержка теневых паролей\n"
+
+#, c-format
+msgid "%s: invalid field '%s'\n"
+msgstr "%s: неверное поле «%s»\n"
+
+#, c-format
+msgid "%s: invalid shell '%s'\n"
+msgstr "%s: неверная оболочка «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Warning: %s is not executable\n"
+msgid "%s: Warning: missing or non-executable shell '%s'\n"
+msgstr "%s: предупреждение: %s не является исполняемым\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Option -C cannot be used together with option -S\n"
+msgid "%s: -Z cannot be used with --prefix\n"
+msgstr "%s: параметр -C нельзя использовать вместе с параметром -S\n"
+
+#, c-format
+msgid "%s: -Z requires SELinux enabled kernel\n"
+msgstr "%s: для -Z в ядре требуется включить SELinux\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to reset the faillog entry of UID %lu: %s\n"
+msgid "%s: failed to open the faillog file for UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в faillog для UID %lu: %s\n"
+
+#, c-format
+msgid "%s: failed to reset the faillog entry of UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в faillog для UID %lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to reset the faillog entry of UID %lu: %s\n"
+msgid "%s: failed to close the faillog file for UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в faillog для UID %lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to reset the lastlog entry of UID %lu: %s\n"
+msgid "%s: failed to open the lastlog file for UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в lastlog для UID %lu: %s\n"
+
+#, c-format
+msgid "%s: failed to reset the lastlog entry of UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в lastlog для UID %lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to reset the lastlog entry of UID %lu: %s\n"
+msgid "%s: failed to close the lastlog file for UID %lu: %s\n"
+msgstr "%s: не удалось сбросить запись в lastlog для UID %lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to reset the faillog entry of UID %lu: %s\n"
+msgid "%s: failed to reset the tallylog entry of user \"%s\"\n"
+msgstr "%s: не удалось сбросить запись в faillog для UID %lu: %s\n"
+
+#, c-format
+msgid "%s: failed to prepare the new %s entry\n"
+msgstr "%s: не удалось подготовить новую %s запись\n"
+
+#, fuzzy, c-format
+#| msgid "%s: error changing fields\n"
+msgid "%s: error while duplicating string %s\n"
+msgstr "%s: ошибка при изменении полей\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot create directory %s\n"
+msgid "%s: cannot set SELinux context for home directory %s\n"
+msgstr "%s: не удалось создать каталог %s\n"
+
+#, c-format
+msgid "%s: error while duplicating string in BTRFS check %s\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: %s home directory (%s) not found\n"
+msgid "%s: home directory \"%s\" must be mounted on BTRFS\n"
+msgstr "%s: домашний каталог пользователя %s (%s) не найден\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to allocate memory: %s\n"
+msgid "%s: failed to create BTRFS subvolume: %s\n"
+msgstr "%s: не удалось выделить память: %s\n"
+
+#, c-format
+msgid "%s: cannot create directory %s\n"
+msgstr "%s: не удалось создать каталог %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: warning: chown on `%s' failed: %m\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: warning: chmod on `%s' failed: %m\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: line %d: chown %s failed: %s\n"
+msgid "%s: warning: chown on '%s' failed: %m\n"
+msgstr "%s: строка %d: вызов chown %s завершился неудачно: %s\n"
+
+#, c-format
+msgid "%s: cannot reset SELinux file creation context\n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "Cannot create SELinux login mapping for %s\n"
+msgid "%s: cannot set SELinux context for mailbox file %s\n"
+msgstr "Невозможно создать сопоставление входа SELinux для %s\n"
+
+msgid "Creating mailbox file"
+msgstr "Создание почтового ящика"
+
+msgid ""
+"Group 'mail' not found. Creating the user mailbox file with 0600 mode.\n"
+msgstr ""
+"Не найдена группа «mail». Создаётся пользовательский почтовый ящик с правами "
+"0600.\n"
+
+msgid "Setting mailbox file permissions"
+msgstr "Установка прав на файл почтового ящика"
+
+#, fuzzy
+#| msgid "Creating mailbox file"
+msgid "Synchronize mailbox file"
+msgstr "Создание почтового ящика"
+
+#, fuzzy
+#| msgid "Creating mailbox file"
+msgid "Closing mailbox file"
+msgstr "Создание почтового ящика"
+
+#, c-format
+msgid "%s warning: %s's uid %d is greater than SYS_UID_MAX %d\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"%s warning: %s's uid %d outside of the UID_MIN %d and UID_MAX %d range.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: user '%s' already exists\n"
+msgstr "%s: пользователь «%s» уже существует\n"
+
+#, c-format
+msgid ""
+"%s: group %s exists - if you want to add this user to that group, use -g.\n"
+msgstr ""
+"%s: группа %s существует — для добавления в неё этого пользователя, "
+"используйте -g.\n"
+
+#, c-format
+msgid "%s: can't create user\n"
+msgstr "%s: не удалось создать пользователя\n"
+
+#, c-format
+msgid "%s: UID %lu is not unique\n"
+msgstr "%s: UID %lu не является уникальным\n"
+
+#, c-format
+msgid "%s: Failed to create tcb directory for %s\n"
+msgstr "%s: не удалось создать tcb-каталог для %s\n"
+
+#, c-format
+msgid "%s: can't create group\n"
+msgstr "%s: не удалось создать группу\n"
+
+#, c-format
+msgid "%s: can't create subordinate user IDs\n"
+msgstr "%s: не удалось создать подчинённые пользовательские ID\n"
+
+#, c-format
+msgid "%s: can't create subordinate group IDs\n"
+msgstr "%s: не удалось создать подчинённые групповые ID\n"
+
+#, c-format
+msgid "%s: warning: the user name %s to %s SELinux user mapping failed.\n"
+msgstr ""
+"%s: предупреждение: не удалось сопоставить имя пользователя %s с "
+"пользователем SELinux %s.\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: warning: the home directory already exists.\n"
+#| "Not copying any file from skel directory into it.\n"
+msgid ""
+"%s: warning: the home directory %s already exists.\n"
+"%s: Not copying any file from skel directory into it.\n"
+msgstr ""
+"%s: предупреждение: домашний каталог уже существует.\n"
+"Никакие файлы из каталога шаблонов копироваться не будут.\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -f, --force                   force removal of files,\n"
+#| "                                even if not owned by user\n"
+msgid ""
+"  -f, --force                   force some actions that would fail "
+"otherwise\n"
+"                                e.g. removal of user still logged in\n"
+"                                or files, even if not owned by the user\n"
+msgstr ""
+"  -f, --force                   удалять файлы, даже если они\n"
+"                                не принадлежат пользователю\n"
+
+msgid "  -r, --remove                  remove home directory and mail spool\n"
+msgstr ""
+"  -r, --remove                  удалить домашний каталог и почтовый ящик\n"
+
+msgid ""
+"  -Z, --selinux-user            remove any SELinux user mapping for the "
+"user\n"
+msgstr ""
+"  -Z, --selinux-user            удалить все пользовательские сопоставления\n"
+"                                SELinux для пользователя\n"
+
+#, c-format
+msgid ""
+"%s: group %s not removed because it is not the primary group of user %s.\n"
+msgstr ""
+"%s: группа %s не удалена, так как это не первичная группа пользователя %s.\n"
+
+#, c-format
+msgid "%s: group %s not removed because it has other members.\n"
+msgstr "%s: группа %s не удалена, так как в ней есть другие члены.\n"
+
+#, c-format
+msgid "%s: group %s is the primary group of another user and is not removed.\n"
+msgstr ""
+"%s: группа %s является первичной для другого пользователя и не может быть "
+"удалена.\n"
+
+#, c-format
+msgid "%s: cannot remove entry %lu from %s\n"
+msgstr "%s: не удалось удалить запись %lu из %s\n"
+
+#, c-format
+msgid "%s: %s mail spool (%s) not found\n"
+msgstr "%s: почтовый ящик %s (%s) не найден\n"
+
+#, c-format
+msgid "%s: warning: can't remove %s: %s\n"
+msgstr "%s: предупреждение: не удалось удалить %s: %s\n"
+
+#, c-format
+msgid "%s: %s not owned by %s, not removing\n"
+msgstr "%s: %s не принадлежит %s, удаление не выполнено\n"
+
+#, c-format
+msgid "%s: Can't allocate memory, tcb entry for %s not removed.\n"
+msgstr "%s: не удалось выделить память, элемент tcb для %s не удалён.\n"
+
+#, c-format
+msgid "%s: Cannot drop privileges: %s\n"
+msgstr "%s: не удалось снизить уровень привилегий: %s\n"
+
+#, c-format
+msgid "%s: Cannot remove the content of %s: %s\n"
+msgstr "%s: не удалось удалить содержимое %s: %s\n"
+
+#, c-format
+msgid "%s: Cannot remove tcb files for %s: %s\n"
+msgstr "%s: не удалось удалить файлы tcb для %s: %s\n"
+
+#, c-format
+msgid "%s: %s home directory (%s) not found\n"
+msgstr "%s: домашний каталог пользователя %s (%s) не найден\n"
+
+#, c-format
+msgid "%s: not removing directory %s (would remove home of user %s)\n"
+msgstr ""
+"%s: каталог %s не удалён (является домашним каталогом пользователя %s)\n"
+
+#, fuzzy, c-format
+#| msgid "%s: error removing directory %s\n"
+msgid "%s: error removing subvolume %s\n"
+msgstr "%s: ошибка удаления каталога %s\n"
+
+#, c-format
+msgid "%s: error removing directory %s\n"
+msgstr "%s: ошибка удаления каталога %s\n"
+
+#, c-format
+msgid "%s: warning: the user name %s to SELinux user mapping removal failed.\n"
+msgstr ""
+"%s: предупреждение: не удалось удалить пользовательское сопоставление "
+"SELinux в имя пользователя %s.\n"
+
+msgid ""
+"  -a, --append                  append the user to the supplemental GROUPS\n"
+"                                mentioned by the -G option without removing\n"
+"                                the user from other groups\n"
+msgstr ""
+"  -a, --append                  добавить пользователя в дополнительные\n"
+"                                ГРУППЫ, указанные в параметре -G не удаляя\n"
+"                                пользователя из других групп\n"
+
+msgid "  -c, --comment COMMENT         new value of the GECOS field\n"
+msgstr "  -c, --comment КОММЕНТАРИЙ     новое значение поля GECOS\n"
+
+msgid ""
+"  -d, --home HOME_DIR           new home directory for the user account\n"
+msgstr ""
+"  -d, --home ДОМ_КАТ            новый домашний каталог учётной записи\n"
+
+msgid ""
+"  -e, --expiredate EXPIRE_DATE  set account expiration date to EXPIRE_DATE\n"
+msgstr ""
+"  -e, --expiredate ДАТА_УСТ     установить дату окончания действия\n"
+"                                учётной записи в ДАТА_УСТ\n"
+
+msgid ""
+"  -f, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr ""
+"  -f, --inactive НЕАКТИВНОСТЬ   установить период неактивности пароля после\n"
+"                                устаревания учётной записи равным "
+"НЕАКТИВНОСТЬ\n"
+
+msgid "  -g, --gid GROUP               force use GROUP as new primary group\n"
+msgstr ""
+"  -g, --gid ГРУППА              принудительно назначить первичную ГРУППУ\n"
+
+msgid "  -G, --groups GROUPS           new list of supplementary GROUPS\n"
+msgstr "  -G, --groups ГРУППЫ           список дополнительных ГРУПП\n"
+
+msgid "  -l, --login NEW_LOGIN         new value of the login name\n"
+msgstr "  -l, --login НОВОЕ_ИМЯ         новое значение имени учётной записи\n"
+
+msgid "  -L, --lock                    lock the user account\n"
+msgstr "  -L, --lock                    заблокировать учётную запись\n"
+
+msgid ""
+"  -m, --move-home               move contents of the home directory to the\n"
+"                                new location (use only with -d)\n"
+msgstr ""
+"  -m, --move-home               переместить содержимое домашнего каталога в\n"
+"                                новое место (использовать только вместе с -"
+"d)\n"
+
+msgid ""
+"  -o, --non-unique              allow using duplicate (non-unique) UID\n"
+msgstr ""
+"  -o, --non-unique              разрешить создание учётной записи с уже\n"
+"                                имеющимся (не уникальным) UID\n"
+
+msgid ""
+"  -p, --password PASSWORD       use encrypted password for the new password\n"
+msgstr ""
+"  -p, --password ПАРОЛЬ         задать новый шифрованный пароль для\n"
+"                                учётной записи\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -a, --append                  append the user to the supplemental "
+#| "GROUPS\n"
+#| "                                mentioned by the -G option without "
+#| "removing\n"
+#| "                                the user from other groups\n"
+msgid ""
+"  -r, --remove                  remove the user from only the supplemental "
+"GROUPS\n"
+"                                mentioned by the -G option without removing\n"
+"                                the user from other groups\n"
+msgstr ""
+"  -a, --append                  добавить пользователя в дополнительные\n"
+"                                ГРУППЫ, указанные в параметре -G не удаляя\n"
+"                                пользователя из других групп\n"
+
+msgid "  -u, --uid UID                 new UID for the user account\n"
+msgstr "  -u, --uid UID                 новый UID для учётной записи\n"
+
+msgid "  -U, --unlock                  unlock the user account\n"
+msgstr "  -U, --unlock                  разблокировать учётную запись\n"
+
+msgid "  -v, --add-subuids FIRST-LAST  add range of subordinate uids\n"
+msgstr "  -v, --add-subuids ПЕРВ-ПОСЛ   добавить диапазон подчинённых uid\n"
+
+msgid "  -V, --del-subuids FIRST-LAST  remove range of subordinate uids\n"
+msgstr "  -V, --del-subuids ПЕРВ-ПОСЛ   удалить диапазон подчинённых uid\n"
+
+msgid "  -w, --add-subgids FIRST-LAST  add range of subordinate gids\n"
+msgstr "  -w, --add-subgids ПЕРВ-ПОСЛ   добавить диапазон подчинённых gid\n"
+
+msgid "  -W, --del-subgids FIRST-LAST  remove range of subordinate gids\n"
+msgstr "  -W, --del-subgids ПЕРВ-ПОСЛ   удалить диапазон подчинённых gid\n"
+
+msgid ""
+"  -Z, --selinux-user SEUSER     new SELinux user mapping for the user "
+"account\n"
+msgstr ""
+"  -Z, --selinux-user SEUSER     новое пользовательское сопоставление\n"
+"                                SELinux для учётной записи\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -Z, --selinux-user SEUSER     new SELinux user mapping for the user "
+#| "account\n"
+msgid ""
+"      --selinux-range SERANGE   new SELinux MLS range for the user account\n"
+msgstr ""
+"  -Z, --selinux-user SEUSER     новое пользовательское сопоставление\n"
+"                                SELinux для учётной записи\n"
+
+#, c-format
+msgid ""
+"%s: unlocking the user's password would result in a passwordless account.\n"
+"You should set a password with usermod -p to unlock this user's password.\n"
+msgstr ""
+"%s: разблокировка пароля пользователя приведёт к появлению беспарольной\n"
+"учётной записи. Вы должны задать пароль с помощью usermod -p для "
+"разблокировки пароля пользователя.\n"
+
+#, c-format
+msgid "%s: user '%s' already exists in %s\n"
+msgstr "%s: пользователь «%s» уже существует в %s\n"
+
+#, c-format
+msgid "%s: homedir must be an absolute path\n"
+msgstr ""
+
+#, c-format
+msgid "%s: invalid subordinate uid range '%s'\n"
+msgstr "%s: некорректный диапазон подчинённых uid «%s»\n"
+
+#, c-format
+msgid "%s: invalid subordinate gid range '%s'\n"
+msgstr "%s: некорректный диапазон подчинённых gid «%s»\n"
+
+#, c-format
+msgid "%s: no options\n"
+msgstr "%s: не указаны параметры\n"
+
+#, c-format
+msgid "%s: %s and %s are mutually exclusive flags\n"
+msgstr ""
+
+#, c-format
+msgid "%s: the -L, -p, and -U flags are exclusive\n"
+msgstr "%s: параметры -L, -p и -U являются взаимоисключающими\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -e and -f\n"
+msgstr ""
+"%s: для параметров -e и -f требуется поддержка теневых файлов паролей\n"
+
+#, c-format
+msgid "%s: UID '%lu' already exists\n"
+msgstr "%s: UID «%lu» уже существует\n"
+
+#, c-format
+msgid "%s: %s does not exist, you cannot use the flags %s or %s\n"
+msgstr "%s: %s не существует, нельзя указывать флаги %s или %s\n"
+
+#, c-format
+msgid "%s: directory %s exists\n"
+msgstr "%s: каталог %s существует\n"
+
+#, c-format
+msgid ""
+"%s: The previous home directory (%s) was not a directory. It is not removed "
+"and no home directories are created.\n"
+msgstr ""
+"%s: Предыдущий домашний каталог (%s) не являлся домашним каталогом. Он не "
+"удалён и домашний каталог не создан.\n"
+
+#, c-format
+msgid "%s: Failed to change ownership of the home directory"
+msgstr "%s: не удалось изменить владельца домашнего каталога"
+
+#, c-format
+msgid "%s: error: cannot move subvolume from %s to %s - different device\n"
+msgstr ""
+
+#, c-format
+msgid "%s: warning: failed to completely remove old home directory %s"
+msgstr ""
+"%s: предупреждение: не удалось полностью удалить старый домашний каталог %s"
+
+#, c-format
+msgid "%s: cannot rename directory %s to %s\n"
+msgstr "%s: не удалось переименовать каталог %s в %s\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: The previous home directory (%s) was not a directory. It is not "
+#| "removed and no home directories are created.\n"
+msgid ""
+"%s: The previous home directory (%s) does not exist or is inaccessible. Move "
+"cannot be completed.\n"
+msgstr ""
+"%s: Предыдущий домашний каталог (%s) не являлся домашним каталогом. Он не "
+"удалён и домашний каталог не создан.\n"
+
+#, c-format
+msgid "%s: failed to copy the lastlog entry of user %lu to user %lu: %s\n"
+msgstr ""
+"%s: не удалось скопировать запись lastlog о пользователе %lu в пользователя "
+"%lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to copy the lastlog entry of user %lu to user %lu: %s\n"
+msgid "%s: failed to copy the lastlog entry of user %ju to user %ju: %s\n"
+msgstr ""
+"%s: не удалось скопировать запись lastlog о пользователе %lu в пользователя "
+"%lu: %s\n"
+
+#, c-format
+msgid "%s: failed to copy the faillog entry of user %lu to user %lu: %s\n"
+msgstr ""
+"%s: не удалось скопировать запись faillog о пользователе %lu в пользователя "
+"%lu: %s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to copy the faillog entry of user %lu to user %lu: %s\n"
+msgid "%s: failed to copy the faillog entry of user %ju to user %ju: %s\n"
+msgstr ""
+"%s: не удалось скопировать запись faillog о пользователе %lu в пользователя "
+"%lu: %s\n"
+
+#, c-format
+msgid "%s: warning: %s not owned by %s\n"
+msgstr "%s: предупреждение: %s не принадлежит %s\n"
+
+msgid "failed to change mailbox owner"
+msgstr "не удалось сменить владельца почтового ящика"
+
+msgid "failed to rename mailbox"
+msgstr "не удалось переименовать почтовый ящик"
+
+#, c-format
+msgid "%s: failed to remove uid range %lu-%lu from '%s'\n"
+msgstr "%s: не удалось удалить диапазон uid %lu-%lu из «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to add uid range %lu-%lu from '%s'\n"
+msgid "%s: failed to add uid range %lu-%lu to '%s'\n"
+msgstr "%s: не удалось добавить диапазон uid %lu-%lu в «%s»\n"
+
+#, c-format
+msgid "%s: failed to remove gid range %lu-%lu from '%s'\n"
+msgstr "%s: не удалось удалить диапазон gid %lu-%lu из «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to add gid range %lu-%lu from '%s'\n"
+msgid "%s: failed to add gid range %lu-%lu to '%s'\n"
+msgstr "%s: не удалось добавить диапазон gid %lu-%lu в «%s»\n"
+
+#, c-format
+msgid ""
+"You have modified %s.\n"
+"You may need to modify %s for consistency.\n"
+"Please use the command '%s' to do so.\n"
+msgstr ""
+"Вы изменили %s.\n"
+"Для обеспечения согласованности вам может потребоваться изменить %s.\n"
+"Для этого используйте команду «%s».\n"
+
+msgid "  -g, --group                   edit group database\n"
+msgstr "  -g, --group                   редактировать базу данных групп\n"
+
+msgid "  -p, --passwd                  edit passwd database\n"
+msgstr "  -p, --passwd                  редактировать базу данных паролей\n"
+
+msgid "  -s, --shadow                  edit shadow or gshadow database\n"
+msgstr ""
+"  -s, --shadow                  редактировать базу данных shadow или "
+"gshadow\n"
+
+msgid "  -u, --user                    which user's tcb shadow file to edit\n"
+msgstr ""
+"  -u, --user                    редактировать пользовательский файл\n"
+"                                shadow структуры tcb\n"
+
+#, c-format
+msgid "%s: failed to remove %s\n"
+msgstr "%s: не удалось удалить %s\n"
+
+#, c-format
+msgid "%s: %s is unchanged\n"
+msgstr "%s: %s не был изменён\n"
+
+msgid "failed to create scratch directory"
+msgstr "не удалось создать черновой каталог"
+
+msgid "failed to drop privileges"
+msgstr "не удалось снизить уровень привилегий"
+
+#
+msgid "Couldn't get file context"
+msgstr "Не удалось получить файловый контекст"
+
+msgid "setfscreatecon () failed"
+msgstr "Вызов setfscreatecon () завершился неудачно"
+
+msgid "failed to gain privileges"
+msgstr "не удалось повысить уровень привилегий"
+
+msgid "Couldn't lock file"
+msgstr "Не удалось заблокировать файл"
+
+msgid "Couldn't make backup"
+msgstr "Не удалось создать резервную копию"
+
+#, c-format
+msgid "%s: %s: %s\n"
+msgstr "%s: %s: %s\n"
+
+#, c-format
+msgid "%s: %s returned with status %d\n"
+msgstr "%s: %s завершился с кодом выхода %d\n"
+
+#, c-format
+msgid "%s: %s killed by signal %d\n"
+msgstr "%s: %s убит по сигналу %d\n"
+
+msgid "failed to open scratch file"
+msgstr "не удалось открыть черновой файл"
+
+msgid "failed to unlink scratch file"
+msgstr "не удалось удалить черновой файл"
+
+msgid "failed to stat edited file"
+msgstr "не удалось получить атрибуты редактируемого файла"
+
+msgid "asprintf(3) failed"
+msgstr ""
+
+msgid "failed to create backup file"
+msgstr "не удалось создать резервную копию файла"
+
+#, c-format
+msgid "%s: can't restore %s: %s (your changes are in %s)\n"
+msgstr "%s: не удалось восстановить %s: %s (ваши изменения в %s)\n"
+
+#, c-format
+msgid "%s: failed to find tcb directory for %s\n"
+msgstr "%s: не удалось найти каталог tcb для %s\n"
+
+#~ msgid "Environment overflow\n"
+#~ msgstr "Слишком большое количество переменных окружения\n"
+
+#, c-format
+#~ msgid "%s: cannot change user '%s' on NIS client.\n"
+#~ msgstr "%s: невозможно изменить пользователя «%s» в клиенте NIS.\n"
+
+#, c-format
+#~ msgid "%s: '%s' is the NIS master for this client.\n"
+#~ msgstr "%s: «%s» является мастером NIS для этого клиента.\n"
+
+#, c-format
+#~ msgid "%s: group '%s' is a NIS group\n"
+#~ msgstr "%s: группа «%s» является группой NIS\n"
+
+#, c-format
+#~ msgid "%s: %s is the NIS master\n"
+#~ msgstr "%s: %s является мастером NIS\n"
+
+#, c-format
+#~ msgid "%s: group %s is a NIS group\n"
+#~ msgstr "%s: группа %s является группой NIS\n"
+
+#, c-format
+#~ msgid "       %s [-p] -r host\n"
+#~ msgstr "                    %s [-p] -r узел\n"
+
+#, c-format
+#~ msgid "%s: cannot create new defaults file\n"
+#~ msgstr "%s: не удалось создать новый файл значений по умолчанию\n"
+
+#, c-format
+#~ msgid "%s: group '%s' is a NIS group.\n"
+#~ msgstr "%s: группа «%s» является группой NIS.\n"
+
+#, c-format
+#~ msgid "%s: user %s is a NIS user\n"
+#~ msgstr "%s: пользователь %s является пользователем NIS\n"
+
+#~ msgid "too simple"
+#~ msgstr "слишком простой"
+
+#~ msgid "No utmp entry.  You must exec \"login\" from the lowest level \"sh\""
+#~ msgstr ""
+#~ "Нет записи в utmp. Вы должны запускать «login» из самого первого уровня "
+#~ "«sh»"
+
+#, fuzzy, c-format
+#~| msgid "%s: failed to find tcb directory for %s\n"
+#~ msgid "%s: Could not open proc directory for target %u\n"
+#~ msgstr "%s: не удалось найти каталог tcb для %s\n"
+
+#~ msgid "failed to allocate memory"
+#~ msgstr "не удалось выделить память"
+
+#~ msgid "Usage: id\n"
+#~ msgstr "Использование: id\n"
+
+#, c-format
+#~ msgid "Last login: %.19s on %s"
+#~ msgstr "Последний вход в систему: %.19s на %s"
+
+#, c-format
+#~ msgid "%s: invalid user name '%s'\n"
+#~ msgstr "%s: неверное имя пользователя «%s»\n"
+
+#, c-format
+#~ msgid "%s: password expiry information changed.\n"
+#~ msgstr "%s: информация об истечении срока действия пароля изменена.\n"
+
+#~ msgid "Username         Port     From             Latest"
+#~ msgstr "Пользователь     Порт     С                Последний раз"
+
+#~ msgid "  -c, --crypt-method            the crypt method (one of %s)\n"
+#~ msgstr "  -c, --crypt-method            алгоритм шифрования (один из: %s)\n"
+
+#~ msgid ""
+#~ "Usage: vipw [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ msgstr ""
+#~ "Использование: vipw [параметры]\n"
+#~ "\n"
+#~ "Параметры:\n"
+
+#~ msgid "malloc(%d) failed\n"
+#~ msgstr "не удалось выполнить malloc(%d)\n"
+
+#
+#~ msgid ""
+#~ "Usage: chage [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -d, --lastday LAST_DAY        set date of last password change to "
+#~ "LAST_DAY\n"
+#~ "  -E, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -I, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -l, --list                    show account aging information\n"
+#~ "  -m, --mindays MIN_DAYS        set minimum number of days before "
+#~ "password\n"
+#~ "                                change to MIN_DAYS\n"
+#~ "  -M, --maxdays MAX_DAYS        set maximim number of days before "
+#~ "password\n"
+#~ "                                change to MAX_DAYS\n"
+#~ "  -W, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: chage [параметры] [ПОЛЬЗОВАТЕЛЬ]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -d, --lastday LAST_DAY        установить последний день смены пароля\n"
+#~ "                                в LAST_DAY\n"
+#~ "  -E, --expiredate EXPIRE_DATE  установить дату окончания действия\n"
+#~ "                                учётной записи в EXPIRE_DATE\n"
+#~ "  -h, --help                    показать это сообщение и закончить "
+#~ "работу\n"
+#~ "  -I, --inactive INACTIVE       установить неактивность пароля после\n"
+#~ "                                устаревания в значение INACTIVE\n"
+#~ "  -l, --list                    показать «возраст» учётной записи\n"
+#~ "  -m, --mindays MIN_DAYS        установить минимальное число дней перед\n"
+#~ "                                сменой пароля в MIN_DAYS\n"
+#~ "  -M, --maxdays MAX_DAYS        установить максимальное число дней перед\n"
+#~ "                                сменой пароля в MAX_DAYS\n"
+#~ "  -W, --warndays WARN_DAYS      установить количество дней с выдачей\n"
+#~ "                                предупреждения в WARN_DAYS\n"
+#~ "\n"
+
+#~ msgid "%s: PAM authentication failed\n"
+#~ msgstr "%s: проверка подлинности PAM завершилась неудачно\n"
+
+#~ msgid ""
+#~ "Usage: %s [-f full_name] [-r room_no] [-w work_ph]\n"
+#~ "\t[-h home_ph] [-o other] [user]\n"
+#~ msgstr ""
+#~ "Использование: %s [-f полное имя] [-r номер комнаты] [-w рабочий "
+#~ "телефон]\n"
+#~ "\t[-h домашний телефон] [-o другое] [пользователь]\n"
+
+#~ msgid "Usage: %s [-f full_name] [-r room_no] [-w work_ph] [-h home_ph]\n"
+#~ msgstr ""
+#~ "Использование: %s [-f полное имя] [-r номер комнаты] [-w рабочий телефон] "
+#~ "[-h домашний телефон]\n"
+
+#~ msgid ""
+#~ "Usage: %s [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -c, --crypt-method            the crypt method (one of %s)\n"
+#~ "  -e, --encrypted               supplied passwords are encrypted\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -m, --md5                     encrypt the clear text password using\n"
+#~ "                                the MD5 algorithm\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "Использование: %s [параметры]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -c, --crypt-method    алгоритм шифрования (один из %s)\n"
+#~ "  -e, --encrypted       вводится уже шифрованный пароль\n"
+#~ "  -h, --help            показать это сообщение и завершить работу "
+#~ "программы\n"
+#~ "  -m, --md5             использовать шифрование MD5 вместо DES, если "
+#~ "пароль\n"
+#~ "                        вводится не шифрованным\n"
+#~ "%s\n"
+
+#~ msgid ""
+#~ "Usage: chsh [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -s, --shell SHELL             new login shell for the user account\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: chsh [параметры] [ПОЛЬЗОВАТЕЛЬ]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -h, --help            показать данное сообщение и закончить работу\n"
+#~ "  -s, --shell SHELL     новая регистрационная оболочка для учётной "
+#~ "записи\n"
+#~ "\n"
+
+#~ msgid "Usage: expiry {-f|-c}\n"
+#~ msgstr "Использование: expiry {-f|-c}\n"
+
+#~ msgid "faillog: Failed to get the entry for UID %lu\n"
+#~ msgstr "faillog: не удалось получить запись для UID %lu\n"
+
+#~ msgid "faillog: Cannot open %s: %s\n"
+#~ msgstr "faillog: не удалось открыть %s: %s\n"
+
+#~ msgid "faillog: Cannot get the size of %s: %s\n"
+#~ msgstr "faillog: не удалось получить размер %s: %s\n"
+
+#~ msgid "Usage: groupdel group\n"
+#~ msgstr "Использование: groupdel группа\n"
+
+#~ msgid "Usage: %s [-r] [-s] [group [gshadow]]\n"
+#~ msgstr "Использование: %s [-r] [-s] [файл_group [файл_gshadow]]\n"
+
+#~ msgid "Usage: %s [-r] [-s] [group]\n"
+#~ msgstr "Использование: %s [-r] [-s] [файл_group]\n"
+
+#~ msgid "%s: -s and -r are incompatibile\n"
+#~ msgstr "%s: -s и -r не могут использоваться одновременно\n"
+
+#
+#~ msgid "Usage: grpconv\n"
+#~ msgstr "Использование: grpconv\n"
+
+#
+#~ msgid "Usage: grpunconv\n"
+#~ msgstr "Использование: grpunconv\n"
+
+#~ msgid ""
+#~ "Usage: lastlog [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -b, --before DAYS             print only lastlog records older than "
+#~ "DAYS\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -t, --time DAYS               print only lastlog records more recent "
+#~ "than DAYS\n"
+#~ "  -u, --user LOGIN              print lastlog record of the specified "
+#~ "LOGIN\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: lastlog [параметры]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -b, --before ДНЕЙ     показать записи lastlog за последние ДНЕЙ дней\n"
+#~ "  -h, --help            показать это сообщение и завершить работу "
+#~ "программы\n"
+#~ "  -t, --time ДНЕЙ       показать записи lastlog за последние ДНЕЙ дней\n"
+#~ "  -u, --user ИМЯ        показать запись lastlog для учётной записи ИМЯ\n"
+#~ "\n"
+
+#
+#~ msgid ""
+#~ "Usage: passwd [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -a, --all                     report password status on all accounts\n"
+#~ "  -d, --delete                  delete the password for the named "
+#~ "account\n"
+#~ "  -e, --expire                  force expire the password for the named "
+#~ "account\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -k, --keep-tokens             change password only if expired\n"
+#~ "  -i, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -l, --lock                    lock the password of the named account\n"
+#~ "  -n, --mindays MIN_DAYS        set minimum number of days before "
+#~ "password\n"
+#~ "                                change to MIN_DAYS\n"
+#~ "  -q, --quiet                   quiet mode\n"
+#~ "  -r, --repository REPOSITORY   change password in REPOSITORY repository\n"
+#~ "  -S, --status                  report password status on the named "
+#~ "account\n"
+#~ "  -u, --unlock                  unlock the password of the named account\n"
+#~ "  -w, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+#~ "  -x, --maxdays MAX_DAYS        set maximum number of days before "
+#~ "password\n"
+#~ "                                change to MAX_DAYS\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: passwd [параметры] [ПОЛЬЗОВАТЕЛЬ]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -a, --all                     показать состояние паролей всех учётных\n"
+#~ "                                записей\n"
+#~ "  -d, --delete                  удалить пароль заданной учётной записи\n"
+#~ "  -e, --expire                  просрочить пароль заданной учётной "
+#~ "записи\n"
+#~ "  -h, --help                    показать это сообщение и завершить "
+#~ "работу\n"
+#~ "                                программы\n"
+#~ "  -k, --keep-tokens             изменять пароль только с истёкшим сроком\n"
+#~ "                                действия\n"
+#~ "  -i, --inactive INACTIVE       установить неактивность пароля после\n"
+#~ "                                истечения срока в значение INACTIVE\n"
+#~ "  -l, --lock                    заблокировать заданную учётную запись\n"
+#~ "  -n, --mindays MIN_DAYS        установить минимальное число дней перед\n"
+#~ "                                сменой пароля в MIN_DAYS\n"
+#~ "  -q, --quiet                   не показывать сообщений\n"
+#~ "  -r, --repository REPOSITORY   изменить пароль в репозитории REPOSITORY\n"
+#~ "  -S, --status                  показать состояние пароля заданной "
+#~ "учётной\n"
+#~ "                                записи\n"
+#~ "  -u, --unlock                  разблокировать заданную учётную запись\n"
+#~ "  -w, --warndays WARN_DAYS      установить количество дней с\n"
+#~ "                                выдачей предупреждения в WARN_DAYS\n"
+#~ "  -x, --maxdays MAX_DAYS        установить максимальное число дней перед\n"
+#~ "                                сменой пароля в MAX_DAYS\n"
+#~ "\n"
+
+#~ msgid "Usage: %s [-q] [-r] [passwd]\n"
+#~ msgstr "Использование: %s [-q] [-r] [passwd]\n"
+
+#~ msgid "Usage: %s [-q] [-r] [-s] [passwd [shadow]]\n"
+#~ msgstr "Использование: %s [-q] [-r] [-s] [passwd [shadow]]\n"
+
+#
+#~ msgid "Usage: pwconv\n"
+#~ msgstr "Использование: pwconv\n"
+
+#
+#~ msgid "Usage: pwunconv\n"
+#~ msgstr "Использование: pwunconv\n"
+
+#~ msgid "Unknown id: %s\n"
+#~ msgstr "Неизвестный id: %s\n"
+
+#~ msgid "No shell\n"
+#~ msgstr "Отсутствует оболочка\n"
+
+#~ msgid ""
+#~ "Usage: userdel [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -f, --force                   force removal of files,\n"
+#~ "                                even if not owned by user\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -r, --remove                  remove home directory and mail spool\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: userdel [параметры] ПОЛЬЗОВАТЕЛЬ\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -f, --force                   удалять файлы, даже если они\n"
+#~ "                                не принадлежат пользователю\n"
+#~ "  -h, --help                    показать данное сообщение и закончить "
+#~ "работу\n"
+#~ "  -r, --remove                  удалить домашний каталог и почтовый ящик\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: usermod [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -c, --comment COMMENT         new value of the GECOS field\n"
+#~ "  -d, --home HOME_DIR           new home directory for the user account\n"
+#~ "  -e, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -g, --gid GROUP               force use GROUP as new primary group\n"
+#~ "  -G, --groups GROUPS           new list of supplementary GROUPS\n"
+#~ "  -a, --append                  append the user to the supplemental "
+#~ "GROUPS\n"
+#~ "                                mentioned by the -G option without "
+#~ "removing\n"
+#~ "                                the user from other groups\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -l, --login NEW_LOGIN         new value of the login name\n"
+#~ "  -L, --lock                    lock the user account\n"
+#~ "  -m, --move-home               move contents of the home directory to "
+#~ "the\n"
+#~ "                                new location (use only with -d)\n"
+#~ "  -o, --non-unique              allow using duplicate (non-unique) UID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new "
+#~ "password\n"
+#~ "  -s, --shell SHELL             new login shell for the user account\n"
+#~ "  -u, --uid UID                 new UID for the user account\n"
+#~ "  -U, --unlock                  unlock the user account\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "Использование: usermod [параметры] ПОЛЬЗОВАТЕЛЬ\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -c, --comment КОММЕНТАРИЙ     новое значение поля GECOS\n"
+#~ "  -d, --home ДОМ_КАТ            новый домашний каталог учётной записи\n"
+#~ "  -e, --expiredate ДАТА_УСТ     установить дату окончания действия\n"
+#~ "                                учётной записи в ДАТА_УСТ\n"
+#~ "  -f, --inactive НЕАКТИВНОСТЬ   установить период неактивности пароля "
+#~ "после\n"
+#~ "                                устаревания учётной записи равным "
+#~ "НЕАКТИВНОСТЬ\n"
+#~ "  -g, --gid ГРУППА              принудительно назначить первичную ГРУППУ\n"
+#~ "  -G, --groups ГРУППЫ           список дополнительных ГРУПП\n"
+#~ "  -a, --append                  добавить пользователя в дополнительные\n"
+#~ "                                ГРУППЫ, указанные в параметре -G не "
+#~ "удаляя\n"
+#~ "                                пользователя из других групп\n"
+#~ "  -h, --help                    показать данное сообщение и закончить "
+#~ "работу\n"
+#~ "  -l, --login НОВОЕ_ИМЯ         новое значение имени учётной записи\n"
+#~ "  -L, --lock                    заблокировать учётную запись\n"
+#~ "  -m, --move-home               переместить содержимое домашнего каталога "
+#~ "в\n"
+#~ "                                новое место (использовать только вместе с "
+#~ "-d)\n"
+#~ "  -o, --non-unique              разрешить создание учётной записи с уже\n"
+#~ "                                имеющимся (не уникальным) UID\n"
+#~ "  -p, --password ПАРОЛЬ         задать новый шифрованный пароль для\n"
+#~ "                                учётной записи\n"
+#~ "  -s, --shell ОБОЛОЧКА          задать новую оболочку для\n"
+#~ "                                учётной записи\n"
+#~ "  -u, --uid UID                 новый UID для учётной записи\n"
+#~ "  -U, --unlock                  разблокировать учётную запись\n"
+#~ "%s\n"
+
+#~ msgid "%s: no flags given\n"
+#~ msgstr "%s: не заданы параметры\n"
+
+#, fuzzy
+#~| msgid ""
+#~| "Usage: vipw [options]\n"
+#~| "\n"
+#~| "Options:\n"
+#~| "  -g, --group                   edit group database\n"
+#~| "  -h, --help                    display this help message and exit\n"
+#~| "  -p, --passwd                  edit passwd database\n"
+#~| "  -q, --quiet                   quiet mode\n"
+#~| "  -s, --shadow                  edit shadow or gshadow database\n"
+#~| "\n"
+#~ msgid ""
+#~ "Usage: vipw [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -g, --group                   edit group database\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -p, --passwd                  edit passwd database\n"
+#~ "  -q, --quiet                   quiet mode\n"
+#~ "  -s, --shadow                  edit shadow or gshadow database\n"
+#~ "  -u, --user                    which user's tcb shadow file to edit\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: vipw [параметры]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -g, --group                   редактировать базу данных групп\n"
+#~ "  -h, --help                    показать данное сообщение и закончить "
+#~ "работу\n"
+#~ "  -p, --passwd                  редактировать базу данных паролей\n"
+#~ "  -q, --quiet                   quiet mode\n"
+#~ "  -s, --shadow                  редактировать базу данных теневых\n"
+#~ "                                паролей пользователей или групп\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: %s [option] GROUP\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -a, --add USER                add USER to GROUP\n"
+#~ "  -d, --delete USER             remove USER from GROUP\n"
+#~ "  -r, --remove-password         remove the GROUP's password\n"
+#~ "  -R, --restrict                restrict access to GROUP to its members\n"
+#~ "  -M, --members USER,...        set the list of members of GROUP\n"
+#~ "%s\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: %s [параметр] ГРУППА\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -a, --add ПОЛЬЗОВАТЕЛЬ          добавить ПОЛЬЗОВАТЕЛЯ в ГРУППУ\n"
+#~ "  -d, --delete ПОЛЬЗОВАТЕЛЬ       удалить ПОЛЬЗОВАТЕЛЯ из ГРУППЫ\n"
+#~ "  -r, --remove-password           удалить пароль ГРУППЫ\n"
+#~ "  -R, --restrict                  ограничить доступ к ГРУППЕ её членам\n"
+#~ "  -M, --members ПОЛЬЗОВАТЕЛЬ,...  задать список членов ГРУППЫ\n"
+#~ "%s\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: groupmems [options] [action]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -g, --group groupname         change groupname instead of the user's "
+#~ "group\n"
+#~ "                                (root only)\n"
+#~ "\n"
+#~ "Actions:\n"
+#~ "  -a, --add username            add username to the members of the group\n"
+#~ "  -d, --delete username         remove username from the members of the "
+#~ "group\n"
+#~ "  -p, --purge                   purge all members from the group\n"
+#~ "  -l, --list                    list the members of the group\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: groupmems [параметры] [действие]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -g, --group имя_группы          изменить имя_группы вместо "
+#~ "пользовательской\n"
+#~ "                                  группы (только для root)\n"
+#~ "\n"
+#~ "Действия:\n"
+#~ "  -a, --add имя_польз             добавить имя_польз в члены группы\n"
+#~ "  -d, --delete имя_польз          удалить имя_польз из членов группы\n"
+#~ "  -p, --purge                     удалить всех членов из группы\n"
+#~ "  -l, --list                      показать всех членов группы\n"
+#~ "\n"
+
+#~ msgid "%s: can't create %s\n"
+#~ msgstr "%s: не удалось создать %s\n"
+
+#~ msgid "%s: can't chown %s\n"
+#~ msgstr "%s: не удалось сменить владельца %s\n"
+
+#
+#~ msgid ""
+#~ "Usage: faillog [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -a, --all                     display faillog records for all users\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -l, --lock-time SEC           after failed login lock account to SEC "
+#~ "seconds\n"
+#~ "  -m, --maximum MAX             set maximum failed login counters to MAX\n"
+#~ "  -r, --reset                   reset the counters of login failures\n"
+#~ "  -t, --time DAYS               display faillog records more recent than "
+#~ "DAYS\n"
+#~ "  -u, --user LOGIN              display faillog record or maintains "
+#~ "failure\n"
+#~ "                                counters and limits (if used with -r, -m "
+#~ "or -l\n"
+#~ "                                options) only for user with LOGIN\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: faillog [параметры]\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -a, --all             показать записи faillog обо всех пользователях\n"
+#~ "  -h, --help            показать это сообщение и завершить работу "
+#~ "программы\n"
+#~ "  -l, --lock-time СЕК   при неудачной попытке входа блокировать\n"
+#~ "                        учётную запись на СЕК секунд\n"
+#~ "  -m, --maximum МАКС    установить максимальное число неудачных попыток\n"
+#~ "                        входа равным МАКС\n"
+#~ "  -r, --reset           обнулить счётчики неудачных попыток входа\n"
+#~ "  -t, --time ДНЕЙ       показать записи faillog за последние ДНЕЙ дней\n"
+#~ "  -u, --user ИМЯ        показать запись faillog или настроить счётчики\n"
+#~ "                        неудачных попыток и ограничения (вместе с -r, -m\n"
+#~ "                        или -l) только для учётной записи с заданным "
+#~ "ИМЕНЕМ\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: groupadd [options] GROUP\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -f, --force                   force exit with success status if the\n"
+#~ "                                specified group already exists\n"
+#~ "  -g, --gid GID                 use GID for the new group\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -K, --key KEY=VALUE           overrides /etc/login.defs defaults\n"
+#~ "  -o, --non-unique              allow create group with duplicate\n"
+#~ "                                (non-unique) GID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new group\n"
+#~ "  -r, --system                  create a system account\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: groupadd [параметры] ГРУППА\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -f, --force           закончить работу с успешным кодом возврата, если\n"
+#~ "                        заданная группа уже существует\n"
+#~ "  -g, --gid GID         для новой группы использовать GID\n"
+#~ "  -h, --help            показать данное сообщение и закончить работу\n"
+#~ "  -K, --key KEY=VALUE   изменить значения по умолчанию из /etc/login."
+#~ "defs\n"
+#~ "  -o, --non-unique      разрешить создание группы с уже имеющимся\n"
+#~ "                        (не уникальным) GID\n"
+#~ "  -p, --password PASS   использовать шифрованный пароль для новой группы\n"
+#~ "  -r, --system          создать системную учётную запись\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: groupmod [options] GROUP\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -g, --gid GID                 force use new GID by GROUP\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -n, --new-name NEW_GROUP      force use NEW_GROUP name by GROUP\n"
+#~ "  -o, --non-unique              allow using duplicate (non-unique) GID by "
+#~ "GROUP\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new "
+#~ "password\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Использование: groupmod [параметры] ГРУППА\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -g, --gid GID         для новой ГРУППЫ использовать GID\n"
+#~ "  -h, --help            показать данное сообщение и закончить работу\n"
+#~ "  -n, --new-name НОВ_ГР использовать имя НОВ_ГР для ГРУППЫ\n"
+#~ "  -o, --non-unique      разрешить создание ГРУППЫ с уже имеющимся\n"
+#~ "                        (не уникальным) GID\n"
+#~ "  -p, --password PASS   использовать шифрованный пароль для нового "
+#~ "пароля\n"
+#~ "\n"
+
+#
+#~ msgid ""
+#~ "Usage: useradd [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -b, --base-dir BASE_DIR       base directory for the new user account\n"
+#~ "                                home directory\n"
+#~ "  -c, --comment COMMENT         set the GECOS field for the new user "
+#~ "account\n"
+#~ "  -d, --home-dir HOME_DIR       home directory for the new user account\n"
+#~ "  -D, --defaults                print or save modified default useradd\n"
+#~ "                                configuration\n"
+#~ "  -e, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -g, --gid GROUP               force use GROUP for the new user account\n"
+#~ "  -G, --groups GROUPS           list of supplementary groups for the new\n"
+#~ "                                user account\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -k, --skel SKEL_DIR           specify an alternative skel directory\n"
+#~ "  -K, --key KEY=VALUE           overrides /etc/login.defs defaults\n"
+#~ "  -l, --no-log-init             do not add the user to the lastlog and\n"
+#~ "                                faillog databases\n"
+#~ "  -m, --create-home             create home directory for the new user\n"
+#~ "                                account\n"
+#~ "  -M, --no-create-home          do not create user's home directory\n"
+#~ "                                (overrides /etc/login.defs)\n"
+#~ "  -N, --no-user-group           do not create a group with the same name "
+#~ "as\n"
+#~ "                                the user\n"
+#~ "  -o, --non-unique              allow create user with duplicate\n"
+#~ "                                (non-unique) UID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new user\n"
+#~ "                                account\n"
+#~ "  -r, --system                  create a system account\n"
+#~ "  -s, --shell SHELL             the login shell for the new user account\n"
+#~ "  -u, --uid UID                 force use the UID for the new user "
+#~ "account\n"
+#~ "  -U, --user-group              create a group with the same name as the "
+#~ "user\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "Использование: useradd [параметры] имя пользователя\n"
+#~ "\n"
+#~ "Параметры:\n"
+#~ "  -b, --base-dir BASE_DIR       базовый каталог для домашнего каталога\n"
+#~ "                                новой учётной записи\n"
+#~ "  -c, --comment COMMENT         заполнить поле GECOS новой учётной "
+#~ "записи\n"
+#~ "  -d, --home-dir HOME_DIR       домашний каталог новой учётной записи\n"
+#~ "  -D, --defaults                показать или сохранить изменённые "
+#~ "настройки\n"
+#~ "                                useradd по умолчанию\n"
+#~ "  -e, --expiredate EXPIRE_DATE  установить дату окончания действия\n"
+#~ "                                учётной записи равной EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE       установить пароль для устаревших учётных\n"
+#~ "                                записей в INACTIVE\n"
+#~ "  -g, --gid GROUP               принудительно назначить группу GROUP\n"
+#~ "                                для новой учётной записи\n"
+#~ "  -G, --groups GROUPS           задать список групп для новой\n"
+#~ "                                учётной записи\n"
+#~ "  -h, --help                    показать данное сообщение и закончить "
+#~ "работу\n"
+#~ "  -k, --skel SKEL_DIR           указать альтернативный каталог с "
+#~ "шаблонами\n"
+#~ "  -K, --key KEY=VALUE           изменить значения по умолчанию из\n"
+#~ "                                /etc/login.defs\n"
+#~ "  -l, --no-log-init             не добавлять пользователя в базы данных\n"
+#~ "                                lastlog и faillog\n"
+#~ "  -m, --create-home             создать домашний каталог для новой\n"
+#~ "                                учётной записи\n"
+#~ "  -M, --no-create-home          не создавать домашний каталог для новой\n"
+#~ "                                учётной записи (изменяет значение\n"
+#~ "                                 из /etc/login.defs)\n"
+#~ "  -N, --no-user-group           не создавать группу с именем как у\n"
+#~ "                                пользователя\n"
+#~ "  -o, --non-unique              разрешить создание учётной записи с уже\n"
+#~ "                                имеющимся (не уникальным) UID\n"
+#~ "  -p, --password PASSWORD       задать шифрованный пароль для новой\n"
+#~ "                                учётной записи\n"
+#~ "  -r, --system                  создать системную учётную запись\n"
+#~ "  -s, --shell SHELL             задать командную оболочку для новой\n"
+#~ "                                учётной записи\n"
+#~ "  -u, --uid UID                 принудительно назначить UID для новой\n"
+#~ "                                учётной записи\n"
+#~ "  -U, --user-group              создать группу с именем как у "
+#~ "пользователя\n"
+#~ "%s\n"
+
+#~ msgid ""
+#~ "Usage: %s [options] [input]\n"
+#~ "\n"
+#~ "  -c, --crypt-method            the crypt method (one of %s)\n"
+#~ "  -r, --system                  create system accounts\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "Использование: %s [параметры] [ввод]\n"
+#~ "\n"
+#~ "  -c, --crypt-method    метод шифрования (один из %s)\n"
+#~ "  -r, --system          создать системную учётную запись\n"
+#~ "%s\n"
+
+#~ msgid "Password set to expire."
+#~ msgstr "Срок действия пароля истёк."
+
+#~ msgid "setfscreatecon() failed"
+#~ msgstr "Вызов setfscreatecon() завершился неудачно"

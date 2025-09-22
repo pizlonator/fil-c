@@ -1,0 +1,87 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod can move the user's home directory, over a new device and changes the owner of the user's file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /home/foo /home/foo2; umount /tmp/home; rmdir /tmp/home' 0
+
+change_config
+
+mkdir /home/foo
+mkdir /home/foo/titi
+echo toto > /home/foo/toto
+echo tyty > /home/foo/tyty
+ln /home/foo/toto /home/foo/.tata
+ln /home/foo/tyty /home/foo/.tyty
+ln -s /home/foo/toto /home/foo/tutu
+mknod /home/foo/null c 1 3
+ln /etc/profile /home/foo/profile2
+echo root > /home/foo/uroot
+echo root > /home/foo/groot
+chown -R foo:foo /home/foo
+chown root /home/foo/uroot
+chgrp root /home/foo/groot
+stat --printf "%A %u:%g %N\n" /home/foo/* /home/foo/.* 2>/dev/null | sort
+
+mkdir /tmp/home
+mount --bind /home /tmp/home
+
+echo -n "Change the user's home directory (usermod -m -d /tmp/home/foo2 -g 1001 foo ..."
+usermod -m -d /tmp/home/foo2 -g 1001 foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the user's home directory was removed..."
+test ! -d /home/foo
+echo "OK"
+echo -n "Check the user's home directory was moved..."
+test -d /home/foo2
+echo "OK"
+echo -n "Check content of /tmp/test-newusers..."
+stat --printf "%A %u:%g %N\n" /home/foo2/* /home/foo2/.* 2>/dev/null | sort > tmp/home_ls-a
+diff -rauN data/home_ls-a tmp/home_ls-a
+echo "OK"
+echo -n "Check that hardlink to another homedir file remains a hardlink..."
+dev_ino=$(stat --printf "%d-%i" /home/foo2/toto)
+dev_ino2=$(stat --printf "%d-%i" /home/foo2/.tata)
+test "$dev_ino" = "$dev_ino2"
+echo "OK"
+echo -n "Check hardlink to outside the homedir..."
+dev_ino=$(stat --printf "%d-%i" /etc/profile)
+dev_ino2=$(stat --printf "%d-%i" /home/foo2/profile2)
+echo "$dev_ino" != "$dev_ino2"
+#test "$dev_ino" = "$dev_ino2"
+echo "NOT IMPLEMENTED"
+rm -f tmp/home_ls-a
+
+echo -n "Remove the new home directory..."
+rm -rf /home/foo2
+echo "done"
+
+umount /tmp/home
+rmdir /tmp/home
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

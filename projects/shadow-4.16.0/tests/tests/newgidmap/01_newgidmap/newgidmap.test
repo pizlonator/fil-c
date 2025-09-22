@@ -1,0 +1,62 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "setup gid mapping"
+
+save_config
+
+unpriv_userns=$( sysctl -n kernel.unprivileged_userns_clone )
+
+# restore the system on exit
+trap 'log_status "$0" "FAILURE"; restore_config; \
+	rm -rf /tmp/test-gidmap; \
+        sysctl -q kernel.unprivileged_userns_clone=$unpriv_userns' 0
+
+change_config
+
+echo -n "Enable unprivileged user namespaces... "
+sysctl -q kernel.unprivileged_userns_clone=1
+echo "OK"
+
+echo -n "Create world writable tmp directory... "
+rm -rf /tmp/test-gidmap
+mkdir -m 0777 /tmp/test-gidmap
+echo "OK"
+
+echo -n "setup gidmapping... "
+base=$(id -g foo)
+runuser foo -g foo -c "unshare -U sleep 10 & pid=\$!; \
+        sleep 2; newgidmap \$pid 0 $base 1 1 1000000 1000; ret=\$?; \
+        cat /proc/\$pid/gid_map >/tmp/test-gidmap/gid_map;
+        kill \$pid; exit \$ret"
+../../common/compare_file.pl /tmp/test-gidmap/gid_map data/gid_map
+echo "OK"
+
+echo -n "Try to setup gidmapping with different primary group... "
+runuser foo -g bar -c "unshare -U sleep 10 & pid=\$!; \
+        sleep 2; newgidmap \$pid 0 $base 1 1 1000000 1000 2>/tmp/test-gidmap/newgidmap.err; ret=\$?; \
+        kill \$pid; exit \$ret" && exit 1 || {
+        status=$?
+}
+echo "OK"
+
+echo -n "newgidmap returned status ($status)... "
+test "status" != 0
+echo "OK"
+
+echo -n "Check that there were a failure message... "
+grep -q 'newgidmap: Target process is owned by a different' /tmp/test-gidmap/newgidmap.err
+echo "error message OK."
+log_status "$0" "SUCCESS"
+
+sysctl -q kernel.unprivileged_userns_clone=$unpriv_userns
+rm -rf /tmp/test-gidmap;
+
+restore_config
+trap '' 0

@@ -1,0 +1,160 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 \- 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH USERADD 8
+.SH 名 稱
+useradd \- 帳 號 建 立 或 更 新 新 使 用 者 的 資 訊
+.SH 語 法
+.TP 8
+.B useradd
+.\" .RB [ \-A
+.\" .RI { method | \fBDEFAULT\fR "},... ]"
+.RB [ \-c
+.IR comment ]
+.RB [ \-d
+.IR home_dir ]
+.br
+.RB [ \-e
+.IR expire_date ]
+.RB [ \-f
+.IR inactive_time ]
+.br
+.RB [ \-g
+.IR initial_group ]
+.RB [ \-G
+.IR group [,...]]
+.br
+.RB [ \-m " [" \-k
+.IR skeleton_dir ] " |" " " \-M ]
+.RB [ \-s
+.IR shell ]
+.br
+.RB [ \-u
+.IR uid " ["
+.BR \-o ]]
+.RB [ \-n ]
+.RB [ \-r ]
+.I login
+.TP 8
+\fBuseradd\fR \fB\-D\fR [\fB\-g\fR \fIdefault_group\fR] [\fB\-b\fR \fIdefault_home\fR]
+.br
+[\fB\-f\fR \fIdefault_inactive\fR] [\fB\-e\fR \fIdefault_expire_date\fR]
+.br
+[\fB\-s\fR \fIdefault_shell\fR]
+.SH 描 述
+.SS 新 帳 號 建 立
+當 不 加 \fB\-D\fR 參 數 , \fBuseradd\fR 指 令 使 用 命 令 列 來 指 定
+新 帳 號 的 設 定 值 and 使 用 系 統 上 的 預 設 值 .
+新 使 用 者 帳 號 將 產 生 一 些 系 統 檔 案 ， 使 用 者 目 錄 建 立 ，
+拷 備 起 始 檔 案 等
+， 這 些 均 可 以 利 用 命 令列 選 項 指 定 。 此 版 本 為 Red Hat Linux 提 供
+， 可 幫 每 個 新 加 入 的 使 用 者 建 立 個 別 的 group , 毋 須 添 加 \fB\-n\fR
+選 項 。  
+\fBuseradd\fR 可 使 用 的 選 項 為
+.IP "\fB\-c\fR \fIcomment\fR"
+新 帳 號 password 檔 的 說 明 欄 。 
+.IP "\fB\-d\fR \fIhome_dir\fR"
+新 帳 號 每 次 登 入 時 所 使 用 的 \fIhome_dir\fR 。 
+預 設 值 為 \fIdefault_home\fR 內 \fIlogin\fR 名 稱 ， 並 當 成 登 入 時 目 錄 
+名 稱 。
+.IP "\fB\-e\fR \fIexpire_date\fR"
+帳 號 終 止 日 期 。 日 期 的 指 定 格 式 為 \fIMM/DD/YY\fR 。
+.IP "\fB\-f\fR \fIinactive_days\fR"
+帳 號 過 期 幾 日 後 永 久 停 權 。
+當 值 為 0 時 帳 號 則 立 刻 被 停 權 。
+而 當 值 為 \-1 時 則 關 閉 此 功\ 能 ， 預 設 值 為 \-1
+.IP "\fB\-g\fR \fIinitial_group\fR"
+group 名 稱 或 以 數 字 來 做 為 使 用 者 登 入 起 始 群 組 (group) 。
+群 組 名 須 為 現 有 存 在 的 名 稱 。
+群 組 數 字 也 須 為 現 有 存 在 的 群 組 。
+預 設 的 群 組 數 字 為 1 。
+.IP "\fB\-G\fR \fIgroup,[...]\fR"
+定 義 此 使 用 者 為 此 一 堆 groups 的 成 員 。
+每 個 群 組 使 用 "," 區 格 開 來 ， 不 可 以 夾 雜 空 白 字 元 。
+ 群 組 名 同 \fB\-g\fR 選 項 的 限 制 。
+定 義 值 為 使用 者 的 起 始 群 組 。
+.IP \fB\-m\fR
+使 用 者 目 錄 如 不 存 在 則 自 動 建 立 。
+如 使 用 \fB\-k\fR 選 項 \fIskeleton_dir\fR 內 的 檔 案 將 複 製 至 使 用 者 目 
+錄 下 。
+然 而 在 \fI/etc/skel\fR 目 錄 下 的 檔 案 也 會 複 製 過 去 取 代 。
+任 何 在 \fIskeleton_dir\fR or \fI/etc/skel\fR 的 目 錄 也 相 同 會 在 使 用 者
+目 錄 下 一 一 建 立 。
+The \fB\-k\fR 同 \fB\-m\fR
+不 建 立 目 錄 以 及 不 複 製 任 何 檔 案 為 預 設 值 。
+.IP \fB\-M\fR
+不 建 立 使 用 者 目 錄 ， 即 使 \fI/etc/login.defs\fR 系 統 檔 設 定 要 建 
+立 使 用 者 目 錄 。
+.IP \fB\-n\fR
+預 設 值 使 用 者 群 組 與 使 用 者 名 稱 會 相 同 。 此 選 項 將 取 消 此 預 
+設 值 。
+.IP \fB\-r\fR
+此 參 數 是 用 來 建 立 系 統 帳 號 。 系 統 帳 號 的 UID 會 比 定 義 在 系
+統 檔 上 \fI/etc/login.defs\fR.
+的 UID_MIN 來 的 小 。 注 意 \fBuseradd\fR 此 用 法 所 建 立 的 帳 號 不 會
+建 立 使 用 者 目 錄
+， 也 不 會 在 乎 紀 錄 在 \fI/etc/login.defs\fR. 的 定 義 值 。
+如 果 你 想 要 有 使 用 者 目 錄 須 額 外 指 定 \fB\-m\fR 參 數 來 建 立 系 
+統 帳 號 。
+這 是 RED HAT 額 外 增 設 的 選 項 。
+.IP "\fB\-s\fR \fIshell\fR"
+使 用 者 登 入 後 使 用 的 shell 名 稱 。
+預 設 為 不 填 寫 ， 這 樣 系 統 會 幫 你 指 定 預 設 的 登 入 shell 。
+.IP "\fB\-u\fR \fIuid\fR"
+使 用 者 的 ID 值 。 必 須 為 唯 一 的 ID 值 ， 除 非 用 \fI\-o\fR 選 項 。
+數 字 不 可 為 負 值。預 設 為 最 小 不 得 小 於 999 而 逐 次 增 加 。
+0~ 999 傳 統 上 是 保 留 給 系 統 帳 號 使 用 。
+
+.SS 改 變 預 設 值
+當 \fB\-D\fR 選 項 出 現 時 ， \fBuseradd\fR 秀 出 現 在 的 預 設 值 ， 或 是 藉 
+由
+命 令 列 的 方 式 更 新 預 設 值 。
+可 用 選 項 為 ：
+.IP "\fB\-b\fR \fIdefault_home\fR"
+定 義 使 用 者 所 屬 目 錄 的 前 一 個 目 錄 。
+使 用 者 名 稱 會 附 加 在 \fIdefault_home\fR 後 面
+用 來 建 立 新 使 用 者 的 目 錄 。
+當 然 使 用 \fB\-d\fI 後 則 此 選 項 無 效 。
+.IP "\fB\-e\fR \fIdefault_expire_date\fR"
+使 用 者 帳 號 停 止 日 期 。
+.IP "\fB\-f\fR \fIdefault_inactive\fR"
+帳 號 過 期 幾 日 後 停 權 。
+.IP "\fB\-g\fR \fIdefault_group\fR"
+新 帳 號 起 始 群 組 名 或 ID 。
+群 組 名 須 為 現 有 存 在 的 名 稱 。
+群 組 I D 也 須 為 現 有 存 在 的 群 組 。
+.IP "\fB\-s\fR \fIdefault_shell\fR"
+使 用 者 登 入 後 使 用 的 shell 名 稱 。
+往 後 新 加 入 的 帳 號 都 將 使 用 此 shell.
+.PP
+如 不 指 定 任 何 參 數 ， \fBuseradd\fR 顯 示 目 前 預 設 的 值 。
+.SH 注 記 
+系 統 管 理 者 有 義 務 在 \fI/etc/skel\fR 目 錄 下 放 置 使 用 者 定 義 檔 。
+.br
+此 版 本 『useradd』 由 Red Hat 修 改 。
+.SH 警 告
+不 可 新 增 使 用 者 於 NIS 群 組 中 。
+你 必 須 在 NIS 伺 服 器 上 執 行 。
+.SH 檔 案
+\fI/etc/passwd\fR \- 使 用 者 帳 號 資 訊
+.br
+\fI/etc/shadow\fR \- 使 用 者 帳 號 資 訊 加 密
+.br
+\fI/etc/group\fR \- 群 組 資 訊
+.br
+\fI/etc/default/useradd\fR \- 定 義 資 訊
+.br
+\fI/etc/login.defs\fR \- 系 統 廣 義 設 定
+.br
+\fI/etc/skel/\fR \- 內 含 定 義 檔 的 目 錄
+.SH SEE ALSO
+.BR chfn (1),
+.BR chsh (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR passwd (1),
+.BR userdel (8),
+.BR usermod (8)
+.SH AUTHOR
+Julianne Frances Haugh (jfh@tab.com)

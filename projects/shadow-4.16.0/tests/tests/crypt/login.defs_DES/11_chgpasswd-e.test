@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Add a new user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 (useradd test1)..."
+echo nogroup:test | chgpasswd -e
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl 11_chgpasswd-e/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl 11_chgpasswd-e/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 11_chgpasswd-e/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl 11_chgpasswd-e/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

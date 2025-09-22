@@ -1,0 +1,19 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>HOME_MODE</option> (number)</term>
+  <listitem>
+    <para>
+      The mode for new home directories. If not specified,
+      the <option>UMASK</option> is used to create the mode.
+    </para>
+    <para>
+      <command>useradd</command> and <command>newusers</command> use this
+      to set the mode of the home directory they create.
+    </para>
+  </listitem>
+</varlistentry>

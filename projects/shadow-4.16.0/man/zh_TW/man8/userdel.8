@@ -1,0 +1,41 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 \- 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH USERDEL 8
+.SH 名稱
+userdel \- 刪 除 使 用 者 帳 號 及 相 關 檔 案
+.SH 語法
+.B userdel
+[\fB\-r\fR]
+.I login
+.SH 描述
+\fBuserdel\fR 命 令 修 改 系 統 帳 號 檔
+刪 除 所 有 \fIlogin\fR 會 參 考 的 部 份 。
+使 用 者 名 稱 必 須是 存 在 的 。
+.IP \fB\-r\fR
+使 用 者 目 錄 下 的 檔 案 一 並 移 除 。 在 其 他 位 置 上 的 檔
+案 也 將 一 一 找 出 並 刪 除 。
+.SH 檔案
+\fI/etc/passwd\fR \- 使 用 者 帳 號 資 料
+.br
+\fI/etc/shadow\fR \- 使 用 者 帳 號 資 訊 加 密
+.br
+\fI/etc/group\fR \- 群 組 資 訊
+.SH 警告
+\fBuserdel\fR 不 允 許 你 移 除 正 在線 上
+的 使 用 者 帳 號 。
+你 必 須 砍 掉 此 帳 號 現 在 在 系 統 上 執 行 的 程 序 才 能 進 行 帳 號
+刪 除 。
+不 能 在 NIS client 端 移 除 NIS 屬 性 的 東 西 。
+這 動 做 須 在 NIS server 端 上 執 行 。
+.SH SEE ALSO
+.BR chfn (1),
+.BR chsh (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR passwd (1),
+.BR useradd (8),
+.BR usermod (8)
+.SH 作者
+Julianne Frances Haugh (jfh@tab.com)

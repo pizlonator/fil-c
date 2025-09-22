@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "useradd -D: get default values"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Get default values: 'useradd -D > tmp/out'..."
+useradd -D > tmp/out
+echo "OK"
+
+echo -n "Check the default values..."
+diff -au data/useradd-D.out tmp/out
+echo "OK"
+
+rm -f tmp/out
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,871 @@
+'\" t
+.\"     Title: login.defs
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "LOGIN\&.DEFS" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+login.defs \- shadow password suite configuration
+.SH "DESCRIPTION"
+.PP
+The
+/etc/login\&.defs
+file defines the site\-specific configuration for the shadow password suite\&. This file is required\&. Absence of this file will not prevent system operation, but will probably result in undesirable operation\&.
+.PP
+This file is a readable text file, each line of the file describing one configuration parameter\&. The lines consist of a configuration name and value, separated by whitespace\&. Blank lines and comment lines are ignored\&. Comments are introduced with a "#" pound sign and the pound sign must be the first non\-white character of the line\&.
+.PP
+Parameter values may be of four types: strings, booleans, numbers, and long numbers\&. A string is comprised of any printable characters\&. A boolean should be either the value
+\fIyes\fR
+or
+\fIno\fR\&. An undefined boolean parameter or one with a value other than these will be given a
+\fIno\fR
+value\&. Numbers (both regular and long) may be either decimal values, octal values (precede the value with
+\fI0\fR) or hexadecimal values (precede the value with
+\fI0x\fR)\&. The maximum value of the regular and long numeric parameters is machine\-dependent\&.
+.PP
+The following configuration items are provided:
+.PP
+\fBCHFN_AUTH\fR (boolean)
+.RS 4
+If
+\fIyes\fR, the
+\fBchfn\fR
+program will require authentication before making any changes, unless run by the superuser\&.
+.RE
+.PP
+\fBCHFN_RESTRICT\fR (string)
+.RS 4
+This parameter specifies which values in the
+\fIgecos\fR
+field of the
+/etc/passwd
+file may be changed by regular users using the
+\fBchfn\fR
+program\&. It can be any combination of letters
+\fIf\fR,
+\fIr\fR,
+\fIw\fR,
+\fIh\fR, for Full name, Room number, Work phone, and Home phone, respectively\&. For backward compatibility,
+\fIyes\fR
+is equivalent to
+\fIrwh\fR
+and
+\fIno\fR
+is equivalent to
+\fIfrwh\fR\&. If not specified, only the superuser can make any changes\&. The most restrictive setting is better achieved by not installing
+\fBchfn\fR
+SUID\&.
+.RE
+.PP
+\fBCHSH_AUTH\fR (boolean)
+.RS 4
+If
+\fIyes\fR, the
+\fBchsh\fR
+program will require authentication before making any changes, unless run by the superuser\&.
+.RE
+.PP
+\fBCONSOLE\fR (string)
+.RS 4
+If defined, either full pathname of a file containing device names (one per line) or a ":" delimited list of device names\&. Root logins will be allowed only upon these devices\&.
+.sp
+If not defined, root will be allowed on any device\&.
+.sp
+The device should be specified without the /dev/ prefix\&.
+.RE
+.PP
+\fBCONSOLE_GROUPS\fR (string)
+.RS 4
+List of groups to add to the user\*(Aqs supplementary groups set when logging in on the console (as determined by the CONSOLE setting)\&. Default is none\&.
+
+Use with caution \- it is possible for users to gain permanent access to these groups, even when not logged in on the console\&.
+.RE
+.PP
+\fBCREATE_HOME\fR (boolean)
+.RS 4
+Indicate if a home directory should be created by default for new users\&.
+.sp
+This setting does not apply to system users, and can be overridden on the command line\&.
+.RE
+.PP
+\fBDEFAULT_HOME\fR (boolean)
+.RS 4
+Indicate if login is allowed if we can\*(Aqt cd to the home directory\&. Default is no\&.
+.sp
+If set to
+\fIyes\fR, the user will login in the root (/) directory if it is not possible to cd to her home directory\&.
+.RE
+.PP
+\fBENCRYPT_METHOD\fR (string)
+.RS 4
+This defines the system default encryption algorithm for encrypting passwords (if no algorithm are specified on the command line)\&.
+.sp
+It can take one of these values:
+\fIDES\fR
+(default),
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR\&. MD5 and DES should not be used for new hashes, see
+crypt(5)
+for recommendations\&.
+.sp
+Note: this parameter overrides the
+\fBMD5_CRYPT_ENAB\fR
+variable\&.
+.RE
+.PP
+\fBENV_HZ\fR (string)
+.RS 4
+If set, it will be used to define the HZ environment variable when a user login\&. The value must be preceded by
+\fIHZ=\fR\&. A common value on Linux is
+\fIHZ=100\fR\&.
+.RE
+.PP
+\fBENV_PATH\fR (string)
+.RS 4
+If set, it will be used to define the PATH environment variable when a regular user login\&. The value is a colon separated list of paths (for example
+\fI/bin:/usr/bin\fR) and can be preceded by
+\fIPATH=\fR\&. The default value is
+\fIPATH=/bin:/usr/bin\fR\&.
+.RE
+.PP
+\fBENV_SUPATH\fR (string)
+.RS 4
+If set, it will be used to define the PATH environment variable when the superuser login\&. The value is a colon separated list of paths (for example
+\fI/sbin:/bin:/usr/sbin:/usr/bin\fR) and can be preceded by
+\fIPATH=\fR\&. The default value is
+\fIPATH=/sbin:/bin:/usr/sbin:/usr/bin\fR\&.
+.RE
+.PP
+\fBENV_TZ\fR (string)
+.RS 4
+If set, it will be used to define the TZ environment variable when a user login\&. The value can be the name of a timezone preceded by
+\fITZ=\fR
+(for example
+\fITZ=CST6CDT\fR), or the full path to the file containing the timezone specification (for example
+/etc/tzname)\&.
+.sp
+If a full path is specified but the file does not exist or cannot be read, the default is to use
+\fITZ=CST6CDT\fR\&.
+.RE
+.PP
+\fBENVIRON_FILE\fR (string)
+.RS 4
+If this file exists and is readable, login environment will be read from it\&. Every line should be in the form name=value\&.
+.sp
+Lines starting with a # are treated as comment lines and ignored\&.
+.RE
+.PP
+\fBERASECHAR\fR (number)
+.RS 4
+Terminal ERASE character (\fI010\fR
+= backspace,
+\fI0177\fR
+= DEL)\&.
+.sp
+The value can be prefixed "0" for an octal value, or "0x" for an hexadecimal value\&.
+.RE
+.PP
+\fBFAIL_DELAY\fR (number)
+.RS 4
+Delay in seconds before being allowed another attempt after a login failure\&.
+.RE
+.PP
+\fBFAILLOG_ENAB\fR (boolean)
+.RS 4
+Enable logging and display of
+/var/log/faillog
+login failure info\&.
+.RE
+.PP
+\fBFAKE_SHELL\fR (string)
+.RS 4
+If set,
+\fBlogin\fR
+will execute this shell instead of the users\*(Aq shell specified in
+/etc/passwd\&.
+.RE
+.PP
+\fBFTMP_FILE\fR (string)
+.RS 4
+If defined, login failures will be logged in this file in a utmp format\&.
+.RE
+.PP
+\fBGID_MAX\fR (number), \fBGID_MIN\fR (number)
+.RS 4
+Range of group IDs used for the creation of regular groups by
+\fBuseradd\fR,
+\fBgroupadd\fR, or
+\fBnewusers\fR\&.
+.sp
+The default value for
+\fBGID_MIN\fR
+(resp\&.
+\fBGID_MAX\fR) is 1000 (resp\&. 60000)\&.
+.RE
+.PP
+\fBHMAC_CRYPTO_ALGO\fR (string)
+.RS 4
+Used to select the HMAC cryptography algorithm that the pam_timestamp module is going to use to calculate the keyed\-hash message authentication code\&.
+.sp
+Note: Check
+hmac(3)
+to see the possible algorithms that are available in your system\&.
+.RE
+.PP
+\fBHOME_MODE\fR (number)
+.RS 4
+The mode for new home directories\&. If not specified, the
+\fBUMASK\fR
+is used to create the mode\&.
+.sp
+\fBuseradd\fR
+and
+\fBnewusers\fR
+use this to set the mode of the home directory they create\&.
+.RE
+.PP
+\fBHUSHLOGIN_FILE\fR (string)
+.RS 4
+If defined, this file can inhibit all the usual chatter during the login sequence\&. If a full pathname is specified, then hushed mode will be enabled if the user\*(Aqs name or shell are found in the file\&. If not a full pathname, then hushed mode will be enabled if the file exists in the user\*(Aqs home directory\&.
+.RE
+.PP
+\fBISSUE_FILE\fR (string)
+.RS 4
+If defined, this file will be displayed before each login prompt\&.
+.RE
+.PP
+\fBKILLCHAR\fR (number)
+.RS 4
+Terminal KILL character (\fI025\fR
+= CTRL/U)\&.
+.sp
+The value can be prefixed "0" for an octal value, or "0x" for an hexadecimal value\&.
+.RE
+.PP
+\fBLASTLOG_ENAB\fR (boolean)
+.RS 4
+Enable logging and display of /var/log/lastlog login time info\&.
+.RE
+.PP
+\fBLASTLOG_UID_MAX\fR (number)
+.RS 4
+Highest user ID number for which the lastlog entries should be updated\&. As higher user IDs are usually tracked by remote user identity and authentication services there is no need to create a huge sparse lastlog file for them\&.
+.sp
+No
+\fBLASTLOG_UID_MAX\fR
+option present in the configuration means that there is no user ID limit for writing lastlog entries\&.
+.RE
+.PP
+\fBLOG_OK_LOGINS\fR (boolean)
+.RS 4
+Enable logging of successful logins\&.
+.RE
+.PP
+\fBLOG_UNKFAIL_ENAB\fR (boolean)
+.RS 4
+Enable display of unknown usernames when login failures are recorded\&.
+.sp
+Note: logging unknown usernames may be a security issue if an user enter her password instead of her login name\&.
+.RE
+.PP
+\fBLOGIN_RETRIES\fR (number)
+.RS 4
+Maximum number of login retries in case of bad password\&.
+.RE
+.PP
+\fBLOGIN_STRING\fR (string)
+.RS 4
+The string used for prompting a password\&. The default is to use "Password: ", or a translation of that string\&. If you set this variable, the prompt will not be translated\&.
+.sp
+If the string contains
+\fI%s\fR, this will be replaced by the user\*(Aqs name\&.
+.RE
+.PP
+\fBLOGIN_TIMEOUT\fR (number)
+.RS 4
+Max time in seconds for login\&.
+.RE
+.PP
+\fBMAIL_CHECK_ENAB\fR (boolean)
+.RS 4
+Enable checking and display of mailbox status upon login\&.
+.sp
+You should disable it if the shell startup files already check for mail ("mailx \-e" or equivalent)\&.
+.RE
+.PP
+\fBMAIL_DIR\fR (string)
+.RS 4
+The mail spool directory\&. This is needed to manipulate the mailbox when its corresponding user account is modified or deleted\&. If not specified, a compile\-time default is used\&. The parameter CREATE_MAIL_SPOOL in
+/etc/default/useradd
+determines whether the mail spool should be created\&.
+.RE
+.PP
+\fBMAIL_FILE\fR (string)
+.RS 4
+Defines the location of the users mail spool files relatively to their home directory\&.
+.RE
+.PP
+The
+\fBMAIL_DIR\fR
+and
+\fBMAIL_FILE\fR
+variables are used by
+\fBuseradd\fR,
+\fBusermod\fR, and
+\fBuserdel\fR
+to create, move, or delete the user\*(Aqs mail spool\&.
+.PP
+If
+\fBMAIL_CHECK_ENAB\fR
+is set to
+\fIyes\fR, they are also used to define the
+\fBMAIL\fR
+environment variable\&.
+.PP
+\fBMAX_MEMBERS_PER_GROUP\fR (number)
+.RS 4
+Maximum members per group entry\&. When the maximum is reached, a new group entry (line) is started in
+/etc/group
+(with the same name, same password, and same GID)\&.
+.sp
+The default value is 0, meaning that there are no limits in the number of members in a group\&.
+.sp
+This feature (split group) permits to limit the length of lines in the group file\&. This is useful to make sure that lines for NIS groups are not larger than 1024 characters\&.
+.sp
+If you need to enforce such limit, you can use 25\&.
+.sp
+Note: split groups may not be supported by all tools (even in the Shadow toolsuite)\&. You should not use this variable unless you really need it\&.
+.RE
+.PP
+\fBMD5_CRYPT_ENAB\fR (boolean)
+.RS 4
+Indicate if passwords must be encrypted using the MD5\-based algorithm\&. If set to
+\fIyes\fR, new passwords will be encrypted using the MD5\-based algorithm compatible with the one used by recent releases of FreeBSD\&. It supports passwords of unlimited length and longer salt strings\&. Set to
+\fIno\fR
+if you need to copy encrypted passwords to other systems which don\*(Aqt understand the new algorithm\&. Default is
+\fIno\fR\&.
+.sp
+This variable is superseded by the
+\fBENCRYPT_METHOD\fR
+variable or by any command line option used to configure the encryption algorithm\&.
+.sp
+This variable is deprecated\&. You should use
+\fBENCRYPT_METHOD\fR\&.
+.RE
+.PP
+\fBMOTD_FILE\fR (string)
+.RS 4
+If defined, ":" delimited list of "message of the day" files to be displayed upon login\&.
+.RE
+.PP
+\fBNOLOGINS_FILE\fR (string)
+.RS 4
+If defined, name of file whose presence will inhibit non\-root logins\&. The contents of this file should be a message indicating why logins are inhibited\&.
+.RE
+.PP
+\fBNONEXISTENT\fR (string)
+.RS 4
+If a system account intentionally does not have a home directory that exists, this string can be provided in the /etc/passwd entry for the account to indicate this\&. The result is that pwck will not emit a spurious warning for this account\&.
+.RE
+.PP
+\fBOBSCURE_CHECKS_ENAB\fR (boolean)
+.RS 4
+Enable additional checks upon password changes\&.
+.RE
+.PP
+\fBPASS_ALWAYS_WARN\fR (boolean)
+.RS 4
+Warn about weak passwords (but still allow them) if you are root\&.
+.RE
+.PP
+\fBPASS_CHANGE_TRIES\fR (number)
+.RS 4
+Maximum number of attempts to change password if rejected (too easy)\&.
+.RE
+.PP
+\fBPASS_MAX_DAYS\fR (number)
+.RS 4
+The maximum number of days a password may be used\&. If the password is older than this, a password change will be forced\&. If not specified, \-1 will be assumed (which disables the restriction)\&.
+.RE
+.PP
+\fBPASS_MIN_DAYS\fR (number)
+.RS 4
+The minimum number of days allowed between password changes\&. Any password changes attempted sooner than this will be rejected\&. If not specified, 0 will be assumed (which disables the restriction)\&.
+.RE
+.PP
+\fBPASS_WARN_AGE\fR (number)
+.RS 4
+The number of days warning given before a password expires\&. A zero means warning is given only upon the day of expiration, a value of \-1 means no warning is given\&. If not specified, no warning will be provided\&.
+.RE
+.PP
+\fBPASS_MAX_DAYS\fR,
+\fBPASS_MIN_DAYS\fR
+and
+\fBPASS_WARN_AGE\fR
+are only used at the time of account creation\&. Any changes to these settings won\*(Aqt affect existing accounts\&.
+.PP
+\fBPASS_MAX_LEN\fR (number), \fBPASS_MIN_LEN\fR (number)
+.RS 4
+Number of significant characters in the password for crypt()\&.
+\fBPASS_MAX_LEN\fR
+is 8 by default\&. Don\*(Aqt change unless your crypt() is better\&. This is ignored if
+\fBMD5_CRYPT_ENAB\fR
+set to
+\fIyes\fR\&.
+.RE
+.PP
+\fBPORTTIME_CHECKS_ENAB\fR (boolean)
+.RS 4
+Enable checking of time restrictions specified in
+/etc/porttime\&.
+.RE
+.PP
+\fBQUOTAS_ENAB\fR (boolean)
+.RS 4
+Enable setting of resource limits from
+/etc/limits
+and ulimit, umask, and niceness from the user\*(Aqs passwd gecos field\&.
+.RE
+.PP
+\fBSHA_CRYPT_MIN_ROUNDS\fR (number), \fBSHA_CRYPT_MAX_ROUNDS\fR (number)
+.RS 4
+When
+\fBENCRYPT_METHOD\fR
+is set to
+\fISHA256\fR
+or
+\fISHA512\fR, this defines the number of SHA rounds used by the encryption algorithm by default (when the number of rounds is not specified on the command line)\&.
+.sp
+With a lot of rounds, it is more difficult to brute force the password\&. But note also that more CPU resources will be needed to authenticate users\&.
+.sp
+If not specified, the libc will choose the default number of rounds (5000), which is orders of magnitude too low for modern hardware\&.
+.sp
+The values must be inside the 1000\-999,999,999 range\&.
+.sp
+If only one of the
+\fBSHA_CRYPT_MIN_ROUNDS\fR
+or
+\fBSHA_CRYPT_MAX_ROUNDS\fR
+values is set, then this value will be used\&.
+.sp
+If
+\fBSHA_CRYPT_MIN_ROUNDS\fR
+>
+\fBSHA_CRYPT_MAX_ROUNDS\fR, the highest value will be used\&.
+.RE
+.PP
+\fBSULOG_FILE\fR (string)
+.RS 4
+If defined, all su activity is logged to this file\&.
+.RE
+.PP
+\fBSU_NAME\fR (string)
+.RS 4
+If defined, the command name to display when running "su \-"\&. For example, if this is defined as "su" then a "ps" will display the command is "\-su"\&. If not defined, then "ps" would display the name of the shell actually being run, e\&.g\&. something like "\-sh"\&.
+.RE
+.PP
+\fBSU_WHEEL_ONLY\fR (boolean)
+.RS 4
+If
+\fIyes\fR, the user must be listed as a member of the first gid 0 group in
+/etc/group
+(called
+\fIroot\fR
+on most Linux systems) to be able to
+\fBsu\fR
+to uid 0 accounts\&. If the group doesn\*(Aqt exist or is empty, no one will be able to
+\fBsu\fR
+to uid 0\&.
+.RE
+.PP
+\fBSUB_GID_MIN\fR (number), \fBSUB_GID_MAX\fR (number), \fBSUB_GID_COUNT\fR (number)
+.RS 4
+If
+/etc/subuid
+exists, the commands
+\fBuseradd\fR
+and
+\fBnewusers\fR
+(unless the user already have subordinate group IDs) allocate
+\fBSUB_GID_COUNT\fR
+unused group IDs from the range
+\fBSUB_GID_MIN\fR
+to
+\fBSUB_GID_MAX\fR
+for each new user\&.
+.sp
+The default values for
+\fBSUB_GID_MIN\fR,
+\fBSUB_GID_MAX\fR,
+\fBSUB_GID_COUNT\fR
+are respectively 100000, 600100000 and 65536\&.
+.RE
+.PP
+\fBSUB_UID_MIN\fR (number), \fBSUB_UID_MAX\fR (number), \fBSUB_UID_COUNT\fR (number)
+.RS 4
+If
+/etc/subuid
+exists, the commands
+\fBuseradd\fR
+and
+\fBnewusers\fR
+(unless the user already have subordinate user IDs) allocate
+\fBSUB_UID_COUNT\fR
+unused user IDs from the range
+\fBSUB_UID_MIN\fR
+to
+\fBSUB_UID_MAX\fR
+for each new user\&.
+.sp
+The default values for
+\fBSUB_UID_MIN\fR,
+\fBSUB_UID_MAX\fR,
+\fBSUB_UID_COUNT\fR
+are respectively 100000, 600100000 and 65536\&.
+.RE
+.PP
+\fBSYS_GID_MAX\fR (number), \fBSYS_GID_MIN\fR (number)
+.RS 4
+Range of group IDs used for the creation of system groups by
+\fBuseradd\fR,
+\fBgroupadd\fR, or
+\fBnewusers\fR\&.
+.sp
+The default value for
+\fBSYS_GID_MIN\fR
+(resp\&.
+\fBSYS_GID_MAX\fR) is 101 (resp\&.
+\fBGID_MIN\fR\-1)\&.
+.RE
+.PP
+\fBSYS_UID_MAX\fR (number), \fBSYS_UID_MIN\fR (number)
+.RS 4
+Range of user IDs used for the creation of system users by
+\fBuseradd\fR
+or
+\fBnewusers\fR\&.
+.sp
+The default value for
+\fBSYS_UID_MIN\fR
+(resp\&.
+\fBSYS_UID_MAX\fR) is 101 (resp\&.
+\fBUID_MIN\fR\-1)\&.
+.RE
+.PP
+\fBSYSLOG_SG_ENAB\fR (boolean)
+.RS 4
+Enable "syslog" logging of
+\fBsg\fR
+activity\&.
+.RE
+.PP
+\fBSYSLOG_SU_ENAB\fR (boolean)
+.RS 4
+Enable "syslog" logging of
+\fBsu\fR
+activity \- in addition to sulog file logging\&.
+.RE
+.PP
+\fBTTYGROUP\fR (string), \fBTTYPERM\fR (string)
+.RS 4
+The terminal permissions: the login tty will be owned by the
+\fBTTYGROUP\fR
+group, and the permissions will be set to
+\fBTTYPERM\fR\&.
+.sp
+\fBTTYGROUP\fR
+can be either the name of a group or a numeric group identifier\&.
+.sp
+If TTYGROUP is not defined, then the group ownership of the terminal is set to the user\*(Aqs primary group\&. If TTYPERM is not defined, then the permissions are set to
+\fI0600\fR\&.
+.sp
+If you have a
+\fBwrite\fR
+program which is "setgid" to a special group which owns the terminals, define TTYGROUP to the group number and TTYPERM to 0620\&. Otherwise leave TTYGROUP commented out and assign TTYPERM to either 622 or 600\&.
+.RE
+.PP
+\fBTTYTYPE_FILE\fR (string)
+.RS 4
+If defined, file which maps tty line to TERM environment parameter\&. Each line of the file is in a format something like "vt100 tty01"\&.
+.RE
+.PP
+\fBUID_MAX\fR (number), \fBUID_MIN\fR (number)
+.RS 4
+Range of user IDs used for the creation of regular users by
+\fBuseradd\fR
+or
+\fBnewusers\fR\&.
+.sp
+The default value for
+\fBUID_MIN\fR
+(resp\&.
+\fBUID_MAX\fR) is 1000 (resp\&. 60000)\&.
+.RE
+.PP
+\fBULIMIT\fR (number)
+.RS 4
+Default
+\fBulimit\fR
+value\&.
+.RE
+.PP
+\fBUMASK\fR (number)
+.RS 4
+The file mode creation mask is initialized to this value\&. If not specified, the mask will be initialized to 022\&.
+.sp
+\fBuseradd\fR
+and
+\fBnewusers\fR
+use this mask to set the mode of the home directory they create if
+\fBHOME_MODE\fR
+is not set\&.
+.sp
+It is also used by
+\fBlogin\fR
+to define users\*(Aq initial umask\&. Note that this mask can be overridden by the user\*(Aqs GECOS line (if
+\fBQUOTAS_ENAB\fR
+is set) or by the specification of a limit with the
+\fIK\fR
+identifier in
+\fBlimits\fR(5)\&.
+.RE
+.PP
+\fBUSERDEL_CMD\fR (string)
+.RS 4
+If defined, this command is run when removing a user\&. It should remove any at/cron/print jobs etc\&. owned by the user to be removed (passed as the first argument)\&.
+.sp
+The return code of the script is not taken into account\&.
+.sp
+Here is an example script, which removes the user\*(Aqs cron, at and print jobs:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#! /bin/sh
+
+# Check for the required argument\&.
+if [ $# != 1 ]; then
+	echo "Usage: $0 username"
+	exit 1
+fi
+
+# Remove cron jobs\&.
+crontab \-r \-u $1
+
+# Remove at jobs\&.
+# Note that it will remove any jobs owned by the same UID,
+# even if it was shared by a different username\&.
+AT_SPOOL_DIR=/var/spool/cron/atjobs
+find $AT_SPOOL_DIR \-name "[^\&.]*" \-type f \-user $1 \-delete \e;
+
+# Remove print jobs\&.
+lprm $1
+
+# All done\&.
+exit 0
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RE
+.PP
+\fBUSERGROUPS_ENAB\fR (boolean)
+.RS 4
+Enable setting of the umask group bits to be the same as owner bits (examples: 022 \-> 002, 077 \-> 007) for non\-root users, if the uid is the same as gid, and username is the same as the primary group name\&.
+.sp
+If set to
+\fIyes\fR,
+\fBuserdel\fR
+will remove the user\*(Aqs group if it contains no more members, and
+\fBuseradd\fR
+will create by default a group with the name of the user\&.
+.RE
+.SH "CROSS REFERENCES"
+.PP
+The following cross references show which programs in the shadow password suite use which parameters\&.
+.PP
+chfn
+.RS 4
+CHFN_AUTH
+CHFN_RESTRICT
+LOGIN_STRING
+.RE
+.PP
+chgpasswd
+.RS 4
+ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+chpasswd
+.RS 4
+ENCRYPT_METHOD MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+chsh
+.RS 4
+CHSH_AUTH LOGIN_STRING
+.RE
+.PP
+gpasswd
+.RS 4
+ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+groupadd
+.RS 4
+GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP SYS_GID_MAX SYS_GID_MIN
+.RE
+.PP
+groupdel
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+groupmems
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+groupmod
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpck
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpconv
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+grpunconv
+.RS 4
+MAX_MEMBERS_PER_GROUP
+.RE
+.PP
+lastlog
+.RS 4
+LASTLOG_UID_MAX
+.RE
+.PP
+login
+.RS 4
+CONSOLE
+CONSOLE_GROUPS DEFAULT_HOME
+ENV_HZ ENV_PATH ENV_SUPATH ENV_TZ ENVIRON_FILE
+ERASECHAR FAIL_DELAY
+FAILLOG_ENAB
+FAKE_SHELL
+FTMP_FILE
+HUSHLOGIN_FILE
+ISSUE_FILE
+KILLCHAR
+LASTLOG_ENAB LASTLOG_UID_MAX
+LOGIN_RETRIES
+LOGIN_STRING
+LOGIN_TIMEOUT LOG_OK_LOGINS LOG_UNKFAIL_ENAB
+MAIL_CHECK_ENAB MAIL_DIR MAIL_FILE MOTD_FILE NOLOGINS_FILE PORTTIME_CHECKS_ENAB QUOTAS_ENAB
+TTYGROUP TTYPERM TTYTYPE_FILE
+ULIMIT UMASK
+USERGROUPS_ENAB
+.RE
+.PP
+newgrp / sg
+.RS 4
+SYSLOG_SG_ENAB
+.RE
+.PP
+newusers
+.RS 4
+ENCRYPT_METHOD GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB HOME_MODE PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN UMASK
+.RE
+.PP
+passwd
+.RS 4
+ENCRYPT_METHOD MD5_CRYPT_ENAB OBSCURE_CHECKS_ENAB PASS_ALWAYS_WARN PASS_CHANGE_TRIES PASS_MAX_LEN PASS_MIN_LEN
+SHA_CRYPT_MAX_ROUNDS SHA_CRYPT_MIN_ROUNDS
+.RE
+.PP
+pwck
+.RS 4
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+.RE
+.PP
+pwconv
+.RS 4
+PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+.RE
+.PP
+su
+.RS 4
+CONSOLE
+CONSOLE_GROUPS DEFAULT_HOME
+ENV_HZ ENVIRON_FILE
+ENV_PATH ENV_SUPATH
+ENV_TZ LOGIN_STRING MAIL_CHECK_ENAB MAIL_DIR MAIL_FILE QUOTAS_ENAB
+SULOG_FILE SU_NAME
+SU_WHEEL_ONLY
+SYSLOG_SU_ENAB
+USERGROUPS_ENAB
+.RE
+.PP
+sulogin
+.RS 4
+ENV_HZ ENV_TZ
+.RE
+.PP
+useradd
+.RS 4
+CREATE_HOME GID_MAX GID_MIN HOME_MODE LASTLOG_UID_MAX MAIL_DIR MAX_MEMBERS_PER_GROUP PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN UMASK
+.RE
+.PP
+userdel
+.RS 4
+MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP USERDEL_CMD USERGROUPS_ENAB
+.RE
+.PP
+usermod
+.RS 4
+LASTLOG_UID_MAX MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP
+.RE
+.SH "SEE ALSO"
+.PP
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBsu\fR(1),
+\fBpasswd\fR(5),
+\fBshadow\fR(5),
+\fBpam\fR(8)\&.

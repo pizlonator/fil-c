@@ -1,0 +1,146 @@
+'\" t
+.\"     Title: suauth
+.\"    Author: Marek Michałkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "SUAUTH" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+suauth \- detailed su control file
+.SH "SYNOPSIS"
+.HP \w'\fB/etc/suauth\fR\ 'u
+\fB/etc/suauth\fR
+.SH "DESCRIPTION"
+.PP
+The file
+/etc/suauth
+is referenced whenever the su command is called\&. It can change the behaviour of the su command, based upon:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      1) the user su is targeting
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+2) the user executing the su command (or any groups he might be a member of)
+.PP
+The file is formatted like this, with lines starting with a # being treated as comment lines and ignored;
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      to\-id:from\-id:ACTION
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Where to\-id is either the word
+\fIALL\fR, a list of usernames delimited by "," or the words
+\fIALL EXCEPT\fR
+followed by a list of usernames delimited by ","\&.
+.PP
+from\-id is formatted the same as to\-id except the extra word
+\fIGROUP\fR
+is recognized\&.
+\fIALL EXCEPT GROUP\fR
+is perfectly valid too\&. Following
+\fIGROUP\fR
+appears one or more group names, delimited by ","\&. It is not sufficient to have primary group id of the relevant group, an entry in
+\fB/etc/group\fR(5)
+is necessary\&.
+.PP
+Action can be one only of the following currently supported options\&.
+.PP
+\fIDENY\fR
+.RS 4
+The attempt to su is stopped before a password is even asked for\&.
+.RE
+.PP
+\fINOPASS\fR
+.RS 4
+The attempt to su is automatically successful; no password is asked for\&.
+.RE
+.PP
+\fIOWNPASS\fR
+.RS 4
+For the su command to be successful, the user must enter his or her own password\&. They are told this\&.
+.RE
+.PP
+Note there are three separate fields delimited by a colon\&. No whitespace must surround this colon\&. Also note that the file is examined sequentially line by line, and the first applicable rule is used without examining the file further\&. This makes it possible for a system administrator to exercise as fine control as he or she wishes\&.
+.SH "EXAMPLE"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      # sample /etc/suauth file
+      #
+      # A couple of privileged usernames may
+      # su to root with their own password\&.
+      #
+      root:chris,birddog:OWNPASS
+      #
+      # Anyone else may not su to root unless in
+      # group wheel\&. This is how BSD does things\&.
+      #
+      root:ALL EXCEPT GROUP wheel:DENY
+      #
+      # Perhaps terry and birddog are accounts
+      # owned by the same person\&.
+      # Access can be arranged between them
+      # with no password\&.
+      #
+      terry:birddog:NOPASS
+      birddog:terry:NOPASS
+      #
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "FILES"
+.PP
+/etc/suauth
+.RS 4
+.RE
+.SH "BUGS"
+.PP
+There could be plenty lurking\&. The file parser is particularly unforgiving about syntax errors, expecting no spurious whitespace (apart from beginning and end of lines), and a specific token delimiting different things\&.
+.SH "DIAGNOSTICS"
+.PP
+An error parsing the file is reported using
+\fBsyslogd\fR(8)
+as level ERR on facility AUTH\&.
+.SH "SEE ALSO"
+.PP
+\fBsu\fR(1)\&.

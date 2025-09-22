@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# Rational:
+# Test chage with bogus inputs
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+	for i in passwd group shadow gshadow
+	do
+		[ -f /etc/$i  ] && cp /etc/$i  tmp/$i
+		[ -f /etc/$i- ] && cp /etc/$i- tmp/$i-
+	done
+
+	true
+}
+
+restore()
+{
+	for i in passwd group shadow gshadow
+	do
+		[ -f tmp/$i  ] && cp tmp/$i  /etc/$i  && rm tmp/$i
+		[ -f tmp/$i- ] && cp tmp/$i- /etc/$i- && rm tmp/$i-
+	done
+	rm -f tmp/out
+	rmdir tmp
+}
+
+save
+
+# restore the files on exit
+trap 'if [ "$?" != "0" ]; then echo "FAIL"; fi; restore' 0
+
+for i in passwd group shadow gshadow
+do
+	cp data/$i /etc
+done
+
+echo "interactive test"
+./run.exp $(date "+%Y-%m-%d")
+
+echo "OK"

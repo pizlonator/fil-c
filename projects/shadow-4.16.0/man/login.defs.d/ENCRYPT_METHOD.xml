@@ -1,0 +1,35 @@
+<!--
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>ENCRYPT_METHOD</option> (string)</term>
+  <listitem>
+    <para>
+      This defines the system default encryption algorithm for encrypting
+      passwords (if no algorithm are specified on the command line).
+    </para>
+    <para>
+      It can take one of these values: <phrase condition="bcrypt">
+      <replaceable>BCRYPT</replaceable>,</phrase>
+      <replaceable>DES</replaceable> (default),
+      <replaceable>MD5</replaceable><phrase condition="sha_crypt">,
+      <replaceable>SHA256</replaceable>,
+      <replaceable>SHA512</replaceable></phrase><phrase condition="yescrypt">,
+      <replaceable>YESCRYPT</replaceable></phrase>.
+      MD5 and DES should not be used for new hashes, see
+      <refentrytitle>crypt</refentrytitle><manvolnum>5</manvolnum>
+      for recommendations.
+    </para>
+    <para>
+      Note: this parameter overrides the <option>MD5_CRYPT_ENAB</option>
+      variable.
+    </para>
+    <para condition="pam">
+      Note: This only affect the generation of group passwords.
+      The generation of user passwords is done by PAM and subject to the
+      PAM configuration. It is recommended to set this variable
+      consistently with the PAM configuration.
+    </para>
+  </listitem>
+</varlistentry>

@@ -1,0 +1,63 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod checks the mailbox ownership"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -f /var/mail/foo' 0
+
+change_config
+
+echo -n "Create foo mailbox /var/mail/foo ..."
+echo foobar> /var/mail/foo
+chown bar:mail /var/mail/foo
+echo "OK"
+
+echo -n "Change the user's UID (usermod -u 4242 foo)..."
+usermod -u 4242 foo 2>tmp/usermod.err
+echo "OK"
+
+echo "usermod reported:"
+echo "======================================================================="
+cat tmp/usermod.err
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/usermod.err tmp/usermod.err
+echo "usage message OK."
+rm -f tmp/usermod.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check that the mailbox was moved..."
+test -f /var/mail/foo
+echo "OK"
+echo -n "Check permissions of the mailbox..."
+stat --printf "%s %A %U:%G %N\n" /var/mail/foo | sort > tmp/mailbox.perms
+diff -rauN data/mailbox.perms tmp/mailbox.perms
+echo "OK"
+rm -f tmp/mailbox.perms
+
+rm -f /var/mail/foo
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

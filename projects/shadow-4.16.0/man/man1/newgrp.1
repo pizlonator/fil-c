@@ -1,0 +1,98 @@
+'\" t
+.\"     Title: newgrp
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "NEWGRP" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+newgrp \- log in to a new group
+.SH "SYNOPSIS"
+.HP \w'\fBnewgrp\fR\ 'u
+\fBnewgrp\fR [\-] [\fIgroup\fR]
+.SH "DESCRIPTION"
+.PP
+The
+\fBnewgrp\fR
+command is used to change the current group ID during a login session\&. If the optional
+\fB\-\fR
+flag is given, the user\*(Aqs environment will be reinitialized as though the user had logged in, otherwise the current environment, including current working directory, remains unchanged\&.
+.PP
+\fBnewgrp\fR
+changes the current real group ID to the named group, or to the default group listed in
+/etc/passwd
+if no group name is given\&.
+\fBnewgrp\fR
+also tries to add the group to the user groupset\&. If not root, the user will be prompted for a password if she does not have a password (in
+/etc/shadow
+if this user has an entry in the shadowed password file, or in
+/etc/passwd
+otherwise) and the group does, or if the user is not listed as a member and the group has a password\&. The user will be denied access if the group password is empty and the user is not listed as a member\&.
+.PP
+If there is an entry for this group in
+/etc/gshadow, then the list of members and the password of this group will be taken from this file, otherwise, the entry in
+/etc/group
+is considered\&.
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.PP
+\fBSYSLOG_SG_ENAB\fR (boolean)
+.RS 4
+Enable "syslog" logging of
+\fBsg\fR
+activity\&.
+.RE
+.SH "FILES"
+.PP
+/etc/passwd
+.RS 4
+User account information\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Secure user account information\&.
+.RE
+.PP
+/etc/group
+.RS 4
+Group account information\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Secure group account information\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBid\fR(1),
+\fBlogin\fR(1),
+\fBsu\fR(1),
+\fBsg\fR(1),
+\fBgpasswd\fR(1),
+\fBgroup\fR(5), \fBgshadow\fR(5)\&.

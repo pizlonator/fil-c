@@ -1,0 +1,114 @@
+
+
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" May be distributed under the GNU General Public License
+
+.TH login 1 "4 Kasım 1996" "Util-linux 1.6" "Linux Yazılımcılarının Kılavuzu"
+.nh
+.SH İSİM  
+login - 
+Kullanıcının sisteme girişini sağlar.
+
+.SH KULLANIM
+
+
+\fBlogin\fR [ \fIisim\fR ]
+.br
+\fBlogin -p\fR
+.br
+\fBlogin -h\fR \fIkonakismi\fR
+.br
+\fBlogin -f\fR \fIisim\fR
+
+
+.SH AÇIKLAMA
+
+\fBlogin\fR, bir sisteme bağlanmak için kullanılır. Ayrıca, istenilen bir anda, bir kullanıcı adından başka birine geçiş yapmak içinde kullanılabilir (günümüzdeki pek çok kabuk, yerleşik olarak bu özelliği desteklemektedir).
+
+Herhangi bir argüman belirtilmemişse, \fBlogin\fR kullanıcı adını soracaktır.
+
+Şayet kullanıcı root değilse, ve eğer /etc/nologin dosyası varsa, bu dosyanın içeriği ekrana basılacak ve \fBlogin\fR sonlandırılacaktır. Bu genellikle, sistem kapanırken, yapılacak bağlantıları önlemek için kullanılır.
+
+Şayet kullanıcı için /etc/usertty içinde özel erişim kısıtlamaları tanımlanmışsa, kullanıcı bu şartları karşılamak zorundadır. Aksi taktirde bağlantı girişimi reddedilecek ve bir \fBsyslog\fR iletisi üretilecektir. Daha fazla bilgi için "Özel Erişim Kısıtlamaları" bölümüne bakınız.
+
+Şayet kullanıcı root ise, /etc/securetty içinde listelenen uçbirimlerden birisini kullanarak bağlanmak zorundadır. Giriş hataları \fBsyslog\fR tarafından kaydedilir. 
+
+Bütün bu şartlar kontrol edildikten sonra, parola istenecek ve kontrol edilecektir (şayet bu kullanıcı için parola gerekli ise). \fBlogin\fR sonlandırılmadan önce, 10 giriş denemesine izin vardır, fakat ilk üç denemeden sonra isteğe karşılık verme süresi uzayacaktır. Bağlantı hataları \fBsyslog\fR üzerinden rapor edilecektir. Bu, ayrıca başarılı root bağlantılarını raporlamak içinde kullanılır. 
+
+Şayet .hushlogin dosyası varsa, bir "hızlı" bağlantı gerçekleştirilir (bu özellik; e-posta kontrolünü, en son bağlantı zamanının ve günün iletisinin ekrana basılmasını engeller). Diğer yandan, şayet /var/log/lastlog dosyası varsa, son bağlantı zamanı ekrana basılacaktır (ve o anki bağlantı kaydedilecektir).
+
+Uçbirimin UID ve GID ayarlarını yapmak gibi, rastgele yönetim işleri yapılır. Şayet daha önceden belirtilmişse, TERM ortam değişkeni korunur (\fB-p\fR seçeneği kullanılmışsa diğer çevre değişkenleri de korunur).  Daha sonra HOME, PATH, SHELL, TERM, MAIL ve LOGNAME ortam değişkenleri ayarlanır. PATH değişkeni normal kullanıcılar için öntanımlı olarak /usr/local/bin:/bin:/usr/bin:. ve root kullanıcı için /bin:/usr/sbin:/usr/bin'dir. Son olarak, şayet bu bir "hızlı" bağlantı değilse; günün iletisi görüntülenir, kullanıcıya ait /var/spool/mail içindeki dosya kontrol edilir ve şayet dosya uzunluğu sıfırdan farklı ise bir ileti görüntülenir (şayet bu dosyanın uzunluğu sıfırdan farklı ise, kullanıcıya bir ileti gelmiş demektir).
+
+Daha sonra kullanıcı kabuğu başlatılır. Şayet \fB/etc/passwd\fR içinde  kullanıcı için bir kabuk tanımlı değilse, \fB/bin/sh\fR kullanılır. Şayet /etc/passwd içinde bir dizin tanımlı değilse, ev dizini olarak \fB/\fR (kök) dizini kullanılır (yukarıda bahsedilen .hushlogin dosyası için ev dizinine bakılır).
+
+
+.SH SEÇENEKLER
+
+
+.br
+.ns
+.TP 
+\fB-p\fR
+\fBgetty\fR(8) tarafından kullanılır, ortam değişkenlerinin korunmasını sağlar.
+
+.TP 
+\fB-f\fR
+İkinci bağlantı doğrulamasını atlamak için kullanılır. Özellikle root kullanıcı için çalışmaz ve Linux altında da çalıştığı görülmemiştir.        
+
+.TP 
+\fB-h\fR
+Diğer sunucular tarafından (\fBtelnetd\fR(8) gibi) uzak sunucunun adını, \fBlogin\fR´e bildirmek için kullanılır, bundan dolayı, utmp ve wtmp içine yerleştirilebilir. Bu seçenek sadece root kullanıcı içindir.
+
+.PP
+
+.SH ÖZEL ERİŞİM KISITLAMALARI
+
+/etc/securetty dosyası, root kullanıcının bağlantı yapabileceği, uçbirim isimlerinin listesini içerir. Her bir satırda, /dev/ öneki olmaksızın bir tty aygıtının adı belirtilmelidir. Şayet bu dosya yoksa, root kullanıcı herhangi bir uçbirim üzerinden bağlanabilir.
+
+Günümüzde çoğu Linux sistemi PAM (Pluggable Authentication Modules - Eklenebilir Kimlik Kantlama Modülleri) kullanmaktadır. PAM kullanılmayan sistemlerde /etc/usertty dosyası, belirlenen kullanıcılar için, ek erişim kısıtlamaları içerir. Şayet bu dosya yoksa, ek erişim kısıtlamaları yüklenemez. Bu dosya çeşitli bölümler içerir. Üç çeşit bölüm türü münkündür: CLASSES, GROUPS ve USERS. CLASSES bölümü uçbirim sınıflarının ve sunucu adlarının şablonlarını içerir. GROUPS  bölümü her bir grup için, USERS bölümü  ise her bir kullanıcı için izin verilen uçbirimleri ve sunucuları tanımlar.
+
+Bu dosya içindeki her bir satır en fazla 255 karaktere sahip olabilir. Açıklamalar \fB#\fR ile başlar ve satır sonuna kadar devam eder.
+
+.SS CLASSES Bölümü
+
+Bir CLASSES bölümü bir satırın başında tamamen büyük harflerden oluşmuş CLASSES dizgesi ile başlar. Yeni bir bölümün başlangıcına veya dosyanın sonuna kadar  her bir satır sekmeler ya da boşluklar tarafından ayrılmış sözcük dizilimleri içerir. Her bir satır uçbirim sınıfları ve sunucu şablonları içerir. 
+
+Satır başındaki sözcük, satırın kalanında tanımlanmış uçbirimler ve sunucu şablonları için ortak sınıf ismidir. Bu sınıf ismi GROUPS veya USERS bölümlerinde kullanılabilir. Yinelenmiş sınıflar oluşturma hatasından korunmak için sınıf isimleri tanımlamaların içinde kullanılmamalıdır. 
+
+Örnek bir CLASSES bölümü:
+
+.nf
+
+CLASSES
+sinif1       tty1 tty2
+sinif2       tty3 @.foo.com
+
+.fi
+
+
+Burada \fIsinif1\fR ve \fIsinif2\fR sınıfları sağ taraflarındakilerle tanımlanmıştır.
+
+.SS GROUPS Bölümü
+
+Bir GROUPS bölümü; her bir UNIX grubu için izin verilen uçbirim ve 
+sunucuları tanımlar.  Şayet bir kullanıcı /etc/passwd ve /etc/group dosyalarındaki tanımlara göre göre bir UNIX grubunun üyesi ise ve bu grup /etc/usertty içindeki GROUPS bölümünde belirtilmiş ise, kullanıcıya erişim izni verilmiş demektir.      
+
+Bir CLASSES bölümü bir satırın başında tamamen büyük harflerden oluşmuş CLASSES dizgesi ile başlar.
+Bir GROUPS bölümü bir satırda tamamen büyük harflerden oluşmuş GROUPS 
+yazısı ile başlar ve devam eden tüm satırlar, boşluklar veya tablar ile ayrılmış, kelimeler dizileridir. Satırdaki ilk kelime grup adı ve diğer kelimeler; grup elemanlarına bağlantı için izin verilen ttys´ler ve sunuculardır. Bu tanımlamalar önceki bölümde( CLASSES bölümünde) açıklanan sınıfları içerebilirler.
+
+
+.SH TEMİNİ
+
+\fBlogin\fR, e2fsprogs  paketinin bir parçasıdır ve
+.br
+http://e2fsprogs.sourceforge.net adresinden temin edilebilir.
+
+.SH İLGİLİ BELGELER
+
+\fBchattr\fR(1)
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Kasım 2003
+

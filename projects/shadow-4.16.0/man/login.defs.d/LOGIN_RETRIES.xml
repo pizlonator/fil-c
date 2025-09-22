@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>LOGIN_RETRIES</option> (number)</term>
+  <listitem>
+    <para>
+      Maximum number of login retries in case of bad password.
+    </para>
+    <para condition="pam">
+      This will most likely be overridden by PAM, since the default
+      pam_unix module has its own built in of 3 retries. However, this is
+      a safe fallback in case you are using an authentication module that
+      does not enforce PAM_MAXTRIES.
+    </para>
+  </listitem>
+</varlistentry>

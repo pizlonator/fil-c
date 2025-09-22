@@ -1,0 +1,274 @@
+'\" t
+.\"     Title: limits
+.\"    Author: Luca Berra
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: French
+.\"
+.TH "LIMITS" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOM"
+limits \- d\('efinition des limites de ressources
+.SH "DESCRIPTION"
+.PP
+The
+\fIlimits\fR
+file (/etc/limits
+by default or LIMITS_FILE defined
+config\&.h) describes the resource limits you wish to impose\&. It should be owned by root and readable by root account only\&.
+.PP
+Par d\('efaut, aucun quota (aucune limite) n\*(Aqest impos\('e \(`a \(Fo\ \&root\ \&\(Fc\&. En fait, il n\*(Aqest pas possible d\*(Aqimposer de cette fa\(,con de limite aux comptes root ou \('equivalents (comptes ayant un UID de 0)\&.
+.PP
+Chaque ligne d\('ecrit une limite pour un utilisateur, elle est de la forme suivante\ \&:
+.PP
+\fIuser LIMITS_STRING\fR
+.PP
+ou sous la forme\ \&:
+.PP
+\fI@group LIMITS_STRING\fR
+.PP
+The
+\fILIMITS_STRING\fR
+is a string of a concatenated list of resource limits\&. Each limit consists of a letter identifier followed by a numerical limit\&.
+.PP
+Les identifiants possibles sont\ \&:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+A\ \&: espace d\*(Aqadressage maximal (en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+C\ \&: taille maximale d\*(Aqun fichier image de la m\('emoire (\(Fo\ \&core\ \&\(Fc, en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+D\ \&: taille maximale du segment de donn\('ees d\*(Aqun programme (en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+F\ \&: taille maximale des fichiers (en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+K: file creation mask, set by
+\fBumask\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+I\ \&: valeur nice maximum (0\&.\&.39 qui sera traduit en 20\&.\&.\-19)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+L\ \&: nombre maximal de connexions simultan\('ees pour cet utilisateur
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+M\ \&: taille maximale de m\('emoire verrouill\('ee (\(Fo\ \&locked\-in\-memory\ \&\(Fc, en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+N\ \&: nombre maximal de fichiers ouverts
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+O\ \&: priorit\('e temps r\('eel maximale
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+P: process priority, set by
+\fBsetpriority\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+R\ \&: taille maximale de la m\('emoire r\('esidente (\(Fo\ \&resident set size\ \&\(Fc, en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+S\ \&: taille maximale de la pile (en kilo octets)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+T\ \&: temps processeur maximal consomm\('e (en minutes)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+U\ \&: nombre maximal de processus
+.RE
+.PP
+For example,
+\fIL2D2048N5\fR
+is a valid
+\fILIMITS_STRING\fR\&. For reading convenience, the following entries are equivalent:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      username L2D2048N5
+      username L2 D2048 N5
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Be aware that after
+\fIusername\fR
+the rest of the line is considered a limit string, thus comments are not allowed\&. An invalid limits string will be rejected (not considered) by the
+\fBlogin\fR
+program\&.
+.PP
+The default entry is denoted by username "\fI*\fR"\&. If you have multiple
+\fIdefault\fR
+entries in your
+\fILIMITS_FILE\fR, then the last one will be used as the default entry\&.
+.PP
+The limits specified in the form "\fI@group\fR" apply to the members of the specified
+\fIgroup\fR\&.
+.PP
+Si plusieurs lignes avec des limites pour un utilisateur existent, seule la premi\(`ere ligne pour cet utilisateur sera prise en compte\&.
+.PP
+If no lines are specified for a user, the last
+\fI@group\fR
+line matching a group whose the user is a member of will be considered, or the last line with default limits if no groups contain the user\&.
+.PP
+To completely disable limits for a user, a single dash "\fI\-\fR" will do\&.
+.PP
+To disable a limit for a user, a single dash "\fI\-\fR" can be used instead of the numerical value for this limit\&.
+.PP
+Notez \('egalement que les limites ne sont configur\('ees que PAR CONNEXION\&. Il n\*(Aqy a pas de limite globale ou permanente\&. Des limites globales pourraient voir le jour, mais pour l\*(Aqinstant, il faut faire sans\&.
+.SH "FICHIERS"
+.PP
+/etc/limits
+.RS 4
+.RE
+.SH "VOIR AUSSI"
+.PP
+\fBlogin\fR(1),
+\fBsetpriority\fR(2),
+\fBsetrlimit\fR(2)\&.

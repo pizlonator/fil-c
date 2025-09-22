@@ -1,0 +1,119 @@
+.\" ** You probably do not want to edit this file directly **
+.\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
+.\" Instead of manually editing it, you probably should edit the DocBook XML
+.\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
+.TH "SU" "1" "03/07/2006" "Käyttäjän sovellukset" "Käyttäjän sovellukset"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+su \- vaihda käyttäjätunnusta tai tule pääkäyttäjäksi
+.SH "SYNOPSIS"
+.HP 3
+\fBsu\fR [\fIvalitsimet\fR] [\-] [\fIkäyttäjätunnus\fR\ [\ \fIparametrit\fR\ ]]
+.SH "KUVAUS"
+.PP
+\fBsu\fR\-komentoa käytetään vaihtamaan toiseksi käyttäjäksi kesken istunnon. Kun komento ajetaan ilman käyttäjänimeä,
+\fBsu\fR
+oletuksena vaihtaa pääkäyttäjäksi. Valinnainen parametri
+\fB\-\fR
+voidaan antaa kun halutaan samanlainen ympäristö kuin käyttäjä odottaa kirjautuessaan suoraan sisään.
+.PP
+Muita parametreja voidaan antaa käyttäjänimen jälkeen, jolloin ne välitetään käyttäjän sisäänkirjautumiskuorelle. Erityisesti parametri
+\fB\-c\fR
+tarkoittaa, että seuraava parametri on komento useimmissa komentotulkeissa. Komento suoritetaan kuorella, joka on määritetty
+\fI/etc/passwd\fR\-tiedostossa kohdekäyttäjälle.
+.PP
+Voit käyttää parametria
+\fB\-\-\fR
+erottamaan
+\fBsu\fR\-valitsimet kuorelle välitettävistä parametreista.
+.PP
+Käyttäjältä pyydetään salasanaa tarvittaessa. Väärä salasana tuottaa virheilmoituksen. Kaikki yritykset, niin kelvolliset kuin virheellisetkin, kirjataan lokiin järjestelmän väärinkäytösten tunnistamiseksi.
+.PP
+Nykyinen ympäristö välitetään kuorelle.
+\fB$PATH\fR\-muuttujan arvo tyhjätään arvoksi
+\fI/bin:/usr/bin\fR
+tavallisille käyttäjille taikka
+\fI/sbin:/bin:/usr/sbin:/usr/bin\fR
+pääkäyttäjälle. Tämän käyttäytymisen voi vaihtaa asetuksilla
+\fIENV_PATH\fR
+ja
+\fIENV_SUPATH\fR
+tiedostossa
+\fI/etc/login.defs\fR.
+.PP
+Sisäinen kirjautuminen ilmoitetaan lisäämällä "*" ensimmäiseksi merkiksi sisäänkirjautumiskuoreen. Annettua kotihakemistoa käytetään uuden tiedostojärjestelmän juurena, jonne käyttäjä tosiasiassa kirjautuu.
+.SH "VALITSIMET"
+.PP
+\fBsu\fR\-komennon valitsimet ovat:
+.TP
+\fB\-c\fR, \fB\-\-command\fR \fIKUORI\fR
+Määritä komento, jonka kuori käynnistää sen
+\fB\-c\fR\-valitsimella.
+.TP
+\fB\-\fR, \fB\-l\fR, \fB\-\-login\fR
+Tarjoa samankaltainen ympäristö kuin käyttäjä saisi kirjautuessaan suoraa sisään.
+.sp
+Kun
+\fB\-\fR
+on käytössä, se täytyy antaa viimeisenä valitsimena
+\fBsu\fR\-komennolle. Muilla valitsimilla (\fB\-l\fR
+sekä
+\fB\-\-login\fR) ei ole tätä rajoitusta.
+.TP
+\fB\-s\fR, \fB\-\-shell\fR \fIKUORI\fR
+Käynnistettävä kuori
+.sp
+Käynnistettävä kuori valitaan seuraavasti (tärkeimmästä alkaen):
+.RS
+.TP 3
+\(bu
+Kuori, joka määritetään valitsimella \-\-shell
+.TP
+\(bu
+Mikäli valitsinta
+\fB\-\-preserve\-environment\fR
+on käytetty, kuori onka määrittää ympäristömuuttuja
+\fB$SHELL\fR.
+.TP
+\(bu
+Kuori, joka on asetettu /etc/passwd\-tietueessa kohdekäyttäjälle.
+.TP
+\(bu
+/bin/sh mikäli kuorta ei löytynyt millään edellisistä tavoista.
+.RE
+.IP
+.sp
+Mikäli kohdekäyttäjällä on rajoitettu kuori (esim. kuorikenttä käyttäjän tietueessa
+\fI/etc/passwd\fR\-tiedostossa ei löydy tiedostosta
+\fI/etc/shell\fR), niin valitsin
+\fB\-\-shell\fR
+ja ympäristömuuttuja
+\fB$SHELL\fR
+jätetään huomiotta paitsi kun komennon
+\fBsu\fR
+käynnistää pääkäyttäjä.
+.TP
+\fB\-m\fR, \fB\-p\fR, \fB\-\-preserve\-environment\fR
+Säilytä nykyinen ympäristö.
+.sp
+Mikäli kohdekäyttäjällä on rajoitettu ympäristö, tällä valitsimella ei ole vaikutusta (ellei
+\fBsu\fR\-komentoa käynnistänyt pääkäyttäjä).
+.SH "VAROITUKSET"
+.PP
+Tällä versiolla
+\fBsu\fR\-sovelluksesta on useita käännösaikaisia valitsimia, ja niistä vain osa saattaa olla käytössä tietyissä paikoissa.
+.SH "TIEDOSTOT"
+.TP
+\fI/etc/passwd\fR
+käyttäjätunnuksien tiedot
+.TP
+\fI/etc/shadow\fR
+turvalliset käyttäjätunnuksien tiedot
+.SH "KATSO MYÖS"
+.PP
+\fBlogin\fR(1),
+\fBlogin.defs\fR(5),
+\fBsh\fR(1)

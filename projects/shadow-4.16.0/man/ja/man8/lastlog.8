@@ -1,0 +1,56 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1992, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1992, Phillip Street
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"	@(#)lastlog.8	3.3	08:24:58	29 Sep 1993 (National Guard Release)
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated & Modified Thu Oct 14 1997 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\" Updated Fri Jan 12 2001 by Kentaro Shirakata <argrath@ub32.org>
+.\" Updated Mon Mar  4 2002 by kentaro Shirakata <argrath@ub32.org>
+.\" Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH LASTLOG 8
+.SH 名前
+lastlog \- lastlog ファイルを調べる
+.SH 書式
+.TP 8
+\fBlastlog\fR [(\fB\-u\fR|\fB\-\-user\fR) \fIlogin\fR]
+[(\fB\-t\fR|\fB\-\-time\fR) \fIdays\fR] [(\fB\-h\fR|\fB\-\-help\fR)]
+.SH 説明
+\fBlastlog\fR は最終ログインの記録ファイル
+\fI/var/log/lastlog\fR の内容を整形して表示する。
+\fBログイン名\fR・\fBポート\fR・\fB最終ログイン時刻\fR、が表示される。
+オプションを指定しなかった場合、デフォルトでは
+lastlog エントリを UID の数値でソートして表示する。
+.TP
+\fB\-u\fR, \fB\-\-user\fR \fIlogin\-name\fR
+\fIlogin\-name\fR の記録だけを表示する。
+.TP
+\fB\-t\fR, \fB\-\-time\fR \fIdays\fR
+最近 \fIdays\fR 日以内の最終ログインを表示する。
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+オンラインヘルプを表示して終了する。
+.PP
+\fB\-u\fR フラグを用いると \fB\-t\fR は無視される。
+.\"nakano というのが実際の動作のように見えるのだが。
+.PP
+一度もログインしていないユーザに対しては、
+ポートと時刻の代わりに
+\fB"**Never logged in**"\fR
+というメッセージが表示される。
+.SH ファイル
+\fI/var/log/lastlog\fR \- lastlog 記録ファイル
+.SH 警告
+UID 番号に大きな飛びがあると、
+lastlog プログラムは長時間画面に何も出力しないまま
+実行を続ける (例えば mmdf が 800 で最後の UID が 170 の場合、
+UID が 171\-799 の間プログラムは何も出力しないので、
+ハングしたように見える)。
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)
+.BR
+Phillip Street

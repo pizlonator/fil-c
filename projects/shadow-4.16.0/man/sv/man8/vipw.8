@@ -1,0 +1,137 @@
+'\" t
+.\"     Title: vipw
+.\"    Author: Marek Micha\(/lkiewicz
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18-06-2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Swedish
+.\"
+.TH "VIPW" "8" "18-06-2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAMN"
+vipw, vigr \- redigera l\(:osenordet, grupp, skuggl\(:osenord eller skuggruppfil
+.SH "SYNOPSIS"
+.HP \w'\fBvipw\fR\ 'u
+\fBvipw\fR [\fIoptions\fR]
+.HP \w'\fBvigr\fR\ 'u
+\fBvigr\fR [\fIoptions\fR]
+.SH "BESKRIVNING"
+.PP
+The
+\fBvipw\fR
+and
+\fBvigr\fR
+commands edit the files
+/etc/passwd
+and
+/etc/group, respectively\&. With the
+\fB\-s\fR
+flag, they will edit the shadow versions of those files,
+/etc/shadow
+and
+/etc/gshadow, respectively\&. The programs will set the appropriate locks to prevent file corruption\&. When looking for an editor, the programs will first try the environment variable
+\fB$VISUAL\fR, then the environment variable
+\fB$EDITOR\fR, and finally the default editor,
+\fBvi\fR(1)\&.
+.SH "FLAGGOR"
+.PP
+The options which apply to the
+\fBvipw\fR
+and
+\fBvigr\fR
+commands are:
+.PP
+\fB\-g\fR, \fB\-\-group\fR
+.RS 4
+Redigera gruppdatabasen\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Visa hj\(:alpmeddelande och avsluta\&.
+.RE
+.PP
+\fB\-p\fR, \fB\-\-passwd\fR
+.RS 4
+Redigera l\(:osenordsdatabasen\&.
+.RE
+.PP
+\fB\-q\fR, \fB\-\-quiet\fR
+.RS 4
+Tyst l\(:age\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-shadow\fR
+.RS 4
+Redigera shadow\- eller gshadow\-databasen\&.
+.RE
+.SH "ENVIRONMENT"
+.PP
+\fBVISUAL\fR
+.RS 4
+Editor to be used\&.
+.RE
+.PP
+\fBEDITOR\fR
+.RS 4
+Editor to be used if
+\fBVISUAL\fR
+is not set\&.
+.RE
+.SH "FILER"
+.PP
+/etc/group
+.RS 4
+Gruppkontoinformation\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+S\(:aker gruppkontoinformation\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+Anv\(:andarkontoinformation\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+S\(:aker anv\(:andarkontoinformation\&.
+.RE
+.SH "SE OCKS\(oA"
+.PP
+\fBvi\fR(1),
+\fBgroup\fR(5),
+\fBgshadow\fR(5)
+,
+\fBpasswd\fR(5), ,
+\fBshadow\fR(5)\&.

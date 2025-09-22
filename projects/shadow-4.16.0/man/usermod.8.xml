@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY LASTLOG_UID_MAX       SYSTEM "login.defs.d/LASTLOG_UID_MAX.xml">
+<!ENTITY MAIL_DIR              SYSTEM "login.defs.d/MAIL_DIR.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY SUB_GID_COUNT         SYSTEM "login.defs.d/SUB_GID_COUNT.xml">
+<!ENTITY SUB_UID_COUNT         SYSTEM "login.defs.d/SUB_UID_COUNT.xml">
+<!ENTITY TCB_SYMLINKS          SYSTEM "login.defs.d/TCB_SYMLINKS.xml">
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='usermod.8'>
+  <!--  $Id$  -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>usermod</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>usermod</refname>
+    <refpurpose>modify a user account</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>usermod</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='plain'><replaceable>LOGIN</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>usermod</command> command modifies the system account
+      files.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>usermod</command> command
+      are:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  <option>-a</option>, <option>--append</option>
+	</term>
+	<listitem>
+	  <para>
+	    Add the user to the supplementary group(s). Use only with the
+	    <option>-G</option> option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-b</option>, <option>--badname</option>
+	</term>
+	<listitem>
+	  <para>
+	    Allow names that do not conform to standards.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-c</option>, <option>--comment</option>&nbsp;<replaceable>COMMENT</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    update the comment field of the user in <filename>/etc/passwd
+	    </filename>, which is normally modified using the <citerefentry>
+	    <refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+	    </citerefentry> utility.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-d</option>, <option>--home</option>&nbsp;<replaceable>HOME_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The user's new login directory.
+	  </para>
+	  <para>
+	    If the <option>-m</option>
+	    option is given, the contents of the current home directory will
+	    be moved to the new home directory, which is created if it does
+	    not already exist. If the current home directory does not exist
+	    the new home directory will not be created.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-e</option>, <option>--expiredate</option>&nbsp;<replaceable>EXPIRE_DATE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+            The date on which the user account will be disabled. The
+            date is specified in the format 
+            <emphasis remap="I">YYYY-MM-DD</emphasis>. Integers as input are
+            interpreted as days after 1970-01-01.
+	  </para>
+	  <para>
+	    An input of -1 or an empty string will blank the account
+	    expiration field in the shadow password file. The account
+	    will remain available with no date limit.
+	  </para>
+	  <para>
+	    This option requires a <filename>/etc/shadow</filename> file.
+	    A <filename>/etc/shadow</filename> entry will be created if
+	    there were none.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-f</option>, <option>--inactive</option>&nbsp;<replaceable>INACTIVE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines the number of days after the password exceeded its maximum
+	    age during which the user may still login by immediately replacing
+	    the password. This grace period before the account becomes inactive
+	    is stored in the shadow password file. An input of 0 will disable an
+	    expired password with no delay. An input of -1 will blank the
+	    respective field in the shadow password file. See <citerefentry>
+	    <refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+	    </citerefentry> for more information.
+	  </para>
+	  <para>
+	    This option requires a <filename>/etc/shadow</filename> file.
+	    A <filename>/etc/shadow</filename> entry will be created if
+	    there were none.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-g</option>, <option>--gid</option>&nbsp;<replaceable>GROUP</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The name or numerical ID of the user's new primary group.
+	    The group must exist.
+	  </para>
+	  <para>
+	    Any file from the user's home directory owned by the previous
+	    primary group of the user will be owned by this new group.
+	  </para>
+	  <para>
+	    The group ownership of files outside of the user's home directory
+	    must be fixed manually.
+	  </para>
+	  <para>
+	    The change of the group ownership of files inside of the user's
+	    home directory is also not done if the home dir owner uid is
+	    different from the current or new user id. This is a safety measure
+	    for special home directories such as <filename>/</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-G</option>, <option>--groups</option>&nbsp;<replaceable>GROUP1</replaceable>[<emphasis remap='I'>,GROUP2,...</emphasis>[<emphasis remap='I'>,GROUPN</emphasis>]]]
+	</term>
+	<listitem>
+	  <para>
+	    A list of supplementary groups which the user is also a member
+	    of. Each group is separated from the next by a comma, with no
+	    intervening whitespace. The groups must exist.
+	  </para>
+	  <para>
+	    If the user is currently a member of a group which is
+	    not listed, the user will be removed from the group. This
+	    behaviour can be changed via the <option>-a</option> option, which
+	    appends the user to the current supplementary group list.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-l</option>, <option>--login</option>&nbsp;<replaceable>NEW_LOGIN</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The name of the user will be changed from
+	    <replaceable>LOGIN</replaceable> to
+	    <replaceable>NEW_LOGIN</replaceable>. Nothing else is changed. In
+	    particular, the user's home directory or mail spool should
+	    probably be renamed manually to reflect the new login name.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-L</option>, <option>--lock</option>
+	</term>
+	<listitem>
+	  <para>
+	    Lock a user's password. This puts a '!' in front of the
+	    encrypted password, effectively disabling the password. You
+	    can't use this option with <option>-p</option> or
+	    <option>-U</option>.
+	  </para>
+	  <para>
+	    Note: if you wish to lock the account (not only access with a
+	    password), you should also set the
+	    <replaceable>EXPIRE_DATE</replaceable> to
+	    <replaceable>1</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-m</option>, <option>--move-home</option>
+	</term>
+	<listitem>
+	  <para>
+	    moves the content of the user's home directory to the new
+	    location. If the current home directory does not exist
+	    the new home directory will not be created.
+	  </para>
+	  <para>
+	    This option is only valid in combination with the
+	    <option>-d</option> (or <option>--home</option>) option.
+	  </para>
+	  <para>
+	    <command>usermod</command> will try to adapt the ownership of the
+	    files and to copy the modes, ACL and extended attributes, but
+	    manual changes might be needed afterwards.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-o</option>, <option>--non-unique</option>
+	</term>
+	<listitem>
+	  <para>
+	    allows to change the user ID to a non-unique value.
+	  </para>
+	  <para>
+            This option is only valid in combination with the
+            <option>-u</option> option. As a user identity
+            serves as
+            key to map between users on one hand and permissions, file
+            ownerships and other aspects that determine the system's
+            behavior on the other hand, more than one login name
+            will access the account of the given UID.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-p</option>, <option>--password</option>&nbsp;<replaceable>PASSWORD</replaceable>
+	</term>
+	<listitem>
+	  <para>
+            defines a new password for the user. PASSWORD is expected to
+            be encrypted, as returned by <citerefentry><refentrytitle>crypt
+            </refentrytitle><manvolnum>3</manvolnum></citerefentry>.
+	  </para>
+	  <para>
+	    <emphasis role="bold">Note:</emphasis> Avoid this option on the  
+	    command  line because the password (or encrypted password) will
+	    be visible by users listing the processes.
+	  </para>
+	  <para condition="pam">
+	    The password will be written in the local
+	    <filename>/etc/passwd</filename> or
+	    <filename>/etc/shadow</filename> file. This might differ from the
+	    password database configured in your PAM configuration.
+	  </para>
+	  <para>
+	    You should make sure the password respects the system's
+	    password policy.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--remove</option>
+	</term>
+	<listitem>
+	  <para>
+	    Remove the user from named supplementary group(s). Use only with the
+	    <option>-G</option> option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+             Apply changes within the directory tree starting with
+             <replaceable>PREFIX_DIR</replaceable> and use as well the
+             configuration files located there.  This option does not
+             chroot and is intended for preparing a cross-compilation
+             target.  Some limitations: NIS and LDAP users/groups are
+             not verified.  PAM authentication is using the host
+             files.  No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--shell</option>&nbsp;<replaceable>SHELL</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    changes the user's login shell. An empty string for SHELL blanks the
+	    field in <filename>/etc/passwd</filename> and logs the user into the
+	    system's default shell.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--uid</option>&nbsp;<replaceable>UID</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The new value of the user's ID.
+	  </para>
+	  <para>
+	    This value must be unique,
+	    unless the <option>-o</option> option is used. The value must be
+	    non-negative.
+	  </para>
+	  <para>
+	    The user's mailbox, and any files which the user owns and which are
+	    located in the user's home
+	    directory will have the file user ID changed automatically.
+	  </para>
+	  <para>
+	    The ownership of files outside of the user's home directory
+	    must be fixed manually.
+	  </para>
+	  <para>
+	    The change of the user ownership of files inside of the user's
+	    home directory is also not done if the home dir owner uid is
+	    different from the current or new user id. This is a safety measure
+	    for special home directories such as <filename>/</filename>.
+	  </para>
+	  <para>
+	    No checks will be performed with regard to the
+	    <option>UID_MIN</option>, <option>UID_MAX</option>,
+	    <option>SYS_UID_MIN</option>, or <option>SYS_UID_MAX</option>
+	    from <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-U</option>, <option>--unlock</option>
+	</term>
+	<listitem>
+	  <para>
+	    Unlock a user's password. This removes the '!' in front of the
+	    encrypted password. You can't use this option with
+	    <option>-p</option> or <option>-L</option>.
+	  </para>
+	  <para>
+	    Note: if you wish to unlock the account (not only access with a
+	    password), you should also set the
+	    <replaceable>EXPIRE_DATE</replaceable> (for example to
+	    <replaceable>99999</replaceable>, or to the
+	    <option>EXPIRE</option> value from
+	    <filename>/etc/default/useradd</filename>).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term>
+	  <option>-v</option>, <option>--add-subuids</option>&nbsp;<replaceable>FIRST</replaceable>-<replaceable>LAST</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Add a range of subordinate uids to the user's account. 
+	  </para>
+	  <para>
+	    This option may be specified multiple times to add multiple ranges to a user's account.
+	  </para>
+	  <para>
+	     No checks will be performed with regard to
+	     <option>SUB_UID_MIN</option>, <option>SUB_UID_MAX</option>, or
+	     <option>SUB_UID_COUNT</option> from /etc/login.defs.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term>
+	  <option>-V</option>, <option>--del-subuids</option>&nbsp;<replaceable>FIRST</replaceable>-<replaceable>LAST</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Remove a range of subordinate uids from the user's account.
+	  </para>
+	  <para>
+	    This option may be specified multiple times to remove multiple ranges to a user's account.
+	    When both <option>--del-subuids</option> and <option>--add-subuids</option> are specified,
+	    the removal of all subordinate uid ranges happens before any subordinate uid range is added.
+	  </para>
+	  <para>
+	     No checks will be performed with regard to
+	     <option>SUB_UID_MIN</option>, <option>SUB_UID_MAX</option>, or
+	     <option>SUB_UID_COUNT</option> from /etc/login.defs.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term>
+	  <option>-w</option>, <option>--add-subgids</option>&nbsp;<replaceable>FIRST</replaceable>-<replaceable>LAST</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Add a range of subordinate gids to the user's account.
+	  </para>
+	  <para>
+	    This option may be specified multiple times to add multiple ranges to a user's account.
+	  </para>
+	  <para>
+	     No checks will be performed with regard to
+	     <option>SUB_GID_MIN</option>, <option>SUB_GID_MAX</option>, or
+	     <option>SUB_GID_COUNT</option> from /etc/login.defs.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term>
+	  <option>-W</option>, <option>--del-subgids</option>&nbsp;<replaceable>FIRST</replaceable>-<replaceable>LAST</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Remove a range of subordinate gids from the user's account.
+	  </para>
+	  <para>
+	    This option may be specified multiple times to remove multiple ranges to a user's account.
+	    When both <option>--del-subgids</option> and <option>--add-subgids</option> are specified,
+	    the removal of all subordinate gid ranges happens before any subordinate gid range is added.
+	  </para>
+	  <para>
+	     No checks will be performed with regard to
+	     <option>SUB_GID_MIN</option>, <option>SUB_GID_MAX</option>, or
+	     <option>SUB_GID_COUNT</option> from /etc/login.defs.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-Z</option>, <option>--selinux-user</option>&nbsp;<replaceable>SEUSER</replaceable>
+	</term>
+	<listitem>
+	  <para>
+            defines the SELinux user to be mapped with
+            <replaceable>LOGIN</replaceable>.  An empty string ("")
+            will remove the respective entry (if any). Note that the
+            shadow system doesn't store the selinux-user, it uses
+            semanage(8) for that.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--selinux-range</option>&nbsp;<replaceable>SERANGE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines the SELinux MLS range for the new account.
+	    Note that the shadow system doesn't store the selinux-range,
+	    it uses <citerefentry><refentrytitle>semanage</refentrytitle>
+	    <manvolnum>8</manvolnum></citerefentry> for that.
+	  </para>
+	  <para>
+	    This option is only valid if the <option>-Z</option> (or
+	    <option>--selinux-user</option>) option is specified.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      You must make certain that the named user is
+      not executing any processes when this command is being executed if the
+      user's numerical user ID, the user's name, or the user's home
+      directory is being changed. <command>usermod</command> checks this
+      on Linux. On other operating systems it only uses utmp to check if 
+      the user is logged in.
+    </para>
+    <para>
+      You must change the owner of any <command>crontab</command> files or
+      <command>at</command> jobs manually.
+    </para>
+    <para>
+      You must make any changes involving NIS on the NIS server.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &LASTLOG_UID_MAX;
+      &MAIL_DIR; <!-- documents also MAIL_FILE -->
+      &MAX_MEMBERS_PER_GROUP;
+      &SUB_GID_COUNT; <!-- documents also SUB_GID_MAX and SUB_GID_MIN -->
+      &SUB_UID_COUNT; <!-- documents also SUB_UID_MAX and SUB_UID_MIN -->
+      &TCB_SYMLINKS;
+      &USE_TCB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subgid</filename></term>
+	<listitem>
+	  <para>Per user subordinate group IDs</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="subids">
+	<term><filename>/etc/subuid</filename></term>
+	<listitem>
+	  <para>Per user subordinate user IDs</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>gpasswd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupadd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupmod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <phrase condition="subids">
+	<citerefentry>
+	  <refentrytitle>subgid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+	<citerefentry>
+	  <refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

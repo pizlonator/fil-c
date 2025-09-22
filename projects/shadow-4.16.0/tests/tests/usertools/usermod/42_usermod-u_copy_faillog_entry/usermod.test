@@ -1,0 +1,66 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod does not create /var/log/faillog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/faillog (it will not be restored)..."
+> /var/log/faillog
+echo "OK"
+
+echo -n "Trigger a connection as foo..."
+./login.exp
+echo "OK"
+
+faillog > tmp/faillog.out
+
+echo "faillog :"
+echo "======================================================================="
+cat tmp/faillog.out
+echo "======================================================================="
+
+echo -n "Change the user's UID (usermod -u 4242 foo)..."
+usermod -u 4242 foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+faillog > tmp/faillog.out2
+
+echo "faillog:"
+echo "======================================================================="
+cat tmp/faillog.out2
+echo "======================================================================="
+
+echo -n "Check the faillog message..."
+diff -au tmp/faillog.out tmp/faillog.out2
+echo "faillog message OK."
+rm -f tmp/faillog.out tmp/faillog.out2
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

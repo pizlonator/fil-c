@@ -1,0 +1,206 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# Rational:
+# Test chage options
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+	for i in passwd group shadow gshadow
+	do
+		[ -f /etc/$i  ] && cp /etc/$i  tmp/$i
+		[ -f /etc/$i- ] && cp /etc/$i- tmp/$i-
+	done
+
+	true
+}
+
+restore()
+{
+	for i in passwd group shadow gshadow
+	do
+		[ -f tmp/$i  ] && cp tmp/$i  /etc/$i  && rm tmp/$i
+		[ -f tmp/$i- ] && cp tmp/$i- /etc/$i- && rm tmp/$i-
+	done
+	rm -f tmp/out
+	rmdir tmp
+}
+
+save
+
+# restore the files on exit
+trap 'if [ "$?" != "0" ]; then echo "FAIL"; fi; restore' 0
+
+for i in passwd group shadow gshadow
+do
+	cp data/$i /etc
+done
+
+echo -n "testing option -l"
+chage -l myuser1 > tmp/out
+diff -au data/chage1 tmp/out
+echo -n .
+chage -l myuser2 > tmp/out
+diff -au data/chage2 tmp/out
+echo -n .
+chage -l myuser3 > tmp/out
+diff -au data/chage3 tmp/out
+echo -n .
+chage -l myuser4 > tmp/out
+diff -au data/chage4 tmp/out
+echo -n .
+chage -l myuser5 > tmp/out
+diff -au data/chage5 tmp/out
+echo -n .
+chage -l myuser6 > tmp/out
+diff -au data/chage6 tmp/out
+echo -n .
+chage --list myuser7 > tmp/out
+diff -au data/chage7 tmp/out
+echo -n .
+msg=$(chage -l myuser8 2> tmp/out) || err=$?
+[ "$err" = "1" ] && [ "$msg" = "" ] || exit 1
+diff -au data/chage8 tmp/out
+echo .
+
+echo "testing option -d"
+chage -d 2001-10-02 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:11597:0:99999:7:1::' ] || exit 1
+echo "testing option -d -1"
+chage -d -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.::0:99999:7:1::' ] || exit 1
+echo "testing option -d 0"
+chage -d 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:0:0:99999:7:1::' ] || exit 1
+echo "testing option --lastday"
+chage --lastday 2011-11-02 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:1::' ] || exit 1
+
+echo "testing option -E"
+chage -E 2010-10-02 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:1:14884:' ] || exit 1
+echo "testing option -E -1"
+chage -E -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:1::' ] || exit 1
+echo "testing option -E 0"
+chage -E 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:1:0:' ] || exit 1
+echo "testing option --expiredate"
+chage --expiredate 2020-02-02 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:1:18294:' ] || exit 1
+
+echo "testing option -I"
+# NOTE: I could pass a date to -I
+chage -I 42 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:42:18294:' ] || exit 1
+echo "testing option -I -1"
+# NOTE: this behavior is not documented
+chage -I -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7::18294:' ] || exit 1
+echo "testing option -I 0"
+# NOTE: We should check that this is the expected behavior
+chage -I 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:0:18294:' ] || exit 1
+echo "testing option --inactive"
+chage --inactive  12 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:12:18294:' ] || exit 1
+
+echo "testing option -m"
+chage -m 24 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:24:99999:7:12:18294:' ] || exit 1
+echo "testing option -m -1"
+# NOTE: this behavior is not documented
+chage -m -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280::99999:7:12:18294:' ] || exit 1
+echo "testing option -m 0"
+chage -m 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:0:99999:7:12:18294:' ] || exit 1
+echo "testing option --mindays"
+chage --min 1 myuser7
+# NOTE: that shouldn't have work
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:99999:7:12:18294:' ] || exit 1
+
+echo "testing option -M"
+chage -M 25 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:25:7:12:18294:' ] || exit 1
+echo "testing option -M -1"
+# NOTE: this behavior is not documented
+chage -M -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1::7:12:18294:' ] || exit 1
+echo "testing option -M 0"
+chage -M 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:0:7:12:18294:' ] || exit 1
+echo "testing option --maxdays"
+chage --max 2 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:2:7:12:18294:' ] || exit 1
+
+echo "testing option -W"
+chage -W 26 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:2:26:12:18294:' ] || exit 1
+echo "testing option -W -1"
+# NOTE: this behavior is not documented
+chage -W -1 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:2::12:18294:' ] || exit 1
+echo "testing option -W 0"
+chage -W 0 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:2:0:12:18294:' ] || exit 1
+echo "testing option --warndays"
+chage --warndays 3 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:15280:1:2:3:12:18294:' ] || exit 1
+
+echo "testing with all options"
+chage -d 2030-03-02 -E 1979-11-24 -I 10 -m 11 -M 12 --warndays 4 myuser7
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:21975:11:12:4:10:3614:' ] || exit 1
+
+echo "interactive test"
+./run1.exp
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:12990:13:14:9:35:15548:' ] || exit 1
+
+echo "interactive test (default)"
+./run2.exp
+ent=$(getent shadow myuser7)
+[ "$ent" = 'myuser7:$1$yQnIAZWV$gDAMB2IkqaONgrQiRdo4y.:12990:13:14:9:35:15548:' ] || exit 1
+chage -l myuser7 > tmp/out
+diff -au data/chage7b tmp/out
+
+echo "usage"
+chage -h > tmp/out || {
+	if [ "$?" != "2" ]; then false; fi
+}
+diff -au data/usage tmp/out
+
+echo "OK"

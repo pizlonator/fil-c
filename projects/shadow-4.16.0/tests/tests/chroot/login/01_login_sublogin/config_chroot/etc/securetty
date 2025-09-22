@@ -1,0 +1,390 @@
+# /etc/securetty: list of terminals on which root is allowed to login.
+# See securetty(5) and login(1).
+
+console
+
+# Local X displays (allows empty passwords with pam_unix's nullok_secure)
+:0
+:0.0
+:0.1
+:1
+:1.0
+:1.1
+:2
+:2.0
+:2.1
+:3
+:3.0
+:3.1
+#...
+
+
+# ==========================================================
+#
+# TTYs sorted by major number according to Documentation/devices.txt
+#
+# ==========================================================
+
+# Virtual consoles
+tty1
+tty2
+tty3
+tty4
+tty5
+tty6
+tty7
+tty8
+tty9
+tty10
+tty11
+tty12
+tty13
+tty14
+tty15
+tty16
+tty17
+tty18
+tty19
+tty20
+tty21
+tty22
+tty23
+tty24
+tty25
+tty26
+tty27
+tty28
+tty29
+tty30
+tty31
+tty32
+tty33
+tty34
+tty35
+tty36
+tty37
+tty38
+tty39
+tty40
+tty41
+tty42
+tty43
+tty44
+tty45
+tty46
+tty47
+tty48
+tty49
+tty50
+tty51
+tty52
+tty53
+tty54
+tty55
+tty56
+tty57
+tty58
+tty59
+tty60
+tty61
+tty62
+tty63
+
+# UART serial ports
+ttyS0
+ttyS1
+ttyS2
+ttyS3
+ttyS4
+ttyS5
+#...ttyS191
+
+# Serial Mux devices	(Linux/PA-RISC only)
+ttyB0
+ttyB1
+#...
+
+# Chase serial card
+ttyH0
+ttyH1
+#...
+
+# Cyclades serial cards
+ttyC0
+ttyC1
+#...ttyC31
+
+# Digiboard serial cards
+ttyD0
+ttyD1
+#...
+
+# Stallion serial cards
+ttyE0
+ttyE1
+#...ttyE255
+
+# Specialix serial cards
+ttyX0
+ttyX1
+#...
+
+# Comtrol Rocketport serial cards
+ttyR0
+ttyR1
+#...
+
+# SDL RISCom serial cards
+ttyL0
+ttyL1
+#...
+
+# Hayes ESP serial card
+ttyP0
+ttyP1
+#...
+
+# Computone IntelliPort II serial card
+ttyF0
+ttyF1
+#...ttyF255
+
+# Specialix IO8+ serial card
+ttyW0
+ttyW1
+#...
+
+# Comtrol VS-1000 serial controller
+ttyV0
+ttyV1
+#...
+
+# ISI serial card
+ttyM0
+ttyM1
+#...
+
+# Technology Concepts serial card
+ttyT0
+ttyT1
+#...
+
+# Specialix RIO serial card
+ttySR0
+ttySR1
+#...ttySR511
+
+# Chase Research AT/PCI-Fast serial card
+ttyCH0
+ttyCH1
+#...ttyCH63
+
+# Moxa Intellio serial card
+ttyMX0
+ttyMX1
+#...ttyMX127
+
+# SmartIO serial card
+ttySI0
+ttySI1
+#...
+
+# USB dongles
+ttyUSB0
+ttyUSB1
+ttyUSB2
+#...
+
+# LinkUp Systems L72xx UARTs
+ttyLU0
+ttyLU1
+ttyLU2
+ttyLU3
+
+# StrongARM builtin serial ports
+ttySA0
+ttySA1
+ttySA2
+
+# SCI serial port (SuperH) ports and SC26xx serial ports
+ttySC0
+ttySC1
+ttySC2
+ttySC3
+
+# ARM "AMBA" serial ports
+ttyAM0
+ttyAM1
+ttyAM2
+ttyAM3
+ttyAM4
+ttyAM5
+ttyAM6
+ttyAM7
+ttyAM8
+ttyAM9
+ttyAM10
+ttyAM11
+ttyAM12
+ttyAM13
+ttyAM14
+ttyAM15
+
+# Embedded ARM AMBA PL011 ports (e.g. emulated by QEMU)
+ttyAMA0
+ttyAMA1
+ttyAMA2
+ttyAMA3
+
+# DataBooster serial ports
+ttyDB0
+ttyDB1
+ttyDB2
+ttyDB3
+ttyDB4
+ttyDB5
+ttyDB6
+ttyDB7
+
+# SGI Altix console ports
+ttySG0
+
+# Motorola i.MX ports
+ttySMX0
+ttySMX1
+ttySMX2
+
+# Marvell MPSC ports
+ttyMM0
+ttyMM1
+
+# PPC CPM (SCC or SMC) ports
+ttyCPM0
+ttyCPM1
+ttyCPM2
+ttyCPM3
+ttyCPM4
+ttyCPM5
+
+# Altix serial cards
+ttyIOC0
+ttyIOC1
+#...ttyIOC31
+
+# NEC VR4100 series SIU
+ttyVR0
+
+# NEC VR4100 series SSIU
+ttyVR1
+
+# Altix ioc4 serial cards
+ttyIOC84
+ttyIOC85
+#...ttyIOC115
+
+# Altix ioc3 serial cards
+ttySIOC0
+ttySIOC1
+#...ttySIOC31
+
+# PPC PSC ports
+ttyPSC0
+ttyPSC1
+ttyPSC2
+ttyPSC3
+ttyPSC4
+ttyPSC5
+
+# ATMEL serial ports
+ttyAT0
+ttyAT1
+#...ttyAT15
+
+# Hilscher netX serial port
+ttyNX0
+ttyNX1
+#...ttyNX15
+
+# Xilinx uartlite - port
+ttyUL0
+ttyUL1
+ttyUL2
+ttyUL3
+
+# Xen virtual console - port 0
+xvc0
+
+# pmac_zilog - port
+ttyPZ0
+ttyPZ1
+ttyPZ2
+ttyPZ3
+
+# TX39/49 serial port
+ttyTX0
+ttyTX1
+ttyTX2
+ttyTX3
+ttyTX4
+ttyTX5
+ttyTX6
+ttyTX7
+
+# SC26xx serial ports (see SCI serial ports (SuperH))
+
+# MAX3100 serial ports
+ttyMAX0
+ttyMAX1
+ttyMAX2
+ttyMAX3
+
+# OMAP serial ports
+ttyO0
+ttyO1
+ttyO2
+ttyO3
+
+# User space serial ports
+ttyU0
+ttyU1
+
+# A2232 serial card
+ttyY0
+ttyY1
+
+# IBM 3270 terminal Unix tty access
+3270/tty1
+3270/tty2
+#...
+
+# IBM iSeries/pSeries virtual console
+hvc0
+hvc1
+#...
+#IBM pSeries console ports
+hvsi0
+hvsi1
+hvsi2
+
+# Equinox SST multi-port serial boards
+ttyEQ0
+ttyEQ1
+#...ttyEQ1027
+
+# ==========================================================
+#
+# Not in Documentation/Devices.txt
+#
+# ==========================================================
+
+# Embedded Freescale i.MX ports
+ttymxc0
+ttymxc1
+ttymxc2
+ttymxc3
+ttymxc4
+ttymxc5
+
+# Serial Console for MIPS Swarm
+duart0
+duart1

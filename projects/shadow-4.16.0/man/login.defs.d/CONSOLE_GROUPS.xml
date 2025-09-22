@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>CONSOLE_GROUPS</option> (string)</term>
+  <listitem>
+    <para>
+      List of groups to add to the user's supplementary groups set when
+      logging in on the console (as determined by the CONSOLE setting).
+      Default is none.
+    <para>
+    </para>
+      Use with caution - it is possible for users to gain permanent access
+      to these groups, even when not logged in on the console.
+    </para>
+  </listitem>
+</varlistentry>

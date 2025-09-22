@@ -1,0 +1,69 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1989 - 1992, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH SULOGIN 8
+.SH 名前
+sulogin \- シングルユーザ login
+.SH 書式
+\fBsulogin\fR [\fItty\-device\fR]
+.SH 説明
+.B sulogin
+は、シングルユーザモードの時、
+ユーザがシステムにアクセス可能となる前に、
+\fI/etc/init\fR によって起動される。
+この機能は、\fBinit\fR が適切に変更されているシステムか、
+あるいは \fI/etc/inittab\fR にシングルユーザ login
+のエントリがあるシステムでのみ利用できる。
+.PP
+次のようなプロンプトが出る。
+.IP "" .5i
+Type control\-d to proceed with normal startup,
+.br
+(or give root password for system maintenance):
+.PP
+オプションのデバイス名引数が指定された場合を除き、
+標準のファイルディスクリプタを用いて入出力を行なう。
+.PP
+ユーザが正しい root のパスワードを入力した場合は、
+ログインセッションが開始される。
+\fBEOF\fR が押された場合は、
+システムはマルチユーザモードに入る。
+.PP
+ユーザがシングルユーザシェルを抜けた、
+あるいは (シェルに入る前に) \fBEOF\fR を押した後には、
+システムはマルチユーザモードに入るために必要な初期化処理を開始する。
+.SH 警告
+このコマンドが利用できるようにするには、
+\fBinit\fR が \fB/bin/sh\fR ではなく
+\fBsulogin\fR を呼ぶようになっているか、
+または
+\fIinittab\fR
+中にシングルユーザログインに対する設定がされている必要がある。
+例えば、
+.br
+.sp 1
+co:s:respawn:/etc/sulogin /dev/console
+.br
+.sp 1
+という行を書いておけば、
+シングルユーザモードでは sulogin コマンドが実行される。
+.PP
+可能な限り完全な環境が提供される。
+しかし、
+様々なデバイスがマウントされていなかったり初期化されていなかったりするため、
+多くのユーザコマンドが使えなかったり機能しないかもしれない。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR \- 暗号化されたパスワードと有効期限の情報
+.SH 関連項目
+.BR login (1),
+.BR sh (1),
+.BR init (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

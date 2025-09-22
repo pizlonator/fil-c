@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>DEFAULT_HOME</option> (boolean)</term>
+  <listitem>
+    <para>
+      Indicate if login is allowed if we can't cd to the home directory.
+      Default is no.
+    </para>
+    <para>
+      If set to <replaceable>yes</replaceable>, the user will login in
+      the root (<filename>/</filename>) directory if it is not possible to
+      cd to her home directory.
+    </para>
+  </listitem>
+</varlistentry>

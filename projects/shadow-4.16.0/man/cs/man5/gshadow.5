@@ -1,0 +1,52 @@
+.TH "GSHADOW" "5" "11/05/2005" "File Formats and Configuration Files" "File Formats and Configuration Files"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+gshadow \- stínový soubor se skupinami
+.SH "POPIS"
+.PP
+\fI/etc/gshadow\fR
+Obsahuje stínové informace ke skupinovým účtům. Obsahuje řádky
+s pevnou strukturou, kde jsou jednotlivá pole oddělená dvojtečkami:
+.TP 3
+\(bu
+název skupiny
+.TP
+\(bu
+zašifrované heslo
+.TP
+\(bu
+čárkami oddělený seznam administrátorů skupiny
+.TP
+\(bu
+čárkami oddělený seznam členů skupiny
+.PP
+Pole pro název skupiny a heslo musí být vyplněná. Zašifrované heslo se
+skládá ze znaků 64 znakové abecedy (a-z, A-Z, 0-9, \\ a /).
+Podrobnosti o hesle naleznete v
+\fBcrypt\fR(3).
+Pokud pole s heslem obsahuje znak, který není platným výsledkem
+funkce
+\fBcrypt\fR(3), např. ! nebo *, uživatel se nebude moci pomocí tohoto
+hesla přihlásit, ale záleží také na systému
+\fBpam\fR(7).
+.PP
+Heslo v tomto souboru má přednost před heslem ze souboru
+\fI/etc/group\fR.
+.PP
+Má-li být zachována bezpečnost hesel, nesmí být tento soubor čitelný
+pro běžné uživatele.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.SH "VIZ TAKÉ"
+.PP
+\fBgroup\fR(5),
+\fBgpasswd\fR(5),
+\fBnewgrp\fR(5).

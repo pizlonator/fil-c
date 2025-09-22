@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "reports all entry from /var/log/faillog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/faillog (it will not be restored)..."
+> /var/log/faillog
+echo "OK"
+
+echo -n "reset baz (faillog -l 0 -m 0 -u baz)..."
+faillog -a -l 1 -m 1 -u 1000-1002
+echo "OK"
+
+echo -n "Check size of the faillog..."
+stat --printf "%s %U:%G %N\n" /var/log/faillog | sort > tmp/faillog.stat
+diff -rauN data/faillog.stat tmp/faillog.stat
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

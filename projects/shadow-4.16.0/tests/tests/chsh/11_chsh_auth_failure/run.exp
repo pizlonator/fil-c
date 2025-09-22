@@ -1,0 +1,36 @@
+#!/usr/bin/expect
+
+set timeout 5
+
+if {$argc < 1} {
+	puts "usage: run.exp \[shell] \[user]"
+	exit 1
+}
+set shell     [lindex $argv 0]
+
+if {$argc == 2} {
+	spawn /usr/bin/chsh [lindex $argv 1]
+} else {
+	spawn /usr/bin/chsh
+}
+
+expect "Password: "
+send "wrong pass\r"
+expect "chsh: PAM: Authentication failure\r\n"
+expect {
+	eof {
+		if ([string compare $expect_out(buffer) ""]) {
+			set fp [open "tmp/out" w]
+			puts $fp "$expect_out(buffer)"
+			puts "\nFAIL"
+			exit 1
+		}
+	} default {
+		puts "\nFAIL"
+		exit 1
+	}
+}
+
+puts "\nPASS"
+exit 0
+

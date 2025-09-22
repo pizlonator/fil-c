@@ -1,0 +1,193 @@
+'\" t
+.\"     Title: passwd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "PASSWD" "5" "18/06/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+passwd \- il file delle password
+.SH "DESCRIZIONE"
+.PP
+/etc/passwd
+contains one line for each user account, with seven fields delimited by colons (\(Fo:\(Fc)\&. These fields are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+nome di login
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+password cifrata opzionale
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ID utente numerico
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ID gruppo numerico
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+nome utente o commento
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+directory home utente
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+interprete dei comandi utente opzionale
+.RE
+.PP
+If the
+\fIpassword\fR
+field is a lower\-case
+\(Fox\(Fc, then the encrypted password is actually stored in the
+\fBshadow\fR(5)
+file instead; there
+\fImust\fR
+be a corresponding line in the
+/etc/shadow
+file, or else the user account is invalid\&.
+.PP
+The encrypted
+\fIpassword\fR
+field may be empty, in which case no password is required to authenticate as the specified login name\&. However, some applications which read the
+/etc/passwd
+file may decide not to permit
+\fIany\fR
+access at all if the
+\fIpassword\fR
+field is blank\&.
+.PP
+A
+\fIpassword\fR
+field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the
+\fIpassword\fR
+field before the password was locked\&.
+.PP
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.PP
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, the user will not be able to use a unix password to log in (but the user may log in the system by other means)\&.
+.PP
+The comment field, also known as the gecos field, is used by various system utilities, such as
+\fBfinger\fR(1)\&. The use of an ampersand here will be replaced by the capitalised login name when the field is used or displayed by such system utilities\&.
+.PP
+The home directory field provides the name of the initial working directory\&. The
+\fBlogin\fR
+program uses this information to set the value of the
+\fB$HOME\fR
+environmental variable\&.
+.PP
+The command interpreter field provides the name of the user\*(Aqs command language interpreter, or the name of the initial program to execute\&. The
+\fBlogin\fR
+program uses this information to set the value of the
+\fB$SHELL\fR
+environmental variable\&. If this field is empty, it defaults to the value
+/bin/sh\&.
+.SH "FILE"
+.PP
+/etc/passwd
+.RS 4
+Informazioni sugli account utente\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+file opzionale delle password cifrate
+.RE
+.PP
+/etc/passwd\-
+.RS 4
+Copia di backup di /etc/passwd\&.
+.sp
+Notare che questo file viene usato dagli strumenti del pacchetto shadow, ma non da tutti gli strumenti per la gestione di utenti e password\&.
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBcrypt\fR(3),
+\fBgetent\fR(1),
+\fBgetpwnam\fR(3),
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBpwck\fR(8),
+\fBpwconv\fR(8),
+\fBpwunconv\fR(8),
+\fBshadow\fR(5),
+\fBsu\fR(1),
+\fBsulogin\fR(8)\&.

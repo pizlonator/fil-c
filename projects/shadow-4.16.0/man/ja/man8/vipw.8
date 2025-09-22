@@ -1,0 +1,38 @@
+.\" $Id$
+.\"
+.\" Japanese Version Copyright (c) 2001 Maki KURODA
+.\"     all right reserved,
+.\" Translated Tue Oct 30 11:55:56 JST 2001
+.\"     by Maki KURODA <mkuroda@aisys-jp.com>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH VIPW 8 "26 Sep 1997"
+.SH 名前
+vipw, vigr \- password, group とそれぞれの shadow ファイルを編集する
+.SH 書式
+\fBvipw\fR [\fB\-s\fR]
+.br
+\fBvigr\fR [\fB\-s\fR]
+.SH 説明
+.BR vipw " と " vigr
+は、それぞれ
+\fI/etc/passwd\fR " と " \fI/etc/group\fR
+を編集する。
+.B \-s
+フラグが指定されると、これらのファイルの shadow 化版である
+\fI/etc/shadow\fR と \fI/etc/gshadow\fR
+をそれぞれ編集する。
+これらのプログラムはファイルが壊れないよう適切なロックを設定する。
+
+これらのプログラムは、利用するエディタとしてまず
+環境変数
+.BR VISUAL ,
+環境変数
+.BR EDITOR ,
+を順に試し、最後にデフォルトのエディタである
+.BR vi 
+を用いようとする。
+.SH 関連項目
+.BR group (5),
+.BR passwd (5),
+.BR shadow (5)

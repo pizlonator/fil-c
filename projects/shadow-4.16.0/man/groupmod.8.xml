@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='groupmod.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>groupmod</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>groupmod</refname>
+    <refpurpose>modify a group definition on the system</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>groupmod</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+      <arg choice='plain'><replaceable>GROUP</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>groupmod</command> command modifies the definition of the
+      specified <replaceable>GROUP</replaceable> by modifying the appropriate
+      entry in the group database.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>groupmod</command> command
+      are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-a</option>, <option>--append</option>&nbsp;<replaceable>GID</replaceable>
+	</term>
+	<listitem>
+      <para>If group members are specified with -U, append them to the existing
+            member list, rather than replacing it.</para>
+    </listitem>
+    </varlistentry>
+    <varlistentry>
+	<term>
+	  <option>-g</option>, <option>--gid</option>&nbsp;<replaceable>GID</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The group ID of the given <replaceable>GROUP</replaceable> will
+	    be changed to <replaceable>GID</replaceable>.
+	  </para>
+	  <para>
+	    The value of
+	    <replaceable>GID</replaceable> must be a non-negative decimal
+	    integer. This value must be unique, unless the
+	    <option>-o</option> option is used.
+	  </para>
+	  <para>
+	    Users who use the group as primary group will be updated to
+	    keep the group as their primary group.
+	  </para>
+	  <para>
+	    Any files that have the
+	    old group ID and must continue to belong to
+	    <replaceable>GROUP</replaceable>, must have their group ID
+	    changed manually.
+	  </para>
+	  <para>
+	    No checks will be performed with regard to the
+	    <option>GID_MIN</option>, <option>GID_MAX</option>,
+	    <option>SYS_GID_MIN</option>, or <option>SYS_GID_MAX</option>
+	    from <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-n</option>, <option>--new-name</option>&nbsp;<replaceable>NEW_GROUP</replaceable>
+	</term>
+	<listitem>
+	  <para> 
+	    The name of the group will be changed from <replaceable>GROUP</replaceable>
+	    to <replaceable>NEW_GROUP</replaceable> name.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-o</option>, <option>--non-unique</option>
+	</term>
+	<listitem>
+	  <para>
+	    When used with the <option>-g</option> option, allow to change the
+	    group <replaceable>GID</replaceable> to a non-unique value.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-p</option>, <option>--password</option>&nbsp;<replaceable>PASSWORD</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    The encrypted password, as returned by <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+	    </citerefentry>.
+	  </para>
+	  <para>
+	    <emphasis role="bold">Note:</emphasis> This option is not
+	    recommended because the password (or encrypted password) will
+	    be visible by users listing the processes.
+	  </para>
+	  <para>
+	    You should make sure the password respects the system's
+	    password policy.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>PREFIX_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>PREFIX_DIR</replaceable> directory.
+		This option does not chroot and is intended for preparing 
+		a cross-compilation target.
+		Some limitations: NIS and LDAP users/groups are not verified.
+		PAM authentication is using the host files.
+		No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-U</option>, <option>--users</option>
+	</term>
+	<listitem>
+	  <para>
+	    A list of usernames to add as members of the group.
+	  </para>
+	  <para>
+	    The default behavior (if the <option>-g</option>,
+	    <option>-N</option>, and <option>-U</option> options are not
+	    specified) is defined by the <option>USERGROUPS_ENAB</option>
+	    variable in <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &MAX_MEMBERS_PER_GROUP;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>groupmod</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>E_SUCCESS: success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>E_USAGE: invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>E_BAD_ARG: invalid argument to option</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>E_GID_IN_USE: group id already in use</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>6</replaceable></term>
+	  <listitem>
+	    <para>E_NOTFOUND: specified group doesn't exist</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>9</replaceable></term>
+	  <listitem>
+	    <para>E_NAME_IN_USE: group name already in use</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>10</replaceable></term>
+	  <listitem>
+	    <para>E_GRP_UPDATE: can't update group file</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>11</replaceable></term>
+	  <listitem>
+	    <para>E_CLEANUP_SERVICE: can't setup cleanup service</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>12</replaceable></term>
+	  <listitem>
+	    <para>E_PAM_USERNAME: can't determine your username for use with pam</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>13</replaceable></term>
+	  <listitem>
+	    <para>E_PAM_ERROR: pam returned an error, see syslog facility id groupmod for the PAM error message</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>gpasswd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupadd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

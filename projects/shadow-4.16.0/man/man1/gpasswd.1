@@ -1,0 +1,234 @@
+'\" t
+.\"     Title: gpasswd
+.\"    Author: Rafal Maszkowski
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "GPASSWD" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gpasswd \- administer /etc/group and /etc/gshadow
+.SH "SYNOPSIS"
+.HP \w'\fBgpasswd\fR\ 'u
+\fBgpasswd\fR [\fIoption\fR] \fIgroup\fR
+.SH "DESCRIPTION"
+.PP
+The
+\fBgpasswd\fR
+command is used to administer
+/etc/group, and /etc/gshadow\&. Every group can have
+administrators,
+members and a password\&.
+.PP
+System administrators can use the
+\fB\-A\fR
+option to define group administrator(s) and the
+\fB\-M\fR
+option to define members\&. They have all rights of group administrators and members\&.
+.PP
+\fBgpasswd\fR
+called by
+a group administrator
+with a group name only prompts for the new password of the
+\fIgroup\fR\&.
+.PP
+If a password is set the members can still use
+\fBnewgrp\fR(1)
+without a password, and non\-members must supply the password\&.
+.SS "Notes about group passwords"
+.PP
+Group passwords are an inherent security problem since more than one person is permitted to know the password\&. However, groups are a useful tool for permitting co\-operation between different users\&.
+.SH "OPTIONS"
+.PP
+Except for the
+\fB\-A\fR
+and
+\fB\-M\fR
+options, the options cannot be combined\&.
+.PP
+The options which apply to the
+\fBgpasswd\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-add\fR\ \&\fIuser\fR
+.RS 4
+Add the
+\fIuser\fR
+to the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-d\fR, \fB\-\-delete\fR\ \&\fIuser\fR
+.RS 4
+Remove the
+\fIuser\fR
+from the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Display help message and exit\&.
+.RE
+.PP
+\fB\-Q\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-remove\-password\fR
+.RS 4
+Remove the password from the named
+\fIgroup\fR\&. The group password will be empty\&. Only group members will be allowed to use
+\fBnewgrp\fR
+to join the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-restrict\fR
+.RS 4
+Restrict the access to the named
+\fIgroup\fR\&. The group password is set to "!"\&. Only group members with a password will be allowed to use
+\fBnewgrp\fR
+to join the named
+\fIgroup\fR\&.
+.RE
+.PP
+\fB\-A\fR, \fB\-\-administrators\fR\ \&\fIuser\fR,\&.\&.\&.
+.RS 4
+Set the list of administrative users\&.
+.RE
+.PP
+\fB\-M\fR, \fB\-\-members\fR\ \&\fIuser\fR,\&.\&.\&.
+.RS 4
+Set the list of group members\&.
+.RE
+.SH "CAVEATS"
+.PP
+This tool only operates on the
+/etc/group
+and /etc/gshadow files\&.
+Thus you cannot change any NIS or LDAP group\&. This must be performed on the corresponding server\&.
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.PP
+\fBENCRYPT_METHOD\fR (string)
+.RS 4
+This defines the system default encryption algorithm for encrypting passwords (if no algorithm are specified on the command line)\&.
+.sp
+It can take one of these values:
+\fIDES\fR
+(default),
+\fIMD5\fR, \fISHA256\fR, \fISHA512\fR\&. MD5 and DES should not be used for new hashes, see
+crypt(5)
+for recommendations\&.
+.sp
+Note: this parameter overrides the
+\fBMD5_CRYPT_ENAB\fR
+variable\&.
+.RE
+.PP
+\fBMAX_MEMBERS_PER_GROUP\fR (number)
+.RS 4
+Maximum members per group entry\&. When the maximum is reached, a new group entry (line) is started in
+/etc/group
+(with the same name, same password, and same GID)\&.
+.sp
+The default value is 0, meaning that there are no limits in the number of members in a group\&.
+.sp
+This feature (split group) permits to limit the length of lines in the group file\&. This is useful to make sure that lines for NIS groups are not larger than 1024 characters\&.
+.sp
+If you need to enforce such limit, you can use 25\&.
+.sp
+Note: split groups may not be supported by all tools (even in the Shadow toolsuite)\&. You should not use this variable unless you really need it\&.
+.RE
+.PP
+\fBMD5_CRYPT_ENAB\fR (boolean)
+.RS 4
+Indicate if passwords must be encrypted using the MD5\-based algorithm\&. If set to
+\fIyes\fR, new passwords will be encrypted using the MD5\-based algorithm compatible with the one used by recent releases of FreeBSD\&. It supports passwords of unlimited length and longer salt strings\&. Set to
+\fIno\fR
+if you need to copy encrypted passwords to other systems which don\*(Aqt understand the new algorithm\&. Default is
+\fIno\fR\&.
+.sp
+This variable is superseded by the
+\fBENCRYPT_METHOD\fR
+variable or by any command line option used to configure the encryption algorithm\&.
+.sp
+This variable is deprecated\&. You should use
+\fBENCRYPT_METHOD\fR\&.
+.RE
+.PP
+\fBSHA_CRYPT_MIN_ROUNDS\fR (number), \fBSHA_CRYPT_MAX_ROUNDS\fR (number)
+.RS 4
+When
+\fBENCRYPT_METHOD\fR
+is set to
+\fISHA256\fR
+or
+\fISHA512\fR, this defines the number of SHA rounds used by the encryption algorithm by default (when the number of rounds is not specified on the command line)\&.
+.sp
+With a lot of rounds, it is more difficult to brute force the password\&. But note also that more CPU resources will be needed to authenticate users\&.
+.sp
+If not specified, the libc will choose the default number of rounds (5000), which is orders of magnitude too low for modern hardware\&.
+.sp
+The values must be inside the 1000\-999,999,999 range\&.
+.sp
+If only one of the
+\fBSHA_CRYPT_MIN_ROUNDS\fR
+or
+\fBSHA_CRYPT_MAX_ROUNDS\fR
+values is set, then this value will be used\&.
+.sp
+If
+\fBSHA_CRYPT_MIN_ROUNDS\fR
+>
+\fBSHA_CRYPT_MAX_ROUNDS\fR, the highest value will be used\&.
+.RE
+.SH "FILES"
+.PP
+/etc/group
+.RS 4
+Group account information\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Secure group account information\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBnewgrp\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBgrpck\fR(8),
+\fBgroup\fR(5), \fBgshadow\fR(5)\&.

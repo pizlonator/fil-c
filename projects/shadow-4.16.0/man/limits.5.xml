@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1997       , Luca Berra
+   SPDX-FileCopyrightText: 2001 - 2007, Tomasz Kłoczko
+   SPDX-FileCopyrightText: 2005 - 2006, Yuri Kozlov
+   SPDX-FileCopyrightText: 2005 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='limits.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Luca</firstname>
+      <surname>Berra</surname>
+      <contrib>Creation, 1997</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>limits</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>limits</refname>
+    <refpurpose>resource limits definition</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <emphasis remap='I'>limits</emphasis> file 
+      (<filename>/etc/limits</filename> by default
+      or LIMITS_FILE defined <filename>config.h</filename>) describes 
+      the resource limits you wish to impose. It should be owned by 
+      root and readable by root account only.
+    </para>
+
+    <para>
+      By default no quota is imposed on 'root'. In fact, there is no way to
+      impose limits via this procedure to root-equiv accounts (accounts with
+      UID 0).
+    </para>
+
+    <para>Each line describes a limit for a user in the form:</para>
+
+    <para>
+      <emphasis remap='I'>user LIMITS_STRING</emphasis>
+    </para>
+
+    <para>or in the form:</para>
+
+    <para>
+      <emphasis remap='I'>@group LIMITS_STRING</emphasis>
+    </para>
+
+    <para>
+      The <emphasis>LIMITS_STRING</emphasis> is a string of a concatenated
+      list of resource limits. Each limit consists of a letter identifier
+      followed by a numerical limit.
+    </para>
+
+    <para>The valid identifiers are:</para>
+
+    <itemizedlist>
+      <listitem><para>A: max address space (KB)</para></listitem>
+      <listitem><para>C: max core file size (KB)</para></listitem>
+      <listitem><para>D: max data size (KB)</para></listitem>
+      <listitem><para>F: maximum file size (KB)</para></listitem>
+      <listitem><para>K: file creation mask, set by
+	<citerefentry>
+	  <refentrytitle>umask</refentrytitle><manvolnum>2</manvolnum>
+	</citerefentry>.</para>
+      </listitem>
+      <listitem><para>I: max nice value (0..39 which translates to
+      20..-19)</para></listitem>
+      <listitem><para>L: max number of logins for this user</para></listitem>
+      <listitem><para>M: max locked-in-memory address space (KB)</para></listitem>
+      <listitem><para>N: max number of open files</para></listitem>
+      <listitem><para>O: max real time priority</para></listitem>
+      <listitem><para>P: process priority, set by
+	<citerefentry>
+	  <refentrytitle>setpriority</refentrytitle><manvolnum>2</manvolnum>
+	</citerefentry>.</para>
+      </listitem>
+      <listitem><para>R: max resident set size (KB)</para></listitem>
+      <listitem><para>S: max stack size (KB)</para></listitem>
+      <listitem><para>T: max CPU time (MIN)</para></listitem>
+      <listitem><para>U: max number of processes</para></listitem>
+    </itemizedlist>
+
+    <para>
+      For example, <emphasis remap='I'>L2D2048N5</emphasis> is a valid
+      <emphasis>LIMITS_STRING</emphasis>. For reading convenience, the
+      following entries are equivalent:
+    </para>
+
+    <programlisting>
+      username L2D2048N5
+      username L2 D2048 N5
+    </programlisting>
+
+    <para>
+      Be aware that after <emphasis remap='I'>username</emphasis> the rest
+      of the line is considered a limit string, thus comments are not
+      allowed. An invalid limits string will be rejected (not considered) by
+      the <command>login</command> program.
+    </para>
+
+    <para>
+      The default entry is denoted by username "<emphasis>*</emphasis>". If
+      you have multiple <emphasis remap='I'>default</emphasis> entries in
+      your <emphasis>LIMITS_FILE</emphasis>, then the last one will be used
+      as the default entry.
+    </para>
+
+    <para>
+      The limits specified in the form "<replaceable>@group</replaceable>"
+      apply to the members of the specified
+      <replaceable>group</replaceable>.
+    </para>
+
+    <para>
+      If more than one line with limits for a user exist, only the first line for
+      this user will be considered.
+    </para>
+
+    <para>
+      If no lines are specified for a user, the last
+      <replaceable>@group</replaceable> line matching a group whose the
+      user is a member of will be considered, or the last line with
+      default limits if no groups contain the user.
+    </para>
+
+    <para>
+      To completely disable limits for a user, a single dash
+      "<emphasis>-</emphasis>" will do.
+    </para>
+
+    <para>
+      To disable a limit for a user, a single dash
+      "<replaceable>-</replaceable>" can be used instead of the numerical
+      value for this limit.
+    </para>
+
+    <para>
+      Also, please note that all limit settings are set PER LOGIN. They are
+      not global, nor are they permanent. Perhaps global limits will come,
+      but for now this will have to do ;)
+    </para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/limits</filename></term>
+	<listitem><para></para></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>setpriority</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>setrlimit</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

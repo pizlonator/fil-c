@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1990, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='porttime.5'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>porttime</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>porttime</refname>
+    <refpurpose>port access time file</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <emphasis remap='I'>porttime</emphasis> contains a list of tty
+      devices, user names, and permitted login times.
+    </para>
+
+    <para>
+      Each entry consists of three colon separated fields. The first field
+      is a comma separated list of tty devices, or an asterisk to indicate
+      that all tty devices are matched by this entry. The second field is a
+      comma separated list of user names, or an asterisk to indicated that
+      all user names are matched by this entry. The third field is a comma
+      separated list of permitted access times.
+    </para>
+
+    <para>
+      Each access time entry consists of zero or more days of the week,
+      abbreviated <emphasis>Su</emphasis>, <emphasis>Mo</emphasis>,
+      <emphasis>Tu</emphasis>, <emphasis>We</emphasis>,
+      <emphasis>Th</emphasis>, <emphasis>Fr</emphasis>, and
+      <emphasis>Sa</emphasis>, followed by a pair of times separated by a
+      hyphen. The abbreviation <emphasis>Wk</emphasis> may be used to
+      represent Monday thru Friday, and <emphasis>Al</emphasis> may be used
+      to indicate every day. If no days are given, <emphasis>Al</emphasis>
+      is assumed.
+    </para>
+  </refsect1>
+
+  <refsect1 id='examples'>
+    <title>EXAMPLES</title>
+    <para>
+      The following entry allows access to user <emphasis
+      remap='B'>jfh</emphasis> on every port during weekdays from 9am to
+      5pm.
+    </para>
+
+    <para>	*:jfh:Wk0900-1700</para>
+
+    <para>
+      The following entries allow access only to the users
+      <emphasis>root</emphasis> and <emphasis>oper</emphasis> on
+      <filename>/dev/console</filename> at any time. This illustrates how
+      the <filename>/etc/porttime</filename> file is an ordered list of
+      access times. Any other user would match the second entry which does
+      not permit access at any time.
+    </para>
+
+    <programlisting>
+      console:root,oper:Al0000-2400
+      console:*:
+    </programlisting>
+
+    <para>
+      The following entry allows access for the user
+      <emphasis>games</emphasis> on any port during non-working hours. 
+    </para>
+
+    <para>	*:games:Wk1700-0900,SaSu0000-2400</para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/porttime</filename></term>
+	<listitem>
+	  <para>File containing port access.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

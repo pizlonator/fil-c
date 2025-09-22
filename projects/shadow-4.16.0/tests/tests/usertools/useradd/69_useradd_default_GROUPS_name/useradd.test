@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+cd "$(dirname $0)"
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "useradd adds supplementary groups based on the GROUPS field in /etc/deault/useradd"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+printf "Create user foo, with group associations with bin,adm,man,cdrom..."
+useradd foo
+printf "OK\n"
+
+printf "Check the group file..."
+../../../common/compare_file.pl data/group /etc/group
+printf "OK\n"
+
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

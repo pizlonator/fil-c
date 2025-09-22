@@ -1,0 +1,235 @@
+'\" t
+.\"     Title: newusers
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18.06.2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: German
+.\"
+.TH "NEWUSERS" "8" "18.06.2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+newusers \- erstellt neue oder aktualisiert vorhandene Benutzerkonten in einem Aufruf
+.SH "\(:UBERSICHT"
+.HP \w'\fBnewusers\fR\ 'u
+\fBnewusers\fR [\fIoptions\fR] [\fIfile\fR]
+.SH "BESCHREIBUNG"
+.PP
+The
+\fBnewusers\fR
+command reads a
+\fIfile\fR
+(or the standard input by default) and uses this information to update a set of existing users or to create new users\&. Each line is in the same format as the standard password file (see
+\fBpasswd\fR(5)) with the exceptions explained below:
+.PP
+pw_Name:pw_Passwort:pw_Benutzerkennung:pw_Gruppenkennung:pw_GECOS:pw_Verzeichnis:pw_Shell
+.PP
+\fIpw_name\fR
+.RS 4
+Dies ist der Anmeldename des Benutzers\&.
+.sp
+It can be the name of a new user or the name of an existing user (or a user created before by
+\fBnewusers\fR)\&. In case of an existing user, the user\*(Aqs information will be changed, otherwise a new user will be created\&.
+.RE
+.PP
+\fIpw_passwd\fR
+.RS 4
+Dieses Feld wird verschl\(:usselt und als neues verschl\(:usseltes Passwort benutzt\&.
+.RE
+.PP
+\fIpw_uid\fR
+.RS 4
+Mit diesem Feld wird die Benutzerkennung festgelegt\&.
+.sp
+If the field is empty, a new (unused) UID will be defined automatically by
+\fBnewusers\fR\&.
+.sp
+Wenn dieses Feld eine Zahl enth\(:alt, wird sie als Benutzerkennung \(:ubernommen\&.
+.sp
+If this field contains the name of an existing user (or the name of a user created before by
+\fBnewusers\fR), the UID of the specified user will be used\&.
+.sp
+Falls die Kennung eines bestehenden Benutzers ver\(:andert wird, muss bei den Dateien des Benutzers der Eigent\(:umer per Hand angepasst werden\&.
+.RE
+.PP
+\fIpw_gid\fR
+.RS 4
+Mit diesem Feld wird die Kennung der prim\(:aren Gruppe des Benutzers festgelegt\&.
+.sp
+If this field contains the name of an existing group (or a group created before by
+\fBnewusers\fR), the GID of this group will be used as the primary group ID for the user\&.
+.sp
+Wenn dieses Feld eine Zahl enth\(:alt, wird sie als Kennung der prim\(:aren Gruppe des Benutzers verwendet\&. Falls keine Gruppe mit dieser Kennung existiert, wird eine neue Gruppe mit dieser Kennung und dem Namen des Benutzers erstellt\&.
+.sp
+If this field is empty, a new group will be created with the name of the user and a GID will be automatically defined by
+\fBnewusers\fR
+to be used as the primary group ID for the user and as the GID for the new group\&.
+.sp
+If this field contains the name of a group which does not exist (and was not created before by
+\fBnewusers\fR), a new group will be created with the specified name and a GID will be automatically defined by
+\fBnewusers\fR
+to be used as the primary group ID for the user and GID for the new group\&.
+.RE
+.PP
+\fIpw_gecos\fR
+.RS 4
+Dieses Feld wird in das GECOS\-Feld des Benutzers kopiert\&.
+.RE
+.PP
+\fIpw_dir\fR
+.RS 4
+In diesem Feld wird das pers\(:onliche Verzeichnis des Benutzers definiert\&.
+.sp
+If this field does not specify an existing directory, the specified directory is created, with ownership set to the user being created or updated and its primary group\&. Note that
+\fInewusers does not create parent directories \fR
+of the new user\*(Aqs home directory\&. The newusers command will fail to create the home directory if the parent directories do not exist, and will send a message to stderr informing the user of the failure\&. The newusers command will not halt or return a failure to the calling shell if it fails to create the home directory, it will continue to process the batch of new users specified\&.
+.sp
+If the home directory of an existing user is changed,
+\fBnewusers\fR
+does not move or copy the content of the old directory to the new location\&. This should be done manually\&.
+.RE
+.PP
+\fIpw_shell\fR
+.RS 4
+Mit diesem Feld wird die Shell des Benutzers festgelegt, wobei diese Eingabe nicht \(:uberpr\(:uft wird\&.
+.RE
+.PP
+\fBnewusers\fR
+first tries to create or change all the specified users, and then write these changes to the user or group databases\&. If an error occurs (except in the final writes to the databases), no changes are committed to the databases\&.
+.PP
+Dieser Befehl ist f\(:ur weitreichende Systeme gedacht, bei denenviele Konten gleichzeitig angelegt werden m\(:ussen\&.
+.SH "OPTIONEN"
+.PP
+The options which apply to the
+\fBnewusers\fR
+command are:
+.PP
+\fB\-\-badname\fR\ \&
+.RS 4
+erlaube Namen, die nicht den Standards entsprechen\&.
+.RE
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR
+.RS 4
+definiert die Methode, mit der die Passw\(:orter verschl\(:usselt werden\&.
+.sp
+Die verf\(:ugbaren Methoden sind, sofern Ihre libc diese bereitstellt, DES, MD5, NONE und SHA256 oder SHA512\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+zeigt die Hilfe an und beendet das Programm\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-system\fR
+.RS 4
+erstellt ein Systemkonto
+.sp
+System users will be created with no aging information in
+/etc/shadow, and their numeric identifiers are chosen in the
+\fBSYS_UID_MIN\fR\-\fBSYS_UID_MAX\fR
+range, defined in
+login\&.defs, instead of
+\fBUID_MIN\fR\-\fBUID_MAX\fR
+(and their
+\fBGID\fR
+counterparts for the creation of groups)\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR
+.RS 4
+legt die Anzahl von Runden beim Verschl\(:usseln von Passw\(:ortern fest\&.
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default is 5000\&.
+.RE
+.SH "WARNUNGEN"
+.PP
+Die Eingabedatei muss gesch\(:utzt werden, da sie unverschl\(:usselte Passw\(:orter enth\(:alt\&.
+.PP
+Sie sollten darauf achten, dass Passw\(:orter und Verschl\(:usselungsmethode in Einklang mit der Passwortrichtlinie des Systems stehen\&.
+.SH "KONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+
+
+
+
+
+.SH "DATEIEN"
+.PP
+/etc/passwd
+.RS 4
+Informationen zu den Benutzerkonten
+.RE
+.PP
+/etc/shadow
+.RS 4
+gesch\(:utzte Informationen zu den Benutzerkonten
+.RE
+.PP
+/etc/group
+.RS 4
+Informationen zu den Gruppenkonten
+.RE
+.PP
+/etc/gshadow
+.RS 4
+gesch\(:utzte Informationen zu den Gruppenkonten
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+konfiguriert die Shadow\-Hilfsprogramme\&.
+.RE
+.PP
+/etc/subgid
+.RS 4
+enth\(:alt untergeordnete Gruppenkennungen der einzelnen Benutzer\&.
+.RE
+.PP
+/etc/subuid
+.RS 4
+enth\(:alt untergeordnete Benutzerkennungen der einzelnen Benutzer\&.
+.RE
+.SH "SIEHE AUCH"
+.PP
+\fBlogin.defs\fR(5),
+\fBpasswd\fR(1),
+\fBsubgid\fR(5), \fBsubuid\fR(5),
+\fBuseradd\fR(8)\&.

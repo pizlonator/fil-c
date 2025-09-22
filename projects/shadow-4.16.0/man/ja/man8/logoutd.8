@@ -1,0 +1,29 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH LOGOUTD 8
+.SH 名前
+logoutd \- ログイン時間の制限を実施する
+.SH 書式
+\fBlogoutd\fR
+.SH 説明
+\fBlogoutd\fR は \fI/etc/porttime\fR
+に記されているログイン時間・ポートに対する制限を実施する。
+.B logoutd
+は \fI/etc/rc\fR によって起動されるようにする。
+\fI/etc/utmp\fR ファイルが定期的にスキャンされ、
+ログインしている各ユーザが
+\fI/etc/porttime\fR 中でのそのユーザの許可
+(ポートと時刻) に反していないか調べる。
+\fI/etc/porttime\fR の制限に反するログインセッションは終了させられる。
+.SH ファイル
+/etc/porttime \- ログインとポートの許可
+.br
+/etc/utmp \- 現在のログインセッション
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

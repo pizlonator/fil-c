@@ -1,0 +1,3937 @@
+# Simplified Chinese translation to shadow
+# This file is distributed under the same license as the shadow package.
+# Copyright:
+# Ming Hua <minghua@ubuntu.com>, 2005,2006,2007.
+# Carlos Z.F. Liu <carlosliu@users.sourceforge.net>, 2004,2006.
+# YunQiang Su <wzssyqa@gmail.com>, 2010, 2012.
+# Daming Yang <lion@aosc.io>, 2018.
+# Celeste Liu <coelacanthus@outlook.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: shadow 4.0.15\n"
+"Report-Msgid-Bugs-To: pkg-shadow-devel@lists.alioth.debian.org\n"
+"POT-Creation-Date: 2024-06-18 16:40-0500\n"
+"PO-Revision-Date: 2022-07-27 23:04+0800\n"
+"Last-Translator: Celeste Liu <coelacanthus@outlook.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 2.0.8\n"
+
+#, c-format
+msgid "Warning: unknown group %s\n"
+msgstr "警告：未知组 %s\n"
+
+msgid "Warning: too many groups\n"
+msgstr "警告：用户组过多\n"
+
+msgid "Your password has expired."
+msgstr "您的密码已过期。"
+
+msgid "Your password is inactive."
+msgstr "您的密码已失效。"
+
+msgid "Your login has expired."
+msgstr "您的帐户已过期。"
+
+msgid "  Contact the system administrator."
+msgstr "  请与系统管理员联系。"
+
+msgid "  Choose a new password."
+msgstr "  请选择一个新密码。"
+
+msgid "You must change your password."
+msgstr "您必须更改自己的密码。"
+
+#, c-format
+msgid "Your password will expire in %ld days.\n"
+msgstr "您的密码将在 %ld 天内过期。\n"
+
+msgid "Your password will expire tomorrow."
+msgstr "您的密码将在明天过期。"
+
+msgid "Your password will expire today."
+msgstr "您的密码今天过期。"
+
+msgid "Cannot open audit interface - aborting.\n"
+msgstr "无法打开审计接口 - 退出。\n"
+
+#, c-format
+msgid "Unable to change owner or mode of tty stdin: %s"
+msgstr "不能改变 tty 标准输入的属主或模式：%s"
+
+#, c-format
+msgid "%s: failed to unlock %s\n"
+msgstr "%s：解锁 %s 失败\n"
+
+#, c-format
+msgid ""
+"Multiple entries named '%s' in %s. Please fix this with pwck or grpck.\n"
+msgstr "多个名为“%s”的条目同时存在于 %s 中，请使用 pwck 或 grpck 来修复。\n"
+
+#, c-format
+msgid "%s: "
+msgstr "%s："
+
+msgid ": "
+msgstr "："
+
+#, c-format
+msgid "crypt method not supported by libcrypt? (%s)\n"
+msgstr "libcrypt 不支持此加密方法？(%s)\n"
+
+#, c-format
+msgid "You may not change $%s\n"
+msgstr "您不应该改变 $%s\n"
+
+#, c-format
+msgid ""
+"%d failure since last login.\n"
+"Last was %s on %s.\n"
+msgid_plural ""
+"%d failures since last login.\n"
+"Last was %s on %s.\n"
+msgstr[0] ""
+"自上一次登录以来已有 %d 次登录失败。\n"
+"最后一次是 %s 在 %s 上。\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX "
+"(%lu)\n"
+msgstr "%s：无效的配置：SYS_GID_MIN (%lu), GID_MIN (%lu), SYS_GID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Invalid configuration: GID_MIN (%lu), GID_MAX (%lu)\n"
+msgstr "%s：无效的配置：GID_MIN (%lu), GID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Encountered error attempting to use preferred GID: %s\n"
+msgstr ""
+
+#, c-format
+msgid "%s: failed to allocate memory: %s\n"
+msgstr "%s：申请内存失败：%s\n"
+
+#, c-format
+msgid ""
+"%s: Can't get unique system GID (%s). Suppressing additional messages.\n"
+msgstr "%s：无法获取唯一的系统 GID (%s)。抑制额外的消息。\n"
+
+#, c-format
+msgid "%s: Can't get unique GID (%s). Suppressing additional messages.\n"
+msgstr "%s：无法获取唯一的 GID (%s)。抑制额外的消息。\n"
+
+#, c-format
+msgid "%s: Can't get unique GID (no more available GIDs)\n"
+msgstr "%s：无法获取唯一的 GID (没有更多可用的 GID 了)\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SUB_GID_MIN (%lu), SUB_GID_MAX (%lu), "
+"SUB_GID_COUNT (%lu)\n"
+msgstr ""
+"%s：无效的配置：SYS_GID_MIN (%lu), iSUB_GID_MAX (%lu), SUB_GID_COUNT (%lu)\n"
+
+#, c-format
+msgid "%s: Can't get unique subordinate GID range\n"
+msgstr "%s：不能获得唯一的从属GID范围\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SUB_UID_MIN (%lu), SUB_UID_MAX (%lu), "
+"SUB_UID_COUNT (%lu)\n"
+msgstr ""
+"%s：无效的配置：SYS_UID_MIN (%lu), SUB_UID_MAX (%lu), SUB_UID_COUNT (%lu)\n"
+
+#, c-format
+msgid "%s: Can't get unique subordinate UID range\n"
+msgstr "%s：不能获得唯一的从属GID范围\n"
+
+#, c-format
+msgid ""
+"%s: Invalid configuration: SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX "
+"(%lu)\n"
+msgstr "%s：无效的配置：SYS_UID_MIN (%lu), UID_MIN (%lu), SYS_UID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Invalid configuration: UID_MIN (%lu), UID_MAX (%lu)\n"
+msgstr "%s：无效的配置：UID_MIN (%lu), UID_MAX (%lu)\n"
+
+#, c-format
+msgid "%s: Encountered error attempting to use preferred UID: %s\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"%s: Can't get unique system UID (%s). Suppressing additional messages.\n"
+msgstr "%s：无法获取唯一的系统 UID (%s)。抑制额外的消息。\n"
+
+#, c-format
+msgid "%s: Can't get unique UID (%s). Suppressing additional messages.\n"
+msgstr "%s：无法获取唯一的UID (%s)。抑制额外的消息。\n"
+
+#, c-format
+msgid "%s: Can't get unique UID (no more available UIDs)\n"
+msgstr "%s：无法获取唯一的 UID (没有更多可用的 UID 了)\n"
+
+#, c-format
+msgid "configuration error - cannot parse %s value: '%s'"
+msgstr "配置错误 - 无法解析 %s 值：“%s”"
+
+msgid "Could not allocate space for config info.\n"
+msgstr "无法为配置信息分配空间。\n"
+
+#, c-format
+msgid "configuration error - unknown item '%s' (notify administrator)\n"
+msgstr "配置错误 - 未知项目“%s”(请通知管理员)\n"
+
+#, c-format
+msgid "%s: Memory allocation failure\n"
+msgstr "%s：内存分配失败\n"
+
+#, c-format
+msgid "%s: subuid overflow detected.\n"
+msgstr "%s：检测到subuid溢出。\n"
+
+#, c-format
+msgid "%s: Invalid map file %s specified\n"
+msgstr "%s：指定的映射文件“%s无效”\n"
+
+#, c-format
+msgid "%s: Could not prctl(PR_SET_KEEPCAPS)\n"
+msgstr "%s：无法执行prctl(PR_SET_KEEPCAPS)\n"
+
+#, c-format
+msgid "%s: Could not seteuid to %d\n"
+msgstr "%s：不能seteuid为%d\n"
+
+#, c-format
+msgid "%s: Could not set caps\n"
+msgstr "%s：无法设置上限\n"
+
+#, fuzzy, c-format
+#| msgid "%s: snprintf failed!\n"
+msgid "%s: stpeprintf failed!\n"
+msgstr "%s：snprintf 失败\n"
+
+#, c-format
+msgid "%s: open of %s failed: %s\n"
+msgstr "%s：打开%s失败：%s\n"
+
+#, c-format
+msgid "%s: write to %s failed: %s\n"
+msgstr "%s：写入%s失败：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: open of %s failed: %s\n"
+msgid "%s: closing %s failed: %s\n"
+msgstr "%s：打开%s失败：%s\n"
+
+msgid "Too many logins.\n"
+msgstr "当前登录数量过多。\n"
+
+#, c-format
+msgid ""
+"\n"
+"%s login: "
+msgstr ""
+"\n"
+"%s 用户名："
+
+msgid "You have new mail."
+msgstr "您有新信件。"
+
+msgid "No mail."
+msgstr "无信件。"
+
+msgid "You have mail."
+msgstr "您有信件。"
+
+#, c-format
+msgid "%s: nscd did not terminate normally (signal %d)\n"
+msgstr "%s：nscd 异常结束 (信号 %d)\n"
+
+#, c-format
+msgid "%s: nscd exited with status %d\n"
+msgstr "%s：nscd 以状态 %d 退出\n"
+
+msgid "no change"
+msgstr "没有改变"
+
+msgid "a palindrome"
+msgstr "一个回文词"
+
+msgid "case changes only"
+msgstr "仅有大小写改动"
+
+msgid "too similar"
+msgstr "太相似"
+
+msgid "rotated"
+msgstr "已轮转"
+
+msgid "too short"
+msgstr "太短"
+
+#, c-format
+msgid "Bad password: %s.  "
+msgstr "错误的密码：%s。 "
+
+#, c-format
+msgid "passwd: pam_start() failed, error %d\n"
+msgstr "passwd：pam_start() 失败，错误 %d\n"
+
+#, c-format
+msgid "passwd: %s\n"
+msgstr "passwd：%s\n"
+
+msgid "passwd: password unchanged\n"
+msgstr "passwd：密码未更改\n"
+
+msgid "passwd: password updated successfully\n"
+msgstr "passwd：已成功更新密码\n"
+
+#, c-format
+msgid "%s: PAM modules requesting echoing are not supported.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: conversation type %d not supported.\n"
+msgstr "%s：不支持会话类型%d。\n"
+
+#, c-format
+msgid "%s: (user %s) pam_start failure %d\n"
+msgstr "%s：(user %s) pam_start 失败 %d\n"
+
+#, c-format
+msgid ""
+"%s: (user %s) pam_chauthtok() failed, error:\n"
+"%s\n"
+msgstr ""
+"%s：(user %s) pam_chauthtok() 失败, 错误:\n"
+"%s\n"
+
+msgid "Password: "
+msgstr "密码："
+
+#, c-format
+msgid "%s's Password: "
+msgstr "%s 的密码："
+
+#, c-format
+msgid "Incorrect password for %s.\n"
+msgstr "%s 的密码不正确。\n"
+
+#, c-format
+msgid "%s: multiple --root options\n"
+msgstr "%s：有多个 --root 选项\n"
+
+#, c-format
+msgid "%s: option '%s' requires an argument\n"
+msgstr "%s：选项“%s”需要一个选项\n"
+
+#, c-format
+msgid "%s: failed to drop privileges (%s)\n"
+msgstr "%s：放弃特权时失败 (%s)\n"
+
+#, c-format
+msgid "%s: invalid chroot path '%s', only absolute paths are supported.\n"
+msgstr "%s：无效的 chroot 路径“%s”，仅支持绝对路径。\n"
+
+#, c-format
+msgid "%s: cannot access chroot directory %s: %s\n"
+msgstr "%s：无法访问 chroot 目录 %s：%s\n"
+
+#, c-format
+msgid "%s: unable to chroot to directory %s: %s\n"
+msgstr "%s：无法 chroot 到目录 %s：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot chdir to chroot directory %s: %s\n"
+msgid "%s: cannot chdir in chroot directory %s: %s\n"
+msgstr "%s：无法进入 chroot 目录 %s：%s\n"
+
+#, c-format
+msgid ""
+"Invalid ENCRYPT_METHOD value: '%s'.\n"
+"Defaulting to DES.\n"
+msgstr ""
+"无效的 ENCRYPT_METHOD 值：“%s”。\n"
+"默认为 DES。\n"
+
+#, c-format
+msgid ""
+"Unable to generate a salt from setting \"%s\", check your settings in "
+"ENCRYPT_METHOD and the corresponding configuration for your selected hash "
+"method.\n"
+msgstr ""
+
+msgid "Cannot open audit interface.\n"
+msgstr "无法打开审计接口。\n"
+
+#, c-format
+msgid "%s: can not get previous SELinux process context: %s\n"
+msgstr "%s：无法获取以前的SELinux进程上下文：%s\n"
+
+#, c-format
+msgid "[libsemanage]: %s\n"
+msgstr "[libsemanage]：%s\n"
+
+#, c-format
+msgid "Cannot create SELinux management handle\n"
+msgstr "无法创建 SELinux 管理句柄\n"
+
+#, c-format
+msgid "SELinux policy not managed\n"
+msgstr "SELinux 策略未被托管\n"
+
+#, c-format
+msgid "Cannot read SELinux policy store\n"
+msgstr "无法读取 SELinux 策略存储\n"
+
+#, c-format
+msgid "Cannot establish SELinux management connection\n"
+msgstr "无法建立 SELinux 管理连接\n"
+
+#, c-format
+msgid "Cannot begin SELinux transaction\n"
+msgstr "无法开始 SELinux 事务\n"
+
+#, c-format
+msgid "Could not query seuser for %s\n"
+msgstr "无法为 %s 查询 seuser\n"
+
+#, fuzzy, c-format
+#| msgid "Could not set serange for %s\n"
+msgid "Could not set serange for %s to %s\n"
+msgstr "无法为 %s 设置 serange\n"
+
+#, c-format
+msgid "Could not set sename for %s\n"
+msgstr "无法为 %s 设置 sename\n"
+
+#, c-format
+msgid "Could not modify login mapping for %s\n"
+msgstr "无法为 %s 修改登录映射\n"
+
+#, c-format
+msgid "Cannot create SELinux login mapping for %s\n"
+msgstr "无法为 %s 创建登录映射\n"
+
+#, c-format
+msgid "Could not set name for %s\n"
+msgstr "无法为 %s 设置名称\n"
+
+#, c-format
+msgid "Could not set SELinux user for %s\n"
+msgstr "无法为 %s 设置 SELinux 用户\n"
+
+#, c-format
+msgid "Could not add login mapping for %s\n"
+msgstr "无法为 %s 添加登录映射\n"
+
+#, c-format
+msgid "Cannot init SELinux management\n"
+msgstr "无法初始化 SELinux 管理\n"
+
+#, c-format
+msgid "Cannot create SELinux user key\n"
+msgstr "无法创建 SELinux 用户密钥\n"
+
+#, c-format
+msgid "Cannot verify the SELinux user\n"
+msgstr "无法验证 SELinux 用户\n"
+
+#, c-format
+msgid "Cannot modify SELinux user mapping\n"
+msgstr "无法修改 SELinux 用户映射\n"
+
+#, c-format
+msgid "Cannot add SELinux user mapping\n"
+msgstr "无法添加 SELinux 用户映射\n"
+
+#, c-format
+msgid "Cannot commit SELinux transaction\n"
+msgstr "无法提交 SELinux 事务\n"
+
+#, c-format
+msgid "Login mapping for %s is not defined, OK if default mapping was used\n"
+msgstr "未定义 %s 的登录映射，使用默认映射时这是正常的\n"
+
+#, c-format
+msgid "Login mapping for %s is defined in policy, cannot be deleted\n"
+msgstr "在策略中定义了 %s 的登录映射，无法被删除\n"
+
+#, c-format
+msgid "Could not delete login mapping for %s"
+msgstr "无法删除 %s 的登录映射"
+
+#, c-format
+msgid "Unable to cd to '%s'\n"
+msgstr "无法 cd 进入“%s”\n"
+
+msgid "No directory, logging in with HOME=/"
+msgstr "没有目录，将以 HOME=/ 登录"
+
+#, c-format
+msgid "Cannot execute %s"
+msgstr "无法执行 %s"
+
+#, c-format
+msgid "Maximum subsystem depth reached\n"
+msgstr ""
+
+#, c-format
+msgid "Invalid root directory '%s'\n"
+msgstr "无效的根目录“%s”\n"
+
+#, c-format
+msgid "Can't change root directory to '%s'\n"
+msgstr "无法将根目录改变为“%s”\n"
+
+#, c-format
+msgid "%s: out of memory\n"
+msgstr "%s：内存溢出\n"
+
+#, c-format
+msgid "%s: Cannot stat %s: %s\n"
+msgstr "%s：无法获取文件 %s 的信息：%s\n"
+
+#, c-format
+msgid "%s: %s is neither a directory, nor a symlink.\n"
+msgstr "%s：%s 既不是目录也不是符号链接。\n"
+
+#, c-format
+msgid "%s: Cannot read symbolic link %s: %s\n"
+msgstr "%s：无法读取符号链接 %s：%s\n"
+
+#, c-format
+msgid "%s: Suspiciously long symlink: %s\n"
+msgstr "%s：可疑的长符合链接：%s\n"
+
+#, c-format
+msgid "%s: Cannot create directory %s: %s\n"
+msgstr "%s：无法创建目录 %s：%s\n"
+
+#, c-format
+msgid "%s: Cannot change owner of %s: %s\n"
+msgstr "%s：无法更改 %s 的属主：%s\n"
+
+#, c-format
+msgid "%s: Cannot change mode of %s: %s\n"
+msgstr "%s：无法更改 %s 的模式：%s\n"
+
+#, c-format
+msgid "%s: unlink: %s: %s\n"
+msgstr "%s：删除(unlink)：%s：%s\n"
+
+#, c-format
+msgid "%s: Cannot remove directory %s: %s\n"
+msgstr "%s：无法删除目录 %s：%s\n"
+
+#, c-format
+msgid "%s: Cannot rename %s to %s: %s\n"
+msgstr "%s：无法将目录 %s 改名为 %s：%s\n"
+
+#, c-format
+msgid "%s: Cannot remove %s: %s\n"
+msgstr "%s：无法删除 %s：%s\n"
+
+#, c-format
+msgid "%s: Cannot create symbolic link %s: %s\n"
+msgstr "%s：无法创建符号链接 %s：%s\n"
+
+#, c-format
+msgid "%s: Cannot change owners of %s: %s\n"
+msgstr "%s：无法更改 %s 的属主：%s\n"
+
+#, c-format
+msgid "%s: Cannot lstat %s: %s\n"
+msgstr "%s：无法获取符号链接 %s 的信息(lstat)：%s\n"
+
+#, c-format
+msgid "%s: Warning, user %s has no tcb shadow file.\n"
+msgstr "%s：警告，用户 %s 没有 tcb 影子文件。\n"
+
+#, c-format
+msgid ""
+"%s: Emergency: %s's tcb shadow is not a regular file with st_nlink=1.\n"
+"The account is left locked.\n"
+msgstr ""
+"%s：紧急：%s 的 tcb 影子不是一个 st_nlink=1 的普通文件。\n"
+"已锁定该帐号。\n"
+
+#, c-format
+msgid "%s: mkdir: %s: %s\n"
+msgstr "%s：创建目录：%s：%s\n"
+
+#, c-format
+msgid "%s: Cannot open %s: %s\n"
+msgstr "%s：无法打开 %s：%s\n"
+
+#, c-format
+msgid "%s: user %s is currently logged in\n"
+msgstr "%s：用户 %s 目前已登录\n"
+
+#, c-format
+msgid "%s: user %s is currently used by process %d\n"
+msgstr "%s：用户 %s 当前被进程使用 %d\n"
+
+msgid "Unable to determine your tty name."
+msgstr "无法确定您的 tty 终端名。"
+
+msgid "No"
+msgstr "否"
+
+#, c-format
+msgid ""
+"Usage: %s [options] LOGIN\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] 登录名\n"
+"\n"
+"选项：\n"
+
+msgid ""
+"  -d, --lastday LAST_DAY        set date of last password change to "
+"LAST_DAY\n"
+msgstr "  -d, --lastday 最近日期        将最近一次密码设置时间设为“最近日期”\n"
+
+msgid ""
+"  -E, --expiredate EXPIRE_DATE  set account expiration date to EXPIRE_DATE\n"
+msgstr "  -E, --expiredate 过期日期     将帐户过期时间设为“过期日期”\n"
+
+msgid "  -h, --help                    display this help message and exit\n"
+msgstr "  -h, --help                    显示此帮助信息并退出\n"
+
+msgid "  -i, --iso8601                 use YYYY-MM-DD when printing dates\n"
+msgstr "  -i, --iso8601                   打印日期时使用YYYY-MM-DD\n"
+
+msgid ""
+"  -I, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr ""
+"  -I, --inactive INACITVE       过期 INACTIVE 天数后，设定密码为失效状态\n"
+
+msgid "  -l, --list                    show account aging information\n"
+msgstr "  -l, --list                    显示帐户年龄信息\n"
+
+msgid ""
+"  -m, --mindays MIN_DAYS        set minimum number of days before password\n"
+"                                change to MIN_DAYS\n"
+msgstr ""
+"  -m, --mindays 最小天数        将两次改变密码之间相距的最小天数设为“最小天"
+"数”\n"
+
+#, fuzzy
+msgid ""
+"  -M, --maxdays MAX_DAYS        set maximum number of days before password\n"
+"                                change to MAX_DAYS\n"
+msgstr ""
+"  -M, --maxdays 最大天数        将两次改变密码之间相距的最大天数设为“最大天"
+"数”\n"
+
+msgid "  -R, --root CHROOT_DIR         directory to chroot into\n"
+msgstr "  -R, --root CHROOT_DIR         chroot 到的目录\n"
+
+#, fuzzy
+#| msgid "  -P, --prefix PREFIX_DI        directory prefix\n"
+msgid "  -P, --prefix PREFIX_DIR       directory prefix\n"
+msgstr "  -R, --root CHROOT_DIR         目录前缀\n"
+
+msgid ""
+"  -W, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+msgstr "  -W, --warndays 警告天数       将过期警告天数设为“警告天数”\n"
+
+msgid "Enter the new value, or press ENTER for the default"
+msgstr "请输入新值，或直接敲回车键以使用默认值"
+
+msgid "Minimum Password Age"
+msgstr "最小密码年龄"
+
+msgid "Maximum Password Age"
+msgstr "最大密码年龄"
+
+msgid "Last Password Change (YYYY-MM-DD)"
+msgstr "最近一次密码修改时间 (YYYY-MM-DD)"
+
+msgid "Password Expiration Warning"
+msgstr "密码过期警告"
+
+msgid "Password Inactive"
+msgstr "密码失效"
+
+msgid "Account Expiration Date (YYYY-MM-DD)"
+msgstr "帐户过期时间 (YYYY-MM-DD)"
+
+msgid "never"
+msgstr "从不"
+
+msgid "future"
+msgstr ""
+
+msgid "Last password change\t\t\t\t\t: "
+msgstr "最近一次密码修改时间\t\t\t\t\t："
+
+msgid "password must be changed"
+msgstr "密码必须更改"
+
+msgid "Password expires\t\t\t\t\t: "
+msgstr "密码过期时间\t\t\t\t\t："
+
+msgid "Password inactive\t\t\t\t\t: "
+msgstr "密码失效时间\t\t\t\t\t："
+
+msgid "Account expires\t\t\t\t\t\t: "
+msgstr "帐户过期时间\t\t\t\t\t\t："
+
+#, c-format
+msgid "Minimum number of days between password change\t\t: %ld\n"
+msgstr "两次改变密码之间相距的最小天数\t\t：%ld\n"
+
+#, c-format
+msgid "Maximum number of days between password change\t\t: %ld\n"
+msgstr "两次改变密码之间相距的最大天数\t\t：%ld\n"
+
+#, c-format
+msgid "Number of days of warning before password expires\t: %ld\n"
+msgstr "在密码过期之前警告的天数\t：%ld\n"
+
+#, c-format
+msgid "%s: invalid date '%s'\n"
+msgstr "%s：无效的日期“%s”\n"
+
+#, c-format
+msgid "%s: invalid numeric argument '%s'\n"
+msgstr "%s：无效的数字参数“%s”\n"
+
+#, c-format
+msgid "%s: do not include \"l\" with other flags\n"
+msgstr "%s：请不要将“l”与其它标志一同使用\n"
+
+#, c-format
+msgid "%s: Permission denied.\n"
+msgstr "%s：没有权限。\n"
+
+#, c-format
+msgid "%s: Cannot determine your user name.\n"
+msgstr "%s：无法确定您的用户名。\n"
+
+#, c-format
+msgid "%s: PAM: %s\n"
+msgstr "%s：PAM：%s\n"
+
+#, c-format
+msgid "%s: cannot lock %s; try again later.\n"
+msgstr "%s：无法锁定 %s，请稍后再试。\n"
+
+#, c-format
+msgid "%s: cannot open %s\n"
+msgstr "%s：无法打开 %s\n"
+
+#, c-format
+msgid "%s: failure while writing changes to %s\n"
+msgstr "%s：将更改写入 %s 时失败\n"
+
+#, c-format
+msgid "%s: failed to prepare the new %s entry '%s'\n"
+msgstr "%s：准备新 %s 条目“%s”失败\n"
+
+#, c-format
+msgid "%s: the shadow password file is not present\n"
+msgstr "%s：影子密码文件不存在\n"
+
+#, c-format
+msgid "%s: user '%s' does not exist in %s\n"
+msgstr "%s：用户“%s”不存在于 %s 中\n"
+
+#, c-format
+msgid "Changing the aging information for %s\n"
+msgstr "正在为 %s 修改年龄信息\n"
+
+#, c-format
+msgid "%s: error changing fields\n"
+msgstr "%s：改变字段时出错\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [LOGIN]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [登录名]\n"
+"\n"
+"选项：\n"
+
+msgid "  -f, --full-name FULL_NAME     change user's full name\n"
+msgstr "  -f, --full-name FULL_NAME     更改用户的全名\n"
+
+msgid "  -h, --home-phone HOME_PHONE   change user's home phone number\n"
+msgstr "  -h, --home-phone HOME_PHONE   更改用户的家庭电话号码\n"
+
+msgid "  -o, --other OTHER_INFO        change user's other GECOS information\n"
+msgstr "  -o, --other OTHER_INFO        更改用户的其它 GECOS 信息\n"
+
+msgid "  -r, --room ROOM_NUMBER        change user's room number\n"
+msgstr "  -r, --room ROOM_NUMBER        更改用户的房间号\n"
+
+msgid "  -u, --help                    display this help message and exit\n"
+msgstr "  -u, --help                    显示此帮助信息并退出\n"
+
+msgid "  -w, --work-phone WORK_PHONE   change user's office phone number\n"
+msgstr "  -w, --work-phone WORK_PHONE   更改用户的办公室电话号码\n"
+
+msgid "Full Name"
+msgstr "全名"
+
+#, c-format
+msgid "\t%s: %s\n"
+msgstr "\t%s：%s\n"
+
+msgid "Room Number"
+msgstr "房间号码"
+
+msgid "Work Phone"
+msgstr "工作电话"
+
+msgid "Home Phone"
+msgstr "家庭电话"
+
+msgid "Other"
+msgstr "其它"
+
+#, c-format
+msgid "%s: fields too long\n"
+msgstr "%s：字段太长\n"
+
+msgid "Cannot change ID to root.\n"
+msgstr "无法将 ID 改为 root。\n"
+
+#, c-format
+msgid "%s: name with non-ASCII characters: '%s'\n"
+msgstr "%s：名称中有非 ASCII 字符：“%s”\n"
+
+#, c-format
+msgid "%s: invalid name: '%s'\n"
+msgstr "%s：无效的名称：“%s”\n"
+
+#, c-format
+msgid "%s: room number with non-ASCII characters: '%s'\n"
+msgstr "%s：房间名包含非 ASCII 字符：“%s”\n"
+
+#, c-format
+msgid "%s: invalid room number: '%s'\n"
+msgstr "%s：无效的房间号码：“%s”\n"
+
+#, c-format
+msgid "%s: invalid work phone: '%s'\n"
+msgstr "%s：无效的工作电话：“%s”\n"
+
+#, c-format
+msgid "%s: invalid home phone: '%s'\n"
+msgstr "%s：无效的家庭电话：“%s”\n"
+
+#, c-format
+msgid "%s: '%s' contains non-ASCII characters\n"
+msgstr "%s：“%s”包含非 ASCII 字符\n"
+
+#, c-format
+msgid "%s: '%s' contains illegal characters\n"
+msgstr "%s：“%s”包含非法字符\n"
+
+#, c-format
+msgid "%s: user '%s' does not exist\n"
+msgstr "%s：用户“%s”不存在\n"
+
+#, c-format
+msgid "Changing the user information for %s\n"
+msgstr "正在改变 %s 的用户信息\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项]\n"
+"\n"
+"选项：\n"
+
+#, c-format
+msgid "  -c, --crypt-method METHOD     the crypt method (one of %s)\n"
+msgstr "  -c, --crypt-method METHOD     加密方法(%s 中的一个)\n"
+
+msgid "  -e, --encrypted               supplied passwords are encrypted\n"
+msgstr "  -e, --encrypted               提供的密码已经加密\n"
+
+msgid ""
+"  -m, --md5                     encrypt the clear text password using\n"
+"                                the MD5 algorithm\n"
+msgstr "  -m, --md5                     使用 MD5 算法加密明文密码\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -s, --sha-rounds              number of SHA rounds for the SHA*\n"
+#| "                                crypt algorithms\n"
+msgid ""
+"  -s, --sha-rounds              number of rounds for the SHA, BCRYPT\n"
+"                                or YESCRYPT crypt algorithms\n"
+msgstr "  -s, --sha-rounds              使用 SHA* 加密算法的轮数\n"
+
+#, fuzzy, c-format
+#| msgid "%s: unsupported crypt method: %s\n"
+msgid "%s: no crypt method defined\n"
+msgstr "%s：不支持的加密方法：%s\n"
+
+#, c-format
+msgid "%s: %s flag is only allowed with the %s flag\n"
+msgstr "%s：%s 标记只能和 %s 标记一起使用\n"
+
+#, c-format
+msgid "%s: the -c, -e, and -m flags are exclusive\n"
+msgstr "%s：-c、-e 和 -m 选项互斥\n"
+
+#, c-format
+msgid "%s: unsupported crypt method: %s\n"
+msgstr "%s：不支持的加密方法：%s\n"
+
+#, c-format
+msgid "%s: line %d: line too long\n"
+msgstr "%s：第 %d 行：此行太长\n"
+
+#, c-format
+msgid "%s: line %d: missing new password\n"
+msgstr "%s：第 %d 行：缺少新密码\n"
+
+#, c-format
+msgid "%s: failed to crypt password with salt '%s': %s\n"
+msgstr "%s：使用盐“%s”对密码加密失败：%s\n"
+
+#, c-format
+msgid "%s: line %d: group '%s' does not exist\n"
+msgstr "%s：第 %d 行：组“%s”不存在\n"
+
+#, c-format
+msgid "%s: line %d: failed to prepare the new %s entry '%s'\n"
+msgstr "%s：第 %d 行：准备新 %s 条目“%s”失败\n"
+
+#, c-format
+msgid "%s: error detected, changes ignored\n"
+msgstr "%s：发现错误，忽略改动\n"
+
+#, c-format
+msgid "%s: (line %d, user %s) password not changed\n"
+msgstr "%s：(第 %d 行，用户 %s) 密码未更改\n"
+
+#, c-format
+msgid "%s: line %d: user '%s' does not exist\n"
+msgstr "%s：第 %d 行：用户“%s”不存在\n"
+
+msgid "  -s, --shell SHELL             new login shell for the user account\n"
+msgstr "  -s, --shell SHELL             该用户帐号的新登录 shell\n"
+
+msgid "Login Shell"
+msgstr "登录 Shell"
+
+#, fuzzy, c-format
+#| msgid "%s: Cannot get the size of %s: %s\n"
+msgid "Cannot parse shell files: %s"
+msgstr "%s：无法获得 %s 的大小：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: cannot create new defaults file: %s\n"
+msgid "Cannot evaluate entries in shell files: %s"
+msgstr "%s：无法创建新的默认文件：%s\n"
+
+#, c-format
+msgid "You may not change the shell for '%s'.\n"
+msgstr "您不能为“%s”更改 shell。\n"
+
+#, c-format
+msgid "Changing the login shell for %s\n"
+msgstr "正在更改 %s 的 shell\n"
+
+#, c-format
+msgid "%s: Invalid entry: %s\n"
+msgstr "%s：无效的条目：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: %s is an invalid shell\n"
+msgid "%s: Warning: %s is an invalid shell\n"
+msgstr "%s：%s 是无效的 shell\n"
+
+#, c-format
+msgid "%s: %s is an invalid shell\n"
+msgstr "%s：%s 是无效的 shell\n"
+
+#, c-format
+msgid "%s: Warning: %s does not exist\n"
+msgstr "%s：警告：%s 不存在\n"
+
+#, c-format
+msgid "%s: Warning: %s is not executable\n"
+msgstr "%s：警告：%s 不可执行\n"
+
+msgid "  -c, --check                   check the user's password expiration\n"
+msgstr "  -c, --check                   检查用户密码是否过期\n"
+
+msgid ""
+"  -f, --force                   force password change if the user's "
+"password\n"
+"                                is expired\n"
+msgstr "  -f, --force                   如果用户密码过期，则强制要求更改密码\n"
+
+#, c-format
+msgid "%s: options %s and %s conflict\n"
+msgstr "%s：选项 %s 和 %s 冲突\n"
+
+#, c-format
+msgid "%s: unexpected argument: %s\n"
+msgstr "%s：意外的参数：%s\n"
+
+msgid "  -a, --all                     display faillog records for all users\n"
+msgstr "  -a, --all                     为所有用户显示登录失败记录\n"
+
+msgid ""
+"  -l, --lock-secs SEC           after failed login lock account for SEC "
+"seconds\n"
+msgstr "  -l, --lock-secs SEC           登录失败后临时锁定账户 %s 秒\n"
+
+msgid ""
+"  -m, --maximum MAX             set maximum failed login counters to MAX\n"
+msgstr "  -m, --maximum MAX             将最大登录失败计数设置为 MAX\n"
+
+msgid "  -r, --reset                   reset the counters of login failures\n"
+msgstr "  -r, --reset                   重置登录失败计数\n"
+
+msgid ""
+"  -t, --time DAYS               display faillog records more recent than "
+"DAYS\n"
+msgstr "  -t, --time DAYS               显示 DAYS 天来的登录失败记录\n"
+
+msgid ""
+"  -u, --user LOGIN/RANGE        display faillog record or maintains failure\n"
+"                                counters and limits (if used with -r, -m,\n"
+"                                or -l) only for the specified LOGIN(s)\n"
+msgstr ""
+"  -u, --user LOGIN/RANGE        只显示指定用户(或用户范围)的登录失败记录、\n"
+"                                维护故障计数或用户限制(对应 -r, -m 或 -l)\n"
+
+#, c-format
+msgid "%s: Failed to get the entry for UID %lu\n"
+msgstr "%s：获取 UID %lu 的条目失败\n"
+
+msgid "Login       Failures Maximum Latest                   On\n"
+msgstr "登录        失败次数  最多   最近                     于\n"
+
+#, c-format
+msgid " [%lus left]"
+msgstr " [还剩 %lu 秒]"
+
+#, c-format
+msgid " [%lds lock]"
+msgstr " [锁定 %ld 秒]"
+
+#, c-format
+msgid "%s: Failed to reset fail count for UID %lu\n"
+msgstr "%s：为 UID %lu 重置失败计数失败\n"
+
+#, c-format
+msgid "%s: Failed to set max for UID %lu\n"
+msgstr "%s：为 UID %lu 设置最大值失败\n"
+
+#, c-format
+msgid "%s: Failed to set locktime for UID %lu\n"
+msgstr "%s：为 UID %lu 设置锁定时间失败\n"
+
+#, c-format
+msgid "%s: Unknown user or range: %s\n"
+msgstr "%s：未知用户或范围：%s\n"
+
+#, c-format
+msgid "%s: Cannot get the size of %s: %s\n"
+msgstr "%s：无法获得 %s 的大小：%s\n"
+
+#, c-format
+msgid "%s: Failed to write %s: %s\n"
+msgstr "%s：写入 %s 失败：%s\n"
+
+#, c-format
+msgid ""
+"Usage: %s [option] GROUP\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] 组\n"
+"\n"
+"选项：\n"
+
+msgid "  -a, --add USER                add USER to GROUP\n"
+msgstr "  -a, --add USER                向组 GROUP 中添加用户 USER\n"
+
+msgid "  -d, --delete USER             remove USER from GROUP\n"
+msgstr "  -d, --delete USER             从组 GROUP 中添加或删除用户\n"
+
+msgid "  -Q, --root CHROOT_DIR         directory to chroot into\n"
+msgstr "  -Q, --root CHROOT_DIR         要 chroot 进的目录\n"
+
+msgid "  -r, --remove-password         remove the GROUP's password\n"
+msgstr "  -r, --remove-password         移除组 GROUP 的密码\n"
+
+msgid ""
+"  -R, --restrict                restrict access to GROUP to its members\n"
+msgstr "  -R, --restrict                向其成员限制访问组 GROUP\n"
+
+msgid "  -M, --members USER,...        set the list of members of GROUP\n"
+msgstr "  -M, --members USER,...        设置组 GROUP 的成员列表\n"
+
+msgid ""
+"  -A, --administrators ADMIN,...\n"
+"                                set the list of administrators for GROUP\n"
+msgstr ""
+"  -A, --administrators ADMIN,...\n"
+"                                设置组的管理员列表\n"
+
+msgid "Except for the -A and -M options, the options cannot be combined.\n"
+msgstr "除非使用 -A 或 -M 选项，不能结合使用这些选项。\n"
+
+msgid "The options cannot be combined.\n"
+msgstr "选项不能结合。\n"
+
+#, c-format
+msgid "%s: shadow group passwords required for -A\n"
+msgstr "%s：-A 需要影子组密码\n"
+
+#, c-format
+msgid "%s: group '%s' does not exist in %s\n"
+msgstr "%s：%s 组不存在于 %s 中\n"
+
+#, c-format
+msgid "%s: failure while closing read-only %s\n"
+msgstr "%s：关闭只读 %s 时失败\n"
+
+#, c-format
+msgid "Changing the password for group %s\n"
+msgstr "正在修改 %s 组的密码\n"
+
+msgid "New Password: "
+msgstr "新密码："
+
+msgid "Re-enter new password: "
+msgstr "请重新输入新密码："
+
+msgid "They don't match; try again"
+msgstr "他们并不匹配；请重试"
+
+#, c-format
+msgid "%s: Try again later\n"
+msgstr "%s：请稍后重试\n"
+
+#, c-format
+msgid "Adding user %s to group %s\n"
+msgstr "正在将用户“%s”加入到“%s”组中\n"
+
+#, c-format
+msgid "Removing user %s from group %s\n"
+msgstr "正在将用户“%s”从“%s”组中删除\n"
+
+#, c-format
+msgid "%s: user '%s' is not a member of '%s'\n"
+msgstr "%s：用户“%s”不是“%s”的成员\n"
+
+#, c-format
+msgid "%s: Not a tty\n"
+msgstr "%s：不是 tty\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] GROUP\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] 组\n"
+"\n"
+"选项:\n"
+
+msgid ""
+"  -f, --force                   exit successfully if the group already "
+"exists,\n"
+"                                and cancel -g if the GID is already used\n"
+msgstr ""
+"  -f, --force                   如果组已经存在则成功退出\n"
+"                                并且如果 GID 已被使用则取消 -g\n"
+
+msgid "  -g, --gid GID                 use GID for the new group\n"
+msgstr "  -g, --gid GID                 为新组使用 GID\n"
+
+msgid "  -K, --key KEY=VALUE           override /etc/login.defs defaults\n"
+msgstr "  -K, --key KEY=VALUE           不使用 /etc/login.defs 中的默认值\n"
+
+msgid ""
+"  -o, --non-unique              allow to create groups with duplicate\n"
+"                                (non-unique) GID\n"
+msgstr "  -o, --non-unique              允许创建有重复 GID 的组\n"
+
+msgid ""
+"  -p, --password PASSWORD       use this encrypted password for the new "
+"group\n"
+msgstr "  -p, --password PASSWORD       为新组使用此加密过的密码\n"
+
+msgid "  -r, --system                  create a system account\n"
+msgstr "  -r, --system                  创建一个系统账户\n"
+
+msgid "  -U, --users USERS             list of user members of this group\n"
+msgstr "  -l, --list                    该组的用户成员列表\n"
+
+#, c-format
+msgid "Invalid member username %s\n"
+msgstr "无效的成员用户名“%s”\n"
+
+#, c-format
+msgid "%s: '%s' is not a valid group name\n"
+msgstr "%s：“%s”不是有效的组名\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Cannot open %s: %s\n"
+msgid "%s: cannot open %s: %s\n"
+msgstr "%s：无法打开 %s：%s\n"
+
+#, c-format
+msgid "%s: invalid group ID '%s'\n"
+msgstr "%s：无效的组 ID “%s”\n"
+
+#, c-format
+msgid "%s: -K requires KEY=VALUE\n"
+msgstr "%s：-K 需要 KEY=VALUE\n"
+
+#, c-format
+msgid "%s: group '%s' already exists\n"
+msgstr "%s：“%s”组已存在\n"
+
+#, c-format
+msgid "%s: GID '%lu' already exists\n"
+msgstr "%s：GID “%lu”已经存在\n"
+
+#, c-format
+msgid "%s: Cannot setup cleanup service.\n"
+msgstr "%s：无法设置清理服务。\n"
+
+msgid ""
+"  -P, --prefix PREFIX_DIR       prefix directory where are located the /etc/"
+"* files\n"
+msgstr ""
+
+msgid ""
+"  -f, --force                   delete group even if it is the primary group "
+"of a user\n"
+msgstr "  -f, --force                   即便是用户的主组也继续删除\n"
+
+#, c-format
+msgid "%s: cannot remove entry '%s' from %s\n"
+msgstr "%1$s：无法从 %3$s 中移除“%2$s”\n"
+
+#, c-format
+msgid "%s: cannot remove the primary group of user '%s'\n"
+msgstr "%s：不能移除用户“%s”的主组\n"
+
+#, c-format
+msgid "%s: group '%s' does not exist\n"
+msgstr "%s：“%s”组不存在\n"
+
+#, c-format
+msgid "%s: user '%s' is already a member of '%s'\n"
+msgstr "%s：用户“%s”已经是“%s”的成员\n"
+
+#, c-format
+msgid "%s: Out of memory. Cannot update %s.\n"
+msgstr "%s：超出内存。不能更新 %s。\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [action]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [动作]\n"
+"\n"
+"选项：\n"
+
+msgid ""
+"  -g, --group groupname         change groupname instead of the user's "
+"group\n"
+"                                (root only)\n"
+msgstr ""
+"  -g, --group groupname         更改组 groupname，而不是用户的组(仅限 root)\n"
+
+msgid "\n"
+msgstr "\n"
+
+msgid "Actions:\n"
+msgstr "动作：\n"
+
+msgid ""
+"  -a, --add username            add username to the members of the group\n"
+msgstr "  -a, --add username            将用户 username 添加到组成员中\n"
+
+msgid ""
+"  -d, --delete username         remove username from the members of the "
+"group\n"
+msgstr "  -d, --delete username         从组的成员中删除用户 username\n"
+
+msgid "  -p, --purge                   purge all members from the group\n"
+msgstr "  -p, --purge                   从组中移除所有成员\n"
+
+msgid "  -l, --list                    list the members of the group\n"
+msgstr "  -l, --list                    列出组中的所有成员\n"
+
+#, c-format
+msgid "%s: your groupname does not match your username\n"
+msgstr "%s：您的组名和用户名不匹配\n"
+
+#, c-format
+msgid "%s: only root can use the -g/--group option\n"
+msgstr "%s：只有 root 才可以使用 -g/--group 选项\n"
+
+msgid ""
+"  -a, --append                  append the users mentioned by -U option to "
+"the group \n"
+"                                without removing existing user members\n"
+msgstr ""
+"  -a, --append                  将-U选项提到的用户添加到组中\n"
+"                                无需删除现有用户成员\n"
+
+msgid "  -g, --gid GID                 change the group ID to GID\n"
+msgstr "  -g, --gid GID                 将组 ID 改为 GID\n"
+
+msgid "  -n, --new-name NEW_GROUP      change the name to NEW_GROUP\n"
+msgstr "  -n, --new-name NEW_GROUP      改名为 NEW_GROUP\n"
+
+msgid ""
+"  -o, --non-unique              allow to use a duplicate (non-unique) GID\n"
+msgstr "  -o, --non-unique              允许使用重复的 GID\n"
+
+msgid ""
+"  -p, --password PASSWORD       change the password to this (encrypted)\n"
+"                                PASSWORD\n"
+msgstr "  -p, --password PASSWORD       将密码更改为(加密过的) PASSWORD\n"
+
+#, c-format
+msgid "%s: invalid group name '%s'\n"
+msgstr "%s：无效的组名“%s”\n"
+
+#, c-format
+msgid "%s: unknown user %s\n"
+msgstr "%s：未知用户 %s\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [group [gshadow]]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [组 [gshadow]]\n"
+"\n"
+"选项：\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [group]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [组]\n"
+"\n"
+"选项：\n"
+
+msgid ""
+"  -r, --read-only               display errors and warnings\n"
+"                                but do not change files\n"
+msgstr "  -r, --read-only               显示错误和警告，但不改变文件\n"
+
+msgid "  -s, --sort                    sort entries by UID\n"
+msgstr "  -s, --sort                    通过 UID 排序项目\n"
+
+msgid ""
+"  -S, --silence-warnings        silence controversial/paranoid warnings\n"
+msgstr ""
+
+#, c-format
+msgid "%s: -s and -r are incompatible\n"
+msgstr "%s：-s 与 -r 不兼容\n"
+
+msgid "invalid group file entry"
+msgstr "无效的组文件条目"
+
+#, c-format
+msgid "delete line '%s'? "
+msgstr "删除“%s”一行？"
+
+msgid "duplicate group entry"
+msgstr "重复的组条目"
+
+#, c-format
+msgid "invalid group name '%s'\n"
+msgstr "无效的组名“%s”\n"
+
+#, c-format
+msgid "invalid group ID '%lu'\n"
+msgstr "无效的组 ID “%lu”\n"
+
+#, c-format
+msgid "group %s: no user %s\n"
+msgstr "%s 组：无用户 %s\n"
+
+#, c-format
+msgid "delete member '%s'? "
+msgstr "删除成员“%s”吗？"
+
+#, c-format
+msgid "no matching group file entry in %s\n"
+msgstr "在 %s 中没有找到匹配的组文件条目\n"
+
+#, c-format
+msgid "add group '%s' in %s? "
+msgstr "将组“%s”添加到 %s？"
+
+#, c-format
+msgid ""
+"group %s has an entry in %s, but its password field in %s is not set to 'x'\n"
+msgstr "组 %s 在 %s 中有一个条目，但是 %s 中它的密码字段不是“x”\n"
+
+msgid "invalid shadow group file entry"
+msgstr "无效的影子组文件条目"
+
+msgid "duplicate shadow group entry"
+msgstr "重复的组影子条目"
+
+#, c-format
+msgid "shadow group %s: no administrative user %s\n"
+msgstr "%s 影子组：无管理员用户 %s\n"
+
+#, c-format
+msgid "delete administrative member '%s'? "
+msgstr "删除有管理权限的成员“%s”吗？"
+
+#, c-format
+msgid "shadow group %s: no user %s\n"
+msgstr "%s 影子组：无用户 %s\n"
+
+#, c-format
+msgid "%s: the files have been updated\n"
+msgstr "%s：文件已更新\n"
+
+#, c-format
+msgid "%s: no changes\n"
+msgstr "%s：无改变\n"
+
+#, c-format
+msgid "%s: cannot delete %s\n"
+msgstr "%s：无法删除 %s\n"
+
+msgid "Usage: id [-a]\n"
+msgstr "用法：id [-a]\n"
+
+msgid " groups="
+msgstr " 组="
+
+msgid ""
+"  -b, --before DAYS             print only lastlog records older than DAYS\n"
+msgstr "  -b, --before DAYS             仅打印早于 DAYS 的最近登录记录\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -C, --clear                   clear lastlog record of an user (usable "
+#| "only with -u)\n"
+msgid ""
+"  -C, --clear                   clear lastlog record of a user (usable only "
+"with -u)\n"
+msgstr ""
+"  -C, --clear                   清除一个用户的最近登录记录(须配合 -u 使用)\n"
+
+msgid ""
+"  -S, --set                     set lastlog record to current time (usable "
+"only with -u)\n"
+msgstr ""
+"  -S, --set                     设置最近登录记录为当前时间(须配合 -u 使用)\n"
+
+msgid ""
+"  -t, --time DAYS               print only lastlog records more recent than "
+"DAYS\n"
+msgstr "  -t, --time DAYS               仅打印晚于 DAYS 的最近登录记录\n"
+
+msgid ""
+"  -u, --user LOGIN              print lastlog record of the specified LOGIN\n"
+msgstr "  -u, --user LOGIN              打印 LOGIN 用户的最近登录记录\n"
+
+#, c-format
+msgid "Username         Port     From%*sLatest\n"
+msgstr "用户名                  端口     从最近的%*s\n"
+
+msgid "Username                Port     Latest"
+msgstr "用户名                  端口     最后登录时间"
+
+msgid "**Never logged in**"
+msgstr "**从未登录过**"
+
+#, c-format
+msgid ""
+"%s: Selected uid(s) are higher than LASTLOG_UID_MAX (%lu),\n"
+"\tthe output might be incorrect.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: Failed to update the entry for UID %lu\n"
+msgstr "%s：更新 UID %lu 的条目失败\n"
+
+#, c-format
+msgid ""
+"%s: Selected uid(s) are higher than LASTLOG_UID_MAX (%lu),\n"
+"\tthey will not be updated.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: Failed to update the lastlog file\n"
+msgstr "%s：无法更新登录记录文件\n"
+
+#, c-format
+msgid "%s: Option -C cannot be used together with option -S\n"
+msgstr "%s：选项 -C 不能与 -S 选项一起使用\n"
+
+#, c-format
+msgid "%s: Options -C and -S require option -u to specify the user\n"
+msgstr "%s：-C 和 -S 选项需要配合使用 -u 指定用户\n"
+
+#, c-format
+msgid "Usage: %s [-p] [name]\n"
+msgstr "用法：%s [-p] [名称]\n"
+
+#, c-format
+msgid "       %s [-p] [-h host] [-f name]\n"
+msgstr "       %s [-p] [-h 主机] [-f 名称]\n"
+
+#, c-format
+msgid "configuration error - cannot parse %s value: '%d'"
+msgstr "配置出错 - 无法解析 %s 值：“%d”"
+
+msgid "Invalid login time"
+msgstr "无效的登录时间"
+
+msgid ""
+"\n"
+"System closed for routine maintenance"
+msgstr ""
+"\n"
+"系统关闭，例行维护"
+
+msgid ""
+"\n"
+"[Disconnect bypassed -- root login allowed.]"
+msgstr ""
+"\n"
+"[忽略断线要求 -- 允许 root 登录。]"
+
+#, c-format
+msgid "%s: Cannot possibly work without effective root\n"
+msgstr "%s：必须持有效 root 身份才能工作\n"
+
+#, c-format
+msgid ""
+"\n"
+"Login timed out after %u seconds.\n"
+msgstr ""
+"\n"
+"%u 秒后登录超时。\n"
+
+#, c-format
+msgid "login: PAM Failure, aborting: %s\n"
+msgstr "login：PAM 错误，正在退出：%s\n"
+
+#, c-format
+msgid "%s login: "
+msgstr "%s 用户名："
+
+msgid "login: "
+msgstr "用户名："
+
+#, c-format
+msgid "Maximum number of tries exceeded (%u)\n"
+msgstr "已经超过最大尝试次数 (%u)\n"
+
+msgid "login: abort requested by PAM\n"
+msgstr "login：PAM 请求中止\n"
+
+msgid "Login incorrect"
+msgstr "登录错误"
+
+#, c-format
+msgid "Cannot find user (%s)\n"
+msgstr "无法找到用户 (%s)\n"
+
+#, c-format
+msgid "%s: failure forking: %s"
+msgstr "%s：fork 失败：%s"
+
+#, c-format
+msgid "TIOCSCTTY failed on %s"
+msgstr "%s 上 TIOCSCTTY 失败"
+
+msgid "Warning: login re-enabled after temporary lockout."
+msgstr "警告：将在暂时锁定一段时间后恢复登录。"
+
+#, c-format
+msgid "Last login: %s on %s"
+msgstr "上次登录：%s 在 %s 上"
+
+#, c-format
+msgid " from %.*s"
+msgstr " 来自 %.*s"
+
+msgid ""
+"login time exceeded\n"
+"\n"
+msgstr ""
+"登录超时\n"
+"\n"
+
+msgid "Usage: logoutd\n"
+msgstr "用法：logoutd\n"
+
+#, c-format
+msgid "%s: gid range [%lu-%lu) -> [%lu-%lu) not allowed\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"usage: %s [<pid|fd:<pidfd>] <gid> <lowergid> <count> [ <gid> <lowergid> "
+"<count> ] ... \n"
+msgstr ""
+
+#, c-format
+msgid "%s: kernel doesn't support setgroups restrictions\n"
+msgstr ""
+
+#, c-format
+msgid "%s: couldn't open process setgroups: %s\n"
+msgstr "%s：无法打开进程setgroups：%s\n"
+
+#, c-format
+msgid "%s: failed to read setgroups: %s\n"
+msgstr "%s：读取setgroups失败：%s\n"
+
+#, c-format
+msgid "%s: failed to seek setgroups: %s\n"
+msgstr "%s：查询setgroups失败：%s\n"
+
+#, c-format
+msgid "%s: failed to setgroups %s policy: %s\n"
+msgstr "%s：setgroups%s策略失败：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: Could not stat directory for target %u\n"
+msgid "%s: Could not stat directory for process\n"
+msgstr "%s：无法统计目标目录%u\n"
+
+#, c-format
+msgid ""
+"%s: Target process is owned by a different user: uid:%lu pw_uid:%lu st_uid:"
+"%lu, gid:%lu pw_gid:%lu st_gid:%lu\n"
+msgstr ""
+
+msgid "Usage: newgrp [-] [group]\n"
+msgstr "用法：newgrp [-] [组]\n"
+
+msgid "Usage: sg group [[-c] command]\n"
+msgstr "用法：sg 组 [[-c] 命令]\n"
+
+#, c-format
+msgid "%s: failed to crypt password with previous salt: %s\n"
+msgstr "%s：使用之前的盐对密码加密失败：%s\n"
+
+msgid "Invalid password.\n"
+msgstr "无效的密码。\n"
+
+#, c-format
+msgid "%s: failure forking: %s\n"
+msgstr "%s：fork 失败：%s\n"
+
+#, c-format
+msgid "%s: GID '%lu' does not exist\n"
+msgstr "%s：GID“%lu”不存在\n"
+
+msgid "too many groups\n"
+msgstr "用户组过多\n"
+
+#, c-format
+msgid "%s: uid range [%lu-%lu) -> [%lu-%lu) not allowed\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"usage: %s [<pid>|fd:<pidfd>] <uid> <loweruid> <count> [ <uid> <loweruid> "
+"<count> ] ... \n"
+msgstr ""
+
+#, fuzzy, c-format
+#| msgid "%s: Could not stat directory for target %u\n"
+msgid "%s: Could not stat directory for target process\n"
+msgstr "%s：无法统计目标目录%u\n"
+
+msgid "  -b, --badname                 allow bad names\n"
+msgstr "  -q, --badname                 允许 bad name\n"
+
+msgid "  -r, --system                  create system accounts\n"
+msgstr "  -r, --system                  创建系统帐号\n"
+
+#, c-format
+msgid "%s: group '%s' is a shadow group, but does not exist in /etc/group\n"
+msgstr "%s：“%s”组是影子组，但是不存在于 /etc/group\n"
+
+#, c-format
+msgid "%s: invalid user ID '%s'\n"
+msgstr "%s：无效的用户 ID“%s”\n"
+
+#, c-format
+msgid "%s: invalid user name '%s': use --badname to ignore\n"
+msgstr "%s：无效的用户名“%s”: 使用 --badname 忽略\n"
+
+#, c-format
+msgid "%s: Provide '--crypt-method' before number of rounds\n"
+msgstr ""
+
+#, c-format
+msgid "%s: line %d: invalid line\n"
+msgstr "%s：第 %d 行：无效行\n"
+
+#, c-format
+msgid "%s: cannot update the entry of user %s (not in the passwd database)\n"
+msgstr "%s：不能更新用户 %s 的条目 (不存在于 passwd 数据库)\n"
+
+#, c-format
+msgid "%s: line %d: can't create user\n"
+msgstr "%s：第 %d 行：无法创建用户\n"
+
+#, c-format
+msgid "%s: line %d: can't create group\n"
+msgstr "%s：第 %d 行：无法创建组\n"
+
+#, c-format
+msgid "%s: line %d: user '%s' does not exist in %s\n"
+msgstr "%s：第 %d 行：用户“%s”不存在于 %s 中\n"
+
+#, fuzzy, c-format
+#| msgid "%s: unlink: %s: %s\n"
+msgid "%s: line %d: %s\n"
+msgstr "%s：删除(unlink)：%s：%s\n"
+
+#, c-format
+msgid "%s: line %d: can't update password\n"
+msgstr "%s：第 %d 行：无法更新密码\n"
+
+#, c-format
+msgid "%s: line %d: homedir must be an absolute path\n"
+msgstr "%s：第 %d 行：Homedir必须是绝对路径\n"
+
+#, c-format
+msgid "%s: line %d: mkdir %s failed: %s\n"
+msgstr "%s：第 %d 行：创建目录 %s 失败：%s\n"
+
+#, c-format
+msgid "%s: line %d: chown %s failed: %s\n"
+msgstr "%s：第 %d 行：改变 %s 的属主失败：%s\n"
+
+#, c-format
+msgid "%s: line %d: can't update entry\n"
+msgstr "%s：第 %d 行：无法更新条目\n"
+
+#, c-format
+msgid "%s: can't find subordinate user range\n"
+msgstr "%s：找不到子用户范围\n"
+
+#, c-format
+msgid "%s: failed to prepare new %s entry\n"
+msgstr "%s：准备新 %s 条目失败\n"
+
+#, c-format
+msgid "%s: can't find subordinate group range\n"
+msgstr "%s：找不到子用户组范围\n"
+
+msgid ""
+"  -a, --all                     report password status on all accounts\n"
+msgstr "  -a, --all                     报告所有帐户的密码状态\n"
+
+msgid ""
+"  -d, --delete                  delete the password for the named account\n"
+msgstr "  -d, --delete                  删除指定帐户的密码\n"
+
+msgid ""
+"  -e, --expire                  force expire the password for the named "
+"account\n"
+msgstr "  -e, --expire                  强制使指定帐户的密码过期\n"
+
+msgid "  -k, --keep-tokens             change password only if expired\n"
+msgstr "  -k, --keep-tokens             仅在过期后修改密码\n"
+
+msgid ""
+"  -i, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr "  -i, --inactive INACTIVE       密码过期后设置密码不活动为 INACTIVE\n"
+
+msgid ""
+"  -l, --lock                    lock the password of the named account\n"
+msgstr "  -l, --lock                    锁定指定的帐户\n"
+
+msgid ""
+"  -n, --mindays MIN_DAYS        set minimum number of days before password\n"
+"                                change to MIN_DAYS\n"
+msgstr ""
+"  -n, --mindays MIN_DAYS        设置到下次修改密码所须等待的最短天数\n"
+"                                为 MIN_DAYS\n"
+
+msgid "  -q, --quiet                   quiet mode\n"
+msgstr "  -q, --quiet                   安静模式\n"
+
+msgid ""
+"  -r, --repository REPOSITORY   change password in REPOSITORY repository\n"
+msgstr "  -r, --repository REPOSITORY   在 REPOSITORY 库中改变密码\n"
+
+msgid ""
+"  -S, --status                  report password status on the named account\n"
+msgstr "  -S, --status                  报告指定帐户密码的状态\n"
+
+msgid ""
+"  -u, --unlock                  unlock the password of the named account\n"
+msgstr "  -u, --unlock                  解锁被指定帐户\n"
+
+msgid ""
+"  -w, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+msgstr "  -w, --warndays WARN_DAYS      设置过期警告天数为 WARN_DAYS\n"
+
+msgid ""
+"  -x, --maxdays MAX_DAYS        set maximum number of days before password\n"
+"                                change to MAX_DAYS\n"
+msgstr ""
+"  -x, --maxdays MAX_DAYS        设置到下次修改密码所须等待的最多天数\n"
+"                                为 MAX_DAYS\n"
+
+#, fuzzy
+#| msgid "  -l, --list                    show account aging information\n"
+msgid "  -s, --stdin                   read new token from stdin\n"
+msgstr "  -l, --list                    显示帐户年龄信息\n"
+
+msgid "Old password: "
+msgstr "旧密码："
+
+#, c-format
+msgid ""
+"Enter the new password (minimum of %d characters)\n"
+"Please use a combination of upper and lower case letters and numbers.\n"
+msgstr ""
+"请输入新密码(最少 %d 个字符)\n"
+"请混合使用大小写字母和数字。\n"
+
+#, c-format
+msgid ""
+"Enter the new password (minimum of %d, maximum of %d characters)\n"
+"Please use a combination of upper and lower case letters and numbers.\n"
+msgstr ""
+"请输入新密码(最少 %d 最多 %d 个字符)\n"
+"请混合使用大小写字母和数字。\n"
+
+#, fuzzy
+#| msgid "%s: fields too long\n"
+msgid "Password is too long.\n"
+msgstr "%s：字段太长\n"
+
+msgid "New password: "
+msgstr "新密码："
+
+msgid "Try again."
+msgstr "重试。"
+
+msgid ""
+"\n"
+"Warning: weak password (enter it again to use it anyway)."
+msgstr ""
+"\n"
+"警告：脆弱的密码(重新输入以强制使用它)。"
+
+msgid "They don't match; try again.\n"
+msgstr "它们并不匹配；请重试。\n"
+
+#, c-format
+msgid "The password for %s cannot be changed.\n"
+msgstr "无法更改 %s 的密码。\n"
+
+#, c-format
+msgid "The password for %s cannot be changed yet.\n"
+msgstr "尚无法更改 %s 的密码。\n"
+
+#, c-format
+msgid "%s: malformed password data obtained for user %s\n"
+msgstr "%s：获取的用户密码数据不正确%s\n"
+
+#, c-format
+msgid ""
+"%s: unlocking the password would result in a passwordless account.\n"
+"You should set a password with usermod -p to unlock the password of this "
+"account.\n"
+msgstr ""
+"%s：解锁密码将产生一个没有密码的账户。\n"
+"您应该使用 usermod -p 来为此账户设置密码并解锁。\n"
+
+#, c-format
+msgid "%s: repository %s not supported\n"
+msgstr "%s：不支持 %s 存储。\n"
+
+#, fuzzy, c-format
+#| msgid "%s: only root can use the -g/--group option\n"
+msgid "%s: only root can use --stdin/-s option\n"
+msgstr "%s：只有 root 才可以使用 -g/--group 选项\n"
+
+#, c-format
+msgid "%s: root is not authorized by SELinux to change the password of %s\n"
+msgstr "%s：root没有被SELinux授权修改密码%s\n"
+
+#, c-format
+msgid "%s: You may not view or modify password information for %s.\n"
+msgstr "%s：您不能查看或更改 %s 的密码信息。\n"
+
+#, c-format
+msgid "Changing password for %s\n"
+msgstr "正在为 %s 修改密码\n"
+
+#, c-format
+msgid "The password for %s is unchanged.\n"
+msgstr "%s 的密码未被改变。\n"
+
+#, c-format
+msgid "%s: password changed.\n"
+msgstr "%s：密码已更改。\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [passwd]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [passwd]\n"
+"\n"
+"选项：\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] [passwd [shadow]]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] [passwd [shadow]]\n"
+"\n"
+"选项：\n"
+
+msgid "  -q, --quiet                   report errors only\n"
+msgstr "  -q, --quiet                   只报告错误\n"
+
+#, c-format
+msgid "%s: no alternative shadow file allowed when USE_TCB is enabled.\n"
+msgstr "%s：USE_TCB 启用时没有允许的替代影子文件。\n"
+
+msgid "invalid password file entry"
+msgstr "无效的密码文件项"
+
+msgid "duplicate password entry"
+msgstr "重复的用户条目"
+
+#, c-format
+msgid "invalid user name '%s': use --badname to ignore\n"
+msgstr "无效的用户名'%s'：使用 --badname 忽略\n"
+
+#, c-format
+msgid "invalid user ID '%lu'\n"
+msgstr "无效的用户 ID“%lu”\n"
+
+#, c-format
+msgid "user '%s': no group %lu\n"
+msgstr "用户“%s”：无 %lu 组\n"
+
+#, c-format
+msgid "user '%s': directory '%s' does not exist\n"
+msgstr "用户“%s”：目录 %s 不存在\n"
+
+#, c-format
+msgid "user '%s': program '%s' does not exist\n"
+msgstr "用户“%s”：程序 %s 不存在\n"
+
+#, c-format
+msgid "no tcb directory for %s\n"
+msgstr "没有 %s 的 tcb 目录\n"
+
+#, c-format
+msgid "create tcb directory for %s?"
+msgstr "为 %s 创建 tcb 文件夹？"
+
+#, c-format
+msgid "failed to create tcb directory for %s\n"
+msgstr "为 %s 创建 tcb 目录失败\n"
+
+#, c-format
+msgid "%s: cannot lock %s.\n"
+msgstr "%s：无法锁定 %s。\n"
+
+#, c-format
+msgid "no matching password file entry in %s\n"
+msgstr "在 %s 中没有匹配的密码文件项\n"
+
+#, c-format
+msgid "add user '%s' in %s? "
+msgstr "在 %s 中添加用户“%s”？"
+
+#, c-format
+msgid ""
+"user %s has an entry in %s, but its password field in %s is not set to 'x'\n"
+msgstr "用户 %s 在 %s 中有一个条目，但是它在 %s 中的密码字段没有设置为“x”\n"
+
+msgid "invalid shadow password file entry"
+msgstr "无效的影子密码文件项"
+
+msgid "duplicate shadow password entry"
+msgstr "重复的用户影子条目"
+
+#, c-format
+msgid "user %s: last password change in the future\n"
+msgstr "用户 %s：未来最近的密码改动\n"
+
+#, c-format
+msgid "%s: cannot sort entries in %s\n"
+msgstr "%s：无法排序 %s 中的条目\n"
+
+#, c-format
+msgid "%s: can't work with tcb enabled\n"
+msgstr "%s：不能与 tcb 配合使用\n"
+
+#, c-format
+msgid "%s: failed to change the mode of %s to 0600\n"
+msgstr "%s：将 %s 的模式更改为 0600 失败\n"
+
+msgid "Access to su to that account DENIED.\n"
+msgstr "su 到该帐户被拒。\n"
+
+msgid "Password authentication bypassed.\n"
+msgstr "忽略密码认证\n"
+
+msgid "Please enter your OWN password as authentication.\n"
+msgstr "请输入您“自己”的密码作为验证。\n"
+
+#, c-format
+msgid "%s: signal masking malfunction\n"
+msgstr "%s：信号屏蔽(mask)故障\n"
+
+#, c-format
+msgid "%s: Cannot fork user shell\n"
+msgstr "%s：无法 fork 用户 shell\n"
+
+#, c-format
+msgid "%s: signal malfunction\n"
+msgstr "%s：信号故障\n"
+
+msgid "Session terminated, terminating shell..."
+msgstr "会话结束，结束 shell ..."
+
+msgid " ...killed.\n"
+msgstr " ...已被杀死。\n"
+
+msgid " ...waiting for child to terminate.\n"
+msgstr " ...等待子进程结束。\n"
+
+msgid " ...terminated.\n"
+msgstr " ...已结束。\n"
+
+#, c-format
+msgid "%s: %s\n"
+msgstr "%s：%s\n"
+
+msgid ""
+"Usage: su [options] [-] [username [args]]\n"
+"\n"
+"Options:\n"
+"  -c, --command COMMAND         pass COMMAND to the invoked shell\n"
+"  -h, --help                    display this help message and exit\n"
+"  -, -l, --login                make the shell a login shell\n"
+"  -m, -p,\n"
+"  --preserve-environment        do not reset environment variables, and\n"
+"                                keep the same shell\n"
+"  -s, --shell SHELL             use SHELL instead of the default in passwd\n"
+"\n"
+"If no username is given, assume root.\n"
+msgstr ""
+"用法：su [选项] [-] [username [args]]\n"
+"\n"
+"选项：\n"
+"  -c, --command COMMAND         将 COMMAND 传递至启动的 shell\n"
+"  -h, --help                    显示此帮助信息并退出\n"
+"  -, -l, --login                将 shell 设为登录 shell\n"
+"  -m, -p,\n"
+"  --preserve-environment        不重置环境变量并保持同一 shell\n"
+"  -s, --shell SHELL             使用 SHELL 而非 passwd 中的默认值\n"
+"\n"
+"                                如果没有给出用户名，假设为root\n"
+
+#, c-format
+msgid ""
+"%s: %s\n"
+"(Ignored)\n"
+msgstr ""
+"%s：%s\n"
+"(忽略)\n"
+
+#, c-format
+msgid "Password field is empty, this is forbidden for all accounts.\n"
+msgstr ""
+
+#, c-format
+msgid "Password field is empty, this is forbidden for super-user.\n"
+msgstr ""
+
+#, c-format
+msgid "You are not authorized to su %s\n"
+msgstr "您没有被授权 su %s\n"
+
+msgid "(Enter your own password)"
+msgstr "(请输入您自己的密码)"
+
+#, c-format
+msgid "%s: Authentication failure\n"
+msgstr "%s：验证失败\n"
+
+#, c-format
+msgid "%s: You are not authorized to su at that time\n"
+msgstr "%s：那时，您没有被授权 su\n"
+
+#, c-format
+msgid "No passwd entry for user '%s'\n"
+msgstr "没有用户“%s”的密码项\n"
+
+#, fuzzy, c-format
+#| msgid "invalid user name '%s'\n"
+msgid "Overlong user name '%s'\n"
+msgstr "无效的用户名“%s”\n"
+
+#, c-format
+msgid "%s: must be run from a terminal\n"
+msgstr "%s：必须从终端中执行\n"
+
+#, c-format
+msgid "%s: pam_start: error %d\n"
+msgstr "%s：pam_start：错误 %d\n"
+
+#, c-format
+msgid "%s: Cannot drop the controlling terminal\n"
+msgstr "%s：无法放弃控制终端\n"
+
+#, c-format
+msgid "Cannot execute %s\n"
+msgstr "无法执行 %s\n"
+
+msgid "No password file"
+msgstr "没有密码文件"
+
+msgid "TIOCSCTTY failed"
+msgstr "TIOCSCTTY 失败"
+
+msgid "No password entry for 'root'"
+msgstr "没有“root”的密码项"
+
+msgid ""
+"\n"
+"Type control-d to proceed with normal startup,\n"
+"(or give root password for system maintenance):"
+msgstr ""
+"\n"
+"敲击 control-d 继续使用普通帐户环境，\n"
+"(或者输入 root 密码以进行系统维护)："
+
+msgid "Entering System Maintenance Mode"
+msgstr "正在进入系统维护模式"
+
+#, c-format
+msgid "%s: %s was created, but could not be removed\n"
+msgstr "%s：%s 已经创建，但是不能删除\n"
+
+#, c-format
+msgid "%s: the %s configuration in %s will be ignored\n"
+msgstr "%s：%s 配置(位于 %s) 将被忽略\n"
+
+#, fuzzy, c-format
+#| msgid "%s: the %s configuration in %s will be ignored\n"
+msgid ""
+"%s: the '%s' configuration in %s has an invalid group, ignoring the bad "
+"group\n"
+msgstr "%s：%s 配置(位于 %s) 将被忽略\n"
+
+#, c-format
+msgid "%s: cannot create new defaults file: %s\n"
+msgstr "%s：无法创建新的默认文件：%s\n"
+
+#, c-format
+msgid "%s: cannot create directory for defaults file\n"
+msgstr "%s：无法为默认文件创建目录\n"
+
+#, c-format
+msgid "%s: cannot open new defaults file\n"
+msgstr "%s：无法打开新的默认文件\n"
+
+#, c-format
+msgid "%s: line too long in %s: %s..."
+msgstr "%s：%s 中行太长：%s..."
+
+#, c-format
+msgid "%s: Cannot create backup file (%s): %s\n"
+msgstr "%s：无法创建备份文件(%s)：%s\n"
+
+#, c-format
+msgid "%s: rename: %s: %s\n"
+msgstr "%s：改名：%s：%s\n"
+
+#, c-format
+msgid "%s: too many groups specified (max %d).\n"
+msgstr "%s：指定了过多组(最多 %d)。\n"
+
+#, c-format
+msgid "%s: Out of memory. Cannot find group '%s'.\n"
+msgstr "%s：超出内存。找不到组 '%s'。\n"
+
+#, c-format
+msgid ""
+"Usage: %s [options] LOGIN\n"
+"       %s -D\n"
+"       %s -D [options]\n"
+"\n"
+"Options:\n"
+msgstr ""
+"用法：%s [选项] 登录名\n"
+"      %s -D\n"
+"      %s -D [选项]\n"
+"\n"
+"选项：\n"
+
+msgid "      --badname                 do not check for bad names\n"
+msgstr "     --badname                    不检查 bad names\n"
+
+msgid ""
+"  -b, --base-dir BASE_DIR       base directory for the home directory of "
+"the\n"
+"                                new account\n"
+msgstr "  -b, --base-dir BASE_DIR       新账户的主目录的基目录\n"
+
+msgid ""
+"      --btrfs-subvolume-home    use BTRFS subvolume for home directory\n"
+msgstr ""
+
+msgid "  -c, --comment COMMENT         GECOS field of the new account\n"
+msgstr "  -c, --comment COMMENT         新账户的 GECOS 字段\n"
+
+msgid "  -d, --home-dir HOME_DIR       home directory of the new account\n"
+msgstr "  -d, --home-dir HOME_DIR       新账户的主目录\n"
+
+msgid ""
+"  -D, --defaults                print or change default useradd "
+"configuration\n"
+msgstr "  -D, --defaults                显示或更改默认的 useradd 配置\n"
+
+msgid "  -e, --expiredate EXPIRE_DATE  expiration date of the new account\n"
+msgstr "  -e, --expiredate EXPIRE_DATE  新账户的过期日期\n"
+
+msgid ""
+"  -f, --inactive INACTIVE       password inactivity period of the new "
+"account\n"
+msgstr "  -f, --inactive INACTIVE       新账户的密码不活动期\n"
+
+msgid ""
+"  -F, --add-subids-for-system   add entries to sub[ud]id even when adding a "
+"system user\n"
+msgstr ""
+
+msgid ""
+"  -g, --gid GROUP               name or ID of the primary group of the new\n"
+"                                account\n"
+msgstr "  -g, --gid GROUP               新账户主组的名称或 ID\n"
+
+msgid ""
+"  -G, --groups GROUPS           list of supplementary groups of the new\n"
+"                                account\n"
+msgstr "  -G, --groups GROUPS           新账户的附加组列表\n"
+
+msgid ""
+"  -k, --skel SKEL_DIR           use this alternative skeleton directory\n"
+msgstr "  -k, --skel SKEL_DIR           使用此目录作为骨架目录\n"
+
+msgid ""
+"  -l, --no-log-init             do not add the user to the lastlog and\n"
+"                                faillog databases\n"
+msgstr ""
+"  -l, --no-log-init             不要将此用户添加到最近登录和登录失败数据库\n"
+
+msgid "  -m, --create-home             create the user's home directory\n"
+msgstr "  -m, --create-home             创建用户的主目录\n"
+
+msgid ""
+"  -M, --no-create-home          do not create the user's home directory\n"
+msgstr "  -M, --no-create-home          不创建用户的主目录\n"
+
+msgid ""
+"  -N, --no-user-group           do not create a group with the same name as\n"
+"                                the user\n"
+msgstr "  -N, --no-user-group           不创建同名的组\n"
+
+msgid ""
+"  -o, --non-unique              allow to create users with duplicate\n"
+"                                (non-unique) UID\n"
+msgstr "  -o, --non-unique              允许使用重复的 UID 创建用户\n"
+
+msgid "  -p, --password PASSWORD       encrypted password of the new account\n"
+msgstr "  -p, --password PASSWORD       加密后的新账户密码\n"
+
+msgid "  -s, --shell SHELL             login shell of the new account\n"
+msgstr "  -s, --shell SHELL             新账户的登录 shell\n"
+
+msgid "  -u, --uid UID                 user ID of the new account\n"
+msgstr "  -u, --uid UID                 新账户的用户 ID\n"
+
+msgid ""
+"  -U, --user-group              create a group with the same name as the "
+"user\n"
+msgstr "  -U, --user-group              创建与用户同名的组\n"
+
+msgid ""
+"  -Z, --selinux-user SEUSER     use a specific SEUSER for the SELinux user "
+"mapping\n"
+msgstr "  -Z, --selinux-user SEUSER     为 SELinux 用户映射使用指定 SEUSER\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -Z, --selinux-user SEUSER     use a specific SEUSER for the SELinux "
+#| "user mapping\n"
+msgid ""
+"      --selinux-range SERANGE   use a specific MLS range for the SELinux "
+"user mapping\n"
+msgstr "  -Z, --selinux-user SEUSER     为 SELinux 用户映射使用指定 SEUSER\n"
+
+#, c-format
+msgid "%s: invalid base directory '%s'\n"
+msgstr "%s：无效的基目录“%s”\n"
+
+#, c-format
+msgid "%s: invalid comment '%s'\n"
+msgstr "%s：无效的注释“%s”\n"
+
+#, c-format
+msgid "%s: invalid home directory '%s'\n"
+msgstr "%s：无效的主目录“%s”\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -e\n"
+msgstr "%s：-e 参数需要有影子密码\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -f\n"
+msgstr "%s：-f 参数需要有影子密码\n"
+
+#, c-format
+msgid "%s: invalid field '%s'\n"
+msgstr "%s：无效的字段“%s”\n"
+
+#, c-format
+msgid "%s: invalid shell '%s'\n"
+msgstr "%s：无效的 shell“%s”\n"
+
+#, c-format
+msgid "%s: Warning: missing or non-executable shell '%s'\n"
+msgstr "%s：警告：缺少或不可执行 shell '%s'\n"
+
+#, c-format
+msgid "%s: -Z cannot be used with --prefix\n"
+msgstr "%s：-Z 不能与 --prefix一起使用\n"
+
+#, c-format
+msgid "%s: -Z requires SELinux enabled kernel\n"
+msgstr "%s：-Z 选项要求内核启用 SELinux\n"
+
+#, c-format
+msgid "%s: failed to open the faillog file for UID %lu: %s\n"
+msgstr "%s：打开 UID %lu 的登录失败文件失败：%s\n"
+
+#, c-format
+msgid "%s: failed to reset the faillog entry of UID %lu: %s\n"
+msgstr "%s：重置 UID %lu 的登录失败条目失败：%s\n"
+
+#, c-format
+msgid "%s: failed to close the faillog file for UID %lu: %s\n"
+msgstr "%s：关闭 UID %lu 的登录失败文件失败：%s\n"
+
+#, c-format
+msgid "%s: failed to open the lastlog file for UID %lu: %s\n"
+msgstr "%s：打开 UID %lu 的最近登录文件失败：%s\n"
+
+#, c-format
+msgid "%s: failed to reset the lastlog entry of UID %lu: %s\n"
+msgstr "%s：重置 UID %lu 的最近登录条目失败：%s\n"
+
+#, c-format
+msgid "%s: failed to close the lastlog file for UID %lu: %s\n"
+msgstr "%s：打开 UID %lu 的最近登录文件失败：%s\n"
+
+#, c-format
+msgid "%s: failed to reset the tallylog entry of user \"%s\"\n"
+msgstr "%s：重置 的记录认证失败条目失败：%s\n"
+
+#, c-format
+msgid "%s: failed to prepare the new %s entry\n"
+msgstr "%s：准备新 %s 条目失败\n"
+
+#, c-format
+msgid "%s: error while duplicating string %s\n"
+msgstr "%s：复制字符串时出错 %s\n"
+
+#, c-format
+msgid "%s: cannot set SELinux context for home directory %s\n"
+msgstr "%s：无法为主目录设置SELinux上下文 %s\n"
+
+#, c-format
+msgid "%s: error while duplicating string in BTRFS check %s\n"
+msgstr ""
+
+#, c-format
+msgid "%s: home directory \"%s\" must be mounted on BTRFS\n"
+msgstr "%s：home目录\"%s\"必须挂载在BTRFS上\n"
+
+#, c-format
+msgid "%s: failed to create BTRFS subvolume: %s\n"
+msgstr "%s：创建BTRFS子卷失败：%s\n"
+
+#, c-format
+msgid "%s: cannot create directory %s\n"
+msgstr "%s：无法创建目录 %s\n"
+
+#, c-format
+msgid "%s: warning: chown on `%s' failed: %m\n"
+msgstr "%s 警告：改变 `%s' 的属主失败：%m\n"
+
+#, c-format
+msgid "%s: warning: chmod on `%s' failed: %m\n"
+msgstr "%s：警告：改变 `%s' 的属主失败：%m\n"
+
+#, c-format
+msgid "%s: warning: chown on '%s' failed: %m\n"
+msgstr "%s：警告：改变 %s 的属主失败：%m\n"
+
+#, c-format
+msgid "%s: cannot reset SELinux file creation context\n"
+msgstr ""
+
+#, c-format
+msgid "%s: cannot set SELinux context for mailbox file %s\n"
+msgstr "%s: 无法为邮箱文件设置SELinux上下文 %s\n"
+
+msgid "Creating mailbox file"
+msgstr "正在创建信箱文件"
+
+msgid ""
+"Group 'mail' not found. Creating the user mailbox file with 0600 mode.\n"
+msgstr "没有找到“mail”组。以 0600 权限模式创建用户的信箱文件。\n"
+
+msgid "Setting mailbox file permissions"
+msgstr "正在设置信箱文件访问权限"
+
+#, fuzzy
+#| msgid "Creating mailbox file"
+msgid "Synchronize mailbox file"
+msgstr "正在创建信箱文件"
+
+#, fuzzy
+#| msgid "Creating mailbox file"
+msgid "Closing mailbox file"
+msgstr "正在创建信箱文件"
+
+#, c-format
+msgid "%s warning: %s's uid %d is greater than SYS_UID_MAX %d\n"
+msgstr ""
+
+#, c-format
+msgid ""
+"%s warning: %s's uid %d outside of the UID_MIN %d and UID_MAX %d range.\n"
+msgstr ""
+
+#, c-format
+msgid "%s: user '%s' already exists\n"
+msgstr "%s：用户“%s”已存在\n"
+
+#, c-format
+msgid ""
+"%s: group %s exists - if you want to add this user to that group, use -g.\n"
+msgstr "%s：%s 组已经存在 - 如果您想将此用户加入到该组，请使用 -g 参数。\n"
+
+#, c-format
+msgid "%s: can't create user\n"
+msgstr "%s：无法创建用户\n"
+
+#, c-format
+msgid "%s: UID %lu is not unique\n"
+msgstr "%s：UID %lu 并不唯一\n"
+
+#, c-format
+msgid "%s: Failed to create tcb directory for %s\n"
+msgstr "%s：为 %s 创建 tcb 目录失败\n"
+
+#, c-format
+msgid "%s: can't create group\n"
+msgstr "%s：无法创建用户组\n"
+
+#, c-format
+msgid "%s: can't create subordinate user IDs\n"
+msgstr "%s：无法创建子用户 ID\n"
+
+#, c-format
+msgid "%s: can't create subordinate group IDs\n"
+msgstr "%s：无法创建子用户组 ID\n"
+
+#, c-format
+msgid "%s: warning: the user name %s to %s SELinux user mapping failed.\n"
+msgstr "%s：警告：将用户名 %s 到 %s SELinux 的用户映射失败。\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: warning: the home directory already exists.\n"
+#| "Not copying any file from skel directory into it.\n"
+msgid ""
+"%s: warning: the home directory %s already exists.\n"
+"%s: Not copying any file from skel directory into it.\n"
+msgstr ""
+"%s：警告：此主目录已经存在。\n"
+"不从 skel 目录里向其中复制任何文件。\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -f, --force                   force removal of files,\n"
+#| "                                even if not owned by user\n"
+msgid ""
+"  -f, --force                   force some actions that would fail "
+"otherwise\n"
+"                                e.g. removal of user still logged in\n"
+"                                or files, even if not owned by the user\n"
+msgstr "  -f, --force                   即使不属于此用户，也强制删除文件\n"
+
+msgid "  -r, --remove                  remove home directory and mail spool\n"
+msgstr "  -r, --remove                  删除主目录和信件池\n"
+
+msgid ""
+"  -Z, --selinux-user            remove any SELinux user mapping for the "
+"user\n"
+msgstr "  -Z, --selinux-user            为用户删除所有的 SELinux 用户映射\n"
+
+#, c-format
+msgid ""
+"%s: group %s not removed because it is not the primary group of user %s.\n"
+msgstr "%s：组“%s”没有移除，因为它不是用户 %s 的主组\n"
+
+#, c-format
+msgid "%s: group %s not removed because it has other members.\n"
+msgstr "%s：组“%s”没有移除，因为它包含其它成员。\n"
+
+#, c-format
+msgid "%s: group %s is the primary group of another user and is not removed.\n"
+msgstr "%s：没有删除 %s 组，因为它是另外一个用户的主组。\n"
+
+#, c-format
+msgid "%s: cannot remove entry %lu from %s\n"
+msgstr "%1$s：无法从 %3$s 中移除 %2$lu\n"
+
+#, c-format
+msgid "%s: %s mail spool (%s) not found\n"
+msgstr "%s：%s 信件池 (%s) 未找到\n"
+
+#, c-format
+msgid "%s: warning: can't remove %s: %s\n"
+msgstr "%s：警告：无法删除 %s：%s\n"
+
+#, c-format
+msgid "%s: %s not owned by %s, not removing\n"
+msgstr "%s：%s 并不属于 %s，所以不会删除\n"
+
+#, c-format
+msgid "%s: Can't allocate memory, tcb entry for %s not removed.\n"
+msgstr "%s：无法申请内存，%s 的 tcb 条目没有移除。\n"
+
+#, c-format
+msgid "%s: Cannot drop privileges: %s\n"
+msgstr "%s：无法放弃特权：%s\n"
+
+#, c-format
+msgid "%s: Cannot remove the content of %s: %s\n"
+msgstr "%s：无法删除 %s 的内容：%s\n"
+
+#, c-format
+msgid "%s: Cannot remove tcb files for %s: %s\n"
+msgstr "%s：无法从 %s 中删除 tcb 文件：%s\n"
+
+#, c-format
+msgid "%s: %s home directory (%s) not found\n"
+msgstr "%s：未找到 %s 的主目录“%s”\n"
+
+#, c-format
+msgid "%s: not removing directory %s (would remove home of user %s)\n"
+msgstr "%s：不删除目录 %s (因为这将删除用户 %s 的主目录)\n"
+
+#, c-format
+msgid "%s: error removing subvolume %s\n"
+msgstr "%s：删除分卷 %s 时出错\n"
+
+#, c-format
+msgid "%s: error removing directory %s\n"
+msgstr "%s：删除目录 %s 时出错\n"
+
+#, c-format
+msgid "%s: warning: the user name %s to SELinux user mapping removal failed.\n"
+msgstr "%s：警告：将用户名 %s 到 SELinux 的用户映射失败。\n"
+
+msgid ""
+"  -a, --append                  append the user to the supplemental GROUPS\n"
+"                                mentioned by the -G option without removing\n"
+"                                the user from other groups\n"
+msgstr ""
+"  -a, --append GROUP            将用户追加至上边 -G 中提到的附加组中，\n"
+"                                并不从其它组中删除此用户\n"
+
+msgid "  -c, --comment COMMENT         new value of the GECOS field\n"
+msgstr "  -c, --comment COMMENT         GECOS 字段的新值\n"
+
+msgid ""
+"  -d, --home HOME_DIR           new home directory for the user account\n"
+msgstr "  -d, --home HOME_DIR           用户的新主目录\n"
+
+msgid ""
+"  -e, --expiredate EXPIRE_DATE  set account expiration date to EXPIRE_DATE\n"
+msgstr "  -e, --expiredate EXPIRE_DATE  设定帐户过期的日期为 EXPIRE_DATE\n"
+
+msgid ""
+"  -f, --inactive INACTIVE       set password inactive after expiration\n"
+"                                to INACTIVE\n"
+msgstr ""
+"  -f, --inactive INACTIVE       过期 INACTIVE 天数后，设定密码为失效状态\n"
+
+msgid "  -g, --gid GROUP               force use GROUP as new primary group\n"
+msgstr "  -g, --gid GROUP               强制使用 GROUP 为新主组\n"
+
+msgid "  -G, --groups GROUPS           new list of supplementary GROUPS\n"
+msgstr "  -G, --groups GROUPS           新的附加组列表 GROUPS\n"
+
+msgid "  -l, --login NEW_LOGIN         new value of the login name\n"
+msgstr "  -l, --login NEW_LOGIN         新的登录名称\n"
+
+msgid "  -L, --lock                    lock the user account\n"
+msgstr "  -L, --lock                    锁定用户帐号\n"
+
+msgid ""
+"  -m, --move-home               move contents of the home directory to the\n"
+"                                new location (use only with -d)\n"
+msgstr ""
+"  -m, --move-home               将家目录内容移至新位置 (仅于 -d 一起使用)\n"
+
+msgid ""
+"  -o, --non-unique              allow using duplicate (non-unique) UID\n"
+msgstr "  -o, --non-unique              允许使用重复的(非唯一的) UID\n"
+
+msgid ""
+"  -p, --password PASSWORD       use encrypted password for the new password\n"
+msgstr "  -p, --password PASSWORD       将加密过的密码 (PASSWORD) 设为新密码\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -a, --append                  append the user to the supplemental "
+#| "GROUPS\n"
+#| "                                mentioned by the -G option without "
+#| "removing\n"
+#| "                                the user from other groups\n"
+msgid ""
+"  -r, --remove                  remove the user from only the supplemental "
+"GROUPS\n"
+"                                mentioned by the -G option without removing\n"
+"                                the user from other groups\n"
+msgstr ""
+"  -a, --append GROUP            将用户追加至上边 -G 中提到的附加组中，\n"
+"                                并不从其它组中删除此用户\n"
+
+msgid "  -u, --uid UID                 new UID for the user account\n"
+msgstr "  -u, --uid UID                 用户帐号的新 UID\n"
+
+msgid "  -U, --unlock                  unlock the user account\n"
+msgstr "  -U, --unlock                  解锁用户帐号\n"
+
+msgid "  -v, --add-subuids FIRST-LAST  add range of subordinate uids\n"
+msgstr "  -v, --add-subuids FIRST-LAST  添加子 UID 范围\n"
+
+msgid "  -V, --del-subuids FIRST-LAST  remove range of subordinate uids\n"
+msgstr "  -V, --del-subuids FIRST-LAST  移除子 UID 范围\n"
+
+msgid "  -w, --add-subgids FIRST-LAST  add range of subordinate gids\n"
+msgstr "  -w, --add-subgids FIRST-LAST  添加子 GID 范围\n"
+
+msgid "  -W, --del-subgids FIRST-LAST  remove range of subordinate gids\n"
+msgstr "  -W, --del-subgids FIRST-LAST  移除子 GID 范围\n"
+
+msgid ""
+"  -Z, --selinux-user SEUSER     new SELinux user mapping for the user "
+"account\n"
+msgstr "  -Z, --selinux-user SEUSER     用户的新的 SELinux 用户映射\n"
+
+#, fuzzy
+#| msgid ""
+#| "  -Z, --selinux-user SEUSER     new SELinux user mapping for the user "
+#| "account\n"
+msgid ""
+"      --selinux-range SERANGE   new SELinux MLS range for the user account\n"
+msgstr "  -Z, --selinux-user SEUSER     用户的新的 SELinux 用户映射\n"
+
+#, c-format
+msgid ""
+"%s: unlocking the user's password would result in a passwordless account.\n"
+"You should set a password with usermod -p to unlock this user's password.\n"
+msgstr ""
+"%s：解锁用户密码将产生没有密码的账户。\n"
+"您应该使用 usermod -p 设置密码并解锁用户密码。\n"
+
+#, c-format
+msgid "%s: user '%s' already exists in %s\n"
+msgstr "%s：用户“%s”已存在于 %s 中\n"
+
+#, c-format
+msgid "%s: homedir must be an absolute path\n"
+msgstr ""
+
+#, c-format
+msgid "%s: invalid subordinate uid range '%s'\n"
+msgstr "%s：无效的子 UID 范围“%s”\n"
+
+#, c-format
+msgid "%s: invalid subordinate gid range '%s'\n"
+msgstr "%s：无效的子 GID 范围“%s”\n"
+
+#, c-format
+msgid "%s: no options\n"
+msgstr "%s：无选项\n"
+
+#, c-format
+msgid "%s: %s and %s are mutually exclusive flags\n"
+msgstr ""
+
+#, c-format
+msgid "%s: the -L, -p, and -U flags are exclusive\n"
+msgstr "%s：-L、-p 和 -U 标志互斥\n"
+
+#, c-format
+msgid "%s: shadow passwords required for -e and -f\n"
+msgstr "%s：-e 和 -f 参数需要影子密码\n"
+
+#, c-format
+msgid "%s: UID '%lu' already exists\n"
+msgstr "%s：UID“%lu”已经存在\n"
+
+#, c-format
+msgid "%s: %s does not exist, you cannot use the flags %s or %s\n"
+msgstr "%s：不存在 %s，您不能使用 %s 或 %s 标志\n"
+
+#, c-format
+msgid "%s: directory %s exists\n"
+msgstr "%s：目录 %s 不存在\n"
+
+#, c-format
+msgid ""
+"%s: The previous home directory (%s) was not a directory. It is not removed "
+"and no home directories are created.\n"
+msgstr "%s：先前的主目录 (%s) 不是一个目录。没有移除它，也没有创建主目录。\n"
+
+#, c-format
+msgid "%s: Failed to change ownership of the home directory"
+msgstr "%s：更改主目录的属主失败"
+
+#, c-format
+msgid "%s: error: cannot move subvolume from %s to %s - different device\n"
+msgstr ""
+
+#, c-format
+msgid "%s: warning: failed to completely remove old home directory %s"
+msgstr "%s：警告：无法将旧的主目录 %s 完全删除"
+
+#, c-format
+msgid "%s: cannot rename directory %s to %s\n"
+msgstr "%s：无法将目录 %s 改名为 %s\n"
+
+#, fuzzy, c-format
+#| msgid ""
+#| "%s: The previous home directory (%s) was not a directory. It is not "
+#| "removed and no home directories are created.\n"
+msgid ""
+"%s: The previous home directory (%s) does not exist or is inaccessible. Move "
+"cannot be completed.\n"
+msgstr "%s：先前的主目录 (%s) 不是一个目录。没有移除它，也没有创建主目录。\n"
+
+#, c-format
+msgid "%s: failed to copy the lastlog entry of user %lu to user %lu: %s\n"
+msgstr "%s：将用户 %lu 的登录失败条目复制给用户 %lu 失败：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to copy the lastlog entry of user %lu to user %lu: %s\n"
+msgid "%s: failed to copy the lastlog entry of user %ju to user %ju: %s\n"
+msgstr "%s：将用户 %lu 的登录失败条目复制给用户 %lu 失败：%s\n"
+
+#, c-format
+msgid "%s: failed to copy the faillog entry of user %lu to user %lu: %s\n"
+msgstr "%s：将用户 %lu 的登录失败条目复制给用户 %lu 失败：%s\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to copy the faillog entry of user %lu to user %lu: %s\n"
+msgid "%s: failed to copy the faillog entry of user %ju to user %ju: %s\n"
+msgstr "%s：将用户 %lu 的登录失败条目复制给用户 %lu 失败：%s\n"
+
+#, c-format
+msgid "%s: warning: %s not owned by %s\n"
+msgstr "%s：警告：%s 不属于 %s\n"
+
+msgid "failed to change mailbox owner"
+msgstr "改变信箱所有者失败"
+
+msgid "failed to rename mailbox"
+msgstr "信箱改名失败"
+
+#, c-format
+msgid "%s: failed to remove uid range %lu-%lu from '%s'\n"
+msgstr "%1$s：从“%4$s”移除 UID 范围 %2$lu~%3$lu 失败\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to add uid range %lu-%lu from '%s'\n"
+msgid "%s: failed to add uid range %lu-%lu to '%s'\n"
+msgstr "%1$s：向“%4$s”添加 UID 范围 %2$lu~%3$lu 失败\n"
+
+#, c-format
+msgid "%s: failed to remove gid range %lu-%lu from '%s'\n"
+msgstr "%1$s：从“%4$s”移除 GID 范围 %2$lu~%3$lu 失败\n"
+
+#, fuzzy, c-format
+#| msgid "%s: failed to add gid range %lu-%lu from '%s'\n"
+msgid "%s: failed to add gid range %lu-%lu to '%s'\n"
+msgstr "%1$s：向“%4$s”添加 GID 范围 %2$lu~%3$lu 失败\n"
+
+#, c-format
+msgid ""
+"You have modified %s.\n"
+"You may need to modify %s for consistency.\n"
+"Please use the command '%s' to do so.\n"
+msgstr ""
+"您已经修改了 %s。\n"
+"出于一致性的考虑，您可能需要修改 %s。\n"
+"请使用命令“%s”来进行这个工作。\n"
+
+msgid "  -g, --group                   edit group database\n"
+msgstr "  -g, --group                   编辑 group 数据库\n"
+
+msgid "  -p, --passwd                  edit passwd database\n"
+msgstr "  -p, --passwd                  编辑 passwd 数据库\n"
+
+msgid "  -s, --shadow                  edit shadow or gshadow database\n"
+msgstr "  -s, --shadow                  编辑 shadow 或 gshadow 数据库\n"
+
+msgid "  -u, --user                    which user's tcb shadow file to edit\n"
+msgstr "  -u, --user                    要编辑哪个用户的 tcb 影子文件\n"
+
+#, c-format
+msgid "%s: failed to remove %s\n"
+msgstr "%s：移除 %s 失败\n"
+
+#, c-format
+msgid "%s: %s is unchanged\n"
+msgstr "%s：%s 没有更改\n"
+
+msgid "failed to create scratch directory"
+msgstr "创建临时目录失败"
+
+msgid "failed to drop privileges"
+msgstr "放弃特权失败"
+
+msgid "Couldn't get file context"
+msgstr "无法获取文件的上下文"
+
+msgid "setfscreatecon () failed"
+msgstr "setfscreatecon () 失败"
+
+msgid "failed to gain privileges"
+msgstr "获取特权失败"
+
+msgid "Couldn't lock file"
+msgstr "无法锁定文件"
+
+msgid "Couldn't make backup"
+msgstr "无法创建备份"
+
+#, c-format
+msgid "%s: %s: %s\n"
+msgstr "%s：%s：%s\n"
+
+#, c-format
+msgid "%s: %s returned with status %d\n"
+msgstr "%s：%s 以状态 %d 退出\n"
+
+#, c-format
+msgid "%s: %s killed by signal %d\n"
+msgstr "%s：%s 被信号 %d 杀死\n"
+
+msgid "failed to open scratch file"
+msgstr "打开临时文件失败"
+
+msgid "failed to unlink scratch file"
+msgstr "删除(unlink)临时文件失败"
+
+msgid "failed to stat edited file"
+msgstr "获取编辑过的文件的信息失败"
+
+#, fuzzy
+#| msgid "%s: snprintf failed!\n"
+msgid "asprintf(3) failed"
+msgstr "%s：snprintf 失败\n"
+
+msgid "failed to create backup file"
+msgstr "创建备份文件失败"
+
+#, c-format
+msgid "%s: can't restore %s: %s (your changes are in %s)\n"
+msgstr "%s：无法恢复 %s：%s (您的修改在 %s 中)\n"
+
+#, c-format
+msgid "%s: failed to find tcb directory for %s\n"
+msgstr "%s：无法为“%s”找到 tcb 目录\n"
+
+#~ msgid "Environment overflow\n"
+#~ msgstr "环境溢出\n"
+
+#, c-format
+#~ msgid "%s: cannot change user '%s' on NIS client.\n"
+#~ msgstr "%s：不能在 NIS 客户端上修改用户“%s”。\n"
+
+#, c-format
+#~ msgid "%s: '%s' is the NIS master for this client.\n"
+#~ msgstr "%s：“%s”是此客户端的 NIS 管理员。\n"
+
+#, c-format
+#~ msgid "%s: group '%s' is a NIS group\n"
+#~ msgstr "%s：“%s”组是一个 NIS 组。\n"
+
+#, c-format
+#~ msgid "%s: %s is the NIS master\n"
+#~ msgstr "%s：%s 是 NIS 管理员\n"
+
+#, c-format
+#~ msgid "%s: group %s is a NIS group\n"
+#~ msgstr "%s：%s 组是一个 NIS 组\n"
+
+#, c-format
+#~ msgid "       %s [-p] -r host\n"
+#~ msgstr "       %s [-p] -r 主机\n"
+
+#, c-format
+#~ msgid "%s: cannot create new defaults file\n"
+#~ msgstr "%s：无法创建新的默认文件\n"
+
+#, c-format
+#~ msgid "%s: group '%s' is a NIS group.\n"
+#~ msgstr "%s：“%s”组是一个 NIS 组。\n"
+
+#, c-format
+#~ msgid "%s: user %s is a NIS user\n"
+#~ msgstr "%s：用户 %s 是 NIS 用户\n"
+
+#, c-format
+#~ msgid "%s: Not enough arguments to form %u mappings\n"
+#~ msgstr "%s：没有足够的参数来形成%u映射\n"
+
+#~ msgid "too simple"
+#~ msgstr "太简单"
+
+#~ msgid "No utmp entry.  You must exec \"login\" from the lowest level \"sh\""
+#~ msgstr "没有 utmp 条目。您必须在最底层的“sh”里执行“login”"
+
+#, c-format
+#~| msgid "%s: failed to find tcb directory for %s\n"
+#~ msgid "%s: Could not open proc directory for target %u\n"
+#~ msgstr "%s：无法打开目标的proc目录%u\n"
+
+#~ msgid "failed to allocate memory"
+#~ msgstr "申请内存失败"
+
+#~ msgid "Usage: id\n"
+#~ msgstr "用法：id\n"
+
+#, c-format
+#~ msgid "Last login: %.19s on %s"
+#~ msgstr "上次登录：%.19s 在 %s 上"
+
+#, c-format
+#~ msgid "%s: invalid user name '%s'\n"
+#~ msgstr "%s：无效的用户名“%s”\n"
+
+#, c-format
+#~ msgid "%s: password expiry information changed.\n"
+#~ msgstr "%s：密码过期信息已更改。\n"
+
+#~ msgid "Username         Port     From             Latest"
+#~ msgstr "用户名           端口     来自             最后登录时间"
+
+#~ msgid "  -c, --crypt-method            the crypt method (one of %s)\n"
+#~ msgstr "  -c, --crypt-method            加密方法 (%s 之一)\n"
+
+#~ msgid ""
+#~ "Usage: vipw [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ msgstr ""
+#~ "用法：vipw [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+
+#~ msgid "malloc(%d) failed\n"
+#~ msgstr "malloc(%d) 失败\n"
+
+#~ msgid ""
+#~ "Usage: chage [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -d, --lastday LAST_DAY        set date of last password change to "
+#~ "LAST_DAY\n"
+#~ "  -E, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -I, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -l, --list                    show account aging information\n"
+#~ "  -m, --mindays MIN_DAYS        set minimum number of days before "
+#~ "password\n"
+#~ "                                change to MIN_DAYS\n"
+#~ "  -M, --maxdays MAX_DAYS        set maximim number of days before "
+#~ "password\n"
+#~ "                                change to MAX_DAYS\n"
+#~ "  -W, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：chage [选项] [登录]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -d, --lastday 最近日期\t将最近一次密码设置时间设为“最近日期”\n"
+#~ "  -E, --expiredate 过期日期\t将帐户过期时间设为“过期日期”\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -I, --inactive INACITVE\t过期 INACTIVE 天数后，设定密码为失效状态\n"
+#~ "  -l, --list\t\t\t显示帐户年龄信息\n"
+#~ "  -m, --mindays 最小天数\t将两次改变密码之间相距的最小天数设为“最小天数”\n"
+#~ "  -M, --maxdays 最大天数\t将两次改变密码之间相距的最大天数设为“最大天数”\n"
+#~ "  -W, --warndays 警告天数\t将过期警告天数设为“警告天数”\n"
+#~ "\n"
+
+#~ msgid "%s: PAM authentication failed\n"
+#~ msgstr "%s：PAM 验证失败\n"
+
+#~ msgid ""
+#~ "Usage: %s [-f full_name] [-r room_no] [-w work_ph]\n"
+#~ "\t[-h home_ph] [-o other] [user]\n"
+#~ msgstr ""
+#~ "用法：%s [-f 全名] [-r 房间号] [-w 工作电话]\n"
+#~ "\t[-h 家庭电话] [-o 其它] [用户]\n"
+
+#~ msgid "Usage: %s [-f full_name] [-r room_no] [-w work_ph] [-h home_ph]\n"
+#~ msgstr "用法：%s [-f 全名] [-r 房间号] [-w 工作电话] [-h 家庭电话]\n"
+
+#~ msgid ""
+#~ "Usage: %s [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -c, --crypt-method            the crypt method (one of %s)\n"
+#~ "  -e, --encrypted               supplied passwords are encrypted\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -m, --md5                     encrypt the clear text password using\n"
+#~ "                                the MD5 algorithm\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "用法：%s [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -c, --crypt-method\t加密方法 (%s 中的一个)\n"
+#~ "  -e, --encrypted\t\t提供的密码是加密过的\n"
+#~ "  -h, --help\t\t\t显示此帮助信息然后推出\n"
+#~ "  -m, --md5\t\t\t使用 MD5 算法加密明文密码\n"
+#~ "%s\n"
+
+#~ msgid ""
+#~ "Usage: chsh [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -s, --shell SHELL             new login shell for the user account\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：chsh [选项] [登录]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -h, --help\t\t\t\t显示此帮助信息并退出\n"
+#~ "  -s, --shell SHELL\t\t\t该用户帐号的新登录 shell\n"
+
+#~ msgid "Usage: expiry {-f|-c}\n"
+#~ msgstr "用法：expiry {-f|-c}\n"
+
+#~ msgid "faillog: Failed to get the entry for UID %lu\n"
+#~ msgstr "登录失败：获取 UID %lu 的条目失败\n"
+
+#~ msgid "faillog: Cannot open %s: %s\n"
+#~ msgstr "登录失败：无法打开 %s：%s\n"
+
+#~ msgid "faillog: Cannot get the size of %s: %s\n"
+#~ msgstr "登录失败：无法获取 %s 的大小：%s\n"
+
+#~ msgid "Usage: groupdel group\n"
+#~ msgstr "用法：groupdel 组\n"
+
+#~ msgid "Usage: %s [-r] [-s] [group [gshadow]]\n"
+#~ msgstr "用法：%s [-r] [-s] [组 [gshadow]]\n"
+
+#~ msgid "Usage: %s [-r] [-s] [group]\n"
+#~ msgstr "用法：%s [-r] [-s] [组]\n"
+
+#~ msgid "%s: -s and -r are incompatibile\n"
+#~ msgstr "%s：-s 和 -r 不兼容\n"
+
+#~ msgid "Usage: grpconv\n"
+#~ msgstr "用法：grpconv\n"
+
+#~ msgid "Usage: grpunconv\n"
+#~ msgstr "用法：grpunconv\n"
+
+#~ msgid ""
+#~ "Usage: lastlog [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -b, --before DAYS             print only lastlog records older than "
+#~ "DAYS\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -t, --time DAYS               print only lastlog records more recent "
+#~ "than DAYS\n"
+#~ "  -u, --user LOGIN              print lastlog record of the specified "
+#~ "LOGIN\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：lastlog [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -b, --before DAYS\t仅打印早于 DAYS 的最近登录记录\n"
+#~ "  -h, --help\t\t显示此帮助信息并退出\n"
+#~ "  -t, --time DAYS\t仅打印晚于 DAYS 的最近登录记录\n"
+#~ "  -u, --user LOGIN\t打印 LOGIN 用户的最近登录记录\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: passwd [options] [LOGIN]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -a, --all                     report password status on all accounts\n"
+#~ "  -d, --delete                  delete the password for the named "
+#~ "account\n"
+#~ "  -e, --expire                  force expire the password for the named "
+#~ "account\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -k, --keep-tokens             change password only if expired\n"
+#~ "  -i, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -l, --lock                    lock the password of the named account\n"
+#~ "  -n, --mindays MIN_DAYS        set minimum number of days before "
+#~ "password\n"
+#~ "                                change to MIN_DAYS\n"
+#~ "  -q, --quiet                   quiet mode\n"
+#~ "  -r, --repository REPOSITORY   change password in REPOSITORY repository\n"
+#~ "  -S, --status                  report password status on the named "
+#~ "account\n"
+#~ "  -u, --unlock                  unlock the password of the named account\n"
+#~ "  -w, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS\n"
+#~ "  -x, --maxdays MAX_DAYS        set maximum number of days before "
+#~ "password\n"
+#~ "                                change to MAX_DAYS\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：passwd [选项] [用户名]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -a, --all\t\t\t报告所有帐户的密码状态\n"
+#~ "  -d, --delete\t\t\t删除指定帐户的密码\n"
+#~ "  -e, --expire\t\t\t强制使指定帐户的密码过期\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -k, --keep-tokens\t\t仅在过期后修改密码\n"
+#~ "  -i, --inactive INACTIVE\t密码过期后设置密码不活动为 INACTIVE\n"
+#~ "  -l, --lock\t\t\t锁定指定的帐户\n"
+#~ "  -n, --mindays MIN_DAYS\t设置到下次修改密码所须等待的最短天数\n"
+#~ "\t\t\t\t为 MIN_DAYS\n"
+#~ "  -q, --quiet\t\t\t安静模式\n"
+#~ "  -r, --repository REPOSITORY\t在 REPOSITORY 库中改变密码\n"
+#~ "  -S, --status\t\t\t报告指定帐户密码的状态\n"
+#~ "  -u, --unlock\t\t\t解锁被指定帐户\n"
+#~ "  -w, --warndays WARN_DAYS\t设置过期警告天数为 WARN_DAYS\n"
+#~ "  -x, --maxdays MAX_DAYS\t设置到下次修改密码所须等待的最多天数\n"
+#~ "\t\t\t\t为 MAX_DAYS\n"
+#~ "\n"
+
+#~ msgid "Usage: %s [-q] [-r] [passwd]\n"
+#~ msgstr "用法：%s [-q] [-r] [passwd]\n"
+
+#~ msgid "Usage: %s [-q] [-r] [-s] [passwd [shadow]]\n"
+#~ msgstr "用法：%s [-q] [-r] [-s] [passwd [shadow]]\n"
+
+#~ msgid "Usage: pwconv\n"
+#~ msgstr "用法：pwconv\n"
+
+#~ msgid "Usage: pwunconv\n"
+#~ msgstr "用法：pwunconv\n"
+
+#~ msgid "Unknown id: %s\n"
+#~ msgstr "未知 id：%s\n"
+
+#~ msgid "No shell\n"
+#~ msgstr "没有 shell\n"
+
+#~ msgid ""
+#~ "Usage: userdel [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -f, --force                   force removal of files,\n"
+#~ "                                even if not owned by user\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -r, --remove                  remove home directory and mail spool\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：userdel [选项] 登录\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -f, --force\t\t即使不属于此用户，也强制删除文件\n"
+#~ "  -h, --help\t\t显示此帮组文件并退出\n"
+#~ "  -r, --remove\t\t删除主目录和邮箱\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "Usage: usermod [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -c, --comment COMMENT         new value of the GECOS field\n"
+#~ "  -d, --home HOME_DIR           new home directory for the user account\n"
+#~ "  -e, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -g, --gid GROUP               force use GROUP as new primary group\n"
+#~ "  -G, --groups GROUPS           new list of supplementary GROUPS\n"
+#~ "  -a, --append                  append the user to the supplemental "
+#~ "GROUPS\n"
+#~ "                                mentioned by the -G option without "
+#~ "removing\n"
+#~ "                                the user from other groups\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -l, --login NEW_LOGIN         new value of the login name\n"
+#~ "  -L, --lock                    lock the user account\n"
+#~ "  -m, --move-home               move contents of the home directory to "
+#~ "the\n"
+#~ "                                new location (use only with -d)\n"
+#~ "  -o, --non-unique              allow using duplicate (non-unique) UID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new "
+#~ "password\n"
+#~ "  -s, --shell SHELL             new login shell for the user account\n"
+#~ "  -u, --uid UID                 new UID for the user account\n"
+#~ "  -U, --unlock                  unlock the user account\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "用法：usermod [选项] 登录\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -c, --comment 注释\t\tGECOS 字段的新值\n"
+#~ "  -d, --home HOME_DIR\t\t用户的新主目录\n"
+#~ "  -e, --expiredate EXPIRE_DATE\t设定帐户过期的日期为 EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE\t过期 INACTIVE 天数后，设定密码为失效状态\n"
+#~ "  -g, --gid GROUP\t\t强制使用 GROUP 为新主组\n"
+#~ "  -G, --groups GROUPS\t\t新的附加组列表 GROUPS\n"
+#~ "  -a, --append GROUP\t将用户追加至上边 -G 中提到的附加组中，\n"
+#~ "\t\t\t\t\t并不从其它组中删除此用户\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -l, --login LOGIN\t\t新的登录名称\n"
+#~ "  -L, --lock\t\t\t锁定用户帐号\n"
+#~ "  -m, --move-home\t\t将家目录内容移至新位置 (仅于 -d 一起使用)\n"
+#~ "  -o, --non-unique\t\t允许使用重复的(非唯一的) UID\n"
+#~ "  -p, --password PASSWORD\t将加密过的密码 (PASSWORD) 设为新密码\n"
+#~ "  -s, --shell SHELL\t\t用户帐号的新登录 shell\n"
+#~ "  -u, --uid UID\t\t\t用户帐号的新 UID\n"
+#~ "  -U, --unlock\t\t\t解锁用户帐号\n"
+#~ "%s\n"
+
+#~ msgid "%s: no flags given\n"
+#~ msgstr "%s：没有指定标志\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage: vipw [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -g, --group                   edit group database\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -p, --passwd                  edit passwd database\n"
+#~ "  -q, --quiet                   quiet mode\n"
+#~ "  -s, --shadow                  edit shadow or gshadow database\n"
+#~ "  -u, --user                    which user's tcb shadow file to edit\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：vipw [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -g, --group\t\t\t编辑组数据库\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -p, --passwd\t\t\t编辑 passwd 数据库\n"
+#~ "  -q, --quiet\t\t\t安静模式\n"
+#~ "  -s, --shadow\t\t\t编辑 shadow 或 gshadow 数据库\n"
+#~ "\n"
+
+#, fuzzy
+#~| msgid "Usage: %s [input]\n"
+#~ msgid ""
+#~ "Usage: useradd [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ msgstr "用法：%s [输入]\n"
+
+#~ msgid "%s: can't create %s\n"
+#~ msgstr "%s：无法创建 %s\n"
+
+#~ msgid "%s: can't chown %s\n"
+#~ msgstr "%s：无法改变 %s 的所有者和组别\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage: faillog [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -a, --all                     display faillog records for all users\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -l, --lock-time SEC           after failed login lock account to SEC "
+#~ "seconds\n"
+#~ "  -m, --maximum MAX             set maximum failed login counters to MAX\n"
+#~ "  -r, --reset                   reset the counters of login failures\n"
+#~ "  -t, --time DAYS               display faillog records more recent than "
+#~ "DAYS\n"
+#~ "  -u, --user LOGIN              display faillog record or maintains "
+#~ "failure\n"
+#~ "                                counters and limits (if used with -r, -m "
+#~ "or -l\n"
+#~ "                                options) only for user with LOGIN\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：faillog [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -a, --all\t\t\t显示所有用户的登录失败记录\n"
+#~ "  -h, --help\t\t\t显示本帮助信息并退出\n"
+#~ "  -l, --lock-time 秒数\t\t在登录失败后锁定帐户“秒数”秒\n"
+#~ "  -m, --maximum 最大值\t\t将最大登录失败次数设为“最大值”\n"
+#~ "  -r, --reset\t\t\t将登录失败计数器归零\n"
+#~ "  -t, --time 天数\t\t显示最近“天数”天以来的登录失败记录\n"
+#~ "  -u, --user 登录\t\t仅显示用户“登录”的登录失败记录，或设置用户“登\n"
+#~ "\t\t\t\t录”的登录失败计数器及限制(如果和 -r、-m 或 -l 选\n"
+#~ "\t\t\t\t项合用)\n"
+#~ "\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage: groupadd [options] GROUP\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -f, --force                   force exit with success status if the\n"
+#~ "                                specified group already exists\n"
+#~ "  -g, --gid GID                 use GID for the new group\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -K, --key KEY=VALUE           overrides /etc/login.defs defaults\n"
+#~ "  -o, --non-unique              allow create group with duplicate\n"
+#~ "                                (non-unique) GID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new group\n"
+#~ "  -r, --system                  create a system account\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：groupadd [选项] 组\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -f, --force\t\t如果指组已经存在，则强制以正常状态退出\n"
+#~ "  -g, --gid GID\t\t新组使用 GID\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -K, --key KEY=VALUE\t\t覆盖 /etc/login.defs 默认值\n"
+#~ "  -o, --non-unique\t\t允许使用重复的(非唯一的) GID 创建组\n"
+#~ "\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage: groupmod [options] GROUP\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -g, --gid GID                 force use new GID by GROUP\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -n, --new-name NEW_GROUP      force use NEW_GROUP name by GROUP\n"
+#~ "  -o, --non-unique              allow using duplicate (non-unique) GID by "
+#~ "GROUP\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new "
+#~ "password\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：groupadd [选项] 组\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -f, --force\t\t如果指组已经存在，则强制以正常状态退出\n"
+#~ "  -g, --gid GID\t\t新组使用 GID\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -K, --key KEY=VALUE\t\t覆盖 /etc/login.defs 默认值\n"
+#~ "  -o, --non-unique\t\t允许使用重复的(非唯一的) GID 创建组\n"
+#~ "\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage: useradd [options] LOGIN\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -b, --base-dir BASE_DIR       base directory for the new user account\n"
+#~ "                                home directory\n"
+#~ "  -c, --comment COMMENT         set the GECOS field for the new user "
+#~ "account\n"
+#~ "  -d, --home-dir HOME_DIR       home directory for the new user account\n"
+#~ "  -D, --defaults                print or save modified default useradd\n"
+#~ "                                configuration\n"
+#~ "  -e, --expiredate EXPIRE_DATE  set account expiration date to "
+#~ "EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE       set password inactive after expiration\n"
+#~ "                                to INACTIVE\n"
+#~ "  -g, --gid GROUP               force use GROUP for the new user account\n"
+#~ "  -G, --groups GROUPS           list of supplementary groups for the new\n"
+#~ "                                user account\n"
+#~ "  -h, --help                    display this help message and exit\n"
+#~ "  -k, --skel SKEL_DIR           specify an alternative skel directory\n"
+#~ "  -K, --key KEY=VALUE           overrides /etc/login.defs defaults\n"
+#~ "  -l, --no-log-init             do not add the user to the lastlog and\n"
+#~ "                                faillog databases\n"
+#~ "  -m, --create-home             create home directory for the new user\n"
+#~ "                                account\n"
+#~ "  -M, --no-create-home          do not create user's home directory\n"
+#~ "                                (overrides /etc/login.defs)\n"
+#~ "  -N, --no-user-group           do not create a group with the same name "
+#~ "as\n"
+#~ "                                the user\n"
+#~ "  -o, --non-unique              allow create user with duplicate\n"
+#~ "                                (non-unique) UID\n"
+#~ "  -p, --password PASSWORD       use encrypted password for the new user\n"
+#~ "                                account\n"
+#~ "  -r, --system                  create a system account\n"
+#~ "  -s, --shell SHELL             the login shell for the new user account\n"
+#~ "  -u, --uid UID                 force use the UID for the new user "
+#~ "account\n"
+#~ "  -U, --user-group              create a group with the same name as the "
+#~ "user\n"
+#~ "%s\n"
+#~ msgstr ""
+#~ "用法：useradd [选项] 用户名\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -b, --base-dir BASE_DIR\t新用户帐号家目录的主目录(base directory)\n"
+#~ "  -c, --comment 注释\t\t为新用户帐号设置“注释”栏\n"
+#~ "  -d, --home-dir HOME_DIR\t新用户帐号的家目录\n"
+#~ "  -D, --defaults\t\t打印或保存修改过的 useradd 默认设置\n"
+#~ "  -e, --expiredate EXPIRE_DATE\t设定帐户过期的日期为 EXPIRE_DATE\n"
+#~ "  -f, --inactive INACTIVE\t过期 INACTIVE 天数后，设定密码为失效状态\n"
+#~ "  -g, --gid GROUP\t\t强制将新用户帐号的组设置为 GROUP\n"
+#~ "  -G, --groups GROUPS\t\t新用户帐号的补充组列表\n"
+#~ "  -h, --help\t\t\t显示此帮助信息并退出\n"
+#~ "  -k, --skel SKEL_DIR\t\t指定另一替代的 skel 目录\n"
+#~ "  -K, --key KEY=VALUE\t\t覆盖 /etc/login.defs 默认值\n"
+#~ "  -m, --create-home\t\t为新用户帐号创建家目录\n"
+#~ "  -o, --non-unique\t\t允许以重复的(非唯一的) UID 创建用户\n"
+#~ "  -p, --password PASSWORD\t为新用户帐号设定加密过的密码 (PASSWORD)\n"
+#~ "  -s, --shell SHELL\t\t新用户帐号的登录 shell\n"
+#~ "  -u, --uid UID\t\t\t强制将新用户帐号的 id 设为 UID\n"
+#~ "\n"
+
+#~ msgid "Password set to expire."
+#~ msgstr "已设定密码过期时间。"
+
+#~ msgid "%s: can't lock password file\n"
+#~ msgstr "%s：无法锁定密码文件\n"
+
+#~ msgid "%s: can't open password file\n"
+#~ msgstr "%s：无法打开密码文件\n"
+
+#~ msgid "%s: can't lock shadow password file\n"
+#~ msgstr "%s：无法锁定影子密码文件\n"
+
+#~ msgid "%s: can't open shadow password file\n"
+#~ msgstr "%s：无法打开影子密码文件\n"
+
+#~ msgid "%s: can't rewrite shadow password file\n"
+#~ msgstr "%s：无法重写影子密码文件\n"
+
+#~ msgid "%s: can't rewrite password file\n"
+#~ msgstr "%s：无法重写密码文件\n"
+
+#~ msgid "%s: can't update shadow password file\n"
+#~ msgstr "%s：无法更新影子密码文件\n"
+
+#~ msgid "\tFull Name: %s\n"
+#~ msgstr "\t全名：%s\n"
+
+#~ msgid "\tRoom Number: %s\n"
+#~ msgstr "\t房间号码：%s\n"
+
+#~ msgid "\tWork Phone: %s\n"
+#~ msgstr "\t工作电话：%s\n"
+
+#~ msgid "\tHome Phone: %s\n"
+#~ msgstr "\t家庭电话：%s\n"
+
+#~ msgid "Cannot lock the password file; try again later.\n"
+#~ msgstr "无法锁定密码文件；稍后再试。\n"
+
+#~ msgid "Cannot open the password file.\n"
+#~ msgstr "无法打开密码文件。\n"
+
+#~ msgid "%s: %s not found in /etc/passwd\n"
+#~ msgstr "%s：未在 /etc/passwd 中找到 %s\n"
+
+#~ msgid "Error updating the password entry.\n"
+#~ msgstr "更改密码条目时出错。\n"
+
+#~ msgid "Cannot commit password file changes.\n"
+#~ msgstr "无法提交密码文件改动。\n"
+
+#~ msgid "Cannot unlock the password file.\n"
+#~ msgstr "无法解锁密码文件。\n"
+
+#~ msgid "%s: can't lock group file\n"
+#~ msgstr "%s：无法锁定组文件\n"
+
+#~ msgid "%s: can't lock gshadow file\n"
+#~ msgstr "%s：无法锁定 gshadow 文件\n"
+
+#~ msgid "%s: can't open shadow file\n"
+#~ msgstr "%s：无法打开影子文件\n"
+
+#, fuzzy
+#~ msgid "%s: error updating gshadow file\n"
+#~ msgstr "%s：更新影子文件时出错。\n"
+
+#, fuzzy
+#~ msgid "%s: error updating group file\n"
+#~ msgstr "%s：更新组条目时出错\n"
+
+#~ msgid "%s: line %d: unknown group %s\n"
+#~ msgstr "%s：第 %d 行：未知组 %s\n"
+
+#, fuzzy
+#~ msgid "%s: line %d: cannot update group entry\n"
+#~ msgstr "%s：第 %d 行：无法更新条目\n"
+
+#~ msgid "%s: can't lock shadow file\n"
+#~ msgstr "%s：无法锁定影子文件\n"
+
+#~ msgid "%s: error updating shadow file\n"
+#~ msgstr "%s：更新影子文件时出错。\n"
+
+#~ msgid "%s: error updating password file\n"
+#~ msgstr "%s：更新密码文件时出错。\n"
+
+#~ msgid "%s: line %d: unknown user %s\n"
+#~ msgstr "%s：第 %d 行：未知用户 %s\n"
+
+#~ msgid "%s: line %d: cannot update password entry\n"
+#~ msgstr "%s：第 %d 行：无法更新密码条目\n"
+
+#~ msgid "%s: unknown user\n"
+#~ msgstr "%s：未知用户\n"
+
+#~ msgid "Unknown User: %s\n"
+#~ msgstr "未知用户：%s\n"
+
+#~ msgid "Usage: %s [-r|-R] group\n"
+#~ msgstr "用法：%s [-r|-R] 组\n"
+
+#~ msgid "       %s [-a user] group\n"
+#~ msgstr "       %s [-a 用户] 组\n"
+
+#~ msgid "       %s [-d user] group\n"
+#~ msgstr "       %s [-d 用户] 组\n"
+
+#~ msgid "       %s [-A user,...] [-M user,...] group\n"
+#~ msgstr "       %s [-A 用户,...] [-M 用户,...] 组\n"
+
+#~ msgid "       %s [-M user,...] group\n"
+#~ msgstr "       %s [-M 用户,...] 组\n"
+
+#~ msgid "%s: can't get lock\n"
+#~ msgstr "%s：无法获得锁\n"
+
+#~ msgid "%s: can't get shadow lock\n"
+#~ msgstr "%s：无法获得影子锁\n"
+
+#~ msgid "%s: can't re-write shadow file\n"
+#~ msgstr "%s：无法重写影子文件\n"
+
+#~ msgid "%s: can't unlock file\n"
+#~ msgstr "%s 无法解锁文件。\n"
+
+#~ msgid "%s: can't update entry\n"
+#~ msgstr "%s：无法更新条目\n"
+
+#~ msgid "%s: can't update shadow entry\n"
+#~ msgstr "%s：无法更新影子条目\n"
+
+#~ msgid "unknown group: %s\n"
+#~ msgstr "未知组：%s\n"
+
+#, fuzzy
+#~ msgid "%s: can't close file\n"
+#~ msgstr "%s：无法打开文件\n"
+
+#, fuzzy
+#~ msgid "%s: can't close shadow file\n"
+#~ msgstr "%s：无法打开影子文件\n"
+
+#~ msgid "Who are you?\n"
+#~ msgstr "你是谁？\n"
+
+#~ msgid "%s: unknown member %s\n"
+#~ msgstr "%s：未知成员 %s\n"
+
+#~ msgid "%s: error adding new group entry\n"
+#~ msgstr "%s：增加新组条目时出错\n"
+
+#~ msgid "%s: cannot rewrite group file\n"
+#~ msgstr "%s：无法重写组文件\n"
+
+#~ msgid "%s: cannot rewrite shadow group file\n"
+#~ msgstr "%s：无法重写影子组文件\n"
+
+#~ msgid "%s: unable to lock group file\n"
+#~ msgstr "%s：无法锁定组文件\n"
+
+#~ msgid "%s: unable to open group file\n"
+#~ msgstr "%s：无法打开组文件\n"
+
+#~ msgid "%s: unable to lock shadow group file\n"
+#~ msgstr "%s：无法锁定影子组文件\n"
+
+#~ msgid "%s: unable to open shadow group file\n"
+#~ msgstr "%s：无法打开影子组文件\n"
+
+#~ msgid "%s: GID %u is not unique\n"
+#~ msgstr "%s：GID %u 并不唯一\n"
+
+#~ msgid "%s: error removing group entry\n"
+#~ msgstr "%s：删除组条目时出错\n"
+
+#~ msgid "%s: error removing shadow group entry\n"
+#~ msgstr "%s：删除影子组条目时出错\n"
+
+#~ msgid "%s: cannot remove user's primary group.\n"
+#~ msgstr "%s：不能删除用户的主组。\n"
+
+#~ msgid "Member to remove could not be found\n"
+#~ msgstr "没有找到要删除的成员\n"
+
+#~ msgid ""
+#~ "Usage: groupmems -a username | -d username | -D | -l [-g groupname]\n"
+#~ msgstr "用法：groupmems -a 用户名 | -d 用户名 | -D | -l [-g 组名]\n"
+
+#~ msgid "Only root can add members to different groups\n"
+#~ msgstr "只有 root 能向不同的组里添加成员\n"
+
+#~ msgid "PAM authentication failed for\n"
+#~ msgstr "PAM 验证失败于\n"
+
+#~ msgid "Unable to lock group file\n"
+#~ msgstr "无法锁定组文件\n"
+
+#~ msgid "Cannot close group file\n"
+#~ msgstr "无法关闭组文件\n"
+
+#~ msgid "%s: %s not found in /etc/group\n"
+#~ msgstr "%s：未在 /etc/group 中找到 %s\n"
+
+#~ msgid "%s: %u is not a unique GID\n"
+#~ msgstr "%s：%u 不是一个独有的 GID\n"
+
+#~ msgid "%s: %s is not a unique name\n"
+#~ msgstr "%s：%s 不是一个独有的名称\n"
+
+#, fuzzy
+#~ msgid "%s: cannot rewrite passwd file\n"
+#~ msgstr "%s：无法重写密码文件\n"
+
+#~ msgid "%s: unable to lock password file\n"
+#~ msgstr "%s：无法锁定密码文件\n"
+
+#~ msgid "%s: unable to open password file\n"
+#~ msgstr "%s：无法打开密码文件\n"
+
+#~ msgid "%s: can't update shadow entry for %s\n"
+#~ msgstr "%s：无法为 %s 更新影子条目\n"
+
+#~ msgid "%s: can't update entry for group %s\n"
+#~ msgstr "%s：无法更新 %s 组的条目\n"
+
+#~ msgid "%s: can't lock shadow group file\n"
+#~ msgstr "%s：无法锁定影子组文件\n"
+
+#~ msgid "%s: can't open shadow group file\n"
+#~ msgstr "%s：无法打开影子组文件\n"
+
+#~ msgid "%s: can't remove shadow group %s\n"
+#~ msgstr "%s：无法删除影子组 %s\n"
+
+#~ msgid "%s: can't update shadow group file\n"
+#~ msgstr "%s：无法更新影子组文件\n"
+
+#~ msgid "%s: can't delete shadow group file\n"
+#~ msgstr "%s：无法删除影子组文件\n"
+
+#~ msgid "unknown UID: %u\n"
+#~ msgstr "未知的 UID：%u\n"
+
+#~ msgid "unknown GID: %lu\n"
+#~ msgstr "未知的 GID：%lu\n"
+
+#, fuzzy
+#~ msgid "%s: group ID `%s' is not valid\n"
+#~ msgstr "%s：%s 组不存在\n"
+
+#, fuzzy
+#~ msgid "%s: user ID `%s' is not valid\n"
+#~ msgstr "%s：用户 %s 不存在\n"
+
+#, fuzzy
+#~ msgid "%s: invalid user name `%s'\n"
+#~ msgstr "%s：无效的用户名“%s”\n"
+
+#~ msgid "%s: can't lock /etc/passwd.\n"
+#~ msgstr "%s：无法锁定 /etc/passwd。\n"
+
+#, fuzzy
+#~ msgid "%s: can't lock /etc/shadow.\n"
+#~ msgstr "%s：无法锁定 /etc/passwd。\n"
+
+#, fuzzy
+#~ msgid "%s: can't lock /etc/group.\n"
+#~ msgstr "%s：无法锁定 /etc/passwd。\n"
+
+#, fuzzy
+#~ msgid "%s: can't lock /etc/gshadow.\n"
+#~ msgstr "%s：无法锁定 /etc/passwd。\n"
+
+#~ msgid "%s: can't open files\n"
+#~ msgstr "%s：无法打开文件\n"
+
+#~ msgid "%s: can't update passwd entry for %s\n"
+#~ msgstr "%s：无法为 %s 更新密码条目\n"
+
+#~ msgid "%s: can't lock passwd file\n"
+#~ msgstr "%s：无法锁定密码文件\n"
+
+#~ msgid "%s: can't open passwd file\n"
+#~ msgstr "%s：无法打开密码文件\n"
+
+#~ msgid "%s: can't remove shadow entry for %s\n"
+#~ msgstr "%s：无法为 %s 删除影子条目\n"
+
+#~ msgid "%s: can't update passwd file\n"
+#~ msgstr "%s：无法更新密码文件\n"
+
+#~ msgid "%s: can't update entry for user %s\n"
+#~ msgstr "%s：不能更新用户 %s 的条目\n"
+
+#~ msgid "%s: can't delete shadow password file\n"
+#~ msgstr "%s：无法删除影子密码文件\n"
+
+#~ msgid "%s: unknown GID %s\n"
+#~ msgstr "%s：未知的 GID %s\n"
+
+#~ msgid "%s: unknown group %s\n"
+#~ msgstr "%s：未知的组 %s\n"
+
+#, fuzzy
+#~ msgid "%s: Out of memory. Cannot update the shadow group database.\n"
+#~ msgstr "%s：update_gshadow 内存溢出\n"
+
+#~ msgid "%s: cannot rewrite password file\n"
+#~ msgstr "%s：无法重写密码文件\n"
+
+#~ msgid "%s: cannot rewrite shadow password file\n"
+#~ msgstr "%s：无法重写影子密码文件\n"
+
+#~ msgid "%s: cannot lock shadow password file\n"
+#~ msgstr "%s：无法锁定影子密码文件\n"
+
+#~ msgid "%s: cannot open shadow password file\n"
+#~ msgstr "%s：无法打开影子密码文件\n"
+
+#~ msgid "%s: error locking group file\n"
+#~ msgstr "%s：锁定组文件时出错\n"
+
+#~ msgid "%s: error opening group file\n"
+#~ msgstr "%s：打开组文件时出错\n"
+
+#~ msgid "%s: error locking shadow group file\n"
+#~ msgstr "%s：锁定影子组文件时出错\n"
+
+#~ msgid "%s: error opening shadow group file\n"
+#~ msgstr "%s：打开影子组文件时出错\n"
+
+#~ msgid "%s: error adding new password entry\n"
+#~ msgstr "%s：加入新密码项时出错\n"
+
+#~ msgid "%s: error adding new shadow password entry\n"
+#~ msgstr "%s：加入新影子密码项时出错\n"
+
+#~ msgid "%s: warning: CREATE_HOME not supported, please use -m instead.\n"
+#~ msgstr "%s：警告：CREATE_HOME 未被支持，请使用 -m 参数。\n"
+
+#~ msgid "%s: error updating group entry\n"
+#~ msgstr "%s：更新组条目时出错\n"
+
+#, fuzzy
+#~ msgid "%s: error updating shadow group entry\n"
+#~ msgstr "%s：更新组条目时出错\n"
+
+#~ msgid "%s: cannot open group file\n"
+#~ msgstr "%s：无法打开组文件\n"
+
+#~ msgid "%s: cannot open shadow group file\n"
+#~ msgstr "%s：无法打开影子组文件\n"
+
+#~ msgid "%s: error deleting password entry\n"
+#~ msgstr "%s：删除密码项时出错\n"
+
+#~ msgid "%s: error deleting shadow password entry\n"
+#~ msgstr "%s：删除影子密码项时出错\n"
+
+#, fuzzy
+#~ msgid "%s: error adding new shadow group entry\n"
+#~ msgstr "%s：增加新组条目时出错\n"
+
+#~ msgid "%s: uid %lu is not unique\n"
+#~ msgstr "%s：uid %lu 不唯一\n"
+
+#~ msgid "%s: error changing password entry\n"
+#~ msgstr "%s：改变密码项时出错\n"
+
+#~ msgid "%s: error removing password entry\n"
+#~ msgstr "%s：删除密码项时出错\n"
+
+#~ msgid "%s: error removing shadow password entry\n"
+#~ msgstr "%s：删除影子密码项时出错\n"
+
+#~ msgid "%s: can't get unique GID\n"
+#~ msgstr "%s：无法获取独有的 GID\n"
+
+#, fuzzy
+#~ msgid " on '%.100s' from '%.200s'"
+#~ msgstr " 在“%.100s”上，来自“%.200s”"
+
+#, fuzzy
+#~ msgid " on '%.100s'"
+#~ msgstr "在“%.100s”上"
+
+#~ msgid "%s: line %d: can't create UID\n"
+#~ msgstr "%s：第 %d 行：无法创建 UID\n"
+
+#~ msgid "%s: name %s is not unique\n"
+#~ msgstr "%s：名称 %s 并不唯一\n"
+
+#~ msgid ""
+#~ "Usage: chgpasswd [options]\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -e, --encrypted\tsupplied passwords are encrypted\n"
+#~ "  -h, --help\t\tdisplay this help message and exit\n"
+#~ "  -m, --md5\t\tuse MD5 encryption instead DES when the supplied\n"
+#~ "\t\t\tpasswords are not encrypted\n"
+#~ "\n"
+#~ msgstr ""
+#~ "用法：chpasswd [选项]\n"
+#~ "\n"
+#~ "选项：\n"
+#~ "  -e, --encrypted\t所提供的密码是加密过的\n"
+#~ "  -h, --help\t\t显示此帮助信息并退出\n"
+#~ "  -m, --md5\t\t如果所提供的密码尚未被加密，使用 MD5 而非 DES 进行加密\n"
+#~ "\n"
+
+#, fuzzy
+#~ msgid "No password.\n"
+#~ msgstr "没有密码文件\n"
+
+#~ msgid "Sorry.\n"
+#~ msgstr "抱歉。\n"
+
+#~ msgid "Sorry, the password for %s cannot be changed yet.\n"
+#~ msgstr "抱歉，无法更改 %s 的密码。\n"
+
+#~ msgid "Sorry."
+#~ msgstr "抱歉"
+
+#~ msgid "Usage: %s [-s shell] [name]\n"
+#~ msgstr "用法：%s [-s shell] [名称]\n"
+
+#~ msgid "Usage: groupmod [-g gid [-o]] [-n name] group\n"
+#~ msgstr "用法：groupmod [-g gid [-o]] [-n 名称] 组\n"
+
+#~ msgid ""
+#~ "No group named \"mail\" exists, creating mail spool with mode 0600.\n"
+#~ msgstr "不存在叫做“mail”的组，将以 0600 的文件权限创建邮件 spool。\n"
+
+#~ msgid "Can't create mail spool for user %s.\n"
+#~ msgstr "不能为用户 %s 创建邮件 spool。\n"
+
+#~ msgid "Usage: %s [-r] name\n"
+#~ msgstr "用法：%s [-r] 名称\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Login incorrect\n"
+#~ msgstr ""
+#~ "\n"
+#~ "登录错误\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Usage:\n"
+#~ "`vipw' edits /etc/passwd        `vipw -s' edits /etc/shadow\n"
+#~ "`vigr' edits /etc/group         `vigr -s' edits /etc/gshadow\n"
+#~ "`{vipw|vigr} -q' quiet mode\n"
+#~ msgstr ""
+#~ "用法：\n"
+#~ "“vipw” 编辑 /etc/passwd      “vipw -s” 编辑 /etc/shadow\n"
+#~ "“vigr” 编辑 /etc/group       “vigr -s” 编辑 /etc/gshadow\n"
+
+#~ msgid "%s: PAM chauthtok failed\n"
+#~ msgstr "%s：PAM chauthtok 失败\n"
+
+#, fuzzy
+#~ msgid "Usage: %s\t[-u uid [-o]] [-g group] [[-G group,...] [-a]] \n"
+#~ msgstr "用法：%s\t[-u uid [-o]] [-g 组] [-G 组,...] \n"
+
+#~ msgid "\t\t[-d home [-m]] [-s shell] [-c comment] [-l new_name]\n"
+#~ msgstr "\t\t[-d 主目录 [-m]] [-s shell] [-c 注释] [-l 新名称]\n"
+
+#~ msgid "[-f inactive] [-e expire] "
+#~ msgstr "[-f 失效日] [-e 过期日] "
+
+#~ msgid "[-p passwd] [-L|-U] name\n"
+#~ msgstr "[-p 密码] [-L|-U] 名称\n"

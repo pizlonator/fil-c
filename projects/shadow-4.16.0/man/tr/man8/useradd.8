@@ -1,0 +1,169 @@
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH useradd 8 "" "" ""
+.nh
+.SH İSİM  
+useradd - 
+yeni bir kullanıcı oluşturur veya öntanımlı yeni kullanıcı bilgilerini günceller
+
+.SH KULLANIM
+
+.nf
+
+\fBuseradd\fR [\fB-c \fR\fIaçıklama\fR] [\fB-d \fR\fIevdizini\fR]
+        [\fB-e \fR\fIbitiş_tarihi\fR] [\fB-f \fR\fIaskı_süresi\fR]
+        [\fB-g \fR\fIbirincil_grup\fR] [\fB-G \fR\fIgrup\fR[,...]]
+        [\fB-m \fR[\fB-k \fR\fIiskelet_dizin\fR] | \fB-M\fR] [\fB-p \fR\fIparola\fR]
+        [\fB-s \fR\fIkabuk\fR] [\fB-u \fR\fIkull_kiml\fR [ \fB-o\fR]] [\fB-n\fR] [\fB-r\fR] \fIkullanıcı\fR
+
+.fi
+
+
+.nf
+    
+\fBuseradd -D\fR [\fB-g \fR\fIöntanımlı_grup\fR] [\fB-b \fR\fIöntanımlı_ev\fR]
+        [\fB-f \fR\fIöntanımlı_askı_süresi\fR] [\fB-e \fR\fIöntanımlı_bitiş_tarihi\fR]
+        [\fB-s \fR\fIöntanımlı_kabuk\fR]
+
+.fi
+
+
+.SH AÇIKLAMA
+.SS Yeni Kullanıcıların Oluşturulması
+
+\fB-D\fR seçeneği belitilmeden çağrıldığında, \fBuseradd\fR komutu, komut satırında tanımlanan değerleri ve sistemdeki öntanımlı değerleri kullanarak yeni bir kullanıcı oluşturur. Komut satırında belirtilen seçeneklere bağlı olarak, gerekli sistem dosyalarına yeni kullanıcının bilgileri girilir; ev dizini oluşturulur;  ilk dosyalar kopyalanır.  Red Hat Linux´da kullanılan sürümünde, \fB-n\fR seçeneği belirtilmediği sürece, oluşturulan her kullanıcı için yeni bir grup oluşturulur. Kullanabileceğiniz seçenekler şunlardır:
+
+
+
+.br
+.ns
+.TP 
+\fB-c \fR\fIaçıklama\fR
+Yeni kullanıcının parola dosyasındaki açıklama alanı.
+
+.TP 
+\fB-d \fR\fIevdizini\fR
+Oluşturulan yeni kullanıcının sisteme girişte kullanacağı ev dizinini belirtir. Öntanımlı olarak, \fIkullanıcı\fR ismi \fIöntanımlı_ev\fR'e eklenecek ve sisteme giriş dizini ismi olarak kullanılacaktır.
+
+.TP 
+\fB-e \fR\fIbitiş_tarihi\fR
+Kullanıcı hesabının son kullanma tarihini belirtir. Tarih YYYY-AA-GG (Y: yıl, A: ay, G: gün) şeklinde belirtilir.
+
+.TP 
+\fB-f \fR\fIaskı_süresi\fR
+Kullanıcı parolasının son kullanma tarihinden itibaren, bu hesabın 
+tamamen kapatılacağı tarihe kadar geçecek olan sürenin gün cinsinden değeri belirtilir. Bu değer 0 olarak belirtilirse, parolanın son kullanma tarihinde hesap kapatılır. -1 değeri verilirse, bu özellik iptal edilmiş olur. -1 değeri öntanımlı değerdir. 
+
+.TP 
+\fB-g \fR\fIbirincil_grup\fR
+Kullanıcının üyesi olacağı birincil grubun adı veya numarası belirtilir. Belirtilen grup, sistemde önceden tanımlanmış olmalıdır. Şayet grup numarası belirtilmiş ise, bu numara sistemde var olan bir gruba ait olmalıdır. Olmayan gruba ait bir isim veya numara kullanamazsınız. Öntanımlı değer 1 dir.
+
+.TP 
+\fB-g \fR\fIgrup\fR[,...]
+Kullanıcının üyesi olacağı ilave gruplar belirtilir. Her grup, diğerinden virgül ile ayrılır, arada boşluk bırakılmaz. Burada tanımlanan gruplar, \fB-g\fR ile tanımlanan grubun kısıtlamalarına tabidirler. Öntanımlı olarak, kullanıcının sadece \fIbirincil_grup\fR üyesi olduğu kabul edilir.
+
+.TP 
+\fB-m\fR
+Şayet sistemde kullanıcının ev dizini yok ise, yeni bir dizin oluşturulur. Eğer \fB-k\fR seçeneği belirtilmişse \fIiskelet_dizin\fR içindeki dosyalar ev dizinine kopyalanır. Aksi taktirde /etc/skel içindeki dosyalar kullanılır. \fIiskelet_dizin\fR veya /etc/skel içindeki bütün dizinler, ev dizininde de oluşturulur. \fB-k\fR seçeneği, sadece \fB-m\fR seçeneği ile birlikte kullanıldığında etkilidir. Öntanımlı olarak, dizin oluşturulmaz ve dosyalar kopyalanmaz.
+
+.TP 
+\fB-M\fR
+/etc/login.defs içinde tanımlı bütün sistemi kapsayan ayarlarda ev dizininin yaratılması gerektiği belirtilmiş olsa bile, kullanıcı ev dizini oluşturulmaz.
+
+.TP 
+\fB-n\fR
+Öntanımlı olarak, oluşturulan yeni kullanıcı ile aynı adlı yeni bir grup oluşturulur. Bu seçenek belirtilir ise, bu Red Hat Linux´a özel davranış kapatılmış olur. 
+
+.TP 
+\fB-r\fR
+Bu seçenek, yeni bir sistem hesabı açmak için kullanılır. Böylece, /etc/login.defs içinde belirtilen UID_MIN değerinden daha küçük kullanıcı kimlikli kullanıcı oluşturulabilir. /etc/login.defs içindeki öntanımlı değerler ne olursa olsun, \fBuseradd\fR komutu böyle bir kullanıcı için ev dizini oluşturmayacaktır. Oluşturulacak sistem hesabı için bir ev dizini istiyorsanız, \fB-m\fR seçeneğini kullanmak zorundasınız. Bu, Red Hat tarafından eklenmiş bir seçenektir.   
+
+.TP 
+\fB-p \fR\fIparola\fR
+\fBcrypt\fR(3) tarafından döndürülen şifrelenmiş paroladır. Öntanımlı olarak hesap kapalıdır.
+
+.TP 
+\fB-s \fR\fIkabuk\fR
+Kullanıcının sisteme girişte kullanacağı kabuğun adıdır. Öntanımlı olarak bu değer boştur, böylece sistemin öntanımlı kabuğunun seçilmesi sağlanır. 
+
+.TP 
+\fB-u \fR\fIkull_kiml\fR
+Kullanıcı kimliğinin sayısal değeridir. Bu değer, \fB-o\fR seçeneği kullanılmadığı sürece, eşsiz olmalıdır. Değer mutlaka pozitif bir sayı olmalıdır. Öntanımlı olarak, diğer kullanıcıların numaralarından ve 99´dan büyük, en küçük numara kullanılır. 0 ile 99 arasındaki değerler sistem hesapları için ayrılmıştır.
+
+.PP
+.SS Öntanımlı Değerlerin Değiştirilmesi
+
+ 
+\fB-D\fR seçeneği ile birlikte kullanıldığı zaman, \fBuseradd\fR ya geçerli değerleri görüntüler, ya da öntanımlı değerleri, komut satırından belirtilenler ile günceller. Kullanabileceğiniz seçenekler şunlardır:          
+
+
+.br
+.ns
+.TP 
+\fB-b \fR\fIöntanımlı_ev\fR
+Yeni bir kullanıcının ev dizini için ilk dosyayolu önekini belirtir. \fIYeni bir hesap açarken \fB-d\fR seçeneği belirtilmemişse\fR, yeni kullanıcının adı \fIöntanımlı_ev\fR'in sonuna eklenir ve yeni dizin oluşturulur.
+
+.TP 
+\fB-e \fR\fIöntanımlı_bitiş_tarihi\fR
+Kullanıcı hesabının kapatılacağı tarih.
+
+.TP 
+\fB-f \fR\fIöntanımlı_askı_süresi\fR
+Kullanıcı parolasının son kullanma tarihinden itibaren, bu hesabın tamamen kapatılacağı tarihe kadar geçecek olan sürenin gün cinsinden değeri.
+
+.TP 
+\fB-g \fR\fIöntanımlı_grup\fR
+Yeni bir kullanıcı için birincil grup adı veya grup kimliği. Belirtilen grup ismi sistemde mevcut olmalı ve sayısal grup kimliği için mevcut bir girdi bulunmalıdır.
+
+.TP 
+\fB-s \fR\fIöntanımlı_kabuk\fR
+Yeni bir kullanıcının sisteme girişte kullanacağı kabuğun adı. Belirtilen kabuk gelecekte açılacak bütün yeni hesaplarda kullanılır.
+
+.PP
+
+Şayet herhangi bir seçenek belirtilmezse, \fBuseradd\fR geçerli öntanımlı değerleri görüntüleyecektir.
+
+.SH NOTLAR    
+
+/etc/skel dizinindeki öntanımlı dosyaların yerleştirilmesi sistem yöneticilerinin sorumluluğundadır. \fBuseradd\fR komutunun bu sürümü, Red Hat tarafından, Red Hat kullanıcı/grup uyumluluğunu sağlayamak için düzenlenmiştir.
+
+.SH YETERSİZLİKLER
+
+NIS grubuna kullanıcı ekleyemezsiniz. Bu NIS sunucusu üzerinde yapılmalıdır. 
+ 
+.SH İLGİLİ DOSYALAR
+
+.nf
+
+\fB/etc/passwd\fR          - kullanıcı hesabı bilgileri
+\fB/etc/shadow\fR          - güvenli kullanıcı hesabı bilgileri
+\fB/etc/group\fR           - grup bilgileri
+\fB/etc/gshadow\fR         - güvenli grup bilgileri
+\fB/etc/default/useradd\fR - öntanımlı bilgiler
+\fB/etc/login.defs\fR      - sistem genelinde geçerli kurallar
+\fB/etc/skel\fR            - öntanımlı dosyaları içeren dizin
+
+.fi
+
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBcrypt\fR(3),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Aralık 2003
+

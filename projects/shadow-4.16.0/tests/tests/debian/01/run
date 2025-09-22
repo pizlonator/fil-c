@@ -1,0 +1,33 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+# The goal of this test is to check the distributed files (as debdiff)
+
+save()
+{
+	[ ! -d tmp ] && mkdir tmp
+}
+
+restore()
+{
+	rm tmp/login_files tmp/passwd_files
+	rmdir tmp
+}
+
+save
+
+trap 'restore' 0
+
+dpkg -L login | sort > tmp/login_files
+dpkg -L passwd | sort > tmp/passwd_files
+
+echo -n "Checking the login files..."
+diff -u data/login_files tmp/login_files
+echo "OK"
+echo -n "Checking the passwd files..."
+diff -u data/passwd_files tmp/passwd_files
+echo OK
+

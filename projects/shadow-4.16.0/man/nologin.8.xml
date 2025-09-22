@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1993       , The Regents of the University of California
+   SPDX-FileCopyrightText: 2006 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='nologin.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>nologin</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>nologin</refname>
+    <refpurpose>politely refuse a login</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>nologin</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>nologin</command> command displays a message that an account
+      is not available and exits non-zero. It is intended as a replacement shell
+      field for accounts that have been disabled.
+    </para>
+    <para>
+      To disable all logins, investigate
+      <citerefentry><refentrytitle>nologin</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+    <para>
+      If <command>SSH_ORIGINAL_COMMAND</command> is populated it will be logged.
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>nologin</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 id='history'>
+    <title>HISTORY</title>
+    <para>
+      The <command>nologin</command> command appeared in BSD 4.4.
+    </para>
+  </refsect1>
+</refentry>

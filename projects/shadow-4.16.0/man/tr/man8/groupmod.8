@@ -1,0 +1,65 @@
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH groupmod 8 "" "" ""
+.nh
+.SH İSİM  
+groupmod - 
+bir grubun niteliklerini düzenler
+
+.SH KULLANIM
+
+.nf
+
+\fBgroupmod\fR [\fB-g \fR\fIgrup-kimliği\fR [\fB-o\fR]] [\fB-n \fR\fIgrup-ismi\fR] \fIgrup\fR
+
+.fi
+
+
+.SH AÇIKLAMA
+
+\fBgroupmod\fR komutu, komut satırından tanımlanan bir gruba ait bilgilerdeki değişiklikleri, sistem hesap dosyaları üzerinde değiştirmek için kullanılır. Bu komuta verilebilecek seçenekler şunlardır: 
+
+
+
+.br
+.ns
+.TP 
+\fB-g \fR\fIgrup-kimliği\fR
+Grubu tanımlayan numara. \fB-o\fR seçeneği belirtilmediği sürece bu numara benzersiz olmalıdır. Negatif bir değer atanamaz.  0 ile 99 arasında değerler, geleneksel olarak, sistem grupları için ayrılmıştır. Dosya grup numarası, eski grup numarası olan bütün dosyaların dosya grup numaraları el ile değiştirilmelidir.
+
+.TP 
+\fB-n \fR\fIgrup-ismi\fR
+\fIgrup\fR ile belirtilen grubun alacağı yeni grup adını tanımlar.
+
+.PP
+
+.SH İLGİLİ DOSYALAR
+
+.nf
+
+\fB/etc/group\fR   - grupların hesap bilgileri
+\fB/etc/gshadow\fR - güvenli grup bilgileri
+
+.fi
+
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Ocak 2004
+

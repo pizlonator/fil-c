@@ -1,0 +1,47 @@
+.\" SPDX-FileCopyrightText: 1990 - 1994 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 16 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\" $Id$
+.\"
+.TH CHSH 1
+.SH 名前
+chsh \- ログインシェルを変更する
+.SH 書式
+.TP 5
+\fBchsh\fR
+[\fB\-s\fR \fIlogin_shell\fR] [\fIuser\fR]
+.SH 説明
+\fBchsh\fR はユーザのログインシェルを変更する。
+これによって、ユーザがログインして最初に実行されるコマンドが決まる。
+一般ユーザは自分のアカウントのログインシェルのみを変更できる。
+スーパーユーザは全てのアカウントのログインシェルを変更できる。
+.PP
+ログインシェルは、
+コマンド名が \fI/etc/shells\fR に記載されていればなんでも良い。
+スーパーユーザの場合はこの制限はなく、いかなる値でも指定できる。
+機能を制限されたログインシェルを用いているアカウントからは、
+ログインシェルを変更できないかもしれない。
+この理由から、
+\fB/bin/rsh\fR は \fI/etc/shells\fR には書かないほうが良い。
+誤って機能が制限されたシェルに変更してしまうと、
+ログインシェルを元のものに戻せなくなってしまうからである。
+.PP
+\fB\-s\fR オプションを指定しなかった場合は、
+\fBchsh\fR は対話的に動作する。
+ユーザの現在のログインシェルを表示し、新しい値の入力を促す。
+設定値を変更するなら新しい値を入力し、
+現在の値を使うなら空行のままリターンキーを押せばよい。
+現在のシェルは \fB[ ]\fR 記号の間に表示される。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shells\fR \- 指定できるログインシェルのリスト
+.SH 関連項目
+.BR chfn (1),
+.BR passwd (5)
+.SH 著者
+Julianne Frances Haugh <julie78787@gmail.com>

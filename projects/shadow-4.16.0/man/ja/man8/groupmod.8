@@ -1,0 +1,44 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated & Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH GROUPMOD 8
+.SH 名前
+groupmod \- グループを修正する
+.SH 書式
+\fBgroupmod\fR [\fB\-g\fR \fIgid\fR [\fB\-o\fR]] [\fB\-n\fR \fIgroup_name\fR]
+\fIgroup\fR
+.SH 説明
+\fBgroupmod\fR コマンドは、
+コマンドラインからの指定によって、
+システムアカウントファイルを修正する。
+\fIgroupmod\fR コマンドに指定できるオプションは次の通り。
+.IP "\fB\-g \fIgid\fR"
+変更を受けるグループの ID 番号。
+この値は、\fB\-o\fR オプションを用いる場合を除き、他と重複してはならない。
+また非負値でなくてはならない。
+デフォルトは、999 および他のあらゆる既存グループの ID よりも大きい、
+最小の数値となる。
+変更前のグループ ID を持つ全てのファイルは、
+手作業で新しいグループ ID へと変更しなければならない。
+.IP "\fB\-n \fIgroup_name\fR"
+グループの名前が \fIgroup\fR から \fIgroup_name\fR に変更される。
+.SH ファイル
+\fI/etc/group\fR \- グループ情報
+.br
+\fI/etc/gshadow\fR \- 安全なグループ情報
+.SH 関連項目
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

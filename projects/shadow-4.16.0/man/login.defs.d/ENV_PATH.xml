@@ -1,0 +1,19 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>ENV_PATH</option> (string)</term>
+  <listitem>
+    <para>
+      If set, it will be used to define the PATH environment variable when
+      a regular user login. The value is a colon separated list of paths
+      (for example <replaceable>/bin:/usr/bin</replaceable>) and can be
+      preceded by <replaceable>PATH=</replaceable>. The default value is
+      <replaceable>PATH=/bin:/usr/bin</replaceable>.
+    </para>
+    <!-- TODO: it can in fact be used to set any other variable-->
+  </listitem>
+</varlistentry>

@@ -1,0 +1,132 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de), Fri Apr 2 11:32:09 MET DST 1993
+.\" Chinese Version Copyright Scorpio, www.linuxforum.net, 2000
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Jan 5 20:24:40 MET 1998 by Michael Haardt
+.\" (michael@cantor.informatik.rwth-aachen.de)
+.TH PASSWD 5 "January 5, 1998" "" "File formats"
+.SH NAME 名稱
+passwd \- 密碼檔案
+.SH 描述
+.B Passwd
+是個純文字檔, 它包含了一個系統帳戶列表,
+給出每個帳戶一些有用的信息，比如使用者 ID,組 ID, 家目錄, shell,等.
+通常它也包含了每個使用者經過加密的密碼.
+它通常應該是可讀的（許\多命令，工具程式，像
+.BR ls (1)
+用它做使用者 Id 到使用者名稱的映射）,但是只允許\超級使用者有寫方式權限.
+.PP
+在過去美好的日子裏，這種一般的讀許\可沒有什麼大問題.
+每個人都能讀到加密了的密碼，因為硬體太慢以至於不能解開一個
+精選的密碼，另外，這基本假定是為友好的使用團體使用的.
+現在，許\多人運行一些版本的影子密碼套件，它們在
+.I /etc/passwd
+的密碼域裏是 *，而不再是加密的口令，
+加密的口令放在
+.I /etc/shadow
+中，那個檔案只有超級使用者能讀．
+.PP
+不管是否使用了影子密碼，許\多系統管理員使用一個星號在加密的密碼字段
+以確保使用者不能鑒別他（她）自己的密碼. (見下面的注意)
+.PP
+如果你建立了一個新的登入，首先放個星號在密碼字段,
+然後使用
+.BR passwd (1)
+設置它.
+.PP
+（密碼檔案）裏每行一條記錄，並且每行有這樣的格式：
+.sp
+.RS
+account:password:UID:GID:GECOS:directory:shell
+（帳號:密碼:使用者ID:組ID:一般的信息:目錄:shell）
+.RE
+.sp
+字段描述如下:
+.sp
+.RS
+.TP 1.0in
+.I account
+使用者在系統中的名字，它不能包含大寫字母.
+.TP
+.I password
+加密的使用者密碼，或者星號。
+.TP
+.I UID
+使用者 ID 數。
+.TP
+.I GID
+使用者的主要組 ID 數。
+.TP
+.I GECOS
+這字段是可選的，通常為了存放信息目的而設的．
+通常，它包含了使用者的全名. GECOS 意思是通用電氣綜合作業系統（General Electric
+Comprehensive Operating System）, 當 GE 的大型系統部分割售賣給 Honeywell
+時它被改為 GCOS. Dennis Ritchie 作過報告："有時我們發送印刷品或批道作業到
+GCOS機器時，gcos 字段打斷了 $IDENT 卡的信息，不太美觀。"（譯者：我想是太長吧） 
+.TP
+.I directory
+使用者的 $HOME 目錄.
+.TP
+.I shell
+登入時運行的程式（如果空的，使用
+.BR /bin/sh ).
+如果設為不存在的執行（程式），使用者不能通過
+.BR login (1)
+登入.
+.RE
+.SH 注意
+如果你想建立使用者組，他們的 GID 必須相等並且一定是在
+\fI/etc/group\fP的一條記錄, 要不然組就不存在．
+.PP
+如果加密密碼設成星號，使用者將不能用
+.BR login (1)
+來登入, 但依然可以用
+.BR rlogin (1)
+登入, 通過
+.BR rsh (1)
+或者
+.BR cron (1)
+或者
+.BR at (1)
+或者 mail 過濾器等程式運行已有的進程和開始新的等.
+試圖通過簡單改變 shell 字段鎖住一個使用者結果是一樣的，
+而且還附上了使用
+.B su(1) 
+的權限．
+.SH 相關檔案
+.I /etc/passwd
+.SH "又見"
+.BR passwd (1),
+.BR login (1),
+.BR su (1),
+.BR group (5),
+.BR shadow (5)
+.br
+.SH "[中文版維護人]"
+.B Scorpio <rawk@chinese.com>
+.SH "[中文版最新更新]"
+.B 2000/11/26
+.SH "《中國linux論壇man手冊頁翻譯計劃》:"
+.BI http://cmpp.linuxforum.net

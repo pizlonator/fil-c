@@ -1,0 +1,67 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Delete user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 and its homedir (useradd test1 -m)..."
+useradd test1 -m
+echo "OK"
+echo -n "Change the user's homedir (usermod -m --home /home/test1.new test1)..."
+usermod -m --home /home/test1.new test1
+echo "OK"
+echo -n "Test if the new homedir exists..."
+test -d /home/test1.new
+echo "OK"
+echo -n "test if the old homedir was removed..."
+test ! -d /home/test1
+echo "OK"
+echo -n "Delete user test1 (userdel test1)..."
+userdel test1 --remove 2>tmp/userdel.err
+echo "OK"
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check the userdel message..."
+diff -au 18_userdel_remove_homedir/userdel.err tmp/userdel.err
+echo "userdel message OK."
+rm -f tmp/userdel.err
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "no homedir (/home/test1)..."
+test ! -d /home/test1
+echo "OK"
+echo -n "no homedir (/home/test1.new)..."
+test ! -d /home/test1.new
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

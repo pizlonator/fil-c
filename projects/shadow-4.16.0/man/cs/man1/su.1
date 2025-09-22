@@ -1,0 +1,111 @@
+.TH SU 1 "GNU Shell Utilities" "FSF" \" \-*\- nroff \-*\-
+.do hla cs
+.do hpf hyphen.cs
+.SH JMÉNO
+su \- spustí shell pod jiným uživatelským a skupinovým ID
+.SH POUŽITÍ
+.B su
+[\-flmp] [\-c příkaz] [\-s shell] [\-\-login] [\-\-fast]
+[\-\-preserve\-environment] [\-\-command=příkaz] [\-\-shell=shell] [\-]
+[\-\-help] [\-\-version] [uživatel [arg...]]
+.SH POPIS
+Tato dokumentace není dále udržována a může být nepřesná nebo neúplná.
+Autoritativním zdrojem je Texinfo dokumentace.
+.PP
+Tato manuálová stránka popisuje GNU verzi příkazu
+.BR su .
+Příkaz
+.B su
+umožňuje, aby se uživatel dočasně stal jiným uživatelem. Spustí
+shell s reálným a efektivním user ID, group ID, i skupinami, jichž
+je zadaný
+.I uživatel
+členem. Pokud není zadán
+.IR uživatel ,
+dosadí se root, superuživatel. Jméno shellu je převzato ze souboru
+/etc/passwd. Pokud v /etc/passwd jméno shellu není, použije se
+/bin/sh. Pokud má uživatelský účet heslo, a příkaz
+.B su
+není spuštěn pod reálným user ID 0 (tj. superuživatelem), bude
+požadovat zadání hesla.
+.PP
+Příkaz
+.B su
+implicitně nemění aktuální adresář. Nastavuje proměnné prostředí
+`HOME' a `SHELL' podle údajů z /etc/passwd a pokud zadaný
+.I uživatel
+není superuživatelem, nastaví proměnné `USER' a `LOGNAME' na
+.IR uživatel .
+Implicitně není spuštěný shell login shellem.
+.PP
+Jsou\-li zadány další argumenty, budou předány jako argumenty shellu.
+.PP
+Příkaz
+.B su
+nezpracovává speciálně /bin/sh nebo ostatní shelly (nastavením
+argv[0] na "\-su", předáním volby `\-c' pouze jistým shellům, atd.).
+.PP
+Na systémech se syslog démonem může být příkaz
+.B su
+přeložen tak, aby zaznamenával pomocí syslogu neúspěšná
+a volitelně i úspěšná vyvolání příkazu
+.BR su .
+.SS VOLBY
+.TP
+.I "\-c příkaz, \-\-command=příkaz"
+Místo odstartování interaktivního shellu předá
+.I příkaz
+s volbou
+.I \-c
+jako jediný příkazový řádek shellu.
+.TP
+.I "\-f, \-\-fast"
+Předá shellu volbu
+.IR \-f .
+Tuto volbu je pravděpodobně vhodné používat pouze pro shelly
+.B csh
+a
+.BR tcsh ,
+u nichž zabrání provedení startovacího souboru (.cshrc).
+U shellů vycházejících z Bourne shellu volba
+.I \-f
+zakazuje expanzi žolíkových znaků, což obecně není žádoucí.
+.TP
+.I "\-\-help"
+Vypíše návod k použití na standardní výstup a bezchybně skončí.
+.TP
+.I "\-, \-l, \-\-login"
+Spustí shell jako login shell. To znamená, že nebude nastaven obsah
+žádných proměnných prostředí kromě `TERM', `HOME', a `SHELL' (které
+budou nastaveny, jak je popsáno výše), `USER' a `LOGNAME' (které
+budou nastaveny i pro superuživatele jak je popsáno výše). Proměnná
+prostředí `PATH' bude nastavena na hodnotu definovanou při překladu.
+Aktuální adresář bude nastaven na domovský adresář; před jméno
+shellu bude předřazen znak "\-", který způsobí, že bude zpracován
+startovací soubor nebo soubory.
+.TP
+.I "\-m, \-p, \-\-preserve\-environment"
+Nebude měnit proměnné prostředí `HOME', `USER', `LOGNAME' ani
+`SHELL'. Je chybou, pokud uživatel, který spustil příkaz
+.B su
+není superuživatel a přitom má nový uživatel omezený shell. Jinak
+se spustí místo uživatelova shellu z /etc/passwd shell zadaný
+v proměnné prostředí `SHELL'. Omezený shell je takový, který
+není uveden v souboru /etc/shells, nebo v zakompilován seznamu
+souborů, pokud /etc/shells neexistuje. Chování příkazu
+.B su
+s touto volbou lze změnit volbami
+.I \-\-login
+a
+.I \-\-shell
+(má přednost před hodnotou proměnné prostředí SHELL).
+.TP
+.I "\-s, \-\-shell shell"
+Spustí zadaný shell místo uživatelova shellu z /etc/passwd.
+Je chybou, pokud uživatel, který spustil
+.B su
+není superuživatel a přitom shell nového uživatele uvedený
+v /etc/passwd je omezený.
+.TP
+.I "\-\-version"
+Vypíše číslo verze na standardní výstup a bezchybně skončí.

@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -x
+
+echo "starting check_range tests"
+
+export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+touch /etc/nsswitch.conf
+mount --bind ./nsswitch3.conf /etc/nsswitch.conf
+cleanup1() {
+    umount /etc/nsswitch.conf
+}
+trap cleanup1 EXIT HUP INT TERM
+../../../src/check_subid_range user1 u 100000 65535
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+../../../src/check_subid_range user2 u 100000 65535
+if [ $? -eq 0 ]; then
+    exit 1
+fi
+../../../src/check_subid_range unknown u 100000 65535
+if [ $? -eq 0 ]; then
+    exit 1
+fi
+../../../src/check_subid_range error u 100000 65535
+if [ $? -eq 0 ]; then
+    exit 1
+fi
+../../../src/check_subid_range user1 u 1000 65535
+if [ $? -eq 0 ]; then
+    exit 1
+fi
+
+umount /etc/nsswitch.conf
+
+mount --bind ./nsswitch1.conf /etc/nsswitch.conf
+touch /etc/subuid /etc/subgid
+mount --bind ./empty /etc/subuid
+
+cleanup2() {
+    umount /etc/subuid
+    umount /etc/nsswitch.conf
+}
+trap cleanup2 EXIT HUP INT TERM
+../../../src/check_subid_range user1 u 100000 65535
+if [ $? -eq 0 ]; then
+    exit 1
+fi
+
+echo "check_range tests complete"
+exit 0

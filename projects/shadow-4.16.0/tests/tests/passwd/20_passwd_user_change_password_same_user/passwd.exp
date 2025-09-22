@@ -1,0 +1,31 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/sh
+send "if \[ \$(id -u) -eq 0 \]; then PS1='# '; else PS1='$ '; fi\r"
+expect "# "
+send "su -l foo\r"
+expect "$ "
+send "id\r"
+expect "uid=1000(foo) gid=1000(foo) groups=1000(foo)"
+
+send "passwd foo\r"
+expect "Changing password for foo."
+expect "(current) UNIX password: "
+send "foopassword\r"
+expect "Enter new UNIX password: "
+send "password-foo\r"
+expect "Retype new UNIX password: "
+send "password-foo\r"
+expect "passwd: password updated successfully"
+expect "$ "
+send "echo \$?\r"
+expect "0"
+expect "$ "
+send "exit\r"
+expect "# "
+send "exit\r"
+puts "OK\n"
+exit 0

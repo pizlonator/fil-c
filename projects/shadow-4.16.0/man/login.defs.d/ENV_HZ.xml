@@ -1,0 +1,18 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>ENV_HZ</option> (string)</term>
+  <listitem>
+    <para>
+      If set, it will be used to define the HZ environment variable when
+      a user login. The value must be preceded by
+      <replaceable>HZ=</replaceable>. A common value on Linux is
+      <replaceable>HZ=100</replaceable>.
+    </para>
+    <!-- TODO: it can in fact be used to set any other variable-->
+  </listitem>
+</varlistentry>

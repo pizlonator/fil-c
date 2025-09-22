@@ -1,0 +1,20 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>LOGIN_STRING</option> (string)</term>
+  <listitem>
+    <para>
+      The string used for prompting a password. The default is to use
+      "Password: ", or a translation of that string. If you set this
+      variable, the prompt will not be translated.
+    </para>
+    <para>
+      If the string contains <replaceable>%s</replaceable>, this will be
+      replaced by the user's name.
+    </para>
+  </listitem>
+</varlistentry>

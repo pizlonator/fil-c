@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "useradd -D: get default values"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Change default shell (useradd -D --gid nogroup)..."
+useradd -D --gid nogroup
+echo "OK"
+
+echo -n "Check the default values..."
+diff -au useradd_change_default_GROUP/useradd.default /etc/default/useradd
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

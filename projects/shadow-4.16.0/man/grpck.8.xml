@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1992 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='grpck.8'>
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1992</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>grpck</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>grpck</refname>
+    <refpurpose>verify integrity of group files</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>grpck</command>
+      <arg choice='opt'>options</arg>
+      <arg choice='opt'>
+	<arg choice='plain'><replaceable>group</replaceable></arg>
+	<arg choice='opt' condition="gshadow">
+	  <arg choice='plain'><replaceable>shadow</replaceable></arg>
+	</arg>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>grpck</command> command verifies the integrity of the
+      groups information. It checks that all entries in
+      <filename>/etc/group</filename> <phrase condition="gshadow">and
+      <filename>/etc/gshadow</filename></phrase>
+      have the proper format and contain valid data.
+      The user is prompted to delete entries that are
+      improperly formatted or which have other uncorrectable errors.
+    </para>
+
+    <para>Checks are made to verify that each entry has:</para>
+
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>the correct number of fields</para>
+      </listitem>
+      <listitem>
+	<para>a unique and valid group name</para>
+      </listitem>
+      <listitem>
+	<para>
+	  a valid group identifier
+	  <phrase condition="gshadow"> (<filename>/etc/group</filename>
+	  only)</phrase>
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  a valid list of members
+	  <phrase condition="gshadow"> and administrators</phrase>
+	</para>
+      </listitem>
+      <listitem condition="gshadow">
+	<para>
+	  a corresponding entry in the <filename>/etc/gshadow</filename>
+	  file (respectively <filename>/etc/group</filename> for the
+	  <filename>gshadow</filename> checks)
+	</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      The checks for correct number of fields and unique group name are
+      fatal. If an entry has the wrong number of fields, the user will be
+      prompted to delete the entire line. If the user does not answer
+      affirmatively, all further checks are bypassed. An entry with a
+      duplicated group name is prompted for deletion, but the remaining
+      checks will still be made. All other errors are warnings and the user
+      is encouraged to run the <command>groupmod</command> command to
+      correct the error.
+    </para>
+
+    <para>
+      The commands which operate on the <filename>/etc/group</filename>
+      <phrase condition="no_gshadow">file</phrase><phrase
+      condition="gshadow">and <filename>/etc/gshadow</filename> files</phrase>
+      are not able to alter corrupted or duplicated entries. 
+      <command>grpck</command> should be used in those circumstances to
+      remove the offending entries.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The <option>-r</option> and <option>-s</option> options cannot be
+      combined.
+    </para>
+    <para>
+      The options which apply to the <command>grpck</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-r</option>, <option>--read-only</option></term>
+	<listitem>
+	  <para>
+	    Execute the <command>grpck</command> command in read-only mode.
+	    This causes all questions regarding changes to be answered
+	    <emphasis>no</emphasis> without user intervention.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-s</option>, <option>--sort</option></term>
+	<listitem>
+	  <para>
+	    Sort entries in <filename>/etc/group</filename>
+	    <phrase condition="gshadow">and
+	    <filename>/etc/gshadow</filename></phrase>
+	    by GID.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-S</option>, <option>--silence-warnings</option></term>
+        <listitem>
+          <para>
+            Suppress more controversial warnings, in particular warnings about
+            inconsistency between group members listed in
+            <filename>/etc/group</filename> and
+            <filename>/etc/ghadow</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      By default, <command>grpck</command> operates on
+      <filename>/etc/group</filename> <phrase condition="gshadow">and
+      <filename>/etc/gshadow</filename></phrase>.
+      The user may select alternate files with the <emphasis
+      remap='I'>group</emphasis>
+      <phrase condition="no_gshadow">parameter.</phrase>
+      <phrase condition="gshadow">and <emphasis remap='I'>shadow</emphasis>
+      parameters.</phrase>
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &MAX_MEMBERS_PER_GROUP;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>grpck</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>one or more bad group entries</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>can't open group files</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>can't lock group files</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>5</replaceable></term>
+	  <listitem>
+	    <para>can't update group files</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupmod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <phrase condition="gshadow">
+	<citerefentry>
+	  <refentrytitle>gshadow</refentrytitle><manvolnum>5</manvolnum>,
+	</citerefentry>,
+      </phrase>
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pwck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

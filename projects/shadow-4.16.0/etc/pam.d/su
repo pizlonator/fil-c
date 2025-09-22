@@ -1,0 +1,13 @@
+#%PAM-1.0
+auth		sufficient	pam_rootok.so
+# Uncomment the following line to implicitly trust users in the "wheel" group.
+#auth		sufficient	pam_wheel.so trust use_uid
+# Uncomment the following line to require a user to be in the "wheel" group.
+auth		required	pam_wheel.so use_uid
+auth		include		system-auth
+account		include		system-auth
+password	include		system-auth
+session [success=ok ignore=ignore module_unknown=ignore default=bad] pam_selinux.so close
+session		include		system-auth
+session [success=ok ignore=ignore module_unknown=ignore default=bad] pam_selinux.so open
+session		optional	pam_xauth.so

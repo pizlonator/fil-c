@@ -1,0 +1,264 @@
+'\" t
+.\"     Title: passwd
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "PASSWD" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+passwd \- cambia la password utente
+.SH "SINOSSI"
+.HP \w'\fBpasswd\fR\ 'u
+\fBpasswd\fR [\fIoptions\fR] [\fILOGIN\fR]
+.SH "DESCRIZIONE"
+.PP
+The
+\fBpasswd\fR
+command changes passwords for user accounts\&. A normal user may only change the password for their own account, while the superuser may change the password for any account\&.
+\fBpasswd\fR
+also changes the account or associated password validity period\&.
+.SS "Modifiche delle password"
+.PP
+All\*(Aqutente viene prima chiesta la propria password attuale, se presente\&. Questa password viene cifrata e confrontata con quella memorizzata\&. All\*(Aqutente viene data solo una possibilit\(`a di inserire la password corretta\&. Il super utente salta questo passo in modo da poter modificare password dimenticate\&.
+.PP
+After the password has been entered, password aging information is checked to see if the user is permitted to change the password at this time\&. If not,
+\fBpasswd\fR
+refuses to change the password and exits\&.
+.PP
+All\*(Aqutente viene quindi chiesto di inserire la nuova password due volte\&. Le due password sono confrontate e devono essere uguali affinch\('e la password venga accettata\&.
+.PP
+Then, the password is tested for complexity\&.
+\fBpasswd\fR
+will reject any password which is not suitably complex\&. Care must be taken not to include the system default erase or kill characters\&.
+.SS "Suggerimenti per password utente"
+.PP
+The security of a password depends upon the strength of the encryption algorithm and the size of the key space\&. The legacy
+\fIUNIX\fR
+System encryption method is based on the NBS DES algorithm\&. More recent methods are now recommended (see
+\fBENCRYPT_METHOD\fR)\&. The size of the key space depends upon the randomness of the password which is selected\&.
+.PP
+La compromissione di una password avviene normalmente a seguito di incuria nella scelta o nella gestione della password\&. Per questo motivo non si devono utilizzare password che appaiono nei dizionari o che devono essere scritte\&. La password non deve essere uno nome proprio, il numero della patente, la data di nascita o l\*(Aqindirizzo\&. Uno qualunque di questi potrebbe essere indovinato per violare la sicurezza del sistema\&.
+.PP
+As a general guideline, passwords should be long and random\&. It\*(Aqs fine to use simple character sets, such as passwords consisting only of lowercase letters, if that helps memorizing longer passwords\&. For a password consisting only of lowercase English letters randomly chosen, and a length of 32, there are 26^32 (approximately 2^150) different possible combinations\&. Being an exponential equation, it\*(Aqs apparent that the exponent (the length) is more important than the base (the size of the character set)\&.
+.PP
+You can find advice on how to choose a strong password on http://en\&.wikipedia\&.org/wiki/Password_strength
+.SH "OPZIONI"
+.PP
+The options which apply to the
+\fBpasswd\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-all\fR
+.RS 4
+This option can be used only with
+\fB\-S\fR
+and causes show status for all users\&.
+.RE
+.PP
+\fB\-d\fR, \fB\-\-delete\fR
+.RS 4
+Cancella la password utente (la rende vuota)\&. Questo \(`e un metodo veloce per disabilitare la password per l\*(Aqaccount\&. Imposta l\*(Aqaccount indicato come senza password\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-expire\fR
+.RS 4
+Fa scadere subito la password dell\*(Aqutente\&. Il che ha l\*(Aqeffetto di forzare un cambio password al successivo accesso da parte dell\*(Aqutente\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Mostra un messaggio di aiuto ed esce\&.
+.RE
+.PP
+\fB\-i\fR, \fB\-\-inactive\fR\ \&\fIINACTIVE\fR
+.RS 4
+This option is used to disable an account after the password has been expired for a number of days\&. After a user account has had an expired password for
+\fIINACTIVE\fR
+days, the user may no longer sign on to the account\&.
+.RE
+.PP
+\fB\-k\fR, \fB\-\-keep\-tokens\fR
+.RS 4
+Indica che il cambio password va effettuato solo per i token (password) di autenticazione scaduti\&. L\*(Aqutente vuole mantenere inalterati i token non scaduti\&.
+.RE
+.PP
+\fB\-l\fR, \fB\-\-lock\fR
+.RS 4
+Blocca la password dell\*(Aqaccount indicato\&. Questa opzione disabilita una password modificandola in modo che non corrisponda a nessun valore cifrato (aggiunge un \(Fo!\(Fc all\*(Aqinizio della password)\&.
+.sp
+Note that this does not disable the account\&. The user may still be able to login using another authentication token (e\&.g\&. an SSH key)\&. To disable the account, administrators should use
+\fBusermod \-\-expiredate 1\fR
+(this set the account\*(Aqs expire date to Jan 2, 1970)\&.
+.sp
+Gli utenti con password bloccata non la possono cambiare\&.
+.RE
+.PP
+\fB\-n\fR, \fB\-\-mindays\fR\ \&\fIMIN_DAYS\fR
+.RS 4
+Set the minimum number of days between password changes to
+\fIMIN_DAYS\fR\&. A value of zero for this field indicates that the user may change their password at any time\&.
+.RE
+.PP
+\fB\-q\fR, \fB\-\-quiet\fR
+.RS 4
+Modalit\(`a silenziosa\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-repository\fR\ \&\fIREPOSITORY\fR
+.RS 4
+change password in
+\fIREPOSITORY\fR
+repository
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes to configuration files under the root filesystem found under the directory
+\fIPREFIX_DIR\fR\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-S\fR, \fB\-\-status\fR
+.RS 4
+Visualizza le informazioni sullo stato di un account\&. Lo stato consiste di 7 campi\&. Il primo campo \(`e il nome dell\*(Aqutente\&. Il secondo campo indica se l\*(Aqaccount ha una password bloccata (L), non ha password (NP) o ha una password valida (P)\&. Il terzo campo contiene la data di ultima modifica della password\&. I successivi quattro campi sono l\*(Aqet\(`a minima, la massima, il periodo di avviso e quello di inattivit\(`a\&. Queste et\(`a sono espresse in giorni\&.
+.RE
+.PP
+\fB\-u\fR, \fB\-\-unlock\fR
+.RS 4
+Unlock the password of the named account\&. This option re\-enables a password by changing the password back to its previous value (to the value before using the
+\fB\-l\fR
+option)\&.
+.RE
+.PP
+\fB\-w\fR, \fB\-\-warndays\fR\ \&\fIWARN_DAYS\fR
+.RS 4
+Set the number of days of warning before a password change is required\&. The
+\fIWARN_DAYS\fR
+option is the number of days prior to the password expiring that a user will be warned that their password is about to expire\&.
+.RE
+.PP
+\fB\-x\fR, \fB\-\-maxdays\fR\ \&\fIMAX_DAYS\fR
+.RS 4
+Set the maximum number of days a password remains valid\&. After
+\fIMAX_DAYS\fR, the password is required to be changed\&.
+.sp
+Passing the number
+\fI\-1\fR
+as
+\fIMAX_DAYS\fR
+will remove checking a password\*(Aqs validity\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-stdin\fR
+.RS 4
+This option is used to indicate that passwd should read the new password from standard input, which can be a pipe\&.
+.RE
+.SH "AVVISI/CAVEAT"
+.PP
+Il controllo della complessit\(`a delle password varia da sistema a sistema\&. All\*(Aqutente \(`e caldamente consigliato si utilizzare una password che ritenga sufficientemente complessa\&.
+.PP
+Gli utenti possono non essere in grado di cambiare la propria password se NIS \(`e abilitato ed essi non sono collegati al server NIS\&.
+.SH "CONFIGURAZIONE"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "FILE"
+.PP
+/etc/passwd
+.RS 4
+Informazioni sugli account utente\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informazioni sicure sugli account utente\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configurazione del pacchetto password shadow
+.RE
+.SH "VALORI RESTITUITI"
+.PP
+The
+\fBpasswd\fR
+command exits with the following values:
+.PP
+\fI0\fR
+.RS 4
+success
+.RE
+.PP
+\fI1\fR
+.RS 4
+permission denied
+.RE
+.PP
+\fI2\fR
+.RS 4
+invalid combination of options
+.RE
+.PP
+\fI3\fR
+.RS 4
+unexpected failure, nothing done
+.RE
+.PP
+\fI4\fR
+.RS 4
+unexpected failure,
+passwd
+file missing
+.RE
+.PP
+\fI5\fR
+.RS 4
+passwd
+file busy, try again
+.RE
+.PP
+\fI6\fR
+.RS 4
+invalid argument to option
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBchpasswd\fR(8),
+\fBmakepasswd\fR(1),
+\fBpasswd\fR(5),
+\fBshadow\fR(5),
+\fBlogin.defs\fR(5),
+\fBusermod\fR(8)\&.
+.PP
+The following web page comically (yet correctly) compares the strength of two different methods for choosing a password: "https://xkcd\&.com/936/"

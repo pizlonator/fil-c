@@ -1,0 +1,37 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "su return failures of its child"
+
+
+# no testsuite password
+# root password: rootF00barbaz
+# myuser password: myuserF00barbaz
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Run su, execute false..."
+su -l myuser -c false && exit || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check the return status..."
+[ "$status" = "1" ]
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

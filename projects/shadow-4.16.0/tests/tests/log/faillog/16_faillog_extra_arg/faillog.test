@@ -1,0 +1,41 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "faillog checks if there are extra arguments"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Get faillog usage (faillog foo)..."
+faillog foo 2>tmp/usage.out && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "faillog reported:"
+echo "======================================================================="
+cat tmp/usage.out
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/usage.out tmp/usage.out
+echo "usage message OK."
+rm -f tmp/usage.out
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

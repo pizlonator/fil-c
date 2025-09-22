@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 2021 Iker Pedrosa
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='getsubids.1'>
+  <refentryinfo>
+    <author>
+      <firstname>Iker</firstname>
+      <surname>Pedrosa</surname>
+      <contrib>Creation, 2021</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>getsubids</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>getsubids</refname>
+    <refpurpose>get the subordinate id ranges for a user</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>getsubids</command>
+      <arg choice='opt'>
+        <replaceable>options</replaceable>
+      </arg>
+      <arg choice='plain'>
+        <replaceable>USER</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>getsubids</command> command lists the subordinate user ID
+      ranges for a given user. The subordinate group IDs can be listed using
+      the <option>-g</option> option.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>getsubids</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+        <term>
+          <option>-g</option>
+        </term>
+        <listitem>
+          <para>
+            List the subordinate group ID ranges.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>-h</option>
+        </term>
+        <listitem>
+          <para>
+            Display help message and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='example'>
+    <title>EXAMPLE</title>
+    <para>
+      For example, to obtain the subordinate UIDs of the testuser:
+    </para>
+    <para>
+<programlisting>
+$ getsubids testuser
+0: testuser 100000 65536
+</programlisting>
+    </para>
+    <para>
+      This command output provides (in order from left to right) the list
+      index, username, UID range start, and number of UIDs in range.
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>newgidmap</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>newuidmap</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>subgid</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>subuid</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+      <citerefentry>
+        <refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+    </para>
+  </refsect1>
+</refentry>

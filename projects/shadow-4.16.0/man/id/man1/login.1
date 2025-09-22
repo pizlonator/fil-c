@@ -1,0 +1,311 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" May be distributed under the GNU General Public License
+.TH LOGIN 1 "4 November 1996" "Util\-linux 1.6" "Linux Programmer's Manual"
+.SH NAME
+login \- masuk ke system
+.SH SYNOPSIS
+.BR "login [ " name " ]"
+.br
+.B "login \-p"
+.br
+.BR "login \-h " hostname
+.br
+.BR "login \-f " name
+.SH PENJELASAN
+.B login
+digunakan ketika hendak masuk ke sebuah system.  Ia juga dapat digunakan
+untuk berpindah dari satu user ke user lainnya kapan saja (shell\-shell yang
+modern mendukung kemampuan ini).
+Jika tidak diikuti oleh sebuah argumen
+.B login
+system akan menanyakan nama user/username.
+
+Jika user tersebut
+.I bukan
+root, dan jika terdapat file
+.I /etc/nologin
+isi file tersebut akan tercetak di layar, kemudian login dihentikan.  
+Biasanya ini dilakukan untuk mencegah login ketika system sedang dimatikan.
+
+Jika terdapat pembatasan akses tertentu pada user sebagaimana terdapat di
+.IR /etc/usertty ,
+hal tersebut harus dipenuhi, atau login akan ditolak dan pesan
+.B syslog
+akan dibuat.  Lihat section pada "Special Access Restrictions".
+
+Jika user adalah root, maka login harus dijalankan pada tty yang terdapat
+di
+.IR /etc/securetty .
+Kegagalan akan dicatat pada log melalui fasilitas
+.B syslog .
+
+Setelah kondisi\-kondisi tersebut dicek, anda akan dimintai password untuk
+kemudian dicek (jika ada password untuk username tersebut).  Anda dapat
+mencoba sepuluh kali sebelum
+.B login
+dimatikan, tapi setelah kegagalan yang ketiga, respon yang diberikan
+akan sangat lamban.  Kegagalan login akan dilaporkan melalui fasilitas
+.B syslog .
+Fasilitas ini juga dapat digunakan untuk melaporkan login yang berhasil.
+
+Jika file
+.I .hushlogin
+ditemukan,  maka login secara "quiet" dilaksanakan (hal ini menonaktifkan
+pengecekan mail dan tidak menampilkan waktu login terakhir dan pesan
+yang ada untuk hari itu).  Namun, jika terdapat file
+.I /var/log/lastlog
+, waktu login terakhir akan ditampilkan (dan kegiatan login yang sekarang
+akan dicatat).
+
+Kegiatan administratif secara acak, seperti mengeset UID dan GID untuk tty
+akan dilakukan.  Variabel environment TERM dibuatkan, jika ia sudah ada
+(variabel environment lain akan dibuatkan jika option
+.B \-p
+digunakan).  Kemudian variable environment HOME, PATH, SHELL, TERM, MAIL
+dan LOGNAME ditetapkan. Default PATH merujuk ke
+.I /usr/local/bin:/bin:/usr/bin:.
+untuk user biasa, dan ke
+.I /sbin:/bin:/usr/sbin:/usr/bin
+untuk root.  Terakhir, jika login yang sedang dilakukan bukan login "quiet",
+pesan hari ini akan ditampilkan dan file dengan nama yang sama dengan user
+pada
+.I /usr/spool/mail
+akan diperiksa, dan sebuah pesan ditampilkan jika besar file tersebut tidak
+nol.
+
+Kemudian, shell untuk user berjalan.  Jika shell untuk user tidak ditentukan
+pada
+.BR /etc/passwd ,
+maka akan digunakan
+.BR /bin/sh .
+Jika directory tidak ditentukan pada
+.IR /etc/passwd ,
+maka
+.I /
+digunakan (home directiry diperiksa pada file
+.I .hushlogin
+seperti dijelaskan sebelumnya).
+.SH OPTION
+.TP
+.B \-f
+Used to skip a second login authentication.  This specifically does
+Digunakan untuk melewatkan pengecekan tahap kedua ketika login.  Biasanya
+.B tidak
+berjalan untuk, dan kelihatannya tidak dapat berjalan dengan baik pada Linux.
+.TP
+.B \-h
+Digunakan oleh server lain (misalnya
+.BR telnetd (8))
+to pass the name of the remote host to
+untuk melewatkan nama remote host ketika
+.B login
+sehingga dapat ditempatkan pada utmp dan wtmp.  HAnya superuser yang dapat
+menggunakan option ini.
+.TP
+.B \-p
+digunakan oleh
+.BR getty (8)
+untuk memberi tahu bahwa
+.B login
+tidak mengubah environment
+
+.SH "PEMBATASAN AKSES TERTENTU/SPECIAL ACCESS RESTRICTIONS"
+File
+.I /etc/securetty
+mencatat nama\-nama tty dimana root boleh login.  Nama device tty yang tidak
+berawalan /dev/ harus ditentukan pada setiap barisnya.  Jika file tersebut 
+tidak ditemukan, root boleh login di tty mana saja.
+
+.PP
+File
+.I /etc/usertty
+Menentukan tambahan batasan akses tertentu untuk user tertentu.  Jika 
+file ini tidak ditemukan, tak ada tambahan batasan akses yang diterapkan.
+File ini terdiri dari beberapa bagian.  Ada tiga bagian yang mungkin
+ada : CLASSES, GROUPS dan USERS.  Bagian CLASSES mendefinisikan kelas tty
+dan pola nama host, bagian GROUPS mendefinisikan tty dan nama host yang
+diperbolehkan berdasarkan per group, dan bagian USERS mendefinisikan tty 
+dan host yang diperbolehkan berdasarkan per user.
+
+.PP
+Panjang setiap baris pada file ini tidak boleh lebih dari 255 karakter.
+Komentar diawali oleh karakter # yang berlaku hingga akhir baris.
+
+.PP
+.SS "Bagian CLASSES"
+Bagian CLASSES dimulai dengan kata CLASSES pada baris awal dalam
+huruf besar semua.  Setiap baris berikutnya hingga permulaan bagian baru
+atau akhir file terdiri dari urutan kata\-kata yang dipisahkan oleh tab
+atau spasi.  Tiap baris mendefinisikan kelas tty dan pola host.
+
+.PP
+Kata yang terdapat pada awal baris dijadikan sebuah definisi untuk 
+sekumpulan nama untuk tty dan pola host yang ditentukan pada akhir baris.
+Kumpulan nama ini dapat digunakan untuk bagian GROUPS berikutnya atau 
+bagian USERS.  Nama kelas tidak boleh didefinisikan sebagai bagian
+dari sebuah kelas untuk menghindari masalah kelas rekursif.
+
+.PP
+Contoh bagian CLASSES:
+.PP
+.nf
+.in +.5
+CLASSES
+myclass1		tty1 tty2
+myclass2		tty3 @.foo.com
+.in -.5
+.fi
+.PP
+File di atas mendefinisikan
+.I myclass1
+dan
+.I myclass2
+sebagai sebelah kanan yang saling berhubungan.
+.PP
+
+.SS "Bagian GROUPS"
+Bagian GROUPS mendefinisikan tty dan host yang diperbolehkan berdasarkan
+per group UNIX.  Jika seorang user adalah anggota sebuah group menurut
+.I /etc/passwd
+dan
+.I /etc/group
+dan jika sebuah group disebutkan pada bagian GROUPS di
+.I /etc/usertty
+maka user diberikan akses jika memang itu group\-nya.
+.PP
+Bagian GROUPS diawali oleh kata GROUPS dalam huruf besar semua pada permulaan
+baris dan tiap baris selanjutnya merupakan urutan kata\-kata yang dipisahkan
+oleh spasi atau tab.  Kata pertama pada sebuah baris adalah nama group dan
+sisanya menentukan tty dan host dimana anggota group tersebut boleh 
+mendapatkan akses.  Ketentuan ini dapat mengikutsertakan kelas yang telah
+didefinisikan pada bagian CLASSES sebelumnya.
+
+.PP
+Contoh bagian GROUPS
+.PP
+.nf
+.in +0.5
+GROUPS
+sys		tty1 @.bar.edu
+stud		myclass1 tty4
+.in -0.5
+.fi
+.PP
+Contoh ini menentukan bahwa anggota group
+.I sys
+boleh log in pada tty1 dan dari host\-host yang terdapat pada domain
+bar.edu.  User yang terdapat pada group
+.I stud
+boleh log in dari host\-host/tty\-tty yang ditentukan pada kelas myclass1
+atau dari tty4
+.PP
+
+.SS "Bagian USERS"
+Bagian USERS dimulai dengan kata USERS dalam huruf besar semua pada awal
+baris, dan tiap baris berikutnya adalah urutan kata\-kata yang dipisahkan
+oleh tab atau spasi.  Kata pertama pada sebuah baris adalah username
+dan sisanya merupakan definisi tentang tty dan host tempat user boleh
+log in.  Ketentuan ini dapat melibatkan kelas yang didefinisikan pada
+bagian CLASSES sebelumnya dan.  Jika tak ada header bagian yang tercantum
+pada awal file, bagian pertama secara defaults adalah bagian USERS.
+
+.PP
+Contoh penggunaan bagian USERS:
+.PP
+.nf
+.in +0.5
+USERS
+zacho		tty1 @130.225.16.0/255.255.255.0
+blue		tty3 myclass2
+.in -0.5
+.fi
+.PP
+KEtentuan ini mengizinkan zacho hanya boleh login pada tty1 dan dari
+host\-host yang alamat IP\-nya terletak di kisaran 130.225.16.0 \-
+130.225.16.255, dan user bernama blue boleh log in dari tty3 dan apa
+saja yang disebutkan pada kelas myclass2.
+.PP
+Mungkin terdapat sebuah baris pada bagian USERS yang dimulai dengan
+sebuah username bernama *.  Ini adalah aturan default dan ia akan
+diterapkan pada user yang tidak tercantum pada baris\-baris definisi.
+.PP
+Jika user ditemukan pada baris USERS dan GROUPS maka user tersebut boleh
+mengakses dari gabungan tty/host yang disebutkan pada ketentuan tersebut.
+
+.SS Origins
+Ketentuan mengenai tty dan pola host yang digunakan sebagai ketentuan 
+pada kelas, group dan user disebut origin.  Sebuah origin bisa memiliki
+format berikut:
+.IP o 
+Nama sebuah device tty tanpa awalan /dev/, contohnya tty1 atau ttyS0.
+.PP
+.IP o
+String @localhost, artinya user boleh melakukan telnet/rlogin
+dari local host ke host yang sama.  Ini juga membolehkan user untuk
+menjalankan perintah: xterm \-e /bin/login.
+.PP
+.IP o
+Sebuah akhiran nama domain seperti @.some.dom, artinya user boleh
+melakukan rlogin/telnet dari host mana saja yang nama domainnya berakhiran
+@.some.dom
+.PP
+.IP o
+Kisaran alamat IPv4, ditulis @x.x.x.x/y.y.y.y dimana x.x.x.x adalah
+alamat IP pada notasi desimal biasa dan y.y.y.y adalah bitmask dalam
+notasi yang sama yang menentukan bit mana pada alamat tersebut untuk
+dibandingkan dengan alamat IP dari remote host.  Contohnya @130.225.16.0/
+255.255.254.0 berarti user boleh rlogin/telnet dari host mana saja yang
+alamat IP\-nya berada pada kisaran 130.225.16.0 \- 130.225.17.255.
+.PP
+Origin di atas boleh diawali oleh penentuan waktu menurut syntax:
+.PP
+.nf
+timespec    ::= '[' <day\-or\-hour> [':' <day\-or\-hour>]* ']'
+day         ::= 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+hour        ::= '0' | '1' | ... | '23'
+hourspec    ::= <hour> | <hour> '\-' <hour>
+day\-or\-hour ::= <day> | <hourspec>
+.fi
+.PP
+Contohnya, origin [mon:tue:wed:thu:fri:8\-17]tty3 berarti log in 
+diperbolehkan pada hari senin hingga jumat pukul 8:00 dan 17:59 (5:59
+pm) pada tty3.  Ini juga menunjukkan bahwa kisaran jam (seperti 10)
+menandakan waktu berkisar antara 10:00 dan 10:59.
+.PP
+Jika tidak menentukan waktu untuk tty atau nama host berarti lo gin
+dari origin tersebut diperbolehkan untuk setiap waktu.  Jika anda 
+memberikan awalan waktu, yakinkan untuk menentukan baik kumpulan hari
+dan waktu yang agak dilebihkan.  Penentuan waktu tidak boleh berisi
+spasi.
+.PP
+Jika tidak ada aturan diberikan maka user yang tidak ditemukan pada
+.I /etc/usertty
+boleh log in dari mana saja.
+.PP
+.SH FILES
+.nf
+.I /var/run/utmp
+.I /var/log/wtmp
+.I /var/log/lastlog
+.I /usr/spool/mail/*
+.I /etc/motd
+.I /etc/passwd
+.I /etc/nologin
+.I /etc/usertty
+.I .hushlogin
+.fi
+.SH "SEE ALSO"
+.BR init (8),
+.BR getty (8),
+.BR mail (1),
+.BR passwd (1),
+.BR passwd (5),
+.BR environ (7),
+.BR shutdown (8)
+.SH BUGS
+
+Linux, tidak seperti sistem operasi draconian, tidak mengecek quota.
+
+Option tidak resmi pada BSD
+.B \-r
+tidak dapat digunakan.   Ini mungkin dibutuhkan oleh program

@@ -1,0 +1,129 @@
+.\" SPDX-FileCopyrightText: 1989 - 1993 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" $Id$
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" updated Tue 17 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH SHADOW 3
+.SH 名前
+shadow \- 暗号化されたパスワードファイル用ルーチン
+.SH 書式
+.B #include <shadow.h>
+.PP
+.B struct spwd *getspent();
+.PP
+.B struct spwd *getspnam(char
+.IB *name );
+.PP
+.B void setspent();
+.PP
+.B void endspent();
+.PP
+.B struct spwd *fgetspent(FILE
+.IB *fp );
+.PP
+.B struct spwd *sgetspent(char
+.IB *cp );
+.PP
+.B int putspent(struct spwd
+.I *p,
+.B FILE
+.IB *fp );
+.PP
+.B int lckpwdf();
+.PP
+.B int ulckpwdf();
+.SH 説明
+.I shadow
+は shadow パスワードファイル
+\fI/etc/shadow\fR の内容を操作するルーチンである。
+\fI#include\fR ファイルに与えられている構造体は以下の通り。
+.sp
+struct spwd {
+.in +.5i
+.br
+	char	*sp_namp; /* user login name */
+.br
+	char	*sp_pwdp; /* encrypted password */
+.br
+	long	sp_lstchg; /* last password change */
+.br
+	int	sp_min; /* days until change allowed. */
+.br
+	int	sp_max; /* days before change required */
+.br
+	int	sp_warn; /* days warning for expiration */
+.br
+	int	sp_inact; /* days before account inactive */
+.br
+	int	sp_expire; /* date when account expires */
+.br
+	int	sp_flag; /* reserved for future use */
+.br
+.in \-.5i
+}
+.PP
+各フィールドの意味は:
+.sp
+sp_namp \- ヌル終端されたユーザ名文字列へのポインタ
+.br
+sp_pwdp \- ヌル終端されたパスワード文字列へのポインタ
+.br
+sp_lstchg \- 1970年1月1日からパスワード最終変更日時迄の日数
+.br
+sp_min \- パスワード変更が出来るようになるまでの日数
+.br
+sp_max \- パスワードを変更しなくても良い日数
+.br
+sp_warn \- パスワードが期限切れになる前に、
+期限切れが近づいている旨の警告をユーザに出す期間の日数
+.br
+sp_inact \- パスワードが期限切れになってから、
+アカウントが不能となり使用できなくなるまでの日数
+.br
+sp_expire \- 1970年1月1からアカウントが使用不能となる日迄の日数
+.br
+sp_flag \- 将来使うときに向けて予約
+.SH 説明
+\fBgetspent\fR, \fBgetspname\fR, \fBfgetspent\fR, \fBsgetspent\fR
+は、それぞれ \fBstruct spwd\fR へのポインタを返す。
+\fBgetspent\fR はファイルから次のエントリを、
+\fBfgetspent\fR は指定されたストリーム
+(正しい書式のファイルとみなされる)
+から次のエントリを返す。
+\fBsgetspent\fR は入力として与えられた文字列を用いて
+\fBstruct spwd\fR へのポインタを返す。
+\fBgetspnam\fR はファイル中の現在の位置から
+\fBname\fR にマッチするエントリを探す。
+.PP
+\fBsetspent\fR は
+shadow パスワードファイルへのアクセスを開始するために、
+\fBendspent\fR は終了するために用いられる。
+.PP
+\fI/etc/shadow\fR ファイルに対する排他的なアクセスを保証したい場合には、
+\fBlckpwdf\fR ルーチンと \fBulckpwdf\fR ルーチンを用いる。
+\fBlckpwdf\fR は \fBpw_lock\fR を用いて最大 15 秒間ロックを取得しようとする。
+そして最初の 15 秒の残りの間、
+\fBspw_lock\fR によって二度目のロックをしようと試み続ける。
+計 15 秒間の間にいずれかの試みが失敗した場合は、
+\fBlckpwdf\fR は \-1 を返す。
+いずれのロックも成功した場合は 0 が返される。
+.SH 返り値
+これらのルーチンは、エントリが残っていない場合や、
+処理の過程でエラーが発生した場合には NULL を返す。
+返り値が \fBint\fR であるルーチンは、
+成功したら 0 を、失敗したら \-1 を返す。
+.SH 警告
+shadowされたパスワードファイルへのアクセスは制限されているので、
+これらのルーチンはスーパーユーザだけが利用できる。
+.SH ファイル
+\fI/etc/shadow\fR \- 暗号化されたユーザパスワード
+.SH 関連項目
+.BR getpwent (3),
+.BR shadow (5)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

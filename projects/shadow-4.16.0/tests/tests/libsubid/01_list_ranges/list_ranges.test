@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "list_ranges shows subid ranges"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "list foo's ranges..."
+${build_path}/src/getsubids foo > /tmp/subuidlistout
+${build_path}/src/getsubids -g foo > /tmp/subgidlistout
+echo "OK"
+
+echo -n "Check the subuid ranges..."
+[ $(wc -l /tmp/subuidlistout | awk '{ print $1 }') -eq 2 ]
+grep "0: foo 300000 10000" /tmp/subuidlistout
+grep "1: foo 400000 10000" /tmp/subuidlistout
+echo "OK"
+
+echo -n "Check the subgid ranges..."
+[ $(wc -l /tmp/subgidlistout | awk '{ print $1 }') -eq 1 ]
+grep "0: foo 200000 10000" /tmp/subgidlistout
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

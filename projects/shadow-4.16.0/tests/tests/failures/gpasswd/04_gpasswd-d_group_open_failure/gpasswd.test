@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "gpasswd report failures when it cannot open the group file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Change group foo (gpasswd -d foo users)..."
+LD_PRELOAD=../../../common/open_RDWR_failure.so FAILURE_PATH=/etc/group gpasswd -d foo users 2>tmp/gpasswd.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "gpasswd reported:"
+echo "======================================================================="
+cat tmp/gpasswd.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/gpasswd.err tmp/gpasswd.err
+echo "error message OK."
+rm -f tmp/gpasswd.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

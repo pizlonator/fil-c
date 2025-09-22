@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "newusers can encrypt the passwords with the SHA256 algorithm and a specified number of rounds"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo "newusers -c SHA256 -s 3000 data/newusers.list"
+newusers data/newusers.list
+
+echo -n "Check the passwd file..." 
+../../common/compare_file.pl data/passwd /etc/passwd 
+echo "OK" 
+echo -n "Check the group file..." 
+../../common/compare_file.pl data/group /etc/group 
+echo "OK" 
+echo -n "Check the shadow file..." 
+../../common/compare_file.pl data/shadow /etc/shadow 
+echo "OK"
+echo -n "Check the number of rounds..."
+rounds=$(sed -n 's/^foo:\$5\$rounds=\([0-9]*\)\$.*$/\1/p' /etc/shadow)
+echo -n "($rounds)..."
+if [ ! "$rounds" = 3000 ]; then
+	echo "Wrong number of rounds"
+	grep "^foo:" /etc/shadow
+	exit 1
+fi
+echo "OK"
+echo -n "Check the gshadow file..." 
+../../common/compare_file.pl data/gshadow /etc/gshadow 
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

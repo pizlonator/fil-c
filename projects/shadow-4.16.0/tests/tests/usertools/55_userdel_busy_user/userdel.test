@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "userdel accepts when the user is not is shadow"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; kill $pid' 0
+
+change_config
+
+echo -n "Create a process for foo (su -l foo -c \"sleep 10\")..."
+su -l foo -c "sleep 10" 2>/dev/null &
+echo "OK"
+
+# Make sure su was started.
+sleep 1
+
+echo -n "Delete user foo (userdel foo)..."
+userdel foo 2>tmp/userdel.err && exit 1 || {
+	ps=$(echo $! $?)
+	pid=$(echo $ps | cut -f1 -d' ')
+	status=$(echo $ps | cut -f2 -d' ')
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "8"
+echo "OK"
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+sed -i -e "s/ [0-9]*$/ <PID>/" tmp/userdel.err
+diff -au data/userdel.err tmp/userdel.err
+echo "error message OK."
+rm -f tmp/userdel.err
+
+
+kill $pid || true
+wait || true
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

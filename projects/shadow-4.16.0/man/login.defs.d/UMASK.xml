@@ -1,0 +1,32 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>UMASK</option> (number)</term>
+  <listitem>
+    <para>
+      The file mode creation mask is initialized to this value. If not
+      specified, the mask will be initialized to 022.
+    </para>
+    <para>
+      <command>useradd</command> and <command>newusers</command> use this
+      mask to set the mode of the home directory they create if
+      <option>HOME_MODE</option> is not set.
+    </para>
+    <para condition="no_pam">
+      It is also used by <command>login</command> to define users' initial
+      umask.  Note that this mask can be overridden by the user's GECOS
+      line (if <option>QUOTAS_ENAB</option> is set) or by the
+      specification of a limit with the <emphasis>K</emphasis> identifier
+      in <citerefentry><refentrytitle>limits</refentrytitle>
+      <manvolnum>5</manvolnum></citerefentry>.
+    </para>
+    <para condition="pam">
+      It is also used by <command>pam_umask</command> as the default umask
+      value.
+    </para>
+  </listitem>
+</varlistentry>

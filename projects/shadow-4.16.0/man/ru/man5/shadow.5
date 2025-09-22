@@ -1,0 +1,148 @@
+'\" t
+.\"     Title: shadow
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "shadow" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+shadow \- файл теневых паролей
+.SH "ОПИСАНИЕ"
+.PP
+shadow
+is a file which contains the password information for the system\*(Aqs accounts and optional aging information\&.
+.PP
+Этот файл должен быть недоступен обычному пользователю, если нужно обеспечить безопасность паролей\&.
+.PP
+Each line of this file contains 9 fields, separated by colons (\(Fo:\(Fc), in the following order:
+.PP
+\fBlogin name\fR
+.RS 4
+Должно содержать правильное имя учётной записи, которая существует в системе\&.
+.RE
+.PP
+\fBencrypted password\fR
+.RS 4
+This field may be empty, in which case no passwords are required to authenticate as the specified login name\&. However, some applications which read the
+/etc/shadow
+file may decide not to permit any access at all if the password field is empty\&.
+.sp
+A password field which starts with an exclamation mark means that the password is locked\&. The remaining characters on the line represent the password field before the password was locked\&.
+.sp
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.sp
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, the user will not be able to use a unix password to log in (but the user may log in the system by other means)\&.
+.RE
+.PP
+\fBdate of last password change\fR
+.RS 4
+The date of the last password change, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+The value 0 has a special meaning, which is that the user should change her password the next time she will log in the system\&.
+.sp
+Пустое значение обозначает, что проверка устаревания пароля выключена\&.
+.RE
+.PP
+\fBminimum password age\fR
+.RS 4
+Минимальный срок действия пароля в днях, которые пользователь должен ждать, чтобы поменять пароль\&.
+.sp
+An empty field and value 0 mean that there is no minimum password age\&.
+.RE
+.PP
+\fBmaximum password age\fR
+.RS 4
+Максимальный срок действия пароля в днях, после которого пользователь должен изменить пароль\&.
+.sp
+По прошествии этого количества дней пароль может быть ещё действительным\&. Пользователя нужно попросить изменить пароль при следующем входе\&.
+.sp
+Пустое значение поля означает, что нет максимального срока действия пароля, нет периода предупреждения о пароле и нет периода неактивности пароля (смотрите далее)\&.
+.sp
+Если максимальный срок действия пароля меньше чем минимальный срок действия пароля, то пользователь не сможет изменить свой пароль\&.
+.RE
+.PP
+\fBpassword warning period\fR
+.RS 4
+Количество дней до устаревания пароля (смотрите максимальный срок действия пароля) во время которых пользователю выдаётся предупреждение\&.
+.sp
+Пустое значение поля и 0 отключают период предупреждения о пароле\&.
+.RE
+.PP
+\fBpassword inactivity period\fR
+.RS 4
+Количество дней после устаревания пароля (смотрите максимальный срок действия пароля) во время которых пароль всё ещё принимается (и пользователь должен обновить свой пароль при следующем входе)\&.
+.sp
+After expiration of the password and this expiration period is elapsed, no login is possible for the user\&. The user should contact her administrator\&.
+.sp
+Пустое значение поля означает, что период неактивности отсутствует\&.
+.RE
+.PP
+\fBaccount expiration date\fR
+.RS 4
+The date of expiration of the account, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+Note that an account expiration differs from a password expiration\&. In case of an account expiration, the user shall not be allowed to login\&. In case of a password expiration, the user is not allowed to login using her password\&.
+.sp
+Пустое значение обозначает, что учётная запись никогда не устаревает\&.
+.sp
+Значение 0 не должно использоваться, так как это может рассматриваться как неустаревающая учётная запись или что запись устарела 1 января 1970 года\&.
+.RE
+.PP
+\fBreserved field\fR
+.RS 4
+Это поле зарезервировано для использования в будущем\&.
+.RE
+.SH "ФАЙЛЫ"
+.PP
+/etc/passwd
+.RS 4
+содержит информацию о пользователях
+.RE
+.PP
+/etc/shadow
+.RS 4
+содержит защищаемую информацию о пользователях
+.RE
+.PP
+/etc/shadow\-
+.RS 4
+резервная копия файла /etc/shadow
+.sp
+Заметим, что этот файл используется программами из комплекта утилит shadow, но не всеми инструментами управления пользователями и паролями\&.
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBchage\fR(1),
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBpasswd\fR(5),
+\fBpwck\fR(8),
+\fBpwconv\fR(8),
+\fBpwunconv\fR(8),
+\fBsu\fR(1),
+\fBsulogin\fR(8)\&.

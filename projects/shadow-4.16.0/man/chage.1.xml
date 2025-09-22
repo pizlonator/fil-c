@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1990 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='chage.1'>
+  <!--  $Id$  -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1990</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>chage</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>chage</refname>
+    <refpurpose>change user password expiry information</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>chage</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>LOGIN</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>chage</command> command changes the number of days between
+      password changes and the date of the last password change. This
+      information is used by the system to determine when a user must change
+      their password.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>chage</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-d</option>, <option>--lastday</option>&nbsp;<replaceable>LAST_DAY</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the number of days since January 1st, 1970 when the password
+	    was last changed. The date may also be expressed in the format
+	    YYYY-MM-DD (or the format more commonly used in your area).
+	    If the <replaceable>LAST_DAY</replaceable> is set to
+	    <emphasis>0</emphasis> the user is forced to change his password
+	    on the next log on.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-E</option>, <option>--expiredate</option>&nbsp;<replaceable>EXPIRE_DATE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the date or number of days since January 1, 1970 on which the
+	    user's account will no longer be accessible. The date may also
+	    be expressed in the format YYYY-MM-DD (or the format more
+	    commonly used in your area). A user whose account is locked must
+	    contact the system administrator before being able to use the
+	    system again.
+	  </para>
+	  <para>
+	    For example the following can be used to set an account to expire
+	    in 180 days:
+	  </para>
+	  <programlisting>
+	    chage -E $(date -d +180days +%Y-%m-%d)
+	  </programlisting>
+	  <para>
+	    Passing the number <emphasis remap='I'>-1</emphasis> as the
+	    <replaceable>EXPIRE_DATE</replaceable> will remove an account
+	    expiration date.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-i</option>, <option>--iso8601</option></term>
+	<listitem>
+	  <para>When printing dates, use YYYY-MM-DD format.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-I</option>, <option>--inactive</option>&nbsp;<replaceable>INACTIVE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the number of days of inactivity after a password has
+	    expired before the account is locked. The
+	    <replaceable>INACTIVE</replaceable> option is the number of days
+	    of inactivity. A user whose account is locked must contact the
+	    system administrator before being able to use the system again.
+	  </para>
+	  <para>
+	    Passing the number <emphasis remap='I'>-1</emphasis> as the
+	    <replaceable>INACTIVE</replaceable> will remove an account's
+	    inactivity.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-l</option>, <option>--list</option>
+	</term>
+	<listitem>
+	  <para>
+	  Show account aging information.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-m</option>, <option>--mindays</option>&nbsp;<replaceable>MIN_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the minimum number of days between password changes to
+	    <replaceable>MIN_DAYS</replaceable>. A value of zero for this field
+	    indicates that the user may change their password at any time.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-M</option>, <option>--maxdays</option>&nbsp;<replaceable>MAX_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the maximum number of days during which a password is valid. 
+	    When <replaceable>MAX_DAYS</replaceable> plus
+	    <replaceable>LAST_DAY</replaceable> is less than the current
+	    day, the user will be required to change their password before
+	    being able to use their account. This occurrence can be planned for
+	    in advance by use of the <option>-W</option> option, which
+	    provides the user with advance warning.
+	  </para>
+	  <para>
+	    Passing the number <emphasis remap='I'>-1</emphasis> as
+	    <replaceable>MAX_DAYS</replaceable> will remove checking a
+	    password's validity.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes to configuration files under the root filesystem
+	    found under the directory <replaceable>PREFIX_DIR</replaceable>.
+	    This option does not chroot and is intended for preparing a cross-compilation
+	    target.  Some limitations: NIS and LDAP users/groups are
+	    not verified.  PAM authentication is using the host files.
+	    No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-W</option>, <option>--warndays</option>&nbsp;<replaceable>WARN_DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the number of days of warning before a password change is
+	    required. The <replaceable>WARN_DAYS</replaceable> option is the
+	    number of days prior to the password expiring that a user will
+	    be warned their password is about to expire.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      If none of the options are selected, <command>chage</command> operates
+      in an interactive fashion, prompting the user with the current values
+      for all of the fields. Enter the new value to change the field, or
+      leave the line blank to use the current value. The current value is
+      displayed between a pair of <emphasis>[ ]</emphasis> marks.
+    </para>
+  </refsect1>
+  <refsect1 id='note'>
+    <title>NOTE</title>
+    <para>
+      The <command>chage</command> program requires a shadow password file to
+      be available.
+    </para>
+    <para>
+      The chage program will report only the information from the shadow
+      password file. This implies that configuration from other sources
+      (e.g. LDAP or empty password hash field from the passwd file) that
+      affect the user's login will not be shown in the chage output.
+    </para>
+    <para>
+      The <command>chage</command> program will also not report any
+      inconsistency between the shadow and passwd files (e.g. missing x in
+      the passwd file). The <command>pwck</command> can be used to check
+      for this kind of inconsistencies.
+    </para>
+    <para>The <command>chage</command> command is restricted to the root
+      user, except for the <option>-l</option> option, which may be used by
+      an unprivileged user to determine when their password or account is due
+      to expire.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &USE_TCB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  <filename>/etc/passwd</filename>
+	</term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <filename>/etc/shadow</filename>
+	</term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>chage</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>permission denied</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>15</replaceable></term>
+	  <listitem>
+	    <para>can't find the shadow password file</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,79 @@
+
+
+.\"  chfn.1 -- change your finger information
+.\"  (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\"  this program is free software.  you can redistribute it and
+.\"  modify it under the terms of the gnu general public license.
+.\"  there is no warranty.
+
+.TH chfn 1 "13 Ekim 1994" "chfn " "Linux Başvuru Kılavuzu"
+.nh
+.SH İSİM  
+chfn - 
+kişisel bilgilerinizi değiştirir
+
+.SH KULLANIM
+
+.nf
+
+\fBchfn\fR [ \fB-f \fR\fIAdı-Soyadı\fR ] [ \fB-o \fR\fIİşyeri\fR ]  [ \fB-p \fR\fIİş-telefonu\fR ]
+     [ \fB-h \fR\fIEv-telefonu\fR ]  [ \fB-u\fR ] [ \fB-v\fR ] [ \fIkullanıcı\fR ]
+
+.fi
+
+
+
+.SH AÇIKLAMA
+
+\fBchfn\fR, kişisel bilgilerinizi değiştirmek için kullanılır. Bu bilgiler /etc/passwd dosyası içinde saklanır ve \fBfinger\fR komutu aracılığı ile ekrana gönderilir. Linux \fBfinger\fR komutu; \fBchfn\fR tarafından değiştirilebilen dört bilgi alanı görüntüler: adınız ve soyadınız, işyeriniz, iş telefon numaranız ve ev telefon numaranız.
+.SS KOMUT SATIRI
+
+Dört parçadan oluşan bu bilgilerin herhangi biri komut satırından belirtilebilir. Şayet komut satırından bilgi girilmemiş ise, \fBchfn\fR etkileşimli kipe geçecektir.
+.SS ETKİLEŞİMLİ KİP
+
+Etkileşimli kipte, \fBchfn\fR, her bir alan için kullanıcıdan veri girmesini isteyecektir. Bu alanlara yeni bilgi girebilir ya da eski bilgiyi korumak için  enter tuşuna basıp devam edebilirsiniz. Alanları boş bırakmak için \fBnone\fR kelimesini giriniz.
+
+.SH SEÇENEKLER   
+
+
+.br
+.ns
+.TP 
+\fB-f\fR, \fB--full-name\fR
+Ad ve soyadı belirtilir.
+
+.TP 
+\fB-o\fR, \fB--office\fR
+İşyeri ya da işyerindeki bölümünüz.
+
+.TP 
+\fB-p\fR, \fB--office-phone\fR
+İş telefonunuz.
+
+.TP 
+\fB-h\fR, \fB--home-phone\fR
+Ev telefonunuz.     
+
+.TP 
+\fB-u\fR, \fB--help\fR
+Bu kullanım bilgisi görüntüler ve çıkar.        
+
+.TP 
+\fB-v\fR, \fB--version\fR
+Sürüm bilgilerini görüntüler ve çıkar.        
+
+.PP
+
+.SH İLGİLİ BELGELER
+
+\fBfinger\fR(1),
+\fBpasswd\fR(5).
+
+.SH YAZAN
+
+Salvatore Valente <svalente (at) mit.edu> tarafından yazılmıştır.
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Aralık 2003
+

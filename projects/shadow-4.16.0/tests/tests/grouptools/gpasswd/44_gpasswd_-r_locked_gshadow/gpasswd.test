@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "gpasswd -r checks if the gshadow file is locked"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -f /etc/gshadow.lock' 0
+
+change_config
+
+echo -n "Create lock file for /etc/gshadow..."
+touch /etc/gshadow.lock
+echo "done"
+
+echo -n "Remove the password of group users (gpasswd -r users)..."
+gpasswd -r users 2>tmp/gpasswd.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+rm -f /etc/gshadow.lock
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "gpasswd reported:"
+echo "======================================================================="
+cat tmp/gpasswd.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/gpasswd.err tmp/gpasswd.err
+echo "error message OK."
+rm -f tmp/gpasswd.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

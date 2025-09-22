@@ -1,0 +1,235 @@
+'\" t
+.\"     Title: newusers
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "NEWUSERS" "8" "18/06/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+newusers \- aggiorna e crea nuovi utenti in blocco
+.SH "SINOSSI"
+.HP \w'\fBnewusers\fR\ 'u
+\fBnewusers\fR [\fIoptions\fR] [\fIfile\fR]
+.SH "DESCRIZIONE"
+.PP
+The
+\fBnewusers\fR
+command reads a
+\fIfile\fR
+(or the standard input by default) and uses this information to update a set of existing users or to create new users\&. Each line is in the same format as the standard password file (see
+\fBpasswd\fR(5)) with the exceptions explained below:
+.PP
+pw_name:pw_passwd:pw_uid:pw_gid:pw_gecos:pw_dir:pw_shell
+.PP
+\fIpw_name\fR
+.RS 4
+Il nome dell\*(Aqutente\&.
+.sp
+It can be the name of a new user or the name of an existing user (or a user created before by
+\fBnewusers\fR)\&. In case of an existing user, the user\*(Aqs information will be changed, otherwise a new user will be created\&.
+.RE
+.PP
+\fIpw_passwd\fR
+.RS 4
+Questo campo verr\(`a cifrato e utilizzato come nuovo valore per la password cifrata\&.
+.RE
+.PP
+\fIpw_uid\fR
+.RS 4
+Definisce l\*(AqUID dell\*(Aqutente\&.
+.sp
+If the field is empty, a new (unused) UID will be defined automatically by
+\fBnewusers\fR\&.
+.sp
+Se questo campo contiene un numero, verr\(`a utilizzato come UID\&.
+.sp
+If this field contains the name of an existing user (or the name of a user created before by
+\fBnewusers\fR), the UID of the specified user will be used\&.
+.sp
+Se viene cambiato l\*(AqUID di un utente esistente, la propriet\(`a dei file di propriet\(`a dell\*(Aqutente stesso andr\(`a cambiata manualmente\&.
+.RE
+.PP
+\fIpw_gid\fR
+.RS 4
+Definisce il l\*(AqID del gruppo primario dell\*(Aqutente\&.
+.sp
+If this field contains the name of an existing group (or a group created before by
+\fBnewusers\fR), the GID of this group will be used as the primary group ID for the user\&.
+.sp
+Se questo campo \(`e numerico, questo numero verr\(`a utilizzato come ID del gruppo primario dell\*(Aqutente\&. Se non esiste nessun gruppo con quel GID, ne viene creato uno con il nome dell\*(Aqutente e il GID specificato\&.
+.sp
+If this field is empty, a new group will be created with the name of the user and a GID will be automatically defined by
+\fBnewusers\fR
+to be used as the primary group ID for the user and as the GID for the new group\&.
+.sp
+If this field contains the name of a group which does not exist (and was not created before by
+\fBnewusers\fR), a new group will be created with the specified name and a GID will be automatically defined by
+\fBnewusers\fR
+to be used as the primary group ID for the user and GID for the new group\&.
+.RE
+.PP
+\fIpw_gecos\fR
+.RS 4
+Questo campo viene copiato nel campo GECOS dell\*(Aqutente\&.
+.RE
+.PP
+\fIpw_dir\fR
+.RS 4
+Questo campo \(`e utilizzato per impostare la directory home dell\*(Aqutente\&.
+.sp
+If this field does not specify an existing directory, the specified directory is created, with ownership set to the user being created or updated and its primary group\&. Note that
+\fInewusers does not create parent directories \fR
+of the new user\*(Aqs home directory\&. The newusers command will fail to create the home directory if the parent directories do not exist, and will send a message to stderr informing the user of the failure\&. The newusers command will not halt or return a failure to the calling shell if it fails to create the home directory, it will continue to process the batch of new users specified\&.
+.sp
+If the home directory of an existing user is changed,
+\fBnewusers\fR
+does not move or copy the content of the old directory to the new location\&. This should be done manually\&.
+.RE
+.PP
+\fIpw_shell\fR
+.RS 4
+Questo campo definisce la shell dell\*(Aqutente\&. Su questo campo non viene fatto nessun controllo\&.
+.RE
+.PP
+\fBnewusers\fR
+first tries to create or change all the specified users, and then write these changes to the user or group databases\&. If an error occurs (except in the final writes to the databases), no changes are committed to the databases\&.
+.PP
+Questo comando \(`e appositamente pensato per grossi sistemi nei quali molti account sono aggiornati allo stesso tempo\&.
+.SH "OPZIONI"
+.PP
+The options which apply to the
+\fBnewusers\fR
+command are:
+.PP
+\fB\-\-badname\fR\ \&
+.RS 4
+Allow names that do not conform to standards\&.
+.RE
+.PP
+\fB\-c\fR, \fB\-\-crypt\-method\fR
+.RS 4
+Utilizza il metodo specificato per cifrare le password\&.
+.sp
+I metodi disponibili sono DES, MD5, NONE e SHA256 o SHA512 se la propria libc lo consente\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Mostra un messaggio di aiuto ed esce\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-system\fR
+.RS 4
+Crea un account di sistema\&.
+.sp
+System users will be created with no aging information in
+/etc/shadow, and their numeric identifiers are chosen in the
+\fBSYS_UID_MIN\fR\-\fBSYS_UID_MAX\fR
+range, defined in
+login\&.defs, instead of
+\fBUID_MIN\fR\-\fBUID_MAX\fR
+(and their
+\fBGID\fR
+counterparts for the creation of groups)\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-sha\-rounds\fR
+.RS 4
+Usa il numero specificato di cicli per cifrare la password\&.
+.sp
+You can only use this option with crypt method:
+\fISHA256\fR \fISHA512\fR
+.sp
+By default, the number of rounds for SHA256 or SHA512 is defined by the SHA_CRYPT_MIN_ROUNDS and SHA_CRYPT_MAX_ROUNDS variables in
+/etc/login\&.defs\&.
+.sp
+A minimal value of 1000 and a maximal value of 999,999,999 will be enforced for SHA256 and SHA512\&. The default is 5000\&.
+.RE
+.SH "AVVISI/CAVEAT"
+.PP
+Il file di input deve essere protetto poich\('e contiene password non cifrate\&.
+.PP
+Ci si deve accertare che le password e il metodo di cifratura rispettino le norme delle password del sistema\&.
+.SH "CONFIGURAZIONE"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+
+
+
+
+
+.SH "FILE"
+.PP
+/etc/passwd
+.RS 4
+Informazioni sugli account utente\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informazioni sicure sugli account utente\&.
+.RE
+.PP
+/etc/group
+.RS 4
+Informazioni sugli account di gruppo\&.
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Informazioni sicure sugli account di gruppo\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configurazione del pacchetto password shadow
+.RE
+.PP
+/etc/subgid
+.RS 4
+Per user subordinate group IDs\&.
+.RE
+.PP
+/etc/subuid
+.RS 4
+Per user subordinate user IDs\&.
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBlogin.defs\fR(5),
+\fBpasswd\fR(1),
+\fBsubgid\fR(5), \fBsubuid\fR(5),
+\fBuseradd\fR(8)\&.

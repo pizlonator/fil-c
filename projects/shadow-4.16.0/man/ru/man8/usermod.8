@@ -1,0 +1,391 @@
+'\" t
+.\"     Title: usermod
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: System Management Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "usermod" "8" "06/18/2024" "shadow\-utils 4\&.16\&.0" "System Management Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+usermod \- изменяет учётную запись пользователя
+.SH "СИНТАКСИС"
+.HP \w'\fBusermod\fR\ 'u
+\fBusermod\fR [\fIoptions\fR] \fILOGIN\fR
+.SH "ОПИСАНИЕ"
+.PP
+The
+\fBusermod\fR
+command modifies the system account files\&.
+.SH "ПАРАМЕТРЫ"
+.PP
+The options which apply to the
+\fBusermod\fR
+command are:
+.PP
+\fB\-a\fR, \fB\-\-append\fR
+.RS 4
+Add the user to the supplementary group(s)\&. Use only with the
+\fB\-G\fR
+option\&.
+.RE
+.PP
+\fB\-b\fR, \fB\-\-badname\fR
+.RS 4
+Allow names that do not conform to standards\&.
+.RE
+.PP
+\fB\-c\fR, \fB\-\-comment\fR\ \&\fICOMMENT\fR
+.RS 4
+update the comment field of the user in
+/etc/passwd, which is normally modified using the
+\fBchfn\fR(1)
+utility\&.
+.RE
+.PP
+\fB\-d\fR, \fB\-\-home\fR\ \&\fIHOME_DIR\fR
+.RS 4
+Домашний каталог нового пользователя\&.
+.sp
+If the
+\fB\-m\fR
+option is given, the contents of the current home directory will be moved to the new home directory, which is created if it does not already exist\&. If the current home directory does not exist the new home directory will not be created\&.
+.RE
+.PP
+\fB\-e\fR, \fB\-\-expiredate\fR\ \&\fIEXPIRE_DATE\fR
+.RS 4
+The date on which the user account will be disabled\&. The date is specified in the format
+\fIYYYY\-MM\-DD\fR\&. Integers as input are interpreted as days after 1970\-01\-01\&.
+.sp
+An input of \-1 or an empty string will blank the account expiration field in the shadow password file\&. The account will remain available with no date limit\&.
+.sp
+This option requires a
+/etc/shadow
+file\&. A
+/etc/shadow
+entry will be created if there were none\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-inactive\fR\ \&\fIINACTIVE\fR
+.RS 4
+defines the number of days after the password exceeded its maximum age during which the user may still login by immediately replacing the password\&. This grace period before the account becomes inactive is stored in the shadow password file\&. An input of 0 will disable an expired password with no delay\&. An input of \-1 will blank the respective field in the shadow password file\&. See
+\fBshadow\fR(5)
+for more information\&.
+.sp
+This option requires a
+/etc/shadow
+file\&. A
+/etc/shadow
+entry will be created if there were none\&.
+.RE
+.PP
+\fB\-g\fR, \fB\-\-gid\fR\ \&\fIGROUP\fR
+.RS 4
+The name or numerical ID of the user\*(Aqs new primary group\&. The group must exist\&.
+.sp
+Все файлы в домашнем каталоге пользователя, принадлежавшие предыдущей первичной группе пользователя, будут принадлежать новой группе\&.
+.sp
+Группового владельца файлов вне домашнего каталога нужно изменить вручную\&.
+.sp
+The change of the group ownership of files inside of the user\*(Aqs home directory is also not done if the home dir owner uid is different from the current or new user id\&. This is a safety measure for special home directories such as
+/\&.
+.RE
+.PP
+\fB\-G\fR, \fB\-\-groups\fR\ \&\fIGROUP1\fR[\fI,GROUP2,\&.\&.\&.\fR[\fI,GROUPN\fR]]]
+.RS 4
+A list of supplementary groups which the user is also a member of\&. Each group is separated from the next by a comma, with no intervening whitespace\&. The groups must exist\&.
+.sp
+If the user is currently a member of a group which is not listed, the user will be removed from the group\&. This behaviour can be changed via the
+\fB\-a\fR
+option, which appends the user to the current supplementary group list\&.
+.RE
+.PP
+\fB\-l\fR, \fB\-\-login\fR\ \&\fINEW_LOGIN\fR
+.RS 4
+The name of the user will be changed from
+\fILOGIN\fR
+to
+\fINEW_LOGIN\fR\&. Nothing else is changed\&. In particular, the user\*(Aqs home directory or mail spool should probably be renamed manually to reflect the new login name\&.
+.RE
+.PP
+\fB\-L\fR, \fB\-\-lock\fR
+.RS 4
+Lock a user\*(Aqs password\&. This puts a \*(Aq!\*(Aq in front of the encrypted password, effectively disabling the password\&. You can\*(Aqt use this option with
+\fB\-p\fR
+or
+\fB\-U\fR\&.
+.sp
+Note: if you wish to lock the account (not only access with a password), you should also set the
+\fIEXPIRE_DATE\fR
+to
+\fI1\fR\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-\-move\-home\fR
+.RS 4
+moves the content of the user\*(Aqs home directory to the new location\&. If the current home directory does not exist the new home directory will not be created\&.
+.sp
+This option is only valid in combination with the
+\fB\-d\fR
+(or
+\fB\-\-home\fR) option\&.
+.sp
+\fBusermod\fR
+will try to adapt the ownership of the files and to copy the modes, ACL and extended attributes, but manual changes might be needed afterwards\&.
+.RE
+.PP
+\fB\-o\fR, \fB\-\-non\-unique\fR
+.RS 4
+allows to change the user ID to a non\-unique value\&.
+.sp
+This option is only valid in combination with the
+\fB\-u\fR
+option\&. As a user identity serves as key to map between users on one hand and permissions, file ownerships and other aspects that determine the system\*(Aqs behavior on the other hand, more than one login name will access the account of the given UID\&.
+.RE
+.PP
+\fB\-p\fR, \fB\-\-password\fR\ \&\fIPASSWORD\fR
+.RS 4
+defines a new password for the user\&. PASSWORD is expected to be encrypted, as returned by
+\fBcrypt \fR(3)\&.
+.sp
+\fBNote:\fR
+Avoid this option on the command line because the password (or encrypted password) will be visible by users listing the processes\&.
+.sp
+Вы должны проверить, что пароль соответствует политике системных паролей\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-remove\fR
+.RS 4
+Remove the user from named supplementary group(s)\&. Use only with the
+\fB\-G\fR
+option\&.
+.RE
+.PP
+\fB\-R\fR, \fB\-\-root\fR\ \&\fICHROOT_DIR\fR
+.RS 4
+Apply changes in the
+\fICHROOT_DIR\fR
+directory and use the configuration files from the
+\fICHROOT_DIR\fR
+directory\&. Only absolute paths are supported\&.
+.RE
+.PP
+\fB\-P\fR, \fB\-\-prefix\fR\ \&\fIPREFIX_DIR\fR
+.RS 4
+Apply changes within the directory tree starting with
+\fIPREFIX_DIR\fR
+and use as well the configuration files located there\&. This option does not chroot and is intended for preparing a cross\-compilation target\&. Some limitations: NIS and LDAP users/groups are not verified\&. PAM authentication is using the host files\&. No SELINUX support\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-shell\fR\ \&\fISHELL\fR
+.RS 4
+changes the user\*(Aqs login shell\&. An empty string for SHELL blanks the field in
+/etc/passwd
+and logs the user into the system\*(Aqs default shell\&.
+.RE
+.PP
+\fB\-u\fR, \fB\-\-uid\fR\ \&\fIUID\fR
+.RS 4
+The new value of the user\*(Aqs ID\&.
+.sp
+This value must be unique, unless the
+\fB\-o\fR
+option is used\&. The value must be non\-negative\&.
+.sp
+Для почтового ящика и всех файлов, которыми владеет пользователь и которые расположены в его домашнем каталоге, идентификатор владельца файла будет изменён автоматически\&.
+.sp
+Для файлов, расположенных вне домашнего каталога, идентификатор нужно изменять вручную\&.
+.sp
+The change of the user ownership of files inside of the user\*(Aqs home directory is also not done if the home dir owner uid is different from the current or new user id\&. This is a safety measure for special home directories such as
+/\&.
+.sp
+No checks will be performed with regard to the
+\fBUID_MIN\fR,
+\fBUID_MAX\fR,
+\fBSYS_UID_MIN\fR, or
+\fBSYS_UID_MAX\fR
+from
+/etc/login\&.defs\&.
+.RE
+.PP
+\fB\-U\fR, \fB\-\-unlock\fR
+.RS 4
+Unlock a user\*(Aqs password\&. This removes the \*(Aq!\*(Aq in front of the encrypted password\&. You can\*(Aqt use this option with
+\fB\-p\fR
+or
+\fB\-L\fR\&.
+.sp
+Note: if you wish to unlock the account (not only access with a password), you should also set the
+\fIEXPIRE_DATE\fR
+(for example to
+\fI99999\fR, or to the
+\fBEXPIRE\fR
+value from
+/etc/default/useradd)\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-add\-subuids\fR\ \&\fIFIRST\fR\-\fILAST\fR
+.RS 4
+Add a range of subordinate uids to the user\*(Aqs account\&.
+.sp
+This option may be specified multiple times to add multiple ranges to a user\*(Aqs account\&.
+.sp
+No checks will be performed with regard to
+\fBSUB_UID_MIN\fR,
+\fBSUB_UID_MAX\fR, or
+\fBSUB_UID_COUNT\fR
+from /etc/login\&.defs\&.
+.RE
+.PP
+\fB\-V\fR, \fB\-\-del\-subuids\fR\ \&\fIFIRST\fR\-\fILAST\fR
+.RS 4
+Remove a range of subordinate uids from the user\*(Aqs account\&.
+.sp
+This option may be specified multiple times to remove multiple ranges to a user\*(Aqs account\&. When both
+\fB\-\-del\-subuids\fR
+and
+\fB\-\-add\-subuids\fR
+are specified, the removal of all subordinate uid ranges happens before any subordinate uid range is added\&.
+.sp
+No checks will be performed with regard to
+\fBSUB_UID_MIN\fR,
+\fBSUB_UID_MAX\fR, or
+\fBSUB_UID_COUNT\fR
+from /etc/login\&.defs\&.
+.RE
+.PP
+\fB\-w\fR, \fB\-\-add\-subgids\fR\ \&\fIFIRST\fR\-\fILAST\fR
+.RS 4
+Add a range of subordinate gids to the user\*(Aqs account\&.
+.sp
+This option may be specified multiple times to add multiple ranges to a user\*(Aqs account\&.
+.sp
+No checks will be performed with regard to
+\fBSUB_GID_MIN\fR,
+\fBSUB_GID_MAX\fR, or
+\fBSUB_GID_COUNT\fR
+from /etc/login\&.defs\&.
+.RE
+.PP
+\fB\-W\fR, \fB\-\-del\-subgids\fR\ \&\fIFIRST\fR\-\fILAST\fR
+.RS 4
+Remove a range of subordinate gids from the user\*(Aqs account\&.
+.sp
+This option may be specified multiple times to remove multiple ranges to a user\*(Aqs account\&. When both
+\fB\-\-del\-subgids\fR
+and
+\fB\-\-add\-subgids\fR
+are specified, the removal of all subordinate gid ranges happens before any subordinate gid range is added\&.
+.sp
+No checks will be performed with regard to
+\fBSUB_GID_MIN\fR,
+\fBSUB_GID_MAX\fR, or
+\fBSUB_GID_COUNT\fR
+from /etc/login\&.defs\&.
+.RE
+.PP
+\fB\-Z\fR, \fB\-\-selinux\-user\fR\ \&\fISEUSER\fR
+.RS 4
+defines the SELinux user to be mapped with
+\fILOGIN\fR\&. An empty string ("") will remove the respective entry (if any)\&. Note that the shadow system doesn\*(Aqt store the selinux\-user, it uses semanage(8) for that\&.
+.RE
+.PP
+\fB\-\-selinux\-range\fR\ \&\fISERANGE\fR
+.RS 4
+defines the SELinux MLS range for the new account\&. Note that the shadow system doesn\*(Aqt store the selinux\-range, it uses
+\fBsemanage\fR(8)
+for that\&.
+.sp
+This option is only valid if the
+\fB\-Z\fR
+(or
+\fB\-\-selinux\-user\fR) option is specified\&.
+.RE
+.SH "ПРЕДОСТЕРЕЖЕНИЯ"
+.PP
+You must make certain that the named user is not executing any processes when this command is being executed if the user\*(Aqs numerical user ID, the user\*(Aqs name, or the user\*(Aqs home directory is being changed\&.
+\fBusermod\fR
+checks this on Linux\&. On other operating systems it only uses utmp to check if the user is logged in\&.
+.PP
+You must change the owner of any
+\fBcrontab\fR
+files or
+\fBat\fR
+jobs manually\&.
+.PP
+Вы должны сделать все изменения NIS на сервере NIS самостоятельно\&.
+.SH "НАСТРОЙКА"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "ФАЙЛЫ"
+.PP
+/etc/group
+.RS 4
+Group account information
+.RE
+.PP
+/etc/gshadow
+.RS 4
+Secure group account information
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Shadow password suite configuration
+.RE
+.PP
+/etc/passwd
+.RS 4
+User account information
+.RE
+.PP
+/etc/shadow
+.RS 4
+Secure user account information
+.RE
+.PP
+/etc/subgid
+.RS 4
+Per user subordinate group IDs
+.RE
+.PP
+/etc/subuid
+.RS 4
+Per user subordinate user IDs
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBcrypt\fR(3),
+\fBgpasswd\fR(8),
+\fBgroupadd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBlogin.defs\fR(5),
+\fBsubgid\fR(5), \fBsubuid\fR(5),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8)\&.

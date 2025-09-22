@@ -1,0 +1,83 @@
+.\" Copyright 1991, Julianne Frances Haugh
+.\" Todos os direitos reservados.
+.\"
+.\" É permitida a confecção e distribuição deste manual, devidamente
+.\" acompanhado dos avisos de direitos autorais e desta permissão
+.\" em todas as cópias.
+.\"
+.\" É permitida a cópia e distribuição de versões modificadas deste manual
+.\" sob as condições acima, e que todo o trabalho derivado seja distribuído
+.\" sob  as mesmas condições deste manual.
+.\" 
+.\" Uma vez que o kernel do Linux e suas bibliotecas estão constantemente
+.\" mudando, esta página de manual poderá estar incorreta ou desatualizada.
+.\" O(s) autor(es) não assumem responsabilidade por erros ou omissões, 
+.\" ou por danos resultantes do uso das informações aqui contidas. 
+.\"
+.\" Versões formatadas ou processadas deste manual, desacompanhadas dos
+.\" fontes, devem conter a autorização e os direitos autorais dos autores do
+.\" trabalho.
+.\"
+.\" Você deve receber uma cópia da Licença Pública GNU
+.\" junto com este manual; caso contrário, escreva para a Free Software
+.\" Foundation, Inc., 675 mass Ave, Cambridge, MA 02139 USA ou
+.\" em português na Conectiva Informática Ltda. \- http://www.conectiva.com.br
+.\"
+.\"
+.\"
+.\"	$Id$
+.\"
+.TH GROUPADD 8
+.SH NOME
+groupadd \- Criar um novo grupo
+.SH SINOPSE
+\fBgroupadd\fR [\fB\-g\fR \fIgid\fR [\fB\-o\fR]] [\fB\-f\fR] \fIgrupo\fR
+.SH DESCRIÇÃO
+O comando \fBgroupadd\fR cria um novo grupo usando valores especificados na
+linha de comando e os valores padrões do sistema. O novo grupo será criado
+nos arquivos do sistema, conforme o requerido. As opções que aplicam\-se ao
+comando \fBgroupadd\fR são
+.IP \fB\-f\fR
+Este é o indicador \fIforce\fR . Ele não irá parar o processamento do
+\fBgroupadd\fR e não finalizará o programa, caso um grupo que esteja sendo
+criado já exista no sistema. Neste caso, o grupo não será alterado(ou
+adicionado novamente).
+.IP "\fB\-g \fIgid\fR"
+A identificação numérica do grupo é denominada ID. Este valor deve ser
+único, a menos que a opção \fB\-o\fR seja usada. O valor deve ser não
+negativo, e o padrão é o menor valor maior que 500 e o maior que qualquer
+outro grupo. Valores entre 0 e 999 são tipicamente reservados para \fIcontas
+do sistema\fR.
+.IP \fB\-r\fR
+Este indicador instrui \fBgroupadd\fR a adicionar uma  \fIconta do sistema
+\fR. A primeira identificação de grupo \fI(gid)\fR menor que 999 será
+automaticamente selecionada a menos que a opção \fB\-g\fR seja informada
+também.
+.BR
+Esta é uma informação disponibilizada pela Red Hat Software.
+.BR
+Esta opção também modifica o modo como a opção \fB\-g\fR funciona. Ao
+solicitar um \fIgid\fR que não seja único e ao não informar a opção
+\fB\-o\fR, a criação do grupo , a criação terá o comportamento padrão
+(adicionando um grupo como se as opções \fB\-g\fR ou \fB\-o\fR \fBnão\fR
+fossem especificadas).
+.BR
+.SH ARQUIVOS
+\fI/etc/group\fR \- informações sobre o grupo
+.br
+\fI/etc/gshadow\fR \- informações seguras sobre o grupo
+.br
+.SH VEJA TAMBÉM
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH AUTOR
+Julianne Frances Haugh (jfh@tab.com)
+.SH TRADUÇÃO E REVISÃO PARA A LÍNGUA PORTUGUESA
+Sandro Nunes Henrique <sandro@conectiva.com.br> (tradução)
+Rodrigo Stulzer Lopes <rodrigo@conectiva.com.br> (revisão)

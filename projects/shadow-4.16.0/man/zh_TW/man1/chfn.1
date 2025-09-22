@@ -1,0 +1,58 @@
+.\" $Id$
+.\" (c) 1994 by salvatore valente <svalente@athena.mit.edu>
+.\"
+.\" this program is free software.  you can redistribute it and
+.\" modify it under the terms of the gnu general public license.
+.\" there is no warranty.
+.TH CHFN 1 "October 13 1994" "chfn" "Linux Reference Manual"
+.SH 名稱
+chfn \- 改 變 你 的 finger 訊 息
+.SH 語法
+.B chfn
+[\ \-f\ full\-name\ ] [\ \-o\ office\ ] [\ \-p\ office\-phone\ ]
+[\ \-h\ home\-phone\ ] [\ \-u\ ] [\ \-v\ ] [\ username\ ]
+.SH 描述
+.B chfn
+是 用 來 改 變 你 的 finger 訊 息 。 訊 息 是 存 放 在
+.I /etc/passwd 檔 內 。 可 藉 由
+.B finger
+來 顯 示 你 的 訊 息 。 Linux
+.B finger
+命 令 會 顯 示 四 段 訊 息 ， 這 些 訊 息 均 可 藉 由
+.B chfn
+改 變
+: 真 實 姓 名 ， 工 作 地 點 電 話 ， 及 你 家 的 電 話 。
+.SS 命令列
+每 一 段 訊 息 均 可 在 命 令 列 上 指 定 。 如 沒 有 給 定 訊 息 ，
+.B chfn
+進 入 交 談 模 式
+.SS INTERACTIVE MODE
+交談模式
+.B chfn
+會 在 每 一 欄 前 提 示 。 在 提 示 狀 態 下 ， 你 就 可 輸 入 新 的 訊 息 或 
+是 按  return 而 不 改 變 。
+輸 入 "none" 則 表 示 該 欄 空 白 。
+.SH 選項
+.TP
+.I "\-f, \-\-full\-name"
+真 實 姓 名
+.TP
+.I "\-h, \-\-home\-phone"
+家 裡 的 電 話
+.TP
+.I "\-o, \-\-office"
+辦 工 室 號 碼
+.TP
+.I "\-p, \-\-office\-phone"
+辦 公 室 電 話
+.TP
+.I "\-u, \-\-help"
+秀 出 使 用 說 明 短 訊 。
+.TP
+.I "\-v, \-\-version"
+秀 出 版 本 訊 息 。
+.SH "相關文件"
+.BR finger (1),
+.BR passwd (5)
+.SH 作者
+Salvatore Valente <svalente@mit.edu>

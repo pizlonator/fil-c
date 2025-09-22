@@ -1,0 +1,26 @@
+#!/usr/bin/expect
+
+if {$argc == 1} {
+        set user     [lindex $argv 0]
+} else {
+        set user     "foo"
+}
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+set timeout 5
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "login $user\r"
+expect "Password: "
+sleep 0.1
+send "badpass\r"
+send_user "\n# password 'badpass' sent\n\n"
+expect "login: "
+
+send "exit\r"
+exit 0

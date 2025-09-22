@@ -1,0 +1,93 @@
+.\" Copyright 1996, Rafal Maszkowski, rzm@pdi.net
+.\"
+.\" É permitida a confecção e distribuição deste manual, devidamente
+.\" acompanhado dos avisos de direitos autorais e desta permissão
+.\" em todas as cópias.
+.\"
+.\" É permitida a cópia e distribuição de versões modificadas deste manual
+.\" sob as condições acima, e que todo o trabalho derivado seja distribuido
+.\"  sob  as mesmas condições deste manual.
+.\" 
+.\" Uma vez que o kernel do Linux e suas bibliotecas estão constantemente
+.\" mudando, esta página de manual poderá estar incorreta ou desatualizada.
+.\" O(s) autor(es) não assumem responsabilidade por erros ou omissões, 
+.\"  ou por danos resultantes do uso das informações aqui contidas. 
+.\"
+.\" Versões formatadas ou processadas deste manual, desacompanhadas dos
+.\" fontes, devem conter a autorização e os direitos autorais dos autores do
+.\" trabalho.
+.\"
+.\" Você deve receber uma cópia da Licença Pública GNU
+.\" junto com este manual; caso contrário, escreva para a Free Software
+.\" Foundation, Inc., 675 mass Ave, Cambridge, MA 02139 USA ou
+.\" em português na Conectiva Informática \- http://www.conectiva.com.br
+.\"
+.\"	$Id$
+.\"
+.TH GPASSWD 1
+.SH NOME
+gpasswd \- administra o arquivo \fI/etc/group\fR
+.br
+.SH SINOPSE
+\fBgpasswd\fR \fIgrupo\fR
+.br
+\fBgpasswd \-a\fR \fIusuário\fR \fIgrupo\fR
+.br
+\fBgpasswd \-d\fR \fIusuário\fR \fIgrupo\fR
+.br
+\fBgpasswd \-R\fR \fIgrupo\fR
+.br
+.B gpasswd
+.B \-r
+\fIgrupo\fR
+.br
+.B gpasswd
+.RB [ \-A
+\fIusuário\fR,...]
+.RB [ \-M
+\fIusuário\fR,...]
+\fIgrupo\fR
+.br
+.SH DESCRIÇÃO
+O
+.B gpasswd
+é utilizado para administrar o arquivo \fI/etc/group\fR (e o arquivo
+\fI/etc/gshadow\fR, caso compilado com SHADOWGRP).
+Todos os grupos podem ter administradores, membros e uma senha. O
+administrador do sistema pode usar a opção \fB\-A\fR para definir o
+administrador do grupo e \fB\-M\fR para definir os membros e todos os seus
+direitos assim como os do administrador.
+.PP
+Administradores de grupos podem adicionar e excluir usuários utilizando as
+opções \fB\-a\fR e \fB\-d\fR respectivamente. Administradores podem usar a opção
+\fB\-r\fR  para remover a senha de um grupo. Quando não há senhas definidas
+para um grupo, somente os membros do grupo podem usar o comando
+.BR newgrp (1) 
+para adicionar novos usuários ao grupo . A opção  \fB\-R\fR 
+desabilita o acesso ao grupo através do comando 
+.BR newgrp (1)
+.
+.PP
+O
+.B gpasswd
+executado pelo administrador do grupo seguido pelo nome 
+solicitará a senha do grupo. Caso o comando 
+.BR newgrp (1)
+esteja habilitado para outros usuários do grupo sem o uso de senha, não
+membros podem também executar o comando, informando porém a senha do grupo.
+.SH ARQUIVOS
+\fI/etc/group\fR	\- informações do grupo
+.br
+\fI/etc/gshadow\fR	\- informações do grupo em arquivo shadow
+.SH VEJA TAMBÉM
+.BR newgrp (1),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR grpck (8)
+.SH TRADUÇÃO E REVISÃO PARA A LÍNGUA PORTUGUESA
+Sandro Nunes Henrique <sandro@conectiva.com.br> (tradução)
+.br
+Rodrigo Stulzer Lopes <rodrigo@conectiva.com.br> (revisão)
+.br
+Guilherme de S. Pastore <gpastore@colband.com.br> (revisão)

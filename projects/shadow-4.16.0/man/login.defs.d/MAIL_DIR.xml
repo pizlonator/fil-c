@@ -1,0 +1,38 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry>
+  <term><option>MAIL_DIR</option> (string)</term>
+  <listitem>
+    <para>
+      The mail spool directory. This is needed to manipulate the mailbox
+      when its corresponding user account is modified or deleted. If not
+      specified, a compile-time default is used.
+      The parameter CREATE_MAIL_SPOOL in <filename>/etc/default/useradd</filename>
+      determines whether the mail spool should be created.
+    </para>
+  </listitem>
+</varlistentry><varlistentry>
+  <term><option>MAIL_FILE</option> (string)</term>
+  <listitem>
+    <para>
+      Defines the location of the users mail spool files relatively to
+      their home directory.
+    </para>
+  </listitem>
+</varlistentry>
+<!-- FIXME: MAIL_FILE not used in useradd -->
+<para>
+  The <option>MAIL_DIR</option> and <option>MAIL_FILE</option> variables
+  are used by <command>useradd</command>, <command>usermod</command>, and
+  <command>userdel</command> to create, move, or delete the user's mail
+  spool.
+</para>
+<para condition="no_pam">
+  If <option>MAIL_CHECK_ENAB</option> is set to
+  <replaceable>yes</replaceable>, they are also used to define the
+  <envar>MAIL</envar> environment variable.
+</para>

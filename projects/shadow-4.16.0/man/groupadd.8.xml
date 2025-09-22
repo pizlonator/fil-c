@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY GID_MAX               SYSTEM "login.defs.d/GID_MAX.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY SYS_GID_MAX           SYSTEM "login.defs.d/SYS_GID_MAX.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='groupadd.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>groupadd</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>groupadd</refname>
+    <refpurpose>create a new group</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>groupadd</command>
+      <arg choice='opt'>
+	<replaceable>OPTIONS</replaceable>
+      </arg>
+      <arg choice='plain'>
+	<replaceable>NEWGROUP</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>The <command>groupadd</command> command creates a new group
+      account using the values specified on the command line plus the default
+      values from the system. The new group will be entered into the system
+      files as needed.
+    </para>
+     <para>
+       Groupnames may contain only lower and upper case letters, digits,
+       underscores, or dashes. They can end with a dollar sign.
+
+       Dashes are not allowed at the beginning of the groupname.
+       Fully numeric groupnames and groupnames . or .. are
+       also disallowed.
+     </para>
+     <para>
+       Groupnames may only be up to &GROUP_NAME_MAX_LENGTH; characters long.
+     </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>groupadd</command> command
+      are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-f</option>, <option>--force</option>
+	</term>
+	<listitem>
+	  <para>
+	    This option causes the command to simply exit with success
+	    status if the specified group already exists. When used with
+	    <option>-g</option>, and the specified GID already exists,
+	    another (unique) GID is chosen (i.e. <option>-g</option> is
+	    turned off).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-g</option>, <option>--gid</option>&nbsp;<replaceable>GID</replaceable>
+	</term>
+	<listitem>
+	  <para>The numerical value of the group's ID. <replaceable>GID</replaceable> 
+	    must be unique, unless the <option>-o</option> option is used. The value
+	    must be non-negative. The default is to use the smallest ID
+	    value greater than or equal to <option>GID_MIN</option> and
+	    greater than every other group.
+	  </para>
+	  <para>
+	    See also the <option>-r</option> option and the
+	    <option>GID_MAX</option> description.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-K</option>, <option>--key</option>&nbsp;<replaceable>KEY</replaceable>=<replaceable>VALUE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Overrides <filename>/etc/login.defs</filename> defaults 
+	    (GID_MIN, GID_MAX and others). Multiple
+	    <option>-K</option> options can be specified.
+	  </para>
+	  <para>
+	     Example: <option>-K</option>&nbsp;<replaceable>GID_MIN</replaceable>=<replaceable>100</replaceable>&nbsp;
+	    <option>-K</option>&nbsp;<replaceable>GID_MAX</replaceable>=<replaceable>499</replaceable>
+	  </para>
+	  <para>
+	    Note: <option>-K</option>&nbsp;<replaceable>GID_MIN</replaceable>=<replaceable>10</replaceable>,<replaceable>GID_MAX</replaceable>=<replaceable>499</replaceable>
+	    doesn't work yet.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-o</option>, <option>--non-unique</option>
+	</term>
+	<listitem>
+	  <para>
+	    permits the creation of a group with an already used
+	    numerical ID. As a result, for this
+	    <replaceable>GID</replaceable>, the mapping towards group
+	    <replaceable>NEWGROUP</replaceable> may not be unique.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-p</option>, <option>--password</option>&nbsp;<replaceable>PASSWORD</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    defines an initial password for the group account. PASSWORD is expected to
+            be encrypted, as returned by <citerefentry><refentrytitle>crypt
+            </refentrytitle><manvolnum>3</manvolnum></citerefentry>. 
+	  </para>
+	  <para>
+            Without this option, the group account will be locked and
+            with no password defined, i.e. a single exclamation mark
+            in the respective field of ths system account file 
+            <filename>/etc/group</filename> or <filename>/etc/gshadow</filename>.
+          </para>
+	  <para>
+	    <emphasis role="bold">Note:</emphasis> This option is not
+	    recommended because the password (or encrypted password) will
+	    be visible by users listing the processes.
+	  </para>
+	  <para>
+	    You should make sure the password respects the system's
+	    password policy.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-r</option>, <option>--system</option>
+	</term>
+	<listitem>
+	  <para>
+	    Create a system group.
+	  </para>
+	  <para>
+	    The numeric identifiers of new system groups are chosen in
+	    the <option>SYS_GID_MIN</option>-<option>SYS_GID_MAX</option>
+	    range, defined in <filename>login.defs</filename>, instead of
+	    <option>GID_MIN</option>-<option>GID_MAX</option>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-P</option>, <option>--prefix</option>&nbsp;<replaceable>PREFIX_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes to configuration files under the root filesystem
+	    found under the directory <replaceable>PREFIX_DIR</replaceable>.
+	    This option does not chroot and is intended for preparing a cross-compilation
+	    target.  Some limitations: NIS and LDAP users/groups are
+	    not verified.  PAM authentication is using the host files.
+	    No SELINUX support.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-U</option>, <option>--users</option>
+	</term>
+	<listitem>
+	  <para>
+	    A list of usernames to add as members of the group.
+	  </para>
+	  <para>
+	    The default behavior (if the <option>-g</option>,
+	    <option>-N</option>, and <option>-U</option> options are not
+	    specified) is defined by the <option>USERGROUPS_ENAB</option>
+	    variable in <filename>/etc/login.defs</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &GID_MAX; <!-- documents also GID_MIN -->
+      &MAX_MEMBERS_PER_GROUP;
+      &SYS_GID_MAX; <!-- documents also SYS_GID_MIN -->
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="gshadow">
+	<term><filename>/etc/gshadow</filename></term>
+	<listitem>
+	  <para>Secure group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+   <refsect1 id='caveats'>
+     <title>CAVEATS</title>
+     <para>
+       You may not add a NIS or LDAP group. This must be performed on the
+       corresponding server.
+     </para>
+     <para>
+       If the groupname already exists in an external group database such
+       as NIS or LDAP, <command>groupadd</command> will deny the group
+       creation request.
+     </para>
+   </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>groupadd</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>invalid argument to option</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>GID is already used (when called without <option>-o</option>)</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>9</replaceable></term>
+	  <listitem>
+	    <para>group name is already used</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>10</replaceable></term>
+	  <listitem>
+	    <para>can't update group file</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para><citerefentry>
+	<refentrytitle>chfn</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>chsh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>gpasswd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>groupmod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>useradd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>userdel</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

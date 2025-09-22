@@ -1,0 +1,51 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "faillog detects missing /var/log/faillog and does not create it"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; touch /var/log/faillog' 0
+
+change_config
+
+echo -n "Remove /var/log/faillog (it will not be restored)..."
+rm -f /var/log/faillog
+echo "OK"
+
+echo -n "Execute faillog (faillog)..."
+faillog 2>tmp/faillog.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "faillog reported:"
+echo "======================================================================="
+cat tmp/faillog.err
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/faillog.err tmp/faillog.err
+echo "usage message OK."
+rm -f tmp/faillog.err
+
+echo -n "Check that the /var/log/faillog file was not created"...
+test ! -f /var/log/faillog
+echo "OK"
+
+touch /var/log/faillog
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

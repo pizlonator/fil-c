@@ -1,0 +1,45 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated Wed Apr 26 18:06:10 JST 2000
+.\"         by Kentaro Shirakata <argrath@ub32.org>
+.\" Updated & Modified Sat 21 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH CHPASSWD 8
+.SH 名前
+\fBchpasswd\fR \- パスワードファイルをバッチ処理で更新する
+.SH 書式
+\fBchpasswd\fR [\fB\-e\fR]
+.SH 説明
+\fBchpasswd\fR コマンドは
+標準入力からユーザ名とパスワードの組が記されているファイルを読み込み、
+その情報を用いて既存のユーザ群のパスワード情報を更新する。
+\-e オプションがない場合は、パスワードは平文とみなされる。
+\-e オプションがある場合は、パスワードは暗号化されているとみなされる。
+各行の書式は次の通り。
+.sp 1
+	  \fIuser_name\fR:\fIpassword\fR
+.sp 1
+指定したユーザは既に存在していなければならない。
+与えられたパスワードは必要に応じて暗号化され、
+パスワードの有効期限がある場合はそれも更新される。
+.PP
+このコマンドは、同時に大量のアカウントを作成するような、
+大規模なシステム環境で用いるために作られた。
+.SH 警告
+.\" The \fBmkpasswd\fR command must be executed afterwards to update the
+.\" DBM password files.
+入力ファイルに暗号化されていないパスワードが記されている場合は、
+適切に保護しておかなければならない。
+.\" This command may be discarded in favor of the newusers(8) command.
+.SH 関連項目
+.\" mkpasswd(8), passwd(1), useradd(1)
+.BR passwd (1),
+.BR newusers (8),
+.BR useradd (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

@@ -1,0 +1,137 @@
+.\" SPDX-FileCopyrightText: 1989 \- 1994, John F. Haugh II
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.TH PASSWD 1 "" \" \-*\- nroff \-*\-
+.SH NÉV
+passwd \- Felhasználói jelszó megváltoztatása
+.SH ÁTTEKINTÉS
+\fBpasswd\fR [\fB\-f\fR|\fB\-s\fR] [\fInév\fR]
+.br
+\fBpasswd\fR [\fB\-g\fR] [\fB\-r\fR|\fB\-R\fR] \fIcsoport\fR
+.br
+\fBpasswd\fR [\fB\-x\fR \fImax\fR] [\fB\-n\fR \fImin\fR]
+[\fB\-w\fR \fIfigy\fR] [\fB\-i\fR \fIinakt\fR] \fInév\fR
+.br
+\fBpasswd\fR {\fB\-l\fR|\fB\-u\fR|\fB\-d\fR|\fB\-S\fR} \fInév\fR
+.SH LEÍRÁS
+A \fBpasswd\fR a felhasználók és a csoportok megváltoztatását végzi.
+A felhasználók csak a saját jelszavukat változtathatják meg, a rendszergazda
+bárkiét. A csoportok jelszavát az adott csoport adminisztrátora
+változtathatja meg. 
+A \fBpasswd\fR ezen kívül használható a felhasználói adatok, mint pl. az
+igazi név, a login shell, vagy a jelszavak "szavatossági idejének"
+megváltoztatására is.
+.SS Jelszóváltozások
+A felhasználónak először a régi jelszavát kell beírnia, ha már volt neki.
+Ezután ennek a jelszónak a kódolt változatát összehasonlítja a tárolt
+jelszóval. A megfelelő jelszó beírására a felhasználónak csak egy lehetősége
+van.
+A rendszergazda átugorhatja ezt a lépést, így az elfelejtett jelszavak is
+megváltoztathatóak.
+.PP
+Miután a felhasználó beírta a jelszavát, a \fBpasswd\fR megvizsgálja, hogyan
+rendelkezett a rendszergazda a jelszavak "szavatossági idejéről". Amennyiben
+az idő nem alkalmas a jelszó megváltoztatására, \fBpasswd\fR kilép minden
+változtatás nélkül.
+.PP
+Ezekután a program bekéri a felhasználótól az új jelszót, majd
+megvizsgálja hogy elég bonyolult\-e.
+Általános szabályként elmondható, hogy a jelszavak jók, ha 6\-8 karakterből
+állnak, és a következő jelkészletekből tartalmaz elemeket:
+.IP "" .5i
+Az ABC kis betűi
+.IP "" .5i
+Az ABC nagy betűi
+.IP "" .5i
+Számok 0 és 9 között 
+.IP "" .5i
+Írásjelek
+.PP
+Fontos odafigyelni, hogy ne tartalmazzon az adott rendszeren használt
+"erase" és "kill" kódű karaktereket.
+A \fBpasswd\fR nem fogad el nem eléggé bonyolult jelszót.
+.PP
+Ha a jelszó elfogadható, 
+a \fBpasswd\fR a biztonság kedvéért még egyszer bekéri az új jelszót, és
+csak akkor hajtja végre a változtatást, ha a két bevitt jelszó megegyezik.
+.SS Csoportok jelszavai
+A \fB\-g\fR kapcsoló használata esetén a megadott nevű csoport jelszava
+változik meg. Ezt csak a rendszergazda vagy a csoport adminisztrátora teheti
+meg.
+A jelenlegi csoportjelszavat nem kéri változtatás előtt.
+Az \fB\-r\fR kapcsolót a \fB\-g\fR kapcsolóval használva lehet a csoport jelszavát kikapcsolni, ezáltal minden tag használhatja a csoportot.
+Az \fB\-R\fR kapcsoló a \fB\-g\fR kapcsolóval használva a csoport minden felhasználó előtt lezárul.
+
+.SS A jelszavak "szavatossági ideje"
+A jelszavak elévülési idejét a rendszergazda a \fB\-x\fR, \fB\-n\fR, \fB\-w\fR, és \fB\-i\fR kapcsolókkal szabályozhatja.
+A \fB\-x\fR kapcsoló a jelszócserék közti maximális időt állítja be. 
+A jelszót legkésőbb \fImax\fR naponként meg kell változtatni.
+Az \fB\-n\fR kapcsoló a két jelszócsere közötti minimális időt szabályozza: a felhasználó addig nem változtathatja meg jelszavát, amíg legalább
+\fImin\fR nap el nem telt az előző változtatás óta.
+A \fB\-w\fR kapcsolóval azt állíthatod be, hogy hány nappal a jelszó lejárta előtt kezdje el a rendszer a felhasználót figyelmeztetni. Az első figyelmeztetés \fIfigy\fR nappal a lejárat előtt jelenik meg, és utána naponta tájékoztatja a felhasználót a még hátralévő napok számáról.
+Az \fB\-i\fR kapcsoló \fIinakt\fR nappal a jelszó lejárta után lezárja a felhasználó belépési lehetőségét.
+
+.SS Jogosultság\-kezelés
+A felhasználók lezárhatóak és újra beengedhetőek a \fB\-l\fR és a \fB\-u\fR kapcsolókkal.
+Az \fB\-l\fR kapcsoló a jelszót kicseréli egy olyan értékre, ami semmilyen lehetséges jelszó kódolt értékével nem egyezik.
+Az \fB\-u\fR kapcsoló visszaállítja a jelszót a régire, és így újra engedélyezi a belépést.
+.PP
+A jogosultságok az \fB\-S\fR kapcsolóval állíthatóak be. Ez 6 részből áll:
+Az első azt jelzi, hogy a felhaszáló le van zárva (L), nincs jelszava (NP), vagy van érvényes jelszava (P).
+A második rész az utolsó jelszóváltoztatás dátuma.
+A következő négy rész a jelszavak minimális és maximális ideje, az első figyelmeztetés a jelszó lejárta előtt és hogy mennyi ideig él a jelszó lejárta után.
+
+.SS Tippek a felhasználói jelszavakhoz
+Egy jelszavas rendszer biztonsága a kódolási algoritmus erősségétől és a lehetséges kulcsok számától függ.
+A \fB\s-2UNIX\s+2\fR rendszerek kódolási módja az NBS DES algoritmuson alapul, és nagyon biztonságos. A lehetséges kulcsok száma a választott jelszó véletlenszerűségén múlik.
+.PP
+A jelszavas rendszerek feltörése legtöbbször a gondatlanul megválasztott jelszóválasztásnak vagy a jelszavak cserélgetésének eredménye.
+Ezen okok miatt célszerű olyan jelszót választanod, ami nem szerepel a szótárban és nem szükséges leírnod. Tipikusan rossz választás még, ha valamilyen nevet, valamilyen azonosítószámodat, születésnapodat, vagy címedet használod jelszóként.
+Ezeket legtöbbször minden más lehetőség vizsgálata előtt kipróbálja a potenciális cracker.
+.PP
+Igyekezz olyan jelszót választani, amit könnyen megjegyzel és így nem vagy
+arra szorulva, hogy le kelljen írnod.
+Ezt például úgy érheted el, hogy két rövidebb szót elválasztasz egy számmal
+vagy valamilyen karakterrel, például jel@szo
+.PP
+A másik módszer, hogy egy könnyen megjegyezhető mondat vagy idézet minden
+szavának első vagy utolsó betűjét írod egymás után.
+Így például a 
+.IP "" .5i
+Morzsa kutyám hegyezd füled
+.PP
+\-ből
+.IP "" .5i
+Maqmhdfd
+.PP
+lesz.
+Feltehetőleg kevés cracker szótárában fog szerepelni ez a szó.
+Ennek ellenére a még nagyobb biztonság kedvéért érdemes valamilyen saját
+módszert kitalálnod jelszavak készítésére.
+
+.SS Megjegyzés a csoportok jelszavairól
+A csoportok jelszavai állandó biztonsági problémát jelenthetnek, mivel
+nemcsak egy ember ismerheti a jelszavat. A csoport\-kezelés azonban
+hasznos abban az esetben, ha több felhasználó együttműködését kell
+megoldani.
+
+.SH FIGYELMEZTETÉS
+Nem biztos, hogy minden kapcsoló felhasználható.
+Az, hogy hogyan vizsgálja a jelszavak bonyolultságát, rendszerről rendszerre
+változhat.
+Minden felhasználónak célszerű a lehető legbonyolultabb, de még használható
+jelszót használnia.
+Ha NIS\-t használ a felhasználók azonosítására a rendszer és a felhasználó nem
+lépett be a NIS kiszolgálóra, nem változtathatja meg jelszavát.
+.SH FÁJLOK
+\fI/etc/passwd\fR	\- felhasználói információk
+.br
+\fI/etc/shadow\fR	\- kódolt felhasználói jelszavak
+.SH LÁSD MÉG
+.BR group (5),
+.BR passwd (5),
+.BR shadow (5)
+.SH MAGYAR FORDÍTÁS
+Érdi "Cactus" Gergő <cactus@freemail.c3.hu>

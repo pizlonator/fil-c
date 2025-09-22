@@ -1,0 +1,51 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "lastlog detects missing /var/log/lastlog and does not create it"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; touch /var/log/lastlog' 0
+
+change_config
+
+echo -n "Remove /var/log/lastlog (it will not be restored)..."
+rm -f /var/log/lastlog
+echo "OK"
+
+echo -n "Execute lastlog (lastlog)..."
+lastlog 2>tmp/lastlog.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "lastlog reported:"
+echo "======================================================================="
+cat tmp/lastlog.err
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/lastlog.err tmp/lastlog.err
+echo "usage message OK."
+rm -f tmp/lastlog.err
+
+echo -n "Check that the /var/log/lastlog file was not created"...
+test ! -f /var/log/lastlog
+echo "OK"
+
+touch /var/log/lastlog
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

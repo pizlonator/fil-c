@@ -1,0 +1,119 @@
+.\" SPDX-FileCopyrightText: 1989 - 1994 Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" $Id$
+.\"
+.TH LOGIN 1
+.SH 名前
+login \- システム上でセッションを開く
+.SH 書式
+\fBlogin\fR [\fB\-p\fR] [\fIusername\fR] [\fIENV=VAR\fR ...]
+.br
+\fBlogin\fR [\fB\-p\fR] [\fB\-h\fR \fIhost\fR] [\fB\-f\fR \fIusername\fR]
+.br
+\fBlogin\fR [\fB\-p\fR] \fB\-r\fR \fIhost\fR
+.SH 説明
+.B login
+はシステムに新たにセッションを開くために用いられる。
+通常は、ユーザの端末に表示される
+.I login:
+というプロンプトに応じる事によって自動的に起動される。
+.B login
+はシェル専用のものであり、
+サブプロセスとして起動することはできない。
+通常シェルは
+.B login
+を
+\fBexec login\fR とみなすので、ユーザは現在のシェルから抜けることになる。
+ログインシェル以外から \fBlogin\fR を起動しようとすると、
+エラーメッセージが表示される。
+.PP
+次いで、必要な場合には、ユーザはパスワードを入力するよう促される。
+パスワードを表示してしまわないよう、エコーは行われない。
+数回以上パスワード入力に失敗すると
+\fBlogin\fR は終了し、通信の接続は切断されてしまう。
+.PP
+アカウントに対してパスワードの有効期限が設定されている場合は、
+先に進む前に新しいパスワードの設定を促されることもある。
+セッションを続けるためには古いパスワードと
+新しいパスワードを入力しなくてはならない。
+詳しい情報は \fBpasswd\fR(1) を参照すること。
+.PP
+ログインに成功すると、システムメッセージやメールの有無が表示される。
+ログインディレクトリに長さ 0 のファイル \fI.hushlogin\fR を作っておけば、
+システムメッセージファイルである
+\fI/etc/motd\fR の表示を無効にできる。
+メールに関するメッセージは、メールボックスの状態によって
+"\fBYou have new mail.\fR",
+"\fBYou have mail.\fR",
+"\fBNo Mail.\fR"
+のいずれかになる。
+.PP
+ユーザ ID とグループの ID は
+\fI/etc/passwd\fR ファイル中に記載されている値に従って設定される。
+\fB$HOME\fR, \fB$SHELL\fR, \fB$PATH\fR, \fB$LOGNAME\fR, \fB$MAIL\fR
+の値は、パスワードエントリのそれぞれのフィールドに従って設定される。
+ulimit, umask, nice 値が、
+GECOS フィールドのエントリーによって設定されることもある。
+.PP
+インストール時の設定によっては、
+\fI/etc/ttytype\fR の指定に従って、
+環境変数\fB$TERM\fRが tty 接続の端末の型 (terminal type)
+に初期化されることもある。
+.PP
+コマンドインタプリタの初期化スクリプトが実行されることもある。
+この機能についての詳しい情報は適当なマニュアルセクションを参照のこと。
+.PP
+サブシステムログインでは、
+ログインシェルの最初の文字に "*" を置く。
+渡されたホームディレクトリは、
+ユーザが実際にログインする新しいファイルシステムのルートとして扱われる。
+.SH オプション
+.TP
+.B \-p
+環境を保存する。
+.TP
+.B \-f
+ユーザはすでに認証されているものとして、認証動作を行なわない。
+.TP
+.B \-h
+このログインのリモートホストの名前。
+.TP
+.B \-r
+rlogin の自動ログインプロトコルを実行する。
+.PP
+\fB\-r\fP, \fB\-h\fP, \fB\-f\fP オプションは、
+root が \fBlogin\fP を起動した場合にのみ用いる。
+.SH 警告
+この版の \fBlogin\fR には多くのコンパイル時オプションがあるが、
+サイトによってはこのうちの一部しか使われていないかもしれない。
+.PP
+システム設定の違いによって上記ファイルの置き場所は変わる。
+.SH ファイル
+\fI/var/run/utmp\fR		\- 現在のログインセッションのリスト
+.br
+\fI/var/log/wtmp\fR		\- 過去のログインセッションのリスト
+.br
+\fI/etc/passwd\fR		\- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR		\- 暗号化パスワードと有効期限情報
+.br
+\fI/etc/motd\fR			\- システムメッセージファイル
+.br
+\fI/etc/nologin\fR		\- root 以外のユーザのログインを禁止する
+.br
+\fI/etc/ttytype\fR		\- 端末の型のリスト
+.br
+\fI$HOME/.hushlogin\fR	\- システムメッセージの表示を抑制する
+.SH 関連項目
+.BR mail (1),
+.BR passwd (1),
+.BR sh (1),
+.BR su (1),
+.\" .BR d_passwd (5),
+.BR login.defs (5),
+.BR nologin (5),
+.BR passwd (5),
+.BR getty (8)
+.SH 著者
+Julianne Frances Haugh <julie78787@gmail.com>

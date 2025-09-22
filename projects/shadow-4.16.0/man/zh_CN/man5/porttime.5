@@ -1,0 +1,96 @@
+'\" t
+.\"     Title: porttime
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2024-06-18
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Chinese Simplified
+.\"
+.TH "PORTTIME" "5" "2024-06-18" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "名称"
+porttime \- 端口访问时间文件
+.SH "描述"
+.PP
+\fIporttime\fR
+contains a list of tty devices, user names, and permitted login times\&.
+.PP
+每项包含三个由冒号分隔的字段。第一个字段是逗号分隔的 tty 设备列表，或者星号表示匹配所有终端。第二个字段是逗号分隔的用户名列表，或者星号表示匹配所有用户名。第三个字段是逗号分隔的访问许可时间。
+.PP
+Each access time entry consists of zero or more days of the week, abbreviated
+\fISu\fR,
+\fIMo\fR,
+\fITu\fR,
+\fIWe\fR,
+\fITh\fR,
+\fIFr\fR, and
+\fISa\fR, followed by a pair of times separated by a hyphen\&. The abbreviation
+\fIWk\fR
+may be used to represent Monday thru Friday, and
+\fIAl\fR
+may be used to indicate every day\&. If no days are given,
+\fIAl\fR
+is assumed\&.
+.SH "示例"
+.PP
+The following entry allows access to user
+\fBjfh\fR
+on every port during weekdays from 9am to 5pm\&.
+.PP
+*:jfh:Wk0900\-1700
+.PP
+The following entries allow access only to the users
+\fIroot\fR
+and
+\fIoper\fR
+on
+/dev/console
+at any time\&. This illustrates how the
+/etc/porttime
+file is an ordered list of access times\&. Any other user would match the second entry which does not permit access at any time\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      console:root,oper:Al0000\-2400
+      console:*:
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following entry allows access for the user
+\fIgames\fR
+on any port during non\-working hours\&.
+.PP
+*:games:Wk1700\-0900,SaSu0000\-2400
+.SH "文件"
+.PP
+/etc/porttime
+.RS 4
+包含了端口访问信息的文件。
+.RE
+.SH "参见"
+.PP
+\fBlogin\fR(1)\&.

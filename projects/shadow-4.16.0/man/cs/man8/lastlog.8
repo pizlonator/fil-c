@@ -1,0 +1,40 @@
+.\"	@(#)lastlog.8	3.3	08:24:58	29 Sep 1993 (National Guard Release)
+.\"	$Id$
+.\"
+.TH LASTLOG 8
+.SH JMÉNO
+lastlog \- prozkoumá soubor lastlog
+.SH SYNTAXE
+.B lastlog
+.RB [ \-u
+.IR přihlašovací\-jméno ]
+.RB [ \-t
+.IR dny ]
+.SH POPIS
+\fBlastlog\fR setřídí a zobrazí obsah souboru
+\fI/var/log/lastlog\fR,
+který obsahuje záznamy o přihlašování a odhlašování uživatelů v systému.
+Zobrazí se \fBpřihlašovací jméno\fR, \fBjméno terminálu\fR a \fBčas posledního
+přihlašení\fR.
+Standardně (tj. bez dalších voleb) lastlog zobrazí záznamy setříděné
+podle čísla UID.
+Použití přepínače \fB\-u \fIpřihlašovací\-jméno\fR
+způsobí, že bude vytištěn pouze poslední záznam o přihlášení příslušného uživatele.
+Zadáním \fB\-t \fIdny\fR se zobrazí pouze
+ta přihlášení, které jsou dřívější než zadané \fIdny\fR.
+Parametr \fB\-t\fR překryje případný parametr \fB\-u\fR.
+.PP
+Pokud se uživatel ještě nikdy nepřihlásil, zobrazí se zpráva \fB"**Never logged in**"\fR (Nikdy nepřihlášen)
+místo jména terminálu a času.
+.SH SOUBORY
+/var/log/lastlog \- soubor se záznamy o přihlášení a odhlášení
+.SH NÁMITKY
+Velké rozdíly v UID číslech jsou způsobeny tím, že lastlog program běžel dlouho bez
+výstupu na obrazovku (např. mmdf=800 a poslední uid=170, program se bude
+jevit jako s uid 171\-799).
+.SH AUTOŘI
+Julianne Frances Haugh (jfh@austin.ibm.com)
+.br
+Phillip Street
+.SH PŘELOŽIL
+Ondřej Pavlíček (mox@post.cz).

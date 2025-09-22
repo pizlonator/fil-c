@@ -1,0 +1,290 @@
+'\" t
+.\"     Title: su
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Italian
+.\"
+.TH "SU" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOME"
+su \- cambia ID utente o diventa amministratore
+.SH "SINOSSI"
+.HP \w'\fBsu\fR\ 'u
+\fBsu\fR [\fIoptions\fR] [\fI\-\fR] [\fIusername\fR\ [\ \fIargs\fR\ ]]
+.SH "DESCRIZIONE"
+.PP
+The
+\fBsu\fR
+command is used to become another user during a login session\&. Invoked without a
+\fBusername\fR,
+\fBsu\fR
+defaults to becoming the superuser\&. The
+\fB\-\fR
+option may be used to provide an environment similar to what the user would expect had the user logged in directly\&. The
+\fB\-c\fR
+option may be used to treat the next argument as a command by most shells\&.
+.PP
+Options are recognized everywhere in the argument list\&. You can use the
+\fB\-\-\fR
+argument to stop option parsing\&. The
+\fB\-\fR
+option is special: it is also recognized after
+\fB\-\-\fR, but has to be placed before
+\fBusername\fR\&.
+.PP
+All\*(Aqutente viene quindi chiesta la password, se necessario\&. Una password errata viene segnalata da un messaggio d\*(Aqerrore\&. Viene effettuato il log di tutti i tentativi, siano essi riusciti o meno, al fine di rilevare ogni abuso del sistema\&.
+.PP
+The current environment is passed to the new shell\&. The value of
+\fB$PATH\fR
+is reset to
+/bin:/usr/bin
+for normal users, or
+/sbin:/bin:/usr/sbin:/usr/bin
+for the superuser\&. This may be changed with the
+\fBENV_PATH\fR
+and
+\fBENV_SUPATH\fR
+definitions in
+/etc/login\&.defs\&.
+.PP
+Un sottosistema di login \(`e indicato dalla presenza del carattere \(Fo*\(Fc all\*(Aqinizio della shell di login\&. La directory home impostata sar\(`a utilizzata come root di un nuovo file system al quale l\*(Aqutente accede\&.
+.SH "OPZIONI"
+.PP
+The options which apply to the
+\fBsu\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-command\fR\ \&\fICOMMAND\fR
+.RS 4
+Specify a command that will be invoked by the shell using its
+\fB\-c\fR\&.
+.sp
+The executed command will have no controlling terminal\&. This option cannot be used to execute interactive programs which need a controlling TTY\&.
+.RE
+.PP
+\fB\-\fR, \fB\-l\fR, \fB\-\-login\fR
+.RS 4
+Fornisce un ambiente simile a quello che un utente si attende quando effettua direttamente il login\&.
+.sp
+When
+\fB\-\fR
+is used, it must be specified before any
+\fBusername\fR\&. For portability it is recommended to use it as last option, before any
+\fBusername\fR\&. The other forms (\fB\-l\fR
+and
+\fB\-\-login\fR) do not have this restriction\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-shell\fR\ \&\fISHELL\fR
+.RS 4
+La shell che verr\(`a invocata\&.
+.sp
+The invoked shell is chosen from (highest priority first):
+.PP
+.RS 4
+The shell specified with \-\-shell\&.
+.RE
+.PP
+.RS 4
+If
+\fB\-\-preserve\-environment\fR
+is used, the shell specified by the
+\fB$SHELL\fR
+environment variable\&.
+.RE
+.PP
+.RS 4
+The shell indicated in the
+/etc/passwd
+entry for the target user\&.
+.RE
+.PP
+.RS 4
+/bin/sh
+if a shell could not be found by any above method\&.
+.RE
+.sp
+If the target user has a restricted shell (i\&.e\&. the shell field of this user\*(Aqs entry in
+/etc/passwd
+is not listed in
+/etc/shells), then the
+\fB\-\-shell\fR
+option or the
+\fB$SHELL\fR
+environment variable won\*(Aqt be taken into account, unless
+\fBsu\fR
+is called by root\&.
+.RE
+.PP
+\fB\-m\fR, \fB\-p\fR, \fB\-\-preserve\-environment\fR
+.RS 4
+Preserve the current environment, except for:
+.PP
+\fB$PATH\fR
+.RS 4
+reset according to the
+/etc/login\&.defs
+options
+\fBENV_PATH\fR
+or
+\fBENV_SUPATH\fR
+(see below);
+.RE
+.PP
+\fB$IFS\fR
+.RS 4
+reset to
+\(Fo<space><tab><newline>\(Fc, if it was set\&.
+.RE
+.sp
+If the target user has a restricted shell, this option has no effect (unless
+\fBsu\fR
+is called by root)\&.
+.sp
+Note that the default behavior for the environment is the following:
+.PP
+.RS 4
+The
+\fB$HOME\fR,
+\fB$SHELL\fR,
+\fB$USER\fR,
+\fB$LOGNAME\fR,
+\fB$PATH\fR, and
+\fB$IFS\fR
+environment variables are reset\&.
+.RE
+.PP
+.RS 4
+If
+\fB\-\-login\fR
+is not used, the environment is copied, except for the variables above\&.
+.RE
+.PP
+.RS 4
+If
+\fB\-\-login\fR
+is used, the
+\fB$TERM\fR,
+\fB$COLORTERM\fR,
+\fB$DISPLAY\fR, and
+\fB$XAUTHORITY\fR
+environment variables are copied if they were set\&.
+.RE
+.PP
+.RS 4
+If
+\fB\-\-login\fR
+is used, the
+\fB$TZ\fR,
+\fB$HZ\fR, and
+\fB$MAIL\fR
+environment variables are set according to the
+/etc/login\&.defs
+options
+\fBENV_TZ\fR,
+\fBENV_HZ\fR,
+\fBMAIL_DIR\fR, and
+\fBMAIL_FILE\fR
+(see below)\&.
+.RE
+.PP
+.RS 4
+If
+\fB\-\-login\fR
+is used, other environment variables might be set by the
+\fBENVIRON_FILE\fR
+file (see below)\&.
+.RE
+.sp
+.RE
+.SH "AVVISI/CAVEAT"
+.PP
+This version of
+\fBsu\fR
+has many compilation options, only some of which may be in use at any particular site\&.
+.SH "CONFIGURAZIONE"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "FILE"
+.PP
+/etc/passwd
+.RS 4
+Informazioni sugli account utente\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informazioni sicure sugli account utente\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configurazione del pacchetto password shadow
+.RE
+.SH "VALORI RESTITUITI"
+.PP
+On success,
+\fBsu\fR
+returns the exit value of the command it executed\&.
+.PP
+If this command was terminated by a signal,
+\fBsu\fR
+returns the number of this signal plus 128\&.
+.PP
+If su has to kill the command (because it was asked to terminate, and the command did not terminate in time),
+\fBsu\fR
+returns 255\&.
+.PP
+Some exit values from
+\fBsu\fR
+are independent from the executed command:
+.PP
+\fI0\fR
+.RS 4
+success (\fB\-\-help\fR
+only)
+.RE
+.PP
+\fI1\fR
+.RS 4
+System or authentication failure
+.RE
+.PP
+\fI126\fR
+.RS 4
+The requested command was not found
+.RE
+.PP
+\fI127\fR
+.RS 4
+The requested command could not be executed
+.RE
+.SH "VEDERE ANCHE"
+.PP
+\fBlogin\fR(1),
+\fBlogin.defs\fR(5),
+\fBsg\fR(1),
+\fBsh\fR(1)\&.

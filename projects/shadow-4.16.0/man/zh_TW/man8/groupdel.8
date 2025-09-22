@@ -1,0 +1,31 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.TH GROUPDEL 8
+.SH 名稱
+groupdel \- 刪除群組
+.SH 語法
+.B groupdel
+.I group
+.SH 描述
+\fBgroupdel\fR 命令會修改系統帳號檔，會刪除所有已經存在的\fIgroup\fR.
+群組名須存在。
+.PP
+你須手動確認一下所有的檔案系統確保有沒有檔案還是沒修正群組名變成群組ID。
+.SH 警告
+如果有任何一個群組的使用者在線上的話就不能移除該群組。
+最好先移除使用者後再移除群組。
+.SH 檔案
+\fI/etc/group\fR \- 群組資訊
+\fI/etc/gshadow\fR \- 群組資訊加密
+.SH 相關文件
+.BR chfn (1),
+.BR chsh (1),
+.BR useradd (8),
+.BR userdel (8),
+.BR usermod (8),
+.BR passwd (1),
+.BR groupadd (8),
+.BR groupmod (8)
+.SH 作者
+Julianne Frances Haugh (jfh@tab.com)

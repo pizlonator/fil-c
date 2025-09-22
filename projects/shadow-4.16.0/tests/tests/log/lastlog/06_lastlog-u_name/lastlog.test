@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "reports all entry from /var/log/lastlog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create an empty /var/log/lastlog (it will not be restored)..."
+> /var/log/lastlog
+echo "OK"
+
+echo -n "lastlog -u baz..."
+lastlog -u baz> tmp/lastlog.out
+echo "OK."
+
+echo "lastlog :"
+echo "======================================================================="
+cat tmp/lastlog.out
+echo "======================================================================="
+
+echo -n "Check the list of logged in users..."
+cat tmp/lastlog.out | cut -d" " -f1 > tmp/lastlog.list
+diff -au data/lastlog.list tmp/lastlog.list
+echo "OK."
+
+rm -f tmp/lastlog.out tmp/lastlog.list
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

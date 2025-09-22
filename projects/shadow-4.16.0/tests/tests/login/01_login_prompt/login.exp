@@ -1,0 +1,23 @@
+#!/usr/bin/expect
+
+set timeout 2
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "login\r"
+expect " login: "
+send "myuser\r"
+expect "Password: "
+send "myuserF00barbaz\r"
+expect "$ "
+
+send "# expect uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)\r"
+expect "$ "
+send "id\r"
+expect "uid=424242(myuser) gid=424242(myuser) groups=424242(myuser)\r"
+expect "$ "
+send "exit\r"
+
+exit 0

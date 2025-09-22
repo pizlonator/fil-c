@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='faillog.8'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>faillog</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>faillog</refname>
+    <refpurpose>display faillog records or set login failure limits</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>faillog</command>
+      <arg choice='opt'>
+	<replaceable>options</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <command>faillog</command> displays the contents of the failure log
+      database (<filename>/var/log/faillog</filename>). It can also
+      set the failure counters and limits. When
+      <command>faillog</command> is run without arguments, it only displays the
+      faillog records of the users who had a login failure.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The options which apply to the <command>faillog</command> command
+      are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><option>-a</option>, <option>--all</option></term>
+	<listitem>
+	  <para>
+	    Display (or act on) faillog records for all users having an
+	    entry in the <filename>faillog</filename> database.
+	  </para>
+	  <para>
+	    The range of users can be restricted with the
+	    <option>-u</option> option.
+	  </para>
+	  <para>
+	    In display mode, this is still restricted to existing users
+	    but forces the display of the faillog entries even if they
+	    are empty.
+	  </para>
+	  <para>
+	    With the <option>-l</option>, <option>-m</option>,
+	    <option>-r</option>, <option>-t</option> options, the users'
+	    records are changed, even if the user does not exist on the
+	    system. This is useful to reset records of users that have
+	    been deleted or to set a policy in advance for a range of
+	    users.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-l</option>, <option>--lock-secs</option>&nbsp;<replaceable>SEC</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Lock account for <replaceable>SEC</replaceable>
+	    seconds after failed login.
+	  </para>
+	  <para>
+	    Write access to <filename>/var/log/faillog</filename>
+	    is required for this option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-m</option>, <option>--maximum</option>&nbsp;<replaceable>MAX</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Set the maximum number of login failures after the account is
+	    disabled to <replaceable>MAX</replaceable>.
+	  </para>
+	  <para>
+	    Selecting a
+	    <replaceable>MAX</replaceable> value of 0 has the effect of not
+	    placing a limit on the number of failed logins.
+	  </para>
+	  <para>
+	    The maximum
+	    failure count should always be 0 for <emphasis>root</emphasis>
+	    to prevent a denial of services attack against the system.
+	  </para>
+	  <para>
+	    Write access to <filename>/var/log/faillog</filename>
+	    is required for this option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-r</option>, <option>--reset</option></term>
+	<listitem>
+	  <para>
+	    Reset the counters of login failures.
+	  </para>
+	  <para>
+	    Write access to <filename>/var/log/faillog</filename>
+	    is required for this option.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-t</option>, <option>--time</option>&nbsp;<replaceable>DAYS</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Display faillog records more recent than
+	    <replaceable>DAYS</replaceable>.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-u</option>, <option>--user</option>&nbsp;<replaceable>LOGIN</replaceable>|<replaceable>RANGE</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Display faillog record or maintains failure counters and limits
+	    (if used with <option>-l</option>, <option>-m</option> or
+	    <option>-r</option> options) only for the specified user(s).
+	  </para>
+	  <para>
+	    The users can be specified by a login name, a numerical user
+	    ID, or a <replaceable>RANGE</replaceable> of users.  This
+	    <replaceable>RANGE</replaceable> of users can be specified
+	    with a min and max values
+	    (<replaceable>UID_MIN-UID_MAX</replaceable>), a max value
+	    (<replaceable>-UID_MAX</replaceable>), or a min value
+	    (<replaceable>UID_MIN-</replaceable>).
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      When none of the <option>-l</option>, <option>-m</option>, or
+      <option>-r</option> options are used, <command>faillog</command>
+      displays the faillog record of the specified user(s).
+    </para>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      <command>faillog</command> only prints out users with no successful
+      login since the last failure. To print out a user who has had a
+      successful login since their last failure, you must explicitly request
+      the user with the <option>-u</option> flag, or print out all users
+      with the <option>-a</option> flag.
+    </para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/var/log/faillog</filename></term>
+	<listitem>
+	  <para>Failure logging file.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>faillog</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

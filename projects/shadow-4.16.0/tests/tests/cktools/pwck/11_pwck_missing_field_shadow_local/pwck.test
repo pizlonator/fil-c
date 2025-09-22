@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "grpck check the number of fields and can change local databases"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "copy passwd and shadow locally..."
+cp /etc/passwd /etc/shadow tmp/
+echo "OK"
+
+./pwck.exp
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+../../../common/compare_file.pl data/passwd tmp/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+../../../common/compare_file.pl data/shadow tmp/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+rm -f tmp/passwd tmp/passwd- tmp/shadow tmp/shadow-
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

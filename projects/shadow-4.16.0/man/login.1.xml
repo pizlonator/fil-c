@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY CONSOLE               SYSTEM "login.defs.d/CONSOLE.xml">
+<!ENTITY CONSOLE_GROUPS        SYSTEM "login.defs.d/CONSOLE_GROUPS.xml">
+<!ENTITY DEFAULT_HOME          SYSTEM "login.defs.d/DEFAULT_HOME.xml">
+<!ENTITY ENV_HZ                SYSTEM "login.defs.d/ENV_HZ.xml">
+<!ENTITY ENV_PATH              SYSTEM "login.defs.d/ENV_PATH.xml">
+<!ENTITY ENV_SUPATH            SYSTEM "login.defs.d/ENV_SUPATH.xml">
+<!ENTITY ENV_TZ                SYSTEM "login.defs.d/ENV_TZ.xml">
+<!ENTITY ENVIRON_FILE          SYSTEM "login.defs.d/ENVIRON_FILE.xml">
+<!ENTITY ERASECHAR             SYSTEM "login.defs.d/ERASECHAR.xml">
+<!ENTITY FAIL_DELAY            SYSTEM "login.defs.d/FAIL_DELAY.xml">
+<!ENTITY FAILLOG_ENAB          SYSTEM "login.defs.d/FAILLOG_ENAB.xml">
+<!ENTITY FAKE_SHELL            SYSTEM "login.defs.d/FAKE_SHELL.xml">
+<!ENTITY FTMP_FILE             SYSTEM "login.defs.d/FTMP_FILE.xml">
+<!ENTITY HUSHLOGIN_FILE        SYSTEM "login.defs.d/HUSHLOGIN_FILE.xml">
+<!ENTITY ISSUE_FILE            SYSTEM "login.defs.d/ISSUE_FILE.xml">
+<!ENTITY KILLCHAR              SYSTEM "login.defs.d/KILLCHAR.xml">
+<!ENTITY LASTLOG_ENAB          SYSTEM "login.defs.d/LASTLOG_ENAB.xml">
+<!ENTITY LOGIN_RETRIES         SYSTEM "login.defs.d/LOGIN_RETRIES.xml">
+<!ENTITY LOGIN_STRING          SYSTEM "login.defs.d/LOGIN_STRING.xml">
+<!ENTITY LOGIN_TIMEOUT         SYSTEM "login.defs.d/LOGIN_TIMEOUT.xml">
+<!ENTITY LOG_OK_LOGINS         SYSTEM "login.defs.d/LOG_OK_LOGINS.xml">
+<!ENTITY LOG_UNKFAIL_ENAB      SYSTEM "login.defs.d/LOG_UNKFAIL_ENAB.xml">
+<!ENTITY MAIL_CHECK_ENAB       SYSTEM "login.defs.d/MAIL_CHECK_ENAB.xml">
+<!ENTITY MAIL_DIR              SYSTEM "login.defs.d/MAIL_DIR.xml">
+<!ENTITY MOTD_FILE             SYSTEM "login.defs.d/MOTD_FILE.xml">
+<!ENTITY NOLOGINS_FILE         SYSTEM "login.defs.d/NOLOGINS_FILE.xml">
+<!ENTITY PORTTIME_CHECKS_ENAB  SYSTEM "login.defs.d/PORTTIME_CHECKS_ENAB.xml">
+<!ENTITY QUOTAS_ENAB           SYSTEM "login.defs.d/QUOTAS_ENAB.xml">
+<!ENTITY TTYGROUP              SYSTEM "login.defs.d/TTYGROUP.xml">
+<!ENTITY TTYTYPE_FILE          SYSTEM "login.defs.d/TTYTYPE_FILE.xml">
+<!ENTITY ULIMIT                SYSTEM "login.defs.d/ULIMIT.xml">
+<!ENTITY UMASK                 SYSTEM "login.defs.d/UMASK.xml">
+<!ENTITY USERGROUPS_ENAB       SYSTEM "login.defs.d/USERGROUPS_ENAB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='login.1'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>login</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="sectdesc">User Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>login</refname>
+    <refpurpose>begin session on the system</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>login</command>
+      <arg choice='opt'>-p</arg>
+      <arg choice='opt'>-h <replaceable>host</replaceable></arg>
+      <arg choice='opt'>
+      <replaceable>username</replaceable></arg>
+      <arg choice='opt' rep='repeat'> <replaceable>ENV=VAR</replaceable></arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>login</command>
+      <arg choice='opt'>-p</arg>
+      <arg choice='opt'>-h <replaceable>host</replaceable></arg>
+      <arg choice='plain'>-f</arg>
+      <arg choice='plain'><replaceable>username</replaceable></arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>login</command>
+      <arg choice='opt'>-p</arg>
+      <arg choice='plain'>-r <replaceable>host</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>login</command> program is used to establish a new session
+      with the system. It is normally invoked automatically by responding to
+      the <emphasis remap='I'>login:</emphasis> prompt on the user's
+      terminal. <command>login</command> may be special to the shell and may
+      not be invoked as a sub-process. When called from a shell,
+      <command>login</command> should be executed as
+      <emphasis remap='B'>exec login</emphasis> which will cause the user
+      to exit from the current shell (and thus will prevent the new logged
+      in user to return to the session of the caller). Attempting to
+      execute <command>login</command> from any shell but the login shell
+      will produce an error message.
+    </para>
+
+    <para>
+      The user is then prompted for a password, where appropriate. Echoing
+      is disabled to prevent revealing the password. Only a small number of
+      password failures are permitted before <command>login</command> exits
+      and the communications link is severed.
+    </para>
+
+    <para>
+      If password aging has been enabled for your account, you may be
+      prompted for a new password before proceeding. You will be forced to
+      provide your old password and the new password before continuing. 
+      Please refer to <citerefentry>
+      <refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> for more information.
+    </para>
+
+    <para condition="no_pam">
+      After a successful login, you will be informed of any system messages
+      and the presence of mail. You may turn off the printing of the system
+      message file, <filename>/etc/motd</filename>, by creating a
+      zero-length file <filename>.hushlogin</filename> in your login directory. 
+      The mail message will be one of "<emphasis>You have new
+      mail.</emphasis>", "<emphasis>You have mail.</emphasis>", or
+      "<emphasis>No Mail.</emphasis>" according to the condition of your
+      mailbox.
+    </para>
+
+    <para>
+      Your user and group ID will be set according to their values in the
+      <filename>/etc/passwd</filename> file. The value for
+      <envar>$HOME</envar>, <envar>$SHELL</envar>, <envar>$PATH</envar>,
+      <envar>$LOGNAME</envar>, and <envar>$MAIL</envar> are set according
+      to the appropriate fields in the password entry. Ulimit, umask and nice
+      values may also be set according to entries in the GECOS field.
+    </para>
+
+    <para>
+      On some installations, the environmental variable
+      <envar>$TERM</envar> will be initialized to the terminal type on
+      your tty line, as specified in <filename>/etc/ttytype</filename>.
+    </para>
+
+    <para>
+      An initialization script for your command interpreter may also be
+      executed. Please see the appropriate manual section for more
+      information on this function.
+    </para>
+
+    <para>
+      A subsystem login is indicated by the presence of a "*" as the first
+      character of the login shell. The given home directory will be used as
+      the root of a new file system which the user is actually logged into.
+    </para>
+
+    <para>
+      The <command>login</command> program is NOT responsible for removing
+      users from the utmp file. It is the responsibility of
+      <citerefentry><refentrytitle>getty</refentrytitle>
+      <manvolnum>8</manvolnum></citerefentry> and
+      <citerefentry><refentrytitle>init</refentrytitle>
+      <manvolnum>8</manvolnum></citerefentry> to clean up apparent ownership
+      of a terminal session. If you use <command>login</command> from the
+      shell prompt without <command>exec</command>, the user you use will
+      continue to appear to be logged in even after you log out of the
+      "subsession".
+    </para>
+
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-f</option>
+	</term>
+	<listitem>
+	  <para>
+	    Do not perform authentication, user is preauthenticated.
+	  </para>
+	  <para>
+	    Note: In that case, <replaceable>username</replaceable> is
+	    mandatory.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-h</option>
+	</term>
+	<listitem>
+	  <para>Name of the remote host for this login.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-p</option>
+	</term>
+	<listitem>
+	  <para>Preserve environment.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      The <option>-r</option>, <option>-h</option> and <option>-f</option>
+      options are only used when <command>login</command> is invoked by
+      root.
+    </para>
+  </refsect1>
+
+  <refsect1 id='caveats'>
+    <title>CAVEATS</title>
+    <para>
+      This version of <command>login</command> has many compilation options,
+      only some of which may be in use at any particular site.
+    </para>
+
+    <para>The location of files is subject to differences in system
+      configuration.
+    </para>
+
+    <para>
+      The <command>login</command> program is NOT responsible for removing
+      users from the utmp file. It is the responsibility of <citerefentry>
+      <refentrytitle>getty</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry> and <citerefentry>
+      <refentrytitle>init</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry> to clean up apparent ownership of a terminal session. 
+      If you use <command>login</command> from the shell prompt without
+      <command>exec</command>, the user you use will continue to appear to
+      be logged in even after you log out of the "subsession".
+    </para>
+
+    <para>
+      As with any program, <command>login</command>'s appearance can be faked. 
+      If non-trusted users have physical access to a machine, an
+      attacker could use this to obtain the password of the next person
+      coming to sit in front of the machine. Under Linux, the SAK mechanism can be
+      used by users to initiate a trusted path and prevent this kind of
+      attack.
+    </para>
+
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &CONSOLE;
+      &CONSOLE_GROUPS;
+      &DEFAULT_HOME;
+      &ENV_HZ;
+      <phrase>&ENV_PATH;</phrase>
+      <phrase>&ENV_SUPATH;</phrase>
+      &ENV_TZ;
+      &ENVIRON_FILE;
+      &ERASECHAR;
+      &FAIL_DELAY;
+      &FAILLOG_ENAB;
+      &FAKE_SHELL;
+      &FTMP_FILE;
+      &HUSHLOGIN_FILE;
+      &ISSUE_FILE;
+      &KILLCHAR;
+      &LASTLOG_ENAB;
+      &LOGIN_RETRIES;
+      &LOGIN_STRING;
+      &LOGIN_TIMEOUT;
+      &LOG_OK_LOGINS;
+      &LOG_UNKFAIL_ENAB;
+      &MAIL_CHECK_ENAB;
+      <phrase condition="no_pam">&MAIL_DIR;</phrase>
+      &MOTD_FILE;
+      &NOLOGINS_FILE;
+      &PORTTIME_CHECKS_ENAB;
+      &QUOTAS_ENAB;
+      &TTYGROUP; <!-- documents also TTYPERM -->
+      &TTYTYPE_FILE;
+      &ULIMIT;
+      <phrase condition="no_pam">&UMASK;</phrase>
+      &USERGROUPS_ENAB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/var/run/utmp</filename></term>
+	<listitem>
+	  <para>List of current login sessions.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/var/log/wtmp</filename></term>
+	<listitem>
+	  <para>List of previous login sessions.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/motd</filename></term>
+	<listitem>
+	  <para>System message of the day file.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/nologin</filename></term>
+	<listitem>
+	  <para>Prevent non-root users from logging in.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/ttytype</filename></term>
+	<listitem>
+	  <para>List of terminal types.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>$HOME/.hushlogin</filename></term>
+	<listitem>
+	  <para>Suppress printing of system messages.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/login.defs</filename></term>
+	<listitem>
+	  <para>Shadow password suite configuration.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>mail</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sh</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>nologin</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>securetty</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>getty</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

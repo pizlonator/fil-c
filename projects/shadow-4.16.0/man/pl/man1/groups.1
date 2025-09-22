@@ -1,0 +1,65 @@
+'\" t
+.\"     Title: groups
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Polish
+.\"
+.TH "GROUPS" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAZWA"
+groups \- display current group names
+.SH "STRESZCZENIE"
+.HP \w'\fBgroups\fR\ 'u
+\fBgroups\fR [\fIuser\fR]
+.SH "OPIS"
+.PP
+The
+\fBgroups\fR
+command displays the current group names or ID values\&. If the value does not have a corresponding entry in
+/etc/group, the value will be displayed as the numerical group value\&. The optional
+\fIuser\fR
+parameter will display the groups for the named user\&.
+.SH "UWAGI"
+.PP
+Systems which do not support supplementary groups (see
+\fBinitgroups\fR(3)) will have the information from
+/etc/group
+reported\&. The user must use
+\fBnewgrp\fR
+or
+\fBsg\fR
+to change his current real and effective group ID\&.
+.SH "PLIKI"
+.PP
+/etc/group
+.RS 4
+Informacje o grupach użytkownik\('ow\&.
+.RE
+.SH "ZOBACZ TAKŻE"
+.PP
+\fBnewgrp\fR(1),
+\fBgetgid\fR(2),
+\fBgetgroups\fR(2),
+\fBgetuid\fR(2),
+\fBinitgroups\fR(3)\&.

@@ -1,0 +1,88 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1989 - 1990, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 18 Sep 2002 by NAKNAO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH PASSWD 5
+.SH 名前
+passwd \- パスワードファイル
+.SH 説明
+.I passwd
+ファイルには各ユーザアカウントの様々な情報が記録されている。
+書かれているのは次の通り。
+.IP "" .5i
+ログイン名
+.IP "" .5i
+暗号化されたパスワード (無いこともある)
+.IP "" .5i
+ユーザ ID 番号
+.IP "" .5i
+グループ ID 番号
+.IP "" .5i
+ユーザ名またはコメントのフィールド
+.IP "" .5i
+ユーザのホームディレクトリ
+.IP "" .5i
+ユーザのコマンドインタプリタ
+.PP
+パスワードが shadow 化されている場合は、
+パスワードフィールドを埋めてはならない。
+shadow パスワードを用いている場合、暗号化されたパスワードは
+\fI/etc/shadow\fR に書かれている。
+暗号化されたパスワードは、
+アルファベット a から z、A から Z、0 から 9、\. と / の
+64 文字から作られた 13 文字からなる。
+この文字列がどのように解釈されるかの詳細は
+\fBcrypt\fR(3) を参照のこと。
+.PP
+オプションとして、パスワードの後に、
+コンマに続いてパスワードの有効期限文字列が記されていることもある。
+この文字列はパスワードと同じ文字セットからなる。
+最初の文字は、パスワードが何週間有効かを示す。
+二番目の文字は、何週間経てばユーザがパスワードを変更できるかを示す。
+最後の二文字は、
+最後にパスワードを変更したのが
+1970 年 1 月から何週間経過した時点であるかを表す。
+パスワードの有効期限が過ぎた時は、
+ユーザは新しいパスワードを設定しなければならない。
+.PP
+コメントフィールドは
+\fBfinger\fR(1) のような様々なシステムユーティリティから利用される。
+コメントフィールドには、追加情報として、
+次のような 3 つの数値が記入されていることもある。
+.IP "" .5i
+pri= \- nice の初期設定値
+.IP "" .5i
+umask= \- umask の初期設定値
+.IP "" .5i
+ulimit= \- ulimit の初期設定値
+.PP
+これらのフィールドは互いに、また他のコメントフィールドと、
+コンマを用いて分離される。
+.PP
+ホームディレクトリフィールドは、
+初期作業ディレクトリの名前を与える。
+\fBlogin\fR はこの情報を用いて環境変数 \fBHOME\fR の内容を設定する。
+.PP
+コマンドインタプリタのフィールドには、
+ユーザのコマンド言語インタプリタか、
+最初に実行するプログラムの名前を記す。
+\fBlogin\fR はこの情報を用いて環境変数 \fBSHELL\fR の内容を設定する。
+このフィールドに何も記されていない場合は、
+デフォルト値として \fB/bin/sh\fR を使用する。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.SH 関連項目
+.BR login (1),
+.BR passwd (1),
+.BR su (1),
+.BR shadow (5),
+.BR pwconv (8),
+.BR pwunconv (8),
+.BR sulogin (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

@@ -1,0 +1,113 @@
+.TH "GROUPADD" "8" "01/02/2006" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+groupadd \- Vytvoří skupinu
+.SH "POUŽITÍ"
+.HP 9
+\fBgroupadd\fR [\-g\ \fIGID\fR\ [\-o]] [\-f] [\-K\ \fIKLÍČ\fR=\fIHODNOTA\fR] \fIskupina\fR
+.SH "POPIS"
+.PP
+Příkaz
+\fBgroupadd\fR
+vytváří nové skupinové účty na základě zadaných hodnot a výchozích
+hodnot nastavených v systému. Nová skupina bude podle pořeby zařazena
+do příslušných systémových souborů.
+.SH "VOLBY"
+.PP
+Příkaz
+\fBgroupadd\fR
+akceptuje následující volby:
+.TP
+\fB\-f\fR
+Tato volba způsobí, že v případě kolize se stávající skupinou se vrátí
+úspěšný návratový kód. Při použití s volbou
+\fB\-g\fR, pokud již dané GID existuje, vybere se unikární GID
+automaticky, (tj. jako kdybyste
+\fB\-g\fR
+nezadali).
+.TP
+\fB\-g\fR \fIGID\fR
+Číselná hodnota skupinového ID. Tato hodnota musí být unikátní (s
+výjimkou volby
+\fB\-o\fR).
+Hodnota musí být nezáporné celé číslo. Jako výchozí hodnota se použije
+nejmenší ID větší než 999 a zároveň větší než ID všech ostatních
+skupin. Hodnoty mezi 0 a 999 jsou obvykle rezervovány pro systémové účty.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Zobrazí nápovědu a skončí.
+.TP
+\fB\-K \fR\fB\fIKLÍČ\fR\fR\fB=\fR\fB\fIHODNOTA\fR\fR
+Přepíše výchozí nastavení /etc/login.defs (GID_MIN, GID_MAX
+apod.). Můžete zadat i více voleb najednou.
+.sp
+Příklad:
+\fB\-K \fR\fIGID_MIN\fR=\fI100\fR\fB \-K \fR\fIGID_MAX\fR=\fI499\fR
+.sp
+Poznámka:
+\fB\-K \fR\fIGID_MIN\fR=\fI10\fR,\fIGID_MAX\fR=\fI499\fR
+zatím nefunguje.
+.TP
+\fB\-o\fR
+Tato volba povolí přidání skupiny s neunikátním GID.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+citlivé informace o skupinových účtech
+.TP
+\fI/etc/login.defs\fR
+nastavení systému shadow
+.SH "ZÁLUDNOSTI"
+.PP
+Názvy skupin musí začínat malým písmenem nebo podtržítkem a mohou
+obsahovat pouze malá písmena, čísla, podtržítka, pomlčky a závěrečný
+dolar. Vyjádřeno regulárním výrazem: [a\-z_][a\-z0\-9_\-]*[$]
+.PP
+Délka názvu skupiny nesmí překročit 16 znaků.
+.PP
+Jestliže již název skupiny existuje v externí databázi typu NIS,
+příkaz
+\fBgroupadd\fR
+odmítne požadavek na vytvoření této skupiny.
+.SH "NÁVRATOVÉ HODNOTY"
+.PP
+Příkaz
+\fBgroupadd\fR
+může skončit s následujícími návratovými hodnotami:
+.TP
+\fI0\fR
+úspěch
+.TP
+\fI2\fR
+chybná syntaxe příkazu
+.TP
+\fI3\fR
+chybný argument parametru
+.TP
+\fI4\fR
+GID není unikátní (pokud nepoužijete
+\fB\-o\fR)
+.TP
+\fI9\fR
+název skupiny není unikátní
+.TP
+\fI10\fR
+nelze aktualizovat soubor group
+.SH "VIZ TAKÉ"
+.PP
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgpasswd\fR(8),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBlogin.defs\fR(5),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).

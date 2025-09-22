@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1989 - 1990, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2008, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='passwd.5'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1989</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>passwd</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>passwd</refname>
+    <refpurpose>the password file</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <filename>/etc/passwd</filename> contains one line for each
+      user account, with seven fields delimited by colons
+      (<quote>:</quote>).
+      These fields are:
+    </para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>login name</para>
+      </listitem>
+      <listitem>
+	<para>optional encrypted password</para>
+      </listitem>
+      <listitem>
+	<para>numerical user ID</para>
+      </listitem>
+      <listitem>
+	<para>numerical group ID</para>
+      </listitem>
+      <listitem>
+	<para>user name or comment field</para>
+      </listitem>
+      <listitem>
+	<para>user home directory</para>
+      </listitem>
+      <listitem>
+	<para>optional user command interpreter</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      If the <emphasis>password</emphasis> field is a lower-case
+      <quote>x</quote>, then the encrypted password is actually stored in the
+      <citerefentry><refentrytitle>shadow</refentrytitle>
+      <manvolnum>5</manvolnum></citerefentry> file instead; there
+      <emphasis>must</emphasis> be a corresponding line in the
+      <filename>/etc/shadow</filename> file, or else the user account is invalid. 
+    </para>
+
+    <para>
+      The encrypted <emphasis>password</emphasis> field may be empty,
+      in which case no password is required to authenticate as the
+      specified login name. However, some applications which read the
+      <filename>/etc/passwd</filename> file may decide not to permit
+      <emphasis>any</emphasis> access at all if the
+      <emphasis>password</emphasis> field is blank.
+    </para>
+
+    <para>
+      A <emphasis>password</emphasis> field which starts with an
+      exclamation mark means that the password is locked.  The
+      remaining characters on the line represent the
+      <emphasis>password</emphasis> field before the password was
+      locked.
+    </para>
+
+    <para>
+      Refer to <citerefentry><refentrytitle>crypt</refentrytitle>
+      <manvolnum>3</manvolnum></citerefentry> for details on how
+      this string is interpreted.
+    </para>
+    <para>
+      If the password field contains some string that is not a valid
+      result of <citerefentry><refentrytitle>crypt</refentrytitle>
+      <manvolnum>3</manvolnum></citerefentry>, for instance ! or *,
+      the user will not be able to use a unix password to log in
+      (but the user may log in the system by other means).
+    </para>
+    <para>
+      The comment field, also known as the gecos field, is used by
+      various system utilities, such as
+      <citerefentry><refentrytitle>finger</refentrytitle>
+      <manvolnum>1</manvolnum></citerefentry>. The use of an ampersand
+      here will be replaced by the capitalised login name when the field
+      is used or displayed by such system utilities.
+    </para>
+
+    <para>
+      The home directory field provides the name of the initial working
+      directory. The <command>login</command> program uses this information
+      to set the value of the <envar>$HOME</envar> environmental variable.
+    </para>
+
+    <para>
+      The command interpreter field provides the name of the user's command
+      language interpreter, or the name of the initial program to execute. 
+      The <command>login</command> program uses this information to set the
+      value of the <envar>$SHELL</envar> environmental variable. If this
+      field is empty, it defaults to the value <filename>/bin/sh</filename>.
+    </para>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>optional encrypted password file</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd-</filename></term>
+	<listitem>
+	  <para>Backup file for /etc/passwd.</para>
+	  <para>
+	    Note that this file is used by the tools of the shadow
+	    toolsuite, but not by all user and password management tools.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>getent</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>getpwnam</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pwck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pwconv</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pwunconv</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>sulogin</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

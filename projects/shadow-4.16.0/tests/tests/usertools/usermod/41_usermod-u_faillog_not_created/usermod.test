@@ -1,0 +1,48 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod does not create /var/log/faillog"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; touch /var/log/faillog' 0
+
+change_config
+
+echo -n "Remove /var/log/faillog (it will not be restored)..."
+rm -f /var/log/faillog
+echo "OK"
+
+echo -n "Change the user's UID (usermod -u 4242 foo)..."
+usermod -u 4242 foo
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check that the /var/log/faillog file was not created"...
+test ! -f /var/log/faillog
+echo "OK"
+
+touch /var/log/faillog
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

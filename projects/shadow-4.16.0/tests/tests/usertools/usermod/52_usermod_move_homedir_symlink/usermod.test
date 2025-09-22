@@ -1,0 +1,75 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod can't move the user's home directory when it's a symlink"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -rf /home/foo /home/foo2/file /home/foo2' 0
+
+change_config
+
+mkdir /home/foo2
+echo toto > /home/foo2/file
+ln -s foo2 /home/foo
+chown -R foo:foo /home/foo /home/foo2
+
+echo -n "Change the user's home directory (usermod -m -d /home/foo2 foo)..."
+usermod -m -d /home/foo3 foo 2>tmp/usermod.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "12"
+echo "OK"
+
+echo "usermod reported:"
+echo "======================================================================="
+cat tmp/usermod.err
+echo "======================================================================="
+echo -n "Check the usage message..."
+diff -au data/usermod.err tmp/usermod.err
+echo "usage message OK."
+rm -f tmp/usermod.err
+
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check that /home/foo is still a symlink..."
+test -L /home/foo
+echo "OK"
+echo -n "Check that /home/foo2 was not removed..."
+test -d /home/foo2
+test -f /home/foo2/file
+echo "OK"
+echo -n "Check that /home/foo3 was not created..."
+test ! -f /home/foo3
+echo "OK"
+
+echo -n "Remove the home directories..."
+rm -rf /home/foo /home/foo2
+echo "done"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1992       , Julianne Frances Haugh
+   SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY NONEXISTENT           SYSTEM "login.defs.d/NONEXISTENT.xml">
+<!ENTITY PASS_MAX_DAYS         SYSTEM "login.defs.d/PASS_MAX_DAYS.xml">
+<!ENTITY PASS_MIN_DAYS         SYSTEM "login.defs.d/PASS_MIN_DAYS.xml">
+<!ENTITY PASS_WARN_AGE         SYSTEM "login.defs.d/PASS_WARN_AGE.xml">
+<!ENTITY TCB_AUTH_GROUP        SYSTEM "login.defs.d/TCB_AUTH_GROUP.xml">
+<!ENTITY TCB_SYMLINKS          SYSTEM "login.defs.d/TCB_SYMLINKS.xml">
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+<refentry id='pwck.8'>
+  <!-- $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1992</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>pwck</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">System Management Commands</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>pwck</refname>
+    <refpurpose>verify the integrity of password files</refpurpose>
+  </refnamediv>
+  <!-- body begins here -->
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>pwck</command>
+      <arg choice='opt'>options</arg>
+      <arg choice='opt'>
+	<arg choice='plain'>
+	  <replaceable>PASSWORDFILE</replaceable>
+	</arg>
+	<arg choice='opt'>
+	  <arg choice='plain'>
+	    <replaceable>SHADOWFILE</replaceable>
+	  </arg>
+	</arg>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>pwck</command> command verifies the integrity of the
+      users and authentication information. It checks that all entries in
+      <filename>/etc/passwd</filename> and <filename>/etc/shadow</filename>
+      <phrase condition="tcb">(or the files in
+      <filename>/etc/tcb</filename>, when <option>USE_TCB</option> is
+      enabled)</phrase>
+      have the proper format and contain valid data.
+      The user is prompted to delete entries that are
+      improperly formatted or which have other uncorrectable errors.
+    </para>
+
+    <para>Checks are made to verify that each entry has:</para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>the correct number of fields</para>
+      </listitem>
+      <listitem>
+	<para>a unique and valid user name</para>
+      </listitem>
+      <listitem>
+	<para>a valid user and group identifier</para>
+      </listitem>
+      <listitem>
+	<para>a valid primary group</para>
+      </listitem>
+      <listitem>
+	<para> a valid home directory</para>
+      </listitem>
+      <listitem>
+	<para>a valid login shell</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      Checks for shadowed password information are enabled when the second
+      file parameter <replaceable>SHADOWFILE</replaceable> is specified or
+      when <filename>/etc/shadow</filename> exists on the system.
+    </para>
+    <para>
+      These checks are the following:
+    </para>
+    <itemizedlist mark='bullet'>
+      <listitem>
+	<para>
+	  every passwd entry has a matching shadow entry, and every shadow
+	  entry has a matching passwd entry
+	</para>
+      </listitem>
+      <listitem>
+	<para>passwords are specified in the shadowed file</para>
+      </listitem>
+      <listitem>
+	<para>shadow entries have the correct number of fields</para>
+      </listitem>
+      <listitem>
+	<para>shadow entries are unique in shadow</para>
+      </listitem>
+      <listitem>
+	<para>the last password changes are not in the future</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      The checks for correct number of fields and unique user name are
+      fatal. If the entry has the wrong number of fields, the user will be
+      prompted to delete the entire line. If the user does not answer
+      affirmatively, all further checks are bypassed. An entry with a
+      duplicated user name is prompted for deletion, but the remaining
+      checks will still be made. All other errors are warnings and the user
+      is encouraged to run the <command>usermod</command> command to correct
+      the error.
+    </para>
+
+    <para>
+      The commands which operate on the <filename>/etc/passwd</filename>
+      file are not able to alter corrupted or duplicated entries.
+      <command>pwck</command> should be used in those circumstances to
+      remove the offending entry.
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <para>
+      The <option>-r</option> and <option>-s</option> options cannot be
+      combined.
+    </para>
+    <para>
+      The options which apply to the <command>pwck</command> command are:
+    </para>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>--badname</option>&nbsp;
+	</term>
+	<listitem>
+	  <para>
+        Allow names that do not conform to standards.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-h</option>, <option>--help</option></term>
+	<listitem>
+	  <para>Display help message and exit.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-q</option>, <option>--quiet</option></term>
+	<listitem>
+	  <para>
+	    Report errors only. The warnings which do not require any
+	    action from the user won't be displayed.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-r</option>, <option>--read-only</option></term>
+	<listitem>
+	  <para>
+	    Execute the <command>pwck</command> command in read-only mode.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-R</option>, <option>--root</option>&nbsp;<replaceable>CHROOT_DIR</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    Apply changes in the <replaceable>CHROOT_DIR</replaceable>
+	    directory and use the configuration files from the
+	    <replaceable>CHROOT_DIR</replaceable> directory.
+	    Only absolute paths are supported.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>-s</option>, <option>--sort</option></term>
+	<listitem>
+	  <para>
+	    Sort entries in <filename>/etc/passwd</filename> and
+	    <filename>/etc/shadow</filename> by UID.
+	  </para>
+	  <para condition="tcb">
+	    This option has no effect when <option>USE_TCB</option> is enabled.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      By default, <command>pwck</command> operates on the files
+      <filename>/etc/passwd</filename> and
+      <filename>/etc/shadow</filename><phrase condition="tcb"> (or the
+      files in <filename>/etc/tcb</filename>)</phrase>.
+      The user may select alternate files with the
+      <replaceable>passwd</replaceable> and
+      <replaceable>shadow</replaceable> parameters.
+    </para>
+    <para condition="tcb">
+      Note that when <option>USE_TCB</option> is enabled, you cannot
+      specify an alternative <replaceable>shadow</replaceable> file. In
+      future releases, this parameter could be replaced by an alternate
+      TCB directory.
+    </para>
+  </refsect1>
+
+  <refsect1 id='configuration'>
+    <title>CONFIGURATION</title>
+    <para>
+      The following configuration variables in
+      <filename>/etc/login.defs</filename> change the behavior of this
+      tool:
+    </para>
+    <variablelist>
+      &NONEXISTENT;
+      &PASS_MAX_DAYS;
+      &PASS_MIN_DAYS;
+      &PASS_WARN_AGE;
+      &TCB_AUTH_GROUP;
+      &TCB_SYMLINKS;
+      &USE_TCB;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='files'>
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+	<term><filename>/etc/group</filename></term>
+	<listitem>
+	  <para>Group account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/passwd</filename></term>
+	<listitem>
+	  <para>User account information.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><filename>/etc/shadow</filename></term>
+	<listitem>
+	  <para>Secure user account information.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='exit_values'>
+    <title>EXIT VALUES</title>
+    <para>
+      The <command>pwck</command> command exits with the following values:
+      <variablelist>
+	<varlistentry>
+	  <term><replaceable>0</replaceable></term>
+	  <listitem>
+	    <para>success</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>1</replaceable></term>
+	  <listitem>
+	    <para>invalid command syntax</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>2</replaceable></term>
+	  <listitem>
+	    <para>one or more bad password entries</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>3</replaceable></term>
+	  <listitem>
+	    <para>can't open password files</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>4</replaceable></term>
+	  <listitem>
+	    <para>can't lock password files</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>5</replaceable></term>
+	  <listitem>
+	    <para>can't update password files</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><replaceable>6</replaceable></term>
+	  <listitem>
+	    <para>can't sort password files</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>group</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>grpck</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>usermod</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

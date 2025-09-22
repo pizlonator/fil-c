@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "get subid owners"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Noone owns 0 as a subid..."
+[ -z "$(${build_path}/src/get_subid_owners 0)" ]
+echo "OK"
+
+echo -n "foo owns subuid 300000..."
+[ "$(${build_path}/src/get_subid_owners 300000)" = "1000" ]
+echo "OK"
+
+echo -n "foo owns subgid 200000..."
+[ "$(${build_path}/src/get_subid_owners -g 200000)" = "1000" ]
+echo "OK"
+
+echo -n "Noone owns subuid 200000..."
+[ -z "$(${build_path}/src/get_subid_owners -g 300000)" ]
+echo "OK"
+
+echo -n "Noone owns subgid 300000..."
+[ -z "$(${build_path}/src/get_subid_owners -g 300000)" ]
+echo "OK"
+
+echo -n "Both foo and root own subuid 500000..."
+cat > /tmp/expected << EOF
+1000
+0
+EOF
+${build_path}/src/get_subid_owners 500000 > /tmp/actual
+diff /tmp/expected /tmp/actual
+
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

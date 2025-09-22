@@ -1,0 +1,18 @@
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="no_pam">
+  <term><option>ENVIRON_FILE</option> (string)</term>
+  <listitem>
+    <para>
+      If this file exists and is readable, login environment will be
+      read from it.  Every line should be in the form name=value.
+    </para>
+    <para>
+      Lines starting with a # are treated as comment lines and ignored.
+    </para>
+  </listitem>
+</varlistentry>

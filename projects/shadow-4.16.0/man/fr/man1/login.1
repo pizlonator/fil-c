@@ -1,0 +1,208 @@
+'\" t
+.\"     Title: login
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: French
+.\"
+.TH "LOGIN" "1" "18/06/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOM"
+login \- D\('emarrer une session sur le syst\(`eme
+.SH "SYNOPSIS"
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] [\-h\ \fIhost\fR] [\fIusername\fR] [\fIENV=VAR\fR...]
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] [\-h\ \fIhost\fR] \-f \fIusername\fR
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] \-r\ \fIhost\fR
+.SH "DESCRIPTION"
+.PP
+The
+\fBlogin\fR
+program is used to establish a new session with the system\&. It is normally invoked automatically by responding to the
+\fIlogin:\fR
+prompt on the user\*(Aqs terminal\&.
+\fBlogin\fR
+may be special to the shell and may not be invoked as a sub\-process\&. When called from a shell,
+\fBlogin\fR
+should be executed as
+\fBexec login\fR
+which will cause the user to exit from the current shell (and thus will prevent the new logged in user to return to the session of the caller)\&. Attempting to execute
+\fBlogin\fR
+from any shell but the login shell will produce an error message\&.
+.PP
+The user is then prompted for a password, where appropriate\&. Echoing is disabled to prevent revealing the password\&. Only a small number of password failures are permitted before
+\fBlogin\fR
+exits and the communications link is severed\&.
+.PP
+If password aging has been enabled for your account, you may be prompted for a new password before proceeding\&. You will be forced to provide your old password and the new password before continuing\&. Please refer to
+\fBpasswd\fR(1)
+for more information\&.
+.PP
+After a successful login, you will be informed of any system messages and the presence of mail\&. You may turn off the printing of the system message file,
+/etc/motd, by creating a zero\-length file
+\&.hushlogin
+in your login directory\&. The mail message will be one of "\fIYou have new mail\&.\fR", "\fIYou have mail\&.\fR", or "\fINo Mail\&.\fR" according to the condition of your mailbox\&.
+.PP
+Your user and group ID will be set according to their values in the
+/etc/passwd
+file\&. The value for
+\fB$HOME\fR,
+\fB$SHELL\fR,
+\fB$PATH\fR,
+\fB$LOGNAME\fR, and
+\fB$MAIL\fR
+are set according to the appropriate fields in the password entry\&. Ulimit, umask and nice values may also be set according to entries in the GECOS field\&.
+.PP
+On some installations, the environmental variable
+\fB$TERM\fR
+will be initialized to the terminal type on your tty line, as specified in
+/etc/ttytype\&.
+.PP
+Un script d\*(Aqinitialisation pour votre interpr\('eteur de commandes pourra \('egalement \(^etre ex\('ecut\('e\&. Veuillez vous r\('ef\('erer \(`a la section de manuel appropri\('ee pour plus d\*(Aqinformations sur cette fonctionnalit\('e\&.
+.PP
+Une connexion \(`a un sous\-syst\(`eme est indiqu\('ee par la pr\('esence d\*(Aqun \(Fo\ \&*\ \&\(Fc comme premier caract\(`ere de l\*(Aqinterpr\('eteur de commandes initial\&. Le r\('epertoire personnel sera utilis\('e comme racine d\*(Aqun nouveau syst\(`eme de fichiers dans lequel l\*(Aqutilisateur sera connect\('e\&.
+.PP
+The
+\fBlogin\fR
+program is NOT responsible for removing users from the utmp file\&. It is the responsibility of
+\fBgetty\fR(8)
+and
+\fBinit\fR(8)
+to clean up apparent ownership of a terminal session\&. If you use
+\fBlogin\fR
+from the shell prompt without
+\fBexec\fR, the user you use will continue to appear to be logged in even after you log out of the "subsession"\&.
+.SH "OPTIONS"
+.PP
+\fB\-f\fR
+.RS 4
+Ne pas r\('ealiser d\*(Aqauthentification\&. L\*(Aqutilisateur est pr\('e\-authentifi\('e\&.
+.sp
+Note: In that case,
+\fIusername\fR
+is mandatory\&.
+.RE
+.PP
+\fB\-h\fR
+.RS 4
+Nom de l\*(Aqh\(^ote distant pour cette connexion\&.
+.RE
+.PP
+\fB\-p\fR
+.RS 4
+Pr\('eserver l\*(Aqenvironnement\&.
+.RE
+.PP
+The
+\fB\-r\fR,
+\fB\-h\fR
+and
+\fB\-f\fR
+options are only used when
+\fBlogin\fR
+is invoked by root\&.
+.SH "AVERTISSEMENTS"
+.PP
+This version of
+\fBlogin\fR
+has many compilation options, only some of which may be in use at any particular site\&.
+.PP
+L\*(Aqemplacement des fichiers peut varier suivant la configuration du syst\(`eme\&.
+.PP
+The
+\fBlogin\fR
+program is NOT responsible for removing users from the utmp file\&. It is the responsibility of
+\fBgetty\fR(8)
+and
+\fBinit\fR(8)
+to clean up apparent ownership of a terminal session\&. If you use
+\fBlogin\fR
+from the shell prompt without
+\fBexec\fR, the user you use will continue to appear to be logged in even after you log out of the "subsession"\&.
+.PP
+As with any program,
+\fBlogin\fR\*(Aqs appearance can be faked\&. If non\-trusted users have physical access to a machine, an attacker could use this to obtain the password of the next person coming to sit in front of the machine\&. Under Linux, the SAK mechanism can be used by users to initiate a trusted path and prevent this kind of attack\&.
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.SH "FICHIERS"
+.PP
+/var/run/utmp
+.RS 4
+Liste des sessions de connexion en cours\&.
+.RE
+.PP
+/var/log/wtmp
+.RS 4
+Liste des sessions de connexion pr\('ec\('edentes\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+Informations sur les comptes des utilisateurs\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Informations s\('ecuris\('ees sur les comptes utilisateurs\&.
+.RE
+.PP
+/etc/motd
+.RS 4
+Fichier contenant le message du syst\(`eme\&.
+.RE
+.PP
+/etc/nologin
+.RS 4
+Emp\(^echer les utilisateurs non\-root de se connecter\&.
+.RE
+.PP
+/etc/ttytype
+.RS 4
+Liste des types de terminaux\&.
+.RE
+.PP
+$HOME/\&.hushlogin
+.RS 4
+Supprimer l\*(Aqaffichage des messages du syst\(`eme\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Configuration de la suite des mots de passe cach\('es \(Fo\ \&shadow password\ \&\(Fc\&.
+.RE
+.SH "VOIR AUSSI"
+.PP
+\fBmail\fR(1),
+\fBpasswd\fR(1),
+\fBsh\fR(1),
+\fBsu\fR(1),
+\fBlogin.defs\fR(5),
+\fBnologin\fR(5),
+\fBpasswd\fR(5),
+\fBsecuretty\fR(5),
+\fBgetty\fR(8)\&.

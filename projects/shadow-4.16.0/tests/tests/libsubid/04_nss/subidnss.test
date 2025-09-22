@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+make
+
+export LD_LIBRARY_PATH=.:../../../lib/.libs:$LD_LIBRARY_PATH
+
+./test_nss 1
+./test_nss 2
+./test_nss 3
+
+unshare -Urm ./test_range
+
+log_status "$0" "SUCCESS"
+
+trap '' 0

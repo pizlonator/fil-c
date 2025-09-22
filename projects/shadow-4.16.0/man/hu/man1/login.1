@@ -1,0 +1,99 @@
+.\" SPDX-FileCopyrightText: 1989 \- 1994, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.TH LOGIN 1
+.SH NÉV
+login \- Új kapcsolat felvétele a rendszerrel (bejelentkezés)
+.SH ÁTTEKINTÉS
+.B login
+.RI [ felhasználónév " [" környezeti változók ]]
+.SH LEÍRÁS
+A
+.B login 
+programot a rendszerbe való belépésre használjuk. Általában nem 
+közvetlenül használjuk, hanem automatikusan meghívásra kerül, amikor a
+.I login:
+promptra válaszként beírjuk a felhasználónevünket.
+A
+.B login
+a shell szempontjából különleges kezelésű lehet és előfordulhat, hogy 
+nem hívható meg alfolyamatként. Tipikus példa erre, amikor a 
+.B login
+parancsot a shell \fBexec login\fR \-ként értelmezi, tehát az új 
+bejelentkezés előtt az aktuálisból való kilépésre készteti a 
+felhasználót. 
+Ha nem login shellből próbáljuk meg a \fBlogin\fR parancsot végrehajtani, 
+hibaüzenetet kapunk.
+.PP
+Ezután a jelszavunkat kell megadnunk. A beírt karakterek nem jelennek meg 
+a képernyőn, megelőzvén a 'leskelődést'. Ha többször hibás jelszót adunk 
+meg, a \fBlogin\fR kilép, és a kapcsolat megszakad.
+.PP
+Ha a jelszavunk érvényességi ideje korlátozott, a rendszer továbblépés 
+előtt felszólíthat a jelszó megváltoztatására. Ez azt jelenti, hogy a 
+jelszavunk lejárt, nem érvényes, vagy hamarosan le fog járni. A régi 
+jelszavunkat is esetleg meg kell adni ellenőrzésképpen, majd az általunk 
+választott új jelszót. A témában lásd: \fBpasswd \fR(1)
+.PP
+Sikeres bejelentkezés után néhány rendszerüzenetet kapunk, és a postaládánk 
+állapotáról némi visszajelszést. A rendszerüzenetfájl (\fI/etc/motd\fR) 
+kiíratását letilthatjuk egy 0 byte hosszúságú \fI.hushlogin\fR file 
+létrehozásával a login könyvtárunkban. A posta állapotától függően a 
+következő üzenetek valamelyikét kapjuk: "\fBYou have new mail.\fR" (Új 
+levél van), "\fBYou have mail.\fR" (Levél van), vagy "\fBNo Mail.\fR" 
+(Nincs levél).
+.PP
+A felhasználói\- (UID) és a csoportazonosítónk (GID) beállításra kerül az 
+\fI/etc/passwd\fR alapján. A \fB$HOME\fR, \fB$SHELL\fR,
+\fB$PATH\fR, \fB$LOGNAME\fR és a \fB$MAIL\fR környezeti változók 
+beállításra kerülnek a passwd adatbázis megfelelő mezői alapján.
+Az ulimit, umask és a nice is értéket kaphat a GECOS mező tartalma 
+alapján.
+.PP
+Néhány rendszeren a \fB$TERM\fR változó is értéket kap, miként az a 
+\fI/etc/ttytype\fR\-ban meg van írva.
+.PP
+Végrehajtódhat a parancsértelmezőnk inicializációs scriptje is. Ez ügyben 
+lásd a megfelelő kézikönyv\-oldalt.
+.SH FIGYELMEZTETÉSEK
+.PP
+A \fBlogin\fR ezen verziója sok fordítási opcióval rendelkezik, bár csak 
+néhány közülük az, ami használatban lehet egyes speciális gépeken.
+
+.PP
+A fájlok elhelyezkedése a rendszerkonfigurációk különbözőségéből adódóan 
+változhat.
+.SH FÁJLOK
+\fI/var/run/utmp\fR \- az aktuális bejelentkezések listája
+.br
+\fI/var/log/wtmp\fR \- az előző (eddigi) bejelentkezések listája
+.br
+\fI/etc/passwd\fR \- felhasználói account\-okra vonatkozó információk
+.br
+\fI/etc/shadow\fR \- titkosított jelszavak és érvényességi idő\-információk
+.br
+\fI/etc/motd\fR \- rendszerüzenet file
+.br
+\fI/etc/nologin\fR \- nem\-root felhasználók belépésének tiltása
+.br
+\fI/etc/ttytype\fR \- termináltípusok listája
+.br
+.br
+\fI$HOME/.hushlogin\fR \- korlátozza a rendszerüzenetek megjelenítését
+.br
+.SH LÁSD MÉG
+.PP
+.BR getty (8),
+.BR mail (1),
+.BR passwd (1),
+.BR sh (1),
+.BR su (1),
+.\" .BR d_passwd (5),
+.BR passwd (5),
+.BR nologin (5)
+.SH SZERZŐ
+Julianne Frances Haugh (jfh@bga.com)
+.SH MAGYAR FORDÍTÁS
+Niedermayer Miklós <mico@musician.org>

@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "chage displays its usage message when -l is used with another option"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+for opt in "-I -12" "-m -12" "-M -12" "-W -12" "-I a" "-m 12.5" "-M 12a" "-W a12"
+do
+	echo -n "Use chage with an invalid date (chage $opt bin)..."
+	chage $opt bin 2>tmp/usage.out && exit 1 || {
+		status=$?
+	}
+	echo "OK"
+
+	echo -n "Check returned status ($status)..."
+	test "$status" = "2"
+	echo "OK"
+
+	echo "chage reported:"
+	echo "======================================================================="
+	cat tmp/usage.out
+	echo "======================================================================="
+	v=$(echo $opt | cut -d' ' -f2)
+	sed -e "s/'$v'/'VAL'/" -i tmp/usage.out
+	echo -n "Check the usage message..."
+	diff -au data/usage.out tmp/usage.out
+	echo "usage message OK."
+	rm -f tmp/usage.out
+done
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

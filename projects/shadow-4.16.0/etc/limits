@@ -1,0 +1,30 @@
+# /etc/limits contains user resource limits.
+# See limits(5).
+#
+# Format:
+# <username> <limits-string>
+#
+# default entry is '*' for username
+#
+# Valid flags are:
+# A: max address space (KB)
+# C: max core file size (KB)
+# D: max data size (KB)
+# F: maximum filesize (KB)
+# M: max locked-in-memory address space (KB) [only for root on Linux 2.0.x]
+# N: max number of open files
+# R: max resident set size (KB) [no effect on Linux 2.0.x]
+# S: max stack size (KB)
+# T: max CPU time (MIN)
+# U: max number of processes
+# L: max number of logins for this user
+# I: max nice value (0..39 translates to 20..-19)
+# O: max real time priority (0..MAX_RT_PRIO)
+#
+# Examples:
+# the default entry
+#* L2 D6144 R2048 S2048 U32 N32 F16384 T5 C0 I20 O0
+# another way of suspending a user login
+#guest   L0
+# this account has no limits
+#sysadm  -

@@ -1,0 +1,71 @@
+.TH "VIPW" "8" "12/07/2005" "System Management Commands" "System Management Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+vipw, vigr \- slouží k úpravě souborů password, group, shadow-password a shadow-group.
+.SH "POUŽITÍ"
+.HP 5
+\fBvipw\fR [volby]
+.HP 5
+\fBvigr\fR [volby]
+.SH "POPIS"
+.PP
+\fBvipw\fR
+a
+\fBvigr\fR
+upravují soubory
+\fI/etc/passwd\fR
+a
+\fI/etc/group\fR. S přepínačem
+\fB\-s\fR
+budou upravovat stínové verze obou souborů, tj.
+\fI/etc/shadow\fR
+a
+\fI/etc/gshadow\fR. Programy používají zámky, aby předešly porušení
+souborů. Při hledání editoru nejprve zkusí proměnnou prostředí
+\fB$VISUAL\fR, poté proměnnou prostředí
+\fB$EDITOR\fR a na konec spustí standardní editor
+\fBvi\fR(1).
+.SH "VOLBY"
+.PP
+Příkazy
+\fBvipw\fR
+a
+\fBvigr\fR
+akceptují následující volby:
+.TP
+\fB\-g\fR, \fB\-\-group\fR
+Upraví databázi skupin.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Zobrazí nápovědu a skončí.
+.TP
+\fB\-p\fR, \fB\-\-passwd\fR
+Upraví databázi hesel.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Tichý režim.
+.TP
+\fB\-s\fR, \fB\-\-shadow\fR
+Upraví databázi shadow nebo gshadow.
+.SH "SOUBORY"
+.TP
+\fI/etc/group\fR
+informace o skupinových účtech
+.TP
+\fI/etc/gshadow\fR
+stínový soubor pro skupiny
+.TP
+\fI/etc/passwd\fR
+informace o uživatelských účtech
+.TP
+\fI/etc/shadow\fR
+citlivé informace o uživatelských účtech
+.SH "VIZ TAKÉ"
+.PP
+\fBvi\fR(1),
+\fBgroup\fR(5),
+\fBgshadow\fR(5)\fBpasswd\fR(5),
+\fBshadow\fR(5).

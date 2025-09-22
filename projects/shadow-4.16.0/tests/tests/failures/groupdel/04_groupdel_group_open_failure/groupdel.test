@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "groupdel report failures when it cannot open the group file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Remove group foo (groupdel foo)..."
+LD_PRELOAD=../../../common/open_RDWR_failure.so FAILURE_PATH=/etc/group groupdel foo 2>tmp/groupdel.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "10"
+echo "OK"
+
+echo "groupdel reported:"
+echo "======================================================================="
+cat tmp/groupdel.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/groupdel.err tmp/groupdel.err
+echo "error message OK."
+rm -f tmp/groupdel.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

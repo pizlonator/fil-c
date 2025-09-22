@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "chsh can displays its usage message"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config; rm -f /tmp/bash' 0
+
+change_config
+
+chmod a+w tmp
+
+echo /tmp/bash >> /etc/shells
+cp /bin/bash /tmp/bash
+chmod a-x /tmp/bash
+
+echo -n "execute chsh..."
+su myuser -c "./run.exp /tmp/bash"
+echo "OK"
+rm -f /tmp/bash
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl data/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

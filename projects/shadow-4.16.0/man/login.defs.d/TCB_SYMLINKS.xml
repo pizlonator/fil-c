@@ -1,0 +1,29 @@
+<!--
+   SPDX-FileCopyrightText: 2010, Pawel Hajdan
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<varlistentry condition="tcb">
+  <term><option>TCB_SYMLINKS</option> (boolean)</term>
+  <listitem>
+    <para>
+      If <replaceable>yes</replaceable>, the location of the user tcb
+      directory to be created will not be automatically set to /etc/tcb/user,
+      but will be computed depending on the UID of the user, according to
+      the following algorithm:
+      <programlisting>
+if ( UID is less than 1000) {
+  use /etc/tcb/user
+} else if ( UID is less than 1000000) {
+  kilos = UID / 1000
+  use /etc/tcb/:kilos/user
+  make symlink /etc/tcb/user to the above directory
+} else {
+  megas = UID / 1000000
+  kilos = ( UID / megas * 1000000 ) / 1000
+  use /etc/tcb/:megas/:kilos/user
+  make symlink /etc/tcb/user to the above directory
+}
+      </programlisting>
+    </para>
+  </listitem>
+</varlistentry>

@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "usermod reports failure to write /etc/subgid"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Add subordinate uid for user foo (usermod -w 100000-100000 foo)..."
+LD_PRELOAD=../../../common/rename_failure.so FAILURE_PATH=/etc/subgid usermod -w 100000-100000 foo 2>tmp/usermod.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "18"
+echo "OK"
+
+echo "usermod reported:"
+echo "======================================================================="
+cat tmp/usermod.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/usermod.err tmp/usermod.err
+echo "error message OK."
+rm -f tmp/usermod.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the /etc/subgid file..."
+../../../common/compare_file.pl config/etc/subgid /etc/subgid
+echo "OK"
+echo -n "Check the /etc/subuid file..."
+../../../common/compare_file.pl config/etc/subuid /etc/subuid
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

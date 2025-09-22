@@ -1,0 +1,95 @@
+.\"$Id$
+.\" SPDX-FileCopyrightText: 1992, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Updated  Sun 3 Mar 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo
+.\"
+.TH PWCK 8
+.SH 名前
+pwck \- パスワードファイルが正しいかどうか検査する
+.SH 書式
+\fBpwck\fR [\fB\-sr\fR] [\fIpasswd\fR \fIshadow\fR]
+.SH 説明
+\fBpwck\fR コマンドはシステムの認証情報が正しいかどうか検査する。
+\fI/etc/passwd\fR と \fI/etc/shadow\fR
+各ファイルのすべてのエントリに対し、
+各フィールドの書式が正しいか、
+そのデータが有効なものかどうかを検証する。
+書式が正しくないエントリや、
+修正不能な誤りを含むエントリは削除するようプロンプトを出す。
+.P
+各々のエントリに対して
+.sp
+.in +.5i
+\- フィールドの数が正しいか
+.br
+\- ユーザ名に重複がないか
+.br
+\- ユーザやグループの ID が正しいか
+.br
+\- プライマリグループが正しいか
+.br
+\- ホームディレクトリが正しいか
+.br
+\- ログインシェルが正しいか
+.in -.5i
+.sp
+がチェックされる。
+.P
+フィールドの数が間違っていたり、
+グループ名が重複しているのは致命的なエラーである。
+フィールドの数が正しくない場合、
+ユーザーはそのエントリ行を削除するよう促される。
+削除に同意しなかった場合は、それ以降のチェックは行われない。
+重複したグループ名があった場合も削除を促されるが、
+この場合は削除しなくてもそれ以降のチェックは続行される。
+他のすべてのエラーに対しては警告がなされる。
+\fBusermod\fR コマンドを実行してそのエラーを修正すると良いだろう。
+.P
+\fI/etc/passwd\fR ファイルを操作するコマンドは、
+壊れたエントリや重複したエントリを変更できない。
+そのような際に誤りのあるエントリを削除するには
+\fBpwck\fR を用いるとよい。
+.SH オプション
+デフォルトでは \fBpwck\fR は \fI/etc/passwd\fR ファイルと
+\fI/etc/shadow\fR に対して動作する。
+\fIpasswd\fR パラメータと \fIshadow\fR パラメータを用いて、
+別のファイルを選択することもできる。
+さらに \fB\-r\fR フラグを指定すれば、
+リードオンリーモードでコマンドを実行することもできる。
+この場合、変更を行うかどうかはユーザへ問い合わされず、
+自動的に \fBno\fR と回答される。
+\fBpwck\fR は \fI/etc/passwd\fR と \fI/etc/shadow\fR
+のエントリを UID でソートすることもできる。
+ソートモードで動作させるには \fB\-s\fR フラグを与える。
+この場合チェックは行われず、単にソートするだけである。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザーアカウント情報
+.br
+\fI/etc/shadow\fR \- 暗号化されたパスワード情報
+.br
+\fI/etc/group\fR \ \- グループ情報
+.SH 関連項目
+.BR group (5),
+.BR passwd (5),
+.BR shadow (5),
+.BR usermod (8)
+.SH 返り値
+\fBpwck\fR コマンドは以下の値を返して終了する:
+.IP 0 5
+成功
+.IP 1 5
+構文エラー
+.IP 2 5
+誤ったパスワードエントリーが存在する
+.IP 3 5
+パスワードファイルをオープンできない
+.IP 4 5
+パスワードファイルをロックできない
+.IP 5 5
+パスワードファイルを更新出来ない
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

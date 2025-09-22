@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+   SPDX-FileCopyrightText: 1991 - 1993, Chip Rosenthal
+   SPDX-FileCopyrightText: 2007 - 2009, Nicolas François
+   SPDX-License-Identifier: BSD-3-Clause
+-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.5//EN" 
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY BCRYPT_MIN_ROUNDS     SYSTEM "login.defs.d/BCRYPT_MIN_ROUNDS.xml">
+<!ENTITY CHFN_AUTH             SYSTEM "login.defs.d/CHFN_AUTH.xml">
+<!ENTITY CHFN_RESTRICT         SYSTEM "login.defs.d/CHFN_RESTRICT.xml">
+<!ENTITY CHSH_AUTH             SYSTEM "login.defs.d/CHSH_AUTH.xml">
+<!ENTITY CONSOLE               SYSTEM "login.defs.d/CONSOLE.xml">
+<!ENTITY CONSOLE_GROUPS        SYSTEM "login.defs.d/CONSOLE_GROUPS.xml">
+<!ENTITY CREATE_HOME           SYSTEM "login.defs.d/CREATE_HOME.xml">
+<!ENTITY DEFAULT_HOME          SYSTEM "login.defs.d/DEFAULT_HOME.xml">
+<!ENTITY ENCRYPT_METHOD        SYSTEM "login.defs.d/ENCRYPT_METHOD.xml">
+<!ENTITY ENV_HZ                SYSTEM "login.defs.d/ENV_HZ.xml">
+<!ENTITY ENV_PATH              SYSTEM "login.defs.d/ENV_PATH.xml">
+<!ENTITY ENV_SUPATH            SYSTEM "login.defs.d/ENV_SUPATH.xml">
+<!ENTITY ENV_TZ                SYSTEM "login.defs.d/ENV_TZ.xml">
+<!ENTITY ENVIRON_FILE          SYSTEM "login.defs.d/ENVIRON_FILE.xml">
+<!ENTITY ERASECHAR             SYSTEM "login.defs.d/ERASECHAR.xml">
+<!ENTITY FAIL_DELAY            SYSTEM "login.defs.d/FAIL_DELAY.xml">
+<!ENTITY FAILLOG_ENAB          SYSTEM "login.defs.d/FAILLOG_ENAB.xml">
+<!ENTITY FAKE_SHELL            SYSTEM "login.defs.d/FAKE_SHELL.xml">
+<!ENTITY FTMP_FILE             SYSTEM "login.defs.d/FTMP_FILE.xml">
+<!ENTITY GID_MAX               SYSTEM "login.defs.d/GID_MAX.xml">
+<!ENTITY HMAC_CRYPTO_ALGO      SYSTEM "login.defs.d/HMAC_CRYPTO_ALGO.xml">
+<!ENTITY HOME_MODE             SYSTEM "login.defs.d/HOME_MODE.xml">
+<!ENTITY HUSHLOGIN_FILE        SYSTEM "login.defs.d/HUSHLOGIN_FILE.xml">
+<!ENTITY ISSUE_FILE            SYSTEM "login.defs.d/ISSUE_FILE.xml">
+<!ENTITY KILLCHAR              SYSTEM "login.defs.d/KILLCHAR.xml">
+<!ENTITY LASTLOG_ENAB          SYSTEM "login.defs.d/LASTLOG_ENAB.xml">
+<!ENTITY LASTLOG_UID_MAX       SYSTEM "login.defs.d/LASTLOG_UID_MAX.xml">
+<!ENTITY LOG_OK_LOGINS         SYSTEM "login.defs.d/LOG_OK_LOGINS.xml">
+<!ENTITY LOG_UNKFAIL_ENAB      SYSTEM "login.defs.d/LOG_UNKFAIL_ENAB.xml">
+<!ENTITY LOGIN_RETRIES         SYSTEM "login.defs.d/LOGIN_RETRIES.xml">
+<!ENTITY LOGIN_STRING          SYSTEM "login.defs.d/LOGIN_STRING.xml">
+<!ENTITY LOGIN_TIMEOUT         SYSTEM "login.defs.d/LOGIN_TIMEOUT.xml">
+<!ENTITY MAIL_CHECK_ENAB       SYSTEM "login.defs.d/MAIL_CHECK_ENAB.xml">
+<!ENTITY MAIL_DIR              SYSTEM "login.defs.d/MAIL_DIR.xml">
+<!ENTITY MAX_MEMBERS_PER_GROUP SYSTEM "login.defs.d/MAX_MEMBERS_PER_GROUP.xml">
+<!ENTITY MD5_CRYPT_ENAB        SYSTEM "login.defs.d/MD5_CRYPT_ENAB.xml">
+<!ENTITY MOTD_FILE             SYSTEM "login.defs.d/MOTD_FILE.xml">
+<!ENTITY NOLOGINS_FILE         SYSTEM "login.defs.d/NOLOGINS_FILE.xml">
+<!ENTITY NONEXISTENT           SYSTEM "login.defs.d/NONEXISTENT.xml">
+<!ENTITY OBSCURE_CHECKS_ENAB   SYSTEM "login.defs.d/OBSCURE_CHECKS_ENAB.xml">
+<!ENTITY PASS_ALWAYS_WARN      SYSTEM "login.defs.d/PASS_ALWAYS_WARN.xml">
+<!ENTITY PASS_CHANGE_TRIES     SYSTEM "login.defs.d/PASS_CHANGE_TRIES.xml">
+<!ENTITY PASS_MAX_LEN          SYSTEM "login.defs.d/PASS_MAX_LEN.xml">
+<!ENTITY PASS_MAX_DAYS         SYSTEM "login.defs.d/PASS_MAX_DAYS.xml">
+<!ENTITY PASS_MIN_DAYS         SYSTEM "login.defs.d/PASS_MIN_DAYS.xml">
+<!ENTITY PASS_WARN_AGE         SYSTEM "login.defs.d/PASS_WARN_AGE.xml">
+<!ENTITY PORTTIME_CHECKS_ENAB  SYSTEM "login.defs.d/PORTTIME_CHECKS_ENAB.xml">
+<!ENTITY QUOTAS_ENAB           SYSTEM "login.defs.d/QUOTAS_ENAB.xml">
+<!ENTITY SHA_CRYPT_MIN_ROUNDS  SYSTEM "login.defs.d/SHA_CRYPT_MIN_ROUNDS.xml">
+<!ENTITY SULOG_FILE            SYSTEM "login.defs.d/SULOG_FILE.xml">
+<!ENTITY SU_NAME               SYSTEM "login.defs.d/SU_NAME.xml">
+<!ENTITY SU_WHEEL_ONLY         SYSTEM "login.defs.d/SU_WHEEL_ONLY.xml">
+<!ENTITY SUB_GID_COUNT         SYSTEM "login.defs.d/SUB_GID_COUNT.xml">
+<!ENTITY SUB_UID_COUNT         SYSTEM "login.defs.d/SUB_UID_COUNT.xml">
+<!ENTITY SYS_GID_MAX           SYSTEM "login.defs.d/SYS_GID_MAX.xml">
+<!ENTITY SYSLOG_SG_ENAB        SYSTEM "login.defs.d/SYSLOG_SG_ENAB.xml">
+<!ENTITY SYSLOG_SU_ENAB        SYSTEM "login.defs.d/SYSLOG_SU_ENAB.xml">
+<!ENTITY SYS_UID_MAX           SYSTEM "login.defs.d/SYS_UID_MAX.xml">
+<!ENTITY TCB_AUTH_GROUP        SYSTEM "login.defs.d/TCB_AUTH_GROUP.xml">
+<!ENTITY TCB_SYMLINKS          SYSTEM "login.defs.d/TCB_SYMLINKS.xml">
+<!ENTITY TTYGROUP              SYSTEM "login.defs.d/TTYGROUP.xml">
+<!ENTITY TTYTYPE_FILE          SYSTEM "login.defs.d/TTYTYPE_FILE.xml">
+<!ENTITY UID_MAX               SYSTEM "login.defs.d/UID_MAX.xml">
+<!ENTITY ULIMIT                SYSTEM "login.defs.d/ULIMIT.xml">
+<!ENTITY UMASK                 SYSTEM "login.defs.d/UMASK.xml">
+<!ENTITY USERDEL_CMD           SYSTEM "login.defs.d/USERDEL_CMD.xml">
+<!ENTITY USERGROUPS_ENAB       SYSTEM "login.defs.d/USERGROUPS_ENAB.xml">
+<!ENTITY USE_TCB               SYSTEM "login.defs.d/USE_TCB.xml">
+<!ENTITY YESCRYPT_COST_FACTOR  SYSTEM "login.defs.d/YESCRYPT_COST_FACTOR.xml">
+<!-- SHADOW-CONFIG-HERE -->
+]>
+
+<refentry id='login.defs.5'>
+  <!--  $Id$ -->
+  <refentryinfo>
+    <author>
+      <firstname>Julianne Frances</firstname>
+      <surname>Haugh</surname>
+      <contrib>Creation, 1991</contrib>
+    </author>
+    <author>
+      <firstname>Thomas</firstname>
+      <surname>Kłoczko</surname>
+      <email>kloczek@pld.org.pl</email>
+      <contrib>shadow-utils maintainer, 2000 - 2007</contrib>
+    </author>
+    <author>
+      <firstname>Nicolas</firstname>
+      <surname>François</surname>
+      <email>nicolas.francois@centraliens.net</email>
+      <contrib>shadow-utils maintainer, 2007 - now</contrib>
+    </author>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>login.defs</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">File Formats and Configuration Files</refmiscinfo>
+    <refmiscinfo class="source">shadow-utils</refmiscinfo>
+    <refmiscinfo class="version">&SHADOW_UTILS_VERSION;</refmiscinfo>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>login.defs</refname>
+    <refpurpose>shadow password suite configuration</refpurpose>
+  </refnamediv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      The <filename>/etc/login.defs</filename> file defines the
+      site-specific configuration for the shadow password suite. This file
+      is required. Absence of this file will not prevent system operation,
+      but will probably result in undesirable operation.
+    </para>
+
+    <para>
+      This file is a readable text file, each line of the file describing
+      one configuration parameter. The lines consist of a configuration name
+      and value, separated by whitespace. Blank lines and comment lines are
+      ignored. Comments are introduced with a "#" pound sign and the pound
+      sign must be the first non-white character of the line.
+    </para>
+
+    <para>
+      Parameter values may be of four types: strings, booleans, numbers, and
+      long numbers. A string is comprised of any printable characters. A
+      boolean should be either the value <replaceable>yes</replaceable> or
+      <replaceable>no</replaceable>. An undefined boolean
+      parameter or one with a value other than these will be given a
+      <replaceable>no</replaceable>
+      value. Numbers (both regular and long) may be either decimal values,
+      octal values (precede the value with <replaceable>0</replaceable>) or
+      hexadecimal values
+      (precede the value with <replaceable>0x</replaceable>).
+      The maximum value of the regular and
+      long numeric parameters is machine-dependent.
+    </para>
+
+    <para>The following configuration items are provided:</para>
+
+    <variablelist remap='IP'>
+      &BCRYPT_MIN_ROUNDS; <!-- documents also BCRYPT_MAX_ROUNDS -->
+      &CHFN_AUTH;
+      &CHFN_RESTRICT;
+      &CHSH_AUTH;
+      &CONSOLE;
+      &CONSOLE_GROUPS;
+      &CREATE_HOME;
+      &DEFAULT_HOME;
+      &ENCRYPT_METHOD;
+      &ENV_HZ;
+      &ENV_PATH;
+      &ENV_SUPATH;
+      &ENV_TZ;
+      &ENVIRON_FILE;
+      &ERASECHAR;
+      &FAIL_DELAY;
+      &FAILLOG_ENAB;
+      &FAKE_SHELL;
+      &FTMP_FILE;
+      &GID_MAX; <!-- documents also GID_MIN -->
+      &HMAC_CRYPTO_ALGO;
+      &HOME_MODE;
+      &HUSHLOGIN_FILE;
+      &ISSUE_FILE;
+      &KILLCHAR;
+      &LASTLOG_ENAB;
+      &LASTLOG_UID_MAX;
+      &LOG_OK_LOGINS;
+      &LOG_UNKFAIL_ENAB;
+      &LOGIN_RETRIES;
+      &LOGIN_STRING;
+      &LOGIN_TIMEOUT;
+      &MAIL_CHECK_ENAB;
+      &MAIL_DIR;
+      &MAX_MEMBERS_PER_GROUP;
+      &MD5_CRYPT_ENAB;
+      &MOTD_FILE;
+      &NOLOGINS_FILE;
+      &NONEXISTENT;
+      &OBSCURE_CHECKS_ENAB;
+      &PASS_ALWAYS_WARN;
+      &PASS_CHANGE_TRIES;
+      &PASS_MAX_DAYS;
+      &PASS_MIN_DAYS;
+      &PASS_WARN_AGE;
+      <para> 
+        <option>PASS_MAX_DAYS</option>, <option>PASS_MIN_DAYS</option> and
+        <option>PASS_WARN_AGE</option> are only used at the
+        time of account creation. Any changes to these settings won't affect
+        existing accounts.
+      </para>
+      &PASS_MAX_LEN; <!-- documents also PASS_MIN_LEN -->
+      &PORTTIME_CHECKS_ENAB;
+      &QUOTAS_ENAB;
+      &SHA_CRYPT_MIN_ROUNDS; <!-- documents also SHA_CRYPT_MAX_ROUNDS -->
+      &SULOG_FILE;
+      &SU_NAME;
+      &SU_WHEEL_ONLY;
+      &SUB_GID_COUNT; <!-- documents also SUB_GID_MIN SUB_GID_MAX -->
+      &SUB_UID_COUNT; <!-- documents also SUB_UID_MIN SUB_UID_MAX -->
+      &SYS_GID_MAX; <!-- documents also SYS_GID_MIN -->
+      &SYS_UID_MAX; <!-- documents also SYS_UID_MIN -->
+      &SYSLOG_SG_ENAB;
+      &SYSLOG_SU_ENAB;
+      &TCB_AUTH_GROUP;
+      &TCB_SYMLINKS;
+      &TTYGROUP;
+      &TTYTYPE_FILE;
+      &UID_MAX; <!-- documents also UID_MIN -->
+      &ULIMIT;
+      &UMASK;
+      &USERDEL_CMD;
+      &USERGROUPS_ENAB;
+      &USE_TCB;
+      &YESCRYPT_COST_FACTOR;
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='cross_references'>
+    <title>CROSS REFERENCES</title>
+    <para>
+      The following cross references show which programs in the shadow
+      password suite use which parameters.
+    </para>
+    <!-- .na -->
+    <variablelist remap='IP'>
+      <varlistentry condition="tcb">
+	<term>chage</term>
+	<listitem>
+	  <para>USE_TCB</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>chfn</term>
+	<listitem>
+	  <para>
+	    <phrase condition="no_pam">CHFN_AUTH</phrase>
+	    CHFN_RESTRICT
+	    <phrase condition="no_pam">LOGIN_STRING</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>chgpasswd</term>
+	<listitem>
+	  <para>
+	    <phrase condition="bcrypt">BCRYPT_MAX_ROUNDS
+	    BCRYPT_MIN_ROUNDS</phrase>
+	    ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+	    <phrase condition="sha_crypt">SHA_CRYPT_MAX_ROUNDS
+	    SHA_CRYPT_MIN_ROUNDS</phrase>
+	    <phrase condition="yescrypt">YESCRYPT_COST_FACTOR</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>chpasswd</term>
+	<listitem>
+	  <para>
+	    <phrase condition="bcrypt">BCRYPT_MAX_ROUNDS
+	    BCRYPT_MIN_ROUNDS</phrase>
+	    <phrase condition="no_pam">ENCRYPT_METHOD
+	    MD5_CRYPT_ENAB </phrase>
+	    <phrase condition="sha_crypt">SHA_CRYPT_MAX_ROUNDS
+	    SHA_CRYPT_MIN_ROUNDS</phrase>
+	    <phrase condition="yescrypt">YESCRYPT_COST_FACTOR</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="no_pam">
+	<term>chsh</term>
+	<listitem>
+	  <para>
+	    CHSH_AUTH LOGIN_STRING
+	  </para>
+	</listitem>
+      </varlistentry>
+      <!-- expiry: no variables (CONSOLE_GROUPS linked, but not used) -->
+      <!-- faillog: no variables -->
+      <varlistentry>
+	<term>gpasswd</term>
+	<listitem>
+	  <para>
+	    <phrase condition="bcrypt">BCRYPT_MAX_ROUNDS
+	    BCRYPT_MIN_ROUNDS</phrase>
+	    ENCRYPT_METHOD MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+	    <phrase condition="sha_crypt">SHA_CRYPT_MAX_ROUNDS
+	    SHA_CRYPT_MIN_ROUNDS</phrase>
+	    <phrase condition="yescrypt">YESCRYPT_COST_FACTOR</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>groupadd</term>
+	<listitem>
+	  <para>
+	    GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP
+	    SYS_GID_MAX SYS_GID_MIN
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>groupdel</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>groupmems</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>groupmod</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <!-- groups: no variables -->
+      <varlistentry>
+	<term>grpck</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>grpconv</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>grpunconv</term>
+	<listitem>
+	  <para>MAX_MEMBERS_PER_GROUP</para>
+	</listitem>
+      </varlistentry>
+      <!-- id: no variables -->
+      <varlistentry>
+	<term>lastlog</term>
+	<listitem>
+	  <para>LASTLOG_UID_MAX</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>login</term>
+	<listitem>
+	  <para>
+	    <phrase condition="no_pam">CONSOLE</phrase>
+	    CONSOLE_GROUPS DEFAULT_HOME
+	    <phrase condition="no_pam">ENV_HZ ENV_PATH ENV_SUPATH
+	    ENV_TZ ENVIRON_FILE</phrase>
+	    ERASECHAR FAIL_DELAY
+	    <phrase condition="no_pam">FAILLOG_ENAB</phrase>
+	    FAKE_SHELL
+	    <phrase condition="no_pam">FTMP_FILE</phrase>
+	    HUSHLOGIN_FILE
+	    <phrase condition="no_pam">ISSUE_FILE</phrase>
+	    KILLCHAR
+	    <phrase condition="no_pam">LASTLOG_ENAB LASTLOG_UID_MAX</phrase>
+	    LOGIN_RETRIES
+	    <phrase condition="no_pam">LOGIN_STRING</phrase>
+	    LOGIN_TIMEOUT LOG_OK_LOGINS LOG_UNKFAIL_ENAB
+	    <phrase condition="no_pam">MAIL_CHECK_ENAB MAIL_DIR MAIL_FILE
+	    MOTD_FILE NOLOGINS_FILE PORTTIME_CHECKS_ENAB
+	    QUOTAS_ENAB</phrase>
+	    TTYGROUP TTYPERM TTYTYPE_FILE
+	    <phrase condition="no_pam">ULIMIT UMASK</phrase>
+	    USERGROUPS_ENAB
+	  </para>
+	</listitem>
+      </varlistentry>
+      <!-- logoutd: no variables -->
+      <varlistentry>
+	<term>newgrp / sg</term>
+	<listitem>
+	  <para>
+	    SYSLOG_SG_ENAB
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>newusers</term>
+	<listitem>
+	  <para>
+	    <phrase condition="bcrypt">BCRYPT_MAX_ROUNDS
+	    BCRYPT_MIN_ROUNDS</phrase>
+	    ENCRYPT_METHOD
+	    GID_MAX GID_MIN
+	    MAX_MEMBERS_PER_GROUP MD5_CRYPT_ENAB
+	    HOME_MODE
+	    PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+	    <phrase condition="sha_crypt">SHA_CRYPT_MAX_ROUNDS
+	    SHA_CRYPT_MIN_ROUNDS</phrase>
+	    SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN
+	    SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN
+	    SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN
+	    UMASK
+	    <phrase condition="yescrypt">YESCRYPT_COST_FACTOR</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <!-- nologin: no variables -->
+      <varlistentry condition="no_pam">
+	<term>passwd</term>
+	<listitem>
+	  <para>
+	    <phrase condition="bcrypt">BCRYPT_MAX_ROUNDS
+	    BCRYPT_MIN_ROUNDS</phrase>
+	    ENCRYPT_METHOD MD5_CRYPT_ENAB OBSCURE_CHECKS_ENAB
+	    PASS_ALWAYS_WARN PASS_CHANGE_TRIES PASS_MAX_LEN PASS_MIN_LEN
+	    <phrase condition="sha_crypt">SHA_CRYPT_MAX_ROUNDS
+	    SHA_CRYPT_MIN_ROUNDS</phrase>
+	    <phrase condition="yescrypt">YESCRYPT_COST_FACTOR</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>pwck</term>
+	<listitem>
+	  <para>
+	    PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+	    <phrase condition="tcb">TCB_AUTH_GROUP TCB_SYMLINKS USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>pwconv</term>
+	<listitem>
+	  <para>
+	    PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+	    <phrase condition="tcb">USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="tcb">
+	<term>pwunconv</term>
+	<listitem>
+	  <para>
+	    <phrase condition="tcb">USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>su</term>
+	<listitem>
+	  <para>
+	    <phrase condition="no_pam">CONSOLE</phrase>
+	    CONSOLE_GROUPS DEFAULT_HOME
+	    <phrase condition="no_pam">ENV_HZ ENVIRON_FILE</phrase>
+	    ENV_PATH ENV_SUPATH
+	    <phrase condition="no_pam">ENV_TZ LOGIN_STRING MAIL_CHECK_ENAB
+	    MAIL_DIR MAIL_FILE QUOTAS_ENAB</phrase>
+	    SULOG_FILE SU_NAME
+	    <phrase condition="no_pam">SU_WHEEL_ONLY</phrase>
+	    SYSLOG_SU_ENAB
+	    <phrase condition="no_pam">USERGROUPS_ENAB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="no_pam">
+	<term>sulogin</term>
+	<listitem>
+	  <para>
+	    ENV_HZ
+	    ENV_TZ
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>useradd</term>
+	<listitem>
+	  <para>
+	    CREATE_HOME
+	    GID_MAX GID_MIN
+	    HOME_MODE
+	    LASTLOG_UID_MAX
+	    MAIL_DIR MAX_MEMBERS_PER_GROUP
+	    PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE
+	    SUB_GID_COUNT SUB_GID_MAX SUB_GID_MIN
+	    SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN
+	    SYS_GID_MAX SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN
+	    UMASK
+	    <phrase condition="tcb">TCB_AUTH_GROUP TCB_SYMLINK USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>userdel</term>
+	<listitem>
+	  <para>
+	    MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP USERDEL_CMD
+	    USERGROUPS_ENAB
+	    <phrase condition="tcb">TCB_SYMLINKS USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>usermod</term>
+	<listitem>
+	  <para>
+	    LASTLOG_UID_MAX
+	    MAIL_DIR MAIL_FILE MAX_MEMBERS_PER_GROUP
+	    <phrase condition="tcb">TCB_SYMLINKS USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry condition="tcb">
+	<term>vipw</term>
+	<listitem>
+	  <para>
+	    <phrase condition="tcb">USE_TCB</phrase>
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='bugs' condition="pam">
+    <title>BUGS</title>
+    <para>
+      Much of the functionality that used to be provided by the shadow
+      password suite is now handled by PAM. Thus,
+      <filename>/etc/login.defs</filename> is no longer used by <citerefentry>
+      <refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>, or less used by <citerefentry>
+      <refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>, and <citerefentry>
+      <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>. Please refer to the corresponding PAM configuration
+      files instead.
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>passwd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+</refentry>

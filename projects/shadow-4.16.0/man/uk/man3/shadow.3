@@ -1,0 +1,234 @@
+'\" t
+.\"     Title: shadow
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18/06/2024
+.\"    Manual: Library Calls
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Ukrainian
+.\"
+.TH "shadow" "3" "18/06/2024" "shadow\-utils 4\&.16\&.0" "Library Calls"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВА"
+shadow, getspnam \- підпрограми для файла зашифрованих паролів
+.SH "СИНТАКСИС"
+.PP
+\fI#include <shadow\&.h>\fR
+.PP
+\fIstruct spwd *getspent();\fR
+.PP
+\fIstruct spwd *getspnam(char\fR
+\fI*name\fR\fI);\fR
+.PP
+\fIvoid setspent();\fR
+.PP
+\fIvoid endspent();\fR
+.PP
+\fIstruct spwd *fgetspent(FILE\fR
+\fI*fp\fR\fI);\fR
+.PP
+\fIstruct spwd *sgetspent(char\fR
+\fI*cp\fR\fI);\fR
+.PP
+\fIint putspent(struct spwd\fR
+\fI*p,\fR
+\fIFILE\fR
+\fI*fp\fR\fI);\fR
+.PP
+\fIint lckpwdf();\fR
+.PP
+\fIint ulckpwdf();\fR
+.SH "ОПИС"
+.PP
+\fIshadow\fR
+manipulates the contents of the shadow password file,
+/etc/shadow\&. The structure in the
+\fI#include\fR
+file is:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+struct spwd { char *sp_namp; /* ім\*(Aqя користувача для входу */ char *sp_pwdp; /* зашифрований пароль */ long int sp_lstchg; /* остання зміна пароля */ long int sp_min; /* дні, протягом яких можлива зміна пароля\&. */ long int sp_max; /* дні до вимоги зміни пароля */ long int sp_warn; /* дні для попередження щодо завершення строку дії */ long int sp_inact; /* дні до неактивності облікового запису */ long int sp_expire; /* дата, коли завершиться строк дії облікового запису */ unsigned long int sp_flag; /* зарезервовано для використання у майбутньому */ }
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Призначення кожного з полів:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_namp \- вказівник на ім\*(Aqя користувача із кінцевим нуль\-символом
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_pwdp \- вказівник на пароль із кінцевим нуль\-символом
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_lstchg \- час у днях з 1 січня 1970 року, коли пароль було востаннє змінено
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_min \- кількість днів з останньої зміни, коли пароль не може бути змінено
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_max \- кількість днів з останньої зміни, після яких пароль має бути змінено
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_warn \- дні від моменту, коли строк дії пароля буде вичерпано, коли користувач отримуватиме попередження щодо майбутнього завершення строку дії пароля
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_inact \- кількість днів між завершенням строку дії і вимиканням облікового запису
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_expire \- кількість днів з 1 січня 1970 року, яка визначає момент вимикання облікового запису
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+sp_flag \- зарезервовано для використання у майбутньому
+.RE
+.SH "ОПИС"
+.PP
+\fIgetspent\fR,
+\fIgetspname\fR,
+\fIfgetspent\fR, and
+\fIsgetspent\fR
+each return a pointer to a
+\fIstruct spwd\fR\&.
+\fIgetspent\fR
+returns the next entry from the file, and
+\fIfgetspent\fR
+returns the next entry from the given stream, which is assumed to be a file of the proper format\&.
+\fIsgetspent\fR
+returns a pointer to a
+\fIstruct spwd\fR
+using the provided string as input\&.
+\fIgetspnam\fR
+searches from the current position in the file for an entry matching
+\fIname\fR\&.
+.PP
+\fIsetspent\fR
+and
+\fIendspent\fR
+may be used to begin and end, respectively, access to the shadow password file\&.
+.PP
+The
+\fIlckpwdf\fR
+and
+\fIulckpwdf\fR
+routines should be used to insure exclusive access to the
+/etc/shadow
+file\&.
+\fIlckpwdf\fR
+attempts to acquire a lock using
+\fIpw_lock\fR
+for up to 15 seconds\&. It continues by attempting to acquire a second lock using
+\fIspw_lock\fR
+for the remainder of the initial 15 seconds\&. Should either attempt fail after a total of 15 seconds,
+\fIlckpwdf\fR
+returns \-1\&. When both locks are acquired 0 is returned\&.
+.SH "ДІАГНОСТИКА"
+.PP
+Routines return NULL if no more entries are available or if an error occurs during processing\&. Routines which have
+\fIint\fR
+as the return value return 0 for success and \-1 for failure\&.
+.SH "ЗАСТЕРЕЖЕННЯ"
+.PP
+Цими підпрограмами може користуватися лише надкористувач, оскільки доступ до файла прихованих паролів обмежено\&.
+.SH "ФАЙЛИ"
+.PP
+/etc/shadow
+.RS 4
+Відомості щодо захищених облікових записів користувачів\&.
+.RE
+.SH "ДИВ\&. ТАКОЖ"
+.PP
+\fBgetpwent\fR(3),
+\fBshadow\fR(5)\&.

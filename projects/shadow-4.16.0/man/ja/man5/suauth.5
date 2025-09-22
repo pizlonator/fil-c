@@ -1,0 +1,116 @@
+.\"$Id$
+.\"
+.\" Japanese Version Copyright (c) 1997 Kazuyoshi Furutaka
+.\"         all rights reserved.
+.\" Translated Fri 14 Feb 1997
+.\"     by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 18 Sep 2002 by NAKNAO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH SUAUTH 5 "Feb 14, 1996"
+.UC 5
+.SH 名前
+suauth \- su を詳細に制御するためのファイル
+.SH 書式
+.B /etc/suauth
+.SH 説明
+.I /etc/suauth
+ファイルは、
+su コマンドが実行されるたびに参照される。
+このファイルを用いると、
+以下の情報に基づいて su コマンドの動作を変更できる。
+.PP
+.RS
+.nf
+1) su で成り代わろうとしているユーザ
+.fi
+2) su コマンドを実行しているユーザ
+(もしくはそのユーザが属するグループのいずれか)
+.RE
+.PP
+このファイルは次の様な書式をしている。
+# で始まる行はコメントとして扱われ、無視される。
+.PP
+.RS
+to\-id:from\-id:ACTION
+.RE
+.PP
+ここで to\-id は、
+.B ALL
+という単語、
+コンマで区切られたユーザ名のリスト、
+.B ALL EXCEPT
+という単語以降に置かれた "," 区切りのユーザ名リスト、
+のいずれかである。
+.PP
+from\-id は to\-id と同じ書式であり、更に
+.B GROUP
+という単語も使用できる。
+.B ALL EXCEPT GROUP
+という使い方も同様に利用できる。
+.B GROUP
+の後には一つ以上のグループ名を "," で区切って記す。
+そのグループを主グループ id として持つだけではだめで、
+\fI/etc/group\fR のエントリにユーザ名が記されていなければならない。
+.PP
+ACTION には、以下のオプションのいずれか一つを指定できる。
+.TP 10
+.B DENY
+パスワードを聞く前に su 動作を中止する。
+.TP
+.B NOPASS
+自動的に su は成功し、パスワードは尋ねない。
+.TP
+.B OWNPASS
+su が成功するためには、
+ユーザが自分のパスワードを入力しなくてはならない。
+パスワードを入力するように要求される。
+.PP
+コロンによって区切られた別々のフィールドが三つある点に注意すること。
+コロンの前後に空白があってはならない。
+ファイルは一行毎に順番に吟味され、
+最初にマッチした規則が用いられ、
+ファイルの残りはそれ以上捜査されない。
+これによって、
+システム管理者は望む限りの微調整を行うことが可能となる。
+.SH 例
+.PP
+.nf
+# /etc/suauthファイルの例
+#
+# 二人の特権ユーザが、自分のパスワードを
+# 用いて root に su できる。
+#
+root:chris,birddog:OWNPASS
+# 
+# 他のユーザは wheel グループに属していない限り
+# root に su できない。これは BSD と同じ動作である。
+#
+root:ALL EXCEPT GROUP wheel:DENY
+#
+# おそらく terry と birddog は同じ人間が
+# 所有するアカウントである。
+# パスワード無しで互いに他方に su できる。
+#
+terry:birddog:NOPASS
+birddog:terry:NOPASS
+#
+.fi
+.SH ファイル
+\fI/etc/suauth\fR
+.SH バグ
+多くのバグが潜んでいる可能性がある。
+とりわけ、ファイルパーザは書式エラーに寛大ではなく、
+(行の始め及び終わり以外に) 無駄な空白があってはならないし、
+特定のトークンが別々のものを区切るようになっている。
+.SH 返り値
+ファイルをパースする際のエラーは
+.BR syslogd (8)
+を通して、AUTH ファシリティの ERR レベルで通知される。
+.SH 関連項目
+.BR su (1)
+.SH 著者
+.nf
+Chris Evans (lady0110@sable.ox.ac.uk)
+Lady Margaret Hall
+Oxford University
+England

@@ -1,0 +1,40 @@
+.\" SPDX-FileCopyrightText: 1989 - 1994 Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1997 Kazuyoshi Furutaka
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\" $Id$
+.\"
+.\" Translated Fri Feb 14 23:06:00 JST 1997
+.\"         by Kazuyoshi Furutaka <furutaka@Flux.tokai.jaeri.go.jp>
+.\" Modified Tue 18 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.TH FAILLOG 5
+.SH 名前
+faillog \- ログイン失敗を記録するファイル
+.SH 説明
+.I faillog
+は個々のアカウントに対するログイン失敗回数とその限度を記録する。
+ファイルは固定長レコードであり、UID 番号でインデックス付けされている。
+各レコードには、最後にログインに成功して以降のログイン失敗回数、
+アカウントが使用不能となるまでに許されるログイン失敗回数、
+最後にログインに失敗したときの接続デバイス、
+最後にログインに失敗した日付、
+が記録されている。
+.PP
+このファイルの構造は以下の通り。
+.DS
+
+        struct	faillog {
+                short   fail_cnt;
+                short   fail_max;
+                char    fail_line[12];
+                time_t  fail_time;
+        };
+
+.DE
+.SH ファイル
+\fI/var/log/faillog\fR \- ログイン失敗の記録
+.SH 関連項目
+.BR faillog (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

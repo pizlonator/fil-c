@@ -1,0 +1,25 @@
+.TH "EXPIRY" "1" "11/05/2005" "User Commands" "User Commands"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "JMÉNO"
+expiry \- zkontroluje a vynutí politiku vypršení platnosti hesla
+.SH "POUŽITÍ"
+.HP 7
+\fBexpiry\fR [\-c] [\-f]
+.SH "POPIS"
+.PP
+\fBexpiry\fR
+zkontroluje (\fB\-c\fR) vypršení platnosti aktuálního hesla a případně vynutí (\fB\-f\fR) změnu. Příkaz lze spustit jako běžný uživatel.
+.SH "SOUBORY"
+.TP
+\fI/etc/passwd\fR
+informace o uživatelských účtech
+.TP
+\fI/etc/shadow\fR
+důvěrné informace o uživatelských účtech
+.SH "VIZ TAKÉ"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5).

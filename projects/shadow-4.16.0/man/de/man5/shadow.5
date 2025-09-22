@@ -1,0 +1,148 @@
+'\" t
+.\"     Title: shadow
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18.06.2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: German
+.\"
+.TH "SHADOW" "5" "18.06.2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+shadow \- gesch\(:utzte Passwortdatei
+.SH "BESCHREIBUNG"
+.PP
+shadow
+is a file which contains the password information for the system\*(Aqs accounts and optional aging information\&.
+.PP
+Um die Sicherheit der Passw\(:orter zu gew\(:ahrleisten, darf diese Datei nicht f\(:ur normale Benutzer lesbar sein\&.
+.PP
+Each line of this file contains 9 fields, separated by colons (\(Bq:\(lq), in the following order:
+.PP
+\fBlogin name\fR
+.RS 4
+Dabei muss es sich um einen g\(:ultigen Kontonamen handeln, der auf dem System existiert\&.
+.RE
+.PP
+\fBencrypted password\fR
+.RS 4
+This field may be empty, in which case no passwords are required to authenticate as the specified login name\&. However, some applications which read the
+/etc/shadow
+file may decide not to permit any access at all if the password field is empty\&.
+.sp
+Ein Passwortfeld, das mit einem Ausrufezeichen beginnt, f\(:uhrt dazu, dass das Passwort gesperrt ist\&. Die \(:ubrigen Zeichen entsprechen dem Passwort vor der Sperrung\&.
+.sp
+Refer to
+\fBcrypt\fR(3)
+for details on how this string is interpreted\&.
+.sp
+If the password field contains some string that is not a valid result of
+\fBcrypt\fR(3), for instance ! or *, the user will not be able to use a unix password to log in (but the user may log in the system by other means)\&.
+.RE
+.PP
+\fBdate of last password change\fR
+.RS 4
+The date of the last password change, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+Dem Wert 0 kommt eine besondere Bedeutung zu: Der Benutzer sollte sein Passwort bei der n\(:achsten Anmeldung \(:andern\&.
+.sp
+Ein leeres Feld bedeutet, dass das Passwort nicht ablaufen soll\&.
+.RE
+.PP
+\fBminimum password age\fR
+.RS 4
+Diese Mindestdauer ist die Anzahl von Tagen, die ein Benutzer oder eine Benutzerin warten muss, bis eine Passwort\(:anderung erlaubt ist\&.
+.sp
+An empty field and value 0 mean that there is no minimum password age\&.
+.RE
+.PP
+\fBmaximum password age\fR
+.RS 4
+Diese H\(:ochstdauer ist die Anzahl von Tagen, nach welcher der Benutzer sein Passwort \(:andern muss\&.
+.sp
+Auch nach Ablauf dieser Anzahl von Tagen gilt das Passwort\&. Der Benutzer wird jedoch bei der n\(:achsten Anmeldung aufgefordert, sein Passwort zu \(:andern\&.
+.sp
+Ein leeres Feld bedeutet, dass das Passwort unbefristet gilt und weder eine Vorwarnzeit noch eine Karenzzeit f\(:ur eine versp\(:atete \(:Anderung (siehe unten) gilt\&.
+.sp
+Wenn f\(:ur die G\(:ultigkeit des Passwortes eine Zahl von Tagen eingetragen ist, die niedriger ist als die Zahl der Tage bis zur fr\(:uhestm\(:oglichen \(:Anderung, kann die Benutzerin oder der Benutzer das Passwort nicht \(:andern\&.
+.RE
+.PP
+\fBpassword warning period\fR
+.RS 4
+Die Zeitspanne in Tagen, in der der Benutzer gewarnt wird, dass sein Passwort demn\(:achst ung\(:ultig wird (siehe H\(:ochstdauer der Passwortverwendung)\&.
+.sp
+Ein leeres Feld oder der Wert 0 bedeutet, dass es keine Vorwarnung gibt\&.
+.RE
+.PP
+\fBpassword inactivity period\fR
+.RS 4
+Die Zeitspanne in Tagen, in der ein abgelaufenes Passwort (vergleiche oben H\(:ochstdauer der Passwortverwendung) noch akzeptiert wird, aber im Zuge der Anmeldung eine \(:Anderung erwartet wird\&.
+.sp
+After expiration of the password and this expiration period is elapsed, no login is possible for the user\&. The user should contact her administrator\&.
+.sp
+Ein leeres Feld bedeutet, dass keine Karenzzeit gew\(:ahrt wird, innerhalb der ein abgelaufenes Passworts noch ersetzt werden kann\&.
+.RE
+.PP
+\fBaccount expiration date\fR
+.RS 4
+The date of expiration of the account, expressed as the number of days since Jan 1, 1970 00:00 UTC\&.
+.sp
+Beachten Sie, dass der Verfall des Kontos und der Ablauf eines Passworts zweierlei sind\&. Im ersteren Fall kann sich die Benutzerin bzw\&. der Benutzer nicht mehr anmelden\&. Im letzteren Fall wird das Passwort abgelehnt\&.
+.sp
+Ein leeres Feld bedeutet, dass das Konto unbefristet verwendbar ist\&.
+.sp
+Der Wert 0 sollte nicht verwendet werden, weil er sowohl bedeuten kann, dass das Konto nicht erlischt, als auch, dass das Konto bereits am 1\&. Januar 1970 erloschen ist\&.
+.RE
+.PP
+\fBreserved field\fR
+.RS 4
+Dieses Feld ist f\(:ur zuk\(:unftigen Gebrauch reserviert\&.
+.RE
+.SH "DATEIEN"
+.PP
+/etc/passwd
+.RS 4
+Informationen zu den Benutzerkonten
+.RE
+.PP
+/etc/shadow
+.RS 4
+gesch\(:utzte Informationen zu den Benutzerkonten
+.RE
+.PP
+/etc/shadow\-
+.RS 4
+Sicherungskopie von /etc/shadow
+.sp
+Beachten Sie, dass diese Datei von den Hilfsprogrammen des Shadow\-Projektes verwendet wird; von anderen Programmen zur Benutzer\- und Passwortverwaltung jedoch nicht unbedingt\&.
+.RE
+.SH "SIEHE AUCH"
+.PP
+\fBchage\fR(1),
+\fBlogin\fR(1),
+\fBpasswd\fR(1),
+\fBpasswd\fR(5),
+\fBpwck\fR(8),
+\fBpwconv\fR(8),
+\fBpwunconv\fR(8),
+\fBsu\fR(1),
+\fBsulogin\fR(8)\&.

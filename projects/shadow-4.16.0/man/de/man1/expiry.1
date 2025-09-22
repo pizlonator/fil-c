@@ -1,0 +1,74 @@
+'\" t
+.\"     Title: expiry
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 18.06.2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: German
+.\"
+.TH "EXPIRY" "1" "18.06.2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+expiry \- \(:uberpr\(:uft das Passwort auf G\(:ultigkeit
+.SH "\(:UBERSICHT"
+.HP \w'\fBexpiry\fR\ 'u
+\fBexpiry\fR \fIoption\fR
+.SH "BESCHREIBUNG"
+.PP
+The
+\fBexpiry\fR
+command checks (\fB\-c\fR) the current password expiration and forces (\fB\-f\fR) changes when required\&. It is callable as a normal user command\&.
+.SH "OPTIONEN"
+.PP
+The options which apply to the
+\fBexpiry\fR
+command are:
+.PP
+\fB\-c\fR, \fB\-\-check\fR
+.RS 4
+\(:uberpr\(:uft, ob das Passwort des aktuellen Benutzers abgelaufen ist\&.
+.RE
+.PP
+\fB\-f\fR, \fB\-\-force\fR
+.RS 4
+erzwingt den Wechsel des Passworts des aktuellen Benutzers, falls dieses abgelaufen ist
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+zeigt die Hilfe an und beendet das Programm\&.
+.RE
+.SH "DATEIEN"
+.PP
+/etc/passwd
+.RS 4
+Informationen zu den Benutzerkonten
+.RE
+.PP
+/etc/shadow
+.RS 4
+gesch\(:utzte Informationen zu den Benutzerkonten
+.RE
+.SH "SIEHE AUCH"
+.PP
+\fBpasswd\fR(5),
+\fBshadow\fR(5)\&.

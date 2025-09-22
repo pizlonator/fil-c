@@ -1,0 +1,274 @@
+'\" t
+.\"     Title: limits
+.\"    Author: Luca Berra
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: File Formats and Configuration Files
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: Russian
+.\"
+.TH "limits" "5" "06/18/2024" "shadow\-utils 4\&.16\&.0" "File Formats and Configuration"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "НАЗВАНИЕ"
+limits \- файл контроля ресурсов
+.SH "ОПИСАНИЕ"
+.PP
+The
+\fIlimits\fR
+file (/etc/limits
+by default or LIMITS_FILE defined
+config\&.h) describes the resource limits you wish to impose\&. It should be owned by root and readable by root account only\&.
+.PP
+По умолчанию учётная запись \(Foroot\(Fc ничем не ограничена\&. Фактически, никак нельзя установить ограничения с помощью этой процедуры на учётные записи, имеющие права суперпользователя (учётные записи с UID равным 0)\&.
+.PP
+Каждая строка описывает ограничение для одного пользователя имеет вид:
+.PP
+\fIuser LIMITS_STRING\fR
+.PP
+или в виде:
+.PP
+\fI@group LIMITS_STRING\fR
+.PP
+The
+\fILIMITS_STRING\fR
+is a string of a concatenated list of resource limits\&. Each limit consists of a letter identifier followed by a numerical limit\&.
+.PP
+Допустимые идентификаторы:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+A: максимальное адресное пространство (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+C: максимальный размер файла core (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+D: максимальный размер данных (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+F: maximum file size (KB)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+K: file creation mask, set by
+\fBumask\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+I: максимальное значение уступчивости (nice) (0\&.\&.39, преобразуемые в 20\&.\&.\-19)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+L: максимальное число возможных регистраций в системе этого пользователя
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+M: максимальное синхронизируемое адресное пространство памяти (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+N: максимальное число открытых файлов
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+O: максимальный приоритет реального времени
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+P: process priority, set by
+\fBsetpriority\fR(2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+R: максимальный размер резидентного сегмента (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+S: максимальный размер стека (КБ)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+T: максимальное время использования процессора (минут)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+U: максимальное число процессов
+.RE
+.PP
+For example,
+\fIL2D2048N5\fR
+is a valid
+\fILIMITS_STRING\fR\&. For reading convenience, the following entries are equivalent:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      username L2D2048N5
+      username L2 D2048 N5
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Be aware that after
+\fIusername\fR
+the rest of the line is considered a limit string, thus comments are not allowed\&. An invalid limits string will be rejected (not considered) by the
+\fBlogin\fR
+program\&.
+.PP
+The default entry is denoted by username "\fI*\fR"\&. If you have multiple
+\fIdefault\fR
+entries in your
+\fILIMITS_FILE\fR, then the last one will be used as the default entry\&.
+.PP
+The limits specified in the form "\fI@group\fR" apply to the members of the specified
+\fIgroup\fR\&.
+.PP
+If more than one line with limits for a user exist, only the first line for this user will be considered\&.
+.PP
+If no lines are specified for a user, the last
+\fI@group\fR
+line matching a group whose the user is a member of will be considered, or the last line with default limits if no groups contain the user\&.
+.PP
+To completely disable limits for a user, a single dash "\fI\-\fR" will do\&.
+.PP
+To disable a limit for a user, a single dash "\fI\-\fR" can be used instead of the numerical value for this limit\&.
+.PP
+Также заметьте, что все настройки ограничений делаются ДЛЯ КОНКРЕТНОЙ УЧЁТНОЙ ЗАПИСИ\&. Они не являются глобальными и не постоянны\&. Возможно глобальные ограничения и появятся, но пока это только в планах ;)
+.SH "ФАЙЛЫ"
+.PP
+/etc/limits
+.RS 4
+.RE
+.SH "СМОТРИТЕ ТАКЖЕ"
+.PP
+\fBlogin\fR(1),
+\fBsetpriority\fR(2),
+\fBsetrlimit\fR(2)\&.

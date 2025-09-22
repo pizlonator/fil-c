@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "userdel report failures when it cannot open the /etc/subgid file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Delete user foo (userdel foo)..."
+LD_PRELOAD=../../../common/open_RDWR_failure.so FAILURE_PATH=/etc/subgid userdel foo 2>tmp/userdel.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "18"
+echo "OK"
+
+echo "userdel reported:"
+echo "======================================================================="
+cat tmp/userdel.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/userdel.err tmp/userdel.err
+echo "error message OK."
+rm -f tmp/userdel.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+echo -n "Check the /etc/subgid file..."
+../../../common/compare_file.pl config/etc/subgid /etc/subgid
+echo "OK"
+echo -n "Check the /etc/subuid file..."
+../../../common/compare_file.pl config/etc/subuid /etc/subuid
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

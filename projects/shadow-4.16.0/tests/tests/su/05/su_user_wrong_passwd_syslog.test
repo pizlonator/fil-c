@@ -1,0 +1,40 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "su can be used to switch to a non-root user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+./run_su_failed.exp myuser myuserF00barbaz_wrongpass '$ '
+
+echo
+
+echo -n "Syncing disks..."
+sync
+echo "OK"
+echo "auth.log contains:"
+echo "======================================================================="
+cat /var/log/auth.log
+echo "======================================================================="
+echo -n "Looking for 'FAILED su for myuser by testsuite' in /var/log/auth.log..."
+grep -q "FAILED su for myuser by testsuite" /var/log/auth.log
+echo "OK"
+echo -n "'- pts/[0-9]+ testsuite:myuser' should not be logged in /var/log/auth.log..."
+grep -v -q -E "\- pts/[0-9]+ testsuite:myuser" /var/log/auth.log
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

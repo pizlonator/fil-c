@@ -1,0 +1,17 @@
+#!/usr/bin/expect
+
+set timeout 5
+expect_after default {puts stderr "\nFAIL"; exit 1}
+
+spawn /bin/bash
+expect "# "
+
+send "login foo\r"
+expect "Password: "
+sleep 0.1
+send "badpass\r"
+send_user "\n# password 'badpass' sent\n\n"
+expect "login: "
+
+send "exit\r"
+exit 0

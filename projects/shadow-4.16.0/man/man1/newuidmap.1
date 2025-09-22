@@ -1,0 +1,110 @@
+'\" t
+.\"     Title: newuidmap
+.\"    Author: Eric Biederman
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "NEWUIDMAP" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+newuidmap \- set the uid mapping of a user namespace
+.SH "SYNOPSIS"
+.HP \w'\fBnewuidmap\fR\ 'u
+\fBnewuidmap\fR \fIpid\fR \fIuid\fR \fIloweruid\fR \fIcount\fR [\fIuid\fR\ \fIloweruid\fR\ \fIcount\fR\ [\ \fI\&.\&.\&.\fR\ ]]
+.SH "DESCRIPTION"
+.PP
+The
+\fBnewuidmap\fR
+sets
+/proc/[pid]/uid_map
+based on its command line arguments and the uids allowed\&. Subuid delegation can either be managed via
+/etc/subuid
+or through the configured NSS subid module\&. These options are mutually exclusive\&.
+.PP
+Note that the root user is not exempted from the requirement for a valid
+/etc/subuid
+entry\&.
+.PP
+After the pid argument,
+\fBnewuidmap\fR
+expects sets of 3 integers:
+.PP
+uid
+.RS 4
+Beginning of the range of UIDs inside the user namespace\&.
+.RE
+.PP
+loweruid
+.RS 4
+Beginning of the range of UIDs outside the user namespace\&.
+.RE
+.PP
+count
+.RS 4
+Length of the ranges (both inside and outside the user namespace)\&.
+.RE
+.PP
+\fBnewuidmap\fR
+verifies that the caller is the owner of the process indicated by
+\fBpid\fR
+and that for each of the above sets, each of the UIDs in the range [loweruid, loweruid+count) is allowed to the caller according to
+/etc/subuid
+before setting
+/proc/[pid]/uid_map\&.
+.PP
+Note that newuidmap may be used only once for a given process\&.
+.PP
+Instead of an integer process id, the first argument may be specified as
+\fIfd:N\fR, where the integer N is the file descriptor number for the calling process\*(Aqs opened file descriptor for the directory
+/proc/[pid]\&. In this case,
+\fBnewuidmap\fR
+will use
+openat(2)
+to open the
+uid_map
+file under that directory, avoiding a TOCTTOU in case the process exits and the pid is immediately reused\&.
+.SH "OPTIONS"
+.PP
+There currently are no options to the
+\fBnewuidmap\fR
+command\&.
+.SH "FILES"
+.PP
+/etc/subuid
+.RS 4
+List of user\*(Aqs subordinate user IDs\&.
+.RE
+.PP
+/proc/[pid]/uid_map
+.RS 4
+Mapping of uids from one between user namespaces\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBlogin.defs\fR(5),
+\fBnewusers\fR(8),
+\fBsubuid\fR(5),
+\fBuseradd\fR(8),
+\fBusermod\fR(8),
+\fBuserdel\fR(8)\&.

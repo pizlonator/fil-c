@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+
+log_start "$0" "Running commands (check working directory): su - myuser -- -c pwd"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo "/bin/su - myuser -- -c pwd> tmp/out 2> tmp/err"
+/bin/su - myuser -- -c pwd> tmp/out 2> tmp/err
+
+echo -n "Checking tmp/out..."
+case "$(cat tmp/out)" in
+	/home)
+		echo "OK"
+		;;
+	*)
+		echo "FAIL"
+		echo "working directory: '$(cat tmp/out)' instead of '/home'"
+		rm -f tmp/out
+		false
+		;;
+esac
+rm -f tmp/out
+
+echo -n "Checking tmp/err..."
+[ "$(wc -c tmp/err)" = "0 tmp/err" ] || false
+rm -f tmp/err
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

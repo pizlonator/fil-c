@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "useradd options --comment, --expiredate, --shell, --inactive, --home-dir"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 (useradd test3 with options)..."
+useradd --comment "comment test3" \
+	--expiredate "2006-02-04" \
+	--shell "/bin/bash" \
+	--inactive "12" \
+	--home-dir "/nonexistenthomedir" \
+	test3
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl 03_useradd_additional_options/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl 03_useradd_additional_options/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 03_useradd_additional_options/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl 03_useradd_additional_options/gshadow /etc/gshadow
+echo "OK"
+echo -n "no homedir /home/test3..."
+test ! -d /home/test3
+echo "OK"
+echo -n "no homedir /nonexistenthomedir..."
+test ! -d /nonexistenthomedir
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

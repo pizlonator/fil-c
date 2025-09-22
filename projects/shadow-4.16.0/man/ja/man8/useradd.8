@@ -1,0 +1,150 @@
+.\" $Id$
+.\" SPDX-FileCopyrightText: 1991 - 1994, Julianne Frances Haugh
+.\" SPDX-FileCopyrightText: 1996 HANATAKA Shinya
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Translated Wed Nov 20 17:42:39 JST 1996
+.\"         by HANATAKA Shinya 
+.\" Updated Mon Mar  5 JST 2002 by Kentaro Shirakata <argrath@ub32.org>
+.\" Modified Sun 22 Sep 2002 by NAKANO Takeo <nakano@apm.seikei.ac.jp>
+.\"
+.\"WORD:        initial group           主グループ
+.\"WORD:        supplementary group     補助グループ
+.\"
+.TH USERADD 8
+.SH 名前
+useradd \- 新規ユーザの作成・新規ユーザのデフォルト情報の更新
+.SH 書式
+.TP 8
+\fBuseradd\fR [\fB\-c\fR \fIcomment\fR] [\fB\-d\fR \fIhome_dir\fR]
+.br
+[\fB\-e\fR \fIexpire_date\fR] [\fB\-f\fR \fIinactive_time\fR]
+.br
+[\fB\-g\fR \fIinitial_group\fR] [\fB\-G\fR \fIgroup\fR[,...]]
+.br
+[\fB\-m\fR [\fB\-k\fR \fIskeleton_dir\fR]] [\fB\-o\fR] [\fB\-p\fR \fIpasswd\fR]
+.br
+[\fB\-s\fR \fIshell\fR] [\fB\-u\fR \fIuid\fR] \fIlogin\fR
+.TP 8
+\fBuseradd\fR \fB\-D\fR [\fB\-g\fR \fIdefault_group\fR] [\fB\-b\fR \fIdefault_home\fR]
+.br
+[\fB\-e\fR \fIdefault_expire_date\fR] [\fB\-f\fR \fIdefault_inactive\fR]
+.br
+[\fB\-s\fR \fIdefault_shell\fR]
+.SH 説明
+.SS 新規ユーザの作成
+\fB\-D\fR オプションなしで実行された場合、
+\fBuseradd\fR コマンドは
+コマンドラインの値とデフォルトの設定値をもとに
+新規ユーザのアカウントを作成する。
+コマンドラインオプションに応じて、
+新規ユーザのアカウントが必要なシステムファイルに追加され、
+ホームディレクトリが作成され、
+設定ファイルがコピーされる。
+\fBuseradd\fR コマンドのオプションは次の通り。
+.IP "\fB\-c\fR \fIcomment\fR"
+パスワードファイルに追加する新規ユーザのコメントフィールド。
+.IP "\fB\-d\fR \fIhome_dir\fR"
+新規ユーザのログインディレクトリを \fIhome_dir\fR にする。
+デフォルトでは \fIlogin\fR を
+\fIdefault_home\fR に付け加えたものがログインディレクトリとなる。
+.IP "\fB\-e\fR \fIexpire_date\fR"
+ユーザアカウントが使用不能になる日付。
+日付は \fIYYYY\-MM\-DD\fR という書式で指定する。
+.IP "\fB\-f\fR \fIinactive_days\fR"
+パスワードの使用期限が切れてからアカウントが永久に使用不能になるまでの日数。
+0 にすると、
+パスワードの期限が切れると同時にこのアカウントは使用不能になる。
+\-1 にするとこの機能が無効になる。デフォルト値は \-1。
+.IP "\fB\-g\fR \fIinitial_group\fR"
+ユーザの属する主グループのグループ名または ID。
+グループ名はすでに存在していなければならない。
+グループ ID は既存のグループに対応するものでなければならない。
+デフォルトのグループ ID は 1 か、
+または \fI/etc/default/useradd\fR
+で指定されているものがあればそれに従う。
+.IP "\fB\-G\fR \fIgroup,[...]\fR"
+ユーザの属する補助グループ (supplementary groups) のリスト。
+グループはコンマで区切り、間に空白を入れてはならない。
+指定できるグループには \fB\-g\fR オプションと同様の制限がある。
+デフォルトでは、ユーザは主グループのみに属する。
+.IP \fB\-m\fR
+ホームディレクトリが存在しない場合には、ホームディレクトリを作成する。
+\fB\-k\fR オプションを同時に指定すると \fIskeleton_dir\fR 以下のファイルが、
+指定しないと \fI/etc/skel\fR 以下のファイルが、
+ホームディレクトリにコピーされる。
+ホームディレクトリには、
+\fIskeleton_dir\fR または \fI/etc/skel\fR
+に含まれるすべてのディレクトリも作成される。
+\fB\-k\fR オプションは、
+\fB\-m\fR オプションとともに使われる場合のみ有効である。
+デフォルトでは、ホームディレクトリを作らず、ファイルのコピーもしない。
+.IP "\fB\-o\fR"
+重複した (固有でない) UID でユーザを作成できるようにする。
+.IP "\fB\-p\fR \fIpasswd\fR"
+\fBcrypt\fR(3) の返り値である暗号化パスワード。
+デフォルトでは、アカウントは使えない状態となる。
+.IP "\fB\-s\fR \fIshell\fR"
+ユーザのログインシェルの名前。
+デフォルトではこのフィールドは空白となり、
+システムがデフォルトのログインシェルを選ぶ。
+.IP "\fB\-u\fR \fIuid\fR"
+ユーザの ID 番号。
+この値は、\fB\-o\fR オプションを用いる場合を除き、他と重複してはならない。
+また非負値でなくてはならない。
+デフォルトでは、 999 および他のあらゆる既存ユーザの ID よりも大きい、
+最小の数値となる。
+0 から 999 までの値は、
+通常システム用のアカウントに予約されている。
+.SS デフォルト値の変更
+\fB\-D\fR オプションを指定すると、
+\fBuseradd\fR は現在のデフォルト値を表示するか、
+またはオプションで与えられた値に応じてデフォルト値を変更する。
+使用可能なオプションは次の通り。
+.IP "\fB\-b\fR \fIdefault_home\fR"
+新規ユーザのホームディレクトリのパスのプレフィックス。
+新規ユーザアカウントの作成時に \fB\-d\fI オプションが指定されないと、
+\fIdefault_home\fR の後にユーザ名を付け加えたものが
+新規ディレクトリ名として使われる。
+.IP "\fB\-e\fR \fIdefault_expire_date\fR"
+ユーザアカウントが使用不能となる日付。
+.IP "\fB\-f\fR \fIdefault_inactive\fR"
+パスワードの使用期限が切れてからアカウントが使用不能となるまでの日数。
+.IP "\fB\-g\fR \fIdefault_group\fR"
+新規ユーザの属する主グループのグループ名またはグループ ID。
+グループ名はすでに存在するものでなければならない。
+グループ ID は既存のグループに対応するものでなければならない。
+.IP "\fB\-s\fR \fIdefault_shell\fR"
+新規ユーザのログインシェル。
+指定されたプログラムは、
+今後作られるすべての新規ユーザアカウントに適用される。
+.PP
+オプションを指定しないと、
+\fBuseradd\fR は現在のデフォルト値を表示する。
+.SH 注意
+\fI/etc/skel\fR ディレクトリにデフォルトのユーザファイルを置くのは
+システム管理者の行うべき作業である。
+.SH 警告
+NIS のグループにユーザを加えてはならない。
+これは必ず NIS サーバ上で行うこと。
+.SH ファイル
+\fI/etc/passwd\fR \- ユーザアカウント情報
+.br
+\fI/etc/shadow\fR \- 安全なユーザアカウント情報
+.br
+\fI/etc/group\fR \ \- グループ情報
+.br
+\fI/etc/default/useradd\fR \- デフォルト情報
+.br
+\fI/etc/skel/\fR \ \- ファイルの雛形が置かれるディレクトリ
+.SH 関連項目
+.BR chfn (1),
+.BR chsh (1),
+.BR passwd (1),
+.BR crypt (3),
+.BR groupadd (8),
+.BR groupdel (8),
+.BR groupmod (8),
+.BR userdel (8),
+.BR usermod (8)
+.SH 著者
+Julianne Frances Haugh (julie78787@gmail.com)

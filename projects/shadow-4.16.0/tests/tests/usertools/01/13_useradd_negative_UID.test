@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../common/config.sh
+. ../../common/log.sh
+
+log_start "$0" "Add a new user"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Create user test1 with a negative UID (useradd -u -1 test1)..."
+msg=$(useradd -u -1 test1 2>&1) && exit 1 || {
+	status=$?
+}
+echo "OK"
+echo "useradd returned status $status,"
+echo "and displayed \"$msg\""
+echo -n "The returned status should be 3..."
+test "$status" = "3"
+echo "OK"
+echo -n "Test the error message (should be \"useradd: invalid user ID '-1'\")..."
+test "$msg" = "useradd: invalid user ID '-1'"
+echo "OK"
+
+echo -n "Check the passwd file..."
+../../common/compare_file.pl 13_useradd_negative_UID/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../common/compare_file.pl 13_useradd_negative_UID/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../common/compare_file.pl 13_useradd_negative_UID/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../common/compare_file.pl 13_useradd_negative_UID/gshadow /etc/gshadow
+echo "OK"
+echo -n "no homedir..."
+test -d /home/test1 && exit 1 || true
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+

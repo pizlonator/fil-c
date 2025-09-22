@@ -1,0 +1,1310 @@
+#!/bin/sh
+
+set -e
+
+export LC_ALL=C
+unset LANG
+unset LANGUAGE
+. common/config.sh
+
+USE_PAM="yes"
+FAILURE_TESTS="yes"
+
+succeeded=0
+failed=0
+failed_tests=""
+
+run_test()
+{
+	[ -f RUN_TEST.STOP ] && exit 1
+
+	if $1 > $1.log
+	then
+		succeeded=$((succeeded+1))
+		echo -n "+"
+	else
+		failed=$((failed+1))
+		failed_tests="$failed_tests $1"
+		echo -n "-"
+	fi
+	cat $1.log >> testsuite.log
+	[ -f /etc/passwd.lock ] && echo $1 /etc/passwd.lock || true
+	[ -f /etc/group.lock ] && echo $1 /etc/group.lock || true
+	[ -f /etc/shadow.lock ] && echo $1 /etc/shadow.lock || true
+	[ -f /etc/gshadow.lock ] && echo $1 /etc/gshadow.lock || true
+	if [ "$(stat -c"%G" /etc/shadow)" != "shadow" ]
+	then
+		echo $1
+		ls -l /etc/shadow
+		chgrp shadow /etc/shadow
+	fi
+	if [ -d /nonexistent ]
+	then
+		echo $1 /nonexistent
+		rmdir /nonexistent
+	fi
+}
+
+echo "+: test passed"
+echo "-: test failed"
+
+# Empty the complete log.
+> testsuite.log
+
+find "${build_path}" -name "*.gcda" -delete
+run_test ./su/01/su_root.test
+run_test ./su/01/su_user.test
+find "${build_path}" -name "*.gcda" -exec chmod a+rw {} \;
+run_test ./su/02/env_FOO-options_--login
+run_test ./su/02/env_FOO-options_--login_bash
+run_test ./su/02/env_FOO-options_--preserve-environment
+run_test ./su/02/env_FOO-options_--preserve-environment_bash
+run_test ./su/02/env_FOO-options_-
+run_test ./su/02/env_FOO-options_-_bash
+run_test ./su/02/env_FOO-options_-l-m
+run_test ./su/02/env_FOO-options_-l-m_bash
+run_test ./su/02/env_FOO-options_-l
+run_test ./su/02/env_FOO-options_-l_bash
+run_test ./su/02/env_FOO-options_-m_bash
+run_test ./su/02/env_FOO-options_-m
+run_test ./su/02/env_FOO-options_-p
+run_test ./su/02/env_FOO-options_-p_bash
+run_test ./su/02/env_FOO-options__bash
+run_test ./su/02/env_FOO-options_
+run_test ./su/02/env_FOO-options_-p-
+run_test ./su/02/env_FOO-options_-p-_bash
+run_test ./su/02/env_special-options_-l-p
+run_test ./su/02/env_special-options_-l
+run_test ./su/02/env_special-options_-l-p_bash
+run_test ./su/02/env_special-options_-l_bash
+run_test ./su/02/env_special-options_-p
+run_test ./su/02/env_special-options_-p_bash
+run_test ./su/02/env_special-options_
+run_test ./su/02/env_special-options__bash
+run_test ./su/02/env_special_root-options_-l-p
+run_test ./su/02/env_special_root-options_-l-p_bash
+run_test ./su/02/env_special_root-options_-l
+run_test ./su/02/env_special_root-options_-l_bash
+run_test ./su/02/env_special_root-options_-p
+run_test ./su/02/env_special_root-options_-p_bash
+run_test ./su/02/env_special_root-options_
+run_test ./su/02/env_special_root-options__bash
+run_test ./su/03/su_run_command01.test
+run_test ./su/03/su_run_command02.test
+run_test ./su/03/su_run_command03.test
+run_test ./su/03/su_run_command04.test
+run_test ./su/03/su_run_command05.test
+run_test ./su/03/su_run_command06.test
+run_test ./su/03/su_run_command07.test
+run_test ./su/03/su_run_command08.test
+run_test ./su/03/su_run_command09.test
+run_test ./su/03/su_run_command10.test
+run_test ./su/03/su_run_command11.test
+run_test ./su/03/su_run_command12.test
+run_test ./su/03/su_run_command13.test
+run_test ./su/03/su_run_command14.test
+run_test ./su/03/su_run_command15.test
+run_test ./su/03/su_run_command16.test
+run_test ./su/03/su_run_command17.test
+run_test ./su/04/su_wrong_user.test
+run_test ./su/04/su_user_wrong_passwd.test
+run_test ./su/04/su_user_wrong_passwd_syslog.test
+run_test ./su/05/su_user_wrong_passwd_syslog.test
+run_test ./su/06/su_user_syslog.test
+run_test ./su/07/su_user_syslog.test
+run_test ./su/08/env_special-options_
+run_test ./su/08/env_special_root-options_
+run_test ./su/09/env_special-options_
+run_test ./su/09/env_special_root-options_
+run_test ./su/10_su_sulog_success/su.test
+run_test ./su/11_su_sulog_failure/su.test
+run_test ./su/12_su_child_failure/su.test
+run_test ./su/13_su_child_success/su.test
+run_test ./chage/01/run
+find "${build_path}" -name "*.gcda" -exec chmod a+rw {} \;
+run_test ./chage/02/run
+run_test ./chage/03_chsh_usage/chage.test
+run_test ./chage/04_chsh_usage_invalid_option/chage.test
+run_test ./chage/05_chsh_usage_2_users/chage.test
+run_test ./chage/06_chsh_usage_no_users/chage.test
+run_test ./chage/07_chsh_usage-l_exclusive/chage.test
+run_test ./chage/08_chsh_usage_invalid_date/chage.test
+run_test ./chage/09_chsh_usage_invalid_numeric_arg/chage.test
+run_test ./chage/10_chsh-l/chage.test
+run_test ./chage/11_chsh_usage_invalid_user/chage.test
+run_test ./chage/12_chsh_usage-l_invalid_user2/chage.test
+run_test ./chage/13_chsh_locked_passwd/chage.test
+run_test ./chage/14_chsh_locked_shadow/chage.test
+run_test ./chage/15_chage-I_no_shadow_entry/chage.test
+run_test ./chage/16_chage-m_no_shadow_entry/chage.test
+run_test ./chage/17_chage-M_no_shadow_entry/chage.test
+run_test ./chage/18_chage-d_no_shadow_entry/chage.test
+run_test ./chage/19_chage-W_no_shadow_entry/chage.test
+run_test ./chage/20_chage-E_no_shadow_entry/chage.test
+run_test ./chage/21_chage_no_shadow_file/chage.test
+run_test ./chage/22_chage_myuser-l/chage.test
+run_test ./chage/23_chage_myuser-I/chage.test
+run_test ./chage/24_chage_myuser-l_other/chage.test
+run_test ./chage/25_chage_interactive/chage.test
+run_test ./chage/26_chage_interactive_date_0/chage.test
+run_test ./chage/27_chage_interactive_date_-1/chage.test
+run_test ./chage/28_chage_interactive_date_EPOCH/chage.test
+run_test ./chage/29_chage_interactive_date_pre-EPOCH/chage.test
+run_test ./chage/30_chage_interactive_date_pre-EPOCH2/chage.test
+run_test ./chage/31_chage_interactive_date_invalid/chage.test
+run_test ./chage/32_chage_interactive_date_invalid2/chage.test
+run_test ./chage/33_chage_interactive-W_invalid1/chage.test
+run_test ./chage/34_chage_interactive-W_invalid2/chage.test
+run_test ./chage/35_chage_interactive-W-1/chage.test
+run_test ./chage/36_chage_interactive-I_invalid1/chage.test
+run_test ./chage/37_chage_interactive-I_invalid2/chage.test
+run_test ./chage/38_chage_interactive-I-1/chage.test
+run_test ./chage/39_chage_interactive-d-1/chage.test
+run_test ./chsh/01/run
+run_test ./chsh/02_chsh_usage/chsh.test
+run_test ./chsh/03_chsh_usage_invalid_option/chsh.test
+run_test ./chsh/04_chsh_usage_2_users/chsh.test
+run_test ./chsh/05_chsh_myuser_restricted_shell/chsh.test
+run_test ./chsh/06_chsh_myuser_non_restricted_shell/chsh.test
+run_test ./chsh/07_chsh_usage_invalid_user/chsh.test
+run_test ./chsh/08_chsh_myuser_to_restricted_shell/chsh.test
+run_test ./chsh/09_chsh_myuser_to_missing_shell/chsh.test
+run_test ./chsh/10_chsh_myuser_to_non_executable_shell/chsh.test
+run_test ./chsh/11_chsh_auth_failure/chsh.test
+run_test ./chsh/12_chsh_warning_missing_shell/chsh.test
+run_test ./chsh/13_chsh_warning_non_executable/chsh.test
+run_test ./chsh/14_chsh_locked_passwd/chsh.test
+run_test ./chsh/15_chsh_PAM_error/chsh.test
+run_test ./chroot/chage/01_chage--root/chage.test
+run_test ./chroot/chgpasswd/01_chgpasswd--root/chgpasswd.test
+run_test ./chroot/chpasswd/01_chpasswd--root_nopam/chpasswd.test
+run_test ./chroot/chpasswd/02_chpasswd--root_pam/chpasswd.test
+run_test ./chroot/chsh/01_chsh--root/chsh.test
+run_test ./chroot/gpasswd/01_gpasswd--root/gpasswd.test
+run_test ./chroot/groupadd/01_groupadd--root/groupadd.test
+run_test ./chroot/groupdel/01_groupdel--root/groupdel.test
+run_test ./chroot/groupmod/01_groupmod--root/groupmod.test
+run_test ./chroot/grpck/01_grpck--root/grpck.test
+run_test ./chroot/grpconv/01_grpconv--root/grpconv.test
+run_test ./chroot/grpunconv/01_grpunconv--root/grpunconv.test
+run_test ./chroot/lastlog/01_lastlog--root/lastlog.test
+run_test ./chroot/login/01_login_sublogin/login.test
+run_test ./chroot/pwck/01_pwck--root/pwck.test
+run_test ./chroot/pwconv/01_pwconv--root/pwconv.test
+run_test ./chroot/pwunconv/01_pwunconv--root/pwunconv.test
+run_test ./chroot/useradd/01_useradd--root/useradd.test
+run_test ./chroot/useradd/02_useradd--root_login.defs/useradd.test
+run_test ./chroot/useradd/03_useradd--root_useradd.default/useradd.test
+run_test ./chroot/useradd/04_useradd--root_useradd-D/useradd.test
+run_test ./chroot/useradd/05_useradd--root_useradd-D-e-g/useradd.test
+run_test ./chroot/userdel/01_userdel--root/userdel.test
+run_test ./chroot/usermod/01_usermod--root/usermod.test
+run_test ./convtools/01/run
+run_test ./convtools/02_grpconv_remove_gshadow_only_entries/grpconv.test
+run_test ./convtools/03_grpconv_copy_passwd/grpconv.test
+run_test ./convtools/04_grpconv_no_password/grpconv.test
+run_test ./convtools/05_grpconv_copy_passwd_existing_gshadow/grpconv.test
+run_test ./convtools/06_grpconv_error_group_locked/grpconv.test
+run_test ./convtools/07_grpconv_error_gshadow_locked/grpconv.test
+run_test ./convtools/08_grpunconv_no_gshadow_file/grpunconv.test
+run_test ./convtools/09_grpunconv_error_group_locked/grpunconv.test
+run_test ./convtools/10_grpunconv_error_gshadow_locked/grpunconv.test
+run_test ./convtools/11_pwconv_error_passwd_locked/pwconv.test
+run_test ./convtools/12_pwconv_error_shadow_locked/pwconv.test
+run_test ./convtools/13_pwunconv_error_passwd_locked/pwunconv.test
+run_test ./convtools/14_pwunconv_error_shadow_locked/pwunconv.test
+run_test ./convtools/15_pwconv_remove_shadow_only_entries/pwconv.test
+run_test ./convtools/16_pwconv_copy_passwd/pwconv.test
+run_test ./convtools/17_pwunconv_no_shadow_file/pwunconv.test
+run_test ./convtools/18_pwunconv_user_not_in_shadow/pwunconv.test
+run_test ./convtools/19_pwconv_NIS/pwconv.test
+run_test ./convtools/20_pwunconv_usage_option/pwunconv.test
+run_test ./convtools/21_pwunconv_keep_passwd_password/pwunconv.test
+run_test ./convtools/22_grpunconv_usage_option/grpunconv.test
+run_test ./convtools/23_grpunconv_keep_group_password/grpunconv.test
+run_test ./convtools/24_grpunconv_no_gshadow_entry/grpunconv.test
+run_test ./convtools/25_pwconv_usage_option/pwconv.test
+run_test ./convtools/26_grpconv_usage_option/grpconv.test
+run_test ./convtools/27_pwunconv_usage/pwunconv.test
+run_test ./convtools/28_pwunconv_usage_extra_arg/pwunconv.test
+run_test ./convtools/29_grpconv_usage/grpconv.test
+run_test ./convtools/30_grpconv_usage_extra_arg/grpconv.test
+run_test ./convtools/31_pwconv_usage/pwconv.test
+run_test ./convtools/32_pwconv_usage_extra_arg/pwconv.test
+run_test ./convtools/33_grpunconv_usage/grpunconv.test
+run_test ./convtools/34_grpunconv_usage_extra_arg/grpunconv.test
+run_test ./cptools/02_cppw_usage/cppw.test
+run_test ./cptools/03_cppw_usage_invalid_option/cppw.test
+run_test ./cptools/04_cppw_no_file_argument/cppw.test
+run_test ./cptools/05_cppw_2_files/cppw.test
+run_test ./cptools/06_cppw_no_file/cppw.test
+run_test ./cptools/07_cppw_locked_passwd/cppw.test
+run_test ./cptools/08_cppw-p/cppw.test
+run_test ./cptools/09_cppw-g/cppw.test
+run_test ./cptools/10_cppw-g-s/cppw.test
+run_test ./cptools/11_cppw-p-s/cppw.test
+run_test ./cptools/12_cppw-s_no_shadow_file/cppw.test
+run_test ./debian/01/run
+run_test ./grouptools/chgpasswd/01_chgpasswd_invalid_group/chgpasswd.test
+run_test ./grouptools/chgpasswd/02_chgpasswd_multiple_groups/chgpasswd.test
+run_test ./grouptools/chgpasswd/03_chgpasswd_no_gshadow_file/chgpasswd.test
+run_test ./grouptools/chgpasswd/04_chgpasswd_no_gshadow_entry/chgpasswd.test
+run_test ./grouptools/chgpasswd/05_chgpasswd_error_no_password/chgpasswd.test
+run_test ./grouptools/chgpasswd/06_chgpasswd_usage/chgpasswd.test
+run_test ./grouptools/chgpasswd/07_chgpasswd_usage_bad_option/chgpasswd.test
+run_test ./grouptools/chgpasswd/08_chgpasswd_usage-e-m_exclusive/chgpasswd.test
+run_test ./grouptools/chgpasswd/09_chgpasswd_usage-e-c_exclusive/chgpasswd.test
+run_test ./grouptools/chgpasswd/10_chgpasswd_usage-m-c_exclusive/chgpasswd.test
+run_test ./grouptools/chgpasswd/11_chgpasswd_usage-s_without-c/chgpasswd.test
+run_test ./grouptools/chgpasswd/12_chgpasswd_usage-s_invalid/chgpasswd.test
+run_test ./grouptools/chgpasswd/13_chgpasswd_usage-c_invalid/chgpasswd.test
+run_test ./grouptools/chgpasswd/14_chgpasswd_password_encrypted/chgpasswd.test
+run_test ./grouptools/chgpasswd/15_chgpasswd_password_md5/chgpasswd.test
+run_test ./grouptools/chgpasswd/16_chgpasswd_password_NONE/chgpasswd.test
+run_test ./grouptools/chgpasswd/17_chgpasswd_password_MD5/chgpasswd.test
+run_test ./grouptools/chgpasswd/18_chgpasswd_password_DES/chgpasswd.test
+run_test ./grouptools/chgpasswd/19_chgpasswd_password_SHA256/chgpasswd.test
+run_test ./grouptools/chgpasswd/20_chgpasswd_password_SHA256_rounds_900/chgpasswd.test
+run_test ./grouptools/chgpasswd/21_chgpasswd_password_SHA256_rounds_9000/chgpasswd.test
+run_test ./grouptools/chgpasswd/22_chgpasswd_password_SHA512/chgpasswd.test
+run_test ./grouptools/chgpasswd/23_chgpasswd_password_SHA512_rounds_900/chgpasswd.test
+run_test ./grouptools/chgpasswd/24_chgpasswd_password_SHA512_rounds_9000/chgpasswd.test
+run_test ./grouptools/chgpasswd/25_chgpasswd-e_no_gshadow_file/chgpasswd.test
+run_test ./grouptools/chgpasswd/26_chgpasswd_no_gshadow_file_invalid_group/chgpasswd.test
+run_test ./grouptools/chgpasswd/29_chgpasswd-e_no_gshadow_entry/chgpasswd.test
+run_test ./grouptools/chgpasswd/30_chgpasswd_locked_group/chgpasswd.test
+run_test ./grouptools/chgpasswd/31_chgpasswd_locked_gshadow/chgpasswd.test
+run_test ./grouptools/chgpasswd/32_chgpasswd_invalid_group/chgpasswd.test
+run_test ./grouptools/gpasswd/01_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/02_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/03_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/04_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/05_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/06_gpasswd_change_member_list/gpasswd.test
+run_test ./grouptools/gpasswd/07_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/08_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/09_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/10_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/11_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/12_gpasswd_change_member_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/13_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/14_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/15_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/16_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/17_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/18_gpasswd_change_member_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/19_gpasswd_change_passwd-root/gpasswd.test
+run_test ./grouptools/gpasswd/20_gpasswd_change_passwd-root-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/21_gpasswd_change_passwd-root-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/22_gpasswd_change_passwd-myuser/gpasswd.test
+run_test ./grouptools/gpasswd/23_gpasswd_change_passwd-myuser-denied/gpasswd.test
+run_test ./grouptools/gpasswd/24_gpasswd_change_passwd-myuser-denied-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/25_gpasswd_remove_password/gpasswd.test
+run_test ./grouptools/gpasswd/26_gpasswd_remove_password-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/27_gpasswd_remove_password-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/28_gpasswd_lock_password/gpasswd.test
+run_test ./grouptools/gpasswd/29_gpasswd_lock_password-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/30_gpasswd_lock_password-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/31_gpasswd_add_user_to_group/gpasswd.test
+run_test ./grouptools/gpasswd/32_gpasswd_add_user_to_group-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/33_gpasswd_add_user_to_group-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/34_gpasswd_remove_user_from_group/gpasswd.test
+run_test ./grouptools/gpasswd/35_gpasswd_remove_user_from_group/gpasswd.test
+run_test ./grouptools/gpasswd/36_gpasswd_remove_user_from_group/gpasswd.test
+run_test ./grouptools/gpasswd/37_gpasswd_remove_user_from_group-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/38_gpasswd_remove_user_from_group-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/39_gpasswd_remove_user_from_group-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/40_gpasswd_remove_user_from_group-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/41_gpasswd_remove_user_from_group-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/42_gpasswd_remove_user_from_group-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/43_gpasswd_-r_locked_group/gpasswd.test
+run_test ./grouptools/gpasswd/44_gpasswd_-r_locked_gshadow/gpasswd.test
+run_test ./grouptools/gpasswd/45_gpasswd_-r_unknown_group/gpasswd.test
+run_test ./grouptools/gpasswd/46_gpasswd_-a_unknown_user/gpasswd.test
+run_test ./grouptools/gpasswd/47_gpasswd_-M_unknown_user/gpasswd.test
+run_test ./grouptools/gpasswd/48_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/49_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/50_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/51_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/52_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/53_gpasswd_change_admin_list/gpasswd.test
+run_test ./grouptools/gpasswd/54_gpasswd_change_admin_list-no_shadow_group/gpasswd.test
+run_test ./grouptools/gpasswd/55_gpasswd_change_admin_list-no_gshadow_file/gpasswd.test
+run_test ./grouptools/gpasswd/56_gpasswd_add_user_to_group/gpasswd.test
+run_test ./grouptools/gpasswd/57_gpasswd_remove_user_from_group-not_member/gpasswd.test
+run_test ./grouptools/gpasswd/58_gpasswd_remove_user_from_group-not_gshadow_member/gpasswd.test
+run_test ./grouptools/gpasswd/59_gpasswd_remove_user_from_group-not_group_member/gpasswd.test
+run_test ./grouptools/gpasswd/60_gpasswd_add_long_user_to_group/gpasswd.test
+run_test ./grouptools/gpasswd/61_gpasswd_usage/gpasswd.test
+run_test ./grouptools/gpasswd/62_gpasswd_-A_unknown_user/gpasswd.test
+run_test ./grouptools/gpasswd/63_gpasswd_usage_bad_option/gpasswd.test
+run_test ./grouptools/gpasswd/64_gpasswd_usage-a-d/gpasswd.test
+run_test ./grouptools/gpasswd/65_gpasswd_usage_no_groups/gpasswd.test
+run_test ./grouptools/gpasswd/66_gpasswd_usage_2_groups/gpasswd.test
+run_test ./grouptools/gpasswd/67_gpasswd-A_myuser/gpasswd.test
+run_test ./grouptools/gpasswd/68_gpasswd-M_myuser/gpasswd.test
+run_test ./grouptools/gpasswd/69_gpasswd_change_passwd_2_tries/gpasswd.test
+run_test ./grouptools/gpasswd/70_gpasswd_change_passwd_3_tries/gpasswd.test
+run_test ./grouptools/gpasswd/71_gpasswd_change_passwd_4_tries/gpasswd.test
+run_test ./grouptools/gpasswd/72_gpasswd-M-A/gpasswd.test
+run_test ./grouptools/groupadd/01_groupadd_add_group/groupadd.test
+run_test ./grouptools/groupadd/02_groupadd_add_group_GID_MIN/groupadd.test
+run_test ./grouptools/groupadd/03_groupadd_add_group_-K_GID_MIN/groupadd.test
+run_test ./grouptools/groupadd/04_groupadd_set_password/groupadd.test
+run_test ./grouptools/groupadd/05_groupadd_set_GID/groupadd.test
+run_test ./grouptools/groupadd/06_groupadd_-f_add_existing_group/groupadd.test
+run_test ./grouptools/groupadd/07_groupadd_-f_add_existing_GID/groupadd.test
+run_test ./grouptools/groupadd/08_groupadd_locked_group/groupadd.test
+run_test ./grouptools/groupadd/09_groupadd_locked_gshadow/groupadd.test
+run_test ./grouptools/groupadd/10_groupadd_-o_add_existing_GID/groupadd.test
+run_test ./grouptools/groupadd/11_groupadd_invalid_GID/groupadd.test
+run_test ./grouptools/groupadd/12_groupadd_negative_GID/groupadd.test
+run_test ./grouptools/groupadd/13_groupadd_invalid_name/groupadd.test
+run_test ./grouptools/groupadd/14_groupadd_invalid_-K_option/groupadd.test
+run_test ./grouptools/groupadd/15_groupadd_invalid_-K_no_=/groupadd.test
+run_test ./grouptools/groupadd/16_groupadd_existing_group/groupadd.test
+run_test ./grouptools/groupadd/17_groupadd_add_systemgroup/groupadd.test
+run_test ./grouptools/groupadd/18_groupadd_no_more_GID/groupadd.test
+run_test ./grouptools/groupadd/19_groupadd_-r_no_more_system_GID/groupadd.test
+run_test ./grouptools/groupadd/20_groupadd_add_existing_GID/groupadd.test
+run_test ./grouptools/groupadd/21_groupadd_invalid_GID_4294967295/groupadd.test
+run_test ./grouptools/groupadd/22_groupadd_usage/groupadd.test
+run_test ./grouptools/groupadd/23_groupadd_no_groups/groupadd.test
+run_test ./grouptools/groupadd/24_groupadd_2_groups/groupadd.test
+run_test ./grouptools/groupadd/25_groupadd_no_gshadow/groupadd.test
+run_test ./grouptools/groupadd/26_groupadd_-o_without_-g/groupadd.test
+run_test ./grouptools/groupadd/27_groupadd_invalid_option/groupadd.test
+run_test ./grouptools/groupdel/01_groupdel_delete_group/groupdel.test
+run_test ./grouptools/groupdel/02_groupdel_delete_group_no_gshadow_group/groupdel.test
+run_test ./grouptools/groupdel/03_groupdel_delete_group_no_gshadow_file/groupdel.test
+run_test ./grouptools/groupdel/04_groupdel_delete_group_error_busy_group/groupdel.test
+run_test ./grouptools/groupdel/05_groupdel_delete_group_error_unknown_group/groupdel.test
+run_test ./grouptools/groupdel/06_groupdel_delete_group_error_locked_group/groupdel.test
+run_test ./grouptools/groupdel/07_groupdel_delete_group_error_locked_gshadow/groupdel.test
+run_test ./grouptools/groupdel/08_groupdel_delete_group_error_no_group_parameter/groupdel.test
+run_test ./grouptools/groupdel/09_groupdel_delete_group_error_two_group_parameter/groupdel.test
+run_test ./grouptools/groupdel/10_groupdel_usage/groupdel.test
+run_test ./grouptools/groupdel/11_groupdel_invalid_option/groupdel.test
+run_test ./grouptools/groupmems/01_groupmems_root_add_user/groupmems.test
+run_test ./grouptools/groupmems/02_groupmems_root_del_user/groupmems.test
+run_test ./grouptools/groupmems/03_groupmems_root_del_user_admin/groupmems.test
+run_test ./grouptools/groupmems/04_groupmems_root_del_user_admin_and_user/groupmems.test
+run_test ./grouptools/groupmems/05_groupmems_root_add_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/06_groupmems_root_add_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/07_groupmems_root_del_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/08_groupmems_root_del_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/09_groupmems_root_purge_user/groupmems.test
+run_test ./grouptools/groupmems/10_groupmems_root_purge_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/11_groupmems_root_purge_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/12_groupmems_user_add_user/groupmems.test
+run_test ./grouptools/groupmems/13_groupmems_user_del_user/groupmems.test
+run_test ./grouptools/groupmems/14_groupmems_user_del_user_admin/groupmems.test
+run_test ./grouptools/groupmems/15_groupmems_user_del_user_admin_and_user/groupmems.test
+run_test ./grouptools/groupmems/16_groupmems_user_add_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/17_groupmems_user_add_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/18_groupmems_user_del_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/19_groupmems_user_del_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/20_groupmems_user_purge_user/groupmems.test
+run_test ./grouptools/groupmems/21_groupmems_user_purge_user_with_other_users/groupmems.test
+run_test ./grouptools/groupmems/22_groupmems_user_purge_user_with_other_users_admin/groupmems.test
+run_test ./grouptools/groupmems/23_groupmems_user_add_user-not_in_groups/groupmems.test
+run_test ./grouptools/groupmems/24_groupmems_user_add_user-not_primary_group/groupmems.test
+run_test ./grouptools/groupmems/25_groupmems_user_add_user-not_user_group/groupmems.test
+run_test ./grouptools/groupmems/26_groupmems_user_add_user-already_member/groupmems.test
+run_test ./grouptools/groupmems/27_groupmems_user_add_user-already_member_in_group/groupmems.test
+run_test ./grouptools/groupmems/28_groupmems_user_add_user-already_member_in_gshadow/groupmems.test
+run_test ./grouptools/groupmems/29_groupmems_user_add_user-user_does_not_exist/groupmems.test
+run_test ./grouptools/groupmems/30_groupmems_user_add_user-no_gshadow_group/groupmems.test
+run_test ./grouptools/groupmems/31_groupmems_user_add_user-no_gshadow_file/groupmems.test
+run_test ./grouptools/groupmems/32_groupmems_user_del_user-not_member/groupmems.test
+run_test ./grouptools/groupmems/33_groupmems_user_del_user-not_member_in_gshadow/groupmems.test
+run_test ./grouptools/groupmems/34_groupmems_user_del_user-user_does_not_exist/groupmems.test
+run_test ./grouptools/groupmems/35_groupmems_user_del_user-no_gshadow_group/groupmems.test
+run_test ./grouptools/groupmems/36_groupmems_user_del_user-no_gshadow_file/groupmems.test
+run_test ./grouptools/groupmems/37_groupmems_user_purge_user-empty_group/groupmems.test
+run_test ./grouptools/groupmems/38_groupmems_user_purge_user-no_gshadow_group/groupmems.test
+run_test ./grouptools/groupmems/39_groupmems_user_purge_user-no_gshadow_file/groupmems.test
+run_test ./grouptools/groupmems/40_groupmems_user_del_user-not_primary_group/groupmems.test
+run_test ./grouptools/groupmems/41_groupmems_user_purge_user-not_primary_group/groupmems.test
+run_test ./grouptools/groupmems/42_groupmems_user_list_users/groupmems.test
+run_test ./grouptools/groupmems/43_groupmems_user_list_users-gshadow_ignored/groupmems.test
+run_test ./grouptools/groupmems/44_groupmems_user_list_users-another_group/groupmems.test
+run_test ./grouptools/groupmems/45_groupmems_user_list_users-group_locked/groupmems.test
+run_test ./grouptools/groupmems/46_groupmems_user_list_users-gshadow_locked/groupmems.test
+run_test ./grouptools/groupmems/47_groupmems_user_add_user-group_locked/groupmems.test
+run_test ./grouptools/groupmems/48_groupmems_user_add_user-gshadow_locked/groupmems.test
+run_test ./grouptools/groupmems/49_groupmems_user_del_user-group_locked/groupmems.test
+run_test ./grouptools/groupmems/50_groupmems_user_del_user-gshadow_locked/groupmems.test
+run_test ./grouptools/groupmems/51_groupmems_user_purge_user-group_locked/groupmems.test
+run_test ./grouptools/groupmems/52_groupmems_user_purge_user-gshadow_locked/groupmems.test
+run_test ./grouptools/groupmems/53_groupmems_usage/groupmems.test
+run_test ./grouptools/groupmems/54_groupmems_usage_invalid_option/groupmems.test
+run_test ./grouptools/groupmems/55_groupmems_usage-a-d/groupmems.test
+run_test ./grouptools/groupmems/56_groupmems_usage_extra_arg/groupmems.test
+run_test ./grouptools/groupmems/57_groupmems_authentication/groupmems.test
+run_test ./grouptools/groupmems/58_groupmems_authentication_failure1/groupmems.test
+run_test ./grouptools/groupmems/59_groupmems_authentication_failure2/groupmems.test
+run_test ./grouptools/groupmems/60_groupmems_authentication_failure3/groupmems.test
+run_test ./grouptools/groupmod/01_groupmod_change_gid/groupmod.test
+run_test ./grouptools/groupmod/02_groupmod_change_gid_change_primary_group/groupmod.test
+run_test ./grouptools/groupmod/03_groupmod_change_gid_no_gshadow_group/groupmod.test
+run_test ./grouptools/groupmod/04_groupmod_change_gid_no_gshadow_file/groupmod.test
+run_test ./grouptools/groupmod/05_groupmod_change_gid_-o_override_used_GID/groupmod.test
+run_test ./grouptools/groupmod/06_groupmod_change_group_name/groupmod.test
+run_test ./grouptools/groupmod/07_groupmod_change_group_name_no_gshadow_group/groupmod.test
+run_test ./grouptools/groupmod/08_groupmod_change_group_name_no_gshadow_file/groupmod.test
+run_test ./grouptools/groupmod/09_groupmod_set_password/groupmod.test
+run_test ./grouptools/groupmod/10_groupmod_set_password_no_gshadow_group/groupmod.test
+run_test ./grouptools/groupmod/11_groupmod_set_password_no_gshadow_file/groupmod.test
+run_test ./grouptools/groupmod/12_groupmod_change_gid_error_unknown_group/groupmod.test
+run_test ./grouptools/groupmod/13_groupmod_change_gid_error_used_GID/groupmod.test
+run_test ./grouptools/groupmod/14_groupmod_change_group_name_error_used_name/groupmod.test
+run_test ./grouptools/groupmod/15_groupmod_change_group_name_error_invalid_name/groupmod.test
+run_test ./grouptools/groupmod/16_groupmod_change_group_name_no_changes/groupmod.test
+run_test ./grouptools/groupmod/17_groupmod_change_gid_error_locked_group/groupmod.test
+run_test ./grouptools/groupmod/18_groupmod_change_gid_no_error_locked_gshadow/groupmod.test
+run_test ./grouptools/groupmod/19_groupmod_change_gid_error_invalid_GID/groupmod.test
+run_test ./grouptools/groupmod/20_groupmod_change_gid_error_negative_GID/groupmod.test
+run_test ./grouptools/groupmod/21_groupmod_change_gid_error_no_group/groupmod.test
+run_test ./grouptools/groupmod/22_groupmod_change_gid_and_group_name/groupmod.test
+run_test ./grouptools/groupmod/23_groupmod_change_gid_and_group_name_and_password/groupmod.test
+run_test ./grouptools/groupmod/24_groupmod_change_gid_and_name_error_locked_gshadow/groupmod.test
+run_test ./grouptools/groupmod/25_groupmod_change_gid_change_primary_group_error_locked_passwd/groupmod.test
+run_test ./grouptools/groupmod/26_groupmod_change_group_name_no_error_locked_passwd/groupmod.test
+run_test ./grouptools/groupmod/27_groupmod_change_gid_error_GID_4294967295/groupmod.test
+run_test ./grouptools/groupmod/28_groupmod_usage/groupmod.test
+run_test ./grouptools/groupmod/29_groupmod_-g_same_gid_new_name/groupmod.test
+run_test ./grouptools/groupmod/30_groupmod_-g_same_gid_same_name/groupmod.test
+run_test ./grouptools/groupmod/31_groupmod_-g_same_gid/groupmod.test
+run_test ./grouptools/groupmod/32_groupmod_-o_without_-g/groupmod.test
+run_test ./grouptools/groupmod/33_groupmod_set_password_no_gshadow_file_with_group_pwd_x/groupmod.test
+run_test ./grouptools/groupmod/34_groupmod_set_password_group_without_shadow_pwd/groupmod.test
+run_test ./grouptools/groupmod/35_groupmod_set_password_group_without_shadow_pwd_no_gshadow_group/groupmod.test
+run_test ./grouptools/groupmod/36_groupmod_set_password_group_with_shadow_pwd_no_gshadow_group/groupmod.test
+run_test ./grouptools/groupmod/37_groupmod_invalid_option/groupmod.test
+run_test ./log/faillog/01_faillog_no_faillog/faillog.test
+run_test ./log/faillog/02_faillog_usage/faillog.test
+run_test ./log/faillog/03_faillog_format/faillog.test
+run_test ./log/faillog/04_faillog_multiple/faillog.test
+run_test ./log/faillog/05_faillog-u_ID/faillog.test
+run_test ./log/faillog/06_faillog-u_name/faillog.test
+run_test ./log/faillog/07_faillog-u_ID_invalid/faillog.test
+run_test ./log/faillog/08_faillog-u_name_invalid/faillog.test
+run_test ./log/faillog/09_faillog-u_range/faillog.test
+run_test ./log/faillog/10_faillog-u_open_range/faillog.test
+run_test ./log/faillog/11_faillog-u_range_open/faillog.test
+run_test ./log/faillog/12_faillog-u_range_invalid1/faillog.test
+run_test ./log/faillog/13_faillog-u_range_invalid2/faillog.test
+run_test ./log/faillog/14_faillog-u_range_invalid3/faillog.test
+run_test ./log/faillog/15_faillog_bad_option/faillog.test
+run_test ./log/faillog/16_faillog_extra_arg/faillog.test
+run_test ./log/faillog/17_faillog-t/faillog.test
+run_test ./log/faillog/18_faillog-t_invalid/faillog.test
+run_test ./log/faillog/19_faillog_multiple_same_user/faillog.test
+run_test ./log/faillog/20_faillog-r-u/faillog.test
+run_test ./log/faillog/21_faillog-r-u_range/faillog.test
+run_test ./log/faillog/22_faillog_removed_user/faillog.test
+run_test ./log/faillog/23_faillog-a_removed_user/faillog.test
+run_test ./log/faillog/24_faillog-u_removed_user/faillog.test
+run_test ./log/faillog/25_faillog-r-u_removed_user/faillog.test
+run_test ./log/faillog/26_faillog-r-u_range_removed_user/faillog.test
+run_test ./log/faillog/27_faillog-r-a-u_range_removed_user/faillog.test
+run_test ./log/faillog/28_faillog-r-a-u_open_range_removed_user/faillog.test
+run_test ./log/faillog/29_faillog-r-a-u_range_open_removed_user/faillog.test
+run_test ./log/faillog/30_faillog-r/faillog.test
+run_test ./log/faillog/31_faillog-r-u_open_range/faillog.test
+run_test ./log/faillog/32_faillog-l/faillog.test
+run_test ./log/faillog/33_faillog-l-u_user/faillog.test
+run_test ./log/faillog/34_faillog-l-u_range/faillog.test
+run_test ./log/faillog/35_faillog-l-u_open_range/faillog.test
+run_test ./log/faillog/36_faillog-l-u_range_open/faillog.test
+run_test ./log/faillog/37_faillog-l-a-u_user/faillog.test
+run_test ./log/faillog/38_faillog-l-a-u_range/faillog.test
+run_test ./log/faillog/39_faillog-l-a-u_open_range/faillog.test
+run_test ./log/faillog/40_faillog-l-a-u_range_open/faillog.test
+run_test ./log/faillog/41_faillog-l_invalid/faillog.test
+run_test ./log/faillog/42_faillog-m/faillog.test
+run_test ./log/faillog/43_faillog-m-u_user/faillog.test
+run_test ./log/faillog/44_faillog-m-u_range/faillog.test
+run_test ./log/faillog/45_faillog-m-u_open_range/faillog.test
+run_test ./log/faillog/46_faillog-m-u_range_open/faillog.test
+run_test ./log/faillog/47_faillog-m-a-u_user/faillog.test
+run_test ./log/faillog/48_faillog-m-a-u_range/faillog.test
+run_test ./log/faillog/49_faillog-m-a-u_open_range/faillog.test
+run_test ./log/faillog/50_faillog-m-a-u_range_open/faillog.test
+run_test ./log/faillog/51_faillog-m_invalid/faillog.test
+run_test ./log/faillog/52_faillog-t-l_exclusive/faillog.test
+run_test ./log/faillog/53_faillog-t-m_exclusive/faillog.test
+run_test ./log/faillog/54_faillog-t-r_exclusive/faillog.test
+run_test ./log/faillog/55_faillog_no_changes/faillog.test
+run_test ./log/faillog/56_faillog-l-m_empty_file/faillog.test
+run_test ./log/faillog/57_faillog-r_empty_file/faillog.test
+run_test ./log/faillog/58_faillog-l_no_failcount/faillog.test
+run_test ./log/lastlog/01_lastlog_no_lastlog/lastlog.test
+run_test ./log/lastlog/02_lastlog_usage/lastlog.test
+run_test ./log/lastlog/03_lastlog_format/lastlog.test
+run_test ./log/lastlog/04_lastlog_multiple/lastlog.test
+run_test ./log/lastlog/05_lastlog-u_ID/lastlog.test
+run_test ./log/lastlog/06_lastlog-u_name/lastlog.test
+run_test ./log/lastlog/07_lastlog-u_ID_invalid/lastlog.test
+run_test ./log/lastlog/08_lastlog-u_name_invalid/lastlog.test
+run_test ./log/lastlog/09_lastlog-u_range/lastlog.test
+run_test ./log/lastlog/10_lastlog-u_open_range/lastlog.test
+run_test ./log/lastlog/11_lastlog-u_range_open/lastlog.test
+run_test ./log/lastlog/12_lastlog-u_range_invalid1/lastlog.test
+run_test ./log/lastlog/13_lastlog-u_range_invalid2/lastlog.test
+run_test ./log/lastlog/14_lastlog-u_range_invalid3/lastlog.test
+run_test ./log/lastlog/15_lastlog_bad_option/lastlog.test
+run_test ./log/lastlog/16_lastlog_extra_arg/lastlog.test
+run_test ./log/lastlog/17_lastlog-t/lastlog.test
+run_test ./log/lastlog/18_lastlog-b/lastlog.test
+run_test ./log/lastlog/19_lastlog-t_invalid/lastlog.test
+run_test ./log/lastlog/20_lastlog-b_invalid/lastlog.test
+run_test ./usertools/01/01_useradd_add_user.test
+run_test ./usertools/01/01_userdel_delete_user.test
+run_test ./usertools/01/02_useradd_recreate_deleted_user.test
+run_test ./usertools/01/03_useradd_additional_options.test
+run_test ./usertools/01/04_useradd_add_user_with_existing_UID_fail.test
+run_test ./usertools/01/04_useradd_add_user_with_existing_UID_with_-o.test
+run_test ./usertools/01/04_useradd_specified_UID.test
+run_test ./usertools/01/04_useradd_specified_UID_and_GID.test
+run_test ./usertools/01/04_userdel_delete_user_with_non_unique_UID.test
+run_test ./usertools/01/05_useradd_invalid_numeric_primary_group.test
+run_test ./usertools/01/06_useradd_invalid_named_primary_group.test
+run_test ./usertools/01/07_useradd_numerical_primary_group.test
+run_test ./usertools/01/08_useradd_named_primary_group.test
+run_test ./usertools/01/09_usermod_change_user_info.test
+run_test ./usertools/01/10_usermod_rename_user.test
+run_test ./usertools/01/10_usermod_rename_user_in_group.test
+run_test ./usertools/01/11_usermod_change_password.test
+run_test ./usertools/01/11_usermod_lock_password.test
+run_test ./usertools/01/11_usermod_unlock_empty_password.test
+run_test ./usertools/01/11_usermod_unlock_password.test
+run_test ./usertools/01/12_usermod_change_gid_name.test
+run_test ./usertools/01/12_usermod_change_gid_number.test
+run_test ./usertools/01/13_useradd_negative_UID.test
+run_test ./usertools/01/14_useradd_out_of_range_UID.test
+run_test ./usertools/01/15_useradd_specified_large_UID.test
+run_test ./usertools/01/16_useradd_add_user_to_multiple_groups.test
+run_test ./usertools/01/16_useradd_add_user_to_one_group.test
+run_test ./usertools/01/17_useradd_create_homedir.test
+run_test ./usertools/01/18_userdel_remove_homedir.test
+run_test ./usertools/01/19_userdel_delete_user_in_group.test
+run_test ./usertools/01/20_usermod_change_homedir.test
+run_test ./usertools/01/21_usermod_change_and_move_homedir.test
+run_test ./usertools/01/22_usermod_new_groups.test
+run_test ./usertools/01/23_usermod_add_groups.test
+run_test ./usertools/01/24_usermod_new_groups_remove_old_groups.test
+run_test ./usertools/01/25_useradd_specified_large_UID2.test
+run_test ./usertools/01/26_useradd_UID_-1.test
+run_test ./usertools/02/useradd_default_default_values.test
+run_test ./usertools/02/useradd_get_default_values.test
+run_test ./usertools/02/useradd_change_default_INACTIVE.test
+run_test ./usertools/02/useradd_change_default_SHELL.test
+run_test ./usertools/02/useradd_change_default_EXPIRE.test
+run_test ./usertools/02/useradd_change_default_GROUP.test
+run_test ./usertools/02/useradd_change_default_HOME.test
+run_test ./usertools/02/useradd_change_defaults.test
+run_test ./usertools/03/useradd_change_defaults.test
+run_test ./usertools/04/01_useradd_add_user.test
+run_test ./usertools/05_userdel_del_from_group_members/userdel.test
+run_test ./usertools/06_userdel_del_from_gshadow_members/userdel.test
+run_test ./usertools/07_userdel_del_from_gshadow_admins/userdel.test
+run_test ./usertools/08_userdel_del_from_group_and_gshadow/userdel.test
+run_test ./usertools/09_userdel_del_homedir/userdel.test
+run_test ./usertools/10_userdel_del_homedir_wrong_owner/userdel.test
+run_test ./usertools/11_usermod_move_homedir/usermod.test
+run_test ./usertools/12_usermod_move_homedir_dev_null/usermod.test
+run_test ./usertools/13_usermod_move_homedir_file/usermod.test
+run_test ./usertools/14_usermod_move_homedir_other_device/usermod.test
+run_test ./usertools/15_usermod_change_supplementary_groups/usermod.test
+run_test ./usertools/16_usermod_clear_supplementary_groups/usermod.test
+run_test ./usertools/17_usermod_change_supplementary_groups_numerical/usermod.test
+run_test ./usertools/18_usermod_change_supplementary_groups-unknown_group/usermod.test
+run_test ./usertools/19_usermod_change_supplementary_groups-unknown_numerical_group/usermod.test
+run_test ./usertools/20_usermod_rename_user_in_member_lists/usermod.test
+run_test ./usertools/21_usermod_rename_user_in_member_lists-and-add_supplementary_groups/usermod.test
+run_test ./usertools/22_usermod-a_existing_supplementary_group/usermod.test
+run_test ./usertools/23_usermod-a_existing_supplementary_group+rename/usermod.test
+run_test ./usertools/24_usermod_locked_passwd/usermod.test
+run_test ./usertools/25_usermod-G_locked_group/usermod.test
+run_test ./usertools/26_usermod_locked_shadow/usermod.test
+run_test ./usertools/27_usermod-G_locked_gshadow/usermod.test
+run_test ./usertools/28_usermod-c_locked_group/usermod.test
+run_test ./usertools/29_usermod-c_locked_gshadow/usermod.test
+run_test ./usertools/30_usermod-l_locked_group/usermod.test
+run_test ./usertools/31_usermod-l_locked_gshadow/usermod.test
+run_test ./usertools/32_usermod-u_new_UID/usermod.test
+run_test ./usertools/33_usermod-u_existing_UID/usermod.test
+run_test ./usertools/34_usermod-u-o_existing_UID/usermod.test
+run_test ./usertools/35_usermod-u_invalid_UID/usermod.test
+run_test ./usertools/36_usermod_change_uid+move_homedir_other_device/usermod.test
+run_test ./usertools/37_Debian_Bug_470745/usermod.test
+run_test ./usertools/38_usermod_invalid_user/usermod.test
+run_test ./usertools/39_usermod_-c_invalid_comment/usermod.test
+run_test ./usertools/40_usermod_-d_invalid_homedir/usermod.test
+run_test ./usertools/41_usermod_-d_invalid_shell/usermod.test
+run_test ./usertools/42_usermod_-g_invalid_group_name/usermod.test
+run_test ./usertools/43_usermod_-g_invalid_group_ID/usermod.test
+run_test ./usertools/44_usermod-l_existing_username/usermod.test
+run_test ./usertools/45_usermod-l_existing_username_passwd/usermod.test
+run_test ./usertools/46_usermod-l_existing_username_shadow/usermod.test
+run_test ./usertools/47_usermod-l_no_shadow_file/usermod.test
+run_test ./usertools/48_userdel_keep_group_if_primary_other_user/userdel.test
+run_test ./usertools/49_userdel_delete_users_group/userdel.test
+run_test ./usertools/50_userdel_delete_users_group_no_gshadow_group/userdel.test
+run_test ./usertools/51_userdel_delete_users_group_no_gshadow_file/userdel.test
+run_test ./usertools/52_userdel_delete_user_no_shadow_entry/userdel.test
+run_test ./usertools/53_userdel_delete_user_no_shadow_file/userdel.test
+run_test ./usertools/54_usermod-u_invalid_UID_4294967295/usermod.test
+run_test ./usertools/55_userdel_busy_user/userdel.test
+run_test ./usertools/56_userdel_locked_passwd/userdel.test
+run_test ./usertools/57_userdel_locked_group/userdel.test
+run_test ./usertools/58_userdel_locked_shadow/userdel.test
+run_test ./usertools/59_userdel_locked_gshadow/userdel.test
+run_test ./usertools/60_userdel_invalid_user/userdel.test
+run_test ./usertools/61_userdel_del_homedir_with_symlinks/userdel.test
+run_test ./usertools/62_usermod_remove_supplementary_groups/usermod.test
+if [ "$USE_PAM" = "yes" ]; then
+	run_test ./usertools/chpasswd-PAM/01_chpasswd_invalid_user/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/02_chpasswd_multiple_users/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/03_chpasswd_no_shadow_file/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/04_chpasswd_no_shadow_entry/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/05_chpasswd_error_no_password/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/06_chpasswd_usage/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/07_chpasswd_usage_bad_option/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/08_chpasswd_usage-e-m_exclusive/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/09_chpasswd_usage-e-c_exclusive/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/10_chpasswd_usage-m-c_exclusive/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/11_chpasswd_usage-s_without-c/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/12_chpasswd_usage-s_invalid/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/13_chpasswd_usage-c_invalid/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/14_chpasswd_password_encrypted/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/15_chpasswd_password_md5/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/16_chpasswd_password_NONE/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/17_chpasswd_password_MD5/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/18_chpasswd_password_DES/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/19_chpasswd_password_SHA256/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/20_chpasswd_password_SHA256_rounds_900/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/21_chpasswd_password_SHA256_rounds_9000/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/22_chpasswd_password_SHA512/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/23_chpasswd_password_SHA512_rounds_900/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/24_chpasswd_password_SHA512_rounds_9000/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/25_chpasswd-e_no_shadow_file/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/26_chpasswd_no_shadow_file_invalid_passwd/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/27_chpasswd_no_shadow_file_1st_invalid_passwd_entry/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/28_chpasswd_no_shadow_file_2nd_invalid_passwd_entry/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/29_chpasswd-e_no_shadow_entry/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/30_chpasswd_locked_passwd/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/31_chpasswd_locked_shadow/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/32_chpasswd_invalid_user/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/33_chpasswd-e_invalid_user/chpasswd.test
+	run_test ./usertools/chpasswd-PAM/34_chpasswd-e_password_shadow_and_passwd/chpasswd.test
+else
+	run_test ./usertools/chpasswd/01_chpasswd_invalid_user/chpasswd.test
+	run_test ./usertools/chpasswd/02_chpasswd_multiple_users/chpasswd.test
+	run_test ./usertools/chpasswd/03_chpasswd_no_shadow_file/chpasswd.test
+	run_test ./usertools/chpasswd/04_chpasswd_no_shadow_entry/chpasswd.test
+	run_test ./usertools/chpasswd/05_chpasswd_error_no_password/chpasswd.test
+fi
+run_test ./usertools/chpasswd-PAM/06_chpasswd_usage/chpasswd.test
+run_test ./usertools/chpasswd-PAM/07_chpasswd_usage_bad_option/chpasswd.test
+run_test ./usertools/chpasswd-PAM/08_chpasswd_usage-e-m_exclusive/chpasswd.test
+run_test ./usertools/chpasswd-PAM/09_chpasswd_usage-e-c_exclusive/chpasswd.test
+run_test ./usertools/chpasswd-PAM/10_chpasswd_usage-m-c_exclusive/chpasswd.test
+run_test ./usertools/chpasswd-PAM/11_chpasswd_usage-s_without-c/chpasswd.test
+run_test ./usertools/chpasswd-PAM/12_chpasswd_usage-s_invalid/chpasswd.test
+run_test ./usertools/chpasswd-PAM/13_chpasswd_usage-c_invalid/chpasswd.test
+run_test ./usertools/useradd/01_useradd_usage/useradd.test
+run_test ./usertools/useradd/02_useradd_usage_invalid_option/useradd.test
+run_test ./usertools/useradd/03_useradd_usage_no_users/useradd.test
+run_test ./usertools/useradd/04_useradd_usage_2_users/useradd.test
+run_test ./usertools/useradd/05_useradd_usage-b_invalid1/useradd.test
+run_test ./usertools/useradd/06_useradd_usage-b_invalid2/useradd.test
+run_test ./usertools/useradd/07_useradd_usage-b_invalid3/useradd.test
+run_test ./usertools/useradd/08_useradd_usage-c_invalid1/useradd.test
+run_test ./usertools/useradd/09_useradd_usage-c_invalid2/useradd.test
+run_test ./usertools/useradd/10_useradd_usage-d_invalid1/useradd.test
+run_test ./usertools/useradd/11_useradd_usage-d_invalid2/useradd.test
+run_test ./usertools/useradd/12_useradd_usage-d_invalid3/useradd.test
+run_test ./usertools/useradd/13_useradd_usage-e_invalid1/useradd.test
+run_test ./usertools/useradd/14_useradd_usage-e_invalid2/useradd.test
+run_test ./usertools/useradd/15_useradd_usage-e_no_shadow_file/useradd.test
+run_test ./usertools/useradd/16_useradd_usage-f_invalid1/useradd.test
+run_test ./usertools/useradd/17_useradd_usage-f_invalid2/useradd.test
+run_test ./usertools/useradd/18_useradd_usage-f_no_shadow_file/useradd.test
+run_test ./usertools/useradd/19_useradd_usage-K_invalid1/useradd.test
+run_test ./usertools/useradd/20_useradd_usage-O_invalid2/useradd.test
+run_test ./usertools/useradd/21_useradd_usage-p_invalid1/useradd.test
+run_test ./usertools/useradd/22_useradd_usage-p_invalid2/useradd.test
+run_test ./usertools/useradd/23_useradd_usage-s_invalid1/useradd.test
+run_test ./usertools/useradd/24_useradd_usage-s_invalid2/useradd.test
+run_test ./usertools/useradd/25_useradd_usage-s_invalid3/useradd.test
+run_test ./usertools/useradd/26_useradd_usage-o_without-u/useradd.test
+run_test ./usertools/useradd/27_useradd_usage-k_without-m/useradd.test
+run_test ./usertools/useradd/28_useradd_usage-U_with-g/useradd.test
+run_test ./usertools/useradd/29_useradd_usage-U_with-N/useradd.test
+run_test ./usertools/useradd/30_useradd_usage-m_with-M/useradd.test
+run_test ./usertools/useradd/31_useradd_usage_user_with-D/useradd.test
+run_test ./usertools/useradd/32_useradd_usage-D_with_other/useradd.test
+run_test ./usertools/useradd/33_useradd_usage_invalid_username/useradd.test
+run_test ./usertools/useradd/35_useradd_default_GROUP_name/useradd.test
+run_test ./usertools/useradd/34_useradd_default_GROUP_GID/useradd.test
+run_test ./usertools/useradd/36_useradd_default_GROUP_invalid_GID/useradd.test
+run_test ./usertools/useradd/37_useradd_default_GROUP_invalid_name/useradd.test
+run_test ./usertools/useradd/38_useradd_default_INACTIVE/useradd.test
+run_test ./usertools/useradd/39_useradd_default_INACTIVE_invalid1/useradd.test
+run_test ./usertools/useradd/40_useradd_default_INACTIVE_invalid2/useradd.test
+run_test ./usertools/useradd/41_useradd_default_default_SKEL/useradd.test
+run_test ./usertools/useradd/42_useradd_default_default_CREATE_MAIL_SPOOL/useradd.test
+run_test ./usertools/useradd/43_useradd_default_no_final_eol/useradd.test
+run_test ./usertools/useradd/44_useradd_default_no_file/useradd.test
+run_test ./usertools/useradd/45_useradd-G_UID_name/useradd.test
+run_test ./usertools/useradd/46_useradd-G_UID_duplicate/useradd.test
+run_test ./usertools/useradd/47_useradd-G_UID_name_duplicate/useradd.test
+run_test ./usertools/useradd/48_useradd-G_name_duplicate/useradd.test
+run_test ./usertools/useradd/49_useradd-G_invalid_group/useradd.test
+run_test ./usertools/useradd/50_useradd-r/useradd.test
+run_test ./usertools/useradd/51_useradd_already_exist/useradd.test
+run_test ./usertools/useradd/52_useradd-U_group_already_exist/useradd.test
+run_test ./usertools/useradd/53_useradd-G_empty/useradd.test
+run_test ./usertools/useradd/54_useradd_no_shadow_file/useradd.test
+run_test ./usertools/useradd/55_useradd_no_gshadow_file/useradd.test
+run_test ./usertools/useradd/56_useradd_gshadow_entry_without_group_entry/useradd.test
+run_test ./usertools/useradd/57_useradd_usage-D_not_first_option/useradd.test
+run_test ./usertools/useradd/58_useradd-e_empty/useradd.test
+run_test ./usertools/useradd/59_useradd-e-1-f-1/useradd.test
+run_test ./usertools/useradd/60_useradd-e-1-f-1_no_shadow_file/useradd.test
+run_test ./usertools/useradd/61_useradd-K/useradd.test
+run_test ./usertools/useradd/62_useradd-p/useradd.test
+run_test ./usertools/useradd/63_useradd-s/useradd.test
+run_test ./usertools/useradd/64_useradd_locked_passwd/useradd.test
+run_test ./usertools/useradd/65_useradd_locked_group/useradd.test
+run_test ./usertools/useradd/66_useradd_locked_shadow/useradd.test
+run_test ./usertools/useradd/67_useradd_locked_gshadow/useradd.test
+run_test ./usertools/useradd/68_useradd-s_empty/useradd.test
+run_test ./usertools/userdel/01_userdel_usage/userdel.test
+run_test ./usertools/userdel/02_userdel_usage_invalid_option/userdel.test
+run_test ./usertools/userdel/03_userdel_usage_no_users/userdel.test
+run_test ./usertools/userdel/04_userdel_usage_2_users/userdel.test
+run_test ./usertools/userdel/05_userdel_no_USERGROUPS_ENAB/userdel.test
+run_test ./usertools/userdel/06_userdel_no_usergroup/userdel.test
+run_test ./usertools/userdel/07_userdel_usergroup_not_primary/userdel.test
+run_test ./usertools/userdel/08_userdel_usergroup_with_other_members/userdel.test
+run_test ./usertools/userdel/09_userdel_usergroup_no_other_members_in_gshadow/userdel.test
+run_test ./usertools/userdel/10_userdel_del_homedir_symlink/userdel.test
+run_test ./usertools/usermod/01_usermod-p_no_shadow_file/usermod.test
+run_test ./usertools/usermod/02_usermod-p_no_shadow_entry/usermod.test
+run_test ./usertools/usermod/03_usermod-p_no_shadow_entry_but_shadow_enabled/usermod.test
+run_test ./usertools/usermod/04_usermod_lock_already_locked_password1/usermod.test
+run_test ./usertools/usermod/05_usermod_lock_already_locked_password2/usermod.test
+run_test ./usertools/usermod/06_usermod_lock_already_locked_password3/usermod.test
+run_test ./usertools/usermod/07_usermod_unlock_already_unlocked_password1/usermod.test
+run_test ./usertools/usermod/08_usermod_unlock_already_unlocked_password2/usermod.test
+run_test ./usertools/usermod/09_usermod_unlock_already_unlocked_password3/usermod.test
+run_test ./usertools/usermod/10_usermod_usage/usermod.test
+run_test ./usertools/usermod/11_usermod_usage_bad_option/usermod.test
+run_test ./usertools/usermod/12_usermod_usage_bad-f/usermod.test
+run_test ./usertools/usermod/13_usermod_usage_bad-f_negative/usermod.test
+run_test ./usertools/usermod/14_usermod_usage_no_options/usermod.test
+run_test ./usertools/usermod/15_usermod_usage_no_user/usermod.test
+run_test ./usertools/usermod/16_usermod_usage_-e_no_shadow_file/usermod.test
+run_test ./usertools/usermod/17_usermod_usage_-f_no_shadow_file/usermod.test
+run_test ./usertools/usermod/18_usermod_usage-L-p_exclusive/usermod.test
+run_test ./usertools/usermod/19_usermod_usage-L-U_exclusive/usermod.test
+run_test ./usertools/usermod/20_usermod_usage-p-U_exclusive/usermod.test
+run_test ./usertools/usermod/21_usermod_rename_user_no_gshadow_file/usermod.test
+run_test ./usertools/usermod/22_usermod_usage_rename_invalid_username/usermod.test
+run_test ./usertools/usermod/23_usermod-e_date/usermod.test
+run_test ./usertools/usermod/24_usermod-e_date/usermod.test
+run_test ./usertools/usermod/25_usermod-e_empty_arg/usermod.test
+run_test ./usertools/usermod/26_usermod-e-1/usermod.test
+run_test ./usertools/usermod/27_usermod-e_invalid1/usermod.test
+run_test ./usertools/usermod/28_usermod-e_invalid2/usermod.test
+run_test ./usertools/usermod/29_usermod_no_changes/usermod.test
+run_test ./usertools/usermod/30_usermod_usage-a_without-G/usermod.test
+run_test ./usertools/usermod/31_usermod_usage-o_without-u/usermod.test
+run_test ./usertools/usermod/32_usermod_usage-m_without-d/usermod.test
+run_test ./usertools/usermod/33_usermod_change_shell/usermod.test
+run_test ./usertools/usermod/34_usermod-e_date_no_shadow_entry/usermod.test
+run_test ./usertools/usermod/35_usermod-f_no_shadow_entry/usermod.test
+run_test ./usertools/usermod/36_usermod_move_homedir_existing_dir/usermod.test
+run_test ./usertools/usermod/37_usermod_move_nonexistent_homedir/usermod.test
+run_test ./usertools/usermod/38_usermod-u_lastlog_not_created/usermod.test
+run_test ./usertools/usermod/39_usermod-u_copy_lastlog_entry/usermod.test
+run_test ./usertools/usermod/40_usermod-u_reset_new_lastlog_entry/usermod.test
+run_test ./usertools/usermod/41_usermod-u_faillog_not_created/usermod.test
+run_test ./usertools/usermod/42_usermod-u_copy_faillog_entry/usermod.test
+run_test ./usertools/usermod/43_usermod-u_reset_new_faillog_entry/usermod.test
+run_test ./usertools/usermod/44_usermod-l_move_mailbox/usermod.test
+run_test ./usertools/usermod/45_usermod-u_change_mailbox_owner/usermod.test
+run_test ./usertools/usermod/46_usermod-u_checks_mailbox_owner/usermod.test
+run_test ./usertools/usermod/47_usermod-u_default_maildir/usermod.test
+run_test ./usertools/usermod/48_usermod-u_MAIL_FILE/usermod.test
+run_test ./usertools/usermod/49_usermod_change_gid+move_homedir_other_device/usermod.test
+run_test ./usertools/usermod/50_usermod_change_uid+move_homedir/usermod.test
+run_test ./usertools/usermod/51_usermod_change_gid+move_homedir/usermod.test
+run_test ./usertools/usermod/52_usermod_move_homedir_symlink/usermod.test
+run_test ./cptools/01/run1
+run_test ./cptools/01/run2
+run_test ./cptools/01/run3
+run_test ./cptools/01/run4
+run_test ./cktools/01/run1
+run_test ./cktools/01/run2
+run_test ./cktools/02_pwck_sort/pwck.test
+run_test ./cktools/03_grpck_sort/grpck.test
+run_test ./cktools/04_pwck_sort_missing_shadow_user/pwck.test
+run_test ./cktools/05_grpck_sort_missing_shadow_group/grpck.test
+run_test ./cktools/06_pwck_sort_NIS_server/pwck.test
+run_test ./cktools/07_pwck_sort_NIS_client/pwck.test
+run_test ./cktools/grpck/04_grpck_missing_field_group_delete/grpck.test
+run_test ./cktools/grpck/05_grpck_missing_field_group_keep/grpck.test
+run_test ./cktools/grpck/06_grpck_missing_field_group_no_changes/grpck.test
+run_test ./cktools/grpck/07_grpck_missing_field_gshadow_add/grpck.test
+run_test ./cktools/grpck/08_grpck_missing_field_gshadow_delete/grpck.test
+run_test ./cktools/grpck/09_grpck_missing_field_gshadow_no_changes/grpck.test
+run_test ./cktools/grpck/10_grpck_missing_field_group_local/grpck.test
+run_test ./cktools/grpck/11_grpck_missing_field_gshadow_local/grpck.test
+run_test ./cktools/grpck/12_grpck_unknown_user_group/grpck.test
+run_test ./cktools/grpck/13_grpck_unknown_user_gshadow/grpck.test
+run_test ./cktools/grpck/14_grpck_unknown_user_adm_gshadow/grpck.test
+run_test ./cktools/grpck/15_grpck_unknown_user_duplicate_group/grpck.test
+run_test ./cktools/grpck/16_grpck_duplicate_entry_group/grpck.test
+run_test ./cktools/grpck/17_grpck_duplicate_entry_gshadow/grpck.test
+run_test ./cktools/grpck/18_grpck_duplicate_entry_group_no_changes/grpck.test
+run_test ./cktools/grpck/19_grpck_duplicate_entry_gshadow_no_changes/grpck.test
+run_test ./cktools/grpck/20_grpck_duplicate_entry_gshadow_delete_second/grpck.test
+run_test ./cktools/grpck/21_grpck_invalid_group_name/grpck.test
+run_test ./cktools/grpck/22_grpck_invalid_group_ID_-1/grpck.test
+run_test ./cktools/grpck/23_grpck_invalid_group_ID_4294967295/grpck.test
+run_test ./cktools/grpck/24_grpck_invalid_group_ID_4294967296/grpck.test
+run_test ./cktools/grpck/25_grpck_unknown_user_group_no_changes/grpck.test
+run_test ./cktools/grpck/26_grpck_no_gshadow_file/grpck.test
+run_test ./cktools/grpck/27_grpck_sort_no_gshadow_file/grpck.test
+run_test ./cktools/grpck/28_grpck_usage/grpck.test
+run_test ./cktools/grpck/29_grpck_sort_readonly/grpck.test
+run_test ./cktools/grpck/30_grpck_3_files/grpck.test
+run_test ./cktools/grpck/31_grpck_missing_field_group_local_no_gshadow/grpck.test
+run_test ./cktools/grpck/32_grpck_sort_nis/grpck.test
+run_test ./cktools/grpck/33_grpck_locked_group/grpck.test
+run_test ./cktools/grpck/34_grpck_locked_gshadow/grpck.test
+run_test ./cktools/grpck/35_grpck_duplicate_entry_group_NIS/grpck.test
+run_test ./cktools/grpck/36_grpck_password_group_gshadow/grpck.test
+run_test ./cktools/grpck/37_grpck_invalid_option/grpck.test
+run_test ./cktools/pwck/04_pwck_missing_field_passwd_delete/pwck.test
+run_test ./cktools/pwck/05_pwck_missing_field_passwd_keep/pwck.test
+run_test ./cktools/pwck/06_pwck_missing_field_passwd_no_changes/pwck.test
+run_test ./cktools/pwck/07_pwck_missing_field_shadow_add/pwck.test
+run_test ./cktools/pwck/08_pwck_missing_field_shadow_delete/pwck.test
+run_test ./cktools/pwck/09_pwck_missing_field_shadow_no_changes/pwck.test
+run_test ./cktools/pwck/10_pwck_missing_field_passwd_local/pwck.test
+run_test ./cktools/pwck/11_pwck_missing_field_shadow_local/pwck.test
+run_test ./cktools/pwck/12_pwck_unknown_user_group_ID/pwck.test
+run_test ./cktools/pwck/13_pwck_duplicate_entry_passwd/pwck.test
+run_test ./cktools/pwck/14_pwck_duplicate_entry_shadow/pwck.test
+run_test ./cktools/pwck/15_pwck_duplicate_entry_passwd_no_changes/pwck.test
+run_test ./cktools/pwck/16_pwck_duplicate_entry_shadow_no_changes/pwck.test
+run_test ./cktools/pwck/17_pwck_duplicate_entry_passwd_delete_second/pwck.test
+run_test ./cktools/pwck/18_pwck_invalid_user_name/pwck.test
+run_test ./cktools/pwck/19_pwck_invalid_user_ID_-1/pwck.test
+run_test ./cktools/pwck/20_pwck_invalid_user_ID_4294967295/pwck.test
+run_test ./cktools/pwck/21_pwck_invalid_user_ID_4294967296/pwck.test
+run_test ./cktools/pwck/22_pwck_usage/pwck.test
+run_test ./cktools/pwck/23_pwck_locked_passwd/pwck.test
+run_test ./cktools/pwck/24_pwck_locked_shadow/pwck.test
+run_test ./cktools/pwck/25_pwck_usage_invalid_option/pwck.test
+run_test ./cktools/pwck/26_pwck_usage-s-r/pwck.test
+run_test ./cktools/pwck/27_pwck_usage_3_files/pwck.test
+run_test ./cktools/pwck/28_pwck_no_shadow_file/pwck.test
+run_test ./cktools/pwck/29_pwck_password_change_in_future/pwck.test
+run_test ./cktools/pwck/30_pwck_NIS_entries/pwck.test
+run_test ./cktools/pwck/31_pwck_shadow_entry_passwd_no_x/pwck.test
+run_test ./cktools/pwck/32_pwck_quiet/pwck.test
+if [ "$USE_PAM" != "yes" ]; then
+	run_test ./crypt/login.defs_DES-MD5_CRYPT_ENAB/01_chpasswd.test
+	run_test ./crypt/login.defs_DES/01_chpasswd.test
+	run_test ./crypt/login.defs_DES/02_chpasswd--crypt-method-MD5.test
+	run_test ./crypt/login.defs_DES/03_chpasswd--crypt-method-DES.test
+	run_test ./crypt/login.defs_DES/04_chpasswd--crypt-method-NONE.test
+	run_test ./crypt/login.defs_DES/05_chpasswd-e.test
+	run_test ./crypt/login.defs_DES/06_chpasswd-m.test
+fi
+run_test ./crypt/login.defs_DES/07_chgpasswd.test
+run_test ./crypt/login.defs_DES/08_chgpasswd--crypt-method-MD5.test
+run_test ./crypt/login.defs_DES/09_chgpasswd--crypt-method-DES.test
+run_test ./crypt/login.defs_DES/10_chgpasswd--crypt-method-NONE.test
+run_test ./crypt/login.defs_DES/11_chgpasswd-e.test
+run_test ./crypt/login.defs_DES/12_chgpasswd-m.test
+if [ "$USE_PAM" != "yes" ]; then
+	run_test ./crypt/login.defs_MD5/01_chpasswd.test
+	run_test ./crypt/login.defs_MD5_CRYPT_ENAB/01_chpasswd.test
+fi
+run_test ./crypt/login.defs_MD5/02_chgpasswd.test
+run_test ./crypt/login.defs_MD5_CRYPT_ENAB/02_chgpasswd.test
+if [ "$USE_PAM" != "yes" ]; then
+	run_test ./crypt/login.defs_SHA256-round-max/01_chpasswd.test
+	run_test ./crypt/login.defs_SHA256-round-min-max/01_chpasswd.test
+	run_test ./crypt/login.defs_SHA256-round-min/01_chpasswd.test
+	run_test ./crypt/login.defs_SHA256/01_chpasswd.test
+	run_test ./crypt/login.defs_SHA512/01_chpasswd.test
+	run_test ./crypt/login.defs_none/01_chpasswd.test
+fi
+run_test ./crypt/login.defs_SHA256-round-max/02_chgpasswd.test
+run_test ./crypt/login.defs_SHA256-round-min-max/02_chgpasswd.test
+run_test ./crypt/login.defs_SHA256-round-min/02_chgpasswd.test
+run_test ./crypt/login.defs_SHA256/02_chgpasswd.test
+run_test ./crypt/login.defs_SHA512/02_chgpasswd.test
+run_test ./crypt/login.defs_none/02_chgpasswd.test
+run_test ./newusers/01_create_user/newusers.test
+run_test ./newusers/02_update_password/newusers.test
+run_test ./newusers/03_no_update_pid/newusers.test
+run_test ./newusers/04_no_update_gid/newusers.test
+run_test ./newusers/05_create_user_pid/newusers.test
+run_test ./newusers/06_create_user_gid/newusers.test
+run_test ./newusers/07_create_user_pid_gid/newusers.test
+run_test ./newusers/08_create_user_pid_other-gid/newusers.test
+run_test ./newusers/09_create_user_pid-as-user-bar/newusers.test
+run_test ./newusers/10_create_user_gid-as-group-bar/newusers.test
+run_test ./newusers/11_update_gecos/newusers.test
+run_test ./newusers/12_update_shell/newusers.test
+run_test ./newusers/13_create_user_new-home/newusers.test
+run_test ./newusers/14_create_user_existing-home/newusers.test
+run_test ./newusers/15_update_new-home/newusers.test
+run_test ./newusers/16_update_existing-home/newusers.test
+run_test ./newusers/17_create_user_pid-already-used/newusers.test
+run_test ./newusers/18_create_user_gid-already-used/newusers.test
+run_test ./newusers/19_update_keep-old-home/newusers.test
+run_test ./newusers/20_multiple_users/newusers.test
+run_test ./newusers/21_create_user_UID_MAX/newusers.test
+run_test ./newusers/22_create_user_GID_MAX/newusers.test
+run_test ./newusers/23_create_user_error_negative_UID/newusers.test
+run_test ./newusers/24_create_user_error_invalid_UID/newusers.test
+run_test ./newusers/25_create_user_error_no_remaining_UID/newusers.test
+run_test ./newusers/26_create_user_error_no_remaining_GID/newusers.test
+run_test ./newusers/27_create_user_error_invalid_username/newusers.test
+run_test ./newusers/28_create_user_error_invalid_groupname/newusers.test
+run_test ./newusers/29_create_user_error_invalid_username_valid_groupname/newusers.test
+run_test ./newusers/30_create_user_different_groupname/newusers.test
+run_test ./newusers/31_create_user_error_invalid_GID/newusers.test
+run_test ./newusers/32_create_user_error_gshadow_group_exists/newusers.test
+run_test ./newusers/33_update_password_no_shadow_password/newusers.test
+run_test ./newusers/34_update_password_no_shadow/newusers.test
+run_test ./newusers/35_read_from_stdin/newusers.test
+if [ "$USE_PAM" != "yes" ]; then
+	run_test ./newusers/36_create_user_encrypted/newusers.test
+	run_test ./newusers/37_create_user_encrypt_MD5/newusers.test
+	run_test ./newusers/38_update_password_no_shadow_encrypted/newusers.test
+	run_test ./newusers/39_update_password_no_shadow_password_encrypted/newusers.test
+	run_test ./newusers/40_update_password_encrypted/newusers.test
+	run_test ./newusers/41_create_user_encrypt_SHA256/newusers.test
+	run_test ./newusers/42_create_user_encrypt_SHA512/newusers.test
+	run_test ./newusers/43_create_user_encrypt_SHA256_rounds_3000/newusers.test
+	run_test ./newusers/44_create_user_encrypt_SHA256_rounds_300/newusers.test
+	run_test ./newusers/45_create_user_encrypt_rounds_3000/newusers.test
+	run_test ./newusers/46_create_user_encrypt_MD5_ignore_rounds_3000/newusers.test
+else
+
+	run_test ./newusers/37_create_user_encrypt_MD5-PAM/newusers.test
+
+
+
+	run_test ./newusers/41_create_user_encrypt_SHA256-PAM/newusers.test
+	run_test ./newusers/42_create_user_encrypt_SHA512-PAM/newusers.test
+	run_test ./newusers/43_create_user_encrypt_SHA256_rounds_3000-PAM/newusers.test
+	run_test ./newusers/44_create_user_encrypt_SHA256_rounds_300-PAM/newusers.test
+
+
+fi
+run_test ./newusers/47_create_user_error_UID_4294967295/newusers.test
+run_test ./newusers/48_create_user_error_GID_4294967295/newusers.test
+run_test ./newusers/49_multiple_system_users/newusers.test
+run_test ./newusers/50_usage/newusers.test
+run_test ./newusers/51_usage_invalid_option/newusers.test
+run_test ./newusers/52_usage_2_input_files/newusers.test
+run_test ./newusers/53_locked_passwd/newusers.test
+run_test ./newusers/54_locked_shadow/newusers.test
+run_test ./newusers/55_locked_group/newusers.test
+run_test ./newusers/56_locked_gshadow/newusers.test
+run_test ./newusers/57_missing_input_file/newusers.test
+run_test ./newusers/58_invalid_input_file/newusers.test
+run_test ./newusers/59_no_gshadow_file/newusers.test
+run_test ./newusers/60_update_no_gecos/newusers.test
+run_test ./newusers/61_update_no_shell/newusers.test
+run_test ./split_groups/01_useradd_split_group/useradd.test
+run_test ./split_groups/02_useradd_no_split_group/useradd.test
+run_test ./split_groups/03_useradd_split_group_already_split/useradd.test
+run_test ./split_groups/04_useradd_split_group_already_full/useradd.test
+run_test ./split_groups/05_useradd_split_group_already_split_passwd_differ/useradd.test
+run_test ./split_groups/06_useradd_split_group_already_split_GID_differ/useradd.test
+run_test ./split_groups/07_useradd_split_group_already_split_user_in_both_lines/useradd.test
+run_test ./split_groups/08_useradd_no_split_group_already_split/useradd.test
+run_test ./split_groups/09_groupdel_split_group_already_split/groupdel.test
+run_test ./split_groups/10_groupdel_no_split_group_already_split/groupdel.test
+if [ "$FAILURE_TESTS" = "yes" ]; then
+run_test ./failures/chage/01_chage_openRW_passwd_failure/chage.test
+run_test ./failures/chage/02_chage_openRO_passwd_failure/chage.test
+run_test ./failures/chage/03_chage_openRW_shadow_failure/chage.test
+run_test ./failures/chage/04_chage_openRO_shadow_failure/chage.test
+run_test ./failures/chage/05_chage_rename_shadow_failure/chage.test
+run_test ./failures/chage/06_chage_rename_passwd_failure/chage.test
+run_test ./failures/chgpasswd/01_chgpasswd-e_open_group_failure/chgpasswd.test
+run_test ./failures/chgpasswd/02_chgpasswd-e_open_gshadow_failure/chgpasswd.test
+run_test ./failures/chgpasswd/03_chgpasswd-e_rename_group_failure/chgpasswd.test
+run_test ./failures/chgpasswd/04_chgpasswd-e_rename_gshadow_failure/chgpasswd.test
+if [ "$USE_PAM" = "yes" ]; then
+	run_test ./failures/chpasswd-PAM/01_chpasswd-e_open_passwd_failure/chpasswd.test
+	run_test ./failures/chpasswd-PAM/02_chpasswd-e_open_shadow_failure/chpasswd.test
+	run_test ./failures/chpasswd-PAM/03_chpasswd-e_rename_passwd_failure/chpasswd.test
+	run_test ./failures/chpasswd-PAM/04_chpasswd-e_rename_shadow_failure/chpasswd.test
+	run_test ./failures/chpasswd-PAM/05_chpasswd-e_time_0/chpasswd.test
+fi
+run_test ./failures/chsh/01_chsh_open_passwd_failure/chsh.test
+run_test ./failures/chsh/02_chsh_rename_passwd_failure/chsh.test
+run_test ./failures/cppw/01_cppw_open_passwd_in_failure/cppw.test
+run_test ./failures/cppw/02_cppw_open_passwd_backup_failure/cppw.test
+run_test ./failures/cppw/03_cppw_rename_passwd_failure/cppw.test
+run_test ./failures/gpasswd/01_gpasswd_group_open_failure/gpasswd.test
+run_test ./failures/gpasswd/02_gpasswd_gshadow_open_failure/gpasswd.test
+run_test ./failures/gpasswd/03_gpasswd-a_group_open_failure/gpasswd.test
+run_test ./failures/gpasswd/04_gpasswd-d_group_open_failure/gpasswd.test
+run_test ./failures/gpasswd/05_gpasswd-r_group_open_failure/gpasswd.test
+run_test ./failures/gpasswd/06_gpasswd-R_gshadow_open_failure/gpasswd.test
+run_test ./failures/gpasswd/07_gpasswd-A_gshadow_open_failure/gpasswd.test
+run_test ./failures/gpasswd/08_gpasswd_group_openRO_failure/gpasswd.test
+run_test ./failures/gpasswd/09_gpasswd_gshadow_openRO_failure/gpasswd.test
+run_test ./failures/gpasswd/10_gpasswd_group_rename_failure/gpasswd.test
+run_test ./failures/gpasswd/11_gpasswd_gshadow_rename_failure/gpasswd.test
+run_test ./failures/groupadd/01_groupadd_gshadow_rename_failure/groupadd.test
+run_test ./failures/groupadd/02_groupadd_group_rename_failure/groupadd.test
+run_test ./failures/groupadd/03_groupadd_gshadow_open_failure/groupadd.test
+run_test ./failures/groupadd/04_groupadd_group_open_failure/groupadd.test
+run_test ./failures/groupdel/01_groupdel_gshadow_rename_failure/groupdel.test
+run_test ./failures/groupdel/02_groupdel_group_rename_failure/groupdel.test
+run_test ./failures/groupdel/03_groupdel_gshadow_open_failure/groupdel.test
+run_test ./failures/groupdel/04_groupdel_group_open_failure/groupdel.test
+run_test ./failures/groupmems/01_groupmems_group_open_failure/groupmems.test
+run_test ./failures/groupmems/02_groupmems_gshadow_open_failure/groupmems.test
+run_test ./failures/groupmod/01_groupmod_change_group_name_gshadow_rename_failure/groupmod.test
+run_test ./failures/groupmod/02_groupmod_change_gid_change_primary_group_passwd_rename_failure/groupmod.test
+run_test ./failures/groupmod/03_groupmod_change_group_name_group_rename_failure/groupmod.test
+run_test ./failures/groupmod/04_groupmod_group_open_failure/groupmod.test
+run_test ./failures/groupmod/05_groupmod_gshadow_open_failure/groupmod.test
+run_test ./failures/groupmod/06_groupmod_-g_no_gshadow_open_failure/groupmod.test
+run_test ./failures/groupmod/07_groupmod_passwd_open_failure/groupmod.test
+run_test ./failures/groupmod/08_groupmod_-g_same_gid_no_passwd_open_failure/groupmod.test
+run_test ./failures/groupmod/09_groupmod_-n_no_passwd_open_failure/groupmod.test
+run_test ./failures/grpck/01_grpck_system_group_open_failure/grpck.test
+run_test ./failures/grpck/02_grpck_group_open_failure/grpck.test
+run_test ./failures/grpck/03_grpck_system_gshadow_open_failure/grpck.test
+run_test ./failures/grpck/04_grpck_gshadow_open_failure/grpck.test
+run_test ./failures/grpck/05_grpck_sort_group_rename_failure/grpck.test
+run_test ./failures/grpck/06_grpck_sort_gshadow_rename_failure/grpck.test
+run_test ./failures/grpconv/01_grpconv_open_group_failure/grpconv.test
+run_test ./failures/grpconv/02_grpconv_open_gshadow_failure/grpconv.test
+run_test ./failures/grpconv/03_grpconv_rename_group_failure/grpconv.test
+run_test ./failures/grpconv/04_grpconv_rename_gshadow_failure/grpconv.test
+run_test ./failures/grpunconv/01_grpunconv_group_rename_failure/grpunconv.test
+run_test ./failures/grpunconv/02_grpunconv_open_group_failure/grpunconv.test
+run_test ./failures/grpunconv/03_grpunconv_open_gshadow_failure/grpunconv.test
+run_test ./failures/grpunconv/04_grpunconv_unlink_gshadow_failure/grpunconv.test
+run_test ./failures/newusers/01_newusers_open_passwd_failure/newusers.test
+run_test ./failures/newusers/02_newusers_open_shadow_failure/newusers.test
+run_test ./failures/newusers/03_newusers_open_group_failure/newusers.test
+run_test ./failures/newusers/04_newusers_open_gshadow_failure/newusers.test
+run_test ./failures/newusers/05_newusers_rename_passwd_failure/newusers.test
+run_test ./failures/newusers/06_newusers_rename_shadow_failure/newusers.test
+run_test ./failures/newusers/07_newusers_rename_group_failure/newusers.test
+run_test ./failures/newusers/08_newusers_rename_gshadow_failure/newusers.test
+run_test ./failures/newusers/09_newusers_rename_shadow_failure_PAM/newusers.test
+run_test ./failures/newusers/10_newusers_time_0/newusers.test
+run_test ./failures/pwck/01_pwck_system_passwd_open_failure/pwck.test
+run_test ./failures/pwck/02_pwck_passwd_open_failure/pwck.test
+run_test ./failures/pwck/03_pwck_system_shadow_open_failure/pwck.test
+run_test ./failures/pwck/04_pwck_shadow_open_failure/pwck.test
+run_test ./failures/pwck/05_pwck_sort_system_passwd_rename_failure/pwck.test
+run_test ./failures/pwck/06_pwck_sort_system_shadow_rename_failure/pwck.test
+run_test ./failures/pwck/07_pwck_sort_passwd_rename_failure/pwck.test
+run_test ./failures/pwck/08_pwck_sort_shadow_rename_failure/pwck.test
+run_test ./failures/pwck/09_pwck_create_shadow_entry_time_0/pwck.test
+run_test ./failures/pwconv/01_pwconv_open_passwd_failure/pwconv.test
+run_test ./failures/pwconv/02_pwconv_open_shadow_failure/pwconv.test
+run_test ./failures/pwconv/03_pwconv_rename_passwd_failure/pwconv.test
+run_test ./failures/pwconv/04_pwconv_rename_shadow_failure/pwconv.test
+run_test ./failures/pwconv/05_pwconv_time_0/pwconv.test
+run_test ./failures/pwunconv/01_pwunconv_passwd_rename_failure/pwunconv.test
+run_test ./failures/pwunconv/02_pwunconv_open_passwd_failure/pwunconv.test
+run_test ./failures/pwunconv/03_pwunconv_open_shadow_failure/pwunconv.test
+run_test ./failures/pwunconv/04_pwunconv_unlink_shadow_failure/pwunconv.test
+run_test ./failures/useradd/01_useradd_open_passwd_failure/useradd.test
+run_test ./failures/useradd/02_useradd_open_shadow_failure/useradd.test
+run_test ./failures/useradd/03_useradd_open_group_failure/useradd.test
+run_test ./failures/useradd/04_useradd_open_gshadow_failure/useradd.test
+run_test ./failures/useradd/05_useradd_rename_passwd_failure/useradd.test
+run_test ./failures/useradd/06_useradd_rename_shadow_failure/useradd.test
+run_test ./failures/useradd/07_useradd_rename_group_failure/useradd.test
+run_test ./failures/useradd/08_useradd_rename_gshadow_failure/useradd.test
+run_test ./failures/useradd/09_useradd_rename_defaults_failure/useradd.test
+run_test ./failures/useradd/10_useradd_rename_defaults_backup_failure/useradd.test
+run_test ./failures/useradd/11_useradd_time_0/useradd.test
+run_test ./failures/useradd/12_useradd_open_subuid_failure/useradd.test
+run_test ./failures/useradd/13_useradd_open_subgid_failure/useradd.test
+run_test ./failures/useradd/14_username_rename_subuid_failure/useradd.test
+run_test ./failures/useradd/15_username_rename_subgid_failure/useradd.test
+run_test ./failures/userdel/01_userdel_gshadow_rename_failure/userdel.test
+run_test ./failures/userdel/02_userdel_group_rename_failure/userdel.test
+run_test ./failures/userdel/03_userdel_shadow_rename_failure/userdel.test
+run_test ./failures/userdel/04_userdel_passwd_rename_failure/userdel.test
+run_test ./failures/userdel/05_userdel_failure_remove_mailbox/userdel.test
+run_test ./failures/userdel/06_userdel_failure_remove_file_homedir/userdel.test
+run_test ./failures/userdel/07_userdel_failure_remove_homedir/userdel.test
+run_test ./failures/userdel/08_userdel_open_passwd_failure/userdel.test
+run_test ./failures/userdel/09_userdel_open_shadow_failure/userdel.test
+run_test ./failures/userdel/10_userdel_open_group_failure/userdel.test
+run_test ./failures/userdel/11_userdel_open_gshadow_failure/userdel.test
+run_test ./failures/userdel/12_userdel_open_subuid_failure/userdel.test
+run_test ./failures/userdel/13_userdel_open_subgid_failure/userdel.test
+run_test ./failures/userdel/14_userdel_rename_subuid_failure/usedel.test
+run_test ./failures/userdel/15_userdel_rename_subgid_failure/usedel.test
+run_test ./failures/usermod/01_usermod_change_user_name_gshadow_rename_failure/usermod.test
+run_test ./failures/usermod/02_usermod_change_uid_passwd_rename_failure/usermod.test
+run_test ./failures/usermod/03_usermod_change_user_name_group_rename_failure/usermod.test
+run_test ./failures/usermod/04_usermod_change_user_name_gshadow_rename_no_failure/usermod.test
+run_test ./failures/usermod/05_usermod_change_uid_shadow_rename_failure/usermod.test
+run_test ./failures/usermod/06_usermod_change_user_name_open_passwd_failure/usermod.test
+run_test ./failures/usermod/07_usermod_change_user_name_open_shadow_failure/usermod.test
+run_test ./failures/usermod/08_usermod_change_user_name_open_group_failure/usermod.test
+run_test ./failures/usermod/09_usermod_change_user_name_open_gshadow_failure/usermod.test
+run_test ./failures/usermod/10_usermod_-p_time_0/usermod.test
+run_test ./failures/usermod/11_usermod-f_no_shadow_entry_time_0/usermod.test
+#run_test ./failures/usermod/12_usermod_change_uid_passwd_unlock_passwd_failure/usermod.test
+run_test ./failures/usermod/13_usermod_-v_open_subuid_failure/usermod.test
+run_test ./failures/usermod/14_usermod_-V_open_subuid_failure/usermod.test
+run_test ./failures/usermod/15_usermod_-w_open_subgid_failure/usermod.test
+run_test ./failures/usermod/16_usermod_-W_open_subgid_failure/usermod.test
+run_test ./failures/usermod/17_usermod_-v_rename_subuid_failure/usermod.test
+run_test ./failures/usermod/18_usermod_-w_rename_subgid_failure/usermod.test
+fi
+run_test ./expiry/01_expiry_-c_no_expiry/expiry.test
+run_test ./expiry/02_expiry_-c_expired/expiry.test
+run_test ./expiry/03_expiry_-f_expired/expiry.test
+run_test ./expiry/04_expiry_no_options/expiry.test
+run_test ./expiry/05_expiry_-c_no_shadow_file/expiry.test
+run_test ./expiry/06_expiry_-c_no_shadow_entry/expiry.test
+run_test ./expiry/07_expiry_-c_expired_account/expiry.test
+run_test ./expiry/08_expiry_-c_expired_max+inact/expiry.test
+run_test ./expiry/09_expiry_-c_expired_not_inactive/expiry.test
+run_test ./expiry/10_expiry_bad_option/expiry.test
+run_test ./expiry/11_expiry_usage/expiry.test
+run_test ./expiry/12_expiry_extra_arg/expiry.test
+run_test ./expiry/13_expiry_usage-c-f/expiry.test
+run_test ./passwd/01_passwd_-S_root_locked_account/passwd.test
+run_test ./passwd/02_passwd_-S_root_valid_account/passwd.test
+run_test ./passwd/03_passwd_-S_root_empty_password/passwd.test
+run_test ./passwd/04_passwd_-S_root_valid_account_no_shadow_file/passwd.test
+run_test ./passwd/05_passwd_-S_root_valid_account_no_shadow_entry/passwd.test
+run_test ./passwd/06_passwd_-l_root_lock_account/passwd.test
+run_test ./passwd/07_passwd_-l_root_lock_account_no_shadow_entry/passwd.test
+run_test ./passwd/08_passwd_-u_root_unlock_account/passwd.test
+run_test ./passwd/09_passwd_-u_root_unlock_to_empty/passwd.test
+run_test ./passwd/10_passwd_-d_root/passwd.test
+run_test ./passwd/11_passwd_--mindays_root/passwd.test
+run_test ./passwd/12_passwd_--maxdays_root/passwd.test
+run_test ./passwd/13_passwd_--warndays_root/passwd.test
+run_test ./passwd/14_passwd_--inactive_root/passwd.test
+run_test ./passwd/15_passwd_--expire_root/passwd.test
+run_test ./passwd/16_passwd_-S-a_root/passwd.test
+run_test ./passwd/17_passwd_root_change_password/passwd.test
+run_test ./passwd/18_passwd_root_change_password_user/passwd.test
+run_test ./passwd/19_passwd_user_change_password/passwd.test
+run_test ./passwd/20_passwd_user_change_password_same_user/passwd.test
+run_test ./passwd/21_passwd_user_change_password_other_user/passwd.test
+run_test ./passwd/22_passwd_usage/passwd.test
+run_test ./login/01_login_prompt/login.test
+run_test ./login/02_login_user/login.test
+run_test ./login/03_login_check_tty/login.test
+find "${build_path}" -name "*.gcda" -exec chmod a+rw {} \;
+run_test ./subids/01_useradd_no_subids/useradd.test
+run_test ./subids/02_useradd_with_subids/useradd.test
+run_test ./subids/03_useradd_no_subgid/useradd.test
+run_test ./subids/04_useradd_no_subuid/useradd.test
+run_test ./subids/05_useradd_fill_gap_start/useradd.test
+run_test ./subids/06_useradd_fill_gap_middle/useradd.test
+run_test ./subids/07_useradd_fill_gap_end/useradd.test
+run_test ./subids/08_useradd_no_more_subuids_start/useradd.test
+run_test ./subids/09_useradd_no_more_subgids_start/useradd.test
+run_test ./subids/10_useradd_no_more_subuids_end/useradd.test
+run_test ./subids/11_useradd_no_more_subgids_end/useradd.test
+run_test ./subids/12_useradd_invalid_subuid_configuration1/useradd.test
+run_test ./subids/13_useradd_invalid_subuid_configuration2/useradd.test
+run_test ./subids/14_useradd_invalid_subuid_configuration3/useradd.test
+run_test ./subids/15_useradd_invalid_subgid_configuration1/useradd.test
+run_test ./subids/16_useradd_invalid_subgid_configuration2/useradd.test
+run_test ./subids/17_useradd_invalid_subgid_configuration3/useradd.test
+run_test ./subids/18_useradd_min=max/useradd.test
+run_test ./subids/19_useradd_locked_subuid/useradd.test
+run_test ./subids/20_useradd_locked_subgid/useradd.test
+run_test ./subids/21_usermod_create_subuid_range/usermod.test
+run_test ./subids/22_usermod_create_subgid_range/usermod.test
+run_test ./subids/23_usermod_create_subids_ranges/usermod.test
+run_test ./subids/24_usermod_create_subids_overlapping_ranges/usermod.test
+run_test ./subids/25_usermod_add_range/usermod.test
+run_test ./subids/26_usermod_add_overlapping_ranges/usermod.test
+run_test ./subids/27_usermod_remove_range_all/usermod.test
+run_test ./subids/28_usermod_remove_range_partial_begin/usermod.test
+run_test ./subids/29_usermod_remove_range_partial_middle/usermod.test
+run_test ./subids/30_usermod_remove_range_partial_end/usermod.test
+run_test ./subids/31_usermod_remove_outside_range/usermod.test
+run_test ./subids/32_usermod_remove_overlapping_range_begin/usermod.test
+run_test ./subids/33_usermod_remove_overlapping_range_end/usermod.test
+run_test ./subids/34_usermod_remove_overlapping_range_all/usermod.test
+run_test ./subids/35_usermod_remove_only_user_ranges/usermod.test
+run_test ./subids/36_usermod_remove_with_comment/usermod.test
+run_test ./subids/37_usermod_-v_invalid_range/usermod.test
+run_test ./subids/38_usermod_-V_invalid_range/usermod.test
+run_test ./subids/39_usermod_-w_invalid_range/usermod.test
+run_test ./subids/40_usermod_-W_invalid_range/usermod.test
+run_test ./subids/41_usermod_locked_subuid/usermod.test
+run_test ./subids/42_usermod_locked_subgid/usermod.test
+run_test ./subids/43_usermod_-w_no_subgid/usermod.test
+run_test ./subids/44_usermod_-W_no_subgid/usermod.test
+run_test ./subids/45_usermod_-v_no_subgid/usermod.test
+run_test ./subids/46_usermod_-V_no_subgid/usermod.test
+run_test ./subids/47_usermod_-v_invalid_range2/usermod.test
+run_test ./subids/48_usermod_-v_invalid_range3/usermod.test
+run_test ./subids/49_usermod_-v_invalid_range4/usermod.test
+run_test ./subids/50_usermod_-v_invalid_range5/usermod.test
+run_test ./subids/51_usermod_-v_invalid_range6/usermod.test
+run_test ./subids/52_usermod_-v_invalid_range7/usermod.test
+run_test ./subids/53_userdel_one_subuid_range/userdel.test
+run_test ./subids/54_userdel_one_subgid_range/userdel.test
+run_test ./subids/55_userdel_no_subuid/userdel.test
+run_test ./subids/56_userdel_no_subgid/userdel.test
+run_test ./subids/57_userdel_multiple_ranges/userdel.test
+run_test ./subids/58_newusers_with_subids/newusers.test
+run_test ./subids/59_newusers_no_subuid/newusers.test
+run_test ./subids/60_newusers_no_subgid/newusers.test
+run_test ./subids/61_newusers_user_alread_has_subgids/newusers.test
+run_test ./subids/62_newusers_user_alread_has_subuids/newusers.test
+run_test ./subids/63_useradd_fill_gap4/useradd.test
+run_test ./subids/64_useradd_fill_gap5/useradd.test
+run_test ./subids/65_useradd_fill_gap6/useradd.test
+run_test ./subids/66_subordinate_range_cmp/useradd.test
+run_test ./subids/67_invalid_subuid_file1/useradd.test
+run_test ./subids/68_invalid_subuid_file2/useradd.test
+run_test ./subids/69_invalid_subuid_file3/useradd.test
+run_test ./subids/70_invalid_subuid_file4/useradd.test
+run_test ./subids/71_useradd_subids_for_system/useradd.test
+run_test ./newuidmap/01_newuidmap/newuidmap.test
+run_test ./newuidmap/02_newuidmap_relaxed_gid_check/newuidmap.test
+run_test ./newgidmap/01_newgidmap/newgidmap.test
+run_test ./newgidmap/02_newgidmap_relaxed_gid_check/newgidmap.test
+
+echo
+echo "$succeeded test(s) passed"
+echo "$failed test(s) failed"
+echo "log written in 'testsuite.log'"
+if [ "$failed" != 0 ]
+then
+	echo "the following tests failed:"
+	echo "$failed_tests"
+fi

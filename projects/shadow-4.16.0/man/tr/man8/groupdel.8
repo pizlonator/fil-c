@@ -1,0 +1,51 @@
+.\" SPDX-FileCopyrightText: 1991 - 1993, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH groupdel 8 "" "" ""
+.nh
+.SH İSİM  
+groupdel - 
+bir grubu siler
+
+.SH KULLANIM
+\fBgroupdel \fR\fIgrup\fR
+  
+.SH AÇIKLAMA
+
+\fBgroupdel\fR komutu, sistem hesap dosyalarını düzenler ve \fIgrup\fR olarak belirtilen gruba ait bütün girdileri siler. Silinmek istenen grup, sistemde varolmalıdır.
+
+Silme işleminden sonra, silinen grup numarasına ait herhangi bir dosya kalmadığından emin olmak için bütün dosya sistemlerini kontrol etmelisiniz.
+
+.SH YETERSİZLİKLER
+
+Varolan herhangi bir kullanıcının birincil grubunu silemeyebilirsiniz. Grubu silmeden önce bu kullanıcıyı sistemden kaldırmak zorundasınız.
+
+.SH İLGİLİ DOSYALAR
+
+.nf
+
+\fB/etc/group\fR   - grupların hesap bilgileri
+\fB/etc/gshadow\fR - güvenli grup bilgileri
+
+.fi
+
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgroupadd\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Ocak 2004
+

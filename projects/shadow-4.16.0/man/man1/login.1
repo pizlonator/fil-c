@@ -1,0 +1,484 @@
+'\" t
+.\"     Title: login
+.\"    Author: Julianne Frances Haugh
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 06/18/2024
+.\"    Manual: User Commands
+.\"    Source: shadow-utils 4.16.0
+.\"  Language: English
+.\"
+.TH "LOGIN" "1" "06/18/2024" "shadow\-utils 4\&.16\&.0" "User Commands"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+login \- begin session on the system
+.SH "SYNOPSIS"
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] [\-h\ \fIhost\fR] [\fIusername\fR] [\fIENV=VAR\fR...]
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] [\-h\ \fIhost\fR] \-f \fIusername\fR
+.HP \w'\fBlogin\fR\ 'u
+\fBlogin\fR [\-p] \-r\ \fIhost\fR
+.SH "DESCRIPTION"
+.PP
+The
+\fBlogin\fR
+program is used to establish a new session with the system\&. It is normally invoked automatically by responding to the
+\fIlogin:\fR
+prompt on the user\*(Aqs terminal\&.
+\fBlogin\fR
+may be special to the shell and may not be invoked as a sub\-process\&. When called from a shell,
+\fBlogin\fR
+should be executed as
+\fBexec login\fR
+which will cause the user to exit from the current shell (and thus will prevent the new logged in user to return to the session of the caller)\&. Attempting to execute
+\fBlogin\fR
+from any shell but the login shell will produce an error message\&.
+.PP
+The user is then prompted for a password, where appropriate\&. Echoing is disabled to prevent revealing the password\&. Only a small number of password failures are permitted before
+\fBlogin\fR
+exits and the communications link is severed\&.
+.PP
+If password aging has been enabled for your account, you may be prompted for a new password before proceeding\&. You will be forced to provide your old password and the new password before continuing\&. Please refer to
+\fBpasswd\fR(1)
+for more information\&.
+.PP
+After a successful login, you will be informed of any system messages and the presence of mail\&. You may turn off the printing of the system message file,
+/etc/motd, by creating a zero\-length file
+\&.hushlogin
+in your login directory\&. The mail message will be one of "\fIYou have new mail\&.\fR", "\fIYou have mail\&.\fR", or "\fINo Mail\&.\fR" according to the condition of your mailbox\&.
+.PP
+Your user and group ID will be set according to their values in the
+/etc/passwd
+file\&. The value for
+\fB$HOME\fR,
+\fB$SHELL\fR,
+\fB$PATH\fR,
+\fB$LOGNAME\fR, and
+\fB$MAIL\fR
+are set according to the appropriate fields in the password entry\&. Ulimit, umask and nice values may also be set according to entries in the GECOS field\&.
+.PP
+On some installations, the environmental variable
+\fB$TERM\fR
+will be initialized to the terminal type on your tty line, as specified in
+/etc/ttytype\&.
+.PP
+An initialization script for your command interpreter may also be executed\&. Please see the appropriate manual section for more information on this function\&.
+.PP
+A subsystem login is indicated by the presence of a "*" as the first character of the login shell\&. The given home directory will be used as the root of a new file system which the user is actually logged into\&.
+.PP
+The
+\fBlogin\fR
+program is NOT responsible for removing users from the utmp file\&. It is the responsibility of
+\fBgetty\fR(8)
+and
+\fBinit\fR(8)
+to clean up apparent ownership of a terminal session\&. If you use
+\fBlogin\fR
+from the shell prompt without
+\fBexec\fR, the user you use will continue to appear to be logged in even after you log out of the "subsession"\&.
+.SH "OPTIONS"
+.PP
+\fB\-f\fR
+.RS 4
+Do not perform authentication, user is preauthenticated\&.
+.sp
+Note: In that case,
+\fIusername\fR
+is mandatory\&.
+.RE
+.PP
+\fB\-h\fR
+.RS 4
+Name of the remote host for this login\&.
+.RE
+.PP
+\fB\-p\fR
+.RS 4
+Preserve environment\&.
+.RE
+.PP
+The
+\fB\-r\fR,
+\fB\-h\fR
+and
+\fB\-f\fR
+options are only used when
+\fBlogin\fR
+is invoked by root\&.
+.SH "CAVEATS"
+.PP
+This version of
+\fBlogin\fR
+has many compilation options, only some of which may be in use at any particular site\&.
+.PP
+The location of files is subject to differences in system configuration\&.
+.PP
+The
+\fBlogin\fR
+program is NOT responsible for removing users from the utmp file\&. It is the responsibility of
+\fBgetty\fR(8)
+and
+\fBinit\fR(8)
+to clean up apparent ownership of a terminal session\&. If you use
+\fBlogin\fR
+from the shell prompt without
+\fBexec\fR, the user you use will continue to appear to be logged in even after you log out of the "subsession"\&.
+.PP
+As with any program,
+\fBlogin\fR\*(Aqs appearance can be faked\&. If non\-trusted users have physical access to a machine, an attacker could use this to obtain the password of the next person coming to sit in front of the machine\&. Under Linux, the SAK mechanism can be used by users to initiate a trusted path and prevent this kind of attack\&.
+.SH "CONFIGURATION"
+.PP
+The following configuration variables in
+/etc/login\&.defs
+change the behavior of this tool:
+.PP
+\fBCONSOLE\fR (string)
+.RS 4
+If defined, either full pathname of a file containing device names (one per line) or a ":" delimited list of device names\&. Root logins will be allowed only upon these devices\&.
+.sp
+If not defined, root will be allowed on any device\&.
+.sp
+The device should be specified without the /dev/ prefix\&.
+.RE
+.PP
+\fBCONSOLE_GROUPS\fR (string)
+.RS 4
+List of groups to add to the user\*(Aqs supplementary groups set when logging in on the console (as determined by the CONSOLE setting)\&. Default is none\&.
+
+Use with caution \- it is possible for users to gain permanent access to these groups, even when not logged in on the console\&.
+.RE
+.PP
+\fBDEFAULT_HOME\fR (boolean)
+.RS 4
+Indicate if login is allowed if we can\*(Aqt cd to the home directory\&. Default is no\&.
+.sp
+If set to
+\fIyes\fR, the user will login in the root (/) directory if it is not possible to cd to her home directory\&.
+.RE
+.PP
+\fBENV_HZ\fR (string)
+.RS 4
+If set, it will be used to define the HZ environment variable when a user login\&. The value must be preceded by
+\fIHZ=\fR\&. A common value on Linux is
+\fIHZ=100\fR\&.
+.RE
+.PP
+\fBENV_PATH\fR (string)
+.RS 4
+If set, it will be used to define the PATH environment variable when a regular user login\&. The value is a colon separated list of paths (for example
+\fI/bin:/usr/bin\fR) and can be preceded by
+\fIPATH=\fR\&. The default value is
+\fIPATH=/bin:/usr/bin\fR\&.
+.RE
+.PP
+\fBENV_SUPATH\fR (string)
+.RS 4
+If set, it will be used to define the PATH environment variable when the superuser login\&. The value is a colon separated list of paths (for example
+\fI/sbin:/bin:/usr/sbin:/usr/bin\fR) and can be preceded by
+\fIPATH=\fR\&. The default value is
+\fIPATH=/sbin:/bin:/usr/sbin:/usr/bin\fR\&.
+.RE
+.PP
+\fBENV_TZ\fR (string)
+.RS 4
+If set, it will be used to define the TZ environment variable when a user login\&. The value can be the name of a timezone preceded by
+\fITZ=\fR
+(for example
+\fITZ=CST6CDT\fR), or the full path to the file containing the timezone specification (for example
+/etc/tzname)\&.
+.sp
+If a full path is specified but the file does not exist or cannot be read, the default is to use
+\fITZ=CST6CDT\fR\&.
+.RE
+.PP
+\fBENVIRON_FILE\fR (string)
+.RS 4
+If this file exists and is readable, login environment will be read from it\&. Every line should be in the form name=value\&.
+.sp
+Lines starting with a # are treated as comment lines and ignored\&.
+.RE
+.PP
+\fBERASECHAR\fR (number)
+.RS 4
+Terminal ERASE character (\fI010\fR
+= backspace,
+\fI0177\fR
+= DEL)\&.
+.sp
+The value can be prefixed "0" for an octal value, or "0x" for an hexadecimal value\&.
+.RE
+.PP
+\fBFAIL_DELAY\fR (number)
+.RS 4
+Delay in seconds before being allowed another attempt after a login failure\&.
+.RE
+.PP
+\fBFAILLOG_ENAB\fR (boolean)
+.RS 4
+Enable logging and display of
+/var/log/faillog
+login failure info\&.
+.RE
+.PP
+\fBFAKE_SHELL\fR (string)
+.RS 4
+If set,
+\fBlogin\fR
+will execute this shell instead of the users\*(Aq shell specified in
+/etc/passwd\&.
+.RE
+.PP
+\fBFTMP_FILE\fR (string)
+.RS 4
+If defined, login failures will be logged in this file in a utmp format\&.
+.RE
+.PP
+\fBHUSHLOGIN_FILE\fR (string)
+.RS 4
+If defined, this file can inhibit all the usual chatter during the login sequence\&. If a full pathname is specified, then hushed mode will be enabled if the user\*(Aqs name or shell are found in the file\&. If not a full pathname, then hushed mode will be enabled if the file exists in the user\*(Aqs home directory\&.
+.RE
+.PP
+\fBISSUE_FILE\fR (string)
+.RS 4
+If defined, this file will be displayed before each login prompt\&.
+.RE
+.PP
+\fBKILLCHAR\fR (number)
+.RS 4
+Terminal KILL character (\fI025\fR
+= CTRL/U)\&.
+.sp
+The value can be prefixed "0" for an octal value, or "0x" for an hexadecimal value\&.
+.RE
+.PP
+\fBLASTLOG_ENAB\fR (boolean)
+.RS 4
+Enable logging and display of /var/log/lastlog login time info\&.
+.RE
+.PP
+\fBLOGIN_RETRIES\fR (number)
+.RS 4
+Maximum number of login retries in case of bad password\&.
+.RE
+.PP
+\fBLOGIN_STRING\fR (string)
+.RS 4
+The string used for prompting a password\&. The default is to use "Password: ", or a translation of that string\&. If you set this variable, the prompt will not be translated\&.
+.sp
+If the string contains
+\fI%s\fR, this will be replaced by the user\*(Aqs name\&.
+.RE
+.PP
+\fBLOGIN_TIMEOUT\fR (number)
+.RS 4
+Max time in seconds for login\&.
+.RE
+.PP
+\fBLOG_OK_LOGINS\fR (boolean)
+.RS 4
+Enable logging of successful logins\&.
+.RE
+.PP
+\fBLOG_UNKFAIL_ENAB\fR (boolean)
+.RS 4
+Enable display of unknown usernames when login failures are recorded\&.
+.sp
+Note: logging unknown usernames may be a security issue if an user enter her password instead of her login name\&.
+.RE
+.PP
+\fBMAIL_CHECK_ENAB\fR (boolean)
+.RS 4
+Enable checking and display of mailbox status upon login\&.
+.sp
+You should disable it if the shell startup files already check for mail ("mailx \-e" or equivalent)\&.
+.RE
+.PP
+\fBMAIL_DIR\fR (string)
+.RS 4
+The mail spool directory\&. This is needed to manipulate the mailbox when its corresponding user account is modified or deleted\&. If not specified, a compile\-time default is used\&. The parameter CREATE_MAIL_SPOOL in
+/etc/default/useradd
+determines whether the mail spool should be created\&.
+.RE
+.PP
+\fBMAIL_FILE\fR (string)
+.RS 4
+Defines the location of the users mail spool files relatively to their home directory\&.
+.RE
+.PP
+The
+\fBMAIL_DIR\fR
+and
+\fBMAIL_FILE\fR
+variables are used by
+\fBuseradd\fR,
+\fBusermod\fR, and
+\fBuserdel\fR
+to create, move, or delete the user\*(Aqs mail spool\&.
+.PP
+If
+\fBMAIL_CHECK_ENAB\fR
+is set to
+\fIyes\fR, they are also used to define the
+\fBMAIL\fR
+environment variable\&.
+.PP
+\fBMOTD_FILE\fR (string)
+.RS 4
+If defined, ":" delimited list of "message of the day" files to be displayed upon login\&.
+.RE
+.PP
+\fBNOLOGINS_FILE\fR (string)
+.RS 4
+If defined, name of file whose presence will inhibit non\-root logins\&. The contents of this file should be a message indicating why logins are inhibited\&.
+.RE
+.PP
+\fBPORTTIME_CHECKS_ENAB\fR (boolean)
+.RS 4
+Enable checking of time restrictions specified in
+/etc/porttime\&.
+.RE
+.PP
+\fBQUOTAS_ENAB\fR (boolean)
+.RS 4
+Enable setting of resource limits from
+/etc/limits
+and ulimit, umask, and niceness from the user\*(Aqs passwd gecos field\&.
+.RE
+.PP
+\fBTTYGROUP\fR (string), \fBTTYPERM\fR (string)
+.RS 4
+The terminal permissions: the login tty will be owned by the
+\fBTTYGROUP\fR
+group, and the permissions will be set to
+\fBTTYPERM\fR\&.
+.sp
+\fBTTYGROUP\fR
+can be either the name of a group or a numeric group identifier\&.
+.sp
+If TTYGROUP is not defined, then the group ownership of the terminal is set to the user\*(Aqs primary group\&. If TTYPERM is not defined, then the permissions are set to
+\fI0600\fR\&.
+.sp
+If you have a
+\fBwrite\fR
+program which is "setgid" to a special group which owns the terminals, define TTYGROUP to the group number and TTYPERM to 0620\&. Otherwise leave TTYGROUP commented out and assign TTYPERM to either 622 or 600\&.
+.RE
+.PP
+\fBTTYTYPE_FILE\fR (string)
+.RS 4
+If defined, file which maps tty line to TERM environment parameter\&. Each line of the file is in a format something like "vt100 tty01"\&.
+.RE
+.PP
+\fBULIMIT\fR (number)
+.RS 4
+Default
+\fBulimit\fR
+value\&.
+.RE
+.PP
+\fBUMASK\fR (number)
+.RS 4
+The file mode creation mask is initialized to this value\&. If not specified, the mask will be initialized to 022\&.
+.sp
+\fBuseradd\fR
+and
+\fBnewusers\fR
+use this mask to set the mode of the home directory they create if
+\fBHOME_MODE\fR
+is not set\&.
+.sp
+It is also used by
+\fBlogin\fR
+to define users\*(Aq initial umask\&. Note that this mask can be overridden by the user\*(Aqs GECOS line (if
+\fBQUOTAS_ENAB\fR
+is set) or by the specification of a limit with the
+\fIK\fR
+identifier in
+\fBlimits\fR(5)\&.
+.RE
+.PP
+\fBUSERGROUPS_ENAB\fR (boolean)
+.RS 4
+Enable setting of the umask group bits to be the same as owner bits (examples: 022 \-> 002, 077 \-> 007) for non\-root users, if the uid is the same as gid, and username is the same as the primary group name\&.
+.sp
+If set to
+\fIyes\fR,
+\fBuserdel\fR
+will remove the user\*(Aqs group if it contains no more members, and
+\fBuseradd\fR
+will create by default a group with the name of the user\&.
+.RE
+.SH "FILES"
+.PP
+/var/run/utmp
+.RS 4
+List of current login sessions\&.
+.RE
+.PP
+/var/log/wtmp
+.RS 4
+List of previous login sessions\&.
+.RE
+.PP
+/etc/passwd
+.RS 4
+User account information\&.
+.RE
+.PP
+/etc/shadow
+.RS 4
+Secure user account information\&.
+.RE
+.PP
+/etc/motd
+.RS 4
+System message of the day file\&.
+.RE
+.PP
+/etc/nologin
+.RS 4
+Prevent non\-root users from logging in\&.
+.RE
+.PP
+/etc/ttytype
+.RS 4
+List of terminal types\&.
+.RE
+.PP
+$HOME/\&.hushlogin
+.RS 4
+Suppress printing of system messages\&.
+.RE
+.PP
+/etc/login\&.defs
+.RS 4
+Shadow password suite configuration\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBmail\fR(1),
+\fBpasswd\fR(1),
+\fBsh\fR(1),
+\fBsu\fR(1),
+\fBlogin.defs\fR(5),
+\fBnologin\fR(5),
+\fBpasswd\fR(5),
+\fBsecuretty\fR(5),
+\fBgetty\fR(8)\&.

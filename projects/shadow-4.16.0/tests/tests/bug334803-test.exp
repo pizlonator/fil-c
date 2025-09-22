@@ -1,0 +1,83 @@
+#!/usr/bin/expect --
+
+# This is a script for switching to another user and then
+# suspending (`suspend -f`) and resuming (`fg`) his shell
+
+package require cmdline
+set opts {
+    {s.arg "sudo su -"	"user switching method"}
+    {u.arg ""		"username to switch to"}
+}
+set usage ": \[options]\noptions:"
+array set conf [::cmdline::getoptions argv $opts $usage]
+
+log_user 1
+match_max 8192
+expect_after {
+    timeout { send_error "TIMEOUT\n" ; exit 1 }
+    eof     { send_error "EXITED\n" ; exit 2 }
+}
+set timeout 2
+
+# user switching command, by default `sudo su -`
+set swcmd $conf(s)
+# ending of typical shell prompt (zsh/sh):
+set shpmt "(%|#|\\$) \\Z"
+catch {set shpmt $env(EXPECT_PROMPT)}
+# initial username:
+set user0 [exec id -un]
+# user we switch to (with $swcmd), by default initial user
+if {$conf(u) != ""} {set swuser $conf(u)} else {set swuser $user0}
+
+# 1. start shell
+spawn bash
+expect -re "$shpmt" {}
+
+# 2. sudo-ing swuser's shell:
+send "$swcmd $swuser\r"
+expect {
+    -re "$swuser.*$shpmt" {}
+    -re "assword: ?\\Z" {
+	stty -echo
+	expect_user -timeout -1 -re "(.*)\n" {set swpwd $expect_out(1,string)}
+	stty echo
+	send "$swpwd\r"
+	expect -re "$swuser.*$shpmt" {}
+    }
+}
+
+# 3. getting pid and ppid of swuser's shell (needed for 5b):
+send "echo \$\$:\$PPID\r"
+expect -re "(?n)^(\[\[:digit:\]\]*):(\[\[:digit:\]\]*)\r?\n(.*)$shpmt" {}
+set swpid  $expect_out(1,string)
+set swppid $expect_out(2,string)
+
+#send_error "$user0:$swpid:$swppid\n"
+
+# 4. suspending swuser's shell (trying to return to parent shell):
+send "suspend -f\r"
+expect {
+    -re "$shpmt" {
+	# 5a. got to parent shell -- resuming swuser's shell by `fg`:
+	send "fg\r"
+	set hung no
+    }
+    timeout {
+	# 5b. `suspend -f` has hung -- resuming swuser's shell by SIGCONT:
+	send_error "kill $swppid\n"
+	send_error [exec kill -CONT $swppid]
+	set hung yes
+    }
+}
+expect -re "$shpmt" {}
+
+# 6. exiting [both] shells
+#set swstat [wait -nowait]
+#send_error [pid]:[exp_pid]:$swstat\n
+send "exit\rexit\r"
+expect eof {}
+#send_error [wait -nowait]\n
+#exec kill -KILL -[exp_pid]
+if {$hung} {send_error "BUGGY\n" ; exit 3 }
+
+# vi:set sw=4:

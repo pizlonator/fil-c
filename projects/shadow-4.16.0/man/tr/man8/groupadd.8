@@ -1,0 +1,71 @@
+.\" SPDX-FileCopyrightText: 1991, Julianne Frances Haugh
+.\" SPDX-License-Identifier: BSD-3-Clause
+
+.TH groupadd 8 "" "" ""
+.nh
+.SH İSİM  
+groupadd - 
+yeni bir grup oluşturur
+
+.SH KULLANIM
+
+.nf
+
+\fBgroupadd\fR [\fB-g \fR\fIgrup-kimliği\fR [\fB-o\fR]] [\fB-r\fR] [\fB-f\fR] \fIgrup\fR
+
+.fi
+
+
+.SH AÇIKLAMA
+
+\fBgroupadd\fR komutu, komut satırından tanımlanan bilgiler ve sistemdeki öntanımlı bilgiler eşliğinde yeni bir grup oluşturur. Yeni grup, gerekli sistem dosyalarına girilir. \fBgroupadd\fR komutuna uygulanacak seçenekler şunlardır:
+
+
+
+.br
+.ns
+.TP 
+\fB-g \fR\fIgrup-kimliği\fR
+Grubu tanımlayan numara. \fB-o\fR seçeneği belirtilmediği sürece bu numara benzersiz olmalıdır. Negatif bir değer atanamaz. Öntanımlı olarak 500´den ve diğer bütün tanımlı grup numaralarından daha büyük olan en küçük sayı kullanılır. 0 ile 499 arasındaki değerler, geleneksel olarak, \fIsistem hesapları\fR için ayrılır.
+
+.TP 
+\fB-r\fR
+Bu seçenek \fBgroupadd\fR komutuna bir \fIsistem hesabı\fR eklemesini söyler. \fB-g\fR seçeneği belirtilmediği sürece, 499´dan küçük olan olası bir grup numarası atanır. Bu seçenek Red Hat tarafından eklenmiştir.
+
+.TP 
+\fB-f\fR
+Zorlama seçeneği. Bu seçenek, \fBgroupadd\fR komutunun eklemeye çalıştığı grup sistemde halihazırda var ise, bir hata vererek çıkmasını sağlar. Böyle bir durumda grup değişmeyecek veya tekrar eklenmeyecektir. 
+
+Bu seçenek aynı zamanda, \fB-g\fR seçeneğinin çalışma şeklini düzenler. Benzersiz olmayan bir grup numarası istediğiniz ve \fB-o\fR seçeneğini vermediğiniz zaman, grup oluşturma işlemi, standart şekline (\fB-g\fR veya \fB-o\fR seçeneği tanımlanmadığı durumda bir grup ekler gibi) geri dönecektir. Bu seçenek Red Hat tarafından eklenmiştir.
+
+.PP
+
+.SH İLGİLİ DOSYALAR
+
+.nf
+
+\fB/etc/group\fR   - grupların hesap bilgileri
+\fB/etc/gshadow\fR - güvenli grup bilgileri
+
+.fi
+
+
+.SH İLGİLİ BELGELER
+
+\fBchfn\fR(1),
+\fBchsh\fR(1),
+\fBpasswd\fR(1),
+\fBgroupdel\fR(8),
+\fBgroupmod\fR(8),
+\fBuseradd\fR(8),
+\fBuserdel\fR(8),
+\fBusermod\fR(8).
+
+.SH YAZAN
+
+Julianne Frances Haugh <jockgrrl (at) ix.netcom.com> tarafından yazılmıştır.
+
+.SH ÇEVİREN
+
+Yalçın Kolukısa <yalcink01 (at) yahoo.com>, Ocak 2004
+

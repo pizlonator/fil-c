@@ -1,0 +1,62 @@
+.TH ID 1 "GNU Shell Utilities" "FSF" \" \-*\- nroff \-*\-
+.do hla cs
+.do hpf hyphen.cs
+.SH JMÉNO
+id \- vypíše reálný a efektivní UID a GID
+.SH POUŽITÍ
+.B id
+[\-gnruG] [\-\-group] [\-\-name] [\-\-real] [\-\-user] [\-\-groups]
+[\-\-help] [\-\-version] [uživatel]
+.SH POPIS
+Tato dokumentace není dále udržována a může být nepřesná nebo neúplná.
+Autoritativním zdrojem je Texinfo dokumentace.
+.PP
+Tato manuálová stránka popisuje GNU verzi příkazu
+.BR id .
+Příkaz
+.B id
+vypíše informace o zadaném uživateli nebo (pokud není jméno uživatele
+zadáno) o uživateli, který program
+.B id
+spustil. Implicitně vypisuje reálné user ID, reálné group ID,
+efektivní user ID, pokud se liší od reálného user ID, efektivní
+group ID, pokud se liší od reálného group ID, a group ID skupin,
+v nichž je uživatel členem. Před každou z hodnot je vypsán řetězec
+určující o jakou hodnotu se jedná a za každou jsou odpovídající
+jména skupin a uživatelů v závorkách.
+.PP
+Volby způsobí, že program
+.B id
+vypisuje pouze některé z těchto informací.
+.SS VOLBY
+.TP
+.I "\-g, \-\-group"
+Vypíše pouze group ID.
+.TP
+.I "\-G, \-\-groups"
+Vypíše pouze skupiny, v nichž je uživatel členem.
+.TP
+.I "\-\-help"
+Vypíše návod k použití na standardní výstup a bezchybně skončí.
+.TP
+.I "\-n, \-\-name"
+Vypíše jméno uživatele nebo skupiny místo čísla ID.
+Vyžaduje
+.IR \-u ,
+.IR \-g ,
+nebo
+.IR \-G .
+.TP
+.I "\-r, \-\-real"
+Vypíše reálné místo efektivních user a group ID.
+Vyžaduje
+.IR \-u ,
+.IR \-g ,
+nebo
+.IR \-G .
+.TP
+.I "\-u, \-\-user"
+Vypíše pouze user ID.
+.TP
+.I "\-\-version"
+Vypíše číslo verze na standardní výstup a bezchybně skončí.

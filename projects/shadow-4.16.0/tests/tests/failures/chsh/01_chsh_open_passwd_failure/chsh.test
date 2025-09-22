@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+cd $(dirname $0)
+
+. ../../../common/config.sh
+. ../../../common/log.sh
+
+log_start "$0" "chsh report failures when it cannot open the passwd file"
+
+save_config
+
+# restore the files on exit
+trap 'log_status "$0" "FAILURE"; restore_config' 0
+
+change_config
+
+echo -n "Change bin's shell (chsh -s /bin/sh bin)..."
+LD_PRELOAD=../../../common/open_RDWR_failure.so FAILURE_PATH=/etc/passwd chsh -s /bin/sh bin 2>tmp/chsh.err && exit 1 || {
+	status=$?
+}
+echo "OK"
+
+echo -n "Check returned status ($status)..."
+test "$status" = "1"
+echo "OK"
+
+echo "chsh reported:"
+echo "======================================================================="
+cat tmp/chsh.err
+echo "======================================================================="
+echo -n "Check that there were a failure message..."
+diff -au data/chsh.err tmp/chsh.err
+echo "error message OK."
+rm -f tmp/chsh.err
+
+echo -n "Check the passwd file..."
+../../../common/compare_file.pl config/etc/passwd /etc/passwd
+echo "OK"
+echo -n "Check the group file..."
+../../../common/compare_file.pl config/etc/group /etc/group
+echo "OK"
+echo -n "Check the shadow file..."
+../../../common/compare_file.pl config/etc/shadow /etc/shadow
+echo "OK"
+echo -n "Check the gshadow file..."
+../../../common/compare_file.pl config/etc/gshadow /etc/gshadow
+echo "OK"
+
+log_status "$0" "SUCCESS"
+restore_config
+trap '' 0
+
