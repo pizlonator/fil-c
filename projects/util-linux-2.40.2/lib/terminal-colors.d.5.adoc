@@ -1,0 +1,174 @@
+//po4a: entry man manual
+////
+terminal-colors.d.5 --
+Copyright 2014 Ondrej Oprala <ooprala@redhat.com>
+Copyright (C) 2014 Karel Zak <kzak@redhat.com>
+Copyright 2014 Red Hat, Inc.
+May be distributed under the GNU General Public License
+////
+
+= terminal-colors.d(5)
+:doctype: manpage
+:man manual: File formats
+:man source: util-linux {release-version}
+:page-layout: base
+:configfile: terminal-colors.d
+
+== NAME
+
+terminal-colors.d - configure output colorization for various utilities
+
+== SYNOPSIS
+
+/etc/terminal-colors.d/_[[name][@term].][type]_
+
+== DESCRIPTION
+
+Files in this directory determine the default behavior for utilities when coloring output.
+
+The _name_ is a utility name. The name is optional and when none is specified then the file is used for all unspecified utilities.
+
+The _term_ is a terminal identifier (the *TERM* environment variable). The terminal identifier is optional and when none is specified then the file is used for all unspecified terminals.
+
+The _type_ is a file type. Supported file types are:
+
+*disable*::
+Turns off output colorization for all compatible utilities.
+
+*enable*::
+Turns on output colorization; any matching *disable* files are ignored.
+
+*scheme*::
+Specifies colors used for output. The file format may be specific to the utility, the default format is described below.
+
+If there are more files that match for a utility, then the file with the more specific filename wins. For example, the filename "@xterm.scheme" has less priority than "dmesg@xterm.scheme". The lowest priority are those files without a utility name and terminal identifier (e.g., "disable").
+
+The user-specific _$XDG_CONFIG_HOME/terminal-colors.d_ or _$HOME/.config/terminal-colors.d_ overrides the global setting.
+
+== DEFAULT SCHEME FILES FORMAT
+
+The following statement is recognized:
+
+____
+*name color-sequence*
+____
+
+The *name* is a logical name of color sequence (for example "error"). The names are specific to the utilities. For more details always see the *COLORS* section in the man page for the utility.
+
+The *color-sequence* is a color name, ASCII color sequences or escape sequences.
+
+=== Color names
+
+black, blink, blue, bold, brown, cyan, darkgray, gray, green, halfbright, lightblue, lightcyan, lightgray, lightgreen, lightmagenta, lightred, magenta, red, reset, reverse, and yellow.
+
+=== ANSI color sequences
+
+The color sequences are composed of sequences of numbers separated by semicolons. The most common codes are:
+
+____
+[cols=",",]
+|===
+|0 |to restore default color
+|1 |for brighter colors
+|4 |for underlined text
+|5 |for flashing text
+|30 |for black foreground
+|31 |for red foreground
+|32 |for green foreground
+|33 |for yellow (or brown) foreground
+|34 |for blue foreground
+|35 |for purple foreground
+|36 |for cyan foreground
+|37 |for white (or gray) foreground
+|40 |for black background
+|41 |for red background
+|42 |for green background
+|43 |for yellow (or brown) background
+|44 |for blue background
+|45 |for purple background
+|46 |for cyan background
+|47 |for white (or gray) background
+|===
+____
+
+=== Escape sequences
+
+To specify control or blank characters in the color sequences, C-style \-escaped notation can be used:
+
+____
+[cols=",",]
+|===
+|*\a* |Bell (ASCII 7)
+|*\b* |Backspace (ASCII 8)
+|*\e* |Escape (ASCII 27)
+|*\f* |Form feed (ASCII 12)
+|*\n* |Newline (ASCII 10)
+|*\r* |Carriage Return (ASCII 13)
+|*\t* |Tab (ASCII 9)
+|*\v* |Vertical Tab (ASCII 11)
+|*\?* |Delete (ASCII 127)
+|*\_* |Space
+|*\\* |Backslash (\)
+|*\^* |Caret (^)
+|*\#* |Hash mark (#)
+|===
+____
+
+Please note that escapes are necessary to enter a space, backslash, caret, or any control character anywhere in the string, as well as a hash mark as the first character.
+
+For example, to use a red background for alert messages in the output of *dmesg*(1), use:
+
+____
+*echo 'alert 37;41' >> /etc/terminal-colors.d/dmesg.scheme*
+____
+
+=== Comments
+
+Lines where the first non-blank character is a # (hash) are ignored. Any other use of the hash character is not interpreted as introducing a comment.
+
+== ENVIRONMENT
+
+*TERMINAL_COLORS_DEBUG*=all::
+enables debug output.
+
+== FILES
+
+_$XDG_CONFIG_HOME/terminal-colors.d_
+
+_$HOME/.config/terminal-colors.d_
+
+_/etc/terminal-colors.d_
+
+== EXAMPLE
+
+Disable colors for all compatible utilities:
+
+____
+*touch /etc/terminal-colors.d/disable*
+____
+
+Disable colors for all compatible utils on a vt100 terminal:
+
+____
+*touch /etc/terminal-colors.d/@vt100.disable*
+____
+
+Disable colors for all compatible utils except *dmesg*(1):
+
+____
+*touch /etc/terminal-colors.d/disable*
+
+*touch /etc/terminal-colors.d/dmesg.enable*
+____
+
+== COMPATIBILITY
+
+The *terminal-colors.d* functionality is currently supported by all util-linux utilities which provides colorized output. For more details always see the *COLORS* section in the man page for the utility.
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer-config.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

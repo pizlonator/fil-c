@@ -1,0 +1,8 @@
+[Unit]
+Description=UUID daemon activation socket
+
+[Socket]
+ListenStream=@runstatedir@/uuidd/request
+
+[Install]
+WantedBy=sockets.target

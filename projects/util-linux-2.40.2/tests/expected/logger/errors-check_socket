@@ -1,0 +1,41 @@
+Check written socket data of all subtests.
+socket data, kern_priority:
+<8>Feb 13 23:31:30 prio: message
+
+socket data, kern_priority_numeric:
+<8>Feb 13 23:31:30 prio: message
+
+socket data, invalid_prio:
+
+socket data, rfc5424_exceed_size:
+<13>1 2009-02-13T23:31:30.123456+00:00 test-hostname rfc5424_exceed_size - - [timeQuality tzKnown="1" isSynced="0"] abc
+
+socket data, id_with_space:
+
+socket data, id_with_space:
+
+socket data, id_with_space:
+
+socket data, id_with_space:
+<13>Feb 13 23:31:30 id_with_leading space[123]: message
+
+socket data, id_with_space:
+
+socket data, tag_with_space:
+<13>Feb 13 23:31:30 A B: tag_with_space
+
+socket data, tag_with_space:
+<13>1 2009-02-13T23:31:30.123456+00:00 test-hostname A B - - [timeQuality tzKnown="1" isSynced="0"] tag_with_space_rfc5424
+
+socket data, tcp:
+<13>Feb 13 23:31:30 tcp: message
+
+socket data, multi-line:
+<13>Feb 13 23:31:30 multi: AAA
+<13>Feb 13 23:31:30 multi: BBB
+<13>Feb 13 23:31:30 multi: CCC
+
+socket data, rfc5424_msgid_with_space:
+
+socket data, invalid_socket:
+

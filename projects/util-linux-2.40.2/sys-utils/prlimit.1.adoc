@@ -1,0 +1,146 @@
+//po4a: entry man manual
+////
+prlimit.1 --
+Copyright 2011 Davidlohr Bueso <dave@gnu.org>
+May be distributed under the GNU General Public License
+////
+= prlimit(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: prlimit
+:colon: :
+
+== NAME
+
+prlimit - get and set process resource limits
+
+== SYNOPSIS
+
+*prlimit* [options] [*--resource*[=_limits_]] [*--pid* _PID_]
+
+*prlimit* [options] [*--resource*[=_limits_]] _command_ [_argument_...]
+
+== DESCRIPTION
+
+Given a process ID and one or more resources, *prlimit* tries to retrieve and/or modify the limits.
+
+When _command_ is given, *prlimit* will run this command with the given arguments.
+
+The _limits_ parameter is composed of a soft and a hard value, separated by a colon (:), in order to modify the existing values. If no _limits_ are given, *prlimit* will display the current values. If one of the values is not given, then the existing one will be used. To specify the unlimited or infinity limit (*RLIM_INFINITY*), the -1 or 'unlimited' string can be passed.
+
+Because of the nature of limits, the soft limit must be lower or equal to the high limit (also called the ceiling). To see all available resource limits, refer to the *RESOURCE OPTIONS* section.
+
+//TRANSLATORS: Keep {colon} untranslated.
+* _soft_{colon}__hard__ Specify both limits.
+* _soft_{colon} Specify only the soft limit.
+* {colon}__hard__ Specify only the hard limit.
+* _value_ Specify both limits to the same value.
+
+== GENERAL OPTIONS
+
+*--noheadings*::
+Do not print a header line.
+
+*-o*, *--output* _list_::
+Define the output columns to use. If no output arrangement is specified, then a default set is used. Use *--help* to get a list of all supported columns.
+
+*-p*, *--pid*::
+Specify the process id; if none is given, the running process will be used.
+
+*--raw*::
+Use the raw output format.
+
+*--verbose*::
+Verbose mode.
+
+include::man-common/help-version.adoc[]
+
+== RESOURCE OPTIONS
+
+*-c*, *--core*[=_limits_]::
+Maximum size of a core file.
+
+*-d*, *--data*[=_limits_]::
+Maximum data size.
+
+*-e*, *--nice*[=_limits_]::
+Maximum nice priority allowed to raise.
+
+*-f*, *--fsize*[=_limits_]::
+Maximum file size.
+
+*-i*, *--sigpending*[=_limits_]::
+Maximum number of pending signals.
+
+*-l*, *--memlock*[=_limits_]::
+Maximum locked-in-memory address space.
+
+*-m*, *--rss*[=_limits_]::
+Maximum Resident Set Size (RSS).
+
+*-n*, *--nofile*[=_limits_]::
+Maximum number of open files.
+
+*-q*, *--msgqueue*[=_limits_]::
+Maximum number of bytes in POSIX message queues.
+
+*-r*, *--rtprio*[=_limits_]::
+Maximum real-time priority.
+
+*-s*, *--stack*[=_limits_]::
+Maximum size of the stack.
+
+*-t*, *--cpu*[=_limits_]::
+CPU time, in seconds.
+
+*-u*, *--nproc*[=_limits_]::
+Maximum number of processes.
+
+*-v*, *--as*[=_limits_]::
+Address space limit.
+
+*-x*, *--locks*[=_limits_]::
+Maximum number of file locks held.
+
+*-y*, *--rttime*[=_limits_]::
+Timeout for real-time tasks.
+
+== NOTES
+
+The *prlimit*(2) system call is supported since Linux 2.6.36, older kernels will break this program.
+
+== EXAMPLES
+
+*prlimit --pid 13134*::
+Display limit values for all current resources.
+
+*prlimit --pid 13134 --rss --nofile=1024:4095*::
+Display the limits of the RSS, and set the soft and hard limits for the number of open files to 1024 and 4095, respectively.
+
+*prlimit --pid 13134 --nproc=512:*::
+Modify only the soft limit for the number of processes.
+
+*prlimit --pid $$ --nproc=unlimited*::
+Set for the current process both the soft and ceiling values for the number of processes to unlimited.
+
+*prlimit --cpu=10 sort -u hugefile*::
+Set both the soft and hard CPU time limit to ten seconds and run *sort*(1).
+
+== AUTHORS
+
+mailto:dave@gnu.org[Davidlohr Bueso] - In memory of Dennis M. Ritchie.
+
+== SEE ALSO
+
+*ulimit*(1p),
+*prlimit*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

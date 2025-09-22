@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2013 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="losetup"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LOSETUP"
+ts_check_test_command "$TS_CMD_LSBLK"
+
+# Before checking for loop support we would need to test if losetup -f works at
+# all. At least we do a simple executable test for now.
+$TS_CMD_LOSETUP --version >/dev/null 2>$TS_OUTPUT || ts_failed
+$TS_CMD_LOSETUP --unknownopt >>$TS_OUTPUT 2>/dev/null && ts_failed
+test -s $TS_OUTPUT && ts_failed
+
+ts_skip_nonroot
+ts_check_losetup
+
+. "$TS_SELF/losetup_functions.sh"
+
+#
+# file-* tests: Backing file is a regular file
+#
+BACKFILE=$(ts_image_init 10)
+
+ts_init_subtest "file-show"
+LODEV=$( $TS_CMD_LOSETUP --find --show $BACKFILE )
+if [ -z "$LODEV" ]; then
+	ts_log "Failed to create loop device"
+fi
+lo_print $LODEV >> $TS_OUTPUT
+$TS_CMD_LOSETUP -d $LODEV
+ts_finalize_subtest
+
+ts_init_subtest "file-offset"
+LODEV=$( $TS_CMD_LOSETUP --offset 1MiB --find --show $BACKFILE )
+if [ -z "$LODEV" ]; then
+	ts_log "Failed to create loop device"
+fi
+lo_print $LODEV >> $TS_OUTPUT
+$TS_CMD_LOSETUP -d $LODEV
+ts_finalize_subtest
+
+
+ts_init_subtest "file-sizelimit"
+LODEV=$( $TS_CMD_LOSETUP --sizelimit 3MiB --find --show $BACKFILE )
+if [ -z "$LODEV" ]; then
+	ts_log "Failed to create loop device"
+fi
+lo_print $LODEV >> $TS_OUTPUT
+$TS_CMD_LOSETUP -d $LODEV
+ts_finalize_subtest
+
+
+ts_init_subtest "file-section"
+LODEV=$( $TS_CMD_LOSETUP --offset 1MiB --sizelimit 3MiB --find --show $BACKFILE )
+if [ -z "$LODEV" ]; then
+	ts_log "Failed to create loop device"
+fi
+lo_print $LODEV >> $TS_OUTPUT
+$TS_CMD_LOSETUP -d $LODEV
+ts_finalize_subtest
+
+rm -rf $BACKFILE
+
+udevadm settle
+
+ts_finalize

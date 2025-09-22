@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="ownership and hierarchy"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+# ts_skip_nonroot
+grep -q '#define HAVE_LINUX_NSFS_H' ${top_builddir}/config.h || ts_skip "no ioctl_ns support"
+
+[ -r /proc/self/ns/user ] || ts_skip "no USER namespace kernel support"
+[ -r /proc/self/ns/pid ] || ts_skip "no PID namespace kernel support"
+
+ts_check_test_command "$TS_CMD_LSNS"
+ts_check_test_command "$TS_CMD_UNSHARE"
+ts_check_prog "stat"
+ts_check_prog "mkfifo"
+ts_check_prog "touch"
+ts_check_prog "uniq"
+
+"$TS_CMD_LSNS" > /dev/null 2>&1
+if [ $? -eq 2 ]; then
+	ts_skip "ioctl not supported"
+fi
+
+$TS_CMD_UNSHARE --user --pid --mount-proc --fork true &> /dev/null || ts_skip "no namespace support"
+
+ts_cd "$TS_OUTDIR"
+
+# The parent process receives namespaces ids via FIFO_DATA from bash
+# run by unshare. The parent can wait till the bash process provides
+# data.
+FIFO_DATA=$TS_OUTDIR/FIFO_DATA-HIERARCHY
+
+# The bash process run by unshare waits with this fifo till the parent
+# process exits.  As a result, namespaecs referred by the bash
+# process can be alive till the parent process exits.
+FIFO_WAIT=$TS_OUTDIR/FIFO_WAIT-HIERARCHY
+
+function cleanup {
+    rm -f $FIFO_DATA
+    rm -f $FIFO_WAIT
+}
+
+function init {
+    cleanup
+    mkfifo $FIFO_DATA
+    mkfifo $FIFO_WAIT
+}
+
+init
+(
+    exec 4> $FIFO_WAIT
+    my_userns=$(stat -c %i -L /proc/self/ns/user)
+    my_pidns=$(stat -c %i -L /proc/self/ns/pid)
+    read child_userns < $FIFO_DATA
+    read child_pidns  < $FIFO_DATA
+
+    expected="$child_userns $my_userns $my_userns"
+    actual=$("$TS_CMD_LSNS" -t user -n -o NS,PNS,ONS "$child_userns" | uniq)
+    test "$expected" = "$actual"
+    RESULT=$?
+    if [ $RESULT -ne 0 ]; then
+	echo
+	echo userns expected: "$expected"
+	echo userns actual:   "$actual"
+	echo "$TS_CMD_LSNS":
+	LSNS_DEBUG=all "$TS_CMD_LSNS"
+	cleanup
+	exit $RESULT
+    fi
+
+    expected="$child_pidns $my_pidns $child_userns"
+    actual=$("$TS_CMD_LSNS" -t pid -n -o NS,PNS,ONS "$child_pidns" | uniq)
+    test "$expected" = "$actual"
+    RESULT=$?
+    if [ $RESULT -ne 0 ]; then
+	echo
+	echo pidns expected: "$expected"
+	echo pidns actual:   "$actual"
+	echo "$TS_CMD_LSNS":
+	LSNS_DEBUG=all "$TS_CMD_LSNS"
+	cleanup
+    fi
+    exit $RESULT
+) >> $TS_ERRLOG 2>&1 &
+mainpid=$!
+(
+    exec 4< $FIFO_WAIT
+    $TS_CMD_UNSHARE --user --pid --mount-proc --fork bash -s > $FIFO_DATA <<'EOF'
+    stat -c %i -L /proc/self/ns/user
+    stat -c %i -L /proc/self/ns/pid
+    # Wait till FIFO_WAIT is clsoed.
+    read -u 4
+EOF
+) &
+subpid=$!
+
+wait $subpid
+wait $mainpid
+
+RESULT=$?
+echo $RESULT >> $TS_OUTPUT
+
+cleanup
+ts_finalize

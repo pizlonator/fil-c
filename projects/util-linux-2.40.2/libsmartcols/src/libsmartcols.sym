@@ -1,0 +1,246 @@
+/*
+ * symbols since util-linux 2.25
+ *
+ * Copyright (C) 2014-2016 Karel Zak <kzak@redhat.com>
+ */
+SMARTCOLS_2.25 {
+global:
+	scols_cell_copy_content;
+	scols_cell_get_color;
+	scols_cell_get_data;
+	scols_cell_get_userdata;
+	scols_cell_refer_data;
+	scols_cell_set_color;
+	scols_cell_set_data;
+	scols_cell_set_userdata;
+	scols_cmpstr_cells;
+	scols_column_get_color;
+	scols_column_get_flags;
+	scols_column_get_header;
+	scols_column_get_whint;
+	scols_column_is_noextremes;
+	scols_column_is_right;
+	scols_column_is_strict_width;
+	scols_column_is_tree;
+	scols_column_is_trunc;
+	scols_column_set_cmpfunc;
+	scols_column_set_color;
+	scols_column_set_flags;
+	scols_column_set_whint;
+	scols_copy_column;
+	scols_copy_line;
+	scols_copy_symbols;
+	scols_copy_table;
+	scols_free_iter;
+	scols_get_library_version;
+	scols_init_debug;
+	scols_iter_get_direction;
+	scols_line_add_child;
+	scols_line_alloc_cells;
+	scols_line_free_cells;
+	scols_line_get_cell;
+	scols_line_get_color;
+	scols_line_get_column_cell;
+	scols_line_get_ncells;
+	scols_line_get_parent;
+	scols_line_get_userdata;
+	scols_line_has_children;
+	scols_line_next_child;
+	scols_line_refer_data;
+	scols_line_remove_child;
+	scols_line_set_color;
+	scols_line_set_data;
+	scols_line_set_userdata;
+	scols_new_column;
+	scols_new_iter;
+	scols_new_line;
+	scols_new_symbols;
+	scols_new_table;
+	scols_parse_version_string;
+	scols_print_table;
+	scols_print_table_to_string;
+	scols_ref_column;
+	scols_ref_line;
+	scols_ref_symbols;
+	scols_ref_table;
+	scols_reset_cell;
+	scols_reset_iter;
+	scols_sort_table;
+	scols_symbols_set_branch;
+	scols_symbols_set_right;
+	scols_symbols_set_vertical;
+	scols_table_add_column;
+	scols_table_add_line;
+	scols_table_colors_wanted;
+	scols_table_enable_ascii;
+	scols_table_enable_colors;
+	scols_table_enable_export;
+	scols_table_enable_maxout;
+	scols_table_enable_noheadings;
+	scols_table_enable_raw;
+	scols_table_get_column;
+	scols_table_get_column_separator;
+	scols_table_get_line;
+	scols_table_get_line_separator;
+	scols_table_get_ncols;
+	scols_table_get_nlines;
+	scols_table_get_stream;
+	scols_table_is_ascii;
+	scols_table_is_empty;
+	scols_table_is_export;
+	scols_table_is_maxout;
+	scols_table_is_noheadings;
+	scols_table_is_raw;
+	scols_table_is_tree;
+	scols_table_new_column;
+	scols_table_new_line;
+	scols_table_next_column;
+	scols_table_next_line;
+	scols_table_reduce_termwidth;
+	scols_table_remove_column;
+	scols_table_remove_columns;
+	scols_table_remove_line;
+	scols_table_remove_lines;
+	scols_table_set_column_separator;
+	scols_table_set_line_separator;
+	scols_table_set_stream;
+	scols_table_set_symbols;
+	scols_unref_column;
+	scols_unref_line;
+	scols_unref_symbols;
+	scols_unref_table;
+local:
+	*;
+};
+
+SMARTCOLS_2.27 {
+global:
+	scols_column_is_hidden;
+	scols_table_enable_json;
+	scols_table_is_json;
+	scols_table_set_name;
+} SMARTCOLS_2.25;
+
+SMARTCOLS_2.28 {
+global:
+	scols_column_is_wrap;
+	scols_line_refer_column_data;
+	scols_line_set_column_data;
+	scols_symbols_set_title_padding;
+	scols_table_enable_nowrap;
+	scols_table_get_title;
+	scols_cell_get_flags;
+	scols_cell_set_flags;
+	scols_table_print_range;
+	scols_table_print_range_to_string;
+	scols_table_enable_nolinesep;
+} SMARTCOLS_2.27;
+
+SMARTCOLS_2.29 {
+global:
+	scols_column_get_safechars;
+	scols_column_get_table;
+	scols_column_get_width;
+	scols_column_is_customwrap;
+	scols_column_set_safechars;
+	scols_column_set_wrapfunc;
+	scols_symbols_set_cell_padding;
+	scols_table_get_name;
+	scols_table_get_symbols;
+	scols_table_get_termforce;
+	scols_table_get_termwidth;
+	scols_table_is_nolinesep;
+	scols_table_is_nowrap;
+	scols_table_set_default_symbols;
+	scols_table_set_termforce;
+	scols_table_set_termwidth;
+	scols_wrapnl_chunksize;
+	scols_wrapnl_nextchunk;
+} SMARTCOLS_2.28;
+
+
+SMARTCOLS_2.30 {
+global:
+	scols_cell_get_alignment;
+	scols_table_move_column;
+	scols_sort_table_by_tree;
+	scols_line_is_ancestor;
+} SMARTCOLS_2.29;
+
+
+SMARTCOLS_2.31 {
+	scols_table_set_termheight;
+	scols_table_get_termheight;
+	scols_table_is_header_repeat;
+	scols_table_enable_header_repeat;
+	scols_table_enable_noencoding;
+	scols_table_is_noencoding;
+} SMARTCOLS_2.30;
+
+
+SMARTCOLS_2.33 {
+	scols_column_set_json_type;
+	scols_column_get_json_type;
+} SMARTCOLS_2.31;
+
+SMARTCOLS_2.34 {
+	scols_table_group_lines;
+	scols_line_link_group;
+	scols_symbols_set_group_vertical;
+	scols_symbols_set_group_horizontal;
+	scols_symbols_set_group_first_member;
+	scols_symbols_set_group_last_member;
+	scols_symbols_set_group_middle_member;
+	scols_symbols_set_group_last_child;
+	scols_symbols_set_group_middle_child;
+} SMARTCOLS_2.33;
+
+SMARTCOLS_2.35 {
+	scols_table_enable_minout;
+	scols_table_is_minout;
+	scols_table_set_columns_iter;
+} SMARTCOLS_2.34;
+
+SMARTCOLS_2.38 {
+	scols_line_get_column_data;
+	scols_column_set_name;
+	scols_column_get_name;
+	scols_column_get_name_as_shellvar;
+	scols_table_is_shellvar;
+	scols_table_enable_shellvar;
+} SMARTCOLS_2.35;
+
+SMARTCOLS_2.39 {
+	scols_column_set_properties;
+	scols_table_get_column_by_name;
+} SMARTCOLS_2.38;
+
+SMARTCOLS_2.40 {
+	scols_table_get_cursor;
+	scols_cell_refer_memory;
+	scols_cell_get_datasiz;
+	scols_wrapzero_nextchunk;
+	scols_column_get_wrap_data;
+	scols_dump_filter;
+	scols_filter_parse_string;
+	scols_new_filter;
+	scols_unref_filter;
+	scols_filter_get_errmsg;
+	scols_filter_next_holder;
+	scols_filter_assign_column;
+	scols_line_apply_filter;
+	scols_filter_set_filler_cb;
+	scols_line_is_filled;
+	scols_filter_new_counter;
+	scols_counter_set_name;
+	scols_counter_set_param;
+	scols_counter_set_func;
+	scols_counter_get_result;
+	scols_counter_get_name;
+	scols_filter_next_counter;
+	scols_shellvar_name;
+	scols_column_set_data_func;
+	scols_column_has_data_func;
+	scols_column_set_data_type;
+	scols_column_get_data_type;
+} SMARTCOLS_2.39;

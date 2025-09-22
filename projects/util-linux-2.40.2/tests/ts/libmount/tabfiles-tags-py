@@ -1,0 +1,90 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="tags-py"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_skip_nonroot
+
+ts_init_py libmount
+
+if [ "$TS_ENABLE_ASAN" == "yes" -o "$TS_ENABLE_UBSAN" == "yes" ]; then
+	TS_KNOWN_FAIL="yes"
+fi
+
+TESTPROG="$TS_HELPER_PYLIBMOUNT_TAB"
+[ -x $TESTPROG ] || ts_die "test script missing"
+
+ts_check_prog "mkfs.ext2"
+
+PYDBG="$PYTHON -m pdb"
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=50 sector_size=512
+LABEL="testLibmount"
+UUID="de1bc6e9-34ab-4151-a1d7-900042eee8d9"
+
+#
+# Create filesystem
+#
+mkfs.ext2 -F -L $LABEL $TS_DEVICE -U $UUID &> /dev/null || ts_die "Cannot make ext2 on $TS_DEVICE"
+ts_device_has "LABEL" "$LABEL" "$TS_DEVICE" || ts_die "Cannot find  LABEL '$LABEL' on $TS_DEVICE"
+ts_device_has "UUID" "$UUID" "$TS_DEVICE" || ts_die "Cannot find $UUID on $TS_DEVICE"
+
+FSTAB="$TS_OUTDIR/fstab"
+
+#
+# Label in fstab
+#
+echo "LABEL=$LABEL /mnt/mountpoint auto defaults" > $FSTAB
+ts_udevadm_settle "$DEVICE" "LABEL" "UUID"
+
+ts_init_subtest "fstab-label2uuid"
+$PYTHON $TESTPROG --find-forward $FSTAB source "UUID=$UUID" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest "fstab-label2dev"
+$PYTHON $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+#
+# Add more enties for the same device
+#
+echo "UUID=$UUID  /mnt/mountpoint2 auto defaults" >> $FSTAB
+
+ts_init_subtest "fstab-uuid"
+# has to return /mnt/mountpoint2
+$PYTHON $TESTPROG --find-forward $FSTAB source "UUID=$UUID" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest "fstab-label"
+# has to return /mnt/mountpoint
+$PYTHON $TESTPROG --find-forward $FSTAB source "LABEL=$LABEL" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+
+ts_init_subtest "fstab-dev2label"
+# has to return /mnt/mountpoint
+$PYTHON $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+#
+# Add devname
+#
+echo "$TS_DEVICE  /mnt/mountpoint3 auto defaults" >> $FSTAB
+
+ts_init_subtest "fstab-dev"
+# has to return /mnt/mountpoint3
+$PYTHON $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+sed -i -e 's/source: .*//g' $TS_OUTPUT		# devname is generated, remove it
+ts_finalize_subtest
+
+ts_finalize

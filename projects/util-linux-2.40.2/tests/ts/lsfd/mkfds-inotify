@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="inotify"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_prog "stat"
+ts_check_prog "sed"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+dir=/proc
+file=/proc/cmdline
+PROC="$(stat -c %i $dir)"@"$($TS_CMD_FINDMNT --raw --noheadings -oMAJ:MIN --target $dir)"
+CMDLINE="$(stat -c %i $file)"@"$($TS_CMD_FINDMNT --raw --noheadings -oMAJ:MIN --target $file)"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" inotify $FD dir=$dir file=$file ; }
+    if read -u ${MKFDS[0]} PID; then
+	EXPR='(PID == '"${PID}"') and (FD == '"$FD"')'
+	INODES_RAW=$(${TS_CMD_LSFD} --raw -n -o INOTIFY.INODES.RAW -Q "${EXPR}")
+	echo "INOTIFY.INODES.RAW": $?
+	if [[ "$INODES_RAW" ==  "${CMDLINE}"'\x0a'"${PROC}" ]]; then
+	    echo "INOTIFY.INODES.RAW" == CMDLINE'\x0a'PROC
+	else
+	    echo "INOTIFY.INODES.RAW": "$INODES_RAW"
+	    echo "CMDLINE": "$CMDLINE"
+	    echo "PROC": "$PROC"
+	fi
+	INODES_RAW_JSON=$(${TS_CMD_LSFD} -J --raw -n -o INOTIFY.INODES.RAW -Q "${EXPR}")
+	echo "INOTIFY.INODES.RAW (JSON)": $?
+	EXPECTED_JSON=$(cat<<EOF
+{
+   "lsfd": [
+      {
+         "inotify.inodes.raw": [
+             "$CMDLINE", "$PROC"
+         ]
+      }
+   ]
+}
+EOF
+	)
+	if [[ "$INODES_RAW_JSON" ==  "${EXPECTED_JSON}" ]]; then
+	    echo "INOTIFY.INODES.RAW" == EXPECTED_JSON
+	else
+	    echo "INOTIFY.INODES.RAW": "$INODES_RAW_JSON"
+	fi
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait "${MKFDS_PID}"
+} > "$TS_OUTPUT" 2>&1
+
+ts_finalize

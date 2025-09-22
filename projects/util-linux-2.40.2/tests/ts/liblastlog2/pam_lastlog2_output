@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="pam_lastlog2_output"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command $TS_HELPER_LIBLASTLOG2_PAM_LASTLOG2_OUTPUT
+
+export TZ=UTC
+
+$TS_HELPER_LIBLASTLOG2_PAM_LASTLOG2_OUTPUT || ts_failed "returned an error"
+
+rm pam_lastlog2-output.db
+
+ts_finalize

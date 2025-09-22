@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="functional"
+
+export LC_CTYPE='C'
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_check_wcsspn
+
+ts_check_test_command "$TS_CMD_COLCRT"
+
+ts_init_subtest 'no-options'
+$TS_CMD_COLCRT < $TS_SELF/nasty-input >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_COLCRT < $TS_SELF/underlines >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "return value: $?" >> $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest 'no-underlining'
+$TS_CMD_COLCRT --no-underlining < $TS_SELF/nasty-input >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_COLCRT --no-underlining < $TS_SELF/underlines >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "return value: $?" >> $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest 'half-lines'
+$TS_CMD_COLCRT --half-lines < $TS_SELF/nasty-input >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_COLCRT --half-lines < $TS_SELF/underlines >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "return value: $?" >> $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest 'short-options'
+$TS_CMD_COLCRT - -2 $TS_SELF/nasty-input >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_COLCRT - -2 $TS_SELF/underlines >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "return value: $?" >> $TS_OUTPUT
+ts_finalize_subtest
+
+ts_finalize

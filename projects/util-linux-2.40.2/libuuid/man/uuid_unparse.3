@@ -1,0 +1,69 @@
+'\" t
+.\"     Title: uuid_unparse
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: Programmer's Manual
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UUID_UNPARSE" "3" "2024-05-28" "util\-linux 2.40.2" "Programmer\*(Aqs Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+uuid_unparse \- convert a UUID from binary representation to a string
+.SH "SYNOPSIS"
+.sp
+\fB#include <uuid.h>\fP
+.sp
+\fBvoid uuid_unparse(const uuid_t \fIuu\fP, char *\fIout\fP);\fP
+.br
+\fBvoid uuid_unparse_upper(const uuid_t \fIuu\fP, char *\fIout\fP);\fP
+.br
+\fBvoid uuid_unparse_lower(const uuid_t \fIuu\fP, char *\fIout\fP);\fP
+.SH "DESCRIPTION"
+.sp
+The \fBuuid_unparse\fP() function converts the supplied UUID \fIuu\fP from the binary representation into a 36\-byte string (plus trailing \*(Aq\(rs0\*(Aq) of the form 1b4e28ba\-2fa1\-11d2\-883f\-0016d3cca427 and stores this value in the character string pointed to by \fIout\fP. The case of the hex digits returned by \fBuuid_unparse\fP() may be upper or lower case, and is dependent on the system\-dependent local default.
+.sp
+If the case of the hex digits is important then the functions \fBuuid_unparse_upper\fP() and \fBuuid_unparse_lower\fP() may be used.
+.SH "CONFORMING TO"
+.sp
+This library unparses UUIDs compatible with OSF DCE 1.1.
+.SH "AUTHORS"
+.sp
+Theodore Y. Ts\(cqo
+.SH "SEE ALSO"
+.sp
+\fBuuid\fP(3),
+\fBuuid_clear\fP(3),
+\fBuuid_compare\fP(3),
+\fBuuid_copy\fP(3),
+\fBuuid_generate\fP(3),
+\fBuuid_time\fP(3),
+\fBuuid_is_null\fP(3),
+\fBuuid_parse\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlibuuid\fP library is part of the util\-linux package since version 2.15.1. It can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

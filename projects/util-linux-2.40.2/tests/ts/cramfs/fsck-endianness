@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2007 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="fsck endianness"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MKCRAMFS"
+ts_check_test_command "$TS_CMD_FSCKCRAMFS"
+ts_check_test_command "$TS_HELPER_MD5"
+
+ts_skip_nonroot
+
+IMAGE_LITTLE="$TS_SELF/cramfs-little.img"	#Known good little endian image
+IMAGE_BIG="$TS_SELF/cramfs-big.img"		#Known good big endian image
+
+IMAGE_CREATED="$TS_OUTDIR/${TS_TESTNAME}-cramfs.img"	#Image created during the test and compared against the known images.
+IMAGE_DATA="$TS_OUTDIR/${TS_TESTNAME}-data"
+
+test_image() {
+	local FROM_ENDIANNESS="$1"; shift
+	local TO_ENDIANNESS="$1"; shift
+	local FROM_IMAGE="$1"; shift
+
+	rm -rf "$IMAGE_DATA"
+	ts_log "extract from $FROM_ENDIANNESS endian"
+	$TS_CMD_FSCKCRAMFS -v -b 4096 --extract=$IMAGE_DATA $FROM_IMAGE | head -n1 | cut -d" " -f4 >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+	ts_log "create $TO_ENDIANNESS endian"
+	$TS_CMD_MKCRAMFS -N "$TO_ENDIANNESS" -b 4096 "$IMAGE_DATA" \
+		"$IMAGE_CREATED" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+	"$TS_HELPER_MD5" < "$IMAGE_CREATED" >> $TS_OUTPUT
+
+	rm "$IMAGE_CREATED"
+}
+
+test_image "little" "big" "$IMAGE_LITTLE"
+test_image "big" "little" "$IMAGE_BIG"
+
+ts_finalize
+

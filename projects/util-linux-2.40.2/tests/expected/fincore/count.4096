@@ -1,0 +1,53 @@
+[ NO EXCITING FILE ]
+return value: 1
+0     0 i_EMPTY_FILE
+return value: 0
+1  4095 i_PAGESIZE_-1__incore_
+return value: 0
+1  4096 i_JUST_PAGESIZE_incore_
+return value: 0
+0  4096 i_JUST_PAGESIZE_directio_
+return value: 0
+2  8192 i_TWO_PAGES_incore_
+return value: 0
+0  8192 i_TWO_PAGES_directio_
+return value: 0
+1  8192 i_TWO_PAGES_mixed_directio_incore_
+return value: 0
+1  8192 i_TWO_PAGES_mixed_incore_directio_
+return value: 0
+2 134213632 i_WINDOW_SIZE_incore-sparse-incore_
+return value: 0
+0 134213632 i_WINDOW_SIZE_directio-sparse-directio_
+return value: 0
+1 134213632 i_WINDOW_SIZE_incore-sparse-directio_
+return value: 0
+1 134213632 i_WINDOW_SIZE_directio-sparse-incore_
+return value: 0
+2 134217728 i_WINDOW_SIZE_+_1_page_incore-sparse-incore_
+return value: 0
+0 134217728 i_WINDOW_SIZE_+_1_page_directio-sparse-directio_
+return value: 0
+1 134217728 i_WINDOW_SIZE_+_1_page_incore-sparse-directio_
+return value: 0
+1 134217728 i_WINDOW_SIZE_+_1_page_directio-sparse-incore_
+return value: 0
+[ MULTIPLE FILES ]
+PAGES      SIZE FILE
+    0         0 i_EMPTY_FILE
+    1      4095 i_PAGESIZE_-1__incore_
+    1      4096 i_JUST_PAGESIZE_incore_
+    0      4096 i_JUST_PAGESIZE_directio_
+    2      8192 i_TWO_PAGES_incore_
+    0      8192 i_TWO_PAGES_directio_
+    1      8192 i_TWO_PAGES_mixed_directio_incore_
+    1      8192 i_TWO_PAGES_mixed_incore_directio_
+    2 134213632 i_WINDOW_SIZE_incore-sparse-incore_
+    0 134213632 i_WINDOW_SIZE_directio-sparse-directio_
+    1 134213632 i_WINDOW_SIZE_incore-sparse-directio_
+    1 134213632 i_WINDOW_SIZE_directio-sparse-incore_
+    2 134217728 i_WINDOW_SIZE_+_1_page_incore-sparse-incore_
+    0 134217728 i_WINDOW_SIZE_+_1_page_directio-sparse-directio_
+    1 134217728 i_WINDOW_SIZE_+_1_page_incore-sparse-directio_
+    1 134217728 i_WINDOW_SIZE_+_1_page_directio-sparse-incore_
+return value: 1

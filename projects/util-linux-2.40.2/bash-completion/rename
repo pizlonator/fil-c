@@ -1,0 +1,34 @@
+_rename_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="--verbose --symlink --help --version --no-act --all --last --no-overwrite --interactive"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	case $COMP_CWORD in
+		1)
+			COMPREPLY=( $(compgen -W "expression" -- $cur) )
+			;;
+		2)
+			COMPREPLY=( $(compgen -W "replacement" -- $cur) )
+			;;
+		*)
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=( $(compgen -f -- $cur) )
+			;;
+	esac
+	return 0
+}
+complete -F _rename_module rename

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="September 1752"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_HELPER_CAL"
+
+export TERM=linux
+
+USETERM=$( ts_has_option "useterm" "$*" )
+MYMONTH="09 1752"
+MYYEAR="1752"
+
+CAL_TEST_TIME=1516562739  # 21st January 2018
+export CAL_TEST_TIME
+
+function call_cal_simple {
+	ts_log "$1"
+	shift
+	if [ "$USETERM" == "yes" ]; then
+		$TS_HELPER_CAL "$@"
+	fi
+	$TS_HELPER_CAL "$@" >> $TS_OUTPUT
+}
+
+function call_cal {
+	local testname=$(echo "$2" | sed 's/-//g')
+
+	if [ "$3" == "$MYYEAR" ]; then
+		testname="${testname}-year"
+	else
+		testname="${testname}-month"
+	fi
+
+	ts_init_subtest "$testname"
+	call_cal_simple "$@"
+	ts_finalize_subtest
+}
+
+
+call_cal "Gregorian - Monday-based month with week numbers" -1mw $MYMONTH
+call_cal "Gregorian - Sunday-based month with week numbers" -1sw $MYMONTH
+call_cal "Julian - Monday-based month with week numbers" -1mjw $MYMONTH
+call_cal "Julian - Sunday-based month with week numbers" -1sjw $MYMONTH
+call_cal "Gregorian - Monday-based three months with week numbers" -3mw $MYMONTH
+call_cal "Gregorian - Sunday-based three months with week numbers" -3sw $MYMONTH
+call_cal "Julian - Monday-based three months with week numbers" -3mjw $MYMONTH
+call_cal "Julian - Sunday-based three months with week numbers" -3sjw $MYMONTH
+call_cal "Gregorian - Monday-based year with week numbers" -1mw $MYYEAR
+call_cal "Gregorian - Sunday-based year with week numbers" -1sw $MYYEAR
+call_cal "Julian - Monday-based year with week numbers" -1mjw $MYYEAR
+call_cal "Julian - Sunday-based year with week numbers" -1sjw $MYYEAR
+
+ts_init_subtest "week-iso"
+call_cal_simple "Gregorian - address by week number" --week=40 --iso $MYYEAR
+ts_finalize_subtest
+
+call_cal "Gregorian - Monday-based month" -1m $MYMONTH
+call_cal "Gregorian - Sunday-based month" -1s $MYMONTH
+call_cal "Julian - Monday-based month" -1mj $MYMONTH
+call_cal "Julian - Sunday-based month" -1sj $MYMONTH
+call_cal "Gregorian - Monday-based three months" -3m $MYMONTH
+call_cal "Gregorian - Sunday-based three months" -3s $MYMONTH
+call_cal "Julian - Monday-based three months" -3mj $MYMONTH
+call_cal "Julian - Sunday-based three months" -3sj $MYMONTH
+call_cal "Gregorian - Monday-based year" -1m $MYYEAR
+call_cal "Gregorian - Sunday-based year" -1s $MYYEAR
+call_cal "Julian - Monday-based year" -1mj $MYYEAR
+call_cal "Julian - Sunday-based year" -1sj $MYYEAR
+
+ts_finalize

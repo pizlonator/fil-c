@@ -1,0 +1,194 @@
+'\" t
+.\"     Title: script
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SCRIPT" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+script \- make typescript of terminal session
+.SH "SYNOPSIS"
+.sp
+\fBscript\fP [options] [\fIfile\fP]
+.SH "DESCRIPTION"
+.sp
+\fBscript\fP makes a typescript of everything on your terminal session. The terminal data are stored in raw form to the log file and information about timing to another (optional) structured log file. The timing log file is necessary to replay the session later by \fBscriptreplay\fP(1) and to store additional information about the session.
+.sp
+Since version 2.35, \fBscript\fP supports multiple streams and allows the logging of input and output to separate files or all the one file. This version also supports a new timing file which records additional information. The command \fBscriptreplay \-\-summary\fP then provides all the information.
+.sp
+If the argument \fIfile\fP or option \fB\-\-log\-out\fP \fIfile\fP is given, \fBscript\fP saves the dialogue in this \fIfile\fP. If no filename is given, the dialogue is saved in the file \fItypescript\fP.
+.sp
+Note that logging input using \fB\-\-log\-in\fP or \fB\-\-log\-io\fP may record security\-sensitive information as the log file contains all terminal session input (e.g., passwords) independently of the terminal echo flag setting.
+.SH "OPTIONS"
+.sp
+Below, the \fIsize\fP argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB"), or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.sp
+\fB\-a\fP, \fB\-\-append\fP
+.RS 4
+Append the output to \fIfile\fP or to \fItypescript\fP, retaining the prior contents.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-command\fP \fIcommand\fP
+.RS 4
+Run the \fIcommand\fP rather than an interactive shell. This makes it easy for a script to capture the output of a program that behaves differently when its stdout is not a tty.
+.RE
+.sp
+\fB\-E\fP, \fB\-\-echo\fP \fIwhen\fP
+.RS 4
+This option controls the \fBECHO\fP flag for the slave end of the session\(cqs pseudoterminal. The supported modes are \fIalways\fP, \fInever\fP, or \fIauto\fP.
+.sp
+The default is \fIauto\fP \(em in this case, \fBECHO\fP enabled for the pseudoterminal slave; if the current standard input is a terminal, \fBECHO\fP is disabled for it to prevent double echo; if the current standard input is not a terminal (for example pipe: \fBecho date | script\fP) then keeping \fBECHO\fP enabled for the pseudoterminal slave enables the standard input data to be viewed on screen while being recorded to session log simultaneously.
+.sp
+Note that \*(Aqnever\*(Aq mode affects content of the session output log, because users input is not repeated on output.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-return\fP
+.RS 4
+Return the exit status of the child process. Uses the same format as bash termination on signal termination (i.e., exit status is 128 + the signal number). The exit status of the child process is always stored in the type script file too.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-flush\fP
+.RS 4
+Flush output after each write. This is nice for telecooperation: one person does \fBmkfifo\fP \fIfoo\fP; \fBscript \-f\fP \fIfoo\fP, and another can supervise in real\-time what is being done using \fBcat\fP \fIfoo\fP. Note that flush has an impact on performance; it\(cqs possible to use \fBSIGUSR1\fP to flush logs on demand.
+.RE
+.sp
+\fB\-\-force\fP
+.RS 4
+Allow the default output file \fItypescript\fP to be a hard or symbolic link. The command will follow a symbolic link.
+.RE
+.sp
+\fB\-B\fP, \fB\-\-log\-io\fP \fIfile\fP
+.RS 4
+Log input and output to the same \fIfile\fP. Note, this option makes sense only if \fB\-\-log\-timing\fP is also specified, otherwise it\(cqs impossible to separate output and input streams from the log \fIfile\fP.
+.RE
+.sp
+\fB\-I\fP, \fB\-\-log\-in\fP \fIfile\fP
+.RS 4
+Log input to the \fIfile\fP. The log output is disabled if only \fB\-\-log\-in\fP specified.
+.sp
+Use this logging functionality carefully as it logs all input, including input when terminal has disabled echo flag (for example, password inputs).
+.RE
+.sp
+\fB\-O\fP, \fB\-\-log\-out\fP \fIfile\fP
+.RS 4
+Log output to the \fIfile\fP. The default is to log output to the file with name \fItypescript\fP if the option \fB\-\-log\-out\fP or \fB\-\-log\-in\fP is not given. The log output is disabled if only \fB\-\-log\-in\fP specified.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-log\-timing\fP \fIfile\fP
+.RS 4
+Log timing information to the \fIfile\fP. Two timing file formats are supported now. The classic format is used when only one stream (input or output) logging is enabled. The multi\-stream format is used on \fB\-\-log\-io\fP or when \fB\-\-log\-in\fP and \fB\-\-log\-out\fP are used together. See also \fB\-\-logging\-format\fP.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-logging\-format\fP \fIformat\fP
+.RS 4
+Force use of \fIadvanced\fP or \fIclassic\fP timing log format. The default is the classic format to log only output and the advanced format when input as well as output logging is requested.
+.sp
+\fBClassic format\fP
+.RS 4
+The timing log contains two fields, separated by a space. The first field indicates how much time elapsed since the previous output. The second field indicates how many characters were output this time.
+.RE
+.sp
+\fBAdvanced (multi\-stream) format\fP
+.RS 4
+The first field is an entry type identifier (\*(AqI\(cqnput, \*(AqO\(cqutput, \*(AqH\(cqeader, \*(AqS\(cqignal). The second field is how much time elapsed since the previous entry, and the rest of the entry is type\-specific data.
+.RE
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\-limit\fP \fIsize\fP
+.RS 4
+Limit the size of the typescript and timing files to \fIsize\fP and stop the child process after this size is exceeded. The calculated file size does not include the start and done messages that the \fBscript\fP command prepends and appends to the child process output. Due to buffering, the resulting output file might be larger than the specified value.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Be quiet (do not write start and done messages to standard output).
+.RE
+.sp
+\fB\-t\fP[\fIfile\fP], \fB\-\-timing\fP[=\fIfile\fP]
+.RS 4
+Output timing data to standard error, or to \fIfile\fP when given. This option is deprecated in favour of \fB\-\-log\-timing\fP where the \fIfile\fP argument is not optional.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "SIGNALS"
+.sp
+Upon receiving \fBSIGUSR1\fP, \fBscript\fP immediately flushes the output files.
+.SH "ENVIRONMENT"
+.sp
+The following environment variable is utilized by \fBscript\fP:
+.sp
+\fBSHELL\fP
+.RS 4
+If the variable \fBSHELL\fP exists, the shell forked by \fBscript\fP will be that shell. If \fBSHELL\fP is not set, the Bourne shell is assumed. (Most shells set this variable automatically).
+.RE
+.SH "NOTES"
+.sp
+The script ends when the forked shell exits (a \fIcontrol\-D\fP for the Bourne shell (\fBsh\fP(1p)), and \fIexit\fP, \fIlogout\fP or \fIcontrol\-d\fP (if \fIignoreeof\fP is not set) for the C\-shell, \fBcsh\fP(1)).
+.sp
+Certain interactive commands, such as \fBvi\fP(1), create garbage in the typescript file. \fBscript\fP works best with commands that do not manipulate the screen, the results are meant to emulate a hardcopy terminal.
+.sp
+It is not recommended to run \fBscript\fP in non\-interactive shells. The inner shell of \fBscript\fP is always interactive, and this could lead to unexpected results. If you use \fBscript\fP in the shell initialization file, you have to avoid entering an infinite loop. You can use for example the \fB.profile\fP file, which is read by login shells only:
+.sp
+.if n .RS 4
+.nf
+.fam C
+if test \-t 0 ; then
+    script
+    exit
+fi
+.fam
+.fi
+.if n .RE
+.sp
+You should also avoid use of \fBscript\fP in command pipes, as \fBscript\fP can read more input than you would expect.
+.SH "HISTORY"
+.sp
+The \fBscript\fP command appeared in 3.0BSD.
+.SH "BUGS"
+.sp
+\fBscript\fP places \fIeverything\fP in the log file, including linefeeds and backspaces. This is not what the naive user expects.
+.sp
+\fBscript\fP is primarily designed for interactive terminal sessions. When stdin is not a terminal (for example: \fBecho foo | script\fP), then the session can hang, because the interactive shell within the script session misses EOF and \fBscript\fP has no clue when to close the session. See the \fBNOTES\fP section for more information.
+.SH "SEE ALSO"
+.sp
+\fBcsh\fP(1) (for the \fIhistory\fP mechanism),
+\fBscriptreplay\fP(1),
+\fBscriptlive\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBscript\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

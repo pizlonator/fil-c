@@ -1,0 +1,130 @@
+//po4a: entry man manual
+////
+Copyright (C) 1994-2005 Jeff Tranter (tranter@pobox.com)
+Copyright (C) 2012 Karel Zak <kzak@redhat.com>.
+
+It may be distributed under the GNU General Public License, version 2, or
+any higher version. See section COPYING of the GNU Public license
+for conditions under which this file may be redistributed.
+////
+= eject(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: eject
+
+== NAME
+
+eject - eject removable media
+
+*eject* [options] _device_|_mountpoint_
+
+== DESCRIPTION
+
+*eject* allows removable media (typically a CD-ROM, floppy disk, tape, JAZ, ZIP or USB disk) to be ejected under software control. The command can also control some multi-disc CD-ROM changers, the auto-eject feature supported by some devices, and close the disc tray of some CD-ROM drives.
+
+The device corresponding to _device_ or _mountpoint_ is ejected. If no name is specified, the default name */dev/cdrom* is used. The device may be addressed by device name (e.g., 'sda'), device path (e.g., '/dev/sda'), UUID=__uuid__ or LABEL=__label__ tags.
+
+There are four different methods of ejecting, depending on whether the device is a CD-ROM, SCSI device, removable floppy, or tape. By default *eject* tries all four methods in order until it succeeds.
+
+If a device partition is specified, the whole-disk device is used.
+
+If the device or a device partition is currently mounted, it is unmounted before ejecting. The eject is processed on exclusive open block device file descriptor if *--no-unmount* or *--force* are not specified.
+
+== OPTIONS
+
+*-a*, **--auto on**|*off*::
+This option controls the auto-eject mode, supported by some devices. When enabled, the drive automatically ejects when the device is closed.
+
+*-c*, *--changerslot* _slot_::
+With this option a CD slot can be selected from an ATAPI/IDE CD-ROM changer. The CD-ROM drive cannot be in use (mounted data CD or playing a music CD) for a change request to work. Please also note that the first slot of the changer is referred to as 0, not 1.
+
+*-d*, *--default*::
+List the default device name.
+
+*-F*, *--force*::
+Force eject, don't check device type, don't open device with exclusive lock. The successful result may be false positive on non hot-pluggable devices.
+
+*-f*, *--floppy*::
+This option specifies that the drive should be ejected using a removable floppy disk eject command.
+
+*-i*, **--manualeject on**|*off*::
+This option controls locking of the hardware eject button. When enabled, the drive will not be ejected when the button is pressed. This is useful when you are carrying a laptop in a bag or case and don't want it to eject if the button is inadvertently pressed.
+
+*-M*, *--no-partitions-unmount*::
+The option tells *eject* to not try to unmount other partitions on partitioned devices. If another partition is still mounted, the program will not attempt to eject the media. It will attempt to unmount only the device or mountpoint given on the command line.
+
+*-m*, *--no-unmount*::
+The option tells *eject* to not try to unmount at all. If this option is not specified then *eject* opens the device with *O_EXCL* flag to be sure that the device is not used (since v2.35).
+
+*-n*, *--noop*::
+With this option the selected device is displayed but no action is performed.
+
+*-p*, *--proc*::
+This option allows you to use _/proc/mounts_ instead _/etc/mtab_. It also passes the *-n* option to *umount*(8).
+
+*-q*, *--tape*::
+This option specifies that the drive should be ejected using a tape drive offline command.
+
+*-r*, *--cdrom*::
+This option specifies that the drive should be ejected using a CDROM eject command.
+
+*-s*, *--scsi*::
+This option specifies that the drive should be ejected using SCSI commands.
+
+*-T*, *--traytoggle*::
+With this option the drive is given a CD-ROM tray close command if it's opened, and a CD-ROM tray eject command if it's closed. Not all devices support this command, because it uses the above CD-ROM tray close command.
+
+*-t*, *--trayclose*::
+With this option the drive is given a CD-ROM tray close command. Not all devices support this command.
+
+include::man-common/help-version.adoc[]
+
+*-v*, *--verbose*::
+Run in verbose mode; more information is displayed about what the command is doing.
+
+*-X*, *--listspeed*::
+With this option the CD-ROM drive will be probed to detect the available speeds. The output is a list of speeds which can be used as an argument of the *-x* option. This only works with Linux 2.6.13 or higher, on previous versions solely the maximum speed will be reported. Also note that some drives may not correctly report the speed and therefore this option does not work with them.
+
+*-x*, *--cdspeed* _speed_::
+With this option the drive is given a CD-ROM select speed command. The _speed_ argument is a number indicating the desired speed (e.g., 8 for 8X speed), or 0 for maximum data rate. Not all devices support this command and you can only specify speeds that the drive is capable of. Every time the media is changed this option is cleared. This option can be used alone, or with the *-t* and *-c* options.
+
+== EXIT STATUS
+
+Returns 0 if operation was successful, 1 if operation failed or command syntax was not valid.
+
+== NOTES
+
+*eject* only works with devices that support one or more of the four methods of ejecting. This includes most CD-ROM drives (IDE, SCSI, and proprietary), some SCSI tape drives, JAZ drives, ZIP drives (parallel port, SCSI, and IDE versions), and LS120 removable floppies. Users have also reported success with floppy drives on Sun SPARC and Apple Macintosh systems. If *eject* does not work, it is most likely a limitation of the kernel driver for the device and not the *eject* program itself.
+
+The *-r*, *-s*, *-f*, and *-q* options allow controlling which methods are used to eject. More than one method can be specified. If none of these options are specified, it tries all four (this works fine in most cases).
+
+*eject* may not always be able to determine if the device is mounted (e.g., if it has several names). If the device name is a symbolic link, *eject* will follow the link and use the device that it points to.
+
+If *eject* determines that the device can have multiple partitions, it will attempt to unmount all mounted partitions of the device before ejecting (see also *--no-partitions-unmount*). If an unmount fails, the program will not attempt to eject the media.
+
+You can eject an audio CD. Some CD-ROM drives will refuse to open the tray if the drive is empty. Some devices do not support the tray close command.
+
+If the auto-eject feature is enabled, then the drive will always be ejected after running this command. Not all Linux kernel CD-ROM drivers support the auto-eject mode. There is no way to find out the state of the auto-eject mode.
+
+You need appropriate privileges to access the device files. Running as root is required to eject some devices (e.g., SCSI devices).
+
+== AUTHORS
+
+mailto:tranter@pobox.com[Jeff Tranter] - original author, mailto:kzak@redhat.com[Karel Zak] and mailto:mluscon@redhat.com[Michal Luscon] - util-linux version.
+
+== SEE ALSO
+
+*findmnt*(8),
+*lsblk*(8),
+*mount*(8),
+*umount*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

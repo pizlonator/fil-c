@@ -1,0 +1,47 @@
+//po4a: entry man manual
+////
+delpart.8 -- man page for delpart
+Copyright 2007 Karel Zak <kzak@redhat.com>
+Copyright 2007 Red Hat, Inc.
+May be distributed under the GNU General Public License
+////
+= delpart(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: delpart
+
+== NAME
+
+delpart - tell the kernel to forget about a partition
+
+== SYNOPSIS
+
+*delpart* _device partition_
+
+== DESCRIPTION
+
+*delpart* asks the Linux kernel to forget about the specified _partition_ (a number) on the specified _device_. The command is a simple wrapper around the "del partition" ioctl.
+
+This command doesn't manipulate partitions on a block device.
+
+== OPTIONS
+
+include::man-common/help-version.adoc[]
+
+== SEE ALSO
+
+*addpart*(8),
+*fdisk*(8),
+*parted*(8),
+*partprobe*(8),
+*partx*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

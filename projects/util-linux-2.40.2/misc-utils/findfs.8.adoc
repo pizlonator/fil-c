@@ -1,0 +1,79 @@
+//po4a: entry man manual
+// Copyright 1993, 1994, 1995 by Theodore Ts'o.  All Rights Reserved.
+// This file may be copied under the terms of the GNU General Public License.
+= findfs(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: findfs
+
+== NAME
+
+findfs - find a filesystem by label or UUID
+
+== SYNOPSIS
+
+*findfs* *NAME*=_value_
+
+== DESCRIPTION
+
+*findfs* will search the block devices in the system looking for a filesystem or partition with specified tag. The currently supported tags are:
+
+*LABEL*=_<label>_::
+Specifies filesystem label.
+
+*UUID*=_<uuid>_::
+Specifies filesystem UUID.
+
+*PARTUUID*=_<uuid>_::
+Specifies partition UUID. This partition identifier is supported for example for GUID Partition Table (GPT) partition tables.
+
+*PARTLABEL*=_<label>_::
+Specifies partition label (name). The partition labels are supported for example for GUID Partition Table (GPT) or MAC partition tables.
+
+If the filesystem or partition is found, the device name will be printed on stdout.
+
+The complete overview about filesystems and partitions you can get for example by
+
+____
+*lsblk --fs*
+
+*partx --show <disk>*
+
+*blkid*
+____
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*0*::
+success
+*1*::
+label or uuid cannot be found
+*2*::
+usage error, wrong number of arguments or unknown option
+
+== ENVIRONMENT
+
+LIBBLKID_DEBUG=all::
+enables libblkid debug output.
+
+== AUTHORS
+
+*findfs* was originally written by mailto:tytso@mit.edu[Theodore Ts'o] and re-written for the util-linux package by mailto:kzak@redhat.com[Karel Zak].
+
+== SEE ALSO
+
+*blkid*(8),
+*lsblk*(8),
+*partx*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

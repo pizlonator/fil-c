@@ -1,0 +1,165 @@
+'\" t
+.\"     Title: ionice
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "IONICE" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ionice \- set or get process I/O scheduling class and priority
+.SH "SYNOPSIS"
+.sp
+\fBionice\fP [\fB\-c\fP \fIclass\fP] [\fB\-n\fP \fIlevel\fP] [\fB\-t\fP] \fB\-p\fP \fIPID\fP
+.sp
+\fBionice\fP [\fB\-c\fP \fIclass\fP] [\fB\-n\fP \fIlevel\fP] [\fB\-t\fP] \fB\-P\fP \fIPGID\fP
+.sp
+\fBionice\fP [\fB\-c\fP \fIclass\fP] [\fB\-n\fP \fIlevel\fP] [\fB\-t\fP] \fB\-u\fP \fIUID\fP
+.sp
+\fBionice\fP [\fB\-c\fP \fIclass\fP] [\fB\-n\fP \fIlevel\fP] [\fB\-t\fP] \fIcommand\fP [argument] ...
+.SH "DESCRIPTION"
+.sp
+This program sets or gets the I/O scheduling class and priority for a program. If no arguments or just \fB\-p\fP is given, \fBionice\fP will query the current I/O scheduling class and priority for that process.
+.sp
+When \fIcommand\fP is given, \fBionice\fP will run this command with the given arguments. If no \fIclass\fP is specified, then \fIcommand\fP will be executed with the "best\-effort" scheduling class. The default priority level is 4.
+.sp
+As of this writing, a process can be in one of three scheduling classes:
+.sp
+\fBIdle\fP
+.RS 4
+A program running with idle I/O priority will only get disk time when no other program has asked for disk I/O for a defined grace period. The impact of an idle I/O process on normal system activity should be zero. This scheduling class does not take a priority argument. Presently, this scheduling class is permitted for an ordinary user (since kernel 2.6.25).
+.RE
+.sp
+\fBBest\-effort\fP
+.RS 4
+This is the effective scheduling class for any process that has not asked for a specific I/O priority. This class takes a priority argument from \fI0\-7\fP, with a lower number being higher priority. Programs running at the same best\-effort priority are served in a round\-robin fashion.
+.sp
+Note that before kernel 2.6.26 a process that has not asked for an I/O priority formally uses "\fBnone\fP" as scheduling class, but the I/O scheduler will treat such processes as if it were in the best\-effort class. The priority within the best\-effort class will be dynamically derived from the CPU nice level of the process: io_priority = (cpu_nice + 20) / 5.
+.sp
+For kernels after 2.6.26 with the CFQ I/O scheduler, a process that has not asked for an I/O priority inherits its CPU scheduling class. The I/O priority is derived from the CPU nice level of the process (same as before kernel 2.6.26).
+.RE
+.sp
+\fBRealtime\fP
+.RS 4
+The RT scheduling class is given first access to the disk, regardless of what else is going on in the system. Thus the RT class needs to be used with some care, as it can starve other processes. As with the best\-effort class, 8 priority levels are defined denoting how big a time slice a given process will receive on each scheduling window. This scheduling class is not permitted for an ordinary (i.e., non\-root) user.
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-class\fP \fIclass\fP
+.RS 4
+Specify the name or number of the scheduling class to use; \f(CR0\fP for none, \f(CR1\fP for realtime, \f(CR2\fP for best\-effort, \f(CR3\fP for idle.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-classdata\fP \fIlevel\fP
+.RS 4
+Specify the scheduling class data. This only has an effect if the class accepts an argument. For realtime and best\-effort, \fI0\-7\fP are valid data (priority levels), and \f(CR0\fP represents the highest priority level.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP \fIPID\fP...
+.RS 4
+Specify the process IDs of running processes for which to get or set the scheduling parameters.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-pgid\fP \fIPGID\fP...
+.RS 4
+Specify the process group IDs of running processes for which to get or set the scheduling parameters.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-ignore\fP
+.RS 4
+Ignore failure to set the requested priority. If \fIcommand\fP was specified, run it even in case it was not possible to set the desired scheduling priority, which can happen due to insufficient privileges or an old kernel version.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-uid\fP \fIUID\fP...
+.RS 4
+Specify the user IDs of running processes for which to get or set the scheduling parameters.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+Linux supports I/O scheduling priorities and classes since 2.6.13 with the CFQ I/O scheduler.
+.SH "EXAMPLES"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+# \fBionice\fP \-c 3 \-p 89
+.RE
+.sp
+Sets process with PID 89 as an idle I/O process.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+# \fBionice\fP \-c 2 \-n 0 bash
+.RE
+.sp
+Runs \*(Aqbash\*(Aq as a best\-effort program with highest priority.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+# \fBionice\fP \-p 89 91
+.RE
+.sp
+Prints the class and priority of the processes with PID 89 and 91.
+.SH "AUTHORS"
+.sp
+.MTO "jens\(ataxboe.dk" "Jens Axboe" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBioprio_set\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBionice\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

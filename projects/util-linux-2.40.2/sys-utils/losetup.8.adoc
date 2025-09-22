@@ -1,0 +1,167 @@
+//po4a: entry man manual
+= losetup(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: losetup
+
+== NAME
+
+losetup - set up and control loop devices
+
+== SYNOPSIS
+
+Get info:
+
+*losetup* [_loopdev_]
+
+*losetup* *-l* [*-a*]
+
+*losetup* *-j* _file_ [*-o* _offset_]
+
+Detach a loop device:
+
+*losetup* *-d* _loopdev_ ...
+
+Detach all associated loop devices:
+
+*losetup* *-D*
+
+Set up a loop device:
+
+*losetup* [*-o* _offset_] [*--sizelimit* _size_] [*--sector-size* _size_] [*--loop-ref* _name_] [*-Pr*] [*--show*] *-f*|_loopdev file_
+
+Resize a loop device:
+
+*losetup* *-c* _loopdev_
+
+== DESCRIPTION
+
+*losetup* is used to associate loop devices with regular files or block devices, to detach loop devices, and to query the status of a loop device. If only the _loopdev_ argument is given, the status of the corresponding loop device is shown. If no option is given, all loop devices are shown.
+
+Note that the old output format (i.e., *losetup -a*) with comma-delimited strings is deprecated in favour of the *--list* output format.
+
+It's possible to create more independent loop devices for the same backing file. *This setup may be dangerous, can cause data loss, corruption and overwrites.* Use *--nooverlap* with *--find* during setup to avoid this problem.
+
+The loop device setup is not an atomic operation when used with *--find*, and *losetup* does not protect this operation by any lock. The number of attempts is internally restricted to a maximum of 16. It is recommended to use for example *flock*(1) to avoid a collision in heavily parallel use cases.
+
+== OPTIONS
+
+The _size_ and _offset_ arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+
+*-a*, *--all*::
+Show the status of all loop devices. Note that not all information is accessible for non-root users. See also *--list*. The old output format (as printed without *--list*) is deprecated.
+
+*-d*, *--detach* _loopdev_...::
+Detach the file or device associated with the specified loop device(s). Note that since Linux v3.7 kernel uses "lazy device destruction". The detach operation does not return *EBUSY* error anymore if device is actively used by system, but it is marked by autoclear flag and destroyed later.
+
+*-D*, *--detach-all*::
+Detach all associated loop devices.
+
+*-f*, *--find* [_file_]::
+Find the first unused loop device. If a _file_ argument is present, use the found device as loop device. Otherwise, just print its name.
+
+*--show*::
+Display the name of the assigned loop device if the *-f* option and a _file_ argument are present.
+
+*-L*, *--nooverlap*::
+Check for conflicts between loop devices to avoid situation when the same backing file is shared between more loop devices. If the file is already used by another device then re-use the device rather than a new one. The option makes sense only with *--find*.
+
+*-j*, *--associated* _file_ [*-o* _offset_]::
+Show the status of all loop devices associated with the given _file_.
+
+*-o*, *--offset* _offset_::
+The data start is moved _offset_ bytes into the specified file or device. The _offset_ may be followed by the multiplicative suffixes; see above.
+
+*--loop-ref* _string_::
+Set reference string. The backwardly compatible default is to use the backing filename as a reference in loop setup ioctl (aka lo_file_name). This option can overwrite this default behavior and set the reference to the _string_. The reference may be used by udevd in /dev/loop/by-ref. Linux kernel does not use the reference at all, but it could be used by some old utils that cannot read the backing file from sysfs. The reference is readable only for the root user (see *--output* +REF) and it is restricted to 64 bytes.
+
+*--sizelimit* _size_::
+The data end is set to no more than _size_ bytes after the data start. The _size_ may be followed by the multiplicative suffixes; see above.
+
+*-b*, *--sector-size* _size_::
+Set the logical sector size of the loop device in bytes (since Linux 4.14). The option may be used when creating a new loop device as well as a stand-alone command to modify sector size of the already existing loop device.
+
+*-c*, *--set-capacity* _loopdev_::
+Force the loop driver to reread the size of the file associated with the specified loop device.
+
+*-P*, *--partscan*::
+Force the kernel to scan the partition table on a newly created loop device. Note that the partition table parsing depends on sector sizes. The default is sector size is 512 bytes, otherwise you need to use the option *--sector-size* together with *--partscan*.
+
+*-r*, *--read-only*::
+Set up a read-only loop device.
+
+*--direct-io*[**=on**|*off*]::
+Enable or disable direct I/O for the backing file. The default is *off*. Specifying either *--direct-io* or *--direct-io=on* will enable it. But, *--direct-io=off* can be provided to explicitly turn it off.
+
+*-v*, *--verbose*::
+Verbose mode.
+
+*-l*, *--list*::
+If a loop device or the *-a* option is specified, print the default columns for either the specified loop device or all loop devices; the default is to print info about all devices. See also *--output*, *--noheadings*, *--raw*, and *--json*.
+
+*-O*, *--output* _column_[,_column_]...::
+Specify the columns that are to be printed for the *--list* output. Use *--help* to get a list of all supported columns.
+
+*--output-all*::
+Output all available columns.
+
+*-n*, *--noheadings*::
+Don't print headings for *--list* output format.
+
+*--raw*::
+Use the raw *--list* output format.
+
+*-J*, *--json*::
+Use JSON format for *--list* output.
+
+== ENCRYPTION
+
+*Cryptoloop is no longer supported in favor of dm-crypt.* For more details see *cryptsetup*(8).
+
+== EXIT STATUS
+
+*losetup* returns 0 on success, nonzero on failure. When *losetup* displays the status of a loop device, it returns 1 if the device is not configured and 2 if an error occurred which prevented determining the status of the device.
+
+== NOTES
+
+Since version 2.37 *losetup* uses *LOOP_CONFIGURE* ioctl to setup a new loop device by one ioctl call. The old versions use *LOOP_SET_FD* and *LOOP_SET_STATUS64* ioctls to do the same.
+
+== ENVIRONMENT
+
+*LOOPDEV_DEBUG*=all::
+enables debug output.
+
+== FILES
+
+_/dev/loop[0..N]_::
+loop block devices
+
+_/dev/loop-control_::
+loop control device
+
+== EXAMPLE
+
+The following commands can be used as an example of using the loop device.
+
+ # dd if=/dev/zero of=~/file.img bs=1024k count=10
+ # losetup --find --show ~/file.img
+ /dev/loop0
+ # mkfs -t ext2 /dev/loop0
+ # mount /dev/loop0 /mnt
+ ...
+ # umount /dev/loop0
+ # losetup --detach /dev/loop0
+
+== AUTHORS
+
+mailto:kzak@redhat.com[Karel Zak], based on the original version from mailto:tytso@athena.mit.edu[Theodore Ts'o].
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

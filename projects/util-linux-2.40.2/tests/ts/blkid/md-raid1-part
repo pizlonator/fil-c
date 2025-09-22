@@ -1,0 +1,99 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2010 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="MD raid1 (last partition)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_CMD_BLKID"
+
+ts_skip_nonroot
+ts_check_prog "mdadm"
+
+# rhbz#182625: It can't create new raid0 with metadata 0.90 from mdadm-4.1
+TS_KNOWN_FAIL="yes"
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=51 sector_size=512
+
+ts_log "Create partitions"
+$TS_CMD_FDISK --noauto-pt ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+o
+n
+p
+1
+
++25M
+n
+p
+2
+
+
+p
+w
+q
+EOF
+
+# replace generated ID with something stable
+$TS_CMD_FDISK ${TS_DEVICE} &> /dev/null <<EOF
+x
+i
+0x1
+r
+w
+q
+EOF
+
+udevadm settle
+MD_DEVNAME=md8
+MD_DEVICE=/dev/${MD_DEVNAME}
+
+ts_lock "md"
+
+ts_log "Create RAID1 device"
+mdadm -q -S ${MD_DEVICE} &> /dev/null
+mdadm -q --create ${MD_DEVICE} --metadata=0.90 --chunk=64 --level=1 \
+	    --raid-devices=2 ${TS_DEVICE}1 ${TS_DEVICE}2 >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+
+ts_log "Probe whole-disk"
+$TS_CMD_BLKID -p -o udev ${TS_DEVICE} 2>> $TS_ERRLOG | sort >> $TS_OUTPUT
+
+ts_log "Probe first RAID member"
+$TS_CMD_BLKID -p -o udev ${TS_DEVICE}1 2>> $TS_ERRLOG | sort >> $TS_OUTPUT
+
+ts_log "Probe second RAID member"
+$TS_CMD_BLKID -p -o udev ${TS_DEVICE}2 2>> $TS_ERRLOG | sort >> $TS_OUTPUT
+
+mdadm -q -S ${MD_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+udevadm settle
+ts_unlock "md"
+
+ts_fdisk_clean $TS_DEVICE
+# substitute UUIDs and major/minor number before comparison
+sed -i \
+  -e         's/^\(ID_FS_UUID\)=.*/\1=__ts_uuid__/' \
+  -e     's/^\(ID_FS_UUID_ENC\)=.*/\1=__ts_uuid_enc__/' \
+  -e 's/^\(ID_PART_ENTRY_DISK\)=.*/\1=__ts_majorminor__/' \
+  $TS_OUTPUT
+
+ts_finalize

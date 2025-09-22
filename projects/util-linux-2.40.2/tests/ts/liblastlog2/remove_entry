@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="remove_entry"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command $TS_HELPER_LIBLASTLOG2_REMOVE_ENTRY
+
+$TS_HELPER_LIBLASTLOG2_REMOVE_ENTRY || ts_failed "returned an error"
+
+rm tst-delete-user.db
+
+ts_finalize

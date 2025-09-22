@@ -1,0 +1,79 @@
+//po4a: entry man manual
+= nologin(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: nologin
+
+== NAME
+
+nologin - politely refuse a login
+
+== SYNOPSIS
+
+*nologin* [*-V*] [*-h*]
+
+== DESCRIPTION
+
+*nologin* displays a message that an account is not available and exits non-zero. It is intended as a replacement shell field to deny login access to an account.
+
+If the file _/etc/nologin.txt_ exists, *nologin* displays its contents to the user instead of the default message.
+
+The exit status returned by *nologin* is always 1.
+
+== OPTIONS
+
+*-c*, *--command* _command_
+
+*--init-file*
+
+*-i* *--interactive*
+
+*--init-file* _file_
+
+*-i*, *--interactive*
+
+*-l*, *--login*
+
+*--noprofile*
+
+*--norc*
+
+*--posix*
+
+*--rcfile* _file_
+
+*-r*, *--restricted*
+
+These shell command-line options are ignored to avoid *nologin* error.
+
+include::man-common/help-version.adoc[]
+
+== NOTES
+
+*nologin* is a per-account way to disable login (usually used for system accounts like http or ftp). *nologin* uses _/etc/nologin.txt_ as an optional source for a non-default message, the login access is always refused independently of the file.
+
+*pam_nologin*(8) PAM module usually prevents all non-root users from logging into the system. *pam_nologin*(8) functionality is controlled by _/var/run/nologin_ or the _/etc/nologin_ file.
+
+== HISTORY
+
+The *nologin* command appeared in 4.4BSD.
+
+== AUTHORS
+
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+
+*login*(1),
+*passwd*(5),
+*pam_nologin*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

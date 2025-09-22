@@ -1,0 +1,77 @@
+'\" t
+.\"     Title: setsid
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SETSID" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+setsid \- run a program in a new session
+.SH "SYNOPSIS"
+.sp
+\fBsetsid\fP [options] \fIprogram\fP [\fIarguments\fP]
+.SH "DESCRIPTION"
+.sp
+\fBsetsid\fP runs a program in a new session. The command calls \fBfork\fP(2) if already a process group leader. Otherwise, it executes a program in the current process. This default behavior is possible to override by the \fB\-\-fork\fP option.
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-ctty\fP
+.RS 4
+Set the controlling terminal to the current one.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-fork\fP
+.RS 4
+Always create a new process.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wait\fP
+.RS 4
+Wait for the execution of the program to end, and return the exit status of this program as the exit status of \fBsetsid\fP.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Display version information and exit.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "jrs\(atworld.std.com" "Rick Sladkey" ""
+.SH "SEE ALSO"
+.sp
+\fBsetsid\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBsetsid\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

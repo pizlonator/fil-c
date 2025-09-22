@@ -1,0 +1,202 @@
+#!/bin/bash
+#
+# Copyright (C) 2022 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="MODE and XMODE columns"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+. "$TS_SELF/lsfd-functions.bash"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_check_prog "stat"
+
+ts_cd "$TS_OUTDIR"
+
+INO=$(stat -c '%i' "$TS_HELPER_MKFDS")
+PID=
+FD=3
+
+
+EXPR="(FD == 3)"
+ts_init_subtest "MODE-r-bit"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" ro-regular-file $FD; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o MODE -p "${PID}" -Q "${EXPR}"
+	echo "MODE(r-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+ts_init_subtest "XMODE-r-bit"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" ro-regular-file $FD; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	echo "XMODE(r-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+EXPR="(FD == $((FD + 1)))"
+ts_init_subtest "MODE-w-bit"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" pipe-no-fork $FD $((FD + 1)); }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o MODE -p "${PID}" -Q "${EXPR}"
+	echo "MODE(w-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+ts_init_subtest "XMODE-w-bit"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" pipe-no-fork $FD $((FD + 1)); }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	echo "XMODE(w-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+EXPR='(ASSOC == "mem") and (INODE == '"$INO"') and (MODE != "r--") and (MODE != "rw-") and (MODE != "rwx")'
+ts_init_subtest "MODE-x-bit"
+if [ "$QEMU_USER" == "1" ]; then
+    ts_skip_subtest "running under qemu-user emulation"
+else
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" ro-regular-file $FD; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    "${TS_CMD_LSFD}" -n -o MODE -p "${PID}" -Q "${EXPR}"
+	    echo "MODE(x-bit): " $?
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+    wait "${MKFDS_PID}"
+    ts_finalize_subtest
+fi
+
+ts_init_subtest "XMODE-x-bit"
+if [ "$QEMU_USER" == "1" ]; then
+    ts_skip_subtest "running under qemu-user emulation"
+else
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" ro-regular-file $FD; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    "${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	    echo "XMODE(x-bit): " $?
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+    wait "${MKFDS_PID}"
+    ts_finalize_subtest
+fi
+
+FILE=./test_mkfds_make_regular_file
+EXPR='(FD == '"$FD"')'
+ts_init_subtest "XMODE-D-bit"
+{
+    rm -f "${FILE}"
+    coproc MKFDS { "$TS_HELPER_MKFDS" make-regular-file $FD file="$FILE" delete=1; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	echo "XMODE(D-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+for m in flock-sh posix-r- ofd-r-; do
+    ts_init_subtest "XMODE-l-bit-$m"
+    {
+	rm -f "${FILE}"
+	coproc MKFDS { "$TS_HELPER_MKFDS" make-regular-file $FD file="$FILE" lock=$m; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    "${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	    echo "XMODE(l-bit): " $?
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+    wait "${MKFDS_PID}"
+    if [ "$?" == "$TS_EXIT_NOTSUPP" ]; then
+	ts_skip_subtest	"$m lock is not available"
+	continue
+    fi
+    ts_finalize_subtest
+done
+
+ts_init_subtest "XMODE-l-bit-lease-r"
+f=ro-regular-file-read-lease
+touch "$f"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" ro-regular-file $FD file=$f read-lease=1; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	echo "XMODE(l-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+rm -f "$f"
+ts_finalize_subtest
+
+for m in flock-ex posix--w posix-rw  ofd--w ofd-rw lease-w; do
+    ts_init_subtest "XMODE-L-bit-$m"
+    {
+	rm -f "${FILE}"
+	coproc MKFDS { "$TS_HELPER_MKFDS" make-regular-file $FD file="$FILE" lock=$m; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    "${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	    echo "XMODE(L-bit): " $?
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+    wait "${MKFDS_PID}"
+    if [ "$?" == "$TS_EXIT_NOTSUPP" ]; then
+	ts_skip_subtest	"$m lock is not available"
+	continue
+    fi
+    ts_finalize_subtest
+done
+
+M0=6
+M1=9
+EXPR="(FD == $M0) or (FD == $M1)"
+ts_init_subtest "XMODE-m-bit"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" eventpoll $FD $M0 $M1; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -o XMODE -p "${PID}" -Q "${EXPR}"
+	echo "XMODE(m-bit): " $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+ts_finalize

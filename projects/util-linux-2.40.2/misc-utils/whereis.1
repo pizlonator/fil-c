@@ -1,0 +1,162 @@
+'\" t
+.\"     Title: whereis
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "WHEREIS" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+whereis \- locate the binary, source, and manual page files for a command
+.SH "SYNOPSIS"
+.sp
+\fBwhereis\fP [options] [\fB\-BMS\fP \fIdirectory\fP... \fB\-f\fP] \fIname\fP...
+.SH "DESCRIPTION"
+.sp
+\fBwhereis\fP locates the binary, source and manual files for the specified command names. The supplied names are \fBfirst stripped of leading pathname components\fP. Prefixes of \fBs.\fP resulting from use of source code control are also dealt with. \fBwhereis\fP then attempts to locate the desired program in the standard Linux places, and in the places specified by \fB$PATH\fP and \fB$MANPATH\fP.
+.sp
+The search restrictions (options \fB\-b\fP, \fB\-m\fP and \fB\-s\fP) are cumulative and apply to the subsequent \fIname\fP patterns on the command line. Any new search restriction resets the search mask. For example,
+.RS 3
+.ll -.6i
+.sp
+\fBwhereis \-bm ls tr \-m gcc\fP
+.br
+.RE
+.ll
+.sp
+searches for "ls" and "tr" binaries and man pages, and for "gcc" man pages only.
+.sp
+The options \fB\-B\fP, \fB\-M\fP and \fB\-S\fP reset search paths for the subsequent \fIname\fP patterns. For example,
+.RS 3
+.ll -.6i
+.sp
+\fBwhereis \-m ls \-M /usr/share/man/man1 \-f cal\fP
+.br
+.RE
+.ll
+.sp
+searches for "\fBls\fP" man pages in all default paths, but for "cal" in the \fI/usr/share/man/man1\fP directory only.
+.SH "OPTIONS"
+.sp
+\fB\-b\fP
+.RS 4
+Search for binaries.
+.RE
+.sp
+\fB\-m\fP
+.RS 4
+Search for manuals.
+.RE
+.sp
+\fB\-s\fP
+.RS 4
+Search for sources.
+.RE
+.sp
+\fB\-u\fP
+.RS 4
+Only show the command names that have unusual entries. A command is said to be unusual if it does not have just one entry of each explicitly requested type. Thus \*(Aq\fBwhereis \-m \-u *\fP\*(Aq asks for those files in the current directory which have no documentation file, or more than one.
+.RE
+.sp
+\fB\-B\fP \fIlist\fP
+.RS 4
+Limit the places where \fBwhereis\fP searches for binaries, by a whitespace\-separated list of directories.
+.RE
+.sp
+\fB\-M\fP \fIlist\fP
+.RS 4
+Limit the places where \fBwhereis\fP searches for manuals and documentation in Info format, by a whitespace\-separated list of directories.
+.RE
+.sp
+\fB\-S\fP \fIlist\fP
+.RS 4
+Limit the places where \fBwhereis\fP searches for sources, by a whitespace\-separated list of directories.
+.RE
+.sp
+\fB\-f\fP
+.RS 4
+Terminates the directory list and signals the start of filenames. It \fImust\fP be used when any of the \fB\-B\fP, \fB\-M\fP, or \fB\-S\fP options is used.
+.RE
+.sp
+\fB\-l\fP
+.RS 4
+Output the list of effective lookup paths that \fBwhereis\fP is using. When none of \fB\-B\fP, \fB\-M\fP, or \fB\-S\fP is specified, the option will output the hard\-coded paths that the command was able to find on the system.
+.RE
+.sp
+\fB\-g\fP
+.RS 4
+Interpret the next names as a \fBglob(7)\fP patterns. \fBwhereis\fP always compares only filenames (aka basename) and never complete path. Using directory names in the pattern has no effect. Don’t forget that the shell interprets the pattern when specified on the command line without quotes. It’s necessary to use quotes for the \fIname\fP, for example:
+.RE
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+whereis \-g \*(Aqfind*\*(Aq
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "FILE SEARCH PATHS"
+.sp
+By default \fBwhereis\fP tries to find files from hard\-coded paths, which are defined with glob patterns. The command attempts to use the contents of \fB$PATH\fP and \fB$MANPATH\fP environment variables as default search path. The easiest way to know what paths are in use is to add the \fB\-l\fP listing option. Effects of the \fB\-B\fP, \fB\-M\fP, and \fB\-S\fP are displayed with \fB\-l\fP.
+.SH "ENVIRONMENT"
+.sp
+\fBWHEREIS_DEBUG\fP=all
+.RS 4
+enables debug output.
+.RE
+.SH "EXAMPLES"
+.sp
+To find all files in \fI/usr/bin\fP which are not documented in \fI/usr/man/man1\fP or have no source in \fI/usr/src\fP:
+.RS 3
+.ll -.6i
+.sp
+\fBcd /usr/bin\fP
+.br
+\fBwhereis \-u \-ms \-M /usr/man/man1 \-S /usr/src \-f *\fP
+.br
+.RE
+.ll
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBwhereis\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

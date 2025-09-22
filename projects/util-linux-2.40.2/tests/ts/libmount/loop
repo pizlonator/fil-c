@@ -1,0 +1,152 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Stanislav Brabec <sbrabec@suse.cz>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="losetup-loop"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MOUNT"
+ts_check_test_command "$TS_CMD_UMOUNT"
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_test_command "$TS_CMD_LOSETUP"
+
+ts_skip_nonroot
+ts_check_losetup
+ts_check_prog "mkfs.ext2"
+
+function verify_mount_dev {
+	local dev=$1
+	local mp=$2
+	local dev_mounted=$($TS_CMD_FINDMNT -no SOURCE --mountpoint "$mp")
+
+	if test "$dev" != "$dev_mounted" ; then
+		echo "Mounted incorrect device: have '$dev_mounted', want '$dev'" >&2
+		return 1
+	fi
+}
+
+#
+# file-* tests: Backing file is a regular file
+#
+BACKFILE=$(ts_image_init 10)
+
+mkfs.ext2 -F $BACKFILE &> /dev/null || ts_die "Cannot make ext2 on $BACKFILE"
+
+# All tests are separated by "udevadm settle" because loop device exists some time after
+# "losetup -d". This device confuses some tests. And find-race-condition, tests,
+# whether re-use of this device works.
+udevadm settle
+
+ts_init_subtest "file"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+$TS_CMD_MOUNT "$BACKFILE" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "file-o-loop"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+$TS_CMD_MOUNT -oloop "$BACKFILE" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "dev-loop"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+LODEV=$( $TS_CMD_LOSETUP --find --nooverlap --show $BACKFILE 2>> $TS_OUTPUT )
+$TS_CMD_MOUNT $LODEV "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+verify_mount_dev "$LODEV" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_LOSETUP --detach $LODEV >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "o-loop-val"
+if [ "$TS_PARALLEL" = "yes" ]; then
+	# There is a race in $LODEV is usage
+	ts_skip_subtest "no-reentrant"
+else
+	[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+	LODEV=$( $TS_CMD_LOSETUP --find 2>> $TS_OUTPUT )
+	$TS_CMD_MOUNT -oloop=$LODEV "$BACKFILE" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	verify_mount_dev "$LODEV" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	udevadm settle
+	ts_log "Success"
+	ts_finalize_subtest
+fi
+
+ts_init_subtest "reuse"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+LODEV=$( $TS_CMD_LOSETUP --find --nooverlap --show "$BACKFILE" 2>> $TS_OUTPUT )
+$TS_CMD_MOUNT "$BACKFILE" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+verify_mount_dev "$LODEV" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_LOSETUP --detach $LODEV >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "conflict"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+LODEV=$( $TS_CMD_LOSETUP --find --nooverlap --show --offset=1000 "$BACKFILE" 2>> $TS_OUTPUT )
+$TS_CMD_MOUNT "$BACKFILE" "$TS_MOUNTPOINT" 2>&1 \
+	| sed 's/:.*:/: <target>/; s/for .*/for <source>/' > $TS_OUTPUT
+$TS_CMD_LOSETUP --detach $LODEV >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "o-loop-val-initialized"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+LODEV=$( $TS_CMD_LOSETUP --show -f "$BACKFILE" 2>>$TS_OUTPUT)
+$TS_CMD_MOUNT -oloop=$LODEV "$BACKFILE" "$TS_MOUNTPOINT" 2>&1 \
+       | sed 's/:.*:/: <target>/; s/for .*/for <source>/' > $TS_OUTPUT
+$TS_CMD_LOSETUP --detach $LODEV >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "o-loop-val-conflict"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+cp "$BACKFILE" "$BACKFILE"-2
+LODEV=$( $TS_CMD_LOSETUP --show -f "$BACKFILE"-2 2>> $TS_OUTPUT)
+$TS_CMD_MOUNT -oloop=$LODEV "$BACKFILE" "$TS_MOUNTPOINT" 2>&1 \
+	| sed 's/:.*:/: <target>/; s/for .*/for <source>/' > $TS_OUTPUT
+$TS_CMD_LOSETUP --detach $LODEV >> $TS_OUTPUT 2>> $TS_ERRLOG
+rm "$BACKFILE"-2
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_init_subtest "explicit-rw"
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+$TS_CMD_MOUNT -o rw "$BACKFILE" "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_FINDMNT -no FS-OPTIONS --mountpoint "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_log "Success"
+ts_finalize_subtest
+
+ts_log "Success"
+ts_finalize

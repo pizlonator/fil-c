@@ -1,0 +1,114 @@
+'\" t
+.\"     Title: uuidgen
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UUIDGEN" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+uuidgen \- create a new UUID value
+.SH "SYNOPSIS"
+.sp
+\fBuuidgen\fP [options]
+.SH "DESCRIPTION"
+.sp
+The \fBuuidgen\fP program creates (and prints) a new universally unique identifier (UUID) using the \fBlibuuid\fP(3) library. The new UUID can reasonably be considered unique among all UUIDs created on the local system, and among UUIDs created on other systems in the past and in the future.
+.sp
+There are three types of UUIDs which \fBuuidgen\fP can generate: time\-based UUIDs, random\-based UUIDs, and hash\-based UUIDs. By default \fBuuidgen\fP will generate a random\-based UUID if a high\-quality random number generator is present. Otherwise, it will choose a time\-based UUID. It is possible to force the generation of one of these first two UUID types by using the \fB\-\-random\fP or \fB\-\-time\fP options.
+.sp
+The third type of UUID is generated with the \fB\-\-md5\fP or \fB\-\-sha1\fP options, followed by \fB\-\-namespace\fP \fInamespace\fP and \fB\-\-name\fP \fIname\fP. The \fInamespace\fP may either be a well\-known UUID, or else an alias to one of the well\-known UUIDs defined in RFC 4122, that is \fB@dns\fP, \fB@url\fP, \fB@oid\fP, or \fB@x500\fP. The \fIname\fP is an arbitrary string value. The generated UUID is the digest of the concatenation of the namespace UUID and the name value, hashed with the MD5 or SHA1 algorithms. It is, therefore, a predictable value which may be useful when UUIDs are being used as handles or nonces for more complex values or values which shouldn\(cqt be disclosed directly. See the RFC for more information.
+.SH "OPTIONS"
+.sp
+\fB\-r\fP, \fB\-\-random\fP
+.RS 4
+Generate a random\-based UUID. This method creates a UUID consisting mostly of random bits. It requires that the operating system has a high quality random number generator, such as \fI/dev/random\fP.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP
+.RS 4
+Generate a time\-based UUID. This method creates a UUID based on the system clock plus the system\(cqs ethernet hardware address, if present.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-md5\fP
+.RS 4
+Use MD5 as the hash algorithm.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-sha1\fP
+.RS 4
+Use SHA1 as the hash algorithm.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-namespace\fP \fInamespace\fP
+.RS 4
+Generate the hash with the \fInamespace\fP prefix. The \fInamespace\fP is UUID, or \*(Aq@ns\*(Aq where "ns" is well\-known predefined UUID addressed by namespace name (see above).
+.RE
+.sp
+\fB\-N\fP, \fB\-\-name\fP \fIname\fP
+.RS 4
+Generate the hash of the \fIname\fP.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-count\fP \fInum\fP
+.RS 4
+Generate multiple UUIDs using the enhanced capability of the libuuid to cache time\-based UUIDs, thus resulting in improved performance. However, this holds no significance for other UUID types.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-hex\fP
+.RS 4
+Interpret name \fIname\fP as a hexadecimal string.
+.RE
+.SH "CONFORMING TO"
+.sp
+OSF DCE 1.1
+.SH "EXAMPLES"
+.sp
+uuidgen \-\-sha1 \-\-namespace @dns \-\-name "www.example.com"
+.SH "AUTHORS"
+.sp
+\fBuuidgen\fP was written by Andreas Dilger for \fBlibuuid\fP(3).
+.SH "SEE ALSO"
+.sp
+\fBuuidparse\fP(1),
+\fBlibuuid\fP(3),
+.URL "https://tools.ietf.org/html/rfc4122" "RFC 4122" ""
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBuuidgen\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

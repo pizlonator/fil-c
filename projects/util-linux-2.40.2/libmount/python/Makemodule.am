@@ -1,0 +1,35 @@
+if BUILD_PYLIBMOUNT
+
+pylibmountexecdir = $(pyexecdir)/libmount
+
+# Please, don't use $pythondir for the scripts. We have to use the same
+# directory for binary stuff as well as for the scripts otherwise it's
+# not possible to install 32-bit and 64-bit version on the same system.
+pylibmountexec_LTLIBRARIES = pylibmount.la
+pylibmountexec_PYTHON = libmount/python/__init__.py
+
+pylibmount_la_SOURCES = \
+	libmount/python/pylibmount.c \
+	libmount/python/pylibmount.h \
+	libmount/python/fs.c \
+	libmount/python/tab.c
+if LINUX
+pylibmount_la_SOURCES += libmount/python/context.c
+endif
+
+pylibmount_la_LIBADD = libmount.la $(PYTHON_LIBS)
+
+pylibmount_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(PYTHON_CFLAGS) $(PYTHON_WARN_CFLAGS) \
+	-I$(ul_libmount_incdir) \
+	-fno-strict-aliasing #-ggdb3 -O0
+
+pylibmount_la_LDFLAGS = \
+	-avoid-version -module -shared -export-dynamic
+
+dist_check_SCRIPTS += libmount/python/test_mount_context.py
+dist_check_SCRIPTS += libmount/python/test_mount_tab.py
+dist_check_SCRIPTS += libmount/python/test_mount_tab_update.py
+
+endif # BUILD_PYLIBMOUNT

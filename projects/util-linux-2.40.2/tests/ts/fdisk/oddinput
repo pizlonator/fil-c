@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="invalid input tests"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_HELPER_MD5"
+
+#set -x
+
+ts_log "---Initialize empty image"
+TEST_IMAGE_NAME=$(ts_image_init 10)
+ts_image_md5sum >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+#
+# Note that since 2.23 the DOS-mode has effect only if there is a MBR on the device.
+#
+
+ts_log "---Empty image listing" # this should report empty partition table
+# TEST_IMAGE_NAME has absolute path, and is by definition different on each computer, we need to sed it away
+$TS_CMD_FDISK -c=dos -u=cylinders -x ${TEST_IMAGE_NAME} >> $TS_OUTPUT 2>> $TS_ERRLOG
+sed -i -e "s/${TEST_IMAGE_NAME//\//\\/}/testimage/" $TS_OUTPUT $TS_ERRLOG
+
+#
+# Errors
+#
+ts_logerr "---Nonexistent file"
+$TS_CMD_FDISK -c=dos -u=cylinders -x _a_file_that_does_not_exist_ >> $TS_OUTPUT 2>> $TS_ERRLOG
+sed -i -e "s@$($TS_HELPER_STRERROR ENOENT)@ENOENT@" $TS_OUTPUT $TS_ERRLOG
+
+ts_logerr "---Too small file"
+echo  "This file is too small" >> oddinput.toosmall
+$TS_CMD_FDISK -c=dos -u=cylinders -x oddinput.toosmall >> $TS_OUTPUT 2>> $TS_ERRLOG
+sed -i -e "s@$($TS_HELPER_STRERROR EINVAL)@EINVAL@" $TS_OUTPUT $TS_ERRLOG
+rm oddinput.toosmall
+ts_finalize

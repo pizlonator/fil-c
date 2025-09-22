@@ -1,0 +1,93 @@
+//po4a: entry man manual
+////
+chfn.1 -- change your finger information
+(c) 1994 by salvatore valente <svalente@athena.mit.edu>
+
+This program is free software.  You can redistribute it and
+modify it under the terms of the GNU General Public License.
+There is no warranty.
+////
+= chfn(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: chfn
+
+== NAME
+
+chfn - change your finger information
+
+== SYNOPSIS
+
+*chfn* [*-f* _full-name_] [*-o* _office_] [*-p* _office-phone_] [*-h* _home-phone_] [*-u*] [*-V*] [_username_]
+
+== DESCRIPTION
+
+*chfn* is used to change your finger information. This information is stored in the _/etc/passwd_ file, and is displayed by the *finger* program. The Linux *finger* command will display four pieces of information that can be changed by *chfn*: your real name, your work room and phone, and your home phone.
+
+Any of the four pieces of information can be specified on the command line. If no information is given on the command line, *chfn* enters interactive mode.
+
+In interactive mode, *chfn* will prompt for each field. At a prompt, you can enter the new information, or just press return to leave the field unchanged. Enter the keyword "none" to make the field blank.
+
+*chfn* supports non-local entries (kerberos, LDAP, etc.) if linked with libuser, otherwise use *ypchfn*(1), *lchfn*(1) or any other implementation for non-local entries.
+
+== OPTIONS
+
+*-f*, *--full-name* _full-name_::
+Specify your real name.
+
+*-o*, *--office* _office_::
+Specify your office room number.
+
+*-p*, *--office-phone* _office-phone_::
+Specify your office phone number.
+
+*-h*, *--home-phone* _home-phone_::
+Specify your home phone number.
+
+*-u*, *--help*::
+Display help text and exit.
+
+*-V*, *--version*::
+Print version and exit. The short options *-V* have been used since version 2.39; old versions use
+deprecated *-v*.
+
+include::man-common/help-version.adoc[]
+
+== CONFIG FILE ITEMS
+
+*chfn* reads the _/etc/login.defs_ configuration file (see *login.defs*(5)). Note that the configuration file could be distributed with another package (e.g., shadow-utils). The following configuration items are relevant for *chfn*:
+
+*CHFN_RESTRICT* _string_::
+
+Indicate which fields are changeable by *chfn*.
++
+The boolean setting *"yes"* means that only the Office, Office Phone and Home Phone fields are changeable, and boolean setting *"no"* means that also the Full Name is changeable.
++
+Another way to specify changeable fields is by abbreviations: f = Full Name, r = Office (room), w = Office (work) Phone, h = Home Phone. For example, *CHFN_RESTRICT "wh"* allows changing work and home phone numbers.
++
+If *CHFN_RESTRICT* is undefined, then all finger information is read-only. This is the default.
+
+== EXIT STATUS
+
+Returns 0 if operation was successful, 1 if operation failed or command syntax was not valid.
+
+== AUTHORS
+
+mailto:svalente@mit.edu[Salvatore Valente]
+
+== SEE ALSO
+
+*chsh*(1),
+*finger*(1),
+*login.defs*(5),
+*passwd*(5)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

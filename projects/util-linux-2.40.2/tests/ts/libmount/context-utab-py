@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Copyright (C) 2010 Karel Zak <kzak@redhat.com>
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="context-py (utab)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_test_command "$TS_CMD_MOUNT"
+ts_check_test_command "$TS_CMD_UMOUNT"
+ts_check_test_command "$TS_CMD_WIPEFS"
+ts_check_test_command "$TS_CMD_UUIDGEN"
+
+ts_skip_nonroot
+ts_check_prog "mkfs.ext4"
+
+ts_init_py libmount
+
+if [ "$TS_ENABLE_ASAN" == "yes" -o "$TS_ENABLE_UBSAN" == "yes" ]; then
+	TS_KNOWN_FAIL="yes"
+fi
+
+TESTPROG="$TS_HELPER_PYLIBMOUNT_CONTEXT"
+[ -x $TESTPROG ] || ts_die "test script missing"
+
+LABEL=libmount-test
+UUID=$($TS_CMD_UUIDGEN)
+MOUNTPOINT="$TS_MOUNTPOINT"
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=257
+DEVNAME=$(basename $TS_DEVICE)
+
+ts_log "Create partitions"
+$TS_CMD_FDISK --noauto-pt ${TS_DEVICE} &> /dev/null <<EOF
+o
+n
+p
+1
+
+
+w
+q
+EOF
+
+DEVICE="${TS_DEVICE}1"
+
+udevadm settle
+
+grep -q " $DEVNAME\$" /proc/partitions
+if [ $? -ne 0 ]; then
+	ts_skip "no partition!"
+fi
+
+ts_log "Create filesystem"
+mkfs.ext4 -L "$LABEL" -U "$UUID" $DEVICE &> /dev/null
+
+ts_log "Do tests..."
+
+export LIBMOUNT_UTAB=$TS_OUTPUT.utab
+rm -f $LIBMOUNT_UTAB
+> $LIBMOUNT_UTAB
+
+udevadm settle
+
+ts_init_subtest "mount-by-devname"
+mkdir -p $MOUNTPOINT &>  /dev/null
+$PYTHON $TESTPROG --mount $DEVICE $MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_is_mounted "$DEVICE" || \
+	echo "(by device) cannot find $DEVICE in /proc/mounts" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+ts_init_subtest "umount-by-devname"
+$PYTHON $TESTPROG --umount $DEVICE >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_is_mounted "$DEVICE" &&
+	echo "umount (device) failed: found $DEVICE in /proc/mounts" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+ts_init_subtest "mount-uhelper"
+mkdir -p $MOUNTPOINT &>  /dev/null
+$PYTHON $TESTPROG --mount -o uhelper=foo,rw LABEL="$LABEL" $MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+grep -q "SRC=$DEVICE\b" "$LIBMOUNT_UTAB" || \
+	echo "(by label) cannot find $DEVICE in $LIBMOUNT_UTAB" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+ts_init_subtest "umount"
+$PYTHON $TESTPROG --umount $MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+grep -q "SRC=$DEVICE\b" "$LIBMOUNT_UTAB" && \
+	echo "umount (mountpoint) failed: found $DEVICE in $LIBMOUNT_UTAB" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+if type "mkfs.btrfs" &>/dev/null && mkfs.btrfs --version &>/dev/null; then
+	$TS_CMD_WIPEFS -a  $DEVICE &> /dev/null
+	#ts_log "Create filesystem [btrfs]"
+	mkfs.btrfs -L "$LABEL" $DEVICE &> /dev/null
+	udevadm settle
+
+	$TS_CMD_MOUNT -t btrfs $DEVICE $MOUNTPOINT &> /dev/null
+	btrfs subvolume create $MOUNTPOINT/sub &> /dev/null
+	$TS_CMD_UMOUNT $MOUNTPOINT &> /dev/null
+
+	udevadm settle
+
+	ts_init_subtest "mount-uhelper-subvol"
+	mkdir -p $MOUNTPOINT &>  /dev/null
+	$PYTHON $TESTPROG --mount -o uhelper=foo,rw,subvol=sub $DEVICE  $MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+	grep -q "SRC=$DEVICE\b" "$LIBMOUNT_UTAB" || \
+		echo "cannot find $DEVICE in $LIBMOUNT_UTAB" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+
+	# Don't temporary write btrfs mount options to the test output,
+	# the options depend on kernel version (since 4.2 it contains
+	# subvol= and subvolid=).
+	#
+	#ts_log "All mount options (btrfs subvolume + utab) ---"
+	#$TS_CMD_FINDMNT --mtab $MOUNTPOINT -o OPTIONS -n >> $TS_OUTPUT 2>> $TS_ERRLOG
+	#ts_log "---"
+
+	ts_init_subtest "umount-subvol"
+	$PYTHON $TESTPROG --umount $MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+	grep -q $DEVICE $LIBMOUNT_UTAB && \
+		echo "umount (mountpoint) failed: found $DEVICE in $LIBMOUNT_UTAB" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+fi
+
+ts_log "...done."
+ts_finalize

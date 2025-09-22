@@ -1,0 +1,276 @@
+#!/bin/bash
+
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="MBR"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_SFDISK"
+ts_check_test_command "$TS_CMD_WIPEFS"
+
+ts_skip_nonroot
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=50 sector_size=512 physblk_exp=3
+
+
+ts_init_subtest "simple-commas"
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+ 2048,6144,L
+8192, 6144,S
+14336 , 6144 ,
+20480,,E
+,6144 ,
+,,
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "activate"
+$TS_CMD_SFDISK --activate ${TS_DEVICE} 1 >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --unit S --list ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "simple-space"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+ 2048 6144 L
+8192  6144 S
+,,
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "read-dump-case"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+unit: sectors
+label-id: 0x1ddc8a79
+
+${TS_DEVICE}1 : stArt=     2048, sIZe=     6144, id=83, bootAble
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "read-dump"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+unit: sectors
+label-id: 0x1ddc8a79
+
+${TS_DEVICE}1 : start=     2048, size=     6144, Id=83, bootable
+${TS_DEVICE}2 : start=     8192, size=     6144, Id=82
+${TS_DEVICE}3 : start=    14336, size=     6144, Id=83
+${TS_DEVICE}4 : start=    20480, size=    81920, Id= 5
+${TS_DEVICE}5 : start=    20481, size=     6144, Id=83
+${TS_DEVICE}6 : start=    26626, size=    75774, Id=83
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "write-dump"
+$TS_CMD_SFDISK --unit S --dump ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "write-json"
+$TS_CMD_SFDISK --json ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+#
+# Test first LBA smaller than libfdisk default (~1MiB) and small gaps between
+# logical partitions (just only one sector for EBR).
+#
+ts_init_subtest "explicit-size"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+label: dos
+1, 1000, L
+1001, 1000, S
+2001, 1000
+3001,,E
+3002,1000,L
+4003,1000,L
+5004,,L
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "resize"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: dos
+,10M,S,*
+EOF
+udevadm settle
+echo ',+' | $TS_CMD_SFDISK --no-reread -N1 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "resize-empty-extended"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: dos
+,1M
+,2M,E
+EOF
+udevadm settle
+echo ',+' | $TS_CMD_SFDISK --no-reread -N2 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "reduce-empty-extended"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: dos
+,1M
+,5M,E
+EOF
+udevadm settle
+echo ',-2M' | $TS_CMD_SFDISK --no-reread -N2 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+ts_init_subtest "resize-extended"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: dos
+,1M
+,1M
+,1M
+,5M,E
+,1M
+,1M
+EOF
+udevadm settle
+echo ',+' | $TS_CMD_SFDISK --no-reread -N4 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "resize-logical"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: dos
+,1M
+,1M
+,1M
+,10M,E
+,1M
+,1M
+EOF
+udevadm settle
+echo ',+' | $TS_CMD_SFDISK --no-reread -N6 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "dump-old"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} < $TS_SELF/files/dump-old >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "dump-gaps"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} < $TS_SELF/files/dump-gaps >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "default-vs-gap1"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+3MiB 5MiB L
+- 6MiB L
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "default-vs-gap2"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+4MiB 3MiB L
+13MiB 5MiB L
+- 4MiB L
+- 2MiB L
+- - L
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "sizes-vs-gaps"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+2048 1023 L -
+4096 4095 L -
+8192 8191 L -
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_finalize

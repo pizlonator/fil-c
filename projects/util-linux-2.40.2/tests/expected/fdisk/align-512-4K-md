@@ -1,0 +1,80 @@
+Create partitions
+
+Welcome to fdisk <removed>.
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+
+Command (m for help): Created a new disklabel.
+
+Command (m for help): Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (1-4, default 1): First sector (2048-102399, default 2048): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-102399, default 102399): 
+Created a new partition <removed>.
+
+Command (m for help): Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (2-4, default 2): First sector (51199-102399, default 51200): Last sector, +/-sectors or +/-size{K,M,G,T,P} (51200-102399, default 102399): 
+Created a new partition <removed>.
+
+Command (m for help): Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot Start    End Sectors Size Id Type
+<removed>1        2048  51198   49151  24M 83 Linux
+<removed>2       51200 100350   49151  24M 83 Linux
+
+Command (m for help): The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Alignment offsets:
+0
+0
+Create partitions (MD)
+
+Welcome to fdisk <removed>.
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new disklabel.
+
+Command (m for help): Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (1-4, default 1): First sector (2048-97791, default 2048): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-97791, default 97791): 
+Created a new partition <removed>.
+
+Command (m for help): Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (2-4, default 2): First sector (22528-97791, default 22528): Last sector, +/-sectors or +/-size{K,M,G,T,P} (22528-97791, default 97791): 
+Created a new partition <removed>.
+
+Command (m for help): Disk <removed>: 47.75 MiB, 50069504 bytes, 97792 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 65536 bytes / <removed> bytes
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot Start   End Sectors Size Id Type
+<removed>p1       2048 22527   20480  10M 83 Linux
+<removed>p2      22528 43007   20480  10M 83 Linux
+
+Command (m for help): The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Alignment offsets (MD):
+0
+0

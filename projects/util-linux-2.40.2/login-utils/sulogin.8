@@ -1,0 +1,89 @@
+'\" t
+.\"     Title: sulogin
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SULOGIN" "8" "2024-01-31" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+sulogin \- single\-user login
+.SH "SYNOPSIS"
+.sp
+\fBsulogin\fP [options] [\fItty\fP]
+.SH "DESCRIPTION"
+.sp
+\fBsulogin\fP is invoked by \fBinit\fP when the system goes into single\-user mode.
+.sp
+The user is prompted:
+.sp
+Give root password for system maintenance (or type Control\-D for normal startup):
+.sp
+If the root account is locked and \fB\-\-force\fP is specified, no password is required.
+.sp
+\fBsulogin\fP will be connected to the current terminal, or to the optional \fItty\fP device that can be specified on the command line (typically \fI/dev/console\fP).
+.sp
+When the user exits from the single\-user shell, or presses control\-D at the prompt, the system will continue to boot.
+.SH "OPTIONS"
+.sp
+\fB\-e\fP, \fB\-\-force\fP
+.RS 4
+If the default method of obtaining the root password from the system via \fBgetpwnam\fP(3) fails, then examine \fI/etc/passwd\fP and \fI/etc/shadow\fP to get the password. If these files are damaged or nonexistent, or when root account is locked by \*(Aq!\*(Aq or \*(Aq*\*(Aq at the begin of the password then \fBsulogin\fP will \fBstart a root shell without asking for a password\fP.
+.sp
+Only use the \fB\-e\fP option if you are sure the console is physically protected against unauthorized access.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-login\-shell\fP
+.RS 4
+Specifying this option causes \fBsulogin\fP to start the shell process as a login shell.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-timeout\fP \fIseconds\fP
+.RS 4
+Specify the maximum amount of time to wait for user input. By default, \fBsulogin\fP will wait forever.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "ENVIRONMENT"
+.sp
+\fBsulogin\fP looks for the environment variable \fBSUSHELL\fP or \fBsushell\fP to determine what shell to start. If the environment variable is not set, it will try to execute root\(cqs shell from \fI/etc/passwd\fP. If that fails, it will fall back to \fI/bin/sh\fP.
+.SH "AUTHORS"
+.sp
+\fBsulogin\fP was written by Miquel van Smoorenburg for sysvinit and later ported to util\-linux by Dave Reisner and Karel Zak.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBsulogin\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

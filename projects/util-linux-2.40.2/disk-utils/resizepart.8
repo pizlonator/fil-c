@@ -1,0 +1,81 @@
+'\" t
+.\"     Title: resizepart
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "RESIZEPART" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+resizepart \- tell the kernel about the new size of a partition
+.SH "SYNOPSIS"
+.sp
+\fBresizepart\fP \fIdevice partition length\fP
+.SH "DESCRIPTION"
+.sp
+\fBresizepart\fP tells the Linux kernel about the new size of the specified partition. The command is a simple wrapper around the "resize partition" ioctl.
+.sp
+This command doesn\(cqt manipulate partitions on a block device.
+.SH "PARAMETERS"
+.sp
+\fIdevice\fP
+.RS 4
+The disk device.
+.RE
+.sp
+\fIpartition\fP
+.RS 4
+The partition number.
+.RE
+.sp
+\fIlength\fP
+.RS 4
+The new length of the partition (in 512\-byte sectors).
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBaddpart\fP(8),
+\fBdelpart\fP(8),
+\fBfdisk\fP(8),
+\fBparted\fP(8),
+\fBpartprobe\fP(8),
+\fBpartx\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBresizepart\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

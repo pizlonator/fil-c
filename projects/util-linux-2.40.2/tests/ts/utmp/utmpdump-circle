@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="circle"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+# this test is arch independent, no need for utmp_functions.sh
+ts_check_test_command "$TS_CMD_UTMPDUMP"
+
+export LANG=C
+export TZ=Asia/Tokyo
+OUT_BIN1=${TS_OUTDIR}/${TS_TESTNAME}.bin1
+OUT_BIN2=${TS_OUTDIR}/${TS_TESTNAME}.bin2
+OUT_TXT=${TS_OUTDIR}/${TS_TESTNAME}.txt
+
+# Files with -old extension are using timestamp format before utmpdump
+# started to use iso-8601 format.  This check is testing nothing is lost
+# when conversions performing following conversions.
+#
+# old text format -> binary -> new text format -> binary
+
+echo "no output expected" > $TS_OUTPUT
+for f in txt-a txt-b txt-ipv6; do
+	$TS_CMD_UTMPDUMP -r $TS_SELF/$f-old > $OUT_BIN1 2>/dev/null &&
+	$TS_CMD_UTMPDUMP $OUT_BIN1 > $OUT_TXT 2>/dev/null &&
+	diff -u $TS_SELF/$f $OUT_TXT &&
+	$TS_CMD_UTMPDUMP -r $OUT_TXT > $OUT_BIN2 2>/dev/null &&
+	diff -q $OUT_BIN1 $OUT_BIN2 ||
+	echo "circle failed for $f"
+done >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+rm -f "$OUT_BIN1" "$OUT_BIN2" "$OUT_TXT"
+
+ts_finalize

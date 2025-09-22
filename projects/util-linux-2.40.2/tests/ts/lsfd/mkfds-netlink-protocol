@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="NETLINK sockets"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+. "$TS_SELF"/lsfd-functions.bash
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+EXPR='(TYPE == "NETLINK") and (FD == 3)'
+NETLINK_PROTOCOL=4
+NETLINK_LPORT=
+NETLINK_GROUPS=5
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" netlink $FD protocol=$NETLINK_PROTOCOL; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	${TS_CMD_LSFD} -n \
+		       -o ASSOC,TYPE,NAME,SOCK.STATE,SOCK.TYPE,NETLINK.PROTOCOL,NETLINK.GROUPS \
+		       -p "${PID}" -Q "${EXPR}" | sed -e "s/lport=${PID}/lport=/g"
+	echo 'ASSOC,TYPE,NAME,SOCK.STATE,SOCK.TYPE,NETLINK.PROTOCOL': ${PIPESTATUS[0]}
+	NETLINK_LPORT=$(${TS_CMD_LSFD} --raw -n -o NETLINK.LPORT -p "${PID}" -Q "${EXPR}")
+	if [ "${NETLINK_LPORT}" == "${PID}" ]; then
+	    echo 'LPORT: OK'
+	else
+	    printf "LPORT: FAILED (PID: %d != NETLINK.LPORT: %d)\n" "${PID}" "${NETLINK_LPORT}"
+	fi
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait "${MKFDS_PID}"
+} > "$TS_OUTPUT" 2>&1
+
+if [[ $? == "$EPROTONOSUPPORT" ]]; then
+    ts_skip "It seems that this platform doesn't support making a netlink socket"
+fi
+
+ts_finalize

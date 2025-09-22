@@ -1,0 +1,93 @@
+//po4a: entry man manual
+= mkfs.cramfs(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: mkfs.cramfs
+
+== NAME
+
+mkfs.cramfs - make compressed ROM file system
+
+== SYNOPSIS
+
+*mkfs.cramfs* [options] _directory file_
+
+== DESCRIPTION
+
+Files on cramfs file systems are zlib-compressed one page at a time to allow random read access. The metadata is not compressed, but is expressed in a terse representation that is more space-efficient than conventional file systems.
+
+The file system is intentionally read-only to simplify its design; random write access for compressed files is difficult to implement. cramfs ships with a utility (*mkcramfs*(8)) to pack files into new cramfs images.
+
+File sizes are limited to less than 16 MB.
+
+Maximum file system size is a little under 272 MB. (The last file on the file system must begin before the 256 MB block, but can extend past it.)
+
+== ARGUMENTS
+
+The _directory_ is simply the root of the directory tree that we want to generate a compressed filesystem out of.
+
+The _file_ will contain the cram file system, which later can be mounted.
+
+== OPTIONS
+
+*-v*::
+Enable verbose messaging.
+
+*-E*::
+Treat all warnings as errors, which are reflected as command exit status.
+
+*-b* _blocksize_::
+Use defined block size, which has to be divisible by page size.
+
+*-e* _edition_::
+Use defined file system edition number in superblock.
+
+*-N* _big, little, host_::
+Use defined endianness. Value defaults to _host_.
+
+*-i* _file_::
+Insert a _file_ to cramfs file system.
+
+*-n* _name_::
+Set name of the cramfs file system.
+
+*-p*::
+Pad by 512 bytes for boot code.
+
+*-s*::
+This option is ignored. Originally the *-s* turned on directory entry sorting.
+
+*-z*::
+Make explicit holes.
+
+*-l*[=_mode_]::
+ Use exclusive BSD lock for device or file it operates.  The optional argument
+ _mode_ can be _yes_, _no_ (or 1 and 0) or _nonblock_.  If the _mode_
+ argument is omitted, it defaults to _"yes"_.  This option overwrites
+ environment variable *$LOCK_BLOCK_DEVICE*.  The default is not to use any
+ lock at all, but it's recommended to avoid collisions with udevd or other
+ tools.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*0*::
+success
+*8*::
+operation error, such as unable to allocate memory
+
+== SEE ALSO
+
+*fsck.cramfs*(8),
+*mount*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

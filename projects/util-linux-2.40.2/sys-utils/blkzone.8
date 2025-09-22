@@ -1,0 +1,250 @@
+'\" t
+.\"     Title: blkzone
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "BLKZONE" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+blkzone \- run zone command on a device
+.SH "SYNOPSIS"
+.sp
+\fBblkzone\fP \fIcommand\fP [options] \fIdevice\fP
+.SH "DESCRIPTION"
+.sp
+\fBblkzone\fP is used to run zone command on device that support the Zoned Block Commands (ZBC) or Zoned\-device ATA Commands (ZAC). The zones to operate on can be specified using the offset, count and length options.
+.sp
+The \fIdevice\fP argument is the pathname of the block device.
+.SH "COMMANDS"
+.SS "report"
+.sp
+The command \fBblkzone report\fP is used to report device zone information.
+.sp
+By default, the command will report all zones from the start of the block device. Options may be used to modify this behavior, changing the starting zone or the size of the report, as explained below.
+.sp
+Report output:
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+start
+T}:T{
+.sp
+Zone start sector
+T}
+T{
+.sp
+len
+T}:T{
+.sp
+Zone length in number of sectors
+T}
+T{
+.sp
+cap
+T}:T{
+.sp
+Zone capacity in number of sectors
+T}
+T{
+.sp
+wptr
+T}:T{
+.sp
+Zone write pointer position
+T}
+T{
+.sp
+reset
+T}:T{
+.sp
+Reset write pointer recommended
+T}
+T{
+.sp
+non\-seq
+T}:T{
+.sp
+Non\-sequential write resources active
+T}
+T{
+.sp
+cond
+T}:T{
+.sp
+Zone condition
+T}
+T{
+.sp
+type
+T}:T{
+.sp
+Zone type
+T}
+.TE
+.sp
+.sp
+Zone conditions:
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+cl
+T}:T{
+.sp
+Closed
+T}
+T{
+.sp
+nw
+T}:T{
+.sp
+Not write pointer
+T}
+T{
+.sp
+em
+T}:T{
+.sp
+Empty
+T}
+T{
+.sp
+fu
+T}:T{
+.sp
+Full
+T}
+T{
+.sp
+oe
+T}:T{
+.sp
+Explicitly opened
+T}
+T{
+.sp
+oi
+T}:T{
+.sp
+Implicitly opened
+T}
+T{
+.sp
+ol
+T}:T{
+.sp
+Offline
+T}
+T{
+.sp
+ro
+T}:T{
+.sp
+Read only
+T}
+T{
+.sp
+x?
+T}:T{
+.sp
+Reserved conditions (should not be reported)
+T}
+.TE
+.sp
+.SS "capacity"
+.sp
+The command \fBblkzone capacity\fP is used to report device capacity information.
+.sp
+By default, the command will report the sum, in number of sectors, of all zone capacities on the device. Options may be used to modify this behavior, changing the starting zone or the size of the report, as explained below.
+.SS "reset"
+.sp
+The command \fBblkzone reset\fP is used to reset one or more zones. Unlike \fBsg_reset_wp\fP(8), this command operates from the block layer and can reset a range of zones.
+.SS "open"
+.sp
+The command \fBblkzone open\fP is used to explicitly open one or more zones. Unlike \fBsg_zone\fP(8), open action, this command operates from the block layer and can open a range of zones.
+.SS "close"
+.sp
+The command \fBblkzone close\fP is used to close one or more zones. Unlike \fBsg_zone\fP(8), close action, this command operates from the block layer and can close a range of zones.
+.SS "finish"
+.sp
+The command \fBblkzone finish\fP is used to finish (transition to full condition) one or more zones. Unlike \fBsg_zone\fP(8), finish action, this command operates from the block layer and can finish a range of zones.
+.sp
+By default, the \fBreset\fP, \fBopen\fP, \fBclose\fP and \fBfinish\fP commands will operate from the zone at device sector 0 and operate on all zones. Options may be used to modify this behavior as explained below.
+.SH "OPTIONS"
+.sp
+The \fIoffset\fP and \fIlength\fP option arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB. Additionally, the 0x prefix can be used to specify \fIoffset\fP and \fIlength\fP in hex.
+.sp
+\fB\-o\fP, \fB\-\-offset\fP \fIsector\fP
+.RS 4
+The starting zone specified as a sector offset. The provided offset in sector units (512 bytes) should match the start of a zone. The default value is zero.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-length\fP \fIsectors\fP
+.RS 4
+The maximum number of sectors the command should operate on. The default value is the number of sectors remaining after \fIoffset\fP. This option cannot be used together with the option \fB\-\-count\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-count\fP \fIcount\fP
+.RS 4
+The maximum number of zones the command should operate on. The default value is the number of zones starting from \fIoffset\fP. This option cannot be used together with the option \fB\-\-length\fP.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-force\fP
+.RS 4
+Enforce commands to change zone status on block devices used by the system.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Display the number of zones returned in the report or the range of sectors reset.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "shaun\(attancheff.com" "Shaun Tancheff" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBsg_rep_zones\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBblkzone\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

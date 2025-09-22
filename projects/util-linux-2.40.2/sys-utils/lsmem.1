@@ -1,0 +1,133 @@
+'\" t
+.\"     Title: lsmem
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSMEM" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsmem \- list the ranges of available memory with their online status
+.SH "SYNOPSIS"
+.sp
+\fBlsmem\fP [options]
+.SH "DESCRIPTION"
+.sp
+The \fBlsmem\fP command lists the ranges of available memory with their online status. The listed memory blocks correspond to the memory block representation in sysfs. The command also shows the memory block size and the amount of memory in online and offline state.
+.sp
+The default output is compatible with original implementation from s390\-tools, but it\(cqs strongly recommended to avoid using default outputs in your scripts. Always explicitly define expected columns by using the \fB\-\-output\fP option together with a columns list in environments where a stable output is required.
+.sp
+The \fBlsmem\fP command lists a new memory range always when the current memory block distinguish from the previous block by some output column. This default behavior is possible to override by the \fB\-\-split\fP option (e.g., \fBlsmem \-\-split=ZONES\fP). The special word "none" may be used to ignore all differences between memory blocks and to create as large as possible continuous ranges. The opposite semantic is \fB\-\-all\fP to list individual memory blocks.
+.sp
+Note that some output columns may provide inaccurate information if a split policy forces \fBlsmem\fP to ignore differences in some attributes. For example if you merge removable and non\-removable memory blocks to the one range than all the range will be marked as non\-removable on \fBlsmem\fP output.
+.sp
+Not all columns are supported on all systems. If an unsupported column is specified, \fBlsmem\fP prints the column but does not provide any data for it.
+.sp
+Use the \fB\-\-help\fP option to see the columns description.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+List each individual memory block, instead of combining memory blocks with similar attributes.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-bytes\fP
+.RS 4
+Print the sizes in bytes rather than in a human\-readable format.
+.sp
+By default, the unit, sizes are expressed in, is byte, and unit prefixes are in
+power of 2^10 (1024). Abbreviations of symbols are exhibited truncated in order
+to reach a better readability, by exhibiting alone the first letter of them;
+examples: "1 KiB" and "1 MiB" are respectively exhibited as "1 K" and "1 M",
+then omitting on purpose the mention "iB", which is part of these abbreviations.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-help\fP to get a list of all supported columns. The default list of columns may be extended if \fIlist\fP is specified in the format \fB+\fP\fIlist\fP (e.g., \fBlsmem \-o +NODE\fP).
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-pairs\fP
+.RS 4
+Produce output in the form of key="value" pairs. All potentially unsafe value characters are hex\-escaped (\(rsx<code>).
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Produce output in raw format. All potentially unsafe characters are hex\-escaped (\(rsx<code>).
+.RE
+.sp
+\fB\-S\fP, \fB\-\-split\fP \fIlist\fP
+.RS 4
+Specify which columns (attributes) use to split memory blocks to ranges. The supported columns are STATE, REMOVABLE, NODE and ZONES, or "none". The other columns are silently ignored. For more details see \fBDESCRIPTION\fP above.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-sysroot\fP \fIdirectory\fP
+.RS 4
+Gather memory data for a Linux instance other than the instance from which the \fBlsmem\fP command is issued. The specified \fIdirectory\fP is the system root of the Linux instance to be inspected.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-\-summary\fP[=\fIwhen\fP]
+.RS 4
+This option controls summary lines output. The optional argument \fIwhen\fP can be \fBnever\fP, \fBalways\fP or \fBonly\fP. If the \fIwhen\fP argument is omitted, it defaults to \fB"only"\fP. The summary output is suppressed for \fB\-\-raw\fP, \fB\-\-pairs\fP and \fB\-\-json\fP.
+.RE
+.SH "AUTHORS"
+.sp
+\fBlsmem\fP was originally written by Gerald Schaefer for s390\-tools in Perl. The C version for util\-linux was written by Clemens von Mann, Heiko Carstens and Karel Zak.
+.SH "SEE ALSO"
+.sp
+\fBchmem\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsmem\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

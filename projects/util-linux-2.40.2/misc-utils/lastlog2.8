@@ -1,0 +1,128 @@
+'\" t
+.\"     Title: lastlog2
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LASTLOG2" "8" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lastlog2 \- display date of last login for all users or a specific one
+.SH "SYNOPSIS"
+.sp
+\fBlastlog2\fP [options]
+.SH "DESCRIPTION"
+.sp
+\fBlastlog2\fP displays the content of the last login database. The \fIlogin\-name\fP,
+\fIlast\-login\-time\fP, \fItty\fP and \fIremote\-host\fP will be printed.
+The default (no flags) causes all last login entries to be printed, sorted
+by the order as written the first time into the database.
+.sp
+Compared to \fBlastlog\fP this command is Y2038 safe and uses sqlite3 to store the
+information and not a sparse file.
+.SH "OPTIONS"
+.sp
+\fB\-b\fP, \fB\-\-before\fP \fIDAYS\fP
+.RS 4
+Print only last login records older than \fIDAYS\fP.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-clear\fP
+.RS 4
+Clear last login record of a user. This option can be used only together with
+\fB\-u\*(Aq (\fP\-\-user*).
+.RE
+.sp
+\fB\-d\fP, *\-\-database \fIFILE\fP
+.RS 4
+Use \fIFILE\fP as lastlog2 database.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help message and exit.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-import\fP \fIFILE\fP
+.RS 4
+Import data from old lastlog file \fIFILE\fP. Existing entries in the lastlog2
+database will be overwritten.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-rename\fP \fINEWNAME\fP
+.RS 4
+This option can only be used together with \fB\-u\fP (\fB\-\-user\fP).
+.RE
+.sp
+\fB\-s\fP, \fB\-\-servive\fP \fInum\fP
+.RS 4
+Display PAM service used to login in the last column.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-set\fP
+.RS 4
+Set last login record of a user to the current time. This option can only be used
+together with \fB\-u\fP (\fB\-\-user\fP).
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP \fIDAYS\fP
+.RS 4
+Print only last login records more recent than \fIDAYS\fP.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-users\fP \fILOGINS\fP
+.RS 4
+Print only the last login record of the user \fILOGIN\fP.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-version\fP
+.RS 4
+Print version number and exit.
+.RE
+.sp
+If the user has never logged in the message \fBNever logged in\fP will be displayed
+in the latest login time row.
+.sp
+Only the entries for the current users of the system will be displayed.
+Other entries may exist for users that were deleted previously.
+.SH "FILES"
+.sp
+\fB/var/lib/lastlog/lastlog2.db\fP
+.RS 4
+Lastlog2 logging database file
+.RE
+.SH "AUTHORS"
+.sp
+lastlog2 was written by Thorsten Kukuk for \fBliblastlog2\fP(3).
+.SH "SEE ALSO"
+.sp
+\fBliblastlog2\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlastlog2\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

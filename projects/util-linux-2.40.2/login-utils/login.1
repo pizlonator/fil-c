@@ -1,0 +1,233 @@
+'\" t
+.\"     Title: login
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LOGIN" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+login \- begin session on the system
+.SH "SYNOPSIS"
+.sp
+\fBlogin\fP [\fB\-p\fP] [\fB\-h\fP \fIhost\fP] [\fB\-H\fP] [\fB\-f\fP \fIusername\fP|\fIusername\fP]
+.SH "DESCRIPTION"
+.sp
+\fBlogin\fP is used when signing onto a system. If no argument is given, \fBlogin\fP prompts for the username.
+.sp
+The user is then prompted for a password, where appropriate. Echoing is disabled to prevent revealing the password. Only a number of password failures are permitted before \fBlogin\fP exits and the communications link is severed. See \fBLOGIN_RETRIES\fP in the \fBCONFIG FILE ITEMS\fP section.
+.sp
+If password aging has been enabled for the account, the user may be prompted for a new password before proceeding. In such case old password must be provided and the new password entered before continuing. Please refer to \fBpasswd\fP(1) for more information.
+.sp
+The user and group ID will be set according to their values in the \fI/etc/passwd\fP file. There is one exception if the user ID is zero. In this case, only the primary group ID of the account is set. This should allow the system administrator to login even in case of network problems. The environment variable values for \fB$HOME\fP, \fB$USER\fP, \fB$SHELL\fP, \fB$PATH\fP, \fB$LOGNAME\fP, and \fB$MAIL\fP are set according to the appropriate fields in the password entry. \fB$PATH\fP defaults to \fI/usr/local/bin:/bin:/usr/bin\fP for normal users, and to \fI/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\fP for root, if not otherwise configured.
+.sp
+The environment variable \fB$TERM\fP will be preserved, if it exists, else it will be initialized to the terminal type on your tty. Other environment variables are preserved if the \fB\-p\fP option is given.
+.sp
+The environment variables defined by PAM are always preserved.
+.sp
+Then the user\(cqs shell is started. If no shell is specified for the user in \fI/etc/passwd\fP, then \fI/bin/sh\fP is used. If the specified shell contains a space, it is treated as a shell script. If there is no home directory specified in \fI/etc/passwd\fP, then \fI/\fP is used, followed by \fI.hushlogin\fP check as described below.
+.sp
+If the file \fI.hushlogin\fP exists, then a "quiet" login is performed. This disables the checking of mail and the printing of the last login time and message of the day. Otherwise, if \fI/var/log/lastlog\fP exists, the last login time is printed, and the current login is recorded.
+.SH "OPTIONS"
+.sp
+\fB\-p\fP
+.RS 4
+Used by \fBgetty\fP(8) to tell \fBlogin\fP to preserve the environment.
+.RE
+.sp
+\fB\-f\fP
+.RS 4
+Used to skip a login authentication. This option is usually used by the \fBgetty\fP(8) autologin feature.
+.RE
+.sp
+\fB\-h\fP
+.RS 4
+Used by other servers (such as \fBtelnetd\fP(8) to pass the name of the remote host to \fBlogin\fP so that it can be placed in utmp and wtmp. Only the superuser is allowed use this option.
+.sp
+Note that the \fB\-h\fP option has an impact on the \fBPAM service\fP \fBname\fP. The standard service name is \fIlogin\fP, but with the \fB\-h\fP option, the name is \fIremote\fP. It is necessary to create proper PAM config files (for example, \fI/etc/pam.d/login\fP and \fI/etc/pam.d/remote\fP).
+.RE
+.sp
+\fB\-H\fP
+.RS 4
+Used by other servers (for example, \fBtelnetd\fP(8)) to tell \fBlogin\fP that printing the hostname should be suppressed in the login: prompt. See also \fBLOGIN_PLAIN_PROMPT\fP below.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "CONFIG FILE ITEMS"
+.sp
+\fBlogin\fP reads the \fI/etc/login.defs\fP configuration file (see \fBlogin.defs\fP(5)). Note that the configuration file could be distributed with another package (usually shadow\-utils). The following configuration items are relevant for \fBlogin\fP:
+.sp
+\fBMOTD_FILE\fP (string)
+.RS 4
+Specifies a ":" delimited list of "message of the day" files and directories to be displayed upon login. If the specified path is a directory then displays all files with .motd file extension in version\-sort order from the directory.
+.sp
+The default value is \fI/usr/share/misc/motd:/run/motd:/etc/motd\fP. If the \fBMOTD_FILE\fP item is empty or a quiet login is enabled, then the message of the day is not displayed. Note that the same functionality is also provided by the \fBpam_motd\fP(8) PAM module.
+.sp
+The directories in the \fBMOTD_FILE\fP are supported since version 2.36.
+.sp
+Note that \fBlogin\fP does not implement any filenames overriding behavior like pam_motd (see also \fBMOTD_FIRSTONLY\fP), but all content from all files is displayed. It is recommended to keep extra logic in content generators and use \fI/run/motd.d\fP rather than rely on overriding behavior hardcoded in system tools.
+.RE
+.sp
+\fBMOTD_FIRSTONLY\fP (boolean)
+.RS 4
+Forces \fBlogin\fP to stop display content specified by \fBMOTD_FILE\fP after the first accessible item in the list. Note that a directory is one item in this case. This option allows \fBlogin\fP semantics to be configured to be more compatible with pam_motd. The default value is \fIno\fP.
+.RE
+.sp
+\fBLOGIN_PLAIN_PROMPT\fP (boolean)
+.RS 4
+Tell \fBlogin\fP that printing the hostname should be suppressed in the login: prompt. This is an alternative to the \fB\-H\fP command line option. The default value is \fIno\fP.
+.RE
+.sp
+\fBLOGIN_TIMEOUT\fP (number)
+.RS 4
+Maximum time in seconds for login. The default value is \fI60\fP.
+.RE
+.sp
+\fBLOGIN_RETRIES\fP (number)
+.RS 4
+Maximum number of login retries in case of a bad password. The default value is \fI3\fP.
+.RE
+.sp
+\fBLOGIN_KEEP_USERNAME\fP (boolean)
+.RS 4
+Tell \fBlogin\fP to only re\-prompt for the password if authentication failed, but the username is valid. The default value is \fIno\fP.
+.RE
+.sp
+\fBFAIL_DELAY\fP (number)
+.RS 4
+Delay in seconds before being allowed another three tries after a login failure. The default value is \fI5\fP.
+.RE
+.sp
+\fBTTYPERM\fP (string)
+.RS 4
+The terminal permissions. The default value is \fI0600\fP or \fI0620\fP if tty group is used.
+.RE
+.sp
+\fBTTYGROUP\fP (string)
+.RS 4
+The login tty will be owned by the \fBTTYGROUP\fP. The default value is \fItty\fP. If the \fBTTYGROUP\fP does not exist, then the ownership of the terminal is set to the user\(cqs primary group.
+.sp
+The \fBTTYGROUP\fP can be either the name of a group or a numeric group identifier.
+.RE
+.sp
+\fBHUSHLOGIN_FILE\fP (string)
+.RS 4
+If defined, this file can inhibit all the usual chatter during the login sequence. If a full pathname (for example, \fI/etc/hushlogins\fP) is specified, then hushed mode will be enabled if the user\(cqs name or shell are found in the file. If this global hush login file is empty then the hushed mode will be enabled for all users.
+.sp
+If a full pathname is not specified, then hushed mode will be enabled if the file exists in the user\(cqs home directory.
+.sp
+The default is to check \fI/etc/hushlogins\fP and if it does not exist then \fI~/.hushlogin\fP.
+.sp
+If the \fBHUSHLOGIN_FILE\fP item is empty, then all the checks are disabled.
+.RE
+.sp
+\fBDEFAULT_HOME\fP (boolean)
+.RS 4
+Indicate if login is allowed if we cannot change directory to the home directory. If set to \fIyes\fP, the user will login in the root (/) directory if it is not possible to change directory to their home. The default value is \fIyes\fP.
+.RE
+.sp
+\fBLASTLOG_UID_MAX\fP (unsigned number)
+.RS 4
+Highest user ID number for which the \fIlastlog\fP entries should be updated. As higher user IDs are usually tracked by remote user identity and authentication services there is no need to create a huge sparse \fIlastlog\fP file for them. No LASTLOG_UID_MAX option present in the configuration means that there is no user ID limit for writing \fIlastlog\fP entries. The default value is \fIULONG_MAX\fP.
+.RE
+.sp
+\fBLOG_UNKFAIL_ENAB\fP (boolean)
+.RS 4
+Enable display of unknown usernames when login failures are recorded. The default value is \fIno\fP.
+.sp
+Note that logging unknown usernames may be a security issue if a user enters their password instead of their login name.
+.RE
+.sp
+\fBENV_PATH\fP (string)
+.RS 4
+If set, it will be used to define the \fBPATH\fP environment variable when a regular user logs in. The default value is \fI/usr/local/bin:/bin:/usr/bin\fP.
+.RE
+.sp
+\fBENV_ROOTPATH\fP (string), \fBENV_SUPATH\fP (string)
+.RS 4
+If set, it will be used to define the PATH environment variable when the superuser logs in. \fBENV_ROOTPATH\fP takes precedence. The default value is \fI/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\fP.
+.RE
+.SH "FILES"
+.sp
+\fI/var/run/utmp\fP,
+\fI/var/log/wtmp\fP,
+\fI/var/log/lastlog\fP,
+\fI/var/spool/mail/*\fP,
+\fI/etc/motd\fP,
+\fI/etc/passwd\fP,
+\fI/etc/nologin\fP,
+\fI/etc/pam.d/login\fP,
+\fI/etc/pam.d/remote\fP,
+\fI/etc/hushlogins\fP,
+\fI$HOME/.hushlogin\fP
+.SH "CREDENTIALS"
+.sp
+\fBlogin\fP supports configuration via systemd credentials (see \c
+.URL "https://systemd.io/CREDENTIALS/" "" ")."
+\fBlogin\fP reads the following systemd credentials:
+.sp
+\fBlogin.noauth\fP (boolean)
+.RS 4
+If set, configures \fBlogin\fP to skip login authentication, similarly to the \fB\-f\fP option.
+.RE
+.SH "BUGS"
+.sp
+The undocumented BSD \fB\-r\fP option is not supported. This may be required by some \fBrlogind\fP(8) programs.
+.sp
+A recursive login, as used to be possible in the good old days, no longer works; for most purposes \fBsu\fP(1) is a satisfactory substitute. Indeed, for security reasons, \fBlogin\fP does a \fBvhangup\fP(2) system call to remove any possible listening processes on the tty. This is to avoid password sniffing. If one uses the command \fBlogin\fP, then the surrounding shell gets killed by \fBvhangup\fP(2) because it\(cqs no longer the true owner of the tty. This can be avoided by using \fBexec login\fP in a top\-level shell or xterm.
+.SH "AUTHORS"
+.sp
+Derived from BSD login 5.40 (5/9/89) by \c
+.MTO "glad\(atdaimi.dk" "Michael Glad" ""
+for HP\-UX. Ported to Linux 0.12:
+.MTO "poe\(atdaimi.aau.dk" "Peter Orbaek" "."
+Rewritten to a PAM\-only version by
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBmail\fP(1),
+\fBpasswd\fP(1),
+\fBpasswd\fP(5),
+\fButmp\fP(5),
+\fBenviron\fP(7),
+\fBgetty\fP(8),
+\fBinit\fP(8),
+\fBlastlog\fP(8),
+\fBshutdown\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlogin\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

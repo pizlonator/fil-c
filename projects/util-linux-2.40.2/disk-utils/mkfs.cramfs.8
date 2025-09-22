@@ -1,0 +1,142 @@
+'\" t
+.\"     Title: mkfs.cramfs
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "MKFS.CRAMFS" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+mkfs.cramfs \- make compressed ROM file system
+.SH "SYNOPSIS"
+.sp
+\fBmkfs.cramfs\fP [options] \fIdirectory file\fP
+.SH "DESCRIPTION"
+.sp
+Files on cramfs file systems are zlib\-compressed one page at a time to allow random read access. The metadata is not compressed, but is expressed in a terse representation that is more space\-efficient than conventional file systems.
+.sp
+The file system is intentionally read\-only to simplify its design; random write access for compressed files is difficult to implement. cramfs ships with a utility (\fBmkcramfs\fP(8)) to pack files into new cramfs images.
+.sp
+File sizes are limited to less than 16 MB.
+.sp
+Maximum file system size is a little under 272 MB. (The last file on the file system must begin before the 256 MB block, but can extend past it.)
+.SH "ARGUMENTS"
+.sp
+The \fIdirectory\fP is simply the root of the directory tree that we want to generate a compressed filesystem out of.
+.sp
+The \fIfile\fP will contain the cram file system, which later can be mounted.
+.SH "OPTIONS"
+.sp
+\fB\-v\fP
+.RS 4
+Enable verbose messaging.
+.RE
+.sp
+\fB\-E\fP
+.RS 4
+Treat all warnings as errors, which are reflected as command exit status.
+.RE
+.sp
+\fB\-b\fP \fIblocksize\fP
+.RS 4
+Use defined block size, which has to be divisible by page size.
+.RE
+.sp
+\fB\-e\fP \fIedition\fP
+.RS 4
+Use defined file system edition number in superblock.
+.RE
+.sp
+\fB\-N\fP \fIbig, little, host\fP
+.RS 4
+Use defined endianness. Value defaults to \fIhost\fP.
+.RE
+.sp
+\fB\-i\fP \fIfile\fP
+.RS 4
+Insert a \fIfile\fP to cramfs file system.
+.RE
+.sp
+\fB\-n\fP \fIname\fP
+.RS 4
+Set name of the cramfs file system.
+.RE
+.sp
+\fB\-p\fP
+.RS 4
+Pad by 512 bytes for boot code.
+.RE
+.sp
+\fB\-s\fP
+.RS 4
+This option is ignored. Originally the \fB\-s\fP turned on directory entry sorting.
+.RE
+.sp
+\fB\-z\fP
+.RS 4
+Make explicit holes.
+.RE
+.sp
+\fB\-l\fP[=\fImode\fP]
+.RS 4
+Use exclusive BSD lock for device or file it operates.  The optional argument
+\fImode\fP can be \fIyes\fP, \fIno\fP (or 1 and 0) or \fInonblock\fP.  If the \fImode\fP
+argument is omitted, it defaults to \fI"yes"\fP.  This option overwrites
+environment variable \fB$LOCK_BLOCK_DEVICE\fP.  The default is not to use any
+lock at all, but it\(cqs recommended to avoid collisions with udevd or other
+tools.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
+success
+.RE
+.sp
+\fB8\fP
+.RS 4
+operation error, such as unable to allocate memory
+.RE
+.SH "SEE ALSO"
+.sp
+\fBfsck.cramfs\fP(8),
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBmkfs.cramfs\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

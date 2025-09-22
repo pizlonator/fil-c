@@ -1,0 +1,59 @@
+
+=====Create GPT================================
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+<removed>2: Done.
+
+New situation:
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start    End Sectors Size Type
+<removed>1   2048 100351   98304  48M Linux filesystem
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+=====Create FS in partition================================
+
+=====Wipe whole-disk device================================
+
+=====Create GPT (again)================================
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+The signature will be removed by a write command.
+<removed>2: Done.
+
+New situation:
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start    End Sectors Size Type
+<removed>1   2048 100351   98304  48M Linux filesystem
+
+Filesystem/RAID signature on partition 1 will be wiped.
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+=====Check content (disk)================================
+OFFSET    TYPE
+0x200     gpt
+0x31ffe00 gpt
+0x1fe     PMBR
+
+=====Check content (partition)================================

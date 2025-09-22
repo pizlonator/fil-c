@@ -1,0 +1,59 @@
+[    0.000000 <    0.000000>] [T1] Linux version 6.6.4-arch1-1 (linux@archlinux) (gcc (GCC) 13.2.1 20230801, GNU ld (GNU Binutils) 2.41.0) #1 SMP PREEMPT_DYNAMIC Mon, 04 Dec 2023 00:29:19 +0000
+[    0.000001 <    0.000000>] [T2] Command line: initrd=\ucode.img initrd=\initramfs-linux.img rw cryptdevice=/dev/nvme0n1p3:system:discard root=/dev/mapper/system
+[    0.000002 <    0.000001>] [T3] BIOS-provided physical RAM map:
+[    0.000003 <    0.000001>] [T4] BIOS-e820: [mem 0x0000000000000000-0x000000000009efff] usable
+[    0.000004 <    0.000001>] [T5] BIOS-e820: [mem 0x000000000009f000-0x00000000000bffff] reserved
+[    0.000005 <    0.000001>] [T6] BIOS-e820: [mem 0x0000000000100000-0x0000000009afffff] usable
+[    0.000006 <    0.000001>] [T7] BIOS-e820: [mem 0x0000000009b00000-0x0000000009dfffff] reserved
+[    0.000007 <    0.000001>] [T8] BIOS-e820: [mem 0x0000000009e00000-0x0000000009efffff] usable
+[    0.000008 <    0.000001>] [T9] BIOS-e820: [mem 0x0000000009f00000-0x0000000009f3bfff] ACPI NVS
+[    0.000009 <    0.000001>] [T10] BIOS-e820: [mem 0x0000000009f3c000-0x000000004235ffff] usable
+[    0.000010 <    0.000001>] [T11] BIOS-e820: [mem 0x0000000042360000-0x000000004455ffff] reserved
+[    0.201607 <    0.201597>] [T12] smp: Bringing up secondary CPUs ...
+[    0.201607 <    0.000000>] [T13] smpboot: x86: Booting SMP configuration:
+[    0.209670 <    0.008063>] [T14]   #1  #3  #5  #7
+[    0.212630 <    0.002960>] [T15] smp: Brought up 1 node, 16 CPUs
+[    0.215936 <    0.003306>] [T16] audit: type=2000 audit(1702926179.015:1): state=initialized audit_enabled=0 res=1
+[    0.215937 <    0.000001>] [T17] thermal_sys: Registered thermal governor 'fair_share'
+[    0.215966 <    0.000029>] [T18] ENERGY_PERF_BIAS: Set to 'normal', was 'performance'
+[    0.367657 <    0.151691>] [T19] ACPI: \_SB_.PCI0.GP19.NHI1.PWRS: New power resource
+[    0.368615 <    0.000958>] [T20] ACPI: \_SB_.PCI0.GP19.XHC4.PWRS: New power resource
+[    0.376316 <    0.007701>] [T21] ACPI: \_SB_.PRWL: New power resource
+[    0.376343 <    0.000027>] [T22] ACPI: \_SB_.PRWB: New power resource
+[    0.377373 <    0.001030>] [T23] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.377378 <    0.000005>] [T24] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI EDR HPX-Type3]
+[    0.377569 <    0.000191>] [T25] acpi PNP0A08:00: _OSC: platform does not support [SHPCHotplug AER]
+[    0.377933 <    0.000364>] [T26] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME PCIeCapability LTR DPC]
+[    0.378458 <    0.000525>] [T27] PCI host bridge to bus 0000:00
+[    0.378459 <    0.000001>] [T28] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.378461 <    0.000002>] [T29] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    9.398562 <    9.020101>] [T30] user network daemon initialization complete
+[   10.441520 <    1.042958>] [T31] systemd[1]: systemd 254.7-1.fc39 running in system mode
+[   11.441524 <    1.000004>] [T32] systemd[1]: Detected architecture x86-64.
+[   12.441525 <    1.000001>] [T33] systemd[1]: Running in initrd.
+[   13.541598 <    1.100073>] [T34] systemd[1]: Hostname set to <catalina>.
+[   15.641860 <    2.100262>] [T35] usb 3-3: New USB device found, idVendor=1a40, idProduct=0101, bcdDevice= 1.11
+[   16.690000 <    1.048140>] [T36] Serial bus multi instantiate pseudo device driver INT3515:00: error -ENXIO: IRQ index 1 not found.
+[   17.710000 <    1.020000>] [T37] snd_hda_intel 0000:00:1f.3: CORB reset timeout#2, CORBRP = 65535
+[   18.720000 <    1.010000>] [T38] systemd-journald[723]: Received client request to flush runtime journal.
+[   20.740000 <    2.020000>] [T39] systemd-journald[723]: File /var/log/journal/a124ea923b144109a12d557d5ac53179/system.journal corrupted or uncleanly shut down, renaming and replacing.
+[   21.752348 <    1.012348>] [T40] systemd-journald[723]: /var/log/journal/ad7a2547ac0e4342a342e62a34a3eae4/user-1000.journal: Journal file uses a different sequence number ID, rotating.
+[   24.761100 <    3.008752>] [T41] PEFILE: Unsigned PE binary
+[   35.768091 <   11.006991>] [T42] snd_hda_intel 0000:00:1f.3: CORB reset timeout#2, CORBRP = 65535
+[  137.791785 <  102.023694>] [C1] usb 3-3.1: device firmware changed
+[  146.803248 <    9.011463>] [C2] usb 3-3.1: USB disconnect, device number 44
+[  148.821859 <    2.018611>] [C3] usb 3-3.1: New USB device found, idVendor=17ef, idProduct=6047, bcdDevice= 3.30
+[  149.840480 <    1.018621>] [C4] perf: interrupt took too long (2518 > 2500)
+[  150.853128 <    1.012648>] [C5] perf: interrupt took too long (3217 > 3147)
+[  153.859311 <    3.006183>] [C12] perf: interrupt took too long (3654 > 3239)
+[  155.861908 <    2.002597>] [C123] perf: interrupt took too long (3789 > 3545)
+[  158.870434 <    3.008526>] [C1234] perf: interrupt took too long (3891 > 3647)
+[  161.887625 <    3.017191>] [C12345] perf: interrupt took too long (3947 > 3789)
+[  163.898434 <    2.010809>] [C123456] perf: interrupt took too long (4011 > 3898)
+[  166.909842 <    3.011408>] [C1234567] perf: interrupt took too long (4174 > 3987)
+[  169.911147 <    3.001305>] [T123] User program Dmesg Test Message at warn priority
+[  178.927435 <    9.016288>] [T1234] User program Dmesg Test Message at warn priority
+[  185.943456 <    7.016021>] [T12345] User program Dmesg Test Message at notice priority
+[  189.963238 <    4.019782>] [T123456] User program Dmesg Test Message at info priority
+[  207.987439 <   18.024201>] [T1234567] User program Dmesg Test Message at debug priority
+

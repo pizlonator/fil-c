@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2007 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="by devname (fstab symlink)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MOUNT"
+ts_check_test_command "$TS_CMD_UMOUNT"
+
+ts_skip_nonroot
+ts_check_losetup
+ts_check_prog "mkfs.ext2"
+
+LINKNAME="$TS_OUTDIR/${TS_TESTNAME}_lnk"
+
+ts_device_init
+DEVICE=$TS_LODEV
+
+mkfs.ext2 $DEVICE &> /dev/null || ts_die "Cannot make ext2 on $DEVICE"
+
+ts_device_has "TYPE" "ext2" $DEVICE || ts_die "Cannot find ext2 on $DEVICE"
+
+[ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+
+rm -rf $LINKNAME
+ln -s $DEVICE $LINKNAME
+
+ts_fstab_add $LINKNAME $TS_MOUNTPOINT "auto" "defaults,user"
+
+# variant A) -- UID=0
+$TS_CMD_MOUNT -T "$TS_FSTAB" $LINKNAME >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_is_mounted $DEVICE || ts_die "A) Cannot find $DEVICE in /proc/mounts"
+$TS_CMD_UMOUNT $LINKNAME || ts_die "A) Cannot umount $LINKNAME"
+
+# variant B) -- disabled, the $TS_CMD_MOUNT is usually not a real program, but
+#              libtool wrapper and the real mount is exec()ed with
+#              LD_LIBRARY_PATH. This all is bad for suid programs...
+
+#ts_init_suid $TS_CMD_MOUNT
+#ts_init_suid $TS_CMD_UMOUNT
+#
+#su $TS_TESTUSER -c "$TS_CMD_MOUNT -v -v -v $LINKNAME" >> $TS_OUTPUT 2>> $TS_ERRLOG
+#ts_is_mounted $DEVICE
+#   || ts_die "B) Cannot find $DEVICE in /proc/mounts"
+#su $TS_TESTUSER -c "$TS_CMD_UMOUNT $LINKNAME" >> $TS_OUTPUT 2>> $TS_ERRLOG \
+#   || ts_die "B) Cannot umount $LINKNAME"
+
+ts_fstab_clean
+rm -f $LINKNAME
+
+ts_log "Success"
+ts_finalize
+

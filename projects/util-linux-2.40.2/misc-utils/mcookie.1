@@ -1,0 +1,96 @@
+'\" t
+.\"     Title: mcookie
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "MCOOKIE" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+mcookie \- generate magic cookies for xauth
+.SH "SYNOPSIS"
+.sp
+\fBmcookie\fP [options]
+.SH "DESCRIPTION"
+.sp
+\fBmcookie\fP generates a 128\-bit random hexadecimal number for use with the X authority system. Typical usage:
+.RS 3
+.ll -.6i
+.sp
+\fBxauth add :0 . \f(CRmcookie\fP\fP
+.br
+.RE
+.ll
+.sp
+The "random" number generated is actually the MD5 message digest of random information coming from one of the sources \fBgetrandom\fP(2) system call, \fI/dev/urandom\fP, \fI/dev/random\fP, or the \fIlibc pseudo\-random functions\fP, in this preference order. See also the option \fB\-\-file\fP.
+.SH "OPTIONS"
+.sp
+\fB\-f\fP, \fB\-\-file\fP \fIfile\fP
+.RS 4
+Use this \fIfile\fP as an additional source of randomness (for example \fI/dev/urandom\fP). When \fIfile\fP is \*(Aq\-\*(Aq, characters are read from standard input.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-max\-size\fP \fInumber\fP
+.RS 4
+Read from \fIfile\fP only this \fInumber\fP of bytes. This option is meant to be used when reading additional randomness from a file or device.
+.sp
+The \fInumber\fP argument may be followed by the multiplicative suffixes KiB=1024, MiB=1024*1024, and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB=1000, MB=1000*1000, and so on for GB, TB, PB, EB, ZB and YB.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Inform where randomness originated, with amount of entropy read from each source.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "FILES"
+.sp
+\fI/dev/urandom\fP
+.sp
+\fI/dev/random\fP
+.SH "BUGS"
+.sp
+It is assumed that none of the randomness sources will block.
+.SH "SEE ALSO"
+.sp
+\fBmd5sum\fP(1),
+\fBX\fP(7),
+\fBxauth\fP(1),
+\fBrand\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBmcookie\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

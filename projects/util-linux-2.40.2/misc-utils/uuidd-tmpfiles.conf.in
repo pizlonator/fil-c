@@ -1,0 +1,6 @@
+# This file is part of uuidd.
+#
+# See tmpfiles.d(5) for details
+#
+d @runstatedir@/uuidd 2775 uuidd uuidd -
+d @localstatedir@/lib/libuuid 0755 uuidd uuidd -

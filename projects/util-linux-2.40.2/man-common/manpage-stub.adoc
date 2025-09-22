@@ -1,0 +1,66 @@
+//po4a: entry man manual
+////
+Please don't treat this file as a real man page! We provide it only to show how
+things should be formatted. Besides this example file, see the existing .adoc
+files for many more formatting options.
+The first line above is a hint for po4a that the :man manual: entry needs
+to be translated.
+As you can see here, use //// to write comment blocks. For a single comment
+line, just use //.
+Please don't wrap lines within a paragraph. Our translation tool po4a behaves
+a bit unpredictable in such cases.
+We also urgently recommend to test the creation of the *roff file to see possible
+issues.
+////
+= foobar(1)
+:doctype: manpage
+:man manual: User commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: foobar
+
+== NAME
+
+foobar - do nothing
+
+== SYNOPSIS
+
+*foobar* _options_ _file_
+
+== DESCRIPTION
+
+Describe *foobar* briefly.
+
+== OPTIONS
+
+//Format options bold and values italic:
+*-o*, *--option* _value_::
+This option has a value.
++
+For empty lines within a description (to keep the indentation) you can use the "plus" character at the beginning of an otherwise empty line.
+
+//Last but not least, don't forget the common options:
+include::man-common/help-version.adoc[]
+
+== NOTES
+
+Put your notes here which don't match any other paragraph.
+
+== AUTHORS
+
+// Format mail addresses as follows:
+mailto:john.doe@example.com[John Doe]
+// If you need more than one address, use a comma-separated list or leave empty lines between the entries.
+
+== SEE ALSO
+
+*foo*(1),
+*bar*(1)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

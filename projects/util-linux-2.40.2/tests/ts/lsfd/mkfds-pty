@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="ptmx and associated pts"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD0=5
+FD1=6
+INDEX=
+
+col_test()
+{
+    local col=$1
+    local expected=$2
+    local output
+
+    output=$(${TS_CMD_LSFD} -p "${PID}" -n --raw -o "$col" -Q "${EXPR}")
+    echo "$col": $?
+    if [[ "$output" != "$expected" ]]; then
+	echo "expected ${col} -Q ${EXPR}: ${expected}"
+	echo "output ${col} -Q ${EXPR}: ${output}"
+    fi
+}
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" pty $FD0 $FD1 ; }
+    if read -u ${MKFDS[0]} PID INDEX; then
+	EXPR='(FD == '$FD0')'
+	columns=ASSOC,MODE,TYPE,SOURCE
+	${TS_CMD_LSFD} -p "${PID}" -n -r -o "$columns" -Q "${EXPR}"
+	echo "$columns": $?
+
+	col_test NAME "tty-index=${INDEX}"
+	col_test ENDPOINTS "${PID},test_mkfds,${FD1}r-"
+	col_test PTMX.TTY-INDEX "$INDEX"
+
+	EXPR='(FD == '$FD1')'
+	columns=ASSOC,MODE,TYPE
+	${TS_CMD_LSFD} -p "${PID}" -n -r -o "$columns" -Q "${EXPR}"
+	echo "$columns": $?
+
+	col_test SOURCE "pts:${INDEX}"
+	col_test NAME "/dev/pts/${INDEX}"
+	col_test ENDPOINTS "${PID},test_mkfds,${FD0}rw"
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait ${MKFDS_PID}
+} > $TS_OUTPUT 2>&1
+
+ts_finalize

@@ -1,0 +1,103 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2010 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="MD raid1 (whole-disks)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_CMD_BLKID"
+
+ts_skip_nonroot
+ts_check_losetup
+ts_check_prog "mdadm"
+
+# rhbz#182625: It can't create new raid0 with metadata 0.90 from mdadm-4.1
+TS_KNOWN_FAIL="yes"
+
+ts_log "Initialize devices"
+IMGNAME="${TS_OUTDIR}/${TS_TESTNAME}"
+
+ts_device_init 50 ${IMGNAME}1.img
+DEVICE1=$TS_LODEV
+
+ts_device_init 50 ${IMGNAME}2.img
+DEVICE2=$TS_LODEV
+
+MD_DEVNAME=md8
+MD_DEVICE=/dev/${MD_DEVNAME}
+
+ts_lock "md"
+
+mdadm -q -S ${MD_DEVICE} &> /dev/null
+udevadm settle
+
+ts_log "Create RAID device"
+mdadm -q --create ${MD_DEVICE} --metadata=0.90 --chunk=64 --level=1 \
+	    --raid-devices=2 ${DEVICE1} ${DEVICE2} >> $TS_OUTPUT 2>> $TS_ERRLOG
+udevadm settle
+
+# create dos partition table
+$TS_CMD_FDISK --noauto-pt ${MD_DEVICE} &>/dev/null <<EOF
+o
+w
+q
+EOF
+
+ts_log "Create partitions on RAID device"
+$TS_CMD_FDISK ${MD_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+n
+p
+1
+
++10M
+n
+p
+2
+
++10M
+p
+w
+q
+EOF
+
+udevadm settle
+
+ts_log "Probe first RAID member"
+$TS_CMD_BLKID -p -o udev $DEVICE1 2>> $TS_ERRLOG | sort >> $TS_OUTPUT
+
+ts_log "Probe second RAID member"
+$TS_CMD_BLKID -p -o udev $DEVICE1 2>> $TS_ERRLOG | sort >> $TS_OUTPUT
+
+ts_log "Stop RAID device"
+mdadm -q -S ${MD_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+udevadm settle
+ts_unlock "md"
+
+ts_log "Deinitialize devices"
+
+ts_fdisk_clean
+# seems that raid1 minimum I/O size has been changed in kernels >4.4.x and >4.8
+sed -i 's@^\(I/O size (minimum/optimal): \)[1-9][0-9]*@\1<removed>@' $TS_OUTPUT
+# remove generated UUIDs
+sed -i -e 's/ID_FS_UUID.*//g' $TS_OUTPUT
+
+ts_finalize

@@ -1,0 +1,166 @@
+'\" t
+.\"     Title: flock
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FLOCK" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+flock \- manage locks from shell scripts
+.SH "SYNOPSIS"
+.sp
+\fBflock\fP [options] \fIfile\fP|\fIdirectory\fP \fIcommand\fP [\fIarguments\fP]
+.sp
+\fBflock\fP [options] \fIfile\fP|\fIdirectory\fP \fB\-c\fP \fIcommand\fP
+.sp
+\fBflock\fP [options] \fInumber\fP
+.SH "DESCRIPTION"
+.sp
+This utility manages \fBflock\fP(2) locks from within shell scripts or from the command line.
+.sp
+The first and second of the above forms wrap the lock around the execution of a \fIcommand\fP, in a manner similar to \fBsu\fP(1) or \fBnewgrp\fP(1). They lock a specified \fIfile\fP or \fIdirectory\fP, which is created (assuming appropriate permissions) if it does not already exist. By default, if the lock cannot be immediately acquired, \fBflock\fP waits until the lock is available.
+.sp
+The third form uses an open file by its file descriptor \fInumber\fP. See the examples below for how that can be used.
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-command\fP \fIcommand\fP
+.RS 4
+Pass a single \fIcommand\fP, without arguments, to the shell with \fB\-c\fP.
+.RE
+.sp
+\fB\-E\fP, \fB\-\-conflict\-exit\-code\fP \fInumber\fP
+.RS 4
+The exit status used when the \fB\-n\fP option is in use, and the conflicting lock exists, or the \fB\-w\fP option is in use, and the timeout is reached. The default value is \fB1\fP. The \fInumber\fP has to be in the range of 0 to 255.
+.RE
+.sp
+\fB\-F\fP, \fB\-\-no\-fork\fP
+.RS 4
+Do not fork before executing \fIcommand\fP. Upon execution the flock process is replaced by \fIcommand\fP which continues to hold the lock. This option is incompatible with \fB\-\-close\fP as there would otherwise be nothing left to hold the lock.
+.RE
+.sp
+\fB\-e\fP, \fB\-x\fP, \fB\-\-exclusive\fP
+.RS 4
+Obtain an exclusive lock, sometimes called a write lock. This is the default.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-nb\fP, \fB\-\-nonblock\fP
+.RS 4
+Fail rather than wait if the lock cannot be immediately acquired. See the \fB\-E\fP option for the exit status used.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-close\fP
+.RS 4
+Close the file descriptor on which the lock is held before executing \fIcommand\fP. This is useful if \fIcommand\fP spawns a child process which should not be holding the lock.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-shared\fP
+.RS 4
+Obtain a shared lock, sometimes called a read lock.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-unlock\fP
+.RS 4
+Drop a lock. This is usually not required, since a lock is automatically dropped when the file is closed. However, it may be required in special cases, for example if the enclosed command group may have forked a background process which should not be holding the lock.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wait\fP, \fB\-\-timeout\fP \fIseconds\fP
+.RS 4
+Fail if the lock cannot be acquired within \fIseconds\fP. Decimal fractional values are allowed. See the \fB\-E\fP option for the exit status used. The zero number of \fIseconds\fP is interpreted as \fB\-\-nonblock\fP.
+.RE
+.sp
+\fB\-\-verbose\fP
+.RS 4
+Report how long it took to acquire the lock, or why the lock could not be obtained.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+The command uses <sysexits.h> exit status values for everything, except when using either of the options \fB\-n\fP or \fB\-w\fP which report a failure to acquire the lock with an exit status given by the \fB\-E\fP option, or 1 by default. The exit status given by \fB\-E\fP has to be in the range of 0 to 255.
+.sp
+When using the \fIcommand\fP variant, and executing the child worked, then the exit status is that of the child command.
+.SH "NOTES"
+.sp
+\fBflock\fP does not detect deadlock. See \fBflock\fP(2) for details.
+.sp
+Some file systems (e. g. NFS and CIFS) have a limited implementation of \fBflock\fP(2) and flock may always fail. For details see \fBflock\fP(2), \fBnfs\fP(5) and \fBmount.cifs\fP(8). Depending on mount options, flock can always fail there.
+.SH "EXAMPLES"
+.sp
+Note that "shell> " in examples is a command line prompt.
+.sp
+shell1> flock /tmp \-c cat; shell2> flock \-w .007 /tmp \-c echo; /bin/echo $?
+.RS 4
+Set exclusive lock to directory \fI/tmp\fP and the second command will fail.
+.RE
+.sp
+shell1> flock \-s /tmp \-c cat; shell2> flock \-s \-w .007 /tmp \-c echo; /bin/echo $?
+.RS 4
+Set shared lock to directory \fI/tmp\fP and the second command will not fail. Notice that attempting to get exclusive lock with second command would fail.
+.RE
+.sp
+shell> flock \-x local\-lock\-file echo \*(Aqa b c\*(Aq
+.RS 4
+Grab the exclusive lock "local\-lock\-file" before running echo with \*(Aqa b c\*(Aq.
+.RE
+.sp
+(; flock \-n 9 || exit 1; # ... commands executed under lock ...; ) 9>/var/lock/mylockfile
+.RS 4
+The form is convenient inside shell scripts. The mode used to open the file doesn\(cqt matter to \fBflock\fP; using \fI>\fP or \fI>>\fP allows the lockfile to be created if it does not already exist, however, write permission is required. Using \fI<\fP requires that the file already exists but only read permission is required.
+.RE
+.sp
+[ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock \-en "$0" "$0" "$@" || :
+.RS 4
+This is useful boilerplate code for shell scripts. Put it at the top of the shell script you want to lock and it\(cqll automatically lock itself on the first run. If the environment variable \fB$FLOCKER\fP is not set to the shell script that is being run, then execute \fBflock\fP and grab an exclusive non\-blocking lock (using the script itself as the lock file) before re\-execing itself with the right arguments. It also sets the \fBFLOCKER\fP environment variable to the right value so it doesn\(cqt run again.
+.RE
+.sp
+shell> exec 4<>/var/lock/mylockfile; shell> flock \-n 4
+.RS 4
+This form is convenient for locking a file without spawning a subprocess. The shell opens the lock file for reading and writing as file descriptor 4, then \fBflock\fP is used to lock the descriptor.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "hpa\(atzytor.com" "H. Peter Anvin" ""
+.SH "COPYRIGHT"
+.sp
+Copyright © 2003\-2006 H. Peter Anvin. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.SH "SEE ALSO"
+.sp
+\fBflock\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBflock\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

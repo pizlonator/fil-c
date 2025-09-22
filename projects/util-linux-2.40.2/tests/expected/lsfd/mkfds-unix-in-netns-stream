@@ -1,0 +1,6 @@
+5 SOCK state=listen path=test_mkfds-unix-stream-ns listen stream 1 test_mkfds-unix-stream-ns
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+the netns for the stream socket is extracted as expectedly
+5 SOCK state=listen path=@test_mkfds-unix-stream-ns listen stream 1 @test_mkfds-unix-stream-ns
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+the netns for the abstract stream socket is extracted as expectedly

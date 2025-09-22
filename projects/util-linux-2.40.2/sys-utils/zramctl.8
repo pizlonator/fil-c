@@ -1,0 +1,160 @@
+'\" t
+.\"     Title: zramctl
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "ZRAMCTL" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+zramctl \- set up and control zram devices
+.SH "SYNOPSIS"
+.sp
+Get info:
+.RS 4
+\fBzramctl\fP [options]
+.RE
+.sp
+Reset zram:
+.RS 4
+\fBzramctl\fP \fB\-r\fP \fIzramdev\fP...
+.RE
+.sp
+Print name of first unused zram device:
+.RS 4
+\fBzramctl\fP \fB\-f\fP
+.RE
+.sp
+Set up a zram device:
+.RS 4
+\fBzramctl\fP [\fB\-f\fP | \fIzramdev\fP] [\fB\-s\fP \fIsize\fP] [\fB\-t\fP \fInumber\fP] [\fB\-a\fP \fIalgorithm\fP]
+.RE
+.SH "DESCRIPTION"
+.sp
+\fBzramctl\fP is used to quickly set up zram device parameters, to reset zram devices, and to query the status of used zram devices.
+.sp
+If no option is given, all non\-zero size zram devices are shown.
+.sp
+Note that \fIzramdev\fP node specified on command line has to already exist. The command \fBzramctl\fP creates a new \fI/dev/zram<N>\fP nodes only when \fB\-\-find\fP option specified. It\(cqs possible (and common) that after system boot \fI/dev/zram<N>\fP nodes are not created yet.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-algorithm lzo\fP|\fBlz4\fP|\fBlz4hc\fP|\fBdeflate\fP|\fB842\fP|\fBzstd\fP
+.RS 4
+Set the compression algorithm to be used for compressing data in the zram device.
+.sp
+The \fBlist of supported algorithms could be inaccurate\fP as it depends on the current kernel configuration. A basic overview can be obtained by using the command "cat /sys/block/zram0/comp_algorithm"; however, please note that this list might also be incomplete. This is due to the fact that ZRAM utilizes the Crypto API, and if certain algorithms were built as modules, it becomes impossible to enumerate all of them.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-find\fP
+.RS 4
+Find the first unused zram device. If a \fB\-\-size\fP argument is present, then initialize the device.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line in status output.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Define the status output columns to be used. If no output arrangement is specified, then a default set is used. Use \fB\-\-help\fP to get a list of all supported columns.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-\-raw\fP
+.RS 4
+Use the raw format for status output.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-reset\fP
+.RS 4
+Reset the options of the specified zram device(s). Zram device settings can be changed only after a reset.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-size\fP \fIsize\fP
+.RS 4
+Create a zram device of the specified \fIsize\fP. Zram devices are aligned to memory pages; when the requested \fIsize\fP is not a multiple of the page size, it will be rounded up to the next multiple. When not otherwise specified, the unit of the \fIsize\fP parameter is bytes.
+.sp
+The \fIsize\fP argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-streams\fP \fInumber\fP
+.RS 4
+Set the maximum number of compression streams that can be used for the device. The default is use all CPUs and one stream for kernels older than 4.6.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBzramctl\fP returns 0 on success, nonzero on failure.
+.SH "FILES"
+.sp
+\fI/dev/zram[0..N]\fP
+.RS 4
+zram block devices
+.RE
+.SH "EXAMPLE"
+.sp
+The following commands set up a zram device with a size of one gigabyte and use it as swap device.
+.sp
+.if n .RS 4
+.nf
+.fam C
+ # zramctl \-\-find \-\-size 1024M
+ /dev/zram0
+ # mkswap /dev/zram0
+ # swapon /dev/zram0
+ ...
+ # swapoff /dev/zram0
+ # zramctl \-\-reset /dev/zram0
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "nefelim4ag\(atgmail.com" "Timofey Titovets" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+.URL "https://docs.kernel.org/admin\-guide/blockdev/zram.html" "Linux kernel documentation" ""
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBzramctl\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

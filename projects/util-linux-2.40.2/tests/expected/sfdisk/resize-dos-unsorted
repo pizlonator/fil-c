@@ -1,0 +1,74 @@
+Disk <removed>: 100 MiB, 104857600 bytes, 204800 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+<removed>2: Created a new partition <removed>.
+<removed>3: Created a new partition <removed>.
+<removed>4: Created a new partition <removed>.
+<removed>5: Created a new partition <removed>.
+<removed>6: Created a new partition <removed>.
+<removed>7: Done.
+
+New situation:
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot  Start    End Sectors Size Id Type
+<removed>1         2048   4095    2048   1M 83 Linux
+<removed>2         4096   6143    2048   1M 83 Linux
+<removed>3         6144 108543  102400  50M  5 Extended
+<removed>4       108544 110591    2048   1M 83 Linux
+<removed>5         8192  10239    2048   1M 83 Linux
+<removed>6        12288 108543   96256  47M 83 Linux
+
+Partition table entries are not in disk order.
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+Disk <removed>: 100 MiB, 104857600 bytes, 204800 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: dos
+Disk identifier: <removed>
+
+Old situation:
+
+Device     Boot  Start    End Sectors Size Id Type
+<removed>1         2048   4095    2048   1M 83 Linux
+<removed>2         4096   6143    2048   1M 83 Linux
+<removed>3         6144 108543  102400  50M  5 Extended
+<removed>4       108544 110591    2048   1M 83 Linux
+<removed>5         8192  10239    2048   1M 83 Linux
+<removed>6        12288 108543   96256  47M 83 Linux
+
+Partition table entries are not in disk order.
+
+<removed>4: 
+New situation:
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot  Start    End Sectors Size Id Type
+<removed>1         2048   4095    2048   1M 83 Linux
+<removed>2         4096   6143    2048   1M 83 Linux
+<removed>3         6144 108543  102400  50M  5 Extended
+<removed>4       108544 204799   96256  47M 83 Linux
+<removed>5         8192  10239    2048   1M 83 Linux
+<removed>6        12288 108543   96256  47M 83 Linux
+
+Partition table entries are not in disk order.
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.

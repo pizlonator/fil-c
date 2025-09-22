@@ -1,0 +1,150 @@
+'\" t
+.\"     Title: fstab
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: File formats
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FSTAB" "5" "2024-05-28" "util\-linux 2.40.2" "File formats"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fstab \- static information about the filesystems
+.SH "SYNOPSIS"
+.sp
+\fI/etc/fstab\fP
+.SH "DESCRIPTION"
+.sp
+The file \fBfstab\fP contains descriptive information about the filesystems the system can mount. \fBfstab\fP is only read by programs, and not written; it is the duty of the system administrator to properly create and maintain this file. The order of records in \fBfstab\fP is important because \fBfsck\fP(8), \fBmount\fP(8), and \fBumount\fP(8) sequentially iterate through \fBfstab\fP doing their thing.
+.sp
+The file is not read by \fBmount\fP(8) only but often is used by many other tools and daemons, and proper functionality may require additional steps. For example, on systemd\-based systems, it\(cqs recommended to use \fBsystemctl daemon\-reload\fP after \fBfstab\fP modification.
+.sp
+Each filesystem is described on a separate line. Fields on each line are separated by tabs or spaces. Lines starting with \*(Aq#\*(Aq are comments. Blank lines are ignored.
+.sp
+The following is a typical example of an \fBfstab\fP entry:
+.sp
+.if n .RS 4
+.nf
+.fam C
+LABEL=t\-home2   /home      ext4    defaults,auto_da_alloc      0  2
+.fam
+.fi
+.if n .RE
+.SS "The first field (\fIfs_spec\fP)."
+.sp
+This field describes the block special device, remote filesystem or filesystem image for loop device to be mounted or swap file or swap device to be enabled.
+.sp
+For ordinary mounts, it will hold (a link to) a block special device node (as created by \fBmknod\fP(2)) for the device to be mounted, like \fI/dev/cdrom\fP or \fI/dev/sdb7\fP. For NFS mounts, this field is \fI<host>:<dir>\fP, e.g., \fIknuth.aeb.nl:/\fP. For filesystems with no storage, any string can be used, and will show up in \fBdf\fP(1) output, for example. Typical usage is \fIproc\fP for \fBprocfs\fP; \fImem\fP, \fInone\fP, or \fItmpfs\fP for \fBtmpfs\fP. Other special filesystems, like \fBudev\fP and \fBsysfs\fP, are typically not listed in \fBfstab\fP.
+.sp
+LABEL=<label> or UUID=<uuid> may be given instead of a device name. This is the recommended method, as device names are often a coincidence of hardware detection order, and can change when other disks are added or removed. For example, \*(AqLABEL=Boot\*(Aq or \*(AqUUID=3e6be9de\-8139\-11d1\-9106\-a43f08d823a6\*(Aq. (Use a filesystem\-specific tool like \fBe2label\fP(8), \fBxfs_admin\fP(8), or \fBfatlabel\fP(8) to set LABELs on filesystems).
+.sp
+It\(cqs also possible to use \fBPARTUUID=\fP and \fBPARTLABEL=\fP. These partitions identifiers are supported for example for GUID Partition Table (GPT).
+.sp
+See \fBmount\fP(8), \fBblkid\fP(8) or \fBlsblk\fP(8) for more details about device identifiers.
+.sp
+Note that \fBmount\fP(8) uses UUIDs as strings. The string representation of the UUID should be based on lower case characters. But when specifying the volume ID of FAT or NTFS file systems upper case characters are used (e.g UUID="A40D\-85E7" or UUID="61DB7756DB7779B3").
+.SS "The second field (\fIfs_file\fP)."
+.sp
+This field describes the mount point (target) for the filesystem. For swap area, this field should be specified as `none\*(Aq. If the name of the mount point contains spaces or tabs these can be escaped as `\(rs040\*(Aq and \*(Aq\(rs011\*(Aq respectively.
+.SS "The third field (\fIfs_vfstype\fP)."
+.sp
+This field describes the type of the filesystem. Linux supports many filesystem types: ext4, xfs, btrfs, f2fs, vfat, ntfs, hfsplus, tmpfs, sysfs, proc, iso9660, udf, squashfs, nfs, cifs, and many more. For more details, see \fBmount\fP(8).
+.sp
+An entry \fIswap\fP denotes a file or partition to be used for swapping, cf. \fBswapon\fP(8). An entry \fInone\fP is useful for bind or move mounts.
+.sp
+More than one type may be specified in a comma\-separated list.
+.sp
+\fBmount\fP(8) and \fBumount\fP(8) support filesystem \fIsubtypes\fP. The subtype is defined by \*(Aq.subtype\*(Aq suffix. For example \*(Aqfuse.sshfs\*(Aq. It\(cqs recommended to use subtype notation rather than add any prefix to the first fstab field (for example \*(Aqsshfs#example.com\*(Aq is deprecated).
+.SS "The fourth field (\fIfs_mntops\fP)."
+.sp
+This field describes the mount options associated with the filesystem.
+.sp
+It is formatted as a comma\-separated list of options and is optional for \fBmount\fP(8) or \fBswapon\fP(8). The usual convention is to use at least "defaults" keyword there.
+.sp
+It usually contains the type of mount (\fBro\fP or \fBrw\fP, the default is \fBrw\fP), plus any additional options appropriate to the filesystem type (including performance\-tuning options). For details, see \fBmount\fP(8) or \fBswapon\fP(8).
+.sp
+Basic filesystem\-independent options are:
+.sp
+\fBdefaults\fP
+.RS 4
+use default options. The default depends on the kernel and the filesystem. \fBmount\fP(8) does not have any hardcoded set of default options. The kernel default is usually rw, suid, dev, exec, auto, nouser, and async.
+.RE
+.sp
+\fBnoauto\fP
+.RS 4
+do not mount when \fBmount \-a\fP is given (e.g., at boot time)
+.RE
+.sp
+\fBuser\fP
+.RS 4
+allow a user to mount
+.RE
+.sp
+\fBowner\fP
+.RS 4
+allow device owner to mount
+.RE
+.sp
+\fBcomment\fP
+.RS 4
+or \fBx\-<name>\fP for use by fstab\-maintaining programs
+.RE
+.sp
+\fBnofail\fP
+.RS 4
+do not report errors for this device if it does not exist.
+.RE
+.SS "The fifth field (\fIfs_freq\fP)."
+.sp
+This field is used by \fBdump\fP(8) to determine which filesystems need to be dumped. Defaults to zero (don\(cqt dump) if not present.
+.SS "The sixth field (\fIfs_passno\fP)."
+.sp
+This field is used by \fBfsck\fP(8) to determine the order in which filesystem checks are done at boot time. The root filesystem should be specified with a \fIfs_passno\fP of 1. Other filesystems should have a \fIfs_passno\fP of 2. Filesystems within a drive will be checked sequentially, but filesystems on different drives will be checked at the same time to utilize parallelism available in the hardware. Defaults to zero (don\(cqt check the filesystem) if not present.
+.SH "FILES"
+.sp
+\fI/etc/fstab\fP,
+\fI<fstab.h>\fP
+.SH "NOTES"
+.sp
+The proper way to read records from \fBfstab\fP is to use the routines \fBgetmntent\fP(3) or \fBlibmount\fP.
+.sp
+The keyword \fBignore\fP as a filesystem type (3rd field) is no longer supported by the pure libmount based mount utility (since util\-linux v2.22).
+.sp
+This document describes handling of \fBfstab\fP by \fButil\-linux\fP and \fBlibmount\fP. For \fBsystemd\fP, read \fBsystemd\fP documentation. There are slight differences.
+.SH "HISTORY"
+.sp
+The ancestor of this \fBfstab\fP file format appeared in 4.0BSD.
+.SH "SEE ALSO"
+.sp
+\fBgetmntent\fP(3),
+\fBfs\fP(5),
+\fBfindmnt\fP(8),
+\fBmount\fP(8),
+\fBswapon\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+\fBfstab\fP is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

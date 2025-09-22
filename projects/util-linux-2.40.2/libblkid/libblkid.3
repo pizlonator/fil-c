@@ -1,0 +1,388 @@
+'\" t
+.\"     Title: libblkid
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: Programmer's Manual
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LIBBLKID" "3" "2024-01-31" "util\-linux 2.40.2" "Programmer\*(Aqs Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+libblkid \- block device identification library
+.SH "SYNOPSIS"
+.sp
+\fB#include <blkid.h>\fP
+.sp
+\fBcc\fP \fIfile.c\fP \fB\-lblkid\fP
+.SH "DESCRIPTION"
+.sp
+The \fBlibblkid\fP library is used to identify block devices (disks) as to their content (e.g., filesystem type) as well as extracting additional information such as filesystem labels/volume names, unique identifiers/serial numbers. A common use is to allow use of \fBLABEL=\fP and \fBUUID=\fP tags instead of hard\-coding specific block device names into configuration files. See list of all available tags in \fBTAGS\fP section.
+.sp
+The low\-level part of the library also allows the extraction of information about partitions and block device topology.
+.sp
+The high\-level part of the library keeps information about block devices in a cache file and is verified to still be valid before being returned to the user (if the user has read permission on the raw block device, otherwise not). The cache file also allows unprivileged users (normally anyone other than root, or those not in the "disk" group) to locate devices by label/id. The standard location of the cache file can be overridden by the environment variable \fBBLKID_FILE\fP.
+.sp
+In situations where one is getting information about a single known device, it does not impact performance whether the cache is used or not (unless you are not able to read the block device directly).
+.sp
+The high\-level part of the library supports two methods to determine \fBLABEL/UUID\fP. It reads information directly from a block device or reads information from /dev/disk/by\-* udev symlinks. The udev is preferred method by default.
+.sp
+If you are dealing with multiple devices, use of the cache is highly recommended (even if empty) as devices will be scanned at most one time and the on\-disk cache will be updated if possible.
+.sp
+In some cases (modular kernels), block devices are not even visible until after they are accessed the first time, so it is critical that there is some way to locate these devices without enumerating only visible devices, so the use of the cache file is \fBrequired\fP in this situation.
+.SH "CONFIGURATION FILE"
+.sp
+The standard location of the \fI/etc/blkid.conf\fP config file can be overridden by the environment variable \fBBLKID_CONF\fP. For more details about the config file see \fBblkid\fP(8) man page.
+.SH "TAGS"
+.sp
+All available tags are listed below. Not all tags are supported for all file systems. To enable a tag, set one of the following flags with \fBblkid_probe_set_superblocks_flags\fP():
+.sp
+BLKID_SUBLKS_TYPE
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+TYPE \- filesystem type
+.RE
+.RE
+.sp
+BLKID_SUBLKS_SECTYPE
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+SEC_TYPE \- secondary filesystem type
+.RE
+.RE
+.sp
+BLKID_SUBLKS_LABEL
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+LABEL \- filesystem label
+.RE
+.RE
+.sp
+BLKID_SUBLKS_LABELRAW
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+LABEL_RAW \- raw label from FS superblock
+.RE
+.RE
+.sp
+BLKID_SUBLKS_UUID
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+UUID \- filesystem UUID (lower case)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+UUID_SUB \- subvolume uuid (e.g. btrfs)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+LOGUUID \- external log UUID (e.g. xfs)
+.RE
+.RE
+.sp
+BLKID_SUBLKS_UUIDRAW
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+UUID_RAW \- raw UUID from FS superblock
+.RE
+.RE
+.sp
+BLKID_SUBLKS_USAGE
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+USAGE \- usage string: "raid", "filesystem", etc.
+.RE
+.RE
+.sp
+BLKID_SUBLKS_VERSION
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+VERSION \- filesystem version
+.RE
+.RE
+.sp
+BLKID_SUBLKS_MAGIC
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+SBMAGIC \- super block magic string
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+SBMAGIC_OFFSET \- offset of SBMAGIC
+.RE
+.RE
+.sp
+BLKID_SUBLKS_FSINFO
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+FSSIZE \- size of filesystem. Note that for XFS this will return the same value
+as lsblk (without XFS\(cqs metadata), but for ext4 it will return the size with
+metadata and for BTRFS will not count overhead of RAID configuration
+(redundant data).
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+FSLASTBLOCK \- last fsblock/total number of fsblocks
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+FSBLOCKSIZE \- file system block size
+.RE
+.RE
+.sp
+The following tags are always enabled
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+BLOCK_SIZE \- minimal block size accessible by file system
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+MOUNT \- cluster mount name (ocfs only)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+EXT_JOURNAL \- external journal UUID
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+SYSTEM_ID \- ISO9660 system identifier
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+VOLUME_SET_ID \- ISO9660 volume set identifier
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+DATA_PREPARER_ID \- ISO9660 data identifier
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+PUBLISHER_ID \- ISO9660 publisher identifier
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+APPLICATION_ID \- ISO9660 application identifier
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+BOOT_SYSTEM_ID \- ISO9660 boot system identifier
+.RE
+.RE
+.SH "AUTHORS"
+.sp
+\fBlibblkid\fP was written by Andreas Dilger for the ext2 filesystem utilities, with input from Ted Ts\(cqo. The library was subsequently heavily modified by Ted Ts\(cqo.
+.sp
+The low\-level probing code was rewritten by Karel Zak.
+.SH "COPYING"
+.sp
+\fBlibblkid\fP is available under the terms of the GNU Library General Public License (LGPL), version 2 (or at your discretion any later version).
+.SH "SEE ALSO"
+.sp
+\fBblkid\fP(8),
+\fBfindfs\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlibblkid\fP library is part of the util\-linux package since version 2.15. It can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

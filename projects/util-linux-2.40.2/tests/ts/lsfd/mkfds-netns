@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# Copyright (C) 2022 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="netns associated with a fd"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_nonroot
+ts_skip_docker
+
+. "$TS_SELF/lsfd-functions.bash"
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+lsfd_check_mkfds_factory netns
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+NAME_FD=
+NAME_NS=
+INO_FD=
+INO_NS=
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" netns "$FD"; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	"${TS_CMD_LSFD}" -n -oNS.TYPE -p "${PID}" -Q "(FD == $FD)"
+	NAME_FD=$("${TS_CMD_LSFD}" -n -oNS.NAME -p "${PID}" -Q "(FD == $FD)")
+	NAME_NS=$("${TS_CMD_LSFD}" -n -oNS.NAME -p "${PID}" -Q '(ASSOC == "net")')
+	INO_FD=$( "${TS_CMD_LSFD}" -n -oINODE   -p "${PID}" -Q "(FD == $FD)")
+	INO_NS=$( "${TS_CMD_LSFD}" -n -oINODE   -p "${PID}" -Q '(ASSOC == "net")')
+
+	if [[ "$NAME_FD" = "$NAME_NS" ]]; then
+	    echo "NAME_FD" == "NAME_NS": $?
+	else
+	    echo "NAME_FD: $NAME_FD" == "NAME_NS: $NAME_NS": $?
+	fi
+
+	if [[ "$NAME_FD" = "net:[$INO_FD]" ]]; then
+	    echo "NAME_FD" == "net:[INO_FD]": $?
+	else
+	    echo "NAME_FD: $NAME_FD" == "net:[INO_FD: $INO_FD]": $?
+	fi
+
+	if [[ "$NAME_FD" = "net:[$INO_NS]" ]]; then
+	    echo "NAME_FD" == "net:[INO_NS]": $?
+	else
+	    echo "NAME_FD: $NAME_FD" == "net:[INO_NS: $INO_NS]": $?
+	fi
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait "${MKFDS_PID}"
+} > "$TS_OUTPUT" 2>&1
+if [ "$?" == "$TS_EXIT_NOTSUPP" ]; then
+    ts_skip "ioctl(fd, SIOCGSKNS) is not available"
+fi
+
+ts_finalize

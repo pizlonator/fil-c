@@ -1,0 +1,102 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2007 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="fsck bad header"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MKCRAMFS"
+ts_check_test_command "$TS_CMD_FSCKCRAMFS"
+ts_check_prog "dd"
+
+function num2binary()
+{
+	local num=$1
+	local endian=$2
+
+	test "$num" -ge 0 -a "$num" -le 4294967295 || return 1
+	test "$endian" = "be" -o "$endian" = "le" || return 1
+
+	# how to do that easier?
+	if test "$endian" = "be"; then
+		echo -en "$(printf "%08x" "$1" | sed 's/\(..\)/\\x\1/g')"
+	else
+		echo -en "$(printf "%08x" "$1" | sed 's/^\(..\)\(..\)\(..\)\(..\)$/\\x\4\\x\3\\x\2\\x\1/')"
+	fi
+}
+
+function fsck_loop_sizes()
+{
+	local endian=$1  # be, le
+	local seek=$2    # 4 for nopad, 516 for pad
+	shift 2          # the rest are sizes to loop over
+
+	for size in "$@"; do
+		ts_log_both  "## size: $size"
+		cp -a "$IMAGE_FILE" "$IMAGE_FILE.tmp"
+		num2binary "$size" $endian |
+			dd of="$IMAGE_FILE.tmp" bs=1 seek="$seek" count=4 conv=notrunc &> /dev/null
+		$TS_CMD_FSCKCRAMFS "$IMAGE_FILE.tmp" >> $TS_OUTPUT 2>> $TS_ERRLOG
+		ts_log "ret: $?
+"
+	done
+	rm -f "$IMAGE_FILE"
+}
+
+
+IMAGE_SOURCE="$TS_OUTDIR/${TS_TESTNAME}-data"
+IMAGE_FILE="$TS_OUTDIR/${TS_TESTNAME}-cramfs.img"
+
+mkdir -p "${IMAGE_SOURCE}/subdir" &> /dev/null
+
+ts_init_subtest "nopad-4K-be"
+$TS_CMD_MKCRAMFS -N big -b 4096 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes be 4  0 75 76 4095 4096 4097 4294967295
+rm -f "$IMAGE_FILE"
+ts_finalize_subtest
+
+ts_init_subtest "nopad-4K-le"
+$TS_CMD_MKCRAMFS -N little -b 4096 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes le 4  0 75 76 4095 4096 4097 4294967295
+ts_finalize_subtest
+
+ts_init_subtest "pad-4K-be"
+$TS_CMD_MKCRAMFS -p -N big -b 4096 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes be 516  76 587 588 4095 4096 4097 4294967295
+ts_finalize_subtest
+
+ts_init_subtest "pad-4K-le"
+$TS_CMD_MKCRAMFS -p -N little -b 4096 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes le 516  76 587 588 4095 4096 4097 4294967295
+ts_finalize_subtest
+
+ts_init_subtest "pad-64K-be"
+$TS_CMD_MKCRAMFS -p -N big -b 65536 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes be 516  76 587 588 65535 65536 65537 4294967295
+ts_finalize_subtest
+
+ts_init_subtest "pad-64K-le"
+$TS_CMD_MKCRAMFS -p -N little -b 65536 $IMAGE_SOURCE $IMAGE_FILE &> /dev/null
+fsck_loop_sizes le 516  76 587 588 65535 65536 65537 4294967295
+ts_finalize_subtest
+
+rm -rf "$IMAGE_SOURCE" "$IMAGE_FILE.tmp"
+
+ts_finalize
+

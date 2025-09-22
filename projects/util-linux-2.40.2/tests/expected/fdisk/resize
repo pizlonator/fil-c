@@ -1,0 +1,75 @@
+Create initial partitions
+
+---layout----------
+Disk <removed>: 10 MiB, 10485760 bytes, 20480 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start   End Sectors Size Type
+<removed>1  2048  4095    2048   1M Linux filesystem
+<removed>2  8192 10239    2048   1M Linux filesystem
+-------------------
+
+Grow first to max
+
+---layout----------
+Disk <removed>: 10 MiB, 10485760 bytes, 20480 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start   End Sectors Size Type
+<removed>1  2048  8191    6144   3M Linux filesystem
+<removed>2  8192 10239    2048   1M Linux filesystem
+-------------------
+
+Grow second to max
+
+---layout----------
+Disk <removed>: 10 MiB, 10485760 bytes, 20480 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start   End Sectors Size Type
+<removed>1  2048  8191    6144   3M Linux filesystem
+<removed>2  8192 20446   12255   6M Linux filesystem
+-------------------
+
+Resize first to 4096 bytes
+
+---layout----------
+Disk <removed>: 10 MiB, 10485760 bytes, 20480 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start   End Sectors Size Type
+<removed>1  2048  2055       8   4K Linux filesystem
+<removed>2  8192 20446   12255   6M Linux filesystem
+-------------------
+
+Resize second to 8 sectors
+
+---layout----------
+Disk <removed>: 10 MiB, 10485760 bytes, 20480 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start   End Sectors Size Type
+<removed>1  2048  2055       8   4K Linux filesystem
+<removed>2  8192  8199       8   4K Linux filesystem
+-------------------
+

@@ -1,0 +1,112 @@
+'\" t
+.\"     Title: pivot_root
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "PIVOT_ROOT" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+pivot_root \- change the root filesystem
+.SH "SYNOPSIS"
+.sp
+\fBpivot_root\fP \fInew_root\fP \fIput_old\fP
+.SH "DESCRIPTION"
+.sp
+\fBpivot_root\fP moves the root file system of the current process to the directory \fIput_old\fP and makes \fInew_root\fP the new root file system. Since \fBpivot_root\fP(8) simply calls \fBpivot_root\fP(2), we refer to the man page of the latter for further details.
+.sp
+Note that, depending on the implementation of \fBpivot_root\fP, root and current working directory of the caller may or may not change. The following is a sequence for invoking \fBpivot_root\fP that works in either case, assuming that \fBpivot_root\fP and \fBchroot\fP are in the current \fBPATH\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+cd new_root
+pivot_root . put_old
+exec chroot . command
+.fam
+.fi
+.if n .RE
+.sp
+Note that \fBchroot\fP must be available under the old root and under the new root, because \fBpivot_root\fP may or may not have implicitly changed the root directory of the shell.
+.sp
+Note that \fBexec chroot\fP changes the running executable, which is necessary if the old root directory should be unmounted afterwards. Also note that standard input, output, and error may still point to a device on the old root file system, keeping it busy. They can easily be changed when invoking \fBchroot\fP (see below; note the absence of leading slashes to make it work whether \fBpivot_root\fP has changed the shell\(cqs root or not).
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLE"
+.sp
+Change the root file system to \fI/dev/hda1\fP from an interactive shell:
+.sp
+.if n .RS 4
+.nf
+.fam C
+mount /dev/hda1 /new\-root
+cd /new\-root
+pivot_root . old\-root
+exec chroot . sh <dev/console >dev/console 2>&1
+umount /old\-root
+.fam
+.fi
+.if n .RE
+.sp
+Mount the new root file system over NFS from 10.0.0.1:/my_root and run \fBinit\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+ifconfig lo 127.0.0.1 up   # for portmap
+# configure Ethernet or such
+portmap   # for lockd (implicitly started by mount)
+mount \-o ro 10.0.0.1:/my_root /mnt
+killall portmap   # portmap keeps old root busy
+cd /mnt
+pivot_root . old_root
+exec chroot . sh \-c \*(Aqumount /old_root; exec /sbin/init\*(Aq \(rs
+  <dev/console >dev/console 2>&1
+.fam
+.fi
+.if n .RE
+.SH "SEE ALSO"
+.sp
+\fBchroot\fP(1),
+\fBpivot_root\fP(2),
+\fBmount\fP(8),
+\fBswitch_root\fP(8),
+\fBumount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBpivot_root\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

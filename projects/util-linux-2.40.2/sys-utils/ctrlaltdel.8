@@ -1,0 +1,80 @@
+'\" t
+.\"     Title: ctrlaltdel
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CTRLALTDEL" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ctrlaltdel \- set the function of the Ctrl\-Alt\-Del combination
+.SH "SYNOPSIS"
+.sp
+\fBctrlaltdel\fP \fBhard\fP|\fBsoft\fP
+.SH "DESCRIPTION"
+.sp
+Based on examination of the \fIlinux/kernel/reboot.c\fP code, it is clear that there are two supported functions that the <Ctrl\-Alt\-Del> sequence can perform.
+.sp
+\fBhard\fP
+.RS 4
+Immediately reboot the computer without calling \fBsync\fP(2) and without any other preparation. This is the default.
+.RE
+.sp
+\fBsoft\fP
+.RS 4
+Make the kernel send the \fBSIGINT\fP (interrupt) signal to the \fBinit\fP process (this is always the process with PID 1). If this option is used, the \fBinit\fP(8) program must support this feature. Since there are now several \fBinit\fP(8) programs in the Linux community, please consult the documentation for the version that you are currently using.
+.RE
+.sp
+When the command is run without any argument, it will display the current setting.
+.sp
+The function of \fBctrlaltdel\fP is usually set in the \fI/etc/rc.local\fP file.
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "FILES"
+.sp
+\fI/etc/rc.local\fP
+.SH "AUTHORS"
+.sp
+.MTO "poe\(atdaimi.aau.dk" "Peter Orbaek" ""
+.SH "SEE ALSO"
+.sp
+\fBinit\fP(8),
+\fBsystemd\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBctrlaltdel\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

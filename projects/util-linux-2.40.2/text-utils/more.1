@@ -1,0 +1,268 @@
+'\" t
+.\"     Title: more
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "MORE" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+more \- display the contents of a file in a terminal
+.SH "SYNOPSIS"
+.sp
+\fBmore\fP [options] \fIfile\fP ...
+.SH "DESCRIPTION"
+.sp
+\fBmore\fP is a filter for paging through text one screenful at a time. This version is especially primitive. Users should realize that \fBless\fP(1) provides \fBmore\fP(1) emulation plus extensive enhancements.
+.SH "OPTIONS"
+.sp
+Options are also taken from the environment variable \fBMORE\fP (make sure to precede them with a dash (\fB\-\fP)) but command\-line options will override those.
+.sp
+\fB\-d\fP, \fB\-\-silent\fP
+.RS 4
+Prompt with "[Press space to continue, \*(Aqq\*(Aq to quit.]", and display "[Press \*(Aqh\*(Aq for instructions.]" instead of ringing the bell when an illegal key is pressed.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-logical\fP
+.RS 4
+Do not pause after any line containing a \fB^L\fP (form feed).
+.RE
+.sp
+\fB\-e\fP, \fB\-\-exit\-on\-eof\fP
+.RS 4
+Exit on End\-Of\-File, enabled by default if POSIXLY_CORRECT environment variable is not set or if not executed on terminal.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-no\-pause\fP
+.RS 4
+Count logical lines, rather than screen lines (i.e., long lines are not folded).
+.RE
+.sp
+\fB\-p\fP, \fB\-\-print\-over\fP
+.RS 4
+Do not scroll. Instead, clear the whole screen and then display the text. Notice that this option is switched on automatically if the executable is named \fBpage\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-clean\-print\fP
+.RS 4
+Do not scroll. Instead, paint each screen from the top, clearing the remainder of each line as it is displayed.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-squeeze\fP
+.RS 4
+Squeeze multiple blank lines into one.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-plain\fP
+.RS 4
+Suppress underlining. This option is silently ignored as backwards compatibility.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-lines\fP \fInumber\fP
+.RS 4
+Specify the \fInumber\fP of lines per screenful. The \fInumber\fP argument is a positive decimal integer. The \fB\-\-lines\fP option shall override any values obtained from any other source, such as number of lines reported by terminal.
+.RE
+.sp
+\fB\-\fP\fInumber\fP
+.RS 4
+A numeric option means the same as \fB\-\-lines\fP option argument.
+.RE
+.sp
+\fB+\fP\fInumber\fP
+.RS 4
+Start displaying each file at line \fInumber\fP.
+.RE
+.sp
+\fB+\fP/\fIstring\fP
+.RS 4
+The \fIstring\fP to be searched in each file before starting to display it.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "COMMANDS"
+.sp
+Interactive commands for \fBmore\fP are based on \fBvi\fP(1). Some commands may be preceded by a decimal number, called k in the descriptions below. In the following descriptions, \fB^X\fP means \fBcontrol\-X\fP.
+.sp
+\fBh\fP or \fB?\fP
+.RS 4
+Help; display a summary of these commands. If you forget all other commands, remember this one.
+.RE
+.sp
+\fBSPACE\fP
+.RS 4
+Display next k lines of text. Defaults to current screen size.
+.RE
+.sp
+\fBz\fP
+.RS 4
+Display next k lines of text. Defaults to current screen size. Argument becomes new default.
+.RE
+.sp
+\fBRETURN\fP
+.RS 4
+Display next k lines of text. Defaults to 1. Argument becomes new default.
+.RE
+.sp
+\fBd\fP or \fB^D\fP
+.RS 4
+Scroll k lines. Default is current scroll size, initially 11. Argument becomes new default.
+.RE
+.sp
+\fBq\fP or \fBQ\fP or \fBINTERRUPT\fP
+.RS 4
+Exit.
+.RE
+.sp
+\fBs\fP
+.RS 4
+Skip forward k lines of text. Defaults to 1.
+.RE
+.sp
+\fBf\fP
+.RS 4
+Skip forward k screenfuls of text. Defaults to 1.
+.RE
+.sp
+\fBb\fP or \fB^B\fP
+.RS 4
+Skip backwards k screenfuls of text. Defaults to 1. Only works with files, not pipes.
+.RE
+.sp
+\fB\*(Aq\fP
+.RS 4
+Go to the place where the last search started.
+.RE
+.sp
+\fB=\fP
+.RS 4
+Display current line number.
+.RE
+.sp
+\fB/pattern\fP
+.RS 4
+Search for kth occurrence of regular expression. Defaults to 1.
+.RE
+.sp
+\fBn\fP
+.RS 4
+Search for kth occurrence of last regular expression. Defaults to 1.
+.RE
+.sp
+\fB!command\fP or \fB:!command\fP
+.RS 4
+Execute \fIcommand\fP in a subshell.
+.RE
+.sp
+\fBv\fP
+.RS 4
+Start up an editor at current line. The editor is taken from the environment variable \fBVISUAL\fP if defined, or \fBEDITOR\fP if \fBVISUAL\fP is not defined, or defaults to \fBvi\fP(1) if neither \fBVISUAL\fP nor \fBEDITOR\fP is defined.
+.RE
+.sp
+\fB^L\fP
+.RS 4
+Redraw screen.
+.RE
+.sp
+\fB:n\fP
+.RS 4
+Go to kth next file. Defaults to 1.
+.RE
+.sp
+\fB:p\fP
+.RS 4
+Go to kth previous file. Defaults to 1.
+.RE
+.sp
+\fB:f\fP
+.RS 4
+Display current file name and line number.
+.RE
+.sp
+\fB.\fP
+.RS 4
+Repeat previous command.
+.RE
+.SH "ENVIRONMENT"
+.sp
+The \fBmore\fP command respects the following environment variables, if they exist:
+.sp
+\fBMORE\fP
+.RS 4
+This variable may be set with favored options to \fBmore\fP.
+.RE
+.sp
+\fBSHELL\fP
+.RS 4
+Current shell in use (normally set by the shell at login time).
+.RE
+.sp
+\fBTERM\fP
+.RS 4
+The terminal type used by \fBmore\fP to get the terminal characteristics necessary to manipulate the screen.
+.RE
+.sp
+\fBVISUAL\fP
+.RS 4
+The editor the user prefers. Invoked when command key \fIv\fP is pressed.
+.RE
+.sp
+\fBEDITOR\fP
+.RS 4
+The editor of choice when \fBVISUAL\fP is not specified.
+.RE
+.sp
+\fBPOSIXLY_CORRECT\fP
+.RS 4
+Disable exit\-on\-eof (see option \fB\-e\fP for more details).
+.RE
+.SH "HISTORY"
+.sp
+The \fBmore\fP command appeared in 3.0BSD. This man page documents \fBmore\fP version 5.19 (Berkeley 6/29/88), which is currently in use in the Linux community. Documentation was produced using several other versions of the man page, and extensive inspection of the source code.
+.SH "AUTHORS"
+.sp
+Eric Shienbrood, UC Berkeley.
+.sp
+Modified by Geoff Peck, UCB to add underlining, single spacing.
+.sp
+Modified by John Foderaro, UCB to add \-c and MORE environment variable.
+.SH "SEE ALSO"
+.sp
+\fBless\fP(1),
+\fBvi\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBmore\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

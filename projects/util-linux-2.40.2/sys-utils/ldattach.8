@@ -1,0 +1,198 @@
+'\" t
+.\"     Title: ldattach
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LDATTACH" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ldattach \- attach a line discipline to a serial line
+.SH "SYNOPSIS"
+.sp
+\fBldattach\fP [\fB\-1278denoVh\fP] [\fB\-i\fP \fIiflag\fP] [\fB\-s\fP \fIspeed\fP] \fIldisc device\fP
+.SH "DESCRIPTION"
+.sp
+The \fBldattach\fP daemon opens the specified \fIdevice\fP file (which should refer to a serial device) and attaches the line discipline \fIldisc\fP to it for processing of the sent and/or received data. It then goes into the background keeping the device open so that the line discipline stays loaded.
+.sp
+The line discipline \fIldisc\fP may be specified either by name or by number.
+.sp
+In order to detach the line discipline, \fBkill\fP(1) the \fBldattach\fP process.
+.sp
+With no arguments, \fBldattach\fP prints usage information.
+.SH "LINE DISCIPLINES"
+.sp
+Depending on the kernel release, the following line disciplines are supported:
+.sp
+\fBTTY\fP(\fB0\fP)
+.RS 4
+The default line discipline, providing transparent operation (raw mode) as well as the habitual terminal line editing capabilities (cooked mode).
+.RE
+.sp
+\fBSLIP\fP(\fB1\fP)
+.RS 4
+Serial Line IP (SLIP) protocol processor for transmitting TCP/IP packets over serial lines.
+.RE
+.sp
+\fBMOUSE\fP(\fB2\fP)
+.RS 4
+Device driver for RS232 connected pointing devices (serial mice).
+.RE
+.sp
+\fBPPP\fP(\fB3\fP)
+.RS 4
+Point to Point Protocol (PPP) processor for transmitting network packets over serial lines.
+.RE
+.sp
+\fBSTRIP\fP(\fB4\fP); \fBAX25\fP(\fB5\fP); \fBX25\fP(\fB6\fP)
+.RS 4
+Line driver for transmitting X.25 packets over asynchronous serial lines.
+.RE
+.sp
+\fB6PACK\fP(\fB7\fP); \fBR3964\fP(\fB9\fP)
+.RS 4
+Driver for Simatic R3964 module.
+.RE
+.sp
+\fBIRDA\fP(\fB11\fP)
+.RS 4
+Linux IrDa (infrared data transmission) driver \- see \c
+.URL "http://irda.sourceforge.net/" "" ""
+.RE
+.sp
+\fBHDLC\fP(\fB13\fP)
+.RS 4
+Synchronous HDLC driver.
+.RE
+.sp
+\fBSYNC_PPP\fP(\fB14\fP)
+.RS 4
+Synchronous PPP driver.
+.RE
+.sp
+\fBHCI\fP(\fB15\fP)
+.RS 4
+Bluetooth HCI UART driver.
+.RE
+.sp
+\fBGIGASET_M101\fP(\fB16\fP)
+.RS 4
+Driver for Siemens Gigaset M101 serial DECT adapter.
+.RE
+.sp
+\fBPPS\fP(\fB18\fP)
+.RS 4
+Driver for serial line Pulse Per Second (PPS) source.
+.RE
+.sp
+\fBGSM0710\fP(\fB21\fP)
+.RS 4
+Driver for GSM 07.10 multiplexing protocol modem (CMUX).
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-1\fP, \fB\-\-onestopbit\fP
+.RS 4
+Set the number of stop bits of the serial line to one.
+.RE
+.sp
+\fB\-2\fP, \fB\-\-twostopbits\fP
+.RS 4
+Set the number of stop bits of the serial line to two.
+.RE
+.sp
+\fB\-7\fP, \fB\-\-sevenbits\fP
+.RS 4
+Set the character size of the serial line to 7 bits.
+.RE
+.sp
+\fB\-8\fP, \fB\-\-eightbits\fP
+.RS 4
+Set the character size of the serial line to 8 bits.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-debug\fP
+.RS 4
+Keep \fBldattach\fP in the foreground so that it can be interrupted or debugged, and to print verbose messages about its progress to standard error output.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-evenparity\fP
+.RS 4
+Set the parity of the serial line to even.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-iflag\fP \fIvalue\fP...
+.RS 4
+Set the specified bits in the c_iflag word of the serial line. The given \fIvalue\fP may be a number or a symbolic name. If \fIvalue\fP is prefixed by a minus sign, the specified bits are cleared instead. Several comma\-separated values may be given in order to set and clear multiple bits.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noparity\fP
+.RS 4
+Set the parity of the serial line to none.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-oddparity\fP
+.RS 4
+Set the parity of the serial line to odd.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-speed\fP \fIvalue\fP
+.RS 4
+Set the speed (the baud rate) of the serial line to the specified \fIvalue\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-intro\-command\fP \fIstring\fP
+.RS 4
+Define an intro command that is sent through the serial line before the invocation of \fBldattach\fP. E.g. in conjunction with line discipline GSM0710, the command \*(AqAT+CMUX=0\(rsr\*(Aq is commonly suitable to switch the modem into the CMUX mode.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pause\fP \fIvalue\fP
+.RS 4
+Sleep for \fIvalue\fP seconds before the invocation of \fBldattach\fP. Default is one second.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "tilman\(atimap.cc" "Tilman Schmidt" ""
+.SH "SEE ALSO"
+.sp
+\fBinputattach\fP(1),
+\fBttys\fP(4)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBldattach\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

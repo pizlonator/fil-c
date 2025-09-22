@@ -1,0 +1,68 @@
+//po4a: entry man manual
+= fadvise(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: fadvise
+
+== NAME
+
+fadvise - utility to use the posix_fadvise system call
+
+== SYNOPSIS
+
+*fadvise* [*-a* _advice_] [*-o* _offset_] [*-l* _length_] _filename_
+
+*fadvise* [*-a* _advice_] [*-o* _offset_] [*-l* _length_] -d _file-descriptor_
+
+== DESCRIPTION
+
+*fadvise* is a simple command wrapping *posix_fadvise*(2) system call
+that is for predeclaring an access pattern for file data.
+
+== OPTIONS
+
+*-d*, *--fd* _file-descriptor_::
+Apply the advice to the file specified with the file descriptor instead
+of open a file specified with a file name.
+
+*-a*, *--advice* _advice_::
+See the command output with *--help* option for available values for
+advice. If this option is omitted, "dontneed" is used as default advice.
+
+*-o*, *--offset* _offset_::
+Specifies the beginning offset of the range, in bytes.
+If this option is omitted, 0 is used as default advice.
+
+*-l*, *--length* _length_::
+Specifies the length of the range, in bytes.
+If this option is omitted, 0 is used as default advice.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*fadvise* has the following exit status values:
+
+*0*::
+success
+*1*::
+unspecified failure
+
+== AUTHORS
+
+mailto:yamato@redhat.com[Masatake YAMATO]
+
+== SEE ALSO
+
+*posix_fadvise*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]
+

@@ -1,0 +1,137 @@
+'\" t
+.\"     Title: scols-filter
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: File formats and conventions
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SCOLS\-FILTER" "5" "2024-07-04" "util\-linux 2.40.2" "File formats and conventions"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+scols-filter \- syntax for libsmartcols filter expressions
+.SH "SYNTAX"
+.sp
+.if n .RS 4
+.nf
+.fam C
+expr: param
+      | ( expr )
+      | expr && expr | expr AND expr
+      | expr || expr | expr OR expr
+      | !expr        | NOT expr
+      | expr == expr | expr EQ expr
+      | expr != expr | expr NE expr
+      | expr >= expr | expr GE expr
+      | expr <= expr | expr LE expr
+      | expr >  expr | expr GT expr
+      | expr <  expr | expr LT expr
+      | expr =~ string
+      | expr !~ string
+
+param: integer
+      | float
+      | string
+      | boolean
+      | holder
+
+integer: [0\-9]*
+
+float: integer.integer
+
+boolean: "true" | "false" | "TRUE" | "FALSE"
+
+string: "[^\(rsn\(rs"]*" | \*(Aq[^\(rsn\(rs\*(Aq]*\*(Aq
+
+holder: [a\-zA\-Z][a\-zA\-Z_.%:/\(rs\-0\-9]*
+.fam
+.fi
+.if n .RE
+.SH "DESCRIPTION"
+.sp
+The filter expression can be used by application linked with libsmartcols to filter
+output data. The application can use the filter before it gathers all data for the
+output to reduce resources and improve performance. This makes scols filter more
+effective than grep(1) on the complete output. For example
+.sp
+.if n .RS 4
+.nf
+.fam C
+ lsblk \-\-output NAME,LABEL,FSTYPE \-\-filter \*(AqNAME=="sda1"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+helps lsblk(1) to not read LABELs for all block device from udevd or libblkid,
+but read it only for device sda1.
+.sp
+The filter can be also used for columns which are not used in the output.
+.SH "SYNTAX NOTES"
+.sp
+An expression consists of holders, params, and operators.
+.sp
+The currently supported \f(CRholder\fP type is column name only. The name has to be
+used without quotes. Before evaluation, application map column names in the
+given expression to the output table columns and assign column data type to the
+holder. The default type is "string".
+.sp
+The \f(CRparam\fP is for representing a value directly. The currenly supported data
+types are integer, float, string and boolean.
+.sp
+An operator works with one or two operand(s). An operator has an expectation
+about the data type(s) of its operands. Giving an unexpected data type to an
+operator causes a syntax error. The library can cast between data types, the
+prefferred is always the type as specified by \f(CRparam\fP and in case of expression with
+number and float the preferred is the float.
+.sp
+Operators taking two operands are \f(CRand\fP, \f(CRor\fP, \f(CReq\fP, \f(CRne\fP, \f(CRle\fP, \f(CRlt\fP, \f(CRge\fP, \f(CRgt\fP, \f(CR=~\fP, \f(CR!~\fP.
+Alphabetically named operators have C\-language
+flavored aliases: \f(CR&&\fP, \f(CR||\fP, \f(CR==\fP, \f(CR!=\fP, \f(CR<\fP, \f(CR\(lA\fP, \f(CR>=\fP, and \f(CR>\fP.
+.sp
+\f(CR!\fP is the only operator that takes one operand. If no operator is specified then
+expression is true if param or holder are not empty. For example \f(CR\-\-filter NAME\fP will
+return lines where column NAME is not empty.
+.sp
+\f(CR=~\fP and \f(CR!~\fP is for regular expression matching; if a string at the right side
+matches (or not matches for \f(CR!~\fP a regular expression at the left side, the result
+is true. The right side operand must be a string literal.
+.sp
+The precedences within operators is \f(CRor\fP, \f(CRand\fP, and \f(CReq\fP, \f(CRne\fP, \f(CRle\fP, \f(CRgt\fP, \f(CRge\fP, \f(CR=~\fP, \f(CR!~\fP, \f(CRnot\fP.
+.SH "LIMITATIONS"
+.sp
+About \f(CRfloat\fP and \f(CRinteger\fP typed values, the filter engine supports only
+non\-negative numbers. The \f(CRinteger\fP is unsigned 64\-bit number, and \f(CRfloat\fP is
+long double.
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.sp
+Based on original implementation from \c
+.MTO "yamato\(atredhat.com" "Masatake YAMATO" "."
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlibsmartcols\fP library is part of the util\-linux package since version 2.25. It can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

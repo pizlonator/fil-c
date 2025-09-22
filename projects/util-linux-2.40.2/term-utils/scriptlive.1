@@ -1,0 +1,121 @@
+'\" t
+.\"     Title: scriptlive
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SCRIPTLIVE" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+scriptlive \- re\-run session typescripts, using timing information
+.SH "SYNOPSIS"
+.sp
+\fBscriptlive\fP [options] [\fB\-t\fP] \fItimingfile\fP [\fB\-I\fP|\fB\-B\fP] \fItypescript\fP
+.SH "DESCRIPTION"
+.sp
+This program re\-runs a typescript, using stdin typescript and timing information to ensure that input happens in the same rhythm as it originally appeared when the script was recorded.
+.sp
+The \fBsession is executed\fP in a newly created pseudoterminal with the user\(cqs $SHELL (or defaults to \fI/bin/bash\fP).
+.sp
+\fBBe careful!\fP Do not forget that the typescript may contains arbitrary commands. It is recommended to use \fB"scriptreplay \-\-stream in \-\-log\-in typescript"\fP (or with \fB\-\-log\-io\fP instead of \fB\-\-log\-in\fP) to verify the typescript before it is executed by \fBscriptlive\fP.
+.sp
+The timing information is what \fBscript\fP(1) outputs to file specified by \fB\-\-log\-timing\fP. The typescript has to contain stdin information and it is what script1 outputs to file specified by \fB\-\-log\-in\fP or \fB\-\-log\-io\fP.
+.SH "OPTIONS"
+.sp
+\fB\-I\fP, \fB\-\-log\-in\fP \fIfile\fP
+.RS 4
+File containing \fBscript\fP\*(Aqs terminal input.
+.RE
+.sp
+\fB\-B\fP, \fB\-\-log\-io\fP \fIfile\fP
+.RS 4
+File containing \fBscript\fP\*(Aqs terminal output and input.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-timing\fP \fIfile\fP
+.RS 4
+File containing \fBscript\fP\*(Aqs timing output. This option overrides old\-style arguments.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-log\-timing\fP \fIfile\fP
+.RS 4
+Aliased to \fB\-t\fP, maintained for compatibility with \fBscript\fP(1) command\-line options.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-divisor\fP \fInumber\fP
+.RS 4
+Speed up the replay displaying this \fInumber\fP of times. The argument is a floating\-point number. It\(cqs called divisor because it divides the timings by this factor. This option overrides old\-style arguments.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-maxdelay\fP \fInumber\fP
+.RS 4
+Set the maximum delay between updates to \fInumber\fP of seconds. The argument is a floating\-point number. This can be used to avoid long pauses in the typescript replay.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n .RS 4
+.nf
+.fam C
+% script \-\-log\-timing file.tm \-\-log\-in script.in
+Script started, file is script.out
+% date
+<etc, etc>
+% exit
+Script done, file is script.out
+% scriptlive \-\-log\-timing file.tm \-\-log\-in script.in
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "COPYRIGHT"
+.sp
+Copyright © 2019 Karel Zak
+.sp
+This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.sp
+Released under the GNU General Public License version 2 or later.
+.SH "SEE ALSO"
+.sp
+\fBscript\fP(1),
+\fBscriptreplay\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBscriptlive\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

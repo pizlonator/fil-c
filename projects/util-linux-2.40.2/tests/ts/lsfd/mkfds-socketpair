@@ -1,0 +1,139 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="AF_UNIX socket pair created with socketpair(2)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+. "$TS_SELF/lsfd-functions.bash"
+ts_check_test_command "$TS_CMD_LSFD"
+
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_check_prog "sed"
+
+ts_cd "$TS_OUTDIR"
+
+lsfd_check_sockdiag "unix"
+
+PID=
+FD0=3
+FD1=4
+EXPR=
+
+ts_init_subtest "DGRAM"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" socketpair $FD0 $FD1 socktype=DGRAM; }
+    if read -u ${MKFDS[0]} PID; then
+	EXPR='(PID == '"${PID}"') and ((FD == '"$FD0"') or (FD == '"$FD1"'))'
+	${TS_CMD_LSFD} -n -o ASSOC,MODE,STTYPE,SOURCE,SOCK.PROTONAME -Q "${EXPR}" | sed -e 's/UNIX-DGRAM/UNIX/'
+	echo 'ASSOC,MODE,STTYPE,SOURCE,SOCK.PROTONAME': ${PIPESTATUS[0]}
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+
+wait ${MKFDS_PID}
+ts_finalize_subtest
+
+ts_init_subtest "STREAM"
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" socketpair $FD0 $FD1 socktype=STREAM; }
+    if read -u ${MKFDS[0]} PID; then
+	EXPR='(PID == '"${PID}"') and ((FD == '"$FD0"') or (FD == '"$FD1"'))'
+	${TS_CMD_LSFD} -n -o ASSOC,MODE,STTYPE,SOURCE,SOCK.PROTONAME -Q "${EXPR}" | sed -e 's/UNIX-STREAM/UNIX/'
+	echo 'ASSOC,MODE,STTYPE,SOURCE,SOCK.PROTONAME': ${PIPESTATUS[0]}
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+
+wait ${MKFDS_PID}
+ts_finalize_subtest
+
+mkfds_socketpair_stream_endpoint()
+{
+    ts_init_subtest "STREAM-ENDPOINT"
+    if [ "$QEMU_USER" == "1" ]; then
+	ts_skip_subtest "running under qemu-user emulation"
+	return
+    fi
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" socketpair $FD0 $FD1 socktype=STREAM; }
+	if read -u ${MKFDS[0]} PID; then
+	    EXPR='(FD == '"$FD0"') or (FD == '"$FD1"')'
+	    ${TS_CMD_LSFD} -p "${PID}" -n -o ASSOC,MODE,STTYPE,SOURCE,ENDPOINTS -Q "${EXPR}" | sed -e "s/${PID}/1/g"
+	    echo 'ASSOC,MODE,STTYPE,SOURCE,ENDPOINTS': ${PIPESTATUS[0]}
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+
+    wait ${MKFDS_PID}
+    ts_finalize_subtest
+}
+
+mkfds_socketpair_stream_shutdown_state()
+{
+    ts_init_subtest "STREAM-SHUTDOWN-STATE"
+    if [ "$QEMU_USER" == "1" ]; then
+	ts_skip_subtest "running under qemu-user emulation"
+	return
+    fi
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" socketpair $FD0 $FD1 socktype=STREAM halfclose=1; }
+	if read -u ${MKFDS[0]} PID; then
+	    EXPR='(FD == '"$FD0"') or (FD == '"$FD1"')'
+	    ${TS_CMD_LSFD} -p "${PID}" -n -o ASSOC,MODE,STTYPE,SOURCE,SOCK.SHUTDOWN -Q "${EXPR}"
+	    echo 'ASSOC,MODE,STTYPE,SOURCE,SOCK.SHUTDOWN': ${PIPESTATUS[0]}
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+
+    wait ${MKFDS_PID}
+    ts_finalize_subtest
+}
+
+mkfds_socketpair_stream_endpoint_halfclose()
+{
+    ts_init_subtest "STREAM-ENDPOINT-halfclose"
+    if [ "$QEMU_USER" == "1" ]; then
+	ts_skip_subtest "running under qemu-user emulation"
+	return
+    fi
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" socketpair $FD0 $FD1 socktype=STREAM halfclose=1; }
+	if read -u ${MKFDS[0]} PID; then
+	    EXPR='(FD == '"$FD0"') or (FD == '"$FD1"')'
+	    ${TS_CMD_LSFD} -p "${PID}" -n -o ASSOC,MODE,STTYPE,SOURCE,ENDPOINTS -Q "${EXPR}" | sed -e "s/${PID}/1/g"
+	    echo 'ASSOC,MODE,STTYPE,SOURCE,ENDPOINTS': ${PIPESTATUS[0]}
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+
+    wait ${MKFDS_PID}
+    ts_finalize_subtest
+}
+
+mkfds_socketpair_stream_endpoint
+mkfds_socketpair_stream_shutdown_state
+mkfds_socketpair_stream_endpoint_halfclose
+
+ts_finalize

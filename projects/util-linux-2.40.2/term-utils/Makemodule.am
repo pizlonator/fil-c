@@ -1,0 +1,143 @@
+if BUILD_SCRIPT
+usrbin_exec_PROGRAMS += script
+MANPAGES += term-utils/script.1
+dist_noinst_DATA += term-utils/script.1.adoc
+script_SOURCES = term-utils/script.c \
+		 lib/pty-session.c \
+		 include/pty-session.h \
+		 lib/monotonic.c
+script_CFLAGS = $(AM_CFLAGS) -Wno-format-y2k
+script_LDADD = $(LDADD) libcommon.la $(MATH_LIBS) $(REALTIME_LIBS) -lutil
+if HAVE_UTEMPTER
+script_LDADD += -lutempter
+endif
+
+check_PROGRAMS += test_script
+test_script_SOURCES = $(script_SOURCES)
+test_script_LDADD = $(script_LDADD)
+test_script_CFLAGS = -DTEST_SCRIPT $(logger_CFLAGS)
+endif # BUILD_SCRIPT
+
+if BUILD_SCRIPTREPLAY
+usrbin_exec_PROGRAMS += scriptreplay
+MANPAGES += term-utils/scriptreplay.1
+dist_noinst_DATA += term-utils/scriptreplay.1.adoc
+scriptreplay_SOURCES = term-utils/scriptreplay.c \
+		       term-utils/script-playutils.c \
+		       term-utils/script-playutils.h
+scriptreplay_LDADD = $(LDADD) libcommon.la $(MATH_LIBS)
+endif # BUILD_SCRIPTREPLAY
+
+if BUILD_SCRIPTLIVE
+usrbin_exec_PROGRAMS += scriptlive
+MANPAGES += term-utils/scriptlive.1
+dist_noinst_DATA += term-utils/scriptlive.1.adoc
+scriptlive_SOURCES = term-utils/scriptlive.c \
+		       term-utils/script-playutils.c \
+		       term-utils/script-playutils.h \
+		       lib/pty-session.c \
+		       include/pty-session.h \
+		       lib/monotonic.c
+scriptlive_LDADD = $(LDADD) libcommon.la $(MATH_LIBS) $(REALTIME_LIBS) -lutil
+endif # BUILD_SCRIPTLIVE
+
+
+if BUILD_AGETTY
+sbin_PROGRAMS += agetty
+MANPAGES += term-utils/agetty.8
+dist_noinst_DATA += term-utils/agetty.8.adoc
+agetty_SOURCES = term-utils/agetty.c \
+		 lib/logindefs.c
+if USE_PLYMOUTH_SUPPORT
+agetty_SOURCES += lib/plymouth-ctrl.c
+endif
+agetty_LDADD = $(LDADD) libcommon.la
+if BSD
+agetty_LDADD += -lutil
+endif
+if HAVE_ECONF
+agetty_LDADD += -leconf
+endif
+if HAVE_SYSTEMD
+agetty_LDADD += $(SYSTEMD_LIBS)
+agetty_CFLAGS = $(SYSTEMD_CFLAGS)
+endif
+endif # BUILD_AGETTY
+
+
+if BUILD_SETTERM
+usrbin_exec_PROGRAMS += setterm
+MANPAGES += term-utils/setterm.1
+dist_noinst_DATA += term-utils/setterm.1.adoc
+setterm_SOURCES = term-utils/setterm.c
+setterm_CFLAGS = $(AM_CFLAGS)
+setterm_LDADD = $(LDADD) libcommon.la
+if HAVE_TINFO
+setterm_LDADD += $(TINFO_LIBS)
+setterm_CFLAGS += $(TINFO_CFLAGS)
+else
+setterm_LDADD += $(NCURSES_LIBS)
+setterm_CFLAGS += $(NCURSES_CFLAGS)
+endif
+endif
+
+
+if BUILD_MESG
+usrbin_exec_PROGRAMS += mesg
+mesg_LDADD = $(LDADD) libcommon.la
+MANPAGES += term-utils/mesg.1
+dist_noinst_DATA += term-utils/mesg.1.adoc
+mesg_SOURCES = term-utils/mesg.c
+endif
+
+
+if BUILD_WALL
+usrbin_exec_PROGRAMS += wall
+wall_SOURCES = \
+	term-utils/wall.c \
+	term-utils/ttymsg.c \
+	term-utils/ttymsg.h
+MANPAGES += term-utils/wall.1
+dist_noinst_DATA += term-utils/wall.1.adoc
+wall_CFLAGS = $(SUID_CFLAGS) $(AM_CFLAGS)
+wall_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+wall_LDADD = $(LDADD) libcommon.la
+if HAVE_SYSTEMD
+wall_LDADD += $(SYSTEMD_LIBS)
+wall_CFLAGS += $(SYSTEMD_CFLAGS)
+endif
+if USE_TTY_GROUP
+if MAKEINSTALL_DO_CHOWN
+install-exec-hook-wall::
+	chgrp tty $(DESTDIR)$(usrbin_execdir)/wall
+	chmod g+s $(DESTDIR)$(usrbin_execdir)/wall
+
+INSTALL_EXEC_HOOKS += install-exec-hook-wall
+endif
+endif
+endif # BUILD_WALL
+
+
+if BUILD_WRITE
+usrbin_exec_PROGRAMS += write
+MANPAGES += term-utils/write.1
+dist_noinst_DATA += term-utils/write.1.adoc
+write_SOURCES = term-utils/write.c
+write_CFLAGS = $(SUID_CFLAGS) $(AM_CFLAGS)
+write_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+write_LDADD = $(LDADD) libcommon.la
+if HAVE_SYSTEMD
+write_LDADD += $(SYSTEMD_LIBS)
+write_CFLAGS += $(SYSTEMD_CFLAGS)
+endif
+
+if USE_TTY_GROUP
+if MAKEINSTALL_DO_CHOWN
+install-exec-hook-write::
+	chgrp tty $(DESTDIR)$(usrbin_execdir)/write
+	chmod g+s $(DESTDIR)$(usrbin_execdir)/write
+
+INSTALL_EXEC_HOOKS += install-exec-hook-write
+endif
+endif
+endif # BUILD_WRITE

@@ -1,0 +1,209 @@
+//po4a: entry man manual
+////
+Copyright (c) 1988, 1990 The Regents of the University of California.
+Copyright (c) 1988 Mark Nudleman
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+   This product includes software developed by the University of
+   California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+@(#)more.1	5.15 (Berkeley) 7/29/91
+
+Copyright (c) 1992 Rik Faith (faith@cs.unc.edu)
+////
+= more(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: more
+
+== NAME
+
+more - display the contents of a file in a terminal
+
+== SYNOPSIS
+
+*more* [options] _file_ ...
+
+== DESCRIPTION
+
+*more* is a filter for paging through text one screenful at a time. This version is especially primitive. Users should realize that *less*(1) provides *more*(1) emulation plus extensive enhancements.
+
+== OPTIONS
+
+Options are also taken from the environment variable *MORE* (make sure to precede them with a dash (*-*)) but command-line options will override those.
+
+*-d*, *--silent*::
+Prompt with "[Press space to continue, 'q' to quit.]", and display "[Press 'h' for instructions.]" instead of ringing the bell when an illegal key is pressed.
+
+*-l*, *--logical*::
+Do not pause after any line containing a *^L* (form feed).
+
+*-e*, *--exit-on-eof*::
+Exit on End-Of-File, enabled by default if POSIXLY_CORRECT environment variable is not set or if not executed on terminal.
+
+*-f*, *--no-pause*::
+Count logical lines, rather than screen lines (i.e., long lines are not folded).
+
+*-p*, *--print-over*::
+Do not scroll. Instead, clear the whole screen and then display the text. Notice that this option is switched on automatically if the executable is named *page*.
+
+*-c*, *--clean-print*::
+Do not scroll. Instead, paint each screen from the top, clearing the remainder of each line as it is displayed.
+
+*-s*, *--squeeze*::
+Squeeze multiple blank lines into one.
+
+*-u*, *--plain*::
+Suppress underlining. This option is silently ignored as backwards compatibility.
+
+*-n*, *--lines* _number_::
+Specify the _number_ of lines per screenful. The _number_ argument is a positive decimal integer. The *--lines* option shall override any values obtained from any other source, such as number of lines reported by terminal.
+
+**-**__number__::
+A numeric option means the same as *--lines* option argument.
+
+**+**__number__::
+Start displaying each file at line _number_.
+
+**+**/__string__::
+The _string_ to be searched in each file before starting to display it.
+
+include::man-common/help-version.adoc[]
+
+== COMMANDS
+
+Interactive commands for *more* are based on *vi*(1). Some commands may be preceded by a decimal number, called k in the descriptions below. In the following descriptions, *^X* means *control-X*.
+
+*h* or *?*::
+Help; display a summary of these commands. If you forget all other commands, remember this one.
+
+*SPACE*::
+Display next k lines of text. Defaults to current screen size.
+
+*z*::
+Display next k lines of text. Defaults to current screen size. Argument becomes new default.
+
+*RETURN*::
+Display next k lines of text. Defaults to 1. Argument becomes new default.
+
+*d* or *^D*::
+Scroll k lines. Default is current scroll size, initially 11. Argument becomes new default.
+
+*q* or *Q* or *INTERRUPT*::
+Exit.
+
+*s*::
+Skip forward k lines of text. Defaults to 1.
+
+*f*::
+Skip forward k screenfuls of text. Defaults to 1.
+
+*b* or *^B*::
+Skip backwards k screenfuls of text. Defaults to 1. Only works with files, not pipes.
+
+*'*::
+Go to the place where the last search started.
+
+*=*::
+Display current line number.
+
+*/pattern*::
+Search for kth occurrence of regular expression. Defaults to 1.
+
+*n*::
+Search for kth occurrence of last regular expression. Defaults to 1.
+
+*!command* or *:!command*::
+Execute _command_ in a subshell.
+
+*v*::
+Start up an editor at current line. The editor is taken from the environment variable *VISUAL* if defined, or *EDITOR* if *VISUAL* is not defined, or defaults to *vi*(1) if neither *VISUAL* nor *EDITOR* is defined.
+
+*^L*::
+Redraw screen.
+
+*:n*::
+Go to kth next file. Defaults to 1.
+
+*:p*::
+Go to kth previous file. Defaults to 1.
+
+*:f*::
+Display current file name and line number.
+
+*.*::
+Repeat previous command.
+
+== ENVIRONMENT
+
+The *more* command respects the following environment variables, if they exist:
+
+*MORE*::
+This variable may be set with favored options to *more*.
+
+*SHELL*::
+Current shell in use (normally set by the shell at login time).
+
+*TERM*::
+The terminal type used by *more* to get the terminal characteristics necessary to manipulate the screen.
+
+*VISUAL*::
+The editor the user prefers. Invoked when command key _v_ is pressed.
+
+*EDITOR*::
+The editor of choice when *VISUAL* is not specified.
+
+*POSIXLY_CORRECT*::
+Disable exit-on-eof (see option *-e* for more details).
+
+== HISTORY
+
+The *more* command appeared in 3.0BSD. This man page documents *more* version 5.19 (Berkeley 6/29/88), which is currently in use in the Linux community. Documentation was produced using several other versions of the man page, and extensive inspection of the source code.
+
+== AUTHORS
+
+Eric Shienbrood, UC Berkeley.
+
+Modified by Geoff Peck, UCB to add underlining, single spacing.
+
+Modified by John Foderaro, UCB to add -c and MORE environment variable.
+
+== SEE ALSO
+
+*less*(1),
+*vi*(1)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

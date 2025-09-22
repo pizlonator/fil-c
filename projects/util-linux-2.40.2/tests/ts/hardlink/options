@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# Copyright (C) 2018 Ruediger Meier <ruediger.meier@ga-group.nl>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="options"
+
+. "$TS_TOPDIR"/functions.sh
+
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_HARDLINK"
+ts_check_prog xz
+ts_check_prog tar
+ts_check_prog wc
+
+SRCDIR="$TS_OUTDIR/testdir1"
+
+create_srcdir()
+{
+	rm -rf "$SRCDIR"
+	tar -C "$TS_OUTDIR" -xJf "$TS_SELF/testdir1.tar.xz"
+}
+
+show_srcdir()
+{
+	find "$SRCDIR" -type f -printf "%P\t%n\t%s\t%Ts\t%m\n" | sort
+}
+
+summary_clean()
+{
+	sed -i \
+		-e 's/^Duration:.*/Duration: [Redacted]/' \
+		-e 's/^Method:.*/Method: [Redacted]/' \
+		-e 's/^Compared:.*files/Compared: [Redacted] files/' \
+		$TS_OUTPUT
+}
+
+create_srcdir
+
+ts_init_subtest "orig" # just list original dir
+show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "dryrun"
+$TS_CMD_HARDLINK --quiet --dry-run "$SRCDIR" >> $TS_OUTPUT 2>> $TS_ERRLOG
+show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "nargs"
+$TS_CMD_HARDLINK --quiet "$SRCDIR"/dir-1/sdir-1 "$SRCDIR"/file-?-{1,2} >> $TS_OUTPUT 2>> $TS_ERRLOG
+show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+# cases without and with -x support
+tmp=$($TS_CMD_HARDLINK --quiet --exclude pattern "$SRCDIR"/dir-1/sdir-2 2>&1)
+if test $? -ne 0; then
+	ts_init_subtest "noregex"
+	printf "%s\n" "$tmp" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+else
+	ts_init_subtest "regex-escapes"
+	$TS_CMD_HARDLINK --quiet --exclude '.*z-"§\$%&\(\)=\?\*\+$' "$SRCDIR" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+fi
+
+ts_init_subtest "content"
+$TS_CMD_HARDLINK --quiet --content "$SRCDIR" >> $TS_OUTPUT 2>> $TS_ERRLOG
+# When using -c we need to cheat with sed because it's not deterministic which
+# file (i.e. which timestamp and perms) wins. TODO at least the choice of the
+# permissions should be sensitive by default and/or controllable by the user.
+show_srcdir | sed 's/\(1540236\).*/\1xxx\tperm/' >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "maximum-size-8191"
+create_srcdir
+echo "Number of test files: $(find "$SRCDIR" -type f | wc -l)" >> $TS_OUTPUT
+$TS_CMD_HARDLINK --maximum-size 8191 "$SRCDIR" >> $TS_OUTPUT 2>> $TS_ERRLOG
+summary_clean
+show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "maximum-size-8192"
+create_srcdir
+echo "Number of test files: $(find "$SRCDIR" -type f | wc -l)" >> $TS_OUTPUT
+$TS_CMD_HARDLINK --maximum-size 8192 "$SRCDIR" >> $TS_OUTPUT 2>> $TS_ERRLOG
+summary_clean
+show_srcdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+rm -rf "$SRCDIR"
+ts_finalize

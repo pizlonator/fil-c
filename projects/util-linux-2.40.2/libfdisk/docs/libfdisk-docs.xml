@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY version SYSTEM "version.xml">
+]>
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>libfdisk Reference Manual</title>
+    <releaseinfo>for libfdisk version &version;</releaseinfo>
+    <copyright>
+      <year>2014-2022</year>
+      <holder>Karel Zak &lt;kzak@redhat.com&gt;</holder>
+    </copyright>
+  </bookinfo>
+
+  <part id="over">
+    <title>libfdisk Overview</title>
+    <partintro>
+    <para>
+The libfdisk library is used for manipulating with partition tables.
+    </para>
+    <para>
+The library is part of the util-linux package since version 2.26 and is
+available from https://www.kernel.org/pub/linux/utils/util-linux/.
+    </para>
+  </partintro>
+ </part>
+
+  <part>
+    <title>Basic handlers and setting</title>
+    <xi:include href="xml/context.xml"/>
+    <xi:include href="xml/ask.xml"/>
+    <xi:include href="xml/alignment.xml"/>
+    <xi:include href="xml/script.xml"/>
+  </part>
+   <part>
+    <title>Partitioning</title>
+    <xi:include href="xml/label.xml"/>
+    <xi:include href="xml/partition.xml"/>
+    <xi:include href="xml/table.xml"/>
+    <xi:include href="xml/parttype.xml"/>
+    <xi:include href="xml/item.xml"/>
+    <xi:include href="xml/field.xml"/>
+  </part>
+  <part>
+    <title>Label specific functions</title>
+    <xi:include href="xml/dos.xml"/>
+    <xi:include href="xml/gpt.xml"/>
+    <xi:include href="xml/sun.xml"/>
+    <xi:include href="xml/sgi.xml"/>
+    <xi:include href="xml/bsd.xml"/>
+  </part>
+  <part>
+    <title>Misc</title>
+    <xi:include href="xml/iter.xml"/>
+    <xi:include href="xml/utils.xml"/>
+    <xi:include href="xml/init.xml"/>
+    <xi:include href="xml/version-utils.xml"/>
+
+  </part>
+  <index id="api-index">
+    <title>API Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.29">
+    <title>Index of new symbols in 2.29</title>
+    <xi:include href="xml/api-index-2.29.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.30">
+    <title>Index of new symbols in 2.30</title>
+    <xi:include href="xml/api-index-2.30.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.31">
+    <title>Index of new symbols in 2.31</title>
+    <xi:include href="xml/api-index-2.31.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.32">
+    <title>Index of new symbols in 2.32</title>
+    <xi:include href="xml/api-index-2.32.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.33">
+    <title>Index of new symbols in 2.33</title>
+    <xi:include href="xml/api-index-2.33.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.35">
+    <title>Index of new symbols in 2.35</title>
+    <xi:include href="xml/api-index-2.35.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="2.36">
+    <title>Index of new symbols in 2.36</title>
+    <xi:include href="xml/api-index-2.36.xml"><xi:fallback /></xi:include>
+  </index>
+</book>

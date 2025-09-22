@@ -1,0 +1,238 @@
+'\" t
+.\"     Title: pg
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "PG" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+pg \- browse pagewise through text files
+.SH "SYNOPSIS"
+.sp
+\fBpg\fP \fB\-*\fIamount\fP *\-p\fP \fIprompt\fP \fB\-cefnrs\fP +line +/pattern/ file_ ...
+.SH "DESCRIPTION"
+.sp
+\fBpg\fP displays a text file on a CRT one screenful at once. After each page, a prompt is displayed. The user may then either press the newline key to view the next page or one of the keys described below.
+.sp
+If no filename is given on the command line, \fBpg\fP reads from standard input. If standard output is not a terminal, \fBpg\fP acts like \fBcat\fP(1) but precedes each file with its name if there is more than one.
+.sp
+If input comes from a pipe, \fBpg\fP stores the data in a buffer file while reading, to make navigation possible.
+.SH "OPTIONS"
+.sp
+\fBpg\fP accepts the following options:
+.sp
+\fB+\fP\fInumber\fP
+.RS 4
+Start at the given line number.
+.RE
+.sp
+\fB+/\fP\fIpattern\fP*/*
+.RS 4
+Start at the line containing the Basic Regular Expression \fIpattern\fP given.
+.RE
+.sp
+\fB\-\fP\fInumber\fP
+.RS 4
+The number of lines per page. By default, this is the number of CRT lines minus one.
+.RE
+.sp
+\fB\-c\fP
+.RS 4
+Clear the screen before a page is displayed, if the terminfo entry for the terminal provides this capability.
+.RE
+.sp
+\fB\-e\fP
+.RS 4
+Do not pause and display \fI(EOF)\fP at the end of a file.
+.RE
+.sp
+\fB\-f\fP
+.RS 4
+Do not split long lines.
+.RE
+.sp
+\fB\-n\fP
+.RS 4
+Without this option, commands must be terminated by a newline character.
+.sp
+With this option, \fBpg\fP advances once a command letter is entered.
+.RE
+.sp
+\fB\-p\fP \fIstring\fP
+.RS 4
+Instead of the normal prompt \fI:\fP, \fIstring\fP is displayed. If \fIstring\fP contains \fB%d\fP, its first occurrence is replaced by the number of the current page.
+.RE
+.sp
+\fB\-r\fP
+.RS 4
+Disallow the shell escape.
+.RE
+.sp
+\fB\-s\fP
+.RS 4
+Print messages in \fIstandout\fP mode, if the terminfo entry for the terminal provides this capability.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "COMMANDS"
+.sp
+The following commands may be entered at the prompt. Commands preceded by \fIi\fP in this document accept a number as argument, positive or negative. If this argument starts with \fB+\fP or \fB\-\fP, it is interpreted relative to the current position in the input file, otherwise relative to the beginning.
+.sp
+\fIi\fP\fB<Enter>\fP
+.RS 4
+Display the next or the indicated page.
+.RE
+.sp
+\fIi\fP\fBd\fP or \fB^D\fP
+.RS 4
+Display the next halfpage. If \fIi\fP is given, it is always interpreted relative to the current position.
+.RE
+.sp
+\fIi\fP\fBl\fP
+.RS 4
+Display the next or the indicated line.
+.RE
+.sp
+\fIi\fP\fBf\fP
+.RS 4
+Skip a page forward. \fIi\fP must be a positive number and is always interpreted relative to the current position.
+.RE
+.sp
+\fIi\fP\fBw\fP or \fIi\fP\fBz\fP
+.RS 4
+As \fB<Enter>\fP except that \fIi\fP becomes the new page size.
+.RE
+.sp
+\fB.\fP or \fB^L\fP
+.RS 4
+Redraw the screen.
+.RE
+.sp
+\fB$\fP
+.RS 4
+Advance to the last line of the input file.
+.RE
+.sp
+\fIi\fP\fB/\fP\fIpattern\fP\fB/\fP
+.RS 4
+Search forward until the first or the \fIi\fP\-th occurrence of the Basic Regular Expression \fIpattern\fP is found. The search starts after the current page and stops at the end of the file. No wrap\-around is performed. \fIi\fP must be a positive number.
+.RE
+.sp
+\fIi\fP\fB?\fP\fIpattern\fP\fB?\fP or \fIi\fP\fB\fP\fIpattern\fP\fB\fP
+.RS 4
+Search backward until the first or the \fIi\fP\-th occurrence of the Basic Regular Expression \fIpattern\fP is found. The search starts before the current page and stops at the beginning of the file. No wrap\-around is performed. \fIi\fP must be a positive number.
+.RE
+.sp
+The search commands accept an added letter. If \fBt\fP is given, the line containing the pattern is displayed at the top of the screen, which is the default. \fBm\fP selects the middle and \fBb\fP the bottom of the screen. The selected position is used in following searches, too.
+.sp
+\fIi\fP\fBn\fP
+.RS 4
+Advance to the next file or \fIi\fP files forward.
+.RE
+.sp
+\fIi\fP\fBp\fP
+.RS 4
+Reread the previous file or \fIi\fP files backward.
+.RE
+.sp
+\fBs\fP \fIfilename\fP
+.RS 4
+Save the current file to the given \fIfilename\fP.
+.RE
+.sp
+\fBh\fP
+.RS 4
+Display a command summary.
+.RE
+.sp
+\fB!\fP\fIcommand\fP
+.RS 4
+Execute \fIcommand\fP using the shell.
+.RE
+.sp
+\fBq\fP or \fBQ\fP
+.RS 4
+Quit.
+.RE
+.sp
+If the user presses the interrupt or quit key while \fBpg\fP reads from the input file or writes on the terminal, \fBpg\fP will immediately display the prompt. In all other situations these keys will terminate \fBpg\fP.
+.SH "ENVIRONMENT"
+.sp
+The following environment variables affect the behavior of \fBpg\fP:
+.sp
+\fBCOLUMNS\fP
+.RS 4
+Overrides the system\-supplied number of columns if set.
+.RE
+.sp
+\fBLANG\fP, \fBLC_ALL\fP, \fBLC_COLLATE\fP, \fBLC_CTYPE\fP, \fBLC_MESSAGES\fP
+.RS 4
+See \fBlocale\fP(7).
+.RE
+.sp
+\fBLINES\fP
+.RS 4
+Overrides the system\-supplied number of lines if set.
+.RE
+.sp
+\fBSHELL\fP
+.RS 4
+Used by the \fB!\fP command.
+.RE
+.sp
+\fBTERM\fP
+.RS 4
+Determines the terminal type.
+.RE
+.SH "NOTES"
+.sp
+\fBpg\fP expects the terminal tabulators to be set every eight positions.
+.sp
+Files that include NUL characters cannot be displayed by \fBpg\fP.
+.SH "SEE ALSO"
+.sp
+\fBcat\fP(1),
+\fBmore\fP(1),
+\fBsh\fP(1p),
+\fBterminfo\fP(5),
+\fBlocale\fP(7),
+\fBregex\fP(7),
+\fBterm\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBpg\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

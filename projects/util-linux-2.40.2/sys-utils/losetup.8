@@ -1,0 +1,235 @@
+'\" t
+.\"     Title: losetup
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LOSETUP" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+losetup \- set up and control loop devices
+.SH "SYNOPSIS"
+.sp
+Get info:
+.sp
+\fBlosetup\fP [\fIloopdev\fP]
+.sp
+\fBlosetup\fP \fB\-l\fP [\fB\-a\fP]
+.sp
+\fBlosetup\fP \fB\-j\fP \fIfile\fP [\fB\-o\fP \fIoffset\fP]
+.sp
+Detach a loop device:
+.sp
+\fBlosetup\fP \fB\-d\fP \fIloopdev\fP ...
+.sp
+Detach all associated loop devices:
+.sp
+\fBlosetup\fP \fB\-D\fP
+.sp
+Set up a loop device:
+.sp
+\fBlosetup\fP [\fB\-o\fP \fIoffset\fP] [\fB\-\-sizelimit\fP \fIsize\fP] [\fB\-\-sector\-size\fP \fIsize\fP] [\fB\-\-loop\-ref\fP \fIname\fP] [\fB\-Pr\fP] [\fB\-\-show\fP] \fB\-f\fP|\fIloopdev file\fP
+.sp
+Resize a loop device:
+.sp
+\fBlosetup\fP \fB\-c\fP \fIloopdev\fP
+.SH "DESCRIPTION"
+.sp
+\fBlosetup\fP is used to associate loop devices with regular files or block devices, to detach loop devices, and to query the status of a loop device. If only the \fIloopdev\fP argument is given, the status of the corresponding loop device is shown. If no option is given, all loop devices are shown.
+.sp
+Note that the old output format (i.e., \fBlosetup \-a\fP) with comma\-delimited strings is deprecated in favour of the \fB\-\-list\fP output format.
+.sp
+It\(cqs possible to create more independent loop devices for the same backing file. \fBThis setup may be dangerous, can cause data loss, corruption and overwrites.\fP Use \fB\-\-nooverlap\fP with \fB\-\-find\fP during setup to avoid this problem.
+.sp
+The loop device setup is not an atomic operation when used with \fB\-\-find\fP, and \fBlosetup\fP does not protect this operation by any lock. The number of attempts is internally restricted to a maximum of 16. It is recommended to use for example \fBflock\fP(1) to avoid a collision in heavily parallel use cases.
+.SH "OPTIONS"
+.sp
+The \fIsize\fP and \fIoffset\fP arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+Show the status of all loop devices. Note that not all information is accessible for non\-root users. See also \fB\-\-list\fP. The old output format (as printed without \fB\-\-list\fP) is deprecated.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-detach\fP \fIloopdev\fP...
+.RS 4
+Detach the file or device associated with the specified loop device(s). Note that since Linux v3.7 kernel uses "lazy device destruction". The detach operation does not return \fBEBUSY\fP error anymore if device is actively used by system, but it is marked by autoclear flag and destroyed later.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-detach\-all\fP
+.RS 4
+Detach all associated loop devices.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-find\fP [\fIfile\fP]
+.RS 4
+Find the first unused loop device. If a \fIfile\fP argument is present, use the found device as loop device. Otherwise, just print its name.
+.RE
+.sp
+\fB\-\-show\fP
+.RS 4
+Display the name of the assigned loop device if the \fB\-f\fP option and a \fIfile\fP argument are present.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-nooverlap\fP
+.RS 4
+Check for conflicts between loop devices to avoid situation when the same backing file is shared between more loop devices. If the file is already used by another device then re\-use the device rather than a new one. The option makes sense only with \fB\-\-find\fP.
+.RE
+.sp
+\fB\-j\fP, \fB\-\-associated\fP \fIfile\fP [\fB\-o\fP \fIoffset\fP]
+.RS 4
+Show the status of all loop devices associated with the given \fIfile\fP.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-offset\fP \fIoffset\fP
+.RS 4
+The data start is moved \fIoffset\fP bytes into the specified file or device. The \fIoffset\fP may be followed by the multiplicative suffixes; see above.
+.RE
+.sp
+\fB\-\-loop\-ref\fP \fIstring\fP
+.RS 4
+Set reference string. The backwardly compatible default is to use the backing filename as a reference in loop setup ioctl (aka lo_file_name). This option can overwrite this default behavior and set the reference to the \fIstring\fP. The reference may be used by udevd in /dev/loop/by\-ref. Linux kernel does not use the reference at all, but it could be used by some old utils that cannot read the backing file from sysfs. The reference is readable only for the root user (see \fB\-\-output\fP +REF) and it is restricted to 64 bytes.
+.RE
+.sp
+\fB\-\-sizelimit\fP \fIsize\fP
+.RS 4
+The data end is set to no more than \fIsize\fP bytes after the data start. The \fIsize\fP may be followed by the multiplicative suffixes; see above.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-sector\-size\fP \fIsize\fP
+.RS 4
+Set the logical sector size of the loop device in bytes (since Linux 4.14). The option may be used when creating a new loop device as well as a stand\-alone command to modify sector size of the already existing loop device.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-set\-capacity\fP \fIloopdev\fP
+.RS 4
+Force the loop driver to reread the size of the file associated with the specified loop device.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-partscan\fP
+.RS 4
+Force the kernel to scan the partition table on a newly created loop device. Note that the partition table parsing depends on sector sizes. The default is sector size is 512 bytes, otherwise you need to use the option \fB\-\-sector\-size\fP together with \fB\-\-partscan\fP.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-read\-only\fP
+.RS 4
+Set up a read\-only loop device.
+.RE
+.sp
+\fB\-\-direct\-io\fP[\fB=on\fP|\fBoff\fP]
+.RS 4
+Enable or disable direct I/O for the backing file. The default is \fBoff\fP. Specifying either \fB\-\-direct\-io\fP or \fB\-\-direct\-io=on\fP will enable it. But, \fB\-\-direct\-io=off\fP can be provided to explicitly turn it off.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose mode.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+If a loop device or the \fB\-a\fP option is specified, print the default columns for either the specified loop device or all loop devices; the default is to print info about all devices. See also \fB\-\-output\fP, \fB\-\-noheadings\fP, \fB\-\-raw\fP, and \fB\-\-json\fP.
+.RE
+.sp
+\fB\-O\fP, \fB\-\-output\fP \fIcolumn\fP[,\fIcolumn\fP]...
+.RS 4
+Specify the columns that are to be printed for the \fB\-\-list\fP output. Use \fB\-\-help\fP to get a list of all supported columns.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Don\(cqt print headings for \fB\-\-list\fP output format.
+.RE
+.sp
+\fB\-\-raw\fP
+.RS 4
+Use the raw \fB\-\-list\fP output format.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON format for \fB\-\-list\fP output.
+.RE
+.SH "ENCRYPTION"
+.sp
+\fBCryptoloop is no longer supported in favor of dm\-crypt.\fP For more details see \fBcryptsetup\fP(8).
+.SH "EXIT STATUS"
+.sp
+\fBlosetup\fP returns 0 on success, nonzero on failure. When \fBlosetup\fP displays the status of a loop device, it returns 1 if the device is not configured and 2 if an error occurred which prevented determining the status of the device.
+.SH "NOTES"
+.sp
+Since version 2.37 \fBlosetup\fP uses \fBLOOP_CONFIGURE\fP ioctl to setup a new loop device by one ioctl call. The old versions use \fBLOOP_SET_FD\fP and \fBLOOP_SET_STATUS64\fP ioctls to do the same.
+.SH "ENVIRONMENT"
+.sp
+\fBLOOPDEV_DEBUG\fP=all
+.RS 4
+enables debug output.
+.RE
+.SH "FILES"
+.sp
+\fI/dev/loop[0..N]\fP
+.RS 4
+loop block devices
+.RE
+.sp
+\fI/dev/loop\-control\fP
+.RS 4
+loop control device
+.RE
+.SH "EXAMPLE"
+.sp
+The following commands can be used as an example of using the loop device.
+.sp
+.if n .RS 4
+.nf
+.fam C
+# dd if=/dev/zero of=~/file.img bs=1024k count=10
+# losetup \-\-find \-\-show ~/file.img
+/dev/loop0
+# mkfs \-t ext2 /dev/loop0
+# mount /dev/loop0 /mnt
+\&...
+# umount /dev/loop0
+# losetup \-\-detach /dev/loop0
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ","
+based on the original version from
+.MTO "tytso\(atathena.mit.edu" "Theodore Ts\(cqo" "."
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlosetup\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

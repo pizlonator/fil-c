@@ -1,0 +1,213 @@
+'\" t
+.\"     Title: hardlink
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "HARDLINK" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+hardlink \- link multiple copies of a file
+.SH "SYNOPSIS"
+.sp
+\fBhardlink\fP [options] [\fIdirectory\fP|\fIfile\fP]...
+.SH "DESCRIPTION"
+.sp
+\fBhardlink\fP is a tool that replaces copies of a file with either hardlinks
+or copy\-on\-write clones, thus saving space.
+.sp
+\fBhardlink\fP first creates a binary tree of file sizes and then compares
+the content of files that have the same size. There are two basic content
+comparison methods. The \fBmemcmp\fP method directly reads data blocks from
+files and compares them. The other method is based on checksums (like SHA256);
+in this case for each data block a checksum is calculated by the Linux kernel
+crypto API, and this checksum is stored in userspace and used for file
+comparisons.
+.sp
+For each file also an "intro" buffer (32 bytes) is cached. This buffer is used
+independently from the comparison method and requested cache\-size and io\-size.
+The "intro" buffer dramatically reduces operations with data content as files
+are very often different from the beginning.
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-content\fP
+.RS 4
+Consider only file content, not attributes, when determining whether two files are equal. Same as \fB\-pot\fP.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-io\-size\fP \fIsize\fP
+.RS 4
+The size of the \fBread\fP(2) or \fBsendfile\fP(2) buffer used when comparing file contents.
+The \fIsize\fP argument may be followed by the multiplicative suffixes KiB, MiB,
+etc.  The "iB" is optional, e.g., "K" has the same meaning as "KiB". The
+default is 8KiB for memcmp method and 1MiB for the other methods. The only
+memcmp method uses process memory for the buffer, other methods use zero\-copy
+way and I/O operation is done in the kernel. The size may be altered on the fly
+to fit a number of cached content checksums.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-respect\-dir\fP
+.RS 4
+Only try to link files with the same directory name. The top\-level directory (as specified on the \fBhardlink\fP command line) is ignored. For example, \fBhardlink \-\-respect\-dir /foo /bar\fP will link \fI/foo/some/file\fP with \fI/bar/some/file\fP, but not \fI/bar/other/file\fP. If combined with \fB\-\-respect\-name\fP, then entire paths (except the top\-level directory) are compared.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-respect\-name\fP
+.RS 4
+Only try to link files with the same (base)name. It\(cqs strongly recommended to use long options rather than \fB\-f\fP which is interpreted in a different way by other \fBhardlink\fP implementations.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-include\fP \fIregex\fP
+.RS 4
+A regular expression to include files. If the option \fB\-\-exclude\fP has been given, this option re\-includes files which would otherwise be excluded. If the option is used without \fB\-\-exclude\fP, only files matched by the pattern are included.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-maximize\fP
+.RS 4
+Among equal files, keep the file with the highest link count.
+.RE
+.sp
+\fB\-M\fP, \fB\-\-minimize\fP
+.RS 4
+Among equal files, keep the file with the lowest link count.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-dry\-run\fP
+.RS 4
+Do not act, just print what would happen.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-ignore\-owner\fP
+.RS 4
+Link and compare files even if their owner information (user and group) differs. Results may be unpredictable.
+.RE
+.sp
+\fB\-O\fP, \fB\-\-keep\-oldest\fP
+.RS 4
+Among equal files, keep the oldest file (least recent modification time). By default, the newest file is kept. If \fB\-\-maximize\fP or \fB\-\-minimize\fP is specified, the link count has a higher precedence than the time of modification.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-ignore\-mode\fP
+.RS 4
+Link and compare files even if their mode is different. Results may be slightly unpredictable.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Quiet mode, don\(cqt print anything.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-cache\-size\fP \fIsize\fP
+.RS 4
+The size of the cache for content checksums. All non\-memcmp methods calculate checksum for each
+file content block (see \fB\-\-io\-size\fP), these checksums are cached for the next comparison. The
+size is important for large files or a large sets of files of the same size. The default is
+10MiB.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-minimum\-size\fP \fIsize\fP
+.RS 4
+The minimum size to consider. By default this is 1, so empty files will not be linked. The \fIsize\fP argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB").
+.RE
+.sp
+\fB\-S\fP, \fB\-\-maximum\-size\fP \fIsize\fP
+.RS 4
+The maximum size to consider. By default this is 0 and 0 has the special meaning of unlimited. The \fIsize\fP argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB").
+.RE
+.sp
+\fB\-t\fP, \fB\-\-ignore\-time\fP
+.RS 4
+Link and compare files even if their time of modification is different. This is usually a good choice.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose output, explain to the user what is being done. If specified once, every hardlinked file is displayed. If specified twice, it also shows every comparison.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-exclude\fP \fIregex\fP
+.RS 4
+A regular expression which excludes files from being compared and linked.
+.RE
+.sp
+\fB\-X\fP, \fB\-\-respect\-xattrs\fP
+.RS 4
+Only try to link files with the same extended attributes.
+.RE
+.sp
+\fB\-y\fP, \fB\-\-method\fP \fIname\fP
+.RS 4
+Set the file content comparison method. The currently supported methods are
+sha256, sha1, crc32c and memcmp. The default is sha256, or memcmp if Linux
+Crypto API is not available. The methods based on checksums are implemented in
+zero\-copy way, in this case file contents are not copied to the userspace and all
+calculation is done in kernel.
+.RE
+.sp
+\fB\-\-reflink\fP[=\fIwhen\fP]
+.RS 4
+Create copy\-on\-write clones (aka reflinks) rather than hardlinks. The reflinked files
+share only on\-disk data, but the file mode and owner can be different. It\(cqs recommended
+to use it with \fB\-\-ignore\-owner\fP and \fB\-\-ignore\-mode\fP options. This option implies
+\fB\-\-skip\-reflinks\fP to ignore already cloned files.
+.sp
+The optional argument \fIwhen\fP can be \fBnever\fP, \fBalways\fP, or \fBauto\fP. If the \fIwhen\fP argument
+is omitted, it defaults to \fBauto\fP, in this case, \fBhardlink\fP checks filesystem type and
+uses reflinks on BTRFS and XFS only, and fallback to hardlinks when creating reflink is impossible.
+The argument \fBalways\fP disables filesystem type detection and fallback to hardlinks, in this case,
+only reflinks are allowed.
+.RE
+.sp
+\fB\-\-skip\-reflinks\fP
+.RS 4
+Ignore already cloned files. This option may be used without \fB\-\-reflink\fP when creating classic hardlinks.
+.RE
+.SH "ARGUMENTS"
+.sp
+\fBhardlink\fP takes one or more directories which will be searched for files to be linked.
+.SH "BUGS"
+.sp
+The original \fBhardlink\fP implementation uses the option \fB\-f\fP to force hardlinks creation between filesystem. This very rarely usable feature is no more supported by the current \fBhardlink\fP.
+.sp
+\fBhardlink\fP assumes that the trees it operates on do not change during operation. If a tree does change, the result is undefined and potentially dangerous. For example, if a regular file is replaced by a device, \fBhardlink\fP may start reading from the device. If a component of a path is replaced by a symbolic link or file permissions change, security may be compromised. Do not run \fBhardlink\fP on a changing tree or on a tree controlled by another user.
+.SH "AUTHOR"
+.sp
+There are multiple \fBhardlink\fP implementations. The very first implementation is from Jakub Jelinek for Fedora distribution, this implementation has been used in util\-linux between versions v2.34 to v2.36. The current implementations is based on Debian version from Julian Andres Klode.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBhardlink\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

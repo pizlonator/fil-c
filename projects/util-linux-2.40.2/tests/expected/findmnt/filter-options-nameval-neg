@@ -1,0 +1,33 @@
+TARGET                         SOURCE                FSTYPE                OPTIONS
+/                              /dev/sda4             ext3                  rw,noatime,errors=continue,user_xattr,acl,barrier=0,data=ordered
+|-/proc                        /proc                 proc                  rw,relatime
+| |-/proc/sys/fs/binfmt_misc   systemd-1             autofs                rw,relatime,fd=25,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+| | `-/proc/sys/fs/binfmt_misc none                  binfmt_misc           rw,relatime
+| `-/proc/bus/usb              /proc/bus/usb         usbfs                 rw,relatime
+|-/sys                         /sys                  sysfs                 rw,relatime
+| |-/sys/fs/cgroup             tmpfs                 tmpfs                 rw,nosuid,nodev,noexec,relatime,mode=755
+| | |-/sys/fs/cgroup/systemd   cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,release_agent=/lib/systemd/systemd-cgroups-agent,name=systemd
+| | |-/sys/fs/cgroup/cpuset    cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,cpuset
+| | |-/sys/fs/cgroup/ns        cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,ns
+| | |-/sys/fs/cgroup/cpu       cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,cpu
+| | |-/sys/fs/cgroup/cpuacct   cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,cpuacct
+| | |-/sys/fs/cgroup/memory    cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,memory
+| | |-/sys/fs/cgroup/devices   cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,devices
+| | |-/sys/fs/cgroup/freezer   cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,freezer
+| | |-/sys/fs/cgroup/net_cls   cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,net_cls
+| | `-/sys/fs/cgroup/blkio     cgroup                cgroup                rw,nosuid,nodev,noexec,relatime,blkio
+| |-/sys/kernel/debug          systemd-1             autofs                rw,relatime,fd=24,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+| `-/sys/fs/fuse/connections   fusectl               fusectl               rw,relatime
+|-/dev                         udev                  devtmpfs              rw,relatime,size=1983516k,nr_inodes=495879,mode=755
+| |-/dev/pts                   devpts                devpts                rw,relatime,gid=5,mode=620,ptmxmode=000
+| |-/dev/shm                   tmpfs                 tmpfs                 rw,relatime
+| |-/dev/hugepages             systemd-1             autofs                rw,relatime,fd=23,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+| | `-/dev/hugepages           hugetlbfs             hugetlbfs             rw,relatime
+| `-/dev/mqueue                systemd-1             autofs                rw,relatime,fd=26,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+|   `-/dev/mqueue              mqueue                mqueue                rw,relatime
+|-/boot                        /dev/sda6             ext3                  rw,noatime,errors=continue,barrier=0,data=ordered
+|-/home/kzak                   /dev/mapper/kzak-home ext4                  rw,noatime,barrier=1,data=ordered
+| `-/home/kzak/.gvfs           gvfs-fuse-daemon      fuse.gvfs-fuse-daemon rw,nosuid,nodev,relatime,user_id=500,group_id=500
+|-/var/lib/nfs/rpc_pipefs      sunrpc                rpc_pipefs            rw,relatime
+`-/mnt/sounds                  //foo.home/bar/       cifs                  rw,relatime,unc=\\foo.home\bar,username=kzak,domain=SRGROUP,uid=0,noforceuid,gid=0,noforcegid,addr=192.168.111.1,posixpaths,serverino,acl,rsize=16384,wsize=57344
+rc=0

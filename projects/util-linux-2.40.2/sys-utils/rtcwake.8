@@ -1,0 +1,257 @@
+'\" t
+.\"     Title: rtcwake
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "RTCWAKE" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+rtcwake \- enter a system sleep state until specified wakeup time
+.SH "SYNOPSIS"
+.sp
+\fBrtcwake\fP [options] [\fB\-d\fP \fIdevice\fP] [\fB\-m\fP \fIstandby_mode\fP] {\fB\-s\fP \fIseconds\fP|\fB\-t\fP \fItime_t\fP}
+.SH "DESCRIPTION"
+.sp
+This program is used to enter a system sleep state and to automatically wake from it at a specified time.
+.sp
+This uses cross\-platform Linux interfaces to enter a system sleep state, and leave it no later than a specified time. It uses any RTC framework driver that supports standard driver model wakeup flags.
+.sp
+This is normally used like the old \fBapmsleep\fP utility, to wake from a suspend state like ACPI S1 (standby) or S3 (suspend\-to\-RAM). Most platforms can implement those without analogues of BIOS, APM, or ACPI.
+.sp
+On some systems, this can also be used like \fBnvram\-wakeup\fP, waking from states like ACPI S4 (suspend to disk). Not all systems have persistent media that are appropriate for such suspend modes.
+.sp
+Note that alarm functionality depends on hardware; not every RTC is able to setup an alarm up to 24 hours in the future.
+.sp
+The suspend setup may be interrupted by active hardware; for example wireless USB input devices that continue to send events for some fraction of a second after the return key is pressed. \fBrtcwake\fP tries to avoid this problem and it waits to the terminal to settle down before entering a system sleep.
+.SH "OPTIONS"
+.sp
+\fB\-A\fP, \fB\-\-adjfile\fP \fIfile\fP
+.RS 4
+Specify an alternative path to the adjust file.
+.RE
+.sp
+\fB\-a\fP, \fB\-\-auto\fP
+.RS 4
+Read the clock mode (whether the hardware clock is set to UTC or local time) from the \fIadjtime\fP file, where \fBhwclock\fP(8) stores that information. This is the default.
+.RE
+.sp
+\fB\-\-date\fP \fItimestamp\fP
+.RS 4
+Set the wakeup time to the value of the timestamp. Format of the timestamp can be any of the following:
+.RE
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+YYYYMMDDhhmmss
+T}:T{
+.sp
+
+T}
+T{
+.sp
+YYYY\-MM\-DD hh:mm:ss
+T}:T{
+.sp
+
+T}
+T{
+.sp
+YYYY\-MM\-DD hh:mm
+T}:T{
+.sp
+(seconds will be set to 00)
+T}
+T{
+.sp
+YYYY\-MM\-DD
+T}:T{
+.sp
+(time will be set to 00:00:00)
+T}
+T{
+.sp
+hh:mm:ss
+T}:T{
+.sp
+(date will be set to today)
+T}
+T{
+.sp
+hh:mm
+T}:T{
+.sp
+(date will be set to today, seconds to 00)
+T}
+T{
+.sp
+tomorrow
+T}:T{
+.sp
+(time is set to 00:00:00)
+T}
+T{
+.sp
++5min
+T}:T{
+.sp
+
+T}
+.TE
+.sp
+.sp
+\fB\-d\fP, \fB\-\-device\fP \fIdevice\fP
+.RS 4
+Use the specified \fIdevice\fP instead of \fBrtc0\fP as realtime clock. This option is only relevant if your system has more than one RTC. You may specify \fBrtc1\fP, \fBrtc2\fP, ... here.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-local\fP
+.RS 4
+Assume that the hardware clock is set to local time, regardless of the contents of the \fIadjtime\fP file.
+.RE
+.sp
+\fB\-\-list\-modes\fP
+.RS 4
+List available \fB\-\-mode\fP option arguments.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-mode\fP \fImode\fP
+.RS 4
+Go into the given standby state. Valid values for \fImode\fP are:
+.sp
+\fBstandby\fP
+.RS 4
+ACPI state S1. This state offers minimal, though real, power savings, while providing a very low\-latency transition back to a working system. This is the default mode.
+.RE
+.sp
+\fBfreeze\fP
+.RS 4
+The processes are frozen, all the devices are suspended and all the processors idled. This state is a general state that does not need any platform\-specific support, but it saves less power than Suspend\-to\-RAM, because the system is still in a running state. (Available since Linux 3.9.)
+.RE
+.sp
+\fBmem\fP
+.RS 4
+ACPI state S3 (Suspend\-to\-RAM). This state offers significant power savings as everything in the system is put into a low\-power state, except for memory, which is placed in self\-refresh mode to retain its contents.
+.RE
+.sp
+\fBdisk\fP
+.RS 4
+ACPI state S4 (Suspend\-to\-disk). This state offers the greatest power savings, and can be used even in the absence of low\-level platform support for power management. This state operates similarly to Suspend\-to\-RAM, but includes a final step of writing memory contents to disk.
+.RE
+.sp
+\fBoff\fP
+.RS 4
+ACPI state S5 (Poweroff). This is done by calling \*(Aq/sbin/shutdown\*(Aq. Not officially supported by ACPI, but it usually works.
+.RE
+.sp
+\fBno\fP
+.RS 4
+Don\(cqt suspend, only set the RTC wakeup time.
+.RE
+.sp
+\fBon\fP
+.RS 4
+Don\(cqt suspend, but read the RTC device until an alarm time appears. This mode is useful for debugging.
+.RE
+.sp
+\fBdisable\fP
+.RS 4
+Disable a previously set alarm.
+.RE
+.sp
+\fBshow\fP
+.RS 4
+Print alarm information in format: "alarm: off|on <time>". The time is in ctime() output format, e.g., "alarm: on Tue Nov 16 04:48:45 2010".
+.RE
+.RE
+.sp
+\fB\-n\fP, \fB\-\-dry\-run\fP
+.RS 4
+This option does everything apart from actually setting up the alarm, suspending the system, or waiting for the alarm.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-seconds\fP \fIseconds\fP
+.RS 4
+Set the wakeup time to \fIseconds\fP in the future from now.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP \fItime_t\fP
+.RS 4
+Set the wakeup time to the absolute time \fItime_t\fP. \fItime_t\fP is the time in seconds since 1970\-01\-01, 00:00 UTC. Use the \fBdate\fP(1) tool to convert between human\-readable time and \fItime_t\fP.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-utc\fP
+.RS 4
+Assume that the hardware clock is set to UTC (Universal Time Coordinated), regardless of the contents of the \fIadjtime\fP file.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Be verbose.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+Some PC systems can\(cqt currently exit sleep states such as \fBmem\fP using only the kernel code accessed by this driver. They need help from userspace code to make the framebuffer work again.
+.SH "FILES"
+.sp
+\fI/etc/adjtime\fP
+.SH "HISTORY"
+.sp
+The program was posted several times on LKML and other lists before appearing in kernel commit message for Linux 2.6 in the GIT commit 87ac84f42a7a580d0dd72ae31d6a5eb4bfe04c6d.
+.SH "AUTHORS"
+.sp
+The program was written by \c
+.MTO "dbrownell\(atusers.sourceforge.net" "David Brownell" ""
+and improved by
+.MTO "bwalle\(atsuse.de" "Bernhard Walle" "."
+.SH "COPYRIGHT"
+.sp
+This is free software. You may redistribute copies of it under the terms of the \c
+.URL "http://www.gnu.org/licenses/gpl.html" "GNU General Public License" "."
+There is NO WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+.sp
+\fBadjtime_config\fP(5),
+\fBhwclock\fP(8),
+\fBdate\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBrtcwake\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

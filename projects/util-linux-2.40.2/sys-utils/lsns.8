@@ -1,0 +1,154 @@
+'\" t
+.\"     Title: lsns
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSNS" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsns \- list namespaces
+.SH "SYNOPSIS"
+.sp
+\fBlsns\fP [options] \fInamespace\fP
+.SH "DESCRIPTION"
+.sp
+\fBlsns\fP lists information about all the currently accessible namespaces or about the given \fInamespace\fP. The \fInamespace\fP identifier is an inode number.
+.sp
+The default output is subject to change. So whenever possible, you should avoid using default outputs in your scripts. Always explicitly define expected output mode (\fB\-\-tree\fP or \fB\-\-list\fP) and columns by using the \fB\-\-output\fP option together with a columns list in environments where a stable output is required.
+.sp
+The \fBNSFS\fP column, printed when \fBnet\fP is specified for the \fB\-\-type\fP option, is special; it uses multi\-line cells. Use the option \fB\-\-nowrap\fP to switch to ","\-separated single\-line representation.
+.sp
+Note that \fBlsns\fP reads information directly from the \fI/proc\fP filesystem and for non\-root users it may return incomplete information. The current \fI/proc\fP filesystem may be unshared and affected by a PID namespace (see \fBunshare \-\-mount\-proc\fP for more details). \fBlsns\fP is not able to see persistent namespaces without processes where the namespace instance is held by a bind mount to /proc/\fIpid\fP/ns/\fItype\fP.
+.SH "OPTIONS"
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+Use list output format.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-help\fP to get a list of all supported columns.
+.sp
+The default list of columns may be extended if \fIlist\fP is specified in the format \fB+\fP\fIlist\fP (e.g., \fBlsns \-o +PATH\fP).
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-persistent\fP
+.RS 4
+Display only the namespaces without processes (aka persistent namespaces), created by bind mounting
+/proc/pid/ns/type files to a filesystem path.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-task\fP \fIPID\fP
+.RS 4
+Display only the namespaces held by the process with this \fIPID\fP.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Use the raw output format.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-type\fP \fItype\fP
+.RS 4
+Display the specified \fItype\fP of namespaces only. The supported types are \fBmnt\fP, \fBnet\fP, \fBipc\fP, \fBuser\fP, \fBpid\fP, \fButs\fP, \fBcgroup\fP and \fBtime\fP. This option may be given more than once.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-notruncate\fP
+.RS 4
+Do not truncate text in columns.
+.RE
+.sp
+\fB\-W\fP, \fB\-\-nowrap\fP
+.RS 4
+Do not use multi\-line text in columns.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-tree\fP \fIrel\fP
+.RS 4
+Use tree\-like output format. If \fBprocess\fP is given as \fIrel\fP, print process tree(s) in each name space. This is default when \fB\-\-tree\fP is not specified. If \fBparent\fP is given, print tree(s) constructed by the parent/child relationship. If \fBowner\fP is given, print tree(s) constructed by the owner/owned relationship. \fBowner\fP is used as default when \fIrel\fP is omitted.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+The \fBlsns\fP utility exits with one of the following values:
+.sp
+\fB0\fP
+.RS 4
+Success.
+.RE
+.sp
+\fB1\fP
+.RS 4
+General error.
+.RE
+.sp
+\fB2\fP
+.RS 4
+An ioctl was unknown to the kernel.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBnsenter\fP(1),
+\fBunshare\fP(1),
+\fBclone\fP(2),
+\fBnamespaces\fP(7),
+\fBioctl_ns\fP(2),
+\fBip\-netns\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsns\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

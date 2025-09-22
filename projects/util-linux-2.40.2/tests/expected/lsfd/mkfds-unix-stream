@@ -1,0 +1,32 @@
+3 SOCK state=listen path=test_mkfds-unix-stream       listen stream 1 test_mkfds-unix-stream
+4 SOCK state=connected                             connected stream 0 
+5 SOCK state=connected path=test_mkfds-unix-stream connected stream 0 test_mkfds-unix-stream
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=@test_mkfds-unix-stream-abs       listen stream 1 @test_mkfds-unix-stream-abs
+4 SOCK state=connected                                  connected stream 0 
+5 SOCK state=connected path=@test_mkfds-unix-stream-abs connected stream 0 @test_mkfds-unix-stream-abs
+(abs) ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=test_mkfds-unix-stream-shutdown       listen stream 1 test_mkfds-unix-stream-shutdown
+4 SOCK state=connected                                      connected stream 0 
+5 SOCK state=connected path=test_mkfds-unix-stream-shutdown connected stream 0 test_mkfds-unix-stream-shutdown
+(shutdown) ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=test_mkfds-unix with spaces stream       listen stream 1 test_mkfds-unix with spaces stream
+4 SOCK state=connected                                         connected stream 0 
+5 SOCK state=connected path=test_mkfds-unix with spaces stream connected stream 0 test_mkfds-unix with spaces stream
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=test_mkfds-unix-seqpacket type=seqpacket       listen seqpacket 1 test_mkfds-unix-seqpacket
+4 SOCK state=connected type=seqpacket                                connected seqpacket 0 
+5 SOCK state=connected path=test_mkfds-unix-seqpacket type=seqpacket connected seqpacket 0 test_mkfds-unix-seqpacket
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=@test_mkfds-unix-seqpacket-abs       listen stream 1 @test_mkfds-unix-seqpacket-abs
+4 SOCK state=connected                                     connected stream 0 
+5 SOCK state=connected path=@test_mkfds-unix-seqpacket-abs connected stream 0 @test_mkfds-unix-seqpacket-abs
+(abs) ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=test_mkfds-unix-seqpacket-shutdown type=seqpacket       listen seqpacket 1 test_mkfds-unix-seqpacket-shutdown
+4 SOCK state=connected type=seqpacket                                         connected seqpacket 0 
+5 SOCK state=connected path=test_mkfds-unix-seqpacket-shutdown type=seqpacket connected seqpacket 0 test_mkfds-unix-seqpacket-shutdown
+(shutdown) ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0
+3 SOCK state=listen path=test_mkfds-unix with spaces seqpacket type=seqpacket       listen seqpacket 1 test_mkfds-unix with spaces seqpacket
+4 SOCK state=connected type=seqpacket                                            connected seqpacket 0 
+5 SOCK state=connected path=test_mkfds-unix with spaces seqpacket type=seqpacket connected seqpacket 0 test_mkfds-unix with spaces seqpacket
+ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH: 0

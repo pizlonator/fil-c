@@ -1,0 +1,60 @@
+//po4a: entry man manual
+////
+Copyright 2010 Jason Borden <jborden@bluehost.com>
+This file may be copied under the terms of the GNU General Public License.
+////
+= swaplabel(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: swaplabel
+
+== NAME
+
+swaplabel - print or change the label or UUID of a swap area
+
+== SYNOPSIS
+
+*swaplabel* [*-L* _label_] [*-U* _UUID_] _device_
+
+== DESCRIPTION
+
+*swaplabel* will display or change the label or UUID of a swap partition located on _device_ (or regular file).
+
+If the optional arguments *-L* and *-U* are not given, *swaplabel* will simply display the current swap-area label and UUID of _device_.
+
+If an optional argument is present, then *swaplabel* will change the appropriate value on _device_. These values can also be set during swap creation using *mkswap*(8). The *swaplabel* utility allows changing the label or UUID on an actively used swap device.
+
+== OPTIONS
+
+include::man-common/help-version.adoc[]
+
+*-L*, *--label* _label_::
+  Specify a new _label_ for the device. Swap partition labels can be at most 16 characters long. If _label_ is longer than 16 characters, *swaplabel* will truncate it and print a warning message.
+
+*-U*, *--uuid* _UUID_::
+  Specify a new _UUID_ for the device. The _UUID_ must be in the standard 8-4-4-4-12 character format, such as is output by *uuidgen*(1).
+
+== ENVIRONMENT
+
+LIBBLKID_DEBUG=all::
+  enables libblkid debug output.
+
+== AUTHORS
+
+*swaplabel* was written by mailto:jborden@bluehost.com[Jason Borden] and mailto:kzak@redhat.com[Karel Zak].
+
+== SEE ALSO
+
+*uuidgen*(1),
+*mkswap*(8),
+*swapon*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

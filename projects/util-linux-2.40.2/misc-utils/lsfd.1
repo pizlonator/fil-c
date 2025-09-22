@@ -1,0 +1,1190 @@
+'\" t
+.\"     Title: lsfd
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSFD" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsfd \- list file descriptors
+.SH "SYNOPSIS"
+.sp
+\fBlsfd\fP [option]
+.SH "DESCRIPTION"
+.sp
+\fBlsfd\fP is intended to be a modern replacement for \fBlsof\fP(8) on Linux systems.
+Unlike \fBlsof\fP, \fBlsfd\fP is specialized to Linux kernel; it supports Linux
+specific features like namespaces with simpler code. \fBlsfd\fP is not a
+drop\-in replacement for \fBlsof\fP; they are different in the command line
+interface and output formats.
+.sp
+The default output is subject to change. So whenever possible, you should avoid using
+default outputs in your scripts. Always explicitly define expected columns by using
+\fB\-\-output\fP \fIcolumns\-list\fP in environments where a stable output is required.
+.sp
+\fBlsfd\fP uses Libsmartcols for output formatting and filtering. See the description of \fB\-\-output\fP
+option for customizing the output format, and \fB\-\-filter\fP option for filtering. Use \fBlsfd \-\-list\-columns\fP
+to get a list of all available columns.
+.SH "OPTIONS"
+.sp
+\fB\-l\fP, \fB\-\-threads\fP
+.RS 4
+List in threads level.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Don\(cqt print headings.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. See the \fBOUTPUT COLUMNS\fP
+section for details of available columns.
+.sp
+The default list of columns may be extended if \fIlist\fP is specified in
+the format +\fIlist\fP (e.g., \fBlsfd \-o +DELETED\fP).
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Use raw output format.
+.RE
+.sp
+\fB\-\-notruncate\fP
+.RS 4
+Don\(cqt truncate text in columns.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP \fIpids\fP
+.RS 4
+Collect information only for specified processes.
+\fIpids\fP is a list of pids. A comma or whitespaces can be used as separators.
+You can use this option with \fBpidof\fP(1). See \fBFILTER EXAMPLES\fP.
+.sp
+Both \fB\-Q\fP option with an expression including PID, e.g. \-Q (PID == 1),
+and \fB\-p\fP option, e.g. \-p 1, may print the same output but using \fB\-p\fP
+option is much more efficient because \fB\-p\fP option works at a much earlier
+stage of processing than the \fB\-Q\fP option.
+.RE
+.sp
+\fB\-i\fP[4|6], \fB\-\-inet\fP[=4|=6]
+.RS 4
+List only IPv4 sockets and/or IPv6 sockets.
+.RE
+.sp
+\fB\-Q\fP, \fB\-\-filter\fP \fIexpr\fP
+.RS 4
+Print only the files matching the condition represented by the \fIexpr\fP.
+See also \fBscols\-filter\fP(5) and \fBFILTER EXAMPLES\fP.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-counter\fP \fIlabel\fP:\fIfilter_expr\fP
+.RS 4
+Define a custom counter used in \fB\-\-summary\fP output. \fBlsfd\fP makes a
+counter named \fIlabel\fP. During collect information, \fBlsfd\fP counts files
+matching \fIfilter_expr\fP, and stores the counted number to the
+counter named \fIlabel\fP. \fBlsfd\fP applies filters defined with \fB\-\-filter\fP
+options before counting; files excluded by the filters are not counted.
+.sp
+See \fBscols\-filter\fP(5) about \fIfilter_expr\fP.
+\fIlabel\fP should not include \f(CR{\fP nor \f(CR:\fP. You can define multiple
+counters by specifying this option multiple times.
+.sp
+See also \fBCOUNTER EXAMPLES\fP.
+.RE
+.sp
+\fB\-\-summary\fP[=\fIwhen\fP]
+.RS 4
+This option controls summary lines output. The optional argument \fIwhen\fP
+can be \fBonly\fP, \fBappend\fP or \fBnever\fP. If the \fIwhen\fP argument is omitted,
+it defaults to \fBonly\fP.
+.sp
+The summary reports counters. A counter consists of a label and an
+integer value.  \fB\-\-counter\fP is the option for defining a counter.  If
+a user defines no counter, \fBlsfd\fP uses the definitions of pre\-defined
+built\-in counters (default counters) to make the summary output.
+.sp
+CAUTION: Using \fB\-\-summary\fP and \fB\-\-json\fP may make the output broken. Only combining \fB\-\-summary\fP=\fBonly\fP and \fB\-\-json\fP is valid.
+.RE
+.sp
+\fB\-\-debug\-filter\fP
+.RS 4
+Dump the internal data structure for the filter and exit. This is useful
+only for \fBlsfd\fP developers.
+.RE
+.sp
+\fB\-\-dump\-counters\fP
+.RS 4
+Dump the definition of counters used in \fB\-\-summary\fP output.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-list\-columns\fP
+.RS 4
+List available columns that you can specify at \fB\-\-output\fP option.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "OUTPUT COLUMNS"
+.sp
+Each column has a type. Types are surround by < and >.
+.sp
+CAUTION: The names and types of columns are not stable yet.
+They may be changed in the future releases.
+.sp
+AINODECLASS <\f(CRstring\fP>
+.RS 4
+Class of anonymous inode.
+.RE
+.sp
+ASSOC <\f(CRstring\fP>
+.RS 4
+Association between file and process.
+.RE
+.sp
+BLKDRV <\f(CRstring\fP>
+.RS 4
+Block device driver name resolved by \f(CR/proc/devices\fP.
+.RE
+.sp
+BPF\-MAP.ID <\f(CRnumber\fP>
+.RS 4
+Bpf map ID.
+.RE
+.sp
+BPF\-MAP.TYPE <\f(CRstring\fP>
+.RS 4
+Decoded name of bpf map type.
+.RE
+.sp
+BPF\-MAP.TYPE.RAW <\f(CRnumber\fP>
+.RS 4
+Bpf map type (raw).
+.RE
+.sp
+BPF.NAME <\f(CRstring\fP>
+.RS 4
+Bpf object name.
+.RE
+.sp
+BPF\-PROG.ID <\f(CRnumber\fP>
+.RS 4
+Bpf program ID.
+.RE
+.sp
+BPF\-PROG.TYPE <\f(CRstring\fP>
+.RS 4
+Decoded name of bpf program type.
+.RE
+.sp
+BPF\-PROG.TYPE.RAW <\f(CRnumber\fP>
+.RS 4
+Bpf program type (raw).
+.RE
+.sp
+CHRDRV <\f(CRstring\fP>
+.RS 4
+Character device driver name resolved by \f(CR/proc/devices\fP.
+.RE
+.sp
+COMMAND <\f(CRstring\fP>
+.RS 4
+Command of the process opening the file.
+.RE
+.sp
+DELETED <\f(CRboolean\fP>
+.RS 4
+Reachability from the file system.
+.RE
+.sp
+DEV <\f(CRstring\fP>
+.RS 4
+ID of the device containing the file.
+.RE
+.sp
+DEVTYPE <\f(CRstring\fP>
+.RS 4
+Device type (\f(CRblk\fP, \f(CRchar\fP, or \f(CRnodev\fP).
+.RE
+.sp
+ENDPOINT <\f(CRstring\fP>
+.RS 4
+IPC endpoints information communicated with the fd.
+.sp
+\fBlsfd\fP collects endpoints within the processes that
+\fBlsfd\fP scans; \fBlsfd\fP may miss some endpoints
+if you limits the processes with \fB\-p\fP option.
+.sp
+The format of the column depends on the object associated
+with the fd:
+.sp
+FIFO type, mqueue type, ptmx and pts sources
+.RS 4
+\fIPID\fP,\fICOMMAND\fP,\fIASSOC\fP[\-r][\-w]
+.sp
+The last characters ([\-r][\-w]) represents the read and/or
+write mode of the endpoint.
+.RE
+.sp
+eventfd type
+.RS 4
+\fIPID\fP,\fICOMMAND\fP,\fIASSOC\fP
+.RE
+.sp
+UNIX\-STREAM
+.RS 4
+\fIPID\fP,\fICOMMAND\fP,\fIASSOC\fP[\-r?][\-w?]
+.sp
+About the last characters ([\-r?][\-w?]), see the description
+of \fISOCK.SHUTDOWN\fP.
+.RE
+.RE
+.sp
+EVENTFD.ID <\f(CRnumber\fP>
+.RS 4
+Eventfd ID.
+.RE
+.sp
+EVENTPOLL.TFDS <\f(CRstring\fP>
+.RS 4
+File descriptors targeted by the eventpoll file.
+.RE
+.sp
+FD <\f(CRnumber\fP>
+.RS 4
+File descriptor for the file.
+.RE
+.sp
+FLAGS <\f(CRstring\fP>
+.RS 4
+Flags specified when opening the file.
+.RE
+.sp
+FUID <\f(CRnumber\fP>
+.RS 4
+User ID number of the file\(cqs owner.
+.RE
+.sp
+INET.LADDR <\f(CRstring\fP>
+.RS 4
+Local IP address.
+.RE
+.sp
+INET.RADDR <\f(CRstring\fP>
+.RS 4
+Remote IP address.
+.RE
+.sp
+INET6.LADDR <\f(CRstring\fP>
+.RS 4
+Local IP6 address.
+.RE
+.sp
+INET6.RADDR <\f(CRstring\fP>
+.RS 4
+Remote IP6 address.
+.RE
+.sp
+INODE <\f(CRnumber\fP>
+.RS 4
+Inode number.
+.RE
+.sp
+INOTIFY.INODES <\f(CRstring\fP>
+.RS 4
+Cooked version of INOTIFY.INODES.RAW.
+The format of the element is
+\fIinode\-number\fP,\fIsource\-of\-inode\fP.
+.RE
+.sp
+INOTIFY.INODES.RAW <\f(CRstring\fP>
+.RS 4
+List of monitoring inodes. The format of the element
+is \fIinode\-number\fP\f(CR,\fP\fIdevice\-major\fP\f(CR:\fP\fIdevice\-minor\fP.
+.RE
+.sp
+KNAME <\f(CRstring\fP>
+.RS 4
+Raw file name extracted from
+from \f(CR/proc/\fP\fIpid\fP\f(CR/fd/\fP\fIfd\fP or \f(CR/proc/\fP\fIpid\fP\f(CR/map_files/\fP\fIregion\fP.
+.RE
+.sp
+KTHREAD <\f(CRboolean\fP>
+.RS 4
+Whether the process is a kernel thread or not.
+.RE
+.sp
+MAJ:MIN <\f(CRstring\fP>
+.RS 4
+Device ID for special, or ID of device containing file.
+.RE
+.sp
+MAPLEN <\f(CRnumber\fP>
+.RS 4
+Length of file mapping (in page).
+.RE
+.sp
+MISCDEV <\f(CRstring\fP>
+.RS 4
+Misc character device name resolved by \f(CR/proc/misc\fP.
+.RE
+.sp
+MNTID <\f(CRnumber\fP>
+.RS 4
+Mount ID.
+.RE
+.sp
+MODE <\f(CRstring\fP>
+.RS 4
+Access mode (rwx).
+.RE
+.sp
+NAME <\f(CRstring\fP>
+.RS 4
+Cooked version of KNAME. It is mostly same as KNAME.
+.sp
+Some files have special formats and information sources:
+.sp
+bpf\-map
+.RS 4
+id=\fIBPF\-MAP.ID\fP type=\fIBPF\-MAP.TYPE\fP[ name=\fIBPF.NAME\fP]
+.RE
+.sp
+bpf\-prog
+.RS 4
+id=\fIBPF\-PROG.ID\fP type=\fIBPF\-PROG.TYPE\fP[ name=\fIBPF.NAME\fP]
+.RE
+.sp
+eventpoll
+.RS 4
+tfds=\fIEVENTPOLL.TFDS\fP
+.RE
+.sp
+eventfd
+.RS 4
+id=\fIEVENTFD.ID\fP
+.RE
+.sp
+inotify
+.RS 4
+inodes=\fIINOTIFY.INODES\fP
+.RE
+.sp
+misc:tun
+.RS 4
+iface=\fITUN.IFACE\fP
+.RE
+.sp
+NETLINK
+.RS 4
+protocol=\fINETLINK.PROTOCOL\fP[ lport=\fINETLINK.LPORT\fP[ group=\fINETLINK.GROUPS\fP]]
+.RE
+.sp
+PACKET
+.RS 4
+type=\fISOCK.TYPE\fP[ protocol=\fIPACKET.PROTOCOL\fP][ iface=\fIPACKET.IFACE\fP]
+.RE
+.sp
+pidfd
+.RS 4
+pid=\fITARGET\-PID\fP comm=\fITARGET\-COMMAND\fP nspid=\fITARGET\-NSPIDS\fP
+.sp
+\fBlsfd\fP extracts \fITARGET\-PID\fP and \fITARGET\-NSPIDS\fP from
+\f(CR/proc/\fP\fIpid\fP\f(CR/fdinfo/\fP\fIfd\fP.
+.RE
+.sp
+PING
+.RS 4
+state=\fISOCK.STATE\fP[ id=\fIPING.ID\fP][ laddr=\fIINET.LADDR\fP [ raddr=\fIINET.RADDR\fP]]
+.RE
+.sp
+PINGv6
+.RS 4
+state=\fISOCK.STATE\fP[ id=\fIPING.ID\fP][ laddr=\fIINET6.LADDR\fP [ raddr=\fIINET6.RADDR\fP]]
+.RE
+.sp
+ptmx
+.RS 4
+tty\-index=\fIPTMX.TTY\-INDEX\fP
+.sp
+\fBlsfd\fP extracts \fIPTMX.TTY\-INDEX\fP from
+\f(CR/proc/\fP\fIpid\fP\f(CR/fdinfo/\fP\fIfd\fP.
+.RE
+.sp
+RAW
+.RS 4
+state=\fISOCK.STATE\fP[ protocol=\fIRAW.PROTOCOL\fP [ laddr=\fIINET.LADDR\fP [ raddr=\fIINET.RADDR\fP]]]
+.RE
+.sp
+RAWv6
+.RS 4
+state=\fISOCK.STATE\fP[ protocol=\fIRAW.PROTOCOL\fP [ laddr=\fIINET6.LADDR\fP [ raddr=\fIINET6.RADDR\fP]]]
+.RE
+.sp
+signalfd
+.RS 4
+mask=\fISIGNALFD.MASK\fP
+.RE
+.sp
+TCP, TCPv6
+.RS 4
+state=\fISOCK.STATE\fP[ laddr=\fITCP.LADDR\fP [ raddr=\fITCP.RADDR\fP]]
+.RE
+.sp
+timerfd
+.RS 4
+clockid=\fITIMERFD.CLOCKID\fP[ remaining=\fITIMERFD.REMAINING\fP [ interval=\fITIMERFD.INTERVAL\fP]]
+.RE
+.sp
+UDP, UDPv6
+.RS 4
+state=\fISOCK.STATE\fP[ laddr=\fIUDP.LADDR\fP [ raddr=\fIUDP.RADDR\fP]]
+.sp
+\fBlsfd\fP hides \f(CRraddr=\fP if \fIUDP.RADDR\fP is \f(CR0.0.0.0\fP and \fIUDP.RPORT\fP is 0.
+.RE
+.sp
+UDP\-LITE, UDPLITEv6
+.RS 4
+state=\fISOCK.STATE\fP[ laddr=\fIUDPLITE.LADDR\fP [ raddr=\fIUDPLITE.RADDR\fP]]
+.RE
+.sp
+UNIX\-STREAM
+.RS 4
+state=\fISOCK.STATE\fP[ path=\fIUNIX.PATH\fP]
+.RE
+.sp
+UNIX
+.RS 4
+state=\fISOCK.STATE\fP[ path=\fIUNIX.PATH\fP] type=\fISOCK.TYPE\fP
+.RE
+.RE
+.RS 3
+.ll -.6i
+.sp
+Note that \f(CR(deleted)\fP markers are removed from this column.
+Refer to \fIKNAME\fP, \fIDELETED\fP, or \fIXMODE\fP to know the
+readability of the file from the file system.
+.br
+.RE
+.ll
+.sp
+NETLINK.GROUPS <\f(CRnumber\fP>
+.RS 4
+Netlink multicast groups.
+.RE
+.sp
+NETLINK.LPORT <\f(CRnumber\fP>
+.RS 4
+Netlink local port id.
+.RE
+.sp
+NETLINK.PROTOCOL <\f(CRstring\fP>
+.RS 4
+Netlink protocol.
+.RE
+.sp
+NLINK <\f(CRnumber\fP>
+.RS 4
+Link count.
+.RE
+.sp
+NS.NAME <\f(CRstring\fP>
+.RS 4
+Name (\fINS.TYPE\fP:[\fIINODE\fP]) of the namespace specified with the file.
+.RE
+.sp
+NS.TYPE <\f(CRstring\fP>
+.RS 4
+Type of the namespace specified with the file.
+The type is \f(CRmnt\fP, \f(CRcgroup\fP, \f(CRuts\fP, \f(CRipc\fP, \f(CRuser\fP, \f(CRpid\fP, \f(CRnet\fP,
+\f(CRtime\fP, or \f(CRunknown\fP.
+.RE
+.sp
+OWNER <\f(CRstring\fP>
+.RS 4
+Owner of the file.
+.RE
+.sp
+PACKET.IFACE <\f(CRstring\fP>
+.RS 4
+Interface name associated with the packet socket.
+.RE
+.sp
+PACKET.PROTOCOL <\f(CRstring\fP>
+.RS 4
+L3 protocol associated with the packet socket.
+.RE
+.sp
+PARTITION <\f(CRstring\fP>
+.RS 4
+Block device name resolved by \f(CR/proc/partition\fP.
+.RE
+.sp
+PID <\f(CRnumber\fP>
+.RS 4
+PID of the process opening the file.
+.RE
+.sp
+PIDFD.COMM <\f(CRstring\fP>
+.RS 4
+Command of the process targeted by the pidfd.
+.RE
+.sp
+PIDFD.NSPID <\f(CRstring\fP>
+.RS 4
+Value of NSpid field in \f(CR/proc/\fP\fIpid\fP\f(CR/fdinfo/\fP\fIfd\fP of the pidfd.
+.sp
+Quoted from kernel/fork.c of Linux source tree:
+.RS 3
+.ll -.6i
+.sp
+If pid namespaces are supported then this function will also print
+the pid of a given pidfd refers to for all descendant pid namespaces
+starting from the current pid namespace of the instance, i.e. the
+Pid field and the first entry in the NSpid field will be identical.
+.sp
+Note that this differs from the Pid and NSpid fields in
+/proc/<pid>/status where Pid and NSpid are always shown relative to
+the pid namespace of the procfs instance.
+.br
+.RE
+.ll
+.RE
+.sp
+PIDFD.PID <\f(CRnumber\fP>
+.RS 4
+PID of the process targeted by the pidfd.
+.RE
+.sp
+PING.ID <`number`>
+.RS 4
+ICMP echo request id used on the PING socket.
+.RE
+.sp
+POS <\f(CRnumber\fP>
+.RS 4
+File position.
+.RE
+.sp
+RAW.PROTOCOL <\f(CRnumber\fP>
+.RS 4
+Protocol number of the raw socket.
+.RE
+.sp
+RDEV <\f(CRstring\fP>
+.RS 4
+Device ID (if special file).
+.RE
+.sp
+SIGNALFD.MASK <\f(CRstring\fP>
+.RS 4
+Masked signals.
+.RE
+.sp
+SIZE <\f(CRnumber\fP>
+.RS 4
+File size.
+.RE
+.sp
+SOCK.LISTENING <\f(CRboolean\fP>
+.RS 4
+Listening socket.
+.RE
+.sp
+SOCK.NETS <\f(CRnumber\fP>
+.RS 4
+Inode identifying network namespace where the socket belongs to.
+.RE
+.sp
+SOCK.PROTONAME <\f(CRstring\fP>
+.RS 4
+Protocol name.
+.RE
+.sp
+SOCK.SHUTDOWN <\f(CRstring\fP>
+.RS 4
+Shutdown state of socket.
+.sp
+[\-r?]
+.RS 4
+If the first character is \fIr\fP, the receptions are allowed.
+If it is \fI\-\fP, the receptions are disallowed.
+If it is \fI?\fP, the state is unknown.
+.RE
+.sp
+[\-w?]
+.RS 4
+If the second character is \fIw\fP, the transmissions are allowed.
+If it is \fI\-\fP, the transmissions are disallowed.
+If it is \fI?\fP, the state is unknown.
+.RE
+.RE
+.sp
+SOCK.STATE <\f(CRstring\fP>
+.RS 4
+State of socket.
+.RE
+.sp
+SOCK.TYPE <\f(CRstring\fP>
+.RS 4
+Type of socket. Here type means the second parameter of
+socket system call:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+stream
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+dgram
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+raw
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+rdm
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+seqpacket
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+dccp
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+packet
+.RE
+.RE
+.sp
+SOURCE <\f(CRstring\fP>
+.RS 4
+File system, partition, or device containing the file.
+.RE
+.sp
+STTYPE <\f(CRstring\fP>
+.RS 4
+Raw file types returned from \fBstat\fP(2): BLK, CHR, DIR, FIFO, LINK, REG, SOCK, or UNKN.
+.RE
+.sp
+TCP.LADDR <\f(CRstring\fP>
+.RS 4
+Local L3 (\fIINET.LADDR\fP or \fIINET6.LADDR\fP) address and local TCP port.
+.RE
+.sp
+TCP.LPORT <\f(CRnumber\fP>
+.RS 4
+Local TCP port.
+.RE
+.sp
+TCP.RADDR <\f(CRstring\fP>
+.RS 4
+Remote L3 (\fIINET.RADDR\fP or \fIINET6.RADDR\fP) address and remote TCP port.
+.RE
+.sp
+TCP.RPORT <\f(CRnumber\fP>
+.RS 4
+Remote TCP port.
+.RE
+.sp
+TID <\f(CRnumber\fP>
+.RS 4
+Thread ID of the process opening the file.
+.RE
+.sp
+TIMERFD.CLOCKID <\f(CRstring\fP>
+.RS 4
+Clockid.
+.RE
+.sp
+TIMERFD.INTERVAL <\f(CRnumber\fP>
+.RS 4
+Interval.
+.RE
+.sp
+TIMERFD.REMAINING <\f(CRnumber\fP>
+.RS 4
+Remaining time.
+.RE
+.sp
+PTMX.TTY\-INDEX <\f(CRnumber\fP>
+.RS 4
+TTY index of the counterpart.
+.RE
+.sp
+TUN.IFACE <\f(CRstring\fP>
+.RS 4
+Network interface behind the tun device.
+.RE
+.sp
+TYPE <\f(CRstring\fP>
+.RS 4
+Cooked version of \fISTTYPE\fP. It is same as \fISTTYPE\fP with exceptions.
+For \fISOCK\fP, print the value for \fISOCK.PROTONAME\fP.
+For \fIUNKN\fP, print the value for \fIAINODECLASS\fP if \fISOURCE\fP is \f(CRanon_inodefs\fP.
+.RE
+.sp
+UDP.LADDR <\f(CRstring\fP>
+.RS 4
+Local IP address and local UDP port.
+.RE
+.sp
+UDP.LPORT <\f(CRnumber\fP>
+.RS 4
+Local UDP port.
+.RE
+.sp
+UDP.RADDR <\f(CRstring\fP>
+.RS 4
+Remote IP address and remote UDP port.
+.RE
+.sp
+UDP.RPORT <\f(CRnumber\fP>
+.RS 4
+Remote UDP port.
+.RE
+.sp
+UDPLITE.LADDR <\f(CRstring\fP>
+.RS 4
+Local IP address and local UDPLite port.
+.RE
+.sp
+UDPLITE.LPORT <\f(CRnumber\fP>
+.RS 4
+Local UDP port.
+.RE
+.sp
+UDPLITE.RADDR <\f(CRstring\fP>
+.RS 4
+Remote IP address and remote UDPLite port.
+.RE
+.sp
+UDPLITE.RPORT <\f(CRnumber\fP>
+.RS 4
+Remote UDP port.
+.RE
+.sp
+UID <\f(CRnumber\fP>
+.RS 4
+User ID number.
+.RE
+.sp
+UNIX.PATH <\f(CRstring\fP>
+.RS 4
+Filesystem pathname for UNIX domain socket.
+.RE
+.sp
+USER <\f(CRstring\fP>
+.RS 4
+User of the process.
+.RE
+.sp
+XMODE <\f(CRstring\fP>
+.RS 4
+Extended version of \fIMODE\fP. This column may grow; new letters may be
+appended to \fIXMODE\fP when \fBlsfd\fP supports a new state of file descriptors
+and/or memory mappings.
+.sp
+[\-r]
+.RS 4
+opened of mapped for reading. This is also in \fIMODE\fP.
+.RE
+.sp
+[\-w]
+.RS 4
+opened of mapped for writing. This is also in \fIMODE\fP.
+.RE
+.sp
+[\-x]
+.RS 4
+mapped for executing the code. This is also in \fIMODE\fP.
+.RE
+.sp
+[\-D]
+.RS 4
+deleted from  the file system. See also \fIDELETED\fP.
+.RE
+.sp
+[\-Ll]
+.RS 4
+locked or leased. \fIl\fP represents a read, a shared lock or a read lease.
+\fIL\fP represents a write or an exclusive lock or a write lease. If both
+read/shared and write/exclusive locks or leases are taken by a file
+descriptor, \fIL\fP is used as the flag.
+.RE
+.sp
+[\-m]
+.RS 4
+Multiplexed. If the file descriptor is targeted by a eventpoll file
+or classical system calls for multiplexing (select, pselect, poll, and
+ppoll), this bit flag is set. Note that if an invocation of the
+classical system calls is interrupted, \fBlsfd\fP may fail to mark \fIm\fP
+on the file descriptors monitored by the invocation.
+See \fBrestart_syscall\fP(2).
+.RE
+.RE
+.SH "FILTER EXAMPLES"
+.sp
+\fBlsfd\fP has few options for filtering. In most of cases, what you should
+know is \fB\-Q\fP (or \fB\-\-filter\fP) option.  Combined with \fB\-o\fP (or
+\fB\-\-output\fP) option, you can customize the output as you want.
+.sp
+List files associated with PID 1 and PID 2 processes:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(PID == 1) or (PID == 2)\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same in an alternative way:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(PID == 1) || (PID == 2)\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same in a more efficient way:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-\-pid 1,2
+.fam
+.fi
+.if n .RE
+.sp
+Whitescapes can be used instead of a comma:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-\-pid \*(Aq1 2\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Utilize \fBpidof\fP(1) for list the files associated with "firefox":
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-\-pid "$(pidof firefox)"
+.fam
+.fi
+.if n .RE
+.sp
+List the 1st file descriptor opened by PID 1 process:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(PID == 1) and (FD == 1)\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same in an alternative way:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(PID == 1) && (FD == 1)\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List all running executables:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqASSOC == "exe"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same in an alternative way:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqASSOC eq "exe"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same but print only file names:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-o NAME \-Q \*(AqASSOC eq "exe"\*(Aq | sort \-u
+.fam
+.fi
+.if n .RE
+.sp
+List deleted files associated to processes:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqDELETED\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List non\-regular files:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqTYPE != "REG"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List block devices:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqDEVTYPE == "blk"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+Do the same with TYPE column:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqTYPE == "BLK"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List files including "dconf" directory in their names:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(AqNAME =~ ".\(rs*/dconf/.*"\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List files opened in a QEMU virtual machine:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(COMMAND =~ ".\(rs*qemu.*") and (FD >= 0)\*(Aq
+.fam
+.fi
+.if n .RE
+.sp
+List timerfd files expired within 0.5 seconds:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-Q \*(Aq(TIMERFD.remaining < 0.5) and (TIMERFD.remaining > 0.0)\*(Aq
+.fam
+.fi
+.if n .RE
+.SH "COUNTER EXAMPLES"
+.sp
+Report the numbers of netlink socket descriptors and unix socket descriptors:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-\-summary=only \(rs
+        \-C \*(Aqnetlink sockets\*(Aq:\*(Aq(NAME =~ "NETLINK:.*")\*(Aq \(rs
+        \-C \*(Aqunix sockets\*(Aq:\*(Aq(NAME =~ "UNIX:.*")\*(Aq
+VALUE COUNTER
+   57 netlink sockets
+ 1552 unix sockets
+.fam
+.fi
+.if n .RE
+.sp
+Do the same but print in JSON format:
+.RS 4
+.RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+# lsfd \-\-summary=only \-\-json \(rs
+        \-C \*(Aqnetlink sockets\*(Aq:\*(Aq(NAME =~ "NETLINK:.*")\*(Aq \(rs
+        \-C \*(Aqunix sockets\*(Aq:\*(Aq(NAME =~ "UNIX:.*")\*(Aq
+{
+   "lsfd\-summary": [
+      {
+         "value": 15,
+         "counter": "netlink sockets"
+      },{
+         "value": 798,
+         "counter": "unix sockets"
+      }
+   ]
+}
+.fam
+.fi
+.if n .RE
+.SH "HISTORY"
+.sp
+The \fBlsfd\fP command is part of the util\-linux package since v2.38.
+.SH "AUTHORS"
+.sp
+.MTO "yamato\(atredhat.com" "Masatake YAMATO" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBbpftool\fP(8)
+\fBbps\fP(8)
+\fBlslocks\fP(8)
+\fBlsof\fP(8)
+\fBpidof\fP(1)
+\fBproc\fP(5)
+\fBscols\-filter\fP(5)
+\fBsocket\fP(2)
+\fBss\fP(8)
+\fBstat\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsfd\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

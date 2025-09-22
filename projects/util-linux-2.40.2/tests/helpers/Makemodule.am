@@ -1,0 +1,48 @@
+check_PROGRAMS += test_mbsencode
+test_mbsencode_SOURCES = tests/helpers/test_mbsencode.c
+test_mbsencode_LDADD = $(LDADD) libcommon.la
+
+check_PROGRAMS += test_byteswap
+test_byteswap_SOURCES = tests/helpers/test_byteswap.c
+
+check_PROGRAMS += test_md5
+test_md5_SOURCES = tests/helpers/test_md5.c lib/md5.c
+
+check_PROGRAMS += test_sha1
+test_sha1_SOURCES = tests/helpers/test_sha1.c lib/sha1.c
+
+check_PROGRAMS += test_pathnames
+test_pathnames_SOURCES = tests/helpers/test_pathnames.c
+
+check_PROGRAMS += test_strerror
+test_strerror_SOURCES = tests/helpers/test_strerror.c
+
+check_PROGRAMS += test_sysinfo
+test_sysinfo_SOURCES = tests/helpers/test_sysinfo.c
+
+check_PROGRAMS += test_sigreceive
+test_sigreceive_SOURCES = tests/helpers/test_sigreceive.c
+test_sigreceive_LDADD = $(LDADD) libcommon.la
+
+check_PROGRAMS += test_tiocsti
+test_tiocsti_SOURCES = tests/helpers/test_tiocsti.c
+
+check_PROGRAMS += test_uuid_namespace
+test_uuid_namespace_SOURCES = tests/helpers/test_uuid_namespace.c \
+	libuuid/src/predefined.c libuuid/src/unpack.c libuuid/src/unparse.c
+
+if LINUX
+check_PROGRAMS += test_mkfds
+test_mkfds_SOURCES = tests/helpers/test_mkfds.c tests/helpers/test_mkfds.h \
+	tests/helpers/test_mkfds_ppoll.c
+test_mkfds_LDADD = $(LDADD) $(MQ_LIBS)
+
+check_PROGRAMS += test_enosys
+test_enosys_SOURCES = tests/helpers/test_enosys.c
+endif
+
+if HAVE_CAP_NG
+check_PROGRAMS += test_cap
+test_cap_SOURCES = tests/helpers/test_cap.c
+test_cap_LDADD = -lcap-ng
+endif

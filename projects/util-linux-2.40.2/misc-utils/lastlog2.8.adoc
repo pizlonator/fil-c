@@ -1,0 +1,96 @@
+//po4a: entry man manual
+////
+Copyright 2023 Thorsten Kukuk (kukuk@suse.de)
+This file may be copied under the terms of the GNU General Public License.
+////
+= lastlog2(8)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lastlog2
+
+== NAME
+
+lastlog2 - display date of last login for all users or a specific one
+
+== SYNOPSIS
+
+*lastlog2* [options]
+
+== DESCRIPTION
+
+
+*lastlog2* displays the content of the last login database. The _login-name_,
+_last-login-time_, _tty_ and _remote-host_ will be printed.
+The default (no flags) causes all last login entries to be printed, sorted
+by the order as written the first time into the database.
+
+Compared to *lastlog* this command is Y2038 safe and uses sqlite3 to store the
+information and not a sparse file.
+
+== OPTIONS
+
+*-b*, *--before* _DAYS_::
+Print only last login records older than _DAYS_.
+
+*-C*, *--clear*::
+Clear last login record of a user. This option can be used only together with
+*-u' (*--user*).
+
+*-d*, *--database _FILE_::
+Use _FILE_ as lastlog2 database.
+
+*-h*, *--help*::
+Display help message and exit.
+
+*-i*, *--import* _FILE_::
+Import data from old lastlog file _FILE_. Existing entries in the lastlog2
+database will be overwritten.
+
+*-r*, *--rename* _NEWNAME_::
+This option can only be used together with *-u* (*--user*).
+
+*-s*, *--servive* _num_::
+Display PAM service used to login in the last column.
+
+*-S*, *--set*::
+Set last login record of a user to the current time. This option can only be used
+together with *-u* (*--user*).
+
+*-t*, *--time* _DAYS_::
+Print only last login records more recent than _DAYS_.
+
+*-u*, *--users* _LOGINS_::
+Print only the last login record of the user _LOGIN_.
+
+*-v*, *--version*::
+Print version number and exit.
+
+If the user has never logged in the message **Never logged in** will be displayed
+in the latest login time row.
+
+Only the entries for the current users of the system will be displayed.
+Other entries may exist for users that were deleted previously.
+
+== FILES
+
+*/var/lib/lastlog/lastlog2.db*::
+Lastlog2 logging database file
+
+
+== AUTHORS
+
+lastlog2 was written by Thorsten Kukuk for *liblastlog2*(3).
+
+== SEE ALSO
+
+*liblastlog2*(3)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

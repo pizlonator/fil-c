@@ -1,0 +1,68 @@
+Create partitions
+
+Welcome to fdisk <removed>.
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+
+Command (m for help): Created a new disklabel.
+
+Command (m for help): Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (1-4, default 1): First sector (2048-104447, default 2048): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-104447, default 104447): 
+Created a new partition <removed>.
+
+Command (m for help): Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (2-4, default 2): First sector (53248-104447, default 53248): Last sector, +/-sectors or +/-size{K,M,G,T,P} (53248-104447, default 104447): 
+Created a new partition <removed>.
+
+Command (m for help): Disk <removed>: 51 MiB, 53477376 bytes, 104448 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot Start    End Sectors Size Id Type
+<removed>1        2048  53247   51200  25M 83 Linux
+<removed>2       53248 104447   51200  25M 83 Linux
+
+Command (m for help): The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Create RAID1 device
+Probe whole-disk
+ID_PART_TABLE_TYPE=dos
+ID_PART_TABLE_UUID=00000001
+Probe first RAID member
+ID_FS_TYPE=linux_raid_member
+ID_FS_USAGE=raid
+ID_FS_UUID=__ts_uuid__
+ID_FS_UUID_ENC=__ts_uuid_enc__
+ID_FS_VERSION=0.90.0
+ID_PART_ENTRY_DISK=__ts_majorminor__
+ID_PART_ENTRY_NUMBER=1
+ID_PART_ENTRY_OFFSET=2048
+ID_PART_ENTRY_SCHEME=dos
+ID_PART_ENTRY_SIZE=51200
+ID_PART_ENTRY_TYPE=0x83
+ID_PART_ENTRY_UUID=00000001-01
+Probe second RAID member
+ID_FS_TYPE=linux_raid_member
+ID_FS_USAGE=raid
+ID_FS_UUID=__ts_uuid__
+ID_FS_UUID_ENC=__ts_uuid_enc__
+ID_FS_VERSION=0.90.0
+ID_PART_ENTRY_DISK=__ts_majorminor__
+ID_PART_ENTRY_NUMBER=2
+ID_PART_ENTRY_OFFSET=53248
+ID_PART_ENTRY_SCHEME=dos
+ID_PART_ENTRY_SIZE=51200
+ID_PART_ENTRY_TYPE=0x83
+ID_PART_ENTRY_UUID=00000001-02

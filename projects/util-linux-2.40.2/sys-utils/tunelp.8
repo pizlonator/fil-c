@@ -1,0 +1,111 @@
+'\" t
+.\"     Title: tunelp
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "TUNELP" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+tunelp \- set various parameters for the lp device
+.SH "SYNOPSIS"
+.sp
+\fBtunelp\fP [options] \fIdevice\fP
+.SH "DESCRIPTION"
+.sp
+\fBtunelp\fP sets several parameters for the /dev/lp\fI?\fP devices, for better performance (or for any performance at all, if your printer won\(cqt work without it...) Without parameters, it tells whether the device is using interrupts, and if so, which one. With parameters, it sets the device characteristics accordingly.
+.SH "OPTIONS"
+.sp
+\fB\-i\fP, \fB\-\-irq\fP \fIargument\fP
+.RS 4
+specifies the IRQ to use for the parallel port in question. If this is set to something non\-zero, \fB\-t\fP and \fB\-c\fP have no effect. If your port does not use interrupts, this option will make printing stop. The command \fBtunelp \-i 0\fP restores non\-interrupt driven (polling) action, and your printer should work again. If your parallel port does support interrupts, interrupt\-driven printing should be somewhat faster and efficient, and will probably be desirable.
+.sp
+\fBNOTE\fP: This option will have no effect with kernel 2.1.131 or later since the irq is handled by the parport driver. You can change the parport irq for example via \fI/proc/parport/*/irq\fP. Read \fI/usr/src/linux/Documentation/admin\-guide/parport.rst\fP for more details on parport.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP \fImilliseconds\fP
+.RS 4
+is the amount of time in jiffies that the driver waits if the printer doesn\(cqt take a character for the number of tries dictated by the \fB\-c\fP parameter. 10 is the default value. If you want fastest possible printing, and don\(cqt care about system load, you may set this to 0. If you don\(cqt care how fast your printer goes, or are printing text on a slow printer with a buffer, then 500 (5 seconds) should be fine, and will give you very low system load. This value generally should be lower for printing graphics than text, by a factor of approximately 10, for best performance.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-chars\fP \fIcharacters\fP
+.RS 4
+is the number of times to try to output a character to the printer before sleeping for \fB\-t\fP \fITIME\fP. It is the number of times around a loop that tries to send a character to the printer. 120 appears to be a good value for most printers in polling mode. 1000 is the default, because there are some printers that become jerky otherwise, but you \fImust\fP set this to \*(Aq1\*(Aq to handle the maximal CPU efficiency if you are using interrupts. If you have a very fast printer, a value of 10 might make more sense even if in polling mode. If you have a \fIreally\fP old printer, you can increase this further.
+.sp
+Setting \fB\-t\fP \fITIME\fP to 0 is equivalent to setting \fB\-c\fP \fICHARS\fP to infinity.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wait\fP \fImilliseconds\fP
+.RS 4
+is the number of usec we wait while playing with the strobe signal. While most printers appear to be able to deal with an extremely short strobe, some printers demand a longer one. Increasing this from the default 1 may make it possible to print with those printers. This may also make it possible to use longer cables. It\(cqs also possible to decrease this value to 0 if your printer is fast enough or your machine is slow enough.
+.RE
+.sp
+\fB\-a\fP, \fB\-\-abort\fP \fI<on|off>\fP
+.RS 4
+This is whether to abort on printer error \- the default is not to. If you are sitting at your computer, you probably want to be able to see an error and fix it, and have the printer go on printing. On the other hand, if you aren\(cqt, you might rather that your printer spooler find out that the printer isn\(cqt ready, quit trying, and send you mail about it. The choice is yours.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-check\-status\fP \fI<on|off>\fP
+.RS 4
+This option is much like \fB\-a\fP. It makes any \fBopen\fP(2) of this device check to see that the device is on\-line and not reporting any out of paper or other errors. This is the correct setting for most versions of \fBlpd\fP.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-careful\fP \fI<on|off>\fP
+.RS 4
+This option adds extra ("careful") error checking. When this option is on, the printer driver will ensure that the printer is on\-line and not reporting any out of paper or other errors before sending data. This is particularly useful for printers that normally appear to accept data when turned off.
+.sp
+\fBNOTE\fP: This option is obsolete because it\(cqs the default in 2.1.131 kernel or later.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-status\fP
+.RS 4
+This option returns the current printer status, both as a decimal number from 0..255, and as a list of active flags. When this option is specified, \fB\-q\fP off, turning off the display of the current IRQ, is implied.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-reset\fP
+.RS 4
+This option resets the port. It requires a Linux kernel version of 1.1.80 or later.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-print\-irq\fP \fI<on|off>\fP
+.RS 4
+This option sets printing the display of the current IRQ setting.
+.RE
+.SH "FILES"
+.sp
+\fI/dev/lp?\fP,
+\fI/proc/parport/*/*\fP
+.SH "NOTES"
+.sp
+\fB\-o\fP, \fB\-C\fP, and \fB\-s\fP all require a Linux kernel version of 1.1.76 or later.
+.sp
+\fB\-C\fP requires a Linux version prior to 2.1.131.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBtunelp\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

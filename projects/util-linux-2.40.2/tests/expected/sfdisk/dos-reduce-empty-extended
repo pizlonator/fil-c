@@ -1,0 +1,26 @@
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+Disklabel type: dos
+Disk identifier: <removed>
+
+Old situation:
+
+Device     Boot Start   End Sectors Size Id Type
+<removed>1        2048  4095    2048   1M 83 Linux
+<removed>2        4096 14335   10240   5M  5 Extended
+
+<removed>2: 
+New situation:
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot Start   End Sectors Size Id Type
+<removed>1        2048  4095    2048   1M 83 Linux
+<removed>2        4096 10239    6144   3M  5 Extended
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.

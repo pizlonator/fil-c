@@ -1,0 +1,69 @@
+util-linux v2.40.2 Release Notes
+================================
+
+Changes between v2.40.1 and v2.40.2
+-----------------------------------
+
+autotools:
+   - Properly order install dependencies of pam_lastlog2  [Thomas Weißschuh]
+   - make pam install path configurable  [Thomas Weißschuh]
+bash-completion:
+   - add logger --sd-* completions  [Ville Skyttä]
+build-sys:
+   - _PATH_VENDORDIR workaround  [Karel Zak]
+cfdisk:
+   - fix possible integer overflow [coverity scan]  [Karel Zak]
+docs:
+   - update AUTHORS file  [Karel Zak]
+include/pidfd-utils:
+   - provide ENOSYS stubs if pidfd functions are missing  [Thomas Weißschuh]
+   - remove hardcoded syscall fallback  [Karel Zak]
+lib/buffer:
+   - introduce ul_buffer_get_string()  [Thomas Weißschuh]
+lib/fileutils:
+   - add ul_basename()  [Karel Zak]
+lib/path:
+   - Fix ul_path_read_buffer() [Daan De Meyer]
+lib/sysfs:
+   - abort device hierarchy walk at root of sysfs  [Thomas Weißschuh]
+   - zero-terminate result of sysfs_blkdev_get_devchain()  [Thomas Weißschuh]
+libmount:
+   - fix syscall save function  [Karel Zak]
+   - fix tree FD usage in subdir hook  [Karel Zak]
+   - improving robustness in reading kernel messages  [Karel Zak]
+   - add pidfs to pseudo fs list  [Mike Yuan]
+libsmartcols:
+   - fix reduction stages use  [Karel Zak]
+   - ensure filter-scanner/paser.c file is newer than the .h file  [Chen Qi]
+libuuid:
+   - clear uuidd cache on fork()  [Thomas Weißschuh]
+   - drop check for HAVE_TLS  [Thomas Weißschuh]
+   - drop duplicate assignment liuuid_la_LDFLAGS  [Karel Zak]
+   - split uuidd cache into dedicated struct  [Thomas Weißschuh]
+   - Conditionally add uuid_time64 to sym. version map [Nicholas Vinson]
+lscpu:
+   - New Arm Cortex part numbers  [Jeremy Linton]
+lsfd:
+   - Refactor the pidfd logic into lsfd-pidfd.c  [Xi Ruoyao]
+   - Support pidfs  [Xi Ruoyao]
+   - test  Adapt test cases for pidfs  [Xi Ruoyao]
+meson:
+   - Correctly require the Python.h header for the python dependency  [Jordan Williams]
+   - Fix build-python option  [Jordan Williams]
+   - Only require Python module when building pylibmount  [Jordan Williams]
+misc-utils:
+   - uuidd  Use ul_sig_err instead of errx  [Cristian Rodríguez]
+mkswap.8.adoc:
+   - update note regarding swapfile creation  [Mike Yuan]
+po:
+   - merge changes  [Karel Zak]
+   - update es.po (from translationproject.org)  [Antonio Ceballos Roa]
+   - update ja.po (from translationproject.org)  [Hideki Yoshida]
+po-man:
+   - merge changes  [Karel Zak]
+rename:
+   - use ul_basename()  [Karel Zak]
+sys-utils/setpgid:
+   - make -f work  [Emanuele Torre]
+wdctl:
+   - always query device node when sysfs is unavailable  [Thomas Weißschuh]

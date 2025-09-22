@@ -1,0 +1,26 @@
+_chsh_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-s'|'--shell')
+			COMPREPLY=( $(compgen -W "$($1 -l)" -- $cur) )
+			return 0
+			;;
+		'-u'|'--help'|'-v'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="--shell --list-shells --version --help"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	COMPREPLY=( $(compgen -u -- $cur) )
+	return 0
+}
+complete -F _chsh_module chsh

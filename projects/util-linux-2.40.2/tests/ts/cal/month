@@ -1,0 +1,72 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2007-2018 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="month"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_HELPER_CAL"
+
+export TERM=linux
+
+USETERM=$( ts_has_option "useterm" "$*" )
+MYTIME="27 09 2006"
+
+CAL_TEST_TIME=1516562739  # 21st January 2018
+export CAL_TEST_TIME
+
+function call_cal {
+	local testname=$(echo "$2" | sed 's/-//g; s/ //g')
+
+	ts_init_subtest "$testname"
+	ts_log "$1"
+	shift
+	if [ "$USETERM" == "yes" ]; then
+		$TS_HELPER_CAL "$@"
+	fi
+	$TS_HELPER_CAL "$@" >> $TS_OUTPUT
+
+	ts_finalize_subtest
+}
+
+call_cal "Gregorian - Monday-based week" -1m $MYTIME
+call_cal "Gregorian - Sunday-based week" -1s $MYTIME
+call_cal "Julian - Monday-based week" -1mj $MYTIME
+call_cal "Julian - Sunday-based week" -1sj $MYTIME
+call_cal "Gregorian - Monday-based week with week numbers" -1mw $MYTIME
+call_cal "Gregorian - Sunday-based week with week numbers" -1sw $MYTIME
+call_cal "Julian - Monday-based week with week numbers" -1mjw $MYTIME
+call_cal "Julian - Sunday-based week with week numbers" -1sjw $MYTIME
+call_cal "Gregorian - Monday-based week" -3m $MYTIME
+call_cal "Gregorian - Sunday-based week" -3s $MYTIME
+call_cal "Julian - Monday-based week" -3mj $MYTIMET
+call_cal "Julian - Sunday-based week" -3sj $MYTIME
+call_cal "Gregorian - Monday-based week with week numbers" -3mw $MYTIME
+call_cal "Gregorian - Sunday-based week with week numbers" -3sw $MYTIME
+call_cal "Julian - Monday-based week with week numbers" -3mjw $MYTIME
+call_cal "Julian - Sunday-based week with week numbers" -3sjw $MYTIME
+
+call_cal "Normal span" "-Sn 3" $MYTIME
+call_cal "Large span" "-Sn 21" $MYTIME
+call_cal "Very Large span" "-Sn 51" $MYTIME
+call_cal "Extreme span" "-Sn 201" $MYTIME
+
+ts_finalize
+

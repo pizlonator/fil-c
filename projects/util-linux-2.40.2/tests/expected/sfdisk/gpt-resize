@@ -1,0 +1,24 @@
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Old situation:
+
+Device             Start   End Sectors Size Type
+<removed>1   2048 22527   20480  10M Linux swap
+
+<removed>1: 
+New situation:
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start    End Sectors Size Type
+<removed>1   2048 102366  100319  49M Linux swap
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.

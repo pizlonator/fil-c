@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# Copyright (C) 2011 Karel Zak <kzak@redhat.com>
+#
+
+test -f sys-utils/mount.c || {
+	echo
+	echo "You must run this script in the top-level util-linux directory"
+	echo
+	exit 1
+}
+
+unset CC
+unset CXX
+unset CFLAGS
+unset LDFLAGS
+unset SUID_CFLAGS
+unset SUID_LDFLAGS
+
+. tools/config-gen-functions.sh
+
+if [ $# -eq 0 ]; then
+	echo "This script requires at least one of the folloving arguments:"
+	cd tools/config-gen.d
+	for i in *.conf; do
+		echo "  ${i%%.conf}"
+	done
+	exit 1
+fi
+
+while [ -n "$1" ]; do
+	opts="$opts $(ul_get_configuration tools/config-gen.d/$1.conf)"
+	if [ "$1" == "fuzz" ]; then
+		export CC=${CC:-clang}
+		export CXX=${CXX:-clang++}
+	fi
+	shift
+done
+
+opts=$(echo $opts | tr " " "\n" | sort -u)
+echo "Configure options:"
+for x in $opts; do
+	echo "	$x"
+done
+echo
+
+if [ -n "$CFLAGS" ]; then
+	echo "CFLAGS:   $CFLAGS"
+	CFLAGS="$CFLAGS"
+	export CFLAGS
+	echo
+fi
+if [ -n "$LDFLAGS" ]; then
+	echo "LDFLAGS:  $LDFLAGS"
+	LDFLAGS="$LDFLAGS"
+	export LDFLAGS
+	echo
+fi
+
+if [ ! -f ./configure ]; then
+	./autogen.sh
+fi
+
+./configure $opts

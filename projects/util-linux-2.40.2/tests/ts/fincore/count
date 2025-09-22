@@ -1,0 +1,231 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="count file contents in core"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_test_command "$TS_HELPER_SYSINFO"
+
+FS="$("$TS_CMD_FINDMNT" -nr -o FSTYPE -T "$PWD")"
+if [[ "$FS" = "tmpfs" ]]; then
+	ts_skip "fincore does not work on tmpfs"
+fi
+
+function footer
+{
+    echo "return value: $1"
+}
+
+function make_input_name
+{
+    header=$1
+    prefix=i_
+    echo ${prefix}$(sed -e "s/[^-+a-zA-Z0-9_]/_/g"<<<"$header")
+}
+
+function _dd
+{
+	local msg
+	local ret=0
+
+	msg=$(dd "$@" 2>&1)
+	ret=$?
+	if [ $ret != 0 ]; then
+		echo "failed: dd $@" >&2
+		echo "$msg" >&2
+	fi
+	return $ret
+}
+
+function check_dd_fs_feat
+{
+	local testf="$TS_OUTDIR/ddtest"
+	rm -f "$testf"
+	touch "$testf"
+
+	# NFS seems to fail for direct AND append
+	_dd if=/dev/zero of="$testf" bs=1k count=2 oflag=direct,append &>/dev/null \
+		|| ts_skip "unsupported: dd oflag=direct,append"
+
+	# TODO: Should we check for sparse file support?
+
+	rm -f "$testf"
+}
+
+function run_dd_test
+{
+    header=$1
+    bs=$2
+    flags=$3
+
+    input=$(make_input_name "$header")
+    INPUT="${INPUT} ${input}"
+	rm -f "$input"
+
+    if [ "$bs" = 0 ]; then
+		touch $input
+    else
+		_dd if=/dev/zero of=$input count=1 bs=$bs $flags || return
+    fi
+
+    $TS_CMD_FINCORE --output $OUT_COLUMNS  --bytes --noheadings $input
+
+    footer "$?"
+}
+
+function run_dd_dd_test
+{
+    header=$1
+    flags0=$2
+    flags1=$3
+
+    bs=$PAGE_SIZE
+
+    input=$(make_input_name "$header")
+    INPUT="${INPUT} ${input}"
+	rm -f "$input"
+
+    _dd if=/dev/zero of=$input count=1 bs=$bs $flags0 || return
+    _dd if=/dev/zero of=$input count=1 bs=$bs $flags1 || return
+
+    $TS_CMD_FINCORE --output $OUT_COLUMNS --bytes --noheadings $input
+
+    footer "$?"
+}
+
+
+PAGE_SIZE=$($TS_HELPER_SYSINFO pagesize)
+WINDOW_SIZE=$(( 32 * 1024 * PAGE_SIZE ))
+
+# we use PAGE_SIZE dependent output for a few systems
+if test -f "$TS_EXPECTED.$PAGE_SIZE"; then
+	TS_EXPECTED+=".$PAGE_SIZE"
+	TS_EXPECTED_ERR+=".$PAGE_SIZE"
+	OUT_COLUMNS="PAGES,SIZE,FILE"
+else
+	TS_EXPECTED+=".nosize"
+	TS_EXPECTED_ERR+=".nosize"
+	OUT_COLUMNS="PAGES,FILE"
+fi
+
+
+ts_check_test_command "$TS_CMD_FINCORE"
+ts_cd "$TS_OUTDIR"
+
+check_dd_fs_feat
+
+INPUT=
+input=
+
+ts_log_both "[ NO EXCITING FILE ]"
+{
+    input=no_such_file
+    INPUT="${INPUT} ${input}"
+
+    $TS_CMD_FINCORE --output $OUT_COLUMNS --bytes --noheadings $input
+    footer "$?"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "EMPTY FILE" 0
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "PAGESIZE -1 (incore)" $(( PAGE_SIZE - 1 ))
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "JUST PAGESIZE(incore)" $(( PAGE_SIZE ))
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "JUST PAGESIZE(directio)" $(( PAGE_SIZE )) "oflag=direct"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "TWO PAGES(incore)" $(( 2 * PAGE_SIZE ))
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_test "TWO PAGES(directio)" $(( 2 * PAGE_SIZE )) "oflag=direct"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_dd_test "TWO PAGES(mixed directio/incore)" \
+			    oflag=direct \
+			    "oflag=append seek=1"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    run_dd_dd_test "TWO PAGES(mixed incore/directio)" \
+		   "" \
+		   "oflag=direct,append seek=1"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 2 ))
+    run_dd_dd_test "WINDOW SIZE(incore-sparse-incore)" \
+		   "" \
+		   "oflag=append seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 2 ))
+    run_dd_dd_test "WINDOW SIZE(directio-sparse-directio)" \
+		   "oflag=direct" \
+		   "oflag=append,direct seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 2 ))
+    run_dd_dd_test "WINDOW SIZE(incore-sparse-directio)" \
+		   "" \
+		   "oflag=append,direct seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 2 ))
+    run_dd_dd_test "WINDOW SIZE(directio-sparse-incore)" \
+		   "oflag=direct" \
+		   "oflag=append seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 1 ))
+    run_dd_dd_test "WINDOW SIZE + 1 page(incore-sparse-incore)" \
+		   "" \
+		   "oflag=append seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 1 ))
+    run_dd_dd_test "WINDOW SIZE + 1 page(directio-sparse-directio)" \
+		   "oflag=direct" \
+		   "oflag=append,direct seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 1 ))
+    run_dd_dd_test "WINDOW SIZE + 1 page(incore-sparse-directio)" \
+		   "" \
+		   "oflag=append,direct seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+{
+    hole_count=$(( WINDOW_SIZE / PAGE_SIZE - 1 ))
+    run_dd_dd_test "WINDOW SIZE + 1 page(directio-sparse-incore)" \
+		   "oflag=direct" \
+		   "oflag=append seek=$hole_count"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+ts_log_both "[ MULTIPLE FILES ]"
+{
+    $TS_CMD_FINCORE --output $OUT_COLUMNS --bytes $INPUT
+    footer "$?"
+} >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+rm -f $INPUT
+ts_finalize

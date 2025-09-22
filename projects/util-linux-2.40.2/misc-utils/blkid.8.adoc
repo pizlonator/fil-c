@@ -1,0 +1,192 @@
+//po4a: entry man manual
+// Copyright 2000 Andreas Dilger (adilger@turbolinux.com)
+// This file may be copied under the terms of the GNU General Public License.
+= blkid(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: blkid
+:underscore: _
+
+== NAME
+
+blkid - locate/print block device attributes
+
+== SYNOPSIS
+
+*blkid* *--label* _label_ | *--uuid* _uuid_
+
+*blkid* [*--no-encoding* *--garbage-collect* *--list-one* *--cache-file* _file_] [*--output* _format_] [*--match-tag* _tag_] [*--match-token* _NAME=value_] [_device_...]
+
+*blkid* *--probe* [*--offset* _offset_] [*--output* _format_] [*--size* _size_] [*--match-tag* _tag_] [*--match-types* _list_] [*--usages* _list_] [*--no-part-details*] _device_...
+
+*blkid* *--info* [*--output format*] [*--match-tag* _tag_] _device_...
+
+== DESCRIPTION
+
+The *blkid* program is the command-line interface to working with the *libblkid*(3) library. It can determine the type of content (e.g., filesystem or swap) that a block device holds, and also the attributes (tokens, NAME=value pairs) from the content metadata (e.g., LABEL or UUID fields).
+
+*It is recommended to use* *lsblk*(8) *command to get information about block devices, or lsblk --fs to get an overview of filesystems, or* *findmnt*(8) *to search in already mounted filesystems.*
+
+____
+*lsblk*(8) provides more information, better control on output formatting, easy to use in scripts and it does not require root permissions to get actual information. *blkid* reads information directly from devices and for non-root users it returns cached unverified information. *blkid* is mostly designed for system services and to test *libblkid*(3) functionality.
+____
+
+When _device_ is specified, tokens from only this device are displayed. It is possible to specify multiple _device_ arguments on the command line. If none is given, all partitions or unpartitioned devices which appear in _/proc/partitions_ are shown, if they are recognized.
+
+*blkid* has two main forms of operation: either searching for a device with a specific NAME=value pair, or displaying NAME=value pairs for one or more specified devices.
+
+For security reasons *blkid* silently ignores all devices where the probing result is ambivalent (multiple colliding filesystems are detected). The low-level probing mode (*-p*) provides more information and extra exit status in this case. It's recommended to use *wipefs*(8) to get a detailed overview and to erase obsolete stuff (magic strings) from the device.
+
+== OPTIONS
+
+The _size_ and _offset_ arguments may be followed by the multiplicative suffixes like KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB"), or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+
+*-c*, *--cache-file* _cachefile_::
+Read from _cachefile_ instead of reading from the default cache file (see the *CONFIGURATION FILE* section for more details). If you want to start with a clean cache (i.e., don't report devices previously scanned but not necessarily available at this time), specify _/dev/null_.
+
+*-d*, *--no-encoding*::
+Don't encode non-printing characters. The non-printing characters are encoded by ^ and M- notation by default. Note that the *--output udev* output format uses a different encoding which cannot be disabled.
+
+*-D*, *--no-part-details*::
+Don't print information (PART_ENTRY_* tags) from partition table in low-level probing mode.
+
+*-g*, *--garbage-collect*::
+Perform a garbage collection pass on the blkid cache to remove devices which no longer exist.
+
+*-H*, *--hint* _setting_::
+Set probing hint. The hints are an optional way to force probing functions to
+check, for example, another location. The currently supported is
+"session_offset=_number_" to set session offset on multi-session UDF.
+
+*-i*, *--info*::
+Display information about I/O Limits (aka I/O topology). The 'export' output format is automatically enabled. This option can be used together with the *--probe* option.
+
+*-k*, *--list-filesystems*::
+List all known filesystems and RAIDs and exit.
+
+*-l*, *--list-one*::
+Look up only one device that matches the search parameter specified with the *--match-token* option. If there are multiple devices that match the specified search parameter, then the device with the highest priority is returned, and/or the first device found at a given priority (but see below note about udev). Device types in order of decreasing priority are: Device Mapper, EVMS, LVM, MD, and finally regular block devices. If this option is not specified, *blkid* will print all of the devices that match the search parameter.
++
+This option forces *blkid* to use udev when used for LABEL or UUID tokens in *--match-token*. The goal is to provide output consistent with other utils (like *mount*(8), etc.) on systems where the same tag is used for multiple devices.
+
+*-L*, *--label* _label_::
+Look up the device that uses this filesystem _label_; this is equal to **--list-one --output device --match-token LABEL=**__label__. This lookup method is able to reliably use /dev/disk/by-label udev symlinks (dependent on a setting in _/etc/blkid.conf_). Avoid using the symlinks directly; it is not reliable to use the symlinks without verification. The *--label* option works on systems with and without udev.
++
+Unfortunately, the original *blkid*(8) from e2fsprogs uses the *-L* option as a synonym for *-o list*. For better portability, use **-l -o device -t LABEL=**__label__ and *-o list* in your scripts rather than the *-L* option.
+
+*-n*, *--match-types* _list_::
+Restrict the probing functions to the specified (comma-separated) _list_ of superblock types (names). The list items may be prefixed with "no" to specify the types which should be ignored. For example:
++
+*blkid --probe --match-types vfat,ext3,ext4 /dev/sda1*
++
+probes for vfat, ext3 and ext4 filesystems, and
++
+*blkid --probe --match-types nominix /dev/sda1*
++
+probes for all supported formats except minix filesystems. This option is only useful together with *--probe*.
+
+*-o*, *--output* _format_::
+Use the specified output format. Note that the order of variables and devices is not fixed. See also option *-s*. The _format_ parameter may be:
++
+*full*;;
+print all tags (the default)
+*value*;;
+print the value of the tags
+*list*;;
+print the devices in a user-friendly format; this output format is unsupported for low-level probing (*--probe* or *--info*).
++
+This output format is *DEPRECATED* in favour of the *lsblk*(8) command.
+*device*;;
+print the device name only; this output format is always enabled for the *--label* and *--uuid* options
+*udev*;;
+//TRANSLATORS: Please keep {underscore} untranslated.
+print key="value" pairs for easy import into the udev environment; the keys are prefixed by ID_FS_ or ID_PART_ prefixes. The value may be modified to be safe for udev environment; allowed is plain ASCII, hex-escaping and valid UTF-8, everything else (including whitespaces) is replaced with '{underscore}'. The keys with __ENC_ postfix use hex-escaping for unsafe chars.
++
+The udev output returns the ID_FS_AMBIVALENT tag if more superblocks are detected, and ID_PART_ENTRY_* tags are always returned for all partitions including empty partitions.
++
+This output format is *DEPRECATED*.
+*export*;;
+print key=value pairs for easy import into the environment; this output format is automatically enabled when I/O Limits (*--info* option) are requested.
++
+The non-printing characters are encoded by ^ and M- notation and all potentially unsafe characters are escaped.
+
+*-O*, *--offset* _offset_::
+Probe at the given _offset_ (only useful with *--probe*). This option can be used together with the *--info* option.
+
+*-p*, *--probe*::
+Switch to low-level superblock probing mode (bypassing the cache).
++
+Note that low-level probing also returns information about partition table type (PTTYPE tag) and partitions (PART_ENTRY_* tags). The tag names produced by low-level probing are based on names used internally by libblkid and it may be different than when executed without *--probe* (for example PART_ENTRY_UUID= vs PARTUUID=). See also *--no-part-details*.
+
+*-s*, *--match-tag* _tag_::
+For each (specified) device, show only the tags that match _tag_. It is possible to specify multiple *--match-tag* options. If no tag is specified, then all tokens are shown for all (specified) devices. In order to just refresh the cache without showing any tokens, use *--match-tag none* with no other options.
+
+*-S*, *--size* _size_::
+Override the size of device/file (only useful with *--probe*).
+
+*-t*, *--match-token* _NAME=value_::
+Search for block devices with tokens named _NAME_ that have the value _value_, and display any devices which are found. Common values for _NAME_ include *TYPE*, *LABEL*, and *UUID*. If there are no devices specified on the command line, all block devices will be searched; otherwise only the specified devices are searched.
+
+*-u*, *--usages* _list_::
+Restrict the probing functions to the specified (comma-separated) _list_ of "usage" types. Supported usage types are: filesystem, raid, crypto and other. The list items may be prefixed with "no" to specify the usage types which should be ignored. For example:
++
+*blkid --probe --usages filesystem,other /dev/sda1*
++
+probes for all filesystem and other (e.g., swap) formats, and
++
+*blkid --probe --usages noraid /dev/sda1*
++
+probes for all supported formats except RAIDs. This option is only useful together with *--probe*.
+
+*-U*, *--uuid* _uuid_::
+Look up the device that uses this filesystem _uuid_. For more details see the *--label* option.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+If the specified device or device addressed by specified token (option *--match-token*) was found and it's possible to gather any information about the device, an exit status 0 is returned. Note the option *--match-tag* filters output tags, but it does not affect exit status.
+
+If the specified token was not found, or no (specified) devices could be identified, or it is impossible to gather any information about the device identifiers or device content an exit status of 2 is returned.
+
+For usage or other errors, an exit status of 4 is returned.
+
+If an ambivalent probing result was detected by low-level probing mode (*-p*), an exit status of 8 is returned.
+
+== CONFIGURATION FILE
+
+The standard location of the _/etc/blkid.conf_ config file can be overridden by the environment variable *BLKID_CONF*. The following options control the libblkid library:
+
+_SEND_UEVENT=<yes|not>_::
+Sends uevent when _/dev/disk/by-{label,uuid,partuuid,partlabel}/_ symlink does not match with LABEL, UUID, PARTUUID or PARTLABEL on the device. Default is "yes".
+
+_CACHE_FILE=<path>_::
+Overrides the standard location of the cache file. This setting can be overridden by the environment variable *BLKID_FILE*. Default is _/run/blkid/blkid.tab_, or _/etc/blkid.tab_ on systems without a _/run_ directory.
+
+_EVALUATE=<methods>_::
+Defines LABEL and UUID evaluation method(s). Currently, the libblkid library supports the "udev" and "scan" methods. More than one method may be specified in a comma-separated list. Default is "udev,scan". The "udev" method uses udev _/dev/disk/by-*_ symlinks and the "scan" method scans all block devices from the _/proc/partitions_ file.
+
+== ENVIRONMENT
+
+Setting _LIBBLKID_DEBUG=all_ enables debug output.
+
+== AUTHORS
+
+*blkid* was written by Andreas Dilger for libblkid and improved by Theodore Ts'o and Karel Zak.
+
+== SEE ALSO
+
+*libblkid*(3),
+*findfs*(8),
+*lsblk*(8),
+*wipefs*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

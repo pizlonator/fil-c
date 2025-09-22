@@ -1,0 +1,88 @@
+//po4a: entry man manual
+////
+Copyright 2002 Andre C. Mazzone (linuxdev@karagee.com)
+May be distributed under the GNU General Public License
+////
+= ipcrm(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: ipcrm
+:asterisk: *
+
+== NAME
+
+ipcrm - remove certain IPC resources
+
+== SYNOPSIS
+
+*ipcrm* [options]
+
+*ipcrm* [*shm*|*msg*|*sem*] _ID_ ...
+
+== DESCRIPTION
+
+*ipcrm* removes System V inter-process communication (IPC) objects and associated data structures from the system. In order to delete such objects, you must be superuser, or the creator or owner of the object.
+
+System V IPC objects are of three types: shared memory, message queues, and semaphores. Deletion of a message queue or semaphore object is immediate (regardless of whether any process still holds an IPC identifier for the object). A shared memory object is only removed after all currently attached processes have detached (*shmdt*(2)) the object from their virtual address space.
+
+Two syntax styles are supported. The old Linux historical syntax specifies a three-letter keyword indicating which class of object is to be deleted, followed by one or more IPC identifiers for objects of this type.
+
+The SUS-compliant syntax allows the specification of zero or more objects of all three types in a single command line, with objects specified either by key or by identifier (see below). Both keys and identifiers may be specified in decimal, hexadecimal (specified with an initial '0x' or '0X'), or octal (specified with an initial '0').
+
+The details of the removes are described in *shmctl*(2), *msgctl*(2), and *semctl*(2). The identifiers and keys can be found by using *ipcs*(1).
+
+== OPTIONS
+
+*-a*, *--all* [*shm*] [*msg*] [*sem*]::
+Remove all resources. When an option argument is provided, the removal is performed only for the specified resource types.
++
+_Warning!_ Do not use *-a* if you are unsure how the software using the resources might react to missing objects. Some programs create these resources at startup and may not have any code to deal with an unexpected disappearance.
+
+*-M*, *--shmem-key* _shmkey_::
+Remove the shared memory segment created with _shmkey_ after the last detach is performed.
+
+*-m*, *--shmem-id* _shmid_::
+Remove the shared memory segment identified by _shmid_ after the last detach is performed.
+
+*-Q*, *--queue-key* _msgkey_::
+Remove the message queue created with _msgkey_.
+
+*-q*, *--queue-id* _msgid_::
+Remove the message queue identified by _msgid_.
+
+*-S*, *--semaphore-key* _semkey_::
+Remove the semaphore created with _semkey_.
+
+*-s*, *--semaphore-id* _semid_::
+Remove the semaphore identified by _semid_.
+
+include::man-common/help-version.adoc[]
+
+== NOTES
+
+//TRANSLATORS: Keep {asterisk} untranslated; it expands to "*nix".
+In its first Linux implementation, *ipcrm* used the deprecated syntax shown in the second line of the *SYNOPSIS*. Functionality present in other {asterisk}nix implementations of *ipcrm* has since been added, namely the ability to delete resources by key (not just identifier), and to respect the same command-line syntax. For backward compatibility the previous syntax is still supported.
+
+== SEE ALSO
+
+*ipcmk*(1),
+*ipcs*(1),
+*msgctl*(2),
+*msgget*(2),
+*semctl*(2),
+*semget*(2),
+*shmctl*(2),
+*shmdt*(2),
+*shmget*(2),
+*ftok*(3),
+*sysvipc*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

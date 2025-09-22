@@ -1,0 +1,49 @@
+_rfkill_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'list'|'block'|'unblock'|'toggle')
+			local targets
+			targets="$(rfkill --output=id,type --noheadings list)"
+			COMPREPLY=( $(compgen -W "all $targets" -- $cur) )
+			return 0;
+			;;
+		'-o'|'--output')
+			local prefix realcur OUTPUT
+			realcur="${cur##*,}"
+			prefix="${cur%$realcur}"
+			for WORD in "DEVICE TYPE ID SOFT HARD"; do
+				if ! [[ $prefix == *"$WORD"* ]]; then
+					OUTPUT="$WORD ${OUTPUT:-""}"
+				fi
+			done
+			compopt -o nospace
+			COMPREPLY=( $(compgen -P "$prefix" -W "$OUTPUT" -S ',' -- $realcur) )
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	OPTS="
+		event
+		list
+		block
+		unblock
+		toggle
+		--json
+		--noheadings
+		--output
+		--output-all
+		--raw
+		--help
+		--version
+	"
+	COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+	return 0
+
+}
+complete -F _rfkill_module rfkill

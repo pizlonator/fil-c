@@ -1,0 +1,190 @@
+'\" t
+.\"     Title: readprofile
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "READPROFILE" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+readprofile \- read kernel profiling information
+.SH "SYNOPSIS"
+.sp
+\fBreadprofile\fP [options]
+.SH "VERSION"
+.sp
+This manpage documents version 2.0 of the program.
+.SH "DESCRIPTION"
+.sp
+The \fBreadprofile\fP command uses the \fI/proc/profile\fP information to print ascii data on standard output. The output is organized in three columns: the first is the number of clock ticks, the second is the name of the C function in the kernel where those many ticks occurred, and the third is the normalized `load\*(Aq of the procedure, calculated as a ratio between the number of ticks and the length of the procedure. The output is filled with blanks to ease readability.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+Print all symbols in the mapfile. By default the procedures with reported ticks are not printed.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-histbin\fP
+.RS 4
+Print individual histogram\-bin counts.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-info\fP
+.RS 4
+Info. This makes \fBreadprofile\fP only print the profiling step used by the kernel. The profiling step is the resolution of the profiling buffer, and is chosen during kernel configuration (through \fBmake config\fP), or in the kernel\(cqs command line. If the \fB\-t\fP (terse) switch is used together with \fB\-i\fP only the decimal number is printed.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-mapfile\fP \fImapfile\fP
+.RS 4
+Specify a mapfile, which by default is \fI/usr/src/linux/System.map\fP. You should specify the map file on cmdline if your current kernel isn\(cqt the last one you compiled, or if you keep System.map elsewhere. If the name of the map file ends with \fI.gz\fP it is decompressed on the fly.
+.RE
+.sp
+\fB\-M\fP, \fB\-\-multiplier\fP \fImultiplier\fP
+.RS 4
+On some architectures it is possible to alter the frequency at which the kernel delivers profiling interrupts to each CPU. This option allows you to set the frequency, as a multiplier of the system clock frequency, HZ. Linux 2.6.16 dropped multiplier support for most systems. This option also resets the profiling buffer, and requires superuser privileges.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-profile\fP \fIpro\-file\fP
+.RS 4
+Specify a different profiling buffer, which by default is \fI/proc/profile\fP. Using a different pro\-file is useful if you want to `freeze\*(Aq the kernel profiling at some time and read it later. The \fI/proc/profile\fP file can be copied using \fBcat\fP(1) or \fBcp\fP(1). There is no more support for compressed profile buffers, like in \fBreadprofile\-1.1\fP, because the program needs to know the size of the buffer in advance.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-reset\fP
+.RS 4
+Reset the profiling buffer. This can only be invoked by root, because \fI/proc/profile\fP is readable by everybody but writable only by the superuser. However, you can make \fBreadprofile\fP set\-user\-ID 0, in order to reset the buffer without gaining privileges.
+.RE
+.sp
+\fB\-s, \-\-counters\fP
+.RS 4
+Print individual counters within functions.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose. The output is organized in four columns and filled with blanks. The first column is the RAM address of a kernel function, the second is the name of the function, the third is the number of clock ticks and the last is the normalized load.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "FILES"
+.sp
+\fI/proc/profile\fP
+.RS 4
+A binary snapshot of the profiling buffer.
+.RE
+.sp
+\fI/usr/src/linux/System.map\fP
+.RS 4
+The symbol table for the kernel.
+.RE
+.sp
+\fI/usr/src/linux/*\fP
+.RS 4
+The program being profiled :\-)
+.RE
+.SH "BUGS"
+.sp
+\fBreadprofile\fP only works with a 1.3.x or newer kernel, because \fI/proc/profile\fP changed in the step from 1.2 to 1.3.
+.sp
+This program only works with ELF kernels. The change for a.out kernels is trivial, and left as an exercise to the a.out user.
+.sp
+To enable profiling, the kernel must be rebooted, because no profiling module is available, and it wouldn\(cqt be easy to build. To enable profiling, you can specify \fBprofile\fP=\fI2\fP (or another number) on the kernel commandline. The number you specify is the two\-exponent used as profiling step.
+.sp
+Profiling is disabled when interrupts are inhibited. This means that many profiling ticks happen when interrupts are re\-enabled. Watch out for misleading information.
+.SH "EXAMPLE"
+.sp
+Browse the profiling buffer ordering by clock ticks:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   readprofile | sort \-nr | less
+.fam
+.fi
+.if n .RE
+.sp
+Print the 20 most loaded procedures:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   readprofile | sort \-nr +2 | head \-20
+.fam
+.fi
+.if n .RE
+.sp
+Print only filesystem profile:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   readprofile | grep _ext2
+.fam
+.fi
+.if n .RE
+.sp
+Look at all the kernel information, with ram addresses:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   readprofile \-av | less
+.fam
+.fi
+.if n .RE
+.sp
+Browse a \*(Aqfrozen\*(Aq profile buffer for a non current kernel:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   readprofile \-p ~/profile.freeze \-m /zImage.map.gz
+.fam
+.fi
+.if n .RE
+.sp
+Request profiling at 2kHz per CPU, and reset the profiling buffer:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   sudo readprofile \-M 20
+.fam
+.fi
+.if n .RE
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBreadprofile\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

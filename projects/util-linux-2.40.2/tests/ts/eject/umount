@@ -1,0 +1,127 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="umount"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_skip_nonroot
+
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_CMD_EJECT"
+ts_check_test_command "$TS_CMD_KILL"
+ts_check_test_command "$TS_CMD_MOUNT"
+
+ts_check_prog "mkfs.ext2"
+
+# scsi_debug could not eject for kernel >=3.19 and <4.4
+if x=$(echo "3.19" && uname -r && echo "4.4") \
+   && test "$x" = "$(echo "$x" | sort --version-sort)"
+then
+	ts_skip "3.19 <= $(uname -sr) < 4.4"
+fi
+
+#
+# Note that eject --force is required because scsi_debug is
+# not removable device.
+#
+
+# set global variable TS_DEVICE
+function init_device {
+	ts_scsi_debug_init dev_size_mb=100
+}
+
+function init_partitions {
+	local dev=$1
+
+	ts_log "Create partitions"
+	$TS_CMD_FDISK --noauto-pt $dev >> /dev/null 2>&1 <<EOF
+o
+n
+p
+1
+
++50M
+n
+p
+2
+
+
+p
+w
+EOF
+	udevadm settle
+	mkfs.ext2 -q ${dev}1
+	mkfs.ext2 -q ${dev}2
+	udevadm settle
+}
+
+function deinit_device {
+	ts_scsi_debug_rmmod
+}
+
+if [ "$TS_USE_SYSTEM_COMMANDS" != "yes" ]; then
+	# As the eject binary execl()s an uninstrumented /bin/umount binary, we need
+	# to explicitly $LD_PRELOAD the ASan's runtime DSO, otherwise ASan will complain.
+	# Since all three utilities used by this test (eject, fdisk, mount) are just
+	# libtool wrappers, let's check the kill binary instead, which should have
+	# the needed DSO information.
+	ASAN_RT_PATH="$(ts_get_asan_rt_path "$TS_CMD_KILL")"
+	[ -n "$ASAN_RT_PATH" ] && export LD_PRELOAD="$ASAN_RT_PATH:$LD_PRELOAD"
+fi
+
+ts_init_subtest "by-disk"
+init_device
+$TS_CMD_EJECT --force $TS_DEVICE && ts_log "Success"
+deinit_device
+ts_finalize_subtest
+
+
+ts_init_subtest "by-disk-mounted"
+init_device
+mkfs.ext2 -q -F $TS_DEVICE
+udevadm settle
+mkdir -p $TS_MOUNTPOINT
+$TS_CMD_MOUNT $TS_DEVICE $TS_MOUNTPOINT &> /dev/null
+udevadm settle
+$TS_CMD_EJECT --force $TS_DEVICE && ts_log "Success"
+deinit_device
+ts_finalize_subtest
+
+
+ts_init_subtest "by-disk-mounted-partition"
+init_device
+init_partitions $TS_DEVICE
+mkdir -p ${TS_MOUNTPOINT}1
+mkdir -p ${TS_MOUNTPOINT}2
+$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1 &> /dev/null
+$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2 &> /dev/null
+udevadm settle
+$TS_CMD_EJECT --force $TS_DEVICE && ts_log "Success"
+deinit_device
+ts_finalize_subtest
+
+
+ts_init_subtest "by-partition"
+init_device
+init_partitions $TS_DEVICE
+$TS_CMD_EJECT --force ${TS_DEVICE}1 && ts_log "Success"
+deinit_device
+ts_finalize_subtest
+
+
+ts_init_subtest "by-partition-mounted"
+init_device
+init_partitions $TS_DEVICE
+mkdir -p ${TS_MOUNTPOINT}1
+mkdir -p ${TS_MOUNTPOINT}2
+$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1 &> /dev/null
+$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2 &> /dev/null
+udevadm settle
+$TS_CMD_EJECT --force ${TS_DEVICE}1 && ts_log "Success"
+deinit_device
+ts_finalize_subtest
+
+
+ts_finalize

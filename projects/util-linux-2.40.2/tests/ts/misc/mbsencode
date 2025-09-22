@@ -1,0 +1,85 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2018 Vaclav Dolezal <vdolezal@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="mbsencode"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command $TS_HELPER_MBSENCODE
+
+# These test may fail on some machines (locales, other libc...)
+TS_KNOWN_FAIL="yes"
+
+STRINGS=(
+# ASCII
+	$'foo\tbar baz'
+	 '\\foo.local\bar'
+	 '\\foo.local\xbar'
+
+# UNICODE
+	 'über'
+	$'c\xcc\x8ca\xcc\x81rka' # 'c\u030Ca\u0301rka'
+	 'Москва́'
+	 '北京'
+	$'\xc2\x83' # U+0083
+
+# INVALID UNICODE
+	$'\xff'
+	$'\xe8\xe1\xf9\xa7'
+)
+
+if grep -q '^#define HAVE_WIDECHAR' ${top_builddir}/config.h ;then
+	HAVE_WIDECHAR=true
+else
+	HAVE_WIDECHAR=false
+fi
+
+ts_init_subtest "safe-ascii"
+$TS_HELPER_MBSENCODE --safe "${STRINGS[@]}" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "invalid-ascii"
+if [ "$HAVE_WIDECHAR" = true ]; then
+	$TS_HELPER_MBSENCODE --invalid "${STRINGS[@]}" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+else
+	ts_skip_subtest 'No widechar support'
+fi
+
+ts_init_subtest "safe-utf8"
+if [ "$HAVE_WIDECHAR" = true ]; then
+	LC_ALL=C.UTF-8 \
+	$TS_HELPER_MBSENCODE --safe "${STRINGS[@]}" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+else
+	ts_skip_subtest 'No widechar support'
+fi
+
+ts_init_subtest "invalid-utf8"
+if [ "$HAVE_WIDECHAR" = true ]; then
+	LC_ALL=C.UTF-8 \
+	$TS_HELPER_MBSENCODE --invalid "${STRINGS[@]}" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ts_finalize_subtest
+else
+	ts_skip_subtest 'No widechar support'
+fi
+
+ts_finalize
+

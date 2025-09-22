@@ -1,0 +1,85 @@
+'\" t
+.\"     Title: switch_root
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SWITCH_ROOT" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+switch_root \- switch to another filesystem as the root of the mount tree
+.SH "SYNOPSIS"
+.sp
+\fBswitch_root\fP [\fB\-hV\fP]
+.sp
+\fBswitch_root\fP \fInewroot init\fP [\fIarg\fP...]
+.SH "DESCRIPTION"
+.sp
+\fBswitch_root\fP moves already mounted \fI/proc\fP, \fI/dev\fP, \fI/sys\fP and \fI/run\fP to \fInewroot\fP and makes \fInewroot\fP the new root filesystem and starts \fIinit\fP process.
+.sp
+\fBWARNING: switch_root removes recursively all files and directories on the current root filesystem.\fP
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBswitch_root\fP returns 1 on failure, it never returns on success.
+.SH "NOTES"
+.sp
+\fBswitch_root\fP will fail to function if \fInewroot\fP is not the root of a mount. If you want to switch root into a directory that does not meet this requirement then you can first use a bind\-mounting trick to turn any directory into a mount point:
+.sp
+.if n .RS 4
+.nf
+.fam C
+mount \-\-bind $DIR $DIR
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "pjones\(atredhat.com" "Peter Jones" ","
+.MTO "katzj\(atredhat.com" "Jeremy Katz" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBchroot\fP(2),
+\fBinit\fP(8),
+\fBmkinitrd\fP(8),
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBswitch_root\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

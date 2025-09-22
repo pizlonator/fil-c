@@ -1,0 +1,36 @@
+Checking that no-one is using this disk right now ... OK
+
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+
+>>> Script header accepted.
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+<removed>2: Created a new partition <removed>.
+<removed>3: Created a new partition <removed>.
+<removed>4: Created a new partition <removed>.
+<removed>5: Created a new partition <removed>.
+<removed>6: Created a new partition <removed>.
+<removed>7: Created a new partition <removed>.
+<removed>8: Done.
+
+New situation:
+Disklabel type: dos
+Disk identifier: <removed>
+
+Device     Boot Start    End Sectors  Size Id Type
+<removed>1           1   1000    1000  500K 83 Linux
+<removed>2        1001   2000    1000  500K 82 Linux swap / Solaris
+<removed>3        2001   3000    1000  500K 83 Linux
+<removed>4        3001 102399   99399 48.5M  5 Extended
+<removed>5        3002   4001    1000  500K 83 Linux
+<removed>6        4003   5002    1000  500K 83 Linux
+<removed>7        5004 102399   97396 47.6M 83 Linux
+
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.

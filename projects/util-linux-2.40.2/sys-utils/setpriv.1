@@ -1,0 +1,235 @@
+'\" t
+.\"     Title: setpriv
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SETPRIV" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+setpriv \- run a program with different Linux privilege settings
+.SH "SYNOPSIS"
+.sp
+\fBsetpriv\fP [options] \fIprogram\fP [\fIarguments\fP]
+.SH "DESCRIPTION"
+.sp
+Sets or queries various Linux privilege settings that are inherited across \fBexecve\fP(2).
+.sp
+In comparison to \fBsu\fP(1) and \fBrunuser\fP(1), \fBsetpriv\fP neither uses PAM, nor does it prompt for a password. It is a simple, non\-set\-user\-ID wrapper around \fBexecve\fP(2), and can be used to drop privileges in the same way as \fBsetuidgid\fP(8) from \fBdaemontools\fP, \fBchpst\fP(8) from \fBrunit\fP, or similar tools shipped by other service managers.
+.SH "OPTIONS"
+.sp
+\fB\-\-clear\-groups\fP
+.RS 4
+Clear supplementary groups.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-dump\fP
+.RS 4
+Dump the current privilege state. This option can be specified more than once to show extra, mostly useless, information. Incompatible with all other options.
+.RE
+.sp
+\fB\-\-groups\fP \fIgroup\fP...
+.RS 4
+Set supplementary groups. The argument is a comma\-separated list of GIDs or names.
+.RE
+.sp
+\fB\-\-inh\-caps\fP (\fB+\fP|\fB\-\fP)\fIcap\fP..., \fB\-\-ambient\-caps\fP (\fB+\fP|\fB\-\fP)\fIcap\fP..., \fB\-\-bounding\-set\fP (\fB+\fP|\fB\-\fP)\fIcap\fP...
+.RS 4
+Set the inheritable capabilities, ambient capabilities or the capability bounding set. See \fBcapabilities\fP(7). The argument is a comma\-separated list of \fB+\fP\fIcap\fP and \fB\-\fP\fIcap\fP entries, which add or remove an entry respectively. \fIcap\fP can either be a human\-readable name as seen in \fBcapabilities\fP(7) without the \fIcap_\fP prefix or of the format \fBcap_N\fP, where \fIN\fP is the internal capability index used by Linux. \fB+all\fP and \fB\-all\fP can be used to add or remove all caps.
+.sp
+The set of capabilities starts out as the current inheritable set for \fB\-\-inh\-caps\fP, the current ambient set for \fB\-\-ambient\-caps\fP and the current bounding set for \fB\-\-bounding\-set\fP.
+.sp
+Note the following restrictions (detailed in \fBcapabilities\fP(7)) regarding modifications to these capability sets:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+A capability can be added to the inheritable set only if it is currently present in the bounding set.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+A capability can be added to the ambient set only if it is currently present in both the permitted and inheritable sets.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Notwithstanding the syntax offered by \fBsetpriv\fP, the kernel does not permit capabilities to be added to the bounding set.
+.RE
+.RE
+.sp
+If you drop a capability from the bounding set without also dropping it from the inheritable set, you are likely to become confused. Do not do that.
+.sp
+\fB\-\-keep\-groups\fP
+.RS 4
+Preserve supplementary groups. Only useful in conjunction with \fB\-\-rgid\fP, \fB\-\-egid\fP, or \fB\-\-regid\fP.
+.RE
+.sp
+\fB\-\-init\-groups\fP
+.RS 4
+Initialize supplementary groups using initgroups3. Only useful in conjunction with \fB\-\-ruid\fP or \fB\-\-reuid\fP.
+.RE
+.sp
+\fB\-\-list\-caps\fP
+.RS 4
+List all known capabilities. This option must be specified alone.
+.RE
+.sp
+\fB\-\-no\-new\-privs\fP
+.RS 4
+Set the \fIno_new_privs\fP bit. With this bit set, \fBexecve\fP(2) will not grant new privileges. For example, the set\-user\-ID and set\-group\-ID bits as well as file capabilities will be disabled. (Executing binaries with these bits set will still work, but they will not gain privileges. Certain LSMs, especially AppArmor, may result in failures to execute certain programs.) This bit is inherited by child processes and cannot be unset. See \fBprctl\fP(2) and \fIDocumentation/prctl/no_new_privs.txt\fP in the Linux kernel source.
+.sp
+The \fIno_new_privs\fP bit is supported since Linux 3.5.
+.RE
+.sp
+\fB\-\-rgid\fP \fIgid\fP, \fB\-\-egid\fP \fIgid\fP, \fB\-\-regid\fP \fIgid\fP
+.RS 4
+Set the real, effective, or both GIDs. The \fIgid\fP argument can be given as a textual group name.
+.sp
+For safety, you must specify one of \fB\-\-clear\-groups\fP, \fB\-\-groups\fP, \fB\-\-keep\-groups\fP, or \fB\-\-init\-groups\fP if you set any primary \fIgid\fP.
+.RE
+.sp
+\fB\-\-ruid\fP \fIuid\fP, \fB\-\-euid\fP \fIuid\fP, \fB\-\-reuid\fP \fIuid\fP
+.RS 4
+Set the real, effective, or both UIDs. The \fIuid\fP argument can be given as a textual login name.
+.sp
+Setting a \fIuid\fP or \fIgid\fP does not change capabilities, although the exec call at the end might change capabilities. This means that, if you are root, you probably want to do something like:
+.sp
+\fBsetpriv \-\-reuid=1000 \-\-regid=1000 \-\-inh\-caps=\-all\fP
+.RE
+.sp
+\fB\-\-securebits\fP (\fB+\fP|\fB\-\fP)\fIsecurebit\fP...
+.RS 4
+Set or clear securebits. The argument is a comma\-separated list. The valid securebits are \fInoroot\fP, \fInoroot_locked\fP, \fIno_setuid_fixup\fP, \fIno_setuid_fixup_locked\fP, and \fIkeep_caps_locked\fP. \fIkeep_caps\fP is cleared by \fBexecve\fP(2) and is therefore not allowed.
+.RE
+.sp
+\fB\-\-pdeathsig keep\fP|\fBclear\fP|\fB<signal>\fP
+.RS 4
+Keep, clear or set the parent death signal. Some LSMs, most notably SELinux and AppArmor, clear the signal when the process\*(Aq credentials change. Using \fB\-\-pdeathsig keep\fP will restore the parent death signal after changing credentials to remedy that situation.
+.RE
+.sp
+\fB\-\-selinux\-label\fP \fIlabel\fP
+.RS 4
+Request a particular SELinux transition (using a transition on exec, not dyntrans). This will fail and cause \fBsetpriv\fP to abort if SELinux is not in use, and the transition may be ignored or cause \fBexecve\fP(2) to fail at SELinux\(cqs whim. (In particular, this is unlikely to work in conjunction with \fIno_new_privs\fP.) This is similar to \fBruncon\fP(1).
+.RE
+.sp
+\fB\-\-apparmor\-profile\fP \fIprofile\fP
+.RS 4
+Request a particular AppArmor profile (using a transition on exec). This will fail and cause \fBsetpriv\fP to abort if AppArmor is not in use, and the transition may be ignored or cause \fBexecve\fP(2) to fail at AppArmor\(cqs whim.
+.RE
+.sp
+\fB\-\-landlock\-access\fP \fIaccess\fP
+.RS 4
+Enable landlock restrictions for a specific set of system accesses.
+To allow specific subgroups of accesses use \fB\-\-landlock\-rule\fP.
+.sp
+Block all filesystem access:
+.sp
+\fBsetpriv \-\-landlock\-access fs\fP
+.sp
+Block all file deletions and directory creations:
+.sp
+\fBsetpriv \-\-landlock\-access fs:remove\-file,make\-dir\fP
+.sp
+For a complete set of supported access categories use \fBsetpriv \-\-help\fP.
+.RE
+.sp
+\fB\-\-landlock\-rule\fP \fIrule\fP
+.RS 4
+Allow one specific access from the categories blocked by \fB\-\-landlock\-access\fP.
+.sp
+The syntax is as follows:
+.sp
+\fB\-\-landlock\-rule $ruletype:$access:$rulearg\fP
+.sp
+For example grant file read access to everything under \fB/boot\fP:
+.sp
+\fB\-\-landlock\-rule path\-beneath:read\-file:/boot\fP
+.RE
+.sp
+\fB\-\-reset\-env\fP
+.RS 4
+Clears all the environment variables except \fBTERM\fP; initializes the environment variables \fBHOME\fP, \fBSHELL\fP, \fBUSER\fP, \fBLOGNAME\fP according to the user\(cqs passwd entry; sets \fBPATH\fP to \fI/usr/local/bin:/bin:/usr/bin\fP for a regular user and to \fI/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\fP for root.
+.sp
+The environment variable \fBPATH\fP may be different on systems where \fI/bin\fP and \fI/sbin\fP are merged into \fI/usr\fP. The environment variable \fBSHELL\fP defaults to \fB/bin/sh\fP if none is given in the user\(cqs passwd entry.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+If applying any specified option fails, \fIprogram\fP will not be run and \fBsetpriv\fP will return with exit status 127.
+.sp
+Be careful with this tool \(em it may have unexpected security consequences. For example, setting \fIno_new_privs\fP and then execing a program that is SELinux\-confined (as this tool would do) may prevent the SELinux restrictions from taking effect.
+.SH "EXAMPLES"
+.sp
+If you\(cqre looking for behavior similar to \fBsu\fP(1)/\fBrunuser\fP(1), or \fBsudo\fP(8) (without the \fB\-g\fP option), try something like:
+.sp
+\fBsetpriv \-\-reuid=1000 \-\-regid=1000 \-\-init\-groups\fP
+.sp
+If you want to mimic daemontools\*(Aq \fBsetuid\fP(8), try:
+.sp
+\fBsetpriv \-\-reuid=1000 \-\-regid=1000 \-\-clear\-groups\fP
+.SH "AUTHORS"
+.sp
+.MTO "luto\(atamacapital.net" "Andy Lutomirski" ""
+.SH "SEE ALSO"
+.sp
+\fBrunuser\fP(1),
+\fBsu\fP(1),
+\fBprctl\fP(2),
+\fBcapabilities\fP(7)
+\fBlandlock\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBsetpriv\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

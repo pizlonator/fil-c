@@ -1,0 +1,69 @@
+_lsclocks_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case $prev in
+		'-J'|'--json')
+			return 0
+			;;
+		'-n'|'--noheadings')
+			return 0
+			;;
+		'-o'|'--output')
+			return 0
+			;;
+		'--output-all')
+			return 0
+			;;
+		'-r'|'--raw')
+			return 0
+			;;
+		'-t'|'--time')
+			clocks="$(command "$1" --noheadings --raw --output NAME)"
+			COMPREPLY=( $(compgen -W "$clocks" -- "$cur") )
+			return 0
+			;;
+		'-d'|'--dynamic-clock')
+			clocks="$(echo /dev/ptp*)"
+			COMPREPLY=( $(compgen -o filenames -W "$clocks" -- "$cur") )
+			return 0
+			;;
+		'-x'|'--rtc')
+			clocks="$(echo /dev/rtc*)"
+			COMPREPLY=( $(compgen -o filenames -W "$clocks" -- "$cur") )
+			return 0
+			;;
+		'-c'|'--cpu-clock')
+			_pids
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="--json
+				--noheadings
+				--output
+				--output-all
+				--raw
+				--time
+				--dynamic-clock
+				--rtc
+				--cpu-clock
+				--help
+				--version"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+		*)
+			return 0
+			;;
+	esac
+	return 0
+}
+complete -F _lsclocks_module lsclocks

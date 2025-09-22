@@ -1,0 +1,148 @@
+'\" t
+.\"     Title: rfkill
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "RFKILL" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+rfkill \- tool for enabling and disabling wireless devices
+.SH "SYNOPSIS"
+.sp
+\fBrfkill\fP [options] [\fIcommand\fP] [\fIID\fP|\fItype\fP ...]
+.SH "DESCRIPTION"
+.sp
+\fBrfkill\fP lists, enabling and disabling wireless devices.
+.sp
+The command "list" output format is deprecated and maintained for backward compatibility only. The new output format is the default when no command is specified or when the option \fB\-\-output\fP is used.
+.sp
+The default output is subject to change. So whenever possible, you should avoid using default outputs in your scripts. Always explicitly define expected columns by using the \fB\-\-output\fP option together with a columns list in environments where a stable output is required.
+.SH "OPTIONS"
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-help\fP to get a list of available columns.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Use the raw output format.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "COMMANDS"
+.sp
+\fBhelp\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fBevent\fP
+.RS 4
+Listen for rfkill events and display them on stdout.
+.RE
+.sp
+\fBlist\fP [\fIid\fP|\fItype\fP ...]
+.RS 4
+List the current state of all available devices. The command output format is deprecated, see the \fBDESCRIPTION\fP section. It is a good idea to check with \fBlist\fP command \fIid\fP or \fItype\fP scope is appropriate before setting \fBblock\fP or \fBunblock\fP. Special \fIall\fP type string will match everything. Use of multiple \fIID\fP or \fItype\fP arguments is supported. Possible types are all, {wlan | wifi}, bluetooth, {uwb | ultrawideband}, wimax, wwan, gps, fm, nfc.
+.RE
+.sp
+\fBblock\fP \fIid\fP|\fItype\fP [...]
+.RS 4
+Disable the corresponding device.
+.RE
+.sp
+\fBunblock\fP \fIid\fP|\fItype\fP [...]
+.RS 4
+Enable the corresponding device. If the device is hard\-blocked, for example via a hardware switch, it will remain unavailable though it is now soft\-unblocked.
+.RE
+.sp
+\fBtoggle\fP \fIid\fP|\fItype\fP [...]
+.RS 4
+Enable or disable the corresponding device.
+.RE
+.SH "EXAMPLE"
+.sp
+.if n .RS 4
+.nf
+.fam C
+  rfkill \-\-output ID,TYPE
+  rfkill block all
+  rfkill unblock wlan
+  rfkill block bluetooth uwb wimax wwan gps fm nfc
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+\fBrfkill\fP was originally written by \c
+.MTO "johannes\(atsipsolutions.net" "Johannes Berg" ""
+and
+.MTO "marcel\(atholtmann.org" "Marcel Holtmann" "."
+The code has been later modified by
+.MTO "kerolasa\(atiki.fi" "Sami Kerola" ""
+and
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+for the util\-linux project.
+.sp
+This manual page was written by \c
+.MTO "linux\(atyoumustbejoking.demon.co.uk" "Darren Salt" ""
+for the Debian project (and may be used by others).
+.SH "SEE ALSO"
+.sp
+\fBpowertop\fP(8),
+\fBsystemd\-rfkill\fP(8),
+.URL "https://docs.kernel.org/driver\-api/rfkill.html" "Linux kernel documentation" ""
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBrfkill\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

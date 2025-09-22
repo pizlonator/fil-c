@@ -1,0 +1,4 @@
+check_PROGRAMS += test_boilerplate
+test_boilerplate_SOURCES = Documentation/boilerplate.c
+test_boilerplate_LDADD =  $(LDADD)
+test_boilerplate_CFLAGS = $(AM_CFLAGS)

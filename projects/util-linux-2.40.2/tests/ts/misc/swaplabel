@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="swaplabel"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MKSWAP"
+ts_check_test_command "$TS_CMD_SWAPLABEL"
+ts_check_test_command "$TS_HELPER_SYSINFO"
+
+# fallocate does not work on most file systems
+function fallocate_or_skip()
+{
+	$TS_CMD_FALLOCATE -x -l $1 $2 2>/dev/null || \
+	truncate -s $1 $2 || \
+	ts_skip "no way to create test image"
+}
+
+IMAGE=${TS_OUTDIR}/${TS_TESTNAME}.file
+
+PAGE_SIZE=$($TS_HELPER_SYSINFO pagesize)
+PAGE_SIZE_KB=$(( $PAGE_SIZE / 1024 ))
+MIN_SWAP_SIZE=$(( 10 * $PAGE_SIZE ))
+MIN_SWAP_SIZE_KB=$(( MIN_SWAP_SIZE / 1024 ))
+
+rm -f $IMAGE
+fallocate_or_skip $(( $MIN_SWAP_SIZE - 1 )) $IMAGE
+$TS_CMD_MKSWAP \
+	--label 1234567890abcdef \
+	--uuid 12345678-abcd-abcd-abcd-1234567890ab \
+	$IMAGE >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+sed -i -e "s/ $MIN_SWAP_SIZE_KB KiB/ 10 pages/" \
+    -e "s:$IMAGE:<swapfile>:g" \
+    -e "s/insecure permissions [0-9]*/insecure permissions <perm>/g" \
+   $TS_OUTPUT $TS_ERRLOG
+
+rm -f $IMAGE
+fallocate_or_skip $MIN_SWAP_SIZE $IMAGE
+$TS_CMD_MKSWAP \
+	--label 1234567890abcdef \
+	--uuid 12345678-abcd-abcd-abcd-1234567890ab \
+	$IMAGE >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+sed -i -e "s/ $(( $MIN_SWAP_SIZE_KB - $PAGE_SIZE_KB )) KiB/ 9 pages/" \
+    -e "s/($(( $MIN_SWAP_SIZE - $PAGE_SIZE )) bytes)/(9xPGSZ bytes)/" \
+    -e "s:$IMAGE:<swapfile>:g" \
+    -e "s/insecure permissions [0-9]*/insecure permissions <perm>/g" \
+    $TS_OUTPUT $TS_ERRLOG
+
+$TS_CMD_SWAPLABEL $IMAGE >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+#rm -f $IMAGE
+
+ts_finalize

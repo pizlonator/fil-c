@@ -1,0 +1,99 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2007 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="week number given as argument"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_CAL"
+ts_inhibit_custom_colorscheme
+
+has_ncurses=$( ts_has_ncurses_support )
+if [ "$has_ncurses" != "yes" ]; then
+	ts_skip "without-ncurses"
+fi
+
+export TERM=linux
+
+USETERM=$( ts_has_option "useterm" "$*" )
+
+function call_cal_simple {
+	ts_log "$1"
+	shift
+	if [ "$USETERM" == "yes" ]; then
+		$TS_CMD_CAL "$@"
+	fi
+	$TS_CMD_CAL "$@" >> $TS_OUTPUT
+}
+
+function call_cal {
+	local testname=$(echo "${2}" | sed 's/-//g')
+	testname="${testname}-$(echo "${3}" | sed 's/=//g;s/-//g')"
+
+	ts_init_subtest "$testname"
+	call_cal_simple "$@"
+	ts_finalize_subtest
+}
+
+function call_cal_color {
+	local testname=$(echo "${2}" | sed 's/-//g')
+	testname="${testname}-$(echo "${3}" | sed 's/=//g;s/-//g')-color"
+
+	ts_init_subtest "$testname"
+	call_cal_simple "$@" --color=always
+	ts_finalize_subtest
+}
+
+MYTIME="7 10 2013"
+PWEEK="week 40"
+WEEK="--week=40"
+call_cal "Gregorian - Monday-based, $PWEEK, 3 month" -3m $WEEK $MYTIME
+call_cal "Gregorian - Sunday-based, $PWEEK, 3 month" -3s $WEEK $MYTIME
+call_cal "Julian    - Monday-based, $PWEEK, 3 month" -3mj $WEEK $MYTIME
+call_cal "Julian    - Sunday-based, $PWEEK, 3 month" -3sj $WEEK $MYTIME
+call_cal "Gregorian - Monday-based, $PWEEK, 1 month" -m $WEEK $MYTIME
+call_cal "Gregorian - Sunday-based, $PWEEK, 1 month" -s $WEEK $MYTIME
+call_cal "Julian    - Monday-based, $PWEEK, 1 month" -mj $WEEK $MYTIME
+call_cal "Julian    - Sunday-based, $PWEEK, 1 month" -sj $WEEK $MYTIME
+
+call_cal_color "Gregorian - Monday-based, $PWEEK, 3 month" -3m $WEEK $MYTIME
+call_cal_color "Julian    - Monday-based, $PWEEK, 3 month" -3mj $WEEK $MYTIME
+
+# tricky year, starts with a bit of 53 yet ends during 52
+MYTIME="2010"
+PWEEK="week 53"
+WEEK="--week=53"
+call_cal "Gregorian - Monday-based, $PWEEK, 1 month" -1m $WEEK $MYTIME
+call_cal "Julian    - Monday-based, $PWEEK, 1 month" -1mj $WEEK $MYTIME
+call_cal_color "Gregorian - Monday-based, $PWEEK, 3 month" -3m $WEEK $MYTIME
+call_cal_color "Gregorian - Monday-based, $PWEEK, 1 month" -1m $WEEK $MYTIME
+call_cal_color "Julian    - Monday-based, $PWEEK, 1 month" -1mj $WEEK $MYTIME
+
+MYTIME="31 12 2000"
+PWEEK="week 54"
+WEEK="--week=54"
+call_cal_color "Gregorian - Sunday-based, $PWEEK, 3 month" -3s $WEEK $MYTIME
+
+MYTIME="31 12 2000"
+PWEEK="week 52"
+WEEK="--week=52"
+call_cal_color "Gregorian - Monday-based, $PWEEK, 3 month" -3m $WEEK $MYTIME
+
+ts_finalize
+

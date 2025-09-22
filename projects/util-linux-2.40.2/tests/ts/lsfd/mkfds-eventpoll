@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="eventpoll targets"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD0=3
+FD1=5
+FD2=7
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" eventpoll $FD0 $FD1 $FD2 ; }
+    if read -u ${MKFDS[0]} PID; then
+	EXPR='(FD == '"$FD0"')'
+	${TS_CMD_LSFD} -p "${PID}" -n -o ASSOC,TYPE,NAME,EVENTPOLL.TFDS -Q "${EXPR}"
+	echo 'ASSOC,TYPE,NAME,EVENTPOLL.TFDS': $?
+	${TS_CMD_LSFD} -J -p "${PID}" -n -o ASSOC,TYPE,NAME,EVENTPOLL.TFDS -Q "${EXPR}"
+	echo 'ASSOC,TYPE,NAME,EVENTPOLL.TFDS (JSON)': $?
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait ${MKFDS_PID}
+} > $TS_OUTPUT 2>&1
+
+ts_finalize

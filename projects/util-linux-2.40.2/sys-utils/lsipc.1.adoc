@@ -1,0 +1,125 @@
+//po4a: entry man manual
+= lsipc(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lsipc
+
+== NAME
+
+lsipc - show information on IPC facilities currently employed in the system
+
+== SYNOPSIS
+
+*lsipc* [options]
+
+== DESCRIPTION
+
+*lsipc* shows information on the System V inter-process communication facilities for which the calling process has read access.
+
+== OPTIONS
+
+*-i*, *--id* _id_::
+Show full details on just the one resource element identified by _id_. This option needs to be combined with one of the three resource options: *-m*, *-q* or *-s*. It is possible to override the default output format for this option with the *--list*, *--raw*, *--json* or *--export* option.
+
+*-g*, *--global*::
+Show system-wide usage and limits of IPC resources. This option may be combined with one of the three resource options: *-m*, *-q* or *-s*. The default is to show information about all resources.
+
+include::man-common/help-version.adoc[]
+
+=== Resource options
+
+*-m*, *--shmems*::
+Write information about active shared memory segments.
+
+*-q*, *--queues*::
+Write information about active message queues.
+
+*-s*, *--semaphores*::
+Write information about active semaphore sets.
+
+=== Output formatting
+
+*-c*, *--creator*::
+Show creator and owner.
+
+*-e*, *--export*::
+Produce output in the form of key="value" pairs. All potentially unsafe value characters are hex-escaped (\x<code>). See also option *--shell*.
+
+*-J*, *--json*::
+Use the JSON output format.
+
+*-l*, *--list*::
+Use the list output format. This is the default, except when *--id* is used.
+
+*-n*, *--newline*::
+Display each piece of information on a separate line.
+
+*--noheadings*::
+Do not print a header line.
+
+*--notruncate*::
+Don't truncate output.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. Use *--help* to get a list of all supported columns.
+
+*-b*, *--bytes*::
+Print size in bytes rather than in human readable format.
+
+*-r*, *--raw*::
+Raw output (no columnation).
+
+*-t*, *--time*::
+Write time information. The time of the last control operation that changed the access permissions for all facilities, the time of the last *msgsnd*(2) and *msgrcv*(2) operations on message queues, the time of the last *shmat*(2) and *shmdt*(2) operations on shared memory, and the time of the last *semop*(2) operation on semaphores.
+
+*--time-format* _type_::
+Display dates in short, full or iso format. The default is short, this time format is designed to be space efficient and human readable.
+
+*-P*, *--numeric-perms*::
+Print numeric permissions in PERMS column.
+
+*-y*, *--shell*::
+The column name will be modified to contain only characters allowed for shell variable identifiers. This is usable, for example, with *--export*. Note that this feature has been automatically enabled for *--export* in version 2.37, but due to compatibility issues, now it's necessary to request this behavior by *--shell*.
+
+== EXIT STATUS
+
+0::
+if OK,
+
+1::
+if incorrect arguments specified,
+
+2::
+if a serious error occurs.
+
+== HISTORY
+
+The *lsipc* utility is inspired by the *ipcs*(1) utility.
+
+== AUTHORS
+
+mailto:ooprala@redhat.com[Ondrej Oprala],
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+
+*ipcmk*(1),
+*ipcrm*(1),
+*msgrcv*(2),
+*msgsnd*(2),
+*semget*(2),
+*semop*(2),
+*shmat*(2),
+*shmdt*(2),
+*shmget*(2),
+*sysvipc*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

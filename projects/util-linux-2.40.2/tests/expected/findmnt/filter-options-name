@@ -1,0 +1,7 @@
+TARGET                   SOURCE    FSTYPE OPTIONS
+/proc/sys/fs/binfmt_misc systemd-1 autofs rw,relatime,fd=25,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+/sys/kernel/security     systemd-1 autofs rw,relatime,fd=22,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+/sys/kernel/debug        systemd-1 autofs rw,relatime,fd=24,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+/dev/hugepages           systemd-1 autofs rw,relatime,fd=23,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+/dev/mqueue              systemd-1 autofs rw,relatime,fd=26,pgrp=1,timeout=300,minproto=5,maxproto=5,direct
+rc=0

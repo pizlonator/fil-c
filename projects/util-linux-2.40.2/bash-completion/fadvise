@@ -1,0 +1,42 @@
+_fadvise_module()
+{
+    local cur prev ADVS OPTS
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    case $prev in
+	'-a'|'--advise')
+	    ADVS='normal
+		  sequential
+		  random
+		  noreuse
+		  willneeded
+		  dontneed'
+	    COMPREPLY=( $(compgen -W "${ADVS[*]}" -- $cur) )
+	    return 0
+	    ;;
+	'-o'|'--offset'|'-l'|'--length')
+	    COMPREPLY=( $(compgen -W "bytes" -- $cur) )
+	    return 0
+	    ;;
+	'-h'|'--help'|'-V'|'--version')
+	    return 0
+	    ;;
+    esac
+    case $cur in
+	-*)
+	    OPTS='--advise
+		  --length
+		  --offset
+		  --help
+		  --version'
+	    COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+	    return 0
+	;;
+    esac
+    local IFS=$'\n'
+    compopt -o filenames
+    COMPREPLY=( $(compgen -f -- $cur) )
+    return 0
+}
+complete -F _fadvise_module fadvise

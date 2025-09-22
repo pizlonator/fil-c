@@ -1,0 +1,21 @@
+usrsecurelib_exec_LTLIBRARIES += pam_lastlog2.la
+
+pam_lastlog2_la_SOURCES = \
+	pam_lastlog2/src/pam_lastlog2.c
+
+EXTRA_pam_lastlog2_la_DEPENDENCIES = \
+	pam_lastlog2/src/pam_lastlog2.sym
+
+pam_lastlog2_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	 $(SOLIB_CFLAGS) \
+	 -I$(ul_liblastlog2_incdir)
+
+pam_lastlog2_la_LIBADD = liblastlog2.la
+
+pam_lastlog2_la_LDFLAGS = $(SOLIB_LDFLAGS) -module -avoid-version -shared
+if HAVE_VSCRIPT
+pam_lastlog2_la_LDFLAGS += pam_lastlog2_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(top_srcdir)/pam_lastlog2/src/pam_lastlog2.sym
+endif
+
+EXTRA_DIST += pam_lastlog2/src/pam_lastlog2.sym

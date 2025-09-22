@@ -1,0 +1,54 @@
+_hexdump_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-L'|'--color')
+			COMPREPLY=( $(compgen -W "auto never always" -- $cur) )
+			return 0
+			;;
+		'-e'|'--format')
+			COMPREPLY=( $(compgen -W "format" -- $cur) )
+			return 0
+			;;
+		'-n'|'--length')
+			COMPREPLY=( $(compgen -W "length" -- $cur) )
+			return 0
+			;;
+		'-s'|'--skip')
+			COMPREPLY=( $(compgen -W "offset" -- $cur) )
+			return 0
+			;;
+		'-V'|'--version'|'-h'|'--help')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="	--one-byte-octal
+				--one-byte-hex
+				--one-byte-char
+				--canonical
+				--two-bytes-decimal
+				--two-bytes-octal
+				--two-bytes-hex
+				--color=
+				--format
+				--format-file
+				--length
+				--skip
+				--no-squeezing
+				--version
+				--help"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	local IFS=$'\n'
+	compopt -o filenames
+	COMPREPLY=( $(compgen -f -- $cur) )
+	return 0
+}
+complete -F _hexdump_module hexdump

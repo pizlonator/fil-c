@@ -1,0 +1,57 @@
+
+check_PROGRAMS += \
+	sample-scols-colors \
+	sample-scols-title \
+	sample-scols-wrap \
+	sample-scols-continuous \
+	sample-scols-continuous-json \
+	sample-scols-fromfile \
+	sample-scols-grouping-simple \
+	sample-scols-grouping-overlay \
+	sample-scols-maxout
+
+sample_scols_cflags = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+sample_scols_ldadd = libsmartcols.la $(LDADD)
+
+if HAVE_OPENAT
+check_PROGRAMS += sample-scols-tree
+sample_scols_tree_SOURCES = libsmartcols/samples/tree.c
+sample_scols_tree_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_tree_CFLAGS = $(sample_scols_cflags)
+endif
+
+sample_scols_colors_SOURCES = libsmartcols/samples/colors.c
+sample_scols_colors_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_colors_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_title_SOURCES = libsmartcols/samples/title.c
+sample_scols_title_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_title_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_wrap_SOURCES = libsmartcols/samples/wrap.c
+sample_scols_wrap_LDADD = $(sample_scols_ldadd)
+sample_scols_wrap_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_continuous_SOURCES = libsmartcols/samples/continuous.c
+sample_scols_continuous_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_continuous_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_continuous_json_SOURCES = libsmartcols/samples/continuous-json.c
+sample_scols_continuous_json_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_continuous_json_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_maxout_SOURCES = libsmartcols/samples/maxout.c
+sample_scols_maxout_LDADD = $(sample_scols_ldadd)
+sample_scols_maxout_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_fromfile_SOURCES = libsmartcols/samples/fromfile.c
+sample_scols_fromfile_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_fromfile_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_grouping_simple_SOURCES = libsmartcols/samples/grouping-simple.c
+sample_scols_grouping_simple_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_grouping_simple_CFLAGS = $(sample_scols_cflags)
+
+sample_scols_grouping_overlay_SOURCES = libsmartcols/samples/grouping-overlay.c
+sample_scols_grouping_overlay_LDADD = $(sample_scols_ldadd) libcommon.la
+sample_scols_grouping_overlay_CFLAGS = $(sample_scols_cflags)

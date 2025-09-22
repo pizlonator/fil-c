@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Copyright (C) 2022 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="NAME and KNAME column"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+. "$TS_SELF/lsfd-functions.bash"
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+ts_check_prog "sed"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+EXPR="(FD == 3)"
+
+make_state_connected()
+{
+    if [ "$1" = "socketpair" ]; then
+	lsfd_make_state_connected
+    else
+	cat
+    fi
+}
+
+for C in ro-regular-file pidfd socketpair; do
+    ts_init_subtest $C
+    {
+	coproc MKFDS {
+	    argv=()
+	    case $C in
+		socketpair)
+		    argv[0]="$((FD + 1))"
+		    argv[1]="socktype=DGRAM"
+	    esac
+	    "$TS_HELPER_MKFDS" $C $FD "${argv[@]}"
+	}
+	if read -r -u "${MKFDS[0]}" PID; then
+	    ${TS_CMD_LSFD} -n -o ASSOC,KNAME,NAME -p "${PID}" -Q "${EXPR}" | {
+		# Replace the unpredictable an inode number for the socket
+		# with "INODENUM".
+		sed -e 's/\[[0-9]\+\]/[INODENUM]/g' | make_state_connected $C
+	    }
+	    echo "$C"':ASSOC,KNAME,NAME': ${PIPESTATUS[0]}
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+    } > "$TS_OUTPUT" 2>&1
+    wait "${MKFDS_PID}"
+
+    if [ "$C-$?" == "pidfd-$TS_EXIT_NOTSUPP" ]; then
+	ts_skip_subtest "pidfd_open(2) is not available"
+	continue
+    fi
+
+    case $C in
+    pidfd)
+	sed -i -E 's/(pidfd|anon_inode):\[[a-zA-Z]+\]/[KNAME]/' "$TS_OUTPUT"
+    esac
+
+    ts_finalize_subtest
+done
+
+C=make-regular-file
+ts_init_subtest deleted-file
+{
+    target=tmp-column-name
+    coproc MKFDS { "$TS_HELPER_MKFDS" $C $FD file=tmp-column-name delete=1; }
+    if read -r -u "${MKFDS[0]}" PID; then
+	${TS_CMD_LSFD} -n -o DELETED,NAME -p "${PID}" -Q "${EXPR}" |
+	    sed -e 's#.*/\([^/]\+\)#\1#'
+	echo "$C: DELETED,NAME: " ${PIPESTATUS[0]}
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+} > "$TS_OUTPUT" 2>&1
+wait "${MKFDS_PID}"
+ts_finalize_subtest
+
+ts_finalize

@@ -1,0 +1,57 @@
+_lastlog2_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-b'|'--before')
+			COMPREPLY=( $(compgen -W "days" -- $cur) )
+			return 0
+			;;
+		'-t'|'--time')
+			COMPREPLY=( $(compgen -W "days" -- $cur) )
+			return 0
+			;;
+		'-i'|'--import')
+			COMPREPLY=( $(compgen -W "file" -- "$cur") )
+			return 0
+			;;
+		'-r'|'--rename')
+			COMPREPLY=( $(compgen -W "user_name" -- "$cur") )
+			return 0
+			;;
+		'-u'|'--user')
+			COMPREPLY=( $(compgen -W "login" -- "$cur") )
+			return 0
+			;;			
+		'-d'|'--database')
+			COMPREPLY=( $(compgen -W "file" -- "$cur") )
+			return 0
+			;;			
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="
+				--before
+				--clear
+				--database
+				--help
+				--import
+				--rename
+				--service
+				--set
+				--time
+				--user
+				--version
+			"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	return 0
+}
+complete -F _lastlog2_module lastlog2

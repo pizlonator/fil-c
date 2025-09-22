@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="tun device and interface behind the device"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_nonroot
+
+[[ -e /dev/net/tun ]] || ts_skip "/dev/net/tun doest not exist"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+IFNAME=
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" cdev-tun $FD ; }
+    if read -u ${MKFDS[0]} PID IFNAME; then
+	EXPR='(FD == '"$FD"')'
+	${TS_CMD_LSFD} -p "${PID}" -n -o ASSOC,MODE,TYPE,SOURCE -Q "${EXPR}"
+	echo 'ASSOC,MODE,TYPE,SOURCE': $?
+
+	output=$(${TS_CMD_LSFD} -p "${PID}" -n --raw -o NAME -Q "${EXPR}")
+	if [[ "$output" == "iface=$IFNAME" ]]; then
+	    echo 'NAME': $?
+	else
+	    echo 'NAME': $?
+	    echo "expected NAME: iface=$IFNAME"
+	    echo "output NAME: $output"
+	fi
+
+	output=$(${TS_CMD_LSFD} -p "${PID}" -n --raw -o TUN.IFACE -Q "${EXPR}")
+	if [[ "$output" == "$IFNAME" ]]; then
+	    echo 'TUN.IFACE': $?
+	else
+	    echo 'TUN.IFAEC': $?
+	    echo "expected TUN.IFACE: $IFNAME"
+	    echo "output TUN.IFACE: $output"
+	fi
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait ${MKFDS_PID}
+} > $TS_OUTPUT 2>&1
+
+ts_finalize

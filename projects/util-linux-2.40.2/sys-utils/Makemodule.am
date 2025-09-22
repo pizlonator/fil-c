@@ -1,0 +1,589 @@
+if BUILD_LSMEM
+usrbin_exec_PROGRAMS += lsmem
+MANPAGES += sys-utils/lsmem.1
+dist_noinst_DATA += sys-utils/lsmem.1.adoc
+lsmem_SOURCES = sys-utils/lsmem.c
+lsmem_LDADD = $(LDADD) libcommon.la libsmartcols.la
+lsmem_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_CHMEM
+usrbin_exec_PROGRAMS += chmem
+MANPAGES += sys-utils/chmem.8
+dist_noinst_DATA += sys-utils/chmem.8.adoc
+chmem_SOURCES = sys-utils/chmem.c
+chmem_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_FLOCK
+usrbin_exec_PROGRAMS += flock
+MANPAGES += sys-utils/flock.1
+dist_noinst_DATA += sys-utils/flock.1.adoc
+flock_SOURCES = sys-utils/flock.c lib/monotonic.c lib/timer.c
+flock_LDADD = $(LDADD) libcommon.la $(REALTIME_LIBS)
+endif
+
+if BUILD_CHOOM
+usrbin_exec_PROGRAMS += choom
+MANPAGES += sys-utils/choom.1
+dist_noinst_DATA += sys-utils/choom.1.adoc
+choom_SOURCES = sys-utils/choom.c
+choom_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_IPCMK
+usrbin_exec_PROGRAMS += ipcmk
+MANPAGES += sys-utils/ipcmk.1
+dist_noinst_DATA += sys-utils/ipcmk.1.adoc
+ipcmk_SOURCES = sys-utils/ipcmk.c
+ipcmk_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_IPCRM
+usrbin_exec_PROGRAMS += ipcrm
+MANPAGES += sys-utils/ipcrm.1
+dist_noinst_DATA += sys-utils/ipcrm.1.adoc
+ipcrm_SOURCES = sys-utils/ipcrm.c
+ipcrm_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_IPCS
+usrbin_exec_PROGRAMS += ipcs
+MANPAGES += sys-utils/ipcs.1
+dist_noinst_DATA += sys-utils/ipcs.1.adoc
+ipcs_SOURCES =	sys-utils/ipcs.c \
+		sys-utils/ipcutils.c \
+		sys-utils/ipcutils.h
+ipcs_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_IRQTOP
+usrbin_exec_PROGRAMS += irqtop
+MANPAGES += sys-utils/irqtop.1
+dist_noinst_DATA += sys-utils/irqtop.1.adoc
+irqtop_SOURCES = sys-utils/irqtop.c \
+		 sys-utils/irq-common.c \
+		 sys-utils/irq-common.h \
+		 lib/monotonic.c
+irqtop_LDADD = $(LDADD) libcommon.la $(REALTIME_LIBS) libsmartcols.la
+irqtop_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+if HAVE_SLANG
+irqtop_LDADD += -lslang
+else
+irqtop_CFLAGS += $(NCURSES_CFLAGS)
+irqtop_LDADD += $(NCURSES_LIBS)
+endif
+endif
+
+if BUILD_LSIRQ
+usrbin_exec_PROGRAMS += lsirq
+MANPAGES += sys-utils/lsirq.1
+dist_noinst_DATA += sys-utils/lsirq.1.adoc
+lsirq_SOURCES =	sys-utils/lsirq.c \
+		sys-utils/irq-common.c \
+		sys-utils/irq-common.h
+lsirq_LDADD = $(LDADD) libcommon.la libsmartcols.la
+lsirq_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_LSIPC
+usrbin_exec_PROGRAMS += lsipc
+MANPAGES += sys-utils/lsipc.1
+dist_noinst_DATA += sys-utils/lsipc.1.adoc
+lsipc_SOURCES =	sys-utils/lsipc.c \
+		sys-utils/ipcutils.c \
+		sys-utils/ipcutils.h
+lsipc_LDADD = $(LDADD) libcommon.la libsmartcols.la
+lsipc_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_RENICE
+usrbin_exec_PROGRAMS += renice
+MANPAGES += sys-utils/renice.1
+dist_noinst_DATA += sys-utils/renice.1.adoc
+renice_SOURCES = sys-utils/renice.c
+endif
+
+if BUILD_RFKILL
+usrsbin_exec_PROGRAMS += rfkill
+MANPAGES += sys-utils/rfkill.8
+dist_noinst_DATA += sys-utils/rfkill.8.adoc
+rfkill_SOURCES = sys-utils/rfkill.c
+rfkill_LDADD = $(LDADD) libcommon.la libsmartcols.la
+rfkill_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_SETPGID
+usrbin_exec_PROGRAMS += setpgid
+MANPAGES += sys-utils/setpgid.1
+dist_noinst_DATA += sys-utils/setpgid.1.adoc
+setpgid_SOURCES = sys-utils/setpgid.c
+endif
+
+if BUILD_SETSID
+usrbin_exec_PROGRAMS += setsid
+MANPAGES += sys-utils/setsid.1
+dist_noinst_DATA += sys-utils/setsid.1.adoc
+setsid_SOURCES = sys-utils/setsid.c
+endif
+
+if BUILD_READPROFILE
+usrsbin_exec_PROGRAMS += readprofile
+MANPAGES += sys-utils/readprofile.8
+dist_noinst_DATA += sys-utils/readprofile.8.adoc
+readprofile_SOURCES = sys-utils/readprofile.c
+readprofile_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_TUNELP
+usrsbin_exec_PROGRAMS += tunelp
+MANPAGES += sys-utils/tunelp.8
+dist_noinst_DATA += sys-utils/tunelp.8.adoc
+tunelp_SOURCES = sys-utils/tunelp.c
+tunelp_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_FSTRIM
+sbin_PROGRAMS += fstrim
+MANPAGES += sys-utils/fstrim.8
+dist_noinst_DATA += sys-utils/fstrim.8.adoc
+fstrim_SOURCES = sys-utils/fstrim.c
+fstrim_LDADD = $(LDADD) libcommon.la libmount.la
+fstrim_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir)
+if HAVE_SYSTEMD
+systemdsystemunit_DATA += \
+		sys-utils/fstrim.service \
+		sys-utils/fstrim.timer
+endif
+endif # BUILD_FSTRIM
+
+PATHFILES += sys-utils/fstrim.service
+EXTRA_DIST += sys-utils/fstrim.timer
+
+if BUILD_DMESG
+bin_PROGRAMS += dmesg
+MANPAGES += sys-utils/dmesg.1
+dist_noinst_DATA += sys-utils/dmesg.1.adoc
+dmesg_SOURCES = sys-utils/dmesg.c lib/monotonic.c include/pager.h lib/pager.c
+dmesg_LDADD = $(LDADD) libcommon.la libtcolors.la $(REALTIME_LIBS)
+dmesg_CFLAGS = $(AM_CFLAGS)
+check_PROGRAMS += test_dmesg
+test_dmesg_SOURCES = $(dmesg_SOURCES)
+test_dmesg_LDADD = $(dmesg_LDADD)
+test_dmesg_CFLAGS = -DTEST_DMESG $(dmesg_CFLAGS)
+endif
+
+if BUILD_CTRLALTDEL
+sbin_PROGRAMS += ctrlaltdel
+MANPAGES += sys-utils/ctrlaltdel.8
+dist_noinst_DATA += sys-utils/ctrlaltdel.8.adoc
+ctrlaltdel_SOURCES = sys-utils/ctrlaltdel.c
+ctrlaltdel_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_FSFREEZE
+sbin_PROGRAMS += fsfreeze
+MANPAGES += sys-utils/fsfreeze.8
+dist_noinst_DATA += sys-utils/fsfreeze.8.adoc
+fsfreeze_SOURCES = sys-utils/fsfreeze.c
+endif
+
+if BUILD_BLKDISCARD
+sbin_PROGRAMS += blkdiscard
+MANPAGES += sys-utils/blkdiscard.8
+dist_noinst_DATA += sys-utils/blkdiscard.8.adoc
+blkdiscard_SOURCES = sys-utils/blkdiscard.c lib/monotonic.c
+blkdiscard_LDADD = $(LDADD) libcommon.la $(REALTIME_LIBS)
+blkdiscard_CFLAGS = $(AM_CFLAGS)
+if BUILD_LIBBLKID
+blkdiscard_LDADD += libblkid.la
+blkdiscard_CFLAGS += -I$(ul_libblkid_incdir)
+endif
+endif
+
+if BUILD_BLKZONE
+sbin_PROGRAMS += blkzone
+MANPAGES += sys-utils/blkzone.8
+dist_noinst_DATA += sys-utils/blkzone.8.adoc
+blkzone_SOURCES = sys-utils/blkzone.c
+blkzone_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_BLKPR
+sbin_PROGRAMS += blkpr
+MANPAGES += sys-utils/blkpr.8
+dist_noinst_DATA += sys-utils/blkpr.8.adoc
+blkpr_SOURCES = sys-utils/blkpr.c
+blkpr_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_LDATTACH
+usrsbin_exec_PROGRAMS += ldattach
+MANPAGES += sys-utils/ldattach.8
+dist_noinst_DATA += sys-utils/ldattach.8.adoc
+ldattach_SOURCES = sys-utils/ldattach.c
+ldattach_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_RTCWAKE
+usrsbin_exec_PROGRAMS += rtcwake
+MANPAGES += sys-utils/rtcwake.8
+dist_noinst_DATA += sys-utils/rtcwake.8.adoc
+rtcwake_SOURCES = sys-utils/rtcwake.c
+rtcwake_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_SETARCH
+usrbin_exec_PROGRAMS += setarch
+MANPAGES += sys-utils/setarch.8
+dist_noinst_DATA += sys-utils/setarch.8.adoc
+setarch_SOURCES = sys-utils/setarch.c
+setarch_LDADD = $(LDADD) libcommon.la
+
+SETARCH_LINKS = uname26 linux32 linux64
+
+if ARCH_S390
+SETARCH_LINKS += s390 s390x
+endif
+if ARCH_I86
+SETARCH_LINKS += i386
+endif
+if ARCH_86_64
+SETARCH_LINKS += i386 x86_64
+endif
+if ARCH_PPC
+SETARCH_LINKS += ppc ppc64 ppc32
+endif
+if ARCH_SPARC
+SETARCH_LINKS += sparc sparc64 sparc32 sparc32bash
+endif
+if ARCH_MIPS
+SETARCH_LINKS += mips mips64 mips32
+endif
+if ARCH_IA64
+SETARCH_LINKS += i386 ia64
+endif
+if ARCH_HPPA
+SETARCH_LINKS += parisc parisc64 parisc32
+endif
+
+if ENABLE_ASCIIDOC
+SETARCH_MAN_LINKS = $(addprefix sys-utils/,$(SETARCH_LINKS:=.8))
+endif
+
+man_MANS += $(SETARCH_MAN_LINKS)
+CLEANFILES += $(SETARCH_MAN_LINKS)
+
+$(SETARCH_MAN_LINKS):
+	$(AM_V_at) $(MKDIR_P) sys-utils
+	$(AM_V_GEN)echo ".so man8/setarch.8" > $@
+
+install-exec-hook-setarch:
+	for I in $(SETARCH_LINKS); do \
+		cd $(DESTDIR)$(usrbin_execdir) && ln -sf setarch $$I ; \
+	done
+
+uninstall-hook-setarch:
+	for I in $(SETARCH_LINKS); do \
+		rm -f $(DESTDIR)$(usrbin_execdir)/$$I ; \
+	done
+
+INSTALL_EXEC_HOOKS += install-exec-hook-setarch
+UNINSTALL_HOOKS += uninstall-hook-setarch
+
+endif # BUILD_SETARCH
+
+
+if BUILD_EJECT
+usrbin_exec_PROGRAMS += eject
+MANPAGES += sys-utils/eject.1
+dist_noinst_DATA += sys-utils/eject.1.adoc
+eject_SOURCES =  sys-utils/eject.c lib/monotonic.c
+eject_LDADD = $(LDADD) libmount.la libcommon.la $(REALTIME_LIBS)
+eject_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir)
+endif
+
+
+if BUILD_LOSETUP
+sbin_PROGRAMS += losetup
+MANPAGES += sys-utils/losetup.8
+dist_noinst_DATA += sys-utils/losetup.8.adoc
+losetup_SOURCES = sys-utils/losetup.c
+losetup_LDADD = $(LDADD) libcommon.la libsmartcols.la
+losetup_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+
+if HAVE_STATIC_LOSETUP
+bin_PROGRAMS += losetup.static
+losetup_static_SOURCES = $(losetup_SOURCES)
+losetup_static_LDFLAGS = -all-static
+losetup_static_LDADD = $(losetup_LDADD)
+losetup_static_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+endif # BUILD_LOSETUP
+
+
+if BUILD_ZRAMCTL
+sbin_PROGRAMS += zramctl
+MANPAGES += sys-utils/zramctl.8
+dist_noinst_DATA += sys-utils/zramctl.8.adoc
+zramctl_SOURCES = sys-utils/zramctl.c \
+		  lib/ismounted.c
+zramctl_LDADD = $(LDADD) libcommon.la libsmartcols.la
+zramctl_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+
+if BUILD_PRLIMIT
+usrbin_exec_PROGRAMS += prlimit
+MANPAGES += sys-utils/prlimit.1
+dist_noinst_DATA += sys-utils/prlimit.1.adoc
+prlimit_SOURCES = sys-utils/prlimit.c
+prlimit_LDADD = $(LDADD) libcommon.la libsmartcols.la
+prlimit_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+
+if BUILD_LSNS
+usrbin_exec_PROGRAMS += lsns
+MANPAGES += sys-utils/lsns.8
+dist_noinst_DATA += sys-utils/lsns.8.adoc
+lsns_SOURCES =	sys-utils/lsns.c
+lsns_LDADD = $(LDADD) libcommon.la libsmartcols.la libmount.la
+lsns_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir) -I$(ul_libmount_incdir)
+endif
+
+
+if BUILD_MOUNT
+bin_PROGRAMS += mount umount
+MANPAGES += \
+	sys-utils/mount.8 \
+	sys-utils/fstab.5 \
+	sys-utils/umount.8
+dist_noinst_DATA += \
+	sys-utils/mount.8.adoc \
+	sys-utils/fstab.5.adoc \
+	sys-utils/umount.8.adoc
+mount_SOURCES = sys-utils/mount.c
+mount_LDADD = $(LDADD) libcommon.la libmount.la $(SELINUX_LIBS)
+mount_CFLAGS = $(SUID_CFLAGS) $(AM_CFLAGS) -I$(ul_libmount_incdir)
+mount_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+
+umount_SOURCES = sys-utils/umount.c
+umount_LDADD = $(LDADD) libcommon.la libmount.la
+umount_CFLAGS = $(AM_CFLAGS) $(SUID_CFLAGS) -I$(ul_libmount_incdir)
+umount_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+
+if HAVE_STATIC_MOUNT
+bin_PROGRAMS += mount.static
+mount_static_SOURCES = $(mount_SOURCES)
+mount_static_CFLAGS = $(mount_CFLAGS)
+mount_static_LDFLAGS = $(mount_LDFLAGS) -all-static
+mount_static_LDADD = $(mount_LDADD) $(SELINUX_LIBS_STATIC)
+endif
+
+if HAVE_STATIC_UMOUNT
+bin_PROGRAMS += umount.static
+umount_static_SOURCES = $(umount_SOURCES)
+umount_static_CFLAGS = $(umount_CFLAGS)
+umount_static_LDFLAGS = $(umount_LDFLAGS) -all-static
+umount_static_LDADD = $(umount_LDADD)
+endif
+
+install-exec-hook-mount:
+if MAKEINSTALL_DO_CHOWN
+	chown root:root $(DESTDIR)$(bindir)/mount
+endif
+if MAKEINSTALL_DO_SETUID
+	chmod 4755 $(DESTDIR)$(bindir)/mount
+endif
+if MAKEINSTALL_DO_CHOWN
+	chown root:root $(DESTDIR)$(bindir)/umount
+endif
+if MAKEINSTALL_DO_SETUID
+	chmod 4755 $(DESTDIR)$(bindir)/umount
+endif
+
+INSTALL_EXEC_HOOKS += install-exec-hook-mount
+endif # BUILD_MOUNT
+
+
+if BUILD_SWAPON
+sbin_PROGRAMS += swapon swapoff
+MANPAGES += sys-utils/swapon.8
+dist_noinst_DATA += sys-utils/swapon.8.adoc
+MANLINKS += sys-utils/swapoff.8
+
+swapon_SOURCES = \
+	sys-utils/swapon.c \
+	sys-utils/swapon-common.c \
+	sys-utils/swapon-common.h \
+	lib/swapprober.c \
+	include/swapprober.h
+swapon_CFLAGS = $(AM_CFLAGS) \
+	-I$(ul_libblkid_incdir) \
+	-I$(ul_libmount_incdir) \
+	-I$(ul_libsmartcols_incdir)
+swapon_LDADD = $(LDADD) \
+	libblkid.la \
+	libcommon.la \
+	libmount.la \
+	libsmartcols.la
+
+swapoff_SOURCES = \
+	sys-utils/swapoff.c \
+	sys-utils/swapon-common.c \
+	sys-utils/swapon-common.h \
+	lib/swapprober.c \
+	include/swapprober.h
+swapoff_CFLAGS = $(AM_CFLAGS) \
+	-I$(ul_libblkid_incdir) \
+	-I$(ul_libmount_incdir)
+swapoff_LDADD = $(LDADD) \
+	libmount.la \
+	libblkid.la \
+	libcommon.la
+endif
+
+if BUILD_LSCPU
+usrbin_exec_PROGRAMS += lscpu
+MANPAGES += sys-utils/lscpu.1
+dist_noinst_DATA += sys-utils/lscpu.1.adoc
+lscpu_SOURCES = sys-utils/lscpu.c \
+		sys-utils/lscpu-cputype.c \
+		sys-utils/lscpu-cpu.c \
+		sys-utils/lscpu-topology.c \
+		sys-utils/lscpu-virt.c \
+		sys-utils/lscpu-arm.c \
+		sys-utils/lscpu-dmi.c \
+		sys-utils/lscpu.h
+lscpu_LDADD = $(LDADD) libcommon.la libsmartcols.la $(RTAS_LIBS)
+lscpu_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_CHCPU
+sbin_PROGRAMS += chcpu
+MANPAGES += sys-utils/chcpu.8
+dist_noinst_DATA += sys-utils/chcpu.8.adoc
+chcpu_SOURCES = sys-utils/chcpu.c
+chcpu_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_WDCTL
+bin_PROGRAMS += wdctl
+MANPAGES += sys-utils/wdctl.8
+dist_noinst_DATA += sys-utils/wdctl.8.adoc
+wdctl_SOURCES = sys-utils/wdctl.c
+wdctl_LDADD = $(LDADD) libcommon.la libsmartcols.la
+wdctl_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_MOUNTPOINT
+bin_PROGRAMS += mountpoint
+MANPAGES += sys-utils/mountpoint.1
+dist_noinst_DATA += sys-utils/mountpoint.1.adoc
+mountpoint_LDADD = $(LDADD) libmount.la
+mountpoint_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir)
+mountpoint_SOURCES = sys-utils/mountpoint.c
+endif
+
+if BUILD_FALLOCATE
+usrbin_exec_PROGRAMS += fallocate
+MANPAGES += sys-utils/fallocate.1
+dist_noinst_DATA += sys-utils/fallocate.1.adoc
+fallocate_SOURCES = sys-utils/fallocate.c
+fallocate_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_PIVOT_ROOT
+sbin_PROGRAMS += pivot_root
+MANPAGES += sys-utils/pivot_root.8
+dist_noinst_DATA += sys-utils/pivot_root.8.adoc
+pivot_root_SOURCES = sys-utils/pivot_root.c
+endif
+
+if BUILD_SWITCH_ROOT
+sbin_PROGRAMS += switch_root
+MANPAGES += sys-utils/switch_root.8
+dist_noinst_DATA += sys-utils/switch_root.8.adoc
+switch_root_SOURCES = sys-utils/switch_root.c
+endif
+
+if BUILD_UNSHARE
+usrbin_exec_PROGRAMS += unshare
+MANPAGES += sys-utils/unshare.1
+dist_noinst_DATA += sys-utils/unshare.1.adoc
+unshare_SOURCES = sys-utils/unshare.c \
+		  lib/caputils.c \
+		  lib/exec_shell.c
+unshare_LDADD = $(LDADD) libcommon.la
+unshare_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir)
+
+if HAVE_STATIC_UNSHARE
+usrbin_exec_PROGRAMS += unshare.static
+unshare_static_SOURCES = $(unshare_SOURCES)
+unshare_static_LDFLAGS = -all-static
+unshare_static_LDADD = $(unshare_LDADD)
+unshare_static_CFLAGS = $(unshare_CFLAGS)
+endif
+endif
+
+if BUILD_NSENTER
+usrbin_exec_PROGRAMS += nsenter
+MANPAGES += sys-utils/nsenter.1
+dist_noinst_DATA += sys-utils/nsenter.1.adoc
+nsenter_SOURCES = sys-utils/nsenter.c lib/exec_shell.c \
+		  lib/caputils.c
+nsenter_LDADD = $(LDADD) libcommon.la $(SELINUX_LIBS)
+
+if HAVE_STATIC_NSENTER
+usrbin_exec_PROGRAMS += nsenter.static
+nsenter_static_SOURCES = $(nsenter_SOURCES)
+nsenter_static_LDFLAGS = -all-static
+nsenter_static_LDADD = $(nsenter_LDADD)
+endif
+endif
+
+if BUILD_HWCLOCK
+sbin_PROGRAMS += hwclock
+MANPAGES += \
+	sys-utils/hwclock.8 \
+	sys-utils/adjtime_config.5
+dist_noinst_DATA += \
+	sys-utils/hwclock.8.adoc \
+	sys-utils/adjtime_config.5.adoc
+hwclock_SOURCES = \
+	sys-utils/hwclock.c \
+	sys-utils/hwclock.h
+if USE_HWCLOCK_GPLv3_DATETIME
+hwclock_SOURCES += \
+	sys-utils/hwclock-parse-date.y
+endif
+hwclock_LDADD = $(LDADD) libcommon.la -lm
+hwclock_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/sys-utils
+if USE_HWCLOCK_CMOS
+hwclock_SOURCES += \
+	sys-utils/hwclock-cmos.c
+endif
+if LINUX
+hwclock_SOURCES += \
+	sys-utils/hwclock-rtc.c \
+	lib/monotonic.c
+hwclock_LDADD += $(REALTIME_LIBS)
+endif
+if HAVE_AUDIT
+hwclock_LDADD += -laudit
+endif
+endif # BUILD_HWCLOCK
+
+if BUILD_SETPRIV
+usrbin_exec_PROGRAMS += setpriv
+MANPAGES += sys-utils/setpriv.1
+dist_noinst_DATA += sys-utils/setpriv.1.adoc
+setpriv_SOURCES = sys-utils/setpriv.c \
+		  lib/caputils.c
+dist_noinst_HEADERS += sys-utils/setpriv-landlock.h
+if HAVE_LINUX_LANDLOCK_H
+setpriv_SOURCES += sys-utils/setpriv-landlock.c
+endif
+setpriv_LDADD = $(LDADD) -lcap-ng libcommon.la
+endif

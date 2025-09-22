@@ -1,0 +1,97 @@
+'\" t
+.\"     Title: colcrt
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "COLCRT" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+colcrt \- filter nroff output for CRT previewing
+.SH "SYNOPSIS"
+.sp
+\fBcolcrt\fP [options] [\fIfile\fP ...]
+.SH "DESCRIPTION"
+.sp
+\fBcolcrt\fP provides virtual half\-line and reverse line feed sequences for terminals without such capability, and on which overstriking is destructive. Half\-line characters and underlining (changed to dashing `\-\*(Aq) are placed on new lines in between the normal output lines.
+.SH "OPTIONS"
+.sp
+\fB\-\fP, \fB\-\-no\-underlining\fP
+.RS 4
+Suppress all underlining. This option is especially useful for previewing \fIallboxed\fP tables from \fBtbl\fP(1).
+.RE
+.sp
+\fB\-2\fP, \fB\-\-half\-lines\fP
+.RS 4
+Causes all half\-lines to be printed, effectively double spacing the output. Normally, a minimal space output format is used which will suppress empty lines. The program never suppresses two consecutive empty lines, however. The \fB\-2\fP option is useful for sending output to the line printer when the output contains superscripts and subscripts which would otherwise be partially invisible.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "HISTORY"
+.sp
+The \fBcolcrt\fP command appeared in 3.0BSD.
+.SH "BUGS"
+.sp
+Should fold underlines onto blanks even with the \fB\-\fP option so that a true underline character would show.
+.sp
+Can\(cqt back up more than 102 lines.
+.sp
+General overstriking is lost; as a special case \*(Aq|\*(Aq overstruck with \*(Aq\-\*(Aq or underline becomes \*(Aq+\*(Aq.
+.sp
+Lines are trimmed to 132 characters.
+.sp
+Some provision should be made for processing superscripts and subscripts in documents which are already double\-spaced.
+.SH "EXAMPLES"
+.sp
+A typical use of \fBcolcrt\fP would be:
+.RS 3
+.ll -.6i
+.sp
+\fBtbl exum2.n | nroff \-ms | colcrt \- | more\fP
+.br
+.RE
+.ll
+.SH "SEE ALSO"
+.sp
+\fBcol\fP(1),
+\fBmore\fP(1),
+\fBnroff\fP(1),
+\fBtroff\fP(1),
+\fBul\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBcolcrt\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

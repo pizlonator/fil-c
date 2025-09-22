@@ -1,0 +1,45 @@
+_waitpid_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-s'|'--syscall')
+			return 0
+			;;
+		'-i'|'--ioctl')
+			return 0
+			;;
+		'-l'|'--list')
+			return 0
+			;;
+		'-m'|'--list-ioctl')
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="--syscall
+			        --ioctl
+			        --list
+			        --list-ioctl
+				--help
+				--version"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+		*)
+			_pids
+			return 0
+			;;
+	esac
+	local IFS=$'\n'
+	compopt -o filenames
+	COMPREPLY=( $(compgen -u -- $cur) )
+	return 0
+}
+complete -F _enosys_module enosys

@@ -1,0 +1,256 @@
+
+if BUILD_MINIX
+sbin_PROGRAMS += fsck.minix
+MANPAGES += disk-utils/fsck.minix.8
+dist_noinst_DATA += disk-utils/fsck.minix.8.adoc
+fsck_minix_SOURCES = \
+	disk-utils/fsck.minix.c \
+	disk-utils/minix_programs.h \
+	lib/ismounted.c
+fsck_minix_LDADD = $(LDADD) libcommon.la
+
+sbin_PROGRAMS += mkfs.minix
+MANPAGES += disk-utils/mkfs.minix.8
+dist_noinst_DATA += disk-utils/mkfs.minix.8.adoc
+mkfs_minix_SOURCES = \
+	disk-utils/minix_programs.h \
+	disk-utils/mkfs.minix.c \
+	lib/ismounted.c
+mkfs_minix_LDADD = $(LDADD) libcommon.la
+
+check_PROGRAMS += test_mkfs_minix
+test_mkfs_minix_SOURCES = $(mkfs_minix_SOURCES)
+test_mkfs_minix_LDADD = $(mkfs_minix_LDADD)
+test_mkfs_minix_CFLAGS = $(AM_CFLAGS) -DTEST_SCRIPT
+endif
+
+
+if BUILD_MKFS
+sbin_PROGRAMS += mkfs
+MANPAGES += disk-utils/mkfs.8
+dist_noinst_DATA += disk-utils/mkfs.8.adoc
+mkfs_SOURCES = disk-utils/mkfs.c
+endif
+
+
+if BUILD_ISOSIZE
+usrbin_exec_PROGRAMS += isosize
+MANPAGES += disk-utils/isosize.8
+dist_noinst_DATA += disk-utils/isosize.8.adoc
+isosize_SOURCES = disk-utils/isosize.c
+isosize_LDADD = $(LDADD) libcommon.la
+endif
+
+
+if BUILD_BFS
+sbin_PROGRAMS += mkfs.bfs
+MANPAGES += disk-utils/mkfs.bfs.8
+dist_noinst_DATA += disk-utils/mkfs.bfs.8.adoc
+mkfs_bfs_SOURCES = \
+	disk-utils/mkfs.bfs.c
+mkfs_bfs_LDADD = $(LDADD) libcommon.la
+endif
+
+
+if BUILD_MKSWAP
+sbin_PROGRAMS += mkswap
+MANPAGES += disk-utils/mkswap.8
+dist_noinst_DATA += disk-utils/mkswap.8.adoc
+mkswap_SOURCES = \
+	disk-utils/mkswap.c \
+	lib/ismounted.c
+mkswap_LDADD = $(LDADD) libcommon.la
+
+mkswap_CFLAGS = $(AM_CFLAGS)
+if BUILD_LIBUUID
+mkswap_CFLAGS += -I$(ul_libuuid_incdir)
+mkswap_LDADD += libuuid.la
+endif
+if BUILD_LIBBLKID
+mkswap_CFLAGS += -I$(ul_libblkid_incdir)
+mkswap_LDADD += libblkid.la
+endif
+if HAVE_SELINUX
+mkswap_LDADD += -lselinux
+mkswap_SOURCES += \
+	lib/selinux-utils.c \
+	include/selinux-utils.h
+endif
+endif # BUILD_MKSWAP
+
+
+if BUILD_SWAPLABEL
+sbin_PROGRAMS += swaplabel
+MANPAGES += disk-utils/swaplabel.8
+dist_noinst_DATA += disk-utils/swaplabel.8.adoc
+swaplabel_SOURCES = \
+	disk-utils/swaplabel.c \
+	lib/swapprober.c \
+	include/swapprober.h
+
+swaplabel_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir)
+swaplabel_LDADD = $(LDADD) libblkid.la libcommon.la
+
+if BUILD_LIBUUID
+swaplabel_LDADD += libuuid.la
+swaplabel_CFLAGS += -I$(ul_libuuid_incdir)
+endif
+endif #BUILD_SWAPLABEL
+
+
+if BUILD_FSCK
+sbin_PROGRAMS += fsck
+MANPAGES += disk-utils/fsck.8
+dist_noinst_DATA += disk-utils/fsck.8.adoc
+fsck_SOURCES = disk-utils/fsck.c lib/monotonic.c
+fsck_LDADD = $(LDADD) libmount.la libblkid.la libcommon.la $(REALTIME_LIBS)
+fsck_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir) -I$(ul_libblkid_incdir)
+endif
+
+
+if BUILD_RAW
+sbin_PROGRAMS += raw
+MANPAGES += disk-utils/raw.8
+dist_noinst_DATA += disk-utils/raw.8.adoc
+raw_SOURCES = disk-utils/raw.c
+endif
+
+
+if BUILD_CRAMFS
+cramfs_common_sources = disk-utils/cramfs.h disk-utils/cramfs_common.c
+sbin_PROGRAMS += fsck.cramfs
+MANPAGES += disk-utils/fsck.cramfs.8
+dist_noinst_DATA += disk-utils/fsck.cramfs.8.adoc
+fsck_cramfs_SOURCES = disk-utils/fsck.cramfs.c $(cramfs_common_sources)
+fsck_cramfs_LDADD = $(LDADD) -lz libcommon.la
+
+sbin_PROGRAMS += mkfs.cramfs
+MANPAGES += disk-utils/mkfs.cramfs.8
+dist_noinst_DATA += disk-utils/mkfs.cramfs.8.adoc
+mkfs_cramfs_SOURCES = disk-utils/mkfs.cramfs.c $(cramfs_common_sources)
+mkfs_cramfs_LDADD = $(LDADD) -lz libcommon.la
+endif
+
+if BUILD_FDFORMAT
+usrsbin_exec_PROGRAMS += fdformat
+MANPAGES += disk-utils/fdformat.8
+dist_noinst_DATA += disk-utils/fdformat.8.adoc
+fdformat_SOURCES = disk-utils/fdformat.c
+fdformat_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_BLOCKDEV
+sbin_PROGRAMS += blockdev
+MANPAGES += disk-utils/blockdev.8
+dist_noinst_DATA += disk-utils/blockdev.8.adoc
+blockdev_SOURCES = disk-utils/blockdev.c
+blockdev_LDADD = $(LDADD) libcommon.la
+endif
+
+
+if BUILD_FDISK
+sbin_PROGRAMS += fdisk
+MANPAGES += disk-utils/fdisk.8
+dist_noinst_DATA += disk-utils/fdisk.8.adoc
+fdisk_SOURCES = \
+	disk-utils/fdisk.c \
+	disk-utils/fdisk.h \
+	disk-utils/fdisk-menu.c \
+	disk-utils/fdisk-list.c \
+	disk-utils/fdisk-list.h \
+	include/pager.h \
+	lib/pager.c
+
+fdisk_LDADD = $(LDADD) libcommon.la libfdisk.la \
+	      libsmartcols.la libtcolors.la $(READLINE_LIBS)
+fdisk_CFLAGS = $(AM_CFLAGS) -I$(ul_libfdisk_incdir) -I$(ul_libsmartcols_incdir)
+
+if HAVE_STATIC_FDISK
+sbin_PROGRAMS += fdisk.static
+fdisk_static_SOURCES = $(fdisk_SOURCES)
+fdisk_static_LDFLAGS = -all-static
+fdisk_static_CFLAGS = $(fdisk_CFLAGS)
+fdisk_static_LDADD = $(fdisk_LDADD) $(READLINE_LIBS_STATIC)
+endif
+endif # BUILD_FDISK
+
+
+if BUILD_SFDISK
+sbin_PROGRAMS += sfdisk
+MANPAGES += disk-utils/sfdisk.8
+dist_noinst_DATA += disk-utils/sfdisk.8.adoc
+sfdisk_SOURCES = \
+	disk-utils/sfdisk.c \
+	disk-utils/fdisk-list.c \
+	disk-utils/fdisk-list.h
+
+sfdisk_LDADD = $(LDADD) libcommon.la libfdisk.la \
+	       libsmartcols.la libtcolors.la $(READLINE_LIBS)
+sfdisk_CFLAGS = $(AM_CFLAGS) -I$(ul_libfdisk_incdir) -I$(ul_libsmartcols_incdir)
+
+if HAVE_STATIC_SFDISK
+sbin_PROGRAMS += sfdisk.static
+sfdisk_static_SOURCES = $(sfdisk_SOURCES)
+sfdisk_static_LDFLAGS = -all-static
+sfdisk_static_CFLAGS = $(sfdisk_CFLAGS)
+sfdisk_static_LDADD = $(sfdisk_LDADD) $(READLINE_LIBS_STATIC)
+endif
+endif # BUILD_SFDISK
+
+
+if BUILD_CFDISK
+sbin_PROGRAMS += cfdisk
+MANPAGES += disk-utils/cfdisk.8
+dist_noinst_DATA += disk-utils/cfdisk.8.adoc
+cfdisk_SOURCES = disk-utils/cfdisk.c
+cfdisk_LDADD = \
+	$(LDADD) \
+	libsmartcols.la \
+	libcommon.la \
+	libfdisk.la \
+	libtcolors.la
+cfdisk_CFLAGS = \
+	$(AM_CFLAGS) \
+	-I$(ul_libfdisk_incdir) \
+	-I$(ul_libsmartcols_incdir)
+
+if BUILD_LIBMOUNT
+cfdisk_CFLAGS += -I$(ul_libmount_incdir)
+cfdisk_LDADD += libmount.la
+endif
+
+if HAVE_SLANG
+cfdisk_LDADD += -lslang
+else
+cfdisk_CFLAGS += $(NCURSES_CFLAGS)
+cfdisk_LDADD += $(NCURSES_LIBS)
+endif
+endif # BUILD_CFDISK
+
+
+if BUILD_PARTX
+usrsbin_exec_PROGRAMS += partx addpart delpart resizepart
+MANPAGES += \
+	disk-utils/addpart.8 \
+	disk-utils/delpart.8 \
+	disk-utils/resizepart.8 \
+	disk-utils/partx.8
+dist_noinst_DATA += \
+	disk-utils/addpart.8.adoc \
+	disk-utils/delpart.8.adoc \
+	disk-utils/resizepart.8.adoc \
+	disk-utils/partx.8.adoc
+addpart_SOURCES = disk-utils/addpart.c
+addpart_LDADD = $(LDADD) libcommon.la
+
+delpart_SOURCES = disk-utils/delpart.c
+delpart_LDADD = $(LDADD) libcommon.la
+
+resizepart_SOURCES = disk-utils/resizepart.c
+resizepart_LDADD = $(LDADD) libcommon.la
+
+partx_SOURCES = disk-utils/partx.c
+partx_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir) -I$(ul_libsmartcols_incdir)
+partx_LDADD = $(LDADD) libblkid.la libcommon.la libsmartcols.la
+
+endif # BUILD_PARTX

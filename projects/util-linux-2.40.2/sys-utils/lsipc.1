@@ -1,0 +1,188 @@
+'\" t
+.\"     Title: lsipc
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSIPC" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsipc \- show information on IPC facilities currently employed in the system
+.SH "SYNOPSIS"
+.sp
+\fBlsipc\fP [options]
+.SH "DESCRIPTION"
+.sp
+\fBlsipc\fP shows information on the System V inter\-process communication facilities for which the calling process has read access.
+.SH "OPTIONS"
+.sp
+\fB\-i\fP, \fB\-\-id\fP \fIid\fP
+.RS 4
+Show full details on just the one resource element identified by \fIid\fP. This option needs to be combined with one of the three resource options: \fB\-m\fP, \fB\-q\fP or \fB\-s\fP. It is possible to override the default output format for this option with the \fB\-\-list\fP, \fB\-\-raw\fP, \fB\-\-json\fP or \fB\-\-export\fP option.
+.RE
+.sp
+\fB\-g\fP, \fB\-\-global\fP
+.RS 4
+Show system\-wide usage and limits of IPC resources. This option may be combined with one of the three resource options: \fB\-m\fP, \fB\-q\fP or \fB\-s\fP. The default is to show information about all resources.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SS "Resource options"
+.sp
+\fB\-m\fP, \fB\-\-shmems\fP
+.RS 4
+Write information about active shared memory segments.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-queues\fP
+.RS 4
+Write information about active message queues.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-semaphores\fP
+.RS 4
+Write information about active semaphore sets.
+.RE
+.SS "Output formatting"
+.sp
+\fB\-c\fP, \fB\-\-creator\fP
+.RS 4
+Show creator and owner.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-export\fP
+.RS 4
+Produce output in the form of key="value" pairs. All potentially unsafe value characters are hex\-escaped (\(rsx<code>). See also option \fB\-\-shell\fP.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use the JSON output format.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+Use the list output format. This is the default, except when \fB\-\-id\fP is used.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-newline\fP
+.RS 4
+Display each piece of information on a separate line.
+.RE
+.sp
+\fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-\-notruncate\fP
+.RS 4
+Don\(cqt truncate output.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-help\fP to get a list of all supported columns.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-bytes\fP
+.RS 4
+Print size in bytes rather than in human readable format.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Raw output (no columnation).
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP
+.RS 4
+Write time information. The time of the last control operation that changed the access permissions for all facilities, the time of the last \fBmsgsnd\fP(2) and \fBmsgrcv\fP(2) operations on message queues, the time of the last \fBshmat\fP(2) and \fBshmdt\fP(2) operations on shared memory, and the time of the last \fBsemop\fP(2) operation on semaphores.
+.RE
+.sp
+\fB\-\-time\-format\fP \fItype\fP
+.RS 4
+Display dates in short, full or iso format. The default is short, this time format is designed to be space efficient and human readable.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-numeric\-perms\fP
+.RS 4
+Print numeric permissions in PERMS column.
+.RE
+.sp
+\fB\-y\fP, \fB\-\-shell\fP
+.RS 4
+The column name will be modified to contain only characters allowed for shell variable identifiers. This is usable, for example, with \fB\-\-export\fP. Note that this feature has been automatically enabled for \fB\-\-export\fP in version 2.37, but due to compatibility issues, now it\(cqs necessary to request this behavior by \fB\-\-shell\fP.
+.RE
+.SH "EXIT STATUS"
+.sp
+0
+.RS 4
+if OK,
+.RE
+.sp
+1
+.RS 4
+if incorrect arguments specified,
+.RE
+.sp
+2
+.RS 4
+if a serious error occurs.
+.RE
+.SH "HISTORY"
+.sp
+The \fBlsipc\fP utility is inspired by the \fBipcs\fP(1) utility.
+.SH "AUTHORS"
+.sp
+.MTO "ooprala\(atredhat.com" "Ondrej Oprala" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBipcmk\fP(1),
+\fBipcrm\fP(1),
+\fBmsgrcv\fP(2),
+\fBmsgsnd\fP(2),
+\fBsemget\fP(2),
+\fBsemop\fP(2),
+\fBshmat\fP(2),
+\fBshmdt\fP(2),
+\fBshmget\fP(2),
+\fBsysvipc\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsipc\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

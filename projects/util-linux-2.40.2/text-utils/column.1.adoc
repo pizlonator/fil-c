@@ -1,0 +1,247 @@
+//po4a: entry man manual
+////
+Copyright (c) 1989, 1990, 1993
+The Regents of the University of California.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+This product includes software developed by the University of
+California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+    @(#)column.1	8.1 (Berkeley) 6/6/93
+////
+= column(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: column
+
+== NAME
+
+column - columnate lists
+
+== SYNOPSIS
+
+*column* [options] [_file_ ...]
+
+== DESCRIPTION
+
+The *column* utility formats its input into multiple columns. The util support three modes:
+
+*columns are filled before rows*::
+This is the default mode (required by backward compatibility).
+
+*rows are filled before columns*::
+This mode is enabled by option *-x, --fillrows*
+
+*table*::
+Determine the number of columns the input contains and create a table. This mode is enabled by option *-t, --table* and columns formatting is possible to modify by *--table-** options. Use this mode if not sure. The output is aligned to the terminal width in interactive mode and the 80 columns in non-interactive mode (see *--output-width* for more details).
+
+Input is taken from _file_, or otherwise from standard input. Empty lines are ignored and all invalid multibyte sequences are encoded by x<hex> convention.
+
+== OPTIONS
+
+The argument _columns_ for *--table-** options is a comma separated list of the
+column names as defined by *--table-columns*, or names defined by
+*--table-column* or it's column number in order as specified by input. It's
+possible to mix names and numbers. The special placeholder '0' (e.g. -R0) may
+be used to specify all columns and '-1' (e.g. -R -1) to specify the last visible column.
+It's possible to use ranges like '1-5' when addressing columns by numbers.
+
+*-J, --json*::
+Use JSON output format to print the table, the option *--table-columns* is required and the option *--table-name* is recommended.
+
+*-c, --output-width* _width_::
+Output is formatted to a width specified as number of characters. The original name of this option is *--columns*; this name is deprecated since v2.30. Note that input longer than _width_ is not truncated by default. The default is a terminal width and the 80 columns in non-interactive mode. The column headers are never truncated.
++
+The placeholder "unlimited" (or 0) is possible to use to not restrict output width. This is recommended for example when output to the files rather than on terminal.
+
+*-d, --table-noheadings*::
+Do not print header. This option allows the use of logical column names on the command line, but keeps the header hidden when printing the table.
+
+*-o, --output-separator* _string_::
+Specify the columns delimiter for table output (default is two spaces).
+
+*-s, --separator* _separators_::
+Specify the possible input item delimiters (default is whitespace).
+
+*-t, --table*::
+Determine the number of columns the input contains and create a table. Columns are delimited with whitespace, by default, or with the characters supplied using the *--output-separator* option. Table output is useful for pretty-printing.
+
+*-C, --table-column* _properties_::
+Define one column by comma separated list of column attributes.
+This option can be used more than once, every use defines just one column.
+The properties replace some of *--table-* options. For example *--table-column
+name=FOO,right* define one column where text is aligned to right. The option is
+mutually exclusive to *--table-columns*.
++
+The currently supported attributes are:
++
+*name=string*;;
+Specifies column name.
+*trunc*;;
+The column text can be truncated when necessary. The same as *--table-truncate*.
+*right*;;
+Right align text in the specified columns. The same as *--table-right*.
+*width=number*;;
+Specifies column width. The width is used as a hint only. The width is strictly followed
+only when *strictwidth* attribute is used too.
+*strictwidth*;;
+Strictly follow column *width=* setting.
+*noextreme*;;
+Specify columns where is possible to ignore unusually long cells. See *--table-noextreme* for more details.
+*wrap*;;
+Specify columns where is possible to use multi-line cell for long text when necessary. See *--table-wrap*.
+*hide*;;
+Don't print specified columns. See *--table-hide*.
+*json=type*;;
+Define column type for JSON output, Supported are string, number and boolean.
+
+*-N, --table-columns* _names_::
+Specify the columns names by comma separated list of names. The names are used
+for the table header or to address column in option argument. See also *--table-column*.
+
+*-l, --table-columns-limit* _number_::
+Specify maximal number of the input columns. The last column will contain all remaining line data if the limit is smaller than the number of the columns in the input data.
+
+*-R, --table-right* _columns_::
+Right align text in the specified columns.
+
+*-T, --table-truncate* _columns_::
+Specify columns where text can be truncated when necessary, otherwise very long table entries may be printed on multiple lines.
+
+*-E, --table-noextreme* _columns_::
+Specify columns where is possible to ignore unusually long (longer than average) cells when calculate column width. The option has impact to the width calculation and table formatting, but the printed text is not affected.
++
+The option is used for the last visible column by default.
+
+*-e, --table-header-repeat*::
+Print header line for each page.
+
+*-W, --table-wrap* _columns_::
+Specify columns where is possible to use multi-line cell for long text when necessary.
+
+*-H, --table-hide* _columns_::
+Don't print specified columns. The special placeholder '-' may be used to hide all unnamed columns (see *--table-columns*).
+
+*-O, --table-order* _columns_::
+Specify columns order on output.
+
+*-n, --table-name* _name_::
+Specify the table name used for JSON output. The default is "table".
+
+*-m, --table-maxout*::
+Fill all available space on output.
+
+*-L, --keep-empty-lines*::
+Preserve whitespace-only lines in the input. The default is ignore empty lines at all. This option's original name was *--table-empty-lines* but is now deprecated because it gives the false impression that the option only applies to table mode.
+
+*-r, --tree* _column_::
+Specify column to use tree-like output. Note that the circular dependencies and other anomalies in child and parent relation are silently ignored.
+
+*-i, --tree-id* _column_::
+Specify column with line ID to create child-parent relation.
+
+*-p, --tree-parent* _column_::
+Specify column with parent ID to create child-parent relation.
+
+*-x, --fillrows*::
+Fill rows before filling columns.
+
+include::man-common/help-version.adoc[]
+
+== ENVIRONMENT
+
+The environment variable *COLUMNS* is used to determine the size of the screen if no other information is available.
+
+== HISTORY
+
+The *column* command appeared in 4.3BSD-Reno.
+
+== BUGS
+
+Version 2.23 changed the *-s* option to be non-greedy, for example:
+
+....
+printf "a:b:c\n1::3\n" | column -t -s ':'
+....
+
+Old output:
+
+....
+a  b  c
+1  3
+....
+
+New output (since util-linux 2.23):
+
+....
+a  b  c
+1     3
+....
+
+Historical versions of this tool indicated that "rows are filled before columns" by default, and that the *-x* option reverses this. This wording did not reflect the actual behavior, and it has since been corrected (see above). Other implementations of *column* may continue to use the older documentation, but the behavior should be identical in any case.
+
+== EXAMPLES
+
+Print fstab with header line and align number to the right:
+
+....
+sed 's/#.*//' /etc/fstab | column --table --table-columns SOURCE,TARGET,TYPE,OPTIONS,FREQ,PASS --table-right FREQ,PASS
+....
+
+Print fstab and hide unnamed columns:
+
+....
+sed 's/#.*//' /etc/fstab | column --table --table-columns SOURCE,TARGET,TYPE --table-hide -
+....
+
+Print a tree:
+
+....
+echo -e '1 0 A\n2 1 AA\n3 1 AB\n4 2 AAA\n5 2 AAB' | column --tree-id 1 --tree-parent 2 --tree 3
+1  0  A
+2  1  |-AA
+4  2  | |-AAA
+5  2  | `-AAB
+3  1  `-AB
+....
+
+== SEE ALSO
+
+*colrm*(1),
+*ls*(1),
+*paste*(1),
+*sort*(1)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

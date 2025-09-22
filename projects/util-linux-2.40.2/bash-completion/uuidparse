@@ -1,0 +1,37 @@
+_uuidparse_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-o'|'--output')
+			local prefix realcur OUTPUT
+			realcur="${cur##*,}"
+			prefix="${cur%$realcur}"
+			for WORD in "UUID VARIANT TYPE TIME"; do
+				if ! [[ $prefix == *"$WORD"* ]]; then
+					OUTPUT="$WORD ${OUTPUT:-""}"
+				fi
+			done
+			compopt -o nospace
+			COMPREPLY=( $(compgen -P "$prefix" -W "$OUTPUT" -S ',' -- $realcur) )
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	OPTS="
+		--json
+		--noheadings
+		--output
+		--raw
+		--help
+		--version
+	"
+	COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+	return 0
+
+}
+complete -F _uuidparse_module uuidparse

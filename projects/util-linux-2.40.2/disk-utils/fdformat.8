@@ -1,0 +1,123 @@
+'\" t
+.\"     Title: fdformat
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FDFORMAT" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fdformat \- low\-level format a floppy disk
+.SH "SYNOPSIS"
+.sp
+\fBfdformat\fP [options] \fIdevice\fP
+.SH "DESCRIPTION"
+.sp
+\fBfdformat\fP does a low\-level format on a floppy disk. \fIdevice\fP is usually one of the following (for floppy devices the major = 2, and the minor is shown for informational purposes only):
+.sp
+.if n .RS 4
+.nf
+.fam C
+/dev/fd0d360  (minor = 4)
+/dev/fd0h1200 (minor = 8)
+/dev/fd0D360  (minor = 12)
+/dev/fd0H360  (minor = 12)
+/dev/fd0D720  (minor = 16)
+/dev/fd0H720  (minor = 16)
+/dev/fd0h360  (minor = 20)
+/dev/fd0h720  (minor = 24)
+/dev/fd0H1440 (minor = 28)
+.fam
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+/dev/fd1d360 (minor = 5)
+/dev/fd1h1200 (minor = 9)
+/dev/fd1D360 (minor = 13)
+/dev/fd1H360 (minor = 13)
+/dev/fd1D720 (minor = 17)
+/dev/fd1H720 (minor = 17)
+/dev/fd1h360 (minor = 21)
+/dev/fd1h720 (minor = 25)
+/dev/fd1H1440 (minor = 29)
+.fam
+.fi
+.if n .RE
+.sp
+The generic floppy devices, \fI/dev/fd0\fP and \fI/dev/fd1\fP, will fail to work with \fBfdformat\fP when a non\-standard format is being used, or if the format has not been autodetected earlier. In this case, use \fBsetfdprm\fP(8) to load the disk parameters.
+.SH "OPTIONS"
+.sp
+\fB\-f\fP, \fB\-\-from\fP \fIN\fP
+.RS 4
+Start at the track \fIN\fP (default is 0).
+.RE
+.sp
+\fB\-t\fP, \fB\-\-to\fP \fIN\fP
+.RS 4
+Stop at the track \fIN\fP.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-repair\fP \fIN\fP
+.RS 4
+Try to repair tracks failed during the verification (max \fIN\fP retries).
+.RE
+.sp
+\fB\-n\fP, \fB\-\-no\-verify\fP
+.RS 4
+Skip the verification that is normally performed after the formatting.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+This utility does not handle USB floppy disk drives. Use \fBufiformat\fP(8) instead.
+.SH "AUTHORS"
+.sp
+.MTO "almesber\(atnessie.cs.id.ethz.ch" "Werner Almesberger" ""
+.SH "SEE ALSO"
+.sp
+\fBfd\fP(4),
+\fBemkfs\fP(8),
+\fBmkfs\fP(8),
+\fBsetfdprm\fP(8),
+\fBufiformat\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBfdformat\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

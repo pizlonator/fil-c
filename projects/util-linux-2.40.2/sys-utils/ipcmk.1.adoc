@@ -1,0 +1,61 @@
+//po4a: entry man manual
+////
+Copyright 2008 Hayden A. James (hayden.james@gmail.com)
+May be distributed under the GNU General Public License
+////
+= ipcmk(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: ipcmk
+
+== NAME
+
+ipcmk - make various IPC resources
+
+== SYNOPSIS
+
+*ipcmk* [options]
+
+== DESCRIPTION
+
+*ipcmk* allows you to create System V inter-process communication (IPC) objects: shared memory segments, message queues, and semaphore arrays.
+
+== OPTIONS
+
+Resources can be specified with these options:
+
+*-M*, *--shmem* _size_::
+Create a shared memory segment of _size_ bytes. The _size_ argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, etc. (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, etc.
+
+*-Q*, *--queue*::
+Create a message queue.
+
+*-S*, *--semaphore* _number_::
+Create a semaphore array with _number_ of elements.
+
+Other options are:
+
+*-p*, *--mode* _mode_::
+Access permissions for the resource. Default is 0644.
+
+include::man-common/help-version.adoc[]
+
+== AUTHORS
+
+mailto:hayden.james@gmail.com[Hayden A. James]
+
+== SEE ALSO
+
+*ipcrm*(1),
+*ipcs*(1),
+*sysvipc*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

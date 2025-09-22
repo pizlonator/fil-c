@@ -1,0 +1,88 @@
+'\" t
+.\"     Title: adjtime_config
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: File formats
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "ADJTIME_CONFIG" "5" "2024-04-24" "util\-linux 2.40.2" "File formats"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+adjtime_config \- information about hardware clock setting and drift factor
+.SH "SYNOPSIS"
+.sp
+\fI/etc/adjtime\fP
+.SH "DESCRIPTION"
+.sp
+The file \fI/etc/adjtime\fP contains descriptive information about the hardware mode clock setting and clock drift factor. The file is read and write by \fBhwclock\fP(8); and read by programs like rtcwake to get RTC time mode.
+.sp
+The file is usually located in \fI/etc\fP, but tools like \fBhwclock\fP(8) or \fBrtcwake\fP(8) can use alternative location by command line options if write access to \fI/etc\fP is unwanted. The default clock mode is "UTC" if the file is missing.
+.sp
+The Hardware Clock is usually not very accurate. However, much of its inaccuracy is completely predictable \- it gains or loses the same amount of time every day. This is called systematic drift. The util \fBhwclock\fP(8) keeps the file \fI/etc/adjtime\fP, that keeps some historical information. For more details see "\fBThe Adjust Function\fP" and "\fBThe Adjtime File\fP" sections from \fBhwclock\fP(8) man page.
+.sp
+The \fIadjtime\fP file is formatted in ASCII.
+.SS "First line"
+.sp
+Three numbers, separated by blanks:
+.sp
+\fBdrift factor\fP
+.RS 4
+the systematic drift rate in seconds per day (floating point decimal)
+.RE
+.sp
+\fBlast adjust time\fP
+.RS 4
+the resulting number of seconds since 1969 UTC of most recent adjustment or calibration (decimal integer)
+.RE
+.sp
+\fBadjustment status\fP
+.RS 4
+zero (for compatibility with \fBclock\fP(8)) as a floating point decimal
+.RE
+.SS "Second line"
+.sp
+\fBlast calibration time\fP
+.RS 4
+The resulting number of seconds since 1969 UTC of most recent calibration. Zero if there has been no calibration yet or it is known that any previous calibration is moot (for example, because the Hardware Clock has been found, since that calibration, not to contain a valid time). This is a decimal integer.
+.RE
+.SS "Third line"
+.sp
+\fBclock mode\fP
+.RS 4
+Supported values are \fBUTC\fP or \fBLOCAL\fP. Tells whether the Hardware Clock is set to Coordinated Universal Time or local time. You can always override this value with options on the \fBhwclock\fP(8) command line.
+.RE
+.SH "FILES"
+.sp
+\fI/etc/adjtime\fP
+.SH "SEE ALSO"
+.sp
+\fBhwclock\fP(8),
+\fBrtcwake\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+\fBadjtime_config\fP is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

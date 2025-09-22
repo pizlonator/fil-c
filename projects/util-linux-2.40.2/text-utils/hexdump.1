@@ -1,0 +1,504 @@
+'\" t
+.\"     Title: hexdump
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "HEXDUMP" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+hexdump \- display file contents in hexadecimal, decimal, octal, or ascii
+.SH "SYNOPSIS"
+.sp
+\fBhexdump\fP \fIoptions file\fP ...
+.sp
+\fBhd\fP \fIoptions file\fP ...
+.SH "DESCRIPTION"
+.sp
+The \fBhexdump\fP utility is a filter which displays the specified files, or standard input if no files are specified, in a user\-specified format.
+.SH "OPTIONS"
+.sp
+Below, the \fIlength\fP and \fIoffset\fP arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB"), or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.sp
+\fB\-b\fP, \fB\-\-one\-byte\-octal\fP
+.RS 4
+\fIOne\-byte octal display\fP. Display the input offset in hexadecimal, followed by sixteen space\-separated, three\-column, zero\-filled bytes of input data, in octal, per line.
+.RE
+.sp
+\fB\-X\fP, \fB\-\-one\-byte\-hex\fP
+.RS 4
+\fIOne\-byte hexadecimal display\fP. Display the input offset in hexadecimal, followed by sixteen space\-separated, two\-column, zero\-filled bytes of input data, in hexadecimal, per line.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-one\-byte\-char\fP
+.RS 4
+\fIOne\-byte character display\fP. Display the input offset in hexadecimal, followed by sixteen space\-separated, three\-column, space\-filled characters of input data per line.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-canonical\fP
+.RS 4
+\fICanonical hex+ASCII display\fP. Display the input offset in hexadecimal, followed by sixteen space\-separated, two\-column, hexadecimal bytes, followed by the same sixteen bytes in \fB%_p\fP format enclosed in \fB|\fP characters. Invoking the program as \fBhd\fP implies this option.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-two\-bytes\-decimal\fP
+.RS 4
+\fITwo\-byte decimal display\fP. Display the input offset in hexadecimal, followed by eight space\-separated, five\-column, zero\-filled, two\-byte units of input data, in unsigned decimal, per line.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-format\fP \fIformat_string\fP
+.RS 4
+Specify a format string to be used for displaying data.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-format\-file\fP \fIfile\fP
+.RS 4
+Specify a file that contains one or more newline\-separated format strings. Empty lines and lines whose first non\-blank character is a hash mark (#) are ignored.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-color\fP[=\fIwhen\fP]
+.RS 4
+Accept color units for the output. The optional argument \fIwhen\fP can be \fBauto\fP, \fBnever\fP or \fBalways\fP. If the \fIwhen\fP argument is omitted, it defaults to \fBauto\fP. The colors can be disabled; for the current built\-in default see the \fB\-\-help\fP output. See also the \fBColors\fP subsection and the \fBCOLORS\fP section below.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-length\fP \fIlength\fP
+.RS 4
+Interpret only \fIlength\fP bytes of input.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-two\-bytes\-octal\fP
+.RS 4
+\fITwo\-byte octal display\fP. Display the input offset in hexadecimal, followed by eight space\-separated, six\-column, zero\-filled, two\-byte quantities of input data, in octal, per line.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-skip\fP \fIoffset\fP
+.RS 4
+Skip \fIoffset\fP bytes from the beginning of the input.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-no\-squeezing\fP
+.RS 4
+The \fB\-v\fP option causes \fBhexdump\fP to display all input data. Without the \fB\-v\fP option, any number of groups of output lines which would be identical to the immediately preceding group of output lines (except for the input offsets), are replaced with a line comprised of a single asterisk.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-two\-bytes\-hex\fP
+.RS 4
+\fITwo\-byte hexadecimal display\fP. Display the input offset in hexadecimal, followed by eight space\-separated, four\-column, zero\-filled, two\-byte quantities of input data, in hexadecimal, per line.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+For each input file, \fBhexdump\fP sequentially copies the input to standard output, transforming the data according to the format strings specified by the \fB\-e\fP and \fB\-f\fP options, in the order that they were specified.
+.SH "FORMATS"
+.sp
+A format string contains any number of format units, separated by whitespace. A format unit contains up to three items: an iteration count, a byte count, and a format.
+.sp
+The iteration count is an optional positive integer, which defaults to one. Each format is applied iteration count times.
+.sp
+The byte count is an optional positive integer. If specified it defines the number of bytes to be interpreted by each iteration of the format.
+.sp
+If an iteration count and/or a byte count is specified, a single slash must be placed after the iteration count and/or before the byte count to disambiguate them. Any whitespace before or after the slash is ignored.
+.sp
+The format is required and must be surrounded by double quote (" ") marks. It is interpreted as a fprintf\-style format string (see \fBfprintf\fP(3)), with the following exceptions:
+.sp
+1.
+.RS 4
+An asterisk (*) may not be used as a field width or precision.
+.RE
+.sp
+2.
+.RS 4
+A byte count or field precision \fIis\fP required for each \fBs\fP conversion character (unlike the \fBfprintf\fP(3) default which prints the entire string if the precision is unspecified).
+.RE
+.sp
+3.
+.RS 4
+The conversion characters \fBh\fP, \fBl\fP, \fBn\fP, \fBp\fP, and \fBq\fP are not supported.
+.RE
+.sp
+4.
+.RS 4
+The single character escape sequences described in the C standard are supported:
+.RE
+.RS 3
+.ll -.6i
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+NULL
+T}:T{
+.sp
+\(rs0
+T}
+T{
+.sp
+<alert character>
+T}:T{
+.sp
+\(rsa
+T}
+T{
+.sp
+<backspace>
+T}:T{
+.sp
+\(rsb
+T}
+T{
+.sp
+<form\-feed>
+T}:T{
+.sp
+\(rsf
+T}
+T{
+.sp
+<newline>
+T}:T{
+.sp
+\(rsn
+T}
+T{
+.sp
+<carriage return>
+T}:T{
+.sp
+\(rsr
+T}
+T{
+.sp
+<tab>
+T}:T{
+.sp
+\(rst
+T}
+T{
+.sp
+<vertical tab>
+T}:T{
+.sp
+\(rsv
+T}
+.TE
+.sp
+.br
+.RE
+.ll
+.SS "Conversion strings"
+.sp
+The \fBhexdump\fP utility also supports the following additional conversion strings.
+.sp
+\fB_a[dox]\fP
+.RS 4
+Display the input offset, cumulative across input files, of the next byte to be displayed. The appended characters \fBd\fP, \fBo\fP, and \fBx\fP specify the display base as decimal, octal or hexadecimal respectively.
+.RE
+.sp
+\fB_A[dox]\fP
+.RS 4
+Almost identical to the \fB_a\fP conversion string except that it is only performed once, when all of the input data has been processed.
+.RE
+.sp
+\fB_c\fP
+.RS 4
+Output characters in the default character set. Non\-printing characters are displayed in three\-character, zero\-padded octal, except for those representable by standard escape notation (see above), which are displayed as two\-character strings.
+.RE
+.sp
+\fB_p\fP
+.RS 4
+Output characters in the default character set. Non\-printing characters are displayed as a single \*(Aq\fB.\fP\*(Aq.
+.RE
+.sp
+\fB_u\fP
+.RS 4
+Output US ASCII characters, with the exception that control characters are displayed using the following, lower\-case, names. Characters greater than 0xff, hexadecimal, are displayed as hexadecimal strings.
+.RE
+.RS 3
+.ll -.6i
+.TS
+allbox tab(:);
+lt lt lt lt lt lt.
+T{
+.sp
+000 nul
+T}:T{
+.sp
+001 soh
+T}:T{
+.sp
+002 stx
+T}:T{
+.sp
+003 etx
+T}:T{
+.sp
+004 eot
+T}:T{
+.sp
+005 enq
+T}
+T{
+.sp
+006 ack
+T}:T{
+.sp
+007 bel
+T}:T{
+.sp
+008 bs
+T}:T{
+.sp
+009 ht
+T}:T{
+.sp
+00A lf
+T}:T{
+.sp
+00B vt
+T}
+T{
+.sp
+00C ff
+T}:T{
+.sp
+00D cr
+T}:T{
+.sp
+00E so
+T}:T{
+.sp
+00F si
+T}:T{
+.sp
+010 dle
+T}:T{
+.sp
+011 dc1
+T}
+T{
+.sp
+012 dc2
+T}:T{
+.sp
+013 dc3
+T}:T{
+.sp
+014 dc4
+T}:T{
+.sp
+015 nak
+T}:T{
+.sp
+016 syn
+T}:T{
+.sp
+017 etb
+T}
+T{
+.sp
+018 can
+T}:T{
+.sp
+019 em
+T}:T{
+.sp
+01A sub
+T}:T{
+.sp
+01B esc
+T}:T{
+.sp
+01C fs
+T}:T{
+.sp
+01D gs
+T}
+T{
+.sp
+01E rs
+T}:T{
+.sp
+01F us
+T}:T{
+.sp
+0FF del
+T}:T{
+.sp
+
+T}:T{
+.sp
+
+T}:T{
+.sp
+
+T}
+.TE
+.sp
+.br
+.RE
+.ll
+.SS "Colors"
+.sp
+When put at the end of a format specifier, \fBhexdump\fP highlights the respective string with the color specified. Conditions, if present, are evaluated prior to highlighting.
+.sp
+\fB_L[color_unit_1,color_unit_2,...,color_unit_n]\fP
+.sp
+The full syntax of a color unit is as follows:
+.sp
+\fB[!]COLOR[:VALUE][@OFFSET_START[\-END]]\fP
+.sp
+\fB!\fP
+.RS 4
+Negate the condition. Please note that it only makes sense to negate a unit if both a value/string and an offset are specified. In that case the respective output string will be highlighted if and only if the value/string does not match the one at the offset.
+.RE
+.sp
+\fBCOLOR\fP
+.RS 4
+One of the 8 basic shell colors.
+.RE
+.sp
+\fBVALUE\fP
+.RS 4
+A value to be matched specified in hexadecimal, or octal base, or as a string. Please note that the usual C escape sequences are not interpreted by \fBhexdump\fP inside the color_units.
+.RE
+.sp
+\fBOFFSET\fP
+.RS 4
+An offset or an offset range at which to check for a match. Please note that lone OFFSET_START uses the same value as END offset.
+.RE
+.SS "Counters"
+.sp
+The default and supported byte counts for the conversion characters are as follows:
+.sp
+\fB%_c\fP, \fB%_p\fP, \fB%_u\fP, \fB%c\fP
+.RS 4
+One byte counts only.
+.RE
+.sp
+\fB%d\fP, \fB%i\fP, \fB%o\fP, \fB%u\fP, \fB%X\fP, \fB%x\fP
+.RS 4
+Four byte default, one, two and four byte counts supported.
+.RE
+.sp
+\fB%E\fP, \fB%e\fP, \fB%f\fP, \fB%G\fP, \fB%g\fP
+.RS 4
+Eight byte default, four byte counts supported.
+.RE
+.sp
+The amount of data interpreted by each format string is the sum of the data required by each format unit, which is the iteration count times the byte count, or the iteration count times the number of bytes required by the format if the byte count is not specified.
+.sp
+The input is manipulated in \fIblocks\fP, where a block is defined as the largest amount of data specified by any format string. Format strings interpreting less than an input block\(cqs worth of data, whose last format unit both interprets some number of bytes and does not have a specified iteration count, have the iteration count incremented until the entire input block has been processed or there is not enough data remaining in the block to satisfy the format string.
+.sp
+If, either as a result of user specification or \fBhexdump\fP modifying the iteration count as described above, an iteration count is greater than one, no trailing whitespace characters are output during the last iteration.
+.sp
+It is an error to specify a byte count as well as multiple conversion characters or strings unless all but one of the conversion characters or strings is \fB_a\fP or \fB_A\fP.
+.sp
+If, as a result of the specification of the \fB\-n\fP option or end\-of\-file being reached, input data only partially satisfies a format string, the input block is zero\-padded sufficiently to display all available data (i.e., any format units overlapping the end of data will display some number of the zero bytes).
+.sp
+Further output by such format strings is replaced by an equivalent number of spaces. An equivalent number of spaces is defined as the number of spaces output by an \fBs\fP conversion character with the same field width and precision as the original conversion character or conversion string but with any \*(Aq\fB+\fP\*(Aq, \*(Aq \*(Aq, \*(Aq\fB#\fP\*(Aq conversion flag characters removed, and referencing a NULL string.
+.sp
+If no format strings are specified, the default display is very similar to the \fB\-x\fP output format (the \fB\-x\fP option causes more space to be used between format units than in the default output).
+.SH "EXIT STATUS"
+.sp
+\fBhexdump\fP exits 0 on success and > 0 if an error occurred.
+.SH "CONFORMING TO"
+.sp
+The \fBhexdump\fP utility is expected to be IEEE Std 1003.2 ("POSIX.2") compatible.
+.SH "EXAMPLES"
+.sp
+Display the input in perusal format:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   "%06.6_ao "  12/1 "%3_u "
+   "\(rst" "%_p "
+   "\(rsn"
+.fam
+.fi
+.if n .RE
+.sp
+Implement the \fB\-x\fP option:
+.sp
+.if n .RS 4
+.nf
+.fam C
+   "%07.7_Ax\(rsn"
+   "%07.7_ax  " 8/2 "%04x " "\(rsn"
+.fam
+.fi
+.if n .RE
+.sp
+MBR Boot Signature example: Highlight the addresses cyan and the bytes at offsets 510 and 511 green if their value is 0xAA55, red otherwise.
+.sp
+.if n .RS 4
+.nf
+.fam C
+   "%07.7_Ax_L[cyan]\(rsn"
+   "%07.7_ax_L[cyan]  " 8/2 "   %04x_L[green:0xAA55@510\-511,!red:0xAA55@510\-511] " "\(rsn"
+.fam
+.fi
+.if n .RE
+.SH "COLORS"
+.sp
+The output colorization is implemented by \fBterminal\-colors.d\fP(5) functionality.
+Implicit coloring can be disabled by an empty file
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/hexdump.disable\fP
+.br
+.RE
+.ll
+.sp
+for the \fBhexdump\fP command or for all tools by
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/disable\fP
+.br
+.RE
+.ll
+.sp
+The user\-specific \fI$XDG_CONFIG_HOME/terminal\-colors.d\fP
+or \fI$HOME/.config/terminal\-colors.d\fP overrides the global setting.
+.sp
+Note that the output colorization may be enabled by default, and in this case
+\fIterminal\-colors.d\fP directories do not have to exist yet.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBhexdump\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

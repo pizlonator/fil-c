@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="last"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LAST"
+ts_check_test_command "$TS_CMD_UTMPDUMP"
+ts_check_prog "ln"
+
+$TS_CMD_LAST --version 2>&1 | grep -q "invalid option" \
+	&& ts_skip "deprecated last"
+
+. "$TS_SELF/utmp_functions.sh"
+
+WTMP_FILE=${TS_OUTDIR}/wtmp-a
+rm -f $WTMP_FILE
+
+export LANG=C
+export TZ=GMT
+
+if [ $SIZEOF_UTMP -eq 384 ]; then
+	ln -s ${TS_SELF}/wtmp-a.${BYTE_ORDER} $WTMP_FILE
+else
+	$TS_CMD_UTMPDUMP -r ${TS_SELF}/txt-a > $WTMP_FILE 2>/dev/null \
+		|| ts_skip "can't create test data"
+fi
+
+# there is no better way yet to skip a subtest
+if ts_resolve_host "a.root-servers.net" >/dev/null; then
+ts_init_subtest "dns"
+
+ts_log "~~~ dns short ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -d root >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ dns long ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -w -d root >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ dns host last ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -a -d root >> $TS_OUTPUT 2>/dev/null
+
+ts_finalize_subtest
+fi
+
+ts_init_subtest "nodns"
+ts_log "~~~ basic output ~~~"
+$TS_CMD_LAST -f $WTMP_FILE >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ include system ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -x >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ show ip ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -i torvalds >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ no host ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -R torvalds >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ full times shortopt ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -F >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ full times longopt ~~~"
+$TS_CMD_LAST -f $WTMP_FILE --time-format=full >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ no time ~~~"
+$TS_CMD_LAST -f $WTMP_FILE --time-format=notime >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ iso-8601 time ~~~"
+$TS_CMD_LAST -f $WTMP_FILE --time-format=iso -w >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ since and until ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -s "2013-08-28 02:20" -t "2013-08-28 08:20" >> $TS_OUTPUT 2>/dev/null
+
+ts_log "~~~ present ~~~"
+$TS_CMD_LAST -f $WTMP_FILE -p "2013-08-28 11:20" >> $TS_OUTPUT 2>/dev/null
+ts_finalize_subtest
+
+rm -f $WTMP_FILE
+
+ts_finalize

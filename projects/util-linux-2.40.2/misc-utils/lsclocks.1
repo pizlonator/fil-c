@@ -1,0 +1,177 @@
+'\" t
+.\"     Title: lsclocks
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSCLOCKS" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsclocks \- display system clocks
+.SH "SYNOPSIS"
+.sp
+\fBlsclocks\fP [option]
+.SH "DESCRIPTION"
+.sp
+\fBlsclocks\fP is a simple command to display system clocks.
+.sp
+It allows to display information like current time and resolution of clocks like
+CLOCK_MONOTONIC, CLOCK_REALTIME and CLOCK_BOOTTIME.
+.SH "OPTIONS"
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Don\(cqt print headings.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. See the \fBOUTPUT COLUMNS\fP
+section for details of available columns.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all columns.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Use raw output format.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-time\fP \fIclock\fP
+.RS 4
+Show current time of one specific clock.
+.RE
+.sp
+\fB\-\-no\-discover\-dynamic\fP
+.RS 4
+Do not try to discover dynamic clocks.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-dynamic\-clock\fP \fIpath\fP
+.RS 4
+Also display specified dynamic clock.
+Can be specified multiple times.
+.RE
+.sp
+\fB\-\-no\-discover\-rtc\fP
+.RS 4
+Do not try to discover RTCs.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-rtc\fP \fIpath\fP
+.RS 4
+Also display specified RTC.
+Can be specified multiple times.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-cpu\-clock\fP \fIpid\fP
+.RS 4
+Also display CPU clock of specified process.
+Can be specified multiple times.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "OUTPUT COLUMNS"
+.sp
+Each column has a type. Types are surround by < and >.
+.sp
+TYPE <\f(CRstring\fP>
+.RS 4
+Clock type.
+.RE
+.sp
+ID <\f(CRnumber\fP>
+.RS 4
+Numeric clock ID.
+.RE
+.sp
+CLOCK <\f(CRstring\fP>
+.RS 4
+Name in the form \fBCLOCK_\fP
+.RE
+.sp
+NAME <\f(CRstring\fP>
+.RS 4
+Shorter, easier to read name.
+.RE
+.sp
+TIME <\f(CRnumber\fP>
+.RS 4
+Current clock timestamp as returned by \fBclock_gettime()\fP.
+.RE
+.sp
+ISO_TIME <\f(CRstring\fP>
+.RS 4
+ISO8601 formatted version of \fBTIME\fP.
+.RE
+.sp
+RESOL_RAW <\f(CRnumber\fP>
+.RS 4
+Clock resolution as returned by \fBclock_getres\fP(2).
+.RE
+.sp
+RESOL <\f(CRnumber\fP>
+.RS 4
+Human readable version of \fBRESOL_RAW\fP.
+.RE
+.sp
+REL_TIME <\f(CRstring\fP>
+.RS 4
+\fBTIME\fP time formatted as time range.
+.RE
+.sp
+NS_OFFSET <\f(CRnumber\fP>
+.RS 4
+Offset of the current namespace to the parent namespace as read from \fB/proc/self/timens_offsets\fP.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "thomas\(att\-8ch.de" "Thomas Weißschuh" ""
+.SH "SEE ALSO"
+.sp
+\fBclock_getres\fP(2) \fBclock_gettime\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsclocks\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

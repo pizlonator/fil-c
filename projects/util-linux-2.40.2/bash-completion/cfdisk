@@ -1,0 +1,32 @@
+_cfdisk_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-L'|'--color')
+			COMPREPLY=( $(compgen -W "auto never always" -- $cur) )
+			return 0
+			;;
+		'-V'|'--version'|'h'|'--help')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="	--color
+				--zero
+				--lock
+				--help
+				--read-only
+				--version"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	compopt -o bashdefault -o default
+	COMPREPLY=( $(compgen -W "$(lsblk -pnro name)" -- $cur) )
+	return 0
+}
+complete -F _cfdisk_module cfdisk

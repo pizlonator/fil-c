@@ -1,0 +1,85 @@
+'\" t
+.\"     Title: addpart
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "ADDPART" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+addpart \- tell the kernel about the existence of a partition
+.SH "SYNOPSIS"
+.sp
+\fBaddpart\fP \fIdevice partition start length\fP
+.SH "DESCRIPTION"
+.sp
+\fBaddpart\fP tells the Linux kernel about the existence of the specified partition. The command is a simple wrapper around the "add partition" ioctl.
+.sp
+This command doesn\(cqt manipulate partitions on a block device.
+.SH "PARAMETERS"
+.sp
+\fIdevice\fP
+.RS 4
+The disk device.
+.RE
+.sp
+\fIpartition\fP
+.RS 4
+The partition number.
+.RE
+.sp
+\fIstart\fP
+.RS 4
+The beginning of the partition (in 512\-byte sectors).
+.RE
+.sp
+\fIlength\fP
+.RS 4
+The length of the partition (in 512\-byte sectors).
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBdelpart\fP(8),
+\fBfdisk\fP(8),
+\fBparted\fP(8),
+\fBpartprobe\fP(8),
+\fBpartx\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBaddpart\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

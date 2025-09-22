@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+# Copyright (C) 2022 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="UNIX sockets made in a differenct net namespace"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_nonroot
+
+. "$TS_SELF/lsfd-functions.bash"
+
+ts_check_test_command "$TS_CMD_LSFD"
+
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FDSELFNS=3
+FDALTNS=4
+FDSOCK=5
+
+EXPR='((TYPE == "UNIX") or (TYPE == "UNIX-STREAM")) and (FD == 5)'
+
+compare_net_namespaces()
+{
+    local type=$1
+    local pid=$2
+    local altns_inode
+    local sock_netns
+
+    altns_inode=$(${TS_CMD_LSFD} -n -o INODE -p "${pid}" -Q '(FD == 4)')
+    sock_netns=$(${TS_CMD_LSFD} -n -o SOCK.NETNS -p "${pid}" -Q '(FD == 5)')
+
+    if [[ "${altns_inode}" == "${sock_netns}" ]]; then
+	echo "the netns for the $type socket is extracted as expectedly"
+    else
+	echo "the netns for the $type socket is not extracted well"
+	echo "altns_inode=${altns_inode}"
+	echo "sock_netns=${sock_netns}"
+    fi
+}
+
+strip_type_stream()
+{
+    if [ "$1" = stream ]; then
+	lsfd_strip_type_stream
+    else
+	cat
+    fi
+}
+
+for t in stream dgram seqpacket; do
+    ts_init_subtest "$t"
+    {
+	coproc MKFDS { "$TS_HELPER_MKFDS" unix-in-netns $FDSELFNS $FDALTNS $FDSOCK \
+					  path=test_mkfds-unix-$t-ns \
+					  type=$t ; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    ${TS_CMD_LSFD} -n \
+			   -o ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH \
+			   -p "${PID}" -Q "${EXPR}" | strip_type_stream $t
+	    echo 'ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH': ${PIPESTATUS[0]}
+
+	    compare_net_namespaces "$t" "${PID}"
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+	wait "${MKFDS_PID}"
+
+	coproc MKFDS { "$TS_HELPER_MKFDS" unix-in-netns $FDSELFNS $FDALTNS $FDSOCK \
+					  path=test_mkfds-unix-$t-ns \
+					  abstract=true \
+					  type=$t ; }
+	if read -r -u "${MKFDS[0]}" PID; then
+	    ${TS_CMD_LSFD} -n \
+			   -o ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH \
+			   -p "${PID}" -Q "${EXPR}" | strip_type_stream $t
+	    echo 'ASSOC,STTYPE,NAME,SOCK.STATE,SOCK.TYPE,SOCK.LISTENING,UNIX.PATH': ${PIPESTATUS[0]}
+
+	    compare_net_namespaces "abstract $t" "${PID}"
+
+	    echo DONE >&"${MKFDS[1]}"
+	fi
+	wait "${MKFDS_PID}"
+    } > "$TS_OUTPUT" 2>&1
+    if [ "$?" == "$EPERM" ]; then
+	ts_skip_subtest "unshare(2) is not permitted on this platform"
+	continue
+    fi
+    ts_finalize_subtest
+done
+
+
+ts_finalize

@@ -1,0 +1,173 @@
+'\" t
+.\"     Title: chmem
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CHMEM" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+chmem \- configure memory
+.SH "SYNOPSIS"
+.sp
+\fBchmem\fP [\fB\-h] [\fP\-V*] [\fB\-v\fP] [\fB\-e\fP|\fB\-d\fP] [\fISIZE\fP|\fIRANGE\fP \fB\-b\fP \fIBLOCKRANGE\fP] [\fB\-z\fP \fIZONE\fP]
+.SH "DESCRIPTION"
+.sp
+The chmem command sets a particular size or range of memory online or offline.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Specify \fISIZE\fP as <size>[m|M|g|G]. With m or M, <size> specifies the memory size in MiB (1024 x 1024 bytes). With g or G, <size> specifies the memory size in GiB (1024 x 1024 x 1024 bytes). The default unit is MiB.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Specify \fIRANGE\fP in the form 0x<start>\-0x<end> as shown in the output of the \fBlsmem\fP(1) command. <start> is the hexadecimal address of the first byte and <end> is the hexadecimal address of the last byte in the memory range.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Specify \fIBLOCKRANGE\fP in the form <first>\-<last> or <block> as shown in the output of the \fBlsmem\fP(1) command. <first> is the number of the first memory block and <last> is the number of the last memory block in the memory range. Alternatively a single block can be specified. \fIBLOCKRANGE\fP requires the \fB\-\-blocks\fP option.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Specify \fIZONE\fP as the name of a memory zone, as shown in the output of the \fBlsmem \-o +ZONES\fP command. The output shows one or more valid memory zones for each memory range. If multiple zones are shown, then the memory range currently belongs to the first zone. By default, \fBchmem\fP will set memory online to the zone Movable, if this is among the valid zones. This default can be changed by specifying the \fB\-\-zone\fP option with another valid zone. For memory ballooning, it is recommended to select the zone Movable for memory online and offline, if possible. Memory in this zone is much more likely to be able to be offlined again, but it cannot be used for arbitrary kernel allocations, only for migratable pages (e.g., anonymous and page cache pages). Use the \fB\-\-help\fP option to see all available zones.
+.RE
+.sp
+\fISIZE\fP and \fIRANGE\fP must be aligned to the Linux memory block size, as shown in the output of the \fBlsmem\fP(1) command.
+.sp
+Setting memory online can fail for various reasons. On virtualized systems it can fail if the hypervisor does not have enough memory left, for example because memory was overcommitted. Setting memory offline can fail if Linux cannot free the memory. If only part of the requested memory can be set online or offline, a message tells you how much memory was set online or offline instead of the requested amount.
+.sp
+When setting memory online \fBchmem\fP starts with the lowest memory block numbers. When setting memory offline \fBchmem\fP starts with the highest memory block numbers.
+.SH "OPTIONS"
+.sp
+\fB\-b\fP, \fB\-\-blocks\fP
+.RS 4
+Use a \fIBLOCKRANGE\fP parameter instead of \fIRANGE\fP or \fISIZE\fP for the \fB\-\-enable\fP and \fB\-\-disable\fP options.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-disable\fP
+.RS 4
+Set the specified \fIRANGE\fP, \fISIZE\fP, or \fIBLOCKRANGE\fP of memory offline.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-enable\fP
+.RS 4
+Set the specified \fIRANGE\fP, \fISIZE\fP, or \fIBLOCKRANGE\fP of memory online.
+.RE
+.sp
+\fB\-z\fP, \fB\-\-zone\fP
+.RS 4
+Select the memory \fIZONE\fP where to set the specified \fIRANGE\fP, \fISIZE\fP, or \fIBLOCKRANGE\fP of memory online or offline. By default, memory will be set online to the zone Movable, if possible.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose mode. Causes \fBchmem\fP to print debugging messages about it\(cqs progress.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBchmem\fP has the following exit status values:
+.sp
+\fB0\fP
+.RS 4
+success
+.RE
+.sp
+\fB1\fP
+.RS 4
+failure
+.RE
+.sp
+\fB64\fP
+.RS 4
+partial success
+.RE
+.SH "EXAMPLE"
+.sp
+\fBchmem \-\-enable 1024\fP
+.RS 4
+This command requests 1024 MiB of memory to be set online.
+.RE
+.sp
+\fBchmem \-e 2g\fP
+.RS 4
+This command requests 2 GiB of memory to be set online.
+.RE
+.sp
+\fBchmem \-\-disable 0x00000000e4000000\-0x00000000f3ffffff\fP
+.RS 4
+This command requests the memory range starting with 0x00000000e4000000 and ending with 0x00000000f3ffffff to be set offline.
+.RE
+.sp
+\fBchmem \-b \-d 10\fP
+.RS 4
+This command requests the memory block number 10 to be set offline.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBlsmem\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBchmem\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

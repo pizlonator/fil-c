@@ -1,0 +1,88 @@
+'\" t
+.\"     Title: fsfreeze
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FSFREEZE" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fsfreeze \- suspend access to a filesystem (Ext3/4, ReiserFS, JFS, XFS)
+.SH "SYNOPSIS"
+.sp
+\fBfsfreeze\fP \fB\-\-freeze\fP|\fB\-\-unfreeze\fP \fImountpoint\fP
+.SH "DESCRIPTION"
+.sp
+\fBfsfreeze\fP suspends or resumes access to a filesystem.
+.sp
+\fBfsfreeze\fP halts any new access to the filesystem and creates a stable image on disk. \fBfsfreeze\fP is intended to be used with hardware RAID devices that support the creation of snapshots.
+.sp
+\fBfsfreeze\fP is unnecessary for \fBdevice\-mapper\fP devices. The device\-mapper (and LVM) automatically freezes a filesystem on the device when a snapshot creation is requested. For more details see the \fBdmsetup\fP(8) man page.
+.sp
+The \fImountpoint\fP argument is the pathname of the directory where the filesystem is mounted. The filesystem must be mounted to be frozen (see \fBmount\fP(8)).
+.sp
+Note that access\-time updates are also suspended if the filesystem is mounted with the traditional atime behavior (mount option \fBstrictatime\fP, for more details see \fBmount\fP(8)).
+.SH "OPTIONS"
+.sp
+\fB\-f\fP, \fB\-\-freeze\fP
+.RS 4
+This option requests the specified filesystem to be frozen from new modifications. When this is selected, all ongoing transactions in the filesystem are allowed to complete, new \fBwrite\fP(2) system calls are halted, other calls which modify the filesystem are halted, and all dirty data, metadata, and log information are written to disk. Any process attempting to write to the frozen filesystem will block waiting for the filesystem to be unfrozen.
+.sp
+Note that even after freezing, the on\-disk filesystem can contain information on files that are still in the process of unlinking. These files will not be unlinked until the filesystem is unfrozen or a clean mount of the snapshot is complete.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-unfreeze\fP
+.RS 4
+This option is used to un\-freeze the filesystem and allow operations to continue. Any filesystem modifications that were blocked by the freeze are unblocked and allowed to complete.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "FILESYSTEM SUPPORT"
+.sp
+This command will work only if filesystem supports has support for freezing. List of these filesystems include (2016\-12\-18) \fBbtrfs\fP, \fBext2/3/4\fP, \fBf2fs\fP, \fBjfs\fP, \fBnilfs2\fP, \fBreiserfs\fP, and \fBxfs\fP. Previous list may be incomplete, as more filesystems get support. If in doubt easiest way to know if a filesystem has support is create a small loopback mount and test freezing it.
+.SH "NOTES"
+.sp
+This man page is based on \fBxfs_freeze\fP(8).
+.SH "AUTHORS"
+.sp
+Written by Hajime Taira.
+.SH "SEE ALSO"
+.sp
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBfsfreeze\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

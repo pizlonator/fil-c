@@ -1,0 +1,67 @@
+
+check_PROGRAMS += test_uuid_parser
+test_uuid_parser_SOURCES = libuuid/src/test_uuid.c
+test_uuid_parser_LDADD = libuuid.la $(SOCKET_LIBS) $(LDADD)
+test_uuid_parser_CFLAGS = $(AM_CFLAGS) -I$(ul_libuuid_incdir)
+
+# includes
+uuidincdir = $(includedir)/uuid
+uuidinc_HEADERS = libuuid/src/uuid.h
+
+usrlib_exec_LTLIBRARIES += libuuid.la
+
+libuuid_la_SOURCES = \
+	libuuid/src/uuidP.h \
+	libuuid/src/clear.c \
+	libuuid/src/compare.c \
+	libuuid/src/copy.c \
+	libuuid/src/gen_uuid.c \
+	libuuid/src/isnull.c \
+	libuuid/src/pack.c \
+	libuuid/src/parse.c \
+	libuuid/src/unpack.c \
+	libuuid/src/unparse.c \
+	libuuid/src/uuidd.h \
+	libuuid/src/uuid_time.c \
+	libuuid/src/predefined.c \
+	lib/randutils.c \
+	lib/md5.c \
+	lib/sha1.c
+
+EXTRA_libuuid_la_DEPENDENCIES = \
+	libuuid/src/libuuid.sym
+
+libuuid_la_LIBADD       = $(LDADD) $(SOCKET_LIBS) -lpthread
+
+libuuid_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	 $(SOLIB_CFLAGS) \
+	 -I$(ul_libuuid_incdir) \
+	 -Ilibuuid/src
+
+libuuid_la_LDFLAGS = $(SOLIB_LDFLAGS)
+if HAVE_VSCRIPT
+libuuid_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(top_srcdir)/libuuid/src/libuuid.sym
+endif
+libuuid_la_LDFLAGS += -version-info $(LIBUUID_VERSION_INFO)
+
+
+EXTRA_DIST += libuuid/src/libuuid.sym
+
+# move lib from $(usrlib_execdir) to $(libdir) if needed
+install-exec-hook-libuuid:
+	if test "$(usrlib_execdir)" != "$(libdir)" -a -f "$(DESTDIR)$(usrlib_execdir)/libuuid.so"; then \
+		$(MKDIR_P) $(DESTDIR)$(libdir); \
+		mv $(DESTDIR)$(usrlib_execdir)/libuuid.so.* $(DESTDIR)$(libdir); \
+		so_img_name=$$(readlink $(DESTDIR)$(usrlib_execdir)/libuuid.so); \
+		so_img_rel_target=$$(echo $(usrlib_execdir) | sed 's,\(^/\|\)[^/][^/]*,..,g'); \
+		(cd $(DESTDIR)$(usrlib_execdir) && \
+			rm -f libuuid.so && \
+			$(LN_S) $$so_img_rel_target$(libdir)/$$so_img_name libuuid.so); \
+	fi
+
+uninstall-hook-libuuid:
+	rm -f $(DESTDIR)$(libdir)/libuuid.so*
+
+INSTALL_EXEC_HOOKS += install-exec-hook-libuuid
+UNINSTALL_HOOKS += uninstall-hook-libuuid

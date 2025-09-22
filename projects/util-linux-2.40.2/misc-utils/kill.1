@@ -1,0 +1,184 @@
+'\" t
+.\"     Title: kill
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "KILL" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+kill \- terminate a process
+.SH "SYNOPSIS"
+.sp
+\fBkill\fP  [\fB\-\fP\fIsignal\fP|\fB\-s\fP \fIsignal\fP|\fB\-p\fP]  [\fB\-q\fP \fIvalue\fP] [\fB\-a\fP] [\fB\-\-timeout\fP \fImilliseconds\fP \fIsignal\fP] [\fB\-\-\fP] \fIpid\fP|\fIname\fP...
+.sp
+\fBkill\fP \fB\-l\fP [\fInumber\fP] | \fB\-L\fP
+.SH "DESCRIPTION"
+.sp
+The command \fBkill\fP sends the specified \fIsignal\fP to the specified processes or process groups.
+.sp
+If no signal is specified, the \fBTERM\fP signal is sent. The default action for this signal is to terminate the process. This signal should be used in preference to the \fBKILL\fP signal (number 9), since a process may install a handler for the TERM signal in order to perform clean\-up steps before terminating in an orderly fashion. If a process does not terminate after a \fBTERM\fP signal has been sent, then the \fBKILL\fP signal may be used; be aware that the latter signal cannot be caught, and so does not give the target process the opportunity to perform any clean\-up before terminating.
+.sp
+Most modern shells have a builtin \fBkill\fP command, with a usage rather similar to that of the command described here. The \fB\-\-all\fP, \fB\-\-pid\fP, and \fB\-\-queue\fP options, and the possibility to specify processes by command name, are local extensions.
+.sp
+If \fIsignal\fP is 0, then no actual signal is sent, but error checking is still performed.
+.SH "ARGUMENTS"
+.sp
+The list of processes to be signaled can be a mixture of names and PIDs.
+.sp
+\fIpid\fP
+.RS 4
+Each \fIpid\fP can be expressed in one of the following ways:
+.sp
+\fIn\fP
+.RS 4
+where \fIn\fP is larger than 0. The process with PID \fIn\fP is signaled.
+.RE
+.sp
+\fB0\fP
+.RS 4
+All processes in the current process group are signaled.
+.RE
+.sp
+\fB\-1\fP
+.RS 4
+All processes with a PID larger than 1 are signaled.
+.RE
+.sp
+\fB\-\fP\fIn\fP
+.RS 4
+where \fIn\fP is larger than 1. All processes in process group \fIn\fP are signaled. When an argument of the form \*(Aq\-n\*(Aq is given, and it is meant to denote a process group, either a signal must be specified first, or the argument must be preceded by a \*(Aq\-\-\*(Aq option, otherwise it will be taken as the signal to send.
+.RE
+.RE
+.sp
+\fIname\fP
+.RS 4
+All processes invoked using this \fIname\fP will be signaled.
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-s\fP, \fB\-\-signal\fP \fIsignal\fP
+.RS 4
+The signal to send. It may be given as a name or a number.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP [\fInumber\fP]
+.RS 4
+Print a list of signal names, or convert the given signal number to a name. The signals can be found in \fI/usr/include/linux/signal.h\fP.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-table\fP
+.RS 4
+Similar to \fB\-l\fP, but it will print signal names and their corresponding numbers.
+.RE
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+Do not restrict the command\-name\-to\-PID conversion to processes with the same UID as the present process.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP
+.RS 4
+Only print the process ID (PID) of the named processes, do not send any signals.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-require\-handler\fP
+.RS 4
+Do not send the signal if it is not caught in userspace by the signalled process.
+.RE
+.sp
+\fB\-\-verbose\fP
+.RS 4
+Print PID(s) that will be signaled with \fBkill\fP along with the signal.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-queue\fP \fIvalue\fP
+.RS 4
+Send the signal using \fBsigqueue\fP(3) rather than \fBkill\fP(2). The \fIvalue\fP argument is an integer that is sent along with the signal. If the receiving process has installed a handler for this signal using the \fBSA_SIGINFO\fP flag to \fBsigaction\fP(2), then it can obtain this data via the \fIsi_sigval\fP field of the \fIsiginfo_t\fP structure.
+.RE
+.sp
+\fB\-\-timeout\fP \fImilliseconds signal\fP
+.RS 4
+Send a signal defined in the usual way to a process, followed by an additional signal after a specified delay. The \fB\-\-timeout\fP option causes \fBkill\fP to wait for a period defined in \fImilliseconds\fP before sending a follow\-up \fIsignal\fP to the process. This feature is implemented using the Linux kernel PID file descriptor feature in order to guarantee that the follow\-up signal is sent to the same process or not sent if the process no longer exists.
+.sp
+Note that the operating system may re\-use PIDs and implementing an equivalent feature in a shell using \fBkill\fP and \fBsleep\fP would be subject to races whereby the follow\-up signal might be sent to a different process that used a recycled PID.
+.sp
+The \fB\-\-timeout\fP option can be specified multiple times: the signals are sent sequentially with the specified timeouts. The \fB\-\-timeout\fP option can be combined with the \fB\-\-queue\fP option.
+.sp
+As an example, the following command sends the signals \fBQUIT\fP, \fBTERM\fP and \fBKILL\fP in sequence and waits for 1000 milliseconds between sending the signals:
+.sp
+.if n .RS 4
+.nf
+.fam C
+kill \-\-verbose \-\-timeout 1000 TERM \-\-timeout 1000 KILL \(rs
+        \-\-signal QUIT 12345
+.fam
+.fi
+.if n .RE
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBkill\fP has the following exit status values:
+.sp
+\fB0\fP
+.RS 4
+success
+.RE
+.sp
+\fB1\fP
+.RS 4
+failure
+.RE
+.sp
+\fB64\fP
+.RS 4
+partial success (when more than one process specified)
+.RE
+.SH "NOTES"
+.sp
+Although it is possible to specify the TID (thread ID, see \fBgettid\fP(2)) of one of the threads in a multithreaded process as the argument of \fBkill\fP, the signal is nevertheless directed to the process (i.e., the entire thread group). In other words, it is not possible to send a signal to an explicitly selected thread in a multithreaded process. The signal will be delivered to an arbitrarily selected thread in the target process that is not blocking the signal. For more details, see \fBsignal\fP(7) and the description of \fBCLONE_THREAD\fP in \fBclone\fP(2).
+.sp
+Various shells provide a builtin \fBkill\fP command that is preferred in relation to the \fBkill\fP(1) executable described by this manual. The easiest way to ensure one is executing the command described in this page is to use the full path when calling the command, for example: \fB/bin/kill \-\-version\fP
+.SH "AUTHORS"
+.sp
+.MTO "svalente\(atmit.edu" "Salvatore Valente" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.sp
+The original version was taken from BSD 4.4.
+.SH "SEE ALSO"
+.sp
+\fBbash\fP(1),
+\fBtcsh\fP(1),
+\fBsigaction\fP(2),
+\fBkill\fP(2),
+\fBsigqueue\fP(3),
+\fBsignal\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBkill\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

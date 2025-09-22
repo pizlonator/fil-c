@@ -1,0 +1,190 @@
+'\" t
+.\"     Title: getopt
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "GETOPT" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+getopt \- parse command options (enhanced)
+.SH "SYNOPSIS"
+.sp
+\fBgetopt\fP \fIoptstring\fP \fIparameters\fP
+.sp
+\fBgetopt\fP [options] [\fB\-\-\fP] \fIoptstring\fP \fIparameters\fP
+.sp
+\fBgetopt\fP [options] \fB\-o\fP|\fB\-\-options\fP \fIoptstring\fP [options] [\fB\-\-\fP] \fIparameters\fP
+.SH "DESCRIPTION"
+.sp
+\fBgetopt\fP is used to break up (\fIparse\fP) options in command lines for easy parsing by shell procedures, and to check for valid options. It uses the GNU \fBgetopt\fP(3) routines to do this.
+.sp
+The parameters \fBgetopt\fP is called with can be divided into two parts: options which modify the way \fBgetopt\fP will do the parsing (the \fIoptions\fP and the \fIoptstring\fP in the \fBSYNOPSIS\fP), and the parameters which are to be parsed (\fIparameters\fP in the \fBSYNOPSIS\fP). The second part will start at the first non\-option parameter that is not an option argument, or after the first occurrence of \*(Aq\fB\-\-\fP\*(Aq. If no \*(Aq\fB\-o\fP\*(Aq or \*(Aq\fB\-\-options\fP\*(Aq option is found in the first part, the first parameter of the second part is used as the short options string.
+.sp
+If the environment variable \fBGETOPT_COMPATIBLE\fP is set, or if the first \fIparameter\fP is not an option (does not start with a \*(Aq\fB\-\fP\*(Aq, the first format in the \fBSYNOPSIS\fP), \fBgetopt\fP will generate output that is compatible with that of other versions of \fBgetopt\fP(1). It will still do parameter shuffling and recognize optional arguments (see the \fBCOMPATIBILITY\fP section for more information).
+.sp
+Traditional implementations of \fBgetopt\fP(1) are unable to cope with whitespace and other (shell\-specific) special characters in arguments and non\-option parameters. To solve this problem, this implementation can generate quoted output which must once again be interpreted by the shell (usually by using the \fBeval\fP command). This has the effect of preserving those characters, but you must call \fBgetopt\fP in a way that is no longer compatible with other versions (the second or third format in the \fBSYNOPSIS\fP). To determine whether this enhanced version of \fBgetopt\fP(1) is installed, a special test option (\fB\-T\fP) can be used.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-alternative\fP
+.RS 4
+Allow long options to start with a single \*(Aq\fB\-\fP\*(Aq.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-longoptions\fP \fIlongopts\fP
+.RS 4
+The long (multi\-character) options to be recognized. More than one option name may be specified at once, by separating the names with commas. This option may be given more than once, the \fIlongopts\fP are cumulative. Each long option name in \fIlongopts\fP may be followed by one colon to indicate it has a required argument, and by two colons to indicate it has an optional argument.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-name\fP \fIprogname\fP
+.RS 4
+The name that will be used by the \fBgetopt\fP(3) routines when it reports errors. Note that errors of \fBgetopt\fP(1) are still reported as coming from getopt.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-options\fP \fIshortopts\fP
+.RS 4
+The short (one\-character) options to be recognized. If this option is not found, the first parameter of \fBgetopt\fP that does not start with a \*(Aq\fB\-\fP\*(Aq (and is not an option argument) is used as the short options string. Each short option character in \fIshortopts\fP may be followed by one colon to indicate it has a required argument, and by two colons to indicate it has an optional argument. The first character of shortopts may be \*(Aq\fB+\fP\*(Aq or \*(Aq\fB\-\fP\*(Aq to influence the way options are parsed and output is generated (see the \fBSCANNING MODES\fP section for details).
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Disable error reporting by \fBgetopt\fP(3).
+.RE
+.sp
+\fB\-Q\fP, \fB\-\-quiet\-output\fP
+.RS 4
+Do not generate normal output. Errors are still reported by \fBgetopt\fP(3), unless you also use \fB\-q\fP.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-shell\fP \fIshell\fP
+.RS 4
+Set quoting conventions to those of \fIshell\fP. If the \fB\-s\fP option is not given, the \fBBASH\fP conventions are used. Valid arguments are currently \*(Aq\fBsh\fP\*(Aq, \*(Aq\fBbash\fP\*(Aq, \*(Aq\fBcsh\fP\*(Aq, and \*(Aq\fBtcsh\fP\*(Aq.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-test\fP
+.RS 4
+Test if your \fBgetopt\fP(1) is this enhanced version or an old version. This generates no output, and sets the error status to 4. Other implementations of \fBgetopt\fP(1), and this version if the environment variable \fBGETOPT_COMPATIBLE\fP is set, will return \*(Aq\fB\-\-\fP\*(Aq and error status 0.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-unquoted\fP
+.RS 4
+Do not quote the output. Note that whitespace and special (shell\-dependent) characters can cause havoc in this mode (like they do with other \fBgetopt\fP(1) implementations).
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "PARSING"
+.sp
+This section specifies the format of the second part of the parameters of \fBgetopt\fP (the \fIparameters\fP in the \fBSYNOPSIS\fP). The next section (\fBOUTPUT\fP) describes the output that is generated. These parameters were typically the parameters a shell function was called with. Care must be taken that each parameter the shell function was called with corresponds to exactly one parameter in the parameter list of \fBgetopt\fP (see the \fBEXAMPLES\fP). All parsing is done by the GNU \fBgetopt\fP(3) routines.
+.sp
+The parameters are parsed from left to right. Each parameter is classified as a short option, a long option, an argument to an option, or a non\-option parameter.
+.sp
+A simple short option is a \*(Aq\fB\-\fP\*(Aq followed by a short option character. If the option has a required argument, it may be written directly after the option character or as the next parameter (i.e., separated by whitespace on the command line). If the option has an optional argument, it must be written directly after the option character if present.
+.sp
+It is possible to specify several short options after one \*(Aq\fB\-\fP\*(Aq, as long as all (except possibly the last) do not have required or optional arguments.
+.sp
+A long option normally begins with \*(Aq\fB\-\-\fP\*(Aq followed by the long option name. If the option has a required argument, it may be written directly after the long option name, separated by \*(Aq\fB=\fP\*(Aq, or as the next argument (i.e., separated by whitespace on the command line). If the option has an optional argument, it must be written directly after the long option name, separated by \*(Aq\fB=\fP\*(Aq, if present (if you add the \*(Aq\fB=\fP\*(Aq but nothing behind it, it is interpreted as if no argument was present; this is a slight bug, see the \fBBUGS\fP). Long options may be abbreviated, as long as the abbreviation is not ambiguous.
+.sp
+Each parameter not starting with a \*(Aq\fB\-\fP\*(Aq, and not a required argument of a previous option, is a non\-option parameter. Each parameter after a \*(Aq\fB\-\-\fP\*(Aq parameter is always interpreted as a non\-option parameter. If the environment variable \fBPOSIXLY_CORRECT\fP is set, or if the short option string started with a \*(Aq\fB+\fP\*(Aq, all remaining parameters are interpreted as non\-option parameters as soon as the first non\-option parameter is found.
+.SH "OUTPUT"
+.sp
+Output is generated for each element described in the previous section. Output is done in the same order as the elements are specified in the input, except for non\-option parameters. Output can be done in \fIcompatible\fP (\fIunquoted\fP) mode, or in such way that whitespace and other special characters within arguments and non\-option parameters are preserved (see \fBQUOTING\fP). When the output is processed in the shell script, it will seem to be composed of distinct elements that can be processed one by one (by using the shift command in most shell languages). This is imperfect in unquoted mode, as elements can be split at unexpected places if they contain whitespace or special characters.
+.sp
+If there are problems parsing the parameters, for example because a required argument is not found or an option is not recognized, an error will be reported on stderr, there will be no output for the offending element, and a non\-zero error status is returned.
+.sp
+For a short option, a single \*(Aq\fB\-\fP\*(Aq and the option character are generated as one parameter. If the option has an argument, the next parameter will be the argument. If the option takes an optional argument, but none was found, the next parameter will be generated but be empty in quoting mode, but no second parameter will be generated in unquoted (compatible) mode. Note that many other \fBgetopt\fP(1) implementations do not support optional arguments.
+.sp
+If several short options were specified after a single \*(Aq\fB\-\fP\*(Aq, each will be present in the output as a separate parameter.
+.sp
+For a long option, \*(Aq\fB\-\-\fP\*(Aq and the full option name are generated as one parameter. This is done regardless whether the option was abbreviated or specified with a single \*(Aq\fB\-\fP\*(Aq in the input. Arguments are handled as with short options.
+.sp
+Normally, no non\-option parameters output is generated until all options and their arguments have been generated. Then \*(Aq\fB\-\-\fP\*(Aq is generated as a single parameter, and after it the non\-option parameters in the order they were found, each as a separate parameter. Only if the first character of the short options string was a \*(Aq\fB\-\fP\*(Aq, non\-option parameter output is generated at the place they are found in the input (this is not supported if the first format of the \fBSYNOPSIS\fP is used; in that case all preceding occurrences of \*(Aq\fB\-\fP\*(Aq and \*(Aq\fB+\fP\*(Aq are ignored).
+.SH "QUOTING"
+.sp
+In compatibility mode, whitespace or \*(Aqspecial\*(Aq characters in arguments or non\-option parameters are not handled correctly. As the output is fed to the shell script, the script does not know how it is supposed to break the output into separate parameters. To circumvent this problem, this implementation offers quoting. The idea is that output is generated with quotes around each parameter. When this output is once again fed to the shell (usually by a shell \fBeval\fP command), it is split correctly into separate parameters.
+.sp
+Quoting is not enabled if the environment variable \fBGETOPT_COMPATIBLE\fP is set, if the first form of the \fBSYNOPSIS\fP is used, or if the option \*(Aq\fB\-u\fP\*(Aq is found.
+.sp
+Different shells use different quoting conventions. You can use the \*(Aq\fB\-s\fP\*(Aq option to select the shell you are using. The following shells are currently supported: \*(Aq\fBsh\fP\*(Aq, \*(Aq\fBbash\fP\*(Aq, \*(Aq\fBcsh\fP\*(Aq and \*(Aq\fBtcsh\fP\*(Aq. Actually, only two \*(Aqflavors\*(Aq are distinguished: sh\-like quoting conventions and csh\-like quoting conventions. Chances are that if you use another shell script language, one of these flavors can still be used.
+.SH "SCANNING MODES"
+.sp
+The first character of the short options string may be a \*(Aq\fB\-\fP\*(Aq or a \*(Aq\fB+\fP\*(Aq to indicate a special scanning mode. If the first calling form in the \fBSYNOPSIS\fP is used they are ignored; the environment variable \fBPOSIXLY_CORRECT\fP is still examined, though.
+.sp
+If the first character is \*(Aq\fB+\fP\*(Aq, or if the environment variable \fBPOSIXLY_CORRECT\fP is set, parsing stops as soon as the first non\-option parameter (i.e., a parameter that does not start with a \*(Aq\fB\-\fP\*(Aq) is found that is not an option argument. The remaining parameters are all interpreted as non\-option parameters.
+.sp
+If the first character is a \*(Aq\fB\-\fP\*(Aq, non\-option parameters are outputted at the place where they are found; in normal operation, they are all collected at the end of output after a \*(Aq\fB\-\-\fP\*(Aq parameter has been generated. Note that this \*(Aq\fB\-\-\fP\*(Aq parameter is still generated, but it will always be the last parameter in this mode.
+.SH "COMPATIBILITY"
+.sp
+This version of \fBgetopt\fP(1) is written to be as compatible as possible to other versions. Usually you can just replace them with this version without any modifications, and with some advantages.
+.sp
+If the first character of the first parameter of getopt is not a \*(Aq\fB\-\fP\*(Aq, \fBgetopt\fP goes into compatibility mode. It will interpret its first parameter as the string of short options, and all other arguments will be parsed. It will still do parameter shuffling (i.e., all non\-option parameters are output at the end), unless the environment variable \fBPOSIXLY_CORRECT\fP is set, in which case, \fBgetopt\fP will prepend a \*(Aq\fB+\fP\*(Aq before short options automatically.
+.sp
+The environment variable \fBGETOPT_COMPATIBLE\fP forces \fBgetopt\fP into compatibility mode. Setting both this environment variable and \fBPOSIXLY_CORRECT\fP offers 100% compatibility for \*(Aqdifficult\*(Aq programs. Usually, though, neither is needed.
+.sp
+In compatibility mode, leading \*(Aq\fB\-\fP\*(Aq and \*(Aq\fB+\fP\*(Aq characters in the short options string are ignored.
+.SH "RETURN CODES"
+.sp
+\fBgetopt\fP returns error code \fB0\fP for successful parsing, \fB1\fP if \fBgetopt\fP(3) returns errors, \fB2\fP if it does not understand its own parameters, \fB3\fP if an internal error occurs like out\-of\-memory, and \fB4\fP if it is called with \fB\-T\fP.
+.SH "EXAMPLES"
+.sp
+Example scripts for (ba)sh and (t)csh are provided with the \fBgetopt\fP(1) distribution, and are installed in \fI/usr/share/doc/util\-linux\fP directory.
+.SH "ENVIRONMENT"
+.sp
+\fBPOSIXLY_CORRECT\fP
+.RS 4
+This environment variable is examined by the \fBgetopt\fP(3) routines. If it is set, parsing stops as soon as a parameter is found that is not an option or an option argument. All remaining parameters are also interpreted as non\-option parameters, regardless whether they start with a \*(Aq\fB\-\fP\*(Aq.
+.RE
+.sp
+\fBGETOPT_COMPATIBLE\fP
+.RS 4
+Forces \fBgetopt\fP to use the first calling format as specified in the \fBSYNOPSIS\fP.
+.RE
+.SH "BUGS"
+.sp
+\fBgetopt\fP(3) can parse long options with optional arguments that are given an empty optional argument (but cannot do this for short options). This \fBgetopt\fP(1) treats optional arguments that are empty as if they were not present.
+.sp
+The syntax if you do not want any short option variables at all is not very intuitive (you have to set them explicitly to the empty string).
+.SH "AUTHOR"
+.sp
+.MTO "frodo\(atfrodo.looijaard.name" "Frodo Looijaard" ""
+.SH "SEE ALSO"
+.sp
+\fBbash\fP(1),
+\fBtcsh\fP(1),
+\fBgetopt\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBgetopt\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

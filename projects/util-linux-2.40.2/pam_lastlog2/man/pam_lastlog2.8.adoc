@@ -1,0 +1,78 @@
+//po4a: entry man manual
+= pam_lastlog2(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:lib: pam_lastlog2
+:firstversion: 2.40
+:page-layout: base
+
+== NAME
+
+pam_lastlog2 - PAM module to display date of last login
+
+== SYNOPSIS
+
+*pam_lastlog2.so* [debug] [silent] [silent_if=<services>] [database=<file>]
+
+== DESCRIPTION
+
+pam_lastlog2 is a PAM module to display a line of information about the last login of the user. The module uses the /var/lib/lastlog/lastlog2.db database file to store all informations.
+
+Compared to pam_lastlog this PAM module is Y2038 safe and uses sqlite3 to store the information.
+
+== OPTIONS
+
+*debug*::
+Print debug information.
+
+*silent*::
+Avoid all messages except errors and don't inform the user about any previous login, only update the /var/lib/lastlog/lastlog2.db database.
+
+*silent_if=<services>*::
+The argument *services* is a comma separated list of PAM services. If a service is listed here, the last login message will not be shown.
+
+*database=<file>*::
+Use *file* instead of /var/lib/lastlog/lastlog2.db.
+
+== MODULE TYPES PROVIDED
+
+The *session* module type is provided for displaying the information about the last login and updating the lastlog file.
+
+== RETURN VALUES
+
+*PAM_SUCCESS*::
+Everything was successful.
+
+*PAM_SERVICE_ERR*::
+Internal service module error. This includes error reading from or writing to the database.
+
+*PAM_USER_UNKNOWN*::
+User not known.
+
+*PAM_IGNORE*::
+Returned by service types which do nothing.
+
+== EXAMPLES
+Add the following line to e.g.  /etc/pam.d/login to display the last login time of a user:
+
+session  optional pam_lastlog2.so silent_if=gdm,gdm-password
+
+It is up to the administrator to decide if the user can login (optional/required) when
+pam_lastlog2 has returned an error.
+
+== AUTHOR
+
+pam_lastlog2 was written by Thorsten Kukuk <kukuk@suse.com>.
+
+== SEE ALSO
+
+*liblastlog2*(3), *pam.conf*(5), *pam.d*(5), *pam*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer-lib.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

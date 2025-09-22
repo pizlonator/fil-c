@@ -1,0 +1,279 @@
+'\" t
+.\"     Title: nsenter
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "NSENTER" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+nsenter \- run program in different namespaces
+.SH "SYNOPSIS"
+.sp
+\fBnsenter\fP [options] [\fIprogram\fP [\fIarguments\fP]]
+.SH "DESCRIPTION"
+.sp
+The \fBnsenter\fP command executes \fIprogram\fP in the namespace(s) that are specified in the command\-line options (described below). If \fIprogram\fP is not given, then "${SHELL}" is run (default: \fI/bin/sh\fP).
+.sp
+Enterable namespaces are:
+.sp
+\fBmount namespace\fP
+.RS 4
+Mounting and unmounting filesystems will not affect the rest of the system, except for filesystems which are explicitly marked as shared (with \fBmount \-\-make\-shared\fP; see \fI/proc/self/mountinfo\fP for the \fBshared\fP flag). For further details, see \fBmount_namespaces\fP(7) and the discussion of the \fBCLONE_NEWNS\fP flag in \fBclone\fP(2).
+.RE
+.sp
+\fBUTS namespace\fP
+.RS 4
+Setting hostname or domainname will not affect the rest of the system. For further details, see \fButs_namespaces\fP(7).
+.RE
+.sp
+\fBIPC namespace\fP
+.RS 4
+The process will have an independent namespace for POSIX message queues as well as System V message queues, semaphore sets and shared memory segments. For further details, see \fBipc_namespaces\fP(7).
+.RE
+.sp
+\fBnetwork namespace\fP
+.RS 4
+The process will have independent IPv4 and IPv6 stacks, IP routing tables, firewall rules, the \fI/proc/net\fP and \fI/sys/class/net\fP directory trees, sockets, etc. For further details, see \fBnetwork_namespaces\fP(7).
+.RE
+.sp
+\fBPID namespace\fP
+.RS 4
+Children will have a set of PID to process mappings separate from the \fBnsenter\fP process. \fBnsenter\fP will fork by default if changing the PID namespace, so that the new program and its children share the same PID namespace and are visible to each other. If \fB\-\-no\-fork\fP is used, the new program will be exec\(cqed without forking. For further details, see \fBpid_namespaces\fP(7).
+.RE
+.sp
+\fBuser namespace\fP
+.RS 4
+The process will have a distinct set of UIDs, GIDs and capabilities. For further details, see \fBuser_namespaces\fP(7).
+.RE
+.sp
+\fBcgroup namespace\fP
+.RS 4
+The process will have a virtualized view of \fI/proc/self/cgroup\fP, and new cgroup mounts will be rooted at the namespace cgroup root. For further details, see \fBcgroup_namespaces\fP(7).
+.RE
+.sp
+\fBtime namespace\fP
+.RS 4
+The process can have a distinct view of \fBCLOCK_MONOTONIC\fP and/or \fBCLOCK_BOOTTIME\fP which can be changed using \fI/proc/self/timens_offsets\fP. For further details, see \fBtime_namespaces\fP(7).
+.RE
+.SH "OPTIONS"
+.sp
+Various of the options below that relate to namespaces take an optional \fIfile\fP argument. This should be one of the \fI/proc/[pid]/ns/*\fP files described in \fBnamespaces\fP(7), or the pathname of a bind mount that was created on one of those files.
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+Enter all namespaces of the target process by the default \fI/proc/[pid]/ns/*\fP namespace paths. The default paths to the target process namespaces may be overwritten by namespace specific options (e.g., \fB\-\-all \-\-mount\fP=[\fIpath\fP]).
+.sp
+The user namespace will be ignored if the same as the caller\(cqs current user namespace. It prevents a caller that has dropped capabilities from regaining those capabilities via a call to setns(). See \fBsetns\fP(2) for more details.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-target\fP \fIPID\fP
+.RS 4
+Specify a target process to get contexts from. The paths to the contexts specified by \fIpid\fP are:
+.sp
+\fI/proc/pid/ns/mnt\fP
+.RS 4
+the mount namespace
+.RE
+.sp
+\fI/proc/pid/ns/uts\fP
+.RS 4
+the UTS namespace
+.RE
+.sp
+\fI/proc/pid/ns/ipc\fP
+.RS 4
+the IPC namespace
+.RE
+.sp
+\fI/proc/pid/ns/net\fP
+.RS 4
+the network namespace
+.RE
+.sp
+\fI/proc/pid/ns/pid\fP
+.RS 4
+the PID namespace
+.RE
+.sp
+\fI/proc/pid/ns/user\fP
+.RS 4
+the user namespace
+.RE
+.sp
+\fI/proc/pid/ns/cgroup\fP
+.RS 4
+the cgroup namespace
+.RE
+.sp
+\fI/proc/pid/ns/time\fP
+.RS 4
+the time namespace
+.RE
+.sp
+\fI/proc/pid/root\fP
+.RS 4
+the root directory
+.RE
+.sp
+\fI/proc/pid/cwd\fP
+.RS 4
+the working directory respectively
+.RE
+.RE
+.sp
+\fB\-m\fP, \fB\-\-mount\fP[=\fIfile\fP]
+.RS 4
+Enter the mount namespace. If no file is specified, enter the mount namespace of the target process. If \fIfile\fP is specified, enter the mount namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-uts\fP[=\fIfile\fP]
+.RS 4
+Enter the UTS namespace. If no file is specified, enter the UTS namespace of the target process. If \fIfile\fP is specified, enter the UTS namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-ipc\fP[=\fIfile\fP]
+.RS 4
+Enter the IPC namespace. If no file is specified, enter the IPC namespace of the target process. If \fIfile\fP is specified, enter the IPC namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-net\fP[=\fIfile\fP]
+.RS 4
+Enter the network namespace. If no file is specified, enter the network namespace of the target process. If \fIfile\fP is specified, enter the network namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP[=\fIfile\fP]
+.RS 4
+Enter the PID namespace. If no file is specified, enter the PID namespace of the target process. If \fIfile\fP is specified, enter the PID namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-U\fP, \fB\-\-user\fP[=\fIfile\fP]
+.RS 4
+Enter the user namespace. If no file is specified, enter the user namespace of the target process. If \fIfile\fP is specified, enter the user namespace specified by \fIfile\fP. See also the \fB\-\-setuid\fP and \fB\-\-setgid\fP options.
+.RE
+.sp
+\fB\-\-user\-parent\fP
+.RS 4
+Enter the parent user namespace. Parent user namespace will be acquired from any other enabled namespace.
+If combined with \fB\-\-user\fP option the parent user namespace will be fetched from the user namespace and replace it.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-cgroup\fP[=\fIfile\fP]
+.RS 4
+Enter the cgroup namespace. If no file is specified, enter the cgroup namespace of the target process. If \fIfile\fP is specified, enter the cgroup namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-time\fP[=\fIfile\fP]
+.RS 4
+Enter the time namespace. If no file is specified, enter the time namespace of the target process. If \fIfile\fP is specified, enter the time namespace specified by \fIfile\fP.
+.RE
+.sp
+\fB\-G\fP, \fB\-\-setgid\fP \fIgid\fP
+.RS 4
+Set the group ID which will be used in the entered namespace and drop supplementary groups.
+\fBnsenter\fP always sets GID for user namespaces, the default is 0.
+If the argument "follow" is specified the GID of the target process is used.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-setuid\fP \fIuid\fP
+.RS 4
+Set the user ID which will be used in the entered namespace.
+\fBnsenter\fP always sets UID for user namespaces, the default is 0.
+If the argument "follow" is specified the UID of the target process is used.
+.RE
+.sp
+\fB\-\-keep\-caps\fP
+.RS 4
+When the \fB\-\-user\fP option is given, ensure that capabilities granted in the user namespace are preserved in the child process.
+.RE
+.sp
+\fB\-\-preserve\-credentials\fP
+.RS 4
+Don\(cqt modify UID and GID when enter user namespace. The default is to drops supplementary groups and sets GID and UID to 0.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-root\fP[=\fIdirectory\fP]
+.RS 4
+Set the root directory. If no directory is specified, set the root directory to the root directory of the target process. If directory is specified, set the root directory to the specified directory. The specified \fIdirectory\fP is open before it switches to the requested namespaces.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wd\fP[=\fIdirectory\fP]
+.RS 4
+Set the working directory. If no directory is specified, set the working directory to the working directory of the target process. If directory is specified, set the working directory to the specified directory. The specified \fIdirectory\fP is open before it switches to the requested namespaces, it means the specified directory works as "tunnel" to the current namespace. See also \fB\-\-wdns\fP.
+.RE
+.sp
+\fB\-W\fP, \fB\-\-wdns\fP[=\fIdirectory\fP]
+.RS 4
+Set the working directory. The \fIdirectory\fP is open after switch to the requested namespaces and after \fBchroot\fP(2) call. The options \fB\-\-wd\fP and \fB\-\-wdns\fP are mutually exclusive.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-env\fP
+.RS 4
+Pass environment variables from the target process to the new process being created. If this option is not provided, the environment variables will remain the same as in the current namespace..
+.RE
+.sp
+\fB\-F\fP, \fB\-\-no\-fork\fP
+.RS 4
+Do not fork before exec\(cqing the specified program. By default, when entering a PID namespace, \fBnsenter\fP calls \fBfork\fP before calling \fBexec\fP so that any children will also be in the newly entered PID namespace.
+.RE
+.sp
+\fB\-Z\fP, \fB\-\-follow\-context\fP
+.RS 4
+Set the SELinux security context used for executing a new process according to already running process specified by \fB\-\-target\fP PID. (The util\-linux has to be compiled with SELinux support otherwise the option is unavailable.)
+.RE
+.sp
+\fB\-c\fP, \fB\-\-join\-cgroup\fP
+.RS 4
+Add the initiated process to the cgroup of the target process.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+The \fB\-\-user\-parent\fP option requires Linux 4.9 or higher, older kernels will raise inappropriate ioctl for device error.
+.SH "AUTHORS"
+.sp
+.MTO "biederm\(atxmission.com" "Eric Biederman" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBclone\fP(2),
+\fBsetns\fP(2),
+\fBnamespaces\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBnsenter\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

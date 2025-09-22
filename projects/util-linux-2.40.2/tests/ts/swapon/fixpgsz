@@ -1,0 +1,49 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="fix page size"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MKSWAP"
+ts_check_test_command "$TS_CMD_SWAPON"
+ts_check_test_command "$TS_CMD_SWAPOFF"
+ts_check_test_command "$TS_HELPER_SYSINFO"
+
+ts_skip_nonroot
+ts_check_losetup
+
+PAGESIZE=$($TS_HELPER_SYSINFO pagesize)
+
+#
+# Create a swap-area with incompatible page size
+#
+[ "$?" == 0 ] || ts_die "Cannot init device"
+
+if [ $(( 64 * 1024 )) -ne $PAGESIZE ]; then
+	BADSIZE=$(( 64 * 1024 ))
+else
+	BADSIZE=4096
+fi
+
+ts_device_init
+DEVICE=$TS_LODEV
+
+$TS_CMD_MKSWAP -L MyFooBarLabel --pagesize $BADSIZE $DEVICE > /dev/null &> /dev/null \
+ || ts_die "Cannot make swap $DEVICE"
+
+ts_device_has "TYPE" "swap" $DEVICE || ts_die "Cannot find swap on $DEVICE"
+
+#
+# Swapon
+#
+$TS_CMD_SWAPON --fixpgsz $DEVICE  &> /dev/null
+
+grep -q "^$DEVICE\b" /proc/swaps || ts_die "Cannot find $DEVICE in /proc/swaps"
+
+$TS_CMD_SWAPOFF $DEVICE
+
+ts_log "Success"
+ts_finalize
+

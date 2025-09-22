@@ -1,0 +1,88 @@
+'\" t
+.\"     Title: choom
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CHOOM" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+choom \- display and adjust OOM\-killer score.
+.sp
+\fBchoom\fP \fB\-p\fP \fIPID\fP
+.sp
+\fBchoom\fP \fB\-p\fP \fIPID\fP \fB\-n\fP \fInumber\fP
+.sp
+\fBchoom\fP \fB\-n\fP \fInumber\fP [\-\-] \fIcommand\fP [\fIargument\fP ...]
+.SH "DESCRIPTION"
+.sp
+The \fBchoom\fP command displays and adjusts Out\-Of\-Memory killer score setting.
+.SH "OPTIONS"
+.sp
+\fB\-p\fP, \fB\-\-pid\fP \fIpid\fP
+.RS 4
+Specifies process ID.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-adjust\fP \fIvalue\fP
+.RS 4
+Specify the adjust score value.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+Linux kernel uses the badness heuristic to select which process gets killed in out of memory conditions.
+.sp
+The badness heuristic assigns a value to each candidate task ranging from 0 (never kill) to 1000 (always kill) to determine which process is targeted. The units are roughly a proportion along that range of allowed memory the process may allocate from based on an estimation of its current memory and swap use. For example, if a task is using all allowed memory, its badness score will be 1000. If it is using half of its allowed memory, its score will be 500.
+.sp
+There is an additional factor included in the badness score: the current memory and swap usage is discounted by 3% for root processes.
+.sp
+The amount of "allowed" memory depends on the context in which the oom killer was called. If it is due to the memory assigned to the allocating task\(cqs cpuset being exhausted, the allowed memory represents the set of mems assigned to that cpuset. If it is due to a mempolicy\(cqs node(s) being exhausted, the allowed memory represents the set of mempolicy nodes. If it is due to a memory limit (or swap limit) being reached, the allowed memory is that configured limit. Finally, if it is due to the entire system being out of memory, the allowed memory represents all allocatable resources.
+.sp
+The adjust score value is added to the badness score before it is used to determine which task to kill. Acceptable values range from \-1000 to +1000. This allows userspace to polarize the preference for oom killing either by always preferring a certain task or completely disabling it. The lowest possible value, \-1000, is equivalent to disabling oom killing entirely for that task since it will always report a badness score of 0.
+.sp
+Setting an adjust score value of +500, for example, is roughly equivalent to allowing the remainder of tasks sharing the same system, cpuset, mempolicy, or memory controller resources to use at least 50% more memory. A value of \-500, on the other hand, would be roughly equivalent to discounting 50% of the task\(cqs allowed memory from being considered as scoring against the task.
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBproc\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBchoom\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

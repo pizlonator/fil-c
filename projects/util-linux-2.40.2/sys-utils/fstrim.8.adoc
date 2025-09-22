@@ -1,0 +1,102 @@
+//po4a: entry man manual
+= fstrim(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: fstrim
+
+== NAME
+
+fstrim - discard unused blocks on a mounted filesystem
+
+== SYNOPSIS
+
+*fstrim* [*-Aav*] [*-o* _offset_] [*-l* _length_] [*-m* _minimum-size_] [_mountpoint_]
+
+== DESCRIPTION
+
+*fstrim* is used on a mounted filesystem to discard (or "trim") blocks which are not in use by the filesystem. This is useful for solid-state drives (SSDs) and thinly-provisioned storage.
+
+By default, *fstrim* will discard all unused blocks in the filesystem. Options may be used to modify this behavior based on range or size, as explained below.
+
+The _mountpoint_ argument is the pathname of the directory where the filesystem is mounted and is required when *_-A_*, *_-a_*, *_--fstab_*, or *_--all_* are unspecified.
+
+Running *fstrim* frequently, or even using *mount -o discard*, might negatively affect the lifetime of poor-quality SSD devices. For most desktop and server systems a sufficient trimming frequency is once a week. Note that not all devices support a queued trim, so each trim command incurs a performance penalty on whatever else might be trying to use the disk at the time.
+
+== OPTIONS
+
+The _offset_, _length_, and _minimum-size_ arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+
+*-A, --fstab*::
+Trim all mounted filesystems mentioned in _/etc/fstab_ on devices that support the discard operation. The root filesystem is determined from kernel command line if missing in the file. The other supplied options, like *--offset*, *--length* and *--minimum*, are applied to all these devices. Errors from filesystems that do not support the discard operation, read-only devices, autofs and read-only filesystems are silently ignored. Filesystems with "X-fstrim.notrim" mount option are skipped.
+
+*-a, --all*::
+Trim all mounted filesystems on devices that support the discard operation. The other supplied options, like *--offset*, *--length* and *--minimum*, are applied to all these devices. Errors from filesystems that do not support the discard operation, read-only devices and read-only filesystems are silently ignored.
+
+*-n, --dry-run*::
+This option does everything apart from actually call *FITRIM* ioctl.
+
+*-o, --offset* _offset_::
+Byte offset in the filesystem from which to begin searching for free blocks to discard. The default value is zero, starting at the beginning of the filesystem.
+
+*-l, --length* _length_::
+The number of bytes (after the starting point) to search for free blocks to discard. If the specified value extends past the end of the filesystem, *fstrim* will stop at the filesystem size boundary. The default value extends to the end of the filesystem.
+
+*-I, --listed-in* _list_::
+Specifies a colon-separated list of files in fstab or kernel mountinfo format. All missing or empty files are silently ignored. The evaluation of the _list_ stops after first non-empty file. For example:
++
+*--listed-in /etc/fstab:/proc/self/mountinfo*.
++
+Filesystems with "X-fstrim.notrim" mount option in fstab are skipped.
+
+*-m, --minimum* _minimum-size_::
+Minimum contiguous free range to discard, in bytes. (This value is internally rounded up to a multiple of the filesystem block size.) Free ranges smaller than this will be ignored and *fstrim* will adjust the minimum if it's smaller than the device's minimum, and report that (fstrim_range.minlen) back to userspace. By increasing this value, the *fstrim* operation will complete more quickly for filesystems with badly fragmented freespace, although not all blocks will be discarded. The default value is zero, discarding every free block.
+
+*-t*, *--types* _list_::
+Specifies allowed or forbidden filesystem types when used with *--all* or
+*--fstab*.  The _list_ is a comma-separated list of the filesystem names. The
+_list_ follows how *mount -t* evaluates type patterns. Only specified
+filesystem types are allowed. All specified types are forbidden if the list is
+prefixed by "no" or each filesystem prefixed by "no" is forbidden. If the
+option is not used, then all filesystems (except "autofs") are allowed.
+
+*-v, --verbose*::
+Verbose execution. With this option *fstrim* will output the number of bytes passed from the filesystem down the block stack to the device for potential discard. This number is a maximum discard amount from the storage device's perspective, because _FITRIM_ ioctl called repeated will keep sending the same sectors for discard repeatedly.
++
+*fstrim* will report the same potential discard bytes each time, but only sectors which had been written to between the discards would actually be discarded by the storage device. Further, the kernel block layer reserves the right to adjust the discard ranges to fit raid stripe geometry, non-trim capable devices in a LVM setup, etc. These reductions would not be reflected in fstrim_range.len (the *--length* option).
+
+*--quiet-unsupported*::
+Suppress error messages if trim operation (ioctl) is unsupported. This option is meant to be used in *systemd* service file or in *cron*(8) scripts to hide warnings that are result of known problems, such as NTFS driver reporting _Bad file descriptor_ when device is mounted read-only, or lack of file system support for ioctl _FITRIM_ call. This option also cleans exit status when unsupported filesystem specified on *fstrim* command line.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+0::
+success
+1::
+failure
+32::
+all failed
+64::
+some filesystem discards have succeeded, some failed
+
+The command *fstrim --all* returns 0 (all succeeded), 32 (all failed) or 64 (some failed, some succeeded).
+
+== AUTHORS
+mailto:lczerner@redhat.com[Lukas Czerner],
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+
+*blkdiscard*(8),
+*mount*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

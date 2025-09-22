@@ -1,0 +1,119 @@
+'\" t
+.\"     Title: irqtop
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "IRQTOP" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+irqtop \- utility to display kernel interrupt information
+.SH "SYNOPSIS"
+.sp
+\fBirqtop\fP [options]
+.SH "DESCRIPTION"
+.sp
+Display kernel interrupt counter information in \fBtop\fP(1) style view.
+.sp
+The default output is subject to change. So whenever possible, you should avoid using default outputs in your scripts. Always explicitly define expected columns by using \fB\-\-output\fP.
+.SH "OPTIONS"
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-help\fP to get a list of all supported columns. The default list of columns may be extended if list is specified in the format \fI+list\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-cpu\-stat\fP \fImode\fP
+.RS 4
+Show per\-cpu statistics by specified mode. Available modes are: \fBauto\fP, \fBenable\fP, \fBdisable\fP. The default option \fBauto\fP detects the width of window, then shows the per\-cpu statistics if the width of window is large enough to show a full line of statistics.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-cpu\-list\fP \fIlist\fP
+.RS 4
+Specify cpus in list format to show.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-delay\fP \fIseconds\fP
+.RS 4
+Update interrupt output every \fIseconds\fP intervals.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-sort\fP \fIcolumn\fP
+.RS 4
+Specify sort criteria by column name. See \fB\-\-help\fP output to get column names. The sort criteria may be changes in interactive mode.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-softirq\fP
+.RS 4
+Show softirqs information.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "INTERACTIVE MODE KEY COMMANDS"
+.sp
+\fBi\fP
+.RS 4
+sort by short irq name or number field
+.RE
+.sp
+\fBt\fP
+.RS 4
+sort by total count of interrupts (the default)
+.RE
+.sp
+\fBd\fP
+.RS 4
+sort by delta count of interrupts
+.RE
+.sp
+\fBn\fP
+.RS 4
+sort by long descriptive name field
+.RE
+.sp
+\fBq Q\fP
+.RS 4
+stop updates and exit program
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "pizhenwei\(atbytedance.com" "Zhenwei Pi" ","
+.MTO "kerolasa\(atiki.fi" "Sami Kerola" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBirqtop\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

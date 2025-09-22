@@ -1,0 +1,37 @@
+_waitpid_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-t'|'--timeout')
+			COMPREPLY=( $(compgen -W "seconds" -- $cur) )
+			return 0
+			;;
+		'-c'|'--count')
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		-*)
+			OPTS="--verbose
+				--timeout
+				--exited
+				--count
+				--help
+				--version"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+		*)
+			_pids
+			return 0
+			;;
+	esac
+	return 0
+}
+complete -F _waitpid_module waitpid

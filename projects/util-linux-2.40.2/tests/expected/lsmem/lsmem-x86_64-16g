@@ -1,0 +1,530 @@
+
+---
+
+$ lsmem --split=STATE,REMOVABLE
+RANGE                                  SIZE  STATE REMOVABLE   BLOCK
+0x0000000000000000-0x0000000007ffffff  128M online        no       0
+0x0000000008000000-0x0000000037ffffff  768M online       yes     1-6
+0x0000000038000000-0x000000003fffffff  128M online        no       7
+0x0000000040000000-0x0000000077ffffff  896M online       yes    8-14
+0x0000000078000000-0x000000007fffffff  128M online        no      15
+0x0000000080000000-0x00000000afffffff  768M online       yes   16-21
+0x00000000b0000000-0x00000000bfffffff  256M online        no   22-23
+0x0000000100000000-0x00000001a7ffffff  2.6G online        no   32-52
+0x00000001a8000000-0x00000001afffffff  128M online       yes      53
+0x00000001b0000000-0x00000001bfffffff  256M online        no   54-55
+0x00000001c0000000-0x00000001ffffffff    1G online       yes   56-63
+0x0000000200000000-0x0000000207ffffff  128M online        no      64
+0x0000000208000000-0x000000021fffffff  384M online       yes   65-67
+0x0000000220000000-0x0000000237ffffff  384M online        no   68-70
+0x0000000238000000-0x0000000277ffffff    1G online       yes   71-78
+0x0000000278000000-0x000000028fffffff  384M online        no   79-81
+0x0000000290000000-0x0000000297ffffff  128M online       yes      82
+0x0000000298000000-0x00000002a7ffffff  256M online        no   83-84
+0x00000002a8000000-0x00000002c7ffffff  512M online       yes   85-88
+0x00000002c8000000-0x00000002dfffffff  384M online        no   89-91
+0x00000002e0000000-0x00000002efffffff  256M online       yes   92-93
+0x00000002f0000000-0x000000034fffffff  1.5G online        no  94-105
+0x0000000350000000-0x0000000357ffffff  128M online       yes     106
+0x0000000358000000-0x000000036fffffff  384M online        no 107-109
+0x0000000370000000-0x0000000377ffffff  128M online       yes     110
+0x0000000378000000-0x00000003c7ffffff  1.3G online        no 111-120
+0x00000003c8000000-0x00000003e7ffffff  512M online       yes 121-124
+0x00000003e8000000-0x000000042fffffff  1.1G online        no 125-133
+0x0000000430000000-0x0000000437ffffff  128M online       yes     134
+0x0000000438000000-0x000000043fffffff  128M online        no     135
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B
+
+---
+
+$ lsmem --output RANGE,SIZE --split none
+RANGE                                 SIZE
+0x0000000000000000-0x00000000bfffffff   3G
+0x0000000100000000-0x000000043fffffff  13G
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B
+
+---
+
+$ lsmem --output RANGE,SIZE,STATE --split STATE
+RANGE                                 SIZE  STATE
+0x0000000000000000-0x00000000bfffffff   3G online
+0x0000000100000000-0x000000043fffffff  13G online
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B
+
+---
+
+$ lsmem --all --output RANGE,SIZE,STATE,REMOVABLE,BLOCK,NODE
+RANGE                                  SIZE  STATE REMOVABLE BLOCK NODE
+0x0000000000000000-0x0000000007ffffff  128M online        no     0    0
+0x0000000008000000-0x000000000fffffff  128M online       yes     1    0
+0x0000000010000000-0x0000000017ffffff  128M online       yes     2    0
+0x0000000018000000-0x000000001fffffff  128M online       yes     3    0
+0x0000000020000000-0x0000000027ffffff  128M online       yes     4    0
+0x0000000028000000-0x000000002fffffff  128M online       yes     5    0
+0x0000000030000000-0x0000000037ffffff  128M online       yes     6    0
+0x0000000038000000-0x000000003fffffff  128M online        no     7    0
+0x0000000040000000-0x0000000047ffffff  128M online       yes     8    0
+0x0000000048000000-0x000000004fffffff  128M online       yes     9    0
+0x0000000050000000-0x0000000057ffffff  128M online       yes    10    0
+0x0000000058000000-0x000000005fffffff  128M online       yes    11    0
+0x0000000060000000-0x0000000067ffffff  128M online       yes    12    0
+0x0000000068000000-0x000000006fffffff  128M online       yes    13    0
+0x0000000070000000-0x0000000077ffffff  128M online       yes    14    0
+0x0000000078000000-0x000000007fffffff  128M online        no    15    0
+0x0000000080000000-0x0000000087ffffff  128M online       yes    16    0
+0x0000000088000000-0x000000008fffffff  128M online       yes    17    0
+0x0000000090000000-0x0000000097ffffff  128M online       yes    18    0
+0x0000000098000000-0x000000009fffffff  128M online       yes    19    0
+0x00000000a0000000-0x00000000a7ffffff  128M online       yes    20    0
+0x00000000a8000000-0x00000000afffffff  128M online       yes    21    0
+0x00000000b0000000-0x00000000b7ffffff  128M online        no    22    0
+0x00000000b8000000-0x00000000bfffffff  128M online        no    23    0
+0x0000000100000000-0x0000000107ffffff  128M online        no    32    0
+0x0000000108000000-0x000000010fffffff  128M online        no    33    0
+0x0000000110000000-0x0000000117ffffff  128M online        no    34    0
+0x0000000118000000-0x000000011fffffff  128M online        no    35    0
+0x0000000120000000-0x0000000127ffffff  128M online        no    36    0
+0x0000000128000000-0x000000012fffffff  128M online        no    37    0
+0x0000000130000000-0x0000000137ffffff  128M online        no    38    0
+0x0000000138000000-0x000000013fffffff  128M online        no    39    0
+0x0000000140000000-0x0000000147ffffff  128M online        no    40    0
+0x0000000148000000-0x000000014fffffff  128M online        no    41    0
+0x0000000150000000-0x0000000157ffffff  128M online        no    42    0
+0x0000000158000000-0x000000015fffffff  128M online        no    43    0
+0x0000000160000000-0x0000000167ffffff  128M online        no    44    0
+0x0000000168000000-0x000000016fffffff  128M online        no    45    0
+0x0000000170000000-0x0000000177ffffff  128M online        no    46    0
+0x0000000178000000-0x000000017fffffff  128M online        no    47    0
+0x0000000180000000-0x0000000187ffffff  128M online        no    48    0
+0x0000000188000000-0x000000018fffffff  128M online        no    49    0
+0x0000000190000000-0x0000000197ffffff  128M online        no    50    0
+0x0000000198000000-0x000000019fffffff  128M online        no    51    0
+0x00000001a0000000-0x00000001a7ffffff  128M online        no    52    0
+0x00000001a8000000-0x00000001afffffff  128M online       yes    53    0
+0x00000001b0000000-0x00000001b7ffffff  128M online        no    54    0
+0x00000001b8000000-0x00000001bfffffff  128M online        no    55    0
+0x00000001c0000000-0x00000001c7ffffff  128M online       yes    56    0
+0x00000001c8000000-0x00000001cfffffff  128M online       yes    57    0
+0x00000001d0000000-0x00000001d7ffffff  128M online       yes    58    0
+0x00000001d8000000-0x00000001dfffffff  128M online       yes    59    0
+0x00000001e0000000-0x00000001e7ffffff  128M online       yes    60    0
+0x00000001e8000000-0x00000001efffffff  128M online       yes    61    0
+0x00000001f0000000-0x00000001f7ffffff  128M online       yes    62    0
+0x00000001f8000000-0x00000001ffffffff  128M online       yes    63    0
+0x0000000200000000-0x0000000207ffffff  128M online        no    64    0
+0x0000000208000000-0x000000020fffffff  128M online       yes    65    0
+0x0000000210000000-0x0000000217ffffff  128M online       yes    66    0
+0x0000000218000000-0x000000021fffffff  128M online       yes    67    0
+0x0000000220000000-0x0000000227ffffff  128M online        no    68    0
+0x0000000228000000-0x000000022fffffff  128M online        no    69    0
+0x0000000230000000-0x0000000237ffffff  128M online        no    70    0
+0x0000000238000000-0x000000023fffffff  128M online       yes    71    0
+0x0000000240000000-0x0000000247ffffff  128M online       yes    72    0
+0x0000000248000000-0x000000024fffffff  128M online       yes    73    0
+0x0000000250000000-0x0000000257ffffff  128M online       yes    74    0
+0x0000000258000000-0x000000025fffffff  128M online       yes    75    0
+0x0000000260000000-0x0000000267ffffff  128M online       yes    76    0
+0x0000000268000000-0x000000026fffffff  128M online       yes    77    0
+0x0000000270000000-0x0000000277ffffff  128M online       yes    78    0
+0x0000000278000000-0x000000027fffffff  128M online        no    79    0
+0x0000000280000000-0x0000000287ffffff  128M online        no    80    0
+0x0000000288000000-0x000000028fffffff  128M online        no    81    0
+0x0000000290000000-0x0000000297ffffff  128M online       yes    82    0
+0x0000000298000000-0x000000029fffffff  128M online        no    83    0
+0x00000002a0000000-0x00000002a7ffffff  128M online        no    84    0
+0x00000002a8000000-0x00000002afffffff  128M online       yes    85    0
+0x00000002b0000000-0x00000002b7ffffff  128M online       yes    86    0
+0x00000002b8000000-0x00000002bfffffff  128M online       yes    87    0
+0x00000002c0000000-0x00000002c7ffffff  128M online       yes    88    0
+0x00000002c8000000-0x00000002cfffffff  128M online        no    89    0
+0x00000002d0000000-0x00000002d7ffffff  128M online        no    90    0
+0x00000002d8000000-0x00000002dfffffff  128M online        no    91    0
+0x00000002e0000000-0x00000002e7ffffff  128M online       yes    92    0
+0x00000002e8000000-0x00000002efffffff  128M online       yes    93    0
+0x00000002f0000000-0x00000002f7ffffff  128M online        no    94    0
+0x00000002f8000000-0x00000002ffffffff  128M online        no    95    0
+0x0000000300000000-0x0000000307ffffff  128M online        no    96    0
+0x0000000308000000-0x000000030fffffff  128M online        no    97    0
+0x0000000310000000-0x0000000317ffffff  128M online        no    98    0
+0x0000000318000000-0x000000031fffffff  128M online        no    99    0
+0x0000000320000000-0x0000000327ffffff  128M online        no   100    0
+0x0000000328000000-0x000000032fffffff  128M online        no   101    0
+0x0000000330000000-0x0000000337ffffff  128M online        no   102    0
+0x0000000338000000-0x000000033fffffff  128M online        no   103    0
+0x0000000340000000-0x0000000347ffffff  128M online        no   104    0
+0x0000000348000000-0x000000034fffffff  128M online        no   105    0
+0x0000000350000000-0x0000000357ffffff  128M online       yes   106    0
+0x0000000358000000-0x000000035fffffff  128M online        no   107    0
+0x0000000360000000-0x0000000367ffffff  128M online        no   108    0
+0x0000000368000000-0x000000036fffffff  128M online        no   109    0
+0x0000000370000000-0x0000000377ffffff  128M online       yes   110    0
+0x0000000378000000-0x000000037fffffff  128M online        no   111    0
+0x0000000380000000-0x0000000387ffffff  128M online        no   112    0
+0x0000000388000000-0x000000038fffffff  128M online        no   113    0
+0x0000000390000000-0x0000000397ffffff  128M online        no   114    0
+0x0000000398000000-0x000000039fffffff  128M online        no   115    0
+0x00000003a0000000-0x00000003a7ffffff  128M online        no   116    0
+0x00000003a8000000-0x00000003afffffff  128M online        no   117    0
+0x00000003b0000000-0x00000003b7ffffff  128M online        no   118    0
+0x00000003b8000000-0x00000003bfffffff  128M online        no   119    0
+0x00000003c0000000-0x00000003c7ffffff  128M online        no   120    0
+0x00000003c8000000-0x00000003cfffffff  128M online       yes   121    0
+0x00000003d0000000-0x00000003d7ffffff  128M online       yes   122    0
+0x00000003d8000000-0x00000003dfffffff  128M online       yes   123    0
+0x00000003e0000000-0x00000003e7ffffff  128M online       yes   124    0
+0x00000003e8000000-0x00000003efffffff  128M online        no   125    0
+0x00000003f0000000-0x00000003f7ffffff  128M online        no   126    0
+0x00000003f8000000-0x00000003ffffffff  128M online        no   127    0
+0x0000000400000000-0x0000000407ffffff  128M online        no   128    0
+0x0000000408000000-0x000000040fffffff  128M online        no   129    0
+0x0000000410000000-0x0000000417ffffff  128M online        no   130    0
+0x0000000418000000-0x000000041fffffff  128M online        no   131    0
+0x0000000420000000-0x0000000427ffffff  128M online        no   132    0
+0x0000000428000000-0x000000042fffffff  128M online        no   133    0
+0x0000000430000000-0x0000000437ffffff  128M online       yes   134    0
+0x0000000438000000-0x000000043fffffff  128M online        no   135    0
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B
+
+---
+
+$ lsmem --raw --output RANGE,SIZE,STATE,REMOVABLE,BLOCK,NODE --split RANGE,SIZE,STATE,REMOVABLE,BLOCK,NODE
+RANGE SIZE STATE REMOVABLE BLOCK NODE
+0x0000000000000000-0x0000000007ffffff 128M online no 0 0
+0x0000000008000000-0x0000000037ffffff 768M online yes 1-6 0
+0x0000000038000000-0x000000003fffffff 128M online no 7 0
+0x0000000040000000-0x0000000077ffffff 896M online yes 8-14 0
+0x0000000078000000-0x000000007fffffff 128M online no 15 0
+0x0000000080000000-0x00000000afffffff 768M online yes 16-21 0
+0x00000000b0000000-0x00000000bfffffff 256M online no 22-23 0
+0x0000000100000000-0x00000001a7ffffff 2.6G online no 32-52 0
+0x00000001a8000000-0x00000001afffffff 128M online yes 53 0
+0x00000001b0000000-0x00000001bfffffff 256M online no 54-55 0
+0x00000001c0000000-0x00000001ffffffff 1G online yes 56-63 0
+0x0000000200000000-0x0000000207ffffff 128M online no 64 0
+0x0000000208000000-0x000000021fffffff 384M online yes 65-67 0
+0x0000000220000000-0x0000000237ffffff 384M online no 68-70 0
+0x0000000238000000-0x0000000277ffffff 1G online yes 71-78 0
+0x0000000278000000-0x000000028fffffff 384M online no 79-81 0
+0x0000000290000000-0x0000000297ffffff 128M online yes 82 0
+0x0000000298000000-0x00000002a7ffffff 256M online no 83-84 0
+0x00000002a8000000-0x00000002c7ffffff 512M online yes 85-88 0
+0x00000002c8000000-0x00000002dfffffff 384M online no 89-91 0
+0x00000002e0000000-0x00000002efffffff 256M online yes 92-93 0
+0x00000002f0000000-0x000000034fffffff 1.5G online no 94-105 0
+0x0000000350000000-0x0000000357ffffff 128M online yes 106 0
+0x0000000358000000-0x000000036fffffff 384M online no 107-109 0
+0x0000000370000000-0x0000000377ffffff 128M online yes 110 0
+0x0000000378000000-0x00000003c7ffffff 1.3G online no 111-120 0
+0x00000003c8000000-0x00000003e7ffffff 512M online yes 121-124 0
+0x00000003e8000000-0x000000042fffffff 1.1G online no 125-133 0
+0x0000000430000000-0x0000000437ffffff 128M online yes 134 0
+0x0000000438000000-0x000000043fffffff 128M online no 135 0
+
+---
+
+$ lsmem --json --output RANGE,SIZE,STATE,REMOVABLE,BLOCK,NODE --split RANGE,SIZE,STATE,REMOVABLE,BLOCK,NODE
+{
+   "memory": [
+      {
+         "range": "0x0000000000000000-0x0000000007ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": false,
+         "block": "0",
+         "node": 0
+      },{
+         "range": "0x0000000008000000-0x0000000037ffffff",
+         "size": "768M",
+         "state": "online",
+         "removable": true,
+         "block": "1-6",
+         "node": 0
+      },{
+         "range": "0x0000000038000000-0x000000003fffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": false,
+         "block": "7",
+         "node": 0
+      },{
+         "range": "0x0000000040000000-0x0000000077ffffff",
+         "size": "896M",
+         "state": "online",
+         "removable": true,
+         "block": "8-14",
+         "node": 0
+      },{
+         "range": "0x0000000078000000-0x000000007fffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": false,
+         "block": "15",
+         "node": 0
+      },{
+         "range": "0x0000000080000000-0x00000000afffffff",
+         "size": "768M",
+         "state": "online",
+         "removable": true,
+         "block": "16-21",
+         "node": 0
+      },{
+         "range": "0x00000000b0000000-0x00000000bfffffff",
+         "size": "256M",
+         "state": "online",
+         "removable": false,
+         "block": "22-23",
+         "node": 0
+      },{
+         "range": "0x0000000100000000-0x00000001a7ffffff",
+         "size": "2.6G",
+         "state": "online",
+         "removable": false,
+         "block": "32-52",
+         "node": 0
+      },{
+         "range": "0x00000001a8000000-0x00000001afffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": true,
+         "block": "53",
+         "node": 0
+      },{
+         "range": "0x00000001b0000000-0x00000001bfffffff",
+         "size": "256M",
+         "state": "online",
+         "removable": false,
+         "block": "54-55",
+         "node": 0
+      },{
+         "range": "0x00000001c0000000-0x00000001ffffffff",
+         "size": "1G",
+         "state": "online",
+         "removable": true,
+         "block": "56-63",
+         "node": 0
+      },{
+         "range": "0x0000000200000000-0x0000000207ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": false,
+         "block": "64",
+         "node": 0
+      },{
+         "range": "0x0000000208000000-0x000000021fffffff",
+         "size": "384M",
+         "state": "online",
+         "removable": true,
+         "block": "65-67",
+         "node": 0
+      },{
+         "range": "0x0000000220000000-0x0000000237ffffff",
+         "size": "384M",
+         "state": "online",
+         "removable": false,
+         "block": "68-70",
+         "node": 0
+      },{
+         "range": "0x0000000238000000-0x0000000277ffffff",
+         "size": "1G",
+         "state": "online",
+         "removable": true,
+         "block": "71-78",
+         "node": 0
+      },{
+         "range": "0x0000000278000000-0x000000028fffffff",
+         "size": "384M",
+         "state": "online",
+         "removable": false,
+         "block": "79-81",
+         "node": 0
+      },{
+         "range": "0x0000000290000000-0x0000000297ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": true,
+         "block": "82",
+         "node": 0
+      },{
+         "range": "0x0000000298000000-0x00000002a7ffffff",
+         "size": "256M",
+         "state": "online",
+         "removable": false,
+         "block": "83-84",
+         "node": 0
+      },{
+         "range": "0x00000002a8000000-0x00000002c7ffffff",
+         "size": "512M",
+         "state": "online",
+         "removable": true,
+         "block": "85-88",
+         "node": 0
+      },{
+         "range": "0x00000002c8000000-0x00000002dfffffff",
+         "size": "384M",
+         "state": "online",
+         "removable": false,
+         "block": "89-91",
+         "node": 0
+      },{
+         "range": "0x00000002e0000000-0x00000002efffffff",
+         "size": "256M",
+         "state": "online",
+         "removable": true,
+         "block": "92-93",
+         "node": 0
+      },{
+         "range": "0x00000002f0000000-0x000000034fffffff",
+         "size": "1.5G",
+         "state": "online",
+         "removable": false,
+         "block": "94-105",
+         "node": 0
+      },{
+         "range": "0x0000000350000000-0x0000000357ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": true,
+         "block": "106",
+         "node": 0
+      },{
+         "range": "0x0000000358000000-0x000000036fffffff",
+         "size": "384M",
+         "state": "online",
+         "removable": false,
+         "block": "107-109",
+         "node": 0
+      },{
+         "range": "0x0000000370000000-0x0000000377ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": true,
+         "block": "110",
+         "node": 0
+      },{
+         "range": "0x0000000378000000-0x00000003c7ffffff",
+         "size": "1.3G",
+         "state": "online",
+         "removable": false,
+         "block": "111-120",
+         "node": 0
+      },{
+         "range": "0x00000003c8000000-0x00000003e7ffffff",
+         "size": "512M",
+         "state": "online",
+         "removable": true,
+         "block": "121-124",
+         "node": 0
+      },{
+         "range": "0x00000003e8000000-0x000000042fffffff",
+         "size": "1.1G",
+         "state": "online",
+         "removable": false,
+         "block": "125-133",
+         "node": 0
+      },{
+         "range": "0x0000000430000000-0x0000000437ffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": true,
+         "block": "134",
+         "node": 0
+      },{
+         "range": "0x0000000438000000-0x000000043fffffff",
+         "size": "128M",
+         "state": "online",
+         "removable": false,
+         "block": "135",
+         "node": 0
+      }
+   ]
+}
+
+---
+
+$ lsmem -o +ZONES
+RANGE                                  SIZE  STATE REMOVABLE   BLOCK  ZONES
+0x0000000000000000-0x0000000007ffffff  128M online        no       0   None
+0x0000000008000000-0x0000000037ffffff  768M online       yes     1-6  DMA32
+0x0000000038000000-0x000000003fffffff  128M online        no       7  DMA32
+0x0000000040000000-0x0000000077ffffff  896M online       yes    8-14  DMA32
+0x0000000078000000-0x000000007fffffff  128M online        no      15  DMA32
+0x0000000080000000-0x00000000afffffff  768M online       yes   16-21  DMA32
+0x00000000b0000000-0x00000000bfffffff  256M online        no   22-23  DMA32
+0x0000000100000000-0x00000001a7ffffff  2.6G online        no   32-52 Normal
+0x00000001a8000000-0x00000001afffffff  128M online       yes      53 Normal
+0x00000001b0000000-0x00000001bfffffff  256M online        no   54-55 Normal
+0x00000001c0000000-0x00000001ffffffff    1G online       yes   56-63 Normal
+0x0000000200000000-0x0000000207ffffff  128M online        no      64 Normal
+0x0000000208000000-0x000000021fffffff  384M online       yes   65-67 Normal
+0x0000000220000000-0x0000000237ffffff  384M online        no   68-70 Normal
+0x0000000238000000-0x0000000277ffffff    1G online       yes   71-78 Normal
+0x0000000278000000-0x000000028fffffff  384M online        no   79-81 Normal
+0x0000000290000000-0x0000000297ffffff  128M online       yes      82 Normal
+0x0000000298000000-0x00000002a7ffffff  256M online        no   83-84 Normal
+0x00000002a8000000-0x00000002c7ffffff  512M online       yes   85-88 Normal
+0x00000002c8000000-0x00000002dfffffff  384M online        no   89-91 Normal
+0x00000002e0000000-0x00000002efffffff  256M online       yes   92-93 Normal
+0x00000002f0000000-0x000000034fffffff  1.5G online        no  94-105 Normal
+0x0000000350000000-0x0000000357ffffff  128M online       yes     106 Normal
+0x0000000358000000-0x000000036fffffff  384M online        no 107-109 Normal
+0x0000000370000000-0x0000000377ffffff  128M online       yes     110 Normal
+0x0000000378000000-0x00000003c7ffffff  1.3G online        no 111-120 Normal
+0x00000003c8000000-0x00000003e7ffffff  512M online       yes 121-124 Normal
+0x00000003e8000000-0x000000042fffffff  1.1G online        no 125-133 Normal
+0x0000000430000000-0x0000000437ffffff  128M online       yes     134 Normal
+0x0000000438000000-0x000000043fffffff  128M online        no     135   None
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B
+
+---
+
+$ lsmem 
+RANGE                                  SIZE  STATE REMOVABLE   BLOCK
+0x0000000000000000-0x0000000007ffffff  128M online        no       0
+0x0000000008000000-0x0000000037ffffff  768M online       yes     1-6
+0x0000000038000000-0x000000003fffffff  128M online        no       7
+0x0000000040000000-0x0000000077ffffff  896M online       yes    8-14
+0x0000000078000000-0x000000007fffffff  128M online        no      15
+0x0000000080000000-0x00000000afffffff  768M online       yes   16-21
+0x00000000b0000000-0x00000000bfffffff  256M online        no   22-23
+0x0000000100000000-0x00000001a7ffffff  2.6G online        no   32-52
+0x00000001a8000000-0x00000001afffffff  128M online       yes      53
+0x00000001b0000000-0x00000001bfffffff  256M online        no   54-55
+0x00000001c0000000-0x00000001ffffffff    1G online       yes   56-63
+0x0000000200000000-0x0000000207ffffff  128M online        no      64
+0x0000000208000000-0x000000021fffffff  384M online       yes   65-67
+0x0000000220000000-0x0000000237ffffff  384M online        no   68-70
+0x0000000238000000-0x0000000277ffffff    1G online       yes   71-78
+0x0000000278000000-0x000000028fffffff  384M online        no   79-81
+0x0000000290000000-0x0000000297ffffff  128M online       yes      82
+0x0000000298000000-0x00000002a7ffffff  256M online        no   83-84
+0x00000002a8000000-0x00000002c7ffffff  512M online       yes   85-88
+0x00000002c8000000-0x00000002dfffffff  384M online        no   89-91
+0x00000002e0000000-0x00000002efffffff  256M online       yes   92-93
+0x00000002f0000000-0x000000034fffffff  1.5G online        no  94-105
+0x0000000350000000-0x0000000357ffffff  128M online       yes     106
+0x0000000358000000-0x000000036fffffff  384M online        no 107-109
+0x0000000370000000-0x0000000377ffffff  128M online       yes     110
+0x0000000378000000-0x00000003c7ffffff  1.3G online        no 111-120
+0x00000003c8000000-0x00000003e7ffffff  512M online       yes 121-124
+0x00000003e8000000-0x000000042fffffff  1.1G online        no 125-133
+0x0000000430000000-0x0000000437ffffff  128M online       yes     134
+0x0000000438000000-0x000000043fffffff  128M online        no     135
+
+Memory block size:       128M
+Total online memory:      16G
+Total offline memory:      0B

@@ -1,0 +1,352 @@
+if BUILD_CAL
+usrbin_exec_PROGRAMS += cal
+MANPAGES += misc-utils/cal.1
+dist_noinst_DATA += misc-utils/cal.1.adoc
+cal_SOURCES = misc-utils/cal.c
+cal_CFLAGS = $(AM_CFLAGS)
+cal_LDADD = $(LDADD) libcommon.la libtcolors.la
+# tinfo or ncurses are optional
+if HAVE_TINFO
+cal_LDADD += $(TINFO_LIBS)
+cal_CFLAGS += $(TINFO_CFLAGS)
+else
+if HAVE_NCURSES
+cal_LDADD += $(NCURSES_LIBS)
+cal_CFLAGS += $(NCURSES_CFLAGS)
+endif
+endif # !HAVE_TINFO
+
+check_PROGRAMS += test_cal
+test_cal_SOURCES = $(cal_SOURCES)
+test_cal_LDADD = $(cal_LDADD)
+test_cal_CFLAGS = -DTEST_CAL $(cal_CFLAGS)
+endif # BUILD_CAL
+
+
+if BUILD_LOGGER
+usrbin_exec_PROGRAMS += logger
+MANPAGES += misc-utils/logger.1
+dist_noinst_DATA += misc-utils/logger.1.adoc
+logger_SOURCES = misc-utils/logger.c lib/strutils.c lib/strv.c
+logger_LDADD = $(LDADD) libcommon.la
+logger_CFLAGS = $(AM_CFLAGS)
+if HAVE_SYSTEMD
+logger_LDADD += $(SYSTEMD_LIBS) $(SYSTEMD_DAEMON_LIBS) $(SYSTEMD_JOURNAL_LIBS)
+logger_CFLAGS += $(SYSTEMD_CFLAGS) $(SYSTEMD_DAEMON_CFLAGS) $(SYSTEMD_JOURNAL_CFLAGS)
+endif
+
+check_PROGRAMS += test_logger
+test_logger_SOURCES = $(logger_SOURCES)
+test_logger_LDADD = $(logger_LDADD)
+test_logger_CFLAGS = -DTEST_LOGGER $(logger_CFLAGS)
+endif # BUILD_LOGGER
+
+
+if BUILD_LOOK
+usrbin_exec_PROGRAMS += look
+MANPAGES += misc-utils/look.1
+dist_noinst_DATA += misc-utils/look.1.adoc
+look_SOURCES = misc-utils/look.c
+endif
+
+if BUILD_MCOOKIE
+usrbin_exec_PROGRAMS += mcookie
+MANPAGES += misc-utils/mcookie.1
+dist_noinst_DATA += misc-utils/mcookie.1.adoc
+mcookie_SOURCES = misc-utils/mcookie.c lib/md5.c
+mcookie_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_NAMEI
+usrbin_exec_PROGRAMS += namei
+MANPAGES += misc-utils/namei.1
+dist_noinst_DATA += misc-utils/namei.1.adoc
+namei_SOURCES = misc-utils/namei.c lib/strutils.c lib/idcache.c
+namei_LDADD = $(LDADD) $(SELINUX_LIBS)
+endif
+
+if BUILD_WHEREIS
+usrbin_exec_PROGRAMS += whereis
+MANPAGES += misc-utils/whereis.1
+dist_noinst_DATA += misc-utils/whereis.1.adoc
+whereis_SOURCES = misc-utils/whereis.c
+whereis_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_LSLOCKS
+usrbin_exec_PROGRAMS += lslocks
+MANPAGES += misc-utils/lslocks.8
+dist_noinst_DATA += misc-utils/lslocks.8.adoc
+lslocks_LDADD = $(LDADD) libcommon.la libmount.la libsmartcols.la
+lslocks_SOURCES = misc-utils/lslocks.c
+lslocks_CFLAGS = $(AM_CFLAGS) -I$(ul_libmount_incdir) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_LSBLK
+bin_PROGRAMS += lsblk
+MANPAGES += misc-utils/lsblk.8
+dist_noinst_DATA += misc-utils/lsblk.8.adoc
+lsblk_SOURCES = \
+	misc-utils/lsblk.c \
+	misc-utils/lsblk-mnt.c \
+	misc-utils/lsblk-properties.c \
+	misc-utils/lsblk-devtree.c \
+	misc-utils/lsblk.h
+lsblk_LDADD = $(LDADD) libblkid.la libmount.la libcommon.la \
+		libsmartcols.la libtcolors.la
+lsblk_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir) -I$(ul_libmount_incdir) -I$(ul_libsmartcols_incdir)
+if HAVE_UDEV
+lsblk_LDADD += -ludev
+endif
+endif # BUILD_LSBLK
+
+if BUILD_LIBLASTLOG2
+usrbin_exec_PROGRAMS += lastlog2
+MANPAGES += misc-utils/lastlog2.8
+dist_noinst_DATA += misc-utils/lastlog2.8.adoc
+lastlog2_SOURCES = misc-utils/lastlog2.c lib/strutils.c
+lastlog2_LDADD = $(LDADD) liblastlog2.la -lsqlite3
+lastlog2_CFLAGS = $(AM_CFLAGS) -I$(ul_liblastlog2_incdir)
+systemdsystemunit_DATA += \
+	misc-utils/lastlog2-import.service
+tmpfiles_DATA += misc-utils/lastlog2-tmpfiles.conf
+endif
+PATHFILES += misc-utils/lastlog2-import.service \
+             misc-utils/lastlog2-tmpfiles.conf
+
+if BUILD_UUIDGEN
+usrbin_exec_PROGRAMS += uuidgen
+MANPAGES += misc-utils/uuidgen.1
+dist_noinst_DATA += misc-utils/uuidgen.1.adoc
+uuidgen_SOURCES = misc-utils/uuidgen.c
+uuidgen_LDADD = $(LDADD) libcommon.la libuuid.la
+uuidgen_CFLAGS = $(AM_CFLAGS) -I$(ul_libuuid_incdir)
+endif
+
+if BUILD_UUIDPARSE
+usrbin_exec_PROGRAMS += uuidparse
+MANPAGES += misc-utils/uuidparse.1
+dist_noinst_DATA += misc-utils/uuidparse.1.adoc
+uuidparse_SOURCES = misc-utils/uuidparse.c
+uuidparse_LDADD = $(LDADD) libcommon.la libuuid.la libsmartcols.la
+uuidparse_CFLAGS = $(AM_CFLAGS) -I$(ul_libuuid_incdir) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_UUIDD
+usrsbin_exec_PROGRAMS += uuidd
+MANPAGES += misc-utils/uuidd.8
+dist_noinst_DATA += misc-utils/uuidd.8.adoc
+uuidd_LDADD = $(LDADD) libuuid.la libcommon.la $(REALTIME_LIBS)
+uuidd_CFLAGS = $(DAEMON_CFLAGS) $(AM_CFLAGS) -I$(ul_libuuid_incdir)
+uuidd_LDFLAGS = $(DAEMON_LDFLAGS) $(AM_LDFLAGS)
+uuidd_SOURCES = misc-utils/uuidd.c lib/monotonic.c lib/timer.c
+if HAVE_SYSTEMD
+uuidd_LDADD += $(SYSTEMD_LIBS) $(SYSTEMD_DAEMON_LIBS)
+uuidd_CFLAGS += $(SYSTEMD_CFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+tmpfiles_DATA += misc-utils/uuidd-tmpfiles.conf
+systemdsystemunit_DATA += \
+	misc-utils/uuidd.service \
+	misc-utils/uuidd.socket
+endif
+
+check_PROGRAMS += test_uuidd
+test_uuidd_SOURCES = misc-utils/test_uuidd.c
+test_uuidd_LDADD =  $(LDADD) libcommon.la libuuid.la -lpthread
+test_uuidd_CFLAGS = $(AM_CFLAGS) -I$(ul_libuuid_incdir)
+endif # BUILD_UUIDD
+
+PATHFILES += \
+	misc-utils/uuidd.rc \
+	misc-utils/uuidd.service \
+	misc-utils/uuidd.socket \
+	misc-utils/uuidd-tmpfiles.conf
+
+if BUILD_BLKID
+sbin_PROGRAMS += blkid
+MANPAGES += misc-utils/blkid.8
+dist_noinst_DATA += misc-utils/blkid.8.adoc
+blkid_SOURCES = misc-utils/blkid.c \
+		lib/ismounted.c
+blkid_LDADD = $(LDADD) libblkid.la libcommon.la
+blkid_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir)
+
+if HAVE_STATIC_BLKID
+sbin_PROGRAMS += blkid.static
+blkid_static_SOURCES = $(blkid_SOURCES)
+blkid_static_LDFLAGS = -all-static
+blkid_static_LDADD = $(LDADD) libblkid.la
+blkid_static_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir)
+endif
+endif # BUILD_BLKID
+
+
+if BUILD_FINDFS
+sbin_PROGRAMS += findfs
+MANPAGES += misc-utils/findfs.8
+dist_noinst_DATA += misc-utils/findfs.8.adoc
+findfs_LDADD = $(LDADD) libblkid.la
+findfs_SOURCES = misc-utils/findfs.c
+findfs_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir)
+endif
+
+if BUILD_WIPEFS
+sbin_PROGRAMS += wipefs
+MANPAGES += misc-utils/wipefs.8
+dist_noinst_DATA += misc-utils/wipefs.8.adoc
+wipefs_SOURCES = misc-utils/wipefs.c
+wipefs_LDADD = $(LDADD) libblkid.la libcommon.la libsmartcols.la
+wipefs_CFLAGS = $(AM_CFLAGS) -I$(ul_libblkid_incdir) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_FINDMNT
+bin_PROGRAMS += findmnt
+MANPAGES += misc-utils/findmnt.8
+dist_noinst_DATA += misc-utils/findmnt.8.adoc
+findmnt_LDADD = $(LDADD) libmount.la \
+		libcommon.la \
+		libsmartcols.la \
+		libblkid.la
+findmnt_CFLAGS = $(AM_CFLAGS) \
+		-I$(ul_libmount_incdir) \
+		-I$(ul_libsmartcols_incdir) \
+		-I$(ul_libblkid_incdir)
+findmnt_SOURCES = misc-utils/findmnt.c \
+		  misc-utils/findmnt-verify.c \
+		  misc-utils/findmnt.h
+if HAVE_UDEV
+findmnt_LDADD += -ludev
+endif
+endif # BUILD_FINDMNT
+
+
+if BUILD_KILL
+bin_PROGRAMS += kill
+MANPAGES += misc-utils/kill.1
+dist_noinst_DATA += misc-utils/kill.1.adoc
+kill_SOURCES = misc-utils/kill.c
+kill_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_RENAME
+usrbin_exec_PROGRAMS += rename
+MANPAGES += misc-utils/rename.1
+dist_noinst_DATA += misc-utils/rename.1.adoc
+rename_SOURCES = misc-utils/rename.c
+rename_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_GETOPT
+usrbin_exec_PROGRAMS += getopt
+MANPAGES += misc-utils/getopt.1
+dist_noinst_DATA += misc-utils/getopt.1.adoc
+getopt_SOURCES = misc-utils/getopt.c
+getopt_LDADD = $(LDADD) libcommon.la
+getoptexampledir = $(docdir)
+dist_getoptexample_DATA = \
+	misc-utils/getopt-example.bash \
+	misc-utils/getopt-example.tcsh
+endif
+
+if BUILD_EXCH
+usrbin_exec_PROGRAMS += exch
+MANPAGES += misc-utils/exch.1
+dist_noinst_DATA += misc-utils/exch.1.adoc
+exch_SOURCES = misc-utils/exch.c
+exch_LDADD = $(LDADD) libcommon.la
+exch_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_FINCORE
+usrbin_exec_PROGRAMS += fincore
+MANPAGES += misc-utils/fincore.1
+dist_noinst_DATA += misc-utils/fincore.1.adoc
+fincore_SOURCES = misc-utils/fincore.c
+fincore_LDADD = $(LDADD) libsmartcols.la libcommon.la
+fincore_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_HARDLINK
+usrbin_exec_PROGRAMS += hardlink
+MANPAGES += misc-utils/hardlink.1
+dist_noinst_DATA += misc-utils/hardlink.1.adoc
+hardlink_SOURCES = misc-utils/hardlink.c lib/monotonic.c lib/fileeq.c
+hardlink_LDADD = $(LDADD) libcommon.la $(REALTIME_LIBS)
+hardlink_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_LSFD
+bin_PROGRAMS += lsfd
+MANPAGES += misc-utils/lsfd.1
+dist_noinst_DATA += misc-utils/lsfd.1.adoc
+lsfd_SOURCES = \
+	misc-utils/lsfd.c \
+	misc-utils/lsfd.h \
+	misc-utils/lsfd-decode-file-flags.c \
+	misc-utils/lsfd-file.c \
+	misc-utils/lsfd-cdev.c \
+	misc-utils/lsfd-bdev.c \
+	misc-utils/lsfd-sock.c \
+	misc-utils/lsfd-sock.h \
+	misc-utils/lsfd-sock-xinfo.c \
+	misc-utils/lsfd-unkn.c \
+	misc-utils/lsfd-fifo.c \
+	misc-utils/lsfd-pidfd.h \
+	misc-utils/lsfd-pidfd.c
+lsfd_LDADD = $(LDADD) $(MQ_LIBS) libsmartcols.la libcommon.la
+lsfd_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_PIPESZ
+bin_PROGRAMS += pipesz
+MANPAGES += misc-utils/pipesz.1
+dist_noinst_DATA += misc-utils/pipesz.1.adoc
+pipesz_SOURCES = misc-utils/pipesz.c
+pipesz_LDADD = $(LDADD) libcommon.la
+pipesz_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_FADVISE
+usrbin_exec_PROGRAMS += fadvise
+MANPAGES += misc-utils/fadvise.1
+dist_noinst_DATA += misc-utils/fadvise.1.adoc
+fadvise_SOURCES = misc-utils/fadvise.c
+fadvise_LDADD = $(LDADD) libcommon.la
+fadvise_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_WAITPID
+usrbin_exec_PROGRAMS += waitpid
+MANPAGES += misc-utils/waitpid.1
+dist_noinst_DATA += misc-utils/waitpid.1.adoc
+waitpid_SOURCES = misc-utils/waitpid.c
+waitpid_LDADD = $(LDADD) libcommon.la
+waitpid_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_ENOSYS
+
+misc-utils/enosys.c: syscalls.h
+
+syscalls.h: $(top_srcdir)/tools/all_syscalls
+	@echo '  GEN      $@'
+	@$(top_srcdir)/tools/all_syscalls "$(SED)" $(CC) $(CFLAGS)
+
+-include syscalls.h.deps
+CLEANFILES += syscalls.h syscalls.h.deps
+
+usrbin_exec_PROGRAMS += enosys
+MANPAGES += misc-utils/enosys.1
+dist_noinst_DATA += misc-utils/enosys.1.adoc
+enosys_SOURCES = misc-utils/enosys.c
+enosys_LDADD = $(LDADD) libcommon.la
+enosys_CFLAGS = $(AM_CFLAGS)
+endif
+
+if BUILD_LSCLOCKS
+usrbin_exec_PROGRAMS += lsclocks
+MANPAGES += misc-utils/lsclocks.1
+dist_noinst_DATA += misc-utils/lsclocks.1.adoc
+lsclocks_SOURCES = misc-utils/lsclocks.c
+lsclocks_LDADD = $(LDADD) libcommon.la libsmartcols.la
+lsclocks_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif

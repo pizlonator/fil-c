@@ -1,0 +1,234 @@
+'\" t
+.\"     Title: lslogins
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSLOGINS" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lslogins \- display information about known users in the system
+.SH "SYNOPSIS"
+.sp
+\fBlslogins\fP [options] [\fB\-s\fP|\fB\-u\fP[=\fIUID\fP]] [\fB\-g\fP \fIgroups\fP] [\fB\-l\fP \fIlogins\fP] [\fIusername\fP]
+.SH "DESCRIPTION"
+.sp
+Examine the wtmp and btmp logs, \fI/etc/shadow\fP (if necessary) and \fI/passwd\fP and output the desired data.
+.sp
+The optional argument \fIusername\fP forces \fBlslogins\fP to print all available details about the specified user only. In this case the output format is different than in case of \fB\-l\fP or \fB\-g\fP and unknown is \fIusername\fP reported as an error.
+.sp
+The default action is to list info about all the users in the system.
+.SH "OPTIONS"
+.sp
+Mandatory arguments to long options are mandatory for short options too.
+.sp
+\fB\-a\fP, \fB\-\-acc\-expiration\fP
+.RS 4
+Display data about the date of last password change and the account expiration date (see \fBshadow\fP(5) for more info). (Requires root privileges.)
+.RE
+.sp
+\fB\-\-btmp\-file\fP \fIpath\fP
+.RS 4
+Alternate path for btmp.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-colon\-separate\fP
+.RS 4
+Separate info about each user with a colon instead of a newline.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-export\fP
+.RS 4
+Output data in the format of NAME=VALUE. See also option \fB\-\-shell\fP.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-failed\fP
+.RS 4
+Display data about the users\*(Aq last failed login attempts.
+.RE
+.sp
+\fB\-G\fP, \fB\-\-supp\-groups\fP
+.RS 4
+Show information about supplementary groups.
+.RE
+.sp
+\fB\-g\fP, \fB\-\-groups\fP=\fIgroups\fP
+.RS 4
+Only show data of users belonging to \fIgroups\fP. More than one group may be specified; the list has to be comma\-separated. Unknown group names are ignored.
+.sp
+Note that the relation between user and group may be invisible for the primary group if the user is not explicitly specified as group member (e.g., in \fI/etc/group\fP). If the command \fBlslogins\fP scans for groups then it uses the groups database only, and the user database with primary GID is not used at all.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-last\fP
+.RS 4
+Display data containing information about the users\*(Aq last login sessions.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-logins\fP=\fIlogins\fP
+.RS 4
+Only show data of users with a login specified in \fIlogins\fP (user names or user IDs). More than one login may be specified; the list has to be comma\-separated. Unknown login names are ignored.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-newline\fP
+.RS 4
+Display each piece of information on a separate line.
+.RE
+.sp
+\fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-\-notruncate\fP
+.RS 4
+Don\(cqt truncate output.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. The default list of columns may be extended if \fIlist\fP is specified in the format \fI+list\fP.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns. \fB\-\-help\fP to get a list of all supported columns.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pwd\fP
+.RS 4
+Display information related to login by password (see also \fB\-afL\fP).
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Raw output (no columnation).
+.RE
+.sp
+\fB\-s\fP, \fB\-\-system\-accs\fP
+.RS 4
+Show system accounts. These are by default all accounts with a UID between 101 and 999 (inclusive), with the exception of either nobody or nfsnobody (UID 65534). This hardcoded default may be overwritten by parameters \fBSYS_UID_MIN\fP and \fBSYS_UID_MAX\fP in the file \fI/etc/login.defs\fP.
+.RE
+.sp
+\fB\-\-time\-format\fP \fItype\fP
+.RS 4
+Display dates in short, full or iso format. The default is short, this time format is designed to be space efficient and human readable.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-user\-accs\fP
+.RS 4
+Show user accounts. These are by default all accounts with UID above 1000 (inclusive), with the exception of either nobody or nfsnobody (UID 65534). This hardcoded default maybe overwritten by parameters UID_MIN and UID_MAX in the file \fI/etc/login.defs\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-\-wtmp\-file\fP \fIpath\fP
+.RS 4
+Alternate path for wtmp.
+.RE
+.sp
+\fB\-\-lastlog\fP \fIpath\fP
+.RS 4
+Alternate path for \fBlastlog\fP(8).
+.RE
+.sp
+\fB\-y\fP, \fB\-\-shell\fP
+.RS 4
+The column name will be modified to contain only characters allowed for shell variable identifiers. This is usable, for example, with \fB\-\-export\fP. Note that this feature has been automatically enabled for \fB\-\-export\fP in version 2.37, but due to compatibility issues, now it\(cqs necessary to request this behavior by \fB\-\-shell\fP.
+.RE
+.sp
+\fB\-Z\fP, \fB\-\-context\fP
+.RS 4
+Display the users\*(Aq security context.
+.RE
+.sp
+\fB\-z\fP, \fB\-\-print0\fP
+.RS 4
+Delimit user entries with a nul character, instead of a newline.
+.RE
+.SH "EXIT STATUS"
+.sp
+0
+.RS 4
+if OK,
+.RE
+.sp
+1
+.RS 4
+if incorrect arguments specified,
+.RE
+.sp
+2
+.RS 4
+if a serious error occurs (e.g., a corrupt log).
+.RE
+.SH "NOTES"
+.sp
+The default UID thresholds are read from \fI/etc/login.defs\fP.
+.SS "Password status"
+.sp
+Multiple fields describe password status.
+.sp
+\fB"Password is locked"\fP
+.RS 4
+The password is prefixed by \*(Aq!!\*(Aq, and the user cannot login although the password is set or empty. This is common for new accounts without a set password.
+.RE
+.sp
+\fB"Password not required (empty)"\fP
+.RS 4
+The password is not set (hash is missing); this is common for locked system accounts. Not requiring a password does not mean the user can log\-in without a password. It depends on the password "lock" status.
+.RE
+.sp
+\fB"Login by password disabled"\fP
+.RS 4
+\*(Aqyes\*(Aq means that there is no valid password. The password hash is missing, or the hash method is unknown or contains invalid chars.
+.RE
+.SH "HISTORY"
+.sp
+The \fBlslogins\fP utility is inspired by the \fBlogins\fP utility, which first appeared in FreeBSD 4.10.
+.SH "AUTHORS"
+.sp
+.MTO "ooprala\(atredhat.com" "Ondrej Oprala" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBgroup\fP(5),
+\fBpasswd\fP(5),
+\fBshadow\fP(5),
+\fButmp\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlslogins\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

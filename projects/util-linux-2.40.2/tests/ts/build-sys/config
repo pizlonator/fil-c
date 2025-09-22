@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Copyright (C) 2011 Karel Zak <kzak@redhat.com>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="config"
+
+# Don't execute this test by default, --force required
+TS_OPTIONAL="yes"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_prog "readelf"
+ts_check_prog "file"
+
+config_gen_dir="$top_srcdir/tools"
+. $config_gen_dir/config-gen-functions.sh
+
+[ -n "$CFLAGS" ] && export CFLAGS="$CFLAGS"
+
+ts_cd $top_builddir && make -j clean &> /dev/null
+
+wanted=$(ts_option_argument "conf" "$*")
+
+function make_conf {
+	local conf="$1"
+
+	ts_init_subtest $(basename $conf | sed 's/\.conf//')
+
+	opts=$(ul_get_configuration $conf | sed 's/--enable-asan//')
+
+	olddir=$(pwd)
+	ts_cd $top_builddir
+
+	./configure $opts &> /dev/null
+	make -j &> /dev/null
+
+	bins=$(find . -type f \( -perm -u=x -o -perm -g=x -o -perm -o=x \) | sort)
+	for b in $bins; do
+		libs=$(readelf --dynamic $b 2> /dev/null   | \
+			awk '/NEEDED/ { print $5 }' | \
+			sed 's:\[::g; s:\..*::g; s:^libc$::g; s:ld\-.*::g' | \
+			sort -u | tr '\n' ' ')
+
+		if [ -n "$libs" ]; then
+			echo "$(basename $b): $libs" >> $TS_OUTPUT
+		else
+			fres=$(file $b)
+			case $fres in
+			*statically*)
+				echo "$(basename $b): STATIC" >> $TS_OUTPUT
+				;;
+			*) # ignore scripts, ...etc.
+				;;
+			esac
+		fi
+	done
+
+	# clean the tree, but exclude tests/{diff,output} dirs
+	#
+	[ -d tests/diff ]   && mv tests/diff   tests/diff.save
+	[ -d tests/output ] && mv tests/output tests/output.save
+
+	make -j clean &> /dev/null
+
+	[ -d tests/diff.save ]   && mv tests/diff.save   tests/diff
+	[ -d tests/output.save ] && mv tests/output.save tests/output
+
+	ts_cd $olddir
+	ts_finalize_subtest
+}
+
+
+if [ -n "$wanted" ]; then
+	make_conf $wanted
+else
+	for x in $config_gen_dir/config-gen.d/*.conf; do
+		make_conf "$x"
+	done
+fi
+
+ts_finalize

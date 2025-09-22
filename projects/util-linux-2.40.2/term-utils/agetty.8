@@ -1,0 +1,613 @@
+'\" t
+.\"     Title: agetty
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "AGETTY" "8" "2024-05-28" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+agetty \- alternative Linux getty
+.SH "SYNOPSIS"
+.sp
+\fBagetty\fP [options] \fIport\fP [\fIbaud_rate\fP...] [\fIterm\fP]
+.SH "DESCRIPTION"
+.sp
+\fBagetty\fP opens a tty port, prompts for a login name and invokes the /bin/login command. It is normally invoked by \fBinit\fP(8).
+.sp
+\fBagetty\fP has several \fInon\-standard\fP features that are useful for hardwired and for dial\-in lines:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Adapts the tty settings to parity bits and to erase, kill, end\-of\-line and uppercase characters when it reads a login name. The program can handle 7\-bit characters with even, odd, none or space parity, and 8\-bit characters with no parity. The following special characters are recognized: Control\-U (kill); DEL and backspace (erase); carriage return and line feed (end of line). See also the \fB\-\-erase\-chars\fP and \fB\-\-kill\-chars\fP options.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally deduces the baud rate from the CONNECT messages produced by Hayes(tm)\-compatible modems.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally does not hang up when it is given an already opened line (useful for call\-back applications).
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally does not display the contents of the \fI/etc/issue\fP file.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally displays an alternative issue files or directories instead of \fI/etc/issue\fP or \fI/etc/issue.d\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally does not ask for a login name.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally invokes a non\-standard login program instead of \fI/bin/login\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally turns on hardware flow control.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Optionally forces the line to be local with no need for carrier detect.
+.RE
+.sp
+This program does not use the \fI/etc/gettydefs\fP (System V) or \fI/etc/gettytab\fP (SunOS 4) files.
+.SH "ARGUMENTS"
+.sp
+\fIport\fP
+.RS 4
+A path name relative to the \fI/dev\fP directory. If a "\-" is specified, \fBagetty\fP assumes that its standard input is already connected to a tty port and that a connection to a remote user has already been established.
+.sp
+Under System V, a "\-" \fIport\fP argument should be preceded by a "\-\-".
+.RE
+.sp
+\fIbaud_rate\fP,...
+.RS 4
+A comma\-separated list of one or more baud rates. Each time \fBagetty\fP receives a BREAK character it advances through the list, which is treated as if it were circular.
+.sp
+Baud rates should be specified in descending order, so that the null character (Ctrl\-@) can also be used for baud\-rate switching.
+.sp
+This argument is optional and unnecessary for \fBvirtual terminals\fP.
+.sp
+The default for \fBserial terminals\fP is keep the current baud rate (see \fB\-\-keep\-baud\fP) and if unsuccessful then default to \*(Aq9600\*(Aq.
+.RE
+.sp
+\fIterm\fP
+.RS 4
+The value to be used for the \fBTERM\fP environment variable. This overrides whatever \fBinit\fP(1) may have set, and is inherited by login and the shell.
+.sp
+The default is \*(Aqvt100\*(Aq, or \*(Aqlinux\*(Aq for Linux on a virtual terminal, or \*(Aqhurd\*(Aq for GNU Hurd on a virtual terminal.
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-8\fP, \fB\-\-8bits\fP
+.RS 4
+Assume that the tty is 8\-bit clean, hence disable parity detection.
+.RE
+.sp
+\fB\-a\fP, \fB\-\-autologin\fP \fIusername\fP
+.RS 4
+Automatically log in the specified user without asking for a username or password. Using this option causes an \fB\-f\fP \fIusername\fP option and argument to be added to the \fB/bin/login\fP command line. See \fB\-\-login\-options\fP, which can be used to modify this option\(cqs behavior.
+.sp
+Note that \fB\-\-autologin\fP may affect the way in which \fBgetty\fP initializes the serial line, because on auto\-login \fBagetty\fP does not read from the line and it has no opportunity optimize the line setting.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-noreset\fP
+.RS 4
+Do not reset terminal cflags (control modes). See \fBtermios\fP(3) for more details.
+.RE
+.sp
+\fB\-E\fP, \fB\-\-remote\fP
+.RS 4
+Typically the \fBlogin\fP(1) command is given a remote hostname when called by something such as \fBtelnetd\fP(8). This option allows \fBagetty\fP to pass what it is using for a hostname to \fBlogin\fP(1) for use in \fButmp\fP(5). See \fB\-\-host\fP, \fBlogin\fP(1), and \fButmp\fP(5).
+.sp
+If the \fB\-\-host\fP \fIfakehost\fP option is given, then an \fB\-h\fP \fIfakehost\fP option and argument are added to the \fI/bin/login\fP command line.
+.sp
+If the \fB\-\-nohostname\fP option is given, then an \fB\-H\fP option is added to the \fB/bin/login\fP command line.
+.sp
+See \fB\-\-login\-options\fP.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-issue\-file\fP \fIpath\fP
+.RS 4
+Specifies a ":" delimited list of files and directories to be displayed instead of \fI/etc/issue\fP (or other). All specified files and directories are displayed, missing or empty files are silently ignored. If the specified path is a directory then display all files with \fI.issue\fP file extension in version\-sort order from the directory. This allows custom messages to be displayed on different terminals. The \fB\-\-noissue\fP option will override this option.
+.RE
+.sp
+\fB\-\-show\-issue\fP
+.RS 4
+Display the current issue file (or other) on the current terminal and exit. Use this option to review the current setting, it is not designed for any other purpose. Note that output may use some default or incomplete information as proper output depends on terminal and \fBagetty\fP command line.
+.RE
+.sp
+\fB\-h, \-\-flow\-control\fP
+.RS 4
+Enable hardware (RTS/CTS) flow control. It is left up to the application to disable software (XON/XOFF) flow protocol where appropriate.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-host\fP \fIfakehost\fP
+.RS 4
+Write the specified \fIfakehost\fP into the utmp file. Normally, no login host is given, since \fBagetty\fP is used for local hardwired connections and consoles. However, this option can be useful for identifying terminal concentrators and the like.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-noissue\fP
+.RS 4
+Do not display the contents of \fI/etc/issue\fP (or other) before writing the login prompt. Terminals or communications hardware may become confused when receiving lots of text at the wrong baud rate; dial\-up scripts may fail if the login prompt is preceded by too much text.
+.RE
+.sp
+\fB\-I\fP, \fB\-\-init\-string\fP \fIinitstring\fP
+.RS 4
+Set an initial string to be sent to the tty or modem before sending anything else. This may be used to initialize a modem. Non\-printable characters may be sent by writing their octal code preceded by a backslash (\(rs). For example, to send a linefeed character (ASCII 10, octal 012), write \(rs12.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-noclear\fP
+.RS 4
+Do not clear the screen before prompting for the login name. By default the screen is cleared.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-login\-program\fP \fIlogin_program\fP
+.RS 4
+Invoke the specified \fIlogin_program\fP instead of /bin/login. This allows the use of a non\-standard login program. Such a program could, for example, ask for a dial\-up password or use a different password file. See \fB\-\-login\-options\fP.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-local\-line\fP[=\fImode\fP]
+.RS 4
+Control the CLOCAL line flag. The optional \fImode\fP argument is \fBauto\fP, \fBalways\fP or \fBnever\fP. If the \fImode\fP argument is omitted, then the default is \fBalways\fP. If the \fB\-\-local\-line\fP option is not given at all, then the default is \fBauto\fP.
+.sp
+\fIalways\fP
+.RS 4
+Forces the line to be a local line with no need for carrier detect. This can be useful when you have a locally attached terminal where the serial line does not set the carrier\-detect signal.
+.RE
+.sp
+\fInever\fP
+.RS 4
+Explicitly clears the CLOCAL flag from the line setting and the carrier\-detect signal is expected on the line.
+.RE
+.sp
+\fIauto\fP
+.RS 4
+The \fBagetty\fP default. Does not modify the CLOCAL setting and follows the setting enabled by the kernel.
+.RE
+.RE
+.sp
+\fB\-m\fP, \fB\-\-extract\-baud\fP
+.RS 4
+Try to extract the baud rate from the CONNECT status message produced by Hayes(tm)\-compatible modems. These status messages are of the form: "<junk><speed><junk>". \fBagetty\fP assumes that the modem emits its status message at the same speed as specified with (the first) \fIbaud_rate\fP value on the command line.
+.sp
+Since the \fB\-\-extract\-baud\fP feature may fail on heavily\-loaded systems, you still should enable BREAK processing by enumerating all expected baud rates on the command line.
+.RE
+.sp
+\fB\-\-list\-speeds\fP
+.RS 4
+Display supported baud rates. These are determined at compilation time.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-skip\-login\fP
+.RS 4
+Do not prompt the user for a login name. This can be used in connection with the \fB\-\-login\-program\fP option to invoke a non\-standard login process such as a BBS system. Note that with the \fB\-\-skip\-login\fP option, \fBagetty\fP gets no input from the user who logs in and therefore will not be able to figure out parity, character size, and newline processing of the connection. It defaults to space parity, 7 bit characters, and ASCII CR (13) end\-of\-line character. Beware that the program that \fBagetty\fP starts (usually /bin/login) is run as root.
+.RE
+.sp
+\fB\-N\fP, \fB\-\-nonewline\fP
+.RS 4
+Do not print a newline before writing out \fI/etc/issue\fP.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-login\-options\fP \fIlogin_options\fP
+.RS 4
+Options and arguments that are passed to \fBlogin\fP(1). Where \(rsu is replaced by the login name. For example:
+.sp
+\fB\-\-login\-options \*(Aq\-h darkstar \-\- \(rsu\*(Aq\fP
+.sp
+See \fB\-\-autologin\fP, \fB\-\-login\-program\fP and \fB\-\-remote\fP.
+.sp
+Please read the \fBSECURITY NOTICE\fP below before using this option.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-login\-pause\fP
+.RS 4
+Wait for any key before dropping to the login prompt. Can be combined with \fB\-\-autologin\fP to save memory by lazily spawning shells.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-chroot\fP \fIdirectory\fP
+.RS 4
+Change root to the specified directory.
+.RE
+.sp
+\fB\-R\fP, \fB\-\-hangup\fP
+.RS 4
+Call \fBvhangup\fP(2) to do a virtual hangup of the specified terminal.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-keep\-baud\fP
+.RS 4
+Try to keep the existing baud rate. The baud rates from the command line are used when \fBagetty\fP receives a BREAK character. If another baud rates specified then the original baud rate is also saved to the end of the wanted baud rates list. This can be used to return to the original baud rate after unexpected BREAKs.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-timeout\fP \fItimeout\fP
+.RS 4
+Terminate if no user name could be read within \fItimeout\fP seconds. Use of this option with hardwired terminal lines is not recommended.
+.RE
+.sp
+\fB\-U\fP, \fB\-\-detect\-case\fP
+.RS 4
+Turn on support for detecting an uppercase\-only terminal. This setting will detect a login name containing only capitals as indicating an uppercase\-only terminal and turn on some upper\-to\-lower case conversions. Note that this has no support for any Unicode characters.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wait\-cr\fP
+.RS 4
+Wait for the user or the modem to send a carriage\-return or a linefeed character before sending the \fI/etc/issue\fP file (or others) and the login prompt. This is useful with the \fB\-\-init\-string\fP option.
+.RE
+.sp
+\fB\-\-nohints\fP
+.RS 4
+Do not print hints about Num, Caps and Scroll Locks.
+.RE
+.sp
+\fB\-\-nohostname\fP
+.RS 4
+By default the hostname will be printed. With this option enabled, no hostname at all will be shown. This setting is also possible to able by LOGIN_PLAIN_PROMPT option in the \fI/etc/login.defs\fP configuration file (see below for more details).
+.RE
+.sp
+\fB\-\-long\-hostname\fP
+.RS 4
+By default the hostname is only printed until the first dot. With this option enabled, the fully qualified hostname by \fBgethostname\fP(3P) or (if not found) by \fBgetaddrinfo\fP(3) is shown.
+.RE
+.sp
+\fB\-\-erase\-chars\fP \fIstring\fP
+.RS 4
+This option specifies additional characters that should be interpreted as a backspace ("ignore the previous character") when the user types the login name. The default additional \*(Aqerase\*(Aq has been \*(Aq#\*(Aq, but since util\-linux 2.23 no additional erase characters are enabled by default.
+.RE
+.sp
+\fB\-\-kill\-chars\fP \fIstring\fP
+.RS 4
+This option specifies additional characters that should be interpreted as a kill ("ignore all previous characters") when the user types the login name. The default additional \*(Aqkill\*(Aq has been \*(Aq@\*(Aq, but since util\-linux 2.23 no additional kill characters are enabled by default.
+.RE
+.sp
+\fB\-\-chdir\fP \fIdirectory\fP
+.RS 4
+Change directory before the login.
+.RE
+.sp
+\fB\-\-delay\fP \fInumber\fP
+.RS 4
+Sleep seconds before open tty.
+.RE
+.sp
+\fB\-\-nice\fP \fInumber\fP
+.RS 4
+Run login with this priority.
+.RE
+.sp
+\fB\-\-reload\fP
+.RS 4
+Ask all running \fBagetty\fP instances to reload and update their displayed prompts, if the user has not yet commenced logging in. After doing so the command will exit. This feature might be unsupported on systems without Linux \fBinotify\fP(7).
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "CONFIG FILE ITEMS"
+.sp
+\fBagetty\fP reads the \fI/etc/login.defs\fP configuration file (see \fBlogin.defs\fP(5)).
+Note that the configuration file could be distributed with another package (usually shadow\-utils).
+The following configuration items are relevant for \fBagetty\fP:
+.sp
+\fBLOGIN_PLAIN_PROMPT\fP (boolean)
+.RS 4
+Tell \fBagetty\fP that printing the hostname should be suppressed in the login: prompt. This is an alternative to the \fB\-\-nohostname\fP command line option. The default value is \fIno\fP.
+.RE
+.SH "EXAMPLE"
+.sp
+This section shows examples for the process field of an entry in the \fI/etc/inittab\fP file. You\(cqll have to prepend appropriate values for the other fields. See \fBinittab\fP(5) for more details.
+.sp
+For a hardwired line or a console tty:
+.RS 3
+.ll -.6i
+.sp
+\fB/sbin/agetty 9600 ttyS1\fP
+.br
+.RE
+.ll
+.sp
+For a directly connected terminal without proper carrier\-detect wiring (try this if your terminal just sleeps instead of giving you a password: prompt):
+.RS 3
+.ll -.6i
+.sp
+\fB/sbin/agetty \-\-local\-line 9600 ttyS1 vt100\fP
+.br
+.RE
+.ll
+.sp
+For an old\-style dial\-in line with a 9600/2400/1200 baud modem:
+.RS 3
+.ll -.6i
+.sp
+\fB/sbin/agetty \-\-extract\-baud \-\-timeout 60 ttyS1 9600,2400,1200\fP
+.br
+.RE
+.ll
+.sp
+For a Hayes modem with a fixed 115200 bps interface to the machine (the example init string turns off modem echo and result codes, makes modem/computer DCD track modem/modem DCD, makes a DTR drop cause a disconnection, and turns on auto\-answer after 1 ring):
+.RS 3
+.ll -.6i
+.sp
+\fB/sbin/agetty \-\-wait\-cr \-\-init\-string \*(AqATE0Q1&D2&C1S0=1\(rs015\*(Aq 115200 ttyS1\fP
+.br
+.RE
+.ll
+.SH "SECURITY NOTICE"
+.sp
+If you use the \fB\-\-login\-program\fP and \fB\-\-login\-options\fP options, be aware that a malicious user may try to enter lognames with embedded options, which then get passed to the used login program. \fBagetty\fP does check for a leading "\-" and makes sure the logname gets passed as one parameter (so embedded spaces will not create yet another parameter), but depending on how the login binary parses the command line that might not be sufficient. Check that the used login program cannot be abused this way.
+.sp
+Some programs use "\-\-" to indicate that the rest of the command line should not be interpreted as options. Use this feature if available by passing "\-\-" before the username gets passed by \(rsu.
+.SH "ISSUE FILES"
+.sp
+The default issue file is \fI/etc/issue\fP. If the file exists, then \fBagetty\fP also checks for \fI/etc/issue.d\fP directory. The directory is optional extension to the default issue file and content of the directory is printed after \fI/etc/issue\fP content. If the \fI/etc/issue\fP does not exist, then the directory is ignored. All files \fBwith .issue extension\fP from the directory are printed in version\-sort order. The directory can be used to maintain 3rd\-party messages independently on the primary system \fI/etc/issue\fP file.
+.sp
+Since version 2.35 additional locations for issue file and directory are supported. If the default \fI/etc/issue\fP does not exist, then \fBagetty\fP checks for \fI/run/issue\fP and \fI/run/issue.d\fP, thereafter for \fI/usr/lib/issue\fP and \fI/usr/lib/issue.d\fP. The directory \fI/etc\fP is expected for host specific configuration, \fI/run\fP is expected for generated stuff and \fI/usr/lib\fP for static distribution maintained configuration.
+.sp
+The default path maybe overridden by \fB\-\-issue\-file\fP option. In this case specified path has to be file or directory and all the default issue file and directory locations are ignored.
+.sp
+The issue file feature can be completely disabled by \fB\-\-noissue\fP option.
+.sp
+It is possible to review the current issue file by \fBagetty \-\-show\-issue\fP on the current terminal.
+.sp
+The issue files may contain certain escape codes to display the system name, date, time et cetera. All escape codes consist of a backslash (\(rs) immediately followed by one of the characters listed below.
+.sp
+4 or 4{\fIinterface\fP}
+.RS 4
+Insert the IPv4 address of the specified network interface (for example: \(rs4{eth0}). If the \fIinterface\fP argument is not specified, then select the first fully configured (UP, non\-LOCALBACK, RUNNING) interface. If no configured interface is found, fall back to the IP address of the machine\(cqs hostname.
+.RE
+.sp
+6 or 6{\fIinterface\fP}
+.RS 4
+The same as \(rs4 but for IPv6.
+.RE
+.sp
+b
+.RS 4
+Insert the baudrate of the current line.
+.RE
+.sp
+d
+.RS 4
+Insert the current date.
+.RE
+.sp
+e or e{\fIname\fP}
+.RS 4
+Translate the human\-readable \fIname\fP to an escape sequence and insert it (for example: \(rse{red}Alert text.\(rse{reset}). If the \fIname\fP argument is not specified, then insert \(rs033. The currently supported names are: black, blink, blue, bold, brown, cyan, darkgray, gray, green, halfbright, lightblue, lightcyan, lightgray, lightgreen, lightmagenta, lightred, magenta, red, reset, reverse, yellow and white. All unknown names are silently ignored.
+.RE
+.sp
+s
+.RS 4
+Insert the system name (the name of the operating system). Same as \*(Aquname \-s\*(Aq. See also the \(rsS escape code.
+.RE
+.sp
+S or S{VARIABLE}
+.RS 4
+Insert the VARIABLE data from \fI/etc/os\-release\fP. If this file does not exist then fall back to \fI/usr/lib/os\-release\fP. If the VARIABLE argument is not specified, then use PRETTY_NAME from the file or the system name (see \(rss). This escape code can be used to keep \fI/etc/issue\fP distribution and release independent. Note that \(rsS{ANSI_COLOR} is converted to the real terminal escape sequence.
+.RE
+.sp
+l
+.RS 4
+Insert the name of the current tty line.
+.RE
+.sp
+m
+.RS 4
+Insert the architecture identifier of the machine. Same as \fBuname \-m\fP.
+.RE
+.sp
+n
+.RS 4
+Insert the nodename of the machine, also known as the hostname. Same as \fBuname \-n\fP.
+.RE
+.sp
+o
+.RS 4
+Insert the NIS domainname of the machine. Same as \fBhostname \-d\fP.
+.RE
+.sp
+O
+.RS 4
+Insert the DNS domainname of the machine.
+.RE
+.sp
+r
+.RS 4
+Insert the release number of the OS. Same as \fBuname \-r\fP.
+.RE
+.sp
+t
+.RS 4
+Insert the current time.
+.RE
+.sp
+u
+.RS 4
+Insert the number of current users logged in.
+.RE
+.sp
+U
+.RS 4
+Insert the string "1 user" or "<n> users" where <n> is the number of current users logged in.
+.RE
+.sp
+v
+.RS 4
+Insert the version of the OS, that is, the build\-date and such.
+.RE
+.sp
+An example. On my system, the following \fI/etc/issue\fP file:
+.sp
+.if n .RS 4
+.nf
+.fam C
+This is \(rsn.\(rso (\(rss \(rsm \(rsr) \(rst
+.fam
+.fi
+.if n .RE
+.sp
+displays as:
+.sp
+.if n .RS 4
+.nf
+.fam C
+This is thingol.orcan.dk (Linux i386 1.1.9) 18:29:30
+.fam
+.fi
+.if n .RE
+.SH "FILES"
+.sp
+\fI/var/run/utmp\fP
+.RS 4
+the system status file.
+.RE
+.sp
+\fI/etc/issue\fP
+.RS 4
+printed before the login prompt.
+.RE
+.sp
+\fI/etc/os\-release /usr/lib/os\-release\fP
+.RS 4
+operating system identification data.
+.RE
+.sp
+\fI/dev/console\fP
+.RS 4
+problem reports (if \fBsyslog\fP(3) is not used).
+.RE
+.sp
+\fI/etc/inittab\fP
+.RS 4
+\fBinit\fP(8) configuration file for SysV\-style init daemon.
+.RE
+.SH "CREDENTIALS"
+.sp
+\fBagetty\fP supports configuration via systemd credentials (see \c
+.URL "https://systemd.io/CREDENTIALS/" "" ")."
+\fBagetty\fP reads the following systemd credentials:
+.sp
+\fBagetty.autologin\fP (string)
+.RS 4
+If set, configures \fBagetty\fP to automatically log in the specified user without asking for a username or password, similarly to the \fB\-\-autologin\fP option.
+.RE
+.SH "BUGS"
+.sp
+The baud\-rate detection feature (the \fB\-\-extract\-baud\fP option) requires that \fBagetty\fP be scheduled soon enough after completion of a dial\-in call (within 30 ms with modems that talk at 2400 baud). For robustness, always use the \fB\-\-extract\-baud\fP option in combination with a multiple baud rate command\-line argument, so that BREAK processing is enabled.
+.sp
+The text in the \fI/etc/issue\fP file (or other) and the login prompt are always output with 7\-bit characters and space parity.
+.sp
+The baud\-rate detection feature (the \fB\-\-extract\-baud\fP option) requires that the modem emits its status message \fIafter\fP raising the DCD line.
+.SH "DIAGNOSTICS"
+.sp
+Depending on how the program was configured, all diagnostics are written to the console device or reported via the \fBsyslog\fP(3) facility. Error messages are produced if the \fIport\fP argument does not specify a terminal device; if there is no utmp entry for the current process (System V only); and so on.
+.SH "AUTHORS"
+.sp
+.MTO "werner\(atsuse.de" "Werner Fink" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.sp
+The original \fBagetty\fP for serial terminals was written by \c
+.MTO "wietse\(atwzv.win.tue.nl" "W.Z. Venema" ""
+and ported to Linux by
+.MTO "poe\(atdaimi.aau.dk" "Peter Orbaek" "."
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBagetty\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

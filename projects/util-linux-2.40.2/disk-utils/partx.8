@@ -1,0 +1,228 @@
+'\" t
+.\"     Title: partx
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "PARTX" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+partx \- tell the kernel about the presence and numbering of on\-disk partitions
+.SH "SYNOPSIS"
+.sp
+\fBpartx\fP [\fB\-a\fP|\fB\-d\fP|\fB\-P\fP|\fB\-r\fP|\fB\-s\fP|\fB\-u\fP] [\fB\-t\fP \fItype\fP] [\fB\-n\fP \fIM\fP:_N_] [\-] \fIdisk\fP
+.sp
+\fBpartx\fP [\fB\-a\fP|\fB\-d\fP|\fB\-P\fP|\fB\-r\fP|\fB\-s\fP|\fB\-u\fP] [\fB\-t\fP \fItype\fP] \fIpartition\fP [\fIdisk\fP]
+.SH "DESCRIPTION"
+.sp
+Given a device or disk\-image, \fBpartx\fP tries to parse the partition table and list its contents. It can also tell the kernel to add or remove partitions from its bookkeeping.
+.sp
+The \fIdisk\fP argument is optional when a \fIpartition\fP argument is provided. To force scanning a partition as if it were a whole disk (for example to list nested subpartitions), use the argument "\-" (hyphen\-minus). For example:
+.RS 3
+.ll -.6i
+.sp
+partx \-\-show \- /dev/sda3
+.br
+.RE
+.ll
+.sp
+This will see sda3 as a whole\-disk rather than as a partition.
+.sp
+\fBpartx is not an fdisk program\fP \- adding and removing partitions does not change the disk, it just tells the kernel about the presence and numbering of on\-disk partitions.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-add\fP
+.RS 4
+Add the specified partitions, or read the disk and add all partitions.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-bytes\fP
+.RS 4
+Print the sizes in bytes rather than in a human\-readable format.
+.sp
+By default, the unit, sizes are expressed in, is byte, and unit prefixes are in
+power of 2^10 (1024). Abbreviations of symbols are exhibited truncated in order
+to reach a better readability, by exhibiting alone the first letter of them;
+examples: "1 KiB" and "1 MiB" are respectively exhibited as "1 K" and "1 M",
+then omitting on purpose the mention "iB", which is part of these abbreviations.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-delete\fP
+.RS 4
+Delete the specified partitions or all partitions. It is not error to remove non\-existing partitions, so this option is possible to use together with large \fB\-\-nr\fP ranges without care about the current partitions set on the device.
+.RE
+.sp
+\fB\-g\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line with \fB\-\-show\fP or \fB\-\-raw\fP.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+List the partitions. Note that all numbers are in 512\-byte sectors. This output format is DEPRECATED in favour of \fB\-\-show\fP. Do not use it in newly written scripts.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-nr\fP \fIM\fP\fB:\fP\fIN\fP
+.RS 4
+Specify the range of partitions. For backward compatibility also the format \fIM\fP\fB\-\fP\fIN\fP is supported. The range may contain negative numbers, for example \fB\-\-nr \-1:\-1\fP means the last partition, and \fB\-\-nr \-2:\-1\fP means the last two partitions. Supported range specifications are:
+.sp
+\fIM\fP
+.RS 4
+Specifies just one partition (e.g. \fB\-\-nr 3\fP).
+.RE
+.sp
+\fIM\fP\fB:\fP
+.RS 4
+Specifies the lower limit only (e.g. \fB\-\-nr 2:\fP).
+.RE
+.sp
+\fB:\fP\fIN\fP
+.RS 4
+Specifies the upper limit only (e.g. \fB\-\-nr :4\fP).
+.RE
+.sp
+\fIM\fP\fB:\fP\fIN\fP
+.RS 4
+Specifies the lower and upper limits (e.g. \fB\-\-nr 2:4\fP).
+.RE
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Define the output columns to use for \fB\-\-show\fP, \fB\-\-pairs\fP and \fB\-\-raw\fP output. If no output arrangement is specified, then a default set is used. Use \fB\-\-help\fP to get \fIlist\fP of all supported columns. This option cannot be combined with the \fB\-\-add\fP, \fB\-\-delete\fP, \fB\-\-update\fP or \fB\-\-list\fP options.
+.RE
+.sp
+\fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-pairs\fP
+.RS 4
+List the partitions using the KEY="value" format.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+List the partitions using the raw output format.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-show\fP
+.RS 4
+List the partitions. The output columns can be selected and rearranged with the \fB\-\-output\fP option. All numbers (except SIZE) are in 512\-byte sectors.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-type\fP \fItype\fP
+.RS 4
+Specify the partition table type.
+.RE
+.sp
+\fB\-\-list\-types\fP
+.RS 4
+List supported partition types and exit.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-update\fP
+.RS 4
+Update the specified partitions.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-sector\-size\fP \fIsize\fP
+.RS 4
+Overwrite default sector size.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose mode.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "ENVIRONMENT"
+.sp
+LIBBLKID_DEBUG=all
+.RS 4
+enables libblkid debug output.
+.RE
+.SH "EXAMPLE"
+.sp
+partx \-\-show /dev/sdb3, partx \-\-show \-\-nr 3 /dev/sdb, partx \-\-show /dev/sdb3 /dev/sdb
+.RS 4
+All three commands list partition 3 of \fI/dev/sdb\fP.
+.RE
+.sp
+partx \-\-show \- /dev/sdb3
+.RS 4
+Lists all subpartitions on \fI/dev/sdb3\fP (the device is used as whole\-disk).
+.RE
+.sp
+partx \-o START \-g \-\-nr 5 /dev/sdb
+.RS 4
+Prints the start sector of partition 5 on \fI/dev/sdb\fP without header.
+.RE
+.sp
+partx \-o SECTORS,SIZE /dev/sda5 /dev/sda
+.RS 4
+Lists the length in sectors and human\-readable size of partition 5 on \fI/dev/sda\fP.
+.RE
+.sp
+partx \-\-add \-\-nr 3:5 /dev/sdd
+.RS 4
+Adds all available partitions from 3 to 5 (inclusive) on \fI/dev/sdd\fP.
+.RE
+.sp
+partx \-d \-\-nr :\-1 /dev/sdd
+.RS 4
+Removes the last partition on \fI/dev/sdd\fP.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "dave\(atgnu.org" "Davidlohr Bueso" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.sp
+The original version was written by \c
+.MTO "aeb\(atcwi.nl" "Andries E. Brouwer" ""
+.SH "SEE ALSO"
+.sp
+\fBaddpart\fP(8),
+\fBdelpart\fP(8),
+\fBfdisk\fP(8),
+\fBparted\fP(8),
+\fBpartprobe\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBpartx\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

@@ -1,0 +1,66 @@
+//po4a: entry man manual
+= enosys(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: enosys
+
+== NAME
+
+enosys - utility make syscalls fail with ENOSYS
+
+== SYNOPSIS
+
+*enosys* [*--syscall*|*-s* _syscall_] command
+
+== DESCRIPTION
+
+*enosys* is a simple command to execute a child process for which certain
+syscalls fail with errno ENOSYS.
+
+It can be used to test the behavior of applications in the face of missing
+syscalls as would happen when running on old kernels.
+
+== OPTIONS
+
+*-s*, *--syscall*::
+Syscall to block. Can be specified multiple times.
+
+*-i*, *--ioctl*::
+Ioctl to block. Can be specified multiple times.
+
+*-l*, *--list*::
+List syscalls known to *enosys*.
+
+*-m*, *--list-ioctl*::
+List ioctls known to *enosys*.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*enosys* exits with the status code of the executed process.
+The following values have special meanings:
+
+*1*::
+internal error
+
+*2*::
+system does not provide the necessary functionality
+
+== AUTHORS
+
+mailto:thomas@t-8ch.de[Thomas Weißschuh]
+
+== SEE ALSO
+
+*syscall*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

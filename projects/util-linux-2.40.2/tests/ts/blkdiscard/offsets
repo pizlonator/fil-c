@@ -1,0 +1,101 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2014 Federico Simoncelli <fsimonce@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="offsets"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_BLKDISCARD"
+
+ts_skip_nonroot
+ts_check_losetup
+
+ORIGPWD=$(pwd)
+IMAGE_NAME="${TS_TESTNAME}-loop.img"
+IMAGE_PATH="$TS_OUTDIR/$IMAGE_NAME"
+
+truncate -s 10M $IMAGE_PATH
+
+ts_log "create loop device from image"
+DEVICE=$($TS_CMD_LOSETUP --show -f $IMAGE_PATH)
+ts_register_loop_device "$DEVICE"
+
+function run_tscmd {
+	local ret
+	"$@" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ret=$?
+	echo "ret: $ret" >> "$TS_OUTPUT"
+	return $ret
+}
+
+ts_log "testing offsets with full block size"
+run_tscmd $TS_CMD_BLKDISCARD -v $DEVICE
+if [ "$?" != "0" ]; then
+	# Skip the rest? For example loop backing files on NFS seem unsupported.
+	grep -q "BLKDISCARD ioctl failed: Operation not supported" "$TS_ERRLOG" \
+		&& ts_skip "BLKDISCARD not supported"
+fi
+run_tscmd $TS_CMD_BLKDISCARD -v -o 1 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 511 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 512 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 1024 $DEVICE
+
+ts_log "testing offsets with specific length"
+run_tscmd $TS_CMD_BLKDISCARD -v -l 5242880 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -l 5242881 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -l 5243391 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 1 -l 5242880 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 511 -l 5242880 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 512 -l 5242880 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -o 1024 -l 5242880 $DEVICE
+
+ts_log "testing aligned steps full device"
+run_tscmd $TS_CMD_BLKDISCARD -v -p 5242880 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 1310720 $DEVICE
+
+ts_log "testing aligned steps with offsets and length"
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -l 1024 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -o 1 -l 1024 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -o 1 -l 1536 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -o 511 -l 1536 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -o 512 -l 1536 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 512 -o 1024 -l 1024 $DEVICE
+
+ts_log "testing misaligned steps full device"
+run_tscmd $TS_CMD_BLKDISCARD -v -p 1 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 256 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 513 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 768 $DEVICE
+
+ts_log "testing misaligned steps with offsets and length"
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -l 1024 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -o 1 -l 1536 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -o 511 -l 1536 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -l 10240 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -o 1 -l 10240 $DEVICE
+run_tscmd $TS_CMD_BLKDISCARD -v -p 511 -o 511 -l 10240 $DEVICE
+
+sed -i "s#$DEVICE:\s##" $TS_OUTPUT $TS_ERRLOG
+
+ts_log "detach loop device from image"
+
+ts_cd "$ORIGPWD"
+
+ts_finalize

@@ -1,0 +1,227 @@
+'\" t
+.\"     Title: umount
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UMOUNT" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+umount \- unmount filesystems
+.SH "SYNOPSIS"
+.sp
+\fBumount\fP \fB\-a\fP [\fB\-dflnrv\fP] [\fB\-t\fP \fIfstype\fP] [\fB\-O\fP \fIoption\fP...]
+.sp
+\fBumount\fP [\fB\-dflnrv\fP] {\fIdirectory\fP|\fIdevice\fP}
+.sp
+\fBumount\fP \fB\-h\fP|\fB\-V\fP
+.SH "DESCRIPTION"
+.sp
+The \fBumount\fP command detaches the mentioned filesystem(s) from the file hierarchy. A filesystem is specified by giving the directory where it has been mounted. Giving the special device on which the filesystem lives may also work, but is obsolete, mainly because it will fail in case this device was mounted on more than one directory.
+.sp
+Note that a filesystem cannot be unmounted when it is \*(Aqbusy\*(Aq \- for example, when there are open files on it, or when some process has its working directory there, or when a swap file on it is in use. The offending process could even be \fBumount\fP itself \- it opens libc, and libc in its turn may open for example locale files. A lazy unmount avoids this problem, but it may introduce other issues. See \fB\-\-lazy\fP description below.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+All of the filesystems described in \fI/proc/self/mountinfo\fP (or in deprecated \fI/etc/mtab\fP) are unmounted, except the proc, devfs, devpts, sysfs, rpc_pipefs and nfsd filesystems. This list of the filesystems may be replaced by \fB\-\-types\fP umount option.
+.RE
+.sp
+\fB\-A\fP, \fB\-\-all\-targets\fP
+.RS 4
+Unmount all mountpoints in the current mount namespace for the specified filesystem. The filesystem can be specified by one of the mountpoints or the device name (or UUID, etc.). When this option is used together with \fB\-\-recursive\fP, then all nested mounts within the filesystem are recursively unmounted. This option is only supported on systems where \fI/etc/mtab\fP is a symlink to \fI/proc/mounts\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-no\-canonicalize\fP
+.RS 4
+Do not canonicalize paths. The paths canonicalization is based on \fBstat\fP(2) and \fBreadlink\fP(2) system calls. These system calls may hang in some cases (for example on NFS if server is not available). The option has to be used with canonical path to the mount point.
+.sp
+This option is silently ignored by \fBumount\fP for non\-root users.
+.sp
+For more details about this option see the \fBmount\fP(8) man page. Note that \fBumount\fP does not pass this option to the \fB/sbin/umount.\fP\fItype\fP helpers.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-detach\-loop\fP
+.RS 4
+When the unmounted device was a loop device, also free this loop device. This option is unnecessary for devices initialized by \fBmount\fP(8), in this case "autoclear" functionality is enabled by default.
+.RE
+.sp
+\fB\-\-fake\fP
+.RS 4
+Causes everything to be done except for the actual system call or umount helper execution; this \*(Aqfakes\*(Aq unmounting the filesystem. It can be used to remove entries from the deprecated \fI/etc/mtab\fP that were unmounted earlier with the \fB\-n\fP option.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-force\fP
+.RS 4
+Force an unmount (in case of an unreachable NFS system).
+.sp
+Note that this option does not guarantee that umount command does not hang. It\(cqs strongly recommended to use absolute paths without symlinks to avoid unwanted \fBreadlink\fP(2) and \fBstat\fP(2) system calls on unreachable NFS in \fBumount\fP.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-internal\-only\fP
+.RS 4
+Do not call the \fB/sbin/umount.\fP\fIfilesystem\fP helper even if it exists. By default such a helper program is called if it exists.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-lazy\fP
+.RS 4
+Lazy unmount. Detach the filesystem from the file hierarchy now, and clean up all references to this filesystem as soon as it is not busy anymore.
+.sp
+A system reboot would be expected in near future if you\(cqre going to use this option for network filesystem or local filesystem with submounts. The recommended use\-case for \fBumount \-l\fP is to prevent hangs on shutdown due to an unreachable network share where a normal \fBumount\fP will hang due to a downed server or a network partition. Remounts of the share will not be possible.
+.RE
+.sp
+\fB\-N\fP, \fB\-\-namespace\fP \fIns\fP
+.RS 4
+Perform \fBumount\fP in the mount namespace specified by \fIns\fP. \fIns\fP is either PID of process running in that namespace or special file representing that namespace.
+.sp
+\fBumount\fP switches to the namespace when it reads \fI/etc/fstab\fP, writes \fI/etc/mtab\fP (or writes to \fI/run/mount\fP) and calls \fBumount\fP(2) system call, otherwise it runs in the original namespace. It means that the target mount namespace does not have to contain any libraries or other requirements necessary to execute \fBumount\fP(2) command.
+.sp
+See \fBmount_namespaces\fP(7) for more information.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-no\-mtab\fP
+.RS 4
+Unmount without writing in \fI/etc/mtab\fP.
+.RE
+.sp
+\fB\-O\fP, \fB\-\-test\-opts\fP \fIoption\fP...
+.RS 4
+Unmount only the filesystems that have the specified option set in \fI/etc/fstab\fP. More than one option may be specified in a comma\-separated list. Each option can be prefixed with \fBno\fP to indicate that no action should be taken for this option.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress "not mounted" error messages.
+.RE
+.sp
+\fB\-R\fP, \fB\-\-recursive\fP
+.RS 4
+Recursively unmount each specified directory. Recursion for each directory will stop if any unmount operation in the chain fails for any reason. The relationship between mountpoints is determined by \fI/proc/self/mountinfo\fP entries. The filesystem must be specified by mountpoint path; a recursive unmount by device name (or UUID) is unsupported. Since version 2.37 it umounts also all over\-mounted filesystems (more filesystems on the same mountpoint).
+.RE
+.sp
+\fB\-r\fP, \fB\-\-read\-only\fP
+.RS 4
+When an unmount fails, try to remount the filesystem read\-only.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-types\fP \fItype\fP...
+.RS 4
+Indicate that the actions should only be taken on filesystems of the specified \fItype\fP. More than one type may be specified in a comma\-separated list. The list of filesystem types can be prefixed with \fBno\fP to indicate that no action should be taken for all of the mentioned types. Note that \fBumount\fP reads information about mounted filesystems from kernel (\fI/proc/mounts\fP) and filesystem names may be different than filesystem names used in the \fI/etc/fstab\fP (e.g., "nfs4" vs. "nfs").
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Verbose mode.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NON\-SUPERUSER UMOUNTS"
+.sp
+Normally, only the superuser can umount filesystems. However, when \fIfstab\fP contains the \fBuser\fP option on a line, anybody can umount the corresponding filesystem. For more details see \fBmount\fP(8) man page.
+.sp
+Since version 2.34 the \fBumount\fP command can be used to perform umount operation also for fuse filesystems if kernel mount table contains user\(cqs ID. In this case \fIfstab\fP \fBuser=\fP mount option is not required.
+.sp
+Since version 2.35 \fBumount\fP command does not exit when user permissions are inadequate by internal \fBlibmount\fP security rules. It drops suid permissions and continue as regular non\-root user. This can be used to support use\-cases where root permissions are not necessary (e.g., fuse filesystems, user namespaces, etc).
+.SH "LOOP DEVICE"
+.sp
+The \fBumount\fP command will automatically detach loop device previously initialized by \fBmount\fP(8) command independently of \fI/etc/mtab\fP.
+.sp
+In this case the device is initialized with "autoclear" flag (see \fBlosetup\fP(8) output for more details), otherwise it\(cqs necessary to use the option \fB\-\-detach\-loop\fP or call \fBlosetup \-d\fP \fIdevice\fP. The autoclear feature is supported since Linux 2.6.25.
+.SH "EXTERNAL HELPERS"
+.sp
+The syntax of external unmount helpers is:
+.RS 3
+.ll -.6i
+.sp
+\fBumount.\fP\fIsuffix\fP {\fIdirectory\fP|\fIdevice\fP} [\fB\-flnrv\fP] [\fB\-N\fP \fInamespace\fP] [\fB\-t\fP \fItype\fP.\fIsubtype\fP]
+.br
+.RE
+.ll
+.sp
+where \fIsuffix\fP is the filesystem type (or the value from a \fBuhelper=\fP or \fBhelper=\fP marker in the mtab file). The \fB\-t\fP option can be used for filesystems that have subtype support. For example:
+.RS 3
+.ll -.6i
+.sp
+\fBumount.fuse \-t fuse.sshfs\fP
+.br
+.RE
+.ll
+.sp
+A \fBuhelper=\fP\fIsomething\fP marker (unprivileged helper) can appear in the \fI/etc/mtab\fP file when ordinary users need to be able to unmount a mountpoint that is not defined in \fI/etc/fstab\fP (for example for a device that was mounted by \fBudisks\fP(1)).
+.sp
+A \fBhelper=\fP\fItype\fP marker in the \fImtab\fP file will redirect all unmount requests to the \fB/sbin/umount.\fP\fItype\fP helper independently of UID.
+.sp
+Note that \fI/etc/mtab\fP is currently deprecated and \fBhelper=\fP and other userspace mount options are maintained by \fBlibmount\fP.
+.SH "ENVIRONMENT"
+.sp
+\fBLIBMOUNT_FSTAB\fP=<path>
+.RS 4
+overrides the default location of the \fIfstab\fP file (ignored for \fBsuid\fP)
+.RE
+.sp
+\fBLIBMOUNT_DEBUG\fP=all
+.RS 4
+enables \fBlibmount\fP debug output
+.RE
+.SH "FILES"
+.sp
+\fI/etc/mtab\fP
+.RS 4
+table of mounted filesystems (deprecated and usually replaced by symlink to \fI/proc/mounts\fP)
+.RE
+.sp
+\fI/etc/fstab\fP
+.RS 4
+table of known filesystems
+.RE
+.sp
+\fI/proc/self/mountinfo\fP
+.RS 4
+table of mounted filesystems generated by kernel.
+.RE
+.SH "HISTORY"
+.sp
+A \fBumount\fP command appeared in Version 6 AT&T UNIX.
+.SH "SEE ALSO"
+.sp
+\fBumount\fP(2),
+\fBlosetup\fP(8),
+\fBmount_namespaces\fP(7),
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBumount\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

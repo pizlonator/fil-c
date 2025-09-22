@@ -1,0 +1,81 @@
+//po4a: entry man manual
+////
+Copyright 1999 Andreas Dilger (adilger@enel.ucalgary.ca)
+This file may be copied under the terms of the GNU General Public License.
+////
+= uuidgen(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: uuidgen
+
+== NAME
+
+uuidgen - create a new UUID value
+
+== SYNOPSIS
+
+*uuidgen* [options]
+
+== DESCRIPTION
+
+The *uuidgen* program creates (and prints) a new universally unique identifier (UUID) using the *libuuid*(3) library. The new UUID can reasonably be considered unique among all UUIDs created on the local system, and among UUIDs created on other systems in the past and in the future.
+
+There are three types of UUIDs which *uuidgen* can generate: time-based UUIDs, random-based UUIDs, and hash-based UUIDs. By default *uuidgen* will generate a random-based UUID if a high-quality random number generator is present. Otherwise, it will choose a time-based UUID. It is possible to force the generation of one of these first two UUID types by using the *--random* or *--time* options.
+
+The third type of UUID is generated with the *--md5* or *--sha1* options, followed by *--namespace* _namespace_ and *--name* _name_. The _namespace_ may either be a well-known UUID, or else an alias to one of the well-known UUIDs defined in RFC 4122, that is *@dns*, *@url*, *@oid*, or *@x500*. The _name_ is an arbitrary string value. The generated UUID is the digest of the concatenation of the namespace UUID and the name value, hashed with the MD5 or SHA1 algorithms. It is, therefore, a predictable value which may be useful when UUIDs are being used as handles or nonces for more complex values or values which shouldn't be disclosed directly. See the RFC for more information.
+
+== OPTIONS
+
+*-r*, *--random*::
+Generate a random-based UUID. This method creates a UUID consisting mostly of random bits. It requires that the operating system has a high quality random number generator, such as _/dev/random_.
+
+*-t*, *--time*::
+Generate a time-based UUID. This method creates a UUID based on the system clock plus the system's ethernet hardware address, if present.
+
+include::man-common/help-version.adoc[]
+
+*-m*, *--md5*::
+Use MD5 as the hash algorithm.
+
+*-s*, *--sha1*::
+Use SHA1 as the hash algorithm.
+
+*-n*, *--namespace* _namespace_::
+Generate the hash with the _namespace_ prefix. The _namespace_ is UUID, or '@ns' where "ns" is well-known predefined UUID addressed by namespace name (see above).
+
+*-N*, *--name* _name_::
+Generate the hash of the _name_.
+
+*-C*, *--count* _num_::
+Generate multiple UUIDs using the enhanced capability of the libuuid to cache time-based UUIDs, thus resulting in improved performance. However, this holds no significance for other UUID types.
+
+*-x*, *--hex*::
+Interpret name _name_ as a hexadecimal string.
+
+== CONFORMING TO
+
+OSF DCE 1.1
+
+== EXAMPLES
+
+uuidgen --sha1 --namespace @dns --name "www.example.com"
+
+== AUTHORS
+
+*uuidgen* was written by Andreas Dilger for *libuuid*(3).
+
+== SEE ALSO
+
+*uuidparse*(1),
+*libuuid*(3),
+link:https://tools.ietf.org/html/rfc4122[RFC 4122]
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

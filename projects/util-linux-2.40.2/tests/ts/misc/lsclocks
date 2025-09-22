@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Copyright (C) 2023 Thomas Weißschuh <thomas@t-8ch.de>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="lsclocks"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LSCLOCKS"
+ts_check_prog sed 
+
+mask_timestamps() {
+	sed 's/[0-9]\+\.[0-9]\+/X.X/g'
+}
+
+NO_DISCOVER="--no-discover-dynamic --no-discover-rtc"
+
+ts_init_subtest basic
+
+"$TS_CMD_LSCLOCKS" $NO_DISCOVER -o TYPE,ID,CLOCK,NAME > "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+ts_finalize_subtest
+
+ts_init_subtest time
+
+"$TS_CMD_LSCLOCKS" --time monotonic | mask_timestamps > "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+ts_finalize_subtest
+
+ts_init_subtest dynamic
+
+if [ -c /dev/ptp0 ] && [ -r /dev/ptp0 ]; then
+	"$TS_CMD_LSCLOCKS" $NO_DISCOVER --dynamic-clock /dev/ptp0 --output TYPE,ID,CLOCK,NAME \
+		| tail -1 > "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+	ts_finalize_subtest
+else
+	ts_skip_subtest "/dev/ptp0 not usable"
+fi
+
+ts_init_subtest rtc
+
+if [ -c /dev/rtc0 ] && [ -r /dev/rtc0 ]; then
+	"$TS_CMD_LSCLOCKS" $NO_DISCOVER --rtc /dev/rtc0 --output TYPE,ID,CLOCK,NAME \
+		| tail -1 > "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+	ts_finalize_subtest
+else
+	ts_skip_subtest "/dev/rtc0 not usable"
+fi
+
+ts_init_subtest cpu
+
+"$TS_CMD_LSCLOCKS" --cpu 1 --output TYPE,ID,NAME | tail -1 > "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+ts_finalize_subtest
+
+ts_finalize

@@ -1,0 +1,48 @@
+Checking that no-one is using this disk right now ... OK
+
+Disk <removed>: 100 MiB, 104857600 bytes, 204800 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+<removed>2: Created a new partition <removed>.
+<removed>3: Created a new partition <removed>.
+<removed>4: Created a new partition <removed>.
+<removed>5: Done.
+
+New situation:
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start    End Sectors Size Type
+<removed>1   2048  22527   20480  10M Linux filesystem
+<removed>2  22528  45055   22528  11M Linux filesystem
+<removed>3  45056  69631   24576  12M Linux filesystem
+<removed>4  69632 204766  135135  66M Linux filesystem
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+Disk <removed>: 100 MiB, 104857600 bytes, 204800 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / <removed> bytes
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Start    End Size UUID                                 Type             Name
+ 2048  22527  10M 28A432A3-8D63-3142-B9F5-68A2BF2BC60B Linux filesystem 
+22528  45055  11M 6A7D17FC-7252-564A-9B68-5E2107999BF1 Linux filesystem 
+45056  69631  12M 26C303E4-0321-3346-B9EF-BDD39BEA1166 Linux filesystem 
+69632 204766  66M AF79D434-C8B3-2445-80FB-317AB157447C Linux filesystem 

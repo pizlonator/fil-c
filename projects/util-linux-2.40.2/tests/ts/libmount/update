@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Copyright (C) 2010 Karel Zak <kzak@redhat.com>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="tab update"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+TESTPROG="$TS_HELPER_LIBMOUNT_UPDATE"
+
+[ -x $TESTPROG ] || ts_skip "test not compiled"
+
+# IMPORTANT notes:
+#
+#  - the $TS_OUTPUT variable is between ts_init_subtest and ts_finalize_subtest
+#    redefined to subtest specific namespace -- it means that $TS_OUTPUT is a
+#    different file within a subtest.
+#
+#  - all this test uses global $TS_OUTPUT.mountinfo
+
+#
+# utab
+#
+export LIBMOUNT_UTAB=$TS_OUTPUT.utab
+rm -f $LIBMOUNT_UTAB
+> $LIBMOUNT_UTAB
+
+ts_init_subtest "utab-mount"
+ts_run $TESTPROG --add /dev/sda1 /mnt/foo ext3 "rw,bbb,ccc,fff=FFF,ddd,noexec"
+ts_run $TESTPROG --add /dev/sdb1 /mnt/bar ext3 "ro,user"
+ts_run $TESTPROG --add /dev/sda2 /mnt/xyz ext3 "rw,loop=/dev/loop0,uhelper=hal"
+ts_run $TESTPROG --add none /proc proc "rw,user"
+cp $LIBMOUNT_UTAB $TS_OUTPUT	# save the utab aside
+ts_finalize_subtest		# checks the utab
+
+ts_init_subtest "utab-move"
+ts_run $TESTPROG --move /mnt/bar /mnt/newbar
+ts_run $TESTPROG --move /mnt/xyz /mnt/newxyz
+cp $LIBMOUNT_UTAB $TS_OUTPUT	# save the utab aside
+ts_finalize_subtest		# checks the utab
+
+ts_init_subtest "utab-remount"
+ts_run $TESTPROG --remount /mnt/newbar "ro,noatime"
+ts_run $TESTPROG --remount /mnt/newxyz "rw,user"
+cp $LIBMOUNT_UTAB $TS_OUTPUT	# save the utab aside
+ts_finalize_subtest		# checks the utab
+
+ts_init_subtest "utab-umount"
+ts_run $TESTPROG --remove /mnt/newbar
+ts_run $TESTPROG --remove /proc
+cp $LIBMOUNT_UTAB $TS_OUTPUT	# save the utab aside
+ts_finalize_subtest		# checks the utab
+
+#
+# fstab - replace
+#
+export LIBMOUNT_FSTAB=$TS_OUTPUT.fstab
+rm -f $LIBMOUNT_FSTAB
+cp "$TS_SELF/files/fstab.comment" $LIBMOUNT_FSTAB
+
+ts_init_subtest "fstab-replace"
+ts_run $TESTPROG --replace "LABEL=foo" "/mnt/foo"
+cp $LIBMOUNT_FSTAB $TS_OUTPUT	# save the fstab aside
+ts_finalize_subtest		#checks the fstab
+
+ts_finalize

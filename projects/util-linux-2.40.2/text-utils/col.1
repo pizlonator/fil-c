@@ -1,0 +1,163 @@
+'\" t
+.\"     Title: col
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "COL" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+col \- filter reverse line feeds from input
+.SH "SYNOPSIS"
+.sp
+\fBcol\fP \fIoptions\fP
+.SH "DESCRIPTION"
+.sp
+\fBcol\fP filters out reverse (and half\-reverse) line feeds so the output is in the correct order, with only forward and half\-forward line feeds. It also replaces any whitespace characters with tabs where possible. This can be useful in processing the output of \fBnroff\fP(1) and \fBtbl\fP(1).
+.sp
+\fBcol\fP reads from standard input and writes to standard output.
+.SH "OPTIONS"
+.sp
+\fB\-b\fP, \fB\-\-no\-backspaces\fP
+.RS 4
+Do not output any backspaces, printing only the last character written to each column position.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-fine\fP
+.RS 4
+Permit half\-forward line feeds. Normally characters destined for a half\-line boundary are printed on the following line.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-tabs\fP
+.RS 4
+Output tabs instead of multiple spaces.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-lines\fP \fInumber\fP
+.RS 4
+Buffer at least \fInumber\fP lines in memory. By default, 128 lines are buffered.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pass\fP
+.RS 4
+Force unknown control sequences to be passed through unchanged. Normally \fBcol\fP will filter out any control sequences other than those recognized and interpreted by itself, which are listed below.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-spaces\fP
+.RS 4
+Output multiple spaces instead of tabs.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "CONFORMING TO"
+.sp
+The \fBcol\fP utility conforms to the Single UNIX Specification, Version 2. The \fB\-l\fP option is an extension to the standard.
+.SH "NOTES"
+.sp
+The control sequences for carriage motion that \fBcol\fP understands and their decimal values are listed in the following table:
+.sp
+\fBESC\-7\fP
+.RS 4
+reverse line feed (escape then 7)
+.RE
+.sp
+\fBESC\-8\fP
+.RS 4
+half reverse line feed (escape then 8)
+.RE
+.sp
+\fBESC\-9\fP
+.RS 4
+half forward line feed (escape then 9)
+.RE
+.sp
+\fBbackspace\fP
+.RS 4
+moves back one column (8); ignored in the first column
+.RE
+.sp
+\fBnewline\fP
+.RS 4
+forward line feed (10); also does carriage return
+.RE
+.sp
+\fBcarriage return\fP
+.RS 4
+(13)
+.RE
+.sp
+\fBshift in\fP
+.RS 4
+shift to normal character set (15)
+.RE
+.sp
+\fBshift out\fP
+.RS 4
+shift to alternate character set (14)
+.RE
+.sp
+\fBspace\fP
+.RS 4
+moves forward one column (32)
+.RE
+.sp
+\fBtab\fP
+.RS 4
+moves forward to next tab stop (9)
+.RE
+.sp
+\fBvertical tab\fP
+.RS 4
+reverse line feed (11)
+.RE
+.sp
+All unrecognized control characters and escape sequences are discarded.
+.sp
+\fBcol\fP keeps track of the character set as characters are read and makes sure the character set is correct when they are output.
+.sp
+If the input attempts to back up to the last flushed line, \fBcol\fP will display a warning message.
+.SH "HISTORY"
+.sp
+A \fBcol\fP command appeared in Version 6 AT&T UNIX.
+.SH "SEE ALSO"
+.sp
+\fBexpand\fP(1),
+\fBnroff\fP(1),
+\fBtbl\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBcol\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

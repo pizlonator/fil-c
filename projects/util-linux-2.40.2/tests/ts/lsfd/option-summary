@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="--summary option"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+. "$TS_SELF"/lsfd-functions.bash
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+ts_check_prog "ps"
+
+ts_cd "$TS_OUTDIR"
+
+FD=3
+F_GROUP=/etc/group
+F_PASSWD=/etc/passwd
+PIDS=
+PID=
+
+for i in {1..10}; do
+    "$TS_HELPER_MKFDS" -X -q ro-regular-file $FD file=$F_GROUP &
+    PID=$!
+    PIDS="${PIDS} ${PID} "
+    lsfd_wait_for_pausing "${PID}"
+done
+
+for i in {1..3}; do
+    "$TS_HELPER_MKFDS" -X -q ro-regular-file $FD file=$F_PASSWD &
+    PID=$!
+    PIDS="${PIDS} ${PID} "
+    lsfd_wait_for_pausing "${PID}"
+done
+
+${TS_CMD_LSFD} -n --summary=only \
+		 --pid="${PIDS}" \
+		 --counter=GROUP:'(NAME == "/etc/group")' \
+		 --counter=PASSWD:'(NAME == "/etc/passwd")' \
+		 --counter=PROC:'(ASSOC == "exe")' \
+		 > $TS_OUTPUT 2>&1
+
+for PID in ${PIDS}; do
+    kill -CONT "${PID}"
+done
+
+ts_finalize

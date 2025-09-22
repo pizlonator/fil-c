@@ -1,0 +1,59 @@
+kern  :emerg : [32m[    0.000000] [0m[T1] Linux version 6.6.4-arch1-1 (linux@archlinux) (gcc (GCC) 13.2.1 20230801, GNU ld (GNU Binutils) 2.41.0) #1 SMP PREEMPT_DYNAMIC Mon, 04 Dec 2023 00:29:19 +0000
+kern  :alert : [32m[    0.000001] [0m[T2] [33mCommand line: [0m[7m[31minitrd=\ucode.img initrd=\initramfs-linux.img rw cryptdevice=/dev/nvme0n1p3:system:discard root=/dev/mapper/system[0m
+kern  :crit  : [32m[    0.000002] [0m[T3] [1m[31mBIOS-provided physical RAM map:[0m
+kern  :err   : [32m[    0.000003] [0m[T4] [33mBIOS-e820: [0m[31m[mem 0x0000000000000000-0x000000000009efff] usable[0m
+kern  :warn  : [32m[    0.000004] [0m[T5] [33mBIOS-e820: [0m[1m[mem 0x000000000009f000-0x00000000000bffff] reserved[0m
+kern  :notice: [32m[    0.000005] [0m[T6] [33mBIOS-e820: [0m[mem 0x0000000000100000-0x0000000009afffff] usable
+kern  :info  : [32m[    0.000006] [0m[T7] [33mBIOS-e820: [0m[mem 0x0000000009b00000-0x0000000009dfffff] reserved
+kern  :debug : [32m[    0.000007] [0m[T8] [33mBIOS-e820: [0m[mem 0x0000000009e00000-0x0000000009efffff] usable
+kern  :info  : [32m[    0.000008] [0m[T9] [33mBIOS-e820: [0m[mem 0x0000000009f00000-0x0000000009f3bfff] ACPI NVS
+kern  :info  : [32m[    0.000009] [0m[T10] [33mBIOS-e820: [0m[mem 0x0000000009f3c000-0x000000004235ffff] usable
+kern  :info  : [32m[    0.000010] [0m[T11] [33mBIOS-e820: [0m[mem 0x0000000042360000-0x000000004455ffff] reserved
+kern  :info  : [32m[    0.201607] [0m[T12] [33msmp: [0mBringing up secondary CPUs ...
+kern  :info  : [32m[    0.201607] [0m[T13] [33msmpboot: [0mx86: Booting SMP configuration:
+kern  :warn  : [32m[    0.209670] [0m[T14] [1m  #1  #3  #5  #7[0m
+kern  :info  : [32m[    0.212630] [0m[T15] [33msmp: [0mBrought up 1 node, 16 CPUs
+kern  :notice: [32m[    0.215936] [0m[T16] [33maudit: [0mtype=2000 audit(1702926179.015:1): state=initialized audit_enabled=0 res=1
+kern  :info  : [32m[    0.215937] [0m[T17] [33mthermal_sys: [0mRegistered thermal governor 'fair_share'
+kern  :warn  : [32m[    0.215966] [0m[T18] [33mENERGY_PERF_BIAS: [0m[1mSet to 'normal', was 'performance'[0m
+kern  :info  : [32m[    0.367657] [0m[T19] [33mACPI: [0m\_SB_.PCI0.GP19.NHI1.PWRS: New power resource
+kern  :info  : [32m[    0.368615] [0m[T20] [33mACPI: [0m\_SB_.PCI0.GP19.XHC4.PWRS: New power resource
+kern  :info  : [32m[    0.376316] [0m[T21] [33mACPI: [0m\_SB_.PRWL: New power resource
+kern  :info  : [32m[    0.376343] [0m[T22] [33mACPI: [0m\_SB_.PRWB: New power resource
+kern  :info  : [32m[    0.377373] [0m[T23] [33mACPI: [0mPCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+kern  :info  : [32m[    0.377378] [0m[T24] [33macpi PNP0A08:00: [0m_OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI EDR HPX-Type3]
+kern  :info  : [32m[    0.377569] [0m[T25] [33macpi PNP0A08:00: [0m_OSC: platform does not support [SHPCHotplug AER]
+kern  :info  : [32m[    0.377933] [0m[T26] [33macpi PNP0A08:00: [0m_OSC: OS now controls [PCIeHotplug PME PCIeCapability LTR DPC]
+kern  :info  : [32m[    0.378458] [0m[T27] PCI host bridge to bus 0000:00
+kern  :info  : [32m[    0.378459] [0m[T28] [33mpci_bus 0000:00: [0mroot bus resource [io  0x0000-0x0cf7 window]
+kern  :info  : [32m[    0.378461] [0m[T29] [33mpci_bus 0000:00: [0mroot bus resource [io  0x0d00-0xffff window]
+user  :notice: [32m[    9.398562] [0m[T30] user network daemon initialization complete
+daemon:info  : [32m[   10.441520] [0m[T31] [33msystemd[1]: [0msystemd 254.7-1.fc39 running in system mode
+daemon:info  : [32m[   11.441524] [0m[T32] [33msystemd[1]: [0mDetected architecture x86-64.
+daemon:info  : [32m[   12.441525] [0m[T33] [33msystemd[1]: [0mRunning in initrd.
+daemon:info  : [32m[   13.541598] [0m[T34] [33msystemd[1]: [0mHostname set to <catalina>.
+kern  :info  : [32m[   15.641860] [0m[T35] [33musb 3-3: [0mNew USB device found, idVendor=1a40, idProduct=0101, bcdDevice= 1.11
+kern  :err   : [32m[   16.690000] [0m[T36] [33mSerial bus multi instantiate pseudo device driver INT3515:00: [0m[31merror -ENXIO: IRQ index 1 not found.[0m
+kern  :err   : [32m[   17.710000] [0m[T37] [33msnd_hda_intel 0000:00:1f.3: [0m[31mCORB reset timeout#2, CORBRP = 65535[0m
+syslog:info  : [32m[   18.720000] [0m[T38] [33msystemd-journald[723]: [0mReceived client request to flush runtime journal.
+syslog:warn  : [32m[   20.740000] [0m[T39] [33msystemd-journald[723]: [0m[1mFile /var/log/journal/a124ea923b144109a12d557d5ac53179/system.journal corrupted or uncleanly shut down, renaming and replacing.[0m
+syslog:info  : [32m[   21.752348] [0m[T40] [33msystemd-journald[723]: [0m/var/log/journal/ad7a2547ac0e4342a342e62a34a3eae4/user-1000.journal: Journal file uses a different sequence number ID, rotating.
+kern  :warn  : [32m[   24.761100] [0m[T41] [33mPEFILE: [0m[1mUnsigned PE binary[0m
+kern  :err   : [32m[   35.768091] [0m[T42] [33msnd_hda_intel 0000:00:1f.3: [0m[31mCORB reset timeout#2, CORBRP = 65535[0m
+kern  :info  : [32m[  137.791785] [0m[C1] [33musb 3-3.1: [0mdevice firmware changed
+kern  :info  : [32m[  146.803248] [0m[C2] [33musb 3-3.1: [0mUSB disconnect, device number 44
+kern  :info  : [32m[  148.821859] [0m[C3] [33musb 3-3.1: [0mNew USB device found, idVendor=17ef, idProduct=6047, bcdDevice= 3.30
+kern  :info  : [32m[  149.840480] [0m[C4] [33mperf: [0minterrupt took too long (2518 > 2500)
+kern  :info  : [32m[  150.853128] [0m[C5] [33mperf: [0minterrupt took too long (3217 > 3147)
+kern  :info  : [32m[  153.859311] [0m[C12] [33mperf: [0minterrupt took too long (3654 > 3239)
+kern  :info  : [32m[  155.861908] [0m[C123] [33mperf: [0minterrupt took too long (3789 > 3545)
+kern  :info  : [32m[  158.870434] [0m[C1234] [33mperf: [0minterrupt took too long (3891 > 3647)
+kern  :info  : [32m[  161.887625] [0m[C12345] [33mperf: [0minterrupt took too long (3947 > 3789)
+kern  :info  : [32m[  163.898434] [0m[C123456] [33mperf: [0minterrupt took too long (4011 > 3898)
+kern  :info  : [32m[  166.909842] [0m[C1234567] [33mperf: [0minterrupt took too long (4174 > 3987)
+user  :warn  : [32m[  169.911147] [0m[T123] [1mUser program Dmesg Test Message at warn priority[0m
+user  :warn  : [32m[  178.927435] [0m[T1234] [1mUser program Dmesg Test Message at warn priority[0m
+user  :notice: [32m[  185.943456] [0m[T12345] User program Dmesg Test Message at notice priority
+user  :info  : [32m[  189.963238] [0m[T123456] User program Dmesg Test Message at info priority
+user  :debug : [32m[  207.987439] [0m[T1234567] User program Dmesg Test Message at debug priority
+

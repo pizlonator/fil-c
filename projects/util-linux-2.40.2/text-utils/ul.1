@@ -1,0 +1,88 @@
+'\" t
+.\"     Title: ul
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UL" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ul \- do underlining
+.SH "SYNOPSIS"
+.sp
+\fBul\fP [options] [\fIfile\fP...]
+.SH "DESCRIPTION"
+.sp
+\fBul\fP reads the named files (or standard input if none are given) and translates occurrences of underscores to the sequence which indicates underlining for the terminal in use, as specified by the environment variable \fBTERM\fP. The \fIterminfo\fP database is read to determine the appropriate sequences for underlining. If the terminal is incapable of underlining but is capable of a standout mode, then that is used instead. If the terminal can overstrike, or handles underlining automatically, \fBul\fP degenerates to \fBcat\fP(1). If the terminal cannot underline, underlining is ignored.
+.SH "OPTIONS"
+.sp
+\fB\-i\fP, \fB\-\-indicated\fP
+.RS 4
+Underlining is indicated by a separate line containing appropriate dashes `\-\*(Aq; this is useful when you want to look at the underlining which is present in an \fBnroff\fP output stream on a crt\-terminal.
+.RE
+.sp
+\fB\-t\fP, \fB\-T\fP, \fB\-\-terminal\fP \fIterminal\fP
+.RS 4
+Override the environment variable \fBTERM\fP with the specified \fIterminal\fP type.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "ENVIRONMENT"
+.sp
+The following environment variable is used:
+.sp
+\fBTERM\fP
+.RS 4
+The \fBTERM\fP variable is used to relate a tty device with its device capability description (see \fBterminfo\fP(5)). \fBTERM\fP is set at login time, either by the default terminal type specified in \fI/etc/ttys\fP or as set during the login process by the user in their \fIlogin\fP file (see \fBsetenv\fP(3)).
+.RE
+.SH "HISTORY"
+.sp
+The \fBul\fP command appeared in 3.0BSD.
+.SH "BUGS"
+.sp
+\fBnroff\fP usually outputs a series of backspaces and underlines intermixed with the text to indicate underlining. No attempt is made to optimize the backward motion.
+.SH "SEE ALSO"
+.sp
+\fBcolcrt\fP(1),
+\fBlogin\fP(1),
+\fBman\fP(1),
+\fBnroff\fP(1),
+\fBsetenv\fP(3),
+\fBterminfo\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBul\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

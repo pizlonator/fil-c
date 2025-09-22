@@ -1,0 +1,51 @@
+//po4a: entry man manual
+= lastlog2(3)
+:doctype: manpage
+:man manual: Programmer's Manual
+:man source: util-linux {release-version}
+:page-layout: base
+:lib: liblastlog2
+:firstversion: 2.40
+
+== NAME
+
+lastlog2 - Y2038 safe version of lastlog library.
+
+== SYNOPSIS
+
+*#include <lastlog2.h>*
+
+== DESCRIPTION
+
+*lastlog2* reports the last login of a given user or of all users who did ever login on a system.
+
+It's using sqlite3 as database backend. Data is only collected via a PAM module, so that every
+tools can make use of it, without modifying existing packages.
+The output is as compatible as possible with the old lastlog implementation.
+By default the database will be written as `/var/lib/lastlog/lastlog2.db`.
+The size of the database depends on the amount of users, not how big the biggest UID is.
+
+== AUTHORS
+
+Thorsten Kukuk (kukuk@suse.de)
+
+== SEE ALSO
+
+*lastlog2*(3),
+*ll2_new_context(3),
+*ll2_unref_context(3),
+*ll2_write_entry*(3),
+*ll2_read_all*(3),
+*ll2_read_entry*(3),
+*ll2_update_login_time*(3),
+*ll2_remove_entry*(3),
+*ll2_rename_user*(3),
+*ll2_import_lastlog*(3)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer-lib.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

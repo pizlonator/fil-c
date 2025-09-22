@@ -1,0 +1,49 @@
+//
+// No copyright is claimed.  This code is in the public domain; do with
+// it what you wish.
+//
+//po4a: entry man manual
+// Daan De Meyer <daan.j.demeyer@gmail.com>
+// In the public domain.
+= setpgid(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: setpgid
+
+== NAME
+
+setpgid - run a program in a new process group
+
+== SYNOPSIS
+
+*setpgid* [options] _program_ [_arguments_]
+
+== DESCRIPTION
+
+*setpgid* runs a program in a new process group.
+
+== OPTIONS
+
+*-f*, *--foreground*::
+Make the new process group the foreground process group of the controlling 
+terminal if there is a controlling terminal.
+
+include::man-common/help-version.adoc[]
+
+== AUTHORS
+
+mailto:daan.j.demeyer@gmail.com[Daan De Meyer]
+
+== SEE ALSO
+
+*setpgid*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2020 Sami Kerola <kerolasa@iki.fi>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="io effects"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_COL"
+
+ts_init_subtest "trailing-spaces"
+printf "1 \t\n2\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "tab-backspace"
+printf "1\t\x082\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "various-spaces"
+printf "1 \t\f2\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "cr"
+printf "1\r2\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "vt1"
+printf "1\n23\v\n4\n5\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "vt2"
+printf "a\v\vb\v\vc" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "reverse-lf"
+printf "1\n2\e\x073\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "so-si"
+printf "\x0e\x0f" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "esc-tab"
+printf "\e\t\b1\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "esc-backspace"
+printf "1\e\b2\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "cs-normal"
+printf "<B\x10\x0E\t\v\x100" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "cs-alternate"
+printf "1\t\x0E2\n" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "allocate-here"
+printf "1\t\v2\t\n3" | ts_run $TS_CMD_COL >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "half-line"
+printf "\e\t\b1\n" | ts_run $TS_CMD_COL --fine >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_init_subtest "flushing"
+seq 1 199 | ts_run $TS_CMD_COL --lines 8 >> $TS_OUTPUT 2>&1
+ts_finalize_subtest
+
+ts_finalize

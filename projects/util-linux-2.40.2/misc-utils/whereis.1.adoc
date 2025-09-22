@@ -1,0 +1,130 @@
+//po4a: entry man manual
+////
+Copyright (c) 1980, 1990 The Regents of the University of California.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+    This product includes software developed by the University of
+    California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+@(#)whereis.1 from UCB 4.2
+////
+= whereis(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: whereis
+
+== NAME
+
+whereis - locate the binary, source, and manual page files for a command
+
+== SYNOPSIS
+
+*whereis* [options] [*-BMS* _directory_... *-f*] _name_...
+
+== DESCRIPTION
+
+*whereis* locates the binary, source and manual files for the specified command names. The supplied names are *first stripped of leading pathname components*. Prefixes of *s.* resulting from use of source code control are also dealt with. *whereis* then attempts to locate the desired program in the standard Linux places, and in the places specified by *$PATH* and *$MANPATH*.
+
+The search restrictions (options *-b*, *-m* and *-s*) are cumulative and apply to the subsequent _name_ patterns on the command line. Any new search restriction resets the search mask. For example,
+
+____
+*whereis -bm ls tr -m gcc*
+____
+
+searches for "ls" and "tr" binaries and man pages, and for "gcc" man pages only.
+
+The options *-B*, *-M* and *-S* reset search paths for the subsequent _name_ patterns. For example,
+
+____
+*whereis -m ls -M /usr/share/man/man1 -f cal*
+____
+
+searches for "*ls*" man pages in all default paths, but for "cal" in the _/usr/share/man/man1_ directory only.
+
+== OPTIONS
+
+*-b*::
+Search for binaries.
+
+*-m*::
+Search for manuals.
+
+*-s*::
+Search for sources.
+
+*-u*::
+Only show the command names that have unusual entries. A command is said to be unusual if it does not have just one entry of each explicitly requested type. Thus '*whereis -m -u **' asks for those files in the current directory which have no documentation file, or more than one.
+
+*-B* _list_::
+Limit the places where *whereis* searches for binaries, by a whitespace-separated list of directories.
+
+*-M* _list_::
+Limit the places where *whereis* searches for manuals and documentation in Info format, by a whitespace-separated list of directories.
+
+*-S* _list_::
+Limit the places where *whereis* searches for sources, by a whitespace-separated list of directories.
+
+*-f*::
+Terminates the directory list and signals the start of filenames. It _must_ be used when any of the *-B*, *-M*, or *-S* options is used.
+
+*-l*::
+Output the list of effective lookup paths that *whereis* is using. When none of *-B*, *-M*, or *-S* is specified, the option will output the hard-coded paths that the command was able to find on the system.
+
+*-g*::
+Interpret the next names as a *glob(7)* patterns. *whereis* always compares only filenames (aka basename) and never complete path. Using directory names in the pattern has no effect. Don’t forget that the shell interprets the pattern when specified on the command line without quotes. It’s necessary to use quotes for the _name_, for example:
+____
+  whereis -g 'find*'
+____
+
+include::man-common/help-version.adoc[]
+
+== FILE SEARCH PATHS
+
+By default *whereis* tries to find files from hard-coded paths, which are defined with glob patterns. The command attempts to use the contents of *$PATH* and *$MANPATH* environment variables as default search path. The easiest way to know what paths are in use is to add the *-l* listing option. Effects of the *-B*, *-M*, and *-S* are displayed with *-l*.
+
+== ENVIRONMENT
+
+*WHEREIS_DEBUG*=all::
+enables debug output.
+
+== EXAMPLES
+
+To find all files in _/usr/bin_ which are not documented in _/usr/man/man1_ or have no source in _/usr/src_:
+____
+*cd /usr/bin* +
+*whereis -u -ms -M /usr/man/man1 -S /usr/src -f **
+____
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

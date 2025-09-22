@@ -1,0 +1,290 @@
+'\" t
+.\"     Title: cal
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CAL" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cal \- display a calendar
+.SH "SYNOPSIS"
+.sp
+\fBcal\fP [options] [[[\fIday\fP] \fImonth\fP] \fIyear\fP]
+.sp
+\fBcal\fP [options] [\fItimestamp\fP|\fImonthname\fP]
+.SH "DESCRIPTION"
+.sp
+\fBcal\fP displays a simple calendar. If no arguments are specified, the current month is displayed.
+.sp
+The \fImonth\fP may be specified as a number (1\-12), as a month name or as an abbreviated month name according to the current locales.
+.sp
+Two different calendar systems are used, Gregorian and Julian. These are nearly identical systems with Gregorian making a small adjustment to the frequency of leap years; this facilitates improved synchronization with solar events like the equinoxes. The Gregorian calendar reform was introduced in 1582, but its adoption continued up to 1923. By default \fBcal\fP uses the adoption date of 3 Sept 1752. From that date forward the Gregorian calendar is displayed; previous dates use the Julian calendar system. 11 days were removed at the time of adoption to bring the calendar in sync with solar events. So Sept 1752 has a mix of Julian and Gregorian dates by which the 2nd is followed by the 14th (the 3rd through the 13th are absent).
+.sp
+Optionally, either the proleptic Gregorian calendar or the Julian calendar may be used exclusively. See \fB\-\-reform\fP below.
+.SH "OPTIONS"
+.sp
+\fB\-1\fP, \fB\-\-one\fP
+.RS 4
+Display single month output. (This is the default.)
+.RE
+.sp
+\fB\-3\fP, \fB\-\-three\fP
+.RS 4
+Display three months spanning the date.
+.RE
+.sp
+\fB\-n , \-\-months\fP \fInumber\fP
+.RS 4
+Display \fInumber\fP of months, starting from the month containing the date.
+.RE
+.sp
+\fB\-S, \-\-span\fP
+.RS 4
+Display months spanning the date.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-sunday\fP
+.RS 4
+Display Sunday as the first day of the week.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-monday\fP
+.RS 4
+Display Monday as the first day of the week.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-vertical\fP
+.RS 4
+Display using a vertical layout (aka \fBncal\fP(1) mode).
+.RE
+.sp
+\fB\-\-iso\fP
+.RS 4
+Display the proleptic Gregorian calendar exclusively. This option does not affect week numbers and the first day of the week. See \fB\-\-reform\fP below.
+.RE
+.sp
+\fB\-j\fP, \fB\-\-julian\fP
+.RS 4
+Use day\-of\-year numbering for all calendars. These are also called ordinal days. Ordinal days range from 1 to 366. This option does not switch from the Gregorian to the Julian calendar system, that is controlled by the \fB\-\-reform\fP option.
+.sp
+Sometimes Gregorian calendars using ordinal dates are referred to as Julian calendars. This can be confusing due to the many date related conventions that use Julian in their name: (ordinal) julian date, julian (calendar) date, (astronomical) julian date, (modified) julian date, and more. This option is named julian, because ordinal days are identified as julian by the POSIX standard. However, be aware that \fBcal\fP also uses the Julian calendar system. See \fBDESCRIPTION\fP above.
+.RE
+.sp
+\fB\-\-reform\fP \fIval\fP
+.RS 4
+This option sets the adoption date of the Gregorian calendar reform. Calendar dates previous to reform use the Julian calendar system. Calendar dates after reform use the Gregorian calendar system. The argument \fIval\fP can be:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fI1752\fP \- sets 3 September 1752 as the reform date (default). This is when the Gregorian calendar reform was adopted by the British Empire.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fIgregorian\fP \- display Gregorian calendars exclusively. This special placeholder sets the reform date below the smallest year that \fBcal\fP can use; meaning all calendar output uses the Gregorian calendar system. This is called the proleptic Gregorian calendar, because dates prior to the calendar system\(cqs creation use extrapolated values.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fIiso\fP \- alias of \fIgregorian\fP. The ISO 8601 standard for the representation of dates and times in information interchange requires using the proleptic Gregorian calendar.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fIjulian\fP \- display Julian calendars exclusively. This special placeholder sets the reform date above the largest year that \fBcal\fP can use; meaning all calendar output uses the Julian calendar system.
+.sp
+See \fBDESCRIPTION\fP above.
+.RE
+.RE
+.sp
+\fB\-y\fP, \fB\-\-year\fP
+.RS 4
+Display a calendar for the whole year.
+.RE
+.sp
+\fB\-Y, \-\-twelve\fP
+.RS 4
+Display a calendar for the next twelve months.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-week\fP[=\fInumber\fP]
+.RS 4
+Display week numbers in the calendar (US or ISO\-8601). See the \fBNOTES\fP section for more details.
+.RE
+.sp
+\fB\-\-color\fP[=\fIwhen\fP]
+.RS 4
+Colorize the output. The optional argument \fIwhen\fP can be \fBauto\fP, \fBnever\fP or \fBalways\fP. If the \fIwhen\fP argument is omitted, it defaults to \fBauto\fP. The colors can be disabled; for the current built\-in default see the \fB\-\-help\fP output. See also the \fBCOLORS\fP section.
+.RE
+.sp
+\fB\-c, \-\-columns\fP=\fIcolumns\fP
+.RS 4
+Number of columns to use. \fBauto\fP uses as many as fit the terminal.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "PARAMETERS"
+.sp
+\fBSingle digits\-only parameter (e.g., \*(Aqcal 2020\*(Aq)\fP
+.RS 4
+Specifies the \fIyear\fP to be displayed; note the year must be fully specified: \fBcal 89\fP will not display a calendar for 1989.
+.RE
+.sp
+\fBSingle string parameter (e.g., \*(Aqcal tomorrow\*(Aq or \*(Aqcal August\*(Aq)\fP
+.RS 4
+Specifies \fItimestamp\fP or a \fImonth name\fP (or abbreviated name) according to the current locales.
+.sp
+The special placeholders are accepted when parsing timestamp, "now" may be used to refer to the current time, "today", "yesterday", "tomorrow" refer to of the current day, the day before or the next day, respectively.
+.sp
+The relative date specifications are also accepted, in this case "+" is evaluated to the current time plus the specified time span. Correspondingly, a time span that is prefixed with "\-" is evaluated to the current time minus the specified time span, for example \*(Aq+2days\*(Aq. Instead of prefixing the time span with "+" or "\-", it may also be suffixed with a space and the word "left" or "ago" (for example \*(Aq1 week ago\*(Aq).
+.RE
+.sp
+\fBTwo parameters (e.g., \*(Aqcal 11 2020\*(Aq)\fP
+.RS 4
+Denote the \fImonth\fP (1 \- 12) and \fIyear\fP.
+.RE
+.sp
+\fBThree parameters (e.g., \*(Aqcal 25 11 2020\*(Aq)\fP
+.RS 4
+Denote the \fIday\fP (1\-31), \fImonth and year\fP, and the day will be highlighted if the calendar is displayed on a terminal. If no parameters are specified, the current month\(cqs calendar is displayed.
+.RE
+.SH "NOTES"
+.sp
+A year starts on January 1. The first day of the week is determined by the locale or the \fB\-\-sunday\fP and \fB\-\-monday\fP options.
+.sp
+The week numbering depends on the choice of the first day of the week. If it is Sunday then the customary North American numbering is used, where 1 January is in week number 1. If it is Monday (\fB\-m\fP) then the ISO 8601 standard week numbering is used, where the first Thursday is in week number 1.
+.SH "COLORS"
+.sp
+The output colorization is implemented by \fBterminal\-colors.d\fP(5) functionality.
+Implicit coloring can be disabled by an empty file
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/cal.disable\fP
+.br
+.RE
+.ll
+.sp
+for the \fBcal\fP command or for all tools by
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/disable\fP
+.br
+.RE
+.ll
+.sp
+The user\-specific \fI$XDG_CONFIG_HOME/terminal\-colors.d\fP
+or \fI$HOME/.config/terminal\-colors.d\fP overrides the global setting.
+.sp
+Note that the output colorization may be enabled by default, and in this case
+\fIterminal\-colors.d\fP directories do not have to exist yet.
+.sp
+The logical color names supported by \fBcal\fP are:
+.sp
+\fBtoday\fP
+.RS 4
+The current day.
+.RE
+.sp
+\fBweeknumber\fP
+.RS 4
+The number of the week.
+.RE
+.sp
+\fBheader\fP
+.RS 4
+The header of a month.
+.RE
+.sp
+\fBworkday\fP
+.RS 4
+Days that fall within the work\-week.
+.RE
+.sp
+\fBweekend\fP
+.RS 4
+Days that fall outside the work\-week.
+.RE
+.sp
+For example:
+.RS 3
+.ll -.6i
+.sp
+echo \-e \*(Aqweekend 35\(rsntoday 1;41\(rsnheader yellow\*(Aq > $HOME/.config/terminal\-colors.d/cal.scheme
+.br
+.RE
+.ll
+.SH "HISTORY"
+.sp
+A \fBcal\fP command appeared in Version 6 AT&T UNIX.
+.SH "BUGS"
+.sp
+The default \fBcal\fP output uses 3 September 1752 as the Gregorian calendar reform date. The historical reform dates for the other locales, including its introduction in October 1582, are not implemented.
+.sp
+Alternative calendars, such as the Umm al\-Qura, the Solar Hijri, the Ge\(cqez, or the lunisolar Hindu, are not supported.
+.SH "SEE ALSO"
+.sp
+\fBterminal\-colors.d\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBcal\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

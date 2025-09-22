@@ -1,0 +1,196 @@
+'\" t
+.\"     Title: taskset
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "TASKSET" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+taskset \- set or retrieve a process\*(Aqs CPU affinity
+.SH "SYNOPSIS"
+.sp
+\fBtaskset\fP [options] \fImask command\fP [\fIargument\fP...]
+.sp
+\fBtaskset\fP [options] \fB\-p\fP [\fImask\fP] \fIpid\fP
+.SH "DESCRIPTION"
+.sp
+The \fBtaskset\fP command is used to set or retrieve the CPU affinity of a running process given its \fIpid\fP, or to launch a new \fIcommand\fP with a given CPU affinity. CPU affinity is a scheduler property that "bonds" a process to a given set of CPUs on the system. The Linux scheduler will honor the given CPU affinity and the process will not run on any other CPUs. Note that the Linux scheduler also supports natural CPU affinity: the scheduler attempts to keep processes on the same CPU as long as practical for performance reasons. Therefore, forcing a specific CPU affinity is useful only in certain applications.   The affinity of some processes like kernel per\-CPU threads cannot be set.
+.sp
+The CPU affinity is represented as a bitmask, with the lowest order bit corresponding to the first logical CPU and the highest order bit corresponding to the last logical CPU. Not all CPUs may exist on a given system but a mask may specify more CPUs than are present. A retrieved mask will reflect only the bits that correspond to CPUs physically on the system. If an invalid mask is given (i.e., one that corresponds to no valid CPUs on the current system) an error is returned. The masks may be specified in hexadecimal (with or without a leading "0x"), or as a CPU list with the \fB\-\-cpu\-list\fP option. For example,
+.sp
+\fB0x00000001\fP
+.RS 4
+is processor #0,
+.RE
+.sp
+\fB0x00000003\fP
+.RS 4
+is processors #0 and #1,
+.RE
+.sp
+\fBFFFFFFFF\fP
+.RS 4
+is processors #0 through #31,
+.RE
+.sp
+\fB0x32\fP
+.RS 4
+is processors #1, #4, and #5,
+.RE
+.sp
+\fB\-\-cpu\-list 0\-2,6\fP
+.RS 4
+is processors #0, #1, #2, and #6.
+.RE
+.sp
+\fB\-\-cpu\-list 0\-10:2\fP
+.RS 4
+is processors #0, #2, #4, #6, #8 and #10. The suffix ":N" specifies stride in the range, for example 0\-10:3 is interpreted as 0,3,6,9 list.
+.RE
+.sp
+When \fBtaskset\fP returns, it is guaranteed that the given program has been scheduled to a legal CPU.
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\-tasks\fP
+.RS 4
+Set or retrieve the CPU affinity of all the tasks (threads) for a given PID.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-cpu\-list\fP
+.RS 4
+Interpret \fImask\fP as numerical list of processors instead of a bitmask. Numbers are separated by commas and may include ranges. For example: \fB0,5,8\-11\fP.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP
+.RS 4
+Operate on an existing PID and do not launch a new task.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "USAGE"
+.sp
+The default behavior is to run a new command with a given affinity mask:
+.RS 4
+\fBtaskset\fP \fImask\fP \fIcommand\fP [\fIarguments\fP]
+.RE
+.sp
+You can also retrieve the CPU affinity of an existing task:
+.RS 4
+\fBtaskset \-p\fP \fIpid\fP
+.RE
+.sp
+Or set it:
+.RS 4
+\fBtaskset \-p\fP \fImask pid\fP
+.RE
+.sp
+When a cpu\-list is specified for an existing process, the \fB\-p\fP and \fB\-c\fP options must be grouped together:
+.RS 4
+\fBtaskset \-pc\fP \fIcpu\-list pid\fP
+.RE
+.sp
+The \fB\-\-cpu\-list\fP form is applicable only for launching new commands:
+.RS 4
+\fBtaskset \-\-cpu\-list\fP \fIcpu\-list command\fP
+.RE
+.SH "PERMISSIONS"
+.sp
+A user can change the CPU affinity of a process belonging to the same user. A user must possess \fBCAP_SYS_NICE\fP to change the CPU affinity of a process belonging to another user. A user can retrieve the affinity mask of any process.
+.SH "RETURN VALUE"
+.sp
+\fBtaskset\fP returns 0 in its affinity\-getting mode as long as the provided PID exists.
+.sp
+\fBtaskset\fP returns 0 in its affinity\-setting mode as long as the underlying \fBsched_setaffinity\fP(2) system call does.  The success of the command does not guarantee that the specified thread has actually migrated to the indicated CPU(s), but only that the thread will not migrate to a CPU outside the new affinity mask.  For example, the affinity of the kernel thread kswapd can be set, but the thread may not immediately migrate and is not guaranteed to ever do so:
+.sp
+$ ps ax \-o comm,psr,pid | grep kswapd
+.br
+kswapd0           4      82
+.br
+$ sudo taskset \-p 1 82
+.br
+pid 82\(cqs current affinity mask: 1
+.br
+pid 82\(cqs new affinity mask: 1
+.br
+$ echo $?
+.br
+0
+.br
+$ ps ax \-o comm,psr,pid | grep kswapd
+.br
+kswapd0           4      82
+.br
+$ taskset \-p 82
+.br
+pid 82\(cqs current affinity mask: 1
+.br
+.sp
+In contrast, when the user specifies an illegal affinity, taskset will print an error and return 1:
+.sp
+$ ps ax \-o comm,psr,pid | grep ksoftirqd/0
+.br
+ksoftirqd/0       0      14
+.br
+$ sudo taskset \-p 1 14
+.br
+pid 14\(cqs current affinity mask: 1
+.br
+taskset: failed to set pid 14\(cqs affinity: Invalid argument
+.br
+$ echo $?
+.br
+1
+.br
+.SH "AUTHORS"
+.sp
+Written by Robert M. Love.
+.SH "COPYRIGHT"
+.sp
+Copyright © 2004 Robert M. Love. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.SH "SEE ALSO"
+.sp
+\fBchrt\fP(1),
+\fBnice\fP(1),
+\fBrenice\fP(1),
+\fBsched_getaffinity\fP(2),
+\fBsched_setaffinity\fP(2)
+.sp
+See \fBsched\fP(7) for a description of the Linux scheduling scheme.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBtaskset\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

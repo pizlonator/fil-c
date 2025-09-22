@@ -1,0 +1,143 @@
+'\" t
+.\"     Title: mkfs.minix
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "MKFS.MINIX" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+mkfs.minix \- make a Minix filesystem
+.SH "SYNOPSIS"
+.sp
+\fBmkfs.minix\fP [options] \fIdevice\fP [\fIsize\-in\-blocks\fP]
+.SH "DESCRIPTION"
+.sp
+\fBmkfs.minix\fP creates a Linux MINIX filesystem on a device (usually a disk partition).
+.sp
+The \fIdevice\fP is usually of the following form:
+.sp
+.if n .RS 4
+.nf
+.fam C
+/dev/hda[1\-8] (IDE disk 1)
+/dev/hdb[1\-8] (IDE disk 2)
+/dev/sda[1\-8] (SCSI disk 1)
+/dev/sdb[1\-8] (SCSI disk 2)
+.fam
+.fi
+.if n .RE
+.sp
+The device may be a block device or an image file of one, but this is not enforced. Expect not much fun on a character device :\-).
+.sp
+The \fIsize\-in\-blocks\fP parameter is the desired size of the file system, in blocks. It is present only for backwards compatibility. If omitted the size will be determined automatically. Only block counts strictly greater than 10 and strictly less than 65536 are allowed.
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-check\fP
+.RS 4
+Check the device for bad blocks before creating the filesystem. If any are found, the count is printed.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-namelength\fP \fIlength\fP
+.RS 4
+Specify the maximum length of filenames. Currently, the only allowable values are 14 and 30 for file system versions 1 and 2. Version 3 allows only value 60. The default is 30.
+.RE
+.sp
+\fB\-\-lock\fP[=\fImode\fP]
+.RS 4
+Use exclusive BSD lock for device or file it operates. The optional argument \fImode\fP can be \fByes\fP, \fBno\fP (or 1 and 0) or \fBnonblock\fP. If the \fImode\fP argument is omitted, it defaults to \fByes\fP. This option overwrites environment variable \fB$LOCK_BLOCK_DEVICE\fP. The default is not to use any lock at all, but it\(cqs recommended to avoid collisions with \fBsystemd\-udevd\fP(8) or other tools.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-inodes\fP \fInumber\fP
+.RS 4
+Specify the number of inodes for the filesystem.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-badblocks\fP \fIfilename\fP
+.RS 4
+Read the list of bad blocks from \fIfilename\fP. The file has one bad\-block number per line. The count of bad blocks read is printed.
+.RE
+.sp
+\fB\-1\fP
+.RS 4
+Make a Minix version 1 filesystem. This is the default.
+.RE
+.sp
+\fB\-2\fP, \fB\-v\fP
+.RS 4
+Make a Minix version 2 filesystem.
+.RE
+.sp
+\fB\-3\fP
+.RS 4
+Make a Minix version 3 filesystem.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+The long option cannot be combined with other options.
+.RE
+.SH "ENVIRONMENT"
+.sp
+LOCK_BLOCK_DEVICE=<mode>
+.RS 4
+use exclusive BSD lock. The mode is "1" or "0". See \fB\-\-lock\fP for more details.
+.RE
+.SH "EXIT STATUS"
+.sp
+The exit status returned by \fBmkfs.minix\fP is one of the following:
+.sp
+0
+.RS 4
+No errors
+.RE
+.sp
+8
+.RS 4
+Operational error
+.RE
+.sp
+16
+.RS 4
+Usage or syntax error
+.RE
+.SH "SEE ALSO"
+.sp
+\fBfsck\fP(8),
+\fBmkfs\fP(8),
+\fBreboot\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBmkfs.minix\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

@@ -1,0 +1,234 @@
+'\" t
+.\"     Title: chrt
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CHRT" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+chrt \- manipulate the real\-time attributes of a process
+.SH "SYNOPSIS"
+.sp
+\fBchrt\fP [options] \fIpriority command argument\fP ...
+.sp
+\fBchrt\fP [options] \fB\-p\fP [\fIpriority\fP] \fIPID\fP
+.SH "DESCRIPTION"
+.sp
+\fBchrt\fP sets or retrieves the real\-time scheduling attributes of an existing \fIPID\fP, or runs \fIcommand\fP with the given attributes.
+.SH "POLICIES"
+.sp
+\fB\-o\fP, \fB\-\-other\fP
+.RS 4
+Set scheduling policy to \fBSCHED_OTHER\fP (time\-sharing scheduling). This is the default Linux scheduling policy.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-fifo\fP
+.RS 4
+Set scheduling policy to \fBSCHED_FIFO\fP (first in\-first out).
+.RE
+.sp
+\fB\-r\fP, \fB\-\-rr\fP
+.RS 4
+Set scheduling policy to \fBSCHED_RR\fP (round\-robin scheduling). When no policy is defined, the \fBSCHED_RR\fP is used as the default.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-batch\fP
+.RS 4
+Set scheduling policy to \fBSCHED_BATCH\fP (scheduling batch processes). Linux\-specific, supported since 2.6.16. The priority argument has to be set to zero.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-idle\fP
+.RS 4
+Set scheduling policy to \fBSCHED_IDLE\fP (scheduling very low priority jobs). Linux\-specific, supported since 2.6.23. The priority argument has to be set to zero.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-deadline\fP
+.RS 4
+Set scheduling policy to \fBSCHED_DEADLINE\fP (sporadic task model deadline scheduling). Linux\-specific, supported since 3.14. The priority argument has to be set to zero. See also \fB\-\-sched\-runtime\fP, \fB\-\-sched\-deadline\fP and \fB\-\-sched\-period\fP. The relation between the options required by the kernel is runtime \(lA deadline \(lA period. \fBchrt\fP copies \fIperiod\fP to \fIdeadline\fP if \fB\-\-sched\-deadline\fP is not specified and \fIdeadline\fP to \fIruntime\fP if \fB\-\-sched\-runtime\fP is not specified. It means that at least \fB\-\-sched\-period\fP has to be specified. See \fBsched\fP(7) for more details.
+.RE
+.SH "SCHEDULING OPTIONS"
+.sp
+\fB\-T\fP, \fB\-\-sched\-runtime\fP \fInanoseconds\fP
+.RS 4
+Specifies runtime parameter for \fBSCHED_DEADLINE\fP policy (Linux\-specific).
+.RE
+.sp
+\fB\-P\fP, \fB\-\-sched\-period\fP \fInanoseconds\fP
+.RS 4
+Specifies period parameter for \fBSCHED_DEADLINE\fP policy (Linux\-specific). Note that the kernel\(cqs lower limit is 100 milliseconds.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-sched\-deadline\fP \fInanoseconds\fP
+.RS 4
+Specifies deadline parameter for \fBSCHED_DEADLINE\fP policy (Linux\-specific).
+.RE
+.sp
+\fB\-R\fP, \fB\-\-reset\-on\-fork\fP
+.RS 4
+Use \fBSCHED_RESET_ON_FORK\fP or \fBSCHED_FLAG_RESET_ON_FORK\fP flag. Linux\-specific, supported since 2.6.31.
+.sp
+Each thread has a \fIreset\-on\-fork\fP scheduling flag. When this flag is set, children created by \fBfork\fP(2) do not inherit privileged scheduling policies. After the \fIreset\-on\-fork\fP flag has been enabled, it can be reset only if the thread has the \fBCAP_SYS_NICE\fP capability. This flag is disabled in child processes created by \fBfork\fP(2).
+.sp
+More precisely, if the \fIreset\-on\-fork\fP flag is set, the following rules apply for subsequently created children:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If the calling thread has a scheduling policy of \fBSCHED_FIFO\fP or \fBSCHED_RR\fP, the policy is reset to \fBSCHED_OTHER\fP in child processes.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If the calling process has a negative nice value, the nice value is reset to zero in child processes.
+.RE
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\-tasks\fP
+.RS 4
+Set or retrieve the scheduling attributes of all the tasks (threads) for a given PID.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-max\fP
+.RS 4
+Show minimum and maximum valid priorities, then exit.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP
+.RS 4
+Operate on an existing PID and do not launch a new task.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Show status information.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLES"
+.sp
+The default behavior is to run a new command:
+.RS 4
+.RE
+.RS 3
+.ll -.6i
+.sp
+\fBchrt\fP \fIpriority\fP \fIcommand\fP [\fIarguments\fP]
+.br
+.RE
+.ll
+.sp
+You can also retrieve the real\-time attributes of an existing task:
+.RS 4
+.RE
+.RS 3
+.ll -.6i
+.sp
+\fBchrt \-p\fP \fIPID\fP
+.br
+.RE
+.ll
+.sp
+Or set them:
+.RS 4
+.RE
+.RS 3
+.ll -.6i
+.sp
+\fBchrt \-r \-p\fP \fIpriority PID\fP
+.br
+.RE
+.ll
+.sp
+This, for example, sets real\-time scheduling to priority \fI30\fP for the process \fIPID\fP with the \fBSCHED_RR\fP (round\-robin) class:
+.RS 4
+.RE
+.RS 3
+.ll -.6i
+.sp
+\fBchrt \-r \-p 30\fP \fIPID\fP
+.br
+.RE
+.ll
+.sp
+Reset priorities to default for a process:
+.RS 4
+.RE
+.RS 3
+.ll -.6i
+.sp
+\fBchrt \-o \-p 0\fP \fIPID\fP
+.br
+.RE
+.ll
+.sp
+See \fBsched\fP(7) for a detailed discussion of the different scheduler classes and how they interact.
+.SH "PERMISSIONS"
+.sp
+A user must possess \fBCAP_SYS_NICE\fP to change the scheduling attributes of a process. Any user can retrieve the scheduling information.
+.SH "NOTES"
+.sp
+Only \fBSCHED_FIFO\fP, \fBSCHED_OTHER\fP and \fBSCHED_RR\fP are part of POSIX 1003.1b Process Scheduling. The other scheduling attributes may be ignored on some systems.
+.sp
+Linux\*(Aq default scheduling policy is \fBSCHED_OTHER\fP.
+.SH "AUTHORS"
+.sp
+.MTO "rml\(attech9.net" "Robert Love" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBnice\fP(1),
+\fBrenice\fP(1),
+\fBtaskset\fP(1),
+\fBsched\fP(7)
+.sp
+See \fBsched_setscheduler\fP(2) for a description of the Linux scheduling scheme.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBchrt\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

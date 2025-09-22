@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2014 Sami Kerola <kerolasa@iki.fi>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="exit codes"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_RENAME"
+
+ts_cd "$TS_OUTDIR"
+
+touch rename_exit_codes.{1..2}
+$TS_CMD_RENAME -v not_a_match impossible rename_exit_codes.? >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "RENAME_EXIT_NOTHING: $?" >> $TS_OUTPUT
+
+$TS_CMD_RENAME -v codes values rename_exit_codes.? >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "EXIT_SUCCESS: $?" >> $TS_OUTPUT
+
+mkdir rename_exit_codes.2
+$TS_CMD_RENAME -v values codes rename_exit_values.? >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "RENAME_EXIT_SOMEOK: $?" >> $TS_OUTPUT
+
+rmdir rename_exit_codes.2
+rm rename_exit_codes.? rename_exit_values.?
+
+ts_finalize

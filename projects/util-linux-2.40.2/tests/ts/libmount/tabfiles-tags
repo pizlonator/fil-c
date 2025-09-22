@@ -1,0 +1,86 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="tags"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_skip_nonroot
+
+if [ "$TS_ENABLE_ASAN" == "yes" ]; then
+	TS_KNOWN_FAIL="yes"
+fi
+
+TESTPROG="$TS_HELPER_LIBMOUNT_TAB"
+
+[ -x $TESTPROG ] || ts_skip "test not compiled"
+ts_check_prog "mkfs.ext2"
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=50 sector_size=512
+LABEL="testLibmount"
+UUID="de1bc6e9-34ab-4151-a1d7-900042eee8d9"
+
+#
+# Create filesystem
+#
+mkfs.ext2 -F -L $LABEL $TS_DEVICE -U $UUID &> /dev/null || ts_die "Cannot make ext2 on $TS_DEVICE"
+ts_device_has "LABEL" "$LABEL" "$TS_DEVICE" || ts_die "Cannot find  LABEL '$LABEL' on $TS_DEVICE"
+ts_device_has "UUID" "$UUID" "$TS_DEVICE" || ts_die "Cannot find $UUID on $TS_DEVICE"
+
+FSTAB="$TS_OUTDIR/fstab"
+
+#
+# Label in fstab
+#
+echo "LABEL=$LABEL /mnt/mountpoint auto defaults" > $FSTAB
+ts_udevadm_settle "$TS_DEVICE" "LABEL" "UUID"
+
+ts_init_subtest "fstab-label2uuid"
+ts_run $TESTPROG --find-forward $FSTAB source "UUID=$UUID" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest "fstab-label2dev"
+ts_run $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+#
+# Add more enties for the same device
+#
+echo "UUID=$UUID  /mnt/mountpoint2 auto defaults" >> $FSTAB
+
+ts_init_subtest "fstab-uuid"
+# has to return /mnt/mountpoint2
+ts_run $TESTPROG --find-forward $FSTAB source "UUID=$UUID" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+ts_init_subtest "fstab-label"
+# has to return /mnt/mountpoint
+ts_run $TESTPROG --find-forward $FSTAB source "LABEL=$LABEL" &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+
+ts_init_subtest "fstab-dev2label"
+# has to return /mnt/mountpoint
+ts_run $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+ts_finalize_subtest
+
+#
+# Add devname
+#
+echo "$TS_DEVICE  /mnt/mountpoint3 auto defaults" >> $FSTAB
+
+ts_init_subtest "fstab-dev"
+# has to return /mnt/mountpoint3
+ts_run $TESTPROG --find-forward $FSTAB source $TS_DEVICE &> $TS_OUTPUT
+sed -i -e 's/fs: 0x.*/fs:/g' $TS_OUTPUT
+sed -i -e 's/source: .*//g' $TS_OUTPUT		# devname is generated, remove it
+ts_finalize_subtest
+
+ts_finalize

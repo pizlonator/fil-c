@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Copyright (C) 2022 Thomas Weißschuh <thomas@t-8ch.de>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="waitpid"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_WAITPID"
+
+ts_init_subtest normal
+
+(sleep 0.5; echo 1 >> "$TS_OUTPUT") &
+BG1="$!"
+
+(sleep 0.1; echo 2 >> "$TS_OUTPUT") &
+BG2="$!"
+
+echo 3 >> "$TS_OUTPUT"
+"$TS_CMD_WAITPID" "$BG1" "$BG2"
+ts_skip_exitcode_not_supported
+
+echo 4 >> "$TS_OUTPUT"
+
+ts_finalize_subtest
+
+ts_init_subtest timeout
+"$TS_CMD_WAITPID" -v -t 0.1 1 >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+echo $? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest exited
+"$TS_CMD_WAITPID" -v -e 2147483647 >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+echo $? >> "$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest count
+(sleep 0.2; echo 1 >> "$TS_OUTPUT") &
+BG1="$!"
+
+"$TS_CMD_WAITPID" -c 1 1 "$BG1" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+echo $? >> "$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_finalize

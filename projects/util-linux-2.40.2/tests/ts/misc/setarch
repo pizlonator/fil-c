@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="setarch"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_SETARCH"
+ts_skip_docker
+
+ARCH=$(uname -m)
+
+ts_init_subtest options
+ts_log_both "###### unknown arch"
+$TS_CMD_SETARCH qubit -v echo "success" >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "exit: $?" >>$TS_OUTPUT
+
+ts_log_both "###### unknown command"
+$TS_CMD_SETARCH $ARCH -v /das/gibs/nicht >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "exit: $?" >>$TS_OUTPUT
+
+echo "###### noop uname -a" >>$TS_OUTPUT
+uname_a=$(uname -srm)
+$TS_CMD_SETARCH $ARCH -v uname -srm >> $TS_OUTPUT 2>> $TS_ERRLOG
+sed -i "$ s@${uname_a}@uname -a unchanged@" $TS_OUTPUT
+
+echo "###### almost all options" >>$TS_OUTPUT
+$TS_CMD_SETARCH $ARCH -vRFZLXBIST3 echo "success" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+
+ts_init_subtest uname26
+finmsg="" # for debugging 2.6 issues
+
+echo "###### --uname-2.6 echo" >>$TS_OUTPUT
+$TS_CMD_SETARCH $ARCH -v --uname-2.6 echo "2.6 worked" >> $TS_OUTPUT 2>&1
+if [ $? -eq 0 ]; then
+	expected='^2.6 worked$'
+else
+	# this may happen after execvp - gets written to stderr
+	expected="^FATAL: kernel too old$"
+	finmsg+=" echo"
+fi
+sed -i "$ s/$expected/2.6 works or kernel too old/" $TS_OUTPUT
+
+echo "###### --uname-2.6 true, non-verbose" >>$TS_OUTPUT
+$TS_CMD_SETARCH $ARCH --uname-2.6 true >> $TS_OUTPUT 2>&1
+if [ $? -eq 0 ]; then
+	echo "2.6 works or kernel too old" >> $TS_OUTPUT
+else
+	# this may happen after execvp - gets written to stderr
+	expected="^FATAL: kernel too old$"
+	sed -i "$ s/$expected/2.6 works or kernel too old/" $TS_OUTPUT
+	finmsg+=" true"
+fi
+
+if [ -n "$finmsg" ]; then
+	finmsg=$(echo unsupported --uname-2.6: $finmsg)
+else
+	uname26_seems_supported=yes
+fi
+ts_finalize_subtest "$finmsg"
+
+
+# conditional subtest
+if [ "$uname26_seems_supported" = "yes" ]; then
+ts_init_subtest uname26-version
+	tmp=$($TS_CMD_SETARCH $ARCH --uname-2.6 uname -r)
+	if echo "$tmp" | grep -q "^2\.6\."; then
+		echo "kernel version changed to 2.6" >> $TS_OUTPUT
+	else
+		echo "uname26 failed" >> $TS_OUTPUT
+		echo "original kernel: $(uname -r)" >> $TS_OUTPUT
+		echo "uname26 kernel:  $tmp" >> $TS_OUTPUT
+	fi
+ts_finalize_subtest
+fi # conditional subtest
+
+ts_init_subtest show
+echo "###### --show" >>$TS_OUTPUT
+
+show() {
+	echo -n "$1: " >> $TS_OUTPUT
+	$TS_CMD_SETARCH --show=$1 >> $TS_OUTPUT 2> $TS_ERRLOG
+}
+
+show 0x00000000
+show 0x00800000
+show 0x00880000
+show 0x00000008
+show 0x08000008
+show 0x000040ff
+
+ts_finalize_subtest
+
+ts_finalize

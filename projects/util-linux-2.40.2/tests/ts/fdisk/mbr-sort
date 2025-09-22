@@ -1,0 +1,83 @@
+#!/bin/bash
+
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="MBR - sort"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FDISK"
+
+# cmd to changes system id to 0x1
+FDISK_CMD_WRITE_CLOSE="w\nq\n"
+FDISK_CMD_CREATE_DOSLABEL="o\n" #create dos label
+
+FDISK_CMD_CREATE_1PRIMARY="n\np\n1\n4096\n6143\n"
+FDISK_CMD_CREATE_2PRIMARY="n\np\n2\n2048\n4095\n"
+FDISK_CMD_CREATE_3PRIMARY="n\np\n3\n6144\n8191\n"
+FDISK_CMD_CREATE_EXTENDED="n\ne\n\n\n"
+
+FDISK_CMD_CREATE_1LOGICAL="n\n14336\n16383\n"
+FDISK_CMD_CREATE_2LOGICAL="n\n22528\n24575\n"
+FDISK_CMD_CREATE_3LOGICAL="n\n18432\n20479\n"
+FDISK_CMD_CREATE_4LOGICAL="n\n10240\n12287\n"
+
+FDISK_CMD_EXPERT_SORT="x\nf\nr\n"
+
+function print_layout {
+	echo -ne "\n---layout----------\n" >> $TS_OUTPUT
+	$TS_CMD_FDISK -x ${TEST_IMAGE_NAME} >> $TS_OUTPUT
+	echo -ne   "-------------------\n\n" >> $TS_OUTPUT
+    
+    ts_fdisk_clean ${TEST_IMAGE_NAME}
+}
+
+#set -x
+
+ts_init_subtest "empty-pt"
+TEST_IMAGE_NAME=$(ts_image_init 20)	# 20 MiB
+
+echo -e "${FDISK_CMD_CREATE_DOSLABEL}${FDISK_CMD_WRITE_CLOSE}" \
+	 | $TS_CMD_FDISK --noauto-pt ${TEST_IMAGE_NAME} &> /dev/null
+
+print_layout
+ts_finalize_subtest
+
+ts_init_subtest "create-primary-partitions"
+echo -e "${FDISK_CMD_CREATE_1PRIMARY}${FDISK_CMD_CREATE_2PRIMARY}${FDISK_CMD_CREATE_3PRIMARY}${FDISK_CMD_CREATE_EXTENDED}${FDISK_CMD_WRITE_CLOSE}" \
+	| $TS_CMD_FDISK ${TEST_IMAGE_NAME} &> /dev/null
+
+print_layout
+ts_finalize_subtest
+
+
+ts_init_subtest "create-logical-partitions"
+echo -e "${FDISK_CMD_CREATE_1LOGICAL}${FDISK_CMD_CREATE_2LOGICAL}${FDISK_CMD_CREATE_3LOGICAL}${FDISK_CMD_CREATE_4LOGICAL}${FDISK_CMD_WRITE_CLOSE}" \
+	| $TS_CMD_FDISK ${TEST_IMAGE_NAME} &> /dev/null
+
+print_layout
+ts_finalize_subtest
+
+
+ts_init_subtest "fix-order"
+echo -e "${FDISK_CMD_EXPERT_SORT}${FDISK_CMD_WRITE_CLOSE}" \
+	| $TS_CMD_FDISK ${TEST_IMAGE_NAME} &> /dev/null
+
+print_layout
+ts_finalize_subtest
+
+ts_finalize

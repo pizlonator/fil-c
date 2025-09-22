@@ -1,0 +1,382 @@
+'\" t
+.\"     Title: lsblk
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LSBLK" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+lsblk \- list block devices
+.SH "SYNOPSIS"
+.sp
+\fBlsblk\fP [options] [\fIdevice\fP...]
+.SH "DESCRIPTION"
+.sp
+\fBlsblk\fP lists information about all available or the specified block devices. The \fBlsblk\fP command reads the \fBsysfs\fP filesystem and \fBudev db\fP to gather information. If the udev db is not available or \fBlsblk\fP is compiled without udev support, then it tries to read LABELs, UUIDs and filesystem types from the block device. In this case root permissions are necessary.
+.sp
+By default, the command prints all block devices (except RAM disks) in a tree\-like format. The same device can be repeated in the tree if it relates to other devices. The \fB\-\-merge\fP option is recommended for more complicated setups to gather groups of devices and describe complex N:M relationships.
+.sp
+The tree\-like output (or \fBchildren[]\fP array in the JSON output) is enabled only if NAME column it present in the output or when \fB\-\-tree\fP command line option is used. See also \fB\-\-nodeps\fP and \fB\-\-list\fP to control the tree formatting.
+.sp
+The default output, as well as the default output from options like \fB\-\-fs\fP and \fB\-\-topology\fP, is subject to change. So whenever possible, you should avoid using default outputs in your scripts. Always explicitly define expected columns by using \fB\-\-output\fP \fIcolumns\-list\fP and \fB\-\-list\fP in environments where a stable output is required.
+.sp
+Use \fBlsblk \-\-list\-columns\fP to get a list of all available columns.
+.sp
+Note that \fBlsblk\fP might be executed in time when \fBudev\fP does not have all information about recently added or modified devices yet. In this case it is recommended to use \fBudevadm settle\fP before \fBlsblk\fP to synchronize with udev.
+.sp
+The relationship between block devices and filesystems is not always one\-to\-one. The filesystem may use more block devices, or the same filesystem may be accessible by more paths. This is the reason why \fBlsblk\fP provides MOUNTPOINT and MOUNTPOINTS (pl.) columns. The column MOUNTPOINT displays only one mount point (usually the last mounted instance of the filesystem), and the column MOUNTPOINTS displays by multi\-line cell all mount points associated with the device.
+.SH "OPTIONS"
+.sp
+\fB\-A\fP, \fB\-\-noempty\fP
+.RS 4
+Don\(cqt print empty devices.
+.RE
+.sp
+\fB\-a\fP, \fB\-\-all\fP
+.RS 4
+Disable all built\-in filters and list all empty devices and RAM disk devices too.
+.RE
+.sp
+\fB\-b\fP, \fB\-\-bytes\fP
+.RS 4
+Print the sizes in bytes rather than in a human\-readable format.
+.sp
+By default, the unit, sizes are expressed in, is byte, and unit prefixes are in
+power of 2^10 (1024). Abbreviations of symbols are exhibited truncated in order
+to reach a better readability, by exhibiting alone the first letter of them;
+examples: "1 KiB" and "1 MiB" are respectively exhibited as "1 K" and "1 M",
+then omitting on purpose the mention "iB", which is part of these abbreviations.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-list\-columns\fP
+.RS 4
+List the available columns, use with \fB\-\-json\fP or \fB\-\-raw\fP to get output in machine\-readable format.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-discard\fP
+.RS 4
+Print information about the discarding capabilities (TRIM, UNMAP) for each device.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-nodeps\fP
+.RS 4
+Do not print holder devices or slaves. For example, \fBlsblk \-\-nodeps /dev/sda\fP prints information about the sda device only.
+.RE
+.sp
+\fB\-E\fP, \fB\-\-dedup\fP \fIcolumn\fP
+.RS 4
+Use \fIcolumn\fP as a de\-duplication key to de\-duplicate output tree. If the key is not available for the device, or the device is a partition and parental whole\-disk device provides the same key than the device is always printed.
+.sp
+The usual use case is to de\-duplicate output on system multi\-path devices, for example by \fB\-E WWN\fP.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-exclude\fP \fIlist\fP
+.RS 4
+Exclude the devices specified by the comma\-separated \fIlist\fP of major device numbers. Note that RAM disks (major=1) are excluded by default if \fB\-\-all\fP is not specified. The filter is applied to the top\-level devices only. This may be confusing for \fB\-\-list\fP output format where hierarchy of the devices is not obvious.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-fs\fP
+.RS 4
+Output info about filesystems. This option is equivalent to \fB\-o NAME,FSTYPE,FSVER,LABEL,UUID,FSAVAIL,FSUSE%,MOUNTPOINTS\fP. The authoritative information about filesystems and raids is provided by the \fBblkid\fP(8) command.
+.RE
+.sp
+\fB\-I\fP, \fB\-\-include\fP \fIlist\fP
+.RS 4
+Include devices specified by the comma\-separated \fIlist\fP of major device numbers. The filter is applied to the top\-level devices only. This may be confusing for \fB\-\-list\fP output format where hierarchy of the devices is not obvious.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-ascii\fP
+.RS 4
+Use ASCII characters for tree formatting.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format. It\(cqs strongly recommended to use \fB\-\-output\fP and also \fB\-\-tree\fP if necessary. Note that \fBchildren[]\fP is used only if NAME column or \fB\-\-tree\fP is used.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+Produce output in the form of a list. The output does not provide information about relationships between devices and since version 2.34 every device is printed only once if \fB\-\-pairs\fP or \fB\-\-raw\fP not specified (the parsable outputs are maintained in backwardly compatible way).
+.RE
+.sp
+\fB\-M\fP, \fB\-\-merge\fP
+.RS 4
+Group parents of sub\-trees to provide more readable output for RAIDs and Multi\-path devices. The tree\-like output is required.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-perms\fP
+.RS 4
+Output info about device owner, group and mode. This option is equivalent to \fB\-o NAME,SIZE,OWNER,GROUP,MODE\fP.
+.RE
+.sp
+\fB\-N\fP, \fB\-\-nvme\fP
+.RS 4
+Output info about NVMe devices only.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-virtio\fP
+.RS 4
+Output info about virtio devices only.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-noheadings\fP
+.RS 4
+Do not print a header line.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIlist\fP
+.RS 4
+Specify which output columns to print. Use \fB\-\-list\-columns\fP to get a list of all supported columns. The columns may affect tree\-like output. The default is to use tree for the column \*(AqNAME\*(Aq (see also \fB\-\-tree\fP).
+.sp
+The default list of columns may be extended if \fIlist\fP is specified in the format \fI+list\fP (e.g., \fBlsblk \-o +UUID\fP).
+.RE
+.sp
+\fB\-O\fP, \fB\-\-output\-all\fP
+.RS 4
+Output all available columns.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-pairs\fP
+.RS 4
+Produce output in the form of key="value" pairs. The output lines are still ordered by dependencies. All potentially unsafe value characters are hex\-escaped (\(rsx<code>). See also option \fB\-\-shell\fP.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-paths\fP
+.RS 4
+Print full device paths.
+.RE
+.sp
+\fB\-Q\fP, \fB\-\-filter\fP \fIexpr\fP
+.RS 4
+Print only the devices that meet the conditions specified by the expr. The
+filter is assessed prior to lsblk collecting data for all output columns. Only
+the necessary data for the lazy evaluation of the expression is retrieved from
+the system. This approach can enhance performance when compared to
+post\-filtering, as commonly done by tools such as grep(1).
+.sp
+This feature is EXPERIMENTAL. See also \fBscols\-filter\fP(5). For example
+exclude sda  and sdb, but print everything else (\*(Aq!~\*(Aq is a negative regular
+expression matching operator):
+.RE
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+lsblk \-\-filter \*(AqNAME !~ "sd[ab]"\*(Aq
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+\fB\-\-highlight\fP \fIexpr\fP
+.RS 4
+Colorize lines matching the expression.
+This feature is EXPERIMENTAL. See also \fBscols\-filter\fP(5).
+.RE
+.sp
+\fB\-\-ct\fP \fIname\fP [: \fIparam\fP [: \fIfunction\fP ]]
+.RS 4
+Define a custom counter. The counters are printed after the standard output.
+The \fIname\fP is the custom name of the counter, the optional \fIparam\fP is the name of the column
+to be used for the counter, and the optional \fIfunction\fP specifies
+the aggregation function, supported functions are: count, min, max, or sum. The
+default is count.
+.sp
+If the \fIparam\fP is not specified, then the counter counts the number of lines. This
+feature is EXPERIMENTAL. See also \fB\-\-ct\-filter\fP.
+.sp
+For example, \fB\-\-ct MyCounter:SIZE:sum\fP will count the summary for SIZE from all lines;
+and to count the number of SATA disks, it is possible to use:
+.RE
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+lsblk \-\-ct\-filter \*(AqTYPE=="disk" && TRAN=="sata"\*(Aq \-\-ct "Number of SATA devices"
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+\fB\-\-ct\-filter\fP \fIexpr\fP
+.RS 4
+Define a restriction for the next counter. This feature is EXPERIMENTAL. See also \fB\-\-ct\fP
+and \fBscols\-filter\fP(5). For example, aggregate sizes by device type:
+.RE
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+lsblk \-\-ct\-filter \*(AqTYPE=="part"\*(Aq \-\-ct Partitions:SIZE:sum \(rs
+      \-\-ct\-filter \*(AqTYPE=="disk"\*(Aq \-\-ct WholeDisks:SIZE:sum
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Produce output in raw format. The output lines are still ordered by dependencies. All potentially unsafe characters are hex\-escaped (\(rsx<code>) in the NAME, KNAME, LABEL, PARTLABEL and MOUNTPOINT columns.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-scsi\fP
+.RS 4
+Output info about SCSI devices only. All partitions, slaves and holder devices are ignored.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-inverse\fP
+.RS 4
+Print dependencies in inverse order. If the \fB\-\-list\fP output is requested then the lines are still ordered by dependencies.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-tree\fP[\fB=\fP\fIcolumn\fP]
+.RS 4
+Force tree\-like output format. If \fIcolumn\fP is specified, then a tree is printed in the column. The default is NAME column.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-topology\fP
+.RS 4
+Output info about block\-device topology. This option is equivalent to
+.sp
+\fB\-o NAME,ALIGNMENT,MIN\-IO,OPT\-IO,PHY\-SEC,LOG\-SEC,ROTA,SCHED,RQ\-SIZE,RA,WSAME\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-width\fP \fInumber\fP
+.RS 4
+Specifies output width as a number of characters. The default is the number of the terminal columns, and if not executed on a terminal, then output width is not restricted at all by default. This option also forces \fBlsblk\fP to assume that terminal control characters and unsafe characters are not allowed. The expected use\-case is for example when \fBlsblk\fP is used by the \fBwatch\fP(1) command.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-sort\fP \fIcolumn\fP
+.RS 4
+Sort output lines by \fIcolumn\fP. This option enables \fB\-\-list\fP output format by default. It is possible to use the option \fB\-\-tree\fP to force tree\-like output and than the tree branches are sorted by the \fIcolumn\fP.
+.RE
+.sp
+\fB\-y\fP, \fB\-\-shell\fP
+.RS 4
+The column name will be modified to contain only characters allowed for shell variable identifiers, for example, MIN_IO and FSUSE_PCT instead of MIN\-IO and FSUSE%. This is usable, for example, with \fB\-\-pairs\fP. Note that this feature has been automatically enabled for \fB\-\-pairs\fP in version 2.37, but due to compatibility issues, now it\(cqs necessary to request this behavior by \fB\-\-shell\fP.
+.RE
+.sp
+\fB\-z\fP, \fB\-\-zoned\fP
+.RS 4
+Print the zone related information for each device.
+.RE
+.sp
+\fB\-\-sysroot\fP \fIdirectory\fP
+.RS 4
+Gather data for a Linux instance other than the instance from which the \fBlsblk\fP command is issued. The specified directory is the system root of the Linux instance to be inspected. The real device nodes in the target directory can be replaced by text files with udev attributes.
+.RE
+.SH "EXIT STATUS"
+.sp
+0
+.RS 4
+success
+.RE
+.sp
+1
+.RS 4
+failure
+.RE
+.sp
+32
+.RS 4
+none of specified devices found
+.RE
+.sp
+64
+.RS 4
+some specified devices found, some not found
+.RE
+.SH "ENVIRONMENT"
+.sp
+\fBLSBLK_DEBUG\fP=all
+.RS 4
+enables \fBlsblk\fP debug output.
+.RE
+.sp
+\fBLIBBLKID_DEBUG\fP=all
+.RS 4
+enables \fBlibblkid\fP debug output.
+.RE
+.sp
+\fBLIBMOUNT_DEBUG\fP=all
+.RS 4
+enables \fBlibmount\fP debug output.
+.RE
+.sp
+\fBLIBSMARTCOLS_DEBUG\fP=all
+.RS 4
+enables \fBlibsmartcols\fP debug output.
+.RE
+.sp
+\fBLIBSMARTCOLS_DEBUG_PADDING\fP=on
+.RS 4
+use visible padding characters.
+.RE
+.SH "NOTES"
+.sp
+For partitions, some information (e.g., queue attributes) is inherited from the parent device.
+.sp
+The \fBlsblk\fP command needs to be able to look up each block device by major:minor numbers, which is done by using \fI/sys/dev/block\fP. This sysfs block directory appeared in kernel 2.6.27 (October 2008). In case of problems with a new enough kernel, check that \fBCONFIG_SYSFS\fP was enabled at the time of the kernel build.
+.SH "AUTHORS"
+.sp
+.MTO "gmazyland\(atgmail.com" "Milan Broz" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBblkid\fP(8),
+\fBfindmnt\fP(8)
+\fBls\fP(1),
+\fBscols\-filter\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlsblk\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

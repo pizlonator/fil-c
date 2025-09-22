@@ -1,0 +1,29 @@
+_fdformat_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-f'|'--from'|'-t'|'--to'|'-r'|'--repair')
+			COMPREPLY=( $(compgen -W "track_num" -- $cur) )
+			return 0
+			;;
+		'-h'|'--help'|'-V'|'--version')
+			return 0
+			;;
+	esac
+	DEVS=$(for I in echo /dev/fd*; do if [ -e $I ]; then echo $I; fi; done)
+	OPTS="
+		--from
+		--to
+		--repair
+		--no-verify
+		--help
+		--version
+		$DEVS
+	"
+	COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+	return 0
+}
+complete -F _fdformat_module fdformat

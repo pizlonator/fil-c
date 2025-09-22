@@ -1,0 +1,100 @@
+'\" t
+.\"     Title: enosys
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "ENOSYS" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+enosys \- utility make syscalls fail with ENOSYS
+.SH "SYNOPSIS"
+.sp
+\fBenosys\fP [\fB\-\-syscall\fP|\fB\-s\fP \fIsyscall\fP] command
+.SH "DESCRIPTION"
+.sp
+\fBenosys\fP is a simple command to execute a child process for which certain
+syscalls fail with errno ENOSYS.
+.sp
+It can be used to test the behavior of applications in the face of missing
+syscalls as would happen when running on old kernels.
+.SH "OPTIONS"
+.sp
+\fB\-s\fP, \fB\-\-syscall\fP
+.RS 4
+Syscall to block. Can be specified multiple times.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-ioctl\fP
+.RS 4
+Ioctl to block. Can be specified multiple times.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\fP
+.RS 4
+List syscalls known to \fBenosys\fP.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-list\-ioctl\fP
+.RS 4
+List ioctls known to \fBenosys\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBenosys\fP exits with the status code of the executed process.
+The following values have special meanings:
+.sp
+\fB1\fP
+.RS 4
+internal error
+.RE
+.sp
+\fB2\fP
+.RS 4
+system does not provide the necessary functionality
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "thomas\(att\-8ch.de" "Thomas Weißschuh" ""
+.SH "SEE ALSO"
+.sp
+\fBsyscall\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBenosys\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

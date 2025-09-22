@@ -1,0 +1,146 @@
+'\" t
+.\"     Title: uuidd
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UUIDD" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+uuidd \- UUID generation daemon
+.SH "SYNOPSIS"
+.sp
+\fBuuidd\fP [options]
+.SH "DESCRIPTION"
+.sp
+The \fBuuidd\fP daemon is used by the UUID library to generate universally unique identifiers (UUIDs), especially time\-based UUIDs, in a secure and guaranteed\-unique fashion, even in the face of large numbers of threads running on different CPUs trying to grab UUIDs.
+.SH "OPTIONS"
+.sp
+\fB\-C\fP, \fB\-\-cont\-clock\fP[=\fItime\fP]
+.RS 4
+Activate continuous clock handling for time based UUIDs. \fBuuidd\fP could use all possible clock values, beginning with the daemon\(cqs start time. The optional argument can be used to set a value for the max_clock_offset. This gurantees, that a clock value of a UUID will always be within the range of the max_clock_offset.
+.sp
+The option \fB\-C\fP or \fB\-\-cont\-clock\fP enables the feature with a default max_clock_offset of 2 hours.
+.sp
+The option \fB\-C<NUM>[hd]\fP or \fB\-\-cont\-clock=<NUM>[hd]\fP enables the feature with a max_clock_offset of NUM seconds. In case of an appended h or d, the NUM value is read in hours or days. The minimum value is 60 seconds, the maximum value is 365 days.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-debug\fP
+.RS 4
+Run \fBuuidd\fP in debugging mode. This prevents \fBuuidd\fP from running as a daemon.
+.RE
+.sp
+\fB\-F\fP, \fB\-\-no\-fork\fP
+.RS 4
+Do not daemonize using a double\-fork.
+.RE
+.sp
+\fB\-k\fP, \fB\-\-kill\fP
+.RS 4
+If currently a uuidd daemon is running, kill it.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-uuids\fP \fInumber\fP
+.RS 4
+When issuing a test request to a running \fBuuidd\fP, request a bulk response of \fInumber\fP UUIDs.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-no\-pid\fP
+.RS 4
+Do not create a pid file.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP \fIpath\fP
+.RS 4
+Specify the pathname where the pid file should be written. By default, the pid file is written to \fI{runstatedir}/uuidd/uuidd.pid\fP.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress some failure messages.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-random\fP
+.RS 4
+Test uuidd by trying to connect to a running uuidd daemon and request it to return a random\-based UUID.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-socket\-activation\fP
+.RS 4
+Do not create a socket but instead expect it to be provided by the calling process. This implies \fB\-\-no\-fork\fP and \fB\-\-no\-pid\fP. This option is intended to be used only with \fBsystemd\fP(1). It needs to be enabled with a configure option.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-socket\fP \fIpath\fP
+.RS 4
+Make uuidd use this pathname for the unix\-domain socket. By default, the pathname used is \fI{runstatedir}/uuidd/request\fP. This option is primarily for debugging purposes, since the pathname is hard\-coded in the \fBlibuuid\fP library.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-timeout\fP \fInumber\fP
+.RS 4
+Make \fBuuidd\fP exit after \fInumber\fP seconds of inactivity.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-time\fP
+.RS 4
+Test \fBuuidd\fP by trying to connect to a running uuidd daemon and request it to return a time\-based UUID.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLE"
+.sp
+Start up a daemon, print 42 random keys, and then stop the daemon:
+.sp
+.if n .RS 4
+.nf
+.fam C
+uuidd \-p /tmp/uuidd.pid \-s /tmp/uuidd.socket
+uuidd \-d \-r \-n 42 \-s /tmp/uuidd.socket
+uuidd \-d \-k \-s /tmp/uuidd.socket
+.fam
+.fi
+.if n .RE
+.SH "AUTHOR"
+.sp
+The \fBuuidd\fP daemon was written by \c
+.MTO "tytso\(atmit.edu" "Theodore Ts\(cqo" "."
+.SH "SEE ALSO"
+.sp
+\fBuuid\fP(3),
+\fBuuidgen\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBuuidd\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

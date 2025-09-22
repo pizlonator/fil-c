@@ -1,0 +1,404 @@
+'\" t
+.\"     Title: terminal-colors.d
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: File formats
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "TERMINAL\-COLORS.D" "5" "2024-01-31" "util\-linux 2.40.2" "File formats"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+terminal-colors.d \- configure output colorization for various utilities
+.SH "SYNOPSIS"
+.sp
+/etc/terminal\-colors.d/\fI[[name][@term].][type]\fP
+.SH "DESCRIPTION"
+.sp
+Files in this directory determine the default behavior for utilities when coloring output.
+.sp
+The \fIname\fP is a utility name. The name is optional and when none is specified then the file is used for all unspecified utilities.
+.sp
+The \fIterm\fP is a terminal identifier (the \fBTERM\fP environment variable). The terminal identifier is optional and when none is specified then the file is used for all unspecified terminals.
+.sp
+The \fItype\fP is a file type. Supported file types are:
+.sp
+\fBdisable\fP
+.RS 4
+Turns off output colorization for all compatible utilities.
+.RE
+.sp
+\fBenable\fP
+.RS 4
+Turns on output colorization; any matching \fBdisable\fP files are ignored.
+.RE
+.sp
+\fBscheme\fP
+.RS 4
+Specifies colors used for output. The file format may be specific to the utility, the default format is described below.
+.RE
+.sp
+If there are more files that match for a utility, then the file with the more specific filename wins. For example, the filename "@xterm.scheme" has less priority than "dmesg@xterm.scheme". The lowest priority are those files without a utility name and terminal identifier (e.g., "disable").
+.sp
+The user\-specific \fI$XDG_CONFIG_HOME/terminal\-colors.d\fP or \fI$HOME/.config/terminal\-colors.d\fP overrides the global setting.
+.SH "DEFAULT SCHEME FILES FORMAT"
+.sp
+The following statement is recognized:
+.RS 3
+.ll -.6i
+.sp
+\fBname color\-sequence\fP
+.br
+.RE
+.ll
+.sp
+The \fBname\fP is a logical name of color sequence (for example "error"). The names are specific to the utilities. For more details always see the \fBCOLORS\fP section in the man page for the utility.
+.sp
+The \fBcolor\-sequence\fP is a color name, ASCII color sequences or escape sequences.
+.SS "Color names"
+.sp
+black, blink, blue, bold, brown, cyan, darkgray, gray, green, halfbright, lightblue, lightcyan, lightgray, lightgreen, lightmagenta, lightred, magenta, red, reset, reverse, and yellow.
+.SS "ANSI color sequences"
+.sp
+The color sequences are composed of sequences of numbers separated by semicolons. The most common codes are:
+.RS 3
+.ll -.6i
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+0
+T}:T{
+.sp
+to restore default color
+T}
+T{
+.sp
+1
+T}:T{
+.sp
+for brighter colors
+T}
+T{
+.sp
+4
+T}:T{
+.sp
+for underlined text
+T}
+T{
+.sp
+5
+T}:T{
+.sp
+for flashing text
+T}
+T{
+.sp
+30
+T}:T{
+.sp
+for black foreground
+T}
+T{
+.sp
+31
+T}:T{
+.sp
+for red foreground
+T}
+T{
+.sp
+32
+T}:T{
+.sp
+for green foreground
+T}
+T{
+.sp
+33
+T}:T{
+.sp
+for yellow (or brown) foreground
+T}
+T{
+.sp
+34
+T}:T{
+.sp
+for blue foreground
+T}
+T{
+.sp
+35
+T}:T{
+.sp
+for purple foreground
+T}
+T{
+.sp
+36
+T}:T{
+.sp
+for cyan foreground
+T}
+T{
+.sp
+37
+T}:T{
+.sp
+for white (or gray) foreground
+T}
+T{
+.sp
+40
+T}:T{
+.sp
+for black background
+T}
+T{
+.sp
+41
+T}:T{
+.sp
+for red background
+T}
+T{
+.sp
+42
+T}:T{
+.sp
+for green background
+T}
+T{
+.sp
+43
+T}:T{
+.sp
+for yellow (or brown) background
+T}
+T{
+.sp
+44
+T}:T{
+.sp
+for blue background
+T}
+T{
+.sp
+45
+T}:T{
+.sp
+for purple background
+T}
+T{
+.sp
+46
+T}:T{
+.sp
+for cyan background
+T}
+T{
+.sp
+47
+T}:T{
+.sp
+for white (or gray) background
+T}
+.TE
+.sp
+.br
+.RE
+.ll
+.SS "Escape sequences"
+.sp
+To specify control or blank characters in the color sequences, C\-style \(rs\-escaped notation can be used:
+.RS 3
+.ll -.6i
+.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+\fB\(rsa\fP
+T}:T{
+.sp
+Bell (ASCII 7)
+T}
+T{
+.sp
+\fB\(rsb\fP
+T}:T{
+.sp
+Backspace (ASCII 8)
+T}
+T{
+.sp
+\fB\(rse\fP
+T}:T{
+.sp
+Escape (ASCII 27)
+T}
+T{
+.sp
+\fB\(rsf\fP
+T}:T{
+.sp
+Form feed (ASCII 12)
+T}
+T{
+.sp
+\fB\(rsn\fP
+T}:T{
+.sp
+Newline (ASCII 10)
+T}
+T{
+.sp
+\fB\(rsr\fP
+T}:T{
+.sp
+Carriage Return (ASCII 13)
+T}
+T{
+.sp
+\fB\(rst\fP
+T}:T{
+.sp
+Tab (ASCII 9)
+T}
+T{
+.sp
+\fB\(rsv\fP
+T}:T{
+.sp
+Vertical Tab (ASCII 11)
+T}
+T{
+.sp
+\fB\(rs?\fP
+T}:T{
+.sp
+Delete (ASCII 127)
+T}
+T{
+.sp
+\fB\(rs_\fP
+T}:T{
+.sp
+Space
+T}
+T{
+.sp
+\fB\(rs\(rs\fP
+T}:T{
+.sp
+Backslash (\(rs)
+T}
+T{
+.sp
+\fB\(rs^\fP
+T}:T{
+.sp
+Caret (^)
+T}
+T{
+.sp
+\fB\(rs#\fP
+T}:T{
+.sp
+Hash mark (#)
+T}
+.TE
+.sp
+.br
+.RE
+.ll
+.sp
+Please note that escapes are necessary to enter a space, backslash, caret, or any control character anywhere in the string, as well as a hash mark as the first character.
+.sp
+For example, to use a red background for alert messages in the output of \fBdmesg\fP(1), use:
+.RS 3
+.ll -.6i
+.sp
+\fBecho \*(Aqalert 37;41\*(Aq >> /etc/terminal\-colors.d/dmesg.scheme\fP
+.br
+.RE
+.ll
+.SS "Comments"
+.sp
+Lines where the first non\-blank character is a # (hash) are ignored. Any other use of the hash character is not interpreted as introducing a comment.
+.SH "ENVIRONMENT"
+.sp
+\fBTERMINAL_COLORS_DEBUG\fP=all
+.RS 4
+enables debug output.
+.RE
+.SH "FILES"
+.sp
+\fI$XDG_CONFIG_HOME/terminal\-colors.d\fP
+.sp
+\fI$HOME/.config/terminal\-colors.d\fP
+.sp
+\fI/etc/terminal\-colors.d\fP
+.SH "EXAMPLE"
+.sp
+Disable colors for all compatible utilities:
+.RS 3
+.ll -.6i
+.sp
+\fBtouch /etc/terminal\-colors.d/disable\fP
+.br
+.RE
+.ll
+.sp
+Disable colors for all compatible utils on a vt100 terminal:
+.RS 3
+.ll -.6i
+.sp
+\fBtouch /etc/terminal\-colors.d/@vt100.disable\fP
+.br
+.RE
+.ll
+.sp
+Disable colors for all compatible utils except \fBdmesg\fP(1):
+.RS 3
+.ll -.6i
+.sp
+\fBtouch /etc/terminal\-colors.d/disable\fP
+.sp
+\fBtouch /etc/terminal\-colors.d/dmesg.enable\fP
+.br
+.RE
+.ll
+.SH "COMPATIBILITY"
+.sp
+The \fBterminal\-colors.d\fP functionality is currently supported by all util\-linux utilities which provides colorized output. For more details always see the \fBCOLORS\fP section in the man page for the utility.
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+\fBterminal\-colors.d\fP is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

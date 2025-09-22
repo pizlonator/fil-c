@@ -1,0 +1,287 @@
+
+if BUILD_LAST
+usrbin_exec_PROGRAMS += last
+MANPAGES += login-utils/last.1
+dist_noinst_DATA += login-utils/last.1.adoc
+MANLINKS += login-utils/lastb.1
+last_SOURCES = login-utils/last.c lib/monotonic.c
+last_LDADD = $(LDADD) libcommon.la $(REALTIME_LIBS)
+
+install-exec-hook-last:
+	cd $(DESTDIR)$(usrbin_execdir) && ln -sf last lastb
+
+INSTALL_EXEC_HOOKS += install-exec-hook-last
+
+if FUZZING_ENGINE
+check_PROGRAMS += test_last_fuzz
+
+# https://google.github.io/oss-fuzz/getting-started/new-project-guide/#Requirements
+nodist_EXTRA_test_last_fuzz_SOURCES = dummy.cxx
+
+test_last_fuzz_SOURCES = login-utils/last.c
+test_last_fuzz_CFLAGS = $(AM_CFLAGS) -DFUZZ_TARGET
+test_last_fuzz_LDFLAGS = -lpthread
+test_last_fuzz_LDADD = $(LDADD) libcommon.la $(LIB_FUZZING_ENGINE)
+endif
+
+endif
+
+if BUILD_SULOGIN
+sbin_PROGRAMS += sulogin
+MANPAGES += login-utils/sulogin.8
+dist_noinst_DATA += login-utils/sulogin.8.adoc
+sulogin_SOURCES = \
+	login-utils/sulogin.c \
+	login-utils/sulogin-consoles.c \
+	login-utils/sulogin-consoles.h
+if USE_PLYMOUTH_SUPPORT
+sulogin_SOURCES += lib/plymouth-ctrl.c
+endif
+sulogin_LDADD = $(LDADD) libcommon.la
+
+if HAVE_LIBCRYPT
+sulogin_LDADD += -lcrypt
+endif
+if HAVE_SELINUX
+sulogin_LDADD += -lselinux
+endif
+
+check_PROGRAMS += test_consoles
+test_consoles_SOURCES = login-utils/sulogin-consoles.c
+test_consoles_CFLAGS = $(AM_CFLAGS) -DTEST_PROGRAM
+test_consoles_LDADD = $(LDADD) libcommon.la
+endif # BUILD_SULOGIN
+
+
+if BUILD_LOGIN
+bin_PROGRAMS += login
+MANPAGES += login-utils/login.1
+dist_noinst_DATA += login-utils/login.1.adoc
+login_SOURCES = \
+	login-utils/login.c \
+	lib/logindefs.c
+login_LDADD = $(LDADD) libcommon.la -lpam
+if HAVE_LINUXPAM
+login_LDADD += -lpam_misc
+endif
+if HAVE_AUDIT
+login_LDADD += -laudit
+endif
+if HAVE_SELINUX
+login_LDADD += -lselinux
+endif
+if HAVE_ECONF
+login_LDADD += -leconf
+endif
+endif # BUILD_LOGIN
+
+
+if BUILD_NOLOGIN
+sbin_PROGRAMS += nologin
+MANPAGES += login-utils/nologin.8
+dist_noinst_DATA += login-utils/nologin.8.adoc
+nologin_SOURCES = login-utils/nologin.c
+nologin_LDADD = $(LDADD) libcommon.la
+endif
+
+
+if BUILD_UTMPDUMP
+usrbin_exec_PROGRAMS += utmpdump
+MANPAGES += login-utils/utmpdump.1
+dist_noinst_DATA += login-utils/utmpdump.1.adoc
+utmpdump_SOURCES = login-utils/utmpdump.c
+utmpdump_LDADD = $(LDADD) libcommon.la
+endif
+
+
+if BUILD_CHFN_CHSH
+usrbin_exec_PROGRAMS += chfn chsh
+MANPAGES += \
+	login-utils/chfn.1 \
+	login-utils/chsh.1
+dist_noinst_DATA += \
+	login-utils/chfn.1.adoc \
+	login-utils/chsh.1.adoc
+
+chfn_chsh_sources = \
+	login-utils/ch-common.h \
+	login-utils/ch-common.c
+chfn_chsh_cflags = $(SUID_CFLAGS) $(AM_CFLAGS)
+chfn_chsh_ldflags = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+chfn_chsh_ldadd = libcommon.la
+
+if CHFN_CHSH_PASSWORD
+chfn_chsh_ldadd += -lpam
+if HAVE_LINUXPAM
+chfn_chsh_ldadd += -lpam_misc
+endif
+chfn_chsh_sources += \
+	login-utils/auth.c \
+	login-utils/auth.h
+endif # CHFN_CHSH_PASSWORD
+
+if HAVE_USER
+chfn_chsh_ldflags += $(LIBUSER_LIBS)
+chfn_chsh_cflags += $(LIBUSER_CFLAGS)
+chfn_chsh_sources+= \
+	login-utils/libuser.c \
+	login-utils/libuser.h
+else
+chfn_chsh_sources += \
+	login-utils/islocal.c \
+	login-utils/islocal.h \
+	login-utils/setpwnam.c \
+	login-utils/setpwnam.h
+endif
+
+if HAVE_SELINUX
+chfn_chsh_sources += \
+	lib/selinux-utils.c \
+	include/selinux-utils.h
+chfn_chsh_ldadd += -lselinux
+endif
+
+chfn_SOURCES = \
+	login-utils/chfn.c \
+	lib/logindefs.c \
+	$(chfn_chsh_sources)
+chfn_CFLAGS = $(chfn_chsh_cflags)
+chfn_LDFLAGS = $(chfn_chsh_ldflags)
+chfn_LDADD = $(LDADD) $(chfn_chsh_ldadd)
+if HAVE_ECONF
+chfn_LDADD += -leconf
+endif
+
+chsh_SOURCES = login-utils/chsh.c lib/shells.c $(chfn_chsh_sources)
+chsh_CFLAGS = $(chfn_chsh_cflags)
+chsh_LDFLAGS = $(chfn_chsh_ldflags)
+chsh_LDADD = $(LDADD) $(chfn_chsh_ldadd)
+if HAVE_ECONF
+chsh_LDADD += -leconf
+endif
+endif # BUILD_CHFN_CHSH
+
+
+if BUILD_SU
+bin_PROGRAMS += su
+MANPAGES += login-utils/su.1
+dist_noinst_DATA += login-utils/su.1.adoc
+su_SOURCES = \
+	login-utils/su.c \
+	login-utils/su-common.c \
+	login-utils/su-common.h \
+	lib/logindefs.c \
+	lib/shells.c
+su_CFLAGS = $(SUID_CFLAGS) $(AM_CFLAGS)
+su_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+su_LDADD = $(LDADD) libcommon.la -lpam
+if HAVE_LINUXPAM
+su_LDADD += -lpam_misc
+endif
+if HAVE_PTY
+su_SOURCES += lib/pty-session.c \
+      include/pty-session.h \
+      lib/monotonic.c
+su_LDADD += -lutil $(REALTIME_LIBS)
+endif
+if HAVE_ECONF
+su_LDADD += -leconf
+endif
+endif # BUILD_SU
+
+
+if BUILD_RUNUSER
+sbin_PROGRAMS += runuser
+MANPAGES += login-utils/runuser.1
+dist_noinst_DATA += login-utils/runuser.1.adoc
+runuser_SOURCES = \
+	login-utils/runuser.c \
+	login-utils/su-common.c \
+	login-utils/su-common.h \
+	lib/logindefs.c \
+	lib/shells.c
+runuser_LDADD = $(LDADD) libcommon.la -lpam
+if HAVE_LINUXPAM
+runuser_LDADD += -lpam_misc
+endif
+if HAVE_PTY
+runuser_SOURCES += lib/pty-session.c \
+	include/pty-session.h \
+	lib/monotonic.c
+runuser_LDADD += -lutil $(REALTIME_LIBS)
+endif
+if HAVE_ECONF
+runuser_LDADD += -leconf
+endif
+endif # BUILD_RUNUSER
+
+
+if BUILD_NEWGRP
+usrbin_exec_PROGRAMS += newgrp
+MANPAGES += login-utils/newgrp.1
+dist_noinst_DATA += login-utils/newgrp.1.adoc
+newgrp_SOURCES = login-utils/newgrp.c
+newgrp_CFLAGS = $(SUID_CFLAGS) $(AM_CFLAGS)
+newgrp_LDFLAGS = $(SUID_LDFLAGS) $(AM_LDFLAGS)
+newgrp_LDADD = $(LDADD)
+if HAVE_LIBCRYPT
+newgrp_LDADD += -lcrypt
+endif
+endif # BUILD_NEWGRP
+
+
+if BUILD_LSLOGINS
+usrbin_exec_PROGRAMS += lslogins
+MANPAGES += login-utils/lslogins.1
+dist_noinst_DATA += login-utils/lslogins.1.adoc
+lslogins_SOURCES = \
+	login-utils/lslogins.c \
+	lib/logindefs.c
+lslogins_LDADD = $(LDADD) libcommon.la libsmartcols.la
+lslogins_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+if HAVE_SELINUX
+lslogins_LDADD += -lselinux
+endif
+if HAVE_SYSTEMD
+lslogins_LDADD += $(SYSTEMD_LIBS) $(SYSTEMD_JOURNAL_LIBS)
+lslogins_CFLAGS += $(SYSTEMD_CFLAGS) $(SYSTEMD_JOURNAL_CFLAGS)
+endif
+if HAVE_ECONF
+lslogins_LDADD += -leconf
+endif
+endif # BUILD_LSLOGINS
+
+
+if BUILD_VIPW
+usrsbin_exec_PROGRAMS += vipw
+MANPAGES += login-utils/vipw.8
+dist_noinst_DATA += login-utils/vipw.8.adoc
+MANLINKS += login-utils/vigr.8
+vipw_SOURCES = \
+	login-utils/vipw.c \
+	login-utils/setpwnam.h
+vipw_LDADD = $(LDADD) libcommon.la
+if HAVE_SELINUX
+vipw_LDADD += -lselinux
+endif
+install-exec-hook-vipw::
+	cd $(DESTDIR)$(usrsbin_execdir) && ln -sf vipw vigr
+
+INSTALL_EXEC_HOOKS += install-exec-hook-vipw
+endif # BUILD_VIPW
+
+
+check_PROGRAMS += test_islocal
+test_islocal_SOURCES = login-utils/islocal.c
+test_islocal_CPPFLAGS = -DTEST_PROGRAM $(AM_CPPFLAGS)
+
+
+install-exec-hook:
+if BUILD_SU
+if MAKEINSTALL_DO_CHOWN
+	chown root:root $(DESTDIR)$(bindir)/su
+endif
+if MAKEINSTALL_DO_SETUID
+	chmod 4755 $(DESTDIR)$(bindir)/su
+endif
+endif

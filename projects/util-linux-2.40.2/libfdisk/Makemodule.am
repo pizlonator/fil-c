@@ -1,0 +1,15 @@
+if BUILD_LIBFDISK
+
+include libfdisk/src/Makemodule.am
+include libfdisk/samples/Makemodule.am
+
+if ENABLE_GTK_DOC
+# Docs uses separate Makefiles
+SUBDIRS += libfdisk/docs
+endif
+
+pkgconfig_DATA += libfdisk/fdisk.pc
+PATHFILES      += libfdisk/fdisk.pc
+EXTRA_DIST     += libfdisk/COPYING
+
+endif # BUILD_LIBFDISK

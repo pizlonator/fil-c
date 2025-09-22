@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="subsecond"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+# this test is arch independent, no need for utmp_functions.sh
+ts_check_test_command "$TS_CMD_UTMPDUMP"
+
+OUT_BIN=${TS_OUTDIR}/${TS_TESTNAME}.bin
+
+echo "last 9 is expected to disappear in conversion" > $TS_OUTPUT
+$TS_CMD_UTMPDUMP -r $TS_SELF/subsec > $OUT_BIN 2>/dev/null
+$TS_CMD_UTMPDUMP $OUT_BIN >> $TS_OUTPUT 2>/dev/null
+
+rm -f "$OUT_BIN"
+
+ts_finalize

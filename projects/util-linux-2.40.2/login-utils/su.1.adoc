@@ -1,0 +1,170 @@
+//po4a: entry man manual
+= su(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: su
+:colon: :
+
+== NAME
+
+su - run a command with substitute user and group ID
+
+== SYNOPSIS
+
+*su* [options] [*-*] [_user_ [_argument_...]]
+
+== DESCRIPTION
+
+*su* allows commands to be run with a substitute user and group ID.
+
+When called with no _user_ specified, *su* defaults to running an interactive shell as _root_. When _user_ is specified, additional __argument__s can be supplied, in which case they are passed to the shell.
+
+For backward compatibility, *su* defaults to not change the current directory and to only set the environment variables *HOME* and *SHELL* (plus *USER* and *LOGNAME* if the target _user_ is not root). It is recommended to always use the *--login* option (instead of its shortcut *-*) to avoid side effects caused by mixing environments.
+
+This version of *su* uses PAM for authentication, account and session management. Some configuration options found in other *su* implementations, such as support for a wheel group, have to be configured via PAM.
+
+*su* is mostly designed for unprivileged users, the recommended solution for privileged users (e.g., scripts executed by root) is to use non-set-user-ID command *runuser*(1) that does not require authentication and provides separate PAM configuration. If the PAM session is not required at all then the recommended solution is to use command *setpriv*(1).
+
+Note that *su* in all cases uses PAM (*pam_getenvlist*(3)) to do the final environment modification. Command-line options such as *--login* and *--preserve-environment* affect the environment before it is modified by PAM.
+
+Since version 2.38 *su* resets process resource limits RLIMIT_NICE, RLIMIT_RTPRIO, RLIMIT_FSIZE, RLIMIT_AS and RLIMIT_NOFILE.
+
+== OPTIONS
+
+*-c*, **--command**=__command__::
+Pass _command_ to the shell with the *-c* option.
+
+*-f*, *--fast*::
+Pass *-f* to the shell, which may or may not be useful, depending on the shell.
+
+*-g*, **--group**=__group__::
+Specify the primary group. This option is available to the root user only.
+
+*-G*, **--supp-group**=__group__::
+Specify a supplementary group. This option is available to the root user only. The first specified supplementary group is also used as a primary group if the option *--group* is not specified.
+
+*-*, *-l*, *--login*::
+Start the shell as a login shell with an environment similar to a real login.
++
+Note that on systemd-based systems, a new session may be defined as a real
+entry point to the system. However, *su* does not create a real session (by
+PAM) from this point of view. You need to use tools like *systemd-run* or
+*machinectl* to initiate a complete, real session.
++
+*su* does:
++
+* clears all the environment variables except *TERM* and variables specified by *--whitelist-environment*
+* initializes the environment variables *HOME*, *SHELL*, *USER*, *LOGNAME*, and *PATH*
+* changes to the target user's home directory
+* sets argv[0] of the shell to '*-*' in order to make the shell a login shell
+
+*-m*, *-p*, *--preserve-environment*::
+Preserve the entire environment, i.e., do not set *HOME*, *SHELL*, *USER* or *LOGNAME*. This option is ignored if the option *--login* is specified.
+
+*-P*, *--pty*::
+Create a pseudo-terminal for the session. The independent terminal provides better security as the user does not share a terminal with the original session. This can be used to avoid *TIOCSTI* ioctl terminal injection and other security attacks against terminal file descriptors. The entire session can also be moved to the background (e.g., *su --pty* **-** __username__ *-c* _application_ *&*). If the pseudo-terminal is enabled, then *su* works as a proxy between the sessions (sync stdin and stdout).
++
+This feature is mostly designed for interactive sessions. If the standard input is not a terminal, but for example a pipe (e.g., *echo "date" | su --pty*), then the *ECHO* flag for the pseudo-terminal is disabled to avoid messy output.
+
+*-s*, **--shell**=__shell__::
+Run the specified _shell_ instead of the default. If the target user has a restricted shell (i.e., not listed in _/etc/shells_), the *--shell* option and the *SHELL* environment variables are ignored unless the calling user is root.
++
+The shell to run is selected according to the following rules, in order:
++
+* the shell specified with *--shell*
+* the shell specified in the environment variable *SHELL*, if the *--preserve-environment* option is used
+* the shell listed in the passwd entry of the target user
+* /bin/sh
+
+**--session-command=**__command__::
+Same as *-c*, but do not create a new session. (Discouraged.)
+
+*-T*, *--no-pty**::
+Do not create a pseudo-terminal, opposite of *--pty* and *-P*.
+Note that running without a pseudo-terminal opens the security risk of privilege escalation through TIOCSTI/TIOCLINUX ioctl command injection.
+
+*-w*, **--whitelist-environment**=__list__::
+Don't reset the environment variables specified in the comma-separated _list_ when clearing the environment for *--login*. The whitelist is ignored for the environment variables *HOME*, *SHELL*, *USER*, *LOGNAME*, and *PATH*.
+
+include::man-common/help-version.adoc[]
+
+== SIGNALS
+
+Upon receiving either *SIGINT*, *SIGQUIT* or *SIGTERM*, *su* terminates its child and afterwards terminates itself with the received signal. The child is terminated by *SIGTERM*, after unsuccessful attempt and 2 seconds of delay the child is killed by *SIGKILL*.
+
+== CONFIG FILES
+
+//TRANSLATORS: Keep {colon} untranslated
+*su* reads the _/etc/default/su_ and _/etc/login.defs_ configuration files. The following configuration items are relevant for *su*{colon}
+
+*FAIL_DELAY* (number)::
+Delay in seconds in case of an authentication failure. The number must be a non-negative integer.
+
+*ENV_PATH* (string)::
+Defines the *PATH* environment variable for a regular user. The default value is _/usr/local/bin:/bin:/usr/bin_.
+
+*ENV_ROOTPATH* (string)::
+*ENV_SUPATH* (string)::
+Defines the *PATH* environment variable for root. *ENV_SUPATH* takes precedence. The default value is _/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin_.
+
+*ALWAYS_SET_PATH* (boolean)::
+If set to _yes_ and *--login* and *--preserve-environment* were not specified *su* initializes *PATH*.
++
+The environment variable *PATH* may be different on systems where _/bin_ and _/sbin_ are merged into _/usr_; this variable is also affected by the *--login* command-line option and the PAM system setting (e.g., *pam_env*(8)).
+
+== EXIT STATUS
+
+*su* normally returns the exit status of the command it executed. If the command was killed by a signal, *su* returns the number of the signal plus 128.
+
+Exit status generated by *su* itself:
+
+1::
+Generic error before executing the requested command
+126::
+The requested command could not be executed
+127::
+The requested command was not found
+
+== FILES
+
+_/etc/pam.d/su_::
+default PAM configuration file
+
+_/etc/pam.d/su-l_::
+PAM configuration file if *--login* is specified
+
+_/etc/default/su_::
+command specific logindef config file
+
+_/etc/login.defs_::
+global logindef config file
+
+== NOTES
+
+For security reasons, *su* always logs failed log-in attempts to the _btmp_ file, but it does not write to the _lastlog_ file at all. This solution can be used to control *su* behavior by PAM configuration. If you want to use the *pam_lastlog*(8) module to print warning message about failed log-in attempts then *pam_lastlog*(8) has to be configured to update the _lastlog_ file as well. For example by:
+
+____
+session required pam_lastlog.so nowtmp
+____
+
+== HISTORY
+
+This *su* command was derived from coreutils' *su*, which was based on an implementation by David MacKenzie. The util-linux version has been refactored by Karel Zak.
+
+== SEE ALSO
+
+*setpriv*(1),
+*login.defs*(5),
+*shells*(5),
+*pam*(8),
+*runuser*(1)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

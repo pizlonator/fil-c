@@ -1,0 +1,85 @@
+'\" t
+.\"     Title: ll2_rename_user
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: Programmer's Manual
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LL2_RENAME_USER" "3" "2024-05-28" "util\-linux 2.40.2" "Programmer\*(Aqs Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ll2_rename_user \- Renames an user entry.
+.SH "SYNOPSIS"
+.sp
+\fB#include <lastlog2.h>\fP
+.sp
+\fBint ll2_rename_user (struct ll2_context *\fIcontext\fP, const char *\fIuser\fP,
+const char *\fInewname\fP, char **\fIerror\fP);\fP
+.SH "DESCRIPTION"
+.sp
+Changing user name from \fIuser\fP to \fInewname\fP of one entry in
+database, which is defined by \fIcontext\fP. All other entries with the user \fIuser\fP
+will be deleted.
+If \fIcontext\fP is NULL, the default database, defined in \fILL2_DEFAULT_DATABASE\fP,
+will be taken.
+.sp
+.if n .RS 4
+.nf
+.fam C
+char    *error = NULL;
+const   char *user = "root";
+const   char *new_user = "notroot";
+
+int ret = ll2_rename_user (NULL, user, new_user, &error);
+.fam
+.fi
+.if n .RE
+.SH "RETURN VALUE"
+.sp
+Returns 0 on success, \-ENOMEM or \-1 on other failure.
+\fIerror\fP contains an error string if the return value is \-1.
+\fIerror\fP is not guaranteed to contain an error string, could also be NULL.
+\fIerror\fP should be freed by the caller.
+.SH "AUTHORS"
+.sp
+Thorsten Kukuk (\c
+.MTO "kukuk\(atsuse.de" "" ")"
+.SH "SEE ALSO"
+.sp
+\fBlastlog2\fP(3),
+\fBll2_new_context(3),
+*ll2_unref_context(3),
+*ll2_read_all\fP(3),
+\fBll2_write_entry\fP(3),
+\fBll2_read_entry\fP(3),
+\fBll2_remove_entry\fP(3),
+\fBll2_update_login_time\fP(3),
+\fBll2_import_lastlog\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBliblastlog2\fP library is part of the util\-linux package since version 2.40. It can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

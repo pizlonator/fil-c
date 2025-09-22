@@ -1,0 +1,8 @@
+if BUILD_PAM_LASTLOG2
+
+include pam_lastlog2/man/Makemodule.am
+include pam_lastlog2/src/Makemodule.am
+
+EXTRA_DIST     += pam_lastlog2/COPYING pam_lastlog2/meson.build
+
+endif # BUILD_PAM_LASTLOG2

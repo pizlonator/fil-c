@@ -1,0 +1,144 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Stanislav Brabec <sbrabec@suse.cz>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="btrfs (fstab)"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_MOUNT"
+ts_check_test_command "$TS_CMD_UMOUNT"
+
+ts_skip_nonroot
+ts_check_losetup
+ts_check_enotty
+ts_check_prog "mkfs.btrfs"
+ts_check_prog "btrfs"
+
+# btrfs feature check
+if ! btrfs inspect-internal --help &>/dev/null || \
+   btrfs inspect-internal rootid bla 2>&1 | grep -q "unknown token"; then
+	ts_skip "btrfs too old"
+fi
+
+TS_MOUNTPOINT_ANY="$TS_MOUNTPOINT"
+TS_MOUNTPOINT_CREATE="$TS_MOUNTPOINT-create"
+TS_MOUNTPOINT_DEFAULT="$TS_MOUNTPOINT-default"
+TS_MOUNTPOINT_SUBVOL="$TS_MOUNTPOINT-subvol"
+TS_MOUNTPOINT_SUBVOLID="$TS_MOUNTPOINT-subvolid"
+TS_MOUNTPOINT_BIND="$TS_MOUNTPOINT-bind"
+
+ts_device_init 50
+DEVICE=$TS_LODEV
+[ -d "$TS_MOUNTPOINT_CREATE" ] || mkdir -p "$TS_MOUNTPOINT_CREATE"
+[ -d "$TS_MOUNTPOINT_DEFAULT" ] || mkdir -p "$TS_MOUNTPOINT_DEFAULT"
+[ -d "$TS_MOUNTPOINT_SUBVOL" ] || mkdir -p "$TS_MOUNTPOINT_SUBVOL"
+[ -d "$TS_MOUNTPOINT_SUBVOLID" ] || mkdir -p "$TS_MOUNTPOINT_SUBVOLID"
+[ -d "$TS_MOUNTPOINT_BIND" ] || mkdir -p "$TS_MOUNTPOINT_BIND"
+mkfs.btrfs -d single -m single $DEVICE &> /dev/null || ts_die "Cannot make btrfs on $DEVICE"
+
+btrfs device ready $DEVICE 2>/dev/null || ts_skip "btrfs kernel support is missing"
+
+$TS_CMD_MOUNT -o loop "$DEVICE" "$TS_MOUNTPOINT_CREATE" &> /dev/null
+pushd . >/dev/null
+cd "$TS_MOUNTPOINT_CREATE"
+mkdir -p d0/dd0/ddd0
+cd ./d0/dd0/ddd0
+touch file{1..5}
+btrfs subvol create s1 >/dev/null
+cd ./s1
+touch file{1..5}
+mkdir bind-point
+mkdir -p d1/dd1/ddd1
+cd ./d1/dd1/ddd1
+btrfs subvol create s2 >/dev/null
+DEFAULT_SUBVOLID=$(btrfs inspect-internal rootid s2)
+btrfs subvol set-default $DEFAULT_SUBVOLID . >/dev/null
+NON_DEFAULT_SUBVOLID=$(btrfs subvol list "$TS_MOUNTPOINT_CREATE" | while read dummy id rest ; do if test $id = $DEFAULT_SUBVOLID ; then continue ; fi ; echo $id ; done)
+cd ../../../..
+mkdir -p d2/dd2/ddd2
+cd ./d2/dd2/ddd2
+btrfs subvol create s3 >/dev/null
+mkdir -p s3/bind-mnt
+popd >/dev/null
+NON_DEFAULT_SUBVOL=d0/dd0/ddd0/d2/dd2/ddd2/s3
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_CREATE"
+
+
+ts_init_subtest "btrfs"
+ts_fstab_lock
+ts_fstab_open
+# Tests with fs == btrfs
+# mounting default subvolume, deep in the structure, without entry in fstab
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_DEFAULT" "btrfs" ""
+# mounting default subvolume, deep in the structure
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_SUBVOL" "btrfs" "subvol=$NON_DEFAULT_SUBVOL"
+# mounting non-default subvolume
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_SUBVOLID" "btrfs" "subvolid=$NON_DEFAULT_SUBVOLID"
+# test bind mount pointing to subvolume root
+ts_fstab_addline "$TS_MOUNTPOINT_SUBVOLID" "$TS_MOUNTPOINT_BIND" "auto" "bind"
+ts_fstab_close
+
+$TS_CMD_MOUNT -T "$TS_FSTAB" -a >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_MOUNT -T "$TS_FSTAB" -a >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_BIND" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_DEFAULT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_SUBVOL" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_SUBVOLID" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+# check that everything was unmounted
+$TS_CMD_MOUNT | grep "$TS_MOUNTPOINT_ANY" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+ts_fstab_clean		# this unlock too
+ts_log "Success"
+ts_finalize_subtest
+
+
+ts_init_subtest "auto"
+ts_fstab_lock
+ts_fstab_open
+# Tests with fs == auto
+# mounting default subvolume, deep in the structure, without entry in fstab
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_DEFAULT" "auto" ""
+# mounting default subvolume, deep in the structure
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_SUBVOL" "auto" "subvol=$NON_DEFAULT_SUBVOL"
+# mounting non-default subvolume
+ts_fstab_addline "$DEVICE" "$TS_MOUNTPOINT_SUBVOLID" "auto" "subvolid=$NON_DEFAULT_SUBVOLID"
+# test bind mount pointing to subvolume sub-directory
+ts_fstab_addline "$TS_MOUNTPOINT_SUBVOL/bind-mnt" "$TS_MOUNTPOINT_BIND" "auto" "bind"
+ts_fstab_close
+
+$TS_CMD_MOUNT -T "$TS_FSTAB" -a >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_MOUNT -T "$TS_FSTAB" -a >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_BIND" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_DEFAULT" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_SUBVOL" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_UMOUNT "$TS_MOUNTPOINT_SUBVOLID" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+# check that everything was unmounted
+$TS_CMD_MOUNT | grep "$TS_MOUNTPOINT_ANY" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+ts_fstab_clean		# this unlock too
+ts_log "Success"
+ts_finalize_subtest
+
+
+ts_finalize
+

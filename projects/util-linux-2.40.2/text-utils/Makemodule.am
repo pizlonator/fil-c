@@ -1,0 +1,108 @@
+if BUILD_COL
+usrbin_exec_PROGRAMS += col
+MANPAGES += text-utils/col.1
+dist_noinst_DATA += text-utils/col.1.adoc
+col_SOURCES = text-utils/col.c
+col_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_COLCRT
+usrbin_exec_PROGRAMS += colcrt
+MANPAGES += text-utils/colcrt.1
+dist_noinst_DATA += text-utils/colcrt.1.adoc
+colcrt_SOURCES = text-utils/colcrt.c
+endif
+
+if BUILD_COLRM
+usrbin_exec_PROGRAMS += colrm
+MANPAGES += text-utils/colrm.1
+dist_noinst_DATA += text-utils/colrm.1.adoc
+colrm_SOURCES = text-utils/colrm.c
+colrm_LDADD = $(LDADD) libcommon.la
+endif
+
+if BUILD_COLUMN
+usrbin_exec_PROGRAMS += column
+MANPAGES += text-utils/column.1
+dist_noinst_DATA += text-utils/column.1.adoc
+column_SOURCES = text-utils/column.c
+column_LDADD = $(LDADD) libcommon.la libsmartcols.la
+column_CFLAGS = $(AM_CFLAGS) -I$(ul_libsmartcols_incdir)
+endif
+
+if BUILD_HEXDUMP
+usrbin_exec_PROGRAMS += hexdump
+MANPAGES += text-utils/hexdump.1
+dist_noinst_DATA += text-utils/hexdump.1.adoc
+hexdump_SOURCES = \
+	text-utils/hexdump-conv.c \
+	text-utils/hexdump-display.c \
+	text-utils/hexdump.c \
+	text-utils/hexdump.h \
+	text-utils/hexdump-parse.c
+hexdump_LDADD = $(LDADD) libcommon.la libtcolors.la
+endif
+
+if BUILD_REV
+usrbin_exec_PROGRAMS += rev
+MANPAGES += text-utils/rev.1
+dist_noinst_DATA += text-utils/rev.1.adoc
+rev_SOURCES = text-utils/rev.c
+endif
+
+if BUILD_LINE
+usrbin_exec_PROGRAMS += line
+MANPAGES += text-utils/line.1
+dist_noinst_DATA += text-utils/line.1.adoc
+line_SOURCES = text-utils/line.c
+endif
+
+if BUILD_PG
+usrbin_exec_PROGRAMS += pg
+MANPAGES += text-utils/pg.1
+dist_noinst_DATA += text-utils/pg.1.adoc
+pg_SOURCES = text-utils/pg.c
+pg_CFLAGS = $(AM_CFLAGS) $(BSD_WARN_CFLAGS) $(NCURSES_CFLAGS) $(TINFO_CFLAGS)
+pg_LDADD = $(LDADD) libcommon.la $(NCURSES_LIBS) $(TINFO_LIBS)
+endif # BUILD_PG
+
+
+if BUILD_UL
+usrbin_exec_PROGRAMS += ul
+MANPAGES += text-utils/ul.1
+dist_noinst_DATA += text-utils/ul.1.adoc
+ul_SOURCES = text-utils/ul.c
+ul_CFLAGS = $(AM_CFLAGS)
+ul_LDADD = $(LDADD)
+if HAVE_TINFO
+ul_LDADD += $(TINFO_LIBS)
+ul_LDADD += $(TINFO_CFLAGS)
+else
+ul_CFLAGS += $(NCURSES_CFLAGS)
+ul_LDADD += $(NCURSES_LIBS)
+endif
+endif # BUILD_UL
+
+
+if BUILD_MORE
+bin_PROGRAMS += more
+MANPAGES += text-utils/more.1
+dist_noinst_DATA += text-utils/more.1.adoc
+more_SOURCES = text-utils/more.c
+more_CFLAGS = $(AM_CFLAGS) $(BSD_WARN_CFLAGS)
+more_LDADD = $(LDADD) $(MAGIC_LIBS) libcommon.la
+if HAVE_TINFO
+more_LDADD += $(TINFO_LIBS)
+more_LDADD += $(TINFO_CFLAGS)
+else
+more_CFLAGS += $(NCURSES_CFLAGS)
+more_LDADD += $(NCURSES_LIBS)
+endif
+
+check_PROGRAMS += test_more
+test_more_SOURCES = $(more_SOURCES)
+test_more_CFLAGS = -DTEST_PROGRAM $(more_CFLAGS)
+test_more_LDADD = $(more_LDADD)
+
+endif # BUILD_MORE
+

@@ -1,0 +1,106 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2022 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="complex"
+
+. $TS_TOPDIR/functions.sh
+ts_init "$*"
+
+ts_skip_nonroot
+ts_skip_qemu_user
+
+ts_check_test_command "$TS_CMD_MOUNT"
+ts_check_losetup
+
+$TS_CMD_MOUNT --version | grep -q 'fd-based' || ts_skip "no fd-based API"
+
+ts_device_init
+DEVICE=$TS_LODEV
+
+mkfs.ext2 $DEVICE &> /dev/null || ts_die "Cannot make ext2 on $DEVICE"
+ts_udevadm_settle "$DEVICE"
+
+ROOT_MOUNTPOINT="$TS_MOUNTPOINT"
+A_MOUNTPOINT="${ROOT_MOUNTPOINT}/A"
+B_MOUNTPOINT="${ROOT_MOUNTPOINT}/B"
+
+[ -d "$ROOT_MOUNTPOINT" ] || mkdir -p $ROOT_MOUNTPOINT
+[ -d "$A_MOUNTPOINT" ] || mkdir -p $A_MOUNTPOINT
+[ -d "$B_MOUNTPOINT" ] || mkdir -p $B_MOUNTPOINT
+
+## create a private directory
+ts_init_subtest "init"
+$TS_CMD_MOUNT --bind --make-private $ROOT_MOUNTPOINT $ROOT_MOUNTPOINT  >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_FINDMNT -nr --mountpoint $ROOT_MOUNTPOINT -o PROPAGATION | grep -q private \
+	|| ts_log "Cannot find private $ROOT_MOUNTPOINT"
+ts_finalize_subtest
+
+
+## mount the device 
+ts_init_subtest "rw-mount"
+$TS_CMD_MOUNT -orw $DEVICE $A_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_is_mounted $DEVICE || ts_log "Cannot find $DEVICE in /proc/mounts"
+ts_finalize_subtest
+
+
+## move device and set it read-only for VFS (FS is still rw)
+ts_init_subtest "ro-move"
+$TS_CMD_MOUNT --move -o ro $A_MOUNTPOINT $B_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+findmnt -nr -o VFS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'ro' \
+	|| ts_log "Cannot find ro VFS"
+findmnt -nr -o FS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'rw' \
+	|| ts_log "Cannot find rw FS"
+ts_finalize_subtest
+
+
+## remount to set FS to read-only (VFS is still ro)
+ts_init_subtest "ro-remount"
+$TS_CMD_MOUNT -oremount,ro,noexec $B_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+findmnt -nr -o VFS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'ro' \
+	|| ts_log "Cannot find ro VFS"
+findmnt -nr -o FS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'ro' \
+	|| ts_log "Cannot find ro FS"
+ts_finalize_subtest
+
+
+## remount to set FS and VFS to read-write
+ts_init_subtest "rw-remount"
+$TS_CMD_MOUNT -oremount,rw $B_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+findmnt -nr -o VFS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'rw' \
+	|| ts_log "Cannot find rw VFS"
+findmnt -nr -o FS-OPTIONS --mountpoint $B_MOUNTPOINT | grep -q 'rw' \
+	|| ts_log "Cannot find rw FS"
+ts_finalize_subtest
+
+
+## bind as read-only (VFS), set shared propagation,
+## and remove noexec (but keep FS rw)
+ts_init_subtest "ro-shared-bind"
+$TS_CMD_MOUNT --make-shared --bind -oro,exec $B_MOUNTPOINT $A_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+findmnt -nr -o VFS-OPTIONS --mountpoint $A_MOUNTPOINT | grep -q 'ro' \
+	|| ts_log "Cannot find ro VFS"
+findmnt -nr -o FS-OPTIONS --mountpoint $A_MOUNTPOINT | grep -q 'rw' \
+	|| ts_log "Cannot find rw FS"
+findmnt -nr -o PROPAGATION --mountpoint $A_MOUNTPOINT | grep -q 'shared' \
+	|| ts_log "Cannot find shared flag"
+findmnt -nr -o  VFS-OPTIONS --mountpoint $A_MOUNTPOINT | grep -q 'noexec' \
+	&& ts_log "Found noexec flag"
+ts_finalize_subtest
+
+
+## cleanup
+$TS_CMD_UMOUNT $A_MOUNTPOINT &> /dev/null
+$TS_CMD_UMOUNT $B_MOUNTPOINT &> /dev/null
+$TS_CMD_UMOUNT $ROOT_MOUNTPOINT &> /dev/null
+
+ts_finalize

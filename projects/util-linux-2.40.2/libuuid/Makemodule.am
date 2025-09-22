@@ -1,0 +1,10 @@
+if BUILD_LIBUUID
+
+include libuuid/man/Makemodule.am
+include libuuid/src/Makemodule.am
+
+pkgconfig_DATA += libuuid/uuid.pc
+PATHFILES      += libuuid/uuid.pc
+EXTRA_DIST     += libuuid/COPYING
+
+endif # BUILD_LIBUUID

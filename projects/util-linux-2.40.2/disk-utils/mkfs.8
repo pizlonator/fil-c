@@ -1,0 +1,103 @@
+'\" t
+.\"     Title: mkfs
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "MKFS" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+mkfs \- build a Linux filesystem
+.SH "SYNOPSIS"
+.sp
+\fBmkfs\fP [options] [\fB\-t\fP \fItype\fP] [\fIfs\-options\fP] \fIdevice\fP [\fIsize\fP]
+.SH "DESCRIPTION"
+.sp
+\fBThis mkfs frontend is deprecated in favour of filesystem specific mkfs.<type> utils.\fP
+.sp
+\fBmkfs\fP is used to build a Linux filesystem on a device, usually a hard disk partition. The \fIdevice\fP argument is either the device name (e.g., \fI/dev/hda1\fP, \fI/dev/sdb2\fP), or a regular file that shall contain the filesystem. The \fIsize\fP argument is the number of blocks to be used for the filesystem.
+.sp
+The exit status returned by \fBmkfs\fP is 0 on success and 1 on failure.
+.sp
+In actuality, \fBmkfs\fP is simply a front\-end for the various filesystem builders (\fBmkfs.\fP\fIfstype\fP) available under Linux. The filesystem\-specific builder is searched for via your \fBPATH\fP environment setting only. Please see the filesystem\-specific builder manual pages for further details.
+.SH "OPTIONS"
+.sp
+\fB\-t\fP, \fB\-\-type\fP \fItype\fP
+.RS 4
+Specify the \fItype\fP of filesystem to be built. If not specified, the default filesystem type (currently ext2) is used.
+.RE
+.sp
+\fIfs\-options\fP
+.RS 4
+Filesystem\-specific options to be passed to the real filesystem builder.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-verbose\fP
+.RS 4
+Produce verbose output, including all filesystem\-specific commands that are executed. Specifying this option more than once inhibits execution of any filesystem\-specific commands. This is really only useful for testing.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+(Option \fB\-V\fP will display version information only when it is the only parameter, otherwise it will work as \fB\-\-verbose\fP.)
+.RE
+.SH "BUGS"
+.sp
+All generic options must precede and not be combined with filesystem\-specific options. Some filesystem\-specific programs do not automatically detect the device size and require the \fIsize\fP parameter to be specified.
+.SH "AUTHORS"
+.sp
+.MTO "david\(atods.com" "David Engel" ","
+.MTO "waltje\(atuwalt.nl.mugnet.org" "Fred N. van Kempen" ","
+.MTO "sommel\(atsci.kun.nl" "Ron Sommeling" "."
+.sp
+The manual page was shamelessly adapted from Remy Card\(cqs version for the ext2 filesystem.
+.SH "SEE ALSO"
+.sp
+\fBfs\fP(5),
+\fBbadblocks\fP(8),
+\fBfsck\fP(8),
+\fBmkdosfs\fP(8),
+\fBmke2fs\fP(8),
+\fBmkfs.bfs\fP(8),
+\fBmkfs.ext2\fP(8),
+\fBmkfs.ext3\fP(8),
+\fBmkfs.ext4\fP(8),
+\fBmkfs.minix\fP(8),
+\fBmkfs.msdos\fP(8),
+\fBmkfs.vfat\fP(8),
+\fBmkfs.xfs\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBmkfs\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

@@ -1,0 +1,206 @@
+#!/bin/bash
+
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="GPT"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_SFDISK"
+ts_check_test_command "$TS_CMD_FDISK"
+ts_check_test_command "$TS_CMD_WIPEFS"
+
+ts_skip_nonroot
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=50 sector_size=512 physblk_exp=3
+
+
+ts_init_subtest "all-defaults"
+$TS_CMD_SFDISK --unit S ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+label: gpt
+label-id: b181c399-4711-4c52-8b65-9e764541218d
+
+,5M
+, 5M, L
+, 5M,S
+, 5M, 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
+, ,
+EOF
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "uuid"
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 1 91dc657b-d7b4-4653-a367-663194ffd432 &> /dev/null
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 2 baa08adf-327e-4177-8953-98da1a5176c4 &> /dev/null
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 3 cead8a87-ff1a-45cb-83e5-99b08d0ebc87 &> /dev/null
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 4 d4fcdc60-765d-4bc3-bd84-0d0b9842c6db &> /dev/null
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 5 60155bd7-bfd8-4e8c-b800-221900779373 &> /dev/null
+
+$TS_CMD_SFDISK --part-uuid ${TS_DEVICE} 1 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "label"
+$TS_CMD_SFDISK --part-label ${TS_DEVICE} 1 "EFI system" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-label ${TS_DEVICE} 1 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "type"
+$TS_CMD_SFDISK --part-type ${TS_DEVICE} 1 "C12A7328-F81F-11D2-BA4B-00A0C93EC93B" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-type ${TS_DEVICE} 1 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "RequiredPartition,NoBlockIOProtocol,48,51" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo -ne 'x\nD\n' | $TS_CMD_FDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-space"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "RequiredPartition NoBlockIOProtocol 48 51" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo -ne 'x\nD\n' | $TS_CMD_FDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-guid"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "GUID:48 GUID:51,52,63" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo -ne 'x\nD\n' | $TS_CMD_FDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-with-typo"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "RequiredPartiton,NoBlockIOProtocol,48,51" >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo -ne 'x\nD\n' | $TS_CMD_FDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-unsupported"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "NoBlockIOProtocol FooBar 48 51" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-broken-nosep"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "NoBlockIOProtocolRequiredPartiton" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "attrs-broken-guid"
+$TS_CMD_SFDISK --part-attrs ${TS_DEVICE} 2 "GUID:NoBlockIOProtocol GUID:GUID:63 RequiredPartiton" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "read-dump"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+unit: sectors
+label: gpt
+label-id: 3b8559db-33af-43e9-befc-c331d829b539
+
+${TS_DEVICE}1 : start=2048,  size=6144, type=44479540-F297-41B2-9AF7-D131D5F0458A, uuid=4dd6948a-44f8-4e6c-8bdc-064f740704f8
+${TS_DEVICE}2 : start=8192,  size=6144, uuid=44b51def-5f04-465a-91aa-2889a62d8e49
+${TS_DEVICE}3 : start=14336, size=6144, uuid=643e1d0d-bc02-4ced-b83b-86121062858f
+${TS_DEVICE}4 : start=20480, size=81887,uuid=d2a29b0a-fdee-40c3-9bae-b9fa782c986c, name="GPT is the best"
+EOF
+udevadm settle
+$TS_CMD_SFDISK --list -o START,END,SIZE,UUID,TYPE,NAME ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "write-dump"
+$TS_CMD_SFDISK --unit S --dump ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "write-json"
+$TS_CMD_SFDISK --json ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "list-pmbr"
+$TS_CMD_SFDISK --list --label-nested dos ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+ts_finalize_subtest
+
+
+ts_init_subtest "resize"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} > /dev/null 2>&1 <<EOF
+label: gpt
+,10M,S,*
+EOF
+udevadm settle
+echo ',+' | $TS_CMD_SFDISK --no-reread -N1 ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_init_subtest "reorder"
+$TS_CMD_WIPEFS -a ${TS_DEVICE} &> /dev/null
+udevadm settle
+$TS_CMD_SFDISK ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG <<EOF
+unit: sectors
+label: gpt
+label-id: 3b8559db-33af-43e9-befc-c331d829b539
+
+${TS_DEVICE}1 : start=8192,  size=6144
+${TS_DEVICE}2 : start=2048,  size=6144
+${TS_DEVICE}3 : start=20480, size=81887
+${TS_DEVICE}4 : start=14336, size=6144
+EOF
+udevadm settle
+# why --reorder does not re-read?
+$TS_CMD_SFDISK --reorder ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+$TS_CMD_SFDISK --list ${TS_DEVICE} >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_fdisk_clean $TS_DEVICE
+udevadm settle
+ts_finalize_subtest
+
+
+ts_finalize

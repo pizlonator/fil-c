@@ -1,0 +1,139 @@
+//po4a: entry man manual
+////
+Man page for the lslocks command.
+Copyright 2012 Davidlohr Bueso <dave@gnu.org>
+May be distributed under the GNU General Public License
+////
+////
+Copyright 1994 Salvatore Valente (svalente@mit.edu)
+Copyright 1992 Rickard E. Faith (faith@cs.unc.edu)
+May be distributed under the GNU General Public License
+////
+= lslocks(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lslocks
+:plus: +
+
+== NAME
+
+lslocks - list local system locks
+
+== SYNOPSIS
+
+*lslocks* [options]
+
+== DESCRIPTION
+
+*lslocks* lists information about all the currently held file locks in a Linux system.
+
+== OPTIONS
+
+*-b*, *--bytes*::
+include::man-common/in-bytes.adoc[]
+
+*-H*, *--list-columns*::
+List the available columns, use with *--json* or *--raw* to get output in machine-readable format.
+
+*-i*, *--noinaccessible*::
+Ignore lock files which are inaccessible for the current user.
+
+*-J*, *--json*::
+Use JSON output format.
+
+*-n*, *--noheadings*::
+Do not print a header line.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. Use *--help* to get a list of all supported columns.
++
+The default list of columns may be extended if _list_ is specified in the format _{plus}list_ (e.g., *lslocks -o {plus}BLOCKER*).
+//TRANSLATORS: Keep {plus} untranslated.
+
+*--output-all*::
+Output all available columns.
+
+*-p*, *--pid* _pid_::
+Display only the locks held by the process with this _pid_.
+
+*-r*, *--raw*::
+Use the raw output format.
+
+*-u*, *--notruncate*::
+Do not truncate text in columns.
+
+include::man-common/help-version.adoc[]
+
+== OUTPUT
+
+COMMAND::
+The command name of the process holding the lock.
+
+PID::
+The process ID of the process.
+
+TYPE::
+The type of lock; can be LEASE (created with *fcntl*(2)), FLOCK (created with *flock*(2)), POSIX (created with *fcntl*(2) and *lockf*(3)) or OFDLCK (created with *fcntl*(2)).
+
+SIZE::
+Size of the locked file.
+
+INODE::
+The inode number.
+
+MAJ:MIN::
+The major:minor device number.
+
+MODE::
+The lock's access permissions (read, write). If the process is blocked and waiting for the lock, then the mode is postfixed with an '*' (asterisk).
+
+M::
+Whether the lock is mandatory; 0 means no (meaning the lock is only advisory), 1 means yes. (See *fcntl*(2).)
+
+START::
+Relative byte offset of the lock.
+
+END::
+Ending offset of the lock.
+
+PATH::
+Full path of the lock. If none is found, or there are no permissions to read the path, it will fall back to the device's mountpoint and "..." is appended to the path. The path might be truncated; use *--notruncate* to get the full path.
+
+BLOCKER::
+The PID of the process which blocks the lock.
+
+HOLDERS::
+The holder(s) of the lock.  The format of the holder is _PID_,_COMMAND_,_FD_.
+If a lock is an open file description-oriented lock, there can be more than one holder for the lock.
+See the NOTES below.
+
+== NOTES
+
+The *lslocks* command is meant to replace the *lslk*(8) command, originally written by mailto:abe@purdue.edu[Victor A. Abell] and unmaintained since 2001.
+
+"The process holding the lock" for leases, FLOCK locks, and
+OFD locks is a fake-concept.  They are associated with the open file
+description on which they are acquired.  With *fork*(2) and/or
+*cmsg*(3), multiple processes can share an open file description. So
+the holder process of a lease (or a lock) is not uniquely determined.
+*lslocks* shows the one of the holder processes in COMMAND and PID columns.
+
+== AUTHORS
+
+mailto:dave@gnu.org[Davidlohr Bueso]
+
+== SEE ALSO
+
+*flock*(1),
+*fcntl*(2),
+*lockf*(3)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

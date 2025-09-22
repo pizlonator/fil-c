@@ -1,0 +1,107 @@
+//po4a: entry man manual
+////
+Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+May be distributed under the GNU General Public License
+////
+= ipcs(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: ipcs
+
+== NAME
+
+ipcs - show information on IPC facilities
+
+== SYNOPSIS
+
+*ipcs* [options]
+
+== DESCRIPTION
+
+*ipcs* shows information on System V inter-process communication facilities. By default it shows information about all three resources: shared memory segments, message queues, and semaphore arrays.
+
+== OPTIONS
+
+*-i*, *--id* _id_::
+Show full details on just the one resource element identified by _id_. This option needs to be combined with one of the three resource options: *-m*, *-q* or *-s*.
+
+include::man-common/help-version.adoc[]
+
+=== Resource options
+
+*-m*, *--shmems*::
+Write information about active shared memory segments.
+
+*-q*, *--queues*::
+Write information about active message queues.
+
+*-s*, *--semaphores*::
+Write information about active semaphore sets.
+
+*-a*, *--all*::
+Write information about all three resources (default).
+
+=== Output formats
+
+Of these options only one takes effect: the last one specified.
+
+*-c*, *--creator*::
+Show creator and owner.
+
+*-l*, *--limits*::
+Show resource limits.
+
+*-p*, *--pid*::
+Show PIDs of creator and last operator.
+
+*-t*, *--time*::
+Write time information. The time of the last control operation that changed the access permissions for all facilities, the time of the last *msgsnd*(2) and *msgrcv*(2) operations on message queues, the time of the last *shmat*(2) and *shmdt*(2) operations on shared memory, and the time of the last *semop*(2) operation on semaphores.
+
+*-u*, *--summary*::
+Show status summary.
+
+=== Representation
+
+These affect only the *-l* (*--limits*) option.
+
+*-b*, *--bytes*::
+include::man-common/in-bytes.adoc[]
+
+
+*--human*::
+Print sizes in human-readable format.
+
+== CONFORMING TO
+
+The Linux *ipcs* utility is not fully compatible to the POSIX *ipcs* utility. The Linux version does not support the POSIX *-a*, *-b* and *-o* options, but does support the *-l* and *-u* options not defined by POSIX. A portable application shall not use the *-a*, *-b*, *-o*, *-l*, and *-u* options.
+
+== NOTES
+
+The current implementation of *ipcs* obtains information about available IPC resources by parsing the files in _/proc/sysvipc_. Before util-linux version v2.23, an alternate mechanism was used: the *IPC_STAT* command of *msgctl*(2), *semctl*(2), and *shmctl*(2). This mechanism is also used in later util-linux versions in the case where _/proc_ is unavailable. A limitation of the *IPC_STAT* mechanism is that it can only be used to retrieve information about IPC resources for which the user has read permission.
+
+== AUTHORS
+
+mailto:balasub@cis.ohio-state.edu[Krishna Balasubramanian]
+
+== SEE ALSO
+
+*ipcmk*(1),
+*ipcrm*(1),
+*msgrcv*(2),
+*msgsnd*(2),
+*semget*(2),
+*semop*(2),
+*shmat*(2),
+*shmdt*(2),
+*shmget*(2),
+*sysvipc*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

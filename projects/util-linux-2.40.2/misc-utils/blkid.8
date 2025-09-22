@@ -1,0 +1,270 @@
+'\" t
+.\"     Title: blkid
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "BLKID" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+blkid \- locate/print block device attributes
+.SH "SYNOPSIS"
+.sp
+\fBblkid\fP \fB\-\-label\fP \fIlabel\fP | \fB\-\-uuid\fP \fIuuid\fP
+.sp
+\fBblkid\fP [\fB\-\-no\-encoding\fP \fB\-\-garbage\-collect\fP \fB\-\-list\-one\fP \fB\-\-cache\-file\fP \fIfile\fP] [\fB\-\-output\fP \fIformat\fP] [\fB\-\-match\-tag\fP \fItag\fP] [\fB\-\-match\-token\fP \fINAME=value\fP] [\fIdevice\fP...]
+.sp
+\fBblkid\fP \fB\-\-probe\fP [\fB\-\-offset\fP \fIoffset\fP] [\fB\-\-output\fP \fIformat\fP] [\fB\-\-size\fP \fIsize\fP] [\fB\-\-match\-tag\fP \fItag\fP] [\fB\-\-match\-types\fP \fIlist\fP] [\fB\-\-usages\fP \fIlist\fP] [\fB\-\-no\-part\-details\fP] \fIdevice\fP...
+.sp
+\fBblkid\fP \fB\-\-info\fP [\fB\-\-output format\fP] [\fB\-\-match\-tag\fP \fItag\fP] \fIdevice\fP...
+.SH "DESCRIPTION"
+.sp
+The \fBblkid\fP program is the command\-line interface to working with the \fBlibblkid\fP(3) library. It can determine the type of content (e.g., filesystem or swap) that a block device holds, and also the attributes (tokens, NAME=value pairs) from the content metadata (e.g., LABEL or UUID fields).
+.sp
+\fBIt is recommended to use\fP \fBlsblk\fP(8) \fBcommand to get information about block devices, or lsblk \-\-fs to get an overview of filesystems, or\fP \fBfindmnt\fP(8) \fBto search in already mounted filesystems.\fP
+.RS 3
+.ll -.6i
+.sp
+\fBlsblk\fP(8) provides more information, better control on output formatting, easy to use in scripts and it does not require root permissions to get actual information. \fBblkid\fP reads information directly from devices and for non\-root users it returns cached unverified information. \fBblkid\fP is mostly designed for system services and to test \fBlibblkid\fP(3) functionality.
+.br
+.RE
+.ll
+.sp
+When \fIdevice\fP is specified, tokens from only this device are displayed. It is possible to specify multiple \fIdevice\fP arguments on the command line. If none is given, all partitions or unpartitioned devices which appear in \fI/proc/partitions\fP are shown, if they are recognized.
+.sp
+\fBblkid\fP has two main forms of operation: either searching for a device with a specific NAME=value pair, or displaying NAME=value pairs for one or more specified devices.
+.sp
+For security reasons \fBblkid\fP silently ignores all devices where the probing result is ambivalent (multiple colliding filesystems are detected). The low\-level probing mode (\fB\-p\fP) provides more information and extra exit status in this case. It\(cqs recommended to use \fBwipefs\fP(8) to get a detailed overview and to erase obsolete stuff (magic strings) from the device.
+.SH "OPTIONS"
+.sp
+The \fIsize\fP and \fIoffset\fP arguments may be followed by the multiplicative suffixes like KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB"), or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.sp
+\fB\-c\fP, \fB\-\-cache\-file\fP \fIcachefile\fP
+.RS 4
+Read from \fIcachefile\fP instead of reading from the default cache file (see the \fBCONFIGURATION FILE\fP section for more details). If you want to start with a clean cache (i.e., don\(cqt report devices previously scanned but not necessarily available at this time), specify \fI/dev/null\fP.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-no\-encoding\fP
+.RS 4
+Don\(cqt encode non\-printing characters. The non\-printing characters are encoded by ^ and M\- notation by default. Note that the \fB\-\-output udev\fP output format uses a different encoding which cannot be disabled.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-no\-part\-details\fP
+.RS 4
+Don\(cqt print information (PART_ENTRY_* tags) from partition table in low\-level probing mode.
+.RE
+.sp
+\fB\-g\fP, \fB\-\-garbage\-collect\fP
+.RS 4
+Perform a garbage collection pass on the blkid cache to remove devices which no longer exist.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-hint\fP \fIsetting\fP
+.RS 4
+Set probing hint. The hints are an optional way to force probing functions to
+check, for example, another location. The currently supported is
+"session_offset=\fInumber\fP" to set session offset on multi\-session UDF.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-info\fP
+.RS 4
+Display information about I/O Limits (aka I/O topology). The \*(Aqexport\*(Aq output format is automatically enabled. This option can be used together with the \fB\-\-probe\fP option.
+.RE
+.sp
+\fB\-k\fP, \fB\-\-list\-filesystems\fP
+.RS 4
+List all known filesystems and RAIDs and exit.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\-one\fP
+.RS 4
+Look up only one device that matches the search parameter specified with the \fB\-\-match\-token\fP option. If there are multiple devices that match the specified search parameter, then the device with the highest priority is returned, and/or the first device found at a given priority (but see below note about udev). Device types in order of decreasing priority are: Device Mapper, EVMS, LVM, MD, and finally regular block devices. If this option is not specified, \fBblkid\fP will print all of the devices that match the search parameter.
+.sp
+This option forces \fBblkid\fP to use udev when used for LABEL or UUID tokens in \fB\-\-match\-token\fP. The goal is to provide output consistent with other utils (like \fBmount\fP(8), etc.) on systems where the same tag is used for multiple devices.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-label\fP \fIlabel\fP
+.RS 4
+Look up the device that uses this filesystem \fIlabel\fP; this is equal to \fB\-\-list\-one \-\-output device \-\-match\-token LABEL=\fP\fIlabel\fP. This lookup method is able to reliably use /dev/disk/by\-label udev symlinks (dependent on a setting in \fI/etc/blkid.conf\fP). Avoid using the symlinks directly; it is not reliable to use the symlinks without verification. The \fB\-\-label\fP option works on systems with and without udev.
+.sp
+Unfortunately, the original \fBblkid\fP(8) from e2fsprogs uses the \fB\-L\fP option as a synonym for \fB\-o list\fP. For better portability, use \fB\-l \-o device \-t LABEL=\fP\fIlabel\fP and \fB\-o list\fP in your scripts rather than the \fB\-L\fP option.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-match\-types\fP \fIlist\fP
+.RS 4
+Restrict the probing functions to the specified (comma\-separated) \fIlist\fP of superblock types (names). The list items may be prefixed with "no" to specify the types which should be ignored. For example:
+.sp
+\fBblkid \-\-probe \-\-match\-types vfat,ext3,ext4 /dev/sda1\fP
+.sp
+probes for vfat, ext3 and ext4 filesystems, and
+.sp
+\fBblkid \-\-probe \-\-match\-types nominix /dev/sda1\fP
+.sp
+probes for all supported formats except minix filesystems. This option is only useful together with \fB\-\-probe\fP.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIformat\fP
+.RS 4
+Use the specified output format. Note that the order of variables and devices is not fixed. See also option \fB\-s\fP. The \fIformat\fP parameter may be:
+.sp
+\fBfull\fP
+.RS 4
+print all tags (the default)
+.RE
+.sp
+\fBvalue\fP
+.RS 4
+print the value of the tags
+.RE
+.sp
+\fBlist\fP
+.RS 4
+print the devices in a user\-friendly format; this output format is unsupported for low\-level probing (\fB\-\-probe\fP or \fB\-\-info\fP).
+.sp
+This output format is \fBDEPRECATED\fP in favour of the \fBlsblk\fP(8) command.
+.RE
+.sp
+\fBdevice\fP
+.RS 4
+print the device name only; this output format is always enabled for the \fB\-\-label\fP and \fB\-\-uuid\fP options
+.RE
+.sp
+\fBudev\fP
+.RS 4
+print key="value" pairs for easy import into the udev environment; the keys are prefixed by ID_FS_ or ID_PART_ prefixes. The value may be modified to be safe for udev environment; allowed is plain ASCII, hex\-escaping and valid UTF\-8, everything else (including whitespaces) is replaced with \*(Aq_\*(Aq. The keys with \fI_ENC\fP postfix use hex\-escaping for unsafe chars.
+.sp
+The udev output returns the ID_FS_AMBIVALENT tag if more superblocks are detected, and ID_PART_ENTRY_* tags are always returned for all partitions including empty partitions.
+.sp
+This output format is \fBDEPRECATED\fP.
+.RE
+.sp
+\fBexport\fP
+.RS 4
+print key=value pairs for easy import into the environment; this output format is automatically enabled when I/O Limits (\fB\-\-info\fP option) are requested.
+.sp
+The non\-printing characters are encoded by ^ and M\- notation and all potentially unsafe characters are escaped.
+.RE
+.RE
+.sp
+\fB\-O\fP, \fB\-\-offset\fP \fIoffset\fP
+.RS 4
+Probe at the given \fIoffset\fP (only useful with \fB\-\-probe\fP). This option can be used together with the \fB\-\-info\fP option.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-probe\fP
+.RS 4
+Switch to low\-level superblock probing mode (bypassing the cache).
+.sp
+Note that low\-level probing also returns information about partition table type (PTTYPE tag) and partitions (PART_ENTRY_* tags). The tag names produced by low\-level probing are based on names used internally by libblkid and it may be different than when executed without \fB\-\-probe\fP (for example PART_ENTRY_UUID= vs PARTUUID=). See also \fB\-\-no\-part\-details\fP.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-match\-tag\fP \fItag\fP
+.RS 4
+For each (specified) device, show only the tags that match \fItag\fP. It is possible to specify multiple \fB\-\-match\-tag\fP options. If no tag is specified, then all tokens are shown for all (specified) devices. In order to just refresh the cache without showing any tokens, use \fB\-\-match\-tag none\fP with no other options.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-size\fP \fIsize\fP
+.RS 4
+Override the size of device/file (only useful with \fB\-\-probe\fP).
+.RE
+.sp
+\fB\-t\fP, \fB\-\-match\-token\fP \fINAME=value\fP
+.RS 4
+Search for block devices with tokens named \fINAME\fP that have the value \fIvalue\fP, and display any devices which are found. Common values for \fINAME\fP include \fBTYPE\fP, \fBLABEL\fP, and \fBUUID\fP. If there are no devices specified on the command line, all block devices will be searched; otherwise only the specified devices are searched.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-usages\fP \fIlist\fP
+.RS 4
+Restrict the probing functions to the specified (comma\-separated) \fIlist\fP of "usage" types. Supported usage types are: filesystem, raid, crypto and other. The list items may be prefixed with "no" to specify the usage types which should be ignored. For example:
+.sp
+\fBblkid \-\-probe \-\-usages filesystem,other /dev/sda1\fP
+.sp
+probes for all filesystem and other (e.g., swap) formats, and
+.sp
+\fBblkid \-\-probe \-\-usages noraid /dev/sda1\fP
+.sp
+probes for all supported formats except RAIDs. This option is only useful together with \fB\-\-probe\fP.
+.RE
+.sp
+\fB\-U\fP, \fB\-\-uuid\fP \fIuuid\fP
+.RS 4
+Look up the device that uses this filesystem \fIuuid\fP. For more details see the \fB\-\-label\fP option.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+If the specified device or device addressed by specified token (option \fB\-\-match\-token\fP) was found and it\(cqs possible to gather any information about the device, an exit status 0 is returned. Note the option \fB\-\-match\-tag\fP filters output tags, but it does not affect exit status.
+.sp
+If the specified token was not found, or no (specified) devices could be identified, or it is impossible to gather any information about the device identifiers or device content an exit status of 2 is returned.
+.sp
+For usage or other errors, an exit status of 4 is returned.
+.sp
+If an ambivalent probing result was detected by low\-level probing mode (\fB\-p\fP), an exit status of 8 is returned.
+.SH "CONFIGURATION FILE"
+.sp
+The standard location of the \fI/etc/blkid.conf\fP config file can be overridden by the environment variable \fBBLKID_CONF\fP. The following options control the libblkid library:
+.sp
+\fISEND_UEVENT=<yes|not>\fP
+.RS 4
+Sends uevent when \fI/dev/disk/by\-{label,uuid,partuuid,partlabel}/\fP symlink does not match with LABEL, UUID, PARTUUID or PARTLABEL on the device. Default is "yes".
+.RE
+.sp
+\fICACHE_FILE=<path>\fP
+.RS 4
+Overrides the standard location of the cache file. This setting can be overridden by the environment variable \fBBLKID_FILE\fP. Default is \fI/run/blkid/blkid.tab\fP, or \fI/etc/blkid.tab\fP on systems without a \fI/run\fP directory.
+.RE
+.sp
+\fIEVALUATE=<methods>\fP
+.RS 4
+Defines LABEL and UUID evaluation method(s). Currently, the libblkid library supports the "udev" and "scan" methods. More than one method may be specified in a comma\-separated list. Default is "udev,scan". The "udev" method uses udev \fI/dev/disk/by\-*\fP symlinks and the "scan" method scans all block devices from the \fI/proc/partitions\fP file.
+.RE
+.SH "ENVIRONMENT"
+.sp
+Setting \fILIBBLKID_DEBUG=all\fP enables debug output.
+.SH "AUTHORS"
+.sp
+\fBblkid\fP was written by Andreas Dilger for libblkid and improved by Theodore Ts\(cqo and Karel Zak.
+.SH "SEE ALSO"
+.sp
+\fBlibblkid\fP(3),
+\fBfindfs\fP(8),
+\fBlsblk\fP(8),
+\fBwipefs\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBblkid\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

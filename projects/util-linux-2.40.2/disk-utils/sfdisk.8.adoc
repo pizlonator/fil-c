@@ -1,0 +1,469 @@
+//po4a: entry man manual
+////
+sfdisk.8 -- man page for sfdisk
+Copyright (C) 2014 Karel Zak <kzak@redhat.com>
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+////
+= sfdisk(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: sfdisk
+:plus: +
+:asterisk: *
+
+== NAME
+
+sfdisk - display or manipulate a disk partition table
+
+== SYNOPSIS
+
+*sfdisk* [options] _device_ [*-N* _partition-number_]
+
+*sfdisk* [options] _command_
+
+== DESCRIPTION
+
+*sfdisk* is a script-oriented tool for partitioning any block device. It runs in interactive mode if executed on a terminal (stdin refers to a terminal).
+
+Since version 2.26 *sfdisk* supports MBR (DOS), GPT, SUN and SGI disk labels, but no longer provides any functionality for CHS (Cylinder-Head-Sector) addressing. CHS has never been important for Linux, and this addressing concept does not make any sense for new devices.
+
+*sfdisk* protects the first disk sector when create a new disk label. The option *--wipe always* disables this protection. Note that *fdisk*(8) and *cfdisk*(8) completely erase this area by default.
+
+*sfdisk* (since version 2.26) *aligns the start and end of partitions* to block-device I/O limits when relative sizes are specified, when the default values are used or when multiplicative suffixes (e.g., MiB) are used for sizes. It is possible that partition size will be optimized (reduced or enlarged) due to alignment if the start offset is specified exactly in sectors and partition size relative or by multiplicative suffixes.
+
+The recommended way is not to specify start offsets at all and specify partition size in MiB, GiB (or so). In this case *sfdisk* aligns all partitions to block-device I/O limits (or when I/O limits are too small then to megabyte boundary to keep disk layout portable). If this default behaviour is unwanted (usually for very small partitions) then specify offsets and sizes in sectors. In this case *sfdisk* entirely follows specified numbers without any optimization.
+
+*sfdisk* does not create the standard system partitions for SGI and SUN disk labels like *fdisk*(8) does. It is necessary to explicitly create all partitions including whole-disk system partitions.
+
+*sfdisk* uses *BLKRRPART* (reread partition table) ioctl to make sure that the device is not used by system or other tools (see also *--no-reread*). It's possible that this feature or another *sfdisk* activity races with *systemd-udevd*(8). The recommended way how to avoid possible collisions is to use *--lock* option. The exclusive lock will cause *systemd-udevd* to skip the event handling on the device.
+
+The *sfdisk* prompt is only a hint for users and a displayed partition number does not mean that the same partition table entry will be created (if *-N* not specified), especially for tables with gaps.
+
+== COMMANDS
+
+The commands are mutually exclusive.
+
+[*-N* _partition-number_] __device__::
+The default *sfdisk* command is to read the specification for the desired partitioning of _device_ from standard input, and then create a partition table according to the specification. See below for the description of the input format. If standard input is a terminal, then *sfdisk* starts an interactive session.
++
+If the option *-N* is specified, then the changes are applied to the partition addressed by _partition-number_. The unspecified fields of the partition are not modified.
++
+Note that it's possible to address an unused partition with *-N*. For example, an MBR always contains 4 partitions, but the number of used partitions may be smaller. In this case *sfdisk* follows the default values from the partition table and does not use built-in defaults for the unused partition given with *-N*. See also *--append*.
+
+*-A*, *--activate* __device__ [__partition-number__...]::
+Switch on the bootable flag for the specified partitions and switch off the bootable flag on all unspecified partitions. The special placeholder '-' may be used instead of the partition numbers to switch off the bootable flag on all partitions.
++
+The activation command is supported for MBR and PMBR only. If a GPT label is detected, then *sfdisk* prints warning and automatically enters PMBR.
++
+If no _partition-number_ is specified, then list the partitions with an enabled flag.
+
+*--backup-pt-sectors* _device_::
+Back up the current partition table sectors in binary format and exit. See the *BACKING UP THE PARTITION TABLE* section.
+
+*--delete* _device_ [__partition-number__...]::
+Delete all or the specified partitions.
+
+*-d*, *--dump* _device_::
+Dump the partitions of a device in a format that is usable as input to *sfdisk*. See the *BACKING UP THE PARTITION TABLE* section.
+
+*-g*, *--show-geometry* [__device__...]::
+List the geometry of all or the specified devices. For backward compatibility the deprecated option *--show-pt-geometry* have the same meaning as this one.
+
+*-J*, *--json* _device_::
+Dump the partitions of a device in JSON format. Note that *sfdisk* is not able to use JSON as input format.
+
+*-l*, *--list* [__device__...]::
+List the partitions of all or the specified devices. This command can be used together with *--verify*.
+
+*-F*, *--list-free* [__device__...]::
+List the free unpartitioned areas on all or the specified devices.
+
+*--part-attrs* _device partition-number_ [__attributes__]::
+Change the GPT partition attribute bits. If _attributes_ is not specified, then print the current partition settings. The _attributes_ argument is a comma- or space-delimited list of bits numbers or bit names. For example, the string "RequiredPartition,50,51" sets three bits. The currently supported attribute bits are:
++
+*Bit 0 (RequiredPartition)*;;
+If this bit is set, the partition is required for the platform to function. The creator of the partition indicates that deletion or modification of the contents can result in loss of platform features or failure for the platform to boot or operate. The system cannot function normally if this partition is removed, and it should be considered part of the hardware of the system.
+*Bit 1 (NoBlockIOProtocol)*;;
+EFI firmware should ignore the content of the partition and not try to read from it.
+*Bit 2 (LegacyBIOSBootable)*;;
+The partition may be bootable by legacy BIOS firmware.
+*Bits 3-47*;;
+Undefined and must be zero. Reserved for expansion by future versions of the UEFI specification.
+*Bits 48-63*;;
+Reserved for GUID specific use. The use of these bits will vary depending on the partition type. For example Microsoft uses bit 60 to indicate read-only, 61 for shadow copy of another partition, 62 for hidden partitions and 63 to disable automount.
+
+*--part-label* _device partition-number_ [__label__]::
+Change the GPT partition name (label). If _label_ is not specified, then print the current partition label.
+
+*--part-type* _device partition-number_ [__type__]::
+Change the partition type. If _type_ is not specified, then print the current partition type.
++
+The _type_ argument is hexadecimal for MBR, GUID for GPT, type alias (e.g. "linux") or type shortcut (e.g. 'L'). For backward compatibility the options *-c* and *--id* have the same meaning as this one.
+
+*--part-uuid* _device partition-number_ [__uuid__]::
+Change the GPT partition UUID. If _uuid_ is not specified, then print the current partition UUID.
+
+*--disk-id* _device_ [__id__]::
+Change the disk identifier. If _id_ is not specified, then print the current identifier. The identifier is UUID for GPT or unsigned integer for MBR.
+
+*-r*, *--reorder* _device_::
+Renumber the partitions, ordering them by their start offset.
+
+*-s*, *--show-size* [__device__...]::
+List the sizes of all or the specified devices in units of 1024 byte size. This command is DEPRECATED in favour of *blockdev*(8).
+
+*-T*, *--list-types*::
+Print all supported types for the current disk label or the label specified by *--label*.
+
+*-V*, *--verify* [__device__...]::
+Test whether the partition table and partitions seem correct.
+
+*--relocate* _oper_ _device_::
+Relocate partition table header. This command is currently supported for GPT header only. The argument _oper_ can be:
++
+*gpt-bak-std*;;
+Move GPT backup header to the standard location at the end of the device.
+*gpt-bak-mini*;;
+Move GPT backup header behind the last partition. Note that UEFI standard requires the backup header at the end of the device and partitioning tools can automatically relocate the header to follow the standard.
+
+== OPTIONS
+
+*-a*, *--append*::
+Don't create a new partition table, but only append the specified partitions.
++
+Note that unused partition maybe be re-used in this case although it is not the last partition in the partition table. See also *-N* to specify entry in the partition table.
+
+*-b*, *--backup*::
+Back up the current partition table sectors before starting the partitioning. The default backup file name is _~/sfdisk-<device>-<offset>.bak_; to use another name see option *-O*, *--backup-file*. See section *BACKING UP THE PARTITION TABLE* for more details.
+
+*--color*[**=**__when__]::
+Colorize the output. The optional argument _when_ can be *auto*, *never* or *always*. If the _when_ argument is omitted, it defaults to *auto*. The colors can be disabled; for the current built-in default see the *--help* output. See also the *COLORS* section.
+
+*-f*, *--force*::
+Disable all consistency checking.
+
+*--Linux*::
+Deprecated and ignored option. Partitioning that is compatible with Linux (and other modern operating systems) is the default.
+
+*--lock*[=_mode_]::
+Use exclusive BSD lock for device or file it operates. The optional argument _mode_ can be *yes*, *no* (or 1 and 0) or *nonblock*. If the _mode_ argument is omitted, it defaults to *yes*. This option overwrites environment variable *$LOCK_BLOCK_DEVICE*. The default is not to use any lock at all, but it's recommended to avoid collisions with *systemd-udevd*(8) or other tools.
+
+*-n*, *--no-act*::
+Do everything except writing to the device.
+
+*--no-reread*::
+Do not check through the re-read-partition-table ioctl whether the device is in use.
+
+*--no-tell-kernel*::
+Don't tell the kernel about partition changes. This option is recommended together with *--no-reread* to modify a partition on used disk. The modified partition should not be used (e.g., mounted).
+
+*-O*, *--backup-file* _path_::
+Override the default backup file name. Note that the device name and offset are always appended to the file name.
+
+*--move-data*[**=**__path__]::
+Move data after partition relocation, for example when moving the beginning of a partition to another place on the disk. The size of the partition has to remain the same, the new and old location may overlap. This option requires option *-N* in order to be processed on one specific partition only.
++
+The optional _path_ specifies log file name. The log file contains information about all read/write operations on the partition data. The word "@default" as a _path_ forces *sfdisk* to use _~/sfdisk-<devname>.move_ for the log. The log is optional since v2.35.
++
+Note that this operation is risky and not atomic. *Don't forget to backup your data!*
++
+See also *--move-use-fsync*.
++
+In the example below, the first command creates a 100MiB free area before the first partition and moves the data it contains (e.g., a filesystem), the next command creates a new partition from the free space (at offset 2048), and the last command reorders partitions to match disk order (the original sdc1 will become sdc2).
++
+____
+*echo '+100M,' | sfdisk --move-data /dev/sdc -N 1*
+
+*echo '2048,' | sfdisk /dev/sdc --append*
+
+*sfdisk /dev/sdc --reorder*
+____
+
+*--move-use-fsync*::
+Use the *fsync*(2) system call after each write when moving data to a new location by *--move-data*.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. Use *--help* to get a list of all supported columns.
++
+The default list of columns may be extended if _list_ is specified in the format _{plus}list_ (e.g., *-o +UUID*).
+//TRANSLATORS: Keep {plus} untranslated.
+
+*-q*, *--quiet*::
+Suppress extra info messages.
+
+*-u*, *--unit S*::
+Deprecated option. Only the sector unit is supported. This option is not supported when using the *--show-size* command.
+
+*-X*, *--label* _type_::
+Specify the disk label type (e.g., *dos*, *gpt*, ...). If this option is not given, then *sfdisk* defaults to the existing label, but if there is no label on the device yet, then the type defaults to *dos*. The default or the current label may be overwritten by the "label: <name>" script header line. The option *--label* does not force *sfdisk* to create empty disk label (see the *EMPTY DISK LABEL* section below).
+
+*-Y*, *--label-nested* _type_::
+Force editing of a nested disk label. The primary disk label has to exist already. This option allows editing for example a hybrid/protective MBR on devices with GPT.
+
+*-w*, *--wipe* _when_::
+Wipe filesystem, RAID and partition-table signatures from the device, in order to avoid possible collisions. The argument _when_ can be *auto*, *never* or *always*. When this option is not given, the default is *auto*, in which case signatures are wiped only when in interactive mode; except the old partition-table signatures which are always wiped before create a new partition-table if the argument _when_ is not *never*. The *auto* mode also does not wipe the first sector (boot sector), it is necessary to use the *always* mode to wipe this area. In all cases detected signatures are reported by warning messages before a new partition table is created. See also the *wipefs*(8) command.
+
+*-W*, *--wipe-partitions* _when_::
+Wipe filesystem, RAID and partition-table signatures from a newly created partition, in order to avoid possible collisions. The argument _when_ can be *auto*, *never* or *always*. When this option is not given, the default is *auto*, in which case signatures are wiped only when in interactive mode and after confirmation by user. In all cases detected signatures are reported by warning messages after a new partition is created. See also *wipefs*(8) command.
+
+*-v*, *--version*::
+Display version information and exit.
+
+*-h*, *--help*::
+Display help text and exit.
+
+== INPUT FORMATS
+
+*sfdisk* supports two input formats and generic header lines.
+
+=== Header lines
+
+The optional header lines specify generic information that apply to the partition table. The header-line format is:
+
+*<name>: <value>*
+
+The currently recognized headers are:
+
+*unit*::
+Specify the partitioning unit. The only supported unit is *sectors*.
+*label*::
+Specify the partition table type. For example *dos* or *gpt*.
+*label-id*::
+Specify the partition table identifier. It should be a hexadecimal number (with a 0x prefix) for MBR and a UUID for GPT.
+*first-lba*::
+Specify the first usable sector for GPT partitions. This header is ignored if the script and device sector size differ. In this case *sfdisk* uses label specific default.
+*last-lba*::
+Specify the last usable sector for GPT partitions. This header is ignored if the script and device sector size differ. In this case *sfdisk* uses label specific default.
+*table-length*::
+Specify the maximal number of GPT partitions.
+*grain*::
+Specify minimal size in bytes used to calculate partitions alignment. The default is 1MiB and it's strongly recommended to use the default. Do not modify this variable if you're not sure.
+*sector-size*::
+Specify sector size. *sfdisk* always uses device sector size. Since version 2.39 *sfdisk* recalculates sizes from dump if the script and device sector size differ.
+
+Note that it is only possible to use header lines before the first partition is specified in the input.
+
+=== Unnamed-fields format
+
+____
+_start size type bootable_
+____
+
+where each line fills one partition descriptor.
+
+Fields are separated by whitespace, comma (recommended) or semicolon possibly followed by whitespace; initial and trailing whitespace is ignored. Numbers can be octal, decimal or hexadecimal; decimal is the default. When a field is absent, empty or specified as '-' a default value is used. But when the *-N* option (change a single partition) is given, the default for each field is its previous value.
+
+The default value of _start_ is the first non-assigned sector aligned according to device I/O limits. The default start offset for the first partition is 1 MiB. If the offset is followed by the multiplicative suffixes (KiB, MiB, GiB, TiB, PiB, EiB, ZiB and YiB), then the number is interpreted as offset in bytes. Since v2.38 when the *-N* option (change a single partition) is given, a '{plus}' can be used to enlarge partition by move start of the partition if there is a free space before the partition.
+
+//TRANSLATORS: Keep {plus} untranslated.
+The default value of _size_ indicates "as much as possible"; i.e., until the next partition or end-of-device. A numerical argument is by default interpreted as a number of sectors, however if the size is followed by one of the multiplicative suffixes (KiB, MiB, GiB, TiB, PiB, EiB, ZiB and YiB) then the number is interpreted as the size of the partition in bytes and it is then aligned according to the device I/O limits. A '{plus}' can be used instead of a number to enlarge the partition as much as possible. Note '{plus}' is equivalent to the default behaviour for a new partition; existing partitions will be resized as required.
+
+The partition _type_ is given in hex for MBR (DOS) where 0x prefix is optional; a GUID string for GPT; a shortcut or an alias. It's recommended to use two letters for MBR hex codes to avoid collision between deprecated shortcut 'E' and '0E' MBR hex code. For backward compatibility *sfdisk* tries to interpret _type_ as a shortcut as a first possibility in partitioning scripts although on other places (e.g. *--part-type* command) it tries shortcuts as the last possibility.
+
+Since v2.36 libfdisk supports partition type aliases as extension to shortcuts. The alias is a simple human readable word (e.g. "linux").
+
+Since v2.37 libfdisk supports partition type names on input, ignoring the case of the characters and all non-alphanumeric and non-digit characters in the name (e.g. "Linux /usr x86" is the same as "linux usr-x86").
+
+Supported shortcuts and aliases:
+
+*L - alias 'linux'*::
+Linux; means 83 for MBR and 0FC63DAF-8483-4772-8E79-3D69D8477DE4 for GPT.
+
+*S - alias 'swap'*::
+swap area; means 82 for MBR and 0657FD6D-A4AB-43C4-84E5-0933C84B4F4F for GPT
+
+*Ex - alias 'extended'*::
+MBR extended partition; means 05 for MBR. The original shortcut 'E' is deprecated due to collision with 0x0E MBR partition type.
+
+*H - alias 'home'*::
+home partition; means 933AC7E1-2EB4-4F13-B844-0E14E2AEF915 for GPT
+
+*U - alias 'uefi'*::
+EFI System partition, means EF for MBR and C12A7328-F81F-11D2-BA4B-00A0C93EC93B for GPT
+
+*R - alias 'raid'*::
+Linux RAID; means FD for MBR and A19D880F-05FC-4D3B-A006-743F0F84911E for GPT
+
+*V - alias 'lvm'*::
+LVM; means 8E for MBR and E6D6D379-F507-44C2-A23C-238F2A3DF928 for GPT
+
+The default _type_ value is _linux_.
+
+The shortcut 'X' for Linux extended partition (85) is deprecated in favour of 'Ex'.
+
+// TRANSLATORS: Keep {asterisk} untranslated.
+_bootable_ is specified as [*{asterisk}*|*-*], with as default not-bootable. The value of this field is irrelevant for Linux - when Linux runs it has been booted already - but it might play a role for certain boot loaders and for other operating systems.
+
+=== Named-fields format
+
+This format is more readable, robust, extensible and allows specifying additional information (e.g., a UUID). It is recommended to use this format to keep your scripts more readable.
+
+____
+[_device_ *:*] _name_[**=**__value__], ...
+____
+
+The _device_ field is optional. *sfdisk* extracts the partition number from the device name. It allows specifying the partitions in random order. This functionality is mostly used by *--dump*. Don't use it if you are not sure.
+
+The _value_ can be between quotation marks (e.g., name="This is partition name"). The fields *start=* and *size=* support '{plus}' and '-' in the same way as *Unnamed-fields format*.
+
+The currently supported fields are:
+
+**start=**__number__::
+The first non-assigned sector aligned according to device I/O limits. The default start offset for the first partition is 1 MiB. If the offset is followed by the multiplicative suffixes (KiB, MiB, GiB, TiB, PiB, EiB, ZiB and YiB), then the number is interpreted as offset in bytes.
+
+**size=**__number__::
+Specify the partition size in sectors. The number may be followed by the multiplicative suffixes (KiB, MiB, GiB, TiB, PiB, EiB, ZiB and YiB), then it's interpreted as size in bytes and the size is aligned according to device I/O limits.
+
+*bootable*::
+Mark the partition as bootable.
+
+**attrs=**__string__::
+Partition attributes, usually GPT partition attribute bits. See *--part-attrs* for more details about the GPT-bits string format.
+
+**uuid=**__string__::
+GPT partition UUID.
+
+**name=**__string__::
+GPT partition name.
+
+**type=**__code__::
+A hexadecimal number (without 0x) for an MBR partition, a GUID for a GPT partition, a shortcut as for unnamed-fields format or a type name (e.g. type="Linux /usr (x86)"). See above the section about the unnamed-fields format for more details. For backward compatibility the *Id=* field has the same meaning.
+
+== EMPTY DISK LABEL
+
+*sfdisk* does not create partition table without partitions by default. The lines with partitions are expected in the script by default. The empty partition table has to be explicitly requested by "label: <name>" script header line without any partitions lines. For example:
+
+____
+*echo 'label: gpt' | sfdisk /dev/sdb*
+____
+
+creates empty GPT partition table. Note that the *--append* disables this feature.
+
+== BACKING UP THE PARTITION TABLE
+
+It is recommended to save the layout of your devices. *sfdisk* supports two ways.
+
+=== Dump in sfdisk compatible format
+
+Use the *--dump* command to save a description of the device layout to a text file.
+The dump format is suitable for later *sfdisk* input. For example:
+____
+*sfdisk --dump /dev/sda > sda.dump*
+____
+
+This can later be restored by:
+____
+*sfdisk /dev/sda < sda.dump*
+____
+
+Note that *sfdisk* completely restores partition types and partition UUIDs. This could potentially become problematic if you duplicate the same layout to different disks, as it may result in duplicate UUIDs within your system.
+
+=== Full binary backup
+
+If you want to do a full binary backup of all sectors where the partition table is stored, then use the *--backup-pt-sectors* command. It writes the sectors to _~/sfdisk-<device>-<offset>.bak_ files. The default name of the backup file can be changed with the *--backup-file* option. The backup files contain only raw data from the _device_. For example:
+
+____
+*sfdisk --backup-pt-sectors /dev/sda*
+____
+
+The GPT header can later be restored by:
+
+____
+*dd if=~/sfdisk-sda-0x00000200.bak of=/dev/sda seek=$\((0x00000200)) bs=1 conv=notrunc*
+____
+
+
+It's also possible to use the *--backup* option to create the same backup immediately after startup for other *sfdisk* commands. For example, backup partition table before deleting all partitions from partition table:
+____
+*sfdisk --backup --delete /dev/sda*
+____
+
+
+The same concept of backup files is used by *wipefs*(8).
+
+Note that *sfdisk* since version 2.26 no longer provides the *-I* option to restore sectors. *dd*(1) provides all necessary functionality.
+
+include::man-common/colors.adoc[]
+
+The logical color names supported by *sfdisk* are:
+
+*header*::
+The header of the output tables.
+*warn*::
+The warning messages.
+*welcome*::
+The welcome message.
+
+== ENVIRONMENT
+
+*SFDISK_DEBUG*=all::
+enables *sfdisk* debug output.
+*LIBFDISK_DEBUG*=all::
+enables libfdisk debug output.
+*LIBBLKID_DEBUG*=all::
+enables libblkid debug output.
+*LIBSMARTCOLS_DEBUG*=all::
+enables libsmartcols debug output.
+*LOCK_BLOCK_DEVICE*=<mode>::
+use exclusive BSD lock. The mode is "1" or "0". See *--lock* for more details.
+
+== NOTES
+
+Since version 2.26 *sfdisk* no longer provides the *-R* or *--re-read* option to force the kernel to reread the partition table. Use *blockdev --rereadpt* instead.
+
+Since version 2.26 *sfdisk* does not provide the *--DOS*, *--IBM*, *--DOS-extended*, *--unhide*, *--show-extended*, *--cylinders*, *--heads*, *--sectors*, *--inside-outer*, *--not-inside-outer* options.
+
+== EXAMPLES
+
+*sfdisk --list --label-nested=mbr /dev/sda*::
+Print protective MBR on device with GPT disk label.
+
+*echo -e ',10M,L\n,10M,L\n,+,\n' | sfdisk /dev/sdc*::
+Create three Linux partitions, with the default start, the size of the first two partitions is 10MiB, and the last partition fills all available space on the device.
+
+*echo -e 'size=10M, type=L\n size=10M, type=L\n size=+\n' | sfdisk /dev/sdc*::
+The same as the previous example, but in named-fields format.
+
+*echo -e 'type=swap' | sfdisk -N 3 /dev/sdc*::
+Set type of the 3rd partition to 'swap'.
+
+*sfdisk --part-type /dev/sdc 3 swap*::
+The same as the previous example, but without script use.
+
+*sfdisk --delete /dev/sdc 2*::
+Delete 2nd partition.
+
+*echo "\+,+" | sfdisk -N 3 --move-data /dev/sdc*::
+Enlarge 3rd partition in both directions, move start to use free space before the partition and enlarge the size to use all free space after to the partition, and move partition data too.
+
+== AUTHORS
+
+mailto:kzak@redhat.com[Karel Zak]
+
+The current *sfdisk* implementation is based on the original *sfdisk* from Andries E. Brouwer.
+
+== SEE ALSO
+
+*fdisk*(8),
+*cfdisk*(8),
+*parted*(8),
+*partprobe*(8),
+*partx*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

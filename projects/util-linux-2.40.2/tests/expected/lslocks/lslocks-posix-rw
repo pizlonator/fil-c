@@ -1,0 +1,6 @@
+test_mkfds POSIX 3B READ 0 0
+test_mkfds POSIX 3B WRITE 2 2
+# posix-rw + COMMAND,TYPE,SIZE,MODE,START,END + --raw --noheadings: 0
+util-linux-lslocks-target-file
+util-linux-lslocks-target-file
+# posix-rw + PATH + --raw --noheadings: 0

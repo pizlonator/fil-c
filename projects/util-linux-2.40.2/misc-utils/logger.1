@@ -1,0 +1,353 @@
+'\" t
+.\"     Title: logger
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "LOGGER" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+logger \- enter messages into the system log
+.SH "SYNOPSIS"
+.sp
+\fBlogger\fP [options] \fImessage\fP
+.SH "DESCRIPTION"
+.sp
+\fBlogger\fP makes entries in the system log.
+.sp
+When the optional \fImessage\fP argument is present, it is written to the log. If it is not present, and the \fB\-f\fP option is not given either, then standard input is logged.
+.SH "OPTIONS"
+.sp
+\fB\-d\fP, \fB\-\-udp\fP
+.RS 4
+Use datagrams (UDP) only. By default the connection is tried to the syslog port defined in \fI/etc/services\fP, which is often 514.
+.sp
+See also \fB\-\-server\fP and \fB\-\-socket\fP to specify where to connect.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-skip\-empty\fP
+.RS 4
+Ignore empty lines when processing files. An empty line is defined to be a line without any characters. Thus a line consisting only of whitespace is NOT considered empty. Note that when the \fB\-\-prio\-prefix\fP option is specified, the priority is not part of the line. Thus an empty line in this mode is a line that does not have any characters after the priority prefix (e.g., \fB<13>\fP).
+.RE
+.sp
+\fB\-f\fP, \fB\-\-file\fP \fIfile\fP
+.RS 4
+Log the contents of the specified \fIfile\fP. This option cannot be combined with a command\-line message.
+.RE
+.sp
+\fB\-i\fP
+.RS 4
+Log the PID of the \fBlogger\fP process with each line.
+.RE
+.sp
+\fB\-\-id\fP[\fB=\fP\fIid\fP]
+.RS 4
+Log the PID of the \fBlogger\fP process with each line. When the optional argument \fIid\fP is specified, then it is used instead of the \fBlogger\fP command\(cqs PID. The use of \fB\-\-id=$$\fP (PPID) is recommended in scripts that send several messages.
+.sp
+Note that the system logging infrastructure (for example \fBsystemd\fP when listening on \fI/dev/log\fP) may follow local socket credentials to overwrite the PID specified in the message. \fBlogger\fP(1) is able to set those socket credentials to the given \fIid\fP, but only if you have root permissions and a process with the specified PID exists, otherwise the socket credentials are not modified and the problem is silently ignored.
+.RE
+.sp
+\fB\-\-journald\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Write a \fBsystemd\fP journal entry. The entry is read from the given \fIfile\fP, when specified, otherwise from standard input. Each line must begin with a field that is accepted by \fBjournald\fP; see \fBsystemd.journal\-fields\fP(7) for details. The use of a MESSAGE_ID field is generally a good idea, as it makes finding entries easy. Examples:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+logger \-\-journald <<end
+MESSAGE_ID=67feb6ffbaf24c5cbec13c008dd72309
+MESSAGE=The dogs bark, but the caravan goes on.
+DOGS=bark
+CARAVAN=goes on
+end
+.fam
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+.fam C
+logger \-\-journald=entry.txt
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+Notice that \fB\-\-journald\fP will ignore values of other options, such as priority. If priority is needed it must be within input, and use PRIORITY field. The simple execution of \fBjournalctl\fP(1) will display MESSAGE field. Use \fBjournalctl \-\-output json\-pretty\fP to see rest of the fields.
+.sp
+To include newlines in MESSAGE, specify MESSAGE several times. This is handled as a special case, other fields will be stored as an array in the journal if they appear multiple times.
+.RE
+.sp
+\fB\-\-msgid\fP \fImsgid\fP
+.RS 4
+Sets the \c
+.URL "https://tools.ietf.org/html/rfc5424" "RFC 5424" ""
+MSGID field. Note that the space character is not permitted inside of \fImsgid\fP. This option is only used if \fB\-\-rfc5424\fP is specified as well; otherwise, it is silently ignored.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-server\fP \fIserver\fP
+.RS 4
+Write to the specified remote syslog \fIserver\fP instead of to the system log socket. Unless \fB\-\-udp\fP or \fB\-\-tcp\fP is specified, \fBlogger\fP will first try to use UDP, but if this fails a TCP connection is attempted.
+.RE
+.sp
+\fB\-\-no\-act\fP
+.RS 4
+Causes everything to be done except for writing the log message to the system log, and removing the connection to the journal. This option can be used together with \fB\-\-stderr\fP for testing purposes.
+.RE
+.sp
+\fB\-\-octet\-count\fP
+.RS 4
+Use the \c
+.URL "https://tools.ietf.org/html/rfc6587" "RFC 6587" ""
+octet counting framing method for sending messages. When this option is not used, the default is no framing on UDP, and RFC6587 non\-transparent framing (also known as octet stuffing) on TCP.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-port\fP \fIport\fP
+.RS 4
+Use the specified \fIport\fP. When this option is not specified, the port defaults to \fBsyslog\fP for udp and to \fBsyslog\-conn\fP for tcp connections.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-priority\fP \fIpriority\fP
+.RS 4
+Enter the message into the log with the specified \fIpriority\fP. The priority may be specified numerically or as a \fIfacility\fP.\fIlevel\fP pair. For example, \fB\-p local3.info\fP logs the message as informational in the local3 facility. The default is \fBuser.notice\fP.
+.RE
+.sp
+\fB\-\-prio\-prefix\fP
+.RS 4
+Look for a syslog prefix on every line read from standard input. This prefix is a decimal number within angle brackets that encodes both the facility and the level. The number is constructed by multiplying the facility by 8 and then adding the level. For example, \fBlocal0.info\fP, meaning facility=16 and level=6, becomes \fB<134>\fP.
+.sp
+If the prefix contains no facility, the facility defaults to what is specified by the \fB\-p\fP option. Similarly, if no prefix is provided, the line is logged using the \fIpriority\fP given with \fB\-p\fP.
+.sp
+This option doesn\(cqt affect a command\-line message.
+.RE
+.sp
+\fB\-\-rfc3164\fP
+.RS 4
+Use the \c
+.URL "https://tools.ietf.org/html/rfc3164" "RFC 3164" ""
+BSD syslog protocol to submit messages to a remote server.
+.RE
+.sp
+\fB\-\-rfc5424\fP[\fB=\fP\fIwithout\fP]
+.RS 4
+Use the \c
+.URL "https://tools.ietf.org/html/rfc5424" "RFC 5424" ""
+syslog protocol to submit messages to a remote server. The optional \fIwithout\fP argument can be a comma\-separated list of the following values: \fBnotq\fP, \fBnotime\fP, \fBnohost\fP.
+.sp
+The \fBnotq\fP value suppresses the time\-quality structured data from the submitted message. The time\-quality information shows whether the local clock was synchronized plus the maximum number of microseconds the timestamp might be off. The time quality is also automatically suppressed when \fB\-\-sd\-id timeQuality\fP is specified.
+.sp
+The \fBnotime\fP value (which implies \fBnotq\fP) suppresses the complete sender timestamp that is in ISO\-8601 format, including microseconds and timezone.
+.sp
+The \fBnohost\fP value suppresses \fBgethostname\fP(2) information from the message header.
+.sp
+The RFC 5424 protocol has been the default for \fBlogger\fP since version 2.26.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-stderr\fP
+.RS 4
+Output the message to standard error as well as to the system log.
+.RE
+.sp
+\fB\-\-sd\-id\fP \fIname\fP[\fB@\fP\fIdigits\fP]
+.RS 4
+Specifies a structured data element ID for an RFC 5424 message header. The option has to be used before \fB\-\-sd\-param\fP to introduce a new element. The number of structured data elements is unlimited. The ID (\fIname\fP plus possibly \fB@\fP\fIdigits\fP) is case\-sensitive and uniquely identifies the type and purpose of the element. The same ID must not exist more than once in a message. The \fB@\fP\fIdigits\fP part is required for user\-defined non\-standardized IDs.
+.sp
+\fBlogger\fP currently generates the \fBtimeQuality\fP standardized element only. RFC 5424 also describes the elements \fBorigin\fP (with parameters \fBip\fP, \fBenterpriseId\fP, \fBsoftware\fP and \fBswVersion\fP) and \fBmeta\fP (with parameters \fBsequenceId\fP, \fBsysUpTime\fP and \fBlanguage\fP). These element IDs may be specified without the \fB@\fP\fIdigits\fP suffix.
+.RE
+.sp
+\fB\-\-sd\-param\fP \fIname\fP=\fIvalue\fP
+.RS 4
+Specifies a structured data element parameter, a name and value pair. The option has to be used after \fB\-\-sd\-id\fP and may be specified more than once for the same element. Note that the quotation marks around \fIvalue\fP are required and must be escaped on the command line.
+.sp
+.if n .RS 4
+.nf
+.fam C
+    logger \-\-rfc5424 \-\-sd\-id zoo@123             \(rs
+                     \-\-sd\-param tiger="hungry"   \(rs
+                     \-\-sd\-param zebra="running"  \(rs
+                     \-\-sd\-id manager@123         \(rs
+                     \-\-sd\-param onMeeting="yes"  \(rs
+                     "this is message"
+.fam
+.fi
+.if n .RE
+.sp
+produces:
+.sp
+\fB<13>1 2015\-10\-01T14:07:59.168662+02:00 ws kzak \- \- [timeQuality tzKnown="1" isSynced="1" syncAccuracy="218616"][zoo@123 tiger="hungry" zebra="running"][manager@123 onMeeting="yes"] this is message\fP
+.RE
+.sp
+\fB\-S\fP, \fB\-\-size\fP \fIsize\fP
+.RS 4
+Sets the maximum permitted message size to \fIsize\fP. The default is 1KiB characters, which is the limit traditionally used and specified in RFC 3164. With RFC 5424, this limit has become flexible. A good assumption is that RFC 5424 receivers can at least process 4KiB messages.
+.sp
+Most receivers accept messages larger than 1KiB over any type of syslog protocol. As such, the \fB\-\-size\fP option affects \fBlogger\fP in all cases (not only when \fB\-\-rfc5424\fP was used).
+.sp
+Note: the message\-size limit limits the overall message size, including the syslog header. Header sizes vary depending on the selected options and the hostname length. As a rule of thumb, headers are usually not longer than 50 to 80 characters. When selecting a maximum message size, it is important to ensure that the receiver supports the max size as well, otherwise messages may become truncated. Again, as a rule of thumb two to four KiB message size should generally be OK, whereas anything larger should be verified to work.
+.RE
+.sp
+\fB\-\-socket\-errors\fP[\fB=\fP\fImode\fP]
+.RS 4
+Print errors about Unix socket connections. The \fImode\fP can be a value of \fBoff\fP, \fBon\fP, or \fBauto\fP. When the mode is \fBauto\fP, then \fBlogger\fP will detect if the init process is \fBsystemd\fP(1), and if so assumption is made \fI/dev/log\fP can be used early at boot. Other init systems lack of \fI/dev/log\fP will not cause errors that is identical with messaging using \fBopenlog\fP(3) system call. The \fBlogger\fP(1) before version 2.26 used \fBopenlog\fP(3), and hence was unable to detected loss of messages sent to Unix sockets.
+.sp
+The default mode is \fBauto\fP. When errors are not enabled lost messages are not communicated and will result to successful exit status of \fBlogger\fP(1) invocation.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-tcp\fP
+.RS 4
+Use stream (TCP) only. By default the connection is tried to the \fIsyslog\-conn\fP port defined in \fI/etc/services\fP, which is often \fI601\fP.
+.sp
+See also \fB\-\-server\fP and \fB\-\-socket\fP to specify where to connect.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-tag\fP \fItag\fP
+.RS 4
+Mark every line to be logged with the specified \fItag\fP. The default tag is the name of the user logged in on the terminal (or a user name based on effective user ID).
+.RE
+.sp
+\fB\-u\fP, \fB\-\-socket\fP \fIsocket\fP
+.RS 4
+Write to the specified \fIsocket\fP instead of to the system log socket.
+.RE
+.sp
+\fB\-\-\fP
+.RS 4
+End the argument list. This allows the \fImessage\fP to start with a hyphen (\-).
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+The \fBlogger\fP utility exits 0 on success, and >0 if an error occurs.
+.SH "FACILITIES AND LEVELS"
+.sp
+Valid facility names are:
+.sp
+\fBauth\fP
+.br
+\fBauthpriv\fP for security information of a sensitive nature
+.br
+\fBcron\fP
+.br
+.sp
+\fBdaemon\fP
+.br
+\fBftp\fP
+.br
+\fBkern\fP cannot be generated from userspace process, automatically converted to \fBuser\fP
+.br
+.sp
+\fBlpr\fP
+.br
+\fBmail\fP
+.br
+\fBnews\fP
+.br
+\fBsyslog\fP
+.br
+\fBuser\fP
+.br
+\fBuucp\fP
+.br
+\fBlocal0\fP
+.br
+to
+.br
+\fBlocal7\fP
+.br
+\fBsecurity\fP deprecated synonym for \fBauth\fP
+.sp
+Valid level names are:
+.sp
+\fBemerg\fP
+.br
+\fBalert\fP
+.br
+\fBcrit\fP
+.br
+\fBerr\fP
+.br
+\fBwarning\fP
+.br
+\fBnotice\fP
+.br
+\fBinfo\fP
+.br
+\fBdebug\fP
+.br
+\fBpanic\fP deprecated synonym for \fBemerg\fP
+.br
+\fBerror\fP deprecated synonym for \fBerr\fP
+.br
+\fBwarn\fP deprecated synonym for \fBwarning\fP
+.br
+.sp
+For the priority order and intended purposes of these facilities and levels, see \fBsyslog\fP(3).
+.SH "CONFORMING TO"
+.sp
+The \fBlogger\fP command is expected to be IEEE Std 1003.2 ("POSIX.2") compatible.
+.SH "EXAMPLES"
+.RS 3
+.ll -.6i
+.sp
+logger System rebooted
+.sp
+logger \-p local0.notice \-t HOSTIDM \-f /dev/idmc
+.sp
+logger \-n loghost.example.com System rebooted
+.br
+.RE
+.ll
+.SH "AUTHORS"
+.sp
+The \fBlogger\fP command was originally written by University of California in 1983\-1993 and later rewritten by \c
+.MTO "kzak\(atredhat.com" "Karel Zak" ","
+.MTO "rgerhards\(atadiscon.com" "Rainer Gerhards" ","
+and
+.MTO "kerolasa\(atiki.fi" "Sami Kerola" "."
+.SH "SEE ALSO"
+.sp
+\fBjournalctl\fP(1),
+\fBsyslog\fP(3),
+\fBsystemd.journal\-fields\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBlogger\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

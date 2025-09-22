@@ -1,0 +1,184 @@
+//po4a: entry man manual
+////
+Copyright 1990 Gordon Irlam (gordoni@cs.ua.oz.au)
+Copyright 1992 Rickard E. Faith (faith@cs.unc.edu)
+Copyright 2000 Colin Watson (cjw44@cam.ac.uk)
+Do not restrict distribution.
+May be distributed under the GNU General Public License
+////
+= setterm(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: setterm
+
+== NAME
+
+setterm - set terminal attributes
+
+== SYNOPSIS
+
+*setterm* [options]
+
+== DESCRIPTION
+
+*setterm* writes to standard output a character string that will invoke the specified terminal capabilities. Where possible _terminfo_ is consulted to find the string to use. Some options however (marked "virtual consoles only" below) do not correspond to a *terminfo*(5) capability. In this case, if the terminal type is "con" or "linux" the string that invokes the specified capabilities on the PC Minix virtual console driver is output. Options that are not implemented by the terminal are ignored.
+
+== OPTIONS
+
+For boolean options (*on* or *off*), the default is *on*.
+
+Below, an _8-color_ can be *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, or *white*.
+
+A _16-color_ can be an _8-color_, or *grey*, or *bright* followed by *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, or *white*.
+
+The various color options may be set independently, at least on virtual consoles, though the results of setting multiple modes (for example, *--underline* and *--half-bright*) are hardware-dependent.
+
+The optional arguments are recommended with '=' (equals sign) and not space between the option and the argument. For example --option=argument. *setterm* can interpret the next non-option argument as an optional argument too.
+
+*--appcursorkeys* on|off::
+Sets Cursor Key Application Mode on or off. When on, ESC O A, ESC O B, etc. will be sent for the cursor keys instead of ESC [ A, ESC [ B, etc. See the _vi and Cursor-Keys_ section of the _Text-Terminal-HOWTO_ for how this can cause problems for *vi* users. Virtual consoles only.
+
+*--append* _console_number_::
+Like *--dump*, but appends to the snapshot file instead of overwriting it. Only works if no *--dump* options are given.
+
+*--background* __8-color__|default::
+Sets the background text color.
+
+*--blank*[=0-60|force|poke]::
+Sets the interval of inactivity, in minutes, after which the screen will be automatically blanked (using APM if available). Without an argument, it gets the blank status (returns which vt was blanked, or zero for an unblanked vt). Virtual consoles only.
++
+The *force* argument keeps the screen blank even if a key is pressed.
++
+The *poke* argument unblanks the screen.
+
+*--bfreq*[=_number_]::
+Sets the bell frequency in Hertz. Without an argument, it defaults to *0*. Virtual consoles only.
+
+*--blength*[=0-2000]::
+Sets the bell duration in milliseconds. Without an argument, it defaults to *0*. Virtual consoles only.
+
+*--blink* on|off::
+Turns blink mode on or off. Except on a virtual console, *--blink off* turns off all attributes (bold, half-brightness, blink, reverse).
+
+*--bold* on|off::
+urns bold (extra bright) mode on or off. Except on a virtual console, *--bold off* turns off all attributes (bold, half-brightness, blink, reverse).
+
+*--clear*[=all|rest]::
+Without an argument or with the argument *all*, the entire screen is cleared and the cursor is set to the home position, just like *clear*(1) does. With the argument *rest*, the screen is cleared from the current cursor position to the end.
+
+*--clrtabs*[=_tab1 tab2 tab3_ ...]::
+Clears tab stops from the given horizontal cursor positions, in the range *1-160*. Without arguments, it clears all tab stops. Virtual consoles only.
+
+*--cursor* on|off::
+Turns the terminal's cursor on or off.
+
+*--default*::
+Sets the terminal's rendering options to the default values.
+
+*--dump*[=_console_number_]::
+Writes a snapshot of the virtual console with the given number to the file specified with the *--file* option, overwriting its contents; the default is _screen.dump_. Without an argument, it dumps the current virtual console. This overrides *--append*.
+
+*--file* _filename_::
+Sets the snapshot file name for any *--dump* or *--append* options on the same command line. If this option is not present, the default is _screen.dump_ in the current directory. A path name that exceeds the system maximum will be truncated, see *PATH_MAX* from _linux/limits.h_ for the value.
+
+*--foreground* __8-color__|default::
+Sets the foreground text color.
+
+*--half-bright* on|off::
+Turns dim (half-brightness) mode on or off. Except on a virtual console, *--half-bright off* turns off all attributes (bold, half-brightness, blink, reverse).
+
+*--hbcolor* _16-color_::
+Sets the color for half-bright characters.
+
+*--initialize*::
+Displays the terminal initialization string, which typically sets the terminal's rendering options, and other attributes to the default values.
+
+*--inversescreen* on|off::
+Swaps foreground and background colors for the whole screen.
+
+*--linewrap* on|off::
+Makes the terminal continue on a new line when a line is full.
+
+*--msg* on|off::
+Enables or disables the sending of kernel *printk*() messages to the console. Virtual consoles only.
+
+*--msglevel* 0-8::
+Sets the console logging level for kernel *printk()* messages. All messages strictly more important than this will be printed, so a logging level of *0* has the same effect as *--msg on* and a logging level of *8* will print all kernel messages. *klogd*(8) may be a more convenient interface to the logging of kernel messages.
++
+Virtual consoles only.
+
+*--powerdown*[=0-60]::
+Sets the VESA powerdown interval in minutes. Without an argument, it defaults to *0* (disable powerdown). If the console is blanked or the monitor is in suspend mode, then the monitor will go into vsync suspend mode or powerdown mode respectively after this period of time has elapsed.
+
+*--powersave* _mode_::
+Valid values for _mode_ are:
+
+*vsync|on*;;
+Puts the monitor into VESA vsync suspend mode.
+*hsync*;;
+Puts the monitor into VESA hsync suspend mode.
+*powerdown*;;
+Puts the monitor into VESA powerdown mode.
+*off*;;
+Turns monitor VESA powersaving features.
+
+*--regtabs*[=1-160]::
+Clears all tab stops, then sets a regular tab stop pattern, with one tab every specified number of positions. Without an argument, it defaults to *8*. Virtual consoles only.
+
+*--repeat* on|off::
+Turns keyboard repeat on or off. Virtual consoles only.
+
+*--reset*::
+Displays the terminal reset string, which typically resets the terminal to its power-on state.
+
+*--resize*::
+Reset terminal size by assessing maximum row and column. This is useful when actual geometry and kernel terminal driver are not in sync. Most notable use case is with serial consoles, that do not use *ioctl*(2) but just byte streams and breaks.
+
+*--reverse* on|off::
+Turns reverse video mode on or off. Except on a virtual console, *--reverse off* turns off all attributes (bold, half-brightness, blink, reverse).
+
+*--store*::
+Stores the terminal's current rendering options (foreground and background colors) as the values to be used at reset-to-default. Virtual consoles only.
+
+*--tabs*[=_tab1 tab2 tab3_ ...]::
+Sets tab stops at the given horizontal cursor positions, in the range *1-160*. Without arguments, it shows the current tab stop settings.
+
+*--term* _terminal_name_::
+Overrides the *TERM* environment variable.
+
+*--ulcolor* _16-color_::
+Sets the color for underlined characters. Virtual consoles only.
+
+*--underline* on|off::
+Turns underline mode on or off.
+
+include::man-common/help-version.adoc[]
+
+== WARNING
+
+Use of *setterm* in combination with stdout redirection can have unexpected results, as some options operate on stdin. To prevent problems, always redirect both stdin and stdout to the same device.
+
+== COMPATIBILITY
+
+Since version 2.25 *setterm* has support for long options with two hyphens, for example *--help*, beside the historical long options with a single hyphen, for example *-help*. In scripts it is better to use the backward-compatible single hyphen rather than the double hyphen. Currently there are no plans nor good reasons to discontinue single-hyphen compatibility.
+
+== BUGS
+
+Differences between the Minix and Linux versions are not documented.
+
+== SEE ALSO
+
+*stty*(1),
+*tput*(1),
+*tty*(4),
+*terminfo*(5)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="DM error"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_BLKID"
+
+ts_skip_nonroot
+ts_check_prog "dmsetup"
+
+DEVNAME="blkid-dm-err"
+DEVICE="/dev/mapper/${DEVNAME}"
+
+ts_log "Initialize device"
+echo "0 262144 error" | dmsetup create $DEVNAME
+
+# Some tests are run in LXD containers on Travis CI where `mknod` doesn't always work
+# https://docs.travis-ci.com/user/multi-cpu-architectures/#security-and-lxd-container
+# https://linuxcontainers.org/lxd/docs/master/syscall-interception
+if [ "$TRAVIS" == "true" ] && [ ! -b "$DEVICE" ]; then
+	ts_skip "$DEVICE wasn't created"
+fi
+
+ts_log "Probe device"
+$TS_CMD_BLKID -p -o udev $DEVICE >> $TS_OUTPUT 2>> $TS_ERRLOG
+echo "Return code: $?" >> $TS_OUTPUT
+
+udevadm settle
+ts_log "Deinitialize device"
+
+dmsetup remove $DEVNAME
+
+ts_finalize

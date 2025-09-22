@@ -1,0 +1,69 @@
+'\" t
+.\"     Title: colrm
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "COLRM" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+colrm \- remove columns from a file
+.SH "SYNOPSIS"
+.sp
+\fBcolrm\fP \fI[first [last]]\fP
+.SH "DESCRIPTION"
+.sp
+\fBcolrm\fP removes selected columns from a file. Input is taken from standard input. Output is sent to standard output.
+.sp
+If called with one parameter the columns of each line will be removed starting with the specified \fIfirst\fP column. If called with two parameters the columns from the \fIfirst\fP column to the \fIlast\fP column will be removed.
+.sp
+Column numbering starts with column 1.
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "HISTORY"
+.sp
+The \fBcolrm\fP command appeared in 3.0BSD.
+.SH "SEE ALSO"
+.sp
+\fBawk\fP(1p),
+\fBcolumn\fP(1),
+\fBexpand\fP(1),
+\fBpaste\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBcolrm\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

@@ -1,0 +1,155 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2011 Sami Kerola <kerolasa@iki.fi>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="table"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_check_wcsspn
+
+ts_check_test_command "$TS_CMD_COLUMN"
+ts_cd "$TS_OUTDIR"
+
+ts_init_subtest "default"
+$TS_CMD_COLUMN --table $TS_SELF/files/table >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "output-separator"
+$TS_CMD_COLUMN --output-separator '|' --table $TS_SELF/files/table >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "input-separator"
+$TS_CMD_COLUMN --separator ',' --table $TS_SELF/files/table-sep >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "input-separator-space"
+$TS_CMD_COLUMN --separator "$(echo -e '\t')" --table $TS_SELF/files/table-sep-space >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "empty-lines"
+$TS_CMD_COLUMN --table --table-empty-lines $TS_SELF/files/table-empty-lines >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "noempty-lines"
+$TS_CMD_COLUMN --table $TS_SELF/files/table-empty-lines >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "long"
+$TS_CMD_COLUMN --table $TS_SELF/files/mountinfo >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "hide"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-hide 1,2,3,4,7,8  >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "headers"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide SEP,ID,PARENT,ROOT \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "noheaders"
+$TS_CMD_COLUMN  --table $TS_SELF/files/table \
+		--table-noheadings \
+		--table-columns VERYLONG,COLUMN,NAMES \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "truncate"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide SEP,ID,PARENT,ROOT \
+		--table-truncate VFS-OPTS,FS-OPTS \
+		--output-width 80 \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "right"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide SEP,ID,PARENT,ROOT,VFS-OPTS,FS-OPTS,PROP \
+		--table-right SOURCE,TYPE \
+		--output-width 80 \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrap"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide=SEP,ID,PARENT,ROOT,VFS-OPTS,PROP \
+		--table-wrap FS-OPTS \
+		--output-width 110 \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "order"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide=SEP,ID,PARENT,ROOT,PROP,FS-OPTS,MAJMIN \
+		--table-order TARGET,SOURCE,TYPE,VFS-OPTS \
+		--output-width 110 \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "tree"
+$TS_CMD_COLUMN  --table $TS_SELF/files/mountinfo \
+		--table-columns ID,PARENT,MAJMIN,ROOT,TARGET,VFS-OPTS,PROP,SEP,TYPE,SOURCE,FS-OPTS \
+		--table-hide=SEP,ID,PARENT,ROOT,PROP,FS-OPTS,MAJMIN \
+		--table-order TARGET,SOURCE,TYPE,VFS-OPTS \
+		--tree TARGET \
+		--tree-id ID \
+		--tree-parent PARENT \
+		--output-width 110 \
+		>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "empty-column"
+printf ':a:b\n' | $TS_CMD_COLUMN --table --separator ':' --output-separator  ':' >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "empty-column-at-eol"
+printf '|' | $TS_CMD_COLUMN --separator '|' --output-separator '|' --table >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "empty-column-at-eol2"
+printf '||' | $TS_CMD_COLUMN --separator '|' --output-separator '|' --table >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "neg-1"
+echo "A B C D" | $TS_CMD_COLUMN --output-separator '|' --table --table-maxout \
+	--table-right -1 --output-width=80 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "neg-2"
+echo "A B C D" | $TS_CMD_COLUMN --output-separator '|' --table --table-maxout \
+	--table-right -2 --output-width=80 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "neg-1-2"
+echo "A B C D" | $TS_CMD_COLUMN --output-separator '|' --table --table-maxout \
+	--table-right -1,-2 --output-width=80 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "range"
+echo "A B C D" | $TS_CMD_COLUMN --output-separator '|' --table --table-maxout \
+	--table-right 2-3 --output-width=80 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_finalize

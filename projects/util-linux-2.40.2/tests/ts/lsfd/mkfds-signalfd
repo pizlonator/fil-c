@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="signalfd"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+# s390x and riscv64 reported the same error:
+#
+#           lsfd: signalfd                       ...
+#  diff-{{{
+#  --- /home/runner/work/util-linux/util-linux/tests/expected/lsfd/mkfds-signalfd	2023-06-08 10:20:13.520555037 +0000
+#  +++ /home/runner/work/util-linux/util-linux/tests/output/lsfd/mkfds-signalfd	2023-06-08 11:12:21.150054369 +0000
+#  @@ -1,2 +1,2 @@
+#  -    3 signalfd mask=FPE,USR1,42   FPE,USR1,42
+#  +    3 signalfd mask=FPE,USR1,44   FPE,USR1,44
+#   ASSOC,TYPE,NAME,SIGNALFD.MASK: 0
+#  }}}-diff
+#
+#   FAILED (lsfd/mkfds-signalfd)
+#
+# The error is nothing to do with endianness; the endian s390x is
+# big-endian. riscv64 is little-endian.
+#
+# So Qemu's user emulation is suspicious.
+ts_skip_qemu_user
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_cd "$TS_OUTDIR"
+
+PID=
+FD=3
+
+COL=ASSOC,TYPE,NAME,SIGNALFD.MASK
+EXPR='(FD == '"$FD"')'
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" signalfd $FD; }
+    if read -u ${MKFDS[0]} PID; then
+	${TS_CMD_LSFD} -p "${PID}" -n -o "${COL}" -Q "${EXPR}"
+	echo "${COL}": $?
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait "${MKFDS_PID}"
+} > "$TS_OUTPUT" 2>&1
+
+ts_finalize

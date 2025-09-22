@@ -1,0 +1,162 @@
+'\" t
+.\"     Title: setarch
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SETARCH" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+setarch \- change reported architecture in new program environment and/or set personality flags
+.SH "SYNOPSIS"
+.sp
+\fBsetarch\fP [\fIarch\fP] [options] [\fIprogram\fP [\fIargument\fP...]]
+.sp
+\fBsetarch\fP \fB\-\-list\fP|\fB\-h\fP|\fB\-V\fP
+.sp
+\fBarch\fP [options] [\fIprogram\fP [\fIargument\fP...]]
+.SH "DESCRIPTION"
+.sp
+\fBsetarch\fP modifies execution domains and process personality flags.
+.sp
+The execution domains currently only affects the output of \fBuname \-m\fP. For example, on an AMD64 system, running \fBsetarch i386\fP \fIprogram\fP will cause \fIprogram\fP to see i686 instead of \fIx86_64\fP as the machine type. It can also be used to set various personality options. The default \fIprogram\fP is \fB/bin/sh\fP.
+.sp
+Since version 2.33 the \fIarch\fP command line argument is optional and \fBsetarch\fP may be used to change personality flags (ADDR_LIMIT_*, SHORT_INODE, etc) without modification of the execution domain.
+.SH "OPTIONS"
+.sp
+\fB\-\-list\fP
+.RS 4
+List the architectures that \fBsetarch\fP knows about. Whether \fBsetarch\fP can actually set each of these architectures depends on the running kernel.
+.RE
+.sp
+\fB\-\-show[=personality]\fP
+.RS 4
+Show the currently active personality and flags.
+If the \fBpersonality\fP argument is provided, it is shown instead of the current one.
+\fBpersonality\fP is a hexadecimal number with values was described in \fBsys/personality.h\fP.
+.RE
+.sp
+\fB\-\-uname\-2.6\fP
+.RS 4
+Causes the \fIprogram\fP to see a kernel version number beginning with 2.6. Turns on \fBUNAME26\fP.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Be verbose.
+.RE
+.sp
+\fB\-3\fP, \fB\-\-3gb\fP
+.RS 4
+Specifies \fIprogram\fP should use a maximum of 3GB of address space. Supported on x86. Turns on \fBADDR_LIMIT_3GB\fP.
+.RE
+.sp
+\fB\-\-4gb\fP
+.RS 4
+This option has no effect. It is retained for backward compatibility only, and may be removed in future releases.
+.RE
+.sp
+\fB\-B\fP, \fB\-\-32bit\fP
+.RS 4
+Limit the address space to 32 bits to emulate hardware. Supported on ARM and Alpha. Turns on \fBADDR_LIMIT_32BIT\fP.
+.RE
+.sp
+\fB\-F\fP, \fB\-\-fdpic\-funcptrs\fP
+.RS 4
+Treat user\-space function pointers to signal handlers as pointers to address descriptors. This option has no effect on architectures that do not support \fBFDPIC\fP ELF binaries. In kernel v4.14 support is limited to ARM, Blackfin, Fujitsu FR\-V, and SuperH CPU architectures.
+.RE
+.sp
+\fB\-I\fP, \fB\-\-short\-inode\fP
+.RS 4
+Obsolete bug emulation flag. Turns on \fBSHORT_INODE\fP.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-addr\-compat\-layout\fP
+.RS 4
+Provide legacy virtual address space layout. Use when the \fIprogram\fP binary does not have \fBPT_GNU_STACK\fP ELF header. Turns on \fBADDR_COMPAT_LAYOUT\fP.
+.RE
+.sp
+\fB\-R\fP, \fB\-\-addr\-no\-randomize\fP
+.RS 4
+Disables randomization of the virtual address space. Turns on \fBADDR_NO_RANDOMIZE\fP.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-whole\-seconds\fP
+.RS 4
+Obsolete bug emulation flag. Turns on \fBWHOLE_SECONDS\fP.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-sticky\-timeouts\fP
+.RS 4
+This makes \fBselect\fP(2), \fBpselect\fP(2), and \fBppoll\fP(2) system calls preserve the timeout value instead of modifying it to reflect the amount of time not slept when interrupted by a signal handler. Use when \fIprogram\fP depends on this behavior. For more details see the timeout description in \fBselect\fP(2) manual page. Turns on \fBSTICKY_TIMEOUTS\fP.
+.RE
+.sp
+\fB\-X\fP, \fB\-\-read\-implies\-exec\fP
+.RS 4
+If this is set then \fBmmap\fP(2) \fBPROT_READ\fP will also add the \fBPROT_EXEC\fP bit \- as expected by legacy x86 binaries. Notice that the ELF loader will automatically set this bit when it encounters a legacy binary. Turns on \fBREAD_IMPLIES_EXEC\fP.
+.RE
+.sp
+\fB\-Z\fP, \fB\-\-mmap\-page\-zero\fP
+.RS 4
+SVr4 bug emulation that will set \fBmmap\fP(2) page zero as read\-only. Use when \fIprogram\fP depends on this behavior, and the source code is not available to be fixed. Turns on \fBMMAP_PAGE_ZERO\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLE"
+.sp
+.if n .RS 4
+.nf
+.fam C
+setarch \-\-addr\-no\-randomize mytestprog
+setarch ppc32 rpmbuild \-\-target=ppc \-\-rebuild foo.src.rpm
+setarch ppc32 \-v \-vL3 rpmbuild \-\-target=ppc \-\-rebuild bar.src.rpm
+setarch ppc32 \-\-32bit rpmbuild \-\-target=ppc \-\-rebuild foo.src.rpm
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "sopwith\(atredhat.com" "Elliot Lee" ","
+.MTO "jnovy\(atredhat.com" "Jindrich Novy" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBpersonality\fP(2),
+\fBselect\fP(2)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBsetarch\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

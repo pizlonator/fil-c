@@ -1,0 +1,119 @@
+'\" t
+.\"     Title: ipcrm
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "IPCRM" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ipcrm \- remove certain IPC resources
+.SH "SYNOPSIS"
+.sp
+\fBipcrm\fP [options]
+.sp
+\fBipcrm\fP [\fBshm\fP|\fBmsg\fP|\fBsem\fP] \fIID\fP ...
+.SH "DESCRIPTION"
+.sp
+\fBipcrm\fP removes System V inter\-process communication (IPC) objects and associated data structures from the system. In order to delete such objects, you must be superuser, or the creator or owner of the object.
+.sp
+System V IPC objects are of three types: shared memory, message queues, and semaphores. Deletion of a message queue or semaphore object is immediate (regardless of whether any process still holds an IPC identifier for the object). A shared memory object is only removed after all currently attached processes have detached (\fBshmdt\fP(2)) the object from their virtual address space.
+.sp
+Two syntax styles are supported. The old Linux historical syntax specifies a three\-letter keyword indicating which class of object is to be deleted, followed by one or more IPC identifiers for objects of this type.
+.sp
+The SUS\-compliant syntax allows the specification of zero or more objects of all three types in a single command line, with objects specified either by key or by identifier (see below). Both keys and identifiers may be specified in decimal, hexadecimal (specified with an initial \*(Aq0x\*(Aq or \*(Aq0X\*(Aq), or octal (specified with an initial \*(Aq0\*(Aq).
+.sp
+The details of the removes are described in \fBshmctl\fP(2), \fBmsgctl\fP(2), and \fBsemctl\fP(2). The identifiers and keys can be found by using \fBipcs\fP(1).
+.SH "OPTIONS"
+.sp
+\fB\-a\fP, \fB\-\-all\fP [\fBshm\fP] [\fBmsg\fP] [\fBsem\fP]
+.RS 4
+Remove all resources. When an option argument is provided, the removal is performed only for the specified resource types.
+.sp
+\fIWarning!\fP Do not use \fB\-a\fP if you are unsure how the software using the resources might react to missing objects. Some programs create these resources at startup and may not have any code to deal with an unexpected disappearance.
+.RE
+.sp
+\fB\-M\fP, \fB\-\-shmem\-key\fP \fIshmkey\fP
+.RS 4
+Remove the shared memory segment created with \fIshmkey\fP after the last detach is performed.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-shmem\-id\fP \fIshmid\fP
+.RS 4
+Remove the shared memory segment identified by \fIshmid\fP after the last detach is performed.
+.RE
+.sp
+\fB\-Q\fP, \fB\-\-queue\-key\fP \fImsgkey\fP
+.RS 4
+Remove the message queue created with \fImsgkey\fP.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-queue\-id\fP \fImsgid\fP
+.RS 4
+Remove the message queue identified by \fImsgid\fP.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-semaphore\-key\fP \fIsemkey\fP
+.RS 4
+Remove the semaphore created with \fIsemkey\fP.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-semaphore\-id\fP \fIsemid\fP
+.RS 4
+Remove the semaphore identified by \fIsemid\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+In its first Linux implementation, \fBipcrm\fP used the deprecated syntax shown in the second line of the \fBSYNOPSIS\fP. Functionality present in other *nix implementations of \fBipcrm\fP has since been added, namely the ability to delete resources by key (not just identifier), and to respect the same command\-line syntax. For backward compatibility the previous syntax is still supported.
+.SH "SEE ALSO"
+.sp
+\fBipcmk\fP(1),
+\fBipcs\fP(1),
+\fBmsgctl\fP(2),
+\fBmsgget\fP(2),
+\fBsemctl\fP(2),
+\fBsemget\fP(2),
+\fBshmctl\fP(2),
+\fBshmdt\fP(2),
+\fBshmget\fP(2),
+\fBftok\fP(3),
+\fBsysvipc\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBipcrm\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

@@ -1,0 +1,141 @@
+//po4a: entry man manual
+////
+Copyright 2003-2006 H. Peter Anvin - All Rights Reserved
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom
+the Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall
+be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+////
+= flock(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: flock
+:copyright: ©
+
+== NAME
+
+flock - manage locks from shell scripts
+
+== SYNOPSIS
+
+*flock* [options] _file_|_directory_ _command_ [_arguments_]
+
+*flock* [options] _file_|_directory_ *-c* _command_
+
+*flock* [options] _number_
+
+== DESCRIPTION
+
+This utility manages *flock*(2) locks from within shell scripts or from the command line.
+
+The first and second of the above forms wrap the lock around the execution of a _command_, in a manner similar to *su*(1) or *newgrp*(1). They lock a specified _file_ or _directory_, which is created (assuming appropriate permissions) if it does not already exist. By default, if the lock cannot be immediately acquired, *flock* waits until the lock is available.
+
+The third form uses an open file by its file descriptor _number_. See the examples below for how that can be used.
+
+== OPTIONS
+
+*-c*, *--command* _command_::
+Pass a single _command_, without arguments, to the shell with *-c*.
+
+*-E*, *--conflict-exit-code* _number_::
+The exit status used when the *-n* option is in use, and the conflicting lock exists, or the *-w* option is in use, and the timeout is reached. The default value is *1*. The _number_ has to be in the range of 0 to 255.
+
+*-F*, *--no-fork*::
+Do not fork before executing _command_. Upon execution the flock process is replaced by _command_ which continues to hold the lock. This option is incompatible with *--close* as there would otherwise be nothing left to hold the lock.
+
+*-e*, *-x*, *--exclusive*::
+Obtain an exclusive lock, sometimes called a write lock. This is the default.
+
+*-n*, *--nb*, *--nonblock*::
+Fail rather than wait if the lock cannot be immediately acquired. See the *-E* option for the exit status used.
+
+*-o*, *--close*::
+Close the file descriptor on which the lock is held before executing _command_. This is useful if _command_ spawns a child process which should not be holding the lock.
+
+*-s*, *--shared*::
+Obtain a shared lock, sometimes called a read lock.
+
+*-u*, *--unlock*::
+Drop a lock. This is usually not required, since a lock is automatically dropped when the file is closed. However, it may be required in special cases, for example if the enclosed command group may have forked a background process which should not be holding the lock.
+
+*-w*, *--wait*, *--timeout* _seconds_::
+Fail if the lock cannot be acquired within _seconds_. Decimal fractional values are allowed. See the *-E* option for the exit status used. The zero number of _seconds_ is interpreted as *--nonblock*.
+
+*--verbose*::
+Report how long it took to acquire the lock, or why the lock could not be obtained.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+The command uses <sysexits.h> exit status values for everything, except when using either of the options *-n* or *-w* which report a failure to acquire the lock with an exit status given by the *-E* option, or 1 by default. The exit status given by *-E* has to be in the range of 0 to 255.
+
+When using the _command_ variant, and executing the child worked, then the exit status is that of the child command.
+
+== NOTES
+
+*flock* does not detect deadlock. See *flock*(2) for details.
+
+Some file systems (e. g. NFS and CIFS) have a limited implementation of *flock*(2) and flock may always fail. For details see *flock*(2), *nfs*(5) and *mount.cifs*(8). Depending on mount options, flock can always fail there.
+
+== EXAMPLES
+
+Note that "shell> " in examples is a command line prompt.
+
+shell1> flock /tmp -c cat; shell2> flock -w .007 /tmp -c echo; /bin/echo $?::
+Set exclusive lock to directory _/tmp_ and the second command will fail.
+
+shell1> flock -s /tmp -c cat; shell2> flock -s -w .007 /tmp -c echo; /bin/echo $?::
+Set shared lock to directory _/tmp_ and the second command will not fail. Notice that attempting to get exclusive lock with second command would fail.
+
+shell> flock -x local-lock-file echo 'a b c'::
+Grab the exclusive lock "local-lock-file" before running echo with 'a b c'.
+
+(; flock -n 9 || exit 1; # ... commands executed under lock ...; ) 9>/var/lock/mylockfile::
+The form is convenient inside shell scripts. The mode used to open the file doesn't matter to *flock*; using _>_ or _>>_ allows the lockfile to be created if it does not already exist, however, write permission is required. Using _<_ requires that the file already exists but only read permission is required.
+
+[ "$\{FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -en "$0" "$0" "$@" || : ::
+This is useful boilerplate code for shell scripts. Put it at the top of the shell script you want to lock and it'll automatically lock itself on the first run. If the environment variable *$FLOCKER* is not set to the shell script that is being run, then execute *flock* and grab an exclusive non-blocking lock (using the script itself as the lock file) before re-execing itself with the right arguments. It also sets the *FLOCKER* environment variable to the right value so it doesn't run again.
+
+shell> exec 4<>/var/lock/mylockfile; shell> flock -n 4::
+This form is convenient for locking a file without spawning a subprocess. The shell opens the lock file for reading and writing as file descriptor 4, then *flock* is used to lock the descriptor.
+
+== AUTHORS
+
+mailto:hpa@zytor.com[H. Peter Anvin]
+
+== COPYRIGHT
+
+//TRANSLATORS: Keep {copyright} untranslated.
+Copyright {copyright} 2003-2006 H. Peter Anvin. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+== SEE ALSO
+
+*flock*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

@@ -1,0 +1,67 @@
+//po4a: entry man manual
+= ll2_update_login_time(3)
+:doctype: manpage
+:man manual: Programmer's Manual
+:man source: util-linux {release-version}
+:page-layout: base
+:lib: liblastlog2
+:firstversion: 2.40
+
+== NAME
+
+ll2_update_login_time - Writes an *new* entry with updated login time.
+
+== SYNOPSIS
+
+*#include <lastlog2.h>*
+
+*int ll2_update_login_time (struct ll2_context *__context__,
+			    const char *__user__, int64_t __ll_time__,
+			    char **__error__);*
+
+== DESCRIPTION
+
+Writes an *new* entry to database, defined in _context_, for user _user_.
+Time is set by _ll_time_ whereas the other values are taken from
+an already existing entry.
+If _context_ is NULL, the default database, defined in _LL2_DEFAULT_DATABASE_,
+will be taken.
+
+--------------------------------------
+char    *error = NULL;
+const   char *user = "root";
+int64_t login_time = time(0); // Get the system time;
+
+int ret = ll2_update_login_time (NULL, user, login_time, &error);
+--------------------------------------
+
+== RETURN VALUE
+
+Returns 0 on success, -ENOMEM or -1 on other failure.
+_error_ contains an error string if the return value is -1.
+_error_ is not guaranteed to contain an error string. It could also be NULL if the return value is -1.
+_error_ should be freed by the caller.
+
+== AUTHORS
+
+Thorsten Kukuk (kukuk@suse.de)
+
+== SEE ALSO
+
+*lastlog2*(3),
+*ll2_new_context(3),
+*ll2_unref_context(3),
+*ll2_read_all*(3),
+*ll2_write_entry*(3),
+*ll2_read_entry*(3),
+*ll2_remove_entry*(3),
+*ll2_rename_user*(3),
+*ll2_import_lastlog*(3)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer-lib.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

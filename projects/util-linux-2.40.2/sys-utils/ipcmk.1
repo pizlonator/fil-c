@@ -1,0 +1,88 @@
+'\" t
+.\"     Title: ipcmk
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "IPCMK" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+ipcmk \- make various IPC resources
+.SH "SYNOPSIS"
+.sp
+\fBipcmk\fP [options]
+.SH "DESCRIPTION"
+.sp
+\fBipcmk\fP allows you to create System V inter\-process communication (IPC) objects: shared memory segments, message queues, and semaphore arrays.
+.SH "OPTIONS"
+.sp
+Resources can be specified with these options:
+.sp
+\fB\-M\fP, \fB\-\-shmem\fP \fIsize\fP
+.RS 4
+Create a shared memory segment of \fIsize\fP bytes. The \fIsize\fP argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, etc. (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, etc.
+.RE
+.sp
+\fB\-Q\fP, \fB\-\-queue\fP
+.RS 4
+Create a message queue.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-semaphore\fP \fInumber\fP
+.RS 4
+Create a semaphore array with \fInumber\fP of elements.
+.RE
+.sp
+Other options are:
+.sp
+\fB\-p\fP, \fB\-\-mode\fP \fImode\fP
+.RS 4
+Access permissions for the resource. Default is 0644.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "hayden.james\(atgmail.com" "Hayden A. James" ""
+.SH "SEE ALSO"
+.sp
+\fBipcrm\fP(1),
+\fBipcs\fP(1),
+\fBsysvipc\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBipcmk\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

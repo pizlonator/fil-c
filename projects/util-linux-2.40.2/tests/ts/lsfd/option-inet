@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="--inet option"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_qemu_user
+ts_skip_docker
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_check_prog "mkfifo"
+
+ts_cd "$TS_OUTDIR"
+
+FIFO=./test_mkfds-option-inet.fifo
+{
+    rm -f "${FIFO}"
+    if ! mkfifo "${FIFO}"; then
+	ts_finalize  "failed in creating a fifo"
+    fi
+
+    "$TS_HELPER_MKFDS" -X tcp  3 4 5 server-port=34567 client-port=23456 > "${FIFO}" &
+    if ! read PID0 < "${FIFO}"; then
+	rm "${FIFO}"
+	ts_finalize  "$TS_HELPER_MKFDS tcp...doesn't report its pid"
+    fi
+
+    "$TS_HELPER_MKFDS" -X tcp6 3 4 5 server-port=34567 client-port=23456 > "${FIFO}" &
+    if ! read PID1  < "${FIFO}"; then
+	kill -CONT "${PID0}"
+	wait       "${PID0}"
+	rm "${FIFO}"
+	ts_finalize  "$TS_HELPER_MKFDS tcp6...doesn't report its pid"
+    fi
+
+    "$TS_HELPER_MKFDS" -X ro-regular-file 3 file=/etc/passwd > "${FIFO}" &
+    if ! read PID2  < "${FIFO}"; then
+	kill -CONT "${PID0}" "${PID1}"
+	wait       "${PID0}" "${PID1}"
+	rm "${FIFO}"
+	ts_finalize  "$TS_HELPER_MKFDS ro-regular-file...doesn't report its pid"
+    fi
+
+    "$TS_HELPER_MKFDS" -X udp 3 4 server-port=34567 client-port=23456 server-do-bind=1 client-do-bind=1 client-do-connect=1 > "${FIFO}" &
+    if ! read PID3  < "${FIFO}"; then
+	kill -CONT "${PID0}" "${PID1}" "${PID2}"
+	wait       "${PID0}" "${PID1}" "${PID2}"
+	rm "${FIFO}"
+	ts_finalize  "$TS_HELPER_MKFDS udp...doesn't report its pid"
+    fi
+
+    "$TS_HELPER_MKFDS" -X udp6 3 4 lite=1 server-port=34567 client-port=23456 server-do-bind=1 client-do-bind=1 client-do-connect=1 > "${FIFO}" &
+    if ! read PID4  < "${FIFO}"; then
+	kill -CONT "${PID0}" "${PID1}" "${PID2}" "${PID3}"
+	wait       "${PID0}" "${PID1}" "${PID2}" "${PID3}"
+	rm "${FIFO}"
+	ts_finalize  "$TS_HELPER_MKFDS udp6 lite=1...doesn't report its pid"
+    fi
+
+    OPT='--inet'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    OPT='--inet=4'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    OPT='--inet=6'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    OPT='-i'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    OPT='-i4'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    OPT='-i6'
+    echo "# $OPT"
+    ${TS_CMD_LSFD} -n \
+		   $OPT \
+		   -o ASSOC,TYPE,NAME \
+		   -Q "(PID == $PID0) or (PID == $PID1) or (PID == $PID2) or (PID == $PID3) or (PID == $PID4)"
+
+    kill -CONT "${PID0}" "${PID1}" "${PID2}" "${PID3}" "${PID4}"
+    wait       "${PID0}" "${PID1}" "${PID2}" "${PID3}" "${PID4}"
+    rm "${FIFO}"
+} > "$TS_OUTPUT" 2>&1
+
+ts_finalize

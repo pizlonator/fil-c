@@ -1,0 +1,54 @@
+//po4a: entry man manual
+// Rick Sladkey <jrs@world.std.com>
+// In the public domain.
+= setsid(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: setsid
+
+== NAME
+
+setsid - run a program in a new session
+
+== SYNOPSIS
+
+*setsid* [options] _program_ [_arguments_]
+
+== DESCRIPTION
+
+*setsid* runs a program in a new session. The command calls *fork*(2) if already a process group leader. Otherwise, it executes a program in the current process. This default behavior is possible to override by the *--fork* option.
+
+== OPTIONS
+
+*-c*, *--ctty*::
+Set the controlling terminal to the current one.
+
+*-f*, *--fork*::
+Always create a new process.
+
+*-w*, *--wait*::
+Wait for the execution of the program to end, and return the exit status of this program as the exit status of *setsid*.
+
+*-V*, *--version*::
+Display version information and exit.
+
+*-h*, *--help*::
+Display help text and exit.
+
+== AUTHORS
+
+mailto:jrs@world.std.com[Rick Sladkey]
+
+== SEE ALSO
+
+*setsid*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

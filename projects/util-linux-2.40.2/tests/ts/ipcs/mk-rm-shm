@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="mk-rm-shm"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_IPCS"
+ts_check_test_command "$TS_CMD_IPCMK"
+ts_check_test_command "$TS_CMD_IPCRM"
+ts_check_test_command "$TS_HELPER_SYSINFO"
+
+. "$TS_SELF"/functions.sh
+
+rm -f $TS_OUTDIR/id-shm
+$TS_CMD_IPCMK -M 1 2>>$TS_OUTPUT | ipcmk_output_handler $TS_OUTPUT $TS_OUTDIR/id-shm
+$TS_CMD_IPCS -m -i "$(cat $TS_OUTDIR/id-shm)" | sed -n '/^bytes/s/\t.*//p' >>$TS_OUTPUT
+$TS_CMD_IPCRM -m $(cat $TS_OUTDIR/id-shm) >> $TS_OUTPUT 2>> $TS_ERRLOG
+rm -f $TS_OUTDIR/id-shm
+
+$TS_CMD_IPCMK -M 12 2>>$TS_OUTPUT | ipcmk_output_handler $TS_OUTPUT $TS_OUTDIR/id-shm
+$TS_CMD_IPCS -m -i "$(cat $TS_OUTDIR/id-shm)" | sed -n '/^bytes/s/\t.*//p' >>$TS_OUTPUT
+$TS_CMD_IPCRM -M "$(
+	$TS_CMD_IPCS -m |
+	awk -v id=$(cat $TS_OUTDIR/id-shm) '{if ($2 == id){print $1}}' |
+	uniq
+)" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+rm -f $TS_OUTDIR/id-shm
+
+ts_finalize

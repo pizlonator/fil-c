@@ -1,0 +1,765 @@
+Util-linux 2.27 Release Notes
+=============================
+
+The command tailf is deprecated in favour of tail -f from coreutils.
+
+The command unshare provides a new option --propagation=slave|shared|private|unchanged
+to control propagation in mount namespaces. The default is "private" now. The
+new default unifies unshare behavior and makes it independent of distribution
+default. The unshare supports persistent namespaces too (no process has to run
+to keep namespace in existence).
+
+The command mount(8) supports read-only binds in one step by the options
+"bind,ro" (command line or fstab). This feature is implemented by additional
+remount mount(2) syscall and it is not atomic.
+
+The commands fdisk and sfdisk can be compiled with GNU readline support to
+improve their line-editing functionality.
+
+The library libsmartcols and the commands findmnt, losetup, lsblk, lslocks,
+sfdisk and lsipc provide output in JSON format.
+
+The command mkfs (deprecated in favour of mkfs.<type>) does not use hard-coded
+paths, but it follows $PATH.
+
+The command script has been massively improved to be more robust and less
+complex.  Now all is implemented by one process which monitors the running
+session by poll(), signalfd(), etc.
+
+The command sulogin supports locked root accounts if the command-line option
+--force is specified. Read the sulogin man page before you use it!
+
+The command agetty reloads the prompt on address changes if network information
+is displayed.
+
+util-linux now supports and enables colors by default. It is possible to change
+this behavior with --disable-colors-default to be more user-friendly to colorblind
+people. The colors can still be enabled by editing /etc/terminal-colors.d. See
+terminal-colors.d(5).
+
+The command cfdisk displays more information about the selected partition
+(partition UUID, filesystem identifiers, mountpoint, etc.). This extra window
+can be toggled with the 'x' key.
+
+The command fdisk provides a new command 'F' to print free, unpartitioned space
+(gaps) on the disk. The same functionality is provided by sfdisk through the
+option --list-free.  The fdisk command wipes the beginning of the device by
+default; the new option --protect-boot disables this behavior. The new fdisk
+command 'i' provides more information about a specified partition.
+
+The command cal supports the new options --twelve and --months <n> to display
+the next twelve or <n> months.
+
+The command rtcwake supports a new option --list-modes to list available modes,
+and a new option --date for human-readable times. rtcwake does not support
+RTC_ALM_READ and RTC_ALM_SET fallbacks any more.
+
+The util-linux code is possible rebuild with --disable-assert now.
+
+
+Security issues
+---------------
+
+CVE-2015-5224 - chfn, chsh file name collision due to incorrect mkstemp use if
+                compiled without libuser.
+                [thanks to Qualys Security Advisory team; qualys.com]
+
+
+Stable maintenance releases between v2.26 and v2.27
+---------------------------------------------------
+
+util-linux 2.26.1 [Mar 3 2015]
+
+ * https://www.kernel.org/pub/linux/utils/util-linux/v2.26/v2.26.1-ReleaseNotes
+   https://www.kernel.org/pub/linux/utils/util-linux/v2.26/v2.26.1-ChangeLog
+
+util-linux 2.26.2 [Apr 4 2015]
+
+ * https://www.kernel.org/pub/linux/utils/util-linux/v2.26/v2.26.2-ReleaseNotes
+   https://www.kernel.org/pub/linux/utils/util-linux/v2.26/v2.26.2-ChangeLog
+
+
+Changes between v2.26 and v2.27
+-------------------------------
+
+ For more details see ChangeLog files at:
+ https://www.kernel.org/pub/linux/utils/util-linux/v2.27/
+
+agetty:
+   - Reprompt once the network addresses change if address displayed  [Stef Walter]
+   - cleanup plymouth usage [coverity scan]  [Karel Zak]
+   - make sure that reload file exists  [Karel Zak]
+   - reload issue on --autologin --login-pause too  [Karel Zak]
+   - support /usr/lib/os-release too  [Karel Zak]
+bash-completion:
+   - cal  add --twelve and --color options  [Sami Kerola]
+   - handle comma-separated options  [Boris Egorov]
+   - remove unused variables [shellcheck]  [Boris Egorov]
+   - sync lscpu completion with code  [Boris Egorov]
+   - update few options changed since v2.26  [Sami Kerola]
+blkid:
+   - another hint to the man page  [Karel Zak]
+   - be more precise in the man page  [Karel Zak]
+   - don't ignore info about partitions on non-formated devices  [Karel Zak]
+   - make zfs detection more robust  [Michal Humpula]
+build-sys:
+   - add --disable-assert  [Karel Zak]
+   - add --disable-cal  [Karel Zak]
+   - add --disable-colors-default  [Karel Zak]
+   - add --enable-usrdir-path  [Karel Zak]
+   - add --with-readline  [Ondrej Oprala]
+   - add --without-* for all libs  [Karel Zak]
+   - add HAVE_LIBMOUNT  [Karel Zak]
+   - add TINFO_LIBS_STATIC  [Karel Zak]
+   - add new compiler warnings  [Karel Zak]
+   - allow autoconf < 2.64 to be used  [Kir Kolyshkin]
+   - allow gettext 0.17 to be used  [Kir Kolyshkin]
+   - cleanup realtime lib usage  [Karel Zak]
+   - define cfdisk dependence on open_memstream  [Karel Zak]
+   - fix READLINE_LIBS_STATIC usage for fdisk  [Karel Zak]
+   - fix parallel builds w/setarch links  [Mike Frysinger]
+   - fix test_colors build  [Karel Zak]
+   - fix typo  [Karel Zak]
+   - include errno.h instead of argp.h  [Chen Qi]
+   - make autogen.sh more robust  [Karel Zak]
+   - mark script(1) as Linux only due to signalfd()  [Karel Zak]
+   - ncurses is optional, don't fail when missing  [Karel Zak]
+   - python is optional, don't fail when missing  [Karel Zak]
+   - release++ (v2.27-rc1)  [Karel Zak]
+   - release++ (v2.27-rc2)  [Karel Zak]
+   - support static build with readline  [Karel Zak]
+   - support unshare.static  [Georg Schiesser]
+   - typo -ltinfo  [Ruediger Meier]
+   - use REALTIME_LIBS for script  [Karel Zak]
+cal:
+   - add -Y and -n <num>  [Max Klinger, Karel Zak]
+   - care about setuprterm() result  [Karel Zak]
+   - check biggest week number correctly when highlighting  [Sami Kerola]
+   - correct gregorian week numbering  [Sami Kerola]
+   - correct the man page  the reformation eliminated eleven days, not ten  [Benno Schulenberg]
+   - fix January 1753 week number printout  [Sami Kerola]
+   - replace magic constants with symbolical values  [Sami Kerola]
+cfdisk:
+   - allow an uppercase X to toggle the extra info  [Benno Schulenberg]
+   - check return value [coverity scan]  [Karel Zak]
+   - cleanup extra partitions info for slang  [Karel Zak]
+   - don't print obsolete CHS addresses  [Karel Zak]
+   - fix condition logic [cppcheck]  [Boris Egorov]
+   - make sure that extra info is refreshed/removed  [Karel Zak]
+   - make sure that output fits to terminal width  [Karel Zak]
+   - properly toggle extra info window, make it more robust  [Karel Zak]
+   - provide extra partinfo with "x"  [Ondrej Oprala, Karel Zak]
+   - remove extra line between menu and info line  [Karel Zak]
+   - spell "label" in lower case  [Benno Schulenberg]
+cfdisk, sfdisk:
+   - remove unused variables  [Karel Zak]
+chfn:
+   - document CHFN_RESTRICT /etc/login.defs  [Karel Zak]
+chrt:
+   - fix --help inconsistency  [Karel Zak]
+   - make the usage synopsis clearer  [Benno Schulenberg]
+   - slice up the usage text and normalize its layout  [Benno Schulenberg]
+chsh, chfn, vipw:
+   - fix filenames collision  [Karel Zak]
+colcrt:
+   - allocate enough space for data moves [afl & asan]  [Sami Kerola]
+   - avoid writing beyond array bound [afl & asan]  [Sami Kerola]
+   - use #define in place of magic constants  [Sami Kerola]
+colors:
+   - cleanup man pages, add hint to usage()  [Karel Zak]
+dmesg:
+   - fix shadow declaration  [Sami Kerola]
+   - highlight -T issues in docs  [Karel Zak]
+   - use GMT in tests, add DMESG_TEST_BOOTIME  [Karel Zak]
+docs:
+   - add hint about chfn & chsh bug and thanks to qualys  [Karel Zak]
+   - add lsblk vs. btrfs to TODO  [Karel Zak]
+   - add mount --namespace to TODO  [Karel Zak]
+   - add notest about drone.io and travis-ci  [Karel Zak]
+   - add terminal-colors requests to TODO  [Karel Zak]
+   - add v2.27-ReleaseNotes  [Karel Zak]
+   - document --exclude for tests  [Karel Zak]
+   - fix TODO typos  [Karel Zak]
+   - fix gtk-docs related warnings  [Karel Zak]
+   - fix some grammar and punctuation in the 2.27 release notes  [Benno Schulenberg]
+   - fix some spelling errors and typos in man pages  [Bill Pemberton]
+   - fix typo  [Karel Zak]
+   - fstab(5) grammar / English fixes, and some other updates  [Peter Cordes]
+   - make fsck.minix(8) more pretty  [Sami Kerola]
+   - remove obsolete things from TODO  [Karel Zak]
+   - unify mkswap(8) with swapon(8) about holes warning  [Sami Kerola]
+   - update AUTHORS file  [Karel Zak]
+   - update TODO  [Karel Zak]
+   - update v2.27-ReleaseNotes  [Karel Zak]
+eject:
+   - use parse_switch()  [Sami Kerola]
+fallocate:
+   - fix error message  [Karel Zak]
+fdisk:
+   - add 'F' command to list free unpartitioned space  [Karel Zak]
+   - add --protect-boot  [Karel Zak]
+   - add GNU Readline support to fdisk  [Karel Zak]
+   - add the 'i'nfo command  [Jean-Loup 'clippix' Bogalho]
+   - differentiate between +<sector> and +<size>{M,G,...}  [Karel Zak]
+   - fix readline wrapper  [Karel Zak]
+   - fix typo  [Karel Zak]
+   - init libsmartcols debug  [Karel Zak]
+   - provide more information by 'i'nfo command  [Karel Zak]
+   - value is never read [clang analyze]  [Karel Zak]
+fdisk, sfdisk:
+   - fix -o <list> backend  [Karel Zak]
+findmnt:
+   - add --json  [Karel Zak]
+   - add --mountpoint command line option  [Karel Zak]
+   - don't rely on st_dev for --target  [Karel Zak]
+flock:
+   - NULL deref  [Brad Forschinger]
+   - add --verbose option  [Sami Kerola]
+   - fix timeout handler pointer usage  [Karel Zak]
+   - improve timeout handling  [Sami Kerola]
+fsck:
+   - Fix parsing of -r  [Stanislav Brabec]
+   - fix fsck -C {fd} parsing  [Stanislav Brabec]
+   - implement fsck -r {fd}  [Stanislav Brabec]
+   - print errors on invalid -r argument  [Karel Zak]
+   - use PATH or fallback to /sbin  [Karel Zak]
+fsck.minix:
+   - add minix v3 support  [Sami Kerola]
+   - be more paranoid with block buffers [coverity scan]  [Karel Zak]
+   - introduce long options to the command  [Sami Kerola]
+   - rename device file descriptor variable  [Sami Kerola]
+fstrim:
+   - close dir before exit [coverity scan]  [Karel Zak]
+   - de-duplicate by mount source too  [Karel Zak]
+getopt:
+   - use $(...) command substitution in example script [shellcheck]  [Sami Kerola]
+hexdump:
+   - fix man page (-x vs. default output)  [Karel Zak]
+hwclock:
+   - Improve FILES section  [J William Piggott]
+   - Remove TZUTC  [J William Piggott]
+   - add '11 minute mode' information  [J William Piggott]
+   - add -D to the man page  [Karel Zak]
+   - add TZDIR  [J William Piggott]
+   - clean up man page header  [Karel Zak]
+   - cosmetic changes to man page  [Karel Zak]
+   - don't allow non-root access  [Karel Zak]
+   - fix fgets unchecked return value warning on alpha  [Andreas Henriksson]
+   - fix format warning in alpha code  [Andreas Henriksson]
+   - fix iopl implicit declaration warning on alpha  [Andreas Henriksson]
+   - fix signed/unsigned comparison warning on alpha  [Andreas Henriksson]
+   - fix spelling, punctuation and formatting mistakes in the man page  [Benno Schulenberg]
+   - flush stdout in hwclock -c  [Alexey Galakhov]
+   - increase debug output precision  [J William Piggott]
+   - make static analyzes more happy  [Karel Zak]
+   - man-page errata  [J William Piggott]
+   - non-root access in test mode  [J William Piggott]
+   - regression fix  [J William Piggott]
+   - remove an untrue phrase from the man page  [Benno Schulenberg]
+   - remove dead code  [J William Piggott]
+   - remove depreciated ntpdate  [J William Piggott]
+include/all-io:
+   - read_all() don't retry on EOF  [Karel Zak]
+include/c:
+   - Define F_DUPFD_CLOEXEC on kFreeBSD systems if missing  [Guillem Jover]
+include/xalloc:
+   - add err_oom()  [Karel Zak]
+ipcmk:
+   - support <size>{K,M,G,...}  [Karel Zak]
+kill:
+   - Add verbose to man page.  [Raghavendra D Prabhu]
+last:
+   - fix first (current) runlevel line  [Ruediger Meier]
+   - fix utmplist usage  [Karel Zak]
+   - keep array of files in main()  [Karel Zak]
+last-deprecated:
+   - remove from source tree  [Sami Kerola]
+ldattach:
+   - adapt print_table column width to widest entry  [Tilman Schmidt]
+   - always set line speed and format for N_GIGASET_M101  [Tilman Schmidt]
+   - order line disciplines canonically  [Tilman Schmidt]
+   - tiny coding style changes  [Karel Zak]
+lib/blkdev:
+   - use 64-bit to count size in bytes  [Karel Zak]
+lib/colors:
+   - add USAGE_COLORS_DEFAULT  [Karel Zak]
+   - use libtinfo to check terminal capability  [Karel Zak]
+lib/fileutils:
+   - Add new dup_fd_cloexec function  [Guillem Jover]
+lib/monotonic:
+   - fix compiler warnings  [Karel Zak]
+lib/procutils:
+   - add proc_get_cmdline()  [Karel Zak]
+lib/strutil:
+   - fix parse_switch resource leak [coverity scan]  [Andreas Henriksson]
+lib/strutils:
+   - extend parse_switch() to accept more options  [Karel Zak]
+   - fix string_add_to_idarray() int vs. size_t  [Karel Zak]
+   - make strmode() more generic  [Karel Zak]
+   - move parse_switch() from setterm(1) to library  [Sami Kerola]
+lib/strv:
+   - add new functions (from systemd)  [Karel Zak]
+lib/sysfs:
+   - Fix /dev to /sys node name translation  [Stanislav Brabec]
+   - Use dup_fd_cloexec instead of direct call to fcntl  [Guillem Jover]
+   - make sysfs_next_subsystem() more robust  [Karel Zak]
+   - rename devname functions, cleanup  [Karel Zak]
+lib/sysfs.c:
+   - use fcntl(..F_DUPFD_CLOEXEC) instead of dup(2)  [Cristian Rodríguez]
+lib/timer:
+   - use separate file for timers  [Karel Zak]
+lib/timeutils:
+   - fix indention [smatch scan]  [Karel Zak]
+libblkid:
+   - (drbdmanage) add magic strings array terminator  [Karel Zak]
+   - (drbdmanage) improve version setting code  [Karel Zak]
+   - (nilfs2) check devise size  [Karel Zak]
+   - (nilfs2) check size for backup superblock only  [Karel Zak]
+   - added drbdmanage control volume detection.  [Philipp Marek]
+   - cleanup names, don't copy probing results  [Karel Zak]
+   - fix compiler warning [-Wunused-variable]  [Karel Zak]
+   - fix compiler warnings  [Sami Kerola]
+   - fix inconsistent indenting [smatch scan]  [Karel Zak]
+   - make probing data structures more dynamic  [Ondrej Oprala]
+   - remove dead code [coverity scan]  [Karel Zak]
+   - use 'VERSION' rather than 'PERSISTENCE_VERSION'  [Karel Zak]
+   - simplify some conditions [cppcheck]  [Boris Egorov]
+   - (zfs) make less syscalls  [Michal Humpula]
+libfdisk:
+   - (bsd) add note about non-written parental MBR  [Karel Zak]
+   - (dos)  retain existing boot flag when resizing a partition  [Karel Zak, awilliam@redhat.co]
+   - (dos) fix cylinders calculation  [Karel Zak]
+   - (dos) fix tiny partitions calculation  [Karel Zak]
+   - (gpt) add API for raw partition attributes  [Michael Marineau]
+   - (gpt) add extra check for First/Last LBA  [Karel Zak]
+   - (gpt) add missing GUIDs  [Karel Zak]
+   - (gpt) check header size before verify CRC  [Karel Zak]
+   - (gpt) fix "MidnightBSD UFS" UUID  [Karel Zak]
+   - (gpt) fix LE usage  [Karel Zak]
+   - (gpt) fix attributes endianness  [Ruediger Meier]
+   - (gpt) fix check for beginning of protective partition  [Michael Marineau]
+   - (gpt) fix end sector calculation on resize  [Karel Zak]
+   - (gpt) fix label pointer usage [smatch scan]  [Karel Zak]
+   - (gpt) make it possible to create really small partitions  [Karel Zak]
+   - (gpt) reorder only when necessary  [Karel Zak]
+   - Use predictable /dev/mapper partition names for /dev/dm-N  [Stanislav Brabec]
+   - add GPT GUIDs for ARMs  [Karel Zak]
+   - add GPT GUIDs for PReP  [Scott Moser]
+   - add JSON dump output  [Karel Zak]
+   - add comment to the header file  [Karel Zak]
+   - add fdisk_label_get_fields_ids_all()  [Karel Zak]
+   - add fdisk_table_get_partition_by_partno()  [Karel Zak]
+   - add fgets() callback for scripts  [Karel Zak]
+   - add new API to read label specific data  [Karel Zak]
+   - add warning to resize function  [Karel Zak]
+   - add {first,last}-lba header to sfdisk scritps  [Karel Zak]
+   - allow to change partition type for extended partitions  [Karel Zak]
+   - allow to move start to first usable LBA  [Karel Zak]
+   - cleanup assert() usage  [Karel Zak]
+   - don't resize in label drivers  [Karel Zak]
+   - don't return empty strings from fdisk_partition_to_string()  [Karel Zak]
+   - fix fdisk_label_parse_parttype() for unknown types  [Karel Zak]
+   - fix script parser to support resize operations  [Karel Zak]
+   - fix scriptk parser to support alone signs  [Karel Zak]
+   - fix symbols versioning script  [Karel Zak]
+   - ignore misaligned optimal I/O size  [Karel Zak]
+   - improve +0 partition size  [Karel Zak]
+   - keep FDISK_FIELD_CYLINDERS independent on context mode  [Karel Zak]
+   - make context->label usage more robust [smatch scan]  [Karel Zak]
+   - recognize FAT32 partitions hidden by Acronis software  [Jörg Jenderek]
+   - remove impossible condition [smatch scan]  [Karel Zak]
+   - rename script functions to improve readability  [Karel Zak]
+   - result of operation is garbage or undefined [clang analyze]  [Karel Zak]
+   - support alignment to non power of 2  [Karel Zak]
+   - support bootbits protection from (p)MBR  [Karel Zak]
+   - support resize operation in fdisk_set_partition()  [Karel Zak]
+   - undefined or garbage value returned to caller [clang analyze]  [Karel Zak]
+libmount:
+   - (docs) fix typo  [Ronny Chevalier]
+   - (docs) fix wording  [Ronny Chevalier]
+   - (monitor) fix docs  [Karel Zak]
+   - add mnt_table_get_fs_root() to header file  [Karel Zak]
+   - add note about flock() to docs  [Karel Zak]
+   - add support for "bind,ro"  [Karel Zak]
+   - add support for MS_LAZYTIME  [Karel Zak]
+   - cleanup assert() usage  [Karel Zak]
+   - cleanup fs root detection code  [Karel Zak]
+   - do not call umount helper on --fake  [Karel Zak]
+   - fix compiler warning [-Wdiscarded-qualifiers]  [Karel Zak]
+   - fix mnt_monitor_event_cleanup()  [Karel Zak]
+   - fix typo in mnt_optstr_prepend_option()  [Karel Zak]
+   - handle arbitrary line length for mounts  [Karel Zak]
+   - improve monitor to be usable for non-root users  [Karel Zak]
+   - make mnt_get_filesystems() more robust [clang analyze]  [Karel Zak]
+   - mark overlay as pseudo-FS  [Karel Zak]
+   - sort pseudo filesystems by LC_COLLATE=C  [Karel Zak]
+   - typo fixes  [Kir Kolyshkin]
+   - variable dereferenced before check [smatch scan]  [Karel Zak]
+libsmartcols:
+   - add JSON output format  [Karel Zak]
+   - don't link with tinfo  [Karel Zak]
+   - keep JSON field names lower-case  [Karel Zak]
+   - make child-parent reference more robust [clang analyze]  [Karel Zak]
+   - reduce relative columns more aggressively  [Karel Zak]
+libuuid:
+   - return correct value for uuid_generate_time_safe  [Romain Bouvier]
+logger:
+   - --stderr and --no-act turn "auto-errors" on  [Ruediger Meier]
+   - Add support to logger for RFC6587 octet counting  [Alex Bligh]
+   - Fix use of errno after strtol() without zeroing first  [Stef Walter]
+   - add --msgid option, permits to set RFC5424 MSGID field  [Rainer Gerhards]
+   - add --no-act for testing  [Karel Zak]
+   - add --skip-empty-lines to prevent logging empty lines  [Rainer Gerhards]
+   - add -DTEST_LOGGER  [Karel Zak]
+   - add comment  [Karel Zak]
+   - add note about kern->user conversion  [Karel Zak]
+   - bugfix  missing sanity checks with --prio-prefix option  [Rainer Gerhards]
+   - bugfix  tcp syslog framing is broken, -T unusable  [Rainer Gerhards]
+   - check for ntp_gettime() rather than for timex.h  [Karel Zak]
+   - check xgethostname() return value  [Sami Kerola]
+   - do not exit when socket errors are not enforced  [Sami Kerola]
+   - fix -i argument parsing regression  [Sami Kerola]
+   - fix -p kern.* priority is accepted regression  [Rainer Gerhards]
+   - fix LOGGER_TEST_TIMEOFDAY check  [Karel Zak]
+   - fix inconsistent format regression when logging locally  [Rainer Gerhards]
+   - fix invalid timestamp in rfc5425 format  [Rainer Gerhards]
+   - fix invalid timestamp regression in local format  [Rainer Gerhards]
+   - fix memory leaks  [Sami Kerola]
+   - fix multiple format bugs in rfc5424 formatter  [Rainer Gerhards]
+   - fix rfc5424 format crash  [Karel Zak]
+   - fix whitespace and compiler warning [-Wunused-variable]  [Karel Zak]
+   - generate header when reading message from stdin  [Patrick Plagwitz]
+   - improve logger --journald man page example  [Michal Schmidt]
+   - improve readability [smatch scan]  [Karel Zak]
+   - link libsystemd-daemon.so  [Ruediger Meier]
+   - messages are logged with kern.* priority by default  [Rainer Gerhards]
+   - move /dev/log to pathnames.h  [Sami Kerola]
+   - permit to send messages larger than 1024 characters  [Rainer Gerhards]
+   - refactor message generation  [Rainer Gerhards]
+   - refactor the way output is written  [Rainer Gerhards]
+   - remove "interface to syslog(3)" from man page  [Karel Zak]
+   - small change in usage()  [Karel Zak]
+   - tidy few indentation issues  [Sami Kerola]
+   - use errx() when checking user input  [Sami Kerola]
+   - use username as the default tag  [Karel Zak]
+   - use xstrdup()  [Karel Zak]
+logger man page:
+   - bump man page date to current  [Rainer Gerhards]
+   - fix some "syslog(3) routine" remnants  [Rainer Gerhards]
+   - fix typo  [Rainer Gerhards]
+   - update --size doc  [Rainer Gerhards]
+login:
+   - replace siginterrupt with sigaction  [Chen Qi]
+losetup:
+   - add --json  [Karel Zak]
+   - be careful with errno  [Karel Zak]
+   - print more usable error message on failed -f  [Karel Zak]
+lsblk:
+   - Display mountpoint even for top-level device  [Milan Broz]
+   - add --json  [Karel Zak]
+   - add debug support  [Karel Zak]
+   - don't ignore dependences for partitioned devies  [Karel Zak]
+   - fix resource leak [coverity scan]  [Andreas Henriksson]
+   - follow kernel for inverse tree  [Karel Zak]
+   - lsblk.8 Fix description of output format  [Stanislav Brabec]
+   - use internally sysfs devnames  [Karel Zak]
+lscpu:
+   - add cpu flags entry to summary output  [WANG Chao]
+   - add warning for __SANITIZE_ADDRESS__  [Karel Zak]
+   - fix read_hypervisor_powerpc() logic  [Karel Zak]
+lsipc:
+   - add COMMAND for shmem  [Karel Zak]
+   - add CTIME to shmem default  [Karel Zak]
+   - add USE% to --global  [Karel Zak]
+   - add more resource to the limits list  [Karel Zak]
+   - check scols_line_refer_data() return code  [Karel Zak]
+   - cleanup -o usage  [Karel Zak]
+   - cleanup columns indexes  [Karel Zak]
+   - cleanup usernames  [Karel Zak]
+   - cleanup {user,group}name usage  [Karel Zak]
+   - default to --global  [Karel Zak]
+   - differentiate between UID and USER names  [Karel Zak]
+   - don't duplicate already allocated data  [Karel Zak]
+   - fix ID parsing, use full time for pretty print  [Karel Zak]
+   - fix coding style  [Karel Zak]
+   - ifdef SHM_* macros  [Karel Zak]
+   - improve --global  [Karel Zak]
+   - improve JSON output  [Karel Zak]
+   - make --id usable with all output formats and with -o  [Karel Zak]
+   - move outmode to coltrol struct  [Karel Zak]
+   - new command to list IPC facilities  [Karel Zak, Karel Zak]
+   - remove --print0 and -colon-separate  [Karel Zak]
+   - remove duplicate "Usage "  [Karel Zak]
+   - the default --global is mutually exclusive with -c --id and -t  [Karel Zak]
+   - tiny change about --global to the man page  [Karel Zak]
+   - use sub-table for semphore elements  [Karel Zak]
+   - value is never read [clang analyze]  [Karel Zak]
+lslocks:
+   - add --json  [Karel Zak]
+   - slice up the recently modified usage text  [Benno Schulenberg]
+lslogins:
+   - fix --user-accs and --system-accs docs  [Karel Zak]
+   - merge read_utmp() code  [Karel Zak]
+   - remove duplicate [make checkincludes]  [Karel Zak]
+man:
+   - fix nolazytime typo in mount(8)  [Andreas Henriksson]
+mcookie:
+   - fix -f usage [clang analyze]  [Karel Zak]
+misc:
+   - fix indention [smatch scan]  [Karel Zak]
+   - fix redundant assignment and reassignments before use [cppcheck]  [Sami Kerola]
+   - fix shadow declarations  [Sami Kerola]
+mkfs:
+   - drop hardcoded search path  [Mike Frysinger]
+mkfs.cramfs:
+   - remove dead code [coverity scan]  [Karel Zak]
+mkfs.minix:
+   - add fs_control structure, and remove most global variables  [Sami Kerola]
+   - add hint for scanners [coverity scan]  [Karel Zak]
+   - check requested blocks will not exceed available on device  [Sami Kerola]
+   - check user input carefully  [Sami Kerola]
+   - increase maximum minix v2 and v3 file system sizes  [Joshua Hudson]
+   - introduce long options to the command  [Sami Kerola]
+   - re-fix block count maths  [Sami Kerola]
+   - refactor root block content creation  [Sami Kerola]
+   - remove unuseful code  [Sami Kerola]
+   - use is_mounted() from libcommon  [Sami Kerola]
+   - use xalloc  [Karel Zak]
+more:
+   - improve ugly macro  [Karel Zak]
+mount:
+   - don't remount read-only on --bind  [Karel Zak]
+   - fix lazytime docs  [Karel Zak]
+   - mount.8 Clarify relation between noatime and nodiratime  [Borut Mrak]
+   - mount.8 also note diratime does not override noatime.  [Borut Mrak]
+   - remove XFS from man page, xfsprogs provides xfs(5)  [Karel Zak]
+   - remove duplications of --help and --version from usage text  [Benno Schulenberg]
+nsenter:
+   - add -Z to set selinux context  [Karel Zak]
+po:
+   - merge changes  [Karel Zak]
+   - update da.po (from translationproject.org)  [Joe Hansen]
+   - update es.po (from translationproject.org)  [Antonio Ceballos Roa]
+   - update fi.po (from translationproject.org)  [Lauri Nurmi]
+   - update fr.po (from translationproject.org)  [David Prévot]
+   - update ja.po (from translationproject.org)  [Takeshi Hamasaki]
+   - update pl.po (from translationproject.org)  [Jakub Bogusz]
+   - update uk.po (from translationproject.org)  [Yuri Chornoivan]
+prlimit:
+   - tell in --verbose output which pid got the new limit  [Sami Kerola]
+procutils:
+   - reset errno before readdir  [Ruediger Meier]
+rename:
+   - allow full-path renames  [Andreas Henriksson]
+reset:
+   - deprecate the script, and remove reset.033c  [Sami Kerola]
+rpmatch:
+   - use symbolic value when evaluation return codes  [Sami Kerola]
+rtcwake:
+   - add --list-modes  [Sami Kerola]
+   - add human readable --date timestamp format  [Sami Kerola]
+   - add rtcwake_control and remove global variables  [Sami Kerola]
+   - clean up struct tm initializations  [Sami Kerola]
+   - cosmetic changes  [Karel Zak]
+   - do not overwrite device name  [Sami Kerola]
+   - don't use usage() on error  [Karel Zak]
+   - enumerate constant mode strings  [Sami Kerola]
+   - fix ARRAY_SIZE() usage  [Karel Zak]
+   - fix preprocessor redefinition  [Sami Kerola]
+   - fix valgrind warning  [Sami Kerola]
+   - improve coding style  [Sami Kerola]
+   - improve open() usage [coverity scan]  [Karel Zak]
+   - improve read_clock_mode()  [Sami Kerola]
+   - make some command line options mutually exclusive  [Sami Kerola]
+   - read accepted mode strings from /sys/power/state  [Sami Kerola]
+   - remove RTC_ALM_READ and RTC_ALM_SET compatibility  [Sami Kerola]
+   - replace long if else statement with switch case  [Sami Kerola]
+script:
+   - Fix mangled EOF and hang on big endian  [Stanislav Brabec]
+   - add 'Script started' line always to capture file  [Sami Kerola]
+   - add noreturn function attributes  [Sami Kerola]
+   - add note to BUGS man page section  [Karel Zak]
+   - add struct script_control and remove global variables  [Sami Kerola]
+   - add support for SCRIPT_DEBUG=  [Karel Zak]
+   - cleanup signals usage  [Karel Zak]
+   - close timingfp also when -e  [Karel Zak]
+   - debug poll() results  [Karel Zak]
+   - evaluate errno only if read() sets it  [Ruediger Meier]
+   - fix EOF problems  [Karel Zak]
+   - fix variable initialization warning  [Sami Kerola]
+   - improve SIG{TERM,QUIT,KILL} sensitivity  [Karel Zak]
+   - improve poll debugging  [Karel Zak]
+   - make sure errno is zero  [Karel Zak]
+   - merge doinput() and output() functions to do_io()  [Sami Kerola]
+   - move do_io() content to small functions  [Sami Kerola]
+   - move timing file opening close to use of it  [Sami Kerola]
+   - remove function prototypes  [Sami Kerola]
+   - remove io vs signal race  [Sami Kerola]
+   - remove magic constants from poll code  [Karel Zak]
+   - rename control struct members  [Karel Zak]
+   - replace strftime() workaround with CFLAGS = -Wno-format-y2k  [Sami Kerola]
+   - use correct input type, move comment, and so on  [Sami Kerola]
+   - use gettime_monotonic() to get timing file timestamps  [Sami Kerola]
+   - use poll() rather than select()  [Sami Kerola]
+   - use signalfd() to catch signals  [Sami Kerola]
+setarch:
+   - fix regression for sparc builds  [Waldemar Brodkorb]
+setterm:
+   - remove dead code [coverity scan]  [Karel Zak]
+sfdisk:
+   - accept empty partitions from dump  [Karel Zak]
+   - add --json  [Karel Zak]
+   - add --list-free  [Karel Zak]
+   - add missing --color  [Karel Zak]
+   - add readline support  [Karel Zak]
+   - clarification for sfdisk man page  [Ian Wienand]
+   - cleanup prompt usage  [Karel Zak]
+   - don't print extra linebreaks on --quiet  [Karel Zak]
+   - don't use BLKRRPART to check loopdev usage  [Karel Zak]
+   - enable bootbits protection  [Karel Zak]
+   - fix -a vs. -A bug  [Karel Zak]
+   - improve -N warnings  [Karel Zak]
+   - improve some formatting and wording in the man page  [Benno Schulenberg]
+   - show that the command --verify optionally takes device names  [Benno Schulenberg]
+sulogin:
+   - Use read instead of allocated size from getline()  [Guillem Jover]
+   - don't use strcpy(), enlarge pwd line buffer  [Karel Zak]
+   - improve support for locked root account  [Karel Zak]
+swapon:
+   - fix restart waitpid with errno == EINTR  [Karel Zak]
+   - search for mkswap via PATH  [Mike Frysinger]
+sys-utils:
+   - lscpu segfaults when built with -fsanitize=address  [Cristian Rodríguez]
+sys-utils/disk-utils/lib:
+   - fix printf format types [cppcheck]  [Boris Egorov]
+tailf:
+   - count last lines correctly at initial print out  [Sami Kerola]
+   - deprecated  [Ruediger Meier]
+   - do not allow minus signed last lines argument  [Sami Kerola]
+   - ensure file argument really is a file  [Sami Kerola]
+   - fix open() return value check [coverity scan]  [Karel Zak]
+   - use size_t and fwrite()  [Karel Zak]
+tasts:
+   - add logger octet counting test  [Karel Zak]
+test_uuidd:
+   - add comment  [Karel Zak]
+   - add pid, tid and idx back to object  [Karel Zak]
+   - cleanup counters names  [Karel Zak]
+   - cleanup pid usage  [Karel Zak]
+   - cleanup used types  [Karel Zak]
+   - don't exit on failed pthread_create()  [Karel Zak]
+   - err messages, argv[] parsing and another cleanups  [Karel Zak]
+   - fix include  [Karel Zak]
+   - improve readability  [Karel Zak]
+   - make objdump more robust  [Karel Zak]
+tests:
+   - (blkid) update drbdmanage  [Karel Zak]
+   - (cal) update US week numbers  [Karel Zak]
+   - add $top_builddir to $PATH  [Ruediger Meier]
+   - add --exclude=<list> for run.sh  [Karel Zak]
+   - add --skip-loopdevs  [Karel Zak]
+   - add JSON sfdisk dumps  [Karel Zak]
+   - add blkid script to test whole-disk MBR devices  [Karel Zak]
+   - add colcrt regression tests  [Sami Kerola]
+   - add dmesg multiline message check  [Sami Kerola]
+   - add documentation about environment variables  [Ruediger Meier]
+   - add fsck.minix checks  [Sami Kerola]
+   - add fullpath tests to rename/subdir  [Andreas Henriksson]
+   - add hexdump from GPT  [Karel Zak]
+   - add logger(1) command line options tests  [Sami Kerola]
+   - add logger(1) error condition tests  [Sami Kerola]
+   - add logger(1) journald test  [Sami Kerola]
+   - add logger(1) message format tests  [Sami Kerola]
+   - add old dump for sfdisk  [Karel Zak]
+   - add script output buffering race check  [Sami Kerola]
+   - add scriptreplay test  [Sami Kerola]
+   - add sfdisk resize regression tests for MBR  [Karel Zak]
+   - add sfdisk resize tests  [Karel Zak]
+   - add sfdisk resize tests for GPT  [Karel Zak]
+   - add subtests for invalid logger devive  [Ruediger Meier]
+   - add test_dmesg that has fixed boot time  [Sami Kerola]
+   - add udevadm settle  [Karel Zak]
+   - add uuidd test program  [Huschaam Hussain]
+   - add very long mount line to libmount mtab  [Kees Cook]
+   - add way to control mkfs.minix time stamps  [Sami Kerola]
+   - always kill helper  [Ruediger Meier]
+   - avoid &>> for bash compatibility  [Ruediger Meier]
+   - check dmesg message coloring  [Sami Kerola]
+   - check script options work as expected  [Sami Kerola]
+   - check timestamp formats  [Sami Kerola]
+   - config.h lives in build directory  [Ruediger Meier]
+   - disarm tailf test  [Ruediger Meier]
+   - fix cramfs/mkfs for BE and different pagesizes  [Ruediger Meier]
+   - fix fdisk/bsd for ppc64le  [Ruediger Meier]
+   - fix getopt for old glibc  [Ruediger Meier]
+   - fix kill/all_processes  [Ruediger Meier]
+   - fix logger device pathname too long  [Ruediger Meier]
+   - fix minix test  [Karel Zak]
+   - fix minix tests filenames  [Karel Zak]
+   - fix sfdisk GPT test  [Karel Zak]
+   - fix, don't call ts_die from subshell  [Ruediger Meier]
+   - improve readability for fdisk/bsd  [Ruediger Meier]
+   - introduce TS_LOOP_DEVS for cleanup  [Ruediger Meier]
+   - introduce ts_cleanup_on_exit()  [Ruediger Meier]
+   - logger with socat device  [Ruediger Meier]
+   - logger, validate written socket data  [Ruediger Meier]
+   - logger/errors does not use --no-act  [Ruediger Meier]
+   - loop tests, don't call ts_die() with DEVICE parameter  [Ruediger Meier]
+   - make libmount context tests sensitive to USE_LIBMOUNT_FORCE_MOUNTINFO  [Karel Zak]
+   - make libmount python context tests sensitive to USE_LIBMOUNT_FORCE_MOUNTINFO  [Karel Zak]
+   - more error handling in mount/move (refactor)  [Ruediger Meier]
+   - more(1) depends on terminal, force to TERM=linux  [Karel Zak]
+   - mount/move also tests findmnt vs. mountpoint  [Ruediger Meier]
+   - mount/rlimit tries to restore mtab  [Ruediger Meier]
+   - never use -o pipefail  [Ruediger Meier]
+   - optionally skip tests where loop support is needed  [Ruediger Meier]
+   - remove private2 dir from mount/move  [Karel Zak]
+   - remove warning from test output  [Ruediger Meier]
+   - require wipefs for sfdisk/gpt  [Karel Zak]
+   - scsi_debug tests, don't call ts_die() with DEVICE parameter  [Ruediger Meier]
+   - simplify common logger options  [Ruediger Meier]
+   - some more mount error handling  [Ruediger Meier]
+   - start script/race test only when --force specified  [Karel Zak]
+   - try mkfs & mount all supported minix versions  [Karel Zak]
+   - ts_scsi_debug_init() sleeps a bit earlier  [Ruediger Meier]
+   - update build-sys tests  [Karel Zak]
+   - update fdisk BSD  [Karel Zak]
+   - update lscpu tests (due to CPU flags in output)  [Karel Zak]
+   - update sfdisk --dump test  [Karel Zak]
+   - update static build test  [Karel Zak]
+   - use --no-act for logger tests  [Karel Zak]
+   - use ts_skip for logger/journald  [Karel Zak]
+   - verify logger return value  [Ruediger Meier]
+textual:
+   - adjust grammar and punctuation of some messages  [Benno Schulenberg]
+tools:
+   - add err_oom() to smatch no_return_funcs  [Karel Zak]
+   - add hexdump badconv() to noreturn smatch list  [Karel Zak]
+   - add libfdisk docs to kernel.org release generator  [Karel Zak]
+   - stop checkmans.sh validating libtool builds  [Sami Kerola]
+travis:
+   - add MAKE_CHECK_OPTS  [Karel Zak]
+   - install socat >= 1.7.2  [Ruediger Meier]
+   - move install script to .travis-functions.sh  [Ruediger Meier]
+   - whitelist travis* branches  [Ruediger Meier]
+travise:
+tunelp:
+   - remove get_val() in favour of strtol_or_err()  [Sami Kerola]
+   - remove unnecessary preprocessor directives  [Sami Kerola]
+   - use parse_switch()  [Sami Kerola]
+unshare:
+   - add --propagation, use MS_PRIVATE by default  [Karel Zak]
+   - allow persisting mount namespaces  [Karel Zak]
+   - allow persisting namespaces  [Karel Zak]
+   - remove angular brackets from literal argument in usage text  [Benno Schulenberg]
+   - remove duplicate [make checkincludes]  [Karel Zak]
+wall:
+   - do not use a temporary file.  [Karel Zak, Jann Horn]
+whereis:
+   - make "-BMS <dir> -f" more obvious in usage()  [Karel Zak]
+   - tell when mandatory option is missing  [Sami Kerola]
+   - trivial spelling and grammar fix  [Mike Place]
+zramctl:
+   - add MEM-LIMIT, MEM-USED and MIGRATED columns  [Karel Zak]
+   - add link to kernel documentation  [Sami Kerola]
+   - support /sys/block/zram<id>/mm_stat  [Karel Zak]

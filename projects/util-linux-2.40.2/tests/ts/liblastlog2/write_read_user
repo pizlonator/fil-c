@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="write_read_user"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command $TS_HELPER_LIBLASTLOG2_WRITE_READ_USER
+
+$TS_HELPER_LIBLASTLOG2_WRITE_READ_USER || ts_failed "returned an error"
+
+rm tst-write-read-user.db
+
+ts_finalize

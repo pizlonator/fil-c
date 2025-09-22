@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# git-tp-sync - downloads the latest PO files from translationproject.org
+#               and commits changes to your GIT repository.
+#
+# Features:
+#             - commit per PO file (no more huge commits for all .po files)
+#             - the commit "Author:" field is set according to the Last-Translator
+#
+# Copyright (C) 2007-2016 Karel Zak <kzak@redhat.com>
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+PROJECT="util-linux"
+if [ -n "$1" ]; then
+	while (( "$#" )); do
+		if [ -n "$1" ]; then
+			rsync  -Lrtvz  rsync://translationproject.org/tp/latest/$PROJECT/$1.po po
+		fi
+		shift
+	done
+else
+	rsync  -Lrtvz  rsync://translationproject.org/tp/latest/$PROJECT/ po
+fi
+
+PO_NEW=$(git ls-files -o | gawk '/po\/[[:alpha:]_\-]*\.po/ { sub("po/", ""); print $0; }' | sort)
+PO_MOD=$(git ls-files -m | gawk '/po\/[[:alpha:]_\-]*\.po/ { sub("po/", ""); print $0; }' | sort)
+
+function get_author {
+	echo $(gawk 'BEGIN { FS=": " } /Last-Translator/ { sub("\\\\n\"", ""); print $2 }' "$1")
+}
+
+function do_commit {
+	local POFILE="$1"
+	local MSG="$2"
+	local AUTHOR=$(get_author "$POFILE")
+
+	git commit --author "$AUTHOR" -m "$MSG" "$POFILE"
+}
+
+for f in $PO_MOD; do
+	do_commit "po/$f" "po: update $f (from translationproject.org)"
+done
+
+for f in $PO_NEW; do
+	git add "po/$f"
+	do_commit "po/$f" "po: add $f (from translationproject.org)"
+done
+
+LINGUAS=$(find po/ -name '*.po' -type f -printf '%P\n' | sed 's/\.po//g' | sort)
+echo "$LINGUAS" > po/LINGUAS

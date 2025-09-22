@@ -1,0 +1,51 @@
+//po4a: entry man manual
+= exch(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: exch
+
+== NAME
+
+exch - atomically exchanges paths between two files
+
+== SYNOPSIS
+
+*exch* _oldpath_ _newpath_
+
+== DESCRIPTION
+
+*exch* atomically exchanges oldpath and newpath.
+*exch* is a simple command wrapping *RENAME_EXCHANGE* of *renameat2*
+system call.
+
+
+== OPTIONS
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*exch* has the following exit status values:
+
+*0*::
+success
+*1*::
+unspecified failure
+
+== AUTHORS
+
+mailto:yamato@redhat.com[Masatake YAMATO]
+
+== SEE ALSO
+
+*renameat2*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

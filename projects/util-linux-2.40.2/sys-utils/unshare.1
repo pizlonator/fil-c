@@ -1,0 +1,399 @@
+'\" t
+.\"     Title: unshare
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "UNSHARE" "1" "2024-07-04" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+unshare \- run program in new namespaces
+.SH "SYNOPSIS"
+.sp
+\fBunshare\fP [options] [\fIprogram\fP [\fIarguments\fP]]
+.SH "DESCRIPTION"
+.sp
+The \fBunshare\fP command creates new namespaces (as specified by the command\-line options described below) and then executes the specified \fIprogram\fP. If \fIprogram\fP is not given, then "${SHELL}" is run (default: \fI/bin/sh\fP).
+.sp
+By default, a new namespace persists only as long as it has member processes. A new namespace can be made persistent even when it has no member processes by bind mounting /proc/\fIpid\fP/ns/\fItype\fP files to a filesystem path. A namespace that has been made persistent in this way can subsequently be entered with \fBnsenter\fP(1) even after the \fIprogram\fP terminates (except PID namespaces where a permanently running init process is required). Once a persistent namespace is no longer needed, it can be unpersisted by using \fBumount\fP(8) to remove the bind mount. See the \fBEXAMPLES\fP section for more details.
+.sp
+\fBunshare\fP since util\-linux version 2.36 uses \fI/proc/[pid]/ns/pid_for_children\fP and \fI/proc/[pid]/ns/time_for_children\fP files for persistent PID and TIME namespaces. This change requires Linux kernel 4.17 or newer.
+.sp
+The following types of namespaces can be created with \fBunshare\fP:
+.sp
+\fBmount namespace\fP
+.RS 4
+Mounting and unmounting filesystems will not affect the rest of the system, except for filesystems which are explicitly marked as shared (with \fBmount \-\-make\-shared\fP; see \fI/proc/self/mountinfo\fP or \fBfindmnt \-o+PROPAGATION\fP for the \fBshared\fP flags). For further details, see \fBmount_namespaces\fP(7).
+.sp
+\fBunshare\fP since util\-linux version 2.27 automatically sets propagation to \fBprivate\fP in a new mount namespace to make sure that the new namespace is really unshared. It\(cqs possible to disable this feature with option \fB\-\-propagation unchanged\fP. Note that \fBprivate\fP is the kernel default.
+.RE
+.sp
+\fBUTS namespace\fP
+.RS 4
+Setting hostname or domainname will not affect the rest of the system. For further details, see \fButs_namespaces\fP(7).
+.RE
+.sp
+\fBIPC namespace\fP
+.RS 4
+The process will have an independent namespace for POSIX message queues as well as System V message queues, semaphore sets and shared memory segments. For further details, see \fBipc_namespaces\fP(7).
+.RE
+.sp
+\fBnetwork namespace\fP
+.RS 4
+The process will have independent IPv4 and IPv6 stacks, IP routing tables, firewall rules, the \fI/proc/net\fP and \fI/sys/class/net\fP directory trees, sockets, etc. For further details, see \fBnetwork_namespaces\fP(7).
+.RE
+.sp
+\fBPID namespace\fP
+.RS 4
+Children will have a distinct set of PID\-to\-process mappings from their parent. For further details, see \fBpid_namespaces\fP(7).
+.RE
+.sp
+\fBcgroup namespace\fP
+.RS 4
+The process will have a virtualized view of \fI/proc/self/cgroup\fP, and new cgroup mounts will be rooted at the namespace cgroup root. For further details, see \fBcgroup_namespaces\fP(7).
+.RE
+.sp
+\fBuser namespace\fP
+.RS 4
+The process will have a distinct set of UIDs, GIDs and capabilities. For further details, see \fBuser_namespaces\fP(7).
+.RE
+.sp
+\fBtime namespace\fP
+.RS 4
+The process can have a distinct view of \fBCLOCK_MONOTONIC\fP and/or \fBCLOCK_BOOTTIME\fP which can be changed using \fI/proc/self/timens_offsets\fP. For further details, see \fBtime_namespaces\fP(7).
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-i\fP, \fB\-\-ipc\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new IPC namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP.
+.RE
+.sp
+\fB\-m\fP, \fB\-\-mount\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new mount namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP. Note that \fIfile\fP must be located on a mount whose propagation type is not \fBshared\fP (or an error results). Use the command \fBfindmnt \-o+PROPAGATION\fP when not sure about the current setting. See also the examples below.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-net\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new network namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-pid\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new PID namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP. (Creation of a persistent PID namespace will fail if the \fB\-\-fork\fP option is not also specified.)
+.sp
+See also the \fB\-\-fork\fP and \fB\-\-mount\-proc\fP options.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-uts\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new UTS namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP.
+.RE
+.sp
+\fB\-U\fP, \fB\-\-user\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new user namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP.
+.RE
+.sp
+\fB\-C\fP, \fB\-\-cgroup\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new cgroup namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-time\fP[\fB=\fP\fIfile\fP]
+.RS 4
+Create a new time namespace. If \fIfile\fP is specified, then the namespace is made persistent by creating a bind mount at \fIfile\fP. The \fB\-\-monotonic\fP and \fB\-\-boottime\fP options can be used to specify the corresponding offset in the time namespace.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-fork\fP
+.RS 4
+Fork the specified \fIprogram\fP as a child process of \fBunshare\fP rather than running it directly. This is useful when creating a new PID namespace. Note that when \fBunshare\fP is waiting for the child process, then it ignores \fBSIGINT\fP and \fBSIGTERM\fP and does not forward any signals to the child. It is necessary to send signals to the child process.
+.RE
+.sp
+\fB\-\-keep\-caps\fP
+.RS 4
+When the \fB\-\-user\fP option is given, ensure that capabilities granted in the user namespace are preserved in the child process.
+.RE
+.sp
+\fB\-\-kill\-child\fP[\fB=\fP\fIsigname\fP]
+.RS 4
+When \fBunshare\fP terminates, have \fIsigname\fP be sent to the forked child process. Combined with \fB\-\-pid\fP this allows for an easy and reliable killing of the entire process tree below \fBunshare\fP. If not given, \fIsigname\fP defaults to \fBSIGKILL\fP. This option implies \fB\-\-fork\fP.
+.RE
+.sp
+\fB\-\-mount\-proc\fP[\fB=\fP\fImountpoint\fP]
+.RS 4
+Just before running the program, mount the proc filesystem at \fImountpoint\fP (default is \fI/proc\fP). This is useful when creating a new PID namespace. It also implies creating a new mount namespace since the \fI/proc\fP mount would otherwise mess up existing programs on the system. The new proc filesystem is explicitly mounted as private (with \fBMS_PRIVATE\fP|\fBMS_REC\fP).
+.RE
+.sp
+\fB\-\-map\-user=\fP\fIuid|name\fP
+.RS 4
+Run the program only after the current effective user ID has been mapped to \fIuid\fP. If this option is specified multiple times, the last occurrence takes precedence. This option implies \fB\-\-user\fP.
+.RE
+.sp
+\fB\-\-map\-users=\fP\fIinneruid:outeruid:count\fP|\fBauto\fP|\fBall\fP
+.RS 4
+Run the program only after the block of user IDs of size \fIcount\fP beginning at \fIouteruid\fP has been mapped to the block of user IDs beginning at \fIinneruid\fP. This mapping is created with \fBnewuidmap\fP(1) if \fBunshare\fP was run unprivileged. If the range of user IDs overlaps with the mapping specified by \fB\-\-map\-user\fP, then a "hole" will be removed from the mapping. This may result in the highest user ID of the mapping not being mapped. Use \fB\-\-map\-users\fP multiple times to map more than one block of user IDs. The special value \fBauto\fP will map the first block of user IDs owned by the effective user from \fI/etc/subuid\fP to a block starting at user ID 0. The special value \fBall\fP will create a pass\-through map for every user ID available in the parent namespace. This option implies \fB\-\-user\fP.
+.sp
+Before util\-linux version 2.39, this option expected a comma\-separated argument of the form \fIouteruid,inneruid,count\fP but that format is now deprecated for consistency with the ordering used in \fI/proc/[pid]/uid_map\fP and the \fIX\-mount.idmap\fP mount option.
+.RE
+.sp
+\fB\-\-map\-group=\fP\fIgid|name\fP
+.RS 4
+Run the program only after the current effective group ID has been mapped to \fIgid\fP. If this option is specified multiple times, the last occurrence takes precedence. This option implies \fB\-\-setgroups=deny\fP and \fB\-\-user\fP.
+.RE
+.sp
+\fB\-\-map\-groups=\fP\fIinnergid:outergid:count\fP|\fBauto\fP|\fBall\fP
+.RS 4
+Run the program only after the block of group IDs of size \fIcount\fP beginning at \fIoutergid\fP has been mapped to the block of group IDs beginning at \fIinnergid\fP. This mapping is created with \fBnewgidmap\fP(1) if \fBunshare\fP was run unprivileged. If the range of group IDs overlaps with the mapping specified by \fB\-\-map\-group\fP, then a "hole" will be removed from the mapping. This may result in the highest group ID of the mapping not being mapped. Use \fB\-\-map\-groups\fP multiple times to map more than one block of group IDs. The special value \fBauto\fP will map the first block of user IDs owned by the effective user from \fI/etc/subgid\fP to a block starting at group ID 0. The special value \fBall\fP will create a pass\-through map for every group ID available in the parent namespace. This option implies \fB\-\-user\fP.
+.sp
+Before util\-linux version 2.39, this option expected a comma\-separated argument of the form \fIoutergid,innergid,count\fP but that format is now deprecated for consistency with the ordering used in \fI/proc/[pid]/gid_map\fP and the \fIX\-mount.idmap\fP mount option.
+.RE
+.sp
+\fB\-\-map\-auto\fP
+.RS 4
+Map the first block of user IDs owned by the effective user from \fI/etc/subuid\fP to a block starting at user ID 0. In the same manner, also map the first block of group IDs owned by the effective group from \fI/etc/subgid\fP to a block starting at group ID 0. This option is intended to handle the common case where the first block of subordinate user and group IDs can map the whole user and group ID space. This option is equivalent to specifying \fB\-\-map\-users=auto\fP and \fB\-\-map\-groups=auto\fP.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-map\-root\-user\fP
+.RS 4
+Run the program only after the current effective user and group IDs have been mapped to the superuser UID and GID in the newly created user namespace. This makes it possible to conveniently gain capabilities needed to manage various aspects of the newly created namespaces (such as configuring interfaces in the network namespace or mounting filesystems in the mount namespace) even when run unprivileged. As a mere convenience feature, it does not support more sophisticated use cases, such as mapping multiple ranges of UIDs and GIDs. This option implies \fB\-\-setgroups=deny\fP and \fB\-\-user\fP. This option is equivalent to \fB\-\-map\-user=0 \-\-map\-group=0\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-map\-current\-user\fP
+.RS 4
+Run the program only after the current effective user and group IDs have been mapped to the same UID and GID in the newly created user namespace. This option implies \fB\-\-setgroups=deny\fP and \fB\-\-user\fP. This option is equivalent to \fB\-\-map\-user=$(id \-ru) \-\-map\-group=$(id \-rg)\fP.
+.RE
+.sp
+\fB\-\-propagation private\fP|\fBshared\fP|\fBslave\fP|\fBunchanged\fP
+.RS 4
+Recursively set the mount propagation flag in the new mount namespace. The default is to set the propagation to \fIprivate\fP. It is possible to disable this feature with the argument \fBunchanged\fP. The option is silently ignored when the mount namespace (\fB\-\-mount\fP) is not requested.
+.RE
+.sp
+\fB\-\-setgroups allow\fP|\fBdeny\fP
+.RS 4
+Allow or deny the \fBsetgroups\fP(2) system call in a user namespace.
+.sp
+To be able to call \fBsetgroups\fP(2), the calling process must at least have \fBCAP_SETGID\fP. But since Linux 3.19 a further restriction applies: the kernel gives permission to call \fBsetgroups\fP(2) only after the GID map (\fB/proc/\fP\fIpid\fP*/gid_map*) has been set. The GID map is writable by root when \fBsetgroups\fP(2) is enabled (i.e., \fBallow\fP, the default), and the GID map becomes writable by unprivileged processes when \fBsetgroups\fP(2) is permanently disabled (with \fBdeny\fP).
+.RE
+.sp
+\fB\-R\fP, \fB\-\-root=\fP\fIdir\fP
+.RS 4
+run the command with root directory set to \fIdir\fP.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-wd=\fP\fIdir\fP
+.RS 4
+change working directory to \fIdir\fP.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-setuid\fP \fIuid\fP
+.RS 4
+Set the user ID which will be used in the entered namespace.
+.RE
+.sp
+\fB\-G\fP, \fB\-\-setgid\fP \fIgid\fP
+.RS 4
+Set the group ID which will be used in the entered namespace and drop supplementary groups.
+.RE
+.sp
+\fB\-\-monotonic\fP \fIoffset\fP
+.RS 4
+Set the offset of \fBCLOCK_MONOTONIC\fP which will be used in the entered time namespace. This option requires unsharing a time namespace with \fB\-\-time\fP.
+.RE
+.sp
+\fB\-\-boottime\fP \fIoffset\fP
+.RS 4
+Set the offset of \fBCLOCK_BOOTTIME\fP which will be used in the entered time namespace. This option requires unsharing a time namespace with \fB\-\-time\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "NOTES"
+.sp
+The proc and sysfs filesystems mounting as root in a user namespace have to be restricted so that a less privileged user cannot get more access to sensitive files that a more privileged user made unavailable. In short the rule for proc and sysfs is as close to a bind mount as possible.
+.SH "EXAMPLES"
+.sp
+The following command creates a PID namespace, using \fB\-\-fork\fP to ensure that the executed command is performed in a child process that (being the first process in the namespace) has PID 1. The \fB\-\-mount\-proc\fP option ensures that a new mount namespace is also simultaneously created and that a new \fBproc\fP(5) filesystem is mounted that contains information corresponding to the new PID namespace. When the \fBreadlink\fP(1) command terminates, the new namespaces are automatically torn down.
+.sp
+.if n .RS 4
+.nf
+.fam C
+# unshare \-\-fork \-\-pid \-\-mount\-proc readlink /proc/self
+1
+.fam
+.fi
+.if n .RE
+.sp
+As an unprivileged user, create a new user namespace where the user\(cqs credentials are mapped to the root IDs inside the namespace:
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ id \-u; id \-g
+1000
+1000
+$ unshare \-\-user \-\-map\-root\-user \(rs
+        sh \-c \*(Aqwhoami; cat /proc/self/uid_map /proc/self/gid_map\*(Aq
+root
+         0       1000          1
+         0       1000          1
+.fam
+.fi
+.if n .RE
+.sp
+As an unprivileged user, create a user namespace where the first 65536 IDs are all mapped, and the user\(cqs credentials are mapped to the root IDs inside the namespace. The map is determined by the subordinate IDs assigned in \fBsubuid\fP(5) and \fBsubgid\fP(5). Demonstrate this mapping by creating a file with user ID 1 and group ID 1. For brevity, only the user ID mappings are shown:
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ id \-u
+1000
+$ cat /etc/subuid
+1000:100000:65536
+$ unshare \-\-user \-\-map\-auto \-\-map\-root\-user
+# id \-u
+0
+# cat /proc/self/uid_map
+         0       1000          1
+         1     100000      65535
+# touch file; chown 1:1 file
+# ls \-ln \-\-time\-style=+ file
+\-rw\-r\-\-r\-\- 1 1 1 0  file
+# exit
+$ ls \-ln \-\-time\-style=+ file
+\-rw\-r\-\-r\-\- 1 100000 100000 0  file
+.fam
+.fi
+.if n .RE
+.sp
+The first of the following commands creates a new persistent UTS namespace and modifies the hostname as seen in that namespace. The namespace is then entered with \fBnsenter\fP(1) in order to display the modified hostname; this step demonstrates that the UTS namespace continues to exist even though the namespace had no member processes after the \fBunshare\fP command terminated. The namespace is then destroyed by removing the bind mount.
+.sp
+.if n .RS 4
+.nf
+.fam C
+# touch /root/uts\-ns
+# unshare \-\-uts=/root/uts\-ns hostname FOO
+# nsenter \-\-uts=/root/uts\-ns hostname
+FOO
+# umount /root/uts\-ns
+.fam
+.fi
+.if n .RE
+.sp
+The following commands establish a persistent mount namespace referenced by the bind mount \fI/root/namespaces/mnt\fP. In order to ensure that the creation of that bind mount succeeds, the parent directory (\fI/root/namespaces\fP) is made a bind mount whose propagation type is not \fBshared\fP.
+.sp
+.if n .RS 4
+.nf
+.fam C
+# mount \-\-bind /root/namespaces /root/namespaces
+# mount \-\-make\-private /root/namespaces
+# touch /root/namespaces/mnt
+# unshare \-\-mount=/root/namespaces/mnt
+.fam
+.fi
+.if n .RE
+.sp
+The following commands demonstrate the use of the \fB\-\-kill\-child\fP option when creating a PID namespace, in order to ensure that when \fBunshare\fP is killed, all of the processes within the PID namespace are killed.
+.sp
+.if n .RS 4
+.nf
+.fam C
+# set +m                # Don\*(Aqt print job status messages
+
+# unshare \-\-pid \-\-fork \-\-mount\-proc \-\-kill\-child \-\- \(rs
+       bash \-\-norc \-c \*(Aq(sleep 555 &) && (ps a &) && sleep 999\*(Aq &
+[1] 53456
+#     PID TTY      STAT   TIME COMMAND
+      1 pts/3    S+     0:00 sleep 999
+      3 pts/3    S+     0:00 sleep 555
+      5 pts/3    R+     0:00 ps a
+
+# ps h \-o \*(Aqcomm\*(Aq $!     # Show that background job is unshare(1)
+unshare
+# kill $!               # Kill unshare(1)
+# pidof sleep
+.fam
+.fi
+.if n .RE
+.sp
+The \fBpidof\fP(1) command prints no output, because the \fBsleep\fP processes have been killed. More precisely, when the \fBsleep\fP process that has PID 1 in the namespace (i.e., the namespace\(cqs init process) was killed, this caused all other processes in the namespace to be killed. By contrast, a similar series of commands where the \fB\-\-kill\-child\fP option is not used shows that when \fBunshare\fP terminates, the processes in the PID namespace are not killed:
+.sp
+.if n .RS 4
+.nf
+.fam C
+# unshare \-\-pid \-\-fork \-\-mount\-proc \-\- \(rs
+       bash \-\-norc \-c \*(Aq(sleep 555 &) && (ps a &) && sleep 999\*(Aq &
+[1] 53479
+#     PID TTY      STAT   TIME COMMAND
+      1 pts/3    S+     0:00 sleep 999
+      3 pts/3    S+     0:00 sleep 555
+      5 pts/3    R+     0:00 ps a
+
+# kill $!
+# pidof sleep
+53482 53480
+.fam
+.fi
+.if n .RE
+.sp
+The following example demonstrates the creation of a time namespace where the boottime clock is set to a point several years in the past:
+.sp
+.if n .RS 4
+.nf
+.fam C
+# uptime \-p             # Show uptime in initial time namespace
+up 21 hours, 30 minutes
+# unshare \-\-time \-\-fork \-\-boottime 300000000 uptime \-p
+up 9 years, 28 weeks, 1 day, 2 hours, 50 minutes
+.fam
+.fi
+.if n .RE
+.SH "AUTHORS"
+.sp
+.MTO "dottedmag\(atdottedmag.net" "Mikhail Gusarov" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBnewuidmap\fP(1),
+\fBnewgidmap\fP(1),
+\fBclone\fP(2),
+\fBunshare\fP(2),
+\fBnamespaces\fP(7),
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBunshare\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

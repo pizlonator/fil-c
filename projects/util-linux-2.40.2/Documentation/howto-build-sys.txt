@@ -1,0 +1,95 @@
+util-linux build system
+=======================
+
+ - the build system is non-recursive, individual subdirectories use
+   Makemodule.am files. These files are merged together by automake
+   into one global Makefile in the top-level directory
+
+ - all final build results (binaries, libtool scripts) are stored in top-level
+   source directory
+
+ - all Makemodule.am files have to be designed as top-level makefiles, it
+   means with full paths (e.g. foo_SOURCES = subdir/foo.c)
+
+ - always use '+=' operator for global variables (e.g. bin_PROGRAMS += foo)
+
+ - use libcommon.la (without path!) for lib/ stuff (e.g. foo_LDADD = libcommon.la)
+
+ - for libblkid, libuuid and libmount use lib<name>.la in _LDADD and
+   -I$(ul_lib<name>_incdir) in _CFLAGS, for example
+
+	foo_LDADD = libmount.la
+	foo_CFLAGS = -I$(ul_libmount_incdir)
+
+ - always use suffixes for hooks, for example
+
+	install-exec-hook-foo:
+		ln -sf foo foooo
+
+	INSTALL_EXEC_HOOKS += install-exec-hook-foo
+
+
+ - all util-linux specific autoconf macros use UL_ prefix
+
+ - utils in Makefile.am files are enabled/disabled according to BUILD_<NAME>
+   conditions (AM_CONDITIONAL), for example:
+
+	if BUILD_HWCLOCK
+	...
+	endif
+
+ - "if BUILD_<NAME>" blocks are never nested within another "if BUILD_<NAME>",
+   all dependencies have to be resolved in configure.ac (see UL_REQUIRES_BUILD())
+
+ - all BUILD_<NAME> in configure.am are always based on build_<name> variables,
+   for example:
+
+	AM_CONDITIONAL([BUILD_HWCLOCK], test "x$build_hwclock" = xyes)
+
+   the $build_<name> should be available in whole configure script
+
+ - AC_ARG_ENABLE() status is always stored in $enable_<name> variable, possible
+   setting:
+
+	"check" - util/feature is optional, if any subcomponent (function, lib,
+                  ...) is missing a warning is printed and the util/feature is
+                  disabled
+
+	"yes"	- util/feature is required, if any subcomponent (function, lib,
+                  ...) is missing an error is printed and ./configure aborted
+
+	"no"	- the util/feature is unwanted
+
+   The default status is always defined by UL_DEFAULT_ENABLE() and it might be
+   globally modified by $ul_default_estate (see AC_ARG_ENABLE([all-programs])).
+
+ - it's possible to disable all programs, but enable just one (or more)
+   explicitly specified, for example:
+
+        ./configure --disable-all-programs --enable-hwclock
+
+ - some basic scenarios for the ./configure script are defined in the
+   tools/config-gen.d/ directory. If you want to use these predefined scenarios
+   then call
+
+	./tools/config-gen [<scenario> ...]
+
+   for example
+
+	./tools/config-gen all selinux
+
+   will build all utils with enabled selinux support. You can also define some
+   CFLAGS, for example:
+
+	CFLAGS=$(rpm --eval '%optflags') ./tools/config-gen all
+
+   will use the default distro flags.
+
+   WARNING: config-gen is not designed for end-user or downstream distributions!
+            It's for development purpose only. All end-users and downstream have
+            to use standard ./configure script only.
+
+ - the tools/config-gen script is also used for build system regression tests,
+   the test is not enabled by default, you have to use
+
+	tests/run.sh build-sys --force

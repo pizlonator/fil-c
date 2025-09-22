@@ -1,0 +1,329 @@
+'\" t
+.\"     Title: dmesg
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "DMESG" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+dmesg \- print or control the kernel ring buffer
+.SH "SYNOPSIS"
+.sp
+\fBdmesg\fP [options]
+.sp
+\fBdmesg\fP \fB\-\-clear\fP
+.sp
+\fBdmesg\fP \fB\-\-read\-clear\fP [options]
+.sp
+\fBdmesg\fP \fB\-\-console\-level\fP \fIlevel\fP
+.sp
+\fBdmesg\fP \fB\-\-console\-on\fP
+.sp
+\fBdmesg\fP \fB\-\-console\-off\fP
+.SH "DESCRIPTION"
+.sp
+\fBdmesg\fP is used to examine or control the kernel ring buffer.
+.sp
+The default action is to display all messages from the kernel ring buffer.
+.SH "OPTIONS"
+.sp
+The \fB\-\-clear\fP, \fB\-\-read\-clear\fP, \fB\-\-console\-on\fP, \fB\-\-console\-off\fP, and \fB\-\-console\-level\fP options are mutually exclusive.
+.sp
+\fB\-C\fP, \fB\-\-clear\fP
+.RS 4
+Clear the ring buffer.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-read\-clear\fP
+.RS 4
+Clear the ring buffer after first printing its contents.
+.RE
+.sp
+\fB\-D\fP, \fB\-\-console\-off\fP
+.RS 4
+Disable the printing of messages to the console.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-show\-delta\fP
+.RS 4
+Display the timestamp and the time delta spent between messages. If used together with \fB\-\-notime\fP then only the time delta without the timestamp is printed.
+.RE
+.sp
+\fB\-E\fP, \fB\-\-console\-on\fP
+.RS 4
+Enable printing messages to the console.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-reltime\fP
+.RS 4
+Display the local time and the delta in human\-readable format. Be aware that conversion to the local time could be inaccurate (see \fB\-T\fP for more details).
+.RE
+.sp
+\fB\-F\fP, \fB\-\-file\fP \fIfile\fP
+.RS 4
+Read the syslog messages from the given \fIfile\fP. Note that \fB\-F\fP does not support messages in kmsg format. See \fB\-K\fP instead.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-facility\fP \fIlist\fP
+.RS 4
+Restrict output to the given (comma\-separated) \fIlist\fP of facilities. For example:
+.sp
+\fBdmesg \-\-facility=daemon\fP
+.sp
+will print messages from system daemons only. For all supported facilities see the \fB\-\-help\fP output.
+.RE
+.sp
+\fB\-H\fP, \fB\-\-human\fP
+.RS 4
+Enable human\-readable output. See also \fB\-\-color\fP, \fB\-\-reltime\fP and \fB\-\-nopager\fP.
+.RE
+.sp
+\fB\-J\fP, \fB\-\-json\fP
+.RS 4
+Use JSON output format. The time output format is in "sec.usec" format only, log priority level is not decoded by default (use \fB\-\-decode\fP to split into facility and priority), the other options to control the output format or time format are silently ignored.
+.RE
+.sp
+\fB\-K\fP, \fB\-\-kmsg\-file\fP \fIfile\fP
+.RS 4
+Read the /dev/kmsg messages from the given \fIfile\fP. Different record as expected to be separated by a NULL byte.
+.RE
+.sp
+\fB\-k\fP, \fB\-\-kernel\fP
+.RS 4
+Print kernel messages.
+.RE
+.sp
+\fB\-L\fP, \fB\-\-color\fP[=\fIwhen\fP]
+.RS 4
+Colorize the output. The optional argument \fIwhen\fP can be \fBauto\fP, \fBnever\fP or \fBalways\fP. If the \fIwhen\fP argument is omitted, it defaults to \fBauto\fP. The colors can be disabled; for the current built\-in default see the \fB\-\-help\fP output. See also the \fBCOLORS\fP section below.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-level\fP \fIlist\fP
+.RS 4
+Restrict output to the given (comma\-separated) \fIlist\fP of levels. For example:
+.sp
+\fBdmesg \-\-level=err,warn\fP
+.sp
+will print error and warning messages only. For all supported levels see the \fB\-\-help\fP output.
+.sp
+Appending a plus \fB+\fP to a level name also includes all higher levels. For example:
+.sp
+\fBdmesg \-\-level=err+\fP
+.sp
+will print levels \fBerr\fP, \fBcrit\fP, \fBalert\fP and \fBemerg\fP.
+.sp
+Prepending it will include all lower levels.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-console\-level\fP \fIlevel\fP
+.RS 4
+Set the \fIlevel\fP at which printing of messages is done to the console. The \fIlevel\fP is a level number or abbreviation of the level name. For all supported levels see the \fB\-\-help\fP output.
+.sp
+For example, \fB\-n 1\fP or \fB\-n emerg\fP prevents all messages, except emergency (panic) messages, from appearing on the console. All levels of messages are still written to \fI/proc/kmsg\fP, so \fBsyslogd\fP(8) can still be used to control exactly where kernel messages appear. When the \fB\-n\fP option is used, \fBdmesg\fP will \fInot\fP print or clear the kernel ring buffer.
+.RE
+.sp
+\fB\-\-noescape\fP
+.RS 4
+The unprintable and potentially unsafe characters (e.g., broken multi\-byte sequences, terminal controlling chars, etc.) are escaped in format \(rsx<hex> for security reason by default. This option disables this feature at all. It\(cqs usable for example for debugging purpose together with \fB\-\-raw\fP. Be careful and don\(cqt use it by default.
+.RE
+.sp
+\fB\-P\fP, \fB\-\-nopager\fP
+.RS 4
+Do not pipe output into a pager. A pager is enabled by default for \fB\-\-human\fP output.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-force\-prefix\fP
+.RS 4
+Add facility, level or timestamp information to each line of a multi\-line message.
+.RE
+.sp
+\fB\-r\fP, \fB\-\-raw\fP
+.RS 4
+Print the raw message buffer, i.e., do not strip the log\-level prefixes, but all unprintable characters are still escaped (see also \fB\-\-noescape\fP).
+.sp
+Note that the real raw format depends on the method how \fBdmesg\fP reads kernel messages. The \fI/dev/kmsg\fP device uses a different format than \fBsyslog\fP(2). For backward compatibility, \fBdmesg\fP returns data always in the \fBsyslog\fP(2) format. It is possible to read the real raw data from \fI/dev/kmsg\fP by, for example, the command \*(Aqdd if=/dev/kmsg iflag=nonblock\*(Aq.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-syslog\fP
+.RS 4
+Force \fBdmesg\fP to use the \fBsyslog\fP(2) kernel interface to read kernel messages. The default is to use \fI/dev/kmsg\fP rather than \fBsyslog\fP(2) since kernel 3.5.0.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-buffer\-size\fP \fIsize\fP
+.RS 4
+Use a buffer of \fIsize\fP to query the kernel ring buffer. This is 16392 by default. (The default kernel syslog buffer size was 4096 at first, 8192 since 1.3.54, 16384 since 2.1.113.) If you have set the kernel buffer to be larger than the default, then this option can be used to view the entire buffer.
+.RE
+.sp
+\fB\-T\fP, \fB\-\-ctime\fP
+.RS 4
+Print human\-readable timestamps.
+.sp
+\fBBe aware that the timestamp could be inaccurate!\fP The \fBtime\fP source used for the logs is \fBnot updated after\fP system \fBSUSPEND\fP/\fBRESUME\fP. Timestamps are adjusted according to current delta between boottime and monotonic clocks, this works only for messages printed after last resume.
+.RE
+.sp
+\fB\-\-since\fP \fItime\fP
+.RS 4
+Display record since the specified time. Supported is the subsecond granularity. The time is possible to specify in absolute way as well as by relative notation (e.g. \*(Aq1 hour ago\*(Aq). Be aware that the timestamp could be inaccurate and see \fB\-\-ctime\fP for more details.
+.RE
+.sp
+\fB\-\-until\fP \fItime\fP
+.RS 4
+Display record until the specified time. Supported is the subsecond granularity. The time is possible to specify in absolute way as well as by relative notation (e.g. \*(Aq1 hour ago\*(Aq). Be aware that the timestamp could be inaccurate and see \fB\-\-ctime\fP for more details.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-notime\fP
+.RS 4
+Do not print kernel\(cqs timestamps.
+.RE
+.sp
+\fB\-\-time\-format\fP \fIformat\fP
+.RS 4
+Print timestamps using the given \fIformat\fP, which can be \fBctime\fP, \fBreltime\fP, \fBdelta\fP, \fBiso\fP or \fBraw\fP. The first three formats are aliases of the time\-format\-specific options. The \fBraw\fP format uses the default timestamp format showing seconds since boot. The \fBiso\fP format is a \fBdmesg\fP implementation of the ISO\-8601 timestamp format. The purpose of this format is to make the comparing of timestamps between two systems, and any other parsing, easy. The definition of the \fBiso\fP timestamp is: YYYY\-MM\-DD<T>HH:MM:SS,<microseconds>\(<-+><timezone offset from UTC>.
+.sp
+The \fBiso\fP format has the same issue as \fBctime\fP: the time may be inaccurate when a system is suspended and resumed.
+.sp
+\fB\-\-time\-format\fP may be used multiple times with different values for \fIformat\fP to output each specified format.
+.sp
+The \fBdelta\fP always follows \fBctime\fP or \fBraw\fP if specified together.
+.RE
+.sp
+\fB\-u\fP, \fB\-\-userspace\fP
+.RS 4
+Print userspace messages.
+.RE
+.sp
+\fB\-w\fP, \fB\-\-follow\fP
+.RS 4
+Wait for new messages. This feature is supported only on systems with a readable \fI/dev/kmsg\fP (since kernel 3.5.0).
+.RE
+.sp
+\fB\-W\fP, \fB\-\-follow\-new\fP
+.RS 4
+Wait and print only new messages.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-decode\fP
+.RS 4
+Decode facility and level (priority) numbers to human\-readable prefixes.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "COLORS"
+.sp
+The output colorization is implemented by \fBterminal\-colors.d\fP(5) functionality.
+Implicit coloring can be disabled by an empty file
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/dmesg.disable\fP
+.br
+.RE
+.ll
+.sp
+for the \fBdmesg\fP command or for all tools by
+.RS 3
+.ll -.6i
+.sp
+\fI/etc/terminal\-colors.d/disable\fP
+.br
+.RE
+.ll
+.sp
+The user\-specific \fI$XDG_CONFIG_HOME/terminal\-colors.d\fP
+or \fI$HOME/.config/terminal\-colors.d\fP overrides the global setting.
+.sp
+Note that the output colorization may be enabled by default, and in this case
+\fIterminal\-colors.d\fP directories do not have to exist yet.
+.sp
+The logical color names supported by \fBdmesg\fP are:
+.sp
+\fBsubsys\fP
+.RS 4
+The message sub\-system prefix (e.g., "ACPI:").
+.RE
+.sp
+\fBtime\fP
+.RS 4
+The message timestamp.
+.RE
+.sp
+\fBtimebreak\fP
+.RS 4
+The message timestamp in short ctime format in \fB\-\-reltime\fP or \fB\-\-human\fP output.
+.RE
+.sp
+\fBalert\fP
+.RS 4
+The text of the message with the alert log priority.
+.RE
+.sp
+\fBcrit\fP
+.RS 4
+The text of the message with the critical log priority.
+.RE
+.sp
+\fBerr\fP
+.RS 4
+The text of the message with the error log priority.
+.RE
+.sp
+\fBwarn\fP
+.RS 4
+The text of the message with the warning log priority.
+.RE
+.sp
+\fBsegfault\fP
+.RS 4
+The text of the message that inform about segmentation fault.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fBdmesg\fP can fail reporting permission denied error. This is usually caused by \fBdmesg_restrict\fP kernel setting, please see \fBsyslog\fP(2) for more details.
+.SH "AUTHORS"
+.sp
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.sp
+\fBdmesg\fP was originally written by \c
+.MTO "tytso\(atathena.mit.edu" "Theodore Ts\(cqo" "."
+.SH "SEE ALSO"
+.sp
+\fBterminal\-colors.d\fP(5),
+\fBsyslogd\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBdmesg\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

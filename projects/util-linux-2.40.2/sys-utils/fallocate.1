@@ -1,0 +1,141 @@
+'\" t
+.\"     Title: fallocate
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FALLOCATE" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fallocate \- preallocate or deallocate space to a file
+.SH "SYNOPSIS"
+.sp
+\fBfallocate\fP [\fB\-c\fP|\fB\-p\fP|\fB\-z\fP] [\fB\-o\fP \fIoffset\fP] \fB\-l\fP \fIlength\fP [\fB\-n\fP] \fIfilename\fP
+.sp
+\fBfallocate\fP \fB\-d\fP [\fB\-o\fP \fIoffset\fP] [\fB\-l\fP \fIlength\fP] \fIfilename\fP
+.sp
+\fBfallocate\fP \fB\-x\fP [\fB\-o\fP \fIoffset\fP] \fB\-l\fP \fIlength filename\fP
+.SH "DESCRIPTION"
+.sp
+\fBfallocate\fP is used to manipulate the allocated disk space for a file, either to deallocate or preallocate it. For filesystems which support the \fBfallocate\fP(2) system call, preallocation is done quickly by allocating blocks and marking them as uninitialized, requiring no IO to the data blocks. This is much faster than creating a file by filling it with zeroes.
+.sp
+The exit status returned by \fBfallocate\fP is 0 on success and 1 on failure.
+.SH "OPTIONS"
+.sp
+The \fIlength\fP and \fIoffset\fP arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB, and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB, and YB.
+.sp
+The options \fB\-\-collapse\-range\fP, \fB\-\-dig\-holes\fP, \fB\-\-punch\-hole\fP, and \fB\-\-zero\-range\fP are mutually exclusive.
+.sp
+\fB\-c\fP, \fB\-\-collapse\-range\fP
+.RS 4
+Removes a byte range from a file, without leaving a hole. The byte range to be collapsed starts at \fIoffset\fP and continues for \fIlength\fP bytes. At the completion of the operation, the contents of the file starting at the location \fIoffset\fP+\fIlength\fP will be appended at the location \fIoffset\fP, and the file will be \fIlength\fP bytes smaller. The option \fB\-\-keep\-size\fP may not be specified for the collapse\-range operation.
+.sp
+Available since Linux 3.15 for ext4 (only for extent\-based files) and XFS.
+.sp
+A filesystem may place limitations on the granularity of the operation, in order to ensure efficient implementation. Typically, \fIoffset\fP and \fIlength\fP must be a multiple of the filesystem logical block size, which varies according to the filesystem type and configuration. If a filesystem has such a requirement, the operation will fail with the error \fBEINVAL\fP if this requirement is violated.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-dig\-holes\fP
+.RS 4
+Detect and dig holes. This makes the file sparse in\-place, without using extra disk space. The minimum size of the hole depends on filesystem I/O block size (usually 4096 bytes). Also, when using this option, \fB\-\-keep\-size\fP is implied. If no range is specified by \fB\-\-offset\fP and \fB\-\-length\fP, then the entire file is analyzed for holes.
+.sp
+You can think of this option as doing a "\fBcp \-\-sparse\fP" and then renaming the destination file to the original, without the need for extra disk space.
+.sp
+See \fB\-\-punch\-hole\fP for a list of supported filesystems.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-insert\-range\fP
+.RS 4
+Insert a hole of \fIlength\fP bytes from \fIoffset\fP, shifting existing data.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-length\fP \fIlength\fP
+.RS 4
+Specifies the length of the range, in bytes.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-keep\-size\fP
+.RS 4
+Do not modify the apparent length of the file. This may effectively allocate blocks past EOF, which can be removed with a truncate.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-offset\fP \fIoffset\fP
+.RS 4
+Specifies the beginning offset of the range, in bytes.
+.RE
+.sp
+\fB\-p\fP, \fB\-\-punch\-hole\fP
+.RS 4
+Deallocates space (i.e., creates a hole) in the byte range starting at \fIoffset\fP and continuing for \fIlength\fP bytes. Within the specified range, partial filesystem blocks are zeroed, and whole filesystem blocks are removed from the file. After a successful call, subsequent reads from this range will return zeroes. This option may not be specified at the same time as the \fB\-\-zero\-range\fP option. Also, when using this option, \fB\-\-keep\-size\fP is implied.
+.sp
+Supported for XFS (since Linux 2.6.38), ext4 (since Linux 3.0), Btrfs (since Linux 3.7), tmpfs (since Linux 3.5) and gfs2 (since Linux 4.16).
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+Enable verbose mode.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-posix\fP
+.RS 4
+Enable POSIX operation mode. In that mode allocation operation always completes, but it may take longer time when fast allocation is not supported by the underlying filesystem.
+.RE
+.sp
+\fB\-z\fP, \fB\-\-zero\-range\fP
+.RS 4
+Zeroes space in the byte range starting at \fIoffset\fP and continuing for \fIlength\fP bytes. Within the specified range, blocks are preallocated for the regions that span the holes in the file. After a successful call, subsequent reads from this range will return zeroes.
+.sp
+Zeroing is done within the filesystem preferably by converting the range into unwritten extents. This approach means that the specified range will not be physically zeroed out on the device (except for partial blocks at the either end of the range), and I/O is (otherwise) required only to update metadata.
+.sp
+Option \fB\-\-keep\-size\fP can be specified to prevent file length modification.
+.sp
+Available since Linux 3.14 for ext4 (only for extent\-based files) and XFS.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "sandeen\(atredhat.com" "Eric Sandeen" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBtruncate\fP(1),
+\fBfallocate\fP(2),
+\fBposix_fallocate\fP(3)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBfallocate\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

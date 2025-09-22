@@ -1,0 +1,143 @@
+util-linux v2.40.1 Release Notes
+================================
+
+Changes between v2.40 and v2.40.1
+---------------------------------
+
+README.licensing/flock:
+   - Add MIT license mention  [Richard Purdie]
+agetty:
+   - Don't override TERM passed by the user  [Daan De Meyer]
+   - fix resource leak  [Karel Zak]
+   - make reload code more robust  [Karel Zak]
+all_syscalls:
+   - don't hardcode AWK invocation  [Thomas Weißschuh]
+   - don't warn during cleanup  [Thomas Weißschuh]
+   - fail if any step fails  [Thomas Weißschuh]
+   - use sed to extract defines from headers  [Thomas Weißschuh]
+autotools:
+   - distribute pam_lastlog2/meson.build  [Thomas Weißschuh]
+bcachefs:
+   - Remove BCACHEFS_SB_MAX_SIZE & check  [Tony Asleson]
+build-sys:
+   - release++ (v2.40.1-rc1)  [Karel Zak]
+cal:
+   - use unsigned int to follow union with unsigned int  [Karel Zak]
+docs:
+   - add COPYING.MIT  [Karel Zak]
+   - fix GPL name typo  [Karel Zak]
+   - update AUTHORS file  [Karel Zak]
+   - update v2.40.1-ReleaseNotes  [Karel Zak]
+findmnt:
+   - always zero-terminate SOURCES data  [Thomas Weißschuh]
+   - revise the code for -I and -D option  [Masatake YAMATO]
+fsck.minix:
+   - fix possible overrun  [Karel Zak]
+getopt:
+   - remove free-before-exit  [Karel Zak]
+hwclock:
+   - free temporary variable before return  [Karel Zak]
+   - initialize parser variables  [Karel Zak]
+lastlog2:
+   - begin descriptions of options with a lowercase letter  [Benno Schulenberg]
+lib/pager:
+libblkid:
+   - Fix segfault when blkid.conf doesn't exist  [Karel Zak]
+   - topology/ioctl  correctly handle kernel types  [Thomas Weißschuh]
+   - topology/ioctl  simplify ioctl handling  [Thomas Weißschuh]
+libfdisk:
+   - add initializer to geometry  [Karel Zak]
+libmount:
+   - Fix access check for utab in context  [Karel Zak]
+   - fix comment typo for mnt_fs_get_comment()  [Tianjia Zhang]
+   - fix possible memory leak  [Karel Zak]
+   - fix umount --read-only  [Karel Zak]
+libsmartcols:
+   - fix column reduction  [Karel Zak]
+   - reset wrap after calculation  [Karel Zak]
+libuuid:
+   - (man) fix function declarations  [CismonX]
+losetup:
+   - losetup.8 Clarify --direct-io  [Colin Walters]
+lsblk:
+   - simplify SOURCES code  [Karel Zak]
+lsclocks:
+   - fix FD leak  [Karel Zak]
+lsfd:
+   - (man) fix license name  [Jakub Wilk]
+   - add LSFD_DEBUG env var for debugging  [Masatake YAMATO]
+lslocks:
+   - don't abort gathering per-process information even if opening a /proc/[0-9]* fails  [Masatake YAMATO]
+   - remove a unused local variable  [Masatake YAMATO]
+lsns:
+   - fix netns use  [Karel Zak]
+   - report with warnx if a namespace related ioctl fails with ENOSYS  [Masatake YAMATO]
+   - tolerate lsns_ioctl(fd, NS_GET_{PARENT,USERNS}) failing with ENOSYS  [Masatake YAMATO]
+meson:
+   - Add build-blkdiscard option  [Jordan Williams]
+   - Add build-blkpr option  [Jordan Williams]
+   - Add build-blkzone option  [Jordan Williams]
+   - Add build-blockdev option  [Jordan Williams]
+   - Add build-chcpu option  [Jordan Williams]
+   - Add build-dmesg option  [Jordan Williams]
+   - Add build-enosys option  [Jordan Williams]
+   - Add build-fadvise option  [Jordan Williams]
+   - Add build-fsfreeze option  [Jordan Williams]
+   - Add build-ipcmk option  [Jordan Williams]
+   - Add build-ldattach option  [Jordan Williams]
+   - Add build-lsclocks option  [Jordan Williams]
+   - Add build-lsfd option and make rt dependency optional  [Jordan Williams]
+   - Add build-rtcwake option  [Jordan Williams]
+   - Add build-script option  [Jordan Williams]
+   - Add build-scriptlive option  [Jordan Williams]
+   - Add build-setarch option  [Jordan Williams]
+   - Add have_pty variable to check if pty is available  [Jordan Williams]
+   - Add missing check for build-ipcrm option  [Jordan Williams]
+   - Define _DARWIN_C_SOURCE on macOS as is done in Autotools  [Jordan Williams]
+   - Don't define HAVE_ENVIRON_DECL when environ is unavailable  [Jordan Williams]
+   - Fix build by default and install behavior for build-pipesz option  [Jordan Williams]
+   - Fix false positive detection of mempcpy on macOS  [Jordan Williams]
+   - Only build libmount when required  [Jordan Williams]
+   - Only pick up the rt library once  [Jordan Williams]
+   - Only require the crypt library when necessary  [Jordan Williams]
+   - Only use the --version-script linker flag where it is supported  [Jordan Williams]
+   - Remove libblkid dependency on libmount  [Jordan Williams]
+   - Remove lingering mq_libs variable  [Jordan Williams]
+   - Require pty for the su and runuser executables  [Jordan Williams]
+   - Require the seminfo type for ipcmk, ipcrm, and ipcs  [Jordan Williams]
+   - Use has_type instead of sizeof to detect cpu_set_t type  [Jordan Williams]
+   - Use libblkid as a dependency  [Jordan Williams]
+   - Use libmount as a dependency  [Jordan Williams]
+   - respect c_args/CFLAGS when generating syscalls  [Karel Zak]
+pam_lastlog2:
+   - link against liblastlog  [Thomas Weißschuh]
+po:
+   - merge changes  [Karel Zak]
+   - update cs.po (from translationproject.org)  [Petr Písař]
+   - update fr.po (from translationproject.org)  [Frédéric Marchal]
+   - update hr.po (from translationproject.org)  [Božidar Putanec]
+   - update ja.po (from translationproject.org)  [Takeshi Hamasaki]
+   - update ko.po (from translationproject.org)  [Seong-ho Cho]
+   - update pl.po (from translationproject.org)  [Jakub Bogusz]
+   - update ro.po (from translationproject.org)  [Remus-Gabriel Chelu]
+   - update uk.po (from translationproject.org)  [Yuri Chornoivan]
+po-man:
+   - merge changes  [Karel Zak]
+   - update de.po (from translationproject.org)  [Mario Blättermann]
+   - update ko.po (from translationproject.org)  [Seong-ho Cho]
+   - update ro.po (from translationproject.org)  [Remus-Gabriel Chelu]
+strutils.h:
+   - Include strings.h header for strncasecmp function  [Jordan Williams]
+tests:
+   - (lsfd  mkfds-multiplexing) skip if /proc/$pid/syscall is broken  [Masatake YAMATO]
+   - (lsns  ioctl_ns) add more debug print  [Masatake YAMATO]
+   - (lsns  ioctl_ns) record stdout/stderr for debugging the case  [Masatake YAMATO]
+   - (test_mkfds  sockdiag) verify the recieved message to detect whether the socket is usable or not  [Masatake YAMATO]
+textual:
+   - fix some typos and inconsistencies in usage and error messages  [Benno Schulenberg]
+wall:
+   - check sysconf() returnvalue  [Karel Zak]
+   - fix possible memory leak  [Karel Zak]
+   - make sure unsigned variable not underflow  [Karel Zak]
+xalloc.h:
+   - Include stdio.h header for vasprintf function  [Jordan Williams]

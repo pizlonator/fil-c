@@ -1,0 +1,76 @@
+//po4a: entry man manual
+////
+chsh.1 -- change your login shell
+(c) 1994 by salvatore valente <svalente@athena.mit.edu>
+
+This program is free software.  You can redistribute it and
+modify it under the terms of the GNU General Public License.
+There is no warranty.
+////
+= chsh(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: chsh
+
+== NAME
+
+chsh - change your login shell
+
+== SYNOPSIS
+
+*chsh* [*-s* _shell_] [*-l*] [*-h*] [*-V*] [_username_]
+
+== DESCRIPTION
+
+*chsh* is used to change your login shell. If a shell is not given on the command line, *chsh* prompts for one.
+
+*chsh* supports non-local entries (kerberos, LDAP, etc.) if linked with libuser, otherwise use *ypchsh*(1), *lchsh*(1) or any other implementation for non-local entries.
+
+== OPTIONS
+
+*-s*, *--shell* _shell_::
+Specify your login shell.
+
+*-l*, *--list-shells*::
+Print the list of shells listed in _/etc/shells_ and exit.
+
+*-h*, *--help*::
+Display help text and exit. The short options *-h* have been used since version 2.30; old versions use
+deprecated *-u*.
+
+*-V*, *--version*::
+Print version and exit. The short options *-V* have been used since version 2.39; old versions use
+deprecated *-v*.
+
+include::man-common/help-version.adoc[]
+
+== VALID SHELLS
+
+*chsh* will accept the full pathname of any executable file on the system.
+
+The default behavior for non-root users is to accept only shells listed in the _/etc/shells_ file, and issue a warning for root user. It can also be configured at compile-time to only issue a warning for all users.
+
+== EXIT STATUS
+
+Returns 0 if operation was successful, 1 if operation failed or command syntax was not valid.
+
+== AUTHORS
+
+mailto:svalente@mit.edu[Salvatore Valente]
+
+== SEE ALSO
+
+*login*(1),
+*login.defs*(5),
+*passwd*(5),
+*shells*(5)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

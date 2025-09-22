@@ -1,0 +1,97 @@
+'\" t
+.\"     Title: chsh
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "CHSH" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+chsh \- change your login shell
+.SH "SYNOPSIS"
+.sp
+\fBchsh\fP [\fB\-s\fP \fIshell\fP] [\fB\-l\fP] [\fB\-h\fP] [\fB\-V\fP] [\fIusername\fP]
+.SH "DESCRIPTION"
+.sp
+\fBchsh\fP is used to change your login shell. If a shell is not given on the command line, \fBchsh\fP prompts for one.
+.sp
+\fBchsh\fP supports non\-local entries (kerberos, LDAP, etc.) if linked with libuser, otherwise use \fBypchsh\fP(1), \fBlchsh\fP(1) or any other implementation for non\-local entries.
+.SH "OPTIONS"
+.sp
+\fB\-s\fP, \fB\-\-shell\fP \fIshell\fP
+.RS 4
+Specify your login shell.
+.RE
+.sp
+\fB\-l\fP, \fB\-\-list\-shells\fP
+.RS 4
+Print the list of shells listed in \fI/etc/shells\fP and exit.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit. The short options \fB\-h\fP have been used since version 2.30; old versions use
+deprecated \fB\-u\fP.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit. The short options \fB\-V\fP have been used since version 2.39; old versions use
+deprecated \fB\-v\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "VALID SHELLS"
+.sp
+\fBchsh\fP will accept the full pathname of any executable file on the system.
+.sp
+The default behavior for non\-root users is to accept only shells listed in the \fI/etc/shells\fP file, and issue a warning for root user. It can also be configured at compile\-time to only issue a warning for all users.
+.SH "EXIT STATUS"
+.sp
+Returns 0 if operation was successful, 1 if operation failed or command syntax was not valid.
+.SH "AUTHORS"
+.sp
+.MTO "svalente\(atmit.edu" "Salvatore Valente" ""
+.SH "SEE ALSO"
+.sp
+\fBlogin\fP(1),
+\fBlogin.defs\fP(5),
+\fBpasswd\fP(5),
+\fBshells\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBchsh\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

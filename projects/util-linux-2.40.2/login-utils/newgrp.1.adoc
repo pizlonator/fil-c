@@ -1,0 +1,53 @@
+//
+// No copyright is claimed.  This code is in the public domain; do with
+// it what you wish.
+//
+// po4a: entry man manual
+// Original author unknown.  This man page is in the public domain.
+// Modified Sat Oct  9 17:46:48 1993 by faith@cs.unc.edu
+= newgrp(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: newgrp
+
+== NAME
+
+newgrp - log in to a new group
+
+== SYNOPSIS
+
+*newgrp* [_group_]
+
+== DESCRIPTION
+
+*newgrp* changes the group identification of its caller, analogously to *login*(1). The same person remains logged in, and the current directory is unchanged, but calculations of access permissions to files are performed with respect to the new group ID.
+
+If no group is specified, the GID is changed to the login GID.
+
+== OPTIONS
+
+include::man-common/help-version.adoc[]
+
+== FILES
+
+_/etc/group_,
+_/etc/passwd_
+
+== AUTHORS
+
+Originally by Michael Haardt. Currently maintained by mailto:poe@daimi.aau.dk[Peter Orbaek].
+
+== SEE ALSO
+
+*login*(1),
+*group*(5)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

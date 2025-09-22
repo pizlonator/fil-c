@@ -1,0 +1,149 @@
+//po4a: entry man manual
+////
+partx.8 -- man page for partx
+Copyright 2007 Karel Zak <kzak@redhat.com>
+Copyright 2007 Red Hat, Inc.
+Copyright 2010 Davidlohr Bueso <dave@gnu.org>
+May be distributed under the GNU General Public License
+////
+= partx(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: partx
+
+== NAME
+
+partx - tell the kernel about the presence and numbering of on-disk partitions
+
+== SYNOPSIS
+
+*partx* [*-a*|*-d*|*-P*|*-r*|*-s*|*-u*] [*-t* _type_] [*-n* _M_:_N_] [-] _disk_
+
+*partx* [*-a*|*-d*|*-P*|*-r*|*-s*|*-u*] [*-t* _type_] _partition_ [_disk_]
+
+== DESCRIPTION
+
+Given a device or disk-image, *partx* tries to parse the partition table and list its contents. It can also tell the kernel to add or remove partitions from its bookkeeping.
+
+The _disk_ argument is optional when a _partition_ argument is provided. To force scanning a partition as if it were a whole disk (for example to list nested subpartitions), use the argument "-" (hyphen-minus). For example:
+
+____
+partx --show - /dev/sda3
+____
+
+This will see sda3 as a whole-disk rather than as a partition.
+
+*partx is not an fdisk program* - adding and removing partitions does not change the disk, it just tells the kernel about the presence and numbering of on-disk partitions.
+
+== OPTIONS
+
+*-a*, *--add*::
+Add the specified partitions, or read the disk and add all partitions.
+
+*-b*, *--bytes*::
+include::man-common/in-bytes.adoc[]
+
+*-d*, *--delete*::
+Delete the specified partitions or all partitions. It is not error to remove non-existing partitions, so this option is possible to use together with large *--nr* ranges without care about the current partitions set on the device.
+
+*-g*, *--noheadings*::
+Do not print a header line with *--show* or *--raw*.
+
+*-l*, *--list*::
+List the partitions. Note that all numbers are in 512-byte sectors. This output format is DEPRECATED in favour of *--show*. Do not use it in newly written scripts.
+
+*-n*, *--nr* __M__**:**_N_::
+Specify the range of partitions. For backward compatibility also the format __M__**-**_N_ is supported. The range may contain negative numbers, for example *--nr -1:-1* means the last partition, and *--nr -2:-1* means the last two partitions. Supported range specifications are:
++
+_M_;;
+Specifies just one partition (e.g. *--nr 3*).
+__M__**:**;;
+Specifies the lower limit only (e.g. *--nr 2:*).
+**:**__N__;;
+Specifies the upper limit only (e.g. *--nr :4*).
+__M__**:**_N_;;
+Specifies the lower and upper limits (e.g. *--nr 2:4*).
+
+*-o*, *--output* _list_::
+Define the output columns to use for *--show*, *--pairs* and *--raw* output. If no output arrangement is specified, then a default set is used. Use *--help* to get _list_ of all supported columns. This option cannot be combined with the *--add*, *--delete*, *--update* or *--list* options.
+
+*--output-all*::
+Output all available columns.
+
+*-P*, *--pairs*::
+List the partitions using the KEY="value" format.
+
+*-r*, *--raw*::
+List the partitions using the raw output format.
+
+*-s*, *--show*::
+List the partitions. The output columns can be selected and rearranged with the *--output* option. All numbers (except SIZE) are in 512-byte sectors.
+
+*-t*, *--type* _type_::
+Specify the partition table type.
+
+*--list-types*::
+List supported partition types and exit.
+
+*-u*, *--update*::
+Update the specified partitions.
+
+*-S*, *--sector-size* _size_::
+Overwrite default sector size.
+
+*-v*, *--verbose*::
+Verbose mode.
+
+include::man-common/help-version.adoc[]
+
+== ENVIRONMENT
+
+LIBBLKID_DEBUG=all::
+enables libblkid debug output.
+
+== EXAMPLE
+
+partx --show /dev/sdb3::
+partx --show --nr 3 /dev/sdb::
+partx --show /dev/sdb3 /dev/sdb::
+All three commands list partition 3 of _/dev/sdb_.
+
+partx --show - /dev/sdb3::
+Lists all subpartitions on _/dev/sdb3_ (the device is used as whole-disk).
+
+partx -o START -g --nr 5 /dev/sdb::
+Prints the start sector of partition 5 on _/dev/sdb_ without header.
+
+partx -o SECTORS,SIZE /dev/sda5 /dev/sda::
+Lists the length in sectors and human-readable size of partition 5 on _/dev/sda_.
+
+partx --add --nr 3:5 /dev/sdd::
+Adds all available partitions from 3 to 5 (inclusive) on _/dev/sdd_.
+
+partx -d --nr :-1 /dev/sdd::
+Removes the last partition on _/dev/sdd_.
+
+== AUTHORS
+
+mailto:dave@gnu.org[Davidlohr Bueso],
+mailto:kzak@redhat.com[Karel Zak]
+
+The original version was written by mailto:aeb@cwi.nl[Andries E. Brouwer]
+
+== SEE ALSO
+
+*addpart*(8),
+*delpart*(8),
+*fdisk*(8),
+*parted*(8),
+*partprobe*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

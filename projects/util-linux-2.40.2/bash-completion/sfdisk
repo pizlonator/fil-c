@@ -1,0 +1,102 @@
+_sfdisk_module()
+{
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	case $prev in
+		'-d'|'--dump'|'-J'|'--json'|'-l'|'--list'|'-F'|'--list-free'|'-r'|'--reorder'|'-s'|'--show-size'|'-V'|'--verify'|'-A'|'--activate'|'--delete')
+			compopt -o bashdefault -o default
+			COMPREPLY=( $(compgen -W "$(lsblk -dpnro name)" -- $cur) )
+			return 0
+			;;
+		'-N'|'--partno')
+			COMPREPLY=( $(compgen -W "number" -- $cur) )
+			return 0
+			;;
+		'--color'|'-w'|'--wipe'|'-W'|'--wipe-partitions')
+			COMPREPLY=( $(compgen -W "auto never always" -- $cur) )
+			return 0
+			;;
+		'-o'|'--output')
+			local prefix realcur OUTPUT_ALL OUTPUT
+			realcur="${cur##*,}"
+			prefix="${cur%$realcur}"
+			OUTPUT_ALL="
+				Attrs Boot Bsize Cpg Cylinders Device End
+				End-C/H/S Flags Fsize Id Name Sectors Size
+				Slice Start Start-C/H/S Type Type-UUID UUID
+			"
+			for WORD in $OUTPUT_ALL; do
+				if ! [[ $prefix == *"$WORD"* ]]; then
+					OUTPUT="$WORD ${OUTPUT:-""}"
+				fi
+			done
+			compopt -o nospace
+			COMPREPLY=( $(compgen -P "$prefix" -W "$OUTPUT" -S ',' -- "$realcur") )
+			return 0
+			;;
+		'-O'|'--backup-file')
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=( $(compgen -f -- $cur) )
+			return 0
+			;;
+		'-h'|'--help'|'-v'|'--version')
+			return 0
+			;;
+	esac
+	case $cur in
+		'=')
+			cur=${cur#=}
+			;;
+		-*)
+			OPTS="
+				--activate
+				--dump
+				--json
+				--show-geometry
+				--list
+				--list-free
+				--disk-id
+				--reorder
+				--show-size
+				--list-types
+				--verify
+				--relocate
+				--delete
+				--part-label
+				--part-type
+				--part-uuid
+				--part-attrs
+				--append
+				--backup
+				--backup-pt-sectors
+				--bytes
+				--move-data
+				--force
+				--color
+				--lock
+				--partno
+				--no-act
+				--no-reread
+				--no-tell-kernel
+				--backup-file
+				--output
+				--quiet
+				--wipe
+				--wipe-partitions
+				--label
+				--label-nested
+				--help
+				--version
+			"
+			COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+			return 0
+			;;
+	esac
+	compopt -o bashdefault -o default
+	COMPREPLY=( $(compgen -W "$(lsblk -pnro name)" -- $cur) )
+	return 0
+}
+complete -F _sfdisk_module sfdisk

@@ -1,0 +1,81 @@
+//po4a: entry man manual
+////
+Copyright (c) 1983, 1991 The Regents of the University of California.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+	This product includes software developed by the University of
+	California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+    @(#)vipw.8	6.7 (Berkeley) 3/16/91
+////
+= vipw(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: vipw
+
+== NAME
+
+vipw, vigr - edit the password or group file
+
+== SYNOPSIS
+
+*vipw* [options]
+
+*vigr* [options]
+
+== DESCRIPTION
+
+*vipw* edits the password file after setting the appropriate locks, and does any necessary processing after the password file is unlocked. If the password file is already locked for editing by another user, *vipw* will ask you to try again later. The default editor for *vipw* and *vigr* is *vi*(1). *vigr* edits the group file in the same manner as *vipw* does the passwd file.
+
+== OPTIONS
+
+include::man-common/help-version.adoc[]
+
+== ENVIRONMENT
+
+If the following environment variable exists, it will be utilized by *vipw* and *vigr*:
+
+*EDITOR*::
+The editor specified by the string *EDITOR* will be invoked instead of the default editor *vi*(1).
+
+== HISTORY
+
+The *vipw* command appeared in 4.0BSD. The *vigr* command appeared in Util-Linux 2.6.
+
+== SEE ALSO
+
+*vi*(1),
+*passwd*(1),
+*flock*(2),
+*passwd*(5)
+
+== AVAILABILITY
+
+The *vigr* and *vipw* commands are part of the util-linux package and are available from https://www.kernel.org/pub/linux/utils/util-linux/[Linux Kernel Archive]

@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="pipe, no fork"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_test_command "$TS_HELPER_MKFDS"
+
+ts_check_prog "stat"
+ts_check_prog "readlink"
+
+ts_cd "$TS_OUTDIR"
+
+pipe_name()
+{
+    readlink /proc/$1/fd/$2
+}
+
+pipe_inode()
+{
+    stat -L -c %i /proc/$1/fd/$2
+}
+
+PID=
+FD0=3
+FD1=4
+EXPR=
+
+{
+    coproc MKFDS { "$TS_HELPER_MKFDS" pipe-no-fork $FD0 $FD1 nonblock=-w rdup=$((FD0 + 2)) wdup=$((FD1 + 2)); }
+    if read -u ${MKFDS[0]} PID; then
+	EXPR='(PID == '"${PID}"') and ((FD == '"$FD0"') or (FD =='"$FD1"'))'
+	${TS_CMD_LSFD} -n -o ASSOC,MODE,TYPE,SOURCE,FLAGS -Q "${EXPR}"
+	echo 'ASSOC,MODE,TYPE,SOURCE,FLAGS': $?
+
+	LSFD_PIDS=$(${TS_CMD_LSFD} --raw -n -o PID -Q "${EXPR}")
+	echo 'PID[RUN]:' $?
+	[ "${LSFD_PIDS}" == "$(printf '%d\n%d' ${PID} ${PID})" ]
+	echo 'PID[STR]:' $?
+
+	LSFD_NAMES=$(${TS_CMD_LSFD} --raw -n -o NAME -Q "${EXPR}")
+	echo 'NAMES[RUN]:' $?
+	[ "${LSFD_NAMES}" == "$(printf '%s\n%s' $(pipe_name $PID $FD0) $(pipe_name $PID $FD1))" ]
+	echo 'NAMES[STR]:' $?
+
+	LSFD_INODES=$(${TS_CMD_LSFD} --raw -n -o INODE -Q "${EXPR}")
+	echo 'INODES[RUN]:' $?
+	[ "${LSFD_INODES}" == "$(printf '%d\n%d' $(pipe_inode $PID $FD0) $(pipe_inode $PID $FD1))" ]
+	echo 'INODES[STR]:' $?
+
+	LSFD_ENDPOINTS=$(${TS_CMD_LSFD} --raw -n -o ASSOC,ENDPOINTS -Q "${EXPR}")
+	echo 'ENDPOINTS[RUN]:' $?
+	mkfds=${TS_HELPER_MKFDS##*/}
+
+	line0=$(printf '%d ' $FD0)
+	line0+=$(printf '%d,%s,%d%c%c' $PID $mkfds $FD1 - w)
+	line0+='\x0a'
+	line0+=$(printf '%d,%s,%d%c%c' $PID $mkfds $((FD0 + 2)) r -)
+	line0+='\x0a'
+	line0+=$(printf '%d,%s,%d%c%c' $PID $mkfds $((FD1 + 2)) - w)
+
+	line1=$(printf '%d ' $FD1)
+	line1+=$(printf '%d,%s,%d%c%c' $PID $mkfds $FD0 r -)
+	line1+='\x0a'
+	line1+=$(printf '%d,%s,%d%c%c' $PID $mkfds $((FD0 + 2)) r -)
+	line1+='\x0a'
+	line1+=$(printf '%d,%s,%d%c%c' $PID $mkfds $((FD1 + 2)) - w)
+
+	expected=$(printf '%s\n%s' "${line0}" "${line1}")
+	if [ "${LSFD_ENDPOINTS}" == "${expected}" ]; then
+	    echo 'ENDPOINTS[STR]:' $?
+	else
+	    echo "lsfd output:"
+	    echo "${LSFD_ENDPOINTS}"
+	    echo "expectation:"
+	    echo "${expected}"
+	fi
+
+	EXPR='(PID == '"${PID}"') and (FD == '"$FD0"')'
+	LSFD_ENDPOINTS_JSON=$(${TS_CMD_LSFD} -J --raw -n -o ASSOC,ENDPOINTS -Q "${EXPR}")
+	echo 'ASSOC,ENDPOINTS (JSON)': $?
+	EXPECTED_LSFD_ENDPOINTS_JSON=$(cat<<EOF
+{
+   "lsfd": [
+      {
+         "assoc": "$FD0",
+         "endpoints": [
+             "$PID,test_mkfds,${FD1}-w", "$PID,test_mkfds,$((FD0 + 2))r-", "$PID,test_mkfds,$((FD1 + 2))-w"
+         ]
+      }
+   ]
+}
+EOF
+	)
+	if [[ "$EXPECTED_LSFD_ENDPOINTS_JSON" == "${LSFD_ENDPOINTS_JSON}" ]]; then
+	    echo EXPECTED_LSFD_ENDPOINTS_JSON == LSFD_ENDPOINTS_JSON
+	else
+	    echo LSFD_ENDPOINTS_JSON: "${LSFD_ENDPOINTS_JSON}"
+	    echo EXPECTED_LSFD_ENDPOINTS_JSON: "${EXPECTED_LSFD_ENDPOINTS_JSON}"
+	fi
+
+	echo DONE >&"${MKFDS[1]}"
+    fi
+    wait ${MKFDS_PID}
+} > $TS_OUTPUT 2>&1
+
+ts_finalize

@@ -1,0 +1,312 @@
+#!/bin/bash
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="fromfile"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+TESTPROG="$TS_HELPER_LIBSMARTCOLS_FROMFILE"
+ts_check_test_command "$TESTPROG"
+
+ts_init_subtest "tree"
+ts_run $TESTPROG --nlines 10 \
+	--tree-id-column 1 \
+	--tree-parent-column 2 \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "tree-json"
+ts_run $TESTPROG --nlines 10 --json \
+	--tree-id-column 1 \
+	--tree-parent-column 2 \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "tree-middle"
+ts_run $TESTPROG --nlines 10 \
+	--tree-id-column 0 \
+	--tree-parent-column 1 \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "tree-end"
+ts_run $TESTPROG --nlines 10 \
+	--tree-id-column 0 \
+	--tree-parent-column 1 \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-string \
+	--column $TS_SELF/files/col-tree \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-long \
+	$TS_SELF/files/data-string \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "trunc"
+ts_run $TESTPROG --nlines 10 --width 40 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-trunc \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "right"
+ts_run $TESTPROG --nlines 10 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "right-maxout"
+ts_run $TESTPROG --nlines 10 --maxout --width 80\
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "padding-default"
+export LIBSMARTCOLS_DEBUG_PADDING=on
+ts_run $TESTPROG --nlines 10 --width 80 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-string \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-empty \
+	$TS_SELF/files/data-string-empty \
+	>> $TS_OUTPUT 2> /dev/null
+ts_finalize_subtest
+
+ts_init_subtest "padding-maxout"
+export LIBSMARTCOLS_DEBUG_PADDING=on
+ts_run $TESTPROG --nlines 10 --width 80 \
+	--maxout \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-string \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-empty \
+	$TS_SELF/files/data-string-empty \
+	>> $TS_OUTPUT 2> /dev/null
+ts_finalize_subtest
+
+ts_init_subtest "padding-minout"
+export LIBSMARTCOLS_DEBUG_PADDING=on
+ts_run $TESTPROG --nlines 10 --width 80 \
+	--minout \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-string \
+	--column $TS_SELF/files/col-string \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-empty \
+	$TS_SELF/files/data-string-empty \
+	>> $TS_OUTPUT 2> /dev/null
+ts_finalize_subtest
+
+unset LIBSMARTCOLS_DEBUG_PADDING
+
+ts_init_subtest "strictwidth"
+ts_run $TESTPROG --nlines 10 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-strict \
+	--column $TS_SELF/files/col-number \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number-tiny \
+	$TS_SELF/files/data-number \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "noextremes"
+ts_run $TESTPROG --nlines 10 --width 45 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-noextremes \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-string-extreme \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "hidden"
+ts_run $TESTPROG --nlines 10 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-hidden \
+	--column $TS_SELF/files/col-number \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-string-long \
+	$TS_SELF/files/data-number \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrap"
+ts_run $TESTPROG --nlines 10 --width 40 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-wrap \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrap-tree"
+ts_run $TESTPROG --nlines 10 --width 45 \
+	--tree-id-column 1 \
+	--tree-parent-column 2 \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-wrap \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrapnl"
+ts_run $TESTPROG --nlines 10 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-wrapnl \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-nl \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrapnl-tree"
+ts_run $TESTPROG --nlines 10 \
+	--tree-id-column 1 \
+	--tree-parent-column 2 \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-wrapnl \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-nl \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrapzero"
+ts_run $TESTPROG --nlines 10 \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-wrapzero \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-zero \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "wrapzero-tree"
+ts_run $TESTPROG --nlines 10 \
+	--tree-id-column 1 \
+	--tree-parent-column 2 \
+	--column $TS_SELF/files/col-tree \
+	--column $TS_SELF/files/col-id \
+	--column $TS_SELF/files/col-parent \
+	--column $TS_SELF/files/col-wrapzero \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-id \
+	$TS_SELF/files/data-parent \
+	$TS_SELF/files/data-string-zero \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "raw"
+ts_run $TESTPROG --nlines 10 --raw \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-trunc \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "export"
+ts_run $TESTPROG --nlines 10 --export \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-trunc \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_init_subtest "column-separator"
+ts_run $TESTPROG --nlines 10 --colsep \| \
+	--column $TS_SELF/files/col-name \
+	--column $TS_SELF/files/col-number \
+	--column $TS_SELF/files/col-trunc \
+	$TS_SELF/files/data-string \
+	$TS_SELF/files/data-number \
+	$TS_SELF/files/data-string-long \
+	>> $TS_OUTPUT 2>> $TS_ERRLOG
+ts_finalize_subtest
+
+ts_log "...done."
+ts_finalize

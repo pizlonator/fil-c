@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Masatake YAMATO <yamato@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="kthread column"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_nonroot
+
+ts_check_test_command "$TS_CMD_LSFD"
+ts_check_prog "ps"
+
+[ "$(ps --no-headers -o comm 1)" = 'systemd'  ] || ts_skip "pid 1 is not systemd"
+[ "$(ps --no-headers -o comm 2)" = 'kthreadd' ] || ts_skip "pid 2 is not kthreadd"
+
+ts_cd "$TS_OUTDIR"
+
+{
+    "$TS_CMD_LSFD" --threads -o COMMAND,PID,USER,MODE,TYPE,NAME,KTHREAD \
+		   -Q '(PID < 3) and ((ASSOC == "cwd") or (ASSOC == "rtd"))'
+    echo $?
+} > $TS_OUTPUT 2>&1
+
+ts_finalize
+
+

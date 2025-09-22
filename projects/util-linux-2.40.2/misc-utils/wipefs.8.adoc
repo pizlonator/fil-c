@@ -1,0 +1,114 @@
+//po4a: entry man manual
+// Copyright 2009 by Karel Zak.  All Rights Reserved.
+// This file may be copied under the terms of the GNU General Public License.
+= wipefs(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: wipefs
+
+== NAME
+
+wipefs - wipe a signature from a device
+
+== SYNOPSIS
+
+*wipefs* [options] _device_...
+
+*wipefs* [*--backup*] *-o* _offset device_...
+
+*wipefs* [*--backup*] *-a* _device_...
+
+
+== DESCRIPTION
+
+*wipefs* can erase filesystem, raid or partition-table signatures (magic strings) from the specified _device_ to make the signatures invisible for libblkid. *wipefs* does not erase the filesystem itself nor any other data from the device.
+
+When used without any options, *wipefs* lists all visible filesystems and the offsets of their basic signatures. The default output is subject to change. So whenever possible, you should avoid using default outputs in your scripts. Always explicitly define expected columns by using *--output* _columns-list_ in environments where a stable output is required.
+
+*wipefs* calls the *BLKRRPART* ioctl when it has erased a partition-table signature to inform the kernel about the change. The ioctl is called as the last step and when all specified signatures from all specified devices are already erased. This feature can be used to wipe content on partition devices as well as a partition table on a disk device, for example by *wipefs -a /dev/sdc1 /dev/sdc2 /dev/sdc*.
+
+Note that some filesystems and some partition tables store more magic strings on the device (e.g., FAT, ZFS, GPT). The *wipefs* command (since v2.31) lists all the offsets where magic strings have been detected.
+
+When option *-a* is used, all magic strings that are visible for *libblkid*(3) are erased. In this case the *wipefs* scans the device again after each modification (erase) until no magic string is found.
+
+Note that by default *wipefs* does not erase nested partition tables on non-whole disk devices. For this the option *--force* is required.
+
+== OPTIONS
+
+*-a*, *--all*::
+Erase all available signatures. The set of erased signatures can be restricted with the *-t* option.
+
+*-b*, *--backup*[=_dir_]::
+Create a signature backup to the file _wipefs-<devname>-<offset>.bak_ in _$HOME_ or the directory specified as the optional argument. For more details see the *EXAMPLE* section.
+
+*-f*, *--force*::
+Force erasure, even if the filesystem is mounted. This is required in order to erase a partition-table signature on a block device.
+
+*-J*, *--json*::
+Use JSON output format.
+
+*--lock*[=_mode_]::
+Use exclusive BSD lock for device or file it operates. The optional argument _mode_ can be *yes*, *no* (or 1 and 0) or *nonblock*. If the _mode_ argument is omitted, it defaults to *"yes"*. This option overwrites environment variable *$LOCK_BLOCK_DEVICE*. The default is not to use any lock at all, but it's recommended to avoid collisions with udevd or other tools.
+
+*-i*, *--noheadings*::
+Do not print a header line.
+
+*-O*, *--output* _list_::
+Specify which output columns to print. Use *--help* to get a list of all supported columns.
+
+*-n*, *--no-act*::
+Causes everything to be done except for the *write*(2) call.
+
+*-o*, *--offset* _offset_::
+Specify the location (in bytes) of the signature which should be erased from the device. The _offset_ number may include a "0x" prefix; then the number will be interpreted as a hex value. It is possible to specify multiple *-o* options.
++
+The _offset_ argument may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB"), or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+
+*-p*, *--parsable*::
+Print out in parsable instead of printable format. Encode all potentially unsafe characters of a string to the corresponding hex value prefixed by '\x'.
+
+*-q*, *--quiet*::
+Suppress any messages after a successful signature wipe.
+
+*-t*, *--types* _list_::
+Limit the set of printed or erased signatures. More than one type may be specified in a comma-separated list. The list or individual types can be prefixed with 'no' to specify the types on which no action should be taken. For more details see *mount*(8).
+
+include::man-common/help-version.adoc[]
+
+== ENVIRONMENT
+
+LIBBLKID_DEBUG=all::
+enables *libblkid*(3) debug output.
+
+LOCK_BLOCK_DEVICE=<mode>::
+use exclusive BSD lock. The mode is "1" or "0". See *--lock* for more details.
+
+== EXAMPLES
+
+*wipefs /dev/sda**::
+Prints information about sda and all partitions on sda.
+
+*wipefs --all --backup /dev/sdb*::
+Erases all signatures from the device _/dev/sdb_ and creates a signature backup file _~/wipefs-sdb-<offset>.bak_ for each signature.
+
+*dd if=~/wipefs-sdb-0x00000438.bak of=/dev/sdb seek=$\((0x00000438)) bs=1 conv=notrunc*::
+Restores an ext2 signature from the backup file _~/wipefs-sdb-0x00000438.bak_.
+
+== AUTHORS
+
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+
+*blkid*(8),
+*findfs*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

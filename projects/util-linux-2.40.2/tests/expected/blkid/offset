@@ -1,0 +1,41 @@
+Checking that no-one is using this disk right now ... OK
+
+Disk <removed>: 50 MiB, 52428800 bytes, 102400 sectors
+Disk model: scsi_debug      
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / <removed> bytes
+
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Created a new disklabel.
+<removed>1: Created a new partition <removed>.
+<removed>2: Created a new partition <removed>.
+<removed>3: Created a new partition <removed>.
+<removed>4: Created a new partition <removed>.
+<removed>5: Done.
+
+New situation:
+Disklabel type: gpt
+Disk identifier: <removed>
+
+Device             Start    End Sectors Size Type
+<removed>1   2048  12287   10240   5M Linux filesystem
+<removed>2  12288  22527   10240   5M Linux filesystem
+<removed>3  22528  32767   10240   5M Linux filesystem
+<removed>4  32768 100351   67584  33M Linux filesystem
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+ID_FS_LABEL=FOO
+ID_FS_LABEL_ENC=FOO
+ID_FS_UUID=ccf3dc28-f697-4577-971b-0bc79300a700
+ID_FS_UUID_ENC=ccf3dc28-f697-4577-971b-0bc79300a700
+ID_FS_VERSION=1.0
+ID_FS_FSBLOCKSIZE=4096
+ID_FS_BLOCK_SIZE=4096
+ID_FS_FSLASTBLOCK=1280
+ID_FS_FSSIZE=5242880
+ID_FS_TYPE=ext2
+ID_FS_USAGE=filesystem

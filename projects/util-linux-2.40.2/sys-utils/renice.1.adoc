@@ -1,0 +1,117 @@
+//po4a: entry man manual
+////
+Copyright (c) 1983, 1991, 1993
+	The Regents of the University of California.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+	This product includes software developed by the University of
+	California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+    @(#)renice.8	8.1 (Berkeley) 6/9/93
+////
+= renice(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: renice
+
+== NAME
+
+renice - alter priority of running processes
+
+== SYNOPSIS
+
+*renice* [*--priority|--relative*] _priority_ [*-g*|*-p*|*-u*] _identifier_...
+
+== DESCRIPTION
+
+*renice* alters the scheduling priority of one or more running processes. The first argument is the _priority_ value to be used. The other arguments are interpreted as process IDs (by default), process group IDs, user IDs, or user names. *renice*'ing a process group causes all processes in the process group to have their scheduling priority altered. *renice*'ing a user causes all processes owned by the user to have their scheduling priority altered.
+
+If no *-n*, *--priority* or *--relative* option is used, then the priority is set as *absolute*.
+
+== OPTIONS
+
+*-n* _priority_::
+Specify the *absolute* or *relative* (depending on environment variable POSIXLY_CORRECT) scheduling _priority_ to be used for the process, process group, or user. Use of the option *-n* is optional, but when used, it must be the first argument. See *NOTES* for more information.
+
+*--priority* _priority_::
+Specify an *absolute* scheduling _priority_. _Priority_ is set to the given value. This is the default, when no option is specified.
+
+*--relative* _priority_::
+Specify a *relative* scheduling _priority_. Same as the standard POSIX *-n* option. _Priority_ gets _incremented/decremented_ by the given value.
+
+*-g*, *--pgrp*::
+Interpret the succeeding arguments as process group IDs.
+
+*-p*, *--pid*::
+Interpret the succeeding arguments as process IDs (the default).
+
+*-u*, *--user*::
+Interpret the succeeding arguments as usernames or UIDs.
+
+include::man-common/help-version.adoc[]
+
+== FILES
+
+_/etc/passwd_::
+to map user names to user IDs
+
+== NOTES
+
+Users other than the superuser may only alter the priority of processes they own. Furthermore, an unprivileged user can only _increase_ the "nice value" (i.e., choose a lower priority) and such changes are irreversible unless (since Linux 2.6.12) the user has a suitable "nice" resource limit (see *ulimit*(1p) and *getrlimit*(2)).
+
+The superuser may alter the priority of any process and set the priority to any value in the range -20 to 19. Useful priorities are: 19 (the affected processes will run only when nothing else in the system wants to), 0 (the "base" scheduling priority), anything negative (to make things go very fast).
+
+For historical reasons in this implementation, the *-n* option did not follow the POSIX specification. Therefore, instead of setting a *relative* priority, it sets an *absolute* priority by default. As this may not be desirable, this behavior can be controlled by setting the environment variable POSIXLY_CORRECT to be fully POSIX compliant. See the *-n* option for details. See *--relative* and *--priority* for options that do not change behavior depending on environment variables.
+
+== HISTORY
+
+The *renice* command appeared in 4.0BSD.
+
+== EXAMPLES
+
+The following command would change the priority of the processes with PIDs 987 and 32, plus all processes owned by the users daemon and root:
+
+*renice +1 987 -u daemon root -p 32*
+
+== SEE ALSO
+
+*nice*(1),
+*chrt*(1),
+*getpriority*(2),
+*setpriority*(2),
+*credentials*(7),
+*sched*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

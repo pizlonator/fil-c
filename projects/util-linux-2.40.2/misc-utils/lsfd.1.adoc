@@ -1,0 +1,719 @@
+//po4a: entry man manual
+////
+Copyright 2021 Red Hat, Inc.
+
+This file may be copied under the terms of the GNU General Public License.
+////
+= lsfd(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lsfd
+:colon: :
+
+== NAME
+
+lsfd - list file descriptors
+
+== SYNOPSIS
+
+*lsfd* [option]
+
+== DESCRIPTION
+
+*lsfd* is intended to be a modern replacement for *lsof*(8) on Linux systems.
+Unlike *lsof*, *lsfd* is specialized to Linux kernel; it supports Linux
+specific features like namespaces with simpler code. *lsfd* is not a
+drop-in replacement for *lsof*; they are different in the command line
+interface and output formats.
+
+The default output is subject to change. So whenever possible, you should avoid using
+default outputs in your scripts. Always explicitly define expected columns by using
+*--output* _columns-list_ in environments where a stable output is required.
+
+*lsfd* uses Libsmartcols for output formatting and filtering. See the description of *--output*
+option for customizing the output format, and *--filter* option for filtering. Use *lsfd --list-columns*
+to get a list of all available columns.
+
+== OPTIONS
+
+*-l*, *--threads*::
+List in threads level.
+
+*-J*, *--json*::
+Use JSON output format.
+
+*-n*, *--noheadings*::
+Don't print headings.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. See the *OUTPUT COLUMNS*
+section for details of available columns.
++
+The default list of columns may be extended if _list_ is specified in
+the format +_list_ (e.g., *lsfd -o +DELETED*).
+
+*-r*, *--raw*::
+Use raw output format.
+
+*--notruncate*::
+Don't truncate text in columns.
+
+*-p*, *--pid* _pids_::
+Collect information only for specified processes.
+_pids_ is a list of pids. A comma or whitespaces can be used as separators.
+You can use this option with *pidof*(1). See *FILTER EXAMPLES*.
++
+Both *-Q* option with an expression including PID, e.g. -Q (PID == 1),
+and *-p* option, e.g. -p 1, may print the same output but using *-p*
+option is much more efficient because *-p* option works at a much earlier
+stage of processing than the *-Q* option.
+
+*-i*[4|6], *--inet*[=4|=6]::
+List only IPv4 sockets and/or IPv6 sockets.
+
+*-Q*, *--filter* _expr_::
+Print only the files matching the condition represented by the _expr_.
+See also *scols-filter*(5) and *FILTER EXAMPLES*.
+
+*-C*, *--counter* __label__:__filter_expr__::
+Define a custom counter used in *--summary* output. *lsfd* makes a
+counter named _label_. During collect information, *lsfd* counts files
+matching _filter_expr_, and stores the counted number to the
+counter named _label_. *lsfd* applies filters defined with *--filter*
+options before counting; files excluded by the filters are not counted.
++
+See *scols-filter*(5) about _filter_expr_.
+_label_ should not include `{` nor `:`. You can define multiple
+counters by specifying this option multiple times.
++
+See also *COUNTER EXAMPLES*.
+
+*--summary*[=_when_]::
+This option controls summary lines output. The optional argument _when_
+can be *only*, *append* or *never*. If the _when_ argument is omitted,
+it defaults to *only*.
++
+The summary reports counters. A counter consists of a label and an
+integer value.  *--counter* is the option for defining a counter.  If
+a user defines no counter, *lsfd* uses the definitions of pre-defined
+built-in counters (default counters) to make the summary output.
++
+CAUTION{colon} Using *--summary* and *--json* may make the output broken. Only combining *--summary*=*only* and *--json* is valid.
+//TRANSLATORS: Keep {colon} untranslated.
+
+*--debug-filter*::
+Dump the internal data structure for the filter and exit. This is useful
+only for *lsfd* developers.
+
+*--dump-counters*::
+Dump the definition of counters used in *--summary* output.
+
+*-H*, *--list-columns*::
+List available columns that you can specify at *--output* option.
+
+include::man-common/help-version.adoc[]
+
+== OUTPUT COLUMNS
+
+Each column has a type. Types are surround by < and >.
+
+//TRANSLATORS: Keep {colon} untranslated.
+CAUTION{colon} The names and types of columns are not stable yet.
+They may be changed in the future releases.
+
+AINODECLASS <``string``>::
+Class of anonymous inode.
+
+ASSOC <``string``>::
+Association between file and process.
+
+BLKDRV <``string``>::
+Block device driver name resolved by `/proc/devices`.
+
+BPF-MAP.ID <``number``>::
+Bpf map ID.
+
+BPF-MAP.TYPE <``string``>::
+Decoded name of bpf map type.
+
+BPF-MAP.TYPE.RAW <``number``>::
+Bpf map type (raw).
+
+BPF.NAME <``string``>::
+Bpf object name.
+
+BPF-PROG.ID <``number``>::
+Bpf program ID.
+
+BPF-PROG.TYPE <``string``>::
+Decoded name of bpf program type.
+
+BPF-PROG.TYPE.RAW <``number``>::
+Bpf program type (raw).
+
+CHRDRV <``string``>::
+Character device driver name resolved by `/proc/devices`.
+
+COMMAND <``string``>::
+Command of the process opening the file.
+
+DELETED <``boolean``>::
+Reachability from the file system.
+
+DEV <``string``>::
+ID of the device containing the file.
+
+DEVTYPE <``string``>::
+Device type (`blk`, `char`, or `nodev`).
+
+ENDPOINT <``string``>::
+IPC endpoints information communicated with the fd.
++
+*lsfd* collects endpoints within the processes that
+*lsfd* scans; *lsfd* may miss some endpoints
+if you limits the processes with *-p* option.
++
+The format of the column depends on the object associated
+with the fd:
+
+FIFO type:::
+mqueue type:::
+ptmx and pts sources:::
+_PID_,_COMMAND_,_ASSOC_[-r][-w]
++
+The last characters ([-r][-w]) represents the read and/or
+write mode of the endpoint.
+
+eventfd type:::
+_PID_,_COMMAND_,_ASSOC_
+
+UNIX-STREAM:::
+_PID_,_COMMAND_,_ASSOC_[-r?][-w?]
++
+About the last characters ([-r?][-w?]), see the description
+of _SOCK.SHUTDOWN_.
+
+EVENTFD.ID <``number``>::
+Eventfd ID.
+
+EVENTPOLL.TFDS <``string``>::
+File descriptors targeted by the eventpoll file.
+
+FD <``number``>::
+File descriptor for the file.
+
+FLAGS <``string``>::
+Flags specified when opening the file.
+
+FUID <``number``>::
+User ID number of the file's owner.
+
+INET.LADDR <``string``>::
+Local IP address.
+
+INET.RADDR <``string``>::
+Remote IP address.
+
+INET6.LADDR <``string``>::
+Local IP6 address.
+
+INET6.RADDR <``string``>::
+Remote IP6 address.
+
+INODE <``number``>::
+Inode number.
+
+INOTIFY.INODES <``string``>::
+Cooked version of INOTIFY.INODES.RAW.
+The format of the element is
+_inode-number_,_source-of-inode_.
+
+INOTIFY.INODES.RAW <``string``>::
+List of monitoring inodes. The format of the element
+is _inode-number_``,``_device-major_``:``_device-minor_.
+
+KNAME <``string``>::
+//
+// It seems that the manpage backend of asciidoctor has limitations
+// about emitting text with nested face specifications like:
+//
+//   `_u_` p
+//
+// Not only u but also p is decorated with underline.
+//
+Raw file name extracted from
+from ``/proc/``_pid_``/fd/``_fd_ or ``/proc/``_pid_``/map_files/``_region_.
+
+KTHREAD <``boolean``>::
+Whether the process is a kernel thread or not.
+
+MAJ:MIN <``string``>::
+Device ID for special, or ID of device containing file.
+
+MAPLEN <``number``>::
+Length of file mapping (in page).
+
+MISCDEV <``string``>::
+Misc character device name resolved by `/proc/misc`.
+
+MNTID <``number``>::
+Mount ID.
+
+MODE <``string``>::
+Access mode (rwx).
+
+NAME <``string``>::
+Cooked version of KNAME. It is mostly same as KNAME.
++
+Some files have special formats and information sources:
++
+bpf-map:::
+id=_BPF-MAP.ID_ type=_BPF-MAP.TYPE_[ name=_BPF.NAME_]
++
+bpf-prog:::
+id=_BPF-PROG.ID_ type=_BPF-PROG.TYPE_[ name=_BPF.NAME_]
++
+eventpoll:::
+tfds=_EVENTPOLL.TFDS_
++
+eventfd:::
+id=_EVENTFD.ID_
++
+inotify:::
+inodes=_INOTIFY.INODES_
++
+misc:tun:::
+iface=_TUN.IFACE_
++
+NETLINK:::
+protocol=_NETLINK.PROTOCOL_[ lport=_NETLINK.LPORT_[ group=_NETLINK.GROUPS_]]
++
+PACKET:::
+type=_SOCK.TYPE_[ protocol=_PACKET.PROTOCOL_][ iface=_PACKET.IFACE_]
++
+pidfd:::
+pid=_TARGET-PID_ comm=_TARGET-COMMAND_ nspid=_TARGET-NSPIDS_
++
+*lsfd* extracts _TARGET-PID_ and _TARGET-NSPIDS_ from
+``/proc/``_pid_``/fdinfo/``_fd_.
++
+PING:::
+state=_SOCK.STATE_[ id=_PING.ID_][ laddr=_INET.LADDR_ [ raddr=_INET.RADDR_]]
++
+PINGv6:::
+state=_SOCK.STATE_[ id=_PING.ID_][ laddr=_INET6.LADDR_ [ raddr=_INET6.RADDR_]]
++
+ptmx:::
+tty-index=_PTMX.TTY-INDEX_
++
+*lsfd* extracts _PTMX.TTY-INDEX_ from
+``/proc/``_pid_``/fdinfo/``_fd_.
++
+RAW:::
+state=_SOCK.STATE_[ protocol=_RAW.PROTOCOL_ [ laddr=_INET.LADDR_ [ raddr=_INET.RADDR_]]]
++
+RAWv6:::
+state=_SOCK.STATE_[ protocol=_RAW.PROTOCOL_ [ laddr=_INET6.LADDR_ [ raddr=_INET6.RADDR_]]]
++
+signalfd:::
+mask=_SIGNALFD.MASK_
++
+TCP:::
+TCPv6:::
+state=_SOCK.STATE_[ laddr=_TCP.LADDR_ [ raddr=_TCP.RADDR_]]
++
+timerfd:::
+clockid=_TIMERFD.CLOCKID_[ remaining=_TIMERFD.REMAINING_ [ interval=_TIMERFD.INTERVAL_]]
++
+UDP:::
+UDPv6:::
+state=_SOCK.STATE_[ laddr=_UDP.LADDR_ [ raddr=_UDP.RADDR_]]
++
+*lsfd* hides ``raddr=`` if _UDP.RADDR_ is ``0.0.0.0`` and _UDP.RPORT_ is 0.
++
+UDP-LITE:::
+UDPLITEv6:::
+state=_SOCK.STATE_[ laddr=_UDPLITE.LADDR_ [ raddr=_UDPLITE.RADDR_]]
++
+UNIX-STREAM:::
+state=_SOCK.STATE_[ path=_UNIX.PATH_]
++
+UNIX:::
+state=_SOCK.STATE_[ path=_UNIX.PATH_] type=_SOCK.TYPE_
+
+____
+Note that `(deleted)` markers are removed from this column.
+Refer to _KNAME_, _DELETED_, or _XMODE_ to know the
+readability of the file from the file system.
+____
+
+NETLINK.GROUPS <``number``>::
+Netlink multicast groups.
+
+NETLINK.LPORT <``number``>::
+Netlink local port id.
+
+NETLINK.PROTOCOL <``string``>::
+Netlink protocol.
+
+NLINK <``number``>::
+Link count.
+
+NS.NAME <``string``>::
+Name (_NS.TYPE_:[_INODE_]) of the namespace specified with the file.
+
+NS.TYPE <``string``>::
+Type of the namespace specified with the file.
+The type is `mnt`, `cgroup`, `uts`, `ipc`, `user`, `pid`, `net`,
+`time`, or `unknown`.
+
+OWNER <``string``>::
+Owner of the file.
+
+PACKET.IFACE <``string``>::
+Interface name associated with the packet socket.
+
+PACKET.PROTOCOL <``string``>::
+L3 protocol associated with the packet socket.
+
+PARTITION <``string``>::
+Block device name resolved by `/proc/partition`.
+
+PID <``number``>::
+PID of the process opening the file.
+
+PIDFD.COMM <``string``>::
+Command of the process targeted by the pidfd.
+
+PIDFD.NSPID <``string``>::
+Value of NSpid field in ``/proc/``_pid_``/fdinfo/``_fd_ of the pidfd.
++
+Quoted from kernel/fork.c of Linux source tree:
++
+____
+If pid namespaces are supported then this function will also print
+the pid of a given pidfd refers to for all descendant pid namespaces
+starting from the current pid namespace of the instance, i.e. the
+Pid field and the first entry in the NSpid field will be identical.
+
+Note that this differs from the Pid and NSpid fields in
+/proc/<pid>/status where Pid and NSpid are always shown relative to
+the pid namespace of the procfs instance.
+____
+
+PIDFD.PID <``number``>::
+PID of the process targeted by the pidfd.
+
+PING.ID <`number`>::
+ICMP echo request id used on the PING socket.
+
+POS <``number``>::
+File position.
+
+RAW.PROTOCOL <``number``>::
+Protocol number of the raw socket.
+
+RDEV <``string``>::
+Device ID (if special file).
+
+SIGNALFD.MASK <``string``>::
+Masked signals.
+
+SIZE <``number``>::
+File size.
+
+SOCK.LISTENING <``boolean``>::
+Listening socket.
+
+SOCK.NETS <``number``>::
+Inode identifying network namespace where the socket belongs to.
+
+SOCK.PROTONAME <``string``>::
+Protocol name.
+
+SOCK.SHUTDOWN <``string``>::
+Shutdown state of socket.
++
+[-r?]:::
+If the first character is _r_, the receptions are allowed.
+If it is _-_, the receptions are disallowed.
+If it is _?_, the state is unknown.
++
+[-w?]:::
+If the second character is _w_, the transmissions are allowed.
+If it is _-_, the transmissions are disallowed.
+If it is _?_, the state is unknown.
+
+SOCK.STATE <``string``>::
+State of socket.
+
+SOCK.TYPE <``string``>::
+Type of socket. Here type means the second parameter of
+socket system call:
++
+* stream
+* dgram
+* raw
+* rdm
+* seqpacket
+* dccp
+* packet
+
+SOURCE <``string``>::
+File system, partition, or device containing the file.
+
+STTYPE <``string``>::
+Raw file types returned from *stat*(2): BLK, CHR, DIR, FIFO, LINK, REG, SOCK, or UNKN.
+
+TCP.LADDR <``string``>::
+Local L3 (_INET.LADDR_ or _INET6.LADDR_) address and local TCP port.
+
+TCP.LPORT <``number``>::
+Local TCP port.
+
+TCP.RADDR <``string``>::
+Remote L3 (_INET.RADDR_ or _INET6.RADDR_) address and remote TCP port.
+
+TCP.RPORT <``number``>::
+Remote TCP port.
+
+TID <``number``>::
+Thread ID of the process opening the file.
+
+TIMERFD.CLOCKID <``string``>::
+Clockid.
+
+TIMERFD.INTERVAL <``number``>::
+Interval.
+
+TIMERFD.REMAINING <``number``>::
+Remaining time.
+
+PTMX.TTY-INDEX <``number``>::
+TTY index of the counterpart.
+
+TUN.IFACE <``string``>::
+Network interface behind the tun device.
+
+TYPE <``string``>::
+Cooked version of _STTYPE_. It is same as _STTYPE_ with exceptions.
+For _SOCK_, print the value for _SOCK.PROTONAME_.
+For _UNKN_, print the value for _AINODECLASS_ if _SOURCE_ is `anon_inodefs`.
+
+UDP.LADDR <``string``>::
+Local IP address and local UDP port.
+
+UDP.LPORT <``number``>::
+Local UDP port.
+
+UDP.RADDR <``string``>::
+Remote IP address and remote UDP port.
+
+UDP.RPORT <``number``>::
+Remote UDP port.
+
+UDPLITE.LADDR <``string``>::
+Local IP address and local UDPLite port.
+
+UDPLITE.LPORT <``number``>::
+Local UDP port.
+
+UDPLITE.RADDR <``string``>::
+Remote IP address and remote UDPLite port.
+
+UDPLITE.RPORT <``number``>::
+Remote UDP port.
+
+UID <``number``>::
+User ID number.
+
+UNIX.PATH <``string``>::
+Filesystem pathname for UNIX domain socket.
+
+USER <``string``>::
+User of the process.
+
+XMODE <``string``>::
+Extended version of _MODE_. This column may grow; new letters may be
+appended to _XMODE_ when *lsfd* supports a new state of file descriptors
+and/or memory mappings.
++
+[-r]:::
+opened of mapped for reading. This is also in _MODE_.
++
+[-w]:::
+opened of mapped for writing. This is also in _MODE_.
++
+[-x]:::
+mapped for executing the code. This is also in _MODE_.
++
+[-D]:::
+deleted from  the file system. See also _DELETED_.
++
+[-Ll]:::
+locked or leased. _l_ represents a read, a shared lock or a read lease.
+_L_ represents a write or an exclusive lock or a write lease. If both
+read/shared and write/exclusive locks or leases are taken by a file
+descriptor, _L_ is used as the flag.
++
+[-m]:::
+Multiplexed. If the file descriptor is targeted by a eventpoll file
+or classical system calls for multiplexing (select, pselect, poll, and
+ppoll), this bit flag is set. Note that if an invocation of the
+classical system calls is interrupted, *lsfd* may fail to mark _m_
+on the file descriptors monitored by the invocation.
+See *restart_syscall*(2).
+
+== FILTER EXAMPLES
+
+*lsfd* has few options for filtering. In most of cases, what you should
+know is *-Q* (or *--filter*) option.  Combined with *-o* (or
+*--output*) option, you can customize the output as you want.
+
+//TRANSLATORS: In the following messages, don't forget to add whitespace at the end!
+List files associated with PID 1 and PID 2 processes: ::
+....
+# lsfd -Q '(PID == 1) or (PID == 2)'
+....
+
+Do the same in an alternative way: ::
+....
+# lsfd -Q '(PID == 1) || (PID == 2)'
+....
+
+Do the same in a more efficient way: ::
+....
+# lsfd --pid 1,2
+....
+
+Whitescapes can be used instead of a comma: ::
+....
+# lsfd --pid '1 2'
+....
+
+Utilize *pidof*(1) for list the files associated with "firefox": ::
+....
+# lsfd --pid "$(pidof firefox)"
+....
+
+List the 1st file descriptor opened by PID 1 process: ::
+....
+# lsfd -Q '(PID == 1) and (FD == 1)'
+....
+
+Do the same in an alternative way: ::
+....
+# lsfd -Q '(PID == 1) && (FD == 1)'
+....
+
+List all running executables: ::
+....
+# lsfd -Q 'ASSOC == "exe"'
+....
+
+Do the same in an alternative way: ::
+....
+# lsfd -Q 'ASSOC eq "exe"'
+....
+
+Do the same but print only file names: ::
+....
+# lsfd -o NAME -Q 'ASSOC eq "exe"' | sort -u
+....
+
+List deleted files associated to processes: ::
+....
+# lsfd -Q 'DELETED'
+....
+
+List non-regular files: ::
+....
+# lsfd -Q 'TYPE != "REG"'
+....
+
+List block devices: ::
+....
+# lsfd -Q 'DEVTYPE == "blk"'
+....
+
+Do the same with TYPE column: ::
+....
+# lsfd -Q 'TYPE == "BLK"'
+....
+
+List files including "dconf" directory in their names: ::
+....
+# lsfd -Q 'NAME =~ ".\*/dconf/.*"'
+....
+
+List files opened in a QEMU virtual machine: ::
+....
+# lsfd -Q '(COMMAND =~ ".\*qemu.*") and (FD >= 0)'
+....
+
+List timerfd files expired within 0.5 seconds: ::
+....
+# lsfd -Q '(TIMERFD.remaining < 0.5) and (TIMERFD.remaining > 0.0)'
+....
+
+== COUNTER EXAMPLES
+
+Report the numbers of netlink socket descriptors and unix socket descriptors: ::
+....
+# lsfd --summary=only \
+	-C 'netlink sockets':'(NAME =~ "NETLINK:.*")' \
+	-C 'unix sockets':'(NAME =~ "UNIX:.*")'
+VALUE COUNTER
+   57 netlink sockets
+ 1552 unix sockets
+....
+
+Do the same but print in JSON format: ::
+....
+# lsfd --summary=only --json \
+	-C 'netlink sockets':'(NAME =~ "NETLINK:.*")' \
+	-C 'unix sockets':'(NAME =~ "UNIX:.*")'
+{
+   "lsfd-summary": [
+      {
+	 "value": 15,
+	 "counter": "netlink sockets"
+      },{
+	 "value": 798,
+	 "counter": "unix sockets"
+      }
+   ]
+}
+....
+
+
+== HISTORY
+
+The *lsfd* command is part of the util-linux package since v2.38.
+
+== AUTHORS
+
+mailto:yamato@redhat.com[Masatake YAMATO],
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+*bpftool*(8)
+*bps*(8)
+*lslocks*(8)
+*lsof*(8)
+*pidof*(1)
+*proc*(5)
+*scols-filter*(5)
+*socket*(2)
+*ss*(8)
+*stat*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

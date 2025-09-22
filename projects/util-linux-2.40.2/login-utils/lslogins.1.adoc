@@ -1,0 +1,157 @@
+//po4a: entry man manual
+// Copyright 2014 Ondrej Oprala (ondrej.oprala@gmail.com)
+// May be distributed under the GNU General Public License
+= lslogins(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lslogins
+
+== NAME
+
+lslogins - display information about known users in the system
+
+== SYNOPSIS
+
+*lslogins* [options] [*-s*|*-u*[=_UID_]] [*-g* _groups_] [*-l* _logins_] [_username_]
+
+== DESCRIPTION
+
+Examine the wtmp and btmp logs, _/etc/shadow_ (if necessary) and _/passwd_ and output the desired data.
+
+The optional argument _username_ forces *lslogins* to print all available details about the specified user only. In this case the output format is different than in case of *-l* or *-g* and unknown is _username_ reported as an error.
+
+The default action is to list info about all the users in the system.
+
+== OPTIONS
+
+Mandatory arguments to long options are mandatory for short options too.
+
+*-a*, *--acc-expiration*::
+Display data about the date of last password change and the account expiration date (see *shadow*(5) for more info). (Requires root privileges.)
+
+*--btmp-file* _path_::
+Alternate path for btmp.
+
+*-c*, *--colon-separate*::
+Separate info about each user with a colon instead of a newline.
+
+*-e*, *--export*::
+Output data in the format of NAME=VALUE. See also option *--shell*.
+
+*-f*, *--failed*::
+Display data about the users' last failed login attempts.
+
+*-G*, *--supp-groups*::
+Show information about supplementary groups.
+
+*-g*, **--groups**=_groups_::
+Only show data of users belonging to _groups_. More than one group may be specified; the list has to be comma-separated. Unknown group names are ignored.
++
+Note that the relation between user and group may be invisible for the primary group if the user is not explicitly specified as group member (e.g., in _/etc/group_). If the command *lslogins* scans for groups then it uses the groups database only, and the user database with primary GID is not used at all.
+
+*-L*, *--last*::
+Display data containing information about the users' last login sessions.
+
+*-l*, **--logins**=_logins_::
+Only show data of users with a login specified in _logins_ (user names or user IDs). More than one login may be specified; the list has to be comma-separated. Unknown login names are ignored.
+
+*-n*, *--newline*::
+Display each piece of information on a separate line.
+
+*--noheadings*::
+Do not print a header line.
+
+*--notruncate*::
+Don't truncate output.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. The default list of columns may be extended if _list_ is specified in the format _+list_.
+
+*--output-all*::
+Output all available columns. *--help* to get a list of all supported columns.
+
+*-p*, *--pwd*::
+Display information related to login by password (see also *-afL*).
+
+*-r*, *--raw*::
+Raw output (no columnation).
+
+*-s*, *--system-accs*::
+Show system accounts. These are by default all accounts with a UID between 101 and 999 (inclusive), with the exception of either nobody or nfsnobody (UID 65534). This hardcoded default may be overwritten by parameters *SYS_UID_MIN* and *SYS_UID_MAX* in the file _/etc/login.defs_.
+
+*--time-format* _type_::
+Display dates in short, full or iso format. The default is short, this time format is designed to be space efficient and human readable.
+
+*-u*, *--user-accs*::
+Show user accounts. These are by default all accounts with UID above 1000 (inclusive), with the exception of either nobody or nfsnobody (UID 65534). This hardcoded default maybe overwritten by parameters UID_MIN and UID_MAX in the file _/etc/login.defs_.
+
+include::man-common/help-version.adoc[]
+
+*--wtmp-file* _path_::
+Alternate path for wtmp.
+
+*--lastlog* _path_::
+Alternate path for *lastlog*(8).
+
+*-y*, *--shell*::
+The column name will be modified to contain only characters allowed for shell variable identifiers. This is usable, for example, with *--export*. Note that this feature has been automatically enabled for *--export* in version 2.37, but due to compatibility issues, now it's necessary to request this behavior by *--shell*.
+
+*-Z*, *--context*::
+Display the users' security context.
+
+*-z*, *--print0*::
+Delimit user entries with a nul character, instead of a newline.
+
+== EXIT STATUS
+
+0::
+if OK,
+
+1::
+if incorrect arguments specified,
+
+2::
+if a serious error occurs (e.g., a corrupt log).
+
+== NOTES
+
+The default UID thresholds are read from _/etc/login.defs_.
+
+=== Password status
+
+Multiple fields describe password status.
+
+*"Password is locked"*::
+The password is prefixed by '!!', and the user cannot login although the password is set or empty. This is common for new accounts without a set password.
+
+*"Password not required (empty)"*::
+The password is not set (hash is missing); this is common for locked system accounts. Not requiring a password does not mean the user can log-in without a password. It depends on the password "lock" status.
+
+*"Login by password disabled"*::
+'yes' means that there is no valid password. The password hash is missing, or the hash method is unknown or contains invalid chars.
+
+== HISTORY
+
+The *lslogins* utility is inspired by the *logins* utility, which first appeared in FreeBSD 4.10.
+
+== AUTHORS
+
+mailto:ooprala@redhat.com[Ondrej Oprala],
+mailto:kzak@redhat.com[Karel Zak]
+
+== SEE ALSO
+
+*group*(5),
+*passwd*(5),
+*shadow*(5),
+*utmp*(5)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

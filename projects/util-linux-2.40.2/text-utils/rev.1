@@ -1,0 +1,66 @@
+'\" t
+.\"     Title: rev
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-01-31
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "REV" "1" "2024-01-31" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+rev \- reverse lines characterwise
+.SH "SYNOPSIS"
+.sp
+\fBrev\fP [option] [\fIfile\fP...]
+.SH "DESCRIPTION"
+.sp
+The \fBrev\fP utility copies the specified files to standard output, reversing the order of characters in every line. If no files are specified, standard input is read.
+.sp
+This utility is a line\-oriented tool and it uses in\-memory allocated buffer for a whole wide\-char line. If the input file is huge and without line breaks then allocating the memory for the file may be unsuccessful.
+.SH "OPTIONS"
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.sp
+\fB\-0\fP, \fB\-\-zero\fP
+.RS 4
+\fIZero termination\fP. Use the byte \*(Aq\(rs0\*(Aq as line separator.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBtac\fP(1)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBrev\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

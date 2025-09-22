@@ -1,0 +1,107 @@
+'\" t
+.\"     Title: pam_lastlog2
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-07-04
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "PAM_LASTLOG2" "8" "2024-07-04" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+pam_lastlog2 \- PAM module to display date of last login
+.SH "SYNOPSIS"
+.sp
+\fBpam_lastlog2.so\fP [debug] [silent] [silent_if=<services>] [database=<file>]
+.SH "DESCRIPTION"
+.sp
+pam_lastlog2 is a PAM module to display a line of information about the last login of the user. The module uses the /var/lib/lastlog/lastlog2.db database file to store all informations.
+.sp
+Compared to pam_lastlog this PAM module is Y2038 safe and uses sqlite3 to store the information.
+.SH "OPTIONS"
+.sp
+\fBdebug\fP
+.RS 4
+Print debug information.
+.RE
+.sp
+\fBsilent\fP
+.RS 4
+Avoid all messages except errors and don\(cqt inform the user about any previous login, only update the /var/lib/lastlog/lastlog2.db database.
+.RE
+.sp
+\fBsilent_if=<services>\fP
+.RS 4
+The argument \fBservices\fP is a comma separated list of PAM services. If a service is listed here, the last login message will not be shown.
+.RE
+.sp
+\fBdatabase=<file>\fP
+.RS 4
+Use \fBfile\fP instead of /var/lib/lastlog/lastlog2.db.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.sp
+The \fBsession\fP module type is provided for displaying the information about the last login and updating the lastlog file.
+.SH "RETURN VALUES"
+.sp
+\fBPAM_SUCCESS\fP
+.RS 4
+Everything was successful.
+.RE
+.sp
+\fBPAM_SERVICE_ERR\fP
+.RS 4
+Internal service module error. This includes error reading from or writing to the database.
+.RE
+.sp
+\fBPAM_USER_UNKNOWN\fP
+.RS 4
+User not known.
+.RE
+.sp
+\fBPAM_IGNORE\fP
+.RS 4
+Returned by service types which do nothing.
+.RE
+.SH "EXAMPLES"
+.sp
+Add the following line to e.g.  /etc/pam.d/login to display the last login time of a user:
+.sp
+session  optional pam_lastlog2.so silent_if=gdm,gdm\-password
+.sp
+It is up to the administrator to decide if the user can login (optional/required) when
+pam_lastlog2 has returned an error.
+.SH "AUTHOR"
+.sp
+pam_lastlog2 was written by Thorsten Kukuk \c
+.MTO "kukuk\(atsuse.com" "" "."
+.SH "SEE ALSO"
+.sp
+\fBliblastlog2\fP(3), \fBpam.conf\fP(5), \fBpam.d\fP(5), \fBpam\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBpam_lastlog2\fP library is part of the util\-linux package since version 2.40. It can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

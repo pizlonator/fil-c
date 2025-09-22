@@ -1,0 +1,86 @@
+//po4a: entry man manual
+= scriptlive(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: scriptlive
+:copyright: ©
+
+== NAME
+
+scriptlive - re-run session typescripts, using timing information
+
+== SYNOPSIS
+
+*scriptlive* [options] [*-t*] _timingfile_ [*-I*|*-B*] _typescript_
+
+== DESCRIPTION
+
+This program re-runs a typescript, using stdin typescript and timing information to ensure that input happens in the same rhythm as it originally appeared when the script was recorded.
+
+The *session is executed* in a newly created pseudoterminal with the user's $SHELL (or defaults to _/bin/bash_).
+
+*Be careful!* Do not forget that the typescript may contains arbitrary commands. It is recommended to use *"scriptreplay --stream in --log-in typescript"* (or with *--log-io* instead of *--log-in*) to verify the typescript before it is executed by *scriptlive*.
+
+The timing information is what *script*(1) outputs to file specified by *--log-timing*. The typescript has to contain stdin information and it is what script1 outputs to file specified by *--log-in* or *--log-io*.
+
+== OPTIONS
+
+*-I*, *--log-in* _file_::
+File containing *script*'s terminal input.
+
+*-B*, *--log-io* _file_::
+File containing *script*'s terminal output and input.
+
+*-t*, *--timing* _file_::
+File containing *script*'s timing output. This option overrides old-style arguments.
+
+*-T*, *--log-timing* _file_::
+Aliased to *-t*, maintained for compatibility with *script*(1) command-line options.
+
+*-d*, *--divisor* _number_::
+Speed up the replay displaying this _number_ of times. The argument is a floating-point number. It's called divisor because it divides the timings by this factor. This option overrides old-style arguments.
+
+*-m*, *--maxdelay* _number_::
+Set the maximum delay between updates to _number_ of seconds. The argument is a floating-point number. This can be used to avoid long pauses in the typescript replay.
+
+include::man-common/help-version.adoc[]
+
+== EXAMPLES
+
+....
+% script --log-timing file.tm --log-in script.in
+Script started, file is script.out
+% date
+<etc, etc>
+% exit
+Script done, file is script.out
+% scriptlive --log-timing file.tm --log-in script.in
+....
+
+== AUTHORS
+
+mailto:kzak@redhat.com[Karel Zak]
+
+== COPYRIGHT
+
+//TRANSLATORS: Keep {copyright} untranslated.
+Copyright {copyright} 2019 Karel Zak
+
+This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Released under the GNU General Public License version 2 or later.
+
+== SEE ALSO
+
+*script*(1),
+*scriptreplay*(1)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

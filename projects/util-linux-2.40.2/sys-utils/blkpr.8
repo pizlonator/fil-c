@@ -1,0 +1,98 @@
+'\" t
+.\"     Title: blkpr
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "BLKPR" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+blkpr \- run persistent reservations command on a device
+.SH "SYNOPSIS"
+.sp
+\fBblkpr\fP [options] \fIdevice\fP
+.SH "DESCRIPTION"
+.sp
+\fBblkpr\fP is used to run persistent reservations command on device that supports Persistent Reservations feature.
+.sp
+The \fIdevice\fP argument is the pathname of the block device.
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-command\fP \fIcommand\fP
+.RS 4
+The command of persistent reservations, supported commands are \fBregister\fP, \fBreserve\fP, \fBrelease\fP, \fBpreempt\fP,
+\fBpreempt\-abort\fP, and \fBclear\fP.
+.RE
+.sp
+\fB\-k\fP, \fB\-\-key\fP \fIkey\fP
+.RS 4
+The key the command should operate on.
+.RE
+.sp
+\fB\-K\fP, \fB\-\-oldkey\fP \fIoldkey\fP
+.RS 4
+The old key the command should operate on.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-flag\fP \fIflag\fP
+.RS 4
+Supported flag is \fBignore\-key\fP.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-type\fP \fItype\fP
+.RS 4
+Supported types are \fBwrite\-exclusive\fP, \fBexclusive\-access\fP, \fBwrite\-exclusive\-reg\-only\fP,
+\fBexclusive\-access\-reg\-only\fP, \fBwrite\-exclusive\-all\-regs\fP, and \fBexclusive\-access\-all\-regs\fP.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Display version information and exit.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.SH "AUTHORS"
+.sp
+.MTO "pizhenwei\(atbytedance.com" "zhenwei pi" ""
+.SH "SEE ALSO"
+.sp
+\fBsg_persist\fP(8)
+.sp
+Linux documentation at: \c
+.URL "https://docs.kernel.org/block/pr.html" ""
+iSCSI specification at: \c
+.URL "https://datatracker.ietf.org/doc/html/rfc3720" ""
+NVMe\-oF specification at: \c
+.URL "https://nvmexpress.org/nvme\-over\-fabrics\-part\-two/" "" ""
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBblkpr\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

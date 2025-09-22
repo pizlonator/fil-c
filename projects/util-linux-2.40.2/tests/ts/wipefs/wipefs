@@ -1,0 +1,35 @@
+#!/bin/bash
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="wipefs"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_WIPEFS"
+ts_check_test_command "$TS_CMD_MKMINIX"
+
+img="$(ts_image_init 50)"
+backups="$TS_OUTDIR/backups"
+
+"$TS_CMD_MKMINIX" "$img" &>/dev/null
+
+# remove old backups
+rm -rf "$backups"
+mkdir -p "$backups"
+
+#remove the magic byte, back it up
+$TS_CMD_WIPEFS --all --backup="${backups}" ${img} &>/dev/null || ts_die "wipefs failed"
+
+#there should be just one magic string/backup file in this case
+INFILE=$(ls $backups/wipefs-$(basename ${img})-*.bak)
+OFFT=$(echo $INFILE | sed 's/^.*-\(.*\).bak$/\1/')
+dd if=$INFILE of=$img bs=1 conv=notrunc seek=$(($OFFT)) &>/dev/null
+
+#the bytes should be copied back, check if wipefs can recognize it
+$TS_CMD_WIPEFS -a ${img} > $TS_OUTDIR/out 2>/dev/null
+
+# check for output
+[ -s $TS_OUTDIR/out ] && echo "OK" &> $TS_OUTPUT || exit 1
+
+ts_finalize

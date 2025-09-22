@@ -1,0 +1,10 @@
+if BUILD_LIBLASTLOG2
+
+include liblastlog2/man/Makemodule.am
+include liblastlog2/src/Makemodule.am
+
+pkgconfig_DATA += liblastlog2/lastlog2.pc
+PATHFILES      += liblastlog2/lastlog2.pc
+EXTRA_DIST     += liblastlog2/COPYING
+
+endif # BUILD_LIBLASTLOG2

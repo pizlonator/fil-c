@@ -1,0 +1,157 @@
+'\" t
+.\"     Title: pipesz
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "PIPESZ" "1" "2024-04-24" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+pipesz \- set or examine pipe and FIFO buffer sizes
+.SH "SYNOPSIS"
+.sp
+\fBpipesz\fP [options] [\-\-set \fIsize\fP] [\-\-] [\fIcommand\fP [argument] ...]
+.sp
+\fBpipesz\fP [options] \-\-get
+.SH "DESCRIPTION"
+.sp
+Pipes and FIFOs maintain an internal buffer used to transfer data between the read end and the write end. In some cases, the default size of this internal buffer may not be appropriate. This program provides facilities to set and examine the size of these buffers.
+.sp
+The \fB\-\-set\fP operation sets pipe buffer sizes. If it is specified, it must be specified with an explicit \fIsize\fP. Otherwise, it is implied and the size is read from \fB/proc/sys/fs/pipe\-max\-size\fP. The kernel may adjust \fIsize\fP as described in \fBfcntl\fP(2). To determine the actual buffer sizes set, use the \fB\-\-verbose\fP option. If neither \fB\-\-file\fP nor \fB\-\-fd\fP are specified, \fB\-\-set\fP acts on standard output.
+.sp
+The \fB\-\-set\fP operation permits an optional \fIcommand\fP to execute after setting the pipe buffer sizes. This command is executed with the adjusted pipes.
+.sp
+The \fB\-\-get\fP operation outputs data in a tabular format. The first column is the name of the pipe as passed to \fBpipesz\fP. File descriptors are named as "fd \fIN\fP". The second column is the size, in bytes, of the pipe\(cqs internal buffer. The third column is the number of unread bytes currently in the pipe. The columns are separated by tabs (\*(Aq\(rst\*(Aq, ASCII 09h). If \fB\-\-verbose\fP is specified, a descriptive header is also emitted. If neither \fB\-\-file\fP nor \fB\-\-fd\fP are specified, \fB\-\-get\fP acts on standard input.
+.sp
+Unless the \fB\-\-check\fP option is specified, \fBpipesz\fP does \fInot\fP exit if it encounters an error while manipulating a file or file descriptor. This allows \fBpipesz\fP to be used generically without fear of disrupting the execution of pipelines should the type of certain files be later changed. For minimal disruption, the \fB\-\-quiet\fP option prevents warnings from being emitted in these cases.
+.sp
+The kernel imposes limits on the amount of pipe buffer space unprivileged processes can use, though see \fBBUGS\fP below. The kernel will also refuse to shrink a pipe buffer if this would cause a loss of buffered data. See \fBpipe\fP(7) for additional details.
+.sp
+\fBpipesz\fP supports specifying multiple short options consecutively, in the usual \fBgetopt\fP(3) fashion. The first non\-option argument is interpreted as \fIcommand\fP. If \fIcommand\fP might begin with \*(Aq\-\*(Aq, use \*(Aq\-\-\*(Aq to separate it from arguments to \fBpipesz\fP. In shell scripts, it is good practice to use \*(Aq\-\-\*(Aq when parameter expansion is involved. \fBpipesz\fP itself does not read from standard input and does not write to standard output unless \fB\-\-get\fP, \fB\-\-help\fP, or \fB\-\-version\fP are specified.
+.SH "OPTIONS"
+.sp
+\fB\-g\fP, \fB\-\-get\fP
+.RS 4
+Report the size of pipe buffers to standard output and exit. As a special behavior, if neither \fB\-\-file\fP nor \fB\-\-fd\fP are specified, standard input is examined. It is an error to specify this option in combination with \fB\-\-set\fP.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-set\fP \fIsize\fP
+.RS 4
+Set the size of the pipe buffers, in bytes. This option may be suffixed by \fIK\fP, \fIM\fP, \fIG\fP, \fIKiB\fP, \fIMiB\fP, or \fIGiB\fP to indicate multiples of 1024. Fractional values are supported in this case. Additional suffixes are supported but are unlikely to be useful. If this option is not specified, a default value is used, as described above. If this option is specified multiple times, a warning is emitted and only the last\-specified \fIsize\fP is used. As a special behavior, if neither \fB\-\-file\fP nor \fB\-\-fd\fP are specified, standard output is adjusted. It is an error to specify this option in combination with \fB\-\-get\fP.
+.RE
+.sp
+\fB\-f\fP, \fB\-\-file\fP \fIpath\fP
+.RS 4
+Set the buffer size of the FIFO or pipe at \fIpath\fP, relative to the current working directory. You may specify this option multiple times to affect different files, and you may do so in combination with \fB\-\-fd\fP. Generally, this option is used with FIFOs, but it will also operate on anonymous pipes such as those found in \fB/proc/PID/fd\fP. Changes to the buffer size of FIFOs are not preserved across system restarts.
+.RE
+.sp
+\fB\-n\fP, \fB\-\-fd\fP \fIfd\fP
+.RS 4
+Set the buffer size of the pipe or FIFO passed to \fBpipesz\fP as the specified file descriptor number. You may specify this option multiple times to affect different file descriptors, and you may do so in combination with \fB\-\-file\fP. Shorthand options are provided for the common cases of fd 0 (stdin), fd 1 (stdout), and fd 2 (stderr). These should suffice in most cases.
+.RE
+.sp
+\fB\-i\fP, \fB\-\-stdin\fP
+.RS 4
+Shorthand for \fB\-\-fd 0\fP.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-stdout\fP
+.RS 4
+Shorthand for \fB\-\-fd 1\fP.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-stderr\fP
+.RS 4
+Shorthand for \fB\-\-fd 2\fP.
+.RE
+.sp
+\fB\-c\fP, \fB\-\-check\fP
+.RS 4
+Exit, without executing \fIcommand\fP, in case of any error while manipulating a file or file descriptor. The default behavior if this is not specified is to emit a warning to standard error and continue.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Do not diagnose non\-fatal errors to standard error. This option does not affect the normal output of \fB\-\-get\fP, \fB\-\-verbose\fP, \fB\-\-help\fP, or \fB\-\-version\fP.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-verbose\fP
+.RS 4
+If specified with \fB\-\-get\fP, \fBpipesz\fP will emit a descriptive header above the table. Otherwise, if specified, \fBpipesz\fP will print the actual buffer sizes set by the kernel to standard error.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXAMPLES"
+.sp
+\fBpipesz\fP \fBdd\fP if=\fIfile\fP bs=1M | ...
+.RS 4
+Runs \fBdd\fP(1) with an expanded standard output pipe, allowing it to avoid context switches when piping around large blocks.
+.RE
+.sp
+\fBpipesz\fP \-s1M \-cf \fI/run/my\-service.fifo\fP
+.RS 4
+Sets the pipe buffer size of a service FIFO to 1,048,576 bytes. If the buffer size could not be set, \fBpipesz\fP exits with an error.
+.RE
+.sp
+\fBecho\fP hello | \fBpipesz\fP \-g
+.RS 4
+Prints the size of pipe used by the shell to pass input to \fBpipesz\fP. Since \fBpipesz\fP does not read standard input, it may also report 6 unread bytes in the pipe, depending on relative timings.
+.RE
+.sp
+\fBfind\fP /proc/\fIPID\fP/fd \-exec \fBpipesz\fP \-gqf \*(Aq{}\*(Aq \*(Aq;\*(Aq
+.RS 4
+Prints the size and number of unread bytes of all pipes in use by \fIPID\fP. If some pipes are routinely full, \fBpipesz\fP might be able to mitigate a processing bottleneck.
+.RE
+.SH "NOTES"
+.sp
+Linux supports adjusting the size of pipe buffers since kernel 2.6.35. This release also introduced \fB/proc/sys/fs/pipe\-max\-size\fP.
+.sp
+This program uses \fBfcntl\fP(2) \fBF_GETPIPE_SZ\fP/\fBF_SETPIPE_SZ\fP to get and set pipe buffer sizes.
+.sp
+This program uses \fBioctl\fP(2) \fBFIONREAD\fP to report the amount of unread data in pipes. If for some reason this fails, the amount of unread data is reported as 0.
+.SH "BUGS"
+.sp
+Before Linux 4.9, some bugs affect how certain resource limits are enforced when setting pipe buffer sizes. See \fBpipe\fP(7) for details.
+.SH "AUTHORS"
+.sp
+.MTO "nwsharp\(atlive.com" "Nathan Sharp" ""
+.SH "SEE ALSO"
+.sp
+\fBpipe\fP(7)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBpipesz\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

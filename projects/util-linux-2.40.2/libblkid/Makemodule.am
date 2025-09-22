@@ -1,0 +1,19 @@
+if BUILD_LIBBLKID
+
+include libblkid/src/Makemodule.am
+include libblkid/samples/Makemodule.am
+
+if ENABLE_GTK_DOC
+# Docs uses separate Makefiles
+SUBDIRS += libblkid/docs
+endif
+
+pkgconfig_DATA += libblkid/blkid.pc
+PATHFILES += libblkid/blkid.pc
+
+MANPAGES += libblkid/libblkid.3
+dist_noinst_DATA += libblkid/libblkid.3.adoc
+
+EXTRA_DIST     += libblkid/COPYING
+
+endif # BUILD_LIBBLKID

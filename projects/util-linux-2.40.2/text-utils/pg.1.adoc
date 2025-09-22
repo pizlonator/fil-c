@@ -1,0 +1,158 @@
+//po4a: entry man manual
+// Copyright 2001 Gunnar Ritter
+= pg(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: pg
+
+== NAME
+
+pg - browse pagewise through text files
+
+== SYNOPSIS
+
+*pg* *-*_amount_ *-p* _prompt_ *-cefnrs* +line +/pattern/ file_ ...
+
+== DESCRIPTION
+
+*pg* displays a text file on a CRT one screenful at once. After each page, a prompt is displayed. The user may then either press the newline key to view the next page or one of the keys described below.
+
+If no filename is given on the command line, *pg* reads from standard input. If standard output is not a terminal, *pg* acts like *cat*(1) but precedes each file with its name if there is more than one.
+
+If input comes from a pipe, *pg* stores the data in a buffer file while reading, to make navigation possible.
+
+== OPTIONS
+
+*pg* accepts the following options:
+
+**+**__number__::
+Start at the given line number.
+
+**+/**__pattern__*/*::
+Start at the line containing the Basic Regular Expression _pattern_ given.
+
+**-**__number__::
+The number of lines per page. By default, this is the number of CRT lines minus one.
+
+*-c*::
+Clear the screen before a page is displayed, if the terminfo entry for the terminal provides this capability.
+
+*-e*::
+Do not pause and display _(EOF)_ at the end of a file.
+
+*-f*::
+Do not split long lines.
+
+*-n*::
+Without this option, commands must be terminated by a newline character.
++
+With this option, *pg* advances once a command letter is entered.
+
+*-p* _string_::
+Instead of the normal prompt _:_, _string_ is displayed. If _string_ contains *%d*, its first occurrence is replaced by the number of the current page.
+
+*-r*::
+Disallow the shell escape.
+
+*-s*::
+Print messages in _standout_ mode, if the terminfo entry for the terminal provides this capability.
+
+include::man-common/help-version.adoc[]
+
+== COMMANDS
+
+The following commands may be entered at the prompt. Commands preceded by _i_ in this document accept a number as argument, positive or negative. If this argument starts with *+* or *-*, it is interpreted relative to the current position in the input file, otherwise relative to the beginning.
+
+__i__**<Enter>**::
+Display the next or the indicated page.
+
+__i__**d** or *^D*::
+Display the next halfpage. If _i_ is given, it is always interpreted relative to the current position.
+
+__i__**l**::
+Display the next or the indicated line.
+
+__i__**f**::
+Skip a page forward. _i_ must be a positive number and is always interpreted relative to the current position.
+
+__i__**w** or __i__**z**::
+As *<Enter>* except that _i_ becomes the new page size.
+
+*.* or *^L*::
+Redraw the screen.
+
+*$*::
+Advance to the last line of the input file.
+
+__i__**/**__pattern__**/**::
+Search forward until the first or the _i_-th occurrence of the Basic Regular Expression _pattern_ is found. The search starts after the current page and stops at the end of the file. No wrap-around is performed. _i_ must be a positive number.
+
+__i__**?**__pattern__**?** or __i__**^**__pattern__**^**::
+Search backward until the first or the _i_-th occurrence of the Basic Regular Expression _pattern_ is found. The search starts before the current page and stops at the beginning of the file. No wrap-around is performed. _i_ must be a positive number.
+
+The search commands accept an added letter. If *t* is given, the line containing the pattern is displayed at the top of the screen, which is the default. *m* selects the middle and *b* the bottom of the screen. The selected position is used in following searches, too.
+
+__i__**n**::
+Advance to the next file or _i_ files forward.
+
+__i__**p**::
+Reread the previous file or _i_ files backward.
+
+*s* _filename_::
+Save the current file to the given _filename_.
+
+*h*::
+Display a command summary.
+
+**!**__command__::
+Execute _command_ using the shell.
+
+*q* or *Q*::
+Quit.
+
+If the user presses the interrupt or quit key while *pg* reads from the input file or writes on the terminal, *pg* will immediately display the prompt. In all other situations these keys will terminate *pg*.
+
+== ENVIRONMENT
+
+The following environment variables affect the behavior of *pg*:
+
+*COLUMNS*::
+Overrides the system-supplied number of columns if set.
+
+*LANG*, *LC_ALL*, *LC_COLLATE*, *LC_CTYPE*, *LC_MESSAGES*::
+See *locale*(7).
+
+*LINES*::
+Overrides the system-supplied number of lines if set.
+
+*SHELL*::
+Used by the *!* command.
+
+*TERM*::
+Determines the terminal type.
+
+== NOTES
+
+*pg* expects the terminal tabulators to be set every eight positions.
+
+Files that include NUL characters cannot be displayed by *pg*.
+
+== SEE ALSO
+
+*cat*(1),
+*more*(1),
+*sh*(1p),
+*terminfo*(5),
+*locale*(7),
+*regex*(7),
+*term*(7)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

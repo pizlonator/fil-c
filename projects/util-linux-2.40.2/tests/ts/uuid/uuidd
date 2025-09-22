@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="uuidd"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_HELPER_UUID_PARSER"
+ts_check_test_command "$TS_CMD_UUIDD"
+
+OUTPUT_FILE="$(mktemp "${TS_OUTDIR}/uuiddXXXXXXXXXXXXX")"
+UUIDD_PID="$(mktemp -u "${TS_OUTDIR}/uuiddXXXXXXXXXXXXX")"
+# socket path must be short (SIZEOF_SOCKADDR_UN_SUN_PATH 108)
+UUIDD_SOCKET=$(mktemp "/tmp/ultest-$TS_COMPONENT-$TS_TESTNAME-socketXXXXXX")
+
+$TS_CMD_UUIDD -p "$UUIDD_PID" -s "$UUIDD_SOCKET"
+if [ $? -ne 0 ]; then
+	ts_failed "daemon start"
+fi
+
+test_flag() {
+	echo "options: $*" >> $TS_OUTPUT
+	$TS_CMD_UUIDD -s $UUIDD_SOCKET $* |
+		sed '/List of UUIDs:/d; s/^[[:space:]]*//' > "$OUTPUT_FILE" 2>>$TS_OUTPUT
+	$TS_HELPER_UUID_PARSER "$OUTPUT_FILE" >> $TS_OUTPUT 2>> $TS_ERRLOG
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		echo "something wrong with $OUTPUT_FILE" >> $TS_OUTPUT
+		cat $OUTPUT_FILE >> $TS_OUTPUT 2>> $TS_ERRLOG
+	fi
+	echo "return value: $ret" >> $TS_OUTPUT
+}
+
+test_flag -t
+test_flag --time
+test_flag -r
+test_flag --random
+test_flag -r -n 65
+
+$TS_CMD_UUIDD -k -s "$UUIDD_SOCKET" >> $TS_OUTPUT 2>> $TS_ERRLOG
+
+sed -i 's/pid [0-9]*.$/pid <num>./' $TS_OUTPUT $TS_ERRLOG
+
+rm -f "$OUTPUT_FILE" "$UUIDD_PID" "$UUIDD_SOCKET"
+
+ts_finalize

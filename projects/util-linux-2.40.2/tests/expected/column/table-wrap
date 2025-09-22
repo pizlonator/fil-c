@@ -1,0 +1,56 @@
+MAJMIN  TARGET                           TYPE             SOURCE                FS-OPTS
+0:17    /sys                             sysfs            sysfs                 rw
+0:4     /proc                            proc             proc                  rw
+0:6     /dev                             devtmpfs         devtmpfs              rw,size=8175740k,nr_inodes=204
+                                                                                3935,mode=755
+0:18    /sys/kernel/security             securityfs       securityfs            rw
+0:19    /dev/shm                         tmpfs            tmpfs                 rw
+0:20    /dev/pts                         devpts           devpts                rw,gid=5,mode=620,ptmxmode=000
+0:21    /run                             tmpfs            tmpfs                 rw,mode=755
+0:22    /sys/fs/cgroup                   tmpfs            tmpfs                 ro,mode=755
+0:23    /sys/fs/cgroup/systemd           cgroup           cgroup                rw,xattr,release_agent=/usr/li
+                                                                                b/systemd/systemd-cgroups-agen
+                                                                                t,name=systemd
+0:24    /sys/fs/pstore                   pstore           pstore                rw
+0:25    /sys/firmware/efi/efivars        efivarfs         efivarfs              rw
+0:26    /sys/fs/cgroup/blkio             cgroup           cgroup                rw,blkio
+0:27    /sys/fs/cgroup/cpu,cpuacct       cgroup           cgroup                rw,cpu,cpuacct
+0:28    /sys/fs/cgroup/devices           cgroup           cgroup                rw,devices
+0:29    /sys/fs/cgroup/hugetlb           cgroup           cgroup                rw,hugetlb
+0:30    /sys/fs/cgroup/pids              cgroup           cgroup                rw,pids
+0:31    /sys/fs/cgroup/memory            cgroup           cgroup                rw,memory
+0:32    /sys/fs/cgroup/cpuset            cgroup           cgroup                rw,cpuset
+0:33    /sys/fs/cgroup/perf_event        cgroup           cgroup                rw,perf_event
+0:34    /sys/fs/cgroup/net_cls,net_prio  cgroup           cgroup                rw,net_cls,net_prio
+0:35    /sys/fs/cgroup/freezer           cgroup           cgroup                rw,freezer
+0:36    /sys/kernel/config               configfs         configfs              rw
+8:4     /                                ext4             /dev/sda4             rw,data=ordered
+0:37    /proc/sys/fs/binfmt_misc         autofs           systemd-1             rw,fd=37,pgrp=1,timeout=0,minp
+                                                                                roto=5,maxproto=5,direct,pipe_
+                                                                                ino=12781
+0:7     /sys/kernel/debug                debugfs          debugfs               rw
+0:38    /dev/hugepages                   hugetlbfs        hugetlbfs             rw
+0:16    /dev/mqueue                      mqueue           mqueue                rw
+0:39    /proc/sys/fs/binfmt_misc         binfmt_misc      binfmt_misc           rw
+0:40    /proc/fs/nfsd                    nfsd             nfsd                  rw
+0:41    /tmp                             tmpfs            tmpfs                 rw
+8:3     /home                            ext4             /dev/sda3             rw,data=ordered
+8:2     /boot                            ext4             /dev/sda2             rw,data=ordered
+8:5     /home/games                      ext4             /dev/sda5             rw,data=ordered
+8:1     /boot/efi                        vfat             /dev/sda1             rw,fmask=0077,dmask=0077,codep
+                                                                                age=437,iocharset=ascii,shortn
+                                                                                ame=winnt,errors=remount-ro
+8:17    /home/archive                    ext4             /dev/sdb1             rw,data=ordered
+0:43    /var/lib/nfs/rpc_pipefs          rpc_pipefs       sunrpc                rw
+0:47    /sys/fs/fuse/connections         fusectl          fusectl               rw
+0:46    /run/user/1000                   tmpfs            tmpfs                 rw,size=1637324k,mode=700,uid=
+                                                                                1000,gid=1000
+0:45    /run/user/1000/gvfs              fuse.gvfsd-fuse  gvfsd-fuse            rw,user_id=1000,group_id=1000
+0:44    /run/user/0                      tmpfs            tmpfs                 rw,size=1637324k,mode=700
+0:48    /mnt/sounds                      cifs             //sr.net.home/sounds  rw,vers=1.0,cache=strict,usern
+                                                                                ame=kzak,domain=SRGROUP,uid=0,
+                                                                                noforceuid,gid=0,noforcegid,ad
+                                                                                dr=192.168.111.1,unix,posixpat
+                                                                                hs,serverino,mapposix,acl,rsiz
+                                                                                e=1048576,wsize=65536,echo_int
+                                                                                erval=60,actimeo=1

@@ -1,0 +1,156 @@
+'\" t
+.\"     Title: fstrim
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-04-24
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FSTRIM" "8" "2024-04-24" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fstrim \- discard unused blocks on a mounted filesystem
+.SH "SYNOPSIS"
+.sp
+\fBfstrim\fP [\fB\-Aav\fP] [\fB\-o\fP \fIoffset\fP] [\fB\-l\fP \fIlength\fP] [\fB\-m\fP \fIminimum\-size\fP] [\fImountpoint\fP]
+.SH "DESCRIPTION"
+.sp
+\fBfstrim\fP is used on a mounted filesystem to discard (or "trim") blocks which are not in use by the filesystem. This is useful for solid\-state drives (SSDs) and thinly\-provisioned storage.
+.sp
+By default, \fBfstrim\fP will discard all unused blocks in the filesystem. Options may be used to modify this behavior based on range or size, as explained below.
+.sp
+The \fImountpoint\fP argument is the pathname of the directory where the filesystem is mounted and is required when \fB\fI\-A\fP\fP, \fB\fI\-a\fP\fP, \fB\fI\-\-fstab\fP\fP, or \fB\fI\-\-all\fP\fP are unspecified.
+.sp
+Running \fBfstrim\fP frequently, or even using \fBmount \-o discard\fP, might negatively affect the lifetime of poor\-quality SSD devices. For most desktop and server systems a sufficient trimming frequency is once a week. Note that not all devices support a queued trim, so each trim command incurs a performance penalty on whatever else might be trying to use the disk at the time.
+.SH "OPTIONS"
+.sp
+The \fIoffset\fP, \fIlength\fP, and \fIminimum\-size\fP arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+.sp
+\fB\-A, \-\-fstab\fP
+.RS 4
+Trim all mounted filesystems mentioned in \fI/etc/fstab\fP on devices that support the discard operation. The root filesystem is determined from kernel command line if missing in the file. The other supplied options, like \fB\-\-offset\fP, \fB\-\-length\fP and \fB\-\-minimum\fP, are applied to all these devices. Errors from filesystems that do not support the discard operation, read\-only devices, autofs and read\-only filesystems are silently ignored. Filesystems with "X\-fstrim.notrim" mount option are skipped.
+.RE
+.sp
+\fB\-a, \-\-all\fP
+.RS 4
+Trim all mounted filesystems on devices that support the discard operation. The other supplied options, like \fB\-\-offset\fP, \fB\-\-length\fP and \fB\-\-minimum\fP, are applied to all these devices. Errors from filesystems that do not support the discard operation, read\-only devices and read\-only filesystems are silently ignored.
+.RE
+.sp
+\fB\-n, \-\-dry\-run\fP
+.RS 4
+This option does everything apart from actually call \fBFITRIM\fP ioctl.
+.RE
+.sp
+\fB\-o, \-\-offset\fP \fIoffset\fP
+.RS 4
+Byte offset in the filesystem from which to begin searching for free blocks to discard. The default value is zero, starting at the beginning of the filesystem.
+.RE
+.sp
+\fB\-l, \-\-length\fP \fIlength\fP
+.RS 4
+The number of bytes (after the starting point) to search for free blocks to discard. If the specified value extends past the end of the filesystem, \fBfstrim\fP will stop at the filesystem size boundary. The default value extends to the end of the filesystem.
+.RE
+.sp
+\fB\-I, \-\-listed\-in\fP \fIlist\fP
+.RS 4
+Specifies a colon\-separated list of files in fstab or kernel mountinfo format. All missing or empty files are silently ignored. The evaluation of the \fIlist\fP stops after first non\-empty file. For example:
+.sp
+\fB\-\-listed\-in /etc/fstab:/proc/self/mountinfo\fP.
+.sp
+Filesystems with "X\-fstrim.notrim" mount option in fstab are skipped.
+.RE
+.sp
+\fB\-m, \-\-minimum\fP \fIminimum\-size\fP
+.RS 4
+Minimum contiguous free range to discard, in bytes. (This value is internally rounded up to a multiple of the filesystem block size.) Free ranges smaller than this will be ignored and \fBfstrim\fP will adjust the minimum if it\(cqs smaller than the device\(cqs minimum, and report that (fstrim_range.minlen) back to userspace. By increasing this value, the \fBfstrim\fP operation will complete more quickly for filesystems with badly fragmented freespace, although not all blocks will be discarded. The default value is zero, discarding every free block.
+.RE
+.sp
+\fB\-t\fP, \fB\-\-types\fP \fIlist\fP
+.RS 4
+Specifies allowed or forbidden filesystem types when used with \fB\-\-all\fP or
+\fB\-\-fstab\fP.  The \fIlist\fP is a comma\-separated list of the filesystem names. The
+\fIlist\fP follows how \fBmount \-t\fP evaluates type patterns. Only specified
+filesystem types are allowed. All specified types are forbidden if the list is
+prefixed by "no" or each filesystem prefixed by "no" is forbidden. If the
+option is not used, then all filesystems (except "autofs") are allowed.
+.RE
+.sp
+\fB\-v, \-\-verbose\fP
+.RS 4
+Verbose execution. With this option \fBfstrim\fP will output the number of bytes passed from the filesystem down the block stack to the device for potential discard. This number is a maximum discard amount from the storage device\(cqs perspective, because \fIFITRIM\fP ioctl called repeated will keep sending the same sectors for discard repeatedly.
+.sp
+\fBfstrim\fP will report the same potential discard bytes each time, but only sectors which had been written to between the discards would actually be discarded by the storage device. Further, the kernel block layer reserves the right to adjust the discard ranges to fit raid stripe geometry, non\-trim capable devices in a LVM setup, etc. These reductions would not be reflected in fstrim_range.len (the \fB\-\-length\fP option).
+.RE
+.sp
+\fB\-\-quiet\-unsupported\fP
+.RS 4
+Suppress error messages if trim operation (ioctl) is unsupported. This option is meant to be used in \fBsystemd\fP service file or in \fBcron\fP(8) scripts to hide warnings that are result of known problems, such as NTFS driver reporting \fIBad file descriptor\fP when device is mounted read\-only, or lack of file system support for ioctl \fIFITRIM\fP call. This option also cleans exit status when unsupported filesystem specified on \fBfstrim\fP command line.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "EXIT STATUS"
+.sp
+0
+.RS 4
+success
+.RE
+.sp
+1
+.RS 4
+failure
+.RE
+.sp
+32
+.RS 4
+all failed
+.RE
+.sp
+64
+.RS 4
+some filesystem discards have succeeded, some failed
+.RE
+.sp
+The command \fBfstrim \-\-all\fP returns 0 (all succeeded), 32 (all failed) or 64 (some failed, some succeeded).
+.SH "AUTHORS"
+.sp
+.MTO "lczerner\(atredhat.com" "Lukas Czerner" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBblkdiscard\fP(8),
+\fBmount\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBfstrim\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

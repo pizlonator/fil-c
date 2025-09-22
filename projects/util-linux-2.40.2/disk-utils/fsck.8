@@ -1,0 +1,255 @@
+'\" t
+.\"     Title: fsck
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: System Administration
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "FSCK" "8" "2024-05-28" "util\-linux 2.40.2" "System Administration"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+fsck \- check and repair a Linux filesystem
+.SH "SYNOPSIS"
+.sp
+\fBfsck\fP [\fB\-lsAVRTMNP\fP] [\fB\-r\fP [\fIfd\fP]] [\fB\-C\fP [\fIfd\fP]] [\fB\-t\fP \fIfstype\fP] [\fIfilesystem\fP...] [\fB\-\-\fP] [\fIfs\-specific\-options\fP]
+.SH "DESCRIPTION"
+.sp
+\fBfsck\fP is used to check and optionally repair one or more Linux filesystems. \fIfilesystem\fP can be a device name (e.g., \fI/dev/hdc1\fP, \fI/dev/sdb2\fP), a mount point (e.g., \fI/\fP, \fI/usr\fP, \fI/home\fP), or a filesystem label or UUID specifier (e.g., UUID=8868abf6\-88c5\-4a83\-98b8\-bfc24057f7bd or LABEL=root). Normally, the \fBfsck\fP program will try to handle filesystems on different physical disk drives in parallel to reduce the total amount of time needed to check all of them.
+.sp
+If no filesystems are specified on the command line, and the \fB\-A\fP option is not specified, \fBfsck\fP will default to checking filesystems in \fI/etc/fstab\fP serially. This is equivalent to the \fB\-As\fP options.
+.sp
+The exit status returned by \fBfsck\fP is the sum of the following conditions:
+.sp
+\fB0\fP
+.RS 4
+No errors
+.RE
+.sp
+\fB1\fP
+.RS 4
+Filesystem errors corrected
+.RE
+.sp
+\fB2\fP
+.RS 4
+System should be rebooted
+.RE
+.sp
+\fB4\fP
+.RS 4
+Filesystem errors left uncorrected
+.RE
+.sp
+\fB8\fP
+.RS 4
+Operational error
+.RE
+.sp
+\fB16\fP
+.RS 4
+Usage or syntax error
+.RE
+.sp
+\fB32\fP
+.RS 4
+Checking canceled by user request
+.RE
+.sp
+\fB128\fP
+.RS 4
+Shared\-library error
+.RE
+.sp
+The exit status returned when multiple filesystems are checked is the bit\-wise OR of the exit statuses for each filesystem that is checked.
+.sp
+In actuality, \fBfsck\fP is simply a front\-end for the various filesystem checkers (\fBfsck\fP.\fIfstype\fP) available under Linux. The filesystem\-specific checker is searched for in the \fBPATH\fP environment variable. If the \fBPATH\fP is undefined then fallback to \fI/sbin\fP.
+.sp
+Please see the filesystem\-specific checker manual pages for further details.
+.SH "OPTIONS"
+.sp
+\fB\-l\fP
+.RS 4
+Create an exclusive \fBflock\fP(2) lock file (\fI/run/fsck/<diskname>.lock\fP) for whole\-disk device. This option can be used with one device only (this means that \fB\-A\fP and \fB\-l\fP are mutually exclusive). This option is recommended when more \fBfsck\fP instances are executed in the same time. The option is ignored when used for multiple devices or for non\-rotating disks. \fBfsck\fP does not lock underlying devices when executed to check stacked devices (e.g. MD or DM) \- this feature is not implemented yet.
+.RE
+.sp
+\fB\-r\fP [\fIfd\fP]
+.RS 4
+Report certain statistics for each fsck when it completes. These statistics include the exit status, the maximum run set size (in kilobytes), the elapsed all\-clock time and the user and system CPU time used by the fsck run. For example:
+.sp
+\fB/dev/sda1: status 0, rss 92828, real 4.002804, user 2.677592, sys 0.86186\fP
+.sp
+GUI front\-ends may specify a file descriptor \fIfd\fP, in which case the progress bar information will be sent to that file descriptor in a machine parsable format. For example:
+.sp
+\fB/dev/sda1 0 92828 4.002804 2.677592 0.86186\fP
+.RE
+.sp
+\fB\-s\fP
+.RS 4
+Serialize \fBfsck\fP operations. This is a good idea if you are checking multiple filesystems and the checkers are in an interactive mode. (Note: \fBe2fsck\fP(8) runs in an interactive mode by default. To make \fBe2fsck\fP(8) run in a non\-interactive mode, you must either specify the \fB\-p\fP or \fB\-a\fP option, if you wish for errors to be corrected automatically, or the \fB\-n\fP option if you do not.)
+.RE
+.sp
+\fB\-t\fP \fIfslist\fP
+.RS 4
+Specifies the type(s) of filesystem to be checked. When the \fB\-A\fP flag is specified, only filesystems that match \fIfslist\fP are checked. The \fIfslist\fP parameter is a comma\-separated list of filesystems and options specifiers. All of the filesystems in this comma\-separated list may be prefixed by a negation operator \*(Aq\fBno\fP\*(Aq or \*(Aq\fB!\fP\*(Aq, which requests that only those filesystems not listed in \fIfslist\fP will be checked. If none of the filesystems in \fIfslist\fP is prefixed by a negation operator, then only those listed filesystems will be checked.
+.sp
+Options specifiers may be included in the comma\-separated \fIfslist\fP. They must have the format \fBopts=\fP\fIfs\-option\fP. If an options specifier is present, then only filesystems which contain \fIfs\-option\fP in their mount options field of \fI/etc/fstab\fP will be checked. If the options specifier is prefixed by a negation operator, then only those filesystems that do not have \fIfs\-option\fP in their mount options field of \fI/etc/fstab\fP will be checked.
+.sp
+For example, if \fBopts=ro\fP appears in \fIfslist\fP, then only filesystems listed in \fI/etc/fstab\fP with the \fBro\fP option will be checked.
+.sp
+For compatibility with Mandrake distributions whose boot scripts depend upon an unauthorized UI change to the \fBfsck\fP program, if a filesystem type of \fBloop\fP is found in \fIfslist\fP, it is treated as if \fBopts=loop\fP were specified as an argument to the \fB\-t\fP option.
+.sp
+Normally, the filesystem type is deduced by searching for \fIfilesys\fP in the \fI/etc/fstab\fP file and using the corresponding entry. If the type cannot be deduced, and there is only a single filesystem given as an argument to the \fB\-t\fP option, \fBfsck\fP will use the specified filesystem type. If this type is not available, then the default filesystem type (currently ext2) is used.
+.RE
+.sp
+\fB\-A\fP
+.RS 4
+Walk through the \fI/etc/fstab\fP file and try to check all filesystems in one run. This option is typically used from the \fI/etc/rc\fP system initialization file, instead of multiple commands for checking a single filesystem.
+.sp
+The root filesystem will be checked first unless the \fB\-P\fP option is specified (see below). After that, filesystems will be checked in the order specified by the \fIfs_passno\fP (the sixth) field in the \fI/etc/fstab\fP file. Filesystems with a \fIfs_passno\fP value of 0 are skipped and are not checked at all. Filesystems with a \fIfs_passno\fP value of greater than zero will be checked in order, with filesystems with the lowest \fIfs_passno\fP number being checked first. If there are multiple filesystems with the same pass number, \fBfsck\fP will attempt to check them in parallel, although it will avoid running multiple filesystem checks on the same physical disk.
+.sp
+\fBfsck\fP does not check stacked devices (RAIDs, dm\-crypt, ...) in parallel with any other device. See below for \fBFSCK_FORCE_ALL_PARALLEL\fP setting. The \fI/sys\fP filesystem is used to determine dependencies between devices.
+.sp
+Hence, a very common configuration in \fI/etc/fstab\fP files is to set the root filesystem to have a \fIfs_passno\fP value of 1 and to set all other filesystems to have a \fIfs_passno\fP value of 2. This will allow \fBfsck\fP to automatically run filesystem checkers in parallel if it is advantageous to do so. System administrators might choose not to use this configuration if they need to avoid multiple filesystem checks running in parallel for some reason \- for example, if the machine in question is short on memory so that excessive paging is a concern.
+.sp
+\fBfsck\fP normally does not check whether the device actually exists before calling a filesystem specific checker. Therefore non\-existing devices may cause the system to enter filesystem repair mode during boot if the filesystem specific checker returns a fatal error. The \fI/etc/fstab\fP mount option \fBnofail\fP may be used to have \fBfsck\fP skip non\-existing devices. \fBfsck\fP also skips non\-existing devices that have the special filesystem type \fBauto\fP.
+.RE
+.sp
+\fB\-C\fP [\fIfd\fP]
+.RS 4
+Display completion/progress bars for those filesystem checkers (currently only for ext[234]) which support them. \fBfsck\fP will manage the filesystem checkers so that only one of them will display a progress bar at a time. GUI front\-ends may specify a file descriptor \fIfd\fP, in which case the progress bar information will be sent to that file descriptor.
+.RE
+.sp
+\fB\-M\fP
+.RS 4
+Do not check mounted filesystems and return an exit status of 0 for mounted filesystems.
+.RE
+.sp
+\fB\-N\fP
+.RS 4
+Don\(cqt execute, just show what would be done.
+.RE
+.sp
+\fB\-P\fP
+.RS 4
+When the \fB\-A\fP flag is set, check the root filesystem in parallel with the other filesystems. This is not the safest thing in the world to do, since if the root filesystem is in doubt things like the \fBe2fsck\fP(8) executable might be corrupted! This option is mainly provided for those sysadmins who don\(cqt want to repartition the root filesystem to be small and compact (which is really the right solution).
+.RE
+.sp
+\fB\-R\fP
+.RS 4
+When checking all filesystems with the \fB\-A\fP flag, skip the root filesystem. (This is useful in case the root filesystem has already been mounted read\-write.)
+.RE
+.sp
+\fB\-T\fP
+.RS 4
+Don\(cqt show the title on startup.
+.RE
+.sp
+\fB\-V\fP
+.RS 4
+Produce verbose output, including all filesystem\-specific commands that are executed.
+.RE
+.sp
+\fB\-?\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-\-version\fP
+.RS 4
+Display version information and exit.
+.RE
+.SH "FILESYSTEM SPECIFIC OPTIONS"
+.sp
+\fBOptions which are not understood by fsck are passed to the filesystem\-specific checker!\fP
+.sp
+These options \fBmust\fP not take arguments, as there is no way for \fBfsck\fP to be able to properly guess which options take arguments and which don\(cqt.
+.sp
+Options and arguments which follow the \fB\-\-\fP are treated as filesystem\-specific options to be passed to the filesystem\-specific checker.
+.sp
+Please note that \fBfsck\fP is not designed to pass arbitrarily complicated options to filesystem\-specific checkers. If you\(cqre doing something complicated, please just execute the filesystem\-specific checker directly. If you pass \fBfsck\fP some horribly complicated options and arguments, and it doesn\(cqt do what you expect, \fBdon\(cqt bother reporting it as a bug.\fP You\(cqre almost certainly doing something that you shouldn\(cqt be doing with \fBfsck\fP. Options to different filesystem\-specific fsck\(cqs are not standardized.
+.SH "ENVIRONMENT"
+.sp
+The \fBfsck\fP program\(cqs behavior is affected by the following environment variables:
+.sp
+\fBFSCK_FORCE_ALL_PARALLEL\fP
+.RS 4
+If this environment variable is set, \fBfsck\fP will attempt to check all of the specified filesystems in parallel, regardless of whether the filesystems appear to be on the same device. (This is useful for RAID systems or high\-end storage systems such as those sold by companies such as IBM or EMC.) Note that the \fIfs_passno\fP value is still used.
+.RE
+.sp
+\fBFSCK_MAX_INST\fP
+.RS 4
+This environment variable will limit the maximum number of filesystem checkers that can be running at one time. This allows configurations which have a large number of disks to avoid \fBfsck\fP starting too many filesystem checkers at once, which might overload CPU and memory resources available on the system. If this value is zero, then an unlimited number of processes can be spawned. This is currently the default, but future versions of \fBfsck\fP may attempt to automatically determine how many filesystem checks can be run based on gathering accounting data from the operating system.
+.RE
+.sp
+\fBPATH\fP
+.RS 4
+The \fBPATH\fP environment variable is used to find filesystem checkers.
+.RE
+.sp
+\fBFSTAB_FILE\fP
+.RS 4
+This environment variable allows the system administrator to override the standard location of the \fI/etc/fstab\fP file. It is also useful for developers who are testing \fBfsck\fP.
+.RE
+.sp
+\fBLIBBLKID_DEBUG=all\fP
+.RS 4
+enables libblkid debug output.
+.RE
+.sp
+\fBLIBMOUNT_DEBUG=all\fP
+.RS 4
+enables libmount debug output.
+.RE
+.SH "FILES"
+.sp
+\fI/etc/fstab\fP
+.SH "NOTES"
+.sp
+During boot, \fBsystemd\fP does not invoke \fBfsck \-A\fP. Instead, it schedules the activation
+of mounts individually, taking into account dependencies on backing devices, networking,
+and other factors. Consequently, \fBfsck\fP is called individually for each device.
+.SH "AUTHORS"
+.sp
+.MTO "tytso\(atmit.edu>" "Theodore Ts\(cqo" ","
+.MTO "kzak\(atredhat.com" "Karel Zak" ""
+.SH "SEE ALSO"
+.sp
+\fBfstab\fP(5),
+\fBmkfs\fP(8),
+\fBfsck.ext2\fP(8) or \fBfsck.ext3\fP(8) or \fBe2fsck\fP(8),
+\fBfsck.cramfs\fP(8),
+\fBfsck.jfs\fP(8),
+\fBfsck.nfs\fP(8),
+\fBfsck.minix\fP(8),
+\fBfsck.msdos\fP(8),
+\fBfsck.vfat\fP(8),
+\fBfsck.xfs\fP(8),
+\fBreiserfsck\fP(8)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBfsck\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

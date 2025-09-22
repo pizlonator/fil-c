@@ -1,0 +1,76 @@
+/*
+ * The symbol versioning ensures that a new application requiring symbol 'foo'
+ * can't run with old libbrary.so not providing 'foo' - the global SONAME
+ * version info can't enforce this since we never change the SONAME.
+ *
+ * The original libuuid from e2fsprogs (<=1.41.5) does not to use
+ * symbol versioning -- all the original symbols are in UUID_1.0 now.
+ *
+ * Copyright (C) 2011-2017 Kareil Zak <kzak@redhat.com>
+ */
+UUID_1.0 {
+global:
+	uuid_clear;
+	uuid_compare;
+	uuid_copy;
+	uuid_generate;
+	uuid_generate_random;
+	uuid_generate_time;
+	uuid_is_null;
+	uuid_parse;
+	uuid_unparse;
+	uuid_unparse_lower;
+	uuid_unparse_upper;
+	uuid_time;
+	uuid_type;
+	uuid_variant;
+};
+
+/*
+ * version(s) since util-linux 2.20
+ */
+UUID_2.20 {
+global:
+	uuid_generate_time_safe;
+} UUID_1.0;
+
+/*
+ * version(s) since util-linux.2.31
+ */
+UUID_2.31 {
+global:
+	uuid_generate_md5;
+	uuid_generate_sha1;
+	uuid_get_template;
+} UUID_2.20;
+
+/*
+ * version(s) since util-linux.2.36
+ */
+UUID_2.36 {
+global:
+	uuid_parse_range;
+} UUID_2.31;
+
+/*
+ * version(s) since util-linux.2.40
+ */
+UUID_2.40 {
+global:
+        uuid_time64*; /* only on 32bit architectures with 64bit time_t */
+} UUID_2.36;
+
+
+
+/*
+ * __uuid_* this is not part of the official API, this is
+ * uuidd (uuid daemon) specific stuff. Hell.
+ */
+UUIDD_PRIVATE {
+global:
+	__uuid_generate_time;
+	__uuid_generate_time_cont;
+	__uuid_generate_random;
+local:
+	*;
+};

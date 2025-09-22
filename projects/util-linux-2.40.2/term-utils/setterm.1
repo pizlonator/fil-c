@@ -1,0 +1,277 @@
+'\" t
+.\"     Title: setterm
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.20
+.\"      Date: 2024-05-28
+.\"    Manual: User Commands
+.\"    Source: util-linux 2.40.2
+.\"  Language: English
+.\"
+.TH "SETTERM" "1" "2024-05-28" "util\-linux 2.40.2" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+setterm \- set terminal attributes
+.SH "SYNOPSIS"
+.sp
+\fBsetterm\fP [options]
+.SH "DESCRIPTION"
+.sp
+\fBsetterm\fP writes to standard output a character string that will invoke the specified terminal capabilities. Where possible \fIterminfo\fP is consulted to find the string to use. Some options however (marked "virtual consoles only" below) do not correspond to a \fBterminfo\fP(5) capability. In this case, if the terminal type is "con" or "linux" the string that invokes the specified capabilities on the PC Minix virtual console driver is output. Options that are not implemented by the terminal are ignored.
+.SH "OPTIONS"
+.sp
+For boolean options (\fBon\fP or \fBoff\fP), the default is \fBon\fP.
+.sp
+Below, an \fI8\-color\fP can be \fBblack\fP, \fBred\fP, \fBgreen\fP, \fByellow\fP, \fBblue\fP, \fBmagenta\fP, \fBcyan\fP, or \fBwhite\fP.
+.sp
+A \fI16\-color\fP can be an \fI8\-color\fP, or \fBgrey\fP, or \fBbright\fP followed by \fBred\fP, \fBgreen\fP, \fByellow\fP, \fBblue\fP, \fBmagenta\fP, \fBcyan\fP, or \fBwhite\fP.
+.sp
+The various color options may be set independently, at least on virtual consoles, though the results of setting multiple modes (for example, \fB\-\-underline\fP and \fB\-\-half\-bright\fP) are hardware\-dependent.
+.sp
+The optional arguments are recommended with \*(Aq=\*(Aq (equals sign) and not space between the option and the argument. For example \-\-option=argument. \fBsetterm\fP can interpret the next non\-option argument as an optional argument too.
+.sp
+\fB\-\-appcursorkeys\fP on|off
+.RS 4
+Sets Cursor Key Application Mode on or off. When on, ESC O A, ESC O B, etc. will be sent for the cursor keys instead of ESC [ A, ESC [ B, etc. See the \fIvi and Cursor\-Keys\fP section of the \fIText\-Terminal\-HOWTO\fP for how this can cause problems for \fBvi\fP users. Virtual consoles only.
+.RE
+.sp
+\fB\-\-append\fP \fIconsole_number\fP
+.RS 4
+Like \fB\-\-dump\fP, but appends to the snapshot file instead of overwriting it. Only works if no \fB\-\-dump\fP options are given.
+.RE
+.sp
+\fB\-\-background\fP \fI8\-color\fP|default
+.RS 4
+Sets the background text color.
+.RE
+.sp
+\fB\-\-blank\fP[=0\-60|force|poke]
+.RS 4
+Sets the interval of inactivity, in minutes, after which the screen will be automatically blanked (using APM if available). Without an argument, it gets the blank status (returns which vt was blanked, or zero for an unblanked vt). Virtual consoles only.
+.sp
+The \fBforce\fP argument keeps the screen blank even if a key is pressed.
+.sp
+The \fBpoke\fP argument unblanks the screen.
+.RE
+.sp
+\fB\-\-bfreq\fP[=\fInumber\fP]
+.RS 4
+Sets the bell frequency in Hertz. Without an argument, it defaults to \fB0\fP. Virtual consoles only.
+.RE
+.sp
+\fB\-\-blength\fP[=0\-2000]
+.RS 4
+Sets the bell duration in milliseconds. Without an argument, it defaults to \fB0\fP. Virtual consoles only.
+.RE
+.sp
+\fB\-\-blink\fP on|off
+.RS 4
+Turns blink mode on or off. Except on a virtual console, \fB\-\-blink off\fP turns off all attributes (bold, half\-brightness, blink, reverse).
+.RE
+.sp
+\fB\-\-bold\fP on|off
+.RS 4
+urns bold (extra bright) mode on or off. Except on a virtual console, \fB\-\-bold off\fP turns off all attributes (bold, half\-brightness, blink, reverse).
+.RE
+.sp
+\fB\-\-clear\fP[=all|rest]
+.RS 4
+Without an argument or with the argument \fBall\fP, the entire screen is cleared and the cursor is set to the home position, just like \fBclear\fP(1) does. With the argument \fBrest\fP, the screen is cleared from the current cursor position to the end.
+.RE
+.sp
+\fB\-\-clrtabs\fP[=\fItab1 tab2 tab3\fP ...]
+.RS 4
+Clears tab stops from the given horizontal cursor positions, in the range \fB1\-160\fP. Without arguments, it clears all tab stops. Virtual consoles only.
+.RE
+.sp
+\fB\-\-cursor\fP on|off
+.RS 4
+Turns the terminal\(cqs cursor on or off.
+.RE
+.sp
+\fB\-\-default\fP
+.RS 4
+Sets the terminal\(cqs rendering options to the default values.
+.RE
+.sp
+\fB\-\-dump\fP[=\fIconsole_number\fP]
+.RS 4
+Writes a snapshot of the virtual console with the given number to the file specified with the \fB\-\-file\fP option, overwriting its contents; the default is \fIscreen.dump\fP. Without an argument, it dumps the current virtual console. This overrides \fB\-\-append\fP.
+.RE
+.sp
+\fB\-\-file\fP \fIfilename\fP
+.RS 4
+Sets the snapshot file name for any \fB\-\-dump\fP or \fB\-\-append\fP options on the same command line. If this option is not present, the default is \fIscreen.dump\fP in the current directory. A path name that exceeds the system maximum will be truncated, see \fBPATH_MAX\fP from \fIlinux/limits.h\fP for the value.
+.RE
+.sp
+\fB\-\-foreground\fP \fI8\-color\fP|default
+.RS 4
+Sets the foreground text color.
+.RE
+.sp
+\fB\-\-half\-bright\fP on|off
+.RS 4
+Turns dim (half\-brightness) mode on or off. Except on a virtual console, \fB\-\-half\-bright off\fP turns off all attributes (bold, half\-brightness, blink, reverse).
+.RE
+.sp
+\fB\-\-hbcolor\fP \fI16\-color\fP
+.RS 4
+Sets the color for half\-bright characters.
+.RE
+.sp
+\fB\-\-initialize\fP
+.RS 4
+Displays the terminal initialization string, which typically sets the terminal\(cqs rendering options, and other attributes to the default values.
+.RE
+.sp
+\fB\-\-inversescreen\fP on|off
+.RS 4
+Swaps foreground and background colors for the whole screen.
+.RE
+.sp
+\fB\-\-linewrap\fP on|off
+.RS 4
+Makes the terminal continue on a new line when a line is full.
+.RE
+.sp
+\fB\-\-msg\fP on|off
+.RS 4
+Enables or disables the sending of kernel \fBprintk\fP() messages to the console. Virtual consoles only.
+.RE
+.sp
+\fB\-\-msglevel\fP 0\-8
+.RS 4
+Sets the console logging level for kernel \fBprintk()\fP messages. All messages strictly more important than this will be printed, so a logging level of \fB0\fP has the same effect as \fB\-\-msg on\fP and a logging level of \fB8\fP will print all kernel messages. \fBklogd\fP(8) may be a more convenient interface to the logging of kernel messages.
+.sp
+Virtual consoles only.
+.RE
+.sp
+\fB\-\-powerdown\fP[=0\-60]
+.RS 4
+Sets the VESA powerdown interval in minutes. Without an argument, it defaults to \fB0\fP (disable powerdown). If the console is blanked or the monitor is in suspend mode, then the monitor will go into vsync suspend mode or powerdown mode respectively after this period of time has elapsed.
+.RE
+.sp
+\fB\-\-powersave\fP \fImode\fP
+.RS 4
+Valid values for \fImode\fP are:
+.sp
+\fBvsync|on\fP
+.RS 4
+Puts the monitor into VESA vsync suspend mode.
+.RE
+.sp
+\fBhsync\fP
+.RS 4
+Puts the monitor into VESA hsync suspend mode.
+.RE
+.sp
+\fBpowerdown\fP
+.RS 4
+Puts the monitor into VESA powerdown mode.
+.RE
+.sp
+\fBoff\fP
+.RS 4
+Turns monitor VESA powersaving features.
+.RE
+.RE
+.sp
+\fB\-\-regtabs\fP[=1\-160]
+.RS 4
+Clears all tab stops, then sets a regular tab stop pattern, with one tab every specified number of positions. Without an argument, it defaults to \fB8\fP. Virtual consoles only.
+.RE
+.sp
+\fB\-\-repeat\fP on|off
+.RS 4
+Turns keyboard repeat on or off. Virtual consoles only.
+.RE
+.sp
+\fB\-\-reset\fP
+.RS 4
+Displays the terminal reset string, which typically resets the terminal to its power\-on state.
+.RE
+.sp
+\fB\-\-resize\fP
+.RS 4
+Reset terminal size by assessing maximum row and column. This is useful when actual geometry and kernel terminal driver are not in sync. Most notable use case is with serial consoles, that do not use \fBioctl\fP(2) but just byte streams and breaks.
+.RE
+.sp
+\fB\-\-reverse\fP on|off
+.RS 4
+Turns reverse video mode on or off. Except on a virtual console, \fB\-\-reverse off\fP turns off all attributes (bold, half\-brightness, blink, reverse).
+.RE
+.sp
+\fB\-\-store\fP
+.RS 4
+Stores the terminal\(cqs current rendering options (foreground and background colors) as the values to be used at reset\-to\-default. Virtual consoles only.
+.RE
+.sp
+\fB\-\-tabs\fP[=\fItab1 tab2 tab3\fP ...]
+.RS 4
+Sets tab stops at the given horizontal cursor positions, in the range \fB1\-160\fP. Without arguments, it shows the current tab stop settings.
+.RE
+.sp
+\fB\-\-term\fP \fIterminal_name\fP
+.RS 4
+Overrides the \fBTERM\fP environment variable.
+.RE
+.sp
+\fB\-\-ulcolor\fP \fI16\-color\fP
+.RS 4
+Sets the color for underlined characters. Virtual consoles only.
+.RE
+.sp
+\fB\-\-underline\fP on|off
+.RS 4
+Turns underline mode on or off.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display help text and exit.
+.RE
+.sp
+\fB\-V\fP, \fB\-\-version\fP
+.RS 4
+Print version and exit.
+.RE
+.SH "WARNING"
+.sp
+Use of \fBsetterm\fP in combination with stdout redirection can have unexpected results, as some options operate on stdin. To prevent problems, always redirect both stdin and stdout to the same device.
+.SH "COMPATIBILITY"
+.sp
+Since version 2.25 \fBsetterm\fP has support for long options with two hyphens, for example \fB\-\-help\fP, beside the historical long options with a single hyphen, for example \fB\-help\fP. In scripts it is better to use the backward\-compatible single hyphen rather than the double hyphen. Currently there are no plans nor good reasons to discontinue single\-hyphen compatibility.
+.SH "BUGS"
+.sp
+Differences between the Minix and Linux versions are not documented.
+.SH "SEE ALSO"
+.sp
+\fBstty\fP(1),
+\fBtput\fP(1),
+\fBtty\fP(4),
+\fBterminfo\fP(5)
+.SH "REPORTING BUGS"
+.sp
+For bug reports, use the issue tracker at \c
+.URL "https://github.com/util\-linux/util\-linux/issues" "" "."
+.SH "AVAILABILITY"
+.sp
+The \fBsetterm\fP command is part of the util\-linux package which can be downloaded from \c
+.URL "https://www.kernel.org/pub/linux/utils/util\-linux/" "Linux Kernel Archive" "."

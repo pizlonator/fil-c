@@ -1,0 +1,59 @@
+//po4a: entry man manual
+////
+addpart.8 -- man page for addpart
+Copyright 2007 Karel Zak <kzak@redhat.com>
+Copyright 2007 Red Hat, Inc.
+May be distributed under the GNU General Public License
+////
+= addpart(8)
+:doctype: manpage
+:man manual: System Administration
+:man source: util-linux {release-version}
+:page-layout: base
+:command: addpart
+
+== NAME
+
+addpart - tell the kernel about the existence of a partition
+
+== SYNOPSIS
+
+*addpart* _device partition start length_
+
+== DESCRIPTION
+
+*addpart* tells the Linux kernel about the existence of the specified partition. The command is a simple wrapper around the "add partition" ioctl.
+
+This command doesn't manipulate partitions on a block device.
+
+== PARAMETERS
+
+_device_::
+The disk device.
+
+_partition_::
+The partition number.
+
+_start_::
+The beginning of the partition (in 512-byte sectors).
+
+_length_::
+The length of the partition (in 512-byte sectors).
+
+include::man-common/help-version.adoc[]
+
+== SEE ALSO
+
+*delpart*(8),
+*fdisk*(8),
+*parted*(8),
+*partprobe*(8),
+*partx*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]
