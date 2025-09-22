@@ -1,0 +1,137 @@
+/* List the relocation types for ppc.  -*- C -*-
+   Copyright (C) 2005, 2015 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,		0)
+RELOC_TYPE (ADDR32,		REL|EXEC|DYN)
+RELOC_TYPE (ADDR24,		REL)
+RELOC_TYPE (ADDR16,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR16_LO,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR16_HI,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR16_HA,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR14,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR14_BRTAKEN,	REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (ADDR14_BRNTAKEN,	REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (REL24,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (REL14,		REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (REL14_BRTAKEN,	REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (REL14_BRNTAKEN,	REL|EXEC|DYN)	/* note 1 */
+RELOC_TYPE (GOT16,		REL)
+RELOC_TYPE (GOT16_LO,		REL)
+RELOC_TYPE (GOT16_HI,		REL)
+RELOC_TYPE (GOT16_HA,		REL)
+RELOC_TYPE (PLTREL24,		REL)
+RELOC_TYPE (COPY,		EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,		EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,		EXEC|DYN)
+RELOC_TYPE (RELATIVE,		EXEC|DYN)
+RELOC_TYPE (LOCAL24PC,		REL)
+RELOC_TYPE (UADDR32,		REL|EXEC|DYN)
+RELOC_TYPE (UADDR16,		REL)		/* note 2 */
+RELOC_TYPE (REL32,		REL|EXEC|DYN)
+RELOC_TYPE (PLT32,		REL)
+RELOC_TYPE (PLTREL32,		REL)
+RELOC_TYPE (PLT16_LO,		REL)
+RELOC_TYPE (PLT16_HI,		REL)
+RELOC_TYPE (PLT16_HA,		REL)
+RELOC_TYPE (SDAREL16,		REL)
+RELOC_TYPE (SECTOFF,		REL)
+RELOC_TYPE (SECTOFF_LO,		REL)
+RELOC_TYPE (SECTOFF_HI,		REL)
+RELOC_TYPE (SECTOFF_HA,		REL)
+RELOC_TYPE (TLS,		REL)
+RELOC_TYPE (DTPMOD32,		EXEC|DYN)	/* note 2 */
+RELOC_TYPE (TPREL16,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_LO,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HI,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HA,		REL)		/* note 2 */
+RELOC_TYPE (TPREL32,		EXEC|DYN)	/* note 2 */
+RELOC_TYPE (DTPREL16,		REL)
+RELOC_TYPE (DTPREL16_LO,	REL)
+RELOC_TYPE (DTPREL16_HI,	REL)
+RELOC_TYPE (DTPREL16_HA,	REL)
+RELOC_TYPE (DTPREL32,		EXEC|DYN)	/* note 2 */
+RELOC_TYPE (GOT_TLSGD16,	REL)
+RELOC_TYPE (GOT_TLSGD16_LO,	REL)
+RELOC_TYPE (GOT_TLSGD16_HI,	REL)
+RELOC_TYPE (GOT_TLSGD16_HA,	REL)
+RELOC_TYPE (GOT_TLSLD16,	REL)
+RELOC_TYPE (GOT_TLSLD16_LO,	REL)
+RELOC_TYPE (GOT_TLSLD16_HI,	REL)
+RELOC_TYPE (GOT_TLSLD16_HA,	REL)
+RELOC_TYPE (GOT_TPREL16,	REL)
+RELOC_TYPE (GOT_TPREL16_LO,	REL)
+RELOC_TYPE (GOT_TPREL16_HI,	REL)
+RELOC_TYPE (GOT_TPREL16_HA,	REL)
+RELOC_TYPE (GOT_DTPREL16,	REL)
+RELOC_TYPE (GOT_DTPREL16_LO,	REL)
+RELOC_TYPE (GOT_DTPREL16_HI,	REL)
+RELOC_TYPE (GOT_DTPREL16_HA,	REL)
+RELOC_TYPE (EMB_NADDR32,	REL)		/* note 3 */
+RELOC_TYPE (EMB_NADDR16,	REL)		/* note 3 */
+RELOC_TYPE (EMB_NADDR16_LO,	REL)		/* note 3 */
+RELOC_TYPE (EMB_NADDR16_HI,	REL)		/* note 3 */
+RELOC_TYPE (EMB_NADDR16_HA,	REL)		/* note 3 */
+RELOC_TYPE (EMB_SDAI16,		REL)		/* note 3 */
+RELOC_TYPE (EMB_SDA2I16,	REL)		/* note 3 */
+RELOC_TYPE (EMB_SDA2REL,	REL)		/* note 3 */
+RELOC_TYPE (EMB_SDA21,		REL)		/* note 3 */
+RELOC_TYPE (EMB_MRKREF,		REL)		/* note 3 */
+RELOC_TYPE (EMB_RELSEC16,	REL)		/* note 3 */
+RELOC_TYPE (EMB_RELST_LO,	REL)		/* note 3 */
+RELOC_TYPE (EMB_RELST_HI,	REL)		/* note 3 */
+RELOC_TYPE (EMB_RELST_HA,	REL)		/* note 3 */
+RELOC_TYPE (EMB_BIT_FLD,	REL)		/* note 3 */
+RELOC_TYPE (EMB_RELSDA,		REL)		/* note 3 */
+RELOC_TYPE (DIAB_SDA21_LO,	REL)		/* note 3 */
+RELOC_TYPE (DIAB_SDA21_HI,	REL)		/* note 3 */
+RELOC_TYPE (DIAB_SDA21_HA,	REL)		/* note 3 */
+RELOC_TYPE (DIAB_RELSDA_LO,	REL)		/* note 3 */
+RELOC_TYPE (DIAB_RELSDA_HI,	REL)		/* note 3 */
+RELOC_TYPE (DIAB_RELSDA_HA,	REL)		/* note 3 */
+RELOC_TYPE (REL16,		REL)		/* note 2 */
+RELOC_TYPE (REL16_LO,		REL)		/* note 2 */
+RELOC_TYPE (REL16_HI,		REL)		/* note 2 */
+RELOC_TYPE (REL16_HA,		REL)		/* note 2 */
+RELOC_TYPE (TOC16,		REL)		/* note 2 */
+
+/* Notes from Alan Modra:
+
+   1) These relocs should not really appear in EXEC or DYN, but they do,
+   primarily due to improper assembly or non-pic shared objects.  They
+   will cause TEXTREL to be set.  I marked them in the table, because
+   numerous people seem to think non-pic shared libs are a good idea.
+
+   2) As for (1), these relocs can appear anywhere with improper
+   assembler.  I should probably make ld reject anything other than the
+   cases allowed in this table.	 Not seen in the wild, so I haven't
+   added the other cases.
+
+   3) Not used in SYSV4
+*/

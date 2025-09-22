@@ -1,0 +1,1366 @@
+2022-12-21  Shahab Vahedi  <shahab@synopsys.email>
+
+	* eblopenbackend.c (arc_init): New function declaration.
+	(machines): Add entry for arc.
+
+2022-12-02  Hengqi Chen  <hengqi.chen@gmail.com>
+
+	* eblopenbackend.c (machines): Add entries for LoongArch.
+
+2022-10-21  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* eblclosebackend.c: Remove dlfcn.h include.
+	* eblopenbackend.c: Likewise.
+
+2022-08-08  Andreas Schwab  <schwab@suse.de>
+
+	* ebldynamictagname.c (ebl_dynamic_tag_name): Handle DT_RELRSZ,
+	DT_RELR, DT_RELRENT.
+
+2022-06-01  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblopenbackend.c (default_machine_flag_name): Add original flag
+	as first parameter.
+	* ebl-hooks.h (machine_flag_name): Ditto.
+	* eblmachineflagname.c (ebl_machine_flag_name): Modernize, use bool
+	for first.  Pass original flag value to machine_flag_name
+	callback as well.  Add space after comma in printed list.
+	Fix appending strings provided by callback.
+
+2021-12-21  Luca Boccassi  <bluca@debian.org>
+
+	* eblobjnote.c (ebl_object_note): Handle NT_FDO_PACKAGING_METADATA.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Likewise.
+
+2021-09-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* eblopenbackend.c (openbackend): Remove cast of calloc return value.
+
+2021-04-19  Martin Liska  <mliska@suse.cz>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Use startswith.
+	* eblopenbackend.c (default_debugscn_p): Likewise.
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* libeblP.h (_): Remove.
+
+2020-12-15  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* eblbackendname.c (ebl_backend_name): Replace gettext(...) with _(...).
+	* eblcorenotetypename.c (ebl_core_note_type_name): Likewise.
+	* ebldynamictagname.c (ebl_dynamic_tag_name): Likewise.
+	* eblobjnote.c (ebl_object_note): Likewise.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Likewise.
+	* eblosabiname.c (ebl_osabi_name): Likewise.
+	* eblsectionname.c (ebl_section_name): Likewise.
+	* eblsectiontypename.c (ebl_section_type_name): Likewise.
+	* eblsegmenttypename.c (ebl_segment_type_name): Likewise.
+	* eblsymbolbindingname.c (ebl_symbol_binding_name): Likewise.
+	* eblsymboltypename.c (ebl_symbol_type_name): Likewise.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (tilegx_init): Removed.
+	(machines): Set init to NULL for tilegx.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libebl_a_SOURCES): Remove ebl_syscall_abi.c.
+	* ebl-hooks.h (syscall_abi): Remove.
+	* ebl_syscall_abi.c: Delete.
+	* eblopenbackend.c (default_syscall_abi): Remove.
+	(fill_defaults): Remove syscall_abi assignment.
+	* libebl.h (ebl_syscall_abi): Remove.
+
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): For EM_AARCH64 handle BTI and PAC
+	in GNU_PROPERTY_AARCH64_FEATURE_1_AND.
+
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h: Only typedef Ebl if _LIBASM_H is undefined.
+
+2020-06-10  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (i386_init, sh_init, x86_64_init, ia64_init,
+	alpha_init, arm_init, aarch64_init, sparc_init, ppc_init,
+	ppc64_init, s390_init, tilegx_init, m68k_init, bpf_init,
+	riscv_init, csky_init): Adjust signature.
+	(openbackend): Call init without sizeof(Ebl).
+	* libeblP.h (ebl_bhinit_t): Adjust signature.
+
+2020-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* eblsegmenttypename.c (ebl_segment_type_name): Remove
+	PT_GNU_PROPERTY define.
+
+2020-04-17  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (default_debugscn_p): Handle .gnu.debuglto_
+	prefix.
+
+2020-02-08  Mark Wielaard  <mark@klomp.org>
+
+	* eblsegmenttypename.c (ebl_segment_type_name): Handle
+	PT_GNU_PROPERTY.
+
+2019-08-29  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (noinst_LIBRARIES): Add libebl.a.
+	(noinst_HEADERS): Add libebl.h.
+
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* Makefile.am: Make libebl.a non-PIC by default.
+	Add libebl_pic.a.
+	Remove LIBEBL_SUBDIR definition.
+	(gen_SOURCES): Remove.
+	* eblopenbackend.c (machines): Replace dsoname with init callback.
+	(try_dlopen): Remove.
+	(openbackend): Use machine callback instead of try_dlopen().
+	Don't assign result->dlhandle.
+	* eblclosebackend.c (ebl_closebackend): Remove dlclose() call.
+
+2019-04-29 Mao Han <han_mao@c-sky.com>
+
+	* eblopenbackend.c: Add C-SKY.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (try_dlopen): Remove result->name check.
+	(openbackend): Remove result->name assignment.
+	(struct ebl): Remove name.
+
+2019-05-30  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (try_dlopen): New function extracted from
+	openbackend.
+	(openbackend): Replace ORIGINDIR define with BINORIGINDIR and
+	LIBORIGINDIR defines. Use tryopen to open backend in bin origin
+	path, lib origin path and without an explicit path.
+
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* eblsymbolbindingname.c (ebl_symbol_binding_name): Check ebl is
+	not NULL for STB_GNU_UNIQUE.
+	* eblsymboltypename.c (ebl_symbol_type_name): Check ebl is not
+	NULL for STT_GNU_IFUNC.
+
+2019-01-29  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Check pr_datasz padding doesn't
+	overflow descsz.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h (ebl_core_note): Add desc as argument.
+	* eblcorenote.c (ebl_core_note): Take desc as an argument, check
+	it contains a zero terminated string if it is an NT_PLATFORM note.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnte.c (ebl_object_note): Check pr_datasz isn't too large.
+
+2018-12-02  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnte.c (ebl_object_note): For GNU_PROPERTY_STACK_SIZE use
+	an Elf32_Addr or Elf64_Addr to read and print the size.
+
+2018-11-15  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Don't update
+	w, t and len unnecessarily.
+
+2018-11-12  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h (ebl_object_note): Add new argument namesz.
+	* eblobjnote.c (ebl_object_note): Likewise and handle GNU Build
+	Attribute notes.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Handle GNU
+	Build Attribute notes.
+
+2018-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Recognize NT_VERSION with zero
+	descriptor. Add explicit "GNU" name check.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Add extra
+	argument descsz. Recognize NT_VERSION using descsz. With "GNU"
+	name it is  NT_GNU_ABI_TAG.
+	* libebl.h (ebl_object_note_type_name): Add extra argument descsz.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Handle NT_GNU_PROPERTY_TYPE_0.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Add
+	GNU_PROPERTY_TYPE_0.
+
+2018-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* ebl-hooks.h (EBLHOOK(reloc_simple_type)): Add third parameter.
+	* libebl.h (ebl_reloc_simple_type): Likewise.
+	* eblopenbackend.c (default_reloc_simple_type): Likewise.
+	* eblrelocsimpletype.c (ebl_reloc_simple_type): Pass it down.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* eblsectionstripp.c (ebl_section_strip_p): Drop ehdr argument.
+	Use elf_getshdrstrndx.
+	* libebl.h (ebl_section_strip_p): Drop ehdr argument.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* ebl-hooks.h (check_special_symbol): Drop ehdr argument.
+	* ebl_check_special_symbol.c (ebl_check_special_symbol): Likewise.
+	* eblopenbackend.c (default_check_special_symbol): Likewise.
+	* libebl.h (ebl_check_special_symbol): Likewise.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* eblopenbackend.c: Remove error.h include.
+
+2018-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (default_debugscn_p): Add new DWARF5 sections
+	.debug_addr, .debug_line_str, .debug_loclists, .debug_names,
+	.debug_rnglists and .debug_str_offsets.
+
+2018-04-19  Andreas Schwab  <schwab@suse.de>
+
+	* eblopenbackend.c (machines): Add entries for RISC-V.
+
+2018-03-16  Mark Wielaard  <mark@klomp.org>
+
+	* ebldynamictagname.c (ebl_dynamic_tag_name): Add SYMTAB_SHNDX to
+	stdtags. Add a eu_static_assert to make sure stdtags contains all
+	DT_NUM entries.
+
+2018-02-21  Mark Wielaard  <mark@klomp.org>
+
+	* eblcheckreloctargettype.c (ebl_check_reloc_target_type): Accept
+	SHT_NOTE.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eblobjnote.c (ebl_object_note): Use FALLTHROUGH macro instead of
+	comment.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS.
+
+2017-07-19  Gustavo Romero <gromero@linux.vnet.ibm.com>
+
+	* eblcorenotetypename.c: Add ppc64 HTM SPRs note as known type.
+
+2017-07-20  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (gen_SOURCES): Add ebl_data_marker_symbol.c.
+	* ebl-hooks.h (data_marker_symbol): New hook.
+	* ebl_data_marker_symbol.c: New file.
+	* eblopenbackend.c (default_data_marker_symbol): New function.
+	(fill_defaults): Add default_data_marker_symbol.
+	* libebl.h (ebl_data_marker_symbol): New function.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libebl.h: Use __pure_attribute__.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eblmachineflagname.c: Include system.h.
+	* eblopenbackend.c: Likewise.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Remove eblstrtab.c.
+	* eblstrtab.c: Removed.
+	* libebl.h (Ebl_Strtab): Removed.
+	(Ebl_Strent): Removed.
+	(ebl_strtabinit): Removed.
+	(ebl_strtabfree): Removed.
+	(ebl_strtabadd): Removed.
+	(ebl_strtabfinalize): Removed.
+	(ebl_strtaboffset): Removed.
+	(ebl_string): Removed.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Remove eblobjecttypename.c,
+	eblshflagscombine.c, eblwstrtab.c and eblgstrtab.c.
+	* ebl-hooks.h (object_type_name): Removed.
+	(sh_flags_combine): Likewise.
+	* eblgstrtab.c: Removed.
+	* eblobjecttypename.c: Removed.
+	* eblopenbackend.c (default_object_type_name): Removed.
+	(default_sh_flags_combine): Likewise.
+	(fill_defaults): Removed object_type_name and sh_flags_combine.
+	* eblshflagscombine.c: Removed.
+	* eblwstrtab.c: Removed.
+	* libebl.h (ebl_object_type_name): Removed.
+	(ebl_sh_flags_combine): Likewise.
+	(ebl_wstrtab*): Removed.
+	(ebl_gstrtab*): Likewise.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* ebl-hooks.h (EBLHOOK(disasm)): Add ebl parameter.
+	* eblopenbackend.c (machines): Add EM_BPF entry.
+
+2016-05-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eblopenbackend.c (machines) [EM_68K]: Set class and data.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Check name is
+	"Go" and use new goknowntypes then. Otherwise check name is not
+	"GNU" and return "unknown".
+
+2016-01-09  Mark Wielaard  <mjw@redhat.com>
+
+	* eblobjnote.c (ebl_object_note): Add brackets around if statement
+	body.
+
+2015-12-18  Mark Wielaard  <mjw@redhat.com>
+
+	* eblopenbackend.c (default_debugscn_p): Also match .zdebug sections.
+
+2015-12-08  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* libebl.h: Prototype for ebl_ra_offset.
+	* eblabicfi.c (ebl_ra_offset): New function.
+	* libeblP.h (struct ebl): new field ra_offset;
+
+2015-09-24  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* Makefile.am (AM_CFLAGS): Use -fPIC instead of -fpic to avoid
+	relocation overflows in some platforms.
+
+2015-09-22  Mark Wielaard  <mjw@redhat.com>
+
+	* *.c: Remove old-style function definitions.
+
+2015-09-09  Chih-Hung Hsieh  <chh@google.com>
+
+	* ebldwarftoregno.c (ebl_dwarf_to_regno): Remove redundant NULL tests
+	on parameters declared with __nonnull_attribute__.
+	* eblinitreg.c (ebl_frame_nregs): Likewise.
+	* eblnormalizepc.c (ebl_normalize_pc): Likewise.
+	* eblunwind.c (ebl_unwind): Likewise.
+
+2015-09-04  Chih-Hung Hsieh  <chh@google.com>
+
+	* eblopenbackend.c (ebl_openbackend_machine): Replace K&R function
+	definition with ansi-C definitions.
+	* eblstother.c (ebl_check_st_other_bits): Likewise.
+
+2015-06-12  Mark Wielaard  <mjw@redhat.com>
+
+	* eblcheckreloctargettype.c (ebl_check_reloc_target_type): Allow
+	SHT_INIT_ARRAY, SHT_FINI_ARRAY and SHT_PREINIT_ARRAY.
+
+2015-05-17  Mark Wielaard  <mjw@redhat.com>
+
+	* eblobjnote.c (ebl_object_note): If allocation buf is large, then
+	allocate it with malloc.
+
+2015-05-17  Mark Wielaard  <mjw@redhat.com>
+
+	* eblopenbackend.c (MAX_PREFIX_LEN): New define (16).
+	(openbackend): Stack allocate symname array using MAX_PREFIX_LEN.
+
+2015-01-27  Mark Wielaard  <mjw@redhat.com>
+
+	* libebl.h: Add comment from README that this is completely
+	UNSUPPORTED.
+
+2014-11-22  Mark Wielaard  <mjw@redhat.com>
+
+	* ebl-hooks.h (bss_plt_p): Remove ehdr argument.
+	* eblbsspltp.c (ebl_bss_plt_p): Likewise.
+	* eblopenbackend.c (default_bss_plt_p): Likewise.
+	* libebl.h (ebl_bss_plt_p): Likewise.
+
+2014-11-17  Mark Wielaard  <mjw@redhat.com>
+
+	* ebldebugscnp.c (ebl_debugscn_p): Check name is not NULL.
+
+2014-06-17  Mark Wielaard  <mjw@redhat.com>
+
+	* eblinitreg.c (ebl_func_addr_mask): New function.
+	* libebl.h (ebl_func_addr_mask): Define.
+	* libeblP.h (struct ebl): Add func_addr_mask.
+
+2014-05-19  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblcheckreloctargettype.c.
+	* eblcheckreloctargettype.c: New file.
+	* ebl-hooks.h (check_reloc_target_type): New hook.
+	* eblopenbackend.c (default_check_reloc_target_type): New function.
+	(fill_defaults): Assign default_check_reloc_target_type to
+	check_reloc_target_type.
+	* libebl.h (ebl_check_reloc_target_type): New function definition.
+
+2013-12-18  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblresolvesym.c.
+	* ebl-hooks.h (resolve_sym_value): New entry.
+	* eblresolvesym.c: New file.
+	* libebl.h (ebl_resolve_sym_value): New definition.
+	* libeblP.h (fd_addr): New field.
+	(fd_data): Likewise.
+
+2013-12-18  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	unwinder: s390 and s390x
+	* Makefile.am (gen_SOURCES): Add eblnormalizepc.c and eblunwind.c.
+	* ebl-hooks.h (normalize_pc, unwind): New.
+	* eblnormalizepc.c: New file.
+	* eblunwind.c: New file.
+	* libebl.h (Ebl_Register_Location): Add field pc_register.
+	(ebl_normalize_pc): New declaration.
+	(ebl_tid_registers_get_t, ebl_pid_memory_read_t): New definitions.
+	(ebl_unwind): New declaration.
+
+2013-12-15  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	unwinder: ppc and ppc64
+	* Makefile.am (gen_SOURCES): Add ebldwarftoregno.c.
+	* ebl-hooks.h (dwarf_to_regno): New.
+	* ebldwarftoregno.c: New file.
+	* libebl.h (Ebl_Core_Item): New field pc_register.
+	(ebl_tid_registers_t): Add FIRSTREG -1 to the comment.
+	(ebl_dwarf_to_regno): New.
+
+2013-11-25  Petr Machata  <pmachata@redhat.com>
+
+	* eblopenbackend.c (machines): Add entry for AArch64.
+
+2013-11-14  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Code cleanup: Remove const in prototype
+	* libebl.h (ebl_tid_registers_t): Remove const from firstreg.
+
+2013-11-07  Jan Kratochvil  <jan.kratochvil@redhat.com>
+	    Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblinitreg.c.
+	* ebl-hooks.h (set_initial_registers_tid): New entry.
+	* eblinitreg.c: New file.
+	* libebl.h (ebl_tid_registers_t): New definition.
+	(ebl_set_initial_registers_tid, ebl_frame_nregs): New declarations.
+	* libeblP.h (struct ebl): New entry frame_nregs.
+
+2013-10-06  Mark Wielaard  <mjw@redhat.com>
+
+	* libebl.h (ebl_abi_cfi): Document restrictions using register
+	rules.
+
+2013-09-26  Petr Machata  <pmachata@redhat.com>
+
+	* eblcorenotetypename.c: Handle NT_ARM_TLS, NT_ARM_HW_BREAK,
+	NT_ARM_HW_WATCH, NT_SIGINFO, NT_FILE.
+
+2013-09-25  Mark Wielaard  <mjw@redhat.com>
+
+	* eblsectionstripp.c (ebl_section_strip_p): Check shdr_l is not NULL.
+
+2013-04-24  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am: Use AM_CPPFLAGS instead of INCLUDES.
+
+2012-10-12  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* ebl-hooks.h (abi_cfi): Extend its comment for return value.
+	* eblopenbackend.c (default_abi_cfi): Return -1.
+	* libebl.h (ebl_abi_cfi): Extend its comment for return value.
+
+2012-08-30  Petr Machata  <pmachata@redhat.com>
+
+	* eblcorenotetypename.c: Handle PPC_VSX, X86_XSTATE,
+	S390_HIGH_GPRS, S390_TIMER, S390_TODCMP, S390_TODPREG, S390_CTRS,
+	S390_PREFIX, S390_LAST_BREAK, S390_SYSTEM_CALL, and ARM_VFP.
+
+2012-08-22  Jeff Kenton  <jkenton@tilera.com>
+
+	* eblopenbackend.c (machines): Add tilegx.
+
+2011-06-26  Mark Wielaard  <mjw@redhat.com>
+
+	* eblopenbackend.c (default_debugscn_p): Add .debug_macro.
+
+2011-04-26  Mark Wielaard  <mjw@redhat.com>
+
+	* libebl.h (ebl_object_note_type_name): Add const char *name arg.
+	* eblhooks.h (object_note_type_name): Likewise.
+	* eblopenbackend.c (default_object_note_type_name): Likewise.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Likewise.
+	And print version if name is "stapsdt".
+	* eblobjnote.c (ebl_object_note): Add output for "stapsdt" notes.
+
+2011-03-21  Marek Polacek  <mpolacek@redhat.com>
+
+	* ebldynamictagname.c: Fix typo in TLSDESC_GOT.
+
+2011-03-10  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblstother.c.
+	* eblstother.c: New file.
+	* ebl-hooks.h: Add check_st_other_bits hook.
+	* eblopenbackend.c (default_check_st_other_bits): New function.
+	(fill_defaults): Hook default_check_st_other_bits.
+	* libebl.h (ebl_check_st_other_bits): New prototype.
+
+2010-07-07  Roland McGrath  <roland@redhat.com>
+
+	* eblopenbackend.c (default_debugscn_p): Match .gdb_index section.
+
+2010-02-15  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am: Use config/eu.am for common stuff.
+
+2010-01-04  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenote.c (ebl_core_note): Take GElf_Nhdr * and name data
+	pointer instead of only n_type and n_descsz.
+	* libebl.h: Update declaration.
+	* ebl-hooks.h: Update core_note hook signature.
+	* eblopenbackend.c (default_core_note): Likewise.
+
+2009-10-14  Roland McGrath  <roland@redhat.com>
+
+	* eblobjnote.c (ebl_object_note): Clean up NT_GNU_GOLD_VERSION printing.
+
+2009-10-05  Roland McGrath  <roland@redhat.com>
+
+	* eblopenbackend.c (default_debugscn_p): Match .debug_pubtypes and
+	.debug_types too.
+
+2009-09-02  Petr Machata  <pmachata@redhat.com>
+
+	* libebl/eblstrtab.c (morememory): Allocate memory in multiples of
+	pagesize.
+
+2009-08-06  Petr Machata  <pmachata@redhat.com>
+
+	* libebl/eblstrtab.c (ebl_strtabfinalize): Only call copystrings
+	if we have any strings to copy.
+
+2009-07-26  Mark Wielaard  <mjw@redhat.com>
+
+	* eblobjnote.c (ebl_object_note): Handle NT_GNU_GOLD_VERSION.
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Recognize
+	NT_GNU_GOLD_VERSION.
+
+2009-07-08  Roland McGrath  <roland@redhat.com>
+
+	* ebl-hooks.h: Add abi_cfi hook.
+	* eblopenbackend.c (default_abi_cfi): New function.
+	(fill_defaults): Add initializer.
+	* eblabicfi.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h: Declare ebl_abi_cfi.
+
+2009-07-08  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblsymbolbindingname.c (ebl_symbol_binding_name): Handle
+	STB_GNU_UNIQUE.
+
+	* eblsymboltypename.c (ebl_symbol_type_name): Only handle STT_GNU_IFUNC
+	if the binary is marked as being for Linux.
+
+2009-04-01  Roland McGrath  <roland@redhat.com>
+
+	* eblsymboltypename.c (ebl_symbol_type_name): Add STT_GNU_IFUNC.
+
+	* eblauxvinfo.c (AUXV_TYPES): Add RANDOM and BASE_PLATFORM.
+
+2009-02-01  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblreloctypename.c (ebl_reloc_type_name): Return "<INVALID RELOC>"
+	instead of "???" for invalid relocations.
+
+2008-08-01  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenotetypename.c: Handle NT_386_IOPERM.
+
+2008-07-28  Roland McGrath  <roland@redhat.com>
+
+	* eblauxvinfo.c (AUXV_TYPES): Add EXECFN.
+
+	* eblauxvinfo.c (ebl_auxv_info): Handle missing elements of standard
+	table.
+
+2008-07-04  Roland McGrath  <roland@redhat.com>
+
+	* libebl.h: Declare ebl_syscall_abi.
+	* ebl_syscall_abi.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* ebl-hooks.h: New hook syscall_abi.
+	* eblopenbackend.c (default_syscall_abi): New function.
+	(fill_defaults): Use it.
+
+2008-03-31  Roland McGrath  <roland@redhat.com>
+
+	* ebldynamictagname.c (ebl_dynamic_tag_name): Use hex for unknown tag.
+
+	* ebl-hooks.h: Add check_special_section hook.
+	* eblopenbackend.c (fill_defaults): Set new hook to ...
+	(default_check_special_section): ... this, new function.
+	* ebl_check_special_section.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h: Declare it.
+
+2008-02-20  Roland McGrath  <roland@redhat.com>
+
+	* libebl.h: Declare ebl_check_object_attribute.
+	* eblcheckobjattr.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* ebl-hooks.h: Add check_object_attribute hook.
+	* eblopenbackend.c (default_check_object_attribute): New function.
+	(fill_defaults): Initialize pointer to it.
+
+2008-02-19  Roland McGrath  <roland@redhat.com>
+
+	* eblsectiontypename.c (ebl_section_type_name):
+	Handle SHT_GNU_ATTRIBUTES.
+
+2008-02-08  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenotetypename.c (ebl_core_note_type_name): Handle NT_PPC_SPE.
+
+2008-01-30  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenotetypename.c (ebl_core_note_type_name): Handle NT_386_TLS.
+
+2007-10-18  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenotetypename.c (ebl_core_note_type_name): Handle NT_PPC_VMX.
+
+2007-10-11  Roland McGrath  <roland@redhat.com>
+
+	* eblobjnote.c (ebl_object_note): Translate target format (byte-swap)
+	for NT_GNU_ABI_TAG contents.
+
+2007-08-22  Roland McGrath  <roland@redhat.com>
+
+	* libebl.h (Ebl_Core_Item): New member `group'.
+
+2007-08-19  Roland McGrath  <roland@redhat.com>
+
+	* ebl-hooks.h: Add new hook auxv_info.
+	* eblopenbackend.c (default_auxv_info): New function.
+	(fill_defaults): Initialize auxv_info hook.
+	* eblauxvinfo.c : New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h: Declare ebl_auxv_info.
+
+	* eblcorenote.c: Rewritten with new signature.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h (Ebl_Register_Location, Ebl_Core_Item): New types.
+	(ebl_core_note_info): Completely revamp signature.
+	* ebl-hooks.h: Update decl.
+	* eblopenbackend.c (default_core_note): Update signature.
+
+2007-07-09  Roland McGrath  <roland@redhat.com>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Handle
+	NT_GNU_HWCAP, NT_GNU_BUILD_ID.
+
+	* eblobjnote.c (ebl_object_note): Handle NT_GNU_BUILD_ID.
+
+2007-04-22  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenotetypename.c (ebl_core_note_type_name): Handle NT_PRXFPREG.
+
+2007-03-10  Roland McGrath  <roland@redhat.com>
+
+	* eblcorenote.c (ebl_core_note): For normally-zero types,
+	print in hex if not zero.
+
+2007-01-11  Roland McGrath  <roland@redhat.com>
+
+	* ebl-hooks.h (machine_section_flag_check): New hook.
+	* libebl.h: Declare ebl_machine_section_flag_check.
+	* eblmachinesectionflagcheck.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* eblopenbackend.c (default_machine_section_flag_check): New function.
+	(fill_defaults): Use it.
+
+2006-09-04  Roland McGrath  <roland@redhat.com>
+
+	* ebl-hooks.h: Replace register_name hook with register_info.
+	Also yield natural bit width and base type encoding.
+	* eblopenbackend.c (default_register_name): Renamed
+	default_register_info, new args added.
+	(fill_defaults): Update initialization.
+	* eblregname.c: File renamed ...
+	* eblreginfo.c: ... to this.
+	(ebl_register_name): Renamed to ebl_register_info, new args added.
+	* libebl.h: Update decl.
+
+	* Makefile.am (gen_SOURCES): Update list.
+
+2006-07-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* ebldynamictagname.c: Add support for DT_GNU_HASH.
+	* ebldynamictagcheck.c: Likewise.
+	* eblsectiontypename.c: Add support for SHT_GNU_HASH.
+
+2006-07-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblsysvhashentrysize.c.
+	* libeblP.h (struct ebl): Add sysvhash_entrysize element.
+	* eblopenbackend.c (fill_defaults): Initialize sysvhash_entrysize.
+
+	* eblopenbackend.c (openbackend): If possible, fill machine, class,
+	and data values in from the ELF file.
+
+2006-07-04  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblrelativerelocp.c.
+	* eblrelativerelocp.c: New file.
+	* ebl-hooks.c: Add relative_reloc_p.
+	* eblopenbackend.c (default_relative_reloc_p): New function.
+	(fill_defaults): Hook it up.
+	* libebl.h: Declare ebl_relative_reloc_p.
+
+2006-06-12  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Add eblnonerelocp.c.
+	* eblnonerelocp.c: New file.
+	* ebl-hooks.c: Add none_reloc_p.
+	* eblopenbackend.c (default_none_reloc_p): New function.
+	(fill_defaults): Hook it up.
+	* libebl.h: Declare ebl_none_reloc_p.
+
+2006-05-27  Ulrich Drepper  <drepper@redhat.com>
+
+	* libebl.h: Add extern "C".
+
+2005-11-25  Roland McGrath  <roland@redhat.com>
+
+	* eblregname.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* ebl-hooks.h: Declare register_name hook.
+	* libebl.h: Declare ebl_register_name.
+	* eblopenbackend.c (default_register_name): New function.
+	(fill_defaults): Use it.
+
+2005-11-16  Roland McGrath  <roland@redhat.com>
+
+	* libebl.h: Use "" for elf-knowledge.h, not <>.
+
+2005-11-15  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am: Removed everything for building libebl_*.so modules,
+	now in ../backends/Makefile.am instead.
+	* alpha_init.c: Moved to ../backends.
+	* alpha_reloc.def: Likewise.
+	* alpha_retval.c: Likewise.
+	* alpha_symbol.c: Likewise.
+	* arm_init.c: Likewise.
+	* arm_reloc.def: Likewise.
+	* arm_symbol.c: Likewise.
+	* common-reloc.c: Likewise.
+	* i386_corenote.c: Likewise.
+	* i386_init.c: Likewise.
+	* i386_reloc.def: Likewise.
+	* i386_retval.c: Likewise.
+	* i386_symbol.c: Likewise.
+	* ia64_init.c: Likewise.
+	* ia64_reloc.def: Likewise.
+	* ia64_symbol.c: Likewise.
+	* libebl_CPU.h: Likewise.
+	* ppc64_init.c: Likewise.
+	* ppc64_reloc.def: Likewise.
+	* ppc64_retval.c: Likewise.
+	* ppc64_symbol.c: Likewise.
+	* ppc_init.c: Likewise.
+	* ppc_reloc.def: Likewise.
+	* ppc_retval.c: Likewise.
+	* ppc_symbol.c: Likewise.
+	* s390_init.c: Likewise.
+	* s390_reloc.def: Likewise.
+	* s390_symbol.c: Likewise.
+	* sh_init.c: Likewise.
+	* sh_reloc.def: Likewise.
+	* sh_symbol.c: Likewise.
+	* sparc_init.c: Likewise.
+	* sparc_reloc.def: Likewise.
+	* sparc_symbol.c: Likewise.
+	* x86_64_corenote.c: Likewise.
+	* x86_64_init.c: Likewise.
+	* x86_64_reloc.def: Likewise.
+	* x86_64_retval.c: Likewise.
+	* x86_64_symbol.c: Likewise.
+
+	* libebl.h: Comment fixes.
+
+	* alpha_retval.c: New file.
+	* Makefile.am (alpha_SRCS): Add it.
+	* alpha_init.c (alpha_init): Initialize return_value_location hook.
+
+	* ppc64_retval.c: New file.
+	* Makefile.am (ppc64_SRCS): Add it.
+	* ppc64_init.c (ppc64_init): Initialize return_value_location hook.
+
+	* ppc_retval.c: New file.
+	* Makefile.am (ppc_SRCS): Add it.
+	* ppc_init.c (ppc_init): Initialize return_value_location hook.
+
+2005-11-14  Roland McGrath  <roland@redhat.com>
+
+	* ia64_init.c (ia64_init): Initialize EH->reloc_simple_type.
+	* sh_init.c (sh_init): Likewise.
+	* x86_64_init.c (x86_64_init): Likewise.
+
+	* sparc_symbol.c (sparc_reloc_simple_type): New function.
+	* sparc_init.c (sparc_init): Use it.
+
+	* arm_symbol.c (arm_reloc_simple_type): New function.
+	* arm_init.c (arm_init): Use it.
+
+	* alpha_symbol.c (alpha_reloc_simple_type): New function.
+	* alpha_init.c (alpha_init): Use it.
+
+	* ia64_reloc.def: Update bits per H. J. Lu <hjl@lucon.org>.
+
+	* arm_reloc.def: Update bits per Daniel Jacobowitz <drow@false.org>.
+
+	* alpha_reloc.def: Update bits per Richard Henderson <rth@redhat.com>.
+
+2005-11-13  Roland McGrath  <roland@redhat.com>
+
+	* x86_64_retval.c: New file.
+	* Makefile.am (x86_64_SRCS): Add it.
+	* x86_64_init.c (x86_64_init): Use x86_64_return_value_location.
+
+	* i386_retval.c: New file.
+	* Makefile.am (i386_SRCS): Add it.
+	(libdw): New variable.
+	(libebl_%.so): Use $(libdw) in link; use --as-needed.
+	* i386_init.c (i386_init): Use i386_return_value_location.
+
+	* eblretval.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	(INCLUDES): Search in libdw.
+	* libebl.h: Include <libdw.h>.   Declare ebl_return_value_location.
+	* ebl-hooks.h: Declare return_value_location hook.
+	* eblopenbackend.c (default_return_value_location): New function.
+	(fill_defaults): Use it.
+
+2005-11-10  Roland McGrath  <roland@redhat.com>
+
+	* s390_init.c: New file.
+	* s390_reloc.def: New file.
+	* s390_symbol.c: New file.
+	* Makefile.am (modules, libebl_pic): Add s390.
+	(s390_SRCS, libebl_s390_pic_a_SOURCES): New variables.
+	(am_libebl_s390_pic_a_OBJECTS): New variable.
+
+	* ppc64_init.c: Use common-reloc.c.
+	* ppc64_symbol.c (ppc64_backend_name): Removed.
+	(ppc64_reloc_type_check, ppc64_reloc_type_name): Likewise.
+	(ppc64_copy_reloc_p, ppc64_reloc_valid_use): Likewise.
+
+	* ppc_init.c: Use common-reloc.c.
+	* ppc_symbol.c (ppc_backend_name): Removed.
+	(ppc_reloc_type_name, ppc_reloc_type_check): Likewise.
+	(ppc_reloc_valid_use, ppc_copy_reloc_p): Likewise.
+
+	* sparc_init.c: Use common-reloc.c.
+	* sparc_symbol.c (sparc_backend_name): Removed.
+	(sparc_reloc_type_name, sparc_reloc_type_check): Likewise.
+	(sparc_copy_reloc_p): Likewise.
+
+	* arm_init.c: Use common-reloc.c.
+	* arm_symbol.c (arm_backend_name): Removed.
+	(arm_reloc_type_name, arm_reloc_type_check, arm_copy_reloc_p): Removed.
+
+	* alpha_init.c: Use common-reloc.c.
+	* alpha_symbol.c (alpha_backend_name): Removed.
+	(alpha_reloc_type_name, alpha_reloc_type_check): Likewise.
+	(alpha_copy_reloc_p): Likewise.
+
+	* ia64_symbol.c (ia64_backend_name): Removed.
+	(ia64_reloc_type_name, ia64_reloc_type_check): Likewise.
+	(ia64_copy_reloc_p): Likewise.
+
+	* x86_64_init.c: Use common-reloc.c.
+	* x86_64_symbol.c (x86_64_backend_name): Removed.
+	(x86_64_copy_reloc_p, x86_64_reloc_valid_use): Likewise.
+	(x86_64_reloc_type_check, x86_64_reloc_type_name): Likewise.
+
+	* sh_init.c: Use common-reloc.c.
+	* sh_symbol.c: All functions removed.
+	(sh_reloc_simple_type): New function.
+	(sh_gotpc_reloc_check): New function.
+
+	* common-reloc.c: New file.
+	* Makefile.am (noinst_HEADERS): Add it.
+	* i386_init.c: Include it.
+
+	* sh_reloc.def: New file.
+	* i386_reloc.def: New file.
+	* alpha_reloc.def: New file.
+	* arm_reloc.def: New file.
+	* i386_reloc.def: New file.
+	* ia64_reloc.def: New file.
+	* ppc64_reloc.def: New file.
+	* ppc_reloc.def: New file.
+	* sh_reloc.def: New file.
+	* sparc_reloc.def: New file.
+	* x86_64_reloc.def: New file.
+	* Makefile.am (EXTRA_DIST): Add $(modules:=_reloc.def).
+
+	* libebl_alpha.map: Removed.
+	* libebl_ia64.map: Removed.
+	* libebl_ppc.map: Removed.
+	* libebl_sparc.map: Removed.
+	* libebl_arm.map: Removed.
+	* libebl_i386.map: Removed.
+	* libebl_ppc64.map: Removed.
+	* libebl_sh.map: Removed.
+	* libebl_x86_64.map: Removed.
+	* Makefile.am (EXTRA_DIST): Remove them.
+	(libebl_%.map, libebl_%.so): New pattern rules.
+
+	* libebl_alpha.h: Removed.
+	* libebl_ia64.h: Removed.
+	* libebl_ppc.h: Removed.
+	* libebl_sparc.h: Removed.
+	* libebl_arm.h: Removed.
+	* libebl_i386.h: Removed.
+	* libebl_ppc64.h: Removed.
+	* libebl_sh.h: Removed.
+	* libebl_x86_64.h: Removed.
+	* Makefile.am (noinst_HEADERS): Remove them.
+
+	* x86_64_corenote.c: Use libebl_CPU.h instead.
+	* x86_64_symbol.c: Likewise.
+	* i386_corenote.c: Likewise.
+
+2005-11-09  Roland McGrath  <roland@redhat.com>
+
+	* ia64_symbol.c (ia64_reloc_simple_type): New function.
+
+	* ebl-hooks.h (reloc_simple_type): Take the Ebl handle, not Elf handle.
+	* eblrelocsimpletype.c (ebl_reloc_simple_type): Update caller.
+	* eblopenbackend.c (default_reloc_simple_type): Update signature.
+	* i386_symbol.c (i386_reloc_simple_type): Likewise.
+	* ppc64_symbol.c (ppc64_reloc_simple_type): Likewise.
+	* ppc_symbol.c (ppc_reloc_simple_type): Likewise.
+	* x86_64_symbol.c (x86_64_reloc_simple_type): Likewise.
+
+	* i386_symbol.c (i386_backend_name): Removed.
+	(i386_reloc_type_name, i386_reloc_type_check): Likewise.
+	(i386_reloc_valid_use): Removed.
+	(i386_copy_reloc_p): Removed.
+
+	* alpha_destr.c: Removed.
+	* arm_destr.c: Removed.
+	* i386_destr.c: Removed.
+	* ia64_destr.c: Removed.
+	* ppc64_destr.c: Removed.
+	* ppc_destr.c: Removed.
+	* sh_destr.c: Removed.
+	* sparc_destr.c: Removed.
+	* x86_64_destr.c: Removed.
+
+	* ebl-hooks.h: New file, broken out of ...
+	* libeblP.h (struct ebl): ... here.  #include that for hook
+	declarations, after defining EBLHOOK macro.
+	* libebl_CPU.h: New file.
+	* Makefile.am (noinst_HEADERS): Add them.
+
+	* libeblP.h (struct ebl): Use uint_fast16_t for machine,
+	and uint_fast8_t for class and data.
+
+2005-08-14  Roland McGrath  <roland@redhat.com>
+
+	* ia64_symbol.c (ia64_section_type_name): New function.
+	(ia64_dynamic_tag_check): New function.
+	(ia64_reloc_valid_use): New function.
+	* libebl_ia64.h: Declare them.
+	* ia64_init.c (ia64_init): Use them.
+	* Makefile.am (libebl_ia64.so): Link with libelf.
+
+2005-08-28  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Use $(LINK) not $(CC) when creating DSOs.
+
+2005-08-13  Roland McGrath  <roland@redhat.com>
+
+	* ia64_symbol.c (ia64_machine_flag_check): New function.
+	* libebl_ia64.h: Declare it.
+	* ia64_init.c (ia64_init): Use it.
+
+2005-08-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* libebl.h: Add ehdr parameter to ebl_bss_plt_p and
+	ebl_check_special_symbol.
+	* libeblP.h (struct ebl): Adjust callback functions.
+	* eblopenbackend.c: Adjust dummy functions.
+	* ebl_check_special_symbol.c: Add parameter and pass it on.
+	* eblbsspltp.c: Likewise.
+	* ppc_symbol.c (find_dyn_got): With ehdr passed, simplify search for
+	the dynamic section entry.
+	(ppc_check_special_symbol): Add ehdr parameter.
+	(ppc_bss_plt_p): Likewise.
+	* libebl_ppc.h: Adjust prototypes.
+	* ppc64_symbol.c (ppc_check_special_symbol): Add ehdr parameter.
+	(ppc_bss_plt_p): Likewise.
+	* libebl_ppc64.h: Adjust prototypes.
+
+2005-08-12  Roland McGrath  <roland@redhat.com>
+
+	* ppc_symbol.c (find_dyn_got): New function, broken out of ...
+	(ppc_bss_plt_p): ... here.  Call that.
+	(ppc_check_special_symbol): Use find_dyn_got to fetch value to check
+	against _GLOBAL_OFFSET_TABLE_.
+
+	* libeblP.h (struct ebl): Add bss_plt_p hook.
+	* eblopenbackend.c (default_bss_plt_p): New function.
+	(fill_defaults): Use it.
+	* eblbsspltp.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h: Declare ebl_bss_plt_p.
+	* ppc_symbol.c (ppc_bss_plt_p): New function.
+	* libebl_ppc.h: Declare it.
+	* ppc_init.c (ppc_init): Use it.
+	* ppc64_symbol.c (ppc64_bss_plt_p): New function.
+	* libebl_ppc64.h: Declare it.
+	* ppc64_init.c (ppc64_init): Use it.
+
+	* ebl_check_special_symbol.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* libebl.h: Declare ebl_check_special_symbol.
+	* libeblP.h (struct ebl): Add check_special_symbol hook.
+	* eblopenbackend.c (default_check_special_symbol): New function.
+	(fill_defaults): Use it.
+	* ppc_symbol.c (ppc_check_special_symbol): New function.
+	* libebl_ppc.h: Add prototype.
+	* ppc_init.c (ppc_init): Use it.
+	* ppc64_symbol.c (ppc64_check_special_symbol): New function.
+	* libebl_ppc64.h: Add prototype.
+	* ppc64_init.c (ppc64_init): Use it.
+
+2005-08-07  Ulrich Drepper  <drepper@redhat.com>
+
+	* ppc_init.c: Add support for new DT_PPC_* and R_PPC_* values.
+	* ppc_symbol.c: Likewise.
+	* libebl_ppc.h: Likewise.
+	* ppc64_init.c: There is now also a dynamic_tag_check functions
+	* ppc64_symbol.c: Add dynamic_tag_check.
+	* libebl_ppc64.h: Add prototype.
+	* alpha_init.c: Add support for new DT_ALPHA_* value.
+	* alpha_symbol.c: Likewise.
+	* libebl_alpha.h: Likewise.
+
+2005-08-03  Ulrich Drepper  <drepper@redhat.com>
+
+	* libebl_alpha.map: Remove unnecessary exports.
+	* libebl_arm.map: Likewise.
+	* libebl_i386.map: Likewise.
+	* libebl_ia64.map: Likewise.
+	* libebl_ppc.map: Likewise.
+	* libebl_ppc64.map: Likewise.
+	* libebl_sh.map: Likewise.
+	* libebl_sparc.map: Likewise.
+	* libebl_x86_64.map: Likewise.
+
+2005-08-02  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (libebl_a_SOURCES): Add eblelfclass.c, eblelfdata.c,
+	and eblelfmachine.c.
+	* elbopenbackend.c (machines): Add class and data fields.  Initialize
+	them.
+	(ebl_openbackend): Initialize machine, class, data fields in result.
+	* libebl.h: Declare Add eblelfclass, eblelfdata, and eblelfmachine.
+	* libeblP.h (Ebl): Add machine, class, data fields.
+
+2005-07-23  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblsectionstripp.c: New file.
+	* Makefile.am (gen_SOURCES): Add eblsectionstripp.c.
+	* i386_init.c (i386_init): Install specific debugscn_p callback.
+	* i386_symbol.c (i386_debugscn_p): New function.
+	* libebl.h: Declare ebl_section_strip_p.
+	* libebl_i386.h: Declare i386_debugscn_p.
+
+	* libebl.h: Move Ebl definition to...
+	* libeblP.h: ...here.
+
+2005-07-21  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (install-ebl-modules): New target, commands from ...
+	(install): ... here.  Make this depend on it.
+	(LIBEBL_SUBDIR): New variable, substituted by configure.
+	(install-ebl-modules): Install in $(libdir)/$(LIBEBL_SUBDIR).
+	* eblopenbackend.c (openbackend): Use LIBEBL_SUBDIR in module name.
+
+2005-07-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblcopyrelocp.c: New file.
+	* Makefile.am (gen_SOURCES): Add eblcopyrelocp.c.
+	* libebl.h: Declare ebl_copy_reloc_p.
+	* eblopenbackend.c (fill_defaults): Fill in copy_reloc_p.
+	(default_copy_reloc_p): New function.
+	* alpha_init.c: Define and use arch-specific copy_reloc_p function.
+	* alpha_symbol.c: Likewise.
+	* arm_init.c: Likewise.
+	* arm_symbol.c: Likewise.
+	* i386_init.c: Likewise.
+	* i386_symbol.c: Likewise.
+	* ia64_init.c: Likewise.
+	* ia64_symbol.c: Likewise.
+	* ppc64_init.c: Likewise.
+	* ppc64_symbol.c: Likewise.
+	* ppc_init.c: Likewise.
+	* ppc_symbol.c: Likewise.
+	* sh_init.c: Likewise.
+	* sh_symbol.c: Likewise.
+	* sparc_init.c: Likewise.
+	* sparc_symbol.c: Likewise.
+	* x86_64_init.c: Likewise.
+	* x86_64_symbol.c: Likewise.
+	* libebl_alpha.h: Declare the copy_reloc_p function.
+	* libebl_arm.h: Likewise.
+	* libebl_i386.h: Likewise.
+	* libebl_ia64.h: Likewise.
+	* libebl_ppc.h: Likewise.
+	* libebl_ppc64.h: Likewise.
+	* libebl_sh.h: Likewise.
+	* libebl_sparc.h: Likewise.
+	* libebl_x86_64.h: Likewise.
+
+2005-05-31  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (libebl_*_so_SOURCES): Set to $(*_SRCS) so dependency
+	tracking works right.
+
+2005-05-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* libebl_x86_64.map: Add x86_64_core_note.
+
+2005-05-19  Roland McGrath  <roland@redhat.com>
+
+	* libebl_i386.map: Add i386_reloc_valid_use, i386_reloc_simple_type.
+	* libebl_ppc.map: Add ppc_reloc_simple_type.
+	* libebl_ppc64.map: Add ppc64_reloc_simple_type.
+	* libebl_x86_64.map: Add x86_64_reloc_simple_type.
+
+2005-05-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblcorenote.c: Handle new AT_* values and files with different
+	endianness.
+	* Makefile.am (x86_64_SRCS): Add x86_64_corenote.c.
+	* x86-64_corenote.c: New file.
+	* x86_64_init.c: Hook in x86_64_corenote.
+	* i386_corenote.c: Make file usable on 64-bit platforms.
+
+	* eblopenbackend.c: If modules version comparison fails, reinitialize
+	hooks.
+
+2005-05-10  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblopenbackend.c: Require the init function to return a string.
+	Compare it with MODVERSION from config.h.
+	* alpha_init.c: Change return type.  Return MODVERSION or NULL.
+	* arm_init.c: Likewise.
+	* eblopenbackend.c: Likewise.
+	* i386_init.c: Likewise.
+	* ia64_init.c: Likewise.
+	* ppc64_init.c: Likewise.
+	* ppc_init.c: Likewise.
+	* sh_init.c: Likewise.
+	* sparc_init.c: Likewise.
+	* x86_64_init.c: Likewise.
+	* libeblP.h: Adjust ebl_bhinit_t.
+	* libebl_alpha.h: Adjust init function prototype.
+	* libebl_arm.h: Likewise.
+	* libebl_i386.h: Likewise.
+	* libebl_ia64.h: Likewise.
+	* libebl_ppc.h: Likewise.
+	* libebl_ppc64.h: Likewise.
+	* libebl_sh.h: Likewise.
+	* libebl_sparc.h: Likewise.
+	* libebl_x86_64.h: Likewise.
+
+	* mips_destr.c: Removed.
+	* mips_init.c: Removed.
+	* mips_symbol.c: Removed.
+	* libebl_mips.h: Removed.
+	* libebl_mips.map: Removed.
+
+2005-05-03  Roland McGrath  <roland@redhat.com>
+
+	* libebl.h (Ebl): Add `reloc_simple_type' member.
+	* eblopenbackend.c (default_reloc_simple_type): New function.
+	(openbackend): Use that as default reloc_simple_type callback.
+	* eblrelocsimpletype.c: New file.
+	* Makefile.am (gen_SOURCES): Add it.
+	* i386_symbol.c (i386_reloc_simple_type): New function.
+	* libebl_i386.h: Declare it.
+	* i386_init.c (i386_init): Use it.
+	* x86_64_symbol.c (x86_64_reloc_simple_type): New function.
+	* libebl_x86_64.h: Declare it.
+	* x86_64_init.c (x86_64_init): Use it.
+	* ppc_symbol.c (ppc_reloc_simple_type): New function.
+	* libebl_ppc.h: Declare it.
+	* ppc_init.c (ppc_init): Use it.
+	* ppc64_symbol.c (ppc64_reloc_simple_type): New function.
+	* libebl_ppc64.h: Declare it.
+	* ppc64_init.c (ppc64_init): Use it.
+
+2005-03-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblcorenote.c (ebl_core_note): Add support for AT_SECURE.
+
+2005-02-15  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add -Wformat=2.
+
+2005-02-14  Ulrich Drepper  <drepper@redhat.com>
+
+	* alpha_destr.c: Add __attribute__((unused)) where needed.
+	* alpha_init.c: Likewise.
+	* alpha_symbol.c: Likewise.
+	* arm_destr.c: Likewise.
+	* arm_init.c: Likewise.
+	* arm_symbol.c: Likewise.
+	* i386_corenote.c: Likewise.
+	* i386_destr.c: Likewise.
+	* i386_init.c: Likewise.
+	* i386_symbol.c: Likewise.
+	* ia64_destr.c: Likewise.
+	* ia64_init.c: Likewise.
+	* ia64_symbol.c: Likewise.
+	* mips_destr.c: Likewise.
+	* mips_init.c: Likewise.
+	* mips_symbol.c: Likewise.
+	* ppc64_destr.c: Likewise.
+	* ppc64_init.c: Likewise.
+	* ppc64_symbol.c: Likewise.
+	* ppc_destr.c: Likewise.
+	* ppc_init.c: Likewise.
+	* ppc_symbol.c: Likewise.
+	* sh_destr.c: Likewise.
+	* sh_init.c: Likewise.
+	* sh_symbol.c: Likewise.
+	* sparc_destr.c: Likewise.
+	* sparc_init.c: Likewise.
+	* sparc_symbol.c: Likewise.
+	* x86_64_destr.c: Likewise.
+	* x86_64_init.c: Likewise.
+	* x86_64_symbol.c: Likewise.
+
+	* x86_64_symbol.c (reloc_map_table): Fix entries for R_X86_64_64
+	and R_X86_64_32..
+
+2005-02-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblstrtab.c: A few cleanups.
+
+	* eblopenbackend.c: Mark unused parameters.
+
+	* eblgstrtab.c: Cleanups a few printf format strings.
+
+	* Makefile.am: Cleanup AM_CFLAGS handling.  Add -Wunused -Wextra.
+
+2005-02-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Check for text relocations in constructed DSOs.
+
+	* eblstrtab.c: Minor cleanups.
+
+	* Makefile.am (AM_CFLAGS): Add -std=gnu99 and -fmudflap for MUDFLAP.
+
+2004-08-16  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add LIBSTR definition with base name of
+	the lib directory.
+	* eblopenbackend.c (openbackend): Use LIBSTR instead of hardcoded
+	lib in path to ebl modules.
+
+2004-04-01  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Add rules for ppc and ppc64 ebl module.
+	* ppc_init..c: New file.
+	* ppc_destr.c: New file.
+	* ppc_symbol.c: New file.
+	* libebl_ppc.h: New file.
+	* libebl_ppc.map: New file.
+	* ppc64_init..c: New file.
+	* ppc64_destr.c: New file.
+	* ppc64_symbol.c: New file.
+	* libebl_ppc64.h: New file.
+	* libebl_ppc64.map: New file.
+
+2004-01-20  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Support building with mudflap.
+
+2004-01-18  Ulrich Drepper  <drepper@redhat.com>
+
+	* libeblP.h (_): Use elfutils domain.
+
+2004-01-16  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblsectionname.c: Add support for SHN_BEFORE and SHN_AFTER.
+
+2004-01-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblsegmenttypename.c ((ebl_segment_type_name): Add support for
+	PT_GNU_RELRO.
+
+2004-01-08  Ulrich Drepper  <drepper@redhat.com>
+
+	* libebl.h: Remove last traces of libtool.
+
+2004-01-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* elf-knowledge.h: Move to libelf subdir.
+
+	* Makefile.am (EXTRA_DIST): Remove libebl.map.
+	* libebl.map: Removed.
+
+2003-12-08  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblsectiontypename.c (ebl_section_type_name): Add support for
+	SHT_SUNW_move, SHT_CHECKSUM, and SHT_GNU_LIBLIST.
+
+2003-11-19  Ulrich Drepper  <drepper@redhat.com>
+
+	* ia64_symbol.c (ia64_dynamic_tag_name): New function.
+	* libebl_ia64.h (ia64_dynamic_tag_name): Declare.
+	* ia64_init.c (ia64_init): Register i164_dynamic_tag_name.
+
+2003-09-24  Ulrich Drepper  <drepper@redhat.com>
+
+	* ia64_init.c (ia64_init): Initialize segment_type_name callback.
+	* ia64_symbol.c (ia64_segment_type_name): Define.
+	* libebl_ia64.h (ia64_segment_type_name): Declare.
+
+2003-09-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add -fpic.
+
+2003-08-14  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (install): Remove dependency on libebl.so.
+
+2003-08-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* eblopenbackend.c: Adjust relative path to arch-specific DSOs
+	assuming the code ends up in the application.  Add second dlopen()
+	try without any path, just the filename.
+	* Makefile.in: Remove rules to build and install libebl.so.
+
+2003-08-11  Ulrich Drepper  <drepper@redhat.com>
+
+        * Moved to CVS archive.

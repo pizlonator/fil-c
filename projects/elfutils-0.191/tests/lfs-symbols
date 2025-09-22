@@ -1,0 +1,73 @@
+# Imported from lintian/data/binaries/lfs-symbols
+#
+# Exceptions:
+#   fts* - linux-kernel-modules.c is careful with FTS_NOSTAT
+
+# Manually maintained list of non-lfs symbols
+#
+# List was found by grepping around in /usr/include on an i386 system
+# with build-essential installed
+#
+# Please keep this sorted by key.
+
+__fxstat
+__fxstatat
+__lxstat
+__xstat
+aio_cancel
+aio_error
+aio_fsync
+aio_read
+aio_return
+aio_suspend
+aio_write
+alphasort
+creat
+fallocate
+fgetpos
+fopen
+freopen
+fseeko
+fsetpos
+fstatfs
+fstatvfs
+ftello
+ftruncate
+#fts_open
+#fts_read
+#fts_children
+#fts_set
+#fts_close
+ftw
+getdirentries
+getrlimit
+glob
+globfree
+lio_listio
+lockf
+lseek
+mkostemp
+mkostemps
+mkstemp
+mkstemps
+mmap
+nftw
+open
+openat
+posix_fadvise
+posix_fallocate
+pread
+preadv
+prlimit
+pwrite
+pwritev
+readdir
+readdir_r
+scandir
+sendfile
+setrlimit
+statfs
+statvfs
+tmpfile
+truncate
+versionsort

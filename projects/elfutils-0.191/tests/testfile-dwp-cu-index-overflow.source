@@ -1,0 +1,86 @@
+# Dummy program that we patch to generate a dwp file with more than 4GB of
+# .debug_info.
+
+# Generate 2 dummy files that result in DWARF blocks.
+$ for (( i = 1; i <= 2; i++ )); do echo 'constexpr int filler'$i'[] = { 1 };' > filler$i.cc; done
+$ g++ -O2 -g -gsplit-dwarf -fdebug-types-section -dA -S filler{1,2}.cc foo.cc bar.cc main.cc
+# Patch the DWARF blocks to be 2GB.
+$ for (( i = 1; i <= 2; i++ )); do patch -p1 << EOF
+--- a/filler$i.s
++++ b/filler$i.s
+@@ -7,5 +7,5 @@
+ 	.section	.debug_info.dwo,"e",@progbits
+ .Ldebug_info0:
+-	.long	0x49	# Length of Compilation Unit Info
++	.long	0x80000048	# Length of Compilation Unit Info
+ 	.value	0x5	# DWARF version number
+ 	.byte	0x5	# DW_UT_split_compile
+@@ -51,9 +51,6 @@
+ 	.long	0x29	# DW_AT_type
+ 			# DW_AT_const_expr
+-	.byte	0x4	# DW_AT_const_value
+-	.byte	0x1	# fp or vector constant word 0
+-	.byte	0	# fp or vector constant word 1
+-	.byte	0	# fp or vector constant word 2
+-	.byte	0	# fp or vector constant word 3
++	.long	0x80000000	# DW_AT_const_value
++	.fill	0x80000000
+ 	.byte	0	# end of children of DIE 0x14
+ 	.section	.debug_info,"",@progbits
+@@ -171,5 +168,5 @@
+ 	.uleb128 0x19	# (DW_FORM_flag_present)
+ 	.uleb128 0x1c	# (DW_AT_const_value)
+-	.uleb128 0xa	# (DW_FORM_block1)
++	.uleb128 0x4	# (DW_FORM_block4)
+ 	.byte	0
+ 	.byte	0
+EOF
+done
+$ for (( i = 1; i <= 2; i++ )); do as filler$i.s -o filler$i.o; done
+$ as foo.s -o foo.o
+$ as bar.s -o bar.o
+$ as main.s -o main.o
+$ g++ filler1.o foo.o filler2.o bar.o main.o -o testfile-dwp-5-cu-index-overflow
+# -continue-on-cu-index-overflow was added in LLVM 17:
+# https://reviews.llvm.org/D144565.
+$ llvm-dwp -continue-on-cu-index-overflow filler1.o foo.o filler2.o bar.o main.o -o testfile-dwp-5-cu-index-overflow.dwp
+
+# Same thing for DWARF 4.
+$ g++ -O2 -g -gdwarf-4 -gsplit-dwarf -fdebug-types-section -dA -S filler{1,2}.cc foo.cc bar.cc main.cc
+$ for (( i = 1; i <= 2; i++ )); do patch -p1 << EOF
+--- a/filler$i.s
++++ b/filler$i.s
+@@ -6,5 +6,5 @@
+ 	.section	.debug_info.dwo,"e",@progbits
+ .Ldebug_info0:
+-	.long	0x48	# Length of Compilation Unit Info
++	.long	0x80000047	# Length of Compilation Unit Info
+ 	.value	0x4	# DWARF version number
+ 	.long	.Ldebug_abbrev0	# Offset Into Abbrev. Section
+@@ -49,9 +49,6 @@
+ 	.long	0x28	# DW_AT_type
+ 			# DW_AT_const_expr
+-	.byte	0x4	# DW_AT_const_value
+-	.byte	0x1	# fp or vector constant word 0
+-	.byte	0	# fp or vector constant word 1
+-	.byte	0	# fp or vector constant word 2
+-	.byte	0	# fp or vector constant word 3
++	.long	0x80000000	# DW_AT_const_value
++	.fill	0x80000000
+ 	.byte	0	# end of children of DIE 0xb
+ 	.section	.debug_info,"",@progbits
+@@ -172,5 +169,5 @@
+ 	.uleb128 0x19	# (DW_FORM_flag_present)
+ 	.uleb128 0x1c	# (DW_AT_const_value)
+-	.uleb128 0xa	# (DW_FORM_block1)
++	.uleb128 0x4	# (DW_FORM_block4)
+ 	.byte	0
+ 	.byte	0
+EOF
+done
+$ for (( i = 1; i <= 2; i++ )); do as filler$i.s -o filler$i.o; done
+$ as foo.s -o foo.o
+$ as bar.s -o bar.o
+$ as main.s -o main.o
+$ g++ filler1.o foo.o filler2.o bar.o main.o -o testfile-dwp-4-cu-index-overflow
+$ llvm-dwp -continue-on-cu-index-overflow filler1.o foo.o filler2.o bar.o main.o -o testfile-dwp-4-cu-index-overflow.dwp

@@ -1,0 +1,70 @@
+/* List the relocation types for m68k.  -*- C -*-
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,		EXEC|DYN)
+RELOC_TYPE (32,			REL|EXEC|DYN)
+RELOC_TYPE (16,			REL|EXEC|DYN)
+RELOC_TYPE (8,			REL|EXEC|DYN)
+RELOC_TYPE (PC32,		REL|EXEC|DYN)
+RELOC_TYPE (PC16,		REL|EXEC|DYN)
+RELOC_TYPE (PC8,		REL|EXEC|DYN)
+RELOC_TYPE (GOT32,		REL)
+RELOC_TYPE (GOT16,		REL)
+RELOC_TYPE (GOT8,		REL)
+RELOC_TYPE (GOT32O,		REL)
+RELOC_TYPE (GOT16O,		REL)
+RELOC_TYPE (GOT8O,		REL)
+RELOC_TYPE (PLT32,		REL)
+RELOC_TYPE (PLT16,		REL)
+RELOC_TYPE (PLT8,		REL)
+RELOC_TYPE (PLT32O,		REL)
+RELOC_TYPE (PLT16O,		REL)
+RELOC_TYPE (PLT8O,		REL)
+RELOC_TYPE (COPY,		EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,		EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,		EXEC|DYN)
+RELOC_TYPE (RELATIVE,		EXEC|DYN)
+RELOC_TYPE (TLS_GD32,		REL)
+RELOC_TYPE (TLS_GD16,		REL)
+RELOC_TYPE (TLS_GD8,		REL)
+RELOC_TYPE (TLS_LDM32,		REL)
+RELOC_TYPE (TLS_LDM16,		REL)
+RELOC_TYPE (TLS_LDM8,		REL)
+RELOC_TYPE (TLS_LDO32,		REL)
+RELOC_TYPE (TLS_LDO16,		REL)
+RELOC_TYPE (TLS_LDO8,		REL)
+RELOC_TYPE (TLS_IE32,		REL)
+RELOC_TYPE (TLS_IE16,		REL)
+RELOC_TYPE (TLS_IE8,		REL)
+RELOC_TYPE (TLS_LE32,		REL)
+RELOC_TYPE (TLS_LE16,		REL)
+RELOC_TYPE (TLS_LE8,		REL)
+RELOC_TYPE (TLS_DTPMOD32,	EXEC|DYN)
+RELOC_TYPE (TLS_DTPREL32,	EXEC|DYN)
+RELOC_TYPE (TLS_TPREL32,	EXEC|DYN)

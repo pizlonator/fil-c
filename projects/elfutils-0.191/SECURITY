@@ -1,0 +1,56 @@
+
+The elfutils library and utilities aim to be generally robust and
+reliable.  However, elfutils routinely processes complex binary
+structured data.  This makes the code intricate and sometimes brittle.
+While elfutils developers use a variety of static and dynamic checker
+software (valgrind, sanitizers) in testing, bugs may remain.  Some of
+these bugs may have security-related implications.
+
+
+While many errors are cleanly detected at runtime, it is possible that
+vulnerabilities exist that could be exploitable.  These may arise from
+crafted / fuzzed / erroneous inputs, or perhaps even from valid inputs
+with unforseen characteristics.  Therefore, to minimize risks, users
+of elfutils tools and libraries should consider measures such as:
+
+- avoiding running complex elfutils analysis on untrustworthy inputs
+- avoiding running elfutils tools as privileged processes
+- applying common platform level protection mechanisms such as
+  selinux, syscall filtering, hardened compilation, etc.
+
+Since most elfutils tools are run in short-lived, local, interactive,
+development context rather than remotely "in production", we generally
+treat malfunctions as ordinary bugs rather than security vulnerabilities.
+
+
+Elfutils includes one network client/server: debuginfod.  The
+debuginfod man page contains a SECURITY section outlining the general
+risks.  tl;dr: many classes of server problems are delegated to
+front-end proxies and curated elf/dwarf archives of the operator;
+others to careful configuration of the debuginfod client.  These are
+not generally reportable as security vulnerabilities.  However, we are
+likely to accept security vulnerability reports related to:
+
+- availability: e.g., remotely exploitable server crash, but not
+  routine resource exhaustion or overload; client crash due to
+    unexpected valid traffic from trusted server
+
+- confidentiality: e.g., allowing the server to expose one client's
+  traffic to another client
+
+- integrity: e.g., causing the server to send erroneous
+  elf/dwarf/source data across the webapi; causing the client to
+    corrupt its cache to lose file integrity
+
+We welcome reports that are tangential to any of these subjects.
+
+Please report bugs via any of:
+- email to <elfutils-devel@sourceware.org>
+- https://sourceware.org/bugzilla/enter_bug.cgi?product=elfutils
+
+After considering the above exclusions, please report suspected
+security vulnerabilities confidentially via any of:
+
+- email to <mark@klomp.org>
+- email to <fche@elastic.org>
+- email to <secalert@redhat.com>

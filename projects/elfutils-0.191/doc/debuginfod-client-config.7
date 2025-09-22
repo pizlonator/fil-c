@@ -1,0 +1,136 @@
+'\"! tbl | nroff \-man
+'\" t macro stdmacro
+.if \n(zZ=1 .ig zZ
+
+.TH DEBUGINFOD-CLIENT-CONFIG 7
+.SH NAME
+debuginfod-client-config \- debuginfod client environment variables, cache control files and etc.
+
+.SH SYNOPSIS
+Several environment variables and control files control the behaviour of debuginfod client applications.
+
+.\" The preceding section permits this man page to be viewed as if self-contained.
+.zZ
+.\" The following section (only) gets included into other man pages via .so
+
+
+.SH ENVIRONMENT VARIABLES
+.TP
+.B $TMPDIR
+This environment variable points to a file system to be used for
+temporary files.  The default is /tmp.
+
+.TP
+.B $DEBUGINFOD_URLS
+This environment variable contains a list of URL prefixes for trusted
+debuginfod instances.  Alternate URL prefixes are separated by space.
+This environment variable may be set by /etc/profile.d scripts
+reading /etc/debuginfod/*.urls files.
+
+.TP
+.B $DEBUGINFOD_CACHE_PATH
+This environment variable governs the location of the cache where
+downloaded files and cache-control files are kept.  The default
+directory is chosen based on other environment variables, see below.
+
+.TP
+.B $DEBUGINFOD_PROGRESS
+This environment variable governs the default progress function.  If
+set, and if a progressfn is not explicitly set, then the library will
+configure a default progressfn.  This function will append a simple
+progress message periodically to stderr.  The default is no progress
+function output.
+
+.TP
+.B $DEBUGINFOD_VERBOSE
+This environment variable governs the default file descriptor for
+verbose output.  If set, and if a verbose fd is not explicitly set,
+then the verbose output will be produced on STDERR_FILENO.
+
+.TP
+.B $DEBUGINFOD_RETRY_LIMIT
+This environment variable governs the default limit of retry attempts. If a
+query failed with errno other than ENOENT, will initiate several attempts
+within the limit.
+
+.TP
+.B $DEBUGINFOD_TIMEOUT
+This environment variable governs the download \fIcommencing\fP
+timeout for each debuginfod HTTP connection.  A server that fails to
+provide at least 100K of data within this many seconds is skipped. The
+default is 90 seconds.  (Zero or negative means "no timeout".)
+
+.TP
+.B $DEBUGINFOD_MAXTIME
+This environment variable dictates how long the client will wait to
+\fIcomplete\fP the download a file found on a server in seconds. It is best
+used to ensure that a file is downloaded quickly or be rejected. The
+default is 0 (infinite time).
+
+.TP
+.B $DEBUGINFOD_MAXSIZE
+This environment variable dictates the maximum size of a file to
+download in bytes. This is best used if the user would like to ensure
+only small files are downloaded. A value of 0 causes no consideration
+for size, and the client may attempt to download a file of any size.
+The default is 0 (infinite size).
+
+.TP
+.B $DEBUGINFOD_HEADERS_FILE
+This environment variable points to a file that supplies headers to
+outbound HTTP requests, one per line. The header lines shouldn't end with
+CRLF, unless that's the system newline convention. Whitespace-only lines
+are skipped.
+
+.SH CACHE
+
+Before each query, the debuginfod client library checks for a need to
+clean the cache.  If it's time to clean, the library traverses the
+cache directory and removes downloaded debuginfo-related artifacts and
+newly empty directories, if they have not been accessed recently.
+
+Control files are located directly under the cache directory.  They
+contain simple decimal numbers to set cache-related configuration
+parameters.  If the files do not exist, the client library creates the
+files with the default parameter values as content.
+
+After each query, the debuginfod client library deposits newly
+received files into a directory & file that is named based on the
+build-id.  A failed query is also cached by a special file.  The
+naming convention used for these artifacts is deliberately
+\fBundocumented\fP.
+
+.TP
+.B $XDG_CACHE_HOME/debuginfod_client/
+Default cache directory, if $XDG_CACHE_HOME is set.
+.PD
+
+.TP
+.B $HOME/.cache/debuginfod_client/
+Default cache directory, if $XDG_CACHE_HOME is not set.
+.PD
+
+.TP
+.B $HOME/.debuginfod_client_cache/
+Deprecated cache directory, used only if preexisting.
+.PD
+
+.TP
+.B cache_clean_interval_s
+This control file gives the interval between cache cleaning rounds, in
+seconds.  The default is 86400, one day.  0 means "immediately".
+
+.TP
+.B max_unused_age_s
+This control file sets how long unaccessed debuginfo-related files
+are retained, in seconds.  The default is 604800, one week.  0 means
+"immediately".
+
+.TP
+.B cache_miss_s
+This control file sets how long to remember a query failure, in
+seconds.  New queries for the same artifacts within this time window
+are short-circuited (returning an immediate failure instead of sending
+a new query to servers).  This accelerates queries that probably would
+still fail.  The default is 600, 10 minutes.  0 means "forget
+immediately".

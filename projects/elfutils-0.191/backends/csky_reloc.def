@@ -1,0 +1,86 @@
+/* List the relocation types for csky.  -*- C -*-
+   Copyright (C) 2019 Hangzhou C-SKY Microsystems co.,ltd.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,		REL|EXEC|DYN	*/
+
+
+RELOC_TYPE (NONE,		REL|EXEC|DYN)
+RELOC_TYPE (ADDR32,		REL|EXEC|DYN)
+RELOC_TYPE (PCRELIMM8BY4,	REL)
+RELOC_TYPE (PCRELIMM11BY2,	REL)
+RELOC_TYPE (PCREL32,		REL|DYN)
+RELOC_TYPE (PCRELJSR_IMM11BY2,	REL)
+RELOC_TYPE (RELATIVE,		EXEC|DYN)
+RELOC_TYPE (COPY,		EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,		EXEC|DYN)
+RELOC_TYPE (JUMP_SLOT,		EXEC|DYN)
+RELOC_TYPE (GOTOFF,		REL)
+RELOC_TYPE (GOTPC,		REL)
+RELOC_TYPE (GOT32,		REL)
+RELOC_TYPE (PLT32,		REL)
+RELOC_TYPE (ADDRGOT,		REL)
+RELOC_TYPE (ADDRPLT,		REL)
+RELOC_TYPE (PCREL_IMM26BY2,	REL)
+RELOC_TYPE (PCREL_IMM16BY2,	REL)
+RELOC_TYPE (PCREL_IMM16BY4,	REL)
+RELOC_TYPE (PCREL_IMM10BY2,	REL)
+RELOC_TYPE (PCREL_IMM10BY4,	REL)
+RELOC_TYPE (ADDR_HI16,		REL|DYN)
+RELOC_TYPE (ADDR_LO16,		REL|DYN)
+RELOC_TYPE (GOTPC_HI16,		REL)
+RELOC_TYPE (GOTPC_LO16,		REL)
+RELOC_TYPE (GOTOFF_HI16,	REL)
+RELOC_TYPE (GOTOFF_LO16,	REL)
+RELOC_TYPE (GOT12,		REL)
+RELOC_TYPE (GOT_HI16,		REL)
+RELOC_TYPE (GOT_LO16,		REL)
+RELOC_TYPE (PLT12,		REL)
+RELOC_TYPE (PLT_HI16,		REL)
+RELOC_TYPE (PLT_LO16,		REL)
+RELOC_TYPE (ADDRGOT_HI16,	REL)
+RELOC_TYPE (ADDRGOT_LO16,	REL)
+RELOC_TYPE (ADDRPLT_HI16,	REL)
+RELOC_TYPE (ADDRPLT_LO16,	REL)
+RELOC_TYPE (PCREL_JSR_IMM26BY2,	REL|DYN)
+RELOC_TYPE (TOFFSET_LO16,	REL)
+RELOC_TYPE (DOFFSET_LO16,	REL)
+RELOC_TYPE (PCREL_IMM18BY2,	REL)
+RELOC_TYPE (DOFFSET_IMM18,	REL)
+RELOC_TYPE (DOFFSET_IMM18BY2,	REL)
+RELOC_TYPE (DOFFSET_IMM18BY4,	REL)
+RELOC_TYPE (GOT_IMM18BY4,	REL)
+RELOC_TYPE (PLT_IMM18BY4,	REL)
+RELOC_TYPE (PCREL_IMM7BY4,	REL)
+RELOC_TYPE (TLS_LE32,		REL)
+RELOC_TYPE (TLS_IE32,		REL)
+RELOC_TYPE (TLS_GD32,		REL)
+RELOC_TYPE (TLS_LDM32,		REL)
+RELOC_TYPE (TLS_LDO32,		REL)
+RELOC_TYPE (TLS_DTPMOD32,	EXEC|DYN)
+RELOC_TYPE (TLS_DTPOFF32,	EXEC|DYN)
+RELOC_TYPE (TLS_TPOFF32,	EXEC|DYN)

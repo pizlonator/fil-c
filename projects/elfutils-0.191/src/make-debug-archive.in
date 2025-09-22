@@ -1,0 +1,132 @@
+#!/bin/sh
+#
+# Script to make an offline archive for debugging with libdwfl-based tools.
+#
+#	make-debug-archive ARCHIVE {options}
+#	make-debug-archive --kernel [--force] [RELEASE]
+#
+# Valid options are those listed under 'Input selection options'
+# by running @UNSTRIP@ --help.
+#
+# The archive installed by --kernel be used automatically by -K.
+# An offline archive can be used via -e in any tool that accepts those options.
+#
+
+UNSTRIP=${UNSTRIP:-@UNSTRIP@}
+AR=${AR:-@AR@}
+SUDO=${SUDO:-/usr/bin/sudo}
+
+LS=/bin/ls
+RM=/bin/rm
+MV=/bin/mv
+MKDIR=/bin/mkdir
+XARGS=/usr/bin/xargs
+
+outdir=${TMPDIR:-/tmp}/debugar$$
+
+usage()
+{
+  echo "Usage: $0 ARCHIVE {options}"
+  echo "   or: $0 --kernel [--sudo] [--force] [RELEASE]"
+  echo
+  echo "Valid options are listed under 'Input selection options'"
+  echo "when running: $UNSTRIP --help"
+  echo
+  echo "The --kernel form updates the file used by -K if the"
+  echo "kernel installation has changed, or always with --force."
+  echo "With --sudo, touches the installed file via $SUDO."
+}
+
+fatal_usage()
+{
+  usage >&2
+  exit 2
+}
+
+script_version()
+{
+  echo "`basename $0` (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+  echo "Copyright (C) 2007 Red Hat, Inc."
+  echo "This is free software; see the source for copying conditions."
+  echo "There is NO warranty; not even for MERCHANTABILITY or"
+  echo "FITNESS FOR A PARTICULAR PURPOSE."
+  echo "Written by Roland McGrath."
+}
+
+sudo=
+kernel=no
+force_kernel=no
+while [ $# -gt 0 ]; do
+  case "x$1" in
+  x--help) usage; exit 0 ;;
+  x--version) script_version; exit 0 ;;
+  x--kernel) kernel=yes ;;
+  x--force) force_kernel=yes ;;
+  x--sudo) sudo=$SUDO ;;
+  *) break ;;
+  esac
+  shift
+done
+
+if [ $kernel = no ] && [ $force_kernel = yes -o -n "$sudo" ]; then
+  usage
+fi
+
+if [ $kernel = yes ]; then
+  if [ $# -eq 0 ]; then
+    release=`uname -r`
+  elif [ $# -eq 1 ]; then
+    release=$1
+  else
+    fatal_usage
+  fi
+
+  dir=/usr/lib/debug/lib/modules/$release
+  archive=$dir/debug.a
+  dep=/lib/modules/$release/modules.dep
+
+  if [ ! -d $dir ]; then
+    echo >&2 "$0: $dir not installed"
+    exit 1
+  fi
+
+  # Without --force, bail if the kernel installation is not newer.
+  # This file is normally touched by installing new kernels or modules.
+  if [ $force_kernel = no -a "$archive" -nt "$dep" ]; then
+    exit 0
+  fi
+
+  # We have to kill the old one first, because our own -K would use it.
+  [ ! -e "$archive" ] || $sudo $RM -f "$archive" || exit
+
+  set "$archive" "-K$release"
+fi
+
+if [ $# -lt 2 ]; then
+  fatal_usage
+fi
+
+archive="$1"
+shift
+
+case "$archive" in
+/*) ;;
+*) archive="`/bin/pwd`/$archive" ;;
+esac
+
+if [ -z "$sudo" ]; then
+  new_archive="$archive.new"
+else
+  new_archive="$outdir.a"
+fi
+
+$RM -f "$new_archive" || exit
+
+trap '$RM -rf "$outdir" "$new_archive"' 0 1 2 15
+
+$MKDIR "$outdir" &&
+$UNSTRIP -d "$outdir" -m -a -R "$@" &&
+(cd "$outdir" && $LS | $XARGS $AR cq "$new_archive") &&
+$sudo $MV -f "$new_archive" "$archive"
+
+exit

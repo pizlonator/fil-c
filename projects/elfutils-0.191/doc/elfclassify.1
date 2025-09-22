@@ -1,0 +1,197 @@
+.\" Copyright 2019 Red Hat Inc.
+.\" Tue 2019-Aug 20 Ben Woodard <woodard@redhat.com>
+.\"                 Florian Wiemer <fwiemer@redhat.com>
+.\"                 Mark Wielaard <mjw@redhat.com>
+.\" Contact elfutils-devel@sourceware.org to correct errors or typos.
+.TH EU-ELFCLASSIFY 1 "2019-Aug-20" "elfutils" 
+.SH "NAME"
+eu-elfclassify \- Determine the type of an ELF file.
+.SH "SYNOPSIS"
+.IX Header "SYNOPSIS"
+eu-elfclassify [\fB\-\-core\fR]
+        [\fB\-\-debug-only\fR]
+        [\fB\-\-elf\fR]
+        [\fB\-\-elf\-archive\fR]
+        [\fB\-\-elf\-file\fR]
+        [\fB\-\-executable\fR]
+        [\fB\-\-library\fR]
+        [\fB\-\-linux\-kernel\-module\fR]
+        [\fB\-\-loadable\fR]
+        [\fB\-\-program\fR]
+        [\fB\-\-shared\fR]
+        [\fB\-\-unstripped\fR]
+        [\fB\-f\fR|\fB \-\-file\fR]
+        [\fB\-\-no\-stdin\fR]
+        [\fB\-\-stdin\fR]
+        [\fB\-\-stdin0\fR]
+        [\fB\-z\fR|\fB \-\-compressed\fR]
+        [\fB\-\-matching\fR]
+        [\fB\-\-no\-print\fR]
+        [\fB\-\-not\-matching\fR]
+        [\fB\-\-print\fR]
+        [\fB\-\-print0\fR]
+        [\fB\-q\fR|\fB \-\-quiet\fR]
+        [\fB\-v\fR|\fB \-\-verbose\fR]
+        [\fB\-?\fR|\fB \-\-help\fR]
+        [\fB\-\-usage\fR]
+        [\fB\-V\fR|\fB \-\-version\fR]
+	\fIelffile\fR...
+.SH "DESCRIPTION"
+.IX Header "DESCRIPTION"
+\&\fBeu-elfclassify\fR identifies the primary purpose of a particular kind of
+ \s-1ELF\s0 file or files
+.SH "OPTIONS"
+.IX Header "OPTIONS"
+The long and short forms of options, shown here as alternatives, are
+equivalent. All of the classification options must apply at the same time to a
+particular file.  Classification options can be negated using a
+\fB\-\-not\-\fR  prefix.
+.SS "Classification Options"
+.IX Subsection "Classification Options"
+.IP "\fB\-\-core\fR" 4
+.IX Item "--core"
+.PD
+File is an ELF core dump file.
+.IP "\FB\-\-debug\-only\fR" 4
+.IX Item "--debug-only"
+.PD
+File is a debug only ELF file (separate .debug, .dwo or dwz multi-file).
+.IP "\fB\-\-elf\fR" 4
+.IX Item "--elf"
+.PD
+File looks like an ELF object or archive/static library (default).
+.IP "\fB\-\-elf\-archive\fR" 4
+.IX Item "--elf-archive"
+.PD
+File is an ELF archive or static library.
+.IP "\fB\-\-elf\-file\fR" 4
+.IX Item "--elf-file"
+.PD
+File is an regular ELF object (not an archive/static library).
+.IP "\fB\-\-executable\fR" 4
+.IX Item "--executable"
+.PD
+File is (primarily) an ELF program executable (not primarily a DS.O)
+.IP "\fB\-\-library\fR" 4
+.IX Item "--library"
+.PD
+File is an ELF shared object (DSO) (might also be an executable).
+.IP "\fB\-\-linux\-kernel\-module\fR" 4
+.IX Item "--linux-kernel-module"
+.PD
+File is a linux kernel module.
+.IP "\fB\-\-loadable\fR" 4
+.IX Item "--loadable"
+.PD
+File is a loadable ELF object (program or shared object).
+.IP "\fB\--program\fR" 4
+.IX Item "--program"
+.PD
+File is an ELF program executable (might also be a DSO).
+.IP "\fB\-\-shared\fR" 4
+.IX Item "--shared"
+.PD
+File is (primarily) an ELF shared object (DSO) (not primarily an executable).
+.IP "\fB\-\-unstripped\fR" 4
+.IX Item "--unstripped"
+.PD
+File is an ELF file with symbol table or .debug_* sections and can be stripped
+further.
+.SS "Input flags"
+.IX Subsection "Input flags"
+.IP "\fB\-f\fR" 4
+.IX Item "-f"
+.PD 0
+.IP "\fB\-\-file\fR" 4
+.IX Item "--file"
+.PD
+Only classify regular (not symlink nor special device) files.
+.IP "\fB\-\-no\-stdin\fR" 4
+.IX Item "--no-stdin"
+.PD
+Do not read files from standard input (default).
+.IP "\fB\-\-stdin\fR" 4
+.IX Item "--stdin"
+.PD
+Also read file names to process from standard input, separated by newlines.
+.IP "\fB\-\-stdin0\fR" 4
+.IX Item "--stdin0"
+.PD
+Also read file names to process from standard input, separated by ASCII NUL
+bytes.
+.IP "\fB\-z\fR" 4
+.IX Item "-z"
+.PD 0
+.IP "\fB\-\-compressed\fR" 4
+.IX Item "--compressed"
+.PD
+Try to open compressed files or embedded (kernel) ELF images.
+.SS "Output flags"
+.IX Subsection "Output flags"
+.IP "\fB\-\-matching\fR" 4
+.IX Item "--matching"
+.PD
+If printing file names, print matching files (default).
+.IP "\fB\-\-no\-print\fR" 4
+.IX Item "--no-print"
+.PD
+Do not output file names.
+.IP "\fB\-\-not\-matching\fR" 4
+.IX Item "--not-matching"
+.PD
+If printing file names, print files that do not match.
+.IP "\fB\-\-print\fR" 4
+.IX Item "--print"
+.PD
+Output names of files, separated by newline.
+.IP "\fB\-\-print0\fR" 4
+.IX Item "--print0"
+.PD
+Output names of files, separated by ASCII NUL.
+.SS " Additional flags"
+.IX Subsection " Additional flags"
+.IP "\fB\-q\fR" 4
+.IX Item "-q,"
+.PD
+.IP "\fB\-\-quiet\fR" 4
+.IX Item "--quiet"
+.PD
+Suppress some error output (counterpart to --verbose).
+.IP "\fB\-v\fR" 4
+.IX Item "-v"
+.PD
+.IP "\fB\-\-verbose\fR" 4
+.IX Item "--verbose"
+.PD
+Output additional information (can be specified multiple times).
+.IP "\fB\-?\fR" 4
+.IX Item "-?"
+.PD
+.IP "\fB\-\-help\fR" 4
+.IX Item "--help"
+.PD
+Give this help list.
+.IP "\fB\-\-usage\fR" 4
+.IX Item "--usage"
+.PD
+Give a short usage message.
+.IP "\fB\-V\fR" 4
+.IX Item "-V"
+.PD
+.IP "\fB\-\-version\fR" 4
+.IX Item "--version"
+.PD
+Print program version.
+
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+Written by Florian Wiemer.
+.SH "REPORTING BUGS"
+.IX Header "REPORTING BUGS"
+Please reports bugs at https://sourceware.org/bugzilla/
+.SH "COPYRIGHT"
+.IX Header "COPYRIGHT"
+Copyright © 2019 Red Hat Inc.  License GPLv3+: GNU GPL version 3 or
+later <https://gnu.org/licenses/gpl.html>.  This is free software: you
+are free to change and redistribute it.  There is NO WARRANTY, to the
+extent permitted by law.

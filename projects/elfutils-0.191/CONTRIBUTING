@@ -1,0 +1,142 @@
+The project home is http://elfutils.org/
+
+The current elfutils source code can be checked out with
+git clone git://sourceware.org/git/elfutils.git
+
+The developer mailinglist to send patches to is
+elfutils-devel@sourceware.org.
+https://sourceware.org/ml/elfutils-devel/
+
+To subscribe send an email to elfutils-devel-subscribe@sourceware.org
+Or use the form at https://sourceware.org/mailman/listinfo/elfutils-devel
+
+Please supply patches using git format-patch or using git send-email.
+
+Sign your work
+
+To facilitate tracking of who did what, we've adopted a "sign-off"
+procedure for patches based on the procedure used by the Linux kernel
+project.
+
+The sign-off is a simple line at the end of the explanation for the
+patch, which certifies that you wrote it or otherwise have the right
+to pass it on as a patch under an appropriate license. The rules are
+pretty simple: if you can certify the below:
+
+        Developer's Certificate of Origin
+
+        By making a contribution to this project, I certify that:
+
+	(a) The contribution was created in whole or in part by me,
+	    and I have the right to submit the contribution under each
+	    license indicated in, or otherwise designated as being
+	    applicable to, the file.
+
+        (b) The contribution was provided directly to me by some other
+            person who certified (a), and I have not modified it.
+
+        (c) I understand and agree that the project and the
+            contribution are public and that a record of the
+            contribution (including all personal information I submit
+            with it, including my sign-off) is maintained indefinitely
+            and may be redistributed.
+
+then you just add a line saying
+
+Signed-off-by: Random J Developer <random@developer.example.org>
+
+using a known identity (sorry, no anonymous contributions.)
+The name you use as your identity should not be an anonymous id
+or false name that misrepresents who you are.
+
+git commit --signoff will add such a Signed-off-by line at the end of
+the commit log message for you.
+
+The ideal patch contains a ChangeLog entry for the commit message and
+a test case for the bug fixed or feature added.
+
+The commit message is expected to start with a one line summary of
+what the patch does, prefixed with the main subdir the patch applies
+to. e.g libelf: Rewind the elf_frob function bar definitions.
+
+Finally please include an ChangeLog entry explicitly listing the files
+and what changed in each of them in the commit message. This will help
+a reviewer understand which changes are expected (and which might be
+accidential). Try to follow the GNU Change Log style:
+https://www.gnu.org/prep/standards/html_node/Style-of-Change-Logs.html
+Note that elfutils previously maintained separate ChangeLog
+files. These are no longer used. All changes should be documented in
+the git commit message.
+
+The testsuite (make check) is expected to have zero failing tests.
+Do not knowingly add tests that FAIL. If there are architectures or
+configurations where a tests is not supported make sure they are
+skipped instead of failing. Adding "exit 77" in the test shell wrapper
+indicates that a test was SKIPPED.
+
+We do allow binaries in the testsuite for tests that only need to
+read ELF or DWARF data and if generating the data in the testcase
+itself is difficult or would be architecture specific.
+The binaries should be bzip2 compressed. Add a note in the test
+wrapper run-<testcase>.sh script how to regenerate the binary.
+
+After sending your patch to the mailinglist one of the committers
+to the project will review it, give feedback, and if perfect they
+will commit it for you.
+
+All patches sent to the mailing list are tracked at
+https://patchwork.sourceware.org/project/elfutils/list/
+
+To use this from the command line you can use git-pw
+https://patchwork.readthedocs.io/projects/git-pw/en/latest/
+
+For using it with git-pw use these .git/config settings:
+  [pw]
+    server = https://patchwork.sourceware.org/api/1.2/
+    project = elfutils
+    token = <hex-token>
+    states = committed,accepted,superseded,deferred,rejected,under-review
+
+If you would like to help maintain the pending patch list your
+patchwork account can be added as maintainer for the elfutils project.
+
+You can become a maintainer/committer yourself after you have provided
+at least a handful of accepted patches and agree to the guidelines in
+this document for creating, reviewing, accepting and committing patches.
+
+To become a committer you need a sourceware account:
+https://sourceware.org/cgi-bin/pdw/ps_form.cgi
+Upload a SSH public key and have an existing maintainer sponsor you
+for the elfutils group.
+
+committers can push patches through:
+ssh://<user>@sourceware.org/git/elfutils.git
+
+The current webpages published at https://sourceware.org/elfutils/
+can be checked out with:
+git clone ssh://<user>@sourceware.org/git/elfutils-htdocs.git
+Patches should also be posted to the mailinglist.
+
+As a maintainer/committer you should still post patches as described
+above. And ideally they are reviewed and approved as above. If no
+other committer has reviewed or objected to your patch for a week
+you may use your own judgement whether you ping your patch or push
+it after "self-review". If you do, you should post a message to the
+mailinglist that the patch has been pushed.
+
+committers may also create git branches starting with <nickname>/...
+patches on these branches are works in progress, so might not be perfect
+yet, but should follow the above guidelines as much as possible and should
+be aimed at integration into main. For merging a branch into main
+the same process as above should be followed by posting the patches
+to the list first.
+
+Note that a branch starting with <nickname>/try... will be picked up
+by the Sourceware buildbot and can be used to test your patches before
+merging into the main branch:
+https://builder.sourceware.org/buildbot/#/builders?tags=elfutils-try
+
+committers/maintainers who repeatedly ignore the above guidelines,
+are hostile or offensive towards other committers or contributors,
+and don't correct their behavior after being asked by other committers
+will be removed as maintainer/committer.

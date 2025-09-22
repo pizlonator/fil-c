@@ -1,0 +1,22 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libdw
+Description: elfutils library for DWARF data and ELF file or process inspection
+Version: @VERSION@
+URL: http://elfutils.org/
+
+Libs: -L${libdir} -ldw
+Cflags: -I${includedir}
+
+# We need the exact matching elfutils libelf version since internal data
+# structures are used.
+Requires: libelf = @VERSION@
+
+# We support various compressed ELF images, but don't export any of the
+# data structures or functions.  zlib (gz) is always required, bzip2 (bz2)
+# lzma (xz) and zstd () are optional. But bzip2 doesn't have a pkg-config file.
+Requires.private: zlib @LIBLZMA@ @LIBZSTD@
+Libs.private: @BZ2_LIB@

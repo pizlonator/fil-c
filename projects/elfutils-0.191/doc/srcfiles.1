@@ -1,0 +1,156 @@
+.\" Copyright 2023 Red Hat Inc.
+.\" Mon 2023-Sept 23 Housam Alamour <halamour@redhat.com>
+.\" Contact elfutils-devel@sourceware.org to correct errors or typos.
+.TH EU-SRCFILES 1 "2023-Sept-25" "elfutils"
+
+.de SAMPLE
+.br
+.RS 0
+.nf
+.nh
+\fB
+..
+.de ESAMPLE
+\fP
+.hy
+.fi
+.RE
+..
+
+.SH "NAME"
+eu-srcfiles \- Lists the source files of a DWARF/ELF file.
+
+.SH "SYNOPSIS"
+eu-srcfiles [\fB\-0\fR|\fB\-\-null\fR] [\fB\-c\fR|\fB\-\-cu\-only\fR] [\fB\-v\fR|\fB\-\-verbose\fR] [\fB\-z\fR|\fB\-\-zip\fR] INPUT
+
+.SH "DESCRIPTION"
+\fBeu-srcfiles\fR lists all the source files of a given DWARF/ELF
+file.  This list is based on a search of the DWARF debuginfo, which
+may be automatically fetched by debuginfod if applicable.  The target
+file may be an executable, a coredump, a process, or even the running
+kernel.  The default input is the file 'a.out'.  The source file names are
+made unique by prepending the full path name and then printed to standard output. The source files can be
+placed in a zip file that is sent to stdout.
+
+Note that all occurrences of '/./' and '/../' in the path name are canonicalized.
+
+.SH "INPUT OPTIONS"
+The long and short forms of options, shown here as alternatives, are
+equivalent.
+.TP
+\fB--core=COREFILE\fR
+Find addresses from signatures found in COREFILE.
+
+.TP
+\fB--debuginfo-path=PATH\fR
+Search path for separate debuginfo files.
+
+.TP
+\fB-e FILE\fR, \fB--executable=FILE\fR
+Find addresses in FILE.
+
+.TP
+\fB-k\fR, \fB--kernel\fR
+Find addresses in the running kernel.
+
+.TP
+\fB-K\fR, \fB--offline-kernel[=RELEASE]\fR
+Kernel with all modules.
+
+.TP
+\fB-M FILE\fR, \fB--linux-process-map=FILE\fR
+Find addresses in files mapped as read from FILE in Linux /proc/PID/maps format.
+
+.TP
+\fB-p PID\fR, \fB--pid=PID\fR
+Find addresses in files mapped into process PID.
+
+.TP
+\fB-?\fR, \fB--help\fR
+Give this help list.
+
+.TP
+\fB--usage\fR
+Give a short usage message.
+
+.TP
+\fB-V\fR, \fB--version\fR
+Print program version.
+
+.SH "OUTPUT OPTIONS"
+
+.TP
+\fB\-0, \-\-null\fR
+Separate items by a null instead of a newline.
+
+.TP
+\fB\-b, \-\-no-backup\fR
+Disables local source file search when
+debuginfod fails to fetch files.  This
+option is only applicable when fetching and
+zipping files.
+
+.TP
+\fB\-c, \-\-cu\-only\fR
+Only list the CU (compilation unit) names.
+
+.TP
+\fB\-v, \-\-verbose\fR
+Increase verbosity of logging messages.
+
+.TP
+\fB\-z, \-\-zip\fR
+Zip all the source files and send to stdout.
+By default, files will be automatically fetched by
+debuginfod (if applicable) or locally as a
+backup. Any source files that were not found
+will not be archived.
+
+
+.SH EXAMPLES
+
+List all source files for a binary.
+.SAMPLE
+eu-srcfiles -e /bin/ls
+.ESAMPLE
+
+List all compilation units (CU) names for a given process (including shared libraries).
+.SAMPLE
+eu-srcfiles -c -p $$
+.ESAMPLE
+
+List source files of a binary based on its buildid, using debuginfod.
+.SAMPLE
+binary=`debuginfod-find executable 9c22d8d9e42bd051ffdc1064fdfd456ba781c629`
+eu-srcfiles -c -e $binary
+.ESAMPLE
+
+Show the source code of the first CU of a shared library.
+.SAMPLE
+binary=/usr/lib64/libc.so.6
+srcfile=`eu-srcfiles -c -e $binary | head -1`
+cat `debuginfod-find source $binary $srcfile`
+.ESAMPLE
+
+List the source files of a kernel image.
+.SAMPLE
+eu-srcfiles -e /boot/vmlinuz-`uname -r`
+.ESAMPLE
+
+Zip all the source files for a binary.
+.SAMPLE
+eu-srcfiles -z -e /bin/ls > ls.zip
+.ESAMPLE
+
+
+.SH "AUTHOR"
+Written by Housam Alamour.
+
+.SH "REPORTING BUGS"
+Please reports bugs at https://sourceware.org/bugzilla/
+
+.SH "COPYRIGHT"
+Copyright (c) 2023 Red Hat Inc.  License GPLv3+: GNU GPL version 3 or
+later <https://gnu.org/licenses/gpl.html>.  This is free software: you
+are free to change and redistribute it.  There is NO WARRANTY, to the
+extent permitted by law.

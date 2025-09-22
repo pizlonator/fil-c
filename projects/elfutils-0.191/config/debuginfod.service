@@ -1,0 +1,17 @@
+[Unit]
+Description=elfutils debuginfo-over-http server
+Documentation=http://elfutils.org/
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/sysconfig/debuginfod
+User=debuginfod
+Group=debuginfod
+#CacheDirectory=debuginfod
+ExecStart=/usr/bin/debuginfod -d /var/cache/debuginfod/debuginfod.sqlite -p $DEBUGINFOD_PORT $DEBUGINFOD_VERBOSE $DEBUGINFOD_PRAGMAS $DEBUGINFOD_PATHS $DEBUGINFOD_EXTRA_ARGS
+# Stopping can take a long time if scanning of large archives is in progress
+TimeoutStopSec=60
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

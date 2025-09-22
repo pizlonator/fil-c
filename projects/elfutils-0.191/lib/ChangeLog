@@ -1,0 +1,434 @@
+2022-12-20  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (xmalloc_CFLAGS): Remove.
+
+2022-09-21  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* color.c: Don't include unistd.h.
+
+2022-09-20  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* system.h: Use BYTE_ORDER, LITTLE_ENDIAN and BIG_ENDIAN.
+
+2022-10-16  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* system.h: Add sys/mman.h as system dependend header.
+	* common.h: Remove ar.h, byteswap.h and endian.h.
+	* elf32_checksum.c: Remove endian.h.
+	* elf32_getphdr.c: Remove unistd.h and system.h.
+	* elf32_getshdr.c: Remove unistd.h.h and system.h.
+	* elf32_updatefile.c: Remove unistd.h, sys/mman.h and system.h.
+	* elf32_updatenull.c: Remove endian.h and system.h.
+
+2022-08-05  Mark Wielaard  <mark@klomp.org>
+
+	* dynamicsizehash_concurrent.c (resize_helper): Add documentation.
+	(resize_master): Renamed to...
+	(resize_coordinator): ...this. And add documentation.
+	(resize_worker): Add documentation.
+	(FIND): Add documentation.
+
+2022-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2022-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* system.h: define error_exit.
+
+2021-02-14  Alexander Miller  <alex.miller@gmx.de>
+
+	* eu-config.h (used_in_asm): New macro.
+	(NEW_INTDEF): New macro.
+	(NEW_VERSION): Mark symbol as used_in_asm.  Use @@ symver and change
+	asm name instead.  New variant using symver attribute if available.
+	(OLD_VERSION): Update new symbol name. Indent asm directives.  New
+	variant using symver attribute.
+	(COMPAT_VERSION_NEWPROTO): Mark symbol as used_in_asm.  Reorder
+	lines.  Replace asm with __asm__ in declaration.  New variant using
+	symver attribute.
+	(COMPAT_VERSION): Likewise.
+
+2021-09-10  Colin Cross <ccross@google.com>
+
+	* error.c (error): Call fflush on stdout and stderr. Setup errno and
+	call verr, verrx, vwarn or vwarnx based on status and errnum.
+
+2021-09-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* color.c (parse_opt): Replace asprintf followed by error(EXIT_FAILURE)
+	with xasprintf.
+
+	* xasprintf.c: New file.
+	* Makefile.am (libeu_a_SOURCES): Add it.
+	* libeu.h (xasprintf): New prototype.
+
+	* dynamicsizehash.c (INIT(NAME)): Remove cast of calloc return value.
+	* dynamicsizehash_concurrent.c (INIT(NAME)): Remove cast of malloc
+	return value.
+
+2021-08-23  Saleem Abdulrasool  <abdulras@google.com>
+
+	* system.h: Remove inline definition for error and error_message_count
+	in the fallback path.
+	* Makefile.am (libeu_a_SOURCES): Add error.c.
+	* error.c: New file, moves the previous inline definitions to avoid
+	multiple definitions properly rather than relying on -fcommon and vague
+	linkage.
+
+2021-08-21  Saleem Abdulrasool  <abdulras@google.com>
+
+	* fixedsizehash.h: Remove unused STROF macro.
+
+2021-08-20  Saleem Abdulrasool  <abdulras@google.com>
+
+	* system.h: Check for HAVE_ERROR_H and HAVE_ERR_H and define
+	error_message_cont and error if necessary.
+
+2021-08-20  Saleem Abdulrasool  <abdulras@google.com>
+
+	* fixedsizehash.h: Remove sys/cdefs.h include. Unconditionally
+	define STROF and CONCAT macros.
+
+2021-07-28  Mark Wielaard  <mark@klomp.org>
+
+	* system.h (reallocarray): New static inline fallback function.
+
+2021-04-19  Martin Liska  <mliska@suse.cz>
+
+	* system.h (startswith): New function.
+	(pwrite_retry): Cast to char *.
+	(write_retry): Likewise.
+	(pread_retry): Likewise.
+
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* color.c (parse_opt): Replace gettext(...) and
+	dgettext("elfutils, ...) with _(...).
+	* printversion.c (print_version): Replace gettext(...) with _(...).
+	* system.h (sgettext): Likewise.
+
+	* eu-config.h (_): New macro.
+	* xmalloc.c (_): Remove.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* system.h (ACCESSPERMS): Define macro if it doesn't exist.
+	(ALLPERMS): Likewise.
+	(DEFFILEMODE): Likewise.
+
+2020-06-11  Mark Wielaaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2019-08-25  Srđan Milaković  <sm108@rice.edu>
+
+	* dynamicsizehash_concurrent.{c,h}: New files.
+	* Makefile.am (noinst_HEADERS): Added dynamicsizehash_concurrent.h.
+
+2019-08-25  Jonathon Anderson  <jma14@rice.edu>
+
+	* stdatomic-fbsd.h: New file, taken from FreeBSD.
+	* atomics.h: New file.
+	* Makefile.am (noinst_HEADERS): Added *.h above.
+
+2019-05-03  Rosen Penev  <rosenp@gmail.com>
+
+	* color.c (parse_opt): Cast program_invocation_short_name to char *.
+
+2018-11-04  Mark Wielaard  <mark@klomp.org>
+
+	* bpf.h: Add BPF_JLT, BPF_JLE, BPF_JSLT and BPF_JSLE.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* color.c: Remove error.h, add system.h include.
+	* system.h: Add error.h include.
+	* xmalloc.c: Remove error.h include.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eu-config.h (FALLTHROUGH): New macro.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* md5.{c,h}: Removed.
+	* sha1.{c,h}: Likewise.
+	* Makefile.am (libeu_a_SOURCES): Remove md5.c and sha1.c.
+	(noinst_HEADERS): Remove md5.h and sha1.h.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu-config.h: Define attribute_packed to either
+	__attribute__((packed)) or __attribute__((packed, gcc_struct)).
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu-config.h: Define attribute_hidden to be empty if the compiler
+	doesn't support it.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* bpf.h: New file.
+	* Makefile.am (noinst_HEADERS): Add bpf.h
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* crc32.c: include config.h.
+	* system.h: Don't include config.h.
+
+2017-02-16  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am (libeu_a_SOURCES): Remove version.c, add printversion.c
+	(noinst_HEADERS): Add printversion.h
+	* version.c: Moved to printversion.c.
+	* printversion.c: New file, moved from version.c,
+	remove stdio.h, argp.h, system.h includes,
+	add printversion.h include.
+	* printversion.h: New file.
+	* system.h: Remove argp.h include,
+	(ARGP_PROGRAM_VERSION_HOOK_DEF, ARGP_PROGRAM_BUG_ADDRESS_DEF): Remove.
+	(print_version): Remove.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* system.h: Provide mempcpy if it doesn't exist.
+	* xstrndup.c: Include system.h.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* crc32_file.c: Use _SC_PAGESIZE rather than _SC_PAGE_SIZE.
+
+2017-02-14  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* color.h: New file.
+	* color.c: Include color.h.
+	* libeu.h: Remove color handling.
+	* Makefile.am (noinst_HEADERS): Add color.h.
+
+2016-12-29  Luiz Angelo Daros de Luca  <luizluca@gmail.com>
+
+	* crc32_file.c: Include system.h.
+	* system.h: Remove semi-colon after TEMP_FAILURE_RETRY definition.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* version.c: New source file.
+	* Makefile.am (libeu_a_SOURCES): Add version.c
+	* system.h (print_version): New function definition.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* fixedsizehash.h (CONCAT): Use __CONCAT when available.
+	* system.h: Include config.h and errno.h.
+	(powerof2): Define if not already defined.
+	(TEMP_FAILURE_RETRY): Define when not yet defined.
+
+2015-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* Makefile.am (noinst_HEADERS): Add libeu.h.
+	* color.c: Remove system.h include, add libeu.h include.
+	* crc32_file.c: Likewise.
+	* fixedsizehash.h: Remove sys/param.h include.
+	* libeu.h: New file.
+	* system.h: Include sys/param.h.
+	(xmalloc, xcalloc, xrealloc, xstrdup, xstrndup, crc32, crc32_file,
+	color_argp, color_enum, color_*): Move definitions to libeu.h.
+	* xstrdup.c: Remove system.h include, add libeu.h include.
+	* xstrndup.c: Remove system.h include, add libeu.h and stdint.h
+	includes.
+
+2015-09-24  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* Makefile.am (AM_CFLAGS): Use -fPIC instead of -fpic to avoid relocation
+	overflows in some platforms.
+
+2015-09-22  Mark Wielaard  <mjw@redhat.com>
+
+	* dynamicsizehash.c: Remove old-style function definitions.
+	* md5.c: Likewise.
+	* sha1.c: Likewise.
+	* xmalloc.c: Likewise.
+	* xstrdup.c: Likewise.
+	* xstrndup.c: Likewise.
+
+2015-05-31  Mark Wielaard  <mjw@redhat.com>
+
+	* eu-config.h (ALLOW_UNALIGNED): Define when ! CHECK_UNDEFINED.
+
+2015-04-23  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* eu-config.h: Use SYMBOL_VERSIONING as guard.
+
+2014-01-17  Lei Zhang  <thestig@google.com>
+
+	* crc32_file.c: Include config.h.
+
+2013-12-12  Josh Stone  <jistone@redhat.com>
+
+	* dynamicsizehash.c (lookup): Add a shortcut around division.
+
+2013-04-30  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* eu-config.h (COMPAT_VERSION_NEWPROTO): New.  Twice.
+
+2013-04-26  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* system.h (LE64, BE64): Move here the definitions from
+	libdwfl/link_map.c.
+
+2013-04-24  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am: Use AM_CPPFLAGS instead of INCLUDES.
+
+2012-10-09  Adam Markey  <adam@etinternational.com>
+
+	* system.h: Changed pwrite_retry, write_retry, and pread_retry to
+	handle case where not all data was read/written.
+
+2012-10-08  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* system.h (eu_static_assert): New macro.
+
+2012-01-21  Ulrich Drepper  <drepper@gmail.com>
+
+	* Makefile.am (libeu_a_SOURCES): Add color.c.
+	* system.h: Declare color_argp.  Define color_enum.  Declare
+	color_* variables.
+	* color.c: New file.
+
+2011-10-02  Ulrich Drepper  <drepper@gmail.com>
+
+	* system.h: Declare __cxa_demangle.
+
+2011-07-09  Roland McGrath  <roland@hack.frob.com>
+
+	* sha1.c (be64_copy): New function.
+	(sha1_finish_ctx): Use it.
+	* md5.c (le64_copy): New function.
+	(md5_finish_ctx): Use it.
+	* system.h (LE32, BE32): New macros, using <endian.h> and <byteswap.h>.
+	* md5.c (SWAP): Use LE32.
+	* sha1.c (SWAP): Use BE32.
+
+2010-06-16  Roland McGrath  <roland@redhat.com>
+
+	* dynamicsizehash.h (HASHTYPE): New macro.
+	(struct): Use size_t for table sizes.
+	* dynamicsizehash.c: Likewise.  Use HASHTYPE for hash values.
+
+2010-02-15  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am: Use config/eu.am for common stuff.
+
+2009-08-09  Roland McGrath  <roland@redhat.com>
+
+	* eu-config.h (OLD_VERSION, NEW_VERSION, COMPAT_VERSION): New macros.
+
+2009-01-23  Roland McGrath  <roland@redhat.com>
+
+	* eu-config.h: Add multiple inclusion protection.
+
+2009-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* system.h (ARGP_PROGRAM_VERSION_HOOK_DEF): Define.
+	(ARGP_PROGRAM_BUG_ADDRESS_DEF): Define.
+
+2009-01-10  Ulrich Drepper  <drepper@redhat.com>
+
+	* eu-config.h: Remove tls_key_t, key_create, getspecific, setspecific,
+	once_define, and once_execute macros.  Use USE_LOCKS instead of
+	USE_TLS.
+
+2008-08-25  Roland McGrath  <roland@redhat.com>
+
+	* eu-config.h [USE_TLS] (RWLOCK_CALL): New macro.
+	(rwlock_init, rwlock_fini, rwlock_rdlock, rwlock_wrlock, rwlock_unlock):
+	Use it.
+
+2008-08-24  Roland McGrath  <roland@redhat.com>
+
+	* eu-config.h: New file.
+	* Makefile.am (noinst_HEADERS): Add it.
+
+2008-02-01  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (libeu_a_SOURCES): Add sha1.c.
+	(noinst_HEADERS): Add sha1.h.
+	* sha1.c: New file.
+	* sha1.h: New file.
+
+2008-01-31  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (libeu_a_SOURCES): Add md5.c.
+	(noinst_HEADERS): Add md5.h.
+	* md5.c: New file.
+	* md5.h: New file.
+
+2006-04-04  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (libeu_a_SOURCES): We don't need xstrdup in the moment.
+
+2005-08-28  Ulrich Drepper  <drepper@redhat.com>
+
+	* system.h: Define pwrite_retry, write_retry, and pread_retry.
+
+2005-08-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (xmalloc_CFLAGS): Define only if !GPROF.
+
+2005-05-03  Roland McGrath  <roland@redhat.com>
+
+	* crc32_file.c: New file.
+	* Makefile.am (libeu_a_SOURCES): Add it.
+	* system.h: Declare crc32_file.
+
+2005-04-30  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Use -ffunction-sections for xmalloc.c.
+
+2005-02-15  Ulrich Drepper  <drepper@redhat.com>
+
+	* dynamicsizehash.c (lookup): Mark val parameter as possibly unused.
+
+2005-02-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* fixedsizehash.h: Mark unused parameters.  Correct CLASS and
+	const order for fshash_find.
+
+	* Makefile.am: Cleanup AM_CFLAGS handling.  Add -Wunused -Wextra.
+
+2005-02-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am [MUDFLAP] (AM_CFLAGS): Add -fpic and -fmudflap.
+
+2004-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Support building with mudflap.
+
+2003-09-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add -fpic.
+
+	* Makefile.am (noinst_HEADERS): Add list.h.
+	* list.h: New file.
+
+2003-08-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* Moved to CVS archive.

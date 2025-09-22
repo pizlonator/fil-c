@@ -1,0 +1,20 @@
+The elfutils documentation is very much a work in
+progress. Contributions are welcome.
+Please reports bugs at https://sourceware.org/bugzilla/
+Please send additions and patches to: elfutils-devel@sourceware.org
+
+The elfutils utilities are a new implementation of many of the
+utilities found in binutils and consequently, the documentation for
+most of the tools has been the the man pages for binutils. For example
+you could refer to readelf's man page for instructions on
+eu-readelf. This has been fine up until this point but as tools gain
+new capabilities, they will need to have their own individual man
+page. Forking the man pages from binutils is acceptable and the
+current plan of action.
+
+New utilities that do not have an analog in binutils can have their
+initial man pages generated using a tool like help2man.
+
+The C language interfaces for libelf, libdw, and libdwfl are in
+particular need of documentation. The aspirational goal is write these
+in sphinx.

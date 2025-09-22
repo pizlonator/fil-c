@@ -1,0 +1,380 @@
+ELFUTILS_0 { };
+ELFUTILS_0.122 {
+  global:
+    dwarf_abbrevhaschildren;
+    dwarf_addrdie;
+    dwarf_arrayorder;
+    dwarf_attr;
+    dwarf_attr_integrate;
+    dwarf_begin;
+    dwarf_begin_elf;
+    dwarf_bitoffset;
+    dwarf_bitsize;
+    dwarf_bytesize;
+    dwarf_child;
+    dwarf_cuoffset;
+    dwarf_decl_column;
+    dwarf_decl_file;
+    dwarf_decl_line;
+    dwarf_diecu;
+    dwarf_diename;
+    dwarf_dieoffset;
+    dwarf_end;
+    dwarf_entry_breakpoints;
+    dwarf_entrypc;
+    dwarf_errmsg;
+    dwarf_errno;
+    dwarf_filesrc;
+    dwarf_formaddr;
+    dwarf_formblock;
+    dwarf_formflag;
+    dwarf_formref;
+    dwarf_formref_die;
+    dwarf_formsdata;
+    dwarf_formstring;
+    dwarf_formudata;
+    dwarf_func_inline;
+    dwarf_func_inline_instances;
+    dwarf_getabbrev;
+    dwarf_getabbrevattr;
+    dwarf_getabbrevcode;
+    dwarf_getabbrevtag;
+    dwarf_getarange_addr;
+    dwarf_getarangeinfo;
+    dwarf_getaranges;
+    dwarf_getattrcnt;
+    dwarf_getattrs;
+    dwarf_getfuncs;
+    dwarf_getlocation;
+    dwarf_getlocation_addr;
+    dwarf_getmacros;
+    dwarf_getpubnames;
+    dwarf_getscopes;
+    dwarf_getscopes_die;
+    dwarf_getscopevar;
+    dwarf_getsrc_die;
+    dwarf_getsrc_file;
+    dwarf_getsrcfiles;
+    dwarf_getsrclines;
+    dwarf_getstring;
+    dwarf_hasattr;
+    dwarf_hasattr_integrate;
+    dwarf_haschildren;
+    dwarf_hasform;
+    dwarf_haspc;
+    dwarf_highpc;
+    dwarf_lineaddr;
+    dwarf_linebeginstatement;
+    dwarf_lineblock;
+    dwarf_linecol;
+    dwarf_lineendsequence;
+    dwarf_lineepiloguebegin;
+    dwarf_lineno;
+    dwarf_lineprologueend;
+    dwarf_linesrc;
+    dwarf_lowpc;
+    dwarf_macro_opcode;
+    dwarf_macro_param1;
+    dwarf_macro_param2;
+    dwarf_new_oom_handler;
+    dwarf_nextcu;
+    dwarf_offabbrev;
+    dwarf_offdie;
+    dwarf_onearange;
+    dwarf_onesrcline;
+    dwarf_ranges;
+    dwarf_siblingof;
+    dwarf_srclang;
+    dwarf_tag;
+    dwarf_whatattr;
+    dwarf_whatform;
+
+    # libdwfl_pic.a contributes these symbols.
+    dwfl_addrdie;
+    dwfl_addrdwarf;
+    dwfl_addrmodule;
+    dwfl_begin;
+    dwfl_cumodule;
+    dwfl_end;
+    dwfl_errmsg;
+    dwfl_errno;
+    dwfl_getdwarf;
+    dwfl_getmodules;
+    dwfl_getsrc;
+    dwfl_getsrclines;
+    dwfl_line_comp_dir;
+    dwfl_linecu;
+    dwfl_lineinfo;
+    dwfl_linemodule;
+    dwfl_linux_kernel_find_elf;
+    dwfl_linux_kernel_module_section_address;
+    dwfl_linux_kernel_report_kernel;
+    dwfl_linux_kernel_report_modules;
+    dwfl_linux_kernel_report_offline;
+    dwfl_linux_proc_find_elf;
+    dwfl_linux_proc_maps_report;
+    dwfl_linux_proc_report;
+    dwfl_module_addrdie;
+    dwfl_module_addrname;
+    dwfl_module_getdwarf;
+    dwfl_module_getelf;
+    dwfl_module_getsrc;
+    dwfl_module_getsrc_file;
+    dwfl_module_getsym;
+    dwfl_module_getsymtab;
+    dwfl_module_info;
+    dwfl_module_nextcu;
+    dwfl_module_register_names;
+    dwfl_module_relocate_address;
+    dwfl_module_relocation_info;
+    dwfl_module_relocations;
+    dwfl_module_return_value_location;
+    dwfl_nextcu;
+    dwfl_offline_section_address;
+    dwfl_onesrcline;
+    dwfl_report_begin;
+    dwfl_report_elf;
+    dwfl_report_end;
+    dwfl_report_module;
+    dwfl_report_offline;
+    dwfl_standard_argp;
+    dwfl_standard_find_debuginfo;
+    dwfl_version;
+
+  local:
+    *;
+} ELFUTILS_0;
+
+ELFUTILS_0.126 {
+  global:
+    dwarf_getelf;
+
+} ELFUTILS_0.122;
+
+ELFUTILS_0.127 {
+  global:
+    dwarf_getsrcdirs;
+
+    dwfl_module_addrsym;
+    dwfl_report_begin_add;
+    dwfl_module_address_section;
+
+} ELFUTILS_0.126;
+
+ELFUTILS_0.130 {
+  global:
+    dwfl_build_id_find_elf;
+    dwfl_build_id_find_debuginfo;
+    dwfl_module_build_id;
+    dwfl_module_report_build_id;
+
+} ELFUTILS_0.127;
+
+ELFUTILS_0.136 {
+  global:
+    dwfl_addrsegment;
+    dwfl_report_segment;
+
+} ELFUTILS_0.130;
+
+ELFUTILS_0.138 {
+  global:
+    # Replaced ELFUTILS_0.130 version, which has bug-compatibility wrapper.
+    dwfl_module_build_id;
+
+} ELFUTILS_0.136;
+
+ELFUTILS_0.142 {
+  global:
+    dwarf_next_cfi;
+    dwarf_getcfi;
+    dwarf_getcfi_elf;
+    dwarf_cfi_addrframe;
+    dwarf_cfi_end;
+    dwarf_frame_cfa;
+    dwarf_frame_register;
+    dwarf_frame_info;
+
+    dwfl_module_dwarf_cfi;
+    dwfl_module_eh_cfi;
+} ELFUTILS_0.138;
+
+ELFUTILS_0.143 {
+  global:
+    dwarf_getlocation_implicit_value;
+
+    # Replaced ELFUTILS_0.122 versions.  Both versions point to the
+    # same implementation, but users of the new symbol version can
+    # presume that they use dwarf_attr_integrate properly.
+    dwarf_arrayorder;
+    dwarf_bitoffset;
+    dwarf_bitsize;
+    dwarf_bytesize;
+    dwarf_decl_column;
+    dwarf_decl_file;
+    dwarf_decl_line;
+    dwarf_srclang;
+
+} ELFUTILS_0.142;
+
+ELFUTILS_0.144 {
+  global:
+    dwarf_aggregate_size;
+} ELFUTILS_0.143;
+
+ELFUTILS_0.146 {
+  global:
+    dwfl_core_file_report;
+} ELFUTILS_0.144;
+
+ELFUTILS_0.148 {
+  global:
+    dwarf_lineisa;
+    dwarf_linediscriminator;
+    dwarf_lineop_index;
+
+    dwarf_next_unit;
+    dwarf_offdie_types;
+} ELFUTILS_0.146;
+
+ELFUTILS_0.149 {
+  global:
+    dwarf_getlocation_implicit_pointer;
+
+    dwfl_dwarf_line;
+} ELFUTILS_0.148;
+
+ELFUTILS_0.156 {
+  global:
+    # Replaced ELFUTILS_0.122 version, which has a wrapper without add_p_vaddr.
+    dwfl_report_elf;
+} ELFUTILS_0.149;
+
+ELFUTILS_0.157 {
+  global:
+    dwarf_getlocations;
+    dwarf_getlocation_die;
+    dwarf_getlocation_attr;
+} ELFUTILS_0.156;
+
+ELFUTILS_0.158 {
+  global:
+    # Replaced ELFUTILS_0.146 version, which has a wrapper without executable.
+    dwfl_core_file_report;
+
+    dwfl_attach_state;
+    dwfl_pid;
+    dwfl_thread_dwfl;
+    dwfl_thread_tid;
+    dwfl_frame_thread;
+    dwfl_thread_state_registers;
+    dwfl_thread_state_register_pc;
+    dwfl_getthread_frames;
+    dwfl_getthreads;
+    dwfl_thread_getframes;
+    dwfl_frame_pc;
+
+    dwfl_module_getsymtab_first_global;
+    dwfl_module_addrinfo;
+    dwfl_module_getsym_info;
+
+    dwfl_core_file_attach;
+    dwfl_linux_proc_attach;
+} ELFUTILS_0.157;
+
+ELFUTILS_0.159 {
+  global:
+    dwarf_getalt;
+    dwarf_setalt;
+    dwelf_dwarf_gnu_debugaltlink;
+    dwelf_elf_gnu_debuglink;
+    dwelf_elf_gnu_build_id;
+} ELFUTILS_0.158;
+
+ELFUTILS_0.160 {
+  global:
+    dwarf_cu_getdwarf;
+    dwarf_cu_die;
+} ELFUTILS_0.159;
+
+ELFUTILS_0.161 {
+  global:
+    dwarf_peel_type;
+
+    # Replaced ELFUTILS_0.144 version.  Both versions point to the
+    # same implementation, but users of the new symbol version can
+    # presume that it uses dwarf_peel_type.
+    dwarf_aggregate_size;
+
+    dwarf_getmacros_off;
+    dwarf_macro_getsrcfiles;
+    dwarf_macro_getparamcnt;
+    dwarf_macro_param;
+} ELFUTILS_0.160;
+
+ELFUTILS_0.165 {
+  global:
+    dwelf_scn_gnu_compressed_size;
+} ELFUTILS_0.161;
+
+ELFUTILS_0.167 {
+  global:
+    dwelf_strtab_init;
+    dwelf_strtab_add;
+    dwelf_strtab_add_len;
+    dwelf_strtab_finalize;
+    dwelf_strent_off;
+    dwelf_strent_str;
+    dwelf_strtab_free;
+} ELFUTILS_0.165;
+
+ELFUTILS_0.170 {
+  global:
+    dwarf_default_lower_bound;
+    dwarf_line_file;
+} ELFUTILS_0.167;
+
+ELFUTILS_0.171 {
+  global:
+    dwarf_die_addr_die;
+    dwarf_get_units;
+    dwarf_getabbrevattr_data;
+    dwarf_cu_info;
+} ELFUTILS_0.170;
+
+ELFUTILS_0.173 {
+  global:
+    dwarf_next_lines;
+} ELFUTILS_0.171;
+
+ELFUTILS_0.175 {
+  global:
+    dwelf_elf_begin;
+} ELFUTILS_0.173;
+
+ELFUTILS_0.177 {
+  global:
+    dwelf_elf_e_machine_string;
+    # Replaced ELFUTILS_0.175 versions.  Both versions point to the
+    # same implementation, but users of the new symbol version can
+    # presume that NULL is only returned on error (otherwise ELF_K_NONE).
+    dwelf_elf_begin;
+} ELFUTILS_0.175;
+
+ELFUTILS_0.186 {
+  global:
+    dwarf_linecontext;
+    dwarf_linefunctionname;
+} ELFUTILS_0.177;
+
+ELFUTILS_0.188 {
+  global:
+    dwfl_get_debuginfod_client;
+    dwfl_frame_reg;
+    dwfl_report_offline_memory;
+} ELFUTILS_0.186;
+
+ELFUTILS_0.191 {
+  global:
+    dwarf_cu_dwp_section_info;
+} ELFUTILS_0.188;

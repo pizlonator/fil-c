@@ -1,0 +1,125 @@
+2022-12-20  Mark Wielaard  <mark@klomp.org>
+
+	* libdwelfP.h: Include libdwP.h.
+
+2022-10-21  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* dwelf_elf_begin.c: Don't include unistd.h.
+	* dwelf_strtab.c: Likewise.
+
+2022-08-08  Andreas Schwab  <schwab@suse.de>
+
+	* dwelf_elf_e_machine_string.c (dwelf_elf_e_machine_string): Add
+	EM_LOONGARCH LoongArch.
+
+2022-03-24  Mark Wielaard  <mark@klomp.org>
+
+	* dwelf_elf_e_machine_string.c (dwelf_elf_e_machine_string): Add
+	EM_INTELGT Intel Graphics Technology.
+
+2021-02-14  Alexander Miller  <alex.miller@gmx.de>
+
+	* dwelf_elf_begin.c (dwelf_elf_begin): Move NEW_VERSION before
+	definition.
+
+2021-09-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* dwelf_strtab.c (dwelf_strtab_init): Remove cast of calloc return
+	value.
+	(morememory): Remove cast of malloc return value.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* libdwelf.h: Fix spelling typos in comments.
+	* dwelf_strtab.c (newstring): Likewise.
+
+	* dwelf_elf_e_machine_string.c (dwelf_elf_e_machine_string): Fix
+	spelling typos in returned strings.
+
+2020-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* dwelf_elf_e_machine_string.c (dwelf_elf_e_machine_string):
+	Rename EM_ARC_COMPACT2 to EM_ARCV2.
+
+2019-08-12  Mark Wielaard  <mark@klomp.org>
+
+	* libdwelf.h (dwelf_elf_begin): Update documentation.
+	* dwelf_elf_begin.c (dwelf_elf_begin): Don't suppress ELF_K_NONE.
+	Mark old and new version.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdwelf_a_SOURCES): Add dwelf_elf_e_machine_string.c.
+	* libdwelf.h (dwelf_elf_e_machine_string): Define new function.
+	* dwelf_elf_e_machine_string.c: New file.
+
+2018-10-21  Mark Wielaard  <mark@klomp.org>
+
+	* libdwelf.h (dwelf_elf_begin): Add function declaration.
+	* dwelf_elf_begin.c: New file.
+	* Makefile.am (libdwelf_a_SOURCES): Add dwelf_elf_begin.c.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwelf_elf_gnu_build_id.c (find_elf_build_id): Check p_align to
+	set ELF type.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* dwelf_strtab.c: Remove sys/param.h include.
+	(MIN): Remove definition.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (libdwelf_a_SOURCES): Add dwelf_strtab.c.
+	* dwelf_strtab.c: New file.
+	* libdwelf.h (Dwelf_Strtab): New typedef.
+	(Dwelf_Strent): Likewise.
+	(dwelf_strtab_init): New function.
+	(dwelf_strtab_add): Likewise.
+	(dwelf_strtab_add_len): Likewise.
+	(dwelf_strtab_finalize): Likewise.
+	(dwelf_strent_off): Likewise.
+	(dwelf_strent_str): Likewise.
+	(dwelf_strtab_free): Likewise.
+
+2015-10-28  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (libdwelf_a_SOURCES): Add
+	dwelf_scn_gnu_compressed_size.c.
+	* dwelf_scn_gnu_compressed_size.c: Likewise.
+	* libdwelf.h (dwelf_scn_gnu_compressed_size): New declaration.
+
+2015-10-14  Chih-Hung Hsieh  <chh@google.com>
+
+	* dwelf_elf_gnu_build_id.c (find_elf_build_id): Move nested function
+	'check_notes' to file scope.
+
+2014-11-14  Mark Wielaard  <mjw@redhat.com>
+
+	* dwelf_elf_gnu_debuglink.c (dwelf_elf_gnu_debuglink): Check d_buf
+	is not NULL.
+
+2014-04-30  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (AM_CPPFLAGS): Add libdwfl and libebl include dirs.
+	(libdwelf_a_SOURCES): Add dwelf_elf_gnu_build_id.c
+	* dwelf_elf_gnu_build_id.c: New file. Moved libdwfl function
+	__libdwfl_find_elf_build_id here.
+	* libdwelf.h (dwelf_elf_gnu_build_id): Declare new function.
+	* libdwelfP.h (dwelf_elf_gnu_build_id): Add internal declaration.
+
+2014-04-24  Florian Weimer  <fweimer@redhat.com>
+
+	* dwelf_dwarf_gnu_debugaltlink.c: New file.
+	* Makefile.am (libdwelf_a_SOURCES): Add it.
+	* libdwelf.h (dwelf_dwarf_gnu_debugaltlink): Declare new function.
+	* libdwelfP.h (dwelf_dwarf_gnu_debugaltlink): Add internal
+	declaration.
+
+2014-04-11  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am: New file.
+	* libdwelf.h: Likewise.
+	* libdwelfP.h: Likewise.
+	* dwelf_elf_gnu_debuglink.c: Likewise.

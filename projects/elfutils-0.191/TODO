@@ -1,0 +1,195 @@
+		      ToDo list for elfutils                      -*-outline-*-
+                      ----------------------
+
+Time-stamp: <2009-02-05 22:08:01 drepper>
+
+* mkinstalldirs
+
+  Remove everywhere.  Use mkdir -p.
+
+* libelf:
+
+** verify section
+
+   Currently the elf_update function trusts the user blindly if the
+   ELF_F_LAYOUT flag is set.  This is OK if the data is prepared by a
+   ELF_C_NULL call but not if the user prepared the data herself
+
+** break out archive handling from elf_begin
+
+   The handling of archives (especially of the symbol tables) must be
+   broken out of elf_begin.  There are several different forms of
+   archives and only when having the archive handling separately this
+   remains maintainable.
+
+** shdrs in read-only files
+
+   When reading (ELF_C_READ*) then there is no need to malloc Shdr
+   structure in elfXX_getshdr if file is mmaped and unaligned access
+   is allowed or the structure is aligned.  Use ELF_F_MALLOCED flag
+   to differentiate.
+
+** shdrs after elf_cntl (ELF_C_FDREAD)
+
+   Similar to the above. After ELF_C_FDREAD the file is completely
+   in memory.  See also this mailing list thread:
+   https://fedorahosted.org/pipermail/elfutils-devel/2012-July/002368.html
+
+* libdw
+
+** More memory access checks needed
+
+   All accesses to the debug sections should make sure the offsets are
+   valid.  This is currently especially a problem with leb128 accesses.
+
+** Low level macro information operations
+
+   in 5.11.3 are not implemented.  gcc currently does not emit this
+   information so I cannot test it.
+
+** Rename dwarf_getabbrev
+
+
+* libcpu
+
+** x86
+
+*** Opcodes
+
+     crc32
+     extractps
+     pextrb
+     pextrd/pextrq
+     pextrw
+     pinsrq
+     popcnt 64-bit reg
+
+* nm:
+
+** add demangler support
+
+   Use demangler from libiberty.
+
+** add support to read debugging symbols
+
+   Implement -l option for BSD and POSIX format
+
+
+* strip:
+
+** support SHT_SYMTAB_SHNDX
+
+   should be removed if not needed anymore
+
+* ld:
+
+** sanity check .rel sh_info content
+
+   the sh_info of all .rel sections with the same name must point to
+   sections which also have the same name
+
+** use ld.so.conf
+
+   to locate shared libraries also use /etc/ld.so.conf
+
+** handle object files for different architectures
+
+   ld.so is expected to ignore object files for different architectures and
+   continue looking for a matching file (e.g., ignore 32-bit binaries on
+   64-bit platforms and vice versa).  We probably need the same in ld.
+
+** reuse after elf_end
+
+   Some files are closed using elf_end.  They are removed from memory only
+   if no reference is left (especially for archives this is a problem).
+   The old mapping should be reused in that case.  The problem is worse
+   for files which are not mapped read-only (archives again).
+
+** size for STT_SECTION entries
+
+   The STT_SECTION entries have zero for the size but can easily get
+   the size of the section.
+
+** .eh_frame_hdr
+
+   Not implemented at all in the moment except for recognition of the option
+   itself.
+
+** variables with aliases in executables
+
+   When linking an executable with a references against a variable in a
+   DSO, create symbol table entries for all the aliases of the variable
+   in the DSO and create a relocation for one of them (a non-weak
+   definition)
+
+* elflint
+
+** additional checks
+
+   1st GOT entry == _DYNAMIC
+
+   check versioning info:
+
+     always BASE in verdef
+     sh_size/sh_entsize matches last offset != 0
+
+   check whether any relocation is for a merge-able section
+
+   check TLS relocation dependencies
+
+   Check content of .eh_frame_hdr, .eh_frame, .gcc_except_table
+
+*** for x86
+
+    check that R_386_TLS_GD is followed by R_386_PLT32 for __tls_get_addr
+
+** relax
+
+   prelink generated files
+
+* elfcmp
+
+** treat relocation sections special
+
+   Differences in the relocation sections can be ignored if all
+   the same symbols with the same targets are present and the order
+   of overlapping relocations doesn't change.  There really never
+   should be overlapping relocations but who knows.
+
+* mcs
+
+  Sun has it.  Can modify sections which are not in segments.
+
+     -a string
+           Append string to the comment section of the ELF object
+           files. If  string contains embedded blanks, it must be
+           enclosed in quotation marks.
+
+     -c    Compress the contents of the comment  section  of  the
+           ELF  object  files. All duplicate entries are removed.
+           The ordering of the  remaining  entries  is  not  dis-
+           turbed.
+
+     -d    Delete the contents of the comment  section  from  the
+           ELF  object  files. The section header for the comment
+           section is also removed.
+
+     -n name
+           Specify the name of the comment section to  access  if
+           other  than  .comment.  By default, mcs deals with the
+           section named .comment. This option  can  be  used  to
+           specify  another  section.  mcs  can  take multiple -n
+           options to allow for specification of   multiple  sec-
+           tion comments.
+
+     -p    Print the contents of the comment section on the stan-
+           dard  output.  Each  section  printed is tagged by the
+           name of the file from which it  was  extracted,  using
+           the  format  file[member_name]:  for archive files and
+           file:  for other files.
+
+     -V    Print on standard error the version number of mcs.
+
+Local Variables:
+eval:(hide-sublevels 3)
+End:

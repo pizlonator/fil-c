@@ -1,0 +1,124 @@
+/* List the relocation types for sparc.  -*- C -*-
+   Copyright (C) 2009, 2015 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/* 	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,               REL|EXEC|DYN)
+RELOC_TYPE (8,                  REL)
+RELOC_TYPE (16,                 REL)
+RELOC_TYPE (32,                 REL|DYN)
+RELOC_TYPE (DISP8,              REL)
+RELOC_TYPE (DISP16,             REL)
+RELOC_TYPE (DISP32,             REL)
+RELOC_TYPE (WDISP30,            REL)
+RELOC_TYPE (WDISP22,            REL)
+RELOC_TYPE (HI22,               REL)
+RELOC_TYPE (22,                 REL)
+RELOC_TYPE (13,                 REL)
+RELOC_TYPE (LO10,               REL)
+RELOC_TYPE (GOT10,              REL)
+RELOC_TYPE (GOT13,              REL)
+RELOC_TYPE (GOT22,              REL)
+RELOC_TYPE (PC10,               REL)
+RELOC_TYPE (PC22,               REL)
+RELOC_TYPE (WPLT30,             REL)
+RELOC_TYPE (COPY,               EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,           EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,           EXEC|DYN)
+RELOC_TYPE (RELATIVE,           EXEC|DYN)
+RELOC_TYPE (UA32,               REL)
+RELOC_TYPE (PLT32,              REL)
+RELOC_TYPE (HIPLT22,            REL)
+RELOC_TYPE (LOPLT10,            REL)
+RELOC_TYPE (PCPLT32,            REL)
+RELOC_TYPE (PCPLT22,            REL)
+RELOC_TYPE (PCPLT10,            REL)
+RELOC_TYPE (10,                 REL)
+RELOC_TYPE (11,                 REL)
+RELOC_TYPE (64,                 REL|DYN)
+RELOC_TYPE (OLO10,              REL)
+RELOC_TYPE (HH22,               REL)
+RELOC_TYPE (HM10,               REL)
+RELOC_TYPE (LM22,               REL)
+RELOC_TYPE (PC_HH22,            REL)
+RELOC_TYPE (PC_HM10,            REL)
+RELOC_TYPE (PC_LM22,            REL)
+RELOC_TYPE (WDISP16,            REL)
+RELOC_TYPE (WDISP19,            REL)
+RELOC_TYPE (GLOB_JMP,		EXEC|DYN)
+RELOC_TYPE (7,                  REL)
+RELOC_TYPE (5,                  REL)
+RELOC_TYPE (6,                  REL)
+RELOC_TYPE (DISP64,             REL)
+RELOC_TYPE (PLT64,              REL)
+RELOC_TYPE (HIX22,              REL)
+RELOC_TYPE (LOX10,              REL)
+RELOC_TYPE (H44,                REL)
+RELOC_TYPE (M44,                REL)
+RELOC_TYPE (L44,                REL)
+RELOC_TYPE (REGISTER,           REL)
+RELOC_TYPE (UA64,               REL)
+RELOC_TYPE (UA16,               REL)
+RELOC_TYPE (TLS_GD_HI22,        REL)
+RELOC_TYPE (TLS_GD_LO10,        REL)
+RELOC_TYPE (TLS_GD_ADD,         REL)
+RELOC_TYPE (TLS_GD_CALL,        REL)
+RELOC_TYPE (TLS_LDM_HI22,       REL)
+RELOC_TYPE (TLS_LDM_LO10,       REL)
+RELOC_TYPE (TLS_LDM_ADD,        REL)
+RELOC_TYPE (TLS_LDM_CALL,       REL)
+RELOC_TYPE (TLS_LDO_HIX22,      REL)
+RELOC_TYPE (TLS_LDO_LOX10,      REL)
+RELOC_TYPE (TLS_LDO_ADD,        REL)
+RELOC_TYPE (TLS_IE_HI22,        REL)
+RELOC_TYPE (TLS_IE_LO10,        REL)
+RELOC_TYPE (TLS_IE_LD,          REL)
+RELOC_TYPE (TLS_IE_LDX,         REL)
+RELOC_TYPE (TLS_IE_ADD,         REL)
+RELOC_TYPE (TLS_LE_HIX22,       REL)
+RELOC_TYPE (TLS_LE_LOX10,       REL)
+RELOC_TYPE (TLS_DTPMOD32,       DYN)
+RELOC_TYPE (TLS_DTPMOD64,       DYN)
+RELOC_TYPE (TLS_DTPOFF32,       DYN)
+RELOC_TYPE (TLS_DTPOFF64,       DYN)
+RELOC_TYPE (TLS_TPOFF32,        DYN)
+RELOC_TYPE (TLS_TPOFF64,        DYN)
+RELOC_TYPE (GOTDATA_HIX22,	REL)
+RELOC_TYPE (GOTDATA_LOX10,	REL)
+RELOC_TYPE (GOTDATA_OP_HIX22,	REL|DYN)
+RELOC_TYPE (GOTDATA_OP_LOX10,	REL|DYN)
+RELOC_TYPE (GOTDATA_OP,		REL|DYN)
+RELOC_TYPE (H34,		REL)
+RELOC_TYPE (SIZE32,		REL)
+RELOC_TYPE (SIZE64,		REL)
+RELOC_TYPE (WDISP10,		REL)
+RELOC_TYPE (JMP_IREL,		REL)
+RELOC_TYPE (IRELATIVE,		REL)
+RELOC_TYPE (GNU_VTINHERIT,	REL)
+RELOC_TYPE (GNU_VTENTRY,	REL)
+RELOC_TYPE (REV32,		REL)

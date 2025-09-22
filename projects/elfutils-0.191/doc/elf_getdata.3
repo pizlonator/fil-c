@@ -1,0 +1,28 @@
+.\" Modified Thu Aug 17 2017 by Ben Woodard <woodard@redhat.com>
+.\"
+.TH ELF_GETDATA 3 2017-08-17 "Libelf" "Libelf Programmer's Manual"
+.SH NAME
+elf_getdata \- Get washed data of section
+.nf
+.SH SYNOPSIS
+.B #include <libelf.h>
+.sp
+.BI "Elf_Data * elf_getdata (Elf_Scn *" scn ", Elf_Data *" data ");"
+.fi
+.SH DESCRIPTION
+The
+.BR elf_getdata ()
+function allows the user to retrieve the data buffers of the section
+.I scn
+ . There can be more than one buffer if the user explicitly added them.
+When a file is read the libelf library creates exactly one data buffer.
+
+The first buffer in the list can be obtained by passing a null pointer in the
+parameter data. To get the next data buffer the previously returned value must
+be passed in the data parameter. If there are no more buffer left in the list a
+null pointer is returned.
+
+If the data parameter is not a null pointer it must be a descriptor for a
+buffer associated with the section scn . If this is not the case a null pointer
+is returned. To facilitate error handling elf_getdata also returns a null
+pointer if the scn parameter is a null pointer.

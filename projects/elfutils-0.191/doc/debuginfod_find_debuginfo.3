@@ -1,0 +1,332 @@
+'\"! tbl | nroff \-man
+'\" t macro stdmacro
+
+.de SAMPLE
+.br
+.RS 0
+.nf
+.nh
+..
+.de ESAMPLE
+.hy
+.fi
+.RE
+..
+
+.TH DEBUGINFOD_FIND_* 3
+.SH NAME
+debuginfod_find_debuginfo \- request debuginfo from debuginfod
+
+.SH SYNOPSIS
+.nf
+.B #include <elfutils/debuginfod.h>
+.PP
+Link with \fB-ldebuginfod\fP.
+
+CONNECTION HANDLE
+
+.BI "debuginfod_client *debuginfod_begin(void);"
+.BI "void debuginfod_end(debuginfod_client *" client ");"
+
+LOOKUP FUNCTIONS
+
+.BI "int debuginfod_find_debuginfo(debuginfod_client *" client ","
+.BI "                              const unsigned char *" build_id ","
+.BI "                              int " build_id_len ","
+.BI "                              char ** " path ");"
+.BI "int debuginfod_find_executable(debuginfod_client *" client ","
+.BI "                               const unsigned char *" build_id ","
+.BI "                               int " build_id_len ","
+.BI "                               char ** " path ");"
+.BI "int debuginfod_find_source(debuginfod_client *" client ","
+.BI "                           const unsigned char *" build_id ","
+.BI "                           int " build_id_len ","
+.BI "                           const char *" filename ","
+.BI "                           char ** " path ");"
+.BI "int debuginfod_find_section(debuginfod_client *" client ","
+.BI "                           const unsigned char *" build_id ","
+.BI "                           int " build_id_len ","
+.BI "                           const char * " section ","
+.BI "                           char ** " path ");"
+
+
+OPTIONAL FUNCTIONS
+
+.BI "typedef int (*debuginfod_progressfn_t)(debuginfod_client *" client ","
+.BI "                                       long a, long b);"
+.BI "void debuginfod_set_progressfn(debuginfod_client *" client ","
+.BI "                               debuginfod_progressfn_t " progressfn ");"
+.BI "void debuginfod_set_verbose_fd(debuginfod_client *" client ","
+.BI "                               int " fd ");"
+.BI "void debuginfod_set_user_data(debuginfod_client *" client ","
+.BI "                              void *" data ");"
+.BI "void* debuginfod_get_user_data(debuginfod_client *" client ");"
+.BI "const char* debuginfod_get_url(debuginfod_client *" client ");"
+.BI "int debuginfod_add_http_header(debuginfod_client *" client ","
+.BI "                               const char* " header ");"
+.BI "const char* debuginfod_get_headers(debuginfod_client *" client ");"
+
+.SH DESCRIPTION
+
+.BR debuginfod_begin ()
+creates a \fBdebuginfod_client\fP connection handle that should be used
+with all other calls.
+.BR debuginfod_end ()
+should be called on the \fBclient\fP handle to release all state and
+storage when done.
+
+.BR debuginfod_find_debuginfo (),
+.BR debuginfod_find_executable (),
+and
+.BR debuginfod_find_source ()
+query the debuginfod server URLs contained in
+.BR $DEBUGINFOD_URLS
+(see below) for the debuginfo, executable or source file with the
+given \fIbuild_id\fP. \fIbuild_id\fP should be a pointer to either
+a null-terminated, lowercase hex string or a binary blob. If
+\fIbuild_id\fP is given as a hex string, \fIbuild_id_len\fP should
+be 0. Otherwise \fIbuild_id_len\fP should be the number of bytes in
+the binary blob.
+
+.BR debuginfod_find_source ()
+also requires a \fIfilename\fP in order to specify a particular
+source file. \fIfilename\fP should be an absolute path that includes
+the compilation directory of the CU associated with the source file.
+Relative path names commonly appear in the DWARF file's source directory,
+but these paths are relative to individual compilation unit AT_comp_dir
+paths, and yet an executable is made up of multiple CUs. Therefore, to
+disambiguate, debuginfod expects source queries to prefix relative path
+names with the CU compilation-directory, followed by a mandatory "/".
+
+Note: the caller may or may not elide \fB../\fP or \fB/./\fP or extraneous
+\fB///\fP sorts of path components in the directory names.  debuginfod
+accepts both forms.  Specifically, debuginfod canonicalizes path names
+according to RFC3986 section 5.2.4 (Remove Dot Segments), plus reducing
+any \fB//\fP to \fB/\fP in the path.
+
+.BR debuginfod_find_section ()
+queries the debuginfod server URLs contained in
+.BR $DEBUGINFOD_URLS
+for the binary contents of an ELF/DWARF section contained in a debuginfo
+or executable file with the given \fIbuild_id\fP. \fIsection\fP should
+be the name of the desired ELF/DWARF section.  If a server does not support
+section queries, debuginfod_find_section may query the server for the
+debuginfo and/or executable with \fIbuild_id\fP in order to retrieve
+and extract the section.
+
+If \fIpath\fP is not NULL and the query is successful, \fIpath\fP is set
+to the path of the file in the cache. The caller must \fBfree\fP() this value.
+
+The URLs in \fB$DEBUGINFOD_URLS\fP may be queried in parallel. As soon
+as a debuginfod server begins transferring the target file all of the
+connections to the other servers are closed.
+
+A \fBclient\fP handle should be used from only one thread at a time.
+A handle may be reused for a series of lookups, which can improve
+performance due to retention of connections and caches.
+
+.SH "RETURN VALUE"
+
+\fBdebuginfod_begin\fP returns the \fBdebuginfod_client\fP handle to
+use with all other calls.  On error \fBNULL\fP will be returned and
+\fBerrno\fP will be set.
+
+If a find family function is successful, the resulting file is saved
+to the client cache and a file descriptor to that file is returned.
+The file descriptor points to the beginning of the file.  The caller
+needs to \fBclose\fP() this descriptor.  Otherwise, a negative error
+code is returned.
+
+.SH "OPTIONAL FUNCTIONS"
+
+A small number of optional functions are available to tune or query
+the operation of the debuginfod client.
+
+.SS "PROGRESS CALLBACK"
+
+As the \fBdebuginfod_find_*\fP() functions may block for seconds or
+longer, a progress callback function is called periodically, if
+configured with
+.BR debuginfod_set_progressfn ().
+This function sets a new progress callback function (or NULL) for the
+client handle.
+
+The given callback function is called from the context of each thread
+that is invoking any of the other lookup functions.  It is given two
+numeric parameters that, if thought of as a numerator \fIa\fP and
+denominator \fIb\fP, together represent a completion fraction
+\fIa/b\fP.  The denominator may be zero initially, until a quantity
+such as an exact download size becomes known.
+
+The progress callback function is also the supported way to
+\fIinterrupt\fP the download operation.  (The library does \fInot\fP
+modify or trigger signals.)  The progress callback must return 0 to
+continue the work, or any other value to stop work as soon as
+possible.  Consequently, the \fBdebuginfod_find_*\fP() function will
+likely return with an error, but might still succeed.
+
+.SS "VERBOSE OUTPUT"
+
+The \fBdebuginfod_find_*\fP() functions may use several techniques
+to retrieve the requested files, through the cache or through one
+or multiple servers or file URLs. To show how a query is handled the
+.BR debuginfod_set_verbose_fd ()
+can be used to set a particular file descriptor on which verbose
+output is given about the query steps and eventual errors encountered.
+
+.SS "USER DATA POINTER"
+
+A single \fIvoid *\fP pointer associated with the connection handle
+may be set any time via
+.BR \%debuginfod_set_user_data () ,
+and retrieved via
+.BR \%debuginfod_get_user_data () .
+The value is undefined if unset.
+
+.SS "URL"
+
+The URL of the current or most recent outgoing download, if known,
+may be retrieved via
+.BR \%debuginfod_get_url ()
+from the progressfn callback, or afterwards.  It may be NULL.
+The resulting string is owned by the library, and must not be modified
+or freed.  The caller should copy it if it is needed beyond the release
+of the client object.
+
+.SS "HTTP HEADER"
+
+Before each lookup function is initiated, a client application may
+add HTTP request headers.  These are reset after each lookup function.
+.BR \%debuginfod_add_http_header ()
+may be called with strings of the form
+.BR \%"Header:\~value" .
+These strings are copied by the library.  A zero return value
+indicates success, but out-of-memory conditions may result in
+a non-zero \fI-ENOMEM\fP. If the string is in the wrong form
+\fI-EINVAL\fP will be returned.
+
+\fI$DEBUGINFOD_HEADERS_FILE\fP specifies a file to supply headers to
+outgoing requests. Each non-whitespace line of this file is handled
+as if
+.BR \%debuginfod_add_http_header ()
+were called on the contents.
+
+Note that the current debuginfod-client library implementation uses
+libcurl, but you shouldn't rely on that fact. Don't use this function
+for replacing any standard headers, except for the User-Agent mentioned
+below. You can use this function to add authorization information for
+access control, or to provide optional headers to the server for
+logging purposes.
+
+By default, the library adds a descriptive \fIUser-Agent:\fP
+header to outgoing requests.  If the client application adds
+a header with the same name, this default is suppressed.
+
+During or after a lookup, a client application may call
+.BR \%debuginfod_get_headers ()
+to gather the subset of HTTP response headers received from the
+current or most recent debuginfod server.  Only those headers prefixed
+with
+.BR X-DEBUGINFOD
+(case-insensitive) are kept.  They are returned as a single string,
+with each "header: value" terminated with a \\n (not \\r\\n as in
+HTTP).  It may be NULL.  The resulting string is owned by the library,
+and must not be modified or freed.  The caller should copy the
+returned string if it is needed beyond the release of the client
+object.
+
+.SH "MACROS"
+
+.SS "DEBUGINFOD_SONAME"
+
+Defined to the string that could be passed to
+.BR dlopen (3)
+if the library is loaded at runtime, for example
+
+.PP
+.in +4n
+.EX
+void *debuginfod_so = dlopen(DEBUGINFOD_SONAME, RTLD_LAZY);
+.EE
+.in
+
+.SH "SECURITY"
+.BR debuginfod_find_* ()
+functions \fBdo not\fP include any particular security
+features.  They trust that the binaries returned by the debuginfod(s)
+are accurate.  Therefore, the list of servers should include only
+trustworthy ones.  If accessed across HTTP rather than HTTPS, the
+network should be trustworthy.  Passing user authentication information
+through the internal \fIlibcurl\fP library is not currently enabled, except
+for the basic plaintext \%\fIhttp[s]://userid:password@hostname/\fP style.
+(The debuginfod server does not perform authentication, but a front-end
+proxy server could.)
+
+.SH "ERRORS"
+The following list is not comprehensive. Error codes may also
+originate from calls to various C Library functions.
+
+.TP
+.BR EACCESS
+Denied access to resource located at the URL.
+
+.TP
+.BR ECONNREFUSED
+Unable to connect to remote host. Also returned when an HTTPS connection
+couldn't be verified (bad certificate).
+
+.TP
+.BR ECONNRESET
+Unable to either send or receive network data.
+
+.TP
+.BR EHOSTUNREACH
+Unable to resolve remote host.
+
+.TP
+.BR EINVAL
+One or more arguments are incorrectly formatted. \fIbuild_id\fP may
+be too long (greater than 256 characters), \fIfilename\fP may not
+be an absolute path or a debuginfod URL is malformed.
+
+.TP
+.BR EIO
+Unable to write data received from server to local file.
+
+.TP
+.BR EMLINK
+Too many HTTP redirects.
+
+.TP
+.BR ENETUNREACH
+Unable to initialize network connection.
+
+.TP
+.BR ENOENT
+Could not find the resource located at URL. Often this error code
+indicates that a debuginfod server was successfully contacted but
+the server could not find the target file.
+
+.TP
+.BR ENOMEM
+System is unable to allocate resources.
+
+.TP
+.BR ENOSYS
+\fB$DEBUGINFOD_URLS\fP is not defined.
+
+.TP
+.BR ETIME
+Query failed due to timeout. \fB$DEBUGINFOD_TIMEOUT\fP and
+\fB$DEBUGINFOD_MAXTIME\fP control this.
+
+.TP
+.BR EF2BIG
+Query aborted due to the file requested being too big.  The
+\fB$DEBUGINFOD_MAXSIZE\fP controls this.
+
+.nr zZ 1
+.so man7/debuginfod-client-config.7
+
+.SH "SEE ALSO"
+.I "debuginfod(8)"

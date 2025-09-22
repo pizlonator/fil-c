@@ -1,0 +1,102 @@
+# Nonsensical program used to generate example DWARF package files with type
+# units, location lists, range lists, and macros.
+
+# = foobar.h =
+
+struct Foo
+{
+  int a, b;
+  int foo ();
+};
+
+struct Bar
+{
+  long a, b;
+  long bar ();
+};
+
+#define FROB(x) ((x) ^ 0x2a2a2a2a)
+#define FRY(x) ((x) * 0x100000001b3)
+
+inline long
+fibonacci (unsigned int n)
+{
+  if (n == 0)
+    return 0;
+  else
+    {
+      long a = 0;
+      long b = 1;
+      for (unsigned int i = 2; i < n; i++)
+	{
+	  long tmp = a + b;
+	  a = b;
+	  b = tmp;
+	}
+      return b;
+    }
+}
+
+# = foo.cc =
+
+#include "foobar.h"
+
+#define ZERO() (1 - 1)
+
+int
+x_x (int x)
+{
+  for (int i = x; i > ZERO(); i--)
+    x *= x;
+  return x;
+}
+
+int
+Foo::foo ()
+{
+  int x = a;
+  if (a > b)
+    x -= b;
+  return FROB (x_x (x));
+}
+
+# = bar.cc =
+
+#include "foobar.h"
+
+#define ONE 1
+
+long
+Bar::bar ()
+{
+  if (a == b)
+    return ONE;
+  else
+    return a > b ? b : a;
+}
+
+# = main.cc =
+
+#include "foobar.h"
+
+#define MAIN_ARGS int argc, char **argv
+
+int
+main(MAIN_ARGS)
+{
+  struct Foo myfoo { argc, FROB (argc) };
+  struct Bar mybar { fibonacci (argc), FRY (argc) };
+  return myfoo.foo() + mybar.bar();
+}
+
+# Built with GCC at commit 80048aa13a6b ("debug/111409 - don't generate COMDAT
+# macro sections for split DWARF").
+$ g++ -gdwarf-5 -gsplit-dwarf -fdebug-types-section -g3 -O2 foo.cc bar.cc main.cc -o testfile-dwp-5
+# GNU dwp as of binutils 2.41 only supports DWARF 4.
+$ llvm-dwp -e testfile-dwp-5 -o testfile-dwp-5.dwp
+
+$ g++ -gdwarf-4 -gsplit-dwarf -fdebug-types-section -g3 -O2 foo.cc bar.cc main.cc -o testfile-dwp-4
+$ dwp -e testfile-dwp-4
+
+$ g++ -gdwarf-4 -gstrict-dwarf -gsplit-dwarf -fdebug-types-section -g3 -O2 foo.cc bar.cc main.cc -o testfile-dwp-4-strict
+$ dwp -e testfile-dwp-4-strict

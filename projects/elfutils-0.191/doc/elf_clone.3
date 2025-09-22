@@ -1,0 +1,14 @@
+.\" Modified Thu Sep 5 2017 by Ben Woodard <woodard@redhat.com>
+.\"
+.TH ELF_CLONE 3 2017-09-05 "Libelf" "Libelf Programmer's Manual"
+.SH NAME
+elf_clone \- Create a clone of an existing ELF descriptor.
+.nf
+.SH SYNOPSIS
+.B #include <libelf.h>
+.sp
+.BI "Elf *elf_clone (int " filedes ", Elf_Cmd " cmd ");"
+.fi
+.SH DESCRIPTION
+The
+.BR elf_clone ()

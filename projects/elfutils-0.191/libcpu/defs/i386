@@ -1,0 +1,970 @@
+%mask {s}	1
+%mask {w}	1
+%mask {w1}	1
+%mask {W1}	1
+%mask {W2}	1
+dnl floating point reg suffix
+%mask {D}	1
+%mask {imm8}	8
+%mask {imms8}	8
+%mask {imm16}	16
+%mask {reg}	3
+%mask {oreg}	3
+%mask {reg16}	3
+%mask {reg64}	3
+%mask {tttn}	4
+%mask {mod}	2
+%mask {moda}	2
+%mask {MOD}	2
+%mask {r_m}	3
+dnl like {r_m} but referencing byte register
+%mask {8r_m}	3
+dnl like {r_m} but referencing 16-bit register
+%mask {16r_m}	3
+dnl like {r_m} but referencing 32- or 64-bit register
+%mask {64r_m}	3
+%mask {disp8}	8
+dnl imm really is 8/16/32 bit depending on the situation.
+%mask {imm}	8
+%mask {imm64}	8
+%mask {imms}	8
+%mask {rel}	32
+%mask {abs}	32
+%mask {absval}	32
+%mask {sel}	16
+%mask {imm32}	32
+%mask {ccc}	3
+%mask {ddd}	3
+%mask {sreg3}	3
+%mask {sreg2}	2
+%mask {mmxreg}	3
+%mask {R_M}	3
+%mask {Mod}	2
+%mask {xmmreg}	3
+%mask {R_m}	3
+%mask {xmmreg1} 3
+%mask {xmmreg2} 3
+%mask {mmxreg1} 3
+%mask {mmxreg2} 3
+%mask {predps}	8
+%mask {freg}	3
+%mask {fmod}	2
+%mask {fr_m}	3
+%prefix {R}
+%prefix {RE}
+%suffix {W}
+%suffix {w0}
+%synonym {xmmreg1} {xmmreg}
+%synonym {xmmreg2} {xmmreg}
+%synonym {mmxreg1} {mmxreg}
+%synonym {mmxreg2} {mmxreg}
+ifdef(`i386',
+`%synonym {oreg} {reg}
+%synonym {imm64} {imm}
+')dnl
+
+%%
+ifdef(`i386',
+`00110111:aaa
+11010101,00001010:aad
+11010100,00001010:aam
+00111111:aas
+')dnl
+0001010{w},{imm}:adc {imm}{w},{ax}{w}
+1000000{w},{mod}010{r_m},{imm}:adc{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}010{r_m},{imms8}:adc{w} {imms8},{mod}{r_m}
+0001000{w},{mod}{reg}{r_m}:adc {reg}{w},{mod}{r_m}{w}
+0001001{w},{mod}{reg}{r_m}:adc {mod}{r_m}{w},{reg}{w}
+0000010{w},{imm}:add {imm}{w},{ax}{w}
+1000000{w},{mod}000{r_m},{imm}:add{w} {imm}{w},{mod}{r_m}{w}
+10000011,{mod}000{r_m},{imms8}:add{w} {imms8},{mod}{r_m}
+0000000{w},{mod}{reg}{r_m}:add {reg}{w},{mod}{r_m}{w}
+0000001{w},{mod}{reg}{r_m}:add {mod}{r_m}{w},{reg}{w}
+01100110,00001111,11010000,{Mod}{xmmreg}{R_m}:addsubpd {Mod}{R_m},{xmmreg}
+11110010,00001111,11010000,{Mod}{xmmreg}{R_m}:addsubps {Mod}{R_m},{xmmreg}
+0010010{w},{imm}:and {imm}{w},{ax}{w}
+1000000{w},{mod}100{r_m},{imm}:and{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}100{r_m},{imms8}:and{w} {imms8},{mod}{r_m}
+0010000{w},{mod}{reg}{r_m}:and {reg}{w},{mod}{r_m}{w}
+0010001{w},{mod}{reg}{r_m}:and {mod}{r_m}{w},{reg}{w}
+01100110,00001111,01010100,{Mod}{xmmreg}{R_m}:andpd {Mod}{R_m},{xmmreg}
+00001111,01010100,{Mod}{xmmreg}{R_m}:andps {Mod}{R_m},{xmmreg}
+01100110,00001111,01010101,{Mod}{xmmreg}{R_m}:andnpd {Mod}{R_m},{xmmreg}
+00001111,01010101,{Mod}{xmmreg}{R_m}:andnps {Mod}{R_m},{xmmreg}
+ifdef(`i386',
+`01100011,{mod}{reg16}{r_m}:arpl {reg16},{mod}{r_m}
+01100010,{moda}{reg}{r_m}:bound {reg},{moda}{r_m}
+',
+`01100011,{mod}{reg64}{r_m}:movslq {mod}{r_m},{reg64}
+')dnl
+00001111,10111100,{mod}{reg}{r_m}:bsf {mod}{r_m},{reg}
+00001111,10111101,{mod}{reg}{r_m}:bsr {mod}{r_m},{reg}
+00001111,11001{reg}:bswap {reg}
+00001111,10100011,{mod}{reg}{r_m}:bt {reg},{mod}{r_m}
+00001111,10111010,{mod}100{r_m},{imm8}:bt{w} {imm8},{mod}{r_m}
+00001111,10111011,{mod}{reg}{r_m}:btc {reg},{mod}{r_m}
+00001111,10111010,{mod}111{r_m},{imm8}:btc{w} {imm8},{mod}{r_m}
+00001111,10110011,{mod}{reg}{r_m}:btr {reg},{mod}{r_m}
+00001111,10111010,{mod}110{r_m},{imm8}:btr{w} {imm8},{mod}{r_m}
+00001111,10101011,{mod}{reg}{r_m}:bts {reg},{mod}{r_m}
+00001111,10111010,{mod}101{r_m},{imm8}:bts{w} {imm8},{mod}{r_m}
+11101000,{rel}:call{W} {rel}
+11111111,{mod}010{64r_m}:call{W} *{mod}{64r_m}
+ifdef(`i386',
+`10011010,{absval},{sel}:lcall {sel},{absval}
+')dnl
+11111111,{mod}011{64r_m}:lcall{W} *{mod}{64r_m}
+# SPECIAL 10011000:[{rex.w}?cltq:{dpfx}?cbtw:cwtl]
+10011000:INVALID
+# SPECIAL 10011001:[{rex.w}?cqto:{dpfx}?cltd:cwtd]
+10011001:INVALID
+11111000:clc
+11111100:cld
+11111010:cli
+00001111,00000101:syscall
+00001111,00000110:clts
+00001111,00000111:sysret
+00001111,00110100:sysenter
+00001111,00110101:sysexit
+11110101:cmc
+00001111,0100{tttn},{mod}{reg}{r_m}:cmov{tttn} {mod}{r_m},{reg}
+0011110{w},{imm}:cmp {imm}{w},{ax}{w}
+1000000{w},{mod}111{r_m},{imm}:cmp{w} {imm}{w},{mod}{r_m}{w}
+10000011,{mod}111{r_m},{imms8}:cmp{w} {imms8},{mod}{r_m}
+0011100{w},{mod}{reg}{r_m}:cmp {reg}{w},{mod}{r_m}{w}
+0011101{w},{mod}{reg}{r_m}:cmp {mod}{r_m}{w},{reg}{w}
+ifdef(`ASSEMBLER',
+`11110010,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:cmpsd {imm8},{Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:cmpss {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:cmppd {imm8},{Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:cmpps {imm8},{Mod}{R_m},{xmmreg}
+',
+`11110010,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:INVALID {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:INVALID {Mod}{R_m},{xmmreg}
+01100110,00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:INVALID {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},{imm8}:INVALID {Mod}{R_m},{xmmreg}
+')dnl
+1010011{w}:{RE}cmps{w} {es_di},{ds_si}
+00001111,1011000{w},{mod}{reg}{r_m}:cmpxchg {reg}{w},{mod}{r_m}{w}
+ifdef(`i386',
+`00001111,11000111,{mod}001{r_m}:cmpxchg8b {mod}{r_m}
+',
+`# SPECIAL 00001111,11000111,{mod}001{r_m}:[{rex.w}?cmpxchg16b:cmpxchg8b] {reg},{mod}{r_m}
+00001111,11000111,{mod}001{r_m}:INVALID {mod}{r_m}
+')dnl
+00001111,10100010:cpuid
+11110011,00001111,11100110,{Mod}{xmmreg}{R_m}:cvtdq2pd {Mod}{R_m},{xmmreg}
+11110010,00001111,11100110,{Mod}{xmmreg}{R_m}:cvtpd2dq {Mod}{R_m},{xmmreg}
+01100110,00001111,11100110,{Mod}{xmmreg}{R_m}:cvttpd2dq {Mod}{R_m},{xmmreg}
+ifdef(`i386',
+`00100111:daa
+00101111:das
+')dnl
+1111111{w},{mod}001{r_m}:dec{w} {mod}{r_m}{w}
+ifdef(`i386',
+`01001{reg}:dec {reg}
+')dnl
+1111011{w},{mod}110{r_m}:div{w} {mod}{r_m}{w}
+00001111,01110111:emms
+11001000,{imm16},{imm8}:enter{W} {imm16},{imm8}
+11011001,11010000:fnop
+11011001,11100000:fchs
+11011001,11100001:fabs
+11011001,11100100:ftst
+11011001,11100101:fxam
+11011001,11101000:fld1
+11011001,11101001:fldl2t
+11011001,11101010:fldl2e
+11011001,11101011:fldpi
+11011001,11101100:fldlg2
+11011001,11101101:fldln2
+11011001,11101110:fldz
+11011001,11110000:f2xm1
+11011001,11110001:fyl2x
+11011001,11110010:fptan
+11011001,11110011:fpatan
+11011001,11110100:fxtract
+11011001,11110101:fprem1
+11011001,11110110:fdecstp
+11011001,11110111:fincstp
+11011001,11111000:fprem
+11011001,11111001:fyl2xp1
+11011001,11111010:fsqrt
+11011001,11111011:fsincos
+11011001,11111100:frndint
+11011001,11111101:fscale
+11011001,11111110:fsin
+11011001,11111111:fcos
+# ORDER
+11011000,11000{freg}:fadd {freg},%st
+11011100,11000{freg}:fadd %st,{freg}
+11011{D}00,{mod}000{r_m}:fadd{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011000,11001{freg}:fmul {freg},%st
+11011100,11001{freg}:fmul %st,{freg}
+11011{D}00,{mod}001{r_m}:fmul{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011000,11100{freg}:fsub {freg},%st
+11011100,11100{freg}:fsub %st,{freg}
+11011{D}00,{mod}100{r_m}:fsub{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011000,11101{freg}:fsubr {freg},%st
+11011100,11101{freg}:fsubr %st,{freg}
+11011{D}00,{mod}101{r_m}:fsubr{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011101,11010{freg}:fst {freg}
+11011{D}01,{mod}010{r_m}:fst{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011101,11011{freg}:fstp {freg}
+11011{D}01,{mod}011{r_m}:fstp{D} {mod}{r_m}
+# ORDER END
+11011001,{mod}100{r_m}:fldenv {mod}{r_m}
+11011001,{mod}101{r_m}:fldcw {mod}{r_m}
+11011001,{mod}110{r_m}:fnstenv {mod}{r_m}
+11011001,{mod}111{r_m}:fnstcw {mod}{r_m}
+11011001,11001{freg}:fxch {freg}
+# ORDER
+11011110,11000{freg}:faddp %st,{freg}
+ifdef(`ASSEMBLER',
+`11011110,11000001:faddp
+')dnl
+# ORDER
+11011010,11000{freg}:fcmovb {freg},%st
+11011{w1}10,{mod}000{r_m}:fiadd{w1} {mod}{r_m}
+# ORDER END
+# ORDER
+11011010,11001{freg}:fcmove {freg},%st
+11011110,11001{freg}:fmulp %st,{freg}
+11011{w1}10,{mod}001{r_m}:fimul{w1} {mod}{r_m}
+# ORDER END
+# ORDER
+11011110,11100{freg}:fsubp %st,{freg}
+11011{w1}10,{mod}100{r_m}:fisub{w1} {mod}{r_m}
+# ORDER END
+# ORDER
+11011110,11101{freg}:fsubrp %st,{freg}
+11011{w1}10,{mod}101{r_m}:fisubr{w1} {mod}{r_m}
+# ORDER END
+# ORDER
+11011111,11100000:fnstsw %ax
+11011111,{mod}100{r_m}:fbld {mod}{r_m}
+# ORDER END
+# ORDER
+11011111,11110{freg}:fcomip {freg},%st
+11011111,{mod}110{r_m}:fbstp {mod}{r_m}
+# ORDER END
+11011001,11100000:fchs
+# ORDER
+10011011,11011011,11100010:fclex
+10011011,11011011,11100011:finit
+10011011:fwait
+# END ORDER
+11011011,11100010:fnclex
+11011010,11000{freg}:fcmovb {freg},%st
+11011010,11001{freg}:fcmove {freg},%st
+11011010,11010{freg}:fcmovbe {freg},%st
+11011010,11011{freg}:fcmovu {freg},%st
+11011011,11000{freg}:fcmovnb {freg},%st
+11011011,11001{freg}:fcmovne {freg},%st
+11011011,11010{freg}:fcmovnbe {freg},%st
+11011011,11011{freg}:fcmovnu {freg},%st
+# ORDER
+11011000,11010{freg}:fcom {freg}
+ifdef(`ASSEMBLER',
+`11011000,11010001:fcom
+')dnl
+11011{D}00,{mod}010{r_m}:fcom{D} {mod}{r_m}
+# END ORDER
+# ORDER
+11011000,11011{freg}:fcomp {freg}
+ifdef(`ASSEMBLER',
+`11011000,11011001:fcomp
+')dnl
+11011{D}00,{mod}011{r_m}:fcomp{D} {mod}{r_m}
+# END ORDER
+11011110,11011001:fcompp
+11011011,11110{freg}:fcomi {freg},%st
+11011111,11110{freg}:fcomip {freg},%st
+11011011,11101{freg}:fucomi {freg},%st
+11011111,11101{freg}:fucomip {freg},%st
+11011001,11111111:fcos
+11011001,11110110:fdecstp
+# ORDER
+11011000,11110{freg}:fdiv {freg},%st
+11011100,11110{freg}:fdiv %st,{freg}
+11011{D}00,{mod}110{r_m}:fdiv{D} {mod}{r_m}
+# END ORDER
+11011010,{mod}110{r_m}:fidivl {mod}{r_m}
+# ORDER
+11011110,11110{freg}:fdivp %st,{freg}
+11011110,{mod}110{r_m}:fidiv {mod}{r_m}
+# END ORDER
+11011110,11111{freg}:fdivrp %st,{freg}
+ifdef(`ASSEMBLER',
+`11011110,11111001:fdivp
+')dnl
+# ORDER
+11011000,11111{freg}:fdivr {freg},%st
+11011100,11111{freg}:fdivr %st,{freg}
+11011{D}00,{mod}111{r_m}:fdivr{D} {mod}{r_m}
+# END ORDER
+11011010,{mod}111{r_m}:fidivrl {mod}{r_m}
+11011110,{mod}111{r_m}:fidivr {mod}{r_m}
+11011110,11110{freg}:fdivrp %st,{freg}
+ifdef(`ASSEMBLER',
+`11011110,11110001:fdivrp
+')dnl
+11011101,11000{freg}:ffree {freg}
+11011010,11010{freg}:fcmovbe {freg}
+11011{w1}10,{mod}010{r_m}:ficom{w1} {mod}{r_m}
+11011010,11011{freg}:fcmovu {freg}
+11011{w1}10,{mod}011{r_m}:ficomp{w1} {mod}{r_m}
+11011111,{mod}000{r_m}:fild {mod}{r_m}
+11011011,{mod}000{r_m}:fildl {mod}{r_m}
+11011111,{mod}101{r_m}:fildll {mod}{r_m}
+11011001,11110111:fincstp
+11011011,11100011:fninit
+11011{w1}11,{mod}010{r_m}:fist{w1} {mod}{r_m}
+11011{w1}11,{mod}011{r_m}:fistp{w1} {mod}{r_m}
+11011111,{mod}111{r_m}:fistpll {mod}{r_m}
+11011{w1}11,{mod}001{r_m}:fisttp{w1} {mod}{r_m}
+11011101,{mod}001{r_m}:fisttpll {mod}{r_m}
+11011011,{mod}101{r_m}:fldt {mod}{r_m}
+11011011,{mod}111{r_m}:fstpt {mod}{r_m}
+# ORDER
+11011001,11000{freg}:fld {freg}
+11011{D}01,{mod}000{r_m}:fld{D} {mod}{r_m}
+# ORDER END
+# ORDER
+11011101,11100{freg}:fucom {freg}
+11011101,{mod}100{r_m}:frstor {mod}{r_m}
+# ORDER END
+11011101,11101{freg}:fucomp {freg}
+11011101,{mod}110{r_m}:fnsave {mod}{r_m}
+11011101,{mod}111{r_m}:fnstsw {mod}{r_m}
+#
+#
+#
+11110100:hlt
+1111011{w},{mod}111{r_m}:idiv{w} {mod}{r_m}{w}
+1111011{w},{mod}101{r_m}:imul{w} {mod}{r_m}{w}
+00001111,10101111,{mod}{reg}{r_m}:imul {mod}{r_m},{reg}
+011010{s}1,{mod}{reg}{r_m},{imm}:imul {imm}{s},{mod}{r_m},{reg}
+1110010{w},{imm8}:in {imm8},{ax}{w}
+1110110{w}:in {dx},{ax}{w}
+1111111{w},{mod}000{r_m}:inc{w} {mod}{r_m}{w}
+ifdef(`i386',
+`01000{reg}:inc {reg}
+')dnl
+0110110{w}:{R}ins{w} {dx},{es_di}
+11001101,{imm8}:int {imm8}
+11001100:int3
+ifdef(`i386',
+`11001110:into
+')dnl
+00001111,00001000:invd
+# ORDER
+00001111,00000001,11111000:swapgs
+00001111,00000001,{mod}111{r_m}:invlpg {mod}{r_m}
+# ORDER END
+11001111:iret{W1}
+0111{tttn},{disp8}:j{tttn} {disp8}
+00001111,1000{tttn},{rel}:j{tttn} {rel}
+00001111,1001{tttn},{mod}000{8r_m}:set{tttn} {mod}{8r_m}
+# SPECIAL 11100011,{disp8}:[{dpfx}?jcxz:jecxz] {disp8}
+11100011,{disp8}:INVALID {disp8}
+11101011,{disp8}:jmp {disp8}
+11101001,{rel}:jmp{W} {rel}
+11111111,{mod}100{64r_m}:jmp{W} *{mod}{64r_m}
+11101010,{absval},{sel}:ljmp {sel},{absval}
+11111111,{mod}101{64r_m}:ljmp{W} *{mod}{64r_m}
+10011111:lahf
+00001111,00000010,{mod}{reg}{16r_m}:lar {mod}{16r_m},{reg}
+ifdef(`i386',
+`11000101,{mod}{reg}{r_m}:lds {mod}{r_m},{reg}
+')dnl
+10001101,{mod}{reg}{r_m}:lea {mod}{r_m},{reg}
+11001001:leave{W}
+ifdef(`i386',
+`11000100,{mod}{reg}{r_m}:les {mod}{r_m},{reg}
+')dnl
+00001111,10110100,{mod}{reg}{r_m}:lfs {mod}{r_m},{reg}
+00001111,10110101,{mod}{reg}{r_m}:lgs {mod}{r_m},{reg}
+ifdef(`i386',
+`00001111,00000001,{mod}010{r_m}:lgdt{w0} {mod}{r_m}
+00001111,00000001,{mod}011{r_m}:lidt{w0} {mod}{r_m}
+',
+`00001111,00000001,{mod}010{r_m}:lgdt {mod}{r_m}
+00001111,00000001,{mod}011{r_m}:lidt {mod}{r_m}
+')dnl
+00001111,00000000,{mod}010{16r_m}:lldt {mod}{16r_m}
+00001111,00000001,{mod}110{16r_m}:lmsw {mod}{16r_m}
+11110000:lock
+1010110{w}:{R}lods {ds_si},{ax}{w}
+11100010,{disp8}:loop {disp8}
+11100001,{disp8}:loope {disp8}
+11100000,{disp8}:loopne {disp8}
+00001111,00000011,{mod}{reg}{16r_m}:lsl {mod}{16r_m},{reg}
+00001111,10110010,{mod}{reg}{r_m}:lss {mod}{r_m},{reg}
+00001111,00000000,{mod}011{16r_m}:ltr {mod}{16r_m}
+1000100{w},{mod}{reg}{r_m}:mov {reg}{w},{mod}{r_m}{w}
+1000101{w},{mod}{reg}{r_m}:mov {mod}{r_m}{w},{reg}{w}
+1100011{w},{mod}000{r_m},{imm}:mov{w} {imm}{w},{mod}{r_m}{w}
+1011{w}{oreg},{imm64}:mov {imm64}{w},{oreg}{w}
+1010000{w},{abs}:mov {abs},{ax}{w}
+1010001{w},{abs}:mov {ax}{w},{abs}
+00001111,00100000,11{ccc}{reg64}:mov {ccc},{reg64}
+00001111,00100010,11{ccc}{reg64}:mov {reg64},{ccc}
+00001111,00100001,11{ddd}{reg64}:mov {ddd},{reg64}
+00001111,00100011,11{ddd}{reg64}:mov {reg64},{ddd}
+10001100,{mod}{sreg3}{r_m}:mov {sreg3},{mod}{r_m}
+10001110,{mod}{sreg3}{r_m}:mov {mod}{r_m},{sreg3}
+1010010{w}:{R}movs{w} {ds_si},{es_di}
+00001111,10111110,{mod}{reg}{8r_m}:movsbl {mod}{8r_m},{reg}
+00001111,10111111,{mod}{reg}{16r_m}:movswl {mod}{16r_m},{reg}
+00001111,10110110,{mod}{reg}{8r_m}:movzbl {mod}{8r_m},{reg}
+00001111,10110111,{mod}{reg}{16r_m}:movzwl {mod}{16r_m},{reg}
+1111011{w},{mod}100{r_m}:mul{w} {mod}{r_m}{w}
+1111011{w},{mod}011{r_m}:neg{w} {mod}{r_m}{w}
+11110011,10010000:pause
+ifdef(`i386',
+`10010000:nop
+',
+`10010000:INVALID
+')dnl
+# ORDER before out
+11110011,00001111,10111000,{mod}{reg}{r_m}:popcnt {mod}{r_m},{reg}
+# END ORDER
+1111011{w},{mod}010{r_m}:not{w} {mod}{r_m}{w}
+0000100{w},{mod}{reg}{r_m}:or {reg}{w},{mod}{r_m}{w}
+0000101{w},{mod}{reg}{r_m}:or {mod}{r_m}{w},{reg}{w}
+1000000{w},{mod}001{r_m},{imm}:or{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}001{r_m},{imms8}:or{w} {imms8},{mod}{r_m}{w}
+0000110{w},{imm}:or {imm}{w},{ax}{w}
+1110011{w},{imm8}:out {ax}{w},{imm8}
+1110111{w}:out {ax}{w},{dx}
+0110111{w}:{R}outs{w} {ds_si},{dx}
+ifdef(`i386',
+`10001111,{mod}000{r_m}:pop{w} {mod}{r_m}
+',
+# XXX This is not the cleanest way...
+`10001111,11000{reg64}:pop {reg64}
+10001111,{mod}000{r_m}:pop{W} {mod}{r_m}
+')dnl
+00001111,10{sreg3}001:pop{W} {sreg3}
+10011101:popf{W}
+# XXX This is not the cleanest way...
+ifdef(`i386',
+`11111111,{mod}110{r_m}:push{w} {mod}{r_m}
+',
+`11111111,11110{reg64}:push {reg64}
+11111111,{mod}110{r_m}:pushq {mod}{r_m}
+')dnl
+ifdef(`i386',
+`01010{reg}:push {reg}
+01011{reg}:pop {reg}
+',
+`01010{reg64}:push {reg64}
+01011{reg64}:pop {reg64}
+')dnl
+011010{s}0,{imm}:push{W} {imm}{s}
+000{sreg2}110:push {sreg2}
+00001111,10{sreg3}000:push{W} {sreg3}
+ifdef(`i386',
+`01100000:pusha{W}
+01100001:popa{W}
+')dnl
+10011100:pushf{W}
+1101000{w},{mod}010{r_m}:rcl{w} {mod}{r_m}{w}
+1101001{w},{mod}010{r_m}:rcl{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}010{r_m},{imm8}:rcl{w} {imm8},{mod}{r_m}{w}
+1101000{w},{mod}011{r_m}:rcr{w} {mod}{r_m}{w}
+1101001{w},{mod}011{r_m}:rcr{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}011{r_m},{imm8}:rcr{w} {imm8},{mod}{r_m}{w}
+00001111,00110010:rdmsr
+00001111,00110011:rdpmc
+00001111,00110001:rdtsc
+11000011:ret{W}
+11000010,{imm16}:ret{W} {imm16}
+11001011:lret
+11001010,{imm16}:lret {imm16}
+1101000{w},{mod}000{r_m}:rol{w} {mod}{r_m}{w}
+1101001{w},{mod}000{r_m}:rol{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}000{r_m},{imm8}:rol{w} {imm8},{mod}{r_m}{w}
+1101000{w},{mod}001{r_m}:ror{w} {mod}{r_m}{w}
+1101001{w},{mod}001{r_m}:ror{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}001{r_m},{imm8}:ror{w} {imm8},{mod}{r_m}{w}
+00001111,10101010:rsm
+10011110:sahf
+1101000{w},{mod}111{r_m}:sar{w} {mod}{r_m}{w}
+1101001{w},{mod}111{r_m}:sar{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}111{r_m},{imm8}:sar{w} {imm8},{mod}{r_m}{w}
+0001100{w},{mod}{reg}{r_m}:sbb {reg}{w},{mod}{r_m}{w}
+0001101{w},{mod}{reg}{r_m}:sbb {mod}{r_m}{w},{reg}{w}
+0001110{w},{imm}:sbb {imm}{w},{ax}{w}
+1000000{w},{mod}011{r_m},{imm}:sbb{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}011{r_m},{imms8}:sbb{w} {imms8},{mod}{r_m}
+1010111{w}:{RE}scas {es_di},{ax}{w}
+00001111,1001{tttn},{mod}000{r_m}:set{tttn} {mod}{r_m}
+1101000{w},{mod}100{r_m}:shl{w} {mod}{r_m}{w}
+1101001{w},{mod}100{r_m}:shl{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}100{r_m},{imm8}:shl{w} {imm8},{mod}{r_m}{w}
+1101000{w},{mod}101{r_m}:shr{w} {mod}{r_m}{w}
+00001111,10100100,{mod}{reg}{r_m},{imm8}:shld {imm8},{reg},{mod}{r_m}
+00001111,10100101,{mod}{reg}{r_m}:shld %cl,{reg},{mod}{r_m}
+1101001{w},{mod}101{r_m}:shr{w} %cl,{mod}{r_m}{w}
+1100000{w},{mod}101{r_m},{imm8}:shr{w} {imm8},{mod}{r_m}{w}
+00001111,10101100,{mod}{reg}{r_m},{imm8}:shrd {imm8},{reg},{mod}{r_m}
+00001111,10101101,{mod}{reg}{r_m}:shrd %cl,{reg},{mod}{r_m}
+# ORDER
+00001111,00000001,11000001:vmcall
+00001111,00000001,11000010:vmlaunch
+00001111,00000001,11000011:vmresume
+00001111,00000001,11000100:vmxoff
+00001111,01111000,{mod}{reg64}{64r_m}:vmread {reg64},{mod}{64r_m}
+00001111,01111001,{mod}{reg64}{64r_m}:vmwrite {mod}{64r_m},{reg64}
+ifdef(`i386',
+`00001111,00000001,{mod}000{r_m}:sgdtl {mod}{r_m}
+',
+`00001111,00000001,{mod}000{r_m}:sgdt {mod}{r_m}
+')dnl
+# ORDER END
+# ORDER
+ifdef(`i386',
+`00001111,00000001,11001000:monitor %eax,%ecx,%edx
+00001111,00000001,11001001:mwait %eax,%ecx
+',
+`00001111,00000001,11001000:monitor %rax,%rcx,%rdx
+00001111,00000001,11001001:mwait %rax,%rcx
+')dnl
+ifdef(`i386',
+`00001111,00000001,{mod}001{r_m}:sidtl {mod}{r_m}
+',
+`00001111,00000001,{mod}001{r_m}:sidt {mod}{r_m}
+')dnl
+# ORDER END
+00001111,00000000,{mod}000{r_m}:sldt {mod}{r_m}
+00001111,00000001,{mod}100{r_m}:smsw {mod}{r_m}
+11111001:stc
+11111101:std
+11111011:sti
+1010101{w}:{R}stos {ax}{w},{es_di}
+00001111,00000000,{mod}001{r_m}:str {mod}{r_m}
+0010100{w},{mod}{reg}{r_m}:sub {reg}{w},{mod}{r_m}{w}
+0010101{w},{mod}{reg}{r_m}:sub {mod}{r_m}{w},{reg}{w}
+0010110{w},{imm}:sub {imm}{w},{ax}{w}
+1000000{w},{mod}101{r_m},{imm}:sub{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}101{r_m},{imms8}:sub{w} {imms8},{mod}{r_m}
+1000010{w},{mod}{reg}{r_m}:test {reg}{w},{mod}{r_m}{w}
+1010100{w},{imm}:test {imm}{w},{ax}{w}
+1111011{w},{mod}000{r_m},{imm}:test{w} {imm}{w},{mod}{r_m}{w}
+00001111,00001011:ud2a
+00001111,00000000,{mod}100{16r_m}:verr {mod}{16r_m}
+00001111,00000000,{mod}101{16r_m}:verw {mod}{16r_m}
+00001111,00001001:wbinvd
+00001111,00001101,{mod}000{8r_m}:prefetch {mod}{8r_m}
+00001111,00001101,{mod}001{8r_m}:prefetchw {mod}{8r_m}
+00001111,00011000,{mod}000{r_m}:prefetchnta {mod}{r_m}
+00001111,00011000,{mod}001{r_m}:prefetcht0 {mod}{r_m}
+00001111,00011000,{mod}010{r_m}:prefetcht1 {mod}{r_m}
+00001111,00011000,{mod}011{r_m}:prefetcht2 {mod}{r_m}
+00001111,00011111,{mod}{reg}{r_m}:nop{w} {mod}{r_m}
+00001111,00110000:wrmsr
+00001111,1100000{w},{mod}{reg}{r_m}:xadd {reg}{w},{mod}{r_m}{w}
+1000011{w},{mod}{reg}{r_m}:xchg {reg}{w},{mod}{r_m}{w}
+10010{oreg}:xchg {ax},{oreg}
+11010111:xlat {ds_bx}
+0011000{w},{mod}{reg}{r_m}:xor {reg}{w},{mod}{r_m}{w}
+0011001{w},{mod}{reg}{r_m}:xor {mod}{r_m}{w},{reg}{w}
+0011010{w},{imm}:xor {imm}{w},{ax}{w}
+1000000{w},{mod}110{r_m},{imm}:xor{w} {imm}{w},{mod}{r_m}{w}
+1000001{w},{mod}110{r_m},{imms8}:xor{w} {imms8},{mod}{r_m}
+00001111,01110111:emms
+01100110,00001111,11011011,{Mod}{xmmreg}{R_m}:pand {Mod}{R_m},{xmmreg}
+00001111,11011011,{MOD}{mmxreg}{R_M}:pand {MOD}{R_M},{mmxreg}
+01100110,00001111,11011111,{Mod}{xmmreg}{R_m}:pandn {Mod}{R_m},{xmmreg}
+00001111,11011111,{MOD}{mmxreg}{R_M}:pandn {MOD}{R_M},{mmxreg}
+01100110,00001111,11110101,{Mod}{xmmreg}{R_m}:pmaddwd {Mod}{R_m},{xmmreg}
+00001111,11110101,{MOD}{mmxreg}{R_M}:pmaddwd {MOD}{R_M},{mmxreg}
+01100110,00001111,11101011,{Mod}{xmmreg}{R_m}:por {Mod}{R_m},{xmmreg}
+00001111,11101011,{MOD}{mmxreg}{R_M}:por {MOD}{R_M},{mmxreg}
+01100110,00001111,11101111,{Mod}{xmmreg}{R_m}:pxor {Mod}{R_m},{xmmreg}
+00001111,11101111,{MOD}{mmxreg}{R_M}:pxor {MOD}{R_M},{mmxreg}
+00001111,01010101,{Mod}{xmmreg}{R_m}:andnps {Mod}{R_m},{xmmreg}
+00001111,01010100,{Mod}{xmmreg}{R_m}:andps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000000:cmpeqps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000001:cmpltps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000010:cmpleps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000011:cmpunordps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000100:cmpneqps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000101:cmpnltps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000110:cmpnleps {Mod}{R_m},{xmmreg}
+00001111,11000010,{Mod}{xmmreg}{R_m},00000111:cmpordps {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000000:cmpeqss {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000001:cmpltss {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000010:cmpless {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000011:cmpunordss {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000100:cmpneqss {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000101:cmpnltss {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000110:cmpnless {Mod}{R_m},{xmmreg}
+11110011,00001111,11000010,{Mod}{xmmreg}{R_m},00000111:cmpordss {Mod}{R_m},{xmmreg}
+00001111,10101110,{mod}001{r_m}:fxrstor {mod}{r_m}
+00001111,10101110,{mod}000{r_m}:fxsave {mod}{r_m}
+00001111,10101110,{mod}010{r_m}:ldmxcsr {mod}{r_m}
+00001111,10101110,{mod}011{r_m}:stmxcsr {mod}{r_m}
+11110010,00001111,00010000,{Mod}{xmmreg}{R_m}:movsd {Mod}{R_m},{xmmreg}
+11110011,00001111,00010000,{Mod}{xmmreg}{R_m}:movss {Mod}{R_m},{xmmreg}
+01100110,00001111,00010000,{Mod}{xmmreg}{R_m}:movupd {Mod}{R_m},{xmmreg}
+00001111,00010000,{Mod}{xmmreg}{R_m}:movups {Mod}{R_m},{xmmreg}
+11110010,00001111,00010001,{Mod}{xmmreg}{R_m}:movsd {xmmreg},{Mod}{R_m}
+11110011,00001111,00010001,{Mod}{xmmreg}{R_m}:movss {xmmreg},{Mod}{R_m}
+01100110,00001111,00010001,{Mod}{xmmreg}{R_m}:movupd {xmmreg},{Mod}{R_m}
+00001111,00010001,{Mod}{xmmreg}{R_m}:movups {xmmreg},{Mod}{R_m}
+11110010,00001111,00010010,{Mod}{xmmreg}{R_m}:movddup {Mod}{R_m},{xmmreg}
+11110011,00001111,00010010,{Mod}{xmmreg}{R_m}:movsldup {Mod}{R_m},{xmmreg}
+01100110,00001111,00010010,{Mod}{xmmreg}{R_m}:movlpd {Mod}{R_m},{xmmreg}
+00001111,00010010,11{xmmreg1}{xmmreg2}:movhlps {xmmreg2},{xmmreg1}
+00001111,00010010,{Mod}{xmmreg}{R_m}:movlps {Mod}{R_m},{xmmreg}
+01100110,00001111,00010011,11{xmmreg1}{xmmreg2}:movhlpd {xmmreg1},{xmmreg2}
+00001111,00010011,11{xmmreg1}{xmmreg2}:movhlps {xmmreg1},{xmmreg2}
+01100110,00001111,00010011,{Mod}{xmmreg}{R_m}:movlpd {xmmreg},{Mod}{R_m}
+00001111,00010011,{Mod}{xmmreg}{R_m}:movlps {xmmreg},{Mod}{R_m}
+01100110,00001111,00010100,{Mod}{xmmreg}{R_m}:unpcklpd {Mod}{R_m},{xmmreg}
+00001111,00010100,{Mod}{xmmreg}{R_m}:unpcklps {Mod}{R_m},{xmmreg}
+01100110,00001111,00010101,{Mod}{xmmreg}{R_m}:unpckhpd {Mod}{R_m},{xmmreg}
+00001111,00010101,{Mod}{xmmreg}{R_m}:unpckhps {Mod}{R_m},{xmmreg}
+11110011,00001111,00010110,{Mod}{xmmreg}{R_m}:movshdup {Mod}{R_m},{xmmreg}
+01100110,00001111,00010110,{Mod}{xmmreg}{R_m}:movhpd {Mod}{R_m},{xmmreg}
+00001111,00010110,11{xmmreg1}{xmmreg2}:movlhps {xmmreg2},{xmmreg1}
+00001111,00010110,{Mod}{xmmreg}{R_m}:movhps {Mod}{R_m},{xmmreg}
+01100110,00001111,00010111,11{xmmreg1}{xmmreg2}:movlhpd {xmmreg1},{xmmreg2}
+00001111,00010111,11{xmmreg1}{xmmreg2}:movlhps {xmmreg1},{xmmreg2}
+01100110,00001111,00010111,{Mod}{xmmreg}{R_m}:movhpd {xmmreg},{Mod}{R_m}
+00001111,00010111,{Mod}{xmmreg}{R_m}:movhps {xmmreg},{Mod}{R_m}
+01100110,00001111,00101000,{Mod}{xmmreg}{R_m}:movapd {Mod}{R_m},{xmmreg}
+00001111,00101000,{Mod}{xmmreg}{R_m}:movaps {Mod}{R_m},{xmmreg}
+01100110,00001111,00101001,{Mod}{xmmreg}{R_m}:movapd {xmmreg},{Mod}{R_m}
+00001111,00101001,{Mod}{xmmreg}{R_m}:movaps {xmmreg},{Mod}{R_m}
+11110010,00001111,00101010,{mod}{xmmreg}{r_m}:cvtsi2sd {mod}{r_m},{xmmreg}
+11110011,00001111,00101010,{mod}{xmmreg}{r_m}:cvtsi2ss {mod}{r_m},{xmmreg}
+01100110,00001111,00101010,{MOD}{xmmreg}{R_M}:cvtpi2pd {MOD}{R_M},{xmmreg}
+00001111,00101010,{MOD}{xmmreg}{R_M}:cvtpi2ps {MOD}{R_M},{xmmreg}
+01100110,00001111,00101011,{mod}{xmmreg}{r_m}:movntpd {xmmreg},{mod}{r_m}
+00001111,00101011,{mod}{xmmreg}{r_m}:movntps {xmmreg},{mod}{r_m}
+11110010,00001111,00101100,{Mod}{reg}{R_m}:cvttsd2si {Mod}{R_m},{reg}
+11110011,00001111,00101100,{Mod}{reg}{R_m}:cvttss2si {Mod}{R_m},{reg}
+01100110,00001111,00101100,{Mod}{mmxreg}{R_m}:cvttpd2pi {Mod}{R_m},{mmxreg}
+00001111,00101100,{Mod}{mmxreg}{R_m}:cvttps2pi {Mod}{R_m},{mmxreg}
+01100110,00001111,00101101,{Mod}{mmxreg}{R_m}:cvtpd2pi {Mod}{R_m},{mmxreg}
+11110010,00001111,00101101,{Mod}{reg}{R_m}:cvtsd2si {Mod}{R_m},{reg}
+11110011,00001111,00101101,{Mod}{reg}{R_m}:cvtss2si {Mod}{R_m},{reg}
+00001111,00101101,{Mod}{mmxreg}{R_m}:cvtps2pi {Mod}{R_m},{mmxreg}
+01100110,00001111,00101110,{Mod}{xmmreg}{R_m}:ucomisd {Mod}{R_m},{xmmreg}
+00001111,00101110,{Mod}{xmmreg}{R_m}:ucomiss {Mod}{R_m},{xmmreg}
+01100110,00001111,00101111,{Mod}{xmmreg}{R_m}:comisd {Mod}{R_m},{xmmreg}
+00001111,00101111,{Mod}{xmmreg}{R_m}:comiss {Mod}{R_m},{xmmreg}
+00001111,00110111:getsec
+01100110,00001111,01010000,11{reg}{xmmreg}:movmskpd {xmmreg},{reg}
+00001111,01010000,11{reg}{xmmreg}:movmskps {xmmreg},{reg}
+01100110,00001111,01010001,{Mod}{xmmreg}{R_m}:sqrtpd {Mod}{R_m},{xmmreg}
+11110010,00001111,01010001,{Mod}{xmmreg}{R_m}:sqrtsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01010001,{Mod}{xmmreg}{R_m}:sqrtss {Mod}{R_m},{xmmreg}
+00001111,01010001,{Mod}{xmmreg}{R_m}:sqrtps {Mod}{R_m},{xmmreg}
+11110011,00001111,01010010,{Mod}{xmmreg}{R_m}:rsqrtss {Mod}{R_m},{xmmreg}
+00001111,01010010,{Mod}{xmmreg}{R_m}:rsqrtps {Mod}{R_m},{xmmreg}
+11110011,00001111,01010011,{Mod}{xmmreg}{R_m}:rcpss {Mod}{R_m},{xmmreg}
+00001111,01010011,{Mod}{xmmreg}{R_m}:rcpps {Mod}{R_m},{xmmreg}
+01100110,00001111,01010100,{Mod}{xmmreg}{R_m}:andpd {Mod}{R_m},{xmmreg}
+00001111,01010100,{Mod}{xmmreg}{R_m}:andps {Mod}{R_m},{xmmreg}
+01100110,00001111,01010101,{Mod}{xmmreg}{R_m}:andnpd {Mod}{R_m},{xmmreg}
+00001111,01010101,{Mod}{xmmreg}{R_m}:andnps {Mod}{R_m},{xmmreg}
+01100110,00001111,01010110,{Mod}{xmmreg}{R_m}:orpd {Mod}{R_m},{xmmreg}
+00001111,01010110,{Mod}{xmmreg}{R_m}:orps {Mod}{R_m},{xmmreg}
+01100110,00001111,01010111,{Mod}{xmmreg}{R_m}:xorpd {Mod}{R_m},{xmmreg}
+00001111,01010111,{Mod}{xmmreg}{R_m}:xorps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011000,{Mod}{xmmreg}{R_m}:addsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011000,{Mod}{xmmreg}{R_m}:addss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011000,{Mod}{xmmreg}{R_m}:addpd {Mod}{R_m},{xmmreg}
+00001111,01011000,{Mod}{xmmreg}{R_m}:addps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011001,{Mod}{xmmreg}{R_m}:mulsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011001,{Mod}{xmmreg}{R_m}:mulss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011001,{Mod}{xmmreg}{R_m}:mulpd {Mod}{R_m},{xmmreg}
+00001111,01011001,{Mod}{xmmreg}{R_m}:mulps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011010,{Mod}{xmmreg}{R_m}:cvtsd2ss {Mod}{R_m},{xmmreg}
+11110011,00001111,01011010,{Mod}{xmmreg}{R_m}:cvtss2sd {Mod}{R_m},{xmmreg}
+01100110,00001111,01011010,{Mod}{xmmreg}{R_m}:cvtpd2ps {Mod}{R_m},{xmmreg}
+00001111,01011010,{Mod}{xmmreg}{R_m}:cvtps2pd {Mod}{R_m},{xmmreg}
+01100110,00001111,01011011,{Mod}{xmmreg}{R_m}:cvtps2dq {Mod}{R_m},{xmmreg}
+11110011,00001111,01011011,{Mod}{xmmreg}{R_m}:cvttps2dq {Mod}{R_m},{xmmreg}
+00001111,01011011,{Mod}{xmmreg}{R_m}:cvtdq2ps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011100,{Mod}{xmmreg}{R_m}:subsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011100,{Mod}{xmmreg}{R_m}:subss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011100,{Mod}{xmmreg}{R_m}:subpd {Mod}{R_m},{xmmreg}
+00001111,01011100,{Mod}{xmmreg}{R_m}:subps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011101,{Mod}{xmmreg}{R_m}:minsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011101,{Mod}{xmmreg}{R_m}:minss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011101,{Mod}{xmmreg}{R_m}:minpd {Mod}{R_m},{xmmreg}
+00001111,01011101,{Mod}{xmmreg}{R_m}:minps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011110,{Mod}{xmmreg}{R_m}:divsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011110,{Mod}{xmmreg}{R_m}:divss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011110,{Mod}{xmmreg}{R_m}:divpd {Mod}{R_m},{xmmreg}
+00001111,01011110,{Mod}{xmmreg}{R_m}:divps {Mod}{R_m},{xmmreg}
+11110010,00001111,01011111,{Mod}{xmmreg}{R_m}:maxsd {Mod}{R_m},{xmmreg}
+11110011,00001111,01011111,{Mod}{xmmreg}{R_m}:maxss {Mod}{R_m},{xmmreg}
+01100110,00001111,01011111,{Mod}{xmmreg}{R_m}:maxpd {Mod}{R_m},{xmmreg}
+00001111,01011111,{Mod}{xmmreg}{R_m}:maxps {Mod}{R_m},{xmmreg}
+01100110,00001111,01100000,{Mod}{xmmreg}{R_m}:punpcklbw {Mod}{R_m},{xmmreg}
+00001111,01100000,{MOD}{mmxreg}{R_M}:punpcklbw {MOD}{R_M},{mmxreg}
+01100110,00001111,01100001,{Mod}{xmmreg}{R_m}:punpcklwd {Mod}{R_m},{xmmreg}
+00001111,01100001,{MOD}{mmxreg}{R_M}:punpcklwd {MOD}{R_M},{mmxreg}
+01100110,00001111,01100010,{Mod}{xmmreg}{R_m}:punpckldq {Mod}{R_m},{xmmreg}
+00001111,01100010,{MOD}{mmxreg}{R_M}:punpckldq {MOD}{R_M},{mmxreg}
+01100110,00001111,01100011,{Mod}{xmmreg}{R_m}:packsswb {Mod}{R_m},{xmmreg}
+00001111,01100011,{MOD}{mmxreg}{R_M}:packsswb {MOD}{R_M},{mmxreg}
+01100110,00001111,01100100,{Mod}{xmmreg}{R_m}:pcmpgtb {Mod}{R_m},{xmmreg}
+00001111,01100100,{MOD}{mmxreg}{R_M}:pcmpgtb {MOD}{R_M},{mmxreg}
+01100110,00001111,01100101,{Mod}{xmmreg}{R_m}:pcmpgtw {Mod}{R_m},{xmmreg}
+00001111,01100101,{MOD}{mmxreg}{R_M}:pcmpgtw {MOD}{R_M},{mmxreg}
+01100110,00001111,01100110,{Mod}{xmmreg}{R_m}:pcmpgtd {Mod}{R_m},{xmmreg}
+00001111,01100110,{MOD}{mmxreg}{R_M}:pcmpgtd {MOD}{R_M},{mmxreg}
+01100110,00001111,01100111,{Mod}{xmmreg}{R_m}:packuswb {Mod}{R_m},{xmmreg}
+00001111,01100111,{MOD}{mmxreg}{R_M}:packuswb {MOD}{R_M},{mmxreg}
+01100110,00001111,01101000,{Mod}{xmmreg}{R_m}:punpckhbw {Mod}{R_m},{xmmreg}
+00001111,01101000,{MOD}{mmxreg}{R_M}:punpckhbw {MOD}{R_M},{mmxreg}
+01100110,00001111,01101001,{Mod}{xmmreg}{R_m}:punpckhwd {Mod}{R_m},{xmmreg}
+00001111,01101001,{MOD}{mmxreg}{R_M}:punpckhwd {MOD}{R_M},{mmxreg}
+01100110,00001111,01101010,{Mod}{xmmreg}{R_m}:punpckhdq {Mod}{R_m},{xmmreg}
+00001111,01101010,{MOD}{mmxreg}{R_M}:punpckhdq {MOD}{R_M},{mmxreg}
+01100110,00001111,01101011,{Mod}{xmmreg}{R_m}:packssdw {Mod}{R_m},{xmmreg}
+00001111,01101011,{MOD}{mmxreg}{R_M}:packssdw {MOD}{R_M},{mmxreg}
+01100110,00001111,01101100,{Mod}{xmmreg}{R_m}:punpcklqdq {Mod}{R_m},{xmmreg}
+01100110,00001111,01101101,{Mod}{xmmreg}{R_m}:punpckhqdq {Mod}{R_m},{xmmreg}
+01100110,00001111,01101110,{mod}{xmmreg}{r_m}:movd {mod}{r_m},{xmmreg}
+00001111,01101110,{mod}{mmxreg}{r_m}:movd {mod}{r_m},{mmxreg}
+01100110,00001111,01101111,{Mod}{xmmreg}{R_m}:movdqa {Mod}{R_m},{xmmreg}
+11110011,00001111,01101111,{Mod}{xmmreg}{R_m}:movdqu {Mod}{R_m},{xmmreg}
+00001111,01101111,{MOD}{mmxreg}{R_M}:movq {MOD}{R_M},{mmxreg}
+01100110,00001111,01110000,{Mod}{xmmreg}{R_m},{imm8}:pshufd {imm8},{Mod}{R_m},{xmmreg}
+11110010,00001111,01110000,{Mod}{xmmreg}{R_m},{imm8}:pshuflw {imm8},{Mod}{R_m},{xmmreg}
+11110011,00001111,01110000,{Mod}{xmmreg}{R_m},{imm8}:pshufhw {imm8},{Mod}{R_m},{xmmreg}
+00001111,01110000,{MOD}{mmxreg}{R_M},{imm8}:pshufw {imm8},{MOD}{R_M},{mmxreg}
+01100110,00001111,01110100,{Mod}{xmmreg}{R_m}:pcmpeqb {Mod}{R_m},{xmmreg}
+00001111,01110100,{MOD}{mmxreg}{R_M}:pcmpeqb {MOD}{R_M},{mmxreg}
+01100110,00001111,01110101,{Mod}{xmmreg}{R_m}:pcmpeqw {Mod}{R_m},{xmmreg}
+00001111,01110101,{MOD}{mmxreg}{R_M}:pcmpeqw {MOD}{R_M},{mmxreg}
+01100110,00001111,01110110,{Mod}{xmmreg}{R_m}:pcmpeqd {Mod}{R_m},{xmmreg}
+00001111,01110110,{MOD}{mmxreg}{R_M}:pcmpeqd {MOD}{R_M},{mmxreg}
+01100110,00001111,01111100,{Mod}{xmmreg}{R_m}:haddpd {Mod}{R_m},{xmmreg}
+11110010,00001111,01111100,{Mod}{xmmreg}{R_m}:haddps {Mod}{R_m},{xmmreg}
+01100110,00001111,01111101,{Mod}{xmmreg}{R_m}:hsubpd {Mod}{R_m},{xmmreg}
+11110010,00001111,01111101,{Mod}{xmmreg}{R_m}:hsubps {Mod}{R_m},{xmmreg}
+01100110,00001111,01111110,{mod}{xmmreg}{r_m}:movd {xmmreg},{mod}{r_m}
+11110011,00001111,01111110,{Mod}{xmmreg}{R_m}:movq {Mod}{R_m},{xmmreg}
+00001111,01111110,{mod}{mmxreg}{r_m}:movd {mmxreg},{mod}{r_m}
+01100110,00001111,01111111,{Mod}{xmmreg}{R_m}:movdqa {xmmreg},{Mod}{R_m}
+11110011,00001111,01111111,{Mod}{xmmreg}{R_m}:movdqu {xmmreg},{Mod}{R_m}
+00001111,01111111,{MOD}{mmxreg}{R_M}:movq {mmxreg},{MOD}{R_M}
+00001111,11000011,{mod}{reg}{r_m}:movnti {reg},{mod}{r_m}
+01100110,00001111,11000100,{mod}{xmmreg}{r_m},{imm8}:pinsrw {imm8},{mod}{r_m},{xmmreg}
+00001111,11000100,{mod}{mmxreg}{r_m},{imm8}:pinsrw {imm8},{mod}{r_m},{mmxreg}
+01100110,00001111,11000101,11{reg}{xmmreg},{imm8}:pextrw {imm8},{xmmreg},{reg}
+00001111,11000101,11{reg}{mmxreg},{imm8}:pextrw {imm8},{mmxreg},{reg}
+01100110,00001111,11000110,{Mod}{xmmreg}{R_m},{imm8}:shufpd {imm8},{Mod}{R_m},{xmmreg}
+00001111,11000110,{Mod}{xmmreg}{R_m},{imm8}:shufps {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,11010001,{Mod}{xmmreg}{R_m}:psrlw {Mod}{R_m},{xmmreg}
+00001111,11010001,{MOD}{mmxreg}{R_M}:psrlw {MOD}{R_M},{mmxreg}
+01100110,00001111,11010010,{Mod}{xmmreg}{R_m}:psrld {Mod}{R_m},{xmmreg}
+00001111,11010010,{MOD}{mmxreg}{R_M}:psrld {MOD}{R_M},{mmxreg}
+01100110,00001111,11010011,{Mod}{xmmreg}{R_m}:psrlq {Mod}{R_m},{xmmreg}
+00001111,11010011,{MOD}{mmxreg}{R_M}:psrlq {MOD}{R_M},{mmxreg}
+01100110,00001111,11010100,{Mod}{xmmreg}{R_m}:paddq {Mod}{R_m},{xmmreg}
+00001111,11010100,{MOD}{mmxreg}{R_M}:paddq {MOD}{R_M},{mmxreg}
+01100110,00001111,11010101,{Mod}{xmmreg}{R_m}:pmullw {Mod}{R_m},{xmmreg}
+00001111,11010101,{MOD}{mmxreg}{R_M}:pmullw {MOD}{R_M},{mmxreg}
+01100110,00001111,11010110,{Mod}{xmmreg}{R_m}:movq {xmmreg},{Mod}{R_m}
+11110010,00001111,11010110,11{mmxreg}{xmmreg}:movdq2q {xmmreg},{mmxreg}
+11110011,00001111,11010110,11{xmmreg}{mmxreg}:movq2dq {mmxreg},{xmmreg}
+01100110,00001111,11010111,11{reg}{xmmreg}:pmovmskb {xmmreg},{reg}
+00001111,11010111,11{reg}{mmxreg}:pmovmskb {mmxreg},{reg}
+01100110,00001111,11011000,{Mod}{xmmreg}{R_m}:psubusb {Mod}{R_m},{xmmreg}
+00001111,11011000,{MOD}{mmxreg}{R_M}:psubusb {MOD}{R_M},{mmxreg}
+01100110,00001111,11011001,{Mod}{xmmreg}{R_m}:psubusw {Mod}{R_m},{xmmreg}
+00001111,11011001,{MOD}{mmxreg}{R_M}:psubusw {MOD}{R_M},{mmxreg}
+01100110,00001111,11011010,{Mod}{xmmreg}{R_m}:pminub {Mod}{R_m},{xmmreg}
+00001111,11011010,{MOD}{mmxreg}{R_M}:pminub {MOD}{R_M},{mmxreg}
+01100110,00001111,11011100,{Mod}{xmmreg}{R_m}:paddusb {Mod}{R_m},{xmmreg}
+00001111,11011100,{MOD}{mmxreg}{R_M}:paddusb {MOD}{R_M},{mmxreg}
+01100110,00001111,11011101,{Mod}{xmmreg}{R_m}:paddusw {Mod}{R_m},{xmmreg}
+00001111,11011101,{MOD}{mmxreg}{R_M}:paddusw {MOD}{R_M},{mmxreg}
+01100110,00001111,11011110,{Mod}{xmmreg}{R_m}:pmaxub {Mod}{R_m},{xmmreg}
+00001111,11011110,{MOD}{mmxreg}{R_M}:pmaxub {MOD}{R_M},{mmxreg}
+01100110,00001111,11100000,{Mod}{xmmreg}{R_m}:pavgb {Mod}{R_m},{xmmreg}
+00001111,11100000,{MOD}{mmxreg}{R_M}:pavgb {MOD}{R_M},{mmxreg}
+01100110,00001111,11100001,{Mod}{xmmreg}{R_m}:psraw {Mod}{R_m},{xmmreg}
+00001111,11100001,{MOD}{mmxreg}{R_M}:psraw {MOD}{R_M},{mmxreg}
+01100110,00001111,11100010,{Mod}{xmmreg}{R_m}:psrad {Mod}{R_m},{xmmreg}
+00001111,11100010,{MOD}{mmxreg}{R_M}:psrad {MOD}{R_M},{mmxreg}
+01100110,00001111,11100011,{Mod}{xmmreg}{R_m}:pavgw {Mod}{R_m},{xmmreg}
+00001111,11100011,{MOD}{mmxreg}{R_M}:pavgw {MOD}{R_M},{mmxreg}
+01100110,00001111,11100100,{Mod}{xmmreg}{R_m}:pmulhuw {Mod}{R_m},{xmmreg}
+00001111,11100100,{MOD}{mmxreg}{R_M}:pmulhuw {MOD}{R_M},{mmxreg}
+01100110,00001111,11100101,{Mod}{xmmreg}{R_m}:pmulhw {Mod}{R_m},{xmmreg}
+00001111,11100101,{MOD}{mmxreg}{R_M}:pmulhw {MOD}{R_M},{mmxreg}
+01100110,00001111,11100111,{Mod}{xmmreg}{R_m}:movntdq {xmmreg},{Mod}{R_m}
+00001111,11100111,{MOD}{mmxreg}{R_M}:movntq {mmxreg},{MOD}{R_M}
+01100110,00001111,11101000,{Mod}{xmmreg}{R_m}:psubsb {Mod}{R_m},{xmmreg}
+00001111,11101000,{MOD}{mmxreg}{R_M}:psubsb {MOD}{R_M},{mmxreg}
+01100110,00001111,11101001,{Mod}{xmmreg}{R_m}:psubsw {Mod}{R_m},{xmmreg}
+00001111,11101001,{MOD}{mmxreg}{R_M}:psubsw {MOD}{R_M},{mmxreg}
+01100110,00001111,11101010,{Mod}{xmmreg}{R_m}:pminsw {Mod}{R_m},{xmmreg}
+00001111,11101010,{MOD}{mmxreg}{R_M}:pminsw {MOD}{R_M},{mmxreg}
+01100110,00001111,11101100,{Mod}{xmmreg}{R_m}:paddsb {Mod}{R_m},{xmmreg}
+00001111,11101100,{MOD}{mmxreg}{R_M}:paddsb {MOD}{R_M},{mmxreg}
+01100110,00001111,11101101,{Mod}{xmmreg}{R_m}:paddsw {Mod}{R_m},{xmmreg}
+00001111,11101101,{MOD}{mmxreg}{R_M}:paddsw {MOD}{R_M},{mmxreg}
+01100110,00001111,11101110,{Mod}{xmmreg}{R_m}:pmaxsw {Mod}{R_m},{xmmreg}
+00001111,11101110,{MOD}{mmxreg}{R_M}:pmaxsw {MOD}{R_M},{mmxreg}
+11110010,00001111,11110000,{mod}{xmmreg}{r_m}:lddqu {mod}{r_m},{xmmreg}
+01100110,00001111,11110001,{Mod}{xmmreg}{R_m}:psllw {Mod}{R_m},{xmmreg}
+00001111,11110001,{MOD}{mmxreg}{R_M}:psllw {MOD}{R_M},{mmxreg}
+01100110,00001111,11110010,{Mod}{xmmreg}{R_m}:pslld {Mod}{R_m},{xmmreg}
+00001111,11110010,{MOD}{mmxreg}{R_M}:pslld {MOD}{R_M},{mmxreg}
+01100110,00001111,11110011,{Mod}{xmmreg}{R_m}:psllq {Mod}{R_m},{xmmreg}
+00001111,11110011,{MOD}{mmxreg}{R_M}:psllq {MOD}{R_M},{mmxreg}
+01100110,00001111,11110100,{Mod}{xmmreg}{R_m}:pmuludq {Mod}{R_m},{xmmreg}
+00001111,11110100,{MOD}{mmxreg}{R_M}:pmuludq {MOD}{R_M},{mmxreg}
+01100110,00001111,11110110,{Mod}{xmmreg}{R_m}:psadbw {Mod}{R_m},{xmmreg}
+00001111,11110110,{MOD}{mmxreg}{R_M}:psadbw {MOD}{R_M},{mmxreg}
+01100110,00001111,11110111,11{xmmreg1}{xmmreg2}:maskmovdqu {xmmreg2},{xmmreg1}
+00001111,11110111,11{mmxreg1}{mmxreg2}:maskmovq {mmxreg2},{mmxreg1}
+01100110,00001111,11111000,{Mod}{xmmreg}{R_m}:psubb {Mod}{R_m},{xmmreg}
+00001111,11111000,{MOD}{mmxreg}{R_M}:psubb {MOD}{R_M},{mmxreg}
+01100110,00001111,11111001,{Mod}{xmmreg}{R_m}:psubw {Mod}{R_m},{xmmreg}
+00001111,11111001,{MOD}{mmxreg}{R_M}:psubw {MOD}{R_M},{mmxreg}
+01100110,00001111,11111010,{Mod}{xmmreg}{R_m}:psubd {Mod}{R_m},{xmmreg}
+00001111,11111010,{MOD}{mmxreg}{R_M}:psubd {MOD}{R_M},{mmxreg}
+01100110,00001111,11111011,{Mod}{xmmreg}{R_m}:psubq {Mod}{R_m},{xmmreg}
+00001111,11111011,{MOD}{mmxreg}{R_M}:psubq {MOD}{R_M},{mmxreg}
+01100110,00001111,11111100,{Mod}{xmmreg}{R_m}:paddb {Mod}{R_m},{xmmreg}
+00001111,11111100,{MOD}{mmxreg}{R_M}:paddb {MOD}{R_M},{mmxreg}
+01100110,00001111,11111101,{Mod}{xmmreg}{R_m}:paddw {Mod}{R_m},{xmmreg}
+00001111,11111101,{MOD}{mmxreg}{R_M}:paddw {MOD}{R_M},{mmxreg}
+01100110,00001111,11111110,{Mod}{xmmreg}{R_m}:paddd {Mod}{R_m},{xmmreg}
+00001111,11111110,{MOD}{mmxreg}{R_M}:paddd {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000000,{Mod}{xmmreg}{R_m}:pshufb {Mod}{R_m},{xmmreg}
+00001111,00111000,00000000,{MOD}{mmxreg}{R_M}:pshufb {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000001,{Mod}{xmmreg}{R_m}:phaddw {Mod}{R_m},{xmmreg}
+00001111,00111000,00000001,{MOD}{mmxreg}{R_M}:phaddw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000010,{Mod}{xmmreg}{R_m}:phaddd {Mod}{R_m},{xmmreg}
+00001111,00111000,00000010,{MOD}{mmxreg}{R_M}:phaddd {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000011,{Mod}{xmmreg}{R_m}:phaddsw {Mod}{R_m},{xmmreg}
+00001111,00111000,00000011,{MOD}{mmxreg}{R_M}:phaddsw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000100,{Mod}{xmmreg}{R_m}:pmaddubsw {Mod}{R_m},{xmmreg}
+00001111,00111000,00000100,{MOD}{mmxreg}{R_M}:pmaddubsw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000101,{Mod}{xmmreg}{R_m}:phsubw {Mod}{R_m},{xmmreg}
+00001111,00111000,00000101,{MOD}{mmxreg}{R_M}:phsubw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000110,{Mod}{xmmreg}{R_m}:phsubd {Mod}{R_m},{xmmreg}
+00001111,00111000,00000110,{MOD}{mmxreg}{R_M}:phsubd {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00000111,{Mod}{xmmreg}{R_m}:phsubsw {Mod}{R_m},{xmmreg}
+00001111,00111000,00000111,{MOD}{mmxreg}{R_M}:phsubsw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00001000,{Mod}{xmmreg}{R_m}:psignb {Mod}{R_m},{xmmreg}
+00001111,00111000,00001000,{MOD}{mmxreg}{R_M}:psignb {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00001001,{Mod}{xmmreg}{R_m}:psignw {Mod}{R_m},{xmmreg}
+00001111,00111000,00001001,{MOD}{mmxreg}{R_M}:psignw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00001010,{Mod}{xmmreg}{R_m}:psignd {Mod}{R_m},{xmmreg}
+00001111,00111000,00001010,{MOD}{mmxreg}{R_M}:psignd {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00001011,{Mod}{xmmreg}{R_m}:pmulhrsw {Mod}{R_m},{xmmreg}
+00001111,00111000,00001011,{MOD}{mmxreg}{R_M}:pmulhrsw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00011100,{Mod}{xmmreg}{R_m}:pabsb {Mod}{R_m},{xmmreg}
+00001111,00111000,00011100,{MOD}{mmxreg}{R_M}:pabsb {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00011101,{Mod}{xmmreg}{R_m}:pabsw {Mod}{R_m},{xmmreg}
+00001111,00111000,00011101,{MOD}{mmxreg}{R_M}:pabsw {MOD}{R_M},{mmxreg}
+01100110,00001111,00111000,00011110,{Mod}{xmmreg}{R_m}:pabsd {Mod}{R_m},{xmmreg}
+00001111,00111000,00011110,{MOD}{mmxreg}{R_M}:pabsd {MOD}{R_M},{mmxreg}
+01100110,00001111,00111010,00001111,{Mod}{xmmreg}{R_m},{imm8}:palignr {imm8},{Mod}{R_m},{xmmreg}
+00001111,00111010,00001111,{MOD}{mmxreg}{R_M},{imm8}:palignr {imm8},{MOD}{R_M},{mmxreg}
+01100110,00001111,11000111,{mod}110{r_m}:vmclear {mod}{r_m}
+11110011,00001111,11000111,{mod}110{r_m}:vmxon {mod}{r_m}
+00001111,11000111,{mod}110{r_m}:vmptrld {mod}{r_m}
+00001111,11000111,{mod}111{r_m}:vmptrst {mod}{r_m}
+01100110,00001111,01110001,11010{xmmreg},{imm8}:psrlw {imm8},{xmmreg}
+00001111,01110001,11010{mmxreg},{imm8}:psrlw {imm8},{mmxreg}
+01100110,00001111,01110001,11100{xmmreg},{imm8}:psraw {imm8},{xmmreg}
+00001111,01110001,11100{mmxreg},{imm8}:psraw {imm8},{mmxreg}
+01100110,00001111,01110001,11110{xmmreg},{imm8}:psllw {imm8},{xmmreg}
+00001111,01110001,11110{mmxreg},{imm8}:psllw {imm8},{mmxreg}
+01100110,00001111,01110010,11010{xmmreg},{imm8}:psrld {imm8},{xmmreg}
+00001111,01110010,11010{mmxreg},{imm8}:psrld {imm8},{mmxreg}
+01100110,00001111,01110010,11100{xmmreg},{imm8}:psrad {imm8},{xmmreg}
+00001111,01110010,11100{mmxreg},{imm8}:psrad {imm8},{mmxreg}
+01100110,00001111,01110010,11110{xmmreg},{imm8}:pslld {imm8},{xmmreg}
+00001111,01110010,11110{mmxreg},{imm8}:pslld {imm8},{mmxreg}
+01100110,00001111,01110011,11010{xmmreg},{imm8}:psrlq {imm8},{xmmreg}
+00001111,01110011,11010{mmxreg},{imm8}:psrlq {imm8},{mmxreg}
+01100110,00001111,01110011,11011{xmmreg},{imm8}:psrldq {imm8},{xmmreg}
+01100110,00001111,01110011,11110{xmmreg},{imm8}:psllq {imm8},{xmmreg}
+00001111,01110011,11110{mmxreg},{imm8}:psllq {imm8},{mmxreg}
+01100110,00001111,01110011,11111{xmmreg},{imm8}:pslldq {imm8},{xmmreg}
+00001111,10101110,11101000:lfence
+00001111,10101110,11110000:mfence
+00001111,10101110,11111000:sfence
+00001111,10101110,{mod}111{r_m}:clflush {mod}{r_m}
+00001111,00001111,{MOD}{mmxreg}{R_M}:INVALID {MOD}{R_M},{mmxreg}
+01100110,00001111,00111010,00001100,{Mod}{xmmreg}{R_m},{imm8}:blendps {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001101,{Mod}{xmmreg}{R_m},{imm8}:blendpd {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00010100,{Mod}{xmmreg}{R_m}:blendvps %xmm0,{Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00010101,{Mod}{xmmreg}{R_m}:blendvpd %xmm0,{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01000000,{Mod}{xmmreg}{R_m},{imm8}:dpps {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01000001,{Mod}{xmmreg}{R_m},{imm8}:dppd {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00100001,{Mod}{xmmreg}{R_m},{imm8}:insertps {imm8},{Mod}{R_m},{xmmreg}
+# Mod == 11 is not valid
+01100110,00001111,00111000,00101010,{Mod}{xmmreg}{R_m}:movntdqa {Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01000010,{Mod}{xmmreg}{R_m},{imm8}:mpsadbw {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00101011,{Mod}{xmmreg}{R_m}:packusdw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00010000,{Mod}{xmmreg}{R_m}:pblendvb %xmm0,{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001110,{Mod}{xmmreg}{R_m},{imm8}:pblendw {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00101001,{Mod}{xmmreg}{R_m}:pcmpeqq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01100001,{Mod}{xmmreg}{R_m},{imm8}:pcmpestri {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01100000,{Mod}{xmmreg}{R_m},{imm8}:pcmpestrm {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01100011,{Mod}{xmmreg}{R_m},{imm8}:pcmpistri {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,01100010,{Mod}{xmmreg}{R_m},{imm8}:pcmpistrm {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110111,{Mod}{xmmreg}{R_m}:pcmpgtq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,01000001,{Mod}{xmmreg}{R_m}:phminposuw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00100000,{mod}{xmmreg}{r_m},{imm8}:pinsrb {imm8},{mod}{r_m},{xmmreg}
+01100110,00001111,00111010,00100010,{mod}{xmmreg}{r_m},{imm8}:pinsrd {imm8},{mod}{r_m},{xmmreg}
+01100110,00001111,00111000,00111100,{Mod}{xmmreg}{R_m}:pmaxsb {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111101,{Mod}{xmmreg}{R_m}:pmaxsd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111111,{Mod}{xmmreg}{R_m}:pmaxud {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111110,{Mod}{xmmreg}{R_m}:pmaxuw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111000,{Mod}{xmmreg}{R_m}:pminsb {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111001,{Mod}{xmmreg}{R_m}:pminsd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111011,{Mod}{xmmreg}{R_m}:pminud {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00111010,{Mod}{xmmreg}{R_m}:pminuw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100000,{Mod}{xmmreg}{R_m}:pmovsxbw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100001,{Mod}{xmmreg}{R_m}:pmovsxbd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100010,{Mod}{xmmreg}{R_m}:pmovsxbq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100011,{Mod}{xmmreg}{R_m}:pmovsxwd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100100,{Mod}{xmmreg}{R_m}:pmovsxwq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00100101,{Mod}{xmmreg}{R_m}:pmovsxdq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110000,{Mod}{xmmreg}{R_m}:pmovzxbw {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110001,{Mod}{xmmreg}{R_m}:pmovzxbd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110010,{Mod}{xmmreg}{R_m}:pmovzxbq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110011,{Mod}{xmmreg}{R_m}:pmovzxwd {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110100,{Mod}{xmmreg}{R_m}:pmovzxwq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00110101,{Mod}{xmmreg}{R_m}:pmovzxdq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00101000,{Mod}{xmmreg}{R_m}:pmuldq {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,01000000,{Mod}{xmmreg}{R_m}:pmulld {Mod}{R_m},{xmmreg}
+01100110,00001111,00111000,00010111,{Mod}{xmmreg}{R_m}:ptest {Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001000,{Mod}{xmmreg}{R_m},{imm8}:roundps {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001001,{Mod}{xmmreg}{R_m},{imm8}:roundpd {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001010,{Mod}{xmmreg}{R_m},{imm8}:roundss {imm8},{Mod}{R_m},{xmmreg}
+01100110,00001111,00111010,00001011,{Mod}{xmmreg}{R_m},{imm8}:roundsd {imm8},{Mod}{R_m},{xmmreg}
+# ORDER:
+dnl Many previous entries depend on this being last.
+000{sreg2}111:pop {sreg2}
+# ORDER END:

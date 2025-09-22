@@ -1,0 +1,1097 @@
+2023-03-27  Di Chen  <dichen@redhat.com>
+
+	* NEWS: Support readelf -Ds for using dynamic segment to
+	print symbol table.
+
+2023-03-03  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Add ELFCOMPRESS_ZSTD support for libelf and elfcompress.
+
+2023-02-23  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Add old version code names.
+
+2023-02-21  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Check for -Wuse-after-free=3
+
+2023-02-15  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Error out when demangler is enabled, but
+	__cxa_demangle cannot be found.
+
+2023-01-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* configure.ac: Add some rlimit/affinity checks.
+
+2022-11-02  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.188.
+	* NEWS: Likewise.
+
+2022-10-31  Aaron Merey  <amerey@redhat.com>
+
+	* NEWS: Add debuginfod_find_section.
+
+2022-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (rpm): Remove --sign.
+
+2022-10-22  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Use AC_PROG_CC with autoconf 2.70, or AC_PROG_CC_C99
+	for earlier versions. Use AC_PROG_LEX([noyywrap]).
+
+2022-09-13  Aleksei Vetrov  <vvvvvv@google.com>
+
+	* NEWS (libdwfl): Add dwfl_report_offline_memory.
+
+2022-09-27  Taketo Kabe  <kabe@sra-tohoku.co.jp>
+
+	* debuginfod/debuginfod-client.c: Correctly get timestamp when
+	compiling with -D_TIME_BITS=64 on 32bit environment.
+
+2022-04-28  Di Chen  <dichen@redhat.com>
+
+	* NEWS: Add readefl -D, --use-dynamic.
+
+2022-07-28  Di Chen  <dichen@redhat.com>
+
+	* NEWS: Add dwfl_frame_reg.
+
+2022-07-13  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Add dwfl_get_debuginfod_client.
+
+2022-06-02  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (OLD_LIBMICROHTTPD): New AM_CONDITIONAL based on
+	libmicrohttpd < 0.9.51.
+
+2022-05-02  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (AM_DISTCHECK_CONFIGURE_FLAGS): Remove
+	--enable-valgrind --enable-sanitize-undefined.
+
+2022-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.187.
+	* NEWS: Add some more 0.187 items.
+
+2022-04-24  Frank Ch. Eigler  <fche@redhat.com>
+
+	* AUTHORS.sh, .mailmap: New files.
+	* AUTHORS: Regenerated to cover entire history of elfutils.
+
+2022-04-24  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_CHECK_FUNCS): Add mremap.
+
+2021-03-20  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Remove -m64 on 32bit target comments for
+	utrace_BIARCH check.
+
+2021-03-14  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Use AS_HELP_STRING instead of AC_HELP_STRING.
+
+2021-03-11  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Document new --relative option for addr2line.
+
+2022-03-10  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Move AC_PROG_CXX earlier. Check for both
+	-D_FORTIFY_SOURCE=3 and -D_FORTIFY_SOURCE=2 support. Also
+	set CXXFLAGS. Output final CFLAGS and CXXFLAGS setting.
+
+2021-12-04  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add --enable-sanitize-address.
+
+2021-11-10  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.186.
+	* NEWS: Add translation item.
+
+2021-09-03  John Mellor-Crummey <johnmc@rice.edu>
+
+	* NEWS: Read inlining info in NVIDIA extended line map
+
+2021-08-10  Adrian Ratiu  <adrian.ratiu@collabora.com>
+
+	* configure.ac (AC_CACHE_CHECK): Rework std=gnu99 check to allow clang.
+
+2021-08-20  Saleem Abdulrasool  <abdulras@google.com>
+
+	* Add AC_CHECK_HEADERS for error.h and err.h.
+
+2021-07-28  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_CHECK_DECLS): Add reallocarray check.
+
+2021-05-22  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.185.
+	* NEWS: Add 0.185 entries.
+
+2021-05-10  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.184.
+	* NEWS: Add libdw, translation and debuginfod-client entries.
+
+2021-03-30  Frank Ch. Eigler  <fche@redhat.com>
+
+	* configure.ac: Look for pthread_setname_np.
+
+2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+
+	* configure.ac: Add -Wno-packed-not-aligned check.
+
+2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+
+	* configure.ac: Add -Wtrampolines check.
+
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.183.
+	(AC_COPYRIGHT): Update Copyright year.
+	* NEWS: Add 0.183 section.
+
+2021-02-01  Érico Nogueira  <ericonr@disroot.org>
+
+	* configure.ac: Check for GNU strerror_r.
+
+2021-01-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac [--enable-gcov]: Check for gcov, lcov, and genhtml.
+	* Makefile.am [GCOV] (coverage, coverage-clean): New targets.
+	* .gitignore: Update.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: Move subdirectory patterns to separate .gitignore files.
+
+	* .gitignore: Update.
+
+2020-12-15  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (USE_NLS, AM_PO_SUBDIRS): Remove.
+	(AM_GNU_GETTEXT, AM_GNU_GETTEXT_VERSION,
+	AM_GNU_GETTEXT_REQUIRE_VERSION): Use these macros to setup the gettext
+	infrastructure.
+	* .gitignore: Update.
+
+	* Makefile.am (SUBDIRS): Remove m4.
+	* configure.ac (AC_CONFIG_FILES): Remove m4/Makefile.
+
+	* configure.ac (AC_CONFIG_MACRO_DIR): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac: Fix spelling typos in comments.
+	* NEWS: Fix spelling typos.
+	* NOTES: Likewise.
+	* TODO: Likewise.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (AM_CONDITIONAL): Remove HAVE_LIBASM and STANDALONE.
+
+	* configure.ac: Rewrite argp check.
+
+	* configure.ac (AC_MSG_FAILURE): Fix typo.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (LIBDEBUGINFOD_SONAME): New AC_SUBST variable.
+	(AC_CONFIG_FILES): Add debuginfod/debuginfod.h.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* configure.ac: Check for fts and obstack from outside libc.
+
+2020-10-28  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.182.
+	* NEWS: Add 0.182 section.
+
+2020-10-28  Tom Tromey  <tom@tromey.com>
+
+	* .gitignore: Add /tests/leb128.
+
+2020-10-01  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR25461
+	* configure.ac: Add --enable-debuginfod-urls[=URLS] option.
+
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Check availability of libzstd and zstd.
+
+2020-09-08  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.181.
+	* NEWS: Add 0.181 section.
+
+2020-08-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (--enable-libdebuginfod): AC_DEFINE ENABLE_LIBDEBUGINFOD.
+
+2020-07-17  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set -DBAD_FTS=1 also for CXXFLAGS.
+
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (SUBDIRS): Always add debuginfod.
+	* configure.ac (debuginfod): Split off...
+	(libdebuginfod): ... this. Also add DUMME_DEBUGINFOD.
+
+2020-06-15  Sergei Trofimovich <slyfox@gentoo.org>
+
+	* configure.ac: Use READELF in build-id check.
+
+2020-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.180.
+	* NEWS: Add 0.180 section.
+	* .gitignore: Update with new generated file.
+
+2020-06-10  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (MODVERSION): Remove.
+
+2020-03-30  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.179.
+	* NEWS: Add 0.179 section.
+
+2020-03-25  Mark Wielaard  <mark@klomp.org>
+
+	* README: Update mailinglist subscription info.
+	* CONTRIBUTING: Likewise.
+
+2020-02-03  Frank Ch. Eigler  <fche@redhat.com>
+
+	* configure.ac: Tolerate CXX= for debuginfod configuration.
+
+2019-12-11  Omar Sandoval  <osandov@fb.com>
+
+	* configure.ac: Apply -Werror after user-defined CFLAGS in
+	-D_FORTIFY_SOURCE=2 check.
+
+2019-12-06  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add ac_cv_buildid check.
+
+2019-11-26  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.178.
+	NEWS: Add 0.178 section.
+
+2019-11-26  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add CXXFLAGS for gcov.
+
+2019-10-28  Aaron Merey  <amerey@redhat.com>
+
+	* debuginfod/: New directory for debuginfod code.
+	* Makefile.am (SUBDIRS): Recurse there.
+	* configure.ac (--enable-debuginfod): New flag & checks.
+
+2019-08-25  Jonathon Anderson <jma14@rice.edu>
+
+	* configure.ac: Add new --enable-valgrind-annotations
+	* configure.ac: Add new --with-valgrind (headers only)
+
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* configure.ac: Get rid of --enable-libebl-subdir.
+	* Makefile.am (SUBDIRS): Reorder backends and libcpu before libebl to
+	satisfy build dependencies.
+
+2019-08-13  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.177.
+	* NEWS: Mention elfclassify, readelf DW_AT_data_member_location
+	and DW_AT_discr_list attribute changes, dwarf.h DW_AT_GNU additions,
+	dwelf_elf_e_machine_string function, dwelf_elf_begin change and
+	C-SKY backend support.
+
+2019-02-14  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.176.
+	* NEWS: Mention riscv backend updates, new --enable-install-elfh
+	configure flag and fixed CVEs.
+	* GPG-KEY: Update.
+
+2019-01-18  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add new --enable-install-elfh.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* configure.ac: Check for gawk.
+
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.172.
+	* NEWS: Mention bug fixes.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.171.
+	* NEWS: Mention DWARF5, split-dwarf and GNU DebugFission support.
+
+2018-03-17  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (CHECK_FUNCS): Check for process_vm_readv.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* configure.ac (HAVE_FALLTHROUGH): New define.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* .gitignore: Remove tests/md5-sha1-test.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if the compiler supports
+	__attribute__((gcc_struct)).
+
+2017-09-19  Mark Wielaard  <mark@klomp.org>
+
+	* README: Add basic build instructions.
+
+2017-05-03  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Test if symbol versioning is supported.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if the compiler supports
+	__attribute__((visibility(...))).
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if -fPIC, -fPIE, -Wl,-z,defs,
+	and -Wl,-z,relro are supported by the compiler.
+
+2017-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.170.
+	* NEWS: Mention new libdw dwarf_line_file function.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention dwarf_getmacros handling version 5 .debug_macro.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention dwarf_peel_type DWARF5 tags improvement.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new DWARF5 calling conventions and defaulted member
+	function.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new dwarf_default_lower_bound function.
+
+2017-07-25  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new DWARF5 attributes, tags, character encodings
+	and language codes in dwarf.h.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Don't check for linux/bpf.h.
+	* NEWS: Mention always build bpf backend.
+
+2017-07-14  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Add 0.170 section and new strip options.
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.169. Update copyright year.
+	* NEWS: Add 0.169 section.
+
+2017-04-21  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* .gitignore: Add fillfile and peel_type tests.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Add check for mempcpy.
+
+2017-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add check for adding -D_FORTIFY_SOURCE=2 to CFLAGS.
+
+2017-01-12  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Define PACKAGE_URL for older autoconf.
+
+2016-12-27  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.168.
+	* NEWS: Add 0.168 updates.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* README: Move design notes to NOTES. Add URLs for home, releases,
+	bugs, git and mailinglist now on sourceware.
+	* NOTES: Add notes from README.
+	* CONTRIBUTING: Change fedorahosted.org references to new
+	sourceware.org locations.
+	* configure.ac (AC_INIT): Add package URL http://elfutils.org/
+	change bug-report to https://sourceware.org/bugzilla/
+	(AC_COPYRIGHT): Set to the elfutils developers.
+
+2016-11-23  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add test for bad fts.h. Add -DBAD_FTS=1 to CFLAGS
+	if necessary.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add check for whether gcc accepts
+	-Wimplict-fallthrough.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* configure.ac: Add memrchr, rawmemchr and powerof2 checks.
+
+2016-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.167.
+	* NEWS: Add 0.167 section.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* .gitignore: Remove src/ld. ldlex.c, ldscript.c and ldscript.h.
+	* configure.ac (enable generic): Removed.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* configure.ac (HAVE_LINUX_BPF_H): New test and conditional.
+
+2016-06-10  Mark Wielaard  <mjw@redhat.com>
+
+	* CONTRIBUTING: Extend patch, committer and maintainer guidelines.
+
+2016-05-02  Filipe Brandenburger  <filbranden@google.com>
+
+	* configure.ac (argp check): Pass pass &argv.
+	* configure.ac (-W<...> checks): Pass -Werror to the warning checks,
+	to ensure unsupported warning options are noticed during ./configure
+	time and not only later during build.
+
+2016-03-31  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.166.
+
+2016-03-02  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set program_prefix to eu- by default.
+	* NEWS (0.166): New sections, document --program-prefix default.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add check for whether gcc accepts -Wnull-dereference.
+
+2016-02-08  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add checks for sane -Wlogical-op and whether gcc
+	accepts -Wduplicated-cond.
+
+2016-01-08  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.165.
+	* NEWS: Add 0.164 section.
+
+2016-01-04  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add BZ2_LIBS and LIBLZMA substitutions.
+	Add config/libelf.pc and config/libdw.pc config files.
+
+2015-12-31  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (AM_MAKEFLAGS): Set --no-print-directory.
+
+2015-10-16  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Make zlib mandatory.
+
+2015-10-15  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.164.
+	* NEWS: Add 0.164 additions.
+
+2015-10-07  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add AM_SILENT_RULES([yes]).
+
+2015-09-24  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* configure.ac: Use -fPIC instead of -fpic to avoid relocation
+	overflows in some platforms.
+
+2015-07-11  Pino Toscano  <toscano.pino@tiscali.it>
+
+	* .gitignore: Add more generated files, and anchor some of the
+	existing ones.
+
+2015-06-19  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.163.
+	* NEWS: Mention 0.163 is bug fixes only.
+
+2015-06-10  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.162.
+	* NEWS: Add 0.162 additions.
+
+2015-06-08  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (ADD_STACK_USAGE_WARNING): New conditional based on
+	gcc -Wstack-usage check.
+
+2015-05-31  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (MODVERSION): Define using LIBEBL_SUBDIR, eu_version
+	and ac_cv_build.
+
+2015-05-31  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (use_undefined): Use AC_LINK_IFELSE. AC_DEFINE
+	CHECK_UNDEFINED.
+
+2015-05-30  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Check for bunzip2. Check flex and bison are
+	installed in maintainer-mode. Otherwise check libdw/known-dwarf.h
+	is already generated.
+
+2015-05-21  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add --enable-sanitize-undefined.
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): Rename to...
+	(AM_DISTCHECK_CONFIGURE_FLAGS): this. Add --enable-sanitize-undefined.
+
+2015-05-04  Anthony G. Basile  <blueness@gentoo.org>
+
+	* configure.ac (argp_LDADD): Check if libc has argp and set
+	argp_LDADD accordingly.
+
+2015-05-03  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* configure.ac (DEMANGLE): Fix enable_demangler setting.
+
+2015-05-01  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (DEMANGLE): Explicitly set enable_demangler.
+
+2015-05-01  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (debugpred): Use and set use_debugpred_val.
+	(textrelcheck): Explicitly set enable_textrelcheck to yes or no.
+	(symbol-versioning): Likewise for enable_symbol_versioning.
+	AC_MSG_NOTICE overview of enabled/disabled features.
+
+2015-04-23  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* configure.ac: Add --disable-symbol-versioning.
+
+2015-04-14  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (ac_cv_c99): Add explicit checks for all GNU99
+	extensions used.
+
+2015-03-13  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (ac_cv_c99): Add explicit return.
+	(ac_cv_tls): Add stdlib.h include.
+
+2014-12-18  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.161.
+	* NEWS: Add dwarf.h additions.
+
+2014-12-15  Josh Stone  <jistone@redhat.com>
+
+	* .gitignore: Add config/compile as installed by automake 1.14.
+
+2014-11-27  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add --disable-textrelcheck.
+
+2014-10-06  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: New section 0.161. Add dwarf_peel_type.
+
+2014-08-25  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.160.
+	* NEWS: Add removal of DW_TAG_mutable_type, LZMA .ko.xz kernel
+	module support, ARM THUMB functions and ppc64le ELFv2 abi backends.
+
+2014-08-15  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: Add dwarf_cu_die.
+
+2014-08-15  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: Add dwarf_cu_getdwarf.
+
+2014-07-18  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (AC_CHECK_TYPE): Test for struct user_regs_struct.
+
+2014-05-26  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: New section 0.160. Add unstrip --force.
+
+2014-05-17  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.159.
+	* NEWS: Add entries for version 0.159.
+
+2014-05-02  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: Add note about dwz support no longer being experimental and
+	new helper functions.
+	* configure.ac: Remove --enable-dwz.
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): Remove --enable-dwz.
+
+2014-04-11  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (SUBDIRS): Add libdwelf.
+	* configure.ac (AC_CONFIG_FILES): Add libdwelf/Makefile.
+	* NEWS: Add note about libdwelf.
+
+2014-04-13  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Remove mudflap enable arg and MUDFLAP conditional.
+
+2014-01-21  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS (Version 0.159): Add stack -i.
+
+2014-01-20  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS (Version 0.159): New. Add stack -d.
+
+2014-01-03  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.158.
+	* NEWS: Add entries for version 0.158.
+
+2013-12-20  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS (libdwfl): Add dwfl_getthread_frames.
+	(stack): New entry.
+
+2013-12-18  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS (libdwfl): Add dwfl_module_getsym_info and
+	dwfl_module_addrinfo.
+	(addr2line): Add -x option.
+
+2013-12-17  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* NEWS (Version 0.158) (libdwfl): Added Dwfl_Thread_Callbacks,
+	Dwfl_Thread, Dwfl_Frame, dwfl_attach_state, dwfl_pid, dwfl_thread_dwfl,
+	dwfl_thread_tid, dwfl_frame_thread, dwfl_thread_state_registers,
+	dwfl_thread_state_register_pc, dwfl_getthreads, dwfl_thread_getframes
+	and dwfl_frame_pc.
+
+2013-12-16  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS (libdwfl): Add dwfl_module_getsymtab_first_global.
+
+2013-12-09  Josh Stone  <jistone@redhat.com>
+
+	* .gitignore: Add config/ar-lib, installed due to AM_PROG_AR.
+
+2013-12-02  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.ac (CC_BIARCH): Remove AS_IF for it.
+
+2013-11-07  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.ac: New AC_CHECK_SIZEOF for long.  Call utrace_BIARCH, new
+	AC_SUBST for CC_BIARCH.
+
+2013-11-06  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (--enable-dwz): Add AC_MSG_WARN when disabled but
+	local system does have /usr/lib/debug/.dwz.
+
+2013-11-06  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (--enable-thread-safety): Add AC_MSG_WARN experimental
+	option.
+
+2013-11-01  Michael Forney  <mforney@mforney.org>
+
+	* configure.ac: Call AM_PROG_AR and AC_CHECK_TOOL for readelf and nm.
+
+2013-10-30  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* NEWS (Version 0.158): New.
+
+2013-09-30  Mark Wielaard  <mjw@redhat.com>
+
+	* NEWS: Update for readelf NT_SIGINFO and NT_FILE core notes.
+
+2013-09-27  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.157.
+	* NEWS: Add entries for version 0.157.
+
+2013-09-20  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): Add --enable-dwz.
+
+2013-07-25  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.ac: Set version to 0.156.
+
+2013-07-19  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* NEWS: Remove bugfix only entries from Version 0.156.
+
+2013-07-18  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* NEWS: Add entries for Version 0.156.
+
+2013-04-28  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* NEWS (Version 0.156): New.
+
+2013-04-26  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac (AM_INIT_AUTOMAKE): Request parallel-tests.
+
+2013-04-25  Mark Wielaard  <mjw@redhat.com>
+
+	* .gitignore: Add config/test-driver as installed by automake 1.13.
+	* configure.ac (AM_INIT_AUTOMAKE): Require at least automake 1.11.
+
+2012-10-01  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add --enable-valgrind check.
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): Add --enable-valgrind.
+
+2012-08-27  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.155.
+
+2012-08-24  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add --enable-dwz check, defaults to no.
+
+2012-07-24  Mark Wielaard  <mjw@redhat.com>
+
+	* TODO: Add note on shdrs after elf_cntl (ELF_C_FDREAD).
+
+2012-06-22  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.154.
+
+2012-01-24  Mark Wielaard  <mjw@redhat.com>
+
+	* COPYING: Fix address. Updated version from gnulib.
+
+2012-01-23  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.153, update copyright years.
+
+2012-01-20  Roland McGrath  <roland@hack.frob.com>
+
+	* configure.ac: Handle --enable-deterministic-archives.
+
+2011-10-08  Roland McGrath  <roland@hack.frob.com>
+
+	* configure.ac (eu_version): Use sed instead of ${x/y/z} syntax.
+	Use POSIX.2 $((...)) syntax instead of $[...].
+	Reported by Mike Frysinger <vapier@gentoo.org>.
+
+2011-10-08  Mike Frysinger  <vapier@gentoo.org>
+
+	* configure.ac: Fix use of AC_ARG_ENABLE to handle $enableval correctly.
+
+2011-10-02  Ulrich Drepper  <drepper@gmail.com>
+
+	* configure.ac: Check for __cxa_demangle in libstdc++.
+
+2011-02-08  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (C99 check): Use AC_LANG_SOURCE.
+
+	* configure.ac (ALL_LINGUAS): Remove variable, now obsolete.
+
+2010-09-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac (ALL_LINGUAS): Add languages which have some
+	translations.
+
+2010-04-15  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (LOCALEDIR, DATADIRNAME): Removed.
+
+2009-09-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Update for more modern autoconf.
+
+2009-08-26  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (zip_LIBS): Check for liblzma too.
+
+2009-04-19  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (eu_version): Round down here, not in version.h macros.
+
+2009-04-17  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (eu_version): Compute number 1000 times larger,
+	let $PACKAGE_VERSION be x.y.z as well as x.y (implied x.y.0).
+
+2009-01-23  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (zlib check): Check for gzdirect, need zlib >= 1.2.2.3.
+
+	* configure.ac (__thread check): Use AC_LINK_IFELSE, in case of
+	building with compiler support but no working runtime support.
+
+2009-01-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (rpm): The tarball is now bzip2-compressed.
+
+2009-01-10  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Require gcc with TLS support.
+	Rename USE_TLS to USE_LOCKS.  The option is renamed to
+	--enable-thread-safety.
+
+2009-01-08  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (eu_ZIPLIB): Moved to m4/zip.am.
+
+2009-01-05  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (eu_ZIPLIB): New macro.
+	Use it to test for -lz, -lbz2, set .am ZLIB, BZLIB, zip_LIBS.
+
+2008-12-30  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: We need automake 1.8 now.
+
+2008-12-24  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac: Use automake flags dist-bzip2 no-dist-gzip,
+	distribute only in .tar.bz2 form now.
+
+2008-12-16  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (pkginclude_HEADERS): New variable, install version.h.
+	* configure.ac: Create it, substituting @eu_version@ with
+	PACKAGE_VERSION canonicalized to four digits of decimal.
+
+2008-08-25  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (--enable-tls): Set AM_CONDITIONAL USE_TLS too.
+
+2008-08-21  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (AH_BOTTOM): Emit #include <eu-config.h> and
+	move the contents to lib/eu-config.h instead of keeping them here.
+
+2007-12-20  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Add support for --enable-debugpred.
+	Update likely/unlikely macros for it.
+
+2007-06-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Remove traces of mini builds.
+	* configure.ac: Don't use libelf-po/POTFILES.in as config file
+	anymore.
+
+2007-05-16  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (AM_INIT_AUTOMAKE): Use -Wno-portability.
+
+2006-11-02  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (EXTRA_DIST): Add EXCEPTION file.
+
+2006-08-29  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac: Use AM_MAINTAINER_MODE.
+
+2006-07-12  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac (internal_function): Don't use internal visibility.
+
+2006-07-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Add dummy automake conditional to get dependencies
+	for non-generic linker right.  See src/Makefile.am.
+
+2005-11-18  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): New variable.
+
+2005-11-16  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac: Define HAVE_LIBASM and STANDALONE conditionals.
+	In config.h, define ELFUTILS_HEADER macro.
+
+2005-11-15  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (all_SUBDIRS): Add backends.
+	* configure.ac: Write backends/Makefile.
+
+	* configure.ac: Add --enable-tests-rpath option.
+
+2005-09-16  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac (ALLOW_UNALIGNED) [__ia64__ || __alpha__]:
+	Don't set it, since on IA64 you get error messages for unaligned
+	accesses, and on Alpha it's at least very slow.
+
+2005-08-29  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Fix GCOV make condition generation.
+
+2005-08-28  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Add --enable-gcov option.
+
+2005-08-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Add --enable-gprof option.
+
+2005-07-27  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (all_SUBDIRS): Put libdwfl before libdw.
+
+2005-07-21  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac: Take --enable-libebl-subdir=DIR to set LIBEBL_SUBDIR.
+
+2005-06-01  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (all_SUBDIRS): Add libdwfl.
+	* configure.ac: Write libdwfl/Makefile.
+
+2005-05-19  Roland McGrath  <roland@redhat.com>
+
+	* configure.ac [AH_BOTTOM] (INTDECL, _INTDECL): New macros.
+
+2005-05-10  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Define MODVERSION in config.h.
+
+2005-02-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (all_SUBDIRS): Don't add doc subdir for now.
+	* configure.ac: Don't use doc subdir for now.
+
+2005-02-15  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Remove AM_GNU_GETTEXT use.  Use only AM_PO_SUBDIRS.
+
+2005-02-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac (AM_INIT_AUTOMAKE): Removed dist-bzip2.
+
+	* Makefile.am (EXTRA_DIST): Remove splint.rc.
+	* splint.rc: Removed.
+
+2004-09-25  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Make compile with gcc 4.0.
+
+2004-03-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Use AS_HELP_STRING where applicable.
+
+2004-01-23  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Check for C99 compiler.
+
+	* configure.ac: Change locking macros in config.h to at least
+	evaluate the parameter.  Define base_cpu to none for generic linker.
+
+2004-01-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Print error message in case --disable-generic is
+	used if no linker support for the architecture is available.
+
+2004-01-18  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Dont generate libebl-po/Makefile.in,
+	libdw-po/Makefile.in, libasm-po/Makefile.in.
+
+	* Makefile.am (all_SUBDIRS): Remove libebl-po, libdw-po, libasm-po.
+
+2004-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Pretty printing of help message.
+
+	* configure.ac: Move AC_SYS_LARGEFILE test to the front.
+
+	* configure.ac: Add --enable-mudflap option.
+
+2004-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Major cleanups.  Use aux dir.
+	* config.guess: Moved to new config subdir.
+	* config.rpath: Likewise.
+	* config.sub: Likewise.
+	* depcomp: Likewise.
+	* install-sh: Likewise.
+	* missing: Likewise.
+	* mkinstalldirs: Likewise.
+	* Makefile.am (mini_SUBDIRS): Add config.
+	(EXTRA_DIST): Remove config.rpath.
+
+	* configure.ac: Add AC_REVISION.
+
+	* configure.ac: Add --enable-mudflap option.
+
+2004-01-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* configure.ac: Drop libdwarf directory.  Add libdw-po.
+	* Makefile.am (all_SUBDIRS): Likewise.
+	* elfutils.spec: Don't distribute anything from libdwarf.
+
+2004-01-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Support separate libelf built.
+
+	* elfutils.spec.in: Create separata elfutils-libelf-devel package.
+	Install libdw DSOs.
+
+	* configure.ac (AC_CONFIG_SRCDIR): Use libelf/libelf.h as the file
+	name.
+
+2003-08-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Remove references to libebl.so.
+
+2003-08-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* Moved to CVS archive.
+
+2000-08-25  Ulrich Drepper  <drepper@redhat.com>
+
+	* The beginning.  See the NEWS file for the time being.

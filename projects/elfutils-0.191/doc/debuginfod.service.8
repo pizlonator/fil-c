@@ -1,0 +1,30 @@
+'\"! tbl | nroff \-man
+'\" t macro stdmacro
+
+.TH DEBUGINFOD.SERVICE 8
+.SH NAME
+debuginfod.service \- debuginfo related information server for systemd
+
+.SH SYNOPSIS
+.B /usr/lib/systemd/system/debuginfod.service
+
+.SH DESCRIPTION
+\fBdebuginfod.service\fP integrates the debuginfod daemon with
+systemd, serving debuginfo-related artifacts over HTTP.
+The data is stored in /var/cache/debuginfod/debuginfod.sqlite.
+Configure /etc/sysconfig/debuginfod to set the below environment
+variables as well as those listed in \fBdebuginfod\fP(8).
+.SH Environment variables
+\fB$DEBUGINFOD_PORT\fP - Changes port of \fBdebuginfod\fP service
+daemon.
+.br
+\fB$DEBUGINFOD_VERBOSE\fP - Change verbosity of reporting in
+\fBdebuginfod\fP service daemon log file.
+.br
+\fB$DEBUGINFOD_PATHS\fP - Changes paths to scan for \fBdebuginfod\fP service daemon.
+.SH FILES
+/usr/lib/systemd/system/debuginfod.service, /var/cache/debuginfod/debuginfod.sqlite
+/etc/sysconfig/debuginfod
+
+.SH SEE ALSO
+debuginfod(8), debuginfod-find(1), systemctl(1), systemd.service(5)

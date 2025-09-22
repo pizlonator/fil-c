@@ -1,0 +1,643 @@
+2023-02-21  Mark Wielaard  <mark@klomp.org>
+
+	* eu.am (USE_AFTER_FREE3_WARNING): Define.
+	(AM_CFLAGS): Use USE_AFTER_FREE3_WARNING.
+
+2022-10-02  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.188.
+	Include %{_mandir}/man8/debuginfod*.8* for new
+	debuginfod-service.8 man page.
+	Remove duplicate %{_sysconfdir}/sysconfig/debuginfod.
+
+2022-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Escape % in comments.
+
+2022-10-27  Mark Wielaard  <mark@klomp.org>
+
+	* eu.am: Use grep -F instead of fgrep.
+
+2022-10-27  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add BuildRequires socat.
+
+2022-08-17  Martin Liska  <mliska@suse.cz>
+
+	* debuginfod.service: Add new debuginfod.sysconfig
+	value DEBUGINFOD_EXTRA_ARGS.
+	* debuginfod.sysconfig: Likewise.
+
+2022-08-16  Martin Liska  <mliska@suse.cz>
+
+	* profile.csh.in: Support nullglob in profile.*.in files.
+	* profile.sh.in: Likewise.
+
+2022-08-17  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.sysconfig: Clarify cmdline vs client-env variables.
+
+2022-05-03  Mark Wielaard  <mark@klomp.org>
+
+	* profile.csh.in: Move the 2>/dev/null inside the sh -c '' quotes.
+
+2022-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.187.
+
+2022-01-19  Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+
+	* profile.csh.in: Set DEBUGINFOD_URLS directly. Use "$0" and :
+	in sh -c.
+	* profile.sh.in: Set DEBUGINFOD_URLS directly. Don't use sh -c.
+	Use $() instead of ``.
+
+2022-04-07  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (debuginfod-client): Add an explicit requires
+	on elfutils-libs and elfutils-libelf.
+
+2021-11-10  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.186.
+
+2021-10-03  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR27783
+	* profile.sh, profile.csh: Rewrite to document and set DEBUGINFOD_URLS
+	from /etc/debuginfod/*.urls files.
+	* Makefile.am: Install the configury-specified .urls file.
+	* elfutils.spec: Package it.
+
+2021-09-05  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* eu.am (STACK_USAGE_NO_ERROR): New variable.
+
+2021-07-06  Alice Zhang  <alizhang@redhat.com>
+
+	* debuginfod.sysconfig: Introduce default retry limit.
+
+2021-05-10  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.185.
+
+2021-05-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in: Add procps to BuildRequires: for %check.
+
+2021-05-10  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.184.
+
+2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+
+	* eu.am (NO_PACKED_NOT_ALIGNED_WARNING): New variable.
+	(AM_CFLAGS): Use NO_PACKED_NOT_ALIGNED_WARNING.
+	(AM_CXXFLAGS): Likewise.
+
+2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+
+	* eu.am (TRAMPOLINES_WARNING): New variable.
+	(AM_CFLAGS): Use TRAMPOLINES_WARNING.
+	(AM_CXXFLAGS): Likewise.
+
+2021-02-12  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Escape %%check in comment.
+
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.183.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* 10-default-yama-scope.conf: Fix spelling typo in comment.
+	* upload-release.sh: Likewise.
+	* elfutils.spec.in: Fix spelling typos in %changelog.
+
+2020-11-04  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* profile.sh.in, profile.csh.in: Do not define $DEBUGINFOD_URLS unless
+	configured using --enable-debuginfod-urls.
+
+2020-11-02  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (pkgconfig_DATA, install-data-local, uninstall-local):
+	Conditionalize on LIBDEBUGINFOD instead of DEBUGINFOD.
+
+2020-10-31  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (install-data-local, uninstall-local): Conditionalize
+	on DEBUGINFOD.
+
+2020-10-30  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.182.
+
+2020-10-31  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.service: Bump up TimeoutStopSec.
+
+2020-10-30  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in: Fix debuginfod config/state file attributes
+	for non-lossy updates.
+
+2020-10-08  Frank Ch. Eigler  <fche@redhat.com>
+
+	* Makefile.am (uninstall-local): Uninstall the new profile.d files.
+
+2020-10-01  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR25461
+	* profile.sh.in, profile.csh.in: New files for /etc/profile.d
+	to define $DEBUGINFOD_URLS.
+	* elfutils.spec.in: Configure with --enable-debuginfod-urls.
+	* Makefile.am: Install them.
+
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add BuildRequires for libzstd-devel and zstd.
+	* libdw.pc.in: Requires.private libzstd.
+
+2020-09-08  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.181.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* upload-release.sh: Use /usr/bin/env bash.
+
+2020-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.189.
+
+2020-04-21  Frank Ch. Eigler <fche@redhat.com>
+
+	* debuginfod.sysconfig (DEBUGINFOD_PATHS): Add /var/lib/pulp.
+
+2020-03-30  Mark Wielaard  <mark@klomp.org>
+
+	* upload-release.sh: chmod uploaded dir and files to make them
+	readable.
+
+2020-03-30  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.179.
+
+2020-03-25  Frank Ch. Eigler <fche@redhat.com>
+
+	* elfutils.spec.in: *Require: bsdtar instead of dpkg.
+
+2020-03-04  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (package debuginfod): Remove Requires: rpm.
+	Add Requires: dpkg.
+
+2020-01-12  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in: Typo fix for "Requires: debuginfod-client".
+
+2020-01-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.service: Set PrivateTmp=yes.
+
+2020-01-01  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (pkgconfig_DATA): Conditionalize libdebuginfod.pc
+	on DEBUGINFOD.
+
+2019-12-22  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in (debuginfod): Add BuildRequire dpkg
+	for deb testing.  (Available on Fedora & EPEL, not base RHEL.)
+
+2019-12-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add explicit version-release requires for all
+	packages.
+
+2019-11-28  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (debuginfod): Add an explicit Requires
+	elfutils-debuginfod-client.
+
+2019-11-27  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Move all versioned libdebuginfod libraries
+	from debuginfod-client-devel to debuginfod-client.
+
+2019-11-26  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Remove Group tags, remove fedora and rhel
+	specifics, introduce elfutils-libs subpackage, move Requires
+	and BuildRequires around for new subpackage, remove dot at end
+	of Summary tags, add post/postun ldconfig for libs and
+	debuginfod-client, remove default defattr(-,root,root) for file
+	lists, order binaries by name.
+
+2019-11-25  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add BuildRequires curl.
+
+2019-10-28  Frank Ch. Eigler  <fche@redhat.com>
+
+	* eu.am (AM_CXXFLAGS): Clone & amend AM_CFLAGS for c++11 code.
+	* debuginfod.service, debuginfod.sysconfig: New files: systemd.
+	* Makefile.am: Install them.
+	* elfutils.spec.in: Add debuginfod and debuginfod-client subrpms.
+
+2019-08-29  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (%description devel): Remove libebl text.
+	(%install): Don't touch backend lib.*.so* files.
+	(%files): Remove backends dir and so files.
+	(%files devel): Remove libebl.h and libebl.a
+
+2019-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (License): Add GFDL.
+	(%install): Correct sub-shell syntax, use (), not {}.
+	(%files): Add man1/eu-*.1*.
+	Add eu-stack. Add COPYING-GFDL.
+	(%files libelf-devel): Add man3/elf_*.3*.
+
+2019-08-14  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* elfutils.spec.in (%files): Add %{_bindir}/eu-elfclassify.
+
+2019-08-13  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (elfutils.spec.in): Use git --get user.name and
+	user.email.
+
+2019-04-15  Mark Wielaard  <mark@klomp.org>
+
+	* upload-release.sh: Add git tag --verify.
+
+2019-02-14  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.176.
+
+2018-11-19  Mark Wielaard  <mark@klomp.org>
+
+	* eu.am (AM_CFLAGS): Add -Wtrampolines.
+
+2018-07-04  Mark Wielaard  <mark@klomp.org>
+
+	* upload-release.sh: New file.
+
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.172.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.171.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eu.am (IMPLICIT_FALLTHROUGH_WARNING): Set to 5.
+
+2017-11-02  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Config files under /usr/lib/sysctl.d (_sysctldir)
+	aren't %config.
+
+2017-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* eu.am (AM_CFLAGS): Handle -Wno-packed-not-aligned.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu.am: Use fpic_CFLAGS.
+
+2016-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.170.
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.169.
+
+2016-12-27  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.168 and new project location.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.pc.in: Set URL to http://elfutils.org/
+	* libelf.pc.in: Likewise.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check HAVE_IMPLICIT_FALLTHROUGH_WARNING.
+	(AM_CFLAGS): Add IMPLICIT_FALLTHROUGH_WARNING.
+
+2016-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.167.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Remove eu-ld.
+
+2016-03-31  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.166.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check HAVE_NULL_DEREFERENCE_WARNING.
+	(AM_CFLAGS): Add NULL_DEREFERENCE_WARNING.
+
+2016-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check SANE_LOGICAL_OP_WARNING and
+	HAVE_DUPLICATED_COND_WARNING.
+	(AM_CFLAGS): Add LOGICAL_OP_WARNING and DUPLICATED_COND_WARNING.
+
+2016-01-08  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Add elfcompress. Update for 0.165.
+
+2016-01-04  Mark Wielaard  <mjw@redhat.com>
+
+	* libelf.pc.in: New file.
+	* libdw.pc.in: Likewise.
+	* Makefile.am (EXTRA_DIST): Add libelf.pc.in and libdw.pc.in.
+	(pkgconfigdir): New variable.
+	(pkgconfigdir_DATA): Likewise.
+	* elfutils.spec.in (files devel): Add libdw.pc.
+	(files libelf-devel): Add libelf.pc.
+
+2015-10-15  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.164.
+
+2015-10-07  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (ARFLAGS): Set to "cr".
+
+2015-10-09  Josh Stone  <jistone@redhat.com>
+
+	* eu.am (print-%): New target to print any variable.
+
+2015-10-05  Josh Stone  <jistone@redhat.com>
+
+	* eu.am (%.os): Add AM_V_CC silencers.
+
+2015-09-24  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* eu.am (%.os): Use -fPIC instead of -fpic to avoid relocation
+	overflows in some platforms.
+
+2015-09-22  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (AM_CFLAGS): Add -Wold-style-definition -Wstrict-prototypes.
+
+2015-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* 10-default-yama-scope.conf: New file.
+	* Makefile.am (EXTRA_DIST): Add 10-default-yama-scope.conf.
+	* elfutils.spec.in (Requires): default-yama-scope.
+	(default-yama-scope): New package.
+
+2015-06-19  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.163.
+
+2015-06-11  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in (devel): Include elfutils/known-dwarf.h and
+	elfutils/version.h.
+
+2015-06-10  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.162.
+
+2015-05-23  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (STACK_USAGE_WARNING): New variable set based on
+	ADD_STACK_USAGE_WARNING conditional.
+	(AM_CFLAGS): Use STACK_USAGE_WARNING variable.
+
+2015-05-23  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (AM_CFLAGS): Add -Wstack-usage=262144.
+
+2015-04-23  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* eu.am (DEFS.os): New variable.
+
+2015-03-18  Petr Machata  <pmachata@redhat.com>
+
+	* known-dwarf.awk (comment): Drop all uses of this variable.
+	(END): Always emit the non-_DESC variant.  Emit
+	DWARF_ALL_KNOWN_DW_ instead of ALL_KNOWN_DW_*, and
+	DWARF_ONE_KNOWN_DW_ instead of ONE_KNOWN_DW_*.
+
+2015-02-20  Petr Machata  <pmachata@redhat.com>
+
+	* known-dwarf.awk (END): Drop useless variables lo, hi.  Merge two
+	continue-checks in one.
+
+2014-12-18  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.161.
+
+2014-11-27  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Define textrel_msg, textrel_found and textrel_check based
+	on FATAL_TEXTREL.
+
+2014-08-25  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.160.
+
+2014-05-17  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.159.
+	(%files devel): Add libdwelf.h.
+
+2014-04-13  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (AM_CFLAGS): Don't add -fmudflap.
+	(COMPILE.os): Don't remove no_mudflap.os.
+
+2014-01-22  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am (AM_CFLAGS): Unconditionally add -Wformat=2.
+
+2014-01-03  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.158.
+
+2013-11-01  Michael Forney  <mforney@mforney.org>
+
+	* eu.am: Use READELF.
+
+2013-09-30  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for readelf NT_SIGINFO and NT_FILE
+	core notes.
+
+2013-09-27  Mark Wielaard  <mjw@redhat.com>
+
+	* config/elfutils.spec.in: Update for 0.157.
+
+2013-07-25  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* config/elfutils.spec.in: Update for 0.156.
+
+2013-04-24  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Use AM_CPPFLAGS instead of INCLUDES.
+
+2012-08-27  Mark Wielaard  <mjw@redhat.com>
+
+	* config/elfutils.spec.in: Update for 0.155.
+
+2012-07-19  Mark Wielaard  <mjw@redhat.com>
+
+	* known-dwarf.awk: "Generated by" header had wrong file names,
+	mention config/known-dwarf.awk and libdw/dwarf.h contents.
+
+2012-06-22  Mark Wielaard  <mjw@redhat.com>
+
+	* config/elfutils.spec.in: Update for 0.154.
+
+2012-02-23  Mark Wielaard  <mjw@redhat.com>
+
+	* config/elfutils.spec.in: Update for 0.153.
+
+2011-10-31  Mark Wielaard  <mjw@redhat.com>
+
+	* known-dwarf.awk: Use gawk.
+
+2010-07-02  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Add more BuildRequires.
+	Ship the .mo files with the libelf subpackage.
+
+2010-04-15  Roland McGrath  <roland@redhat.com>
+
+	* eu.am (DEFS): Add -DLOCALEDIR=... here.
+
+2010-02-15  Roland McGrath  <roland@redhat.com>
+
+	* eu.am: New file.
+
+2009-04-19  Roland McGrath  <roland@redhat.com>
+
+	* version.h.in: Revert last change.
+
+2009-04-17  Roland McGrath  <roland@redhat.com>
+
+	* version.h.in (_ELFUTILS_PREREQ): Multiple major by 1000000 and minor
+	by 1000; now _ELFUTILS_VERSION is 789000 for version 0.789.
+
+2009-01-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Distribute <elfutils/version.h> in
+	elfutils-libelf-devel.
+
+2009-01-22  Roland McGrath  <roland@redhat.com>
+
+	* known-dwarf.awk: Handle DW_FOO_BAR_* sets better.
+
+2009-01-11  Roland McGrath  <roland@redhat.com>
+
+	* known-dwarf.awk: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2008-12-24  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am ($(srcdir)/elfutils.spec.in): Rewrite awk magic.
+	Put the target inside [if MAINTAINER_MODE].
+
+2008-12-16  Roland McGrath  <roland@redhat.com>
+
+	* version.h.in: New file.
+
+2008-01-12  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Add m4 to build requirements.
+
+2008-01-02  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Changes for disasm branch merge.
+
+2007-08-08  Roland McGrath  <roland@redhat.com>
+
+	* elfutils.spec.in (License): Canonicalize.
+
+2007-04-23  Roland McGrath  <roland@redhat.com>
+
+	* elfutils.spec.in: Distribute eu-unstrip.
+
+2005-08-13  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am ($(srcdir)/elfutils.spec.in): Add missing $.
+
+2005-07-28  Roland McGrath  <roland@redhat.com>
+
+	* elfutils.spec.in: Remove libdwfl.so from package.
+
+2005-07-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Distribute eu-elfcmp.
+
+2005-04-01  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Distribute eu-addr2line.
+
+2005-03-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Distribute libdw.{a,so,h}.
+
+2005-02-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Ignore result of cvs run.
+
+	* elfutils.spec.in: Simplify build process by not using a subdir.
+	This means we can use %configure.
+
+2005-02-18  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Automatically added changelog from NEWS file on dist.
+
+2005-02-15  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Make sure RPM_OPT_FLAGS is used.  During
+	%build, really do build the binaries.
+	Remove --enable-shared configure parameters.
+
+2005-02-07  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in (BuildRequires): Up gcc requirement to 3.4.
+
+2004-11-23  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Some more changes for the RPM with the fake
+	binaries.
+
+2004-01-29  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.spec.in: Update BuildRequires.
+
+2004-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: New file.
+	* config.guess: Moved to here from toplevel.
+	* config.rpath: Likewise.
+	* config.sub: Likewise.
+	* depcomp: Likewise.
+	* install-sh: Likewise.
+	* missing: Likewise.
+	* mkinstalldirs: Likewise.
+	* elfutils.spec.in: New file.

@@ -1,0 +1,95 @@
+Fundamental design decision:
+
+- the sizes of external and internal types are assumed to be the same.
+  This leaves byte ordering aside.  While assuming this the code can be
+  greatly simplified and speed increases.  Since no change violating this
+  assumption is in sight this is believed to be a worthwhile optimization.
+
+- the ABI of the backend modules is not guaranteed.  Really, no guarantee
+  whatsoever.  We are enforcing this in the code.  The modules and their
+  users must match.  No third-party EBL module are supported or allowed.
+  The only reason there are separate modules is to not have the code for
+  all architectures in all the binaries.
+
+- although the public libraries (libasm, libdw) have a stable API and are
+  backwards ABI compatible they, and the elfutils tools, do depend on each
+  others internals, and on internals of libelf to provide their interfaces.
+  So they should always be upgraded in lockstep when packaging the tools
+  and libraries separately. For one example of how to do that, see the
+  config/elfutils.spec.
+
+Some notes:
+
+- old GNU ld's behavior wrt DSOs seems to be severely broken.
+
+     y.o reference foo()
+     y1.o defines foo(), references bar()
+     y2.o defines bar()
+     libbar.so defines bar()
+
+  Running
+
+     gcc -o y y.o -lbar y1.o y2.o
+
+  uses the bar() definition from libbar.so and does not mention the definition
+  in y2.o at all (no duplicate symbol message).  Correct is to use the
+  definition in y2.o.
+
+
+     y.o reference foo()
+     y1.o defines foo(), references bar()
+     y2.o in liby2.a defines bar()
+     libbar.so defines bar()
+
+  Running
+
+     gcc -o y y.o -lbar y1.o -ly3
+
+  has to use the definition in -lbar and not pull the definition from liby3.a.
+
+
+- the old linker follows DT_NEEDED entries and adds the objects referenced
+  this way which define a symbol which is needed as a DT_NEEDED to the
+  generated binary.  This is wrong since the DT_NEEDED changes the search
+  path in the object (which is breadth first).
+
+
+- the old linker supported extern "C++", extern "java" in version scripts.
+  I believe this implementation is severely broken and needs a redesign
+  (how do wildcards work with these languages*?).  Therefore it is left
+  out for now.
+
+
+- what should happen if two sections in different files with the same
+  name have different types and/or the flags are different
+
+
+- section names in input files are mostly irrelevant.  Exceptions:
+
+  .comment/SHT_PROGBITS		in strip, ld
+
+  .debug		\
+  .line			|
+  .debug_srcinfo	|
+  .debug_sfnames	|
+  .debug_aranges	|
+  .debug_pubnames	|
+  .debug_info		|
+  .debug_abbrev		|
+  .debug_line		|
+  .debug_abbrev		 >	DWARF sections in ld
+  .debug_line		|
+  .debug_frame		|
+  .debug_str		|
+  .debug_loc		|
+  .debug_macinfo	|
+  .debug_weaknames	|
+  .debug_funcnames	|
+  .debug_typenames	|
+  .debug_varnames	/
+
+  Sections created in output files follow the naming of special section
+  from the gABI.
+
+  In no place is a section solely identified by its name.  Internal
+  references always use the section index.

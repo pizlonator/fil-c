@@ -1,0 +1,63 @@
+/* List the relocation types for alpha.  -*- C -*-
+   Copyright (C) 2005 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,		0)
+RELOC_TYPE (REFLONG,		REL|EXEC|DYN)
+RELOC_TYPE (REFQUAD,		REL|EXEC|DYN)
+RELOC_TYPE (GPREL32,		REL)
+RELOC_TYPE (LITERAL,		REL)
+RELOC_TYPE (LITUSE,		REL)
+RELOC_TYPE (GPDISP,		REL)
+RELOC_TYPE (BRADDR,		REL)
+RELOC_TYPE (HINT,		REL)
+RELOC_TYPE (SREL16,		REL)
+RELOC_TYPE (SREL32,		REL)
+RELOC_TYPE (SREL64,		REL)
+RELOC_TYPE (GPRELHIGH,		REL)
+RELOC_TYPE (GPRELLOW,		REL)
+RELOC_TYPE (GPREL16,		REL)
+RELOC_TYPE (COPY,		0)
+RELOC_TYPE (GLOB_DAT,		EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,		EXEC|DYN)
+RELOC_TYPE (RELATIVE,		EXEC|DYN)
+RELOC_TYPE (TLS_GD_HI,		REL)
+RELOC_TYPE (TLSGD,		REL)
+RELOC_TYPE (TLS_LDM,		REL)
+RELOC_TYPE (DTPMOD64,		REL|EXEC|DYN)
+RELOC_TYPE (GOTDTPREL,		REL)
+RELOC_TYPE (DTPREL64,		REL|EXEC|DYN)
+RELOC_TYPE (DTPRELHI,		REL)
+RELOC_TYPE (DTPRELLO,		REL)
+RELOC_TYPE (DTPREL16,		REL)
+RELOC_TYPE (GOTTPREL,		REL)
+RELOC_TYPE (TPREL64,		REL|EXEC|DYN)
+RELOC_TYPE (TPRELHI,		REL)
+RELOC_TYPE (TPRELLO,		REL)
+RELOC_TYPE (TPREL16,		REL)

@@ -1,0 +1,24 @@
+ELFUTILS_0 { };
+ELFUTILS_0.178 {
+  global:
+  debuginfod_begin;
+  debuginfod_end;
+  debuginfod_find_debuginfo;
+  debuginfod_find_executable;
+  debuginfod_find_source;
+  debuginfod_set_progressfn;
+} ELFUTILS_0;
+ELFUTILS_0.179 {
+  global:
+  debuginfod_set_user_data;
+  debuginfod_get_user_data;
+  debuginfod_get_url;
+  debuginfod_add_http_header;
+} ELFUTILS_0.178;
+ELFUTILS_0.183 {
+  debuginfod_set_verbose_fd;
+} ELFUTILS_0.179;
+ELFUTILS_0.188 {
+  debuginfod_get_headers;
+  debuginfod_find_section;
+} ELFUTILS_0.183;

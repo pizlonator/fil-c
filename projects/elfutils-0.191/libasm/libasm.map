@@ -1,0 +1,38 @@
+ELFUTILS_1.0 {
+  global:
+    asm_abort;
+    asm_addint16;
+    asm_addint32;
+    asm_addint64;
+    asm_addint8;
+    asm_addsleb128;
+    asm_addstrz;
+    asm_adduint16;
+    asm_adduint32;
+    asm_adduint64;
+    asm_adduint8;
+    asm_adduleb128;
+    asm_align;
+    asm_begin;
+    asm_end;
+    asm_errmsg;
+    asm_errno;
+    asm_fill;
+    asm_getelf;
+    asm_newabssym;
+    asm_newcomsym;
+    asm_newscn;
+    asm_newscn_ingrp;
+    asm_newscngrp;
+    asm_newsubscn;
+    asm_newsym;
+    asm_scngrp_newsignature;
+
+    disasm_begin;
+    disasm_cb;
+    disasm_end;
+    disasm_str;
+
+  local:
+    *;
+};

@@ -1,0 +1,91 @@
+/* List the relocation types for s390.  -*- C -*-
+   Copyright (C) 2005, 2006, 2015 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/* 	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,               0)
+RELOC_TYPE (8,                  REL|EXEC|DYN)
+RELOC_TYPE (12,                 REL|EXEC|DYN)
+RELOC_TYPE (16,                 REL|EXEC|DYN)
+RELOC_TYPE (32,                 REL|EXEC|DYN)
+RELOC_TYPE (PC32,               REL|EXEC|DYN)
+RELOC_TYPE (GOT12,              REL)
+RELOC_TYPE (GOT32,              REL)
+RELOC_TYPE (PLT32,              REL)
+RELOC_TYPE (COPY,               EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,           EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,           EXEC|DYN)
+RELOC_TYPE (RELATIVE,           EXEC|DYN)
+RELOC_TYPE (GOTOFF32,           REL)
+RELOC_TYPE (GOTPC,              REL)
+RELOC_TYPE (GOT16,              REL)
+RELOC_TYPE (PC16,               REL|EXEC|DYN)
+RELOC_TYPE (PC16DBL,            REL|EXEC|DYN)
+RELOC_TYPE (PLT16DBL,           REL)
+RELOC_TYPE (PC32DBL,            REL|EXEC|DYN)
+RELOC_TYPE (PLT32DBL,           REL)
+RELOC_TYPE (GOTPCDBL,           REL)
+RELOC_TYPE (64,                 REL|EXEC|DYN)
+RELOC_TYPE (PC64,               REL|EXEC|DYN)
+RELOC_TYPE (GOT64,              REL)
+RELOC_TYPE (PLT64,              REL)
+RELOC_TYPE (GOTENT,             REL)
+RELOC_TYPE (GOTOFF16,           REL)
+RELOC_TYPE (GOTOFF64,           REL)
+RELOC_TYPE (GOTPLT12,           REL)
+RELOC_TYPE (GOTPLT16,           REL)
+RELOC_TYPE (GOTPLT32,           REL)
+RELOC_TYPE (GOTPLT64,           REL)
+RELOC_TYPE (GOTPLTENT,          REL)
+RELOC_TYPE (PLTOFF16,           REL)
+RELOC_TYPE (PLTOFF32,           REL)
+RELOC_TYPE (PLTOFF64,           REL)
+RELOC_TYPE (TLS_LOAD,           REL)
+RELOC_TYPE (TLS_GDCALL,         REL)
+RELOC_TYPE (TLS_LDCALL,         REL)
+RELOC_TYPE (TLS_GD32,           REL)
+RELOC_TYPE (TLS_GD64,           REL)
+RELOC_TYPE (TLS_GOTIE12,        REL)
+RELOC_TYPE (TLS_GOTIE32,        REL)
+RELOC_TYPE (TLS_GOTIE64,        REL)
+RELOC_TYPE (TLS_LDM32,          REL)
+RELOC_TYPE (TLS_LDM64,          REL)
+RELOC_TYPE (TLS_IE32,           REL)
+RELOC_TYPE (TLS_IE64,           REL)
+RELOC_TYPE (TLS_IEENT,          REL)
+RELOC_TYPE (TLS_LE32,           REL)
+RELOC_TYPE (TLS_LE64,           REL)
+RELOC_TYPE (TLS_LDO32,          REL)
+RELOC_TYPE (TLS_LDO64,          REL)
+RELOC_TYPE (TLS_DTPMOD,         DYN)
+RELOC_TYPE (TLS_DTPOFF,         DYN)
+RELOC_TYPE (TLS_TPOFF,          DYN)
+RELOC_TYPE (20,                 REL|EXEC|DYN)
+RELOC_TYPE (GOT20,              REL)
+RELOC_TYPE (GOTPLT20,           REL)
+RELOC_TYPE (TLS_GOTIE20,        REL)

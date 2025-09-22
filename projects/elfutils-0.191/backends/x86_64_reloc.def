@@ -1,0 +1,65 @@
+/* List the relocation types for x86-64.  -*- C -*-
+   Copyright (C) 2000, 2001, 2002, 2003, 2005, 2009, 2015 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,	REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,	0)
+RELOC_TYPE (64,		REL|EXEC|DYN)
+RELOC_TYPE (PC32,	REL|EXEC|DYN)
+RELOC_TYPE (GOT32,	REL)
+RELOC_TYPE (PLT32,	REL)
+RELOC_TYPE (COPY,	EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,	EXEC|DYN)
+RELOC_TYPE (JUMP_SLOT,	EXEC|DYN)
+RELOC_TYPE (RELATIVE,	EXEC|DYN)
+RELOC_TYPE (GOTPCREL,	REL)
+RELOC_TYPE (32,		REL|EXEC|DYN)
+RELOC_TYPE (32S,	REL)
+RELOC_TYPE (16,		REL)
+RELOC_TYPE (PC16,	REL)
+RELOC_TYPE (8,		REL)
+RELOC_TYPE (PC8,	REL)
+RELOC_TYPE (DTPMOD64,	EXEC|DYN)
+RELOC_TYPE (DTPOFF64,	EXEC|DYN)
+RELOC_TYPE (TPOFF64,	EXEC|DYN)
+RELOC_TYPE (TLSGD,	REL)
+RELOC_TYPE (TLSLD,	REL)
+RELOC_TYPE (DTPOFF32,	REL)
+RELOC_TYPE (GOTTPOFF,	REL)
+RELOC_TYPE (TPOFF32,	REL)
+RELOC_TYPE (PC64,	REL|EXEC|DYN)
+RELOC_TYPE (GOTOFF64,	REL)
+RELOC_TYPE (GOTPC32,	REL)
+RELOC_TYPE (SIZE32,	REL|EXEC|DYN)
+RELOC_TYPE (SIZE64,	REL|EXEC|DYN)
+RELOC_TYPE (GOTPC32_TLSDESC, REL)
+RELOC_TYPE (TLSDESC_CALL, REL)
+RELOC_TYPE (TLSDESC,	REL|EXEC|DYN)
+RELOC_TYPE (IRELATIVE,	EXEC|DYN)
+RELOC_TYPE (GOTPCRELX,	REL)
+RELOC_TYPE (REX_GOTPCRELX, REL)

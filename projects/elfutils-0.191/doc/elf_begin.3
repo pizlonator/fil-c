@@ -1,0 +1,37 @@
+.\" Modified Thu Sep 5 2017 by Ben Woodard <woodard@redhat.com>
+.\"
+.TH ELF_BEGIN 3 2017-09-05 "Libelf" "Libelf Programmer's Manual"
+.SH NAME
+elf_begin \- Return descriptor for ELF file.
+.nf
+.SH SYNOPSIS
+.B #include <libelf.h>
+.sp
+.BI "Elf *elf_begin (int " filedes ", Elf_Cmd " cmd ", Elf *" ref ");"
+.BI "Elf *elf_clone (int " filedes ", Elf_Cmd " cmd ");"
+.BI "int elf_end (Elf *" elf ");"
+.fi
+.SH DESCRIPTION
+The
+.BR elf_begin ()
+.SH RETURN VALUE
+.SH ERRORS
+elf_begin ELF_E_NO_VERSION ELF_E_INVALID_FILE ELF_E_INVALID_CMD ELF_E_NOMEM
+elf_clone ELF_E_NOMEM
+elf_end
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw29 lb lb
+l l l.
+Interface       Attribute       Value
+T{
+.BR elf_begin (),
+.BR elf_clone (),
+.BR elf_end ()
+T}      Thread safety   MT-Safe
+.TE
+
+.SH SEE ALSO

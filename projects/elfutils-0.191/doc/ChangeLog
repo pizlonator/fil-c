@@ -1,0 +1,294 @@
+2023-02-14  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod.8: Add .TP before -g.
+
+2023-01-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Tweak -c/-C documentation for heuristic defaults.
+
+2022-10-31  Aaron Merey  <amerey@redhat.com>
+
+	* Makefile.am (notrans_dist_man3_MANS): Add debuginfod_find_section.3.
+	* debuginfod_find_section.3: New file.
+	* debuginfod_find_debuginfo.3: Document debuginfod_find_section.
+	* debuginfod.8: Document section webapi.
+
+2022-10-28  Arsen Arsenović  <arsen@aarsen.me>
+
+	* readelf.1: Document the --syms alias.
+
+2022-10-18  Daniel Thornburgh  <dthorn@google.com>
+
+	* debuginfod_find_debuginfo.3: Document DEBUGINFOD_HEADERS_FILE.
+
+2022-09-02  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod_find_debuginfo.3: Tweaked debuginfod_get_headers docs.
+
+2022-07-15  Noah Sanci  <nsanci@redhat.com>
+
+	* debuginfod_find_debuginfo.3: Explained debuginfod_get_headers
+	usage.
+	* debuginfod_get_headers.3: Created.
+
+2022-09-02  Aaron Merey  <amerey@redhat.com>
+
+	* debuginfod.8 (-C): Update description.
+
+2022-06-03  Michael Trapp <michael.trapp@sap.com>
+
+	* debuginfod.8 (--disable-source-scan): Document.
+
+2022-05-09  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Tweak prefetch descriptions.
+
+2022-01-31  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-client-config.7: Elaborate DEBUGINFOD_URLS.
+
+2021-12-08  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR28661
+	* debuginfod.8 (-C): Document new flag.
+
+2021-11-05  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR28430
+	* debuginfod.8 (--passive): Document new flag & operation mode.
+
+2021-08-28  Di Chen  <dichen@redhat.com>
+
+	* debuginfod.8 (-d): Document ":memory:" as in-memory database.
+
+2021-08-20  Di Chen  <dichen@redhat.com>
+
+	* debuginfod.8: Add --forwarded-ttl-limit=NUM documentation.
+
+2021-07-28  Alice Zhang <alizhang@redhat.com>
+
+	PR27950
+	* debuginfod-client-config.7: New file to store all cache config
+	infos.
+	* debuginfod-find.1: Removed redundant occurrences of environment
+	variables & cache control files.
+	* debuginfod.8: Likewise.
+	* debuginfod_find_debuginfo.3: Likewise.
+	* Makefile.am: Updated to include debuginfod-client-config.7
+	* man3, man7: Symlinks for source tree man page testing.
+
+2021-08-04  Noah Sanci  <nsanci@redhat.com>
+
+	PR27277
+	* debuginfod-find.1: Increasing verbosity describes the downloaded
+	file.
+	* debuginfod.8: Describe X-DEBUGINFOD-FILE, X-DEBUGINFOD-SIZE, and
+	X-DEBUGINFOD-ARCHIVE.
+
+2021-07-26  Noah Sanci <nsanci@redhat.com>
+
+	PR27982
+	* debuginfod-find.1: Document DEBUGINFOD_MAXTIME
+	and DEBUGINFOD_MAXSIZE.
+
+2021-04-23  Frank Ch. Eigler <fche@redhat.com>
+
+	PR27701
+	* debuginfod_find_debuginfo.3: Specify sequential reuse policy of
+	debuginfod_client objects.
+
+2021-02-04  Frank Ch. Eigler <fche@redhat.com>
+
+	* debuginfod.8: Mention new --fdcache-mintmp option.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* debuginfod.8: Fix spelling typos.
+	* debuginfod_find_debuginfo.3: Likewise.
+	* elfutils.sgml: Likewise.
+	* readelf.1: Likewise.
+
+2020-12-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* debuginfod_find_debuginfo.3: Document DEBUGINFOD_SONAME macro.
+
+2020-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3: Document debuginfod_set_verbose_fd
+	and DEBUGINFOD_VERBOSE.
+	* debuginfod_set_verbose_fd.3: New redirect to
+	debuginfod_find_debuginfo.3
+
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775
+	* debuginfod.8: Document that SIGUSR1 interrupts the groom
+	cycle, and SIGUSR2 interrupts rescan.
+
+2020-10-25  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3 (ECONNREFUSED): Document that this
+	is also returned for a bad HTTPS server certificate.
+
+2020-10-07  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-find.1: Add missing .br for SYNOPSIS section.
+
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am: Guard all client manpages with LIBDEBUGINFOD.
+
+2020-03-29  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3 (HTTP HEADER): Document the expected
+	header format and purpose.
+
+2020-03-28  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Document valid --port=NUM range, excludes 0.
+
+2020-03-27  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-find.1: Document /path/-based buildid passing.
+
+2020-03-24  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod_add_http_header.3: New function, documented ...
+	* debuginfod_find_debuginfo.3: ... here.
+	* Makefile.am (notrans_dist_*_man3): Add it.
+
+2020-03-26  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8 (-R): Note zstd compression complications
+	and workaround.
+
+2020-03-24  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-find.1, debuginfod_find_debuginfo.3: Document
+	source path canonicalization.
+
+2020-03-22  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod_get_url.3: New function, documented ...
+	* debuginfod_find_debuginfo.3: ... here.
+	* Makefile.am (notrans_dist_*_man3): Add it.
+
+2020-03-22  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod_get_user.3, _set_user.3: New functions, documented ...
+	* debuginfod_find_debuginfo.3: ... here.
+	* Makefile.am (notrans_dist_*_man3): List all debuginfod .3 functions.
+
+2020-02-25  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Note that -R works just like -Z.rpm .
+
+2020-02-25  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Document new --fdcache-prefetch option.
+
+2020-02-05  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Document new -Z flag and tweak other bits.
+
+2020-01-10  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3 (DEBUGINFOD_PROGRESS): Mention progress
+	output goes to stderr.
+
+2020-01-11  Frank Ch. Eigler  <fche@redhat.com
+
+	* debuginfod.8: Document --fdcache-fds and --fdcache-mbs opts.
+
+2020-01-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.8: Rework sections dealing with traversal/scanning,
+	explaining new threading model.
+
+2020-01-02  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod.8 (DEBUGINFOD_TIMEOUT): Document as seconds to
+	provide 100K, default 90.
+	* debuginfod-find.1 (DEBUGINFOD_TIMEOUT): Likewise.
+	* debuginfod_find_debuginfo.3 (DEBUGINFOD_TIMEOUT): Likewise.
+
+2019-12-22  Frank Ch. Eigler  <fche@redhat.com
+
+	* debuginfod.8: Add -U (DEB) flag, generalize RPM to "archive".
+
+2019-12-04  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-find.1: Bump default timeout to 30.
+	* debuginfod_find_debuginfo.3: Ditto.
+	Document $DEBUGINFOD_PROGRESS.
+
+2019-11-26  Frank Ch. Eigler  <fche@redhat.com>
+	    Aaron Merey  <amerey@redhat.com>
+
+	* debuginfod.8, find-debuginfo.1, debuginfod_*.3: New files.
+
+2019-09-02  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.1 (symbols): Add optional section name.
+	(dyn-sym): Document new option.
+
+2019-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* COPYING: Rename to...
+	* COPYING-GFDL: ... this.
+
+2019-08-23  Ben Woodard  <woodard@redhat.com>
+
+	* Updated the eu-readelf man page to make it match the options
+	that eu-readelf actually supports.
+
+2019-08-22  Ben Woodard  <woodard@redhat.com>S
+
+	* Move the .1 man pages to the correct place.
+
+2019-08-21  Ben Woodard  <woodard@redhat.com>
+
+	* Updated Changelog
+	* Added README
+
+2019-08-20  Ben Woodard  <woodard@redhat.com>
+
+	* Added eu-elfclassify.1 man page based upon --help
+	* Forked binutils readelf page to make eu-readelf.1 man page
+	* Modified eu-readelf.1 to add -n:: option.
+	* Disabled sgml file building per mjw.
+	* Added man pages to Makefile.am
+
+2019-06-20  Ben Woodard  <woodard@redhat.com>
+
+	* Added the beginnings of some man pages
+
+2019-08-21  Ben Woodard  <woodard@redhat.com>
+
+	* Updated Changelog
+	* Added README
+
+2019-08-20  Ben Woodard  <woodard@redhat.com>
+
+	* Added eu-elfclassify.1 man page based upon --help
+	* Forked binutils readelf page to make eu-readelf.1 man page
+	* Modified eu-readelf.1 to add -n:: option.
+	* Disabled sgml file building per mjw.
+	* Added man pages to Makefile.am
+
+2019-06-20 Ben Woodard <woodard@redhat.com>
+
+	* Added the beginnings of some man pages
+
+2005-04-29  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfutils.sgml: Some typo fixes and a few extensions.
+	Patch by Eric Christopher <echristo@redhat.com>.
+
+2005-02-22  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Prefer pdf.
+
+2003-08-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* Moved to CVS archive.

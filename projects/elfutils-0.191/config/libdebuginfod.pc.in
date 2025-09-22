@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: debuginfod
+Description: elfutils library to query debuginfo files from debuginfod servers
+Version: @VERSION@
+URL: http://elfutils.org/
+
+Libs: -L${libdir} -ldebuginfod
+Cflags: -I${includedir}

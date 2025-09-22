@@ -1,0 +1,321 @@
+2023-02-17  Mark Wielaard  <mark@klomp.org>
+
+	* asm_end.c (free_section): free scnp->content last.
+
+2022-12-20  Mark Wielaard  <mark@klomp.org>
+
+	* disasm_begin.c: Include libeblP.h.
+	* disasm_cb.c: Likewise.
+	* bpf_disasm.c: Likewise and include common.h.
+
+2022-10-21  Yonggang Luo  <luoyonggang@gmail.com>
+
+	* asm_abort.c: Don't include unistd.h.
+	* asm_addint8.c: Don't include byteswap.h and endian.h.
+	* asm_begin.c: Don't include unistd.h and system.h.
+	* asm_end.c: Likewise.
+	* libasmP.h: Include system.h.
+
+2021-09-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* asm_align.c (__libasm_ensure_section_space): Remove casts of calloc
+	return values.
+	* asm_begin.c (asm_begin): Remove cast of malloc return value.
+	* asm_fill.c (asm_fill): Likewise.
+	* asm_newabssym.c (asm_newabssym): Likewise.
+	* asm_newcomsym.c (asm_newcomsym): Likewise.
+	* asm_newscn.c (asm_newscn): Likewise.
+	* asm_newscngrp.c (asm_newscngrp): Likewise.
+	* asm_newsubscn.c (asm_newsubscn): Likewise.
+	* asm_newsym.c (asm_newsym): Likewise.
+	* disasm_begin.c (disasm_begin): Likewise.
+
+2021-04-19  Martin Liska  <mliska@suse.cz>
+
+	* libasmP.h (asm_emit_symbol_p): Use startswith.
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* libasmP.h (_): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* asm_begin.c (prepare_binary_output): Fix spelling typo in comment.
+	* asm_end.c (binary_end): Likewise.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (GCC_INCLUDE): Remove.
+
+2020-12-09  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (noinst_PROGRAMS): Rename to noinst_DATA.
+	(libasm_so_SOURCES): Remove.
+	(CLEANFILES): Add libasm.so.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libasm.so$(EXEEXT)): Drop $(EXEEXT) suffix.
+
+2020-10-29  Mark Wielaard  <mark@klomp.org>
+
+	* asm_align.c (__libasm_ensure_section_space): Use calloc, not
+	malloc to allocate extra space.
+
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* libasmP.h: Include libebl.h after libasm.h.
+
+2020-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* libasm.h: Include gelf.h.
+
+2020-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* asm_end.c (text_end): Call fflush instead of fclose.
+
+2020-01-08  Mark Wielaard  <mark@klomp.org>
+
+	* libasm.h: Don't include libebl.h. Define an opaque Ebl handle.
+	* libasmP.h: Do include libebl.h.
+
+2019-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libasm_so_DEPS): Replace libebl.a with libebl_pic.a.
+
+2019-03-06  Mark Wielaard  <mark@klomp.org>
+
+	* asm_end.c (binary_end): Check return value of gelf_update_ehdr.
+
+2018-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* disasm_cb.c (read_symtab_exec): Check sh_entsize is not zero.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* asm_end.c: Remove error.h include.
+	* asm_newscn.c: Likewise.
+	* i386_gendis.c: Likewise and add system.h include.
+	* i386_lex.l: Likewise.
+	* i386_parse.y: Likewise.
+
+2017-02-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use dso_LDFLAGS.
+
+2017-02-17  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Add libasm_so_DEPS to specify external libraries
+	that have to be linked in, and libasm_so_LIBS to specify the
+	archives libasm consists of. The dependencies include libeu.a.
+	(libasm_so_LDLIBS): Add $(libasm_so_DEPS).
+	(libasm_so$(EXEEXT): Use $(libasm_so_LIBS),
+	add --no-undefined,-z,defs,-z,relro,
+	drop the manual enumeration of dependencies,
+	specify the correct path for libasm.map.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* asm_end.c (binary_end): Fix nesting of braces.
+
+2017-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_newsym.c (asm_newsym): Increase TEMPSYMLEN to 13.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* disasm_str.c: Include system.h.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* asm_align.c: Remove sys/param.h include.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (AM_CPPFLAGS): Add libdwelf.
+	(libasm.so): Add libdw.
+	* asm_begin.c (prepare_binary_output): Use dwelf_strtab instead of
+	ebl_strtab.
+	* asm_end.c (binary_end): Likewise.
+	(__libasm_finictx): Likewise.
+	* asm_newabssym.c (asm_newabssym):  Likewise.
+	* asm_newcomsym.c (asm_newcomsym): Likewise.
+	* asm_newscn.c (binary_newscn): Likewise.
+	* asm_newscngrp.c (asm_newscngrp): Likewise.
+	* asm_newsym.c (asm_newsym): Likewise.
+	* libasmP.h: Likewise.
+	* symbolhash.c (COMPARE): Likewise.
+	* symbolhash.h (COMPARE): Likewise.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* disasm_cb.c (disasm_cb): Pass ebl to disasm hook.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_begin.c (prepare_text_output): Only call __fsetlocking when
+	result isn't NULL.
+
+2015-10-05  Josh Stone  <jistone@redhat.com>
+
+	* Makefile.am (libasm.so): Add AM_V_CCLD and AM_V_at silencers.
+
+2015-09-23  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_align.c (__libasm_ensure_section_space): Mark as
+	internal_function.
+	* asm_end.c (__libasm_finictx): Likewise.
+	* asm_error.c (__libasm_seterrno): Likewise.
+
+2015-09-22  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_*.c: Remove old-style function definitions.
+
+2015-09-04  Chih-Hung Hsieh  <chh@google.com>
+
+	* asm_addint8.c (FCT): Replace K&R function definition
+	with ansi-C definitions.
+	* asm_adduint8.c (UFCT): Likewise.
+	* asm_begin.c (asm_begin): Likewise.
+
+2014-12-18  Ulrich Drepper  <drepper@gmail.com>
+
+	* Makefile.am: Suppress output of textrel_check command.
+
+2014-11-27  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (libasm.so): Use textrel_check.
+
+2014-04-13  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am: Remove !MUDFLAP conditions.
+
+2013-04-24  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am: Use AM_CPPFLAGS instead of INCLUDES.
+
+2011-02-08  Roland McGrath  <roland@redhat.com>
+
+	* asm_newscn.c (asm_newscn): Remove unused variable.
+
+2010-02-15  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am: Use config/eu.am for common stuff.
+
+2009-01-10  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Use USE_LOCKS instead of USE_TLS.
+	* asm_error.c: Always use __thread.  Remove all !USE_TLS code.
+
+2008-12-03  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am [USE_TLS]: Like libasm.so with libpthread.
+
+2008-01-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* libasm.h (DisasmGetSymCB_t): Change type of fourth and fifth
+	parameter.
+	* disasm_cb.c: Adjust accordingly.
+
+2008-01-08  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (euinclude): Variable removed.
+	(pkginclude_HEADERS): Set this instead of euinclude_HEADERS.
+
+2007-12-20  Ulrich Drepper  <drepper@redhat.com>
+
+	* disasm_cb.c: Add initial support to resolve addresses to symbols.
+
+2007-02-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* disasm_begin.c: New file.
+	* disasm_cb.c: New file.
+	* disasm_end.c: New file.
+	* disasm_str.c: New file.
+
+2006-08-29  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (CLEANFILES): Add libasm.so.$(VERSION).
+
+2005-11-13  Roland McGrath  <roland@redhat.com>
+
+	* Makefile.am (INCLUDES): Search in libdw.
+
+2005-09-02  Ulrich Drepper  <drepper@redhat.com>
+
+	* asm_error.c (asm_errmsg): Unify error message.
+
+2005-08-28  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Use $(LINK) not $(CC) when creating DSO.
+	(%.os): Use COMPILE.os.
+	(COMPILE.os): Filter out gconv options.
+
+2005-08-02  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add -std=gnu99.
+	* asm_abort.c: Don't try to remove output file if there is none.
+	* asm_addint8.c: In print mode, print to file not stdout.
+	* asm_addsleb128.c: Likewise.
+	* asm_adduleb128.c: Likewise.
+	* asm_newscn.c: Likewise.
+	* asm_align.c: Implement print mode.
+	* asm_begin.c (asm_begin): Change interface.  Take binary class and
+	byte order information from new Ebl parameter.
+	* libasm.h: Adjust prototype.
+	* asm_end.c (text_end): Close file if necesary.
+	* asm_error.c: Add new error ASM_E_IOERROR.
+	* libasmP.h: Add ASM_E_IOERROR definition.
+
+2005-02-15  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am (AM_CFLAGS): Add -Wunused -Wextra -Wformat=2.
+
+	* asm_end.c (text_end): Mark parameter as possibly unused.
+
+2005-02-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Remove lint handling.
+
+2005-02-05  Ulrich Drepper  <drepper@redhat.com>
+
+	* asm_end.c (binary_end): Don't terminate with error() in case
+	something goes wrong.
+
+	* Makefile.am: Check for text relocations in constructed DSO.
+
+	* Makefile.am (AM_CFLAGS): More warnings.  Add -fmudflap for MUDFLAP.
+
+	* asm_end.c (binary_end): Remove shadowing variables.
+	Little cleanups.
+
+	* asm_newsym.c: Allocate memory for the string parameter.
+
+2005-02-04  Ulrich Drepper  <drepper@redhat.com>
+
+	* asm_newscn_ingrp.c (asm_newscn_ingrp): Use INTUSE to reference
+	asm_newscn.
+
+2004-09-25  Ulrich Drepper  <drepper@redhat.com>
+
+	* asm_error.c: Make compile with gcc 4.0.
+
+2004-01-20  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Support building with mudflap.
+
+2004-01-18  Ulrich Drepper  <drepper@redhat.com>
+
+	* libasmP.h (_): Use elfutils domain.
+
+2004-01-17  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.am: Support building with mudflap.
+
+2003-08-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* Makefile.in: Depend on libebl.a, not libebl.so.
+
+2003-08-11  Ulrich Drepper  <drepper@redhat.com>
+
+	* Moved to CVS archive.

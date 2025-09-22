@@ -1,0 +1,147 @@
+'\"! tbl | nroff \-man
+'\" t macro stdmacro
+
+.de SAMPLE
+.br
+.RS 0
+.nf
+.nh
+..
+.de ESAMPLE
+.hy
+.fi
+.RE
+..
+
+.TH DEBUGINFOD-FIND 1
+.SH NAME
+debuginfod-find \- request debuginfo-related data
+
+.SH SYNOPSIS
+.B debuginfod-find [\fIOPTION\fP]... debuginfo \fIBUILDID\fP
+.br
+.B debuginfod-find [\fIOPTION\fP]... debuginfo \fIPATH\fP
+.br
+.B debuginfod-find [\fIOPTION\fP]... executable \fIBUILDID\fP
+.br
+.B debuginfod-find [\fIOPTION\fP]... executable \fIPATH\fP
+.br
+.B debuginfod-find [\fIOPTION\fP]... source \fIBUILDID\fP \fI/FILENAME\fP
+.br
+.B debuginfod-find [\fIOPTION\fP]... source \fIPATH\fP \fI/FILENAME\fP
+
+.SH DESCRIPTION
+\fBdebuginfod-find\fP queries one or more \fBdebuginfod\fP servers for
+debuginfo-related data.  In case of a match, it saves the the
+requested file into a local cache, prints the file name to standard
+output, and exits with a success status of 0.  In case of any error,
+it exits with a failure status and an error message to standard error.
+
+.\" Much of the following text is duplicated with debuginfod.8
+
+The debuginfod system uses buildids to identify debuginfo-related data.
+These are stored as binary notes in ELF/DWARF files, and are
+represented as lowercase hexadecimal.  For example, for a program
+/bin/ls, look at the ELF note GNU_BUILD_ID:
+
+.SAMPLE
+% readelf -n /bin/ls | grep -A4 build.id
+Note section [ 4] '.note.gnu.buildid' of 36 bytes at offset 0x340:
+Owner          Data size  Type
+GNU                   20  GNU_BUILD_ID
+Build ID: 8713b9c3fb8a720137a4a08b325905c7aaf8429d
+.ESAMPLE
+
+Then the hexadecimal BUILDID is simply:
+
+.SAMPLE
+8713b9c3fb8a720137a4a08b325905c7aaf8429d
+.ESAMPLE
+
+In place of the hexadecimal \fIBUILDID\fP, debuginfod-find also
+accepts a path name to to an ELF binary, from which it extracts the
+buildid.  In this case, ensure the file name has some character other
+than \fB[0-9a-f]\fP.  Files ambiguously named files like
+"\fBdeadbeef\fP" can be passed with a \fB./deadbeef\fP extra path
+component.
+
+
+.SS debuginfo \fIBUILDID\fP
+
+If the given buildid is known to a server, this request will result
+in a binary object that contains the customary \fB.*debug_*\fP
+sections.  This may be a split debuginfo file as created by
+\fBstrip\fP, or it may be an original unstripped executable.
+
+.SS executable \fIBUILDID\fP
+
+If the given buildid is known to the server, this request will result
+in a binary object that contains the normal executable segments.  This
+may be a executable stripped by \fBstrip\fP, or it may be an original
+unstripped executable.  \fBET_DYN\fP shared libraries are considered
+to be a type of executable.
+
+.SS source \fIBUILDID\fP \fI/SOURCE/FILE\fP
+
+If the given buildid is known to the server, this request will result
+in a binary object that contains the source file mentioned.  The path
+should be absolute.  Relative path names commonly appear in the DWARF
+file's source directory, but these paths are relative to
+individual compilation unit AT_comp_dir paths, and yet an executable
+is made up of multiple CUs.  Therefore, to disambiguate, debuginfod
+expects source queries to prefix relative path names with the CU
+compilation-directory, followed by a mandatory "/".
+
+Note: for software packaged by distributions, the CU
+compilation-directory may not be obvious.  It can be found by
+inspecting AT_comp_dir values in downloaded debuginfo.  For example,
+the comp_dir of the Fedora 37 version of /bin/ls can be found as
+follows:
+
+.SAMPLE
+% debuginfod-find debuginfo /bin/ls
+~/.cache/debuginfod_client/03529d48345409576cd5c82a56ad08555088d353/
+% eu-readelf -w ~/.cache/debuginfod_client/03529d48345409576cd5c82a56ad08555088d353/debuginfo | grep comp_dir
+           comp_dir             (line_strp) "/usr/src/debug/coreutils-9.1-6.fc37.x86_64/separate"
+.ESAMPLE
+
+Note: the caller may or may not elide \fB../\fP or \fB/./\fP or extraneous
+\fB///\fP sorts of path components in the directory names.  debuginfod
+accepts both forms.  Specifically, debuginfod canonicalizes path names
+according to RFC3986 section 5.2.4 (Remove Dot Segments), plus reducing
+any \fB//\fP to \fB/\fP in the path.
+
+For example:
+.TS
+l l.
+#include <stdio.h>	source BUILDID /usr/include/stdio.h
+/path/to/foo.c	source BUILDID /path/to/foo.c
+\../bar/foo.c AT_comp_dir=/zoo/	source BUILDID /zoo//../bar/foo.c
+.TE
+
+.SH "OPTIONS"
+
+.TP
+.B "\-v"
+Increase verbosity, including printing frequent download-progress messages
+and printing the http response headers from the server.
+
+
+.SH "SECURITY"
+
+debuginfod-find \fBdoes not\fP include any particular security
+features.  It trusts that the binaries returned by the debuginfod(s)
+are accurate.  Therefore, the list of servers should include only
+trustworthy ones.  If accessed across HTTP rather than HTTPS, the
+network should be trustworthy.  Authentication information through
+the internal \fIlibcurl\fP library is not currently enabled, except
+for the basic plaintext \%\fIhttp[s]://userid:password@hostname/\fP style.
+(The debuginfod server does not perform authentication, but a front-end
+proxy server could.)
+
+.nr zZ 1
+.so man7/debuginfod-client-config.7
+
+.SH "SEE ALSO"
+.I "debuginfod(8)"
+.I "debuginfod_find_debuginfod(3)"

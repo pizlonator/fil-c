@@ -1,0 +1,26 @@
+#################
+# debuginfod command line options
+# see [man debuginfod]
+
+# required
+DEBUGINFOD_PORT="8002"
+
+# add more -v for more verbosity
+DEBUGINFOD_EXTRA_ARGS="-t43200 -F -R"
+
+# some common places to find trustworthy ELF/DWARF files and RPMs
+DEBUGINFOD_PATHS="/usr/lib/debug /usr/bin /usr/libexec /usr/sbin /usr/lib /usr/lib64 /var/cache/yum /var/cache/dnf /var/lib/pulp"
+
+# prefer sqlite database durability over performance
+#DEBUGINFOD_PRAGMAS="-D 'pragma synchronous=full;'"
+
+#################
+# these environment variables affect federated queries to upstream servers
+# see [man debuginfod-client-config]
+
+#DEBUGINFOD_URLS="http://secondhost:8002 http://thirdhost:8002"
+#DEBUGINFOD_TIMEOUT="5"
+#DEBUGINFOD_RETRY_LIMIT="2"
+#DEBUGINFOD_CACHE_DIR=""
+#DEBUGINFOD_VERBOSE="1"
+#DEBUGINFOD_PROGRESS="1"

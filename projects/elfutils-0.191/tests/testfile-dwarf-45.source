@@ -1,0 +1,89 @@
+# Nonsensical program used to generate an example DWARF4 and DWARF5 file.
+# The generated code is the same, but the DWARF representation is different.
+
+# = hello.h =
+
+extern int m;
+extern int baz (int x);
+
+static inline int
+frob (int a, int b)
+{
+  int c = a;
+
+  if (a > b)
+    c -= b;
+
+  return baz (c);
+}
+
+# = hello.c =
+
+#include <stddef.h>
+#include "hello.h"
+
+extern int main (int, char **);
+int m = 2;
+
+wchar_t foo (wchar_t);
+int baz (int x)
+{
+  int r = x;
+
+  if (x > m)
+    r -= m;
+
+  r = foo (r);
+  return r;
+}
+
+wchar_t
+foo (wchar_t f)
+{
+  if (f < 0)
+    return main (f, NULL);
+
+  return f > 0 ? frob (f - 1, m) : 0;
+}
+
+# = world.c =
+
+#include "hello.h"
+#include <stdlib.h>
+
+int
+calc (const char *word)
+{
+  if (word == 0 || word[0] == '\0')
+    return 0;
+
+  return frob (word[0], m + 42);
+}
+
+int
+main (int argc, const char **argv)
+{
+  const char *n;
+  if (argc > 1)
+    n = argv[0];
+  else
+    n = "world";
+
+  exit (calc (n));
+}
+
+$ gcc -gdwarf-4 -gno-as-loc-support -gno-variable-location-views -O2 -c world.c
+$ gcc -gdwarf-4 -gno-as-loc-support -gno-variable-location-views -O2 -c hello.c
+$ gcc -o testfile-dwarf-4 hello.o world.o
+
+$ gcc -gdwarf-5 -gno-as-loc-support -gno-variable-location-views -O2 -c world.c
+$ gcc -gdwarf-5 -gno-as-loc-support -gno-variable-location-views -O2 -c hello.c
+$ gcc -o testfile-dwarf-5 hello.o world.o
+
+$ gcc -gdwarf-4 -gsplit-dwarf -gno-as-loc-support -gno-variable-location-views -O2 -o testfile-world4.o -c world.c
+$ gcc -gdwarf-4 -gsplit-dwarf -gno-as-loc-support -gno-variable-location-views -O2 -o testfile-hello4.o -c hello.c
+$ gcc -o testfile-splitdwarf-4 testfile-hello4.o testfile-world4.o
+
+$ gcc -gdwarf-5 -gsplit-dwarf -gno-as-loc-support -gno-variable-location-views -O2 -o testfile-world5.o -c world.c
+$ gcc -gdwarf-5 -gsplit-dwarf -gno-as-loc-support -gno-variable-location-views -O2 -o testfile-hello5.o -c hello.c
+$ gcc -o testfile-splitdwarf-5 testfile-hello5.o testfile-world5.o

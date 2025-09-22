@@ -1,0 +1,161 @@
+/* List the relocation types for ppc64.  -*- C -*-
+   Copyright (C) 2005, 2015 Red Hat, Inc.
+   This file is part of elfutils.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of either
+
+     * the GNU Lesser General Public License as published by the Free
+       Software Foundation; either version 3 of the License, or (at
+       your option) any later version
+
+   or
+
+     * the GNU General Public License as published by the Free
+       Software Foundation; either version 2 of the License, or (at
+       your option) any later version
+
+   or both in parallel, as here.
+
+   elfutils is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received copies of the GNU General Public License and
+   the GNU Lesser General Public License along with this program.  If
+   not, see <http://www.gnu.org/licenses/>.  */
+
+/*	    NAME,		REL|EXEC|DYN	*/
+
+RELOC_TYPE (NONE,		0)
+RELOC_TYPE (ADDR32,		REL|EXEC|DYN)
+RELOC_TYPE (ADDR24,		REL)
+RELOC_TYPE (ADDR16,		REL)		/* note 1 */
+RELOC_TYPE (ADDR16_LO,		REL)		/* note 1 */
+RELOC_TYPE (ADDR16_HI,		REL)		/* note 1 */
+RELOC_TYPE (ADDR16_HA,		REL)		/* note 1 */
+RELOC_TYPE (ADDR14,		REL)		/* note 1 */
+RELOC_TYPE (ADDR14_BRTAKEN,	REL)		/* note 1 */
+RELOC_TYPE (ADDR14_BRNTAKEN,	REL)		/* note 1 */
+RELOC_TYPE (REL24,		REL)
+RELOC_TYPE (REL14,		REL)
+RELOC_TYPE (REL14_BRTAKEN,	REL)
+RELOC_TYPE (REL14_BRNTAKEN,	REL)
+RELOC_TYPE (GOT16,		REL)
+RELOC_TYPE (GOT16_LO,		REL)
+RELOC_TYPE (GOT16_HI,		REL)
+RELOC_TYPE (GOT16_HA,		REL)
+RELOC_TYPE (COPY,		EXEC|DYN)
+RELOC_TYPE (GLOB_DAT,		EXEC|DYN)
+RELOC_TYPE (JMP_SLOT,		EXEC|DYN)
+RELOC_TYPE (RELATIVE,		EXEC|DYN)
+RELOC_TYPE (UADDR32,		REL|EXEC|DYN)
+RELOC_TYPE (UADDR16,		REL)
+RELOC_TYPE (REL32,		REL|EXEC|DYN)
+RELOC_TYPE (PLT32,		REL)
+RELOC_TYPE (PLTREL32,		REL)
+RELOC_TYPE (PLT16_LO,		REL)
+RELOC_TYPE (PLT16_HI,		REL)
+RELOC_TYPE (PLT16_HA,		REL)
+RELOC_TYPE (SECTOFF,		REL)
+RELOC_TYPE (SECTOFF_LO,		REL)
+RELOC_TYPE (SECTOFF_HI,		REL)
+RELOC_TYPE (SECTOFF_HA,		REL)
+RELOC_TYPE (ADDR30,		REL)		/* note 1 */
+RELOC_TYPE (ADDR64,		REL|EXEC|DYN)
+RELOC_TYPE (ADDR16_HIGHER,	REL)		/* note 1 */
+RELOC_TYPE (ADDR16_HIGHERA,	REL)		/* note 1 */
+RELOC_TYPE (ADDR16_HIGHEST,	REL)		/* note 1 */
+RELOC_TYPE (ADDR16_HIGHESTA,	REL)		/* note 1 */
+RELOC_TYPE (UADDR64,		REL|EXEC|DYN)
+RELOC_TYPE (REL64,		REL|EXEC|DYN)
+RELOC_TYPE (PLT64,		REL)
+RELOC_TYPE (PLTREL64,		REL)
+RELOC_TYPE (TOC16,		REL)
+RELOC_TYPE (TOC16_LO,		REL)
+RELOC_TYPE (TOC16_HI,		REL)
+RELOC_TYPE (TOC16_HA,		REL)
+RELOC_TYPE (TOC,		REL)
+RELOC_TYPE (PLTGOT16,		REL)
+RELOC_TYPE (PLTGOT16_LO,	REL)
+RELOC_TYPE (PLTGOT16_HI,	REL)
+RELOC_TYPE (PLTGOT16_HA,	REL)
+RELOC_TYPE (ADDR16_DS,		REL)		/* note 1 */
+RELOC_TYPE (ADDR16_LO_DS,	REL)		/* note 1 */
+RELOC_TYPE (GOT16_DS,		REL)
+RELOC_TYPE (GOT16_LO_DS,	REL)
+RELOC_TYPE (PLT16_LO_DS,	REL)
+RELOC_TYPE (SECTOFF_DS,		REL)
+RELOC_TYPE (SECTOFF_LO_DS,	REL)
+RELOC_TYPE (TOC16_DS,		REL)
+RELOC_TYPE (TOC16_LO_DS,	REL)
+RELOC_TYPE (PLTGOT16_DS,	REL)
+RELOC_TYPE (PLTGOT16_LO_DS,	REL)
+RELOC_TYPE (TLS,		REL)
+RELOC_TYPE (DTPMOD64,		REL|EXEC|DYN)	/* note 3 */
+RELOC_TYPE (TPREL16,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_LO,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HI,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HA,		REL)		/* note 2 */
+RELOC_TYPE (TPREL64,		REL|EXEC|DYN)	/* note 3 */
+RELOC_TYPE (DTPREL16,		REL)
+RELOC_TYPE (DTPREL16_LO,	REL)
+RELOC_TYPE (DTPREL16_HI,	REL)
+RELOC_TYPE (DTPREL16_HA,	REL)
+RELOC_TYPE (DTPREL64,		REL|EXEC|DYN)	/* note 3 */
+RELOC_TYPE (GOT_TLSGD16,	REL)
+RELOC_TYPE (GOT_TLSGD16_LO,	REL)
+RELOC_TYPE (GOT_TLSGD16_HI,	REL)
+RELOC_TYPE (GOT_TLSGD16_HA,	REL)
+RELOC_TYPE (GOT_TLSLD16,	REL)
+RELOC_TYPE (GOT_TLSLD16_LO,	REL)
+RELOC_TYPE (GOT_TLSLD16_HI,	REL)
+RELOC_TYPE (GOT_TLSLD16_HA,	REL)
+RELOC_TYPE (GOT_TPREL16_DS,	REL)
+RELOC_TYPE (GOT_TPREL16_LO_DS,	REL)
+RELOC_TYPE (GOT_TPREL16_HI,	REL)
+RELOC_TYPE (GOT_TPREL16_HA,	REL)
+RELOC_TYPE (GOT_DTPREL16_DS,	REL)
+RELOC_TYPE (GOT_DTPREL16_LO_DS, REL)
+RELOC_TYPE (GOT_DTPREL16_HI,	REL)
+RELOC_TYPE (GOT_DTPREL16_HA,	REL)
+RELOC_TYPE (TPREL16_DS,		REL)		/* note 2 */
+RELOC_TYPE (TPREL16_LO_DS,	REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HIGHER,	REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HIGHERA,	REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HIGHEST,	REL)		/* note 2 */
+RELOC_TYPE (TPREL16_HIGHESTA,	REL)		/* note 2 */
+RELOC_TYPE (DTPREL16_DS,	REL)
+RELOC_TYPE (DTPREL16_LO_DS,	REL)
+RELOC_TYPE (DTPREL16_HIGHER,	REL)
+RELOC_TYPE (DTPREL16_HIGHERA,	REL)
+RELOC_TYPE (DTPREL16_HIGHEST,	REL)
+RELOC_TYPE (DTPREL16_HIGHESTA,	REL)
+RELOC_TYPE (TLSGD,		REL)
+RELOC_TYPE (TLSLD,		REL)
+RELOC_TYPE (TOCSAVE,		REL)
+RELOC_TYPE (ADDR16_HIGH,	REL)
+RELOC_TYPE (ADDR16_HIGHA,	REL)
+RELOC_TYPE (TPREL16_HIGH,	REL)
+RELOC_TYPE (TPREL16_HIGHA,	REL)
+RELOC_TYPE (DTPREL16_HIGH,	REL)
+RELOC_TYPE (DTPREL16_HIGHA,	REL)
+RELOC_TYPE (JMP_IREL,		REL)
+RELOC_TYPE (IRELATIVE,		REL)
+RELOC_TYPE (REL16,		REL)
+RELOC_TYPE (REL16_LO,		REL)
+RELOC_TYPE (REL16_HI,		REL)
+RELOC_TYPE (REL16_HA,		REL)
+
+/* Notes from Alan Modra:
+
+   1) These can appear in DYN and EXEC with improper assembly, but they
+   aren't really kosher.
+
+   2) These can appear in DYN with improper assembly (or silly gcc
+      attributes, I think).  Again, not kosher.
+
+   3) These are legal in REL for PowerOpen compatible assembler syntax,
+      ie. TOC managed by compiler.
+*/
