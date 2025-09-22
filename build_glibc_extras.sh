@@ -29,6 +29,7 @@ set -e
 set -x
 
 ./build_attr.sh
+./build_gettext.sh
 ./build_elfutils.sh
 ./build_check.sh
 ./build_diffutils.sh
