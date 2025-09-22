@@ -1,0 +1,18 @@
+/* Make sure we catch implied tcase repeats (via same name as suite) */
+
+# suite Lady
+
+# tcase Luck
+
+# test song
+    fail_unless("be a lady tonight");
+
+# suite Luck
+
+/* It's fine for a suite and tcase name to collide...
+   but the suite name implies a tcase name of the same value until we
+   override it. */
+
+# test uh_oh
+    /* Uh-oh! Now we're using the implied tcase Luck, which already
+     * exists! */

@@ -1,0 +1,25 @@
+/* Test that repeated suites/tcases are only disallowed when they've
+ * actually been used in defining a test. */
+
+# suite Foo
+
+# tcase Bar
+
+/* But no test... */
+
+# suite Baz
+
+# tcase Quux
+
+# test quuux
+    const char msg[] = "Howdy doody!\n";
+    int nc = printf(msg);
+
+    fail_unless(nc == sizeof msg - 1);
+
+# suite Foo
+
+# tcase Bar
+
+# test huh
+    fail_unless(ALLOWED_AFTER_ALL);

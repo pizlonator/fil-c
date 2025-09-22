@@ -1,0 +1,10 @@
+/* Fail when tests with identical name are detected */
+
+#test-loop(1,4) test1
+	ck_assert(1 == 1);
+#test-signal(-1) test2
+	ck_assert(1 == 1);
+#suite secondary
+#tcase second
+#test-loop-exit(1, 1, 5) test2
+	ck_assert(1 == 1);

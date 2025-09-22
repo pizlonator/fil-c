@@ -1,0 +1,129 @@
+Maintainers:
+    Fredrik Hugosson  <hugo303 at users dot sourceforge dot net>     |  hugo303
+    Chris Pickett     <chris dot pickett at mail dot mcgill dot ca>  |  cpickett
+    Branden Archer    <b dot m dot archer4 at gmail dot com          |  brarcher
+
+Ex-Maintainers:
+    Arien Malec       <arien dot malec at gmail dot com>             |  amalec
+    Sven Neumann      <sven at convergence dot de>                   |  neo23
+
+Committers:
+    Robert Collins                              |  rbcollins
+        (subunit support)
+    Micah Cowan                                 |  micahcowan
+        (checkmk tool, docs and tests)
+    Zdenek Crha                                 |  zdenekc
+        (new Check API docs, fixes, and tests)
+    Mateusz Loskot                              |  mloskot
+        (msvc port #2)
+    Jose E. Marchesi                            |  jemarch
+        (selective testing support)
+
+Contributors:
+    Cesar Ballardini
+        (signals)
+    Anthony G. Basile
+        (fix configure.ac and strsignal())
+    Friedrich Beckmann
+        (mingw and msvc port #1)
+    Frank Bergmann
+        (WIN32 tmpfile workaround)
+    Joshua Boyd
+        (travis testing with both build systems, cmake fixes)
+    Ross Burton
+        (pkg-config patch)
+    Bogdan Cristea
+        (eclipse support in contrib dir)
+    Lucas Di Pentima
+        (signals)
+    Torok Edwin
+        (strsignal and build fixes)
+    Daniel Gollub
+        (pthreads support)
+    Roland Illig
+        (varargs and strsignal portability fixes)
+    Elmir Jagudin
+        (well-formed XML and log file via env variables)
+    Jerry James
+        (cleanup compiler warnings)
+    Jon Kowal
+        (deadlock on thread cancellation fix)
+    Robert Lemmen
+        (gcov description in manual)
+    Loic Martin
+        (AM_PATH_CHECK patch)
+    Roy Merkel
+        (specified test exit value)
+    Gilgamesh Nootebos
+        (bug fixes)
+    Diego Elio Petteno
+        (autoconf patch for 64-bit safe code)
+    Frederic Peters
+        (XML output)
+    Dietmar Petras
+        (bug fixes)
+    Rick Poyner
+        (pipe handling, bug fixes)
+    Bernhard Reiter
+        (configure issues)
+    Pavol Rusnak
+        (memory location comparison macros ck_assert_mem_*)
+    Neil Spring
+        (const fixes)
+    Roland Stigge
+        (bug fix: allow fail inside setup)
+    Sebastian Rasmussen
+        (duration bug fix, 64-bit API fix)
+    Martin Willers
+        (rename check's internal list API to start with check_)
+    bross
+        (patches for msys/mingw32 support)
+    Pino Toscano
+        (GNU/Hurd support for subsecond timeouts)
+    lod
+        (compiler warning)
+    Bill Kolokithas
+        (more checkmk directives)
+    Julien Godin
+        (configure.ac patch for Check example)
+    Kosma Moczek
+        (fix for string formatting in ck_assert_*() methods with %)
+    Tim Müller
+        (Use _exit() instead of exit() on _ck_assert_failed())
+    Georg Sauthoff
+        (Solaris support, misc autotools fixes)
+    forest
+        (AIX and Solaris support)
+    Michael Piszczek
+        (misc cleanup)
+    Stewart Brodie
+        (bug fix: no fork mode failure reporting with teardowns)
+    Michał Dębski
+        (Use mkstemp() if available instead of tmpfile() or tempnam())
+    Sebastian Dröge
+        (Kill running tests if SIGTERM or SIGINT are caught in test runner)
+    Matt Clarkson
+        (Fix CMake checks using time.h for MinGW and MSVC)
+    Mario Sanchez Prada
+        (configure.ac cleanup)
+    Tobias Frost
+        (strip timestamps from examples to enable reproducible builds)
+    James Morris
+        (checkmk regex update for Solaris support)
+    Mick Beaver
+        (Visual Studio 2015 build fixes)
+    Jan Pokorny
+        (corner case segfault fix)
+    Dotsenko Andrey Nikolaevich
+        (floating point comparison macros)
+    bel2125
+        (AppVeyor build with multiple Visual Studio versions,
+         test source code compliance to C89/C90 standard,
+         substitution functions for floating point functions missing
+         in older C standard libraries)
+    Mikko Koivunalho
+        (Improved CMake build, bug fixes in libcheck and libcompat)
+
+Anybody who has contributed code to Check or Check's build system is
+considered an author.  Submit a pull request of this file or send
+a patch to <check-devel at lists dot sourceforge dot net>.

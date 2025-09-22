@@ -1,0 +1,712 @@
+Fri Aug 7, 2020: Released Check 0.15.2
+  based on hash 4ed1ae13fdfd3033a83c06a6abd9276128944074
+
+* Fix fail* APIs, regression from 0.15.1
+  Issue #298
+
+
+Sun July 19, 2020: Released Check 0.15.1
+  based on hash db3ef470271e6e011f2cd1f5231a50375568bb46
+
+* Fix warning in ptr macros with pointer to integer cast
+  Issue #284
+
+* Fix various warnings in Check's unit tests
+  Issue #283
+
+* Replace gnu_printf with printf in format __attribute__
+  Issue #282
+
+* Fix warnings from Check's macros: "warning: too many arguments for format"
+  Issue #274
+
+* Fix format specifiers that do not match the argument types
+  Issue #271
+
+
+Sun June 21, 2020: Released Check 0.15.0
+  based on hash 18d83fb9bab41b7bfb6535ed44c131004d01d5ad
+
+* Define CK_ATTRIBUTE_FORMAT for GCC >= 2.95.3, to make use of
+  ‘gnu_printf’ format attribute
+  Issue #249
+
+* Refactor tests to fix signed - unsigned conversions
+  Issue #249
+  
+* Refactor some Check internals to use proper interger types
+  Issue #250
+
+* Implement missing mutual exclusion for Windows hosts
+  Issue #257
+
+
+Sun Jan 26, 2020: Released Check 0.14.0
+  based on hash 0076ec62f71d33b5b54530f8471b4c99f50638d7
+
+* Add support for FetchContent in CMake
+  Issue #238
+
+* Rename CMake project from 'check' to 'Check'
+  Issue #232
+
+* Fix for checking for wrong tool when building docs in Autotools
+  Issue #231
+
+* Fix compiler warning with printf format
+  Issue #233 
+
+
+Sat Oct 20, 2019: Released Check 0.13.0
+  based on hash 2b18886a9a9d3bab44917a550d12128ad7e2c197
+
+* configure: optional build documentation
+  Issue #206 (GitHub)
+
+* missing <unistd.h> in some files
+  Issue #196 and Issue #186 (GitHub)
+
+* Various documentation improvements
+
+* END_TEST is now optional, as how START_TEST works has been redone
+  Issue #158
+  
+* Various CMake related changes:
+  - Support exporting Check to other projects with CMake 3
+    Issue #185
+  - Shared library support for Visual Studio
+    Issue #220
+  - Fix wrong library filename
+    Issue #226
+  - Add support for CMake package registry 
+    Issue #227
+  - CMake build type can now be debug or release
+    Issue #228
+  - Add checkmk to CMake build.
+
+
+Fri Oct 20, 2017: Released Check 0.12.0
+  2017-10-20 10:00:00 +0000
+  based on hash c472c743d7c9f01ae9ea6a0e8e08132251b62abd
+
+* Fix out-of-tree builds with CMake.
+  Issue #86
+
+* Fix issue found with Clang regarding invalid suffix on a literal
+  Issue #110
+  
+* Check now responds to a few errors in a more clear way when it cannot run tests.
+  PR #122, #123
+
+* Fix missing pid_t definition in check.h on Windows
+  Issue #78
+
+* The maximum message size of check assertions is now configurable.
+  Issue #127
+
+* Check support added for Visual Studios 2010, 2012, 2013, 2015, and 2017 both for x86/64 and ARM.
+  PR #129, Issue #125
+
+* Changed license of example CMake files to BSD (was previously LGPL).
+  Issue #131
+
+* Fix issue with floating point macros on MinGW
+  Issue #101
+
+
+Sat Dec 17, 2016: Released Check 0.11.0
+  2016-12-17 15:00:00 +0000
+  based on hash 7c9cfb4b13124b93a63e60b3c681c2bf4f2723ce
+
+* Avoid issue in unit test output checking where a shell's built-in printf
+  command does not work properly, but the printf program itself is correct.
+
+* Emit only valid XML characters in XML logging (assumes ASCII encoding).
+  Bug #103
+
+* Add LGPL header to files where it was missing; update FSF address in LGPL headers
+  Bug #110
+
+* Strip timestamps from examples using filterdiff if available. This
+  allow build output to be reproducible.
+  Bug #112
+
+* Use double slash for regular expressions in checkmk for better Solaris support.
+
+* Improve CMake build files for better Visual Studio 2015 support.
+  Pull Request #19
+
+* Fix potential SIGSEGV in Check related to the disk filling up during a test.
+  Pull Request #21
+
+* Support added for applying tags to test cases and selectively running
+  test cases based on tags.
+  Pull Request #44
+
+* Macros for comparing memory regions (ck_assert_mem_eq, ck_assert_mem_ne)
+  have been added.
+  Pull Request #64
+
+* Macros for comparing floating point numbers have been added.
+  Pull Request #69
+
+* Macros for comparing string, but allowing for NULL (ck_assert_pstr_eq,
+  ck_assert_pstr_ne) have been added.
+  Pull Request #80
+
+* Macros for checking if a pointer is NULL or not have been added.
+  Pull Request #87
+
+
+Sun Aug 2, 2015: Released Check 0.10.0
+  based on r1217 (2015-08-02 19:21:14 +0000)
+
+* CMake on MinGW and MSVC was unable to find time related types because
+  time.h was not included. This header is now included for the checks.
+  Patch #53.
+
+* If the test runner process catches a SIGTERM or SIGINT signal the running
+  tests are now also killed.
+  Patch #52.
+
+* If Check is compiled without support for fork(), the behavior of
+  functions which require fork() to be useful have been changed.
+  Functions that attempt to set CK_FORK mode are no-ops,
+  check_fork() returns in failure, and check_waitpid_and_exit()
+  exits in failure.
+
+* Add space around operators in assert messages for readability.
+  Bug #102.
+
+* Use mkstemp() if available instead of tmpfile() or tempnam().
+  Patch #51.
+
+* Fix issue with string formatting in ck_assert(), where using
+  the % operator would be interpreted as a string formatter. Bug #96.
+
+* In nofork mode, the location of a failed assertion within a test
+  case was lost if that test case has a checked teardown fixture
+  (even if that fixture function is empty). This is now fixed.
+  Bug #99
+
+
+Sat July 26, 2014: Released Check 0.9.14
+  based on r1174 (2014-07-03 18:43:49 +0000)
+
+* Changes to (unofficially for now) support Solaris and AIX platforms.
+
+* Fix issue with checked teardown functions in CK_NOFORK mode. If
+  the teardown function called an assertion that failed, an
+  infinate loop would result. Bug#98. As a result of the change, for now
+  checked teardown functions that fail in CK_NOFORK mode will
+  not cause the test to fail.
+
+* Allow checked fixtures when compiled without fork(). Previously
+  such setup/teardown functions were disabled, as the full contract
+  for checked fixtures could not be honored. Checked fixtures
+  in CK_NOFORK mode are now closer to the contract, and are now
+  enabled.
+
+* Various code cleanup, including changes for compiling Check on
+  c++ compilers Clang and g++ (which are less forgiving than their
+  c counterparts).
+
+* Re-enable internal unit tests, which verify which line numbers are
+  reported for unit test failures. (The tests were unintentionally
+  disabled in a previous release).
+
+
+Fri May 30, 2014: Released Check 0.9.13
+  based on r1137 (2014-05-26 21:03:09 +0000)
+
+* When a test assertion fails, exit() was invoked. This results in any
+  registered exit handlers being invoked. A test should not be relied
+  upon to clean up if it fails. Instead, _exit() will be used to signal
+  a test failure, to prevent exit handlers from being invoked.
+
+* Fix issue with string formatting in ck_assert_(u)int_* calls, where using
+  the % operator would be interpreted as a string formatter. Bug #96.
+
+* If the LOG/XML/TAP file name is set to "-" either through the
+  srunner_set_log() srunner_set_xml() or srunner_set_tap() calls
+  or through the related environment variables, the logged data will be
+  printed to stdout instead of a file. This is mainly to support using TAP
+  for fixtures which expect the results to be reported via stdout. However,
+  it is available via all of Check's logging modalities.
+
+* For CMake builds, check_stdint.h was not being installed. This is now
+  fixed.
+
+* Check's example under doc/example now also works for CMake projects
+  using Visual Studios and MSVC. This includes an example CMake
+  configuration.
+
+
+Mon Jan 20, 2014: Released Check 0.9.12
+  based on r1054 (2014-01-16 23:08:03 +0000)
+
+* Additional unit tests created for internal and external Check
+  APIs.
+
+* Check now compiled on Windows using MSVC when using CMake and
+  NMake. All unit tests pass, though shell script based ones need
+  to be run in the MSYS environment.
+
+* Check now compiles on Windows using Visual Studio 10
+  when using CMake. check_check passes when run from Visual Studios.
+
+* Always capture the start and end times of tests when using
+  NO_FORK mode. Previously the end time was not captured,
+  resulting in arbitrary durations being recorded when tests
+  failed. Bug #87.
+
+* Added additional configure script checks for support of
+  timer_create() on the target system. This allows for
+  OpenBSD to compile and run all Check's unit tests successfully. 
+
+* Added a unit test, check_mem_leaks, which can be used against
+  valgrind to test for memory leaks. No memory leaks were found.
+
+* Added tcase_add_loop_test support in checkm. Patch from patches #46. 
+
+* Add support for logging in Test Anything Protocol (TAP) format.
+
+* Refactor Check's assertions to be more like the assert() call in
+  assert.h, in that static source code analyzers can use gcc attributes
+  in the header to make assumptions about the flow of the code. See
+  feature request #29.
+
+* fix ck_assert_ptr_* causing const compilation warnings. Patch from
+  bug #91.
+
+Wed, Nov 4, 2013: Released Check 0.9.11
+  based on r856 (2013-11-04 02:09:21 +0000)
+
+* Check's unit tests pass when compiled out of the source tree.
+
+* Check compiles for Windows using the MinGW/msys environment (without using fork), and all unit tests pass.
+
+* Check compiles for Windows using the Cygwin environment, and all unit tests pass.
+
+* Check compiles for Windows using MinGW in Linux (without using fork), and all unit tests pass using wine 1.4.
+
+* Check compiles for Windows using MinGW-w64 in Linux (without using fork), and all unit tests pass using wine 1.4.
+
+* On systems without timer_settimer, use setitimer (if available) to get
+  subsecond unit test timeouts. If setitimer is unavailable, fallback
+  on alarm.
+
+Thu, Apr 18, 2013: Released Check 0.9.10
+  based on r743 (2013-04-18 11:27:03 +0200)
+
+* Support 64bit int for __ck_assert_int. Patch from bug #3599471
+
+* Add equivalent uint variants for __ck_assert_int. Patch from bug #3600433.
+
+* Detect if the system has a C99 compliant version of the printf related
+  functions for check to use, and if not use an implementation provided by
+  check.
+
+* Updated HACKING and release procedure in Makefile.am.
+
+* Detect if the system has clock_gettime() available, and if not use an
+  implementation provided by check. clock_gettime() is used to measure
+  test durations. The implementation for OSX uses OSX specific system calls 
+  to get the time. For all other systems, clock_gettime() does nothing.
+
+* Updated documentation in check.h to reference new check API.
+
+* Remove usage of deprecated fail(), fail_if(), and fail_unless() calls from
+  check's unit tests.
+
+* Fix implementation of putenv in check's libcompat for systems that do not
+  provide it.
+
+* Fix implementation of unsettenv in check's libcompat for systems that do
+  not provide it. 
+
+* Improvements to the new Check API: new comparison functions for pointers:
+  ck_assert_ptr_(eq|ne).
+
+* Test timeouts can now be in nanosecond precision. The tcase_set_timeout
+  call, and CK_DEFAULT_TIMEOUT and CK_TIMEOUT_MULTIPLIER environment
+  variables now can accept floating point arguments.
+
+* Cleanup compile warnings, patch #3579199 on SF.
+
+* Renamed Check's internal list functions to start with check_, patch #3448601 on SF.
+
+Mon, Oct 22, 2012: Released Check 0.9.9
+  based on r637 (2012-10-22 13:54:14 +0200)
+
+* Measure test duration and print in XML output.
+  Feature request #3521371 on SF, but reimplemented.
+
+* Added contrib/XML_for_JUnit.xsl from feature request #3521371 on SF.
+
+* Added support for setting log files via environment variables.
+  Patch #3576713 on SF.
+
+* Added better pkg-config and subunit support, patch #3417041 on SF.
+
+* Make tests/test_vars.in bourne shell compatible, bug #3472578 on SF.
+
+* Added ck_ prefix to mutex_lock variable, to avoid name clash on Solaris.
+  Solves bug #3472574 on SF.
+
+* In autoconf, request system extensions to generate 64-bit safe code,
+  solution from patch #2803433 on SF.
+
+* Fix for mutex deadlock when killing threads, patch #3564640 on SF.
+
+* Make XML output well-formed, solution from patch #3575642 on SF.
+  Solves bug #3485651 also.
+
+* Fix buggy duration calculation, bug #3575451 on SF. 
+
+* A more complete CMake / MSVC patch for those interested in pursuing
+  Windows development with Check and Visual Studio.  See
+  patches/mloskot.windows.patch.
+
+* Added instructions for improving the speed and output of `make
+  check' when using Automake.  See contrib/improved_make_check/.
+
+* Added a chapter in the documentation for selective running of tests.
+
+* Changed how the message pipe is read. Before, the whole file was copied to
+  RAM with realloc, giving problems with huge allocations for repetetive
+  tests, the problem was visible for a specific GStreamer test case.
+
+* Improvements to the new Check API: documentation, macros that allow
+  multiple evaluation, unit tests, and new
+  ck_assert_(str|int)_(lt|le|gt|ge) comparison functions.
+
+* Made the new Check API primary and use it to define macros from old Check API
+
+* Added checkmk, a tool for reducing "boilerplate coding" when writing
+  unit tests with check.
+
+* Added xslt link to xml output, added display of iteration field into xslt
+  stylesheet and moved it to directory accessible from web page root
+
+* Added longjmp to fail function to ensure that no code will be executed in test
+  function after failed assertion
+
+* Fix dead assignments and several possible NULL pointer dereferences
+
+Tue, Sep 22, 2009: Released Check 0.9.8
+  based on r559 (2009-09-23 21:00).
+
+* Fix CHECK_MICRO_VERSION, left at 6 in 0.9.7 by mistake.
+
+Tue, Sep 22, 2009: Released Check 0.9.7
+  based on r552 (2009-09-22 09:26).
+
+* Added CK_SUBUNIT support for outputting test information in the subunit wire
+  protocol. See the check manual for more information. (Contributed by Robert
+  Collins).
+
+* Added code and tests for timeout scaling via environment variable.
+  Feature requested in tracker item #1549835 on sourceforge.
+
+* Added documentation for testing exit values with tcase_add_exit_test().
+
+* Add make_macros perl script from somebody (who?)
+
+* add type to check_type error message
+
+* add contrib dir with xslt transform
+
+* function exist testing support (patch #1726574).
+
+* introduce HAVE_WORKING_SETENV to protect tc_timeout_env usage
+
+* support running tests with multiple pthreads (Daniel Gollub, closes 1391527)
+
+* partial MSYS/MinGW support
+
+Mon, Dec 29, 2008: Released Check 0.9.6
+  based on r453 (2008-12-01 22:14:15).
+
+* 'make distcheck' does not work out of the box. Disable the two
+  top lines in doc/Makefile.am and it shall pass. Will have to
+  be fixed later.
+
+* add call to AC_REPLACE_FUNCS([strsignal])
+* add new rpl_strsignal following rpl_(re)malloc template, body
+  of function due to Roland Illig
+  -- hopefully closes 1629755
+
+* add missing NULL argument to fail* varargs macro calls
+* define incorrect tests for __GNUC__ only
+   -- both per Roland Illig in bug 1677391
+
+* define CK_ATTRIBUTE_UNUSED for GCC >= 2.95, closing:
+  [ 1674626 ] compile error with non defined __attribute__ compiler
+
+* Fixed error in documentation example Makefile.am, bug #1888237
+
+* Fixed spelling (patch #1652630)
+
+* Handle NULL in srunner_add_suite(). Fixes #1624887
+
+* add CK_FORK_GETENV to enum fork_status and delete CK_FORK_UNSPECIFIED
+
+* call strdup on result from strsignal to avoid clobbering it
+* add Torok Edwin to AUTHORS
+
+* add CK_TEST_RESULT_INVALID to enum test_result
+
+* add CK_CTX_INVALID to ck_result_ctx and don't use -1 anymore
+
+* count checks in setup() as well; patch due to Roland Stigge
+
+* use int __attribute__((unused)) _i instead of
+      int _i __attribute__((unused))
+  per gcc-3.3.5 request from Sebastian Trahm
+
+* rename signal to _signal in _tcase_add_test to avoid a
+  symbol clash with /usr/include/sys/signal.h on OS X.
+
+* define rpl_malloc and rpl_realloc for platforms where
+  !malloc(0) and !realloc(0,0), such as AIX, because configure
+  goes and redefines malloc/realloc in this case...
+
+* SVNChangeLog patch from Robert Collins
+
+* Incorporated patch from Debian for debian bug #395466. This fixes
+   'AM_PATH_CHECK causes "possibly undefined macro" errors'.
+
+* Added new Check fail API. Implemented on top of fail_unless. Future
+  versions will reverse this so fail_unless is implemented on top of the
+  ck_assert API. This API is not documented yet, will probably not be fully
+  released until 0.9.8, when it will be possible to choose API.
+
+Tue, Nov 21, 2006: Released Check 0.9.5
+
+* Fixed code coverage support to work with gcc4 and buggy libtool.
+
+* Changed loop test iteration variable from i to _i.  Added example of
+  loop test usage to documentation.
+
+* Fixed distcheck target by adding SVNChangeLog to EXTRA_DIST.
+
+* Fixed signal string problem in tests.  Strings differed between
+  OSes, now we use strsignal().  Fixes Sourceforge bug #1539828. 
+
+* Fixed problem with process group ID, especially visible on Solaris
+  and LynxOS.  Fixes Sourceforge bugs #1407360 and #1539828.
+
+Fri, Oct 13, 2006: Released Check 0.9.4
+
+* Updated manual and converted from DocBook to Texinfo.
+
+* Added pkg-config support.
+
+* Added Libtool support to build both static and shared libraries.
+
+* Removed debian/ and rpm/ directories for building packages.
+  Downstream maintainers can easily handle this.
+
+* Updated GNU Build System to use modern Autotools.
+
+* Fixed sourceforge bug #1327225, two teardown checked fixtures
+  segfaults.
+
+* Added a new kind of test, looping tests, which are called with a new
+  context for each loop iteration. This makes them ideal for table
+  based tests. Previously, with the loop in the test itself, only the
+  first error was caught and then the test would exit. Now all errors
+  are shown at once which should help in debugging
+
+* Added possibility to turn off timeout tests in check's own unit tests
+  through configure option --disable-timeout-tests.
+
+* Added coverage analysis for check's own unit tests.
+
+Thu, Aug 25, 2005: Released Check 0.9.3
+
+Applied debian patches from debian maintainer.
+
+Fixed documentation bug #1216502.
+
+gcc 2.95.3 compatibility fixed (patch #1161654, bug #1211672).
+
+Messaging refactored to make it  work with forking tests, and also with
+threading tests on linux 2.4. Added check_fork and check_waitpid_and_exit
+to be used for forking tests. (bug # 1233585)
+
+Timeout error message changed (feature request #1121452, bug #1160305).
+
+Fix check.spec for fc3 x86_64 (patch #1111782)
+
+
+Fri, Nov 12, 2004: Released Check 0.9.2
+
+Use strsignal to print describing text for signals.
+Documented signals handling and timeouts.
+Changed failure message for fail_if.
+Added support for timeouts on tests, enabling detection of eternal loops.
+Changed name on function list_create to check_list_create to avoid name clash.
+Applied ANSI C99 patch (#1047014) for macro var args.
+Cleaned up the self test verification to simplify merging of new tests.
+Fixed debian and rpm targets
+
+Added support for testing on expected signals. Implementation courtesy of
+Lucas Di Pentima and Cesar Ballardini. 
+
+
+Fri, Sep 3, 2004: Released Check 0.9.1
+
+Updated tutorial with new features.
+Added support for XML output of the test results, courtesy of Frederic Peters.
+Fixed setup bug from forum, failure in setup did not abort test in nofork mode.
+Applied varargs patch (#933411) and added test cases.
+Applied fail_if (#709167) patch.
+Applied 'newbies' patch #995028 for autoconf doc.
+Applied doc patch #995028 from Bill Barnard.
+Fixed portability problems tests by changing == to =.
+Changed copyright according to bug report.
+Applied patch 796705. Replacing _exit with exit.
+Applied patch for bug 793671.
+
+
+Mon, May 17, 2004: Released Check 0.9.0
+
+Run fixture teardowns in reverse order to setup
+Plugged some memory leaks.
+Added test name to log outputs.
+Applied patch (802160) for distcheck bug (579604).
+Fixed log printouts for nofork mode.
+Updated documentation and converted to DocBook.
+
+Added a new print mode, CK_ENV, that gets the print mode from the
+environment variable CK_VERBOSITY.
+
+Made tcase_free and suite_free static. This may break existing test
+programs. Everything is now freed when srunner_free is called.
+
+
+Mon Oct 21, 2002: Released Check 0.8.4
+
+Fixed pipe issues.
+Allow to use check.h from C++.
+Plugged some memory leaks.
+
+
+Fri May 24, 2002: Released Check 0.8.3
+
+Fixed various build problems. Fixed a problem with check.m4.
+Documentation updates.
+
+
+Mon Apr 15, 2002: Released Check 0.8.2
+
+Added version information to headers and library. Added an autoconf
+macro to easily integrate check into projects that use autoconf.
+
+Removed limitations on line number, message and buffer sizes.
+
+Declared constant string parameters as const.
+
+
+Sat Mar 2, 2002: Released Check 0.8.1
+
+Changed license to LGPL.
+
+Fixed bug in running checked setup in nofork mode.
+
+
+Wed Oct 24, 2001: Released Check 0.8.0
+
+Support running in a nofork mode. Defined a checked fixture as well as
+an unchecked fixture, support failing in checked and uncheck fixture
+functions, and errors in checked fixture functions. Rewrote the
+back-end to use pipes, rather than message queues.
+
+Reimplemented printing functions in terms of string formatting
+functions, to allow better testing of output without full end-to-end
+testing.
+
+Renamed some public constants to use the CK_ naming convention. This
+will break existing test programs.
+
+Documented the new features, and changed the distribution to include
+sgml and html files, as well as lyx files, as many people don't have
+lyx.
+
+
+Thu Aug 23, 2001: Released Check 0.7.3
+
+Fixed the Autoconf Lyx check in acinclude.m4 so that configure works
+on Solaris systems (and hopefully others), and cleaned up a minor
+problem in Debian packaging.
+
+
+Fri Aug 17, 2001: Released Check 0.7.2
+
+Automated RPM packaging, and included debian packaging. The makefiles
+now has an rpm target (the RPMFLAGS variable can be set to add
+additional flags to RPM). Debian packages are built the ordinary way
+(dpkg-buildpackage).
+
+Moved the example*.* files to tutorial*.*, since the docs really are
+tutorials. Beefed up the tutorial docs to add clarity to the behavior
+of fixture setup/teardown (based on a helpful critique by Fred Drake),
+and to document the static nature of unit tests demanded by the bug
+fix below.
+
+Many bugfixes: added -Wall to the CCFLAGS for gcc, and fixed a mess of
+warnings that resulted. Changed a bizarre naming mismatch in
+tcase_set_fixture (masked by the lack of compile warnings), and made
+unit tests static (both bugfixes suggested by Fred Drake). Also added
+a more sophisticated test of Lyx to (hopefully) ensure that Lyx
+supports linuxdoc (but it's not clear to me how to test that for
+sure).
+
+
+Wed Jul 30, 2001: Released Check 0.7.1
+
+Reorganized printing and logging functions to allow for a less
+primitive logging function. Logging is now documented in the tutorial
+documentation.
+
+
+Wed Jul 11, 2001: Released Check 0.7.0
+
+Included a primitive logging function (at the moment, it only prints a
+copy of the CRVERBOSE output to the log file), added the ability for
+an SRunner to run multiple suites (and reorganized the Check tests to
+take advantage of that), and added the magic to allow Check to be used
+with C++.
+
+Also added Doxygen markup to the header file, but I'm not terribly
+satisfied withe clarity of the output. I may switch to CWEB... Next
+release should include API docs and improved logging, if nothing else
+comes up...
+
+
+Wed Jun 27, 2001: Released Check 0.6.1
+
+Bug fix for srunner_failures (bad version actually returned all
+results), added srunner_results to do what srunner_failures used to
+do, and added corrected unit tests for both.
+
+Also changed the API for reporting the number of failed tests from
+srunner_nfailed to srunner_ntests_failed, to harmonized better with
+new function srunner_ntests_run. This unfortunately may break some
+unit tests slightly -- that's why the major release number is 0 :-)
+
+
+Thu Jun 21, 2001: Released Check 0.6.0
+
+Features improved unit test reporting options, more complete unit
+tests, and end-to-end test, and a full API into TestResults
+
+
+Check 0.5.2
+Minor edits
+Check 0.5.1
+GPL compliance release
+Check 0.5.0
+Initial public release

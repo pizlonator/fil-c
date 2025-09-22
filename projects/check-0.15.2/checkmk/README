@@ -1,0 +1,17 @@
+=======
+checkmk
+=======
+
+Written by Micah J Cowan.
+
+Translates concise versions of test suites into C programs
+suitable suitable for use with the Check unit test framework.
+
+See the source code in checkmk.in (checkmk when installed) for terms of
+distribution (scaled-down version of the modified BSD license).
+
+To see how it works, try running checkmk on the example files,
+basic_complete.ts and multiple_everything.ts:
+  checkmk basic_complete.ts > basic_complete.c
+  cc -o basic basic_complete.c -lcheck
+  ./basic

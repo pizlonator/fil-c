@@ -1,0 +1,22 @@
+/* A complete test example */
+
+#include <stdio.h>
+
+# suite The Suite
+
+# tcase The Test Case
+
+# test  the_test
+    int nc;
+    const char msg[] = "\n\n    Hello, world!\n";
+
+    nc = printf("%s", msg);
+    fail_unless(nc == (sizeof msg
+                                  - 1) /* for terminating NUL. */
+    );
+
+#main-pre
+    int fooyah;
+
+#main-post
+    return nf;

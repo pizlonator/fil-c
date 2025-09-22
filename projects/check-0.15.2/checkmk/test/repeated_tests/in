@@ -1,0 +1,15 @@
+/* Can't use the same test name multiple times. */
+
+# suite Foo
+
+# tcase Bar
+
+# test repeat
+    fail_if(MISERABLY);
+
+# suite Baz
+
+# tcase Quux
+
+# test repeat
+    fail_if(DONT_TRY_TRY_AGAIN);

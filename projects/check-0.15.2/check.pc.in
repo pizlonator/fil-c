@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Check
+Description: A unit test framework for C
+URL: https://libcheck.github.io/check/
+Version: @VERSION@
+Requires.private: @LIBSUBUNIT_PC@
+Libs: -L${libdir} -lcheck
+Libs.private: @GCOV_LIBS@ @PTHREAD_LIBS@ @LIBS@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@

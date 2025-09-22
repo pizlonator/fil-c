@@ -1,0 +1,3474 @@
+This is check.info, produced by makeinfo version 4.8 from check.texi.
+
+   This manual is for Check (version 0.15.2, 28 June 2020), a unit
+testing framework for C.
+
+   Copyright (C) 2001-2014 Arien Malec, Branden Archer, Chris Pickett,
+Fredrik Hugosson, and Robert Lemmen.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, no Front-Cover texts, and
+     no Back-Cover Texts.  A copy of the license is included in the
+     section entitled "GNU Free Documentation License."
+
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Check: (check).               A unit testing framework for C.
+END-INFO-DIR-ENTRY
+
+
+File: check.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+
+Check
+*****
+
+This manual is for Check (version 0.15.2, 28 June 2020), a unit testing
+framework for C.
+
+   Copyright (C) 2001-2014 Arien Malec, Branden Archer, Chris Pickett,
+Fredrik Hugosson, and Robert Lemmen.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, no Front-Cover texts, and
+     no Back-Cover Texts.  A copy of the license is included in the
+     section entitled "GNU Free Documentation License."
+
+   Please send corrections to this manual to <check-devel AT
+lists.sourceforge.net>.  We'd prefer it if you can send a unified diff
+(`diff -u') against the `doc/check.texi' file that ships with Check,
+but if that is not possible something is better than nothing.
+
+* Menu:
+
+* Introduction::
+* Unit Testing in C::
+* Tutorial::
+* Advanced Features::
+* Supported Build Systems::
+* Conclusion and References::
+* Environment Variable Reference::
+* Copying This Manual::
+* Index::
+
+ --- The Detailed Node Listing ---
+
+Unit Testing in C
+
+* Other Frameworks for C::
+
+Tutorial: Basic Unit Testing
+
+* How to Write a Test::
+* Setting Up the Money Build Using Autotools::
+* Setting Up the Money Build Using CMake::
+* Test a Little::
+* Creating a Suite::
+* SRunner Output::
+
+Advanced Features
+
+* Convenience Test Functions::
+* Running Multiple Cases::
+* No Fork Mode::
+* Test Fixtures::
+* Multiple Suites in one SRunner::
+* Selective Running of Tests::
+* Testing Signal Handling and Exit Values::
+* Looping Tests::
+* Test Timeouts::
+* Determining Test Coverage::
+* Finding Memory Leaks::
+* Test Logging::
+* Subunit Support::
+
+Test Fixtures
+
+* Test Fixture Examples::
+* Checked vs Unchecked Fixtures::
+
+Test Logging
+
+* XML Logging::
+* TAP Logging::
+
+Environment Variable Reference
+
+Copying This Manual
+
+* GNU Free Documentation License::  License for copying this manual.
+
+
+File: check.info,  Node: Introduction,  Next: Unit Testing in C,  Prev: Top,  Up: Top
+
+1 Introduction
+**************
+
+Check is a unit testing framework for C.  It was inspired by similar
+frameworks that currently exist for most programming languages; the
+most famous example being JUnit (http://www.junit.org) for Java.  There
+is a list of unit test frameworks for multiple languages at
+`http://www.xprogramming.com/software.htm'.  Unit testing has a long
+history as part of formal quality assurance methodologies, but has
+recently been associated with the lightweight methodology called
+Extreme Programming.  In that methodology, the characteristic practice
+involves interspersing unit test writing with coding ("test a little,
+code a little").  While the incremental unit test/code approach is
+indispensable to Extreme Programming, it is also applicable, and
+perhaps indispensable, outside of that methodology.
+
+   The incremental test/code approach provides three main benefits to
+the developer:
+
+  1. Because the unit tests use the interface to the unit being tested,
+     they allow the developer to think about how the interface should be
+     designed for usage early in the coding process.
+
+  2. They help the developer think early about aberrant cases, and code
+     accordingly.
+
+  3. By providing a documented level of correctness, they allow the
+     developer to refactor (see `http://www.refactoring.com')
+     aggressively.
+
+   That third reason is the one that turns people into unit testing
+addicts.  There is nothing so satisfying as doing a wholesale
+replacement of an implementation, and having the unit tests reassure
+you at each step of that change that all is well.  It is like the
+difference between exploring the wilderness with and without a good map
+and compass: without the proper gear, you are more likely to proceed
+cautiously and stick to the marked trails; with it, you can take the
+most direct path to where you want to go.
+
+   Look at the Check homepage for the latest information on Check:
+`https://libcheck.github.io/check/'.
+
+   The Check project page is at: `https://github.com/libcheck/check'.
+
+
+File: check.info,  Node: Unit Testing in C,  Next: Tutorial,  Prev: Introduction,  Up: Top
+
+2 Unit Testing in C
+*******************
+
+C unit testing
+
+   The approach to unit testing frameworks used for Check originated
+with Smalltalk, which is a late binding object-oriented language
+supporting reflection.  Writing a framework for C requires solving some
+special problems that frameworks for Smalltalk, Java or Python don't
+have to face.  In all of those language, the worst that a unit test can
+do is fail miserably, throwing an exception of some sort.  In C, a unit
+test is just as likely to trash its address space as it is to fail to
+meet its test requirements, and if the test framework sits in the same
+address space, goodbye test framework.
+
+   To solve this problem, Check uses the `fork()' system call to create
+a new address space in which to run each unit test, and then uses
+message queues to send information on the testing process back to the
+test framework.  That way, your unit test can do all sorts of nasty
+things with pointers, and throw a segmentation fault, and the test
+framework will happily note a unit test error, and chug along.
+
+   The Check framework is also designed to play happily with common
+development environments for C programming.  The author designed Check
+around Autoconf/Automake (thus the name Check: `make check' is the
+idiom used for testing with Autoconf/Automake). Note however that
+Autoconf/Automake are NOT necessary to use Check; any build system is
+sufficient. The test failure messages thrown up by Check use the common
+idiom of `filename:linenumber:message' used by `gcc' and family to
+report problems in source code.  With (X)Emacs, the output of Check
+allows one to quickly navigate to the location of the unit test that
+failed; presumably that also works in VI and IDEs.
+
+* Menu:
+
+* Other Frameworks for C::
+
+
+File: check.info,  Node: Other Frameworks for C,  Prev: Unit Testing in C,  Up: Unit Testing in C
+
+2.1 Other Frameworks for C
+==========================
+
+The authors know of the following additional unit testing frameworks
+for C:
+
+AceUnit
+     AceUnit (Advanced C and Embedded Unit) bills itself as a
+     comfortable C code unit test framework.  It tries to mimic JUnit
+     4.x and includes reflection-like capabilities.  AceUnit can be
+     used in resource constraint environments, e.g. embedded software
+     development, and importantly it runs fine in environments where
+     you cannot include a single standard header file and cannot invoke
+     a single standard C function from the ANSI / ISO C libraries.  It
+     also has a Windows port.  It does not use forks to trap signals,
+     although the authors have expressed interest in adding such a
+     feature.  See the AceUnit homepage
+     (http://aceunit.sourceforge.net/).
+
+GNU Autounit
+     Much along the same lines as Check, including forking to run unit
+     tests in a separate address space (in fact, the original author of
+     Check borrowed the idea from GNU Autounit).  GNU Autounit uses
+     GLib extensively, which means that linking and such need special
+     options, but this may not be a big problem to you, especially if
+     you are already using GTK or GLib.  See the GNU Autounit homepage
+     (http://autounit.tigris.org/).
+
+cUnit
+     Also uses GLib, but does not fork to protect the address space of
+     unit tests.  See the archived cUnit homepage
+     (http://web.archive.org/web/*/http://people.codefactory.se/~spotty/cunit/).
+
+CUnit
+     Standard C, with plans for a Win32 GUI implementation.  Does not
+     currently fork or otherwise protect the address space of unit
+     tests.  In early development.  See the CUnit homepage
+     (http://cunit.sourceforge.net).
+
+CuTest
+     A simple framework with just one .c and one .h file that you drop
+     into your source tree.  See the CuTest homepage
+     (http://cutest.sourceforge.net).
+
+CppUnit
+     The premier unit testing framework for C++; you can also use it to
+     test C code.  It is stable, actively developed, and has a GUI
+     interface.  The primary reasons not to use CppUnit for C are first
+     that it is quite big, and second you have to write your tests in
+     C++, which means you need a C++ compiler.  If these don't sound
+     like concerns, it is definitely worth considering, along with
+     other C++ unit testing frameworks.  See the CppUnit homepage
+     (http://cppunit.sourceforge.net/cppunit-wiki).
+
+embUnit
+     embUnit (Embedded Unit) is another unit test framework for embedded
+     systems.  This one appears to be superseded by AceUnit.  Embedded
+     Unit homepage (https://sourceforge.net/projects/embunit/).
+
+MinUnit
+     A minimal set of macros and that's it!  The point is to show how
+     easy it is to unit test your code.  See the MinUnit homepage
+     (http://www.jera.com/techinfo/jtns/jtn002.html).
+
+CUnit for Mr. Ando
+     A CUnit implementation that is fairly new, and apparently still in
+     early development.  See the CUnit for Mr. Ando homepage
+     (http://park.ruru.ne.jp/ando/work/CUnitForAndo/html/).
+
+   This list was last updated in March 2008.  If you know of other C
+unit test frameworks, please send an email plus description to
+<check-devel AT lists.sourceforge.net> and we will add the entry to
+this list.
+
+   It is the authors' considered opinion that forking or otherwise
+trapping and reporting signals is indispensable for unit testing (but
+it probably wouldn't be hard to add that to frameworks without that
+feature).  Try 'em all out: adapt this tutorial to use all of the
+frameworks above, and use whichever you like.  Contribute, spread the
+word, and make one a standard.  Languages such as Java and Python are
+fortunate to have standard unit testing frameworks; it would be
+desirable that C have one as well.
+
+
+File: check.info,  Node: Tutorial,  Next: Advanced Features,  Prev: Unit Testing in C,  Up: Top
+
+3 Tutorial: Basic Unit Testing
+******************************
+
+This tutorial will use the JUnit Test Infected
+(http://junit.sourceforge.net/doc/testinfected/testing.htm) article as
+a starting point.  We will be creating a library to represent money,
+`libmoney', that allows conversions between different currency types.
+The development style will be "test a little, code a little", with unit
+test writing preceding coding.  This constantly gives us insights into
+module usage, and also makes sure we are constantly thinking about how
+to test our code.
+
+* Menu:
+
+* How to Write a Test::
+* Setting Up the Money Build Using Autotools::
+* Setting Up the Money Build Using CMake::
+* Test a Little::
+* Creating a Suite::
+* SRunner Output::
+
+
+File: check.info,  Node: How to Write a Test,  Next: Setting Up the Money Build Using Autotools,  Prev: Tutorial,  Up: Tutorial
+
+3.1 How to Write a Test
+=======================
+
+Test writing using Check is very simple. The file in which the checks
+are defined must include `check.h' as so:
+
+     #include <check.h>
+
+   The basic unit test looks as follows:
+
+     START_TEST (test_name)
+     {
+       /* unit test code */
+     }
+     END_TEST
+
+   The `START_TEST'/`END_TEST' pair are macros that setup basic
+structures to permit testing.  It is a mistake to leave off the
+`END_TEST' marker; doing so produces all sorts of strange errors when
+the check is compiled.
+
+
+File: check.info,  Node: Setting Up the Money Build Using Autotools,  Next: Setting Up the Money Build Using CMake,  Prev: How to Write a Test,  Up: Tutorial
+
+3.2 Setting Up the Money Build Using Autotools
+==============================================
+
+Since we are creating a library to handle money, we will first create
+an interface in `money.h', an implementation in `money.c', and a place
+to store our unit tests, `check_money.c'.  We want to integrate these
+core files into our build system, and will need some additional
+structure. To manage everything we'll use Autoconf, Automake, and
+friends (collectively known as Autotools) for this example.  Note that
+one could do something similar with ordinary Makefiles, or any other
+build system. It is in the authors' opinion that it is generally easier
+to use Autotools than bare Makefiles, and they provide built-in support
+for running tests.
+
+   Note that this is not the place to explain how Autotools works.  If
+you need help understanding what's going on beyond the explanations
+here, the best place to start is probably Alexandre Duret-Lutz's
+excellent Autotools tutorial
+(http://www.lrde.epita.fr/~adl/autotools.html).
+
+   The examples in this section are part of the Check distribution; you
+don't need to spend time cutting and pasting or (worse) retyping them.
+Locate the Check documentation on your system and look in the `example'
+directory.  The standard directory for GNU/Linux distributions should
+be `/usr/share/doc/check/example'.  This directory contains the final
+version reached the end of the tutorial.  If you want to follow along,
+create backups of `money.h', `money.c', and `check_money.c', and then
+delete the originals.
+
+   We set up a directory structure as follows:
+
+     .
+     |-- Makefile.am
+     |-- README
+     |-- configure.ac
+     |-- src
+     |   |-- Makefile.am
+     |   |-- main.c
+     |   |-- money.c
+     |   `-- money.h
+     `-- tests
+         |-- Makefile.am
+         `-- check_money.c
+
+   Note that this is the output of `tree', a great directory
+visualization tool.  The top-level `Makefile.am' is simple; it merely
+tells Automake how to process sub-directories:
+
+     SUBDIRS = src . tests
+
+   Note that `tests' comes last, because the code should be testing an
+already compiled library.  `configure.ac' is standard Autoconf
+boilerplate, as specified by the Autotools tutorial and as suggested by
+`autoscan'.
+
+   `src/Makefile.am' builds `libmoney' as a Libtool archive, and links
+it to an application simply called `main'.  The application's behavior
+is not important to this tutorial; what's important is that none of the
+functions we want to unit test appear in `main.c'; this probably means
+that the only function in `main.c' should be `main()' itself.  In order
+to test the whole application, unit testing is not appropriate: you
+should use a system testing tool like Autotest.  If you really want to
+test `main()' using Check, rename it to something like
+`_myproject_main()' and write a wrapper around it.
+
+   The primary build instructions for our unit tests are in
+`tests/Makefile.am':
+
+     ## Process this file with automake to produce Makefile.in
+
+     TESTS = check_money
+     check_PROGRAMS = check_money
+     check_money_SOURCES = check_money.c $(top_builddir)/src/money.h
+     check_money_CFLAGS = @CHECK_CFLAGS@
+     check_money_LDADD = $(top_builddir)/src/libmoney.la @CHECK_LIBS@
+
+   `TESTS' tells Automake which test programs to run for `make check'.
+Similarly, the `check_' prefix in `check_PROGRAMS' actually comes from
+Automake; it says to build these programs only when `make check' is
+run.  (Recall that Automake's `check' target is the origin of Check's
+name.)  The `check_money' test is a program that we will build from
+`tests/check_money.c', linking it against both `src/libmoney.la' and
+the installed `libcheck.la' on our system.  The appropriate compiler
+and linker flags for using Check are found in `@CHECK_CFLAGS@' and
+`@CHECK_LIBS@', values defined by the `AM_PATH_CHECK' macro.
+
+   Now that all this infrastructure is out of the way, we can get on
+with development.  `src/money.h' should only contain standard C header
+boilerplate:
+
+     /*
+      * Check: a unit test framework for C
+      * Copyright (C) 2001, 2002 Arien Malec
+      *
+      * This library is free software; you can redistribute it and/or
+      * modify it under the terms of the GNU Lesser General Public
+      * License as published by the Free Software Foundation; either
+      * version 2.1 of the License, or (at your option) any later version.
+      *
+      * This library is distributed in the hope that it will be useful,
+      * but WITHOUT ANY WARRANTY; without even the implied warranty of
+      * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+      * Lesser General Public License for more details.
+      *
+      * You should have received a copy of the GNU Lesser General Public
+      * License along with this library; if not, write to the
+      * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+      * MA 02110-1301, USA.
+      */
+
+     #ifndef MONEY_H
+     #define MONEY_H
+
+     #endif /* MONEY_H */
+
+   `src/money.c' should be empty, and `tests/check_money.c' should only
+contain an empty `main()' function:
+
+     /*
+      * Check: a unit test framework for C
+      * Copyright (C) 2001, 2002 Arien Malec
+      *
+      * This library is free software; you can redistribute it and/or
+      * modify it under the terms of the GNU Lesser General Public
+      * License as published by the Free Software Foundation; either
+      * version 2.1 of the License, or (at your option) any later version.
+      *
+      * This library is distributed in the hope that it will be useful,
+      * but WITHOUT ANY WARRANTY; without even the implied warranty of
+      * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+      * Lesser General Public License for more details.
+      *
+      * You should have received a copy of the GNU Lesser General Public
+      * License along with this library; if not, write to the
+      * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+      * MA 02110-1301, USA.
+      */
+
+     int main(void)
+     {
+         return 0;
+     }
+
+   Create the GNU Build System for the project and then build `main'
+and `libmoney.la' as follows:
+
+     $ autoreconf --install
+     $ ./configure
+     $ make
+
+   (`autoreconf' determines which commands are needed in order for
+`configure' to be created or brought up to date.  Previously one would
+use a script called `autogen.sh' or `bootstrap', but that practice is
+unnecessary now.)
+
+   Now build and run the `check_money' test with `make check'.  If all
+goes well, `make' should report that our tests passed.  No surprise,
+because there aren't any tests to fail.  If you have problems, make
+sure to see *Note Supported Build Systems::.
+
+   This was tested on the isadora distribution of Linux Mint GNU/Linux
+in November 2012, using Autoconf 2.65, Automake 1.11.1, and Libtool
+2.2.6b.  Please report any problems to <check-devel AT
+lists.sourceforge.net>.
+
+
+File: check.info,  Node: Setting Up the Money Build Using CMake,  Next: Test a Little,  Prev: Setting Up the Money Build Using Autotools,  Up: Tutorial
+
+3.3 Setting Up the Money Build Using CMake
+==========================================
+
+Since we are creating a library to handle money, we will first create
+an interface in `money.h', an implementation in `money.c', and a place
+to store our unit tests, `check_money.c'.  We want to integrate these
+core files into our build system, and will need some additional
+structure. To manage everything we'll use CMake for this example.  Note
+that one could do something similar with ordinary Makefiles, or any
+other build system. It is in the authors' opinion that it is generally
+easier to use CMake than bare Makefiles, and they provide built-in
+support for running tests.
+
+   Note that this is not the place to explain how CMake works.  If you
+need help understanding what's going on beyond the explanations here,
+the best place to start is probably the CMake project's homepage
+(http://www.cmake.org).
+
+   The examples in this section are part of the Check distribution; you
+don't need to spend time cutting and pasting or (worse) retyping them.
+Locate the Check documentation on your system and look in the `example'
+directory, or look in the Check source. If on a GNU/Linux system the
+standard directory should be `/usr/share/doc/check/example'.  This
+directory contains the final version reached the end of the tutorial.
+If you want to follow along, create backups of `money.h', `money.c',
+and `check_money.c', and then delete the originals.
+
+   We set up a directory structure as follows:
+
+     .
+     |-- Makefile.am
+     |-- README
+     |-- CMakeLists.txt
+     |-- cmake
+     |   |-- config.h.in
+     |   |-- FindCheck.cmake
+     |-- src
+     |   |-- CMakeLists.txt
+     |   |-- main.c
+     |   |-- money.c
+     |   `-- money.h
+     `-- tests
+         |-- CMakeLists.txt
+         `-- check_money.c
+
+   The top-level `CMakeLists.txt' contains the configuration checks for
+available libraries and types, and also defines sub-directories to
+process. The `cmake/FindCheck.cmake' file contains instructions for
+locating Check on the system and setting up the build to use it.  If
+the system does not have pkg-config installed, `cmake/FindCheck.cmake'
+may not be able to locate Check successfully. In this case, the install
+directory of Check must be located manually, and the following line
+added to `tests/CMakeLists.txt' (assuming Check was installed under
+C:\\Program Files\\check:
+
+
+set(CHECK_INSTALL_DIR "C:/Program Files/check")
+
+   Note that `tests' comes last, because the code should be testing an
+already compiled library.
+
+   `src/CMakeLists.txt' builds `libmoney' as an archive, and links it
+to an application simply called `main'.  The application's behavior is
+not important to this tutorial; what's important is that none of the
+functions we want to unit test appear in `main.c'; this probably means
+that the only function in `main.c' should be `main()' itself.  In order
+to test the whole application, unit testing is not appropriate: you
+should use a system testing tool like Autotest.  If you really want to
+test `main()' using Check, rename it to something like
+`_myproject_main()' and write a wrapper around it.
+
+   Now that all this infrastructure is out of the way, we can get on
+with development.  `src/money.h' should only contain standard C header
+boilerplate:
+
+     /*
+      * Check: a unit test framework for C
+      * Copyright (C) 2001, 2002 Arien Malec
+      *
+      * This library is free software; you can redistribute it and/or
+      * modify it under the terms of the GNU Lesser General Public
+      * License as published by the Free Software Foundation; either
+      * version 2.1 of the License, or (at your option) any later version.
+      *
+      * This library is distributed in the hope that it will be useful,
+      * but WITHOUT ANY WARRANTY; without even the implied warranty of
+      * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+      * Lesser General Public License for more details.
+      *
+      * You should have received a copy of the GNU Lesser General Public
+      * License along with this library; if not, write to the
+      * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+      * MA 02110-1301, USA.
+      */
+
+     #ifndef MONEY_H
+     #define MONEY_H
+
+     #endif /* MONEY_H */
+
+   `src/money.c' should be empty, and `tests/check_money.c' should only
+contain an empty `main()' function:
+
+     /*
+      * Check: a unit test framework for C
+      * Copyright (C) 2001, 2002 Arien Malec
+      *
+      * This library is free software; you can redistribute it and/or
+      * modify it under the terms of the GNU Lesser General Public
+      * License as published by the Free Software Foundation; either
+      * version 2.1 of the License, or (at your option) any later version.
+      *
+      * This library is distributed in the hope that it will be useful,
+      * but WITHOUT ANY WARRANTY; without even the implied warranty of
+      * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+      * Lesser General Public License for more details.
+      *
+      * You should have received a copy of the GNU Lesser General Public
+      * License along with this library; if not, write to the
+      * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+      * MA 02110-1301, USA.
+      */
+
+     int main(void)
+     {
+         return 0;
+     }
+
+   Create the CMake Build System for the project and then build `main'
+and `libmoney.la' as follows for Unix-compatible systems:
+
+     $ cmake .
+     $ make
+
+   and for MSVC on Windows:
+
+     $ cmake -G "NMake Makefiles" .
+     $ nmake
+
+   Now build and run the `check_money' test, with either `make test' on
+a Unix-compatible system or `nmake test' if on Windows using MSVC.  If
+all goes well, the command should report that our tests passed.  No
+surprise, because there aren't any tests to fail.
+
+   This was tested on Windows 7 using CMake 2.8.12.1 and MSVC
+16.00.30319.01/ Visual Studios 10 in February 2014. Please report any
+problems to <check-devel AT lists.sourceforge.net>.
+
+
+File: check.info,  Node: Test a Little,  Next: Creating a Suite,  Prev: Setting Up the Money Build Using CMake,  Up: Tutorial
+
+3.4 Test a Little, Code a Little
+================================
+
+The Test Infected
+(http://junit.sourceforge.net/doc/testinfected/testing.htm) article
+starts out with a `Money' class, and so will we.  Of course, we can't
+do classes with C, but we don't really need to.  The Test Infected
+approach to writing code says that we should write the unit test
+_before_ we write the code, and in this case, we will be even more
+dogmatic and doctrinaire than the authors of Test Infected (who clearly
+don't really get this stuff, only being some of the originators of the
+Patterns approach to software development and OO design).
+
+   Here are the changes to `check_money.c' for our first unit test:
+
+     --- tests/check_money.1.c	2020-06-21 08:52:50.000000000 -0700
+     +++ tests/check_money.2.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,24 +1,38 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+     +#include <check.h>
+     +#include "../src/money.h"
+     +
+     +START_TEST(test_money_create)
+     +{
+     +    Money *m;
+     +
+     +    m = money_create(5, "USD");
+     +    ck_assert_int_eq(money_amount(m), 5);
+     +    ck_assert_str_eq(money_currency(m), "USD");
+     +    money_free(m);
+     +}
+     +END_TEST
+     +
+      int main(void)
+      {
+          return 0;
+      }
+
+   A unit test should just chug along and complete.  If it exits early,
+or is signaled, it will fail with a generic error message.  (Note: it
+is conceivable that you expect an early exit, or a signal and there is
+functionality in Check to specifically assert that we should expect a
+signal or an early exit.)  If we want to get some information about
+what failed, we need to use some calls that will point out a failure.
+Two such calls are `ck_assert_int_eq' (used to determine if two integers
+are equal) and `ck_assert_str_eq' (used to determine if two null
+terminated strings are equal). Both of these functions (actually
+macros) will signal an error if their arguments are not equal.
+
+   An alternative to using `ck_assert_int_eq' and `ck_assert_str_eq' is
+to write the expression under test directly using `ck_assert'.  This
+takes one Boolean argument which must be True for the check to pass.
+The second test could be rewritten as follows:
+
+     ck_assert(strcmp (money_currency (m), "USD") == 0);
+
+   `ck_assert' will find and report failures, but will not print any
+user supplied message in the unit test result. To print a user defined
+message along with any failures found, use `ck_assert_msg'. The first
+argument is a Boolean argument. The remaining arguments support
+`varargs' and accept `printf'-style format strings and arguments.  This
+is especially useful while debugging. For example, the second test
+could be rewritten as:
+
+     ck_assert_msg(strcmp (money_currency (m), "USD") == 0,
+              "Was expecting a currency of USD, but found %s", money_currency (m));
+
+   If the Boolean argument is too complicated to elegantly express
+within `ck_assert()', there are the alternate functions `ck_abort()'
+and `ck_abort_msg()' that unconditionally fail.  The second test inside
+`test_money_create' above could be rewritten as follows:
+
+     if (strcmp (money_currency (m), "USD") != 0)
+       {
+         ck_abort_msg ("Currency not set correctly on creation");
+       }
+
+   For your convenience ck_assert, which does not accept a user
+supplied message, substitutes a suitable message for you. (This is also
+equivalent to passing a NULL message to ck_assert_msg). So you could
+also write a test as follows:
+
+     ck_assert (money_amount (m) == 5);
+
+   This is equivalent to:
+
+     ck_assert_msg (money_amount (m) == 5, NULL);
+
+   which will print the file, line number, and the message `"Assertion
+'money_amount (m) == 5' failed"' if `money_amount (m) != 5'.
+
+   When we try to compile and run the test suite now using `make
+check', we get a whole host of compilation errors.  It may seem a bit
+strange to deliberately write code that won't compile, but notice what
+we are doing: in creating the unit test, we are also defining
+requirements for the money interface.  Compilation errors are, in a
+way, unit test failures of their own, telling us that the
+implementation does not match the specification.  If all we do is edit
+the sources so that the unit test compiles, we are actually making
+progress, guided by the unit tests, so that's what we will now do.
+
+   We will patch our header `money.h' as follows:
+
+     --- src/money.1.h	2020-06-21 08:52:50.000000000 -0700
+     +++ src/money.2.h	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,24 +1,31 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #ifndef MONEY_H
+      #define MONEY_H
+
+     +typedef struct Money Money;
+     +
+     +Money *money_create(int amount, char *currency);
+     +int money_amount(Money * m);
+     +char *money_currency(Money * m);
+     +void money_free(Money * m);
+     +
+      #endif /* MONEY_H */
+
+   Our code compiles now, and again passes all of the tests.  However,
+once we try to _use_ the functions in `libmoney' in the `main()' of
+`check_money', we'll run into more problems, as they haven't actually
+been implemented yet.
+
+
+File: check.info,  Node: Creating a Suite,  Next: SRunner Output,  Prev: Test a Little,  Up: Tutorial
+
+3.5 Creating a Suite
+====================
+
+To run unit tests with Check, we must create some test cases, aggregate
+them into a suite, and run them with a suite runner. That's a bit of
+overhead, but it is mostly one-off.  Here's a diff for the new version
+of `check_money.c'.  Note that we include stdlib.h to get the
+definitions of `EXIT_SUCCESS' and `EXIT_FAILURE'.
+
+     --- tests/check_money.2.c	2020-06-21 08:52:50.000000000 -0700
+     +++ tests/check_money.3.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,38 +1,65 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+     +#include <stdlib.h>
+      #include <check.h>
+      #include "../src/money.h"
+
+      START_TEST(test_money_create)
+      {
+          Money *m;
+
+          m = money_create(5, "USD");
+          ck_assert_int_eq(money_amount(m), 5);
+          ck_assert_str_eq(money_currency(m), "USD");
+          money_free(m);
+      }
+      END_TEST
+
+     +Suite * money_suite(void)
+     +{
+     +    Suite *s;
+     +    TCase *tc_core;
+     +
+     +    s = suite_create("Money");
+     +
+     +    /* Core test case */
+     +    tc_core = tcase_create("Core");
+     +
+     +    tcase_add_test(tc_core, test_money_create);
+     +    suite_add_tcase(s, tc_core);
+     +
+     +    return s;
+     +}
+     +
+      int main(void)
+      {
+     -    return 0;
+     +    int number_failed;
+     +    Suite *s;
+     +    SRunner *sr;
+     +
+     +    s = money_suite();
+     +    sr = srunner_create(s);
+     +
+     +    srunner_run_all(sr, CK_NORMAL);
+     +    number_failed = srunner_ntests_failed(sr);
+     +    srunner_free(sr);
+     +    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+      }
+
+   Most of the `money_suite()' code should be self-explanatory.  We are
+creating a suite, creating a test case, adding the test case to the
+suite, and adding the unit test we created above to the test case.  Why
+separate this off into a separate function, rather than inline it in
+`main()'?  Because any new tests will get added in `money_suite()', but
+nothing will need to change in `main()' for the rest of this example,
+so main will stay relatively clean and simple.
+
+   Unit tests are internally defined as static functions.  This means
+that the code to add unit tests to test cases must be in the same
+compilation unit as the unit tests themselves.  This provides another
+reason to put the creation of the test suite in a separate function:
+you may later want to keep one source file per suite; defining a
+uniquely named suite creation function allows you later to define a
+header file giving prototypes for all the suite creation functions, and
+encapsulate the details of where and how unit tests are defined behind
+those functions.  See the test program defined for Check itself for an
+example of this strategy.
+
+   The code in `main()' bears some explanation.  We are creating a
+suite runner object of type `SRunner' from the `Suite' we created in
+`money_suite()'.  We then run the suite, using the `CK_NORMAL' flag to
+specify that we should print a summary of the run, and list any
+failures that may have occurred.  We capture the number of failures
+that occurred during the run, and use that to decide how to return.
+The `check' target created by Automake uses the return value to decide
+whether the tests passed or failed.
+
+   Now that the tests are actually being run by `check_money', we
+encounter linker errors again we try out `make check'.  Try it for
+yourself and see.  The reason is that the `money.c' implementation of
+the `money.h' interface hasn't been created yet.  Let's go with the
+fastest solution possible and implement stubs for each of the functions
+in `money.c'. Here is the diff:
+
+     --- src/money.1.c	2020-06-21 08:52:50.000000000 -0700
+     +++ src/money.3.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,20 +1,42 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+     +#include <stdlib.h>
+     +#include "money.h"
+     +
+     +Money *money_create(int amount, char *currency)
+     +{
+     +    return NULL;
+     +}
+     +
+     +int money_amount(Money * m)
+     +{
+     +    return 0;
+     +}
+     +
+     +char *money_currency(Money * m)
+     +{
+     +    return NULL;
+     +}
+     +
+     +void money_free(Money * m)
+     +{
+     +    return;
+     +}
+
+   Note that we `#include <stdlib.h>' to get the definition of `NULL'.
+Now, the code compiles and links when we run `make check', but our unit
+test fails.  Still, this is progress, and we can focus on making the
+test pass.
+
+
+File: check.info,  Node: SRunner Output,  Prev: Creating a Suite,  Up: Tutorial
+
+3.6 SRunner Output
+==================
+
+The functions to run tests in an `SRunner' are defined as follows:
+
+     void srunner_run_all (SRunner * sr, enum print_output print_mode);
+
+     void srunner_run (SRunner *sr, const char *sname, const char *tcname,
+                       enum print_output print_mode);
+
+   Those functions do two things:
+
+  1. They run all of the unit tests for the selected test cases defined
+     for the selected suites in the SRunner, and collect the results in
+     the SRunner.  The determination of the selected test cases and
+     suites depends on the specific function used.
+
+     `srunner_run_all' will run all the defined test cases of all
+     defined suites except if the environment variables `CK_RUN_CASE'
+     or `CK_RUN_SUITE' are defined.  If defined, those variables shall
+     contain the name of a test suite or a test case, defining in that
+     way the selected suite/test case.
+
+     `srunner_run' will run the suite/case selected by the `sname' and
+     `tcname' parameters.  A value of `NULL' in some of those
+     parameters means "any suite/case".
+
+  2. They print the results according to the `print_mode' specified.
+
+   For SRunners that have already been run, there is also a separate
+printing function defined as follows:
+
+     void srunner_print (SRunner *sr, enum print_output print_mode);
+
+   The enumeration values of `print_output' defined in Check that
+parameter `print_mode' can assume are as follows:
+
+`CK_SILENT'
+     Specifies that no output is to be generated. If you use this flag,
+     you either need to programmatically examine the SRunner object,
+     print separately, or use test logging (*note Test Logging::.)
+
+`CK_MINIMAL'
+     Only a summary of the test run will be printed (number run, passed,
+     failed, errors).
+
+`CK_NORMAL'
+     Prints the summary of the run, and prints one message per failed
+     test.
+
+`CK_VERBOSE'
+     Prints the summary, and one message per test (passed or failed)
+
+`CK_ENV'
+     Gets the print mode from the environment variable `CK_VERBOSITY',
+     which can have the values "silent", "minimal", "normal",
+     "verbose". If the variable is not found or the value is not
+     recognized, the print mode is set to `CK_NORMAL'.
+
+`CK_SUBUNIT'
+     Prints running progress through the subunit
+     (https://launchpad.net/subunit/) test runner protocol. See
+     'subunit support' under the Advanced Features section for more
+     information.
+
+   With the `CK_NORMAL' flag specified in our `main()', let's rerun
+`make check' now. The output from the unit test is as follows:
+
+     Running suite(s): Money
+     0%: Checks: 1, Failures: 1, Errors: 0
+     check_money.c:9:F:Core:test_money_create:0: Assertion 'money_amount (m)==5' failed:
+     money_amount (m)==0, 5==5
+     FAIL: check_money
+     =====================================================
+     1 of 1 test failed
+     Please report to check-devel AT lists.sourceforge.net
+     =====================================================
+
+   Note that the output from `make check' prior to Automake 1.13 will
+be the output of the unit test program. Starting with 1.13 Automake will
+run all unit test programs concurrently and store the output in log
+files. The output listed above should be present in a log file.
+
+   The first number in the summary line tells us that 0% of our tests
+passed, and the rest of the line tells us that there was one check in
+total, and of those checks, one failure and zero errors.  The next line
+tells us exactly where that failure occurred, and what kind of failure
+it was (P for pass, F for failure, E for error).
+
+   After that we have some higher level output generated by Automake:
+the `check_money' program failed, and the bug-report address given in
+`configure.ac' is printed.
+
+   Let's implement the `money_amount' function, so that it will pass
+its tests.  We first have to create a Money structure to hold the
+amount, and then implement the function to return the correct amount:
+
+     --- src/money.3.c	2020-06-21 08:52:50.000000000 -0700
+     +++ src/money.4.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,42 +1,47 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #include <stdlib.h>
+      #include "money.h"
+
+     +struct Money
+     +{
+     +    int amount;
+     +};
+     +
+      Money *money_create(int amount, char *currency)
+      {
+          return NULL;
+      }
+
+      int money_amount(Money * m)
+      {
+     -    return 0;
+     +    return m->amount;
+      }
+
+      char *money_currency(Money * m)
+      {
+          return NULL;
+      }
+
+      void money_free(Money * m)
+      {
+          return;
+      }
+
+   We will now rerun make check and... what's this?  The output is now
+as follows:
+
+     Running suite(s): Money
+     0%: Checks: 1, Failures: 0, Errors: 1
+     check_money.c:5:E:Core:test_money_create:0: (after this point)
+     Received signal 11 (Segmentation fault)
+
+   What does this mean?  Note that we now have an error, rather than a
+failure.  This means that our unit test either exited early, or was
+signaled.  Next note that the failure message says "after this point";
+This means that somewhere after the point noted (`check_money.c', line
+5) there was a problem: signal 11 (a.k.a.  segmentation fault).  The
+last point reached is set on entry to the unit test, and after every
+call to the `ck_assert()', `ck_abort()', `ck_assert_int_*()',
+`ck_assert_str_*()', or the special function `mark_point()'.  For
+example, if we wrote some test code as follows:
+
+     stuff_that_works ();
+     mark_point ();
+     stuff_that_dies ();
+
+   then the point returned will be that marked by `mark_point()'.
+
+   The reason our test failed so horribly is that we haven't implemented
+`money_create()' to create any `Money'.  We'll go ahead and implement
+that, the symmetric `money_free()', and `money_currency()' too, in
+order to make our unit test pass again, here is a diff:
+
+     --- src/money.4.c	2020-06-21 08:52:50.000000000 -0700
+     +++ src/money.5.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,47 +1,58 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #include <stdlib.h>
+      #include "money.h"
+
+      struct Money
+      {
+          int amount;
+     +    char *currency;
+      };
+
+      Money *money_create(int amount, char *currency)
+      {
+     -    return NULL;
+     +    Money *m = malloc(sizeof(Money));
+     +
+     +    if (m == NULL)
+     +    {
+     +        return NULL;
+     +    }
+     +
+     +    m->amount = amount;
+     +    m->currency = currency;
+     +    return m;
+      }
+
+      int money_amount(Money * m)
+      {
+          return m->amount;
+      }
+
+      char *money_currency(Money * m)
+      {
+     -    return NULL;
+     +    return m->currency;
+      }
+
+      void money_free(Money * m)
+      {
+     +    free(m);
+          return;
+      }
+
+
+File: check.info,  Node: Advanced Features,  Next: Supported Build Systems,  Prev: Tutorial,  Up: Top
+
+4 Advanced Features
+*******************
+
+What you've seen so far is all you need for basic unit testing.  The
+features described in this section are additions to Check that make it
+easier for the developer to write, run, and analyze tests.
+
+* Menu:
+
+* Convenience Test Functions::
+* Running Multiple Cases::
+* No Fork Mode::
+* Test Fixtures::
+* Multiple Suites in one SRunner::
+* Selective Running of Tests::
+* Selecting Tests by Suite or Test Case::
+* Selecting Tests Based on Arbitrary Tags::
+* Testing Signal Handling and Exit Values::
+* Looping Tests::
+* Test Timeouts::
+* Determining Test Coverage::
+* Finding Memory Leaks::
+* Test Logging::
+* Subunit Support::
+
+
+File: check.info,  Node: Convenience Test Functions,  Next: Running Multiple Cases,  Prev: Advanced Features,  Up: Advanced Features
+
+4.1 Convenience Test Functions
+==============================
+
+Using the `ck_assert' function for all tests can lead to lot of
+repetitive code that is hard to read.  For your convenience Check
+provides a set of functions (actually macros) for testing often used
+conditions.
+
+   The typical size of an assertion message is less than 80 bytes.
+However, some of the functions listed below can generate very large
+messages (up to 4GB allocations were seen in the wild).  To prevent
+this, a limit is placed on the assertion message size.  This limit is
+4K bytes by default.  It can be modified by setting the
+`CK_MAX_MSG_SIZE' environment variable, or, if it is not set, by
+invoking the `check_set_max_msg_size()' function.  If used, this
+function must be called, once, before the first assertion.
+
+`ck_abort'
+     Unconditionally fails test with default message.
+
+`ck_abort_msg'
+     Unconditionally fails test with user supplied message.
+
+`ck_assert'
+     Fails test if supplied condition evaluates to false.
+
+`ck_assert_msg'
+     Fails test if supplied condition evaluates to false and displays
+     user provided message.
+
+`ck_assert_int_eq'
+`ck_assert_int_ne'
+`ck_assert_int_lt'
+`ck_assert_int_le'
+`ck_assert_int_gt'
+`ck_assert_int_ge'
+     Compares two signed integer values (`intmax_t') and displays a
+     predefined message with both the condition and input parameters on
+     failure.  The operator used for comparison is different for each
+     function and is indicated by the last two letters of the function
+     name.  The abbreviations `eq', `ne', `lt', `le', `gt', and `ge'
+     correspond to `==', `!=', `<', `<=', `>', and `>=' respectively.
+
+`ck_assert_uint_eq'
+`ck_assert_uint_ne'
+`ck_assert_uint_lt'
+`ck_assert_uint_le'
+`ck_assert_uint_gt'
+`ck_assert_uint_ge'
+     Similar to `ck_assert_int_*', but compares two unsigned integer
+     values (`uintmax_t') instead.
+
+`ck_assert_float_eq'
+`ck_assert_float_ne'
+`ck_assert_float_lt'
+`ck_assert_float_le'
+`ck_assert_float_gt'
+`ck_assert_float_ge'
+     Compares two floating point numbers (`float') and displays a
+     predefined message with both the condition and input parameters on
+     failure.  The operator used for comparison is different for each
+     function and is indicated by the last two letters of the function
+     name.  The abbreviations `eq', `ne', `lt', `le', `gt', and `ge'
+     correspond to `==', `!=', `<', `<=', `>', and `>=' respectively.
+     Beware using those operators for floating point numbers because of
+     precision possible loss on every operation on floating point
+     numbers. For example (1/3)*3==1 would return false, because
+     1/3==1.333... (or 1.(3) notation in Europe) and cannot be
+     represented by computer logic. As another example 1.1f in fact
+     could be 1.10000002384185791015625 and 2.1f could be
+     2.099999904632568359375 because of binary representation of
+     floating point numbers.  If you have different mathematical
+     operations used on floating point numbers consider using precision
+     comparisons or integer numbers instead. But in some cases those
+     operators could be used. For example if you cyclically increment
+     your floating point number only by positive or only by negative
+     values than you may use `<', `<=', `>' and `>=' operators in tests.
+     If your computations must end up with a certain value than `==' and
+     `!=' operators may be used.
+
+`ck_assert_double_eq'
+`ck_assert_double_ne'
+`ck_assert_double_lt'
+`ck_assert_double_le'
+`ck_assert_double_gt'
+`ck_assert_double_ge'
+     Similar to `ck_assert_float_*', but compares two double precision
+     floating point values (`double') instead.
+
+`ck_assert_ldouble_eq'
+`ck_assert_ldouble_ne'
+`ck_assert_ldouble_lt'
+`ck_assert_ldouble_le'
+`ck_assert_ldouble_gt'
+`ck_assert_ldouble_ge'
+     Similar to `ck_assert_float_*', but compares two double precision
+     floating point values (`long double') instead.
+
+`ck_assert_float_eq_tol'
+`ck_assert_float_ne_tol'
+`ck_assert_float_le_tol'
+`ck_assert_float_ge_tol'
+     Compares two floating point numbers (`float') with specified user
+     tolerance set by the third parameter (`float') and displays a
+     predefined message with both the condition and input parameters on
+     failure.  The abbreviations `eq', `ne', `le', and `ge' correspond
+     to `==', `!=', `<=', and `>=' respectively with acceptable error
+     (tolerance) specified by the last parameter.  Beware using those
+     functions for floating comparisons because of (1) errors coming
+     from floating point number representation, (2) rounding errors,
+     (3) floating point errors are platform dependent.  Floating point
+     numbers are often internally represented in binary so they cannot
+     be exact power of 10. All these operators have significant error
+     in comparisons so use them only if you know what you're doing.
+     Some assertions could fail on one platform and would be passed on
+     another.  For example expression `0.02<=0.01+10^-2' is true by
+     meaning, but some platforms may calculate it as false. IEEE 754
+     standard specifies the floating point number format representation
+     but it does not promise that the same computation carried out on
+     all hardware will produce the same result.
+
+`ck_assert_double_eq_tol'
+`ck_assert_double_ne_tol'
+`ck_assert_double_le_tol'
+`ck_assert_double_ge_tol'
+     Similar to `ck_assert_float_*_tol', but compares two double
+     precision floating point values (`double') instead.
+
+`ck_assert_ldouble_eq_tol'
+`ck_assert_ldouble_ne_tol'
+`ck_assert_ldouble_le_tol'
+`ck_assert_ldouble_ge_tol'
+     Similar to `ck_assert_float_*_tol', but compares two double
+     precision floating point values (`long double') instead.
+
+`ck_assert_float_finite'
+     Checks that a floating point number (`float') is finite and
+     displays a predefined message with both the condition and input
+     parameter on failure.  Finite means that value cannot be positive
+     infinity, negative infinity or NaN ("Not a Number").
+
+`ck_assert_double_finite'
+     Similar to `ck_assert_float_finite', but checks double precision
+     floating point value (`double') instead.
+
+`ck_assert_ldouble_finite'
+     Similar to `ck_assert_float_finite', but checks double precision
+     floating point value (`long double') instead.
+
+`ck_assert_float_infinite'
+     Checks that a floating point number (`float') is infinite and
+     displays a predefined message with both the condition and input
+     parameter on failure.  Infinite means that value may only be
+     positive infinity or negative infinity.
+
+`ck_assert_double_infinite'
+     Similar to `ck_assert_float_infinite', but checks double precision
+     floating point value (`double') instead.
+
+`ck_assert_ldouble_infinite'
+     Similar to `ck_assert_float_infinite', but checks double precision
+     floating point value (`long double') instead.
+
+`ck_assert_float_nan'
+     Checks that a floating point number (`float', `double' or `long
+     double' abbreviated as `ldouble') is NaN ("Not a Number") and
+     displays a predefined message with both the condition and input
+     parameter on failure.
+
+`ck_assert_double_nan'
+     Similar to `ck_assert_float_nan', but checks double precision
+     floating point value (`double') instead.
+
+`ck_assert_ldouble_nan'
+     Similar to `ck_assert_float_nan', but checks double precision
+     floating point value (`long double') instead.
+
+`ck_assert_float_nonnan'
+     Checks that a floating point number (`float') is not NaN ("Not a
+     Number") and displays a predefined message with both the condition
+     and input parameter on failure.
+
+`ck_assert_double_nonnan'
+     Similar to `ck_assert_float_nonnan', but checks double precision
+     floating point value (`double') instead.
+
+`ck_assert_ldouble_nonnan'
+     Similar to `ck_assert_float_nonnan', but checks double precision
+     floating point value (`long double') instead.
+
+`ck_assert_str_eq'
+`ck_assert_str_ne'
+`ck_assert_str_lt'
+`ck_assert_str_le'
+`ck_assert_str_gt'
+`ck_assert_str_ge'
+     Compares two null-terminated `char *' string values, using the
+     `strcmp()' function internally, and displays predefined message
+     with condition and input parameter values on failure. The
+     comparison operator is again indicated by last two letters of the
+     function name.  `ck_assert_str_lt(a, b)' will pass if the unsigned
+     numerical value of the character string `a' is less than that of
+     `b'.  If a NULL pointer is be passed to any comparison macro the
+     check will fail.
+
+`ck_assert_pstr_eq'
+`ck_assert_pstr_ne'
+     Similar to `ck_assert_str_*' macros, but able to check undefined
+     strings.  If a NULL pointer would be passed to a comparison macro
+     it would mean that a string is undefined. If both strings are
+     undefined `ck_assert_pstr_eq' would pass, but `ck_assert_pstr_ne'
+     would fail. If only one of strings is undefined
+     `ck_assert_pstr_eq' macro would fail and `ck_assert_pstr_ne' would
+     pass.
+
+`ck_assert_ptr_eq'
+`ck_assert_ptr_ne'
+     Compares two pointers and displays predefined message with
+     condition and values of both input parameters on failure.  The
+     operator used for comparison is different for each function and is
+     indicated by the last two letters of the function name.  The
+     abbreviations `eq' and `ne' correspond to `==' and `!='
+     respectively.
+
+`ck_assert_ptr_null'
+`ck_assert_ptr_nonnull'
+     Compares a pointers against null and displays predefined message
+     with condition and value of the input parameter on failure.
+     `ck_assert_ptr_null' checks that pointer is equal to NULL and
+     `ck_assert_ptr_nonnull' checks that pointer is not equal to NULL.
+     `ck_assert_ptr_nonnull' is highly recommended to use in situations
+     when a function call can return NULL as error indication (like
+     functions that use malloc, calloc, strdup, mmap, etc).
+
+`ck_assert_mem_eq'
+`ck_assert_mem_ne'
+`ck_assert_mem_lt'
+`ck_assert_mem_le'
+`ck_assert_mem_gt'
+`ck_assert_mem_ge'
+     Compares contents of two memory locations of the given length,
+     using the `memcmp()' function internally, and displays predefined
+     message with condition and input parameter values on failure.  The
+     comparison operator is again indicated by last two letters of the
+     function name.  `ck_assert_mem_lt(a, b)' will pass if the unsigned
+     numerical value of memory location `a' is less than that of `b'.
+
+`fail'
+     (Deprecated) Unconditionally fails test with user supplied message.
+
+`fail_if'
+     (Deprecated) Fails test if supplied condition evaluates to true and
+     displays user provided message.
+
+`fail_unless'
+     (Deprecated) Fails test if supplied condition evaluates to false
+     and displays user provided message.
+
+
+
+File: check.info,  Node: Running Multiple Cases,  Next: No Fork Mode,  Prev: Convenience Test Functions,  Up: Advanced Features
+
+4.2 Running Multiple Cases
+==========================
+
+What happens if we pass `-1' as the `amount' in `money_create()'?  What
+should happen?  Let's write a unit test.  Since we are now testing
+limits, we should also test what happens when we create `Money' where
+`amount == 0'.  Let's put these in a separate test case called "Limits"
+so that `money_suite' is changed like so:
+
+     --- tests/check_money.3.c	2020-06-21 08:52:50.000000000 -0700
+     +++ tests/check_money.6.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,65 +1,94 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #include <stdlib.h>
+      #include <check.h>
+      #include "../src/money.h"
+
+      START_TEST(test_money_create)
+      {
+          Money *m;
+
+          m = money_create(5, "USD");
+          ck_assert_int_eq(money_amount(m), 5);
+          ck_assert_str_eq(money_currency(m), "USD");
+          money_free(m);
+      }
+      END_TEST
+
+     +START_TEST(test_money_create_neg)
+     +{
+     +    Money *m = money_create(-1, "USD");
+     +
+     +    ck_assert_msg(m == NULL,
+     +                  "NULL should be returned on attempt to create with "
+     +                  "a negative amount");
+     +}
+     +END_TEST
+     +
+     +START_TEST(test_money_create_zero)
+     +{
+     +    Money *m = money_create(0, "USD");
+     +
+     +    if (money_amount(m) != 0)
+     +    {
+     +        ck_abort_msg("Zero is a valid amount of money");
+     +    }
+     +}
+     +END_TEST
+     +
+      Suite * money_suite(void)
+      {
+          Suite *s;
+          TCase *tc_core;
+     +    TCase *tc_limits;
+
+          s = suite_create("Money");
+
+          /* Core test case */
+          tc_core = tcase_create("Core");
+
+          tcase_add_test(tc_core, test_money_create);
+          suite_add_tcase(s, tc_core);
+
+     +    /* Limits test case */
+     +    tc_limits = tcase_create("Limits");
+     +
+     +    tcase_add_test(tc_limits, test_money_create_neg);
+     +    tcase_add_test(tc_limits, test_money_create_zero);
+     +    suite_add_tcase(s, tc_limits);
+     +
+          return s;
+      }
+
+      int main(void)
+      {
+          int number_failed;
+          Suite *s;
+          SRunner *sr;
+
+          s = money_suite();
+          sr = srunner_create(s);
+
+          srunner_run_all(sr, CK_NORMAL);
+          number_failed = srunner_ntests_failed(sr);
+          srunner_free(sr);
+          return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+      }
+
+   Now we can rerun our suite, and fix the problem(s). Note that errors
+in the "Core" test case will be reported as "Core", and errors in the
+"Limits" test case will be reported as "Limits", giving you additional
+information about where things broke.
+
+     --- src/money.5.c	2020-06-21 08:52:50.000000000 -0700
+     +++ src/money.6.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,58 +1,65 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #include <stdlib.h>
+      #include "money.h"
+
+      struct Money
+      {
+          int amount;
+          char *currency;
+      };
+
+      Money *money_create(int amount, char *currency)
+      {
+     -    Money *m = malloc(sizeof(Money));
+     +    Money *m;
+     +
+     +    if (amount < 0)
+     +    {
+     +        return NULL;
+     +    }
+     +
+     +    m = malloc(sizeof(Money));
+
+          if (m == NULL)
+          {
+              return NULL;
+          }
+
+          m->amount = amount;
+          m->currency = currency;
+          return m;
+      }
+
+      int money_amount(Money * m)
+      {
+          return m->amount;
+      }
+
+      char *money_currency(Money * m)
+      {
+          return m->currency;
+      }
+
+      void money_free(Money * m)
+      {
+          free(m);
+          return;
+      }
+
+
+File: check.info,  Node: No Fork Mode,  Next: Test Fixtures,  Prev: Running Multiple Cases,  Up: Advanced Features
+
+4.3 No Fork Mode
+================
+
+Check normally forks to create a separate address space.  This allows a
+signal or early exit to be caught and reported, rather than taking down
+the entire test program, and is normally very useful.  However, when
+you are trying to debug why the segmentation fault or other program
+error occurred, forking makes it difficult to use debugging tools.  To
+define fork mode for an `SRunner' object, you can do one of the
+following:
+
+  1. Define the CK_FORK environment variable to equal "no".
+
+  2. Explicitly define the fork status through the use of the following
+     function:
+
+
+     void srunner_set_fork_status (SRunner * sr, enum fork_status fstat);
+
+   The enum `fork_status' allows the `fstat' parameter to assume the
+following values: `CK_FORK' and `CK_NOFORK'.  An explicit call to
+`srunner_set_fork_status()' overrides the `CK_FORK' environment
+variable.
+
+
+File: check.info,  Node: Test Fixtures,  Next: Multiple Suites in one SRunner,  Prev: No Fork Mode,  Up: Advanced Features
+
+4.4 Test Fixtures
+=================
+
+We may want multiple tests that all use the same Money.  In such cases,
+rather than setting up and tearing down objects for each unit test, it
+may be convenient to add some setup that is constant across all the
+tests in a test case.  Each such setup/teardown pair is called a "test
+fixture" in test-driven development jargon.
+
+   A fixture is created by defining a setup and/or a teardown function,
+and associating it with a test case.  There are two kinds of test
+fixtures in Check: checked and unchecked fixtures. These are defined as
+follows:
+
+Checked fixtures
+     are run inside the address space created by the fork to create the
+     unit test.  Before each unit test in a test case, the `setup()'
+     function is run, if defined. After each unit test, the
+     `teardown()' function is run, if defined.  Since they run inside
+     the forked address space, if checked fixtures signal or otherwise
+     fail, they will be caught and reported by the `SRunner'.  A
+     checked `teardown()' fixture will not run if the unit test fails.
+
+Unchecked fixtures
+     are run in the same address space as the test program. Therefore
+     they may not signal or exit, but may use the fail functions. The
+     unchecked `setup()', if defined, is run before the test case is
+     started. The unchecked `teardown()', if defined, is run after the
+     test case is done. An unchecked `teardown()' fixture will run even
+     if a unit test fails.
+
+   An important  difference is that the checked fixtures are run once
+per unit test and the unchecked fixtures are run once per test case.
+So for a test case that contains `check_one()' and `check_two()' unit
+tests, `checked_setup()'/`checked_teardown()' checked fixtures, and
+`unchecked_setup()'/`unchecked_teardown()' unchecked fixtures, the
+control flow would be:
+
+     unchecked_setup();
+     fork();
+     checked_setup();
+     check_one();
+     checked_teardown();
+     wait();
+     fork();
+     checked_setup();
+     check_two();
+     checked_teardown();
+     wait();
+     unchecked_teardown();
+
+* Menu:
+
+* Test Fixture Examples::
+* Checked vs Unchecked Fixtures::
+
+
+File: check.info,  Node: Test Fixture Examples,  Next: Checked vs Unchecked Fixtures,  Prev: Test Fixtures,  Up: Test Fixtures
+
+4.4.1 Test Fixture Examples
+---------------------------
+
+We create a test fixture in Check as follows:
+
+  1. Define global variables, and functions to setup and teardown the
+     globals.  The functions both take `void' and return `void'.  In
+     our example, we'll make `five_dollars' be a global created and
+     freed by `setup()' and `teardown()' respectively.
+
+  2. Add the `setup()' and `teardown()' functions to the test case with
+     `tcase_add_checked_fixture()'.  In our example, this belongs in
+     the suite setup function `money_suite'.
+
+  3. Rewrite tests to use the globals.  We'll rewrite our first to use
+     `five_dollars'.
+
+   Note that the functions used for setup and teardown do not need to be
+named `setup()' and `teardown()', but they must take `void' and return
+`void'.  We'll update `check_money.c' with the following patch:
+
+     --- tests/check_money.6.c	2020-06-21 08:52:50.000000000 -0700
+     +++ tests/check_money.7.c	2020-06-21 08:52:50.000000000 -0700
+     @@ -1,94 +1,103 @@
+      /*
+       * Check: a unit test framework for C
+       * Copyright (C) 2001, 2002 Arien Malec
+       *
+       * This library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU Lesser General Public
+       * License as published by the Free Software Foundation; either
+       * version 2.1 of the License, or (at your option) any later version.
+       *
+       * This library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+       * Lesser General Public License for more details.
+       *
+       * You should have received a copy of the GNU Lesser General Public
+       * License along with this library; if not, write to the
+       * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+       * MA 02110-1301, USA.
+       */
+
+      #include <stdlib.h>
+      #include <check.h>
+      #include "../src/money.h"
+
+     -START_TEST(test_money_create)
+     +Money *five_dollars;
+     +
+     +void setup(void)
+     +{
+     +    five_dollars = money_create(5, "USD");
+     +}
+     +
+     +void teardown(void)
+      {
+     -    Money *m;
+     +    money_free(five_dollars);
+     +}
+
+     -    m = money_create(5, "USD");
+     -    ck_assert_int_eq(money_amount(m), 5);
+     -    ck_assert_str_eq(money_currency(m), "USD");
+     -    money_free(m);
+     +START_TEST(test_money_create)
+     +{
+     +    ck_assert_int_eq(money_amount(five_dollars), 5);
+     +    ck_assert_str_eq(money_currency(five_dollars), "USD");
+      }
+      END_TEST
+
+      START_TEST(test_money_create_neg)
+      {
+          Money *m = money_create(-1, "USD");
+
+          ck_assert_msg(m == NULL,
+                        "NULL should be returned on attempt to create with "
+                        "a negative amount");
+      }
+      END_TEST
+
+      START_TEST(test_money_create_zero)
+      {
+          Money *m = money_create(0, "USD");
+
+          if (money_amount(m) != 0)
+          {
+              ck_abort_msg("Zero is a valid amount of money");
+          }
+      }
+      END_TEST
+
+      Suite * money_suite(void)
+      {
+          Suite *s;
+          TCase *tc_core;
+          TCase *tc_limits;
+
+          s = suite_create("Money");
+
+          /* Core test case */
+          tc_core = tcase_create("Core");
+
+     +    tcase_add_checked_fixture(tc_core, setup, teardown);
+          tcase_add_test(tc_core, test_money_create);
+          suite_add_tcase(s, tc_core);
+
+          /* Limits test case */
+          tc_limits = tcase_create("Limits");
+
+          tcase_add_test(tc_limits, test_money_create_neg);
+          tcase_add_test(tc_limits, test_money_create_zero);
+          suite_add_tcase(s, tc_limits);
+
+          return s;
+      }
+
+      int main(void)
+      {
+          int number_failed;
+          Suite *s;
+          SRunner *sr;
+
+          s = money_suite();
+          sr = srunner_create(s);
+
+          srunner_run_all(sr, CK_NORMAL);
+          number_failed = srunner_ntests_failed(sr);
+          srunner_free(sr);
+          return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+      }
+
+
+File: check.info,  Node: Checked vs Unchecked Fixtures,  Prev: Test Fixture Examples,  Up: Test Fixtures
+
+4.4.2 Checked vs Unchecked Fixtures
+-----------------------------------
+
+Checked fixtures run once for each unit test in a test case, and so
+they should not be used for expensive setup.  However, if a checked
+fixture fails and `CK_FORK' mode is being used, it will not bring down
+the entire framework.
+
+   On the other hand, unchecked fixtures run once for an entire test
+case, as opposed to once per unit test, and so can be used for
+expensive setup.  However, since they may take down the entire test
+program, they should only be used if they are known to be safe.
+
+   Additionally, the isolation of objects created by unchecked fixtures
+is not guaranteed by `CK_NOFORK' mode.  Normally, in `CK_FORK' mode,
+unit tests may abuse the objects created in an unchecked fixture with
+impunity, without affecting other unit tests in the same test case,
+because the fork creates a separate address space.  However, in
+`CK_NOFORK' mode, all tests live in the same address space, and side
+effects in one test will affect the unchecked fixture for the other
+tests.
+
+   A checked fixture will generally not be affected by unit test side
+effects, since the `setup()' is run before each unit test.  There is an
+exception for side effects to the total environment in which the test
+program lives: for example, if the `setup()' function initializes a
+file that a unit test then changes, the combination of the `teardown()'
+function and `setup()' function must be able to restore the environment
+for the next unit test.
+
+   If the `setup()' function in a fixture fails, in either checked or
+unchecked fixtures, the unit tests for the test case, and the
+`teardown()' function for the fixture will not be run.  A fixture error
+will be created and reported to the `SRunner'.
+
+
+File: check.info,  Node: Multiple Suites in one SRunner,  Next: Selective Running of Tests,  Prev: Test Fixtures,  Up: Advanced Features
+
+4.5 Multiple Suites in one SRunner
+==================================
+
+In a large program, it will be convenient to create multiple suites,
+each testing a module of the program.  While one can create several
+test programs, each running one `Suite', it may be convenient to create
+one main test program, and use it to run multiple suites.  The Check
+test suite provides an example of how to do this. The main testing
+program is called `check_check', and has a header file that declares
+suite creation functions for all the module tests:
+
+     Suite *make_sub_suite (void);
+     Suite *make_sub2_suite (void);
+     Suite *make_master_suite (void);
+     Suite *make_list_suite (void);
+     Suite *make_msg_suite (void);
+     Suite *make_log_suite (void);
+     Suite *make_limit_suite (void);
+     Suite *make_fork_suite (void);
+     Suite *make_fixture_suite (void);
+     Suite *make_pack_suite (void);
+
+   The function `srunner_add_suite()' is used to add additional suites
+to an `SRunner'.  Here is the code that sets up and runs the `SRunner'
+in the `main()' function in `check_check_main.c':
+
+     SRunner *sr;
+     sr = srunner_create (make_master_suite ());
+     srunner_add_suite (sr, make_list_suite ());
+     srunner_add_suite (sr, make_msg_suite ());
+     srunner_add_suite (sr, make_log_suite ());
+     srunner_add_suite (sr, make_limit_suite ());
+     srunner_add_suite (sr, make_fork_suite ());
+     srunner_add_suite (sr, make_fixture_suite ());
+     srunner_add_suite (sr, make_pack_suite ());
+
+
+File: check.info,  Node: Selective Running of Tests,  Next: Testing Signal Handling and Exit Values,  Prev: Multiple Suites in one SRunner,  Up: Advanced Features
+
+4.6 Selective Running of Tests
+==============================
+
+After adding a couple of suites and some test cases in each, it is
+sometimes practical to be able to run only one suite, or one specific
+test case, without recompiling the test code.  Check provides two ways
+to accomplish this, either by specifying a suite or test case by name
+or by assigning tags to test cases and specifying one or more tags to
+run.
+
+* Menu:
+
+* Selecting Tests by Suite or Test Case::
+* Selecting Tests Based on Arbitrary Tags::
+
+
+File: check.info,  Node: Selecting Tests by Suite or Test Case,  Next: Selecting Tests Based on Arbitrary Tags,  Prev: Selective Running of Tests,  Up: Selective Running of Tests
+
+4.6.1 Selecting Tests by Suite or Test Case
+-------------------------------------------
+
+There are two environment variables available that offer this ability,
+`CK_RUN_SUITE' and `CK_RUN_CASE'. Just set the value to the name of the
+suite and/or test case you want to run. These environment variables can
+also be a good integration tool for running specific tests from within
+another tool, e.g. an IDE.
+
+
+File: check.info,  Node: Selecting Tests Based on Arbitrary Tags,  Prev: Selecting Tests by Suite or Test Case,  Up: Selective Running of Tests
+
+4.6.2 Selecting Tests Based on Arbitrary Tags
+---------------------------------------------
+
+It can be useful to dynamically include or exclude groups of tests to
+be run based on criteria other than the suite or test case name. For
+example, one or more tags can be assigned to test cases. The tags could
+indicate if a test runs for a long time, so such tests could be
+excluded in order to run quicker tests for a sanity check. Alternately,
+tags may be used to indicate which functional areas test cover. Tests
+can then be run that include all test cases for a given set of
+functional areas.
+
+   In Check, a tag is a string of characters without white space. One or
+more tags can be assigned to a test case by using the `tcase_set_tags'
+function. This function accepts a string, and multiple tags can be
+specified by delimiting them with spaces. For example:
+
+
+         Suite *s;
+
+         TCase *red, *blue, *purple, *yellow, *black;
+
+         s = suite_create("Check Tag Filtering");
+
+         red = tcase_create("Red");
+         tcase_set_tags(red, "Red");
+         suite_add_tcase (s, red);
+         tcase_add_test(red, red_test1);
+
+         blue = tcase_create("Blue");
+         tcase_set_tags(blue, "Blue");
+         suite_add_tcase (s, blue);
+         tcase_add_test(blue, blue_test1);
+
+         purple = tcase_create("Purple");
+         tcase_set_tags(purple, "Red Blue");
+         suite_add_tcase (s, purple);
+         tcase_add_test(purple, purple_test1);
+
+   Once test cases are tagged they may be selectively run in one of two
+ways:
+
+   a) Using Environment Variables
+
+   There are two environment variables available for selecting test
+cases based on tags: `CK_INCLUDE_TAGS' and `CK_EXCLUDE_TAGS'. These can
+be set to a space separated list of tag names. If `CK_INCLUDE_TAGS' is
+set then test cases which include at least one tag in common with
+`CK_INCLUDE_TAGS' will be run. If `CK_EXCLUDE_TAGS' is set then test
+cases with one tag in common with `CK_EXCLUDE_TAGS' will not be run. In
+cases where both `CK_INCLUDE_TAGS' and `CK_EXCLUDE_TAGS' match a tag for
+a test case the test will be excluded.
+
+   Both `CK_INCLUDE_TAGS' and `CK_EXCLUDE_TAGS' can be specified in
+conjunction with `CK_RUN_SUITE' or even `CK_RUN_CASE' in which case
+they will have the effect of further narrowing the selection.
+
+   b) Programmatically
+
+   The `srunner_run_tagged' function allows one to specify which tags
+to run or exclude from a suite runner. This can be used to
+programmatically control which test cases may run.
+
+
+File: check.info,  Node: Testing Signal Handling and Exit Values,  Next: Looping Tests,  Prev: Selective Running of Tests,  Up: Advanced Features
+
+4.7 Testing Signal Handling and Exit Values
+===========================================
+
+To enable testing of signal handling, there is a function
+`tcase_add_test_raise_signal()' which is used instead of
+`tcase_add_test()'.  This function takes an additional signal argument,
+specifying a signal that the test expects to receive.  If no signal is
+received this is logged as a failure.  If a different signal is
+received this is logged as an error.
+
+   The signal handling functionality only works in CK_FORK mode.
+
+   To enable testing of expected exits, there is a function
+`tcase_add_exit_test()' which is used instead of `tcase_add_test()'.
+This function takes an additional expected exit value argument,
+specifying a value that the test is expected to exit with.  If the test
+exits with any other value this is logged as a failure.  If the test
+exits early this is logged as an error.
+
+   The exit handling functionality only works in CK_FORK mode.
+
+
+File: check.info,  Node: Looping Tests,  Next: Test Timeouts,  Prev: Testing Signal Handling and Exit Values,  Up: Advanced Features
+
+4.8 Looping Tests
+=================
+
+Looping tests are tests that are called with a new context for each
+loop iteration.  This makes them ideal for table based tests.  If loops
+are used inside ordinary tests to test multiple values, only the first
+error will be shown before the test exits.  However, looping tests
+allow for all errors to be shown at once, which can help out with
+debugging.
+
+   Adding a normal test with `tcase_add_loop_test()' instead of
+`tcase_add_test()' will make the test function the body of a `for'
+loop, with the addition of a fork before each call.  The loop variable
+`_i' is available for use inside the test function; for example, it
+could serve as an index into a table.  For failures, the iteration
+which caused the failure is available in error messages and logs.
+
+   Start and end values for the loop are supplied when adding the test.
+The values are used as in a normal `for' loop.  Below is some
+pseudo-code to show the concept:
+
+     for (_i = tfun->loop_start; _i < tfun->loop_end; _i++)
+     {
+       fork();      /* New context */
+       tfun->f(_i);  /* Call test function */
+       wait();      /* Wait for child to terminate */
+     }
+
+   An example of looping test usage follows:
+
+     static const int primes[5] = {2,3,5,7,11};
+
+     START_TEST (check_is_prime)
+     {
+       ck_assert (is_prime (primes[_i]));
+     }
+     END_TEST
+
+     ...
+
+     tcase_add_loop_test (tcase, check_is_prime, 0, 5);
+
+   Looping tests work in `CK_NOFORK' mode as well, but without the
+forking.  This means that only the first error will be shown.
+
+
+File: check.info,  Node: Test Timeouts,  Next: Determining Test Coverage,  Prev: Looping Tests,  Up: Advanced Features
+
+4.9 Test Timeouts
+=================
+
+To be certain that a test won't hang indefinitely, all tests are run
+with a timeout, the default being 4 seconds.  If the test is not
+finished within that time, it is killed and logged as an error.
+
+   The timeout for a specific test case, which may contain multiple unit
+tests, can be changed with the `tcase_set_timeout()' function.  The
+default timeout used for all test cases can be changed with the
+environment variable `CK_DEFAULT_TIMEOUT', but this will not override
+an explicitly set timeout.  Another way to change the timeout length is
+to use the `CK_TIMEOUT_MULTIPLIER' environment variable, which
+multiplies all timeouts, including those set with
+`tcase_set_timeout()', with the supplied integer value. All timeout
+arguments are in seconds and a timeout of 0 seconds turns off the
+timeout functionality. On systems that support it, the timeout can be
+specified using a nanosecond precision. Otherwise, second precision is
+used.
+
+   Test timeouts are only available in CK_FORK mode.
+
+
+File: check.info,  Node: Determining Test Coverage,  Next: Finding Memory Leaks,  Prev: Test Timeouts,  Up: Advanced Features
+
+4.10 Determining Test Coverage
+==============================
+
+The term "code coverage" refers to the extent that the statements of a
+program are executed during a run.  Thus, "test coverage" refers to
+code coverage when executing unit tests.  This information can help you
+to do two things:
+
+   * Write better tests that more fully exercise your code, thereby
+     improving confidence in it.
+
+   * Detect dead code that could be factored away.
+
+   Check itself does not provide any means to determine this test
+coverage; rather, this is the job of the compiler and its related
+tools.  In the case of `gcc' this information is easy to obtain, and
+other compilers should provide similar facilities.
+
+   Using `gcc', first enable test coverage profiling when building your
+source by specifying the `-fprofile-arcs' and `-ftest-coverage'
+switches:
+
+     $ gcc -g -Wall -fprofile-arcs -ftest-coverage -o foo foo.c foo_check.c
+
+   You will see that an additional `.gcno' file is created for each
+`.c' input file.  After running your tests the normal way, a `.gcda'
+file is created for each `.gcno' file.  These contain the coverage data
+in a raw format.  To combine this information and a source file into a
+more readable format you can use the `gcov' utility:
+
+     $ gcov foo.c
+
+   This will produce the file `foo.c.gcov' which looks like this:
+
+          -:   41:     * object */
+         18:   42:    if (ht->table[p] != NULL) {
+          -:   43:        /* replaces the current entry */
+      #####:   44:        ht->count--;
+      #####:   45:        ht->size -= ht->table[p]->size +
+      #####:   46:          sizeof(struct hashtable_entry);
+
+   As you can see this is an annotated source file with three columns:
+usage information, line numbers, and the original source.  The usage
+information in the first column can either be '-', which means that
+this line does not contain code that could be executed; '#####', which
+means this line was never executed although it does contain code--these
+are the lines that are probably most interesting for you; or a number,
+which indicates how often that line was executed.
+
+   This is of course only a very brief overview, but it should
+illustrate how determining test coverage generally works, and how it
+can help you.  For more information or help with other compilers,
+please refer to the relevant manuals.
+
+
+File: check.info,  Node: Finding Memory Leaks,  Next: Test Logging,  Prev: Determining Test Coverage,  Up: Advanced Features
+
+4.11 Finding Memory Leaks
+=========================
+
+It is possible to determine if any code under test leaks memory during
+a test. Check itself does not have an API for memory leak detection,
+however Valgrind can be used against a unit testing program to search
+for potential leaks.
+
+   Before discussing memory leak detection, first a "memory leak"
+should be better defined. There are two primary definitions of a memory
+leak:
+
+  1. Memory that is allocated but not freed before a program terminates.
+     However, it was possible for the program to free the memory if it
+     had wanted to. Valgrind refers to these as "still reachable" leaks.
+
+  2. Memory that is allocated, and any reference to the memory is lost.
+     The program could not have freed the memory. Valgrind refers to
+     these as "definitely lost" leaks.
+
+   Valgrind uses the second definition by default when defining a
+memory leak.  These leaks are the ones which are likely to cause a
+program issues due to heap depletion.
+
+   If one wanted to run Valgrind against a unit testing program to
+determine if leaks are present, the following invocation of Valgrind
+will work:
+
+
+     valgrind --leak-check=full ${UNIT_TEST_PROGRAM}
+     ...
+     ==3979== LEAK SUMMARY:
+     ==3979==    definitely lost: 0 bytes in 0 blocks
+     ==3979==    indirectly lost: 0 bytes in 0 blocks
+     ==3979==      possibly lost: 0 bytes in 0 blocks
+     ==3979==    still reachable: 548 bytes in 24 blocks
+     ==3979==         suppressed: 0 bytes in 0 blocks
+
+   In that example, there were no "definitely lost" memory leaks found.
+However, why would there be such a large number of "still reachable"
+memory leaks? It turns out this is a consequence of using `fork()' to
+run a unit test in its own process memory space, which Check does by
+default on platforms with `fork()' available.
+
+   Consider the example where a unit test program creates one suite with
+one test. The flow of the program will look like the following:
+
+     Main process:       Unit test process:
+     create suite
+     srunner_run_all()
+        fork unit test     unit test process created
+        wait for test      start test
+        ...                end test
+        ...                exit(0)
+        test complete
+     report result
+     free suite
+     exit(0)
+
+   The unit testing process has a copy of all memory that the main
+process allocated. In this example, that would include the suite
+allocated in main. When the unit testing process calls `exit(0)', the
+suite allocated in `main()' is reachable but not freed. As the unit test
+has no reason to do anything besides die when its test is finished, and
+it has no reasonable way to free everything before it dies, Valgrind
+reports that some memory is still reachable but not freed.
+
+   If the "still reachable" memory leaks are a concern, and one
+required that the unit test program report that there were no memory
+leaks regardless of the type, then the unit test program needs to run
+without fork. To accomplish this, either define the `CK_FORK=no'
+environment variable, or use the `srunner_set_fork_status()' function
+to set the fork mode as `CK_NOFORK' for all suite runners.
+
+   Running the same unit test program by disabling `fork()' results in
+the following:
+
+
+     CK_FORK=no valgrind --leak-check=full ${UNIT_TEST_PROGRAM}
+     ...
+     ==4924== HEAP SUMMARY:
+     ==4924==     in use at exit: 0 bytes in 0 blocks
+     ==4924==   total heap usage: 482 allocs, 482 frees, 122,351 bytes allocated
+     ==4924==
+     ==4924== All heap blocks were freed -- no leaks are possible
+
+
+File: check.info,  Node: Test Logging,  Next: Subunit Support,  Prev: Finding Memory Leaks,  Up: Advanced Features
+
+4.12 Test Logging
+=================
+
+Check supports an operation to log the results of a test run.  To use
+test logging, call the `srunner_set_log()' function with the name of
+the log file you wish to create:
+
+     SRunner *sr;
+     sr = srunner_create (make_s1_suite ());
+     srunner_add_suite (sr, make_s2_suite ());
+     srunner_set_log (sr, "test.log");
+     srunner_run_all (sr, CK_NORMAL);
+
+   In this example, Check will write the results of the run to
+`test.log'.  The `print_mode' argument to `srunner_run_all()' is
+ignored during test logging; the log will contain a result entry,
+organized by suite, for every test run.  Here is an example of test log
+output:
+
+     Running suite S1
+     ex_log_output.c:8:P:Core:test_pass: Test passed
+     ex_log_output.c:14:F:Core:test_fail: Failure
+     ex_log_output.c:18:E:Core:test_exit: (after this point) Early exit
+     with return value 1
+     Running suite S2
+     ex_log_output.c:26:P:Core:test_pass2: Test passed
+     Results for all suites run:
+     50%: Checks: 4, Failures: 1, Errors: 1
+
+   Another way to enable test logging is to use the `CK_LOG_FILE_NAME'
+environment variable. When set tests will be logged to the specified
+file name.  If log file is specified with both `CK_LOG_FILE_NAME' and
+`srunner_set_log()', the name provided to `srunner_set_log()' will be
+used.
+
+   If the log name is set to "-" either via `srunner_set_log()' or
+`CK_LOG_FILE_NAME', the log data will be printed to stdout instead of
+to a file.
+
+* Menu:
+
+* XML Logging::
+* TAP Logging::
+
+
+File: check.info,  Node: XML Logging,  Prev: Test Logging,  Up: Test Logging
+
+4.12.1 XML Logging
+------------------
+
+The log can also be written in XML.  The following functions define the
+interface for XML logs:
+
+     void srunner_set_xml (SRunner *sr, const char *fname);
+     int srunner_has_xml (SRunner *sr);
+     const char *srunner_xml_fname (SRunner *sr);
+
+   XML output is enabled by a call to `srunner_set_xml()' before the
+tests are run. Here is an example of an XML log:
+
+     <?xml version="1.0"?>
+     <?xml-stylesheet type="text/xsl" href="http://check.sourceforge.net/xml/check_unittest.xslt"?>
+     <testsuites xmlns="http://check.sourceforge.net/ns">
+       <datetime>2012-10-19 09:56:06</datetime>
+       <suite>
+         <title>S1</title>
+         <test result="success">
+           <path>.</path>
+           <fn>ex_xml_output.c:10</fn>
+           <id>test_pass</id>
+           <iteration>0</iteration>
+           <duration>0.000013</duration>
+           <description>Core</description>
+           <message>Passed</message>
+         </test>
+         <test result="failure">
+           <path>.</path>
+           <fn>ex_xml_output.c:16</fn>
+           <id>test_fail</id>
+           <iteration>0</iteration>
+           <duration>-1.000000</duration>
+           <description>Core</description>
+           <message>Failure</message>
+         </test>
+         <test result="error">
+           <path>.</path>
+           <fn>ex_xml_output.c:20</fn>
+           <id>test_exit</id>
+           <iteration>0</iteration>
+           <duration>-1.000000</duration>
+           <description>Core</description>
+           <message>Early exit with return value 1</message>
+         </test>
+       </suite>
+       <suite>
+         <title>S2</title>
+         <test result="success">
+           <path>.</path>
+           <fn>ex_xml_output.c:28</fn>
+           <id>test_pass2</id>
+           <iteration>0</iteration>
+           <duration>0.000011</duration>
+           <description>Core</description>
+           <message>Passed</message>
+         </test>
+         <test result="failure">
+           <path>.</path>
+           <fn>ex_xml_output.c:34</fn>
+           <id>test_loop</id>
+           <iteration>0</iteration>
+           <duration>-1.000000</duration>
+           <description>Core</description>
+           <message>Iteration 0 failed</message>
+         </test>
+         <test result="success">
+           <path>.</path>
+           <fn>ex_xml_output.c:34</fn>
+           <id>test_loop</id>
+           <iteration>1</iteration>
+           <duration>0.000010</duration>
+           <description>Core</description>
+           <message>Passed</message>
+         </test>
+         <test result="failure">
+           <path>.</path>
+           <fn>ex_xml_output.c:34</fn>
+           <id>test_loop</id>
+           <iteration>2</iteration>
+           <duration>-1.000000</duration>
+           <description>Core</description>
+           <message>Iteration 2 failed</message>
+         </test>
+       </suite>
+       <suite>
+         <title>XML escape &quot; &apos; &lt; &gt; &amp; tests</title>
+         <test result="failure">
+           <path>.</path>
+           <fn>ex_xml_output.c:40</fn>
+           <id>test_xml_esc_fail_msg</id>
+           <iteration>0</iteration>
+           <duration>-1.000000</duration>
+           <description>description &quot; &apos; &lt; &gt; &amp;</description>
+           <message>fail &quot; &apos; &lt; &gt; &amp; message</message>
+         </test>
+       </suite>
+       <duration>0.001610</duration>
+     </testsuites>
+
+   XML logging can be enabled by an environment variable as well. If
+`CK_XML_LOG_FILE_NAME' environment variable is set, the XML test log
+will be written to specified file name. If XML log file is specified
+with both `CK_XML_LOG_FILE_NAME' and `srunner_set_xml()', the name
+provided to `srunner_set_xml()' will be used.
+
+   If the log name is set to "-" either via `srunner_set_xml()' or
+`CK_XML_LOG_FILE_NAME', the log data will be printed to stdout instead
+of to a file.
+
+   If both plain text and XML log files are specified, by any of above
+methods, then check will log to both files. In other words logging in
+plain text and XML format simultaneously is supported.
+
+
+File: check.info,  Node: TAP Logging,  Prev: Test Logging,  Up: Test Logging
+
+4.12.2 TAP Logging
+------------------
+
+The log can also be written in Test Anything Protocol (TAP) format.
+Refer to the TAP Specification (http://podwiki.hexten.net/TAP/TAP.html)
+for information on valid TAP output and parsers of TAP. The following
+functions define the interface for TAP logs:
+
+     void srunner_set_tap (SRunner *sr, const char *fname);
+     int srunner_has_tap (SRunner *sr);
+     const char *srunner_tap_fname (SRunner *sr);
+
+   TAP output is enabled by a call to `srunner_set_tap()' before the
+tests are run. Here is an example of an TAP log:
+
+     ok 1 - mytests.c:test_suite_name:my_test_1: Passed
+     ok 2 - mytests.c:test_suite_name:my_test_2: Passed
+     not ok 3 - mytests.c:test_suite_name:my_test_3: Foo happened
+     ok 4 - mytests.c:test_suite_name:my_test_1: Passed
+     1..4
+
+   TAP logging can be enabled by an environment variable as well. If
+`CK_TAP_LOG_FILE_NAME' environment variable is set, the TAP test log
+will be written to specified file name. If TAP log file is specified
+with both `CK_TAP_LOG_FILE_NAME' and `srunner_set_tap()', the name
+provided to `srunner_set_tap()' will be used.
+
+   If the log name is set to "-" either via `srunner_set_tap()' or
+`CK_TAP_LOG_FILE_NAME', the log data will be printed to stdout instead
+of to a file.
+
+   If both plain text and TAP log files are specified, by any of above
+methods, then check will log to both files. In other words logging in
+plain text and TAP format simultaneously is supported.
+
+
+File: check.info,  Node: Subunit Support,  Prev: Test Logging,  Up: Advanced Features
+
+4.13 Subunit Support
+====================
+
+Check supports running test suites with subunit output. This can be
+useful to combine test results from multiple languages, or to perform
+programmatic analysis on the results of multiple check test suites or
+otherwise handle test results in a programmatic manner. Using subunit
+with check is very straight forward. There are two steps: 1) In your
+check test suite driver pass 'CK_SUBUNIT' as the output mode for your
+srunner.
+
+     SRunner *sr;
+     sr = srunner_create (make_s1_suite ());
+     srunner_add_suite (sr, make_s2_suite ());
+     srunner_run_all (sr, CK_SUBUNIT);
+   2) Setup your main language test runner to run your check based test
+executable. For instance using python:
+
+
+     import subunit
+
+     class ShellTests(subunit.ExecTestCase):
+         """Run some tests from the C codebase."""
+
+         def test_group_one(self):
+             """./foo/check_driver"""
+
+         def test_group_two(self):
+             """./foo/other_driver"""
+
+   In this example, running the test suite ShellTests in python (using
+any test runner - unittest.py, tribunal, trial, nose or others) will run
+./foo/check_driver and ./foo/other_driver and report on their result.
+
+   Subunit is hosted on launchpad - the subunit
+(https://launchpad.net/subunit/) project there contains bug tracker,
+future plans, and source code control details.
+
+
+File: check.info,  Node: Supported Build Systems,  Next: Conclusion and References,  Prev: Advanced Features,  Up: Top
+
+5 Supported Build Systems
+*************************
+
+Check officially supports two build systems: Autotools and CMake.
+Primarily it is recommended to use Autotools where possible, as CMake is
+only officially supported for Windows. Information on using Check in
+either build system follows.
+
+* Menu:
+
+* Autotools::
+* CMake::
+
+
+File: check.info,  Node: Autotools,  Next: CMake,  Prev: Supported Build Systems,  Up: Supported Build Systems
+
+5.1 Autotools
+=============
+
+It is recommended to use pkg-config where possible to locate and use
+Check in an Autotools project. This can be accomplished by including
+the following in the project's `configure.ac' file:
+
+
+   PKG_CHECK_MODULES([CHECK], [check >= MINIMUM-VERSION])
+
+   where MINIMUM-VERSION is the lowest version which is sufficient for
+the project. For example, to guarantee that at least version 0.9.6 is
+available, use the following:
+
+
+   PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
+
+   An example of a `configure.ac' script for a project is included in
+the `doc/example' directory in Check's source.  This macro should
+provide everything necessary to integrate Check into an Autotools
+project.
+
+   If one does not wish to use pkg-config Check also provides its own
+macro, `AM_PATH_CHECK()', which may be used. This macro is deprecated,
+but is still included with Check for backwards compatibility.
+
+   The `AM_PATH_CHECK()' macro is defined in the file `check.m4' which
+is installed by Check.  It has some optional parameters that you might
+find useful in your `configure.ac':
+
+AM_PATH_CHECK([MINIMUM-VERSION,
+               [ACTION-IF-FOUND[,ACTION-IF-NOT-FOUND]]])
+
+   `AM_PATH_CHECK' does several things:
+
+  1. It ensures check.h is available
+
+  2. It ensures a compatible version of Check is installed
+
+  3. It sets `CHECK_CFLAGS' and `CHECK_LIBS' for use by Automake.
+
+   If you include `AM_PATH_CHECK()' in `configure.ac' and subsequently
+see warnings when attempting to create `configure', it probably means
+one of the following things:
+
+  1. You forgot to call `aclocal'.  `autoreconf' will do this for you.
+
+  2. `aclocal' can't find  `check.m4'.  Here are some possible
+     solutions:
+
+       a. Call `aclocal' with `-I' set to the location of `check.m4'.
+          This means you have to call both `aclocal' and `autoreconf'.
+
+       b. Add the location of `check.m4' to the `dirlist' used by
+          `aclocal' and then call `autoreconf'.  This means you need
+          permission to modify the `dirlist'.
+
+       c. Set `ACLOCAL_AMFLAGS' in your top-level `Makefile.am' to
+          include `-I DIR' with `DIR' being the location of `check.m4'.
+          Then call `autoreconf'.
+
+
+File: check.info,  Node: CMake,  Prev: Autotools,  Up: Supported Build Systems
+
+5.2 CMake
+=========
+
+Those unable to use Autotools in their project may use CMake instead.
+Officially CMake is supported only for Windows.
+
+   Documentation for using CMake is forthcoming. In the meantime, look
+at the example CMake project in Check's `doc/examples' directory.
+
+   If you are using CMake version 3 or above, importing Check into your
+project is easier than in earlier versions. If you have installed Check
+as a CMake library, you should have the following files:
+
+
+${INSTALL_PREFIX}/lib/cmake/check/check-config.cmake and
+${INSTALL_PREFIX}/lib/cmake/check/check-config-version.cmake and
+
+   If you haven't installed Check into a system directory, you have to
+tell your CMake build how to find it:
+
+
+cmake -Dcheck_ROOT=${INSTALL_PREFIX}
+
+Then use Check in your @file{CMakeLists.txt} like this:
+
+@verbatim
+find_package(check <check_version if wanted> REQUIRED CONFIG)
+
+add_executable(myproj.test myproj.test.c)
+target_link_libraries(myproj.test Check::check)
+add_test(NAME MyProj COMMAND myproj.test)
+
+
+File: check.info,  Node: Conclusion and References,  Next: Environment Variable Reference,  Prev: Supported Build Systems,  Up: Top
+
+6 Conclusion and References
+***************************
+
+The tutorial and description of advanced features has provided an
+introduction to all of the functionality available in Check.
+Hopefully, this is enough to get you started writing unit tests with
+Check.  All the rest is simply application of what has been learned so
+far with repeated application of the "test a little, code a little"
+strategy.
+
+   For further reference, see Kent Beck, "Test-Driven Development: By
+Example", 1st ed., Addison-Wesley, 2003.  ISBN 0-321-14653-0.
+
+   If you know of other authoritative references to unit testing and
+test-driven development, please send us a patch to this manual.
+
+
+File: check.info,  Node: Environment Variable Reference,  Next: Copying This Manual,  Prev: Conclusion and References,  Up: Top
+
+Appendix A Environment Variable Reference
+*****************************************
+
+This is a reference to environment variables that Check recognized and
+their use.
+
+   CK_RUN_CASE: Name of a test case, runs only that test. See section
+*Note Selective Running of Tests::.
+
+   CK_RUN_SUITE: Name of a test suite, runs only that suite. See
+section *Note Selective Running of Tests::.
+
+   CK_INCLUDE_TAGS: String of space separated tags, runs only test
+cases associated with at least one of the tags, See section *Note
+Selecting Tests Based on Arbitrary Tags::.
+
+   CK_EXCLUDE_TAGS: String of space separated tags, runs only test
+cases not associated with any of the tags, See section *Note Selecting
+Tests Based on Arbitrary Tags::.
+
+   CK_VERBOSITY: How much output to emit, accepts: "silent", "minimal",
+"normal", "subunit", or "verbose".  See section *Note SRunner Output::.
+
+   CK_FORK: Set to "no" to disable using fork() to run unit tests in
+their own process. This is useful for debugging segmentation faults.
+See section *Note No Fork Mode::.
+
+   CK_DEFAULT_TIMEOUT: Override Check's default unit test timeout, a
+floating value in seconds. "0" means no timeout.  See section *Note
+Test Timeouts::.
+
+   CK_TIMEOUT_MULTIPLIER: A multiplier used against the default unit
+test timeout. An integer, defaults to "1".  See section *Note Test
+Timeouts::.
+
+   CK_LOG_FILE_NAME: Filename to write logs to.  See section *Note Test
+Logging::.
+
+   CK_XML_LOG_FILE_NAME: Filename to write XML log to. See section
+*Note XML Logging::.
+
+   CK_TAP_LOG_FILE_NAME: Filename to write TAP (Test Anything Protocol)
+output to.  See section *Note TAP Logging::.
+
+   CK_MAX_MSG_SIZE: Maximal assertion message size.
+
+
+File: check.info,  Node: Copying This Manual,  Next: Index,  Prev: Environment Variable Reference,  Up: Top
+
+Appendix B Copying This Manual
+******************************
+
+* Menu:
+
+* GNU Free Documentation License::  License for copying this manual.
+
+
+File: check.info,  Node: GNU Free Documentation License,  Up: Copying This Manual
+
+B.1 GNU Free Documentation License
+==================================
+
+                      Version 1.2, November 2002
+
+     Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
+     51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document "free" in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it
+     can be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     "Document", below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as "you".  You
+     accept the license if you copy, modify or distribute the work in a
+     way requiring permission under copyright law.
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document's overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.  If a section does not fit the above definition of
+     Secondary then it is not allowed to be designated as Invariant.
+     The Document may contain zero Invariant Sections.  If the Document
+     does not identify any Invariant Sections then there are none.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup, or absence of
+     markup, has been arranged to thwart or discourage subsequent
+     modification by readers is not Transparent.  An image format is
+     not Transparent if used for any substantial amount of text.  A
+     copy that is not "Transparent" is called "Opaque".
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML, PostScript or PDF designed for
+     human modification.  Examples of transparent image formats include
+     PNG, XCF and JPG.  Opaque formats include proprietary formats that
+     can be read and edited only by proprietary word processors, SGML or
+     XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML, PostScript or PDF
+     produced by some word processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+     A section "Entitled XYZ" means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     "Acknowledgements", "Dedications", "Endorsements", or "History".)
+     To "Preserve the Title" of such a section when you modify the
+     Document means that it remains a section "Entitled XYZ" according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document's license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a computer-network location from
+     which the general network-using public has access to download
+     using public-standard network protocols a complete Transparent
+     copy of the Document, free of added material.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of
+          previous versions (which should, if there were any, be listed
+          in the History section of the Document).  You may use the
+          same title as a previous version if the original publisher of
+          that version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document's
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled "History", Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on
+          the Title Page.  If there is no section Entitled "History" in
+          the Document, create one stating the title, year, authors,
+          and publisher of the Document as given on its Title Page,
+          then add an item describing the Modified Version as stated in
+          the previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in
+          the "History" section.  You may omit a network location for a
+          work that was published at least four years before the
+          Document itself, or if the original publisher of the version
+          it refers to gives permission.
+
+       K. For any section Entitled "Acknowledgements" or "Dedications",
+          Preserve the Title of the section, and preserve in the
+          section all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document,
+          unaltered in their text and in their titles.  Section numbers
+          or the equivalent are not considered part of the section
+          titles.
+
+       M. Delete any section Entitled "Endorsements".  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          "Endorsements" or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section Entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties--for example, statements of peer review or that the text
+     has been approved by an organization as the authoritative
+     definition of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     "History" in the various original documents, forming one section
+     Entitled "History"; likewise combine any sections Entitled
+     "Acknowledgements", and any sections Entitled "Dedications".  You
+     must delete all sections Entitled "Endorsements."
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, is called an "aggregate" if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation's users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document's Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled "Acknowledgements",
+     "Dedications", or "History", the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses
+     terminated so long as such parties remain in full compliance.
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     `http://www.gnu.org/copyleft/'.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.
+
+B.1.1 ADDENDUM: How to use this License for your documents
+----------------------------------------------------------
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.2
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the "with...Texts." line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+
+
+File: check.info,  Node: Index,  Prev: Copying This Manual,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* check_set_max_msg_size:                Convenience Test Functions.
+                                                              (line  11)
+* ck_abort <1>:                          Test a Little.       (line  89)
+* ck_abort:                              Convenience Test Functions.
+                                                              (line  20)
+* ck_abort_msg <1>:                      Test a Little.       (line  89)
+* ck_abort_msg:                          Convenience Test Functions.
+                                                              (line  23)
+* ck_assert <1>:                         Convenience Test Functions.
+                                                              (line  26)
+* ck_assert:                             Test a Little.       (line  71)
+* ck_assert_double_eq:                   Convenience Test Functions.
+                                                              (line  83)
+* ck_assert_double_eq_tol:               Convenience Test Functions.
+                                                              (line 124)
+* ck_assert_double_finite:               Convenience Test Functions.
+                                                              (line 144)
+* ck_assert_double_ge:                   Convenience Test Functions.
+                                                              (line  88)
+* ck_assert_double_ge_tol:               Convenience Test Functions.
+                                                              (line 127)
+* ck_assert_double_gt:                   Convenience Test Functions.
+                                                              (line  87)
+* ck_assert_double_infinite:             Convenience Test Functions.
+                                                              (line 158)
+* ck_assert_double_le:                   Convenience Test Functions.
+                                                              (line  86)
+* ck_assert_double_le_tol:               Convenience Test Functions.
+                                                              (line 126)
+* ck_assert_double_lt:                   Convenience Test Functions.
+                                                              (line  85)
+* ck_assert_double_nan:                  Convenience Test Functions.
+                                                              (line 172)
+* ck_assert_double_ne:                   Convenience Test Functions.
+                                                              (line  84)
+* ck_assert_double_ne_tol:               Convenience Test Functions.
+                                                              (line 125)
+* ck_assert_double_nonnan:               Convenience Test Functions.
+                                                              (line 185)
+* ck_assert_float_eq:                    Convenience Test Functions.
+                                                              (line  55)
+* ck_assert_float_eq_tol:                Convenience Test Functions.
+                                                              (line 101)
+* ck_assert_float_finite:                Convenience Test Functions.
+                                                              (line 138)
+* ck_assert_float_ge:                    Convenience Test Functions.
+                                                              (line  60)
+* ck_assert_float_ge_tol:                Convenience Test Functions.
+                                                              (line 104)
+* ck_assert_float_gt:                    Convenience Test Functions.
+                                                              (line  59)
+* ck_assert_float_infinite:              Convenience Test Functions.
+                                                              (line 152)
+* ck_assert_float_le:                    Convenience Test Functions.
+                                                              (line  58)
+* ck_assert_float_le_tol:                Convenience Test Functions.
+                                                              (line 103)
+* ck_assert_float_lt:                    Convenience Test Functions.
+                                                              (line  57)
+* ck_assert_float_nan:                   Convenience Test Functions.
+                                                              (line 166)
+* ck_assert_float_ne:                    Convenience Test Functions.
+                                                              (line  56)
+* ck_assert_float_ne_tol:                Convenience Test Functions.
+                                                              (line 102)
+* ck_assert_float_nonnan:                Convenience Test Functions.
+                                                              (line 180)
+* ck_assert_int_eq <1>:                  Convenience Test Functions.
+                                                              (line  33)
+* ck_assert_int_eq:                      Test a Little.       (line  60)
+* ck_assert_int_ge:                      Convenience Test Functions.
+                                                              (line  38)
+* ck_assert_int_gt:                      Convenience Test Functions.
+                                                              (line  37)
+* ck_assert_int_le:                      Convenience Test Functions.
+                                                              (line  36)
+* ck_assert_int_lt:                      Convenience Test Functions.
+                                                              (line  35)
+* ck_assert_int_ne:                      Convenience Test Functions.
+                                                              (line  34)
+* ck_assert_ldouble_eq:                  Convenience Test Functions.
+                                                              (line  92)
+* ck_assert_ldouble_eq_tol:              Convenience Test Functions.
+                                                              (line 131)
+* ck_assert_ldouble_finite:              Convenience Test Functions.
+                                                              (line 148)
+* ck_assert_ldouble_ge:                  Convenience Test Functions.
+                                                              (line  97)
+* ck_assert_ldouble_ge_tol:              Convenience Test Functions.
+                                                              (line 134)
+* ck_assert_ldouble_gt:                  Convenience Test Functions.
+                                                              (line  96)
+* ck_assert_ldouble_infinite:            Convenience Test Functions.
+                                                              (line 162)
+* ck_assert_ldouble_le:                  Convenience Test Functions.
+                                                              (line  95)
+* ck_assert_ldouble_le_tol:              Convenience Test Functions.
+                                                              (line 133)
+* ck_assert_ldouble_lt:                  Convenience Test Functions.
+                                                              (line  94)
+* ck_assert_ldouble_nan:                 Convenience Test Functions.
+                                                              (line 176)
+* ck_assert_ldouble_ne:                  Convenience Test Functions.
+                                                              (line  93)
+* ck_assert_ldouble_ne_tol:              Convenience Test Functions.
+                                                              (line 132)
+* ck_assert_ldouble_nonnan:              Convenience Test Functions.
+                                                              (line 189)
+* ck_assert_mem_eq:                      Convenience Test Functions.
+                                                              (line 237)
+* ck_assert_mem_ge:                      Convenience Test Functions.
+                                                              (line 242)
+* ck_assert_mem_gt:                      Convenience Test Functions.
+                                                              (line 241)
+* ck_assert_mem_le:                      Convenience Test Functions.
+                                                              (line 240)
+* ck_assert_mem_lt:                      Convenience Test Functions.
+                                                              (line 239)
+* ck_assert_mem_ne:                      Convenience Test Functions.
+                                                              (line 238)
+* ck_assert_msg <1>:                     Convenience Test Functions.
+                                                              (line  29)
+* ck_assert_msg:                         Test a Little.       (line  78)
+* ck_assert_pstr_eq:                     Convenience Test Functions.
+                                                              (line 208)
+* ck_assert_pstr_ne:                     Convenience Test Functions.
+                                                              (line 209)
+* ck_assert_ptr_eq:                      Convenience Test Functions.
+                                                              (line 218)
+* ck_assert_ptr_ne:                      Convenience Test Functions.
+                                                              (line 219)
+* ck_assert_ptr_nonnull:                 Convenience Test Functions.
+                                                              (line 228)
+* ck_assert_ptr_null:                    Convenience Test Functions.
+                                                              (line 227)
+* ck_assert_str_eq <1>:                  Convenience Test Functions.
+                                                              (line 193)
+* ck_assert_str_eq:                      Test a Little.       (line  60)
+* ck_assert_str_ge:                      Convenience Test Functions.
+                                                              (line 198)
+* ck_assert_str_gt:                      Convenience Test Functions.
+                                                              (line 197)
+* ck_assert_str_le:                      Convenience Test Functions.
+                                                              (line 196)
+* ck_assert_str_lt:                      Convenience Test Functions.
+                                                              (line 195)
+* ck_assert_str_ne:                      Convenience Test Functions.
+                                                              (line 194)
+* ck_assert_uint_eq:                     Convenience Test Functions.
+                                                              (line  46)
+* ck_assert_uint_ge:                     Convenience Test Functions.
+                                                              (line  51)
+* ck_assert_uint_gt:                     Convenience Test Functions.
+                                                              (line  50)
+* ck_assert_uint_le:                     Convenience Test Functions.
+                                                              (line  49)
+* ck_assert_uint_lt:                     Convenience Test Functions.
+                                                              (line  48)
+* ck_assert_uint_ne:                     Convenience Test Functions.
+                                                              (line  47)
+* CK_DEFAULT_TIMEOUT:                    Test Timeouts.       (line   6)
+* CK_ENV:                                SRunner Output.      (line  56)
+* CK_EXCLUDE_TAGS:                       Selecting Tests Based on Arbitrary Tags.
+                                                              (line   6)
+* CK_FORK:                               No Fork Mode.        (line  14)
+* CK_INCLUDE_TAGS:                       Selecting Tests Based on Arbitrary Tags.
+                                                              (line   6)
+* CK_MAX_MSG_SIZE:                       Convenience Test Functions.
+                                                              (line  11)
+* CK_MINIMAL:                            SRunner Output.      (line  45)
+* CK_NORMAL:                             SRunner Output.      (line  49)
+* CK_RUN_CASE:                           Selecting Tests by Suite or Test Case.
+                                                              (line   6)
+* CK_RUN_SUITE:                          Selecting Tests by Suite or Test Case.
+                                                              (line   6)
+* CK_SILENT:                             SRunner Output.      (line  40)
+* CK_SUBUNIT:                            SRunner Output.      (line  62)
+* CK_TIMEOUT_MULTIPLIER:                 Test Timeouts.       (line   6)
+* CK_VERBOSE:                            SRunner Output.      (line  53)
+* CK_VERBOSITY:                          SRunner Output.      (line  56)
+* fail:                                  Convenience Test Functions.
+                                                              (line 250)
+* fail_if:                               Convenience Test Functions.
+                                                              (line 253)
+* fail_unless:                           Convenience Test Functions.
+                                                              (line 257)
+* FDL, GNU Free Documentation License:   GNU Free Documentation License.
+                                                              (line   6)
+* frameworks:                            Other Frameworks for C.
+                                                              (line   6)
+* introduction:                          Introduction.        (line   6)
+* mark_point:                            SRunner Output.      (line 160)
+* other frameworks:                      Other Frameworks for C.
+                                                              (line   6)
+* srunner_add_suite:                     Multiple Suites in one SRunner.
+                                                              (line  25)
+* srunner_has_tap:                       TAP Logging.         (line   6)
+* srunner_has_xml:                       XML Logging.         (line   6)
+* srunner_run:                           SRunner Output.      (line   6)
+* srunner_run_all:                       SRunner Output.      (line   6)
+* srunner_set_fork_status:               No Fork Mode.        (line  14)
+* srunner_set_log:                       Test Logging.        (line   6)
+* srunner_set_tap:                       TAP Logging.         (line   6)
+* srunner_set_xml:                       XML Logging.         (line   6)
+* srunner_tap_fname:                     TAP Logging.         (line   6)
+* srunner_xml_fname:                     XML Logging.         (line   6)
+* Supported Build Systems:               Supported Build Systems.
+                                                              (line   6)
+* tcase_add_checked_fixture:             Test Fixture Examples.
+                                                              (line  13)
+* tcase_add_exit_test:                   Testing Signal Handling and Exit Values.
+                                                              (line  15)
+* tcase_add_loop_test:                   Looping Tests.       (line  13)
+* tcase_add_test_raise_signal:           Testing Signal Handling and Exit Values.
+                                                              (line   6)
+* tcase_set_timeout:                     Test Timeouts.       (line   6)
+
+
+
+Tag Table:
+Node: Top816
+Node: Introduction2865
+Node: Unit Testing in C5001
+Node: Other Frameworks for C6866
+Node: Tutorial10794
+Node: How to Write a Test11628
+Node: Setting Up the Money Build Using Autotools12295
+Node: Setting Up the Money Build Using CMake19404
+Node: Test a Little25608
+Node: Creating a Suite32644
+Node: SRunner Output39012
+Node: Advanced Features47695
+Node: Convenience Test Functions48468
+Node: Running Multiple Cases59366
+Node: No Fork Mode64978
+Node: Test Fixtures65994
+Node: Test Fixture Examples68271
+Node: Checked vs Unchecked Fixtures72605
+Node: Multiple Suites in one SRunner74470
+Node: Selective Running of Tests76117
+Node: Selecting Tests by Suite or Test Case76796
+Node: Selecting Tests Based on Arbitrary Tags77381
+Node: Testing Signal Handling and Exit Values80043
+Node: Looping Tests81146
+Node: Test Timeouts82856
+Node: Determining Test Coverage84010
+Node: Finding Memory Leaks86496
+Node: Test Logging90200
+Node: XML Logging91846
+Node: TAP Logging96065
+Node: Subunit Support97626
+Node: Supported Build Systems99093
+Node: Autotools99540
+Node: CMake101868
+Node: Conclusion and References102966
+Node: Environment Variable Reference103771
+Node: Copying This Manual105602
+Node: GNU Free Documentation License105855
+Node: Index128264
+
+End Tag Table

@@ -1,0 +1,165 @@
+TODO
+====
+
+The following are considered bugs in Check. If you have a fix, please
+post it as a pull request on GitHub at
+https://github.com/libcheck/check/pulls
+Bug fixing is considered more important than feature requests at this
+point. Please check the GitHub issue tracker before submitting.
+
+Documentation
+=============
+
+[0.9.4] * Convert to info format and update.
+[0.9.4] * Remove old SGML documentation.
+[0.9.4] * Fix building of documentation that relies on diff
+[0.9.4] * Add html generation of Texinfo docs. 
+[0.9.4] * Create initial and final versions of money example.
+[0.9.4] * Update tutorial so that it works with modern tools.
+[0.9.5] * Clarify looping tests and give example of usage.
+[     ] * Document pkg-config usage, note that old macro usage is not recommended.
+[0.9.9] * Document selective running of tests with CK_RUN_SUITE and CK_RUN_CASE
+          environment variables.
+[     ] * Update tutorial to match with the API changes: TTest* instead of TFun.
+
+Interface
+=========
+
+[     ] * Change check not to clobber things in the global namespace.
+          Prepend CHECK_ to all constants, check_ to all exported symbols, 
+          and _check to all internal functions.  Currently fail() is
+          causing a problem.  Deprecate the old API in a nice way.
+
+Build issues:
+=============
+
+[     ] * Add AC_PROG_CC_C99 in configure.ac when autoconf2.60b is
+          commonly availabe. Add checks in src/check.h.in for macro
+          varargs support.
+[0.9.4] * Convert Check to use Libtool 
+[     ] * Figure out if we need stamp-h.in or not
+[     ] * use AC_CONFIG_MACRO_DIR([m4]) and create an m4/ dir for check.m4
+            aclocaldir = $(datadir)/aclocal
+            aclocal_DATA = mymacro.m4 myothermacro.m4
+            ACLOCAL_AMFLAGS = -I m4  # put in top-level Makefile.am
+[     ] * Fix overriding CFLAGS in configure.ac
+[     ] * Use AC_DEFINE to define version number stuff?
+[     ] * Change MICRO to ALPHA? probably not
+[     ] * Add std-options to AM_INIT_AUTOMAKE
+[     ] * Investigate subdir-objects option to AM_INIT_AUTOMAKE
+[     ] * Use filename-length-max=99 in AM_INIT_AUTOMAKE
+[0.9.4] * Make sure libcheck.(l)a works as a dependency, don't call $(MAKE)
+[0.9.4] * Build tests/ dirs after everything else
+[0.9.4] * Fix AM_PATH_CHECK by deprecating it; use pkg-config instead
+[0.9.6] * make Check pass its own unit tests: make (dist)check can fail.
+[     ] * Make the docs pass 'make distcheck'
+[     ] * use stricter CFLAGS for compiling Check
+[     ] * use ax_cflags_gcc_option to add to CFLAGS to Check
+[     ] * prune unused checks from configure.ac
+[     ] * Add option BUILD_DOCUMENTATION to CMake (Github #217).
+[     ] * Missing function check in CMake creates def HAVE_FOO=0.
+          There should be no HAVE_FOO (Github #195).
+[     ] * CMake and Autotools should check if compiler supports __attribute__ ((format (a, b, c)))
+          to decide if CK_ATTRIBUTE_FORMAT can be defined
+          https://www.gnu.org/software/autoconf-archive/ax_gcc_func_attribute.html
+
+
+Check source code:
+============
+
+[0.13.0] * Eliminate abbreviations like nf for number_failed
+[0.9.13] * Run indent on everything, make sure it works well.
+[0.13.0] * Fix START_TEST/END_TEST to look like valid C code.
+[     ] * Document things way more.
+[     ] * Create check.h automatically using makeheaders.c (not sure)
+[     ] * Eliminate check_ prefix from files in src/ ... not needed
+
+Internal Check tests
+======================
+
+[0.9.3] * Use gcov to test and expand coverage of existing unit tests
+[     ] * Increase tests for more non-public modules
+[0.8.0] * Refactor to allow better unit testing of printing functionality.
+[     ] * Document things way more.
+[     ] * Clarify what all the different tests mean, whether they are
+          meant to fail or not --- setting all CK_SILENT to CK_VERBOSE
+          makes it seem like there are lots of errors being produced!
+[     ] * Fix timeout tests.  Currently, on some processors, a test that
+          asserts no timeout within 2 seconds fails unless the default
+          timeout is set to 4 or more seconds.  A higher resolution 
+          might help, and there could also be issues with multiple
+          processes on SMP machines.
+
+Packaging
+=========
+
+[0.7.2] * Automate RPM production
+[0.7.2] * Debian packaging 
+[0.9.2] * Get Check into Debian Sid
+[0.9.4] * Eliminate .deb and .rpm packaging for vendors --- not necessary
+
+Website
+=======
+[     ] * Fix: NEWS tab causes download (Github #1)
+
+
+
+The following enhancements are being considered for Check.  Please
+send an email to <check-devel at lists dot sourceforge dot net> if you
+would like to assist in any of these, or if you would like to suggest
+additional enhancements.  Also please check the various trackers at
+the Check project website.
+
+Printing and Logging
+====================
+
+[     ] * Allow unit test output (stdout and stderr) to be captured and logged
+[0.9.1] * Add XML as option for test output
+[     ] * Open the API for printing/logging customization
+[     ] * JUnit-style UI?
+    
+Unit test writing
+=================
+
+[0.8.0] * Allow fail and friends to be used within fixture
+          setup/teardown functions
+[0.8.0] * Allow forkless running of suites, to allow debugging
+[0.9.2] * Allow unit tests that expect signals
+[     ] * Allow unit tests to write to the log
+[     ] * Allow unit tests that expect output (see stdout logging above) (but
+          maybe perl/sh/expect/dejagnu are better tools)
+[     ] * Autoproduce unit testing framework from header files
+[     ] * Count the number of START_TEST macros and check that each function
+          is added to some suite; issue a warning message otherwise.  Maybe the
+          best way to do this is to put each function onto a list or
+          table as its defined, and then remove it once its added
+          somewhere.  Then, when finished, print out what remains on the list /
+          in the table.  This might require some ugly macro hackery...
+[     ] * Better macro for START_TEST.  It would be nice to pass in
+          three separate arguments, something like: 
+            1) a numeric ID for the tests function
+            2) the exact name of the function being tested
+            3) the name of the feature in (2) being tested for                       
+[     ] * Find a way to create setup/teardown macros such that global
+          variables aren't necessary, and they're really just blocks
+          that get added at the beginning and ending of tests.
+[     ] * Some mechanism to profile execution times, and assert that the time
+          a test takes to complete scales according to some big-O notation.
+[     ] * Fork entire test cases, and then fork individual tests from
+          within each test case, so that unchecked fixtures can in
+          fact do unsafe things without bringing down the entire test
+          program.
+    
+Check Internals
+===============
+
+[0.8.0] * Implement message passing between unit test and test
+          programs using pipes, rather than SysV IPC, to allow support
+          under cygwin.
+[     ] * Abstract the forking and message passing implementation to
+          allow Win32 compatibility.
+[0.9.12] * Incorporate existing Win32 support as mentioned here:
+          http://opendarwin.org/pipermail/cvs-libfoundation-all/2005-March/000177.html
+[0.9.11] * Get Cygwin to work, with forking
+[0.9.11] * Get MinGW to work, even without forking
+[0.9.12] * Get MSVC to work, even without forking

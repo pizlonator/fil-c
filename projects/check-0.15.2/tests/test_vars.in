@@ -1,0 +1,20 @@
+# defined to 1 if subunit is enabled
+ENABLE_SUBUNIT=@ENABLE_SUBUNIT@
+export ENABLE_SUBUNIT
+EXEEXT=@EXEEXT@
+export EXEEXT
+HAVE_FORK=@HAVE_FORK@
+export HAVE_FORK
+
+# path of the tests directory
+if [ x"@srcdir@" != x"." ]; then
+    if [ -z "@IS_MSVC@" -o "@IS_MSVC@" != "1" ]; then
+       SRCDIR="@srcdir@/"
+    else
+       SRCDIR="@srcdir@\\"
+    fi
+else
+    SRCDIR=""
+fi
+
+export SRCDIR

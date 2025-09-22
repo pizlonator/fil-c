@@ -1,0 +1,84 @@
+#test-exit(0) test1
+	ck_assert(0 == 0);
+  #test-exit (1)  test2
+  	ck_assert(1 == 0);
+	#test-exit ( 0)  	test3
+	ck_assert(1 == 0);
+  	  #test-exit ( +0 )  	  test4
+  	ck_assert(1 == 0);
+  	  	#test-exit (	-1 )  	  test5
+  	ck_assert(1 == 0);
+  	  	  #test-exit   (	-  1 )  	  test6
+  	ck_assert(1 == 0);
+  	  	  #test-exit  	(-	  0 	)  	  test7
+  	ck_assert(1 == 0);
+  	  	  #test-exit 	  (	 + 1  	  )  	  test8
+  	ck_assert(1 == 0);
+
+#test-signal(0) test9
+	ck_assert(0 == 0);
+  #test-signal (1)  test10
+  	ck_assert(1 == 0);
+	#test-signal ( 0)  	test11
+	ck_assert(1 == 0);
+  	  #test-signal ( +0 )  	  test12
+  	ck_assert(1 == 2);
+  	  	#test-signal (	-1 )  	  test13
+  	ck_assert(1 == 0);
+  	  	  #test-signal   (	-  1 )  	  test14
+  	ck_assert(1 == 0);
+  	  	  #test-signal  	(-	  0 	)  	  test15
+  	ck_assert(1 == 0);
+  	  	  #test-signal 	  (	 + 1  	  )  	  test16
+  	ck_assert(1 == 0);
+
+#test-loop(0,2) test17
+	ck_assert(0 == 0);
+  #test-loop (1  ,0)  test18
+  	ck_assert(1 == 0);
+	#test-loop ( 0  ,  1)  	test19
+	ck_assert(1 == 1);
+  	  #test-loop ( +0  ,  -2)  	  test20
+  	ck_assert(1 == 0);
+  	  	#test-loop (	-1	,+  3)  	  test21
+  	ck_assert(1 == 0);
+  	  	  #test-loop   (	-  1,	+  2 )  	  test22
+  	ck_assert(1 == 0);
+  	  	  #test-loop  	(-	  0 	,	  -  2)  	  test23
+  	ck_assert(1 == 0);
+  	  	  #test-loop 	  (	 + 1  	  ,  	-	3	  )  	  test24
+  	ck_assert(1 == 1);
+
+#test-loop-exit(1,0,2) test25
+	ck_assert(0 == 1);
+  #test-loop-exit ( 2,1  ,0)  test26
+  	ck_assert(1 == 0);
+	#test-loop-exit ( 2  ,0  ,  1)  	test27
+	ck_assert(1 == 0);
+  	  #test-loop-exit (	-1	, +0  ,  -2)  	  test28
+  	ck_assert(1 == 0);
+  	  	#test-loop-exit (  -  3	 ,	-1	,+  3)  	  test29
+  	ck_assert(1 == 1);
+  	  	  #test-loop-exit   (	+  0, 	-  1,	+  2 )  	  test30
+  	ck_assert(1 == 0);
+  	  	  #test-loop-exit  	(- 4 	,-	  0 	,	  -  2)  	  test31
+  	ck_assert(1 == 0);
+  	  	  #test-loop-exit 	  (	 +2  ,  + 	1  	  ,  	-	3	  )  	  test32
+  	ck_assert(1 == 0);
+
+#test-loop-signal(1,0,2) test33
+	ck_assert(0 == 0);
+  #test-loop-signal ( 2,1  ,0)  test34
+  	ck_assert(1 == 0);
+	#test-loop-signal ( 2  ,0  ,  1)  	test35
+	ck_assert(1 == 1);
+  	  #test-loop-signal (	-1	, +0  ,  -2)  	  test36
+  	ck_assert(1 == 0);
+  	  	#test-loop-signal (  -  3	 ,	-1	,+  3)  	  test37
+  	ck_assert(1 == 0);
+  	  	  #test-loop-signal   (	+  0, 	-  1,	+  2 )  	  test38
+  	ck_assert(1 == 0);
+  	  	  #test-loop-signal  	(- 4 	,-	  0 	,	  -  2)  	  test39
+  	ck_assert(1 == 0);
+  	  	  #test-loop-signal 	  (	 +2  ,  + 	1  	  ,  	-	3	  )  	  test40
+  	ck_assert(1 == 1);

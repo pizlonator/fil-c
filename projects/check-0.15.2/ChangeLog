@@ -1,0 +1,1176 @@
+IT IS NOT NECESSARY TO UPDATE THIS FILE.
+
+PLEASE MAKE SURE TO LEAVE A GOOD SVN COMMIT MESSAGE.
+
+2010-04-08  Micah Cowan  <micah@cowan.name>
+
+	* configure.ac: Determine at configure time, how many
+	backslashes are needed in the second argument to Awk's built-in
+	"gsub" function in order to generate two backslashes.
+
+	* checkmk/checkmk.in: Replaced POSIX character-classes
+	with (roughly) equivalent character groups from pre-POSIX
+	syntax, to support pre-POSIX awk implementations.
+	(string_encode): Use configure-substituted AWK_GSUB_DBL_BSLASH
+	to determine how to substitute a doubled backslash in gsub.
+
+2010-04-03  Micah Cowan  <micah@cowan.name>
+
+	* checkmk/*: Added Awk program "checkmk", for eliminating
+	boilerplate work when writing unit test modules. Includes
+	documentation and tests.
+
+	* Makefile.am (SUBDIRS): Added checkmk.
+
+	* configure.ac: Added extra awk-detection logic for checkmk.
+
+	* NEWS: Updated with news about checkmk.
+
+	* AUTHORS (Patches): Added myself.
+
+2010-02-17  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* tests/check_check_selective.c (make_selective_suite): New
+	function.
+	(selective_setup): New function.
+	(selective_teardown): New function.
+	New tests 'test_srunner_run_run_all, 'test_srunner_run_suite',
+	'test_srunner_run_no_suite', test_srunner_run_tcase',
+	'test_srunner_no_tcase', 'test_srunner_suite_tcase',
+	'test_srunner_suite_no_tcase', 'test_srunner_run_suite_env',
+	'test_srunner_run_no_suite_env', 'test_srunner_run_tcase_env',
+	'test_srunner_run_no_tcase_env', 'test_srunner_suite_tcase_env',
+	'test_srunner_suite_no_tcase_env'.
+
+	* tests/Makefile.am (check_check_SOURCES): Add
+	'check_check_selective.c'.
+
+	* tests/check_check_selective.c: New file.
+
+	* tests/check_check_main.c (main): Add the selective_suite to the
+	master suite.
+
+2010-02-10  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* doc/check.texi (SRunner Output): Document 'srunner_run' and the
+	usage of CK_RUN_CASE and CK_RUN_SUITE environment variables.
+
+	* src/check_run.c (srunner_run): Use values of environment
+	variables CK_RUN_CASE and CK_RUN_SUITE.
+
+2010-02-02  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* src/check.c (suite_tcase): New function that determines whether
+	a a given test suite contains a test case named after a given
+	string.
+
+	* src/check_run.c (srunner_run): New function, renamed from
+	'srunner_run_all', allowing selective running of an specific test
+	suite and/or test case.
+	(srunner_run_all): New function, invoking srunner_run internally
+	to provide backwards compatibility.
+
+	* src/check.h.in: Add prototype for srunner_run.
+
+2005-12-16 hugo303
+
+	* src/check_pack.c: Fixed buggy eprintf string.
+
+2005-10-31 hugo303
+
+	* src/check_list.c, tests/check_list.c, tests/check_check_fixture.c:
+	Fixed sourceforge bug #1327225, Two teardown checked fixtures
+	segfaults. Originated in a pointer arithmetic bug in a memmove()
+	call in list_add_front() in src/check_list.c.
+
+2005-09-30 hugo303
+
+	* doc/tutorial.sgml: Updated with a section about looping tests.
+
+2005-09-30 hugo303
+
+	* src/check.c, src/check.h.in, src/check_impl.h, src/check_print.c,
+	src/check_run.c, src/check_str.c, tests/Makefile.am,
+	tests/check_check_fixture.c, tests/check_check_master.c,
+	tests/ex_xml_output.c, tests/test_log_output.sh, tests/test_output.sh,
+	tests/test_xml_output.sh:
+	
+	Added a new kind of test, looping tests, which are called with a new
+	context for each loop iteration. This makes them ideal for table based
+	tests. Previously, with the loop in the test itself, only the first
+	error was caught and then the test would exit. Now all errors are
+	shown at once which should help in debugging.
+
+2005-09-15 hugo303
+
+	* configure.in, tests/check_check_sub.c, tests/check_check.h,
+	tests/check_check_master.c, tests/Makefile.am:
+	Added possibility to turn off timeout tests through configure option
+	--enable-timeout-tests=no
+
+2005-09-15 hugo303
+
+	* src/Makefile.am: Improved coverage analysis by running all tests
+	before compiling result. Added gcc3.3 coverage bug workaround.
+		
+2005-09-15 hugo303
+
+	* tests/check_check_sub.c, tests/check_check_master.c:
+	Added testing of timeout set through environment variable.
+
+2005-09-07 hugo303
+
+	*configure.in, src/Makefile.am, tests/Makefile.am: Added gcov/lcov 
+	support. Enable with 'autogen.sh --enable-gcov'.
+	Run with 'cd src && make lcov'.
+
+2005-08-30 hugo303
+
+	* debian/README.Debian, debian/compat, debian/docs,
+	debian/example_makefile, debian/examples, debian/watch:
+	Added new debian files, missed in the checkin of the debian patch.
+	
+2005-08-30 hugo303
+
+	* NEWS: Checked in forgotten updated NEWS file.
+
+2005-08-22 hugo303
+
+	* debian/changelog, debian/check.doc-base.tut, debian/check.docs,
+	debian/check.postinst.debhelper, debian/check.prerm.debhelper,
+	debian/control, debian/copyright, debian/dirs, debian/rules:
+
+	Applied patch for debian files received from check debian
+	maintainer Robert Lemmen.
+
+2005-08-22 hugo303
+
+	* src/check.h.in: Added include of stddef.h for NULL definition
+
+2005-08-22 hugo303
+
+	* doc/tutorial.sgml: Fixed sourceforge bug #1216502
+
+2005-07-19 hugo303
+
+	* tests/check_check_master.c, tests/check_check_msg.c,
+	tests/check_check_sub.c, src/check.c, src/check.h.in,
+	src/check_msg.c, src/check_msg.h, src/check_run.c:
+	
+	Refactored messaging to use the new tmpfile() method all the way,
+	removing the message keys, pipes, pipe entries and pipe list. This
+	makes the messaging work with forking tests, and also with threading
+	tests on linux 2.4 (on 2.6 it already worked). Added check_fork and
+	check_waitpid_and_exit to be used for forking tests.
+
+2005-05-26 hugo303
+
+	* debian/Makefile.am: Removed 'files' file from DIST
+
+2005-03-29 hugo303
+
+	* src/check.h.in: Fixed compatibility with gcc 2.95.3 according
+	to sourceforge patch #1161654.
+
+2005-03-02 hugo303
+
+	* src/check.h.in: Added define for NULL if needed.
+
+2005-03-01 hugo303
+
+	* src/check_run.c, tests/check_check_master.c: Changed timeout
+	error message according to sourceforge feature request #1121452.
+
+2005-02-28 hugo303
+
+	* debian/files: Removed this auto generated file.
+
+2005-02-28 hugo303
+
+	* rpm/check.spec.in: Added patch for x86_64 arch (fc3).
+
+2005-02-28 hugo303
+
+	* tests/ex_xml_output.c, tests/ex_log_output.c, tests/ex_output.c,
+	  src/check_log.c:
+	  Fixed memory leaks.
+
+2005-01-04 hugo303
+
+	* check.m4, config.h.in, configure.in, src/check_pack.c: Fixed
+	quoting and added configure test for stdint.h.
+
+2005-01-04 hugo303
+
+        * tests/check_check_master.c: Made failure messages more helpful.
+
+2004-11-12 hugo303
+
+	* debian/check.dirs, debian/control, debian/rules: Fixed building
+	with gcc3. Removed empty money dir from docs.
+
+2004-11-10 hugo303
+
+	* Makefile.am, rpm/check.spec.in, rpm/Makefile.am: Fixed so
+	distributions build without trouble.
+
+2004-11-09 hugo303
+
+	* src/check_run.c, tests/check_check_master.c: Use strsignal
+	to print describing text for signals.
+
+2004-11-09 hugo303
+
+	* doc/tutorial.sgml: Documented signals handling and timeouts.
+
+2004-11-09 hugo303
+
+	* tests/check_check_master.c src/check.h.in:
+	Changed failure message for fail_if.
+
+2004-11-09 hugo303
+
+	* src/check.c, src/check.h.in, src/check_impl.h, src/check_run.c,
+	tests/check_check_master.c, tests/check_check_sub.c:
+	Added support for timeouts on tests, enabling detection of
+	eternal loops as errors.
+
+2004-11-08 hugo303
+
+	* src/check.c, src/check.h.in, src/check_impl.h, src/check_run.c,
+	tests/check_check_master.c, tests/check_check_sub.c:
+	Added support for testing on expected signals. Implementation
+	courtesy of Lucas Di Pentima and Cesar Ballardini. Also cleaned
+	up the test verification to simplify merging of new tests.
+
+2004-11-04 hugo303
+
+        * src/check.c, src/check_list.c, src/check_list.h, src/check_log.c,
+	src/check_msg.c, tests/check_list.c:
+	Changed name on function list_create to check_list_create to avoid
+	name clash.
+
+2004-11-04 hugo303
+
+	* src/check.c, src/check.h.in, tests/check_check_master.c,
+	tests/check_check_sub.c: Applied ANSI C99 patch (#1047014)
+
+2004-08-20 hugo303
+
+	* doc/tutorial.sgml: Updated with new features.
+
+2004-08-18 hugo303
+
+	* src/check.c, src/check.h.in, src/check_impl.h, src/check_log.c,
+	src/check_log.h, src/check_print.c, src/check_print.h,
+	src/check_run.c, tests/Makefile.am, tests/check_check_log.c,
+	tests/ex_xml_output.c, tests/test_xml_output.sh:
+	Added support for XML output of the test results, courtesy of
+	Frederic Peters.
+
+2004-08-18 hugo303
+
+	* src/check_run.c, tests/check_check_fixture.c: Fixed setup bug
+	from forum, failure in setup did not abort test in nofork mode.
+	Added test cases for bug.
+
+2004-08-17 hugo303
+
+	* src/check_pack.c: Use stdint.h for specific sized type.
+	* src/check.c, src/check.h.in, tests/check_check_master.c,
+	tests/check_check_sub.c, ChangeLog
+	Applied varargs patch (#933411) and added test cases.
+	* src/check.h.in tests/check_check_master.c tests/check_check_sub.c:
+	Applied fail_if (#709167) patch.
+
+2004-08-16 hugo303
+
+	* doc/tutorial.sgml: Applied 'newbies' patch #995028 for autoconf doc.
+	* rpm/check.spec.in: Applied doc patch #995028 from Bill Barnard.
+
+2004-06-04 hugo303
+
+	* tests/: test_log_output.sh test_output.sh: Fixed portability
+	problem by changing == to =.
+
+2004-05-26 hugo303
+
+	* rpm/check.spec.in: Changed copyright.
+
+2004-05-25 hugo303
+
+        * src/check_run.c: Applied patch 796705. Replacing _exit with exit.
+
+2004-05-25 hugo303
+
+	* src/check.c tests/check_check_master.c tests/check_check_sub.c:
+	Applied patch for bug 793671.
+
+2004-05-17 10:44 hugo303
+
+	* Released 0.9.0. See NEWS file for changes.
+
+2002-10-16 13:47  neo23
+
+	* AUTHORS, ChangeLog, configure.in: Bumped version number to 0.8.4.
+	Updated AUTHORS and ChangeLog.
+
+2002-10-16 13:39  neo23
+
+	* src/check_msg.c, tests/check_check_msg.c: Applied a patch from
+	Rick Poyner that changes the pipe used for IPC to use a temporary
+	file instead of stdin/stdout. This fixes the long-standing problem
+	that the pipe used to fill up when too many fail_unless() were
+	used. (#482012).
+
+2002-10-09 18:57  neo23
+
+	* src/check.h.in: Applied a patch from Rick Poyner that fixes a
+	typo which broke check for C++ compilers (bug #601397).
+
+2002-08-16 19:41  neo23
+
+	* src/: check.c, check_msg.c, check_msg.h, check_pack.c,
+	check_pack.h: Applied a patch from Dietmar Petras <dpetras@gmx.de>
+	that plugs some memory leaks.
+
+2002-07-10 04:37  neo23
+
+	* .cvsignore, autogen.sh: Call aclocal from autogen.sh.
+
+2002-07-10 04:32  neo23
+
+	* aclocal.m4, depcomp, install-sh, missing, mkinstalldirs: Removed
+	files generated by automake.
+
+2002-06-16 14:25  neo23
+
+	* debian/changelog: applied patch from Arien Malec to fix build of
+	Debian packages
+
+2002-05-24 17:04  neo23
+
+	* ChangeLog: Made 0.8.3 Release.
+
+2002-05-24 17:00  neo23
+
+	* NEWS, doc/tutorial.lyx, rpm/check.spec.in: Added check.m4 to the
+	spec file. Updated NEWS. Updated the date of the tutorial.
+
+2002-05-24 16:35  neo23
+
+	* debian/: check.dirs, check.files, control: Added check.m4 to
+	debian rules. Changed the maintainer entry.
+
+2002-05-23 17:08  neo23
+
+	* doc/tutorial.lyx: Mention that EXIT_SUCCESS and EXIT_FAILURE are
+	defined in stdlib.h.  Suggested by Russell Reed in bug #547129.
+
+2002-05-10 14:01  neo23
+
+	* src/check_msg.c: Declared local functions static (based on a
+	patch from Gilgamesh Nootebos).
+
+2002-05-03 13:58  neo23
+
+	* src/Makefile.am, src/check.c, src/check_error.c,
+	src/check_list.c, src/check_list.h, src/check_log.c,
+	src/check_msg.c, src/check_pack.c, src/check_print.c,
+	src/check_run.c, src/check_str.c, src/list.c, src/list.h,
+	tests/check_list.c: Renamed list.[ch] to check_list.[ch] for
+	consistency.  Include config.h from all over the place, cleaned up
+	includes.
+
+2002-05-02 10:34  neo23
+
+	* src/check_pack.c, tests/check_check_log.c: Removed compiler
+	warnings mentioned in bug #547126.
+
+2002-05-02 10:27  neo23
+
+	* src/check_print.c, tests/check_check_msg.c: Don't include
+	"error.h" (bug #546175 small cygwin portability problem).
+
+2002-04-16 19:33  neo23
+
+	* doc/tutorial.lyx: Changed date to that of the latest release. 
+	Added a name to an internal reference so that we get a working link
+	in the generated HTML.
+
+2002-04-15 18:47  neo23
+
+	* check.m4, configure.in: Fixed check.m4 so that --without-check is
+	a valid option to disable check.  Bumped version number to 0.8.3.
+
+2002-04-15 12:58  neo23
+
+	* ChangeLog: Updated ChangeLog.
+
+2002-04-15 12:57  neo23
+
+	* NEWS, README: Made 0.8.2 Release.
+
+2002-04-14 18:59  neo23
+
+	* src/check_msg.c: Applied a patch from Arien that makes the pipe
+	nonblocking. This doesn't solve #482012 but makes it more obvious
+	what is going wrong if the pipe fills up.
+
+2002-04-12 12:50  neo23
+
+	* doc/tutorial.lyx: Use #include rather than #import (bug #484564).
+
+2002-04-12 12:34  neo23
+
+	* ChangeLog: Updated ChangeLog.
+
+2002-04-12 12:33  neo23
+
+	* AUTHORS, doc/tutorial.lyx: Document the fact that you can now use
+	NULL as msg argument for fail_unless().
+
+2002-04-12 11:54  neo23
+
+	* config.h.in, configure.in, src/Makefile.am, src/check.c,
+	src/check_impl.h, src/check_magic.h, src/check_msg.c,
+	src/check_pack.c, src/check_pack.h, src/check_run.c,
+	src/check_str.c, src/check_str.h, tests/Makefile.am,
+	tests/check_check_fixture.c, tests/check_check_master.c,
+	tests/check_check_msg.c, tests/check_check_pack.c: Removed
+	limitations on line number, message and buffer sizes (bug #478233)
+	by changing the way we send integers over the pipe. Instead of
+	strings, integers are now send as 4 bytes.  This allows the pack
+	routine to easily calculate the message size so that we can
+	allocate the needed buffer there.  Made a union out of the
+	different Msg structs to clean up the internal API. Also introduced
+	the internal function ck_strdup_printf(), a simple wrapper around
+	sprintf() that allocates enough space to hold the resulting string.
+
+2002-04-10 13:11  neo23
+
+	* AUTHORS, NEWS, configure.in, src/check.c, src/check.h.in,
+	src/check_error.c, src/check_error.h, src/check_impl.h,
+	src/check_log.c, src/check_msg.c, src/check_msg.h,
+	src/check_pack.c, src/check_run.c, src/check_str.c, src/list.c,
+	src/list.h, tests/check_check_fixture.c, tests/check_check_fork.c,
+	tests/check_check_master.c, tests/check_check_pack.c,
+	tests/check_list.c: Applied a slightly modified version of a patch
+	from Neil Spring <nspring@cs.washington.edu> that declares strings
+	as const where applicable. It also changes our CFLAGS to be much
+	stricter and removes the warnings introduced by -Wwrite-strings. 
+	This allows building other check tests with -Wwrite-strings without
+	heaping gobs of compiler warnings.
+
+2002-03-28 20:12  neo23
+
+	* ChangeLog: Updated ChangeLog.
+
+2002-03-28 19:37  neo23
+
+	* src/check.c, src/check.h.in, tests/check_check_master.c,
+	tests/check_check_sub.c: Allow fail_unless() to be called with a
+	NULL msg and substitute a reasonable error message in that case.
+	Bail out if NULL is passed to _fail_unless() to avoid possible
+	confusion.
+	
+	Added a test case that calls fail_unless() with msg=NULL.
+
+2002-03-28 19:19  neo23
+
+	* Makefile.am, README, autogen.sh, check.m4, configure.in,
+	doc/tutorial.lyx, doc/money/.cvsignore,
+	doc/money/Makefile.am.money, doc/money/aclocal.m4,
+	doc/money/configure.in.money, rpm/.cvsignore, rpm/Makefile.am,
+	rpm/check.spec, rpm/check.spec.in, src/.cvsignore, src/Makefile.am,
+	src/check.c, src/check.h, src/check.h.in, tests/.cvsignore: Changed
+	autogen.sh to bail out if necessary tools can't be found instead of
+	proceeding to the version checks.
+	
+	Document use of autogen.sh in README.
+	
+	Generate check.spec from check.spec.in to it automatically gets the
+	correct version number.
+	
+	Generate check.h from chech.h.in and include Check version
+	information.
+	
+	Compile Check version number into the library to allow for runtime
+	version checks.
+	
+	Added the m4 script check.m4 that allows to easily integrate Check
+	into projects using autoconf/automake. It does version checking and
+	also assures that header and library versions match.
+	
+	Document the use of check.m4 and the AM_PATH_CHECK() macro in the
+	tutorial. Adapted example Makefile.am and configure.in and added a
+	missing .cvsignore file.
+
+2002-03-27 02:21  amalec
+
+	* src/Makefile.in, tests/Makefile.in: Complete CVS cleanup
+
+2002-03-27 02:18  amalec
+
+	* .cvsignore, Makefile.am, Makefile.in, autogen.sh, configure,
+	debian/.cvsignore, debian/Makefile.in, doc/.cvsignore,
+	doc/Makefile.in, doc/money/Makefile.in, rpm/.cvsignore,
+	rpm/Makefile.in, src/.cvsignore, tests/.cvsignore: Cleaned up CVS
+	to remove all autofoo generated files, included an autogen.sh
+	bootstrap file. Changes at the suggestion of Sven Neumann
+
+2002-03-02 02:42  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2002-03-02 02:42  amalec
+
+	* debian/changelog, debian/files, rpm/check.spec, src/Makefile.am,
+	src/Makefile.in, src/check.c, src/check_error.c, src/check_error.h,
+	src/check_log.c, src/check_msg.c, src/check_pack.c,
+	src/check_run.c, src/check_str.c, src/error.c, src/error.h,
+	src/list.c, tests/check_check_fixture.c, tests/check_check_pack.c:
+	Moved error.[hc] to check_error.[hc], and fixed bug in running
+	checked setup in nofork mode.
+
+2002-02-28 03:02  amalec
+
+	* COPYING, configure, configure.in, src/check.c, src/check.h,
+	src/check_impl.h, src/check_log.c, src/check_log.h,
+	src/check_magic.h, src/check_msg.c, src/check_msg.h,
+	src/check_pack.c, src/check_pack.h, src/check_print.c,
+	src/check_print.h, src/check_run.c, src/check_str.c,
+	src/check_str.h, src/error.c, src/error.h, src/list.c, src/list.h:
+	Changed license to LGPL
+
+2001-10-26 01:19  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-10-26 01:18  amalec
+
+	* AUTHORS: Update AUTHORS to give credit to key contributors
+
+2001-10-26 01:12  amalec
+
+	* configure, configure.in: Clarified configuration warning on doc
+	building
+
+2001-10-26 00:51  amalec
+
+	* ChangeLog: Updating ChangeLog prior to release
+
+2001-10-26 00:45  amalec
+
+	* src/check_run.c, tests/check_check_pack.c: Fixed some missing
+	header includes
+
+2001-10-26 00:25  amalec
+
+	* src/check_pack.c: Fix packing of NULL strings (causing problems
+	under Solaris)
+
+2001-10-26 00:17  amalec
+
+	* tests/check_check_pack.c: Minor change to pack tests to ensure
+	that tests don't pass accidentally
+
+2001-10-25 02:45  amalec
+
+	* ChangeLog: Updated ChangeLog
+
+2001-10-25 02:44  amalec
+
+	* depcomp: Added new automake file
+
+2001-10-25 02:43  amalec
+
+	* NEWS, doc/index.html, doc/money/check_money.c,
+	tests/check_check_sub.c: Added comments on string functions to
+	NEWS, cleaned up money example, and fixed a signal unit test so
+	that it will pass under cygwin
+
+2001-10-24 19:25  amalec
+
+	* Makefile.in, NEWS, aclocal.m4, configure, debian/Makefile.in,
+	debian/changelog, debian/files, doc/Makefile.am, doc/Makefile.in,
+	doc/tutorial.lyx, doc/money/Makefile.in, rpm/Makefile.in,
+	rpm/check.spec, src/Makefile.am, src/Makefile.in, src/check.h,
+	src/check_log.c, src/check_msg.c, src/check_msg.h,
+	src/check_print.c, src/check_run.c, tests/Makefile.am,
+	tests/Makefile.in, tests/check_check_fixture.c,
+	tests/check_check_fork.c, tests/check_check_limit.c,
+	tests/check_check_main.c, tests/check_check_master.c,
+	tests/check_stress.c, tests/ex_log_output.c, tests/ex_output.c,
+	tests/test_log_output.sh, tests/test_output.sh: Documentation
+	updates
+
+2001-10-23 01:57  amalec
+
+	* src/check_msg.c, src/check_pack.c, src/check_pack.h,
+	tests/check_check_pack.c: Removed old ppunpack, renamed new_*, and
+	updated callers
+
+2001-10-23 01:26  amalec
+
+	* src/check_msg.c, src/check_msg.h, src/check_pack.c,
+	src/check_run.c, tests/check_check_master.c,
+	tests/check_check_msg.c, tests/check_check_pack.c: Moved Check to
+	use new internal ppack routine, and fixed a nasty bug
+
+2001-10-20 01:27  amalec
+
+	* src/check_msg.c, src/check_msg.h, src/check_pack.c,
+	tests/check_check_msg.c, tests/check_check_pack.c: New version of
+	receive_test_result passes unit tests
+
+2001-10-19 20:44  amalec
+
+	* src/check_pack.c, src/check_pack.h, tests/check_check_fixture.c,
+	tests/check_check_pack.c: Changed punpack to return test and
+	fixture locs to preserve test information when teardown messages
+	are sent
+
+2001-10-17 03:15  amalec
+
+	* src/check_run.c, tests/check_check_fixture.c: Checked setup
+	passes unit tests
+
+2001-10-13 18:13  amalec
+
+	* src/Makefile.am, src/Makefile.in, src/check.c, src/check_msg.c,
+	src/check_msg.h, src/check_run.c, tests/check_check_msg.c: Replace
+	previous messaging implementation files with new module
+
+2001-10-13 08:05  amalec
+
+	* src/check.c, src/check.h, src/check_log.c, src/check_msg.c,
+	src/check_pack.c, src/check_run.c, src/check_str.c, src/error.c,
+	src/error.h, tests/check_check_master.c, tests/test_log_output.sh,
+	tests/test_output.sh: Fully implemented new messaging back-end
+	based on pipes
+
+2001-10-10 20:01  amalec
+
+	* Makefile.in, aclocal.m4, configure, debian/Makefile.in,
+	doc/Makefile.in, doc/money/Makefile.in, rpm/Makefile.in,
+	src/Makefile.am, src/Makefile.in, src/check.c, src/check_impl.h,
+	src/check_pack.c, tests/Makefile.in, tests/check_check_msg.c,
+	tests/check_check_pack.c: Updated messaging tests to use new
+	infrastructure
+
+2001-10-04 23:55  amalec
+
+	* src/check.c, src/check.h, src/check_impl.h, src/check_pack.c,
+	src/check_pack.h, tests/check_check_pack.c: Completed
+	implementation of check_pack
+
+2001-10-02 17:38  amalec
+
+	* doc/index.html, doc/tutorial.lyx, src/Makefile.am,
+	src/Makefile.in, src/check.c, src/check.h, src/check_magic.h,
+	src/check_msg.h, src/check_pack.c, src/check_pack.h,
+	tests/Makefile.am, tests/Makefile.in, tests/check_check.h,
+	tests/check_check_fixture.c, tests/check_check_fork.c,
+	tests/check_check_limit.c, tests/check_check_main.c,
+	tests/check_check_master.c, tests/check_check_msg.c,
+	tests/check_check_pack.c: First generation packing code as the
+	infrastructure to revising message passing between processes, to
+	accomodate context messages
+
+2001-09-28 02:20  amalec
+
+	* src/check.c, src/check.h, src/check_impl.h, src/check_run.c,
+	src/list.c, src/list.h, tests/check_check_fixture.c,
+	tests/check_check_fork.c, tests/check_check_limit.c,
+	tests/check_check_master.c, tests/check_check_msg.c: Added
+	framework for support of checked fixture functions
+
+2001-09-27 18:08  amalec
+
+	* src/: check.c, check_run.c: Refactored failure info functions
+
+2001-09-19 02:14  amalec
+
+	* src/check.c, src/check.h, src/check_impl.h, src/check_magic.h,
+	src/check_msg.c, src/check_msg.h, src/check_print.c,
+	src/check_run.c, src/check_str.c, tests/Makefile.am,
+	tests/Makefile.in, tests/check_check.h,
+	tests/check_check_fixture.c, tests/check_check_main.c,
+	tests/check_check_master.c: Setup failure is working and partially
+	tested
+
+2001-09-15 01:15  amalec
+
+	* tests/: check_check.h, check_check_fork.c, check_check_main.c:
+	Completed implementation of CK_NOFORK
+
+2001-09-08 00:12  amalec
+
+	* src/: check_impl.h, check_msg.c, check_msg.h, check_run.c:
+	Implemented nofork mode
+
+2001-09-06 20:10  amalec
+
+	* Doxyfile, configure.in, src/check.h, src/check_impl.h,
+	src/check_log.c, src/check_log.h, src/check_print.c,
+	src/check_print.h, src/check_run.c, tests/Makefile.am,
+	tests/Makefile.in, tests/check_check.h, tests/check_check_main.c:
+	Added initial control functions to control forking
+
+2001-09-05 18:48  amalec
+
+	* src/check.c, src/check_msg.c, src/check_msg.h, src/check_run.c,
+	tests/check_check_msg.c: Completely abstracted the details of
+	messaging behind check_msg.c
+
+2001-09-01 02:12  amalec
+
+	* src/: check.c, check_msg.c, check_msg.h, check_run.c: Ensure that
+	each subprocesses alloc the correct msg queue
+
+2001-08-30 03:00  amalec
+
+	* src/check.c, src/check.h, src/check_msg.c, src/check_msg.h,
+	src/check_run.c, tests/check_check_msg.c: Eliminated passing of
+	msqid in unit tests
+
+2001-08-29 02:49  amalec
+
+	* src/check_print.c, src/check_str.c, tests/check_check_limit.c:
+	Added test checking running empty suites
+
+2001-08-28 19:06  amalec
+
+	* src/check_magic.h: Moved magic values to separate header
+
+2001-08-28 19:04  amalec
+
+	* src/Makefile.am, src/Makefile.in, src/check.h, src/check_impl.h,
+	src/check_print.c, src/check_str.c, src/check_str.h,
+	tests/check_check_master.c, tests/check_check_msg.c: Separated
+	printing from string formating functions to allow better testing.
+
+2001-08-28 02:18  amalec
+
+	* configure, configure.in, src/check_msg.c, src/check_msg.h,
+	src/check_run.c, tests/Makefile.am, tests/Makefile.in,
+	tests/check_check.h, tests/check_check_main.c,
+	tests/check_check_msg.c: Use pid/ppid as message queue key,
+	preliminary to removing _msqid from unit test functions
+
+2001-08-23 23:26  amalec
+
+	* ChangeLog: Final ChangeLog for 0.7.3 release
+
+2001-08-23 23:25  amalec
+
+	* NEWS: Document 0.7.3 in NEWS
+
+2001-08-23 23:13  amalec
+
+	* debian/changelog: This time, fix debian changelog correctly
+
+2001-08-23 23:10  amalec
+
+	* debian/changelog: Fixed maintainer email in debian changelog
+
+2001-08-23 01:08  amalec
+
+	* ChangeLog, acinclude.m4, aclocal.m4, configure, configure.in,
+	debian/changelog, debian/check.doc-base.tut, debian/files,
+	rpm/check.spec: Updated acinclude.m4 to increase portability; fixed
+	a minor packaging bug in debian doc-base files
+
+2001-08-18 07:28  amalec
+
+	* ChangeLog, doc/index.html: index.html changes
+
+2001-08-18 07:24  amalec
+
+	* INSTALL, NEWS: NEWS and INSTALL changes
+
+2001-08-18 07:15  amalec
+
+	* Doxyfile, configure, configure.in,
+	debian/check.postinst.debhelper, debian/check.prerm.debhelper,
+	debian/files, doc/Makefile.in, doc/tutorial.lyx, rpm/Makefile.am,
+	rpm/Makefile.in, rpm/check.spec, src/check.c, src/check.h,
+	src/check_log.c, src/check_msg.c, src/check_print.c,
+	src/check_run.c, tests/check_check_log.c,
+	tests/check_check_master.c, tests/check_check_msg.c,
+	tests/check_list.c, tests/check_stress.c, tests/ex_log_output.c,
+	tests/ex_output.c: Bug fixes and assorted cleanup prior to release
+
+2001-08-18 01:16  amalec
+
+	* doc/money/: Makefile.am, Makefile.in: Added money example
+	Makefiles to CVS
+
+2001-08-18 01:13  amalec
+
+	* doc/: Makefile.am, example.lyx, tutorial.lyx: Moved example.lyx
+	to tutorial.lyx
+
+2001-08-16 02:47  amalec
+
+	* acinclude.m4, debian/Makefile.am, debian/Makefile.in,
+	debian/check.docs: Added leftover stuff in debian directory,
+	acinclude.m4
+
+2001-08-16 02:45  amalec
+
+	* Makefile.am, Makefile.in, aclocal.m4, configure, configure.in,
+	debian/check.doc-base.tut, debian/control, debian/docs,
+	doc/Makefile.am, doc/Makefile.in, doc/money/AUTHORS,
+	doc/money/COPYING, doc/money/ChangeLog, doc/money/INSTALL,
+	doc/money/Makefile.am, doc/money/Makefile.am.money,
+	doc/money/Makefile.in, doc/money/NEWS, doc/money/README,
+	doc/money/config.h.in, doc/money/configure, doc/money/configure.in,
+	doc/money/configure.in.money, doc/money/stamp-h.in,
+	rpm/Makefile.in, rpm/check.spec, src/Makefile.in,
+	tests/Makefile.in: Added configure check for Lyx with Linuxdoc
+
+2001-08-06 22:45  amalec
+
+	* rpm/Makefile.in: Added rpm/Makefile.in
+
+2001-08-06 22:44  amalec
+
+	* Makefile.am, Makefile.in, configure, configure.in,
+	debian/changelog, debian/check.dirs, debian/check.files,
+	debian/rules, doc/Makefile.am, doc/Makefile.in, doc/index.html,
+	doc/money/AUTHORS, doc/money/COPYING, doc/money/ChangeLog,
+	doc/money/NEWS, doc/money/README, rpm/check.spec: Can now build
+	complete debs
+
+2001-08-04 07:40  amalec
+
+	* debian/README.Debian: Don't need README.Debian
+
+2001-08-04 07:26  amalec
+
+	* debian/README.Debian, debian/changelog, debian/check.dirs,
+	debian/check.files, debian/check.postinst.debhelper,
+	debian/check.prerm.debhelper, debian/control, debian/copyright,
+	debian/dirs, debian/docs, debian/files, debian/rules,
+	doc/Makefile.am, doc/index.html: Added preliminary debian packaging
+	files
+
+2001-08-03 03:05  amalec
+
+	* Makefile.am, Makefile.in, aclocal.m4, configure, configure.in,
+	doc/index.html, rpm/Makefile.am, rpm/buildrpm.sh: Added automatic
+	building of RPMs
+
+2001-07-31 18:51  amalec
+
+	* doc/index.html: Update index.html for final release to main Check
+	website.
+
+2001-07-31 03:08  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-07-31 03:08  amalec
+
+	* NEWS, configure, configure.in, doc/example.lyx, rpm/buildrpm.sh,
+	rpm/check.spec, tests/Makefile.am, tests/Makefile.in,
+	tests/ex_log_output.c, tests/test_log_output.sh: Update NEWS, docs,
+	and rpm building
+
+2001-07-30 22:10  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-07-30 22:10  amalec
+
+	* doc/Makefile.in, tests/ex_log_output.c: Add neglected files
+
+2001-07-30 22:08  amalec
+
+	* src/Makefile.am, src/Makefile.in, src/check_impl.h,
+	src/check_log.c, src/check_log.h, src/check_print.c,
+	src/check_print.h, src/check_run.c, tests/test_log_output.sh:
+	Reorganized printing and logging functions and implemented more
+	sophisticated logging
+
+2001-07-25 23:26  amalec
+
+	* Makefile.in, aclocal.m4, config.h.in, configure,
+	doc/money/aclocal.m4, doc/money/config.h.in, doc/money/configure,
+	src/Makefile.in, tests/Makefile.in, tests/test_log_output.sh: Added
+	log tests
+
+2001-07-11 22:46  amalec
+
+	* NEWS, README, doc/example.lyx, rpm/check.spec, src/check.h,
+	tests/check_check_log.c, tests/check_check_main.c: Updated docs
+
+2001-07-11 01:29  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-07-11 01:28  amalec
+
+	* src/Makefile.in, src/check_log.c, tests/check_check.h,
+	tests/check_check_log.c, tests/check_check_master.c,
+	tests/check_check_sub.c, tests/test_output.sh: Completed testing
+	for multiple suite running, and reorganized files
+
+2001-07-11 01:26  amalec
+
+	* src/: check_log.c, check_log.h: Commit file changes
+
+2001-07-11 01:25  amalec
+
+	* src/: Makefile.am, check.h, check_run.c: Moved check_log.h
+	functions into check.h
+
+2001-07-10 02:10  amalec
+
+	* ChangeLog: Commit ChangeLog
+
+2001-07-10 02:09  amalec
+
+	* src/check.c, src/check.h, src/check_impl.h, src/check_run.c,
+	src/list.h, tests/Makefile.am, tests/Makefile.in,
+	tests/check_check.h, tests/check_check_log.c,
+	tests/check_check_main.c, tests/check_check_master.c,
+	tests/check_check_msg.c, tests/check_check_sub.c,
+	tests/check_list.c: Completed test for initial logging feature, and
+	added feature to run multiple suites through an SRunner
+
+2001-06-30 03:27  amalec
+
+	* src/Makefile.in, src/check.h, src/check_impl.h, src/check_log.h,
+	src/check_run.c, tests/check_check_log.c, tests/test_output.sh:
+	Restructured printing to allow for logging function
+
+2001-06-29 02:40  amalec
+
+	* src/: Makefile.am, Makefile.in: Add check_log.c to Makefile.am
+
+2001-06-29 02:33  amalec
+
+	* tests/: Makefile.am, Makefile.in: Complete move of
+	check_check_log.c -- this time for real...
+
+2001-06-29 02:31  amalec
+
+	* Doxyfile, src/check_log.h, tests/Makefile.am, tests/Makefile.in:
+	Complete move of check_check_log.c
+
+2001-06-29 02:30  amalec
+
+	* tests/: Makefile.am, check_check_log.c, check_log.c: Moved
+	check_log.c to check_check_log.c
+
+2001-06-29 00:56  amalec
+
+	* doc/money/stamp-h: Removed stamp-h
+
+2001-06-29 00:51  amalec
+
+	* src/check_log.h, tests/check_log.c: Added skeleton files for
+	check logging
+
+2001-06-29 00:33  amalec
+
+	* Doxyfile, configure, configure.in, src/check.h,
+	tests/Makefile.am, tests/Makefile.in: Additional doxygenation of
+	check.h
+
+2001-06-27 20:27  amalec
+
+	* ChangeLog: Updated ChangeLog
+
+2001-06-27 20:25  amalec
+
+	* configure, rpm/check.spec: Updated check.spec
+
+2001-06-27 20:21  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-06-27 20:20  amalec
+
+	* NEWS, configure.in, doc/example.lyx, doc/money/check_money.c,
+	doc/money/configure, doc/money/configure.in, src/check.h,
+	src/check_run.c, tests/check_check_main.c,
+	tests/check_check_master.c, tests/check_check_msg.c,
+	tests/check_list.c, tests/check_stress.c: Completed
+	srunner_results, and added unit tests; changed srunner_nfailed to
+	srunner_ntests_failed and changed documentation.
+
+2001-06-27 00:51  amalec
+
+	* Doxyfile, doc/example.lyx, src/check.h, src/check_run.c,
+	tests/Makefile.am, tests/Makefile.in, tests/check_check.c,
+	tests/check_check.h, tests/check_check_main.c,
+	tests/check_check_master.c, tests/check_check_msg.c,
+	tests/check_check_sub.c, tests/check_list.c, tests/check_stress.c:
+	Fixed a bug in srunner_failures, fixed a typo in the tutorial
+	documentation (thanks to Michael Tucker), and refactored
+	check_check
+
+2001-06-22 03:16  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-06-22 03:15  amalec
+
+	* NEWS, doc/Makefile.am, doc/example.lyx, doc/index.html,
+	rpm/check.spec, tests/Makefile.am, tests/Makefile.in: Specfile
+	changes, updates to NEWS
+
+2001-06-22 02:37  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-06-22 02:36  amalec
+
+	* src/check.h, src/check_run.c, tests/Makefile.am,
+	tests/Makefile.in, tests/check_check.c, tests/ex_output.c,
+	tests/test_output.sh: Changed test output, added end-to-end test,
+	and removed redundant field from TestResult struct
+
+2001-06-19 22:01  amalec
+
+	* ChangeLog: Update changelog
+
+2001-06-19 21:59  amalec
+
+	* src/check.h, src/check_run.c, tests/check_check.c: Added
+	accessors for TestResult and expanded unit test
+
+2001-06-12 19:29  amalec
+
+	* ChangeLog: Updated ChangeLog
+
+2001-06-12 19:28  amalec
+
+	* configure, configure.in, src/check.h, src/check_run.c,
+	tests/check_check.c: Added new tests for line number
+
+2001-06-04 19:58  amalec
+
+	* ChangeLog, doc/index.html: Added homepage file in doc directory,
+	and updated change log
+
+2001-06-04 19:08  amalec
+
+	* doc/Makefile.am, doc/example.lyx, rpm/check.spec: Cleaned up spec
+	file for RPM packaging
+
+2001-06-04 01:50  amalec
+
+	* Makefile.am, Makefile.in, configure, configure.in,
+	doc/Makefile.am, rpm/check.spec: Added RPM spec file and added
+	additional documentation files
+
+2001-06-01 17:46  amalec
+
+	* ChangeLog: Updated ChangeLog
+
+2001-06-01 17:44  amalec
+
+	* Makefile.in, src/Makefile.in, src/check.c, src/check.h,
+	src/check_impl.h, src/check_msg.c, src/check_msg.h,
+	src/check_run.c, src/error.c, src/error.h, src/list.c, src/list.h,
+	tests/Makefile.in: GNUified source files with copyright notice
+
+2001-06-01 17:33  amalec
+
+	* aclocal.m4, configure, configure.in, doc/Makefile.am,
+	doc/example.lyx: Made building docs conditional on presence of lyx
+	and sgml2html
+
+2001-06-01 00:35  amalec
+
+	* ChangeLog: Update ChangeLog
+
+2001-06-01 00:34  amalec
+
+	* configure.in, doc/Makefile.am: Modified Makefile.am to include
+	docs in dist
+
+2001-06-01 00:26  amalec
+
+	* ChangeLog, Makefile.am, Makefile.in, aclocal.m4, configure,
+	configure.in, doc/Makefile.am, src/Makefile.in, tests/Makefile.in:
+	Added Automake support to create and install documentation
+
+2001-05-31 23:30  amalec
+
+	* doc/money/: config.h, config.log, config.status: Removed unneded
+	files
+
+2001-05-31 17:37  amalec
+
+	* ChangeLog, ChangeLogOld: Updated change logs
+
+2001-05-31 17:35  amalec
+
+	* doc/example.lyx: Commit changes to example, get things in synch
+
+2001-05-31 17:32  amalec
+
+	* doc/money/: COPYING, ChangeLog, INSTALL, Makefile.am,
+	Makefile.in, NEWS, README, aclocal.m4, check_money.c, config.h,
+	config.h.in, config.log, config.status, configure, configure.in,
+	money.c, money.h, stamp-h, stamp-h.in: Hopefully finally solved CVS
+	problems and commited changes to money example and example.lyx
+
+2001-05-31 01:48  amalec
+
+	* doc/money/AUTHORS: Trying to commit added files...
+
+2001-05-31 01:45  amalec
+
+	* doc/example.lyx: Cleaning up CVS..
+
+2001-05-31 01:37  amalec
+
+	* ChangeLogOld: Trying to update documentation and change log, and
+	statisfy CVS...
+
+2001-05-31 01:34  amalec
+
+	* ChangeLog: Refined documentation, and moved old change log
+	information to ChangeLogOld
+
+2001-05-31 00:44  amalec
+
+	* doc/example.lyx: Added complete example to accompany
+	documentation
+
+2001-05-30 05:25  amalec
+
+	* Makefile.in: Added example and expanded documentation
+
+2001-05-30 00:42  amalec
+
+	* AUTHORS, Makefile.in, README, stamp-h.in, COPYING, ChangeLog,
+	INSTALL, Makefile.am, NEWS, aclocal.m4, config.h.in, configure,
+	configure.in, install-sh, missing, mkinstalldirs, src/Makefile.am,
+	src/Makefile.in, src/check.c, src/check.h, src/check_impl.h,
+	src/check_run.c, doc/example.lyx, src/check_msg.c, src/check_msg.h,
+	src/error.c, src/error.h, src/list.c, src/list.h,
+	tests/Makefile.am, tests/Makefile.in, tests/check_check.c,
+	tests/check_check_msg.c, tests/check_list.c, tests/check_stress.c:
+	Initial revision
+
+2001-05-30 00:42  amalec
+
+	* AUTHORS, Makefile.in, README, stamp-h.in, COPYING, ChangeLog,
+	INSTALL, Makefile.am, NEWS, aclocal.m4, config.h.in, configure,
+	configure.in, install-sh, missing, mkinstalldirs, src/Makefile.am,
+	src/Makefile.in, src/check.c, src/check.h, src/check_impl.h,
+	src/check_run.c, doc/example.lyx, src/check_msg.c, src/check_msg.h,
+	src/error.c, src/error.h, src/list.c, src/list.h,
+	tests/Makefile.am, tests/Makefile.in, tests/check_check.c,
+	tests/check_check_msg.c, tests/check_list.c, tests/check_stress.c:
+	Import into Sourceforge. Previous CVS version information resides
+	on Arien's local machine
+

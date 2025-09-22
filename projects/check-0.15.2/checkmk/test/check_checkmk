@@ -1,0 +1,143 @@
+#!/usr/bin/env sh
+
+TESTS_RUN=0
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+TEST_DIRS='empty_input pass_thru single_test_line basic_complete'
+TEST_DIRS="$TEST_DIRS multiple_everything between_the_lines"
+TEST_DIRS="$TEST_DIRS repeated_suites repeated_tcases repeated_tests"
+TEST_DIRS="$TEST_DIRS not_really_repeated tcase_implied_repeat"
+TEST_DIRS="$TEST_DIRS case_insensitive_pp trailing_ws non_word_chars"
+TEST_DIRS="$TEST_DIRS test_chars num_start_test_name"
+TEST_DIRS="$TEST_DIRS no_args clean_mode declarations test_after_main_pre"
+TEST_DIRS="$TEST_DIRS main_pre_multiple main_post main_pre_after_post"
+TEST_DIRS="$TEST_DIRS test_after_main_post main_post_multiple ucn"
+TEST_DIRS="$TEST_DIRS invalid_ucn argument_ws repeated_argument_tests"
+
+check_dir() {
+    status=0
+
+    checkmkdir=$PWD
+    outdir="test.out/$1"
+    testdir="$srcdir/test/$1"
+
+    if ! mkdir -p "$outdir"
+    then
+        echo "Couldn't make path \"$outdir\"!"
+    fi
+    outdir=$(cd "$outdir" && pwd)
+
+    if ! cd "$testdir"
+    then
+        echo "Couldn't chdir to \"$testdir\"!"
+    fi
+
+    # set up expected input/output file names
+    infname=in
+    outfname="$outdir/output"
+    errfname="$outdir/err"
+    diffname="$outdir/diff"
+    errdiffname="$outdir/err-diff"
+    CHECKMK="$checkmkdir/checkmk"
+    checkmk_cmd='"$CHECKMK" "$infname" > "$outfname" 2>"$errfname"'
+
+    rm -f "$outfname" "$errfname" "$diffname" "$errdiffname"
+
+    # source local versions, if available.
+    [ -r ./cmd ] && . ./cmd
+
+    # Check output.
+    eval "$checkmk_cmd"
+    ckstat=$?
+
+    if ! diff -c "x_output" "$outfname" > "$diffname"
+    then
+        echo "Unexpected output differences:"
+        cat "$diffname"
+        status=1
+    fi
+
+    # Check stderr.
+    if [ -s x_err ]
+    then
+        if ! diff -c "x_err" "$errfname" > "$errdiffname"
+        then
+            echo "Unexpected error differences:"
+            cat "$errdiffname"
+            status=1
+        fi
+    elif [ -s err ]
+    then
+        echo "Unexpected text from standard error:"
+        echo "------------------------------------"
+        cat "$errfname"
+        echo "------------------------------------"
+        status=1
+    fi
+
+    # Check status.
+    xstat=0
+    if [ -e "x_exit" ]
+    then
+        xstat=`cat x_exit`
+    elif [ -s "x_err" ]
+    then
+        xstat=1
+    fi
+
+    if [ $xstat != $ckstat ]
+    then
+        echo "Expected exit status of $xstat, but got $ckstat."
+        status=1
+    fi
+
+    return $status
+}
+
+pass_dir() {
+    echo "Test $1 passed."
+    TESTS_PASSED=$(($TESTS_PASSED+1))
+}
+
+fail_dir() {
+    echo "Test $1 FAILED."
+    TESTS_FAILED=$(($TESTS_FAILED+1))
+}
+
+echo "These are the tests for the checkmk program."
+echo
+echo "===================="
+echo "   Test Run Start"
+echo "===================="
+echo
+
+for dir in $TEST_DIRS
+do
+    echo "Running test $dir..."
+    if ( check_dir $dir )
+    then
+        pass_dir $dir
+    else
+        fail_dir $dir
+    fi
+    TESTS_RUN=$(($TESTS_RUN+1))
+    echo
+done
+
+echo "===================="
+echo " Test Run Complete"
+echo "===================="
+echo "Total:  $TESTS_RUN"
+echo "Passed: $TESTS_PASSED"
+echo "Failed: $TESTS_FAILED"
+
+if [ "$TESTS_FAILED" -gt 0 ]
+then
+    echo
+    echo "****************************************"
+    echo "          TEST RUN FAILED!!!!"
+    echo "****************************************"
+    exit 1;
+fi
+echo

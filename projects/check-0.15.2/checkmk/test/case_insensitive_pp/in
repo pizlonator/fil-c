@@ -1,0 +1,16 @@
+/* Test case-insensitive directives. */
+
+#include <stdio.h>
+
+# SuiTe The Suite
+
+# tCaSe The Test Case
+
+# teSt  the_test
+    int nc;
+    const char msg[] = "\n\n    Hello, world!\n";
+
+    nc = printf("%s", msg);
+    fail_unless(nc == (sizeof msg
+                                  - 1) /* for terminating NUL. */
+    );

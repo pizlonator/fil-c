@@ -1,0 +1,428 @@
+/*-*- mode:C; -*- */
+/* config.h.  Generated from build/cmake/config.h.in by cmake configure */
+/*
+ * Check: a unit test framework for C
+ *
+ * Copyright (C) 2011 Mateusz Loskot
+ * Copyright (C) 2001, 2002 Arien Malec
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
+#if defined(__osf__)
+# define _OSF_SOURCE
+#endif
+
+/*
+ * Ensure we have C99-style int64_t, etc, all defined.
+ */
+
+/* First, we need to know if the system has already defined them. */
+#cmakedefine HAVE_INT16_T
+#cmakedefine HAVE_INT32_T
+#cmakedefine HAVE_INT64_T
+#cmakedefine HAVE_INTMAX_T
+
+#cmakedefine HAVE_UINT8_T
+#cmakedefine HAVE_UINT16_T
+#cmakedefine HAVE_UINT32_T
+#cmakedefine HAVE_UINT64_T
+#cmakedefine HAVE_UINTMAX_T
+
+/* We might have the types we want under other spellings. */
+#cmakedefine HAVE___INT64
+#cmakedefine HAVE_U_INT64_T
+#cmakedefine HAVE_UNSIGNED___INT64
+
+/* The sizes of various standard integer types. */
+@SIZE_OF_SHORT_CODE@
+@SIZE_OF_INT_CODE@
+@SIZE_OF_LONG_CODE@
+@SIZE_OF_LONG_LONG_CODE@
+@SIZE_OF_UNSIGNED_SHORT_CODE@
+@SIZE_OF_UNSIGNED_CODE@
+@SIZE_OF_UNSIGNED_LONG_CODE@
+@SIZE_OF_UNSIGNED_LONG_LONG_CODE@
+
+/*
+ * If we lack int64_t, define it to the first of __int64, int, long, and long long
+ * that exists and is the right size.
+ */
+#if !defined(HAVE_INT64_T) && defined(HAVE___INT64)
+typedef __int64 int64_t;
+#define HAVE_INT64_T
+#endif
+
+#if !defined(HAVE_INT64_T) && SIZE_OF_INT == 8
+typedef int int64_t;
+#define HAVE_INT64_T
+#endif
+
+#if !defined(HAVE_INT64_T) && SIZE_OF_LONG == 8
+typedef long int64_t;
+#define HAVE_INT64_T
+#endif
+
+#if !defined(HAVE_INT64_T) && SIZE_OF_LONG_LONG == 8
+typedef long long int64_t;
+#define HAVE_INT64_T
+#endif
+
+#if !defined(HAVE_INT64_T)
+#error No 64-bit integer type was found.
+#endif
+
+/*
+ * Similarly for int32_t
+ */
+#if !defined(HAVE_INT32_T) && SIZE_OF_INT == 4
+typedef long int32_t;
+#define HAVE_INT32_T
+#endif
+
+#if !defined(HAVE_INT32_T) && SIZE_OF_LONG == 4
+typedef long int32_t;
+#define HAVE_INT32_T
+#endif
+
+#if !defined(HAVE_INT32_T)
+#error No 32-bit integer type was found.
+#endif
+
+/*
+ * Similarly for int16_t
+ */
+#if !defined(HAVE_INT16_T) && SIZE_OF_INT == 2
+typedef int int16_t;
+#define HAVE_INT16_T
+#endif
+
+#if !defined(HAVE_INT16_T) && SIZE_OF_SHORT == 2
+typedef short int16_t;
+#define HAVE_INT16_T
+#endif
+
+#if !defined(HAVE_INT16_T)
+#error No 16-bit integer type was found.
+#endif
+
+/*
+ * Similarly for uint64_t
+ */
+#if !defined(HAVE_UINT64_T) && defined(HAVE_UNSIGNED___INT64)
+typedef unsigned __int64 uint64_t;
+#define HAVE_UINT64_T
+#endif
+
+#if !defined(HAVE_UINT64_T) && SIZE_OF_UNSIGNED == 8
+typedef unsigned uint64_t;
+#define HAVE_UINT64_T
+#endif
+
+#if !defined(HAVE_UINT64_T) && SIZE_OF_UNSIGNED_LONG == 8
+typedef unsigned long uint64_t;
+#define HAVE_UINT64_T
+#endif
+
+#if !defined(HAVE_UINT64_T) && SIZE_OF_UNSIGNED_LONG_LONG == 8
+typedef unsigned long long uint64_t;
+#define HAVE_UINT64_T
+#endif
+
+#if !defined(HAVE_UINT64_T)
+#error No 64-bit unsigned integer type was found.
+#endif
+
+
+/*
+ * Similarly for uint32_t
+ */
+#if !defined(HAVE_UINT32_T) && SIZE_OF_UNSIGNED == 4
+typedef unsigned uint32_t;
+#define HAVE_UINT32_T
+#endif
+
+#if !defined(HAVE_UINT32_T) && SIZE_OF_UNSIGNED_LONG == 4
+typedef unsigned long uint32_t;
+#define HAVE_UINT32_T
+#endif
+
+#if !defined(HAVE_UINT32_T)
+#error No 32-bit unsigned integer type was found.
+#endif
+
+/*
+ * Similarly for uint16_t
+ */
+#if !defined(HAVE_UINT16_T) && SIZE_OF_UNSIGNED == 2
+typedef unsigned uint16_t;
+#define HAVE_UINT16_T
+#endif
+
+#if !defined(HAVE_UINT16_T) && SIZE_OF_UNSIGNED_SHORT == 2
+typedef unsigned short uint16_t;
+#define HAVE_UINT16_T
+#endif
+
+#if !defined(HAVE_UINT16_T)
+#error No 16-bit unsigned integer type was found.
+#endif
+
+/*
+ * Similarly for uint8_t
+ */
+#if !defined(HAVE_UINT8_T)
+typedef unsigned char uint8_t;
+#define HAVE_UINT8_T
+#endif
+
+#if !defined(HAVE_UINT16_T)
+#error No 8-bit unsigned integer type was found.
+#endif
+
+/* Define intmax_t and uintmax_t if they are not already defined. */
+#if !defined(HAVE_INTMAX_T)
+typedef int64_t intmax_t;
+#define INTMAX_MIN INT64_MIN
+#define INTMAX_MAX INT64_MAX
+#endif
+
+#if !defined(HAVE_UINTMAX_T)
+typedef uint64_t uintmax_t;
+#endif
+
+/* Define to 1 if you have the declaration of `INT64_MAX', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_INT64_MAX 1
+
+/* Define to 1 if you have the declaration of `INT64_MIN', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_INT64_MIN 1
+
+/* Define to 1 if you have the declaration of `SIZE_MAX', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_SIZE_MAX 1
+
+/* Define to 1 if you have the declaration of `SSIZE_MAX', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_SSIZE_MAX 1
+
+/* Define to 1 if you have the declaration of `UINT32_MAX', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_UINT32_MAX 1
+
+/* Define to 1 if you have the declaration of `UINT64_MAX', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_UINT64_MAX 1
+
+/* Define to 1 if you have the <errno.h> header file. */
+#cmakedefine HAVE_ERRNO_H 1
+
+/* Define to 1 if you have the `fork' function. */
+#cmakedefine HAVE_FORK 1
+
+/* Define to 1 if you have the `getpid' function. */
+#cmakedefine HAVE_GETPID 1
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#cmakedefine HAVE_GETTIMEOFDAY 1
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H 1
+
+/* Define to 1 if you have the <limits.h> header file. */
+#cmakedefine HAVE_LIMITS_H 1
+
+/* Define to 1 if you have the `localtime_r' function. */
+#cmakedefine HAVE_DECL_LOCALTIME_R 1
+
+/* Define to 1 if you have the `localtime_s' function. */
+#cmakedefine HAVE_LOCALTIME_S 1
+
+/* Define to 1 if the system has the type `long long int'. */
+#cmakedefine HAVE_LONG_LONG_INT 1
+
+/* Define to 1 if you have the `malloc' function. */
+#cmakedefine HAVE_MALLOC 1
+
+/* Define to 1 if you have the `realloc' function. */
+#cmakedefine HAVE_REALLOC 1
+
+/* Define to 1 if you have the `setenv' function. */
+#cmakedefine HAVE_DECL_SETENV 1
+
+/* Define to 1 if you have the <signal.h> header file. */
+#cmakedefine HAVE_SIGNAL_H 1
+
+/* Define to 1 if you have the 'sigaction' function. */
+#cmakedefine HAVE_SIGACTION 1
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#cmakedefine HAVE_STDARG_H 1
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_DECL_STRDUP 1
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H 1
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H 1
+
+/* Define to 1 if you have the `strsignal' function. */
+#cmakedefine HAVE_DECL_STRSIGNAL 1
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine HAVE_SYS_TIME_H 1
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H 1
+
+/* Define to 1 if you have the <time.h> header file. */
+#cmakedefine HAVE_TIME_H 1
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H 1
+
+/* Define to 1 if you have <windows.h> header file. */
+#cmakedefine HAVE_WINDOWS_H 1
+
+/* Define to 1 if you have <synchapi.h> header file. */
+#cmakedefine HAVE_SYNCHAPI_H 1
+
+/* Define to 1 if you have the 'InitOnceBeginInitialize' function. */
+#cmakedefine HAVE_INIT_ONCE_BEGIN_INITIALIZE 1
+
+/* Define to 1 if you have the 'InitOnceComplete' function. */
+#cmakedefine HAVE_INIT_ONCE_COMPLETE 1
+
+/* Define to 1 if the system has the type `unsigned long long'. */
+#cmakedefine HAVE_UNSIGNED_LONG_LONG 1
+
+/* Define to 1 if the system has the type `unsigned long long int'. */
+#cmakedefine HAVE_UNSIGNED_LONG_LONG_INT 1
+
+/* Define to 1 if the system has the type `wchar_t'. */
+#cmakedefine HAVE_WCHAR_T 1
+
+/* Define to 1 if you have the `_getpid' function. */
+#cmakedefine HAVE__GETPID 1
+
+/* Define to 1 if you have the `_localtime64_s' function. */
+#cmakedefine HAVE__LOCALTIME64_S 1
+
+/* Define to 1 if you have the `_strdup' function. */
+#cmakedefine HAVE__STRDUP 1
+
+/* Define 1 if you have pthread support. */
+#cmakedefine HAVE_PTHREAD 1
+
+/* Version number of Check */
+#cmakedefine CHECK_VERSION "${CHECK_MAJOR_VERSION}.${CHECK_MINOR_VERSION}.${CHECK_MICRO_VERSION}"
+
+/* The size of `wchar_t', as computed by sizeof. */
+#cmakedefine SIZEOF_WCHAR_T ${SIZEOF_WCHAR_T}
+
+/* Define to 1 if strerror_r returns char *. */
+#cmakedefine STRERROR_R_CHAR_P 1
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine TIME_WITH_SYS_TIME 1
+
+/*
+ * Some platform requires a macro to use extension functions.
+ */
+#cmakedefine SAFE_TO_DEFINE_EXTENSIONS 1
+#ifdef SAFE_TO_DEFINE_EXTENSIONS
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# define _ALL_SOURCE 1
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# define _POSIX_PTHREAD_SEMANTICS 1
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# define _TANDEM_SOURCE 1
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# define __EXTENSIONS__ 1
+#endif
+#endif /* SAFE_TO_DEFINE_EXTENSIONS */
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
+
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#cmakedefine _LARGEFILE_SOURCE 1
+
+/* Define for large files, on AIX-style hosts. */
+#cmakedefine _LARGE_FILES ${_LARGE_FILES}
+
+/* Define for Windows to use Windows 2000+ APIs. */
+#cmakedefine _WIN32_WINNT ${_WIN32_WINNT}
+#cmakedefine WINVER ${WINVER}
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#cmakedefine const ${const}
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#cmakedefine clockid_t ${clockid_t}
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#cmakedefine gid_t ${gid_t}
+
+/* Define to `unsigned long' if <sys/types.h> does not define. */
+#cmakedefine id_t ${id_t}
+
+/* Define to `int' if <sys/types.h> does not define. */
+#cmakedefine mode_t ${mode_t}
+
+/* Define to `long long' if <sys/types.h> does not define. */
+#cmakedefine off_t ${off_t}
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#cmakedefine pid_t ${pid_t}
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#cmakedefine size_t ${size_t}
+
+/* Define to `int' if <sys/types.h> does not define. */
+#cmakedefine ssize_t ${ssize_t}
+
+/* Define to `int' if <sys/types.h> does not define. */
+#cmakedefine timer_t ${timer_t}
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#cmakedefine uid_t ${uid_t}
+
+/* Define to `int' if <sys/types.h> does not define. */
+#cmakedefine intptr_t ${intptr_t}
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#cmakedefine uintptr_t ${uintptr_t}
