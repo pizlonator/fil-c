@@ -1353,7 +1353,7 @@ int
 stackoverflow_install_handler (stackoverflow_handler_t handler,
                                void *extra_stack, size_t extra_stack_size)
 {
-#if HAVE_STACK_OVERFLOW_RECOVERY
+#if HAVE_STACK_OVERFLOW_RECOVERY && !defined(__FILC__)
 # if HAVE_STACKVMA
   if (!stack_top)
     {
