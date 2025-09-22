@@ -1,0 +1,52 @@
+.\"
+.\" $Id: _setproccap.2,v 1.1.1.1 1999/04/17 22:16:31 morgan Exp $
+.\" written by Andrew Main <zefram@dcs.warwick.ac.uk>
+.\"
+.TH _SETPROCCAP 2 "26th April 1997" "Linux 2.1" "Linux Programmer's Manual"
+.SH NAME
+_setproccap, _getproccap \- set/get process capabilities
+.SH SYNOPSIS
+.B #include <sys/capability.h>
+.sp
+.BI "int _setproccap(size_t " usize ", __cap_s const *" iset ", __cap_s const *" pset ", __cap_s const *" eset );
+.sp
+.BI "int _getproccap(size_t " usize ", __cap_s *" iset ", __cap_s *" pset ", __cap_s *" eset );
+.SH DESCRIPTION
+.B _setproccap
+sets the calling process'
+Inheritable, Permitted and Effective capabilities to the sets specified.
+A NULL pointer specifies that a set should not be changed.
+.PP
+.B _getproccap
+copies the process' capability sets into the sets provided.
+A NULL pointer specifies that a set should not be returned.
+.PP
+The
+.I usize
+argument specifies the size of the user-space capability sets, in bytes.
+If the kernel uses a different size internally, it will truncate or
+zero-fill as required.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, -1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.SB EFAULT
+One of the capability arguments was an invalid data pointer.
+.TP
+.SB EPERM
+An attempt was made to add a capability to the Permitted set, or to set
+a capability in the Effective or Inheritable sets that is not in the
+Permitted set.
+.TP
+.SB ENOSYS
+The POSIX.1e capability system was not configured into the kernel.
+.SH "CONFORMING TO"
+These system calls are specific to Linux.
+The portable interfaces are
+.IR cap_set_proc (3)
+and
+.IR cap_get_proc (3).
+.SH "SEE ALSO"
+.IR _setfilecap (2).

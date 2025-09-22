@@ -1,0 +1,74 @@
+.\" generated with Ronn-NG/v0.9.1
+.\" http://github.com/apjanke/ronn-ng/tree/0.9.1
+.TH "CAPABILITY\.CONF" "5" "April 2024" ""
+.SH "NAME"
+\fBcapability\.conf\fR \- pam_cap module configuration file
+.SH "SYNOPSIS"
+\fB/etc/security/capability\.conf\fR
+.SH "DESCRIPTION"
+The syntax for lines in this configuration file is:
+.P
+\fB# <\-\- \'#\' precedes a comment\fR
+.P
+\fB<IAB><SPACE><WHO>\fR
+.P
+Where \fB<IAB>\fR refers to the text format for an inheritable IAB
+capability tuple,
+.BR cap_iab (3)
+, or the words \fBall\fR or \fBnone\fR\.
+.P
+The reserved word \fBall\fR does \fInot\fR grant \fIall the
+inheritable capabilities\fR, but acts as a simple \fIpass\-through\fR
+for any prevailing IAB tuple capabilities\. The reserved word
+\fBnone\fR refers to an empty \fIInheritable\fR capability set (and by
+extension an empty \fIAmbient\fR vector)\.
+.P
+Here \fB<WHO>\fR refers to the space separated PAM username values
+that will be granted the specified \fIIAB\fR tuple\. A name prefixed
+with the character \fB@\fR refers to the locally defined
+\fB/etc/group\fR \fIetc\fR users listed under that group name\. An
+asterisk "\fB*\fR" can be used to denote all users\.
+.P
+The parsing of the file chooses the first line that applies to the
+authenticating user, and attempts to apply that and only that\.
+.P
+Examples of valid syntax are:
+.IP "" 4
+.nf
+# only root gets to keep what it had
+all                                root
+
+# this should fire for user beta only, who will have
+# cap_chown dropped from their bounding set\.
+!cap_chown                         beta
+
+# the next one should snag the members of the \'three\' group
+# granting them cap_setuid and cap_chown
+cap_setuid,cap_chown               @three
+
+# this would apply to beta and gamma, but beta is already
+# granted a lack of cap_chown above\. Further, if gamma is
+# in the \'three\' group, it would not reach this line\.
+cap_chown                          beta gamma
+
+# members of the \'one\' group are granted the cap_setuid Inheritable
+# capability, but cap_chown is dropped from their bounding set\.
+!cap_chown,cap_setuid              @one
+
+# user alpha gets an ambient capability (unless it is also
+# a member of the groups \'one\' or \'three\')\.
+^cap_setuid                        alpha
+
+# user delta (if not a member of groups \'one\' and \'three\') will get
+# cap_chown and cap_setgid Ambient capabilities, but have cap_setuid
+# dropped from its bounding set\.
+^cap_chown,^cap_setgid,!cap_setuid delta
+
+# any remaining members of group \'four\' will get the cap_setuid
+# Inheritable capability\.
+cap_setuid                         @four
+.fi
+.IP "" 0
+.SH "SEE ALSO"
+.BR pam_cap (8),
+.BR cap_iab (3).

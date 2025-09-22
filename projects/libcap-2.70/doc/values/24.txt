@@ -1,0 +1,14 @@
+Allows a process to adjust resource related parameters
+of processes and the system:
+  - set and override resource limits
+  - override quota limits
+  - override the reserved space on ext2 filesystem
+    (this can also be achieved via CAP_FSETID)
+  - modify the data journaling mode on ext3 filesystem,
+    which uses journaling resources
+  - override size restrictions on IPC message queues
+  - configure more than 64Hz interrupts from the
+    real-time clock
+  - override the maximum number of consoles for console
+    allocation
+  - override the maximum number of keymaps

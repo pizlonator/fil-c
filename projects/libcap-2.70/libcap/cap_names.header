@@ -1,0 +1,5 @@
+struct __cap_token_s { const char *name; int index; };
+%{
+const struct __cap_token_s *__cap_lookup_name(const char *, size_t);
+%}
+%%

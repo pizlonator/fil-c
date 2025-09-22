@@ -1,0 +1,369 @@
+#!/bin/sh
+# vim: tabstop=4
+#
+# author:    chris friedhoff - chris@friedhoff.org
+# version:   pcaps4server  5  Tue Mar 11 2008
+#
+#
+# changelog:
+# 1 - initial release pcaps4convenience
+# 1 - 2007.02.15 - initial release
+# 2 - 2007.11.02 - changed to new setfcaps api; each app is now callable; suppressed error of id
+# 3 - 2007.12.28 - changed to libcap2 package setcap/getcap
+# 4 - renamed to pcaps4server
+#      removed suid0 and convenience files,
+#      they are now in pcaps4suid0 resp. pcaps4convenience
+# 5 - changed 'attr -S -r' to 'setcap -r' and removed attr code
+#
+#
+###########################################################################
+# change the installation of different server to be able not to run as root
+# and have their own unpriviledged user. The binary has the needed POSIX
+# Capabilities.
+# to ensure that the server is really started as his respective user, we set
+# the suid bit (BUT NOT 0)!
+# paths are hard coded and derive from a slackware system
+# change it to your needs !!
+###########################################################################
+
+
+
+VERBOSE="-v"
+#VERBOSE=""
+APPS=""
+
+message(){
+	printRedMessage "$1"
+}
+
+printRedMessage(){
+	# print message red and turn back to white
+	echo -e "\n\033[00;31m $1 ...\033[00;00m\n"
+}
+
+printGreenMessage(){
+	# print message red and turn back to white
+	echo -e "\033[00;32m $1 ...\033[00;00m\n"
+	sleep 0.5
+}
+
+checkReturnCode(){
+    if [ "$?" != "0" ]; then
+        printRedMessage "!! I'M HAVING A PROBLEM !! THE RETURNCODE IS NOT 0 !! I STOP HERE !!"
+        exit 1
+    else
+        printGreenMessage ":-)"
+		sleep 0.5
+    fi
+}
+
+
+
+p4r_test(){
+	#for now, we work with root
+	if [ "$( id -u )" != "0" ]; then
+		echo "Sorry, you must be root !"
+		exit
+	fi
+}
+
+
+
+
+# apache 1.3
+########
+#APPS="$APPS apache1"
+apache1_convert(){
+	message "converting apache1"
+	if [ "$( id -g apache 2>/dev/null )" == "" ]; then
+		groupadd -g 60 apache
+	fi
+	if [ "$( id -u apache 2>/dev/null )" == "" ]; then
+		useradd -g apache -d / -u 600 apache
+	fi
+	sed -i -e "{s|^\(User\).*|\1 apache|; s|^\(Group\) .*|\1 apache|}" /etc/apache/httpd.conf
+	chown $VERBOSE -R apache:apache /var/run/apache/
+	chown $VERBOSE -R apache:apache /etc/apache/
+	chown $VERBOSE -R apache:apache /var/log/apache/
+	chown $VERBOSE apache:apache /usr/sbin/httpd
+	chmod $VERBOSE u+s /usr/sbin/httpd
+	setcap cap_net_bind_service=ep /usr/sbin/httpd
+	checkReturnCode
+}
+apache1_revert(){
+	message "reverting apache1"
+	chown $VERBOSE -R root:root /var/run/apache/
+	chown $VERBOSE -R root:root /etc/apache/
+	chown $VERBOSE -R root:root /var/log/apache/
+	chown $VERBOSE root:root /usr/sbin/httpd
+	chmod $VERBOSE u-s /usr/sbin/httpd
+	setcap -r /usr/sbin/httpd
+	checkReturnCode
+	sed -i -e "{s|^\(User\).*|\1 nobody|; s|^\(Group\).*|\1 nogroup|}" /etc/apache/httpd.conf
+	userdel apache
+	groupdel apache
+}
+
+
+# apache 2.x
+########
+APPS="$APPS apache2"
+apache2_convert(){
+	message "converting apache2"
+	if [ "$( id -g apache 2>/dev/null )" == "" ]; then
+		groupadd -g 60 apache
+	fi
+	if [ "$( id -u apache 2>/dev/null )" == "" ]; then
+		useradd -g apache -d / -u 600 apache
+	fi
+	sed -i -e "{s|^\(User\).*|\1 apache|; s|^\(Group\) .*|\1 apache|}" /etc/httpd/httpd.conf
+	chown $VERBOSE -R apache:apache /var/run/httpd/
+	chown $VERBOSE -R apache:apache /etc/httpd/
+	chown $VERBOSE -R apache:apache /var/log/httpd/
+	chown $VERBOSE apache:apache /usr/sbin/httpd
+	chmod $VERBOSE u+s /usr/sbin/httpd
+	#setfcaps -c cap_net_bind_service=p -e /usr/sbin/httpd
+	setcap cap_net_bind_service=ep /usr/sbin/httpd
+	checkReturnCode
+}
+apache2_revert(){
+	message "reverting apache2"
+	chown $VERBOSE -R root:root /var/run/httpd/
+	chown $VERBOSE -R root:root /etc/httpd/
+	chown $VERBOSE -R root:root /var/log/httpd/
+	chown $VERBOSE root:root /usr/sbin/httpd
+	chmod $VERBOSE u-s /usr/sbin/httpd
+	setcap -r /usr/sbin/httpd
+	checkReturnCode
+	sed -i -e "{s|^\(User\).*|\1 nobody|; s|^\(Group\).*|\1 nogroup|}" /etc/httpd/httpd.conf
+	userdel apache
+	groupdel apache
+}
+
+
+# samba
+#######
+APPS="$APPS samba"
+samba_convert(){
+	message "converting samba"
+	if [ "$( id -g samba 2>/dev/null )" == "" ]; then
+		groupadd -g 61 samba
+	fi
+	if [ "$( id -u samba 2>/dev/null )" == "" ]; then
+		useradd -g samba -d / -u 610 samba
+	fi
+	chown $VERBOSE -R samba:samba /var/log/samba
+	chown $VERBOSE -R samba:samba /etc/samba
+	chown $VERBOSE -R samba:samba /var/run/samba
+	chown $VERBOSE -R samba:samba /var/cache/samba
+	chown $VERBOSE samba:samba /usr/sbin/smbd /usr/sbin/nmbd
+	chmod $VERBOSE u+s /usr/sbin/smbd /usr/sbin/nmbd
+	setcap cap_net_bind_service,cap_sys_resource,cap_dac_override=ep /usr/sbin/smbd
+	checkReturnCode
+	setcap cap_net_bind_service=ep /usr/sbin/nmbd
+	checkReturnCode
+}
+
+samba_revert(){
+	message "reverting samba"
+	chown $VERBOSE -R root:root /var/log/samba
+	chown $VERBOSE -R root:root /etc/samba
+	chown $VERBOSE -R root:root /var/run/samba
+	chown $VERBOSE -R root:root /var/cache/samba
+	chown $VERBOSE root:root /usr/sbin/smbd /usr/sbin/nmbd
+	chmod $VERBOSE u-s /usr/sbin/smbd /usr/sbin/nmbd
+	setcap -r /usr/sbin/smbd
+	checkReturnCode
+	setcap -r /usr/sbin/nmbd
+	checkReturnCode
+	userdel samba
+	groupdel samba
+}
+
+
+# bind
+######
+APPS="$APPS bind"
+bind_convert(){
+	message "converting bind"
+	if [ "$( id -g bind 2>/dev/null )" == "" ]; then
+		groupadd -g 62 bind
+	fi
+	if [ "$( id -u bind 2>/dev/null )" == "" ]; then
+		useradd -g bind -d / -u 620 bind
+	fi
+	chown $VERBOSE -R bind:bind /var/run/named
+	chown $VERBOSE -R bind:bind /var/named
+	chown $VERBOSE bind:bind /etc/rndc.key
+	chown $VERBOSE bind:bind /usr/sbin/named
+	chmod $VERBOSE u+s /usr/sbin/named
+	setcap cap_net_bind_service=ep /usr/sbin/named
+	checkReturnCode
+}
+bind_revert(){
+	message "reverting bind"
+	chown $VERBOSE -R root:root /var/run/named
+	chown $VERBOSE -R root:root /var/named
+	chown $VERBOSE root:root /etc/rndc.key
+	chown $VERBOSE root:root /usr/sbin/named
+	chmod $VERBOSE u-s /usr/sbin/named
+	setcap -r /usr/sbin/named
+	checkReturnCode
+	userdel bind
+	groupdel bind
+}
+
+
+# dhcpd
+#######
+APPS="$APPS dhcpd"
+dhcpd_convert(){
+	message "converting dhcpd"
+	if [ "$( id -g dhcpd 2>/dev/null )" == "" ]; then
+		groupadd -g 63 dhcpd
+	fi
+	if [ "$( id -u dhcpd 2>/dev/null )" == "" ]; then
+		useradd -g dhcpd -d / -u 630 dhcpd
+	fi
+	chown $VERBOSE dhcpd:dhcpd /var/run/dhcpd
+	chown $VERBOSE dhcpd:dhcpd /etc/dhcpd.conf
+	chown $VERBOSE -R dhcpd:dhcpd /var/state/dhcp/
+	chown $VERBOSE dhcpd:dhcpd /usr/sbin/dhcpd
+	chmod $VERBOSE u+s /usr/sbin/dhcpd
+	setcap cap_net_bind_service,cap_net_raw=ep /usr/sbin/dhcpd
+	checkReturnCode
+}
+dhcpd_revert(){
+	message "reverting dhcpd"
+	chown $VERBOSE root:root /var/run/dhcpd
+	chown $VERBOSE root:root /etc/dhcpd.conf
+	chown $VERBOSE -R root:root /var/state/dhcp/
+	chown $VERBOSE root:root /usr/sbin/dhcpd
+	chmod $VERBOSE u-s /usr/sbin/dhcpd
+	setcap -r /usr/sbin/dhcpd
+	checkReturnCode
+	userdel dhcpd
+	groupdel dhcpd
+}
+
+
+# cupsd
+#######
+APPS="$APPS cupsd"
+cupsd_convert(){
+	message "converting cupsd"
+	if [ "$( id -g cupsd 2>/dev/null )" == "" ]; then
+		groupadd -g 64 cupsd
+	fi
+	if [ "$( id -u cupsd 2>/dev/null )" == "" ]; then
+		useradd -g cupsd -d / -u 640 cupsd
+	fi
+	sed -i -e "{s|^\(User\).*|\1 cupsd|; s|^\(Group\) .*|\1 cupsd|}" /etc/cups/cupsd.conf
+	chown $VERBOSE -R cupsd:cupsd /etc/cups
+	chown $VERBOSE -R cupsd:cupsd /var/cache/cups
+	chown $VERBOSE -R cupsd:cupsd /var/log/cups
+	chown $VERBOSE -R cupsd:cupsd /var/spool/cups
+	chown $VERBOSE -R cupsd:cupsd /var/run/cups
+	chown $VERBOSE cupsd:cupsd /usr/sbin/cupsd
+	chmod $VERBOSE u+s /usr/sbin/cupsd
+	setcap cap_net_bind_service,cap_dac_read_search=ep /usr/sbin/cupsd
+	checkReturnCode
+}
+cupsd_revert(){
+	message "reverting cupsd"
+	chown $VERBOSE -R root:root /etc/cups
+	chown $VERBOSE -R root:lp /var/cache/cups
+	chown $VERBOSE -R root:root /var/log/cups
+	chown $VERBOSE -R root:root /var/spool/cups
+	chown $VERBOSE root:lp /var/run/cups
+	chown $VERBOSE lp:sys /var/run/cups/certs
+	chmod $VERBOSE 750 /var/run/cups/certs
+	chown $VERBOSE root:root /usr/sbin/cupsd
+	chmod $VERBOSE u-s /usr/sbin/cupsd
+	setcap -r /usr/sbin/cupsd
+	checkReturnCode
+	sed -i -e "{s|^\(User\).*|\1 lp|; s|^\(Group\) .*|\1 sys|}" /etc/cups/cupsd.conf
+	userdel cupsd
+	groupdel cupsd
+}
+
+
+usage_message(){
+	echo "Try 'pcaps4server help' for more information"
+}
+
+
+p4r_usage(){
+    echo
+    echo "pcaps4server"
+    echo
+    echo "pcaps4server stores the needed POSIX Capabilities for server binaries to"
+    echo "run successful into their Permitted and Effective Set."
+    echo "The server are now able to run as an unpriviledged user."
+	echo "For each server software an unpriviledged user is added the system."
+    echo "The ownership of all the respective paths are	changed to this user."
+	echo "To ensure that the server is starting as this unpriviledgesd user, the"
+    echo "suid bit (NOT 0) is set."
+	echo "Effectively this means every user can start this server daemons (for now)."
+	echo "All paths are hard coded!"
+	echo "You have been warned. Enjoy!"
+    echo
+    echo "Your Filesystem has to support extended attributes and your kernel must have"
+    echo "support for POSIX File Capabilities (CONFIG_SECURITY_FILE_CAPABILITIES)."
+    echo
+    echo "Usage:  pcaps4server [PROG] [con(vert)|rev(ert)|help]"
+    echo
+    echo "         con|convert - from setuid0 to POSIX Capabilities"
+    echo "         rev|revert  - from POSIX Capabilities back to setui0"
+    echo "         help        - this help message"
+	echo
+	echo "  PROG: $APPS"
+    echo
+}
+
+
+
+
+case "$1" in
+	con|convert)
+		p4r_test
+		for j in $APPS; do
+			${j}_convert
+		done
+		exit
+		;;
+	rev|renvert)
+		p4r_test
+		for j in $APPS; do
+			${j}_revert
+		done
+		exit
+		;;
+	help)
+		p4r_usage
+		exit
+		;;
+esac
+
+for i in ${APPS}; do
+	if [ "$1" == "$i" ]; then
+		case "$2" in
+			con|convert)
+				p4r_test
+				${i}_convert
+				exit
+				;;
+			rev|revert)
+				p4r_test
+				${i}_revert
+				exit
+				;;
+			*)
+				usage_message
+				exit 1
+				;;
+			esac
+	fi
+done
+
+usage_message

@@ -1,0 +1,117 @@
+.\"
+.\" $Id: _setfilecap.2,v 1.1.1.1 1999/04/17 22:16:31 morgan Exp $
+.\" written by Andrew Main <zefram@dcs.warwick.ac.uk>
+.\"
+.TH _SETFILECAP 2 "26th April 1997" "Linux 2.1" "Linux Programmer's Manual"
+.SH NAME
+_setfilecap, _getfilecap, _fsetfilecap, _fgetfilecap \- set/get file capabilities
+.SH SYNOPSIS
+.B #include <sys/capability.h>
+.sp
+.BI "int _setfilecap(char const *" filename ", size_t " usize ", __cap_s const *" iset ", __cap_s const *" pset ", __cap_s const *" eset );
+.sp
+.BI "int _getproccap(char const *" filename ", size_t " usize ", __cap_s *" iset ", __cap_s *" pset ", __cap_s *" eset );
+.sp
+.BI "int _fsetfilecap(int " fd ", size_t " usize ", __cap_s const *" iset ", __cap_s const *" pset ", __cap_s const *" eset );
+.sp
+.BI "int _fgetproccap(int " fd ", size_t " usize ", __cap_s *" iset ", __cap_s *" pset ", __cap_s *" eset );
+.SH USAGE
+.br
+.B cc ... -lcap
+.SH DESCRIPTION
+.B _setfilecap
+sets the specified
+.IR filename 's
+Inheritable, Permitted and Effective capabilities to the sets specified.
+A NULL pointer specifies that a set should not be changed.
+.PP
+.B _fsetfilecap
+does the same thing to the file referenced by file descriptor
+.IR fd .
+.PP
+.B _getfilecap
+and
+.B _fgetfilecap
+copy the file's capability sets into the sets provided.
+A NULL pointer specifies that a set should not be returned.
+.PP
+The
+.I usize
+argument specifies the size of the user-space capability sets, in bytes.
+If the kernel uses a different size internally, it will truncate or
+zero-fill as required.
+.PP
+Files don't actually have a proper Effective capability set.  Instead they
+have a single-bit flag, that indicates that the set is either full or
+empty.  When setting a file's capabilities, that flag will be set if
+and only if the Effective set specified has at least one bit set.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, -1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.SB EFAULT
+One of the capability arguments or the filename was an invalid data pointer.
+.TP
+.SB EPERM
+An attempt was made to set non-empty capabilities on a file,
+and the caller does not have the
+.SB CAP_FSETCAP
+capability raised.
+.TP
+.SB EPERM
+An attempt was made to set capabilities on a file, and
+the effective UID does not match the owner of the file, and the caller
+does not have the
+.SB CAP_FOWNER
+capability raised.
+.TP
+.SB EINVAL
+An attempt was made to set non-empty capabilities on a file
+residing on a file system that does not support them.
+.TP
+.SB EROFS
+An attempt was made to set capabilities on a file residing
+on a read-only file system.
+.TP
+.SB ENAMETOOLONG
+.I filename
+is too long.
+.TP
+.SB ENOENT
+The file specified does not exist.
+.TP
+.SB ENOMEM
+Insufficient kernel memory was available.
+.TP
+.SB ENOTDIR
+A component of the path prefix is not a directory.
+.TP
+.SB EACCES
+Search permission is denied on a component of the path prefix.
+.TP
+.SB ELOOP
+.I filename
+contains a circular reference (via symlinks).
+.TP
+.SB EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.SB EIO
+A hard error occurred while reading or writing the file system.
+.TP
+.SB ENOSYS
+The POSIX.1e capability system was not configured into the kernel.
+.SH "CONFORMING TO"
+These system calls are specific to Linux.
+The portable interfaces are
+.IR cap_set_file (3),
+.IR cap_get_file (3),
+.IR cap_set_fd (3),
+and
+.IR cap_get_fd (3).
+.SH "SEE ALSO"
+.IR _setproccap (2).
+

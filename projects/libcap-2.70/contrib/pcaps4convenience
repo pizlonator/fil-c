@@ -1,0 +1,209 @@
+#!/bin/bash
+# vim:expandtab:tabstop=4
+#
+# author:    chris friedhoff - chris@friedhoff.org
+# version:   pcaps4convenience  2  Tue Mar 11 2008
+#
+#
+# changelog:
+# 1 - initial release pcaps4convenience
+# 2 - changed 'attr -S -r' to 'setcap -r' and removed attr code
+#
+#
+# the user has the necessary POSIX Capabilities in his Inheritance
+# set and the applications are accepting the needed PCaps through
+# their Inheritance set.
+# a user who has not the PCaps in his Inheritance set CAN NOT
+# successfully execute the apps
+# --> SET=ie
+# (if SET=pe than you relax the security level of your machine)
+#
+#
+#
+
+
+##HERE WE ADD APPS
+##################
+
+## these apps uses their POSIX Caps
+###################################
+# see /usr/include/linux/capability.h
+# adjust - if needed and wanted - /etc/security/capability.conf
+#eject=cap_dac_read_search,cap_sys_rawio
+eject=2,17
+#killall=cap_kill
+killall=5
+#modprobe=cap_sys_module
+modprobe=16
+#ntpdate=cap_net_bind_service,cap_sys_time
+ntpdate=10,25
+#qemu=cap_net_admin
+qemu=12
+#route=cap_net_admin
+route=12
+
+
+# this apps were converted/reverted
+###################################
+APPSARRAY=( eject killall modprobe ntpdate qemu route )
+
+
+# we put it into this set
+#########################
+SET=ie
+
+
+##FROM HERE ONLY LOGIC
+######################
+
+#save assumption!?
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin/:usr/local/sbin:/usr/local/bin
+
+p4c_test(){
+    # are we sane?
+    WICH=`which which 2>/dev/null`
+    if [ $WICH == "" ]; then
+        # that's bad
+        echo "Sorry, I haven't found which"
+        exit
+    fi
+
+    # we need this app
+    SETCAP=`which setcap 2>/dev/null`
+    if [ "$SETCAP" == "" ]; then
+        echo "Sorry, I'm missing setcap!"
+        exit
+    fi
+
+    # checking setcap for SET_SETFCAP PCap?
+    # for now we stick to root
+    if [ "$( id -u )" != "0" ]; then
+        echo "Sorry, you must be root!"
+        exit 1
+    fi
+}
+
+
+
+p4c_app_convert(){
+    # convert a single app
+    # $1 is app name; $2 is POSIX Caps
+    # well symlinks to apps, so we use -a ...
+    APP=`which -a $1 2>/dev/null`
+    if [ "$APP" != "" ]; then
+        FOUND=no
+        for i in $APP; do
+            # ... and are looking for symlinks
+            if [ -f "$i" -a ! -L $i -a "$FOUND"=="no" ]; then
+                echo "converting $i"
+                setcap $2=$SET $i
+                FOUND=yes
+            fi
+        done
+        if [ "$FOUND" == "no" ]; then
+            # 'which' found only symlinks
+            echo "1 haven't found $1"
+        fi
+    else
+        # 'which' hasn't anything given back
+        echo "haven't found $1"
+    fi
+}
+
+
+
+p4c_app_revert(){
+    # revert a single app
+    # $1 is app name
+    APP=`which -a $1 2>/dev/null`
+    if [ "$APP" != "" ]; then
+        FOUND=no
+        for i in $APP; do
+            if [ -f "$i" -a ! -L $i -a "$FOUND"=="no" ]; then
+                echo "reverting $i"
+                setcap -r $i 2>/dev/null
+                FOUND=yes
+            fi
+        done
+        if [ "$FOUND" == "no" ]; then
+            echo "1 haven't found $1"
+        fi
+    else
+        echo "haven't found $1"
+    fi
+}
+
+
+
+p4c_convert(){
+    # we go through the APPSARRAY and call s2p_app_convert to do the job
+    COUNTER=0
+    let UPPER=${#APPSARRAY[*]}-1
+    until [ $COUNTER == $UPPER ]; do
+        p4c_app_convert ${APPSARRAY[$COUNTER]} ${!APPSARRAY[$COUNTER]}
+        let COUNTER+=1
+    done
+}
+
+
+
+p4c_revert(){
+    COUNTER=0
+    let UPPER=${#APPSARRAY[*]}-1
+    until [ $COUNTER == $UPPER ]; do
+        p4c_app_revert ${APPSARRAY[$COUNTER]}
+        let COUNTER+=1
+    done
+
+}
+
+
+
+p4c_usage(){
+    echo
+    echo "pcaps4convenience"
+    echo
+    echo "pcaps4convenience stores the needed POSIX Capabilities for binaries to"
+    echo "run successful into their Inheritance and Effective Set."
+    echo "The user who wants to execute this binaries successful has to have the"
+    echo "necessary POSIX Capabilities in his Inheritable Set. This might be done"
+    echo "through the PAM module pam_cap.so."
+    echo "A user who has not the needed PCaps in his Inheritance Set CAN NOT execute"
+    echo "these binaries successful."
+    echo "(well, still per sudo or su -c - but that's not the point here)"
+    echo
+    echo "You need and I will check for the utilities which and setcap."
+    echo
+    echo "Your Filesystem has to support extended attributes and your kernel must have"
+    echo "support for POSIX File Capabilities (CONFIG_SECURITY_FILE_CAPABILITIES)."
+    echo
+    echo "Usage:  pcaps4convenience [con(vert)|rev(ert)|help]"
+    echo
+    echo "         con|convert - from setuid0 to POSIX Capabilities"
+    echo "         rev|revert  - from POSIX Capabilities back to setui0"
+    echo "         help        - this help message"
+    echo
+}
+
+
+
+case "$1" in
+    con|convert)
+        p4c_test
+        p4c_convert
+        exit 0
+        ;;
+    rev|revert)
+        p4c_test
+        p4c_revert
+        exit 0
+        ;;
+    help)
+        p4c_usage
+        exit 0
+        ;;
+    *)
+        echo "Try 'pcaps4convenience help' for more information"
+        exit 1
+        ;;
+esac

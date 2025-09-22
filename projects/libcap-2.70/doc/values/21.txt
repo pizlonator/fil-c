@@ -1,0 +1,43 @@
+Allows a process to perform a somewhat arbitrary
+grab-bag of privileged operations. Over time, this
+capability should weaken as specific capabilities are
+created for subsets of CAP_SYS_ADMINs functionality:
+  - configuration of the secure attention key
+  - administration of the random device
+  - examination and configuration of disk quotas
+  - setting the domainname
+  - setting the hostname
+  - calling bdflush()
+  - mount() and umount(), setting up new SMB connection
+  - some autofs root ioctls
+  - nfsservctl
+  - VM86_REQUEST_IRQ
+  - to read/write pci config on alpha
+  - irix_prctl on mips (setstacksize)
+  - flushing all cache on m68k (sys_cacheflush)
+  - removing semaphores
+  - Used instead of CAP_CHOWN to "chown" IPC message
+    queues, semaphores and shared memory
+  - locking/unlocking of shared memory segment
+  - turning swap on/off
+  - forged pids on socket credentials passing
+  - setting readahead and flushing buffers on block
+    devices
+  - setting geometry in floppy driver
+  - turning DMA on/off in xd driver
+  - administration of md devices (mostly the above, but
+    some extra ioctls)
+  - tuning the ide driver
+  - access to the nvram device
+  - administration of apm_bios, serial and bttv (TV)
+    device
+  - manufacturer commands in isdn CAPI support driver
+  - reading non-standardized portions of PCI
+    configuration space
+  - DDI debug ioctl on sbpcd driver
+  - setting up serial ports
+  - sending raw qic-117 commands
+  - enabling/disabling tagged queuing on SCSI
+    controllers and sending arbitrary SCSI commands
+  - setting encryption key on loopback filesystem
+  - setting zone reclaim policy

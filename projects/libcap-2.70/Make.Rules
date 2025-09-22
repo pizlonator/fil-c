@@ -1,0 +1,201 @@
+# Common version number defines for libcap
+LIBTITLE=libcap
+VERSION=2
+MINOR=70
+
+#
+## Optional prefixes:
+#
+
+# common 'packaging' directory
+
+FAKEROOT=$(DESTDIR)
+
+# Autoconf-style prefixes are activated when $(prefix) is defined.
+# Otherwise binaries and libraries are installed in /{lib,sbin}/,
+# header files in /usr/include/ and documentation in /usr/man/man?/.
+# These choices are motivated by the fact that getcap and setcap are
+# administrative operations that could be needed to recover a system.
+
+ifndef lib
+lib=$(shell ldd /usr/bin/ld|grep -E "ld-linux|ld.so"|cut -d/ -f2)
+endif
+
+ifndef sbin
+sbin=sbin
+endif
+
+ifdef sbindir
+sbin=$(sbindir)
+endif
+
+ifdef prefix
+exec_prefix=$(prefix)
+lib_prefix=$(exec_prefix)
+inc_prefix=$(lib_prefix)
+man_prefix=$(prefix)/share
+else
+prefix=/usr
+exec_prefix=
+lib_prefix=$(exec_prefix)
+inc_prefix=$(prefix)
+man_prefix=$(prefix)/share
+endif
+
+# Target directories
+
+MANDIR=$(man_prefix)/man
+SBINDIR=$(exec_prefix)/$(sbin)
+INCDIR=$(inc_prefix)/include
+LIBDIR=$(lib_prefix)/$(lib)
+PKGCONFIGDIR=$(LIBDIR)/pkgconfig
+GOPKGDIR=$(prefix)/share/gocode/src
+
+# From here on out, the Go module packages should always remain
+# backwardly compatible. I will only resort to using major version 2
+# etc if Go's syntax dramatically changes in a backwards incompatible
+# manner. (Let's hope not. If that happens, I'll also drop deprecated
+# API functions.)
+GOMAJOR=1
+
+# Compilation specifics
+
+KERNEL_HEADERS := $(topdir)/libcap/include/uapi
+LIBCAP_INCLUDES = -I$(KERNEL_HEADERS) -I$(topdir)/libcap/include
+DEFINES := -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+SYSTEM_HEADERS = /usr/include
+
+SUDO := sudo
+CC := $(CROSS_COMPILE)gcc
+LD := $(CC) -Wl,-x -shared
+AR := $(CROSS_COMPILE)ar
+RANLIB := $(CROSS_COMPILE)ranlib
+OBJCOPY := $(CROSS_COMPILE)objcopy
+
+# Reference:
+#   CPPFLAGS used for building .o files from .c & .h files
+#   CFLAGS used when building libraries from .o, .c and .h files
+
+DEBUG = # -g -DDEBUG
+WARNINGS=-Wall -Wwrite-strings -Wpointer-arith -Wcast-qual -Wcast-align \
+	-Wstrict-prototypes -Wmissing-prototypes -Wnested-externs       \
+	-Winline -Wshadow -Wunreachable-code
+COPTS ?= -O2
+CFLAGS ?= $(COPTS) $(DEBUG)
+CFLAGS += $(WARNINGS)
+CPPFLAGS += -Dlinux $(DEFINES) $(LIBCAP_INCLUDES)
+LDFLAGS ?= # -g
+
+BUILD_CC ?= $(CC)
+BUILD_LD ?= $(BUILD_CC) -Wl,-x -shared
+BUILD_COPTS ?= $(COPTS)
+BUILD_CFLAGS ?= $(BUILD_COPTS)
+BUILD_CPPFLAGS += -Dlinux $(WARNINGS) $(DEBUG) $(DEFINES) $(LIBCAP_INCLUDES)
+BUILD_LDFLAGS ?= $(LDFLAGS)
+BUILD_SED ?= sed
+BUILD_GREP ?= grep
+BUILD_EGREP ?= $(BUILD_GREP) -E
+BUILD_FGREP ?= $(BUILD_GREP) -F
+
+# Plan to eventually redefine BUILD_GPERF to be the actual gperf tool
+# alias as per above. Typical distributions are upto a year behind
+# HEAD so we'll not do that before 2023-01-01.
+ifdef BUILD_GPERF
+$(error BUILD_GPERF is now reserved, please use USE_GPERF=yes or no instead)
+endif
+
+USE_GPERF ?= $(shell which gperf >/dev/null 2>/dev/null && echo yes)
+
+LIBCAPLIB := -L$(topdir)/libcap -lcap
+PSXLINKFLAGS :=  -lpthread -Wl,-wrap,pthread_create
+LIBPSXLIB := -L$(topdir)/libcap -lpsx $(PSXLINKFLAGS)
+
+INCS=$(topdir)/libcap/include/sys/capability.h
+INDENT := $(shell if [ -n "$$(which indent 2>/dev/null)" ]; then echo "| indent -kr" ; fi)
+
+# SHARED tracks whether or not the SHARED libraries (libcap.so,
+# libpsx.so and pam_cap.so) are built. (Some environments don't
+# support shared libraries.)
+SHARED ?= yes
+# DYNAMIC controls how capsh etc are linked - to shared or static libraries
+# Force enabled with "make DYNAMIC=yes ...".
+DYNAMIC := $(shell if [ ! -d "$(topdir)/.git" ]; then echo $(SHARED); else echo no ; fi)
+
+PAM_CAP ?= $(shell if [ -f /usr/include/security/pam_modules.h ]; then echo $(SHARED) ; else echo no ; fi)
+
+# If your system does not support pthreads, override this as "no".
+#
+#    make PTHREADS=no ...
+#
+# This implies no Go support and no C/C++ libpsx build. Why might you
+# need libpsx for non-Go use? Tl;dr for POSIX semantics security:
+#
+#    https://sites.google.com/site/fullycapable/who-ordered-libpsx
+#
+PTHREADS ?= yes
+
+ifeq ($(PTHREADS),yes)
+GO ?= go
+GOLANG ?= $(shell if [ -n "$(shell $(GO) version 2>/dev/null)" ]; then echo yes ; else echo no ; fi)
+ifeq ($(GOLANG),yes)
+GOROOT ?= $(shell $(GO) env GOROOT)
+GOCGO ?= $(shell if [ "$(shell $(GO) env CGO_ENABLED)" = 1 ]; then echo yes ; else echo no ; fi)
+GOOSARCH ?= $(shell $(GO) env GOHOSTOS)_$(shell $(GO) env GOHOSTARCH)
+CGO_REQUIRED := $(shell $(topdir)/go/cgo-required.sh $(GO))
+ifeq ($(CGO_REQUIRED),1)
+# Strictly speaking go1.15 doesn't need this, but 1.16 is when the
+# real golang support arrives for non-cgo support, so drop the last
+# vestige of legacy workarounds then.
+CGO_LDFLAGS_ALLOW := CGO_LDFLAGS_ALLOW="-Wl,-?-wrap[=,][^-.@][^,]*"
+endif
+CGO_CFLAGS := $(LIBCAP_INCLUDES)
+CGO_LDFLAGS := -L$(topdir)/libcap
+GO_BUILD_FLAGS :=
+endif
+endif
+
+# If you want capsh to launch with something other than /bin/bash
+# build like this:
+#
+#   make CAPSH_SHELL='-DSHELL=\"/bin/sh\"'
+#
+# or undefine the following:
+#CAPSH_SHELL := '-DSHELL="/bin/sh"'
+
+# When installing setcap, you can arrange for the installation process
+# to set its inheritable bit to be able to place capabilities on files.
+# It can be used in conjunction with pam_cap (associated with su and
+# certain users say) to make it useful for specially blessed users.
+#
+#    make RAISE_SETFCAP=yes install
+#
+# This is now defaulted to no because some distributions started
+# shipping with all users blessed with full inheritable sets which
+# makes no sense whatsoever!
+#
+# Indeed, it looked alarmingly like these distributions were recreating
+# the environment for what became known as the sendmail-capabilities
+# bug from 2000:
+#
+#  https://sites.google.com/site/fullycapable/Home/thesendmailcapabilitiesissue
+#
+# they are also nullifying the difference between a p-bit and an i-bit.
+#
+# Folk really should read this document, which explains there is a really
+# important difference being lost here:
+#
+#  https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/33528.pdf
+#
+# In the context of this tree, on such such systems, a yes setting will
+# guarantee that every user, by default, is able to bless any binary with
+# any capability - a ready made local exploit mechanism.
+RAISE_SETFCAP := no
+
+# If set to yes, this will cause the go "web" demo app to force the needed p
+# bit to be able to bind to port 80 without running as root.
+RAISE_GO_FILECAP := no
+
+# Global cleanup stuff
+
+LOCALCLEAN=rm -f *~ core
+DISTCLEAN=@find . \( -name '*.orig' -o -name '*.rej' \) | xargs rm -f

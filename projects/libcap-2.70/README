@@ -1,0 +1,57 @@
+This is a library for getting and setting POSIX.1e (formerly POSIX 6)
+draft 15 capabilities.
+
+Natively supported languages are C/C++ and Go.
+
+This library would not have been possible without the help of 
+
+    Aleph1, Roland Buresund and Andrew Main, Alexander Kjeldaas.
+
+More information on capabilities in the Linux kernel, links to the
+official git repository for libcap, release notes and how to report
+bugs can be found at:
+
+    http://sites.google.com/site/fullycapable/
+
+The primary upstream git repository is this one:
+
+    https://git.kernel.org/pub/scm/libs/libcap/libcap.git/
+
+# BUILDING AND INSTALLATION
+
+    $ make
+
+       builds the library and the programs that are expected to work
+       on your system. For example, if you have Linux-PAM installed,
+       pam_cap is built. A golang installation is required to build
+       the Go packages.
+
+    $ make test
+
+       runs all of the tests not requiring privilege
+
+    $ make sudotest
+
+       runs all of the tests including those that require privilege.
+
+    $ sudo make install
+
+       default installs the library libcap.XX.Y in /lib[64]/
+       the binaries in /sbin/
+       the header files in /usr/include
+       the {libcap,libpsx}.pc files in /usr/lib[64]/pkgconfig
+       the Go packages (if built) under /usr/share/gocode/src
+
+For some example C programs look in the progs/ directory.
+Specifically, capsh, getpcaps, setcap and getcap. There are some C
+tests in the tests/ directory.
+
+Go example programs are to be found in the goapps/ directory. There
+are also some more complicated integration tests in the go/ directory.
+
+There are also some oddball experimental things in the contrib/
+directory, but they are mostly curiosities.
+
+Cheers
+
+Andrew G. Morgan <morgan@kernel.org>

@@ -1,0 +1,74 @@
+.\" generated with Ronn-NG/v0.9.1
+.\" http://github.com/apjanke/ronn-ng/tree/0.9.1
+.TH "PAM_CAP" "8" "April 2024" ""
+.SH "NAME"
+\fBpam_cap\fR \- Capabilities PAM module
+.SH "SYNOPSIS"
+[service\-name] \fBauth\fR control\-flag \fBpam_cap\fR [options]
+.SH "DESCRIPTION"
+The \fBpam_so\fR module can be used to specify \fIInheritable\fR
+capabilities to process trees rooted in the PAM application\. The
+module also supports blocking \fIBounding\fR vector capabilities and
+adding \fIAmbient\fR vector capabilities\.
+.P
+For general PAM apps to work correctly, the application must be run
+with at least \fBCAP_SETPCAP\fR raised in its \fIPermitted\fR
+capability flag\. Many PAM applications run as \fIroot\fR, which has
+all of the bits in the \fIBounding\fR set raised, so this requirement
+is typically met\. To grant an \fIAmbient\fR vector capability, the
+corresponding Permitted bit must be available to the application too\.
+.P
+The \fBpam_so\fR module is a Linux\-PAM \fIauth\fR module\. It
+provides functionality to back \fBpam_sm_authenticate()\fR and
+\fBpam_sm_setcred()\fR\. It is the latter that actually modifies the
+inheritable 3\-tuple of capability vectors: the configured
+\fIIAB\fR\. In a typical application configuration you might have a
+line like this:
+.IP "" 4
+.nf
+auth    optional    pam_cap\.so
+.fi
+.IP "" 0
+.P
+The module arguments are:
+.IP "\[ci]" 4
+\fBdebug\fR: While supported, this is a no\-op at present\.
+.IP "\[ci]" 4
+\fBconfig=\fR\fI/path/to/file\fR: Override the default config for the
+module\. The unspecified default value for this file is
+\fB/etc/security/capability\.conf\fR\. Note, \fBconfig=/dev/null\fR is
+a valid value\. See \fBdefault=\fR below for situations in which this
+might be appropriate\.
+.IP "\[ci]" 4
+\fBkeepcaps\fR: This is as much as the \fBpam_cap\.so\fR module can do
+to help an application support use of the \fIAmbient\fR capability
+vector\. The application support for the \fIAmbient\fR set is poor at
+the present time\.
+.IP "\[ci]" 4
+\fBautoauth\fR: This argument causes the \fBpam_cap\.so\fR module to
+return \fBPAM_SUCCESS\fR if the \fBPAM_USER\fR being authenticated
+exists\. The absence of this argument will cause \fBpam_cap\.so\fR to
+only return \fBPAM_SUCCESS\fR if the \fBPAM_USER\fR is covered by a
+specific rule in the prevailing config file\.
+.IP "\[ci]" 4
+\fBdefault=\fR\fIIAB\fR: This argument is ignored if the prevailing
+configuration file contains a "\fB*\fR" rule\. If there is no such
+rule, the \fIIAB\fR 3\-tuple is inserted at the end of the config file
+and applies to all \fBPAM_USER\fRs not covered by an earlier
+rule\. Note, if you want all \fBPAM_USER\fRs to be covered by this
+default rule, you can supply the module argument
+\fBconfig=/dev/null\fR\.
+.IP "\[ci]" 4
+\fBdefer\fR: This argument arranges for the \fIIAB\fR capabilities
+granted to a user to be added sufficiently late in the Linux\-PAM
+authentication stack that they stick\. That is, \fIafter\fR the
+application does its \fBsetuid(UID)\fR call\. As such, in conjunction
+with the \fBkeepcaps\fR module argument, such compliant applications
+can support granting \fIAmbient\fR vector capabilities with
+\fBpam_cap\.so\fR\.
+
+.IP "" 0
+.SH "SEE ALSO"
+.BR pam.conf (5),
+.BR capability.conf (5),
+.BR pam (8).

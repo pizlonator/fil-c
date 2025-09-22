@@ -1,0 +1,33 @@
+Allows a process to manipulate aspects of the kernel
+enhanced Berkeley Packet Filter (BPF) system. This is
+an execution subsystem of the kernel, that manages BPF
+programs. CAP_BPF permits a process to:
+  - create all types of BPF maps
+  - advanced verifier features:
+    - indirect variable access
+    - bounded loops
+    - BPF to BPF function calls
+    - scalar precision tracking
+    - larger complexity limits
+    - dead code elimination
+    - potentially other features
+
+Other capabilities can be used together with CAP_BFP to
+further manipulate the BPF system:
+  - CAP_PERFMON relaxes the verifier checks as follows:
+    - BPF programs can use pointer-to-integer
+      conversions
+    - speculation attack hardening measures can be
+      bypassed
+    - bpf_probe_read to read arbitrary kernel memory is
+      permitted
+    - bpf_trace_printk to print the content of kernel
+      memory
+  - CAP_SYS_ADMIN permits the following:
+    - use of bpf_probe_write_user
+    - iteration over the system-wide loaded programs,
+      maps, links BTFs and convert their IDs to file
+      descriptors.
+  - CAP_PERFMON is required to load tracing programs.
+  - CAP_NET_ADMIN is required to load networking
+    programs.

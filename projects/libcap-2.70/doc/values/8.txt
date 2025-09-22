@@ -1,0 +1,24 @@
+Allows a process to freely manipulate its inheritable
+capabilities.
+
+Linux supports the POSIX.1e Inheritable set, the POXIX.1e (X
+vector) known in Linux as the Bounding vector, as well as
+the Linux extension Ambient vector.
+
+This capability permits dropping bits from the Bounding
+vector (ie. raising B bits in the libcap IAB
+representation). It also permits the process to raise
+Ambient vector bits that are both raised in the Permitted
+and Inheritable sets of the process. This capability cannot
+be used to raise Permitted bits, Effective bits beyond those
+already present in the process' permitted set, or
+Inheritable bits beyond those present in the Bounding
+vector.
+
+[Historical note: prior to the advent of file capabilities
+(2008), this capability was suppressed by default, as its
+unsuppressed behavior was not auditable: it could
+asynchronously grant its own Permitted capabilities to and
+remove capabilities from other processes arbitrarily. The
+former leads to undefined behavior, and the latter is better
+served by the kill system call.]
