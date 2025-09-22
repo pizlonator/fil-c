@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 OR MIT
 /**************************************************************************
  *
- * Copyright (c) 2009-2024 Broadcom. All Rights Reserved. The term
- * “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.
+ * Copyright 2009-2023 VMware, Inc., Palo Alto, CA., USA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -59,7 +58,6 @@ void vmw_resource_mob_attach(struct vmw_resource *res)
 
 	rb_link_node(&res->mob_node, parent, new);
 	rb_insert_color(&res->mob_node, &gbo->res_tree);
-	vmw_bo_del_detached_resource(gbo, res);
 
 	vmw_bo_prio_add(gbo, res->used_prio);
 }
@@ -289,35 +287,28 @@ out_bad_resource:
  *
  * The pointer this pointed at by out_surf and out_buf needs to be null.
  */
-int vmw_user_object_lookup(struct vmw_private *dev_priv,
+int vmw_user_lookup_handle(struct vmw_private *dev_priv,
 			   struct drm_file *filp,
-			   u32 handle,
-			   struct vmw_user_object *uo)
+			   uint32_t handle,
+			   struct vmw_surface **out_surf,
+			   struct vmw_bo **out_buf)
 {
 	struct ttm_object_file *tfile = vmw_fpriv(filp)->tfile;
 	struct vmw_resource *res;
 	int ret;
 
-	WARN_ON(uo->surface || uo->buffer);
+	BUG_ON(*out_surf || *out_buf);
 
 	ret = vmw_user_resource_lookup_handle(dev_priv, tfile, handle,
 					      user_surface_converter,
 					      &res);
 	if (!ret) {
-		uo->surface = vmw_res_to_srf(res);
+		*out_surf = vmw_res_to_srf(res);
 		return 0;
 	}
 
-	uo->surface = NULL;
-	ret = vmw_user_bo_lookup(filp, handle, &uo->buffer);
-	if (!ret && !uo->buffer->is_dumb) {
-		uo->surface = vmw_lookup_surface_for_buffer(dev_priv,
-							    uo->buffer,
-							    handle);
-		if (uo->surface)
-			vmw_user_bo_unref(&uo->buffer);
-	}
-
+	*out_surf = NULL;
+	ret = vmw_user_bo_lookup(filp, handle, out_buf);
 	return ret;
 }
 
