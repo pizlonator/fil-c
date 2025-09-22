@@ -247,7 +247,7 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+DEFAULT_INCLUDES =
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/addr2line.Po ./$(DEPDIR)/ar.Po \
@@ -497,7 +497,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 zip_LIBS = @zip_LIBS@
 zstd_LIBS = @zstd_LIBS@
-AM_CPPFLAGS = -I. -I$(srcdir) -I$(top_srcdir)/lib -I.. \
+AM_CPPFLAGS = -iquote . -I$(srcdir) -I$(top_srcdir)/lib -I.. \
 	-I$(srcdir)/../libelf -I$(srcdir)/../libebl \
 	-I$(srcdir)/../libdw -I$(srcdir)/../libdwelf \
 	-I$(srcdir)/../libdwfl -I$(srcdir)/../libasm -I../debuginfod

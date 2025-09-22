@@ -1449,7 +1449,7 @@ print-%:
 libdw.so: $(srcdir)/libdw.map $(libdw_so_LIBS) $(libdw_so_DEPS)
 	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
 		-Wl,--soname,$@.$(VERSION),--enable-new-dtags \
-		-Wl,--version-script,$< \
+		--version-script=$< \
 		$(NO_UNDEFINED) \
 		-Wl,--whole-archive $(libdw_so_LIBS) -Wl,--no-whole-archive \
 		$(libdw_so_LDLIBS)

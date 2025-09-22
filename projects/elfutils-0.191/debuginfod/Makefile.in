@@ -919,7 +919,7 @@ print-%:
 @LIBDEBUGINFOD_TRUE@$(LIBDEBUGINFOD_SONAME): $(srcdir)/libdebuginfod.map $(libdebuginfod_so_LIBS)
 @LIBDEBUGINFOD_TRUE@	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
 @LIBDEBUGINFOD_TRUE@		-Wl,--soname,$(LIBDEBUGINFOD_SONAME) \
-@LIBDEBUGINFOD_TRUE@		-Wl,--version-script,$< \
+@LIBDEBUGINFOD_TRUE@		--version-script=$< \
 @LIBDEBUGINFOD_TRUE@		$(NO_UNDEFINED) \
 @LIBDEBUGINFOD_TRUE@		-Wl,--whole-archive $(libdebuginfod_so_LIBS) -Wl,--no-whole-archive \
 @LIBDEBUGINFOD_TRUE@		$(libdebuginfod_so_LDLIBS)

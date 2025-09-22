@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <gelf.h>
 
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 /* We might be building a bootstrap dummy library, which is really simple. */
 #ifdef DUMMY_LIBDEBUGINFOD
 

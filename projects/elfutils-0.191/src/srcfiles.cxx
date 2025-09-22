@@ -70,6 +70,8 @@
   #include <fts.h>
 #endif
 
+#pragma clang diagnostic ignored "-Wunused-const-variable"
+
 using namespace std;
 
 /* Name and version of program.  */

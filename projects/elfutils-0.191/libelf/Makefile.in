@@ -1354,7 +1354,7 @@ print-%:
 libelf.so: $(srcdir)/libelf.map $(libelf_so_LIBS) $(libelf_so_DEPS)
 	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
 		-Wl,--soname,$@.$(VERSION) \
-		-Wl,--version-script,$< \
+		--version-script=$< \
 		$(NO_UNDEFINED) \
 		-Wl,--whole-archive $(libelf_so_LIBS) -Wl,--no-whole-archive \
 		$(libelf_so_LDLIBS)
