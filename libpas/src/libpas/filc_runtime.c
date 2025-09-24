@@ -1888,7 +1888,7 @@ filc_ptr filc_xchg_ptr_with_manual_tracking(
     filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset, filc_ptr new_value)
 {
     for (;;) {
-        filc_ptr result = filc_load_ptr_with_manual_tracking(ptr, offset);
+        filc_ptr result = filc_load_ptr_atomic_with_manual_tracking(ptr, offset);
         if (filc_weak_cas_ptr(my_thread, ptr, offset, result, new_value))
             return result;
     }
