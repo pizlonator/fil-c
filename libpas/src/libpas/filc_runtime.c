@@ -3477,10 +3477,12 @@ static PAS_NO_RETURN PAS_NEVER_INLINE void object_for_deallocate_fail(filc_ptr p
 
 static PAS_ALWAYS_INLINE filc_object* object_for_deallocate(filc_ptr ptr)
 {
-    if (!filc_ptr_object(ptr) ||
-        filc_object_is_special(filc_ptr_object(ptr)) ||
-        (filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_GLOBAL) ||
-        (filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_MMAP) ||
+    if (!filc_ptr_object(ptr))
+        object_for_deallocate_fail(ptr);
+    filc_object_flags flags = filc_object_get_flags(filc_ptr_object(ptr));
+    if (filc_object_flags_is_special(flags) ||
+        (flags & FILC_OBJECT_FLAG_GLOBAL) ||
+        (flags & FILC_OBJECT_FLAG_MMAP) ||
         filc_ptr_ptr(ptr) != filc_ptr_lower(ptr))
         object_for_deallocate_fail(ptr);
     return filc_ptr_object(ptr);

@@ -544,16 +544,18 @@ static PAS_ALWAYS_INLINE void filc_thread_mark_roots(filc_thread* my_thread,
 }
 
 static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object* object,
+                                                                     uintptr_t aux,
                                                                      const filc_marker marker,
                                                                      filc_mark_stack* stack)
 {
-    PAS_TESTING_ASSERT(filc_object_is_special(object));
-    filc_special_type special_type = filc_object_special_type(object);
+    filc_object_flags flags = filc_aux_get_flags(aux);
+    PAS_TESTING_ASSERT(filc_object_flags_is_special(flags));
+    filc_special_type special_type = filc_object_flags_special_type(flags);
     switch (special_type) {
     case FILC_SPECIAL_TYPE_DL_HANDLE:
         break;
     case FILC_SPECIAL_TYPE_FUNCTION:
-        if ((filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE)) {
+        if ((flags & FILC_OBJECT_FLAG_CLOSURE)) {
             filc_closure_mark_outgoing_ptrs(
                 (filc_closure*)filc_object_special_payload_with_manual_tracking(object),
                 marker, stack);
@@ -686,20 +688,22 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
     if (verbose)
         pas_log("Marking outgoing objects from %p\n", object);
 
-    if (PAS_UNLIKELY(filc_object_get_flags(object) & FILC_OBJECT_FLAG_WEAK_KEY))
+    uintptr_t aux = filc_object_aux(object);
+    filc_object_flags flags = filc_aux_get_flags(aux);
+    if (PAS_UNLIKELY(flags & FILC_OBJECT_FLAG_WEAK_KEY))
         filc_object_mark_weak_map_values_based_on_key(object, marker, stack);
 
-    if (PAS_UNLIKELY(filc_object_is_special(object))) {
-        filc_object_mark_outgoing_special_ptrs(object, marker, stack);
+    if (PAS_UNLIKELY(filc_object_flags_is_special(flags))) {
+        filc_object_mark_outgoing_special_ptrs(object, aux, marker, stack);
         return;
     }
 
     /* It's unusual for an object without an aux ptr to be placed on the mark stack, but we forgive
        cases like this anyway, since it might happen for globals. */
-    char* aux_ptr = filc_object_aux_ptr(object);
+    char* aux_ptr = filc_aux_get_ptr(aux);
     if (PAS_UNLIKELY(!aux_ptr))
         return;
-    if (!(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL_AUX))
+    if (!(flags & FILC_OBJECT_FLAG_GLOBAL_AUX))
         marker.set_is_marked(aux_ptr);
     /* The only way for the aux to already be marked is if it's black, but then that means that all of
        the things it points to are already marked (either black-allocated atomic boxes or things
