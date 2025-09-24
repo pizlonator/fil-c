@@ -1,0 +1,11 @@
+#!/bin/sh
+exec tail -n +3 $0
+# This file provides an easy way to add custom menu entries.  Simply type the
+# menu entries you want to add after this comment.  Be careful not to change
+# the 'exec tail' line above.
+
+menuentry "Pizlix" {
+   set root=(hd0,4)
+   linux /boot/vmlinuz-6.10.5-lfs-12.2 root=/dev/sda4 ro console=ttyS0,115200 console=tty0 net.ifnames=0
+}
+

@@ -1,0 +1,288 @@
+Submitted By:            Xi Ruoyao <xry111@xry111.site>
+Date:                    2024-04-07
+Initial Package Version: 5.45.4
+Upstream Status:         Submitted (for a long time), but the upstream seems
+                         inactive
+Origin:                  Fedora & Self:
+                         - Fedora expect-5.45.4-covscan-fixes.patch
+                         - Fedora expect-c99.patch
+                         - Fedora expect-configure-c99.patch
+                           - We are directly patching configure instead of
+                             patching configure.in like Fedora.  It's
+                             generally not a good idea, but better than
+                             adding autoconf into chapter 7 or bloating this
+                             patch into 100+ KiB (with a full regeneration
+                             of the configure script).
+Description:             Fix some build failure caused by the pre-C99 syntax
+                         no longer allowed by GCC 14 in the default C99
+                         mode.
+
+--- a/configure	2018-02-04 18:43:58.000000000 +0800
++++ b/configure	2024-04-08 01:19:29.253548373 +0800
+@@ -7994,7 +7994,6 @@
+ {
+ extern long timezone;
+ 	    timezone += 1;
+-	    exit (0);
+   ;
+   return 0;
+ }
+@@ -8030,7 +8029,6 @@
+ {
+ extern time_t timezone;
+ 		timezone += 1;
+-		exit (0);
+   ;
+   return 0;
+ }
+@@ -8791,7 +8789,7 @@
+ $as_echo_n "checking for memcpy... " >&6; }
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-
++#include <string.h>
+ int
+ main ()
+ {
+@@ -8831,7 +8829,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <sys/wait.h>
+-main() {
++int main() {
+ #ifndef WNOHANG
+ 	return 0;
+ #else
+@@ -8867,7 +8865,7 @@
+ 
+ #include <stdio.h>
+ #include <sys/wait.h>
+-main() {
++int main() {
+ #ifdef WNOHANG
+ 	FILE *fp = fopen("wnohang","w");
+ 	fprintf(fp,"%d",WNOHANG);
+@@ -8935,7 +8933,9 @@
+ /* end confdefs.h.  */
+ 
+ #include <signal.h>
+-#define RETSIGTYPE $retsigtype
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/wait.h>
+ 
+ int signal_rearms = 0;
+ 
+@@ -8952,7 +8952,7 @@
+ signal_rearms++;
+ }
+ 
+-main()
++int main()
+ {
+ 	signal(SIGINT,parent_sigint_handler);
+ 
+@@ -9234,10 +9234,9 @@
+ /* end confdefs.h.  */
+ 
+ #include <sgtty.h>
+-main()
++int main()
+ {
+   struct sgttyb tmp;
+-  exit(0);
+ }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -9274,10 +9273,9 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <termio.h>
+-  main()
++  int main()
+   {
+     struct termio tmp;
+-    exit(0);
+   }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -9312,10 +9310,9 @@
+ #  include <inttypes.h>
+ #  endif
+ #  include <termios.h>
+-  main()
++  int main()
+   {
+     struct termios tmp;
+-    exit(0);
+   }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -9350,7 +9347,7 @@
+ #include <inttypes.h>
+ #endif
+ #include <termios.h>
+-main() {
++int main() {
+ #if defined(TCGETS) || defined(TCGETA)
+ 	return 0;
+ #else
+@@ -9388,7 +9385,7 @@
+ #include <inttypes.h>
+ #endif
+ #include <termios.h>
+-main() {
++int main() {
+ #ifdef TIOCGWINSZ
+ 	return 0;
+ #else
+@@ -9423,7 +9420,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+-main(){
++int main(){
+ #ifdef CRAY
+ 	return 0;
+ #else
+@@ -9565,12 +9562,10 @@
+ 
+ extern char *tzname[2];
+ extern int daylight;
+-main()
++int main()
+ {
+   int *x = &daylight;
+   char **y = tzname;
+-
+-  exit(0);
+ }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+--- a/exp_chan.c	2018-02-03 03:15:52.000000000 +0800
++++ b/exp_chan.c	2024-04-07 21:56:43.663163369 +0800
+@@ -58,7 +58,7 @@
+ 
+ Tcl_ChannelType expChannelType = {
+     "exp",				/* Type name. */
+-    ExpBlockModeProc,			/* Set blocking/nonblocking mode.*/
++    TCL_CHANNEL_VERSION_2,
+     ExpCloseProc,			/* Close proc. */
+     ExpInputProc,			/* Input proc. */
+     ExpOutputProc,			/* Output proc. */
+@@ -68,6 +68,7 @@
+     ExpWatchProc,			/* Initialize notifier. */
+     ExpGetHandleProc,			/* Get OS handles out of channel. */
+     NULL,				/* Close2 proc */
++    ExpBlockModeProc,			/* Set blocking/nonblocking mode.*/
+ };
+ 
+ typedef struct ThreadSpecificData {
+
+diff -up expect5.45.4/exp_chan.c.orig expect5.45.4/exp_chan.c
+--- expect5.45.4/exp_chan.c.orig	2018-02-02 20:15:52.000000000 +0100
++++ expect5.45.4/exp_chan.c	2018-10-09 14:14:44.851965292 +0200
+@@ -51,6 +51,8 @@ static void		ExpWatchProc _ANSI_ARGS_((C
+ 		            int mask));
+ static int		ExpGetHandleProc _ANSI_ARGS_((ClientData instanceData,
+ 		            int direction, ClientData *handlePtr));
++void			exp_background_channelhandler _ANSI_ARGS_((ClientData,
++		            int));
+ 
+ /*
+  * This structure describes the channel type structure for Expect-based IO:
+diff -up expect5.45.4/exp_clib.c.orig expect5.45.4/exp_clib.c
+--- expect5.45.4/exp_clib.c.orig	2018-10-09 14:14:44.841965281 +0200
++++ expect5.45.4/exp_clib.c	2018-10-09 14:14:44.873965319 +0200
+@@ -37,6 +37,14 @@ would appreciate credit if this program
+ # endif
+ #endif
+ 
++#ifdef HAVE_UNISTD_H
++# include <unistd.h>
++#endif
++
++//#ifdef HAVE_SYS_WAIT_H
++# include <sys/wait.h>
++//#endif
++
+ #ifdef HAVE_SYS_FCNTL_H
+ #  include <sys/fcntl.h>
+ #else
+@@ -2196,6 +2204,7 @@ int exp_getptyslave();
+ #define sysreturn(x)	return(errno = x, -1)
+ 
+ void exp_init_pty();
++void exp_init_tty();
+ 
+ /*
+    The following functions are linked from the Tcl library.  They
+@@ -2715,6 +2724,7 @@ exp_spawnl TCL_VARARGS_DEF(char *,arg1)
+ 		argv[i] = va_arg(args,char *);
+ 		if (!argv[i]) break;
+ 	}
++	va_end(args);
+ 	i = exp_spawnv(argv[0],argv+1);
+ 	free((char *)argv);
+ 	return(i);
+@@ -3188,6 +3198,7 @@ exp_expectl TCL_VARARGS_DEF(int,arg1)
+ 		/* Ultrix 4.2 compiler refuses enumerations comparison!? */
+ 		if ((int)type < 0 || (int)type >= (int)exp_bogus) {
+ 			fprintf(stderr,"bad type (set %d) in exp_expectl\n",i);
++			va_end(args);
+ 			sysreturn(EINVAL);
+ 		}
+ 
+@@ -3253,6 +3264,7 @@ exp_fexpectl TCL_VARARGS_DEF(FILE *,arg1
+ 		/* Ultrix 4.2 compiler refuses enumerations comparison!? */
+ 		if ((int)type < 0 || (int)type >= (int)exp_bogus) {
+ 			fprintf(stderr,"bad type (set %d) in exp_expectl\n",i);
++			va_end(args);
+ 			sysreturn(EINVAL);
+ 		}
+ 
+diff -up expect5.45.4/exp_log.c.orig expect5.45.4/exp_log.c
+--- expect5.45.4/exp_log.c.orig	2018-10-09 14:14:44.838965277 +0200
++++ expect5.45.4/exp_log.c	2018-10-09 14:14:44.852965294 +0200
+@@ -174,7 +174,10 @@ expStdoutLog TCL_VARARGS_DEF(int,arg1)
+     force_stdout = TCL_VARARGS_START(int,arg1,args);
+     fmt = va_arg(args,char *);
+ 
+-    if ((!tsdPtr->logUser) && (!force_stdout) && (!tsdPtr->logAll)) return;
++    if ((!tsdPtr->logUser) && (!force_stdout) && (!tsdPtr->logAll)) {
++	va_end(args);
++	return;
++    }
+ 
+     (void) vsnprintf(bigbuf,sizeof(bigbuf),fmt,args);
+     expDiagWriteBytes(bigbuf,-1);
+diff -up expect5.45.4/exp_main_sub.c.orig expect5.45.4/exp_main_sub.c
+--- expect5.45.4/exp_main_sub.c.orig	2018-10-09 14:14:44.848965289 +0200
++++ expect5.45.4/exp_main_sub.c	2018-10-09 14:14:44.852965294 +0200
+@@ -57,6 +57,7 @@ int exp_cmdlinecmds = FALSE;
+ int exp_interactive =  FALSE;
+ int exp_buffer_command_input = FALSE;/* read in entire cmdfile at once */
+ int exp_fgets();
++int exp_tty_cooked_echo(Tcl_Interp *interp, exp_tty *tty_old, int *was_raw, int *was_echo);
+ 
+ Tcl_Interp *exp_interp;	/* for use by signal handlers who can't figure out */
+ 			/* the interpreter directly */
+diff -up expect5.45.4/pty_termios.c.orig expect5.45.4/pty_termios.c
+--- expect5.45.4/pty_termios.c.orig	2018-10-09 14:17:00.132127498 +0200
++++ expect5.45.4/pty_termios.c	2018-10-09 14:33:59.393315570 +0200
+@@ -105,6 +105,7 @@ with openpty which supports 4000 while p
+ 
+ void expDiagLog();
+ void expDiagLogPtr();
++char *expErrnoMsg(int errorNo);
+ 
+ #include <errno.h>
+ /*extern char *sys_errlist[];*/
+@@ -189,6 +190,7 @@ static char slave_name[MAXPTYNAMELEN];
+ #endif /* HAVE_SCO_CLIST_PTYS */
+ 
+ #ifdef HAVE_OPENPTY
++#include <pty.h>
+ static char master_name[64];
+ static char slave_name[64];
+ #endif

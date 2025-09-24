@@ -1,0 +1,57 @@
+#!/bin/sh
+########################################################################
+# Begin seatd
+#
+# Description : Seat management daemon
+#
+# Authors     : LFS
+#
+# Version     : LFS x.x
+#
+# Notes       : Runs seatd with seatd group
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            seatd
+# Required-Start:      $local_fs
+# Should-Start:
+# Required-Stop:       $local_fs
+# Should-Stop:
+# Default-Start:       2 3 4 5
+# Default-Stop:        0 1 6
+# Short-Description:   Seat management daemon
+# Description:         Provides seat management for Wayland compositors
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Starting seatd..."
+      start_daemon /bin/daemon --name seatd -- /bin/seatd -g seatd
+      evaluate_retval
+      ;;
+
+   stop)
+      log_info_msg "Stopping seatd..."
+      killproc /bin/seatd
+      evaluate_retval
+      ;;
+
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop|restart}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End seatd

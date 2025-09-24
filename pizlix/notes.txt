@@ -1,0 +1,1085 @@
+export LFS=/mnt/lfs
+mkdir -v $LFS/sources
+chmod -v a+wt $LFS/sources
+cp ~pizlo/Programs/lfs/*.tar* .
+cp ~pizlo/Programs/lfs/*.patch .
+mkdir -pv $LFS/{etc,var} $LFS/usr/{bin,lib,sbin}
+for i in bin lib sbin; do
+    ln -sv usr/$i $LFS/$i
+done
+mkdir -pv $LFS/lib64
+mkdir -pv $LFS/tools
+
+# groupadd lfs
+# useradd -s /bin/bash -g lfs -m -k /dev/null lfs
+# passwd lfs
+
+chown -v lfs $LFS/{usr{,/*},lib,var,etc,bin,sbin,tools}
+chown -v lfs $LFS/lib64
+
+cat > ~/.bash_profile << "EOF"
+exec env -i HOME=$HOME TERM=$TERM PS1='\u:\w\$ ' /bin/bash
+EOF
+
+cat > ~/.bashrc << "EOF"
+set +h
+umask 022
+LFS=/mnt/lfs
+LC_ALL=POSIX
+LFS_TGT=$(uname -m)-lfs-linux-gnu
+PATH=/usr/bin
+if [ ! -L /bin ]; then PATH=/bin:$PATH; fi
+PATH=$LFS/tools/bin:$PATH
+CONFIG_SITE=$LFS/usr/share/config.site
+export LFS LC_ALL LFS_TGT PATH CONFIG_SITE
+EOF
+
+tar -xvf binutils-2.43.1.tar.xz
+mkdir -v build
+cd build
+../configure --prefix=$LFS/tools \
+    --with-sysroot=$LFS \
+    --target=$LFS_TGT \
+    --disable-nls \
+    --enable-gprofng=no \
+    --disable-werror \
+    --enable-new-dtags \
+    --enable-default-hash-style=gnu
+
+tar -xvf gcc-14.2.0.tar.xz
+
+# configure gcc
+../configure \
+    --target=$LFS_TGT \
+    --prefix=$LFS/tools \
+    --with-glibc-version=2.40 \
+    --with-sysroot=$LFS \
+    --with-newlib \
+    --without-headers \
+    --enable-default-pie \
+    --enable-default-ssp \
+    --disable-nls \
+    --disable-shared \
+    --disable-multilib \
+    --disable-threads \
+    --disable-libatomic \
+    --disable-libgomp \
+    --disable-libquadmath \
+    --disable-libssp \
+    --disable-libvtv \
+    --disable-libstdcxx \
+    --enable-languages=c,c++
+
+cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
+    `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include/limits.h
+
+# configure glibc
+../configure \
+    --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(../scripts/config.guess) \
+    --enable-kernel=4.19 \
+    --with-headers=$LFS/usr/include \
+    --disable-nscd \
+    libc_cv_slibdir=/usr/lib
+
+# configure libstdc++
+../libstdc++-v3/configure \
+    --host=$LFS_TGT \
+    --build=$(../config.guess) \
+    --prefix=/usr \
+    --disable-multilib \
+    --disable-nls \
+    --disable-libstdcxx-pch \
+    --with-gxx-include-dir=/tools/$LFS_TGT/include/c++/14.2.0
+
+# configure m4
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure ncurses
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(./config.guess) \
+    --mandir=/usr/share/man \
+    --with-manpage-format=normal \
+    --with-shared \
+    --without-normal \
+    --with-cxx-shared \
+    --without-debug \
+    --without-ada \
+    --disable-stripping
+
+sed -e 's/^#if.*XOPEN.*$/#if 1/' \
+    -i $LFS/usr/include/curses.h
+
+# configure bash
+./configure --prefix=/usr \
+    --build=$(sh support/config.guess) \
+    --host=$LFS_TGT \
+    --without-bash-malloc \
+    bash_cv_strtold_broken=no
+
+# configure coreutils
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess) \
+    --enable-install-program=hostname \
+    --enable-no-install-program=kill,uptime
+
+mv -v $LFS/usr/bin/chroot $LFS/usr/sbin
+mkdir -pv $LFS/usr/share/man/man8
+mv -v $LFS/usr/share/man/man1/chroot.1 $LFS/usr/share/man/man8/chroot.8
+sed -i 's/"1"/"8"/' $LFS/usr/share/man/man8/chroot.8
+
+# configure diffutils
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(./build-aux/config.guess)
+
+# configure file the first time
+../configure --disable-bzlib \
+    --disable-libseccomp \
+    --disable-xzlib \
+    --disable-zlib
+
+# configure file the second time
+./configure --prefix=/usr --host=$LFS_TGT --build=$(./config.guess)
+
+# configure findutils
+./configure --prefix=/usr \
+    --localstatedir=/var/lib/locate \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure gawk
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure grep
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(./build-aux/config.guess)
+
+# configure gzip
+./configure --prefix=/usr --host=$LFS_TGT
+
+# configure make
+./configure --prefix=/usr \
+    --without-guile \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure patch
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure sed
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(./build-aux/config.guess)
+
+# configure tar
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess)
+
+# configure xz
+./configure --prefix=/usr \
+    --host=$LFS_TGT \
+    --build=$(build-aux/config.guess) \
+    --disable-static \
+    --docdir=/usr/share/doc/xz-5.6.2
+
+# configure binutils (pass 2)
+../configure \
+    --prefix=/usr \
+    --build=$(../config.guess) \
+    --host=$LFS_TGT \
+    --disable-nls \
+    --enable-shared \
+    --enable-gprofng=no \
+    --disable-werror \
+    --enable-64-bit-bfd \
+    --enable-new-dtags \
+    --enable-default-hash-style=gnu
+
+# configure gcc (pass 2)
+../configure \
+    --build=$(../config.guess) \
+    --host=$LFS_TGT \
+    --target=$LFS_TGT \
+    LDFLAGS_FOR_TARGET=-L$PWD/$LFS_TGT/libgcc \
+    --prefix=/usr \
+    --with-build-sysroot=$LFS \
+    --enable-default-pie \
+    --enable-default-ssp \
+    --disable-nls \
+    --disable-multilib \
+    --disable-libatomic \
+    --disable-libgomp \
+    --disable-libquadmath \
+    --disable-libsanitizer \
+    --disable-libssp \
+    --disable-libvtv \
+    --enable-languages=c,c++
+
+# chroot
+
+mount -v --bind /dev $LFS/dev
+mount -vt devpts devpts -o gid=5,mode=0620 $LFS/dev/pts
+mount -vt proc proc $LFS/proc
+mount -vt sysfs sysfs $LFS/sys
+mount -vt tmpfs tmpfs $LFS/run
+mount -vt tmpfs -o nosuid,nodev tmpfs $LFS/dev/shm
+
+chroot "$LFS" /usr/bin/env -i \
+    HOME=/root \
+    TERM="$TERM" \
+    PS1='(lfs chroot) \u:\w\$ ' \
+    PATH=/usr/bin:/usr/sbin \
+    MAKEFLAGS="-j$(nproc)" \
+    TESTSUITEFLAGS="-j$(nproc)" \
+    /bin/bash --login
+
+# more directories
+
+mkdir -pv /etc/{opt,sysconfig}
+mkdir -pv /lib/firmware
+mkdir -pv /media/{floppy,cdrom}
+mkdir -pv /usr/{,local/}{include,src}
+mkdir -pv /usr/lib/locale
+mkdir -pv /usr/local/{bin,lib,sbin}
+mkdir -pv /usr/{,local/}share/{color,dict,doc,info,locale,man}
+mkdir -pv /usr/{,local/}share/{misc,terminfo,zoneinfo}
+mkdir -pv /usr/{,local/}share/man/man{1..8}
+mkdir -pv /var/{cache,local,log,mail,opt,spool}
+mkdir -pv /var/lib/{color,misc,locate}
+ln -sfv /run /var/run
+ln -sfv /run/lock /var/lock
+install -dv -m 0750 /root
+install -dv -m 1777 /tmp /var/tmp
+
+# passwd contents
+
+root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/dev/null:/usr/bin/false
+daemon:x:6:6:Daemon User:/dev/null:/usr/bin/false
+messagebus:x:18:18:D-Bus Message Daemon User:/run/dbus:/usr/bin/false
+uuidd:x:80:80:UUID Generation Daemon User:/dev/null:/usr/bin/false
+nobody:x:65534:65534:Unprivileged User:/dev/null:/usr/bin/false
+
+# group contents
+
+root:x:0:
+bin:x:1:daemon
+sys:x:2:
+kmem:x:3:
+tape:x:4:
+tty:x:5:
+daemon:x:6:
+floppy:x:7:
+disk:x:8:
+lp:x:9:
+dialout:x:10:
+audio:x:11:
+video:x:12:
+utmp:x:13:
+cdrom:x:15:
+adm:x:16:
+messagebus:x:18:
+input:x:24:
+mail:x:34:
+kvm:x:61:
+uuidd:x:80:
+wheel:x:97:
+users:x:999:
+nogroup:x:65534:
+
+# more passwd/group
+
+echo "tester:x:101:101::/home/tester:/bin/bash" >> /etc/passwd
+echo "tester:x:101:" >> /etc/group
+install -o tester -d /home/tester
+
+# more files
+
+touch /var/log/{btmp,lastlog,faillog,wtmp}
+chgrp -v utmp /var/log/lastlog
+chmod -v 664 /var/log/lastlog
+chmod -v 600 /var/log/btmp
+
+# bison
+
+./configure --prefix=/usr \
+            --docdir=/usr/share/doc/bison-3.8.2
+
+# perl
+
+sh Configure -des \
+    -D prefix=/usr \
+    -D vendorprefix=/usr \
+    -D useshrplib \
+    -D privlib=/usr/lib/perl5/5.40/core_perl \
+    -D archlib=/usr/lib/perl5/5.40/core_perl \
+    -D sitelib=/usr/lib/perl5/5.40/site_perl \
+    -D sitearch=/usr/lib/perl5/5.40/site_perl \
+    -D vendorlib=/usr/lib/perl5/5.40/vendor_perl \
+    -D vendorarch=/usr/lib/perl5/5.40/vendor_perl
+
+# python
+
+./configure --prefix=/usr \
+    --enable-shared \
+    --without-ensurepip
+
+# util-linux
+
+./configure --libdir=/usr/lib \
+    --runstatedir=/run \
+    --disable-chfn-chsh \
+    --disable-login \
+    --disable-nologin \
+    --disable-su \
+    --disable-setpriv \
+    --disable-runuser \
+    --disable-pylibmount \
+    --disable-static \
+    --disable-liblastlog2 \
+    --without-python \
+    ADJTIME_PATH=/var/lib/hwclock/adjtime \
+    --docdir=/usr/share/doc/util-linux-2.40.2
+
+# unmount stuff
+
+mountpoint -q $LFS/dev/shm && umount $LFS/dev/shm
+umount $LFS/dev/pts
+umount $LFS/{sys,proc,run,dev}
+
+# mount stuff
+
+mount -v --bind /dev $LFS/dev
+mount -vt devpts devpts -o gid=5,mode=0620 $LFS/dev/pts
+mount -vt proc proc $LFS/proc
+mount -vt sysfs sysfs $LFS/sys
+mount -vt tmpfs tmpfs $LFS/run
+mount -vt tmpfs -o nosuid,nodev tmpfs $LFS/dev/shm
+
+# configure glibc (pass 2)
+
+../configure --prefix=/usr \
+    --disable-werror \
+    --enable-kernel=4.19 \
+    --enable-stack-protector=strong \
+    --disable-nscd \
+    libc_cv_slibdir=/usr/lib
+
+# I am going to install glibc without running make check because I want to know that this step is
+# really not needed.
+# -> And yeah, it really isn't needed.
+
+# locales
+
+localedef -i C -f UTF-8 C.UTF-8
+localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
+localedef -i de_DE -f ISO-8859-1 de_DE
+localedef -i de_DE@euro -f ISO-8859-15 de_DE@euro
+localedef -i de_DE -f UTF-8 de_DE.UTF-8
+localedef -i el_GR -f ISO-8859-7 el_GR
+localedef -i en_GB -f ISO-8859-1 en_GB
+localedef -i en_GB -f UTF-8 en_GB.UTF-8
+localedef -i en_HK -f ISO-8859-1 en_HK
+localedef -i en_PH -f ISO-8859-1 en_PH
+localedef -i en_US -f ISO-8859-1 en_US
+localedef -i en_US -f UTF-8 en_US.UTF-8
+localedef -i es_ES -f ISO-8859-15 es_ES@euro
+localedef -i es_MX -f ISO-8859-1 es_MX
+localedef -i fa_IR -f UTF-8 fa_IR
+localedef -i fr_FR -f ISO-8859-1 fr_FR
+localedef -i fr_FR@euro -f ISO-8859-15 fr_FR@euro
+localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
+localedef -i is_IS -f ISO-8859-1 is_IS
+localedef -i is_IS -f UTF-8 is_IS.UTF-8
+localedef -i it_IT -f ISO-8859-1 it_IT
+localedef -i it_IT -f ISO-8859-15 it_IT@euro
+localedef -i it_IT -f UTF-8 it_IT.UTF-8
+localedef -i ja_JP -f EUC-JP ja_JP
+localedef -i ja_JP -f SHIFT_JIS ja_JP.SJIS 2> /dev/null || true
+localedef -i ja_JP -f UTF-8 ja_JP.UTF-8
+localedef -i nl_NL@euro -f ISO-8859-15 nl_NL@euro
+localedef -i ru_RU -f KOI8-R ru_RU.KOI8-R
+localedef -i ru_RU -f UTF-8 ru_RU.UTF-8
+localedef -i se_NO -f UTF-8 se_NO.UTF-8
+localedef -i ta_IN -f UTF-8 ta_IN.UTF-8
+localedef -i tr_TR -f UTF-8 tr_TR.UTF-8
+localedef -i zh_CN -f GB18030 zh_CN.GB18030
+localedef -i zh_HK -f BIG5-HKSCS zh_HK.BIG5-HKSCS
+localedef -i zh_TW -f UTF-8 zh_TW.UTF-8
+
+# contents of /etc/nsswitch.conf
+
+# Begin /etc/nsswitch.conf
+passwd: files
+group: files
+shadow: files
+hosts: files dns
+networks: files
+protocols: files
+services: files
+ethers: files
+rpc: files
+# End /etc/nsswitch.conf
+
+# zoneinfo loop
+
+ZONEINFO=/usr/share/zoneinfo
+for tz in etcetera southamerica northamerica europe africa antarctica asia australasia backward; do
+    zic -L /dev/null -d $ZONEINFO ${tz}
+    zic -L /dev/null -d $ZONEINFO/posix ${tz}
+    zic -L leapseconds -d $ZONEINFO/right ${tz}
+done
+
+# bzip2 install commands
+
+cp -v bzip2-shared /usr/bin/bzip2
+for i in /usr/bin/{bzcat,bunzip2}; do
+    ln -sfv bzip2 $i
+done
+
+# xz config (pass2)
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/xz-5.6.2
+
+# readline
+
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+
+./configure --prefix=/usr \
+    --disable-static \
+    --with-curses \
+    --docdir=/usr/share/doc/readline-8.2.13
+
+# flex
+
+./configure --prefix=/usr \
+    --docdir=/usr/share/doc/flex-2.6.4 \
+    --disable-static
+
+ln -sv flex /usr/bin/lex
+ln -sv flex.1 /usr/share/man/man1/lex.1
+
+# tcl
+
+SRCDIR=$(pwd)
+cd unix
+./configure --prefix=/usr \
+    --mandir=/usr/share/man \
+    --disable-rpath
+
+sed -e "s|$SRCDIR/unix|/usr/lib|" \
+    -e "s|$SRCDIR|/usr/include|" \
+    -i tclConfig.sh
+
+sed -e "s|$SRCDIR/unix/pkgs/tdbc1.1.7|/usr/lib/tdbc1.1.7|" \
+    -e "s|$SRCDIR/pkgs/tdbc1.1.7/generic|/usr/include|" \
+    -e "s|$SRCDIR/pkgs/tdbc1.1.7/library|/usr/lib/tcl8.6|" \
+    -e "s|$SRCDIR/pkgs/tdbc1.1.7|/usr/include|" \
+    -i pkgs/tdbc1.1.7/tdbcConfig.sh
+
+sed -e "s|$SRCDIR/unix/pkgs/itcl4.2.4|/usr/lib/itcl4.2.4|" \
+    -e "s|$SRCDIR/pkgs/itcl4.2.4/generic|/usr/include|" \
+    -e "s|$SRCDIR/pkgs/itcl4.2.4|/usr/include|" \
+    -i pkgs/itcl4.2.4/itclConfig.sh
+
+unset SRCDIR
+
+# expect
+
+./configure --prefix=/usr \
+    --with-tcl=/usr/lib \
+    --enable-shared \
+    --disable-rpath \
+    --mandir=/usr/share/man \
+    --with-tclinclude=/usr/include
+
+# dejagnu
+
+makeinfo --html --no-split -o doc/dejagnu.html ../doc/dejagnu.texi
+makeinfo --plaintext -o doc/dejagnu.txt ../doc/dejagnu.texi
+
+install -v -dm755 /usr/share/doc/dejagnu-1.6.3
+install -v -m644 doc/dejagnu.{html,txt} /usr/share/doc/dejagnu-1.6.3
+
+# pkgconf
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/pkgconf-2.3.0
+
+ln -sv pkgconf /usr/bin/pkg-config
+ln -sv pkgconf.1 /usr/share/man/man1/pkg-config.1
+
+# binutils (pass 3)
+
+../configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --enable-gold \
+    --enable-ld=default \
+    --enable-plugins \
+    --enable-shared \
+    --disable-werror \
+    --enable-64-bit-bfd \
+    --enable-new-dtags \
+    --with-system-zlib \
+    --enable-default-hash-style=gnu
+
+# gmp
+
+./configure --prefix=/usr \
+    --enable-cxx \
+    --disable-static \
+    --docdir=/usr/share/doc/gmp-6.3.0
+
+# mpfr
+
+./configure --prefix=/usr \
+    --disable-static \
+    --enable-thread-safe \
+    --docdir=/usr/share/doc/mpfr-4.2.1
+
+# mpc
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/mpc-1.3.1
+
+# attr
+
+./configure --prefix=/usr \
+    --disable-static \
+    --sysconfdir=/etc \
+    --docdir=/usr/share/doc/attr-2.5.2
+
+# acl
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/acl-2.3.2
+
+# libxcrypt
+
+./configure --prefix=/usr \
+    --enable-hashes=strong,glibc \
+    --enable-obsolete-api=no \
+    --disable-static \
+    --disable-failure-tokens
+
+# shadow
+
+sed -i 's/groups$(EXEEXT) //' src/Makefile.in
+find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
+find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \;
+find man -name Makefile.in -exec sed -i 's/passwd\.5 / /' {} \;
+
+sed -e 's:#ENCRYPT_METHOD DES:ENCRYPT_METHOD YESCRYPT:' \
+    -e 's:/var/spool/mail:/var/mail:' \
+    -e '/PATH=/{s@/sbin:@@;s@/bin:@@}' \
+    -i etc/login.defs
+
+./configure --sysconfdir=/etc \
+    --disable-static \
+    --with-{b,yes}crypt \
+    --without-libbsd \
+    --with-group-name-max-length=32
+
+# gcc (pass3)
+
+sed -e '/m64=/s/lib64/lib/' \
+    -i.orig gcc/config/i386/t-linux64
+
+../configure --prefix=/usr \
+    LD=ld \
+    --enable-languages=c,c++ \
+    --enable-default-pie \
+    --enable-default-ssp \
+    --enable-host-pie \
+    --disable-multilib \
+    --disable-bootstrap \
+    --disable-fixincludes \
+    --with-system-zlib
+
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/14.2.0/liblto_plugin.so \
+    /usr/lib/bfd-plugins/
+
+echo 'int main(){}' > dummy.c
+cc dummy.c -v -Wl,--verbose &> dummy.log
+readelf -l a.out | grep ': /lib'
+
+mkdir -pv /usr/share/gdb/auto-load/usr/lib
+mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib
+
+# ncurses
+
+./configure --prefix=/usr \
+    --mandir=/usr/share/man \
+    --with-shared \
+    --without-debug \
+    --without-normal \
+    --with-cxx-shared \
+    --enable-pc-files \
+    --with-pkg-config-libdir=/usr/lib/pkgconfig
+
+make DESTDIR=$PWD/dest install
+install -vm755 dest/usr/lib/libncursesw.so.6.5 /usr/lib
+rm -v dest/usr/lib/libncursesw.so.6.5
+sed -e 's/^#if.*XOPEN.*$/#if 1/' \
+    -i dest/usr/include/curses.h
+cp -av dest/* /
+
+for lib in ncurses form panel menu ; do
+    ln -sfv lib${lib}w.so /usr/lib/lib${lib}.so
+    ln -sfv ${lib}w.pc /usr/lib/pkgconfig/${lib}.pc
+done
+
+# sed
+
+make install
+install -d -m755 /usr/share/doc/sed-4.9
+install -m644 doc/sed.html /usr/share/doc/sed-4.9
+
+# gettext
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/gettext-0.22.5
+
+# bash (pass2)
+
+./configure --prefix=/usr \
+    --without-bash-malloc \
+    --with-installed-readline \
+    bash_cv_strtold_broken=no \
+    --docdir=/usr/share/doc/bash-5.2.32
+
+# gdbm
+
+./configure --prefix=/usr \
+    --disable-static \
+    --enable-libgdbm-compat
+
+# expat
+
+./configure --prefix=/usr \
+    --disable-static \
+    --docdir=/usr/share/doc/expat-2.6.2
+
+# inetutils
+
+./configure --prefix=/usr \
+    --bindir=/usr/bin \
+    --localstatedir=/var \
+    --disable-logger \
+    --disable-whois \
+    --disable-rcp \
+    --disable-rexec \
+    --disable-rlogin \
+    --disable-rsh \
+    --disable-servers
+
+# perl pass 2
+
+sh Configure -des \
+    -D prefix=/usr \
+    -D vendorprefix=/usr \
+    -D privlib=/usr/lib/perl5/5.40/core_perl \
+    -D archlib=/usr/lib/perl5/5.40/core_perl \
+    -D sitelib=/usr/lib/perl5/5.40/site_perl \
+    -D sitearch=/usr/lib/perl5/5.40/site_perl \
+    -D vendorlib=/usr/lib/perl5/5.40/vendor_perl \
+    -D vendorarch=/usr/lib/perl5/5.40/vendor_perl \
+    -D man1dir=/usr/share/man/man1 \
+    -D man3dir=/usr/share/man/man3 \
+    -D pager="/usr/bin/less -isR" \
+    -D useshrplib \
+    -D usethreads
+
+# openssl
+
+./config --prefix=/usr \
+    --openssldir=/etc/ssl \
+    --libdir=lib \
+    shared \
+    zlib-dynamic
+
+# kmod
+
+./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --with-openssl \
+    --with-xz \
+    --with-zstd \
+    --with-zlib \
+    --disable-manpages
+
+for target in depmod insmod modinfo modprobe rmmod; do
+  ln -sfv ../bin/kmod /usr/sbin/$target
+  rm -fv /usr/bin/$target
+done
+
+# elfutils
+
+./configure --prefix=/usr \
+    --disable-debuginfod \
+    --enable-libdebuginfod=dummy
+
+make -C libelf install
+install -vm644 config/libelf.pc /usr/lib/pkgconfig
+rm /usr/lib/libelf.a
+
+# libffi
+
+./configure --prefix=/usr \
+    --disable-static \
+    --with-gcc-arch=native
+
+# python (pass 2)
+
+./configure --prefix=/usr \
+    --enable-shared \
+    --with-system-expat \
+    --enable-optimizations
+
+cat > /etc/pip.conf << EOF
+[global]
+root-user-action = ignore
+disable-pip-version-check = true
+EOF
+
+# ninja
+
+install -vm755 ninja /usr/bin/
+install -vDm644 misc/bash-completion /usr/share/bash-completion/completions/ninja
+install -vDm644 misc/zsh-completion /usr/share/zsh/site-functions/_ninja
+
+# meson
+
+pip3 install --no-index --find-links dist meson
+install -vDm644 data/shell-completions/bash/meson /usr/share/bash-completion/completions/meson
+install -vDm644 data/shell-completions/zsh/_meson /usr/share/zsh/site-functions/_meson
+
+# coreutils
+
+FORCE_UNSAFE_CONFIGURE=1 ./configure \
+    --prefix=/usr \
+    --enable-no-install-program=kill,uptime
+
+# grub
+
+./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --disable-efiemu \
+    --disable-werror
+
+mv -v /etc/bash_completion.d/grub /usr/share/bash-completion/completions
+
+# iproute
+
+sed -i /ARPD/d Makefile
+rm -fv man/man8/arpd.8
+
+# kbd
+
+sed -i '/RESIZECONS_PROGS=/s/yes/no/' configure
+sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
+
+# tar
+
+FORCE_UNSAFE_CONFIGURE=1 \
+    ./configure --prefix=/usr
+
+# vim
+
+ln -sv vim /usr/bin/vi
+for L in /usr/share/man/{,*/}man1/vim.1; do
+    ln -sv vim.1 $(dirname $L)/vi.1
+done
+
+cat > /etc/vimrc << "EOF"
+" Begin /etc/vimrc
+" Ensure defaults are set before customizing settings, not after
+source $VIMRUNTIME/defaults.vim
+let skip_defaults_vim=1
+set nocompatible
+set backspace=2
+set mouse=
+syntax on
+if (&term == "xterm") || (&term == "putty")
+  set background=dark
+endif
+" End /etc/vimrc
+EOF
+
+# udev from systemd
+
+sed -i -e 's/GROUP="render"/GROUP="video"/' \
+    -e 's/GROUP="sgx", //' rules.d/50-udev-default.rules.in
+
+meson setup .. \
+    --prefix=/usr \
+    --buildtype=release \
+    -D mode=release \
+    -D dev-kvm-mode=0660 \
+    -D link-udev-shared=false \
+    -D logind=false \
+    -D vconsole=false
+
+export udev_helpers=$(grep "'name' :" ../src/udev/meson.build | \
+    awk '{print $3}' | tr -d ",'" | grep -v 'udevadm')
+
+ninja udevadm systemd-hwdb \
+    $(ninja -n | grep -Eo '(src/(lib)?udev|rules.d|hwdb.d)/[^ ]*') \
+    $(realpath libudev.so --relative-to .) \
+    $udev_helpers
+
+install -vm755 -d {/usr/lib,/etc}/udev/{hwdb.d,rules.d,network}
+install -vm755 -d /usr/{lib,share}/pkgconfig
+install -vm755 udevadm /usr/bin/
+install -vm755 systemd-hwdb /usr/bin/udev-hwdb
+ln -svfn ../bin/udevadm /usr/sbin/udevd
+cp -av libudev.so{,*[0-9]} /usr/lib/
+install -vm644 ../src/libudev/libudev.h /usr/include/
+install -vm644 src/libudev/*.pc /usr/lib/pkgconfig/
+install -vm644 src/udev/*.pc /usr/share/pkgconfig/
+install -vm644 ../src/udev/udev.conf /etc/udev/
+install -vm644 rules.d/* ../rules.d/README /usr/lib/udev/rules.d/
+install -vm644 $(find ../rules.d/*.rules \
+    -not -name '*power-switch*') /usr/lib/udev/rules.d/
+install -vm644 hwdb.d/* ../hwdb.d/{*.hwdb,README} /usr/lib/udev/hwdb.d/
+install -vm755 $udev_helpers /usr/lib/udev
+install -vm644 ../network/99-default.link /usr/lib/udev/network
+
+tar -xf ../../systemd-man-pages-256.4.tar.xz \
+    --no-same-owner --strip-components=1 \
+    -C /usr/share/man --wildcards '*/udev*' '*/libudev*' \
+        '*/systemd.link.5' \
+        '*/systemd-'{hwdb,udevd.service}.8
+sed 's|systemd/network|udev/network|' \
+    /usr/share/man/man5/systemd.link.5 \
+    > /usr/share/man/man5/udev.link.5
+sed 's/systemd\(\\\?-\)/udev\1/' /usr/share/man/man8/systemd-hwdb.8 \
+    > /usr/share/man/man8/udev-hwdb.8
+sed 's|lib.*udevd|sbin/udevd|' \
+    /usr/share/man/man8/systemd-udevd.service.8 \
+    > /usr/share/man/man8/udevd.8
+rm /usr/share/man/man*/systemd*
+
+# man-db
+
+./configure --prefix=/usr \
+    --docdir=/usr/share/doc/man-db-2.12.1 \
+    --sysconfdir=/etc \
+    --disable-setuid \
+    --enable-cache-owner=bin \
+    --with-browser=/usr/bin/lynx \
+    --with-vgrind=/usr/bin/vgrind \
+    --with-grap=/usr/bin/grap \
+    --with-systemdtmpfilesdir= \
+    --with-systemdsystemunitdir=
+
+# procps
+
+./configure --prefix=/usr \
+    --docdir=/usr/share/doc/procps-ng-4.0.4 \
+    --disable-static \
+    --disable-kill
+
+# util-linux (pass 2)
+
+./configure --bindir=/usr/bin \
+    --libdir=/usr/lib \
+    --runstatedir=/run \
+    --sbindir=/usr/sbin \
+    --disable-chfn-chsh \
+    --disable-login \
+    --disable-nologin \
+    --disable-su \
+    --disable-setpriv \
+    --disable-runuser \
+    --disable-pylibmount \
+    --disable-liblastlog2 \
+    --disable-static \
+    --without-python \
+    --without-systemd \
+    --without-systemdsystemunitdir \
+    ADJTIME_PATH=/var/lib/hwclock/adjtime \
+    --docdir=/usr/share/doc/util-linux-2.40.2
+
+# e2fsprogs
+
+../configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --enable-elf-shlibs \
+    --disable-libblkid \
+    --disable-libuuid \
+    --disable-uuidd \
+    --disable-fsck
+
+gunzip -v /usr/share/info/libext2fs.info.gz
+install-info --dir-file=/usr/share/info/dir /usr/share/info/libext2fs.info
+
+# sysklogd
+
+./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --runstatedir=/run \
+    --without-logger
+
+cat > /etc/syslog.conf << "EOF"
+# Begin /etc/syslog.conf
+auth,authpriv.* -/var/log/auth.log
+*.*;auth,authpriv.none -/var/log/sys.log
+daemon.* -/var/log/daemon.log
+kern.* -/var/log/kern.log
+mail.* -/var/log/mail.log
+user.* -/var/log/user.log
+*.emerg *
+# Do not open any internet ports.
+secure_mode 2
+# End /etc/syslog.conf
+EOF
+
+# dhcpcd
+
+./configure --prefix=/usr                \
+            --sysconfdir=/etc            \
+            --libexecdir=/usr/lib/dhcpcd \
+            --dbdir=/var/lib/dhcpcd      \
+            --runstatedir=/run           \
+            --disable-privsep
+
+# inittab
+
+cat > /etc/inittab << "EOF"
+# Begin /etc/inittab
+id:3:initdefault:
+si::sysinit:/etc/rc.d/init.d/rc S
+l0:0:wait:/etc/rc.d/init.d/rc 0
+l1:S1:wait:/etc/rc.d/init.d/rc 1
+l2:2:wait:/etc/rc.d/init.d/rc 2
+l3:3:wait:/etc/rc.d/init.d/rc 3
+l4:4:wait:/etc/rc.d/init.d/rc 4
+l5:5:wait:/etc/rc.d/init.d/rc 5
+l6:6:wait:/etc/rc.d/init.d/rc 6
+ca:12345:ctrlaltdel:/sbin/shutdown -t1 -a -r now
+su:S06:once:/sbin/sulogin
+s1:1:respawn:/sbin/sulogin
+1:2345:respawn:/sbin/agetty --noclear tty1 9600
+2:2345:respawn:/sbin/agetty tty2 9600
+3:2345:respawn:/sbin/agetty tty3 9600
+4:2345:respawn:/sbin/agetty tty4 9600
+5:2345:respawn:/sbin/agetty tty5 9600
+6:2345:respawn:/sbin/agetty tty6 9600
+# End /etc/inittab
+EOF
+
+# sysconfig/clock
+
+cat > /etc/sysconfig/clock << "EOF"
+# Begin /etc/sysconfig/clock
+UTC=1
+# Set this to any options you might need to give to hwclock,
+# such as machine hardware clock type for Alphas.
+CLOCKPARAMS=
+# End /etc/sysconfig/clock
+EOF
+
+# sysconfig/console
+
+cat > /etc/sysconfig/console << "EOF"
+# Begin /etc/sysconfig/console
+UNICODE="1"
+FONT="Lat2-Terminus16"
+# End /etc/sysconfig/console
+EOF
+
+# /etc/profile
+
+en_US.iso88591
+
+cat > /etc/profile << "EOF"
+# Begin /etc/profile
+for i in $(locale); do
+  unset ${i%=*}
+done
+if [[ "$TERM" = linux ]]; then
+  export LANG=C.UTF-8
+else
+  export LANG=en_US.iso88591
+fi
+# End /etc/profile
+EOF
+
+# /etc/inputrc
+
+cat > /etc/inputrc << "EOF"
+# Begin /etc/inputrc
+# Modified by Chris Lynn <roryo@roryo.dynup.net>
+# Allow the command prompt to wrap to the next line
+set horizontal-scroll-mode Off
+# Enable 8-bit input
+set meta-flag On
+set input-meta On
+# Turns off 8th bit stripping
+set convert-meta Off
+# Keep the 8th bit for display
+set output-meta On
+# none, visible or audible
+set bell-style none
+# All of the following map the escape sequence of the value
+# contained in the 1st argument to the readline specific functions
+"\eOd": backward-word
+"\eOc": forward-word
+# for linux console
+"\e[1~": beginning-of-line
+"\e[4~": end-of-line
+"\e[5~": beginning-of-history
+"\e[6~": end-of-history
+"\e[3~": delete-char
+"\e[2~": quoted-insert
+# for xterm
+"\eOH": beginning-of-line
+"\eOF": end-of-line
+# for Konsole
+"\e[H": beginning-of-line
+"\e[F": end-of-line
+# End /etc/inputrc
+EOF
+
+# /etc/shells
+
+cat > /etc/shells << "EOF"
+# Begin /etc/shells
+/bin/sh
+/bin/bash
+# End /etc/shells
+EOF
+
+# /etc/fstab
+
+cat > /etc/fstab << "EOF"
+/dev/sda4 / ext4 defaults 1 1
+/dev/sda3 swap swap pri=1 0 0
+proc /proc proc nosuid,noexec,nodev 0 0
+sysfs /sys sysfs nosuid,noexec,nodev 0 0
+devpts /dev/pts devpts gid=5,mode=620 0 0
+tmpfs /run tmpfs defaults 0 0
+devtmpfs /dev devtmpfs mode=0755,nosuid 0 0
+tmpfs /dev/shm tmpfs nosuid,nodev 0 0
+cgroup2 /sys/fs/cgroup cgroup2 nosuid,noexec,nodev 0 0
+EOF

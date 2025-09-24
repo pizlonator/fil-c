@@ -1,0 +1,227 @@
+;; (setq mouse-wheel-mode f)
+;;(setq visible-bell t)
+;; (setq bell-volume 0)
+;; (setq sound-alist nill)
+
+(setq-default ruby-indent-level 4)
+(setq-default indent-tabs-mode nil) 
+(setq indent-tabs-mode nil)
+
+(setq load-path (cons "~/Programs/emacsStuff/cc-mode-5.31.3" load-path))
+
+(global-set-key (kbd "C-<backspace>") 'backward-kill-word)
+(global-set-key (kbd "C-h") 'backward-kill-word)
+(global-set-key (kbd "C-c h") help-map)
+
+;(global-font-lock-mode)
+
+(menu-bar-mode -1)
+
+(if (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+
+(blink-cursor-mode -1)
+
+;(transient-mark-mode)
+
+(show-paren-mode)
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(c-basic-offset 4)
+ '(default-frame-alist (quote ((font . "-DAMA-Ubuntu Sans Mono-regular-normal-normal-*-15-*-*-*-m-0-iso10646-1") (cursor-color . "Red") (vertical-scroll-bars . right) (width . 85) (height . 50) (top . 23))))
+ '(mouse-wheel-mode nil))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ )
+
+(autoload 'ruby-mode "ruby-mode" "Load ruby-mode" t)
+(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
+
+(autoload 'perl-mode "cperl-mode" "alternate mode for editing Perl programs" t)
+
+;; 
+;; c-mode setup 
+;; ===================== 
+;;Fix QT Stuff
+(require 'cc-mode)
+(setq c-C++-access-key "\\<\\(slots\\|signals\\|private\\|protected\\|public\\)\\>[ \t]*[(slots\\|signals)]*[ \t]*:")
+(font-lock-add-keywords 'c++-mode '(("\\<\\(Q_OBJECT\\|public\\|private\\|protected\\|slots\\|signals\\)\\>" . font-lock-constant-face)))
+(font-lock-add-keywords 'c++-mode '(("\\<Q[A-Z][a-z][A-Za-z]*" . 'font-lock-type-face)))
+(font-lock-add-keywords 'c++-mode '(("\\<Q[A-Z][a-z][A-Za-z]*::[A-Za-z]*" . 'font-lock-type-face)))
+
+(c-initialize-cc-mode)
+;; I believe this next line loads what is in agulbra-c++-stuff.el
+;; It was emailed to this list a long long time ago
+;; (load-file "~/emacs/c-guess-basic-syntax.elc")
+(setq auto-mode-alist 
+      (append '(("\\.C$"  . c++-mode) 
+		("\\.cc$" . c++-mode) 
+		("\\.cxx$" . c++-mode) 
+		("\\.cpp$" . c++-mode) 
+		("\\.h$"  . c++-mode) 
+		("\\.H$"  . c++-mode) 
+		("\\.hpp$"  . c++-mode) 
+		("\\.hh$"  . c++-mode) 
+		("\\.c$"  . c-mode) 
+		("\\.m$"  . objc-mode) 
+		("\\.pm$"  . perl-mode) 
+		) auto-mode-alist)) 
+ 
+(setq c++-mode-hook c-mode-hook) 
+;; ===================== 
+;; End of c-mode setup 
+;;
+
+(autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
+(setq auto-mode-alist
+   (append '(("\\.cs$" . csharp-mode)) auto-mode-alist))
+
+(setq auto-mode-alist
+          (cons '("\\.ml[iyl]?$" .  caml-mode) auto-mode-alist))
+
+;; you should probably comment the next line or replace ~remy by another path 
+(setq load-path (cons "~remy/emacs/" load-path))
+
+(autoload 'caml-mode "ocaml" (interactive)
+  "Major mode for editing Caml code." t)
+(autoload 'camldebug "camldebug" (interactive) "Debug caml mode")
+
+(c-add-style "pizlo"
+     '((c-basic-offset . 4)
+       (c-comment-only-line-offset . 0)
+       (indent-tabs-mode . nil)
+       (c-offsets-alist . ((innamespace . 0)
+			   (statement-block-intro . +)
+			   (substatement-open . 0)
+			   (substatement-label . 0)
+			   (label . 0)
+			   (statement-cont . +)
+                           (inline-open . 0)))))
+
+;; (setq c-default-style '((java-mode . "java") (awk-mode . "awk") (other . "stroustrup")))
+(setq c-default-style '((awk-mode . "awk") (other . "pizlo")))
+
+(defun up-slightly () (interactive) (scroll-up 1))
+(defun down-slightly () (interactive) (scroll-down 1))
+(global-set-key [mouse-4] 'down-slightly)
+(global-set-key [mouse-5] 'up-slightly)
+
+;; (defun up-one () (interactive) (scroll-up 1))
+;; (defun down-one () (interactive) (scroll-down 1))
+;; (global-set-key [S-mouse-4] 'down-one)
+;; (global-set-key [S-mouse-5] 'up-one)
+
+
+(defun up-a-lot () (interactive) (scroll-up))
+(defun down-a-lot () (interactive) (scroll-down))
+(global-set-key [C-mouse-4] 'down-a-lot)
+(global-set-key [C-mouse-5] 'up-a-lot)
+
+(global-unset-key "\C-x\C-c")
+
+(set-language-environment "Latin-1")
+
+(setq mac-allow-anti-aliasing nil)  ;; turn off anti-aliasing
+
+;;(set-default-font "-apple-monaco-medium-r-normal--10-0-72-72-m-0-iso10646-1")
+
+;;(add-to-list 'default-frame-alist '(alpha . 95)) 
+
+(setq-default indent-tabs-mode nil) 
+
+;; (highlight-tabs)
+;; (highlight-trailing-whitespace)
+
+(setq c-mode-hook
+    (function (lambda ()
+                (setq indent-tabs-mode nil)
+                (setq c-indent-level 4))))
+(setq objc-mode-hook
+    (function (lambda ()
+                (setq indent-tabs-mode nil)
+                (setq c-indent-level 4))))
+(setq c++-mode-hook
+    (function (lambda ()
+                (setq indent-tabs-mode nil)
+                (setq c-indent-level 4))))
+
+(setq indent-tabs-mode nil)
+
+;; (load-file "/Volumes/Data/pizlo/Mathematica/mathematica.el")
+
+(setq ring-bell-function 'ignore)
+
+(setq mac-option-key-is-meta nil)
+(setq mac-command-key-is-meta t)
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier nil)
+;;(setq mac-option-modifier 'alt)
+;;(setq mac-command-modifier 'meta)
+;;(setq mac-control-modifier 'control)
+
+(global-set-key (kbd "M-`") 'other-frame)
+;;(global-unset-key "\M-`")
+
+(defun remove-newlines-in-region ()
+  "Removes all newlines in the region."
+  (interactive)
+  (save-restriction
+    (narrow-to-region (point) (mark))
+    (goto-char (point-min))
+    (while (search-forward "\n" nil t) (replace-match " " nil t))))
+
+(global-set-key [f8] 'remove-newlines-in-region)
+
+(require 'color-theme)
+(color-theme-initialize)
+
+(defun color-theme-piznight ()
+  "Color theme by Gordon Messmer, created 2001-02-07.
+A color theme inspired by a certain IDE for Windows.  It's all from memory,
+since I only used that software in college.
+
+If you want to modify the font as well, you should customize variable
+`color-theme-legal-frame-parameters' to \"\\(color\\|mode\\|font\\|height\\|width\\)$\".
+The default setting will prevent color themes from installing specific
+fonts."
+  (interactive)
+  (color-theme-install
+   '(color-theme-piznight
+     ((font . "fixed")
+      (width . 130)
+      (height . 50)
+      (background-color . "black")
+      (foreground-color . "white")
+      (background-mode . dark)
+      (mouse-color . "grey85")
+      (cursor-color . "grey85"))
+     (default ((t (nil))))
+     (font-lock-comment-face ((t (:italic t :foreground "grey80"))))
+     (font-lock-string-face ((t (:foreground "orchid"))))
+     (font-lock-keyword-face ((t (:foreground "Cyan"))))
+     (font-lock-warning-face ((t (:bold t :foreground "Pink"))))
+     (font-lock-constant-face ((t (:foreground "lightgreen"))))
+     (font-lock-type-face ((t (:foreground "cyan"))))
+     (font-lock-variable-name-face ((t (:foreground "LightGoldenrod"))))
+     (font-lock-function-name-face ((t (:foreground "DodgerBlue"))))
+     (font-lock-builtin-face ((t (:foreground "LightSkyBlue"))))
+     (highline-face ((t (:background "grey12"))))
+     (setnu-line-number-face ((t (:background "Grey15" :foreground "White" :bold t))))
+     (show-paren-match-face ((t (:background "grey30"))))
+     (region ((t (:background "grey15"))))
+     (highlight ((t (:background "blue"))))
+     (secondary-selection ((t (:background "navy"))))
+     (widget-field-face ((t (:background "navy"))))
+     (widget-single-line-field-face ((t (:background "royalblue")))))) )
+
+(color-theme-piznight)
+(set-background-color "#000000")
+
+(global-set-key (kbd "ESC <up>") 'backward-paragraph)
+(global-set-key (kbd "ESC <down>") 'forward-paragraph)
