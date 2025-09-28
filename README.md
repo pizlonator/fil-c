@@ -1,4 +1,4 @@
-# Fil-C 0.670
+# Fil-C 0.671
 
 Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
 of software compiles and runs with Fil-C with zero or minimal changes. All
@@ -10,9 +10,9 @@ the capability. Fil-C has no `unsafe` escape hatch of any kind.
 
 Fil-C is special because:
 
-- Fil-C really achieves full safety with no escape hatches. There is no
-  `unsafe` keyword in Fil-C that could be used to turn off protections. It's
-  not even possible to link to unsafe code.
+- Fil-C achieves full safety with no escape hatches. There is no `unsafe`
+  keyword in Fil-C that could be used to turn off protections. It's not even
+  possible to link to unsafe code.
 
 - Fil-C's capability-based approach achieves a similar level of safety to
   hardware capabilities like [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/),
@@ -62,14 +62,28 @@ If you downloaded Fil-C binaries, run:
 
 If you downloaded Fil-C source, run:
 
-    ./build_all.sh
+    ./build_all_fast.sh
 
 Then you'll be able to use Fil-C from within this directory.
+
+The binary distribution of Fil-C comes with musl as the libc. Using
+`./build_all_fast.sh` in the source distribution also builds Fil-C using musl.
+If you are using source, then you can also:
+
+- `./build_all_fast_glibc.sh` - builds a similar setup but with glibc 2.40 as
+  the libc.
+
+- `./build_all.sh` - full musl-based build (also builds lots of software that
+  was ported to Fil-C).
+
+- `./build_all_glibc.sh` - full glibc-based build (builds even more software
+  that was ported to Fil-C).
 
 ## Things That Work
 
 Lots of software packages work in Fil-C with zero or minimal changes, including
-big ones like openssl, CPython, SQLite, and many others.
+big ones like openssl, CPython, SQLite, and [many others](https://fil-c.org/programs_that_work).
+Fil-C is powerful enough to support a [fully memory safe Linux userland](https://fil-c.org/pizlix).
 
 Fil-C has full support for C and C++ plus almost all of the extensions that
 clang 20 supports. Fil-C has excellent support for atomics and SIMD intrinsics,
@@ -100,17 +114,7 @@ and C++ exceptions.
 
 ## Learn More
 
-You can learn more about Fil-C by reading these docs:
-
-- [The Fil-C manifesto](https://github.com/pizlonator/fil-c/blob/deluge/Manifesto.md).
-
-- [Releases (Linux/X86_64 binaries)](https://github.com/pizlonator/fil-c/releases).
-
-- [Fil-C capabilities by example](https://github.com/pizlonator/fil-c/blob/deluge/invisicaps_by_example.md).
-
-- [Garbage-In, Memory Safety Out Semantics](https://github.com/pizlonator/fil-c/blob/deluge/gimso_semantics.md).
-
-- [Explanation of Disassembly of a Simple Fil-C Program](https://github.com/pizlonator/fil-c/blob/deluge/test43.md).
+You can learn more about Fil-C by [visiting the website](https://fil-c.org/).
 
 You can also e-mail me: pizlo@mac.com
 

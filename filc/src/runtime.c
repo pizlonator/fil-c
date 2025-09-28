@@ -31,6 +31,11 @@
 #include <pizlonated_syscalls.h>
 #include <pizlonated_runtime.h>
 
+unsigned zversion(void)
+{
+    return FILC_VERSION;
+}
+
 struct lock {
     int word;
 };

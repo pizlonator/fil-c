@@ -34,6 +34,10 @@ extern "C" {
 } /* tell emacs what's up */
 #endif
 
+/* The convention is that the major version gets multiplied by 10000. So if there was a version
+   1.23, then FILC_VERSION would be 10023. */
+#define FILC_VERSION 671u
+
 /* This header defines standard Fil-C APIs that are not part of C or C++ but are intended to be stable
    over time in Fil-C.
 
@@ -58,6 +62,10 @@ typedef bool filc_bool;
 #else
 typedef _Bool filc_bool;
 #endif
+
+/* Returns the Fil-C version according to the runtime. May be different than FILC_VERSION if you build
+   against one version of Fil-C and run against a different version. */
+unsigned zversion(void);
 
 /* This prints the given message and then shuts down the program using the same shutdown codepath
    used for memory safety violatins (i.e. it's designed to really kill the process). */

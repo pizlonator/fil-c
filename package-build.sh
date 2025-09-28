@@ -28,7 +28,7 @@
 set -e
 set -x
 
-build_name=filc-0.670-$OS-$ARCH
+build_name=filc-0.671-$OS-$ARCH
 
 rm -rf $build_name
 
@@ -110,8 +110,8 @@ echo 'echo' >> setup.sh
 echo "echo \"Take a look at pizfix/stdfil-include/stdfil.h for Fil-C-specific APIs. You can\"" >> setup.sh
 echo "echo \"optionally #include <stdfil.h> if you find those APIs useful.\"" >> setup.sh
 echo 'echo' >> setup.sh
-echo "echo \"New releases are at: https://github.com/pizlonator/llvm-project-deluge/releases\"" >> setup.sh
-echo "echo \"The Fil-C Manifesto: https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md\"" >> setup.sh
+echo "echo \"New releases are at: https://github.com/pizlonator/fil-c/releases\"" >> setup.sh
+echo "echo \"More information on the website: https://fil-c.org/\"" >> setup.sh
 echo 'echo' >> setup.sh
 echo "echo \"Have fun and thank you for trying $build_name.\"" >> setup.sh
 
