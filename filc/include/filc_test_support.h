@@ -81,6 +81,9 @@ void zmemmove_union(void* dst, void* src, __SIZE_TYPE__ count);
    You shouldn't ever have to call this directly */
 void zmemmove_builtin(void* dst, void* src, __SIZE_TYPE__ count);
 
+/* Dumps the pas heap status. */
+void zdump_pas_status(void);
+
 #ifdef __cplusplus
 }
 #endif

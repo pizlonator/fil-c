@@ -85,6 +85,8 @@ PAS_API void pas_status_reporter_dump_everything(pas_stream* stream);
 
 PAS_API void pas_status_reporter_start_if_necessary(void);
 
+PAS_API void pas_status_reporter_print_everything(void);
+
 PAS_END_EXTERN_C;
 
 #endif /* PAS_STATUS_REPORTER_H */

@@ -38,6 +38,7 @@
 #include "fugc.h"
 #include "pas_hashtable.h"
 #include "pas_scavenger.h"
+#include "pas_status_reporter.h"
 #include "pas_string_stream.h"
 #include "pas_utils.h"
 #include "verse_heap_inlines.h"
@@ -6713,6 +6714,13 @@ void filc_native_zscavenger_resume(filc_thread* my_thread)
 {
     filc_exit(my_thread);
     pas_scavenger_resume();
+    filc_enter(my_thread);
+}
+
+void filc_native_zdump_pas_status(filc_thread* my_thread)
+{
+    filc_exit(my_thread);
+    pas_status_reporter_print_everything();
     filc_enter(my_thread);
 }
 

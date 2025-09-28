@@ -202,6 +202,7 @@ addSig "void", "zregister_sys_dlerror_handler", "filc_ptr"
 addSig "void", "zset_errno", "int"
 addSig "size_t", "znum_deferred_signals"
 addSig "size_t", "zgc_get_allocation_size", "filc_ptr"
+addSig "void", "zdump_pas_status"
 
 addSig "int", "zsys_ioctl", "int", "int", "..."
 addSig "ssize_t", "zsys_writev", "int", "filc_ptr", "int"
