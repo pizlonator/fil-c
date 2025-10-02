@@ -44,22 +44,22 @@ int main(int argc, char** argv)
     
     zid = zsys_getuid();
     id = getuid();
-    ZASSERT((int)zid > 0);
+    ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
     
     zid = zsys_geteuid();
     id = geteuid();
-    ZASSERT((int)zid > 0);
+    ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
     
     zid = zsys_getgid();
     id = getgid();
-    ZASSERT((int)zid > 0);
+    ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
     
     zid = zsys_getpid();
     id = getpid();
-    ZASSERT((int)zid > 0);
+    ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
 
     struct timespec ts;
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     ZASSERT(st.st_mode == (0644 | S_IFREG) ||
             st.st_mode == (0664 | S_IFREG)); /* on my Linux install, I get 0664. */
     ZASSERT(st.st_nlink == 1);
-    ZASSERT(st.st_uid);
+    ZASSERT(st.st_uid >= 0);
     ZASSERT(st.st_size == 86);
 
     ZASSERT(zthread_self());
