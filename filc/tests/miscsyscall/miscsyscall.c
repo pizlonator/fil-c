@@ -40,13 +40,14 @@ int main(int argc, char** argv)
 {
     unsigned zid;
     unsigned id;
-    int res, is_root;
+    int res;
+    bool is_root;
     
     zid = zsys_getuid();
     id = getuid();
     ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
-    is_root = (id == 0);
+    is_root = !id;
     
     zid = zsys_geteuid();
     id = geteuid();
@@ -246,17 +247,17 @@ int main(int argc, char** argv)
     ZASSERT(!access("filc/test-output/miscsyscall/writeonly.txt", F_OK));
     ZASSERT(!access("filc/test-output/miscsyscall/execonly.txt", F_OK));
     ZASSERT(!access("filc/test-output/miscsyscall/readonly.txt", R_OK));
-    if (is_root) {
+    if (is_root)
         ZASSERT(!access("filc/test-output/miscsyscall/readonly.txt", W_OK));
-    } else {
+    else {
         ZASSERT(access("filc/test-output/miscsyscall/readonly.txt", W_OK));
         ZASSERT(errno == EACCES);
     }
     ZASSERT(access("filc/test-output/miscsyscall/readonly.txt", X_OK));
     ZASSERT(errno == EACCES);
-    if (is_root) {
+    if (is_root)
         ZASSERT(!access("filc/test-output/miscsyscall/writeonly.txt", R_OK));
-    } else {
+    else {
         ZASSERT(access("filc/test-output/miscsyscall/writeonly.txt", R_OK));
         ZASSERT(errno == EACCES);
     }
