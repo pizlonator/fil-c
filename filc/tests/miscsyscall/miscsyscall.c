@@ -40,12 +40,13 @@ int main(int argc, char** argv)
 {
     unsigned zid;
     unsigned id;
-    int res;
+    int res, is_root;
     
     zid = zsys_getuid();
     id = getuid();
     ZASSERT((int)zid >= 0);
     ZASSERT(zid == id);
+    is_root = (id == 0);
     
     zid = zsys_geteuid();
     id = geteuid();
@@ -245,19 +246,32 @@ int main(int argc, char** argv)
     ZASSERT(!access("filc/test-output/miscsyscall/writeonly.txt", F_OK));
     ZASSERT(!access("filc/test-output/miscsyscall/execonly.txt", F_OK));
     ZASSERT(!access("filc/test-output/miscsyscall/readonly.txt", R_OK));
-    ZASSERT(access("filc/test-output/miscsyscall/readonly.txt", W_OK));
-    ZASSERT(errno == EACCES);
+    if (is_root) {
+        ZASSERT(!access("filc/test-output/miscsyscall/readonly.txt", W_OK));
+    } else {
+        ZASSERT(access("filc/test-output/miscsyscall/readonly.txt", W_OK));
+        ZASSERT(errno == EACCES);
+    }
     ZASSERT(access("filc/test-output/miscsyscall/readonly.txt", X_OK));
     ZASSERT(errno == EACCES);
-    ZASSERT(access("filc/test-output/miscsyscall/writeonly.txt", R_OK));
-    ZASSERT(errno == EACCES);
+    if (is_root) {
+        ZASSERT(!access("filc/test-output/miscsyscall/writeonly.txt", R_OK));
+    } else {
+        ZASSERT(access("filc/test-output/miscsyscall/writeonly.txt", R_OK));
+        ZASSERT(errno == EACCES);
+    }
     ZASSERT(!access("filc/test-output/miscsyscall/writeonly.txt", W_OK));
     ZASSERT(access("filc/test-output/miscsyscall/writeonly.txt", X_OK));
     ZASSERT(errno == EACCES);
-    ZASSERT(access("filc/test-output/miscsyscall/execonly.txt", R_OK));
-    ZASSERT(errno == EACCES);
-    ZASSERT(access("filc/test-output/miscsyscall/execonly.txt", W_OK));
-    ZASSERT(errno == EACCES);
+    if (is_root) {
+        ZASSERT(!access("filc/test-output/miscsyscall/execonly.txt", R_OK));
+        ZASSERT(!access("filc/test-output/miscsyscall/execonly.txt", W_OK));
+    } else {
+        ZASSERT(access("filc/test-output/miscsyscall/execonly.txt", R_OK));
+        ZASSERT(errno == EACCES);
+        ZASSERT(access("filc/test-output/miscsyscall/execonly.txt", W_OK));
+        ZASSERT(errno == EACCES);
+    }
     ZASSERT(!access("filc/test-output/miscsyscall/execonly.txt", X_OK));
     ZASSERT(!faccessat(AT_FDCWD, "filc/test-output/miscsyscall/execonly.txt", X_OK, 0));
 
