@@ -1938,7 +1938,29 @@ static PAS_ALWAYS_INLINE void barrier_impl(filc_thread* my_thread, filc_object* 
 {
     PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-    if (PAS_LIKELY(fugc_mark_fast(object) != fugc_mark_fast_marked_and_need_slow_path))
+    /* NOTE: We do not do the leaf marking optimization here because of the following race:
+       
+       One thread does:
+
+       T1. Allocate aux just before barrier is enabled and shove it into object X.
+       
+       And another thread does:
+       
+       T2. Mark object X in response to barriers being enabled.
+       
+       And imagine that happens right as the barrier is being enabled, so T1 doesn't see the barrier
+       being enabled yet (and that means that we're allocating white, since black allocation is after
+       barrier enablement) while T2 does see the barrier being enabled.
+       
+       What could happen is that T2 doesn't see that X has an aux, so it leaf-marks it.
+       
+       Then, we have an aux that never gets marked!
+       
+       The easiest way to fix this is to just turn off the leaf marking optimization in the barrier.
+       But, we could be more precise if we really wanted - for example, we could just turn off the
+       leaf marking in the barrier when we haven't yet acknowledged the first soft handshake (the one
+       after the barrier is enabled). */
+    if (PAS_LIKELY(fugc_mark_fast(object) == fugc_mark_fast_already_marked))
         return;
     barrier_slowest_path_impl(my_thread, object);
 }
