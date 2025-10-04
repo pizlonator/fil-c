@@ -4,4 +4,5 @@
 	.type	foo, @function
 foo:
 	leal	(%rdi,%rsi), %eax
+	addl	z(%rip), %eax
 	ret

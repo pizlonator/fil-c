@@ -6642,6 +6642,13 @@ void filc_native_zerror(filc_thread* my_thread, filc_ptr ptr)
     filc_user_panic(NULL, "%s", str);
 }
 
+void filc_native_zsafety_error(filc_thread* my_thread, filc_ptr ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    char* str = filc_check_and_get_new_str(ptr);
+    filc_safety_panic(NULL, "%s", str);
+}
+
 size_t filc_native_zstrlen(filc_thread* my_thread, filc_ptr ptr)
 {
     return strlen(filc_check_and_get_tmp_str(my_thread, ptr));

@@ -1336,3 +1336,13 @@ void zerrorf(const char* format, ...)
 	zerror(str);
 }
 
+void zsafety_errorf(const char* format, ...)
+{
+	char* str;
+	__builtin_va_list args;
+	__builtin_va_start(args, format);
+	str = zvasprintf(format, args);
+	__builtin_va_end(args);
+	zsafety_error(str);
+}
+

@@ -81,6 +81,16 @@ void zerrorf(const char* str, ...);
         zerrorf("%s:%d: %s: assertion %s failed.", __FILE__, __LINE__, __PRETTY_FUNCTION__, #exp); \
     } while (0)
 
+void zsafety_error(const char* str);
+void zsafety_errorf(const char* str, ...);
+
+#define ZSAFETY_CHECK(exp) do { \
+        if ((exp)) \
+            break; \
+        zsafety_errorf("%s:%d: %s: safety check %s failed.", \
+                       __FILE__, __LINE__, __PRETTY_FUNCTION__, #exp); \
+    } while (0)
+
 /* Allocate `count` bytes of zero-initialized memory. May allocate slightly more than `count`, based
    on the runtime's minalign (which is currently 16).
    
@@ -181,6 +191,11 @@ void* zgc_finq_aligned_alloc(zgc_finq* finq, __SIZE_TYPE__ alignment, __SIZE_TYP
    that the type is compatible with struct foo. */
 void* zgetlower(void* ptr);
 void* zgetupper(void* ptr);
+
+/* Returns true if this is a readonly object.
+ 
+   This will return false for special objects or NULL. */
+filc_bool zis_readonly(void* ptr);
 
 /* Get the pointer's array length, which is the distance to upper in units of the ptr's static type. */
 #define zlength(ptr) ({ \
@@ -595,6 +610,24 @@ void zreturn(void* rets);
    The first argument is the Yolo symbol name of the function to be called. It must be a string
    literal. The remaining arguments are passed along using Yolo C ABI conventions. */
 unsigned long zunsafe_call(const char* symbol_name, ...);
+
+static inline void zcheck(void* ptr, __SIZE_TYPE__ size)
+{
+    if (!size)
+        return;
+    if (!zvalinbounds(ptr, size))
+        zsafety_errorf("%zu bytes are not in bounds of %P.", size, ptr);
+    if (zis_readonly(ptr))
+        zsafety_errorf("%P is readonly.", ptr);
+}
+
+static inline void zcheck_readonly(void* ptr, __SIZE_TYPE__ size)
+{
+    if (!size)
+        return;
+    if (!zvalinbounds(ptr, size))
+        zsafety_errorf("%zu bytes are not in bounds of %P.", size, ptr);
+}
 
 /* Tells you if a va_list has another argument. */
 static inline filc_bool zcan_va_arg(__builtin_va_list list)

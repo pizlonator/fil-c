@@ -1345,6 +1345,16 @@ struct UnsafeFunc {
     Dummy(Dummy), Name(Name) { }
 };
 
+struct UnsafeExport {
+  std::string Name;
+  Constant* Aliasee { nullptr };
+
+  UnsafeExport() = default;
+
+  UnsafeExport(const std::string& Name, Constant* Aliasee):
+    Name(Name), Aliasee(Aliasee) { }
+};
+
 class Pizlonator {
   static constexpr unsigned TargetAS = 0;
   
@@ -1501,6 +1511,8 @@ class Pizlonator {
   std::unordered_map<GlobalValue*, Comdat*> GlobalToComdat;
 
   std::vector<UnsafeFunc> UnsafeFuncs;
+  std::unordered_set<GlobalVariable*> UnsafeExportGVs;
+  std::vector<UnsafeExport> UnsafeExports;
 
   std::string FunctionName;
   Function* OldF { nullptr };
@@ -4038,6 +4050,7 @@ class Pizlonator {
       F->getName() == "zgc_finq_aligned_alloc" ||
       F->getName() == "zgetlower" ||
       F->getName() == "zgetupper" ||
+      F->getName() == "zis_readonly" ||
       F->getName() == "zhasvalidcap" ||
       F->getName() == "zsetcap" ||
       F->getName() == "zptr_to_new_string" ||
@@ -7073,7 +7086,7 @@ class Pizlonator {
           CallInst* Result = CallInst::Create(UnsafeFuncTy, Dummy, Args, "filc_unsafe_call", CI);
           Result->setDebugLoc(CI->getDebugLoc());
           CI->replaceAllUsesWith(Result);
-          CI->eraseFromParent();
+          Erasify();
           return true;
         }
 
@@ -7082,7 +7095,7 @@ class Pizlonator {
             FT->getReturnType() == RawPtrTy) {
           Value* CalleeLower = NewF->getArg(1);
           CI->replaceAllUsesWith(createFlightPtr(CalleeLower, NewF, CI));
-          CI->eraseFromParent();
+          Erasify();
           return true;
         }
 
@@ -7102,7 +7115,7 @@ class Pizlonator {
             CheckClosureFail, { CalleeLower, getOrigin(CI->getDebugLoc()) }, "", FailTerm)
             ->setDebugLoc(CI->getDebugLoc());
           CI->replaceAllUsesWith(loadFlightPtr(CalleeLower, CI));
-          CI->eraseFromParent();
+          Erasify();
           return true;
         }
 
@@ -7132,6 +7145,34 @@ class Pizlonator {
           return true;
         }
 
+        if (F->getName() == "zis_readonly" &&
+            FT->getNumParams() == 1 &&
+            !FT->isVarArg() &&
+            FT->getParamType(0) == RawPtrTy &&
+            FT->getReturnType() == Int1Ty) {
+          lowerConstantOperand(CI->getArgOperandUse(0), CI);
+          Value* Lower = flightPtrLower(CI->getArgOperand(0), CI);
+          ICmpInst* NullLower = new ICmpInst(
+            CI, ICmpInst::ICMP_EQ, Lower, RawNull, "filc_is_null_lower");
+          NullLower->setDebugLoc(CI->getDebugLoc());
+          Instruction* NotNullTerm = SplitBlockAndInsertIfElse(NullLower, CI, false);
+          BinaryOperator* Masked = BinaryOperator::Create(
+            Instruction::And, flagsForLower(Lower, NotNullTerm),
+            ConstantInt::get(IntPtrTy, ObjectFlagReadonly),
+            "filc_flags_masked", NotNullTerm);
+          Masked->setDebugLoc(CI->getDebugLoc());
+          ICmpInst* IsReadOnly = new ICmpInst(
+            NotNullTerm, ICmpInst::ICMP_NE, Masked, ConstantInt::get(IntPtrTy, 0),
+            "filc_object_is_read_only");
+          IsReadOnly->setDebugLoc(CI->getDebugLoc());
+          PHINode* Phi = PHINode::Create(Int1Ty, 2, "filc_readonly_phi", CI);
+          Phi->addIncoming(ConstantInt::getFalse(Int1Ty), NullLower->getParent());
+          Phi->addIncoming(IsReadOnly, NotNullTerm->getParent());
+          CI->replaceAllUsesWith(Phi);
+          Erasify();
+          return true;
+        }
+        
         if (F->getName() == "zthread_self_id" &&
             FT->getNumParams() == 0 &&
             !FT->isVarArg() &&
@@ -8748,6 +8789,15 @@ class Pizlonator {
             Dummy->replaceAllUsesWith(NewGA);
           continue;
         }
+        if (Tok.Str == ".filc_unsafe_export") {
+          std::string Name = MAT.getNextSpecific(MATokenKind::Identifier).Str;
+          MAT.getNextSpecific(MATokenKind::EndLine);
+          GlobalValue* GV = getGlobal(Name);
+          assert(isa<GlobalVariable>(GV));
+          assert(!GV->isThreadLocal());
+          UnsafeExportGVs.insert(cast<GlobalVariable>(GV));
+          continue;
+        }
         if (Tok.Str == ".filc_rename") {
           std::string OldName = MAT.getNextSpecific(MATokenKind::Identifier).Str;
           MAT.getNextSpecific(MATokenKind::Comma);
@@ -10171,6 +10221,10 @@ public:
 
       Constant* NewDataPayloadC = ConstantExpr::getGetElementPtr(
         Int8Ty, NewDataG, ConstantInt::get(IntPtrTy, ObjectSize + AlignmentOffset));
+
+      if (UnsafeExportGVs.count(G))
+        UnsafeExports.push_back(UnsafeExport(G->getName().str(), NewDataPayloadC));
+      
       Constant* NewDataObjectC = ConstantExpr::getGetElementPtr(
         Int8Ty, NewDataG, ConstantInt::get(IntPtrTy, AlignmentOffset));
       
@@ -10646,13 +10700,6 @@ public:
           "filc_call_ifunc_slow", Return);
     }
 
-    for (UnsafeFunc UF : UnsafeFuncs) {
-      assert(!M.getNamedValue(UF.Name));
-      UF.Dummy->replaceAllUsesWith(
-        Function::Create(UnsafeFuncTy, GlobalVariable::ExternalLinkage, 0, UF.Name, &M));
-      UF.Dummy->deleteValue();
-    }
-
     Dummy->deleteValue();
 
     if (verbose)
@@ -10672,6 +10719,17 @@ public:
       if (verbose)
         errs() << "Erasing " << G->getName() << "\n";
       G->eraseFromParent();
+    }
+
+    for (UnsafeFunc UF : UnsafeFuncs) {
+      assert(!M.getNamedValue(UF.Name));
+      UF.Dummy->replaceAllUsesWith(
+        Function::Create(UnsafeFuncTy, GlobalVariable::ExternalLinkage, 0, UF.Name, &M));
+      UF.Dummy->deleteValue();
+    }
+    for (UnsafeExport UE : UnsafeExports) {
+      assert(!M.getNamedValue(UE.Name));
+      GlobalAlias::create(Int8Ty, 0, GlobalVariable::ExternalLinkage, UE.Name, UE.Aliasee, &M);
     }
 
     if (lightVerbose || verbose)
