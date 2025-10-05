@@ -3163,13 +3163,15 @@ static inline filc_ptr filc_load_ptr_atomic_with_manual_tracking(filc_ptr ptr, p
 {
     ptr = filc_ptr_with_offset(ptr, offset);
     filc_check_native_access(ptr, sizeof(void*), filc_read_access);
+    void* raw_ptr = *(void**)filc_ptr_ptr(ptr);
+    pas_load_load_fence();
     filc_lower_or_box lower_or_box = filc_ptr_load_lower_or_box(ptr);
     if (filc_lower_or_box_is_box(lower_or_box)) {
         return filc_atomic_box_load_with_manual_tracking(
             filc_lower_or_box_get_box(lower_or_box));
     }
     return filc_ptr_create_with_lower_and_ptr_and_manual_tracking(
-        filc_lower_or_box_get_lower(lower_or_box), *(void**)filc_ptr_ptr(ptr));
+        filc_lower_or_box_get_lower(lower_or_box), raw_ptr);
 }
 
 static inline void filc_store_ptr(filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset,
@@ -3205,13 +3207,9 @@ static inline void filc_store_ptr_atomic_with_ptr_pair(filc_thread* my_thread,
             lower_or_box_ptr,
             filc_lower_or_box_create_box(filc_atomic_box_create_for_ptr_store(my_thread, value)));
     }
+    pas_store_store_fence();
     *ptr_ptr = filc_ptr_ptr(value);
 }
-
-void filc_store_ptr_atomic_with_ptr_pair_outline(filc_thread* my_thread,
-                                                 void** ptr_ptr,
-                                                 filc_lower_or_box* lower_or_box_ptr,
-                                                 filc_ptr value);
 
 static inline void filc_store_ptr_atomic(filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset,
                                          filc_ptr value)
@@ -3222,6 +3220,9 @@ static inline void filc_store_ptr_atomic(filc_thread* my_thread, filc_ptr ptr, p
     filc_store_ptr_atomic_with_ptr_pair(my_thread, (void**)filc_ptr_ptr(ptr), lower_or_box_ptr,
                                         value);
 }
+
+filc_ptr filc_load_ptr_atomic_with_manual_tracking_outline(filc_ptr ptr);
+void filc_store_ptr_atomic_outline(filc_thread* my_thread, filc_ptr ptr, filc_ptr value);
 
 bool filc_weak_cas_ptr(filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset,
                        filc_ptr expected, filc_ptr new_value);

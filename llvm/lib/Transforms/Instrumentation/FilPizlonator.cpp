@@ -1283,6 +1283,7 @@ struct PtrOperandData {
 };
 
 struct MemoryAccessData {
+  Value* Lower { nullptr };
   Value* P { nullptr };
   Value* AuxP { nullptr };
   Value* AuxBaseP { nullptr };
@@ -1293,8 +1294,9 @@ struct MemoryAccessData {
 
   MemoryAccessData() { }
 
-  MemoryAccessData(Value* P, Value* AuxP, Value* AuxBaseP, MemoryKind MK):
-    P(P), AuxP(AuxP), AuxBaseP(AuxBaseP), MK(MK) {
+  // Lower is only needed if we're doing an atomic access.
+  MemoryAccessData(Value* Lower, Value* P, Value* AuxP, Value* AuxBaseP, MemoryKind MK):
+    Lower(Lower), P(P), AuxP(AuxP), AuxBaseP(AuxBaseP), MK(MK) {
     validate();
   }
 
@@ -1403,7 +1405,8 @@ class Pizlonator {
   // Low-level functions used by codegen.
   FunctionCallee PollcheckSlow;
   FunctionCallee StoreBarrierForLowerSlow;
-  FunctionCallee StorePtrAtomicWithPtrPairOutline;
+  FunctionCallee StorePtrAtomicOutline;
+  FunctionCallee LoadPtrAtomicOutline;
   FunctionCallee ObjectEnsureAuxPtrOutline;
   FunctionCallee ThreadEnsureCCOutlineBufferSlow;
   FunctionCallee StrongCasPtr;
@@ -2070,6 +2073,19 @@ class Pizlonator {
       assert(!isVolatile);
       assert(AO == AtomicOrdering::NotAtomic);
     }
+
+    if (AO != AtomicOrdering::NotAtomic || isVolatile) {
+      assert(MAD.MK == MemoryKind::Heap);
+      assert(MAD.Lower);
+      assert(MAD.P);
+      storeOrigin(getOrigin(InsertBefore->getDebugLoc()), InsertBefore);
+      Instruction* Result = CallInst::Create(
+        LoadPtrAtomicOutline, { createFlightPtr(MAD.Lower, MAD.P, InsertBefore) }, "filc_atomic_load",
+        InsertBefore);
+      Result->setDebugLoc(InsertBefore->getDebugLoc());
+      return Result;
+    }
+    
     Value* BaseAuxPIsNull;
     BasicBlock* OriginalB = InsertBefore->getParent();
     if (MAD.MK == MemoryKind::Heap) {
@@ -2102,6 +2118,8 @@ class Pizlonator {
     };
     
     if (MAD.MK == MemoryKind::Heap) {
+      assert(!isVolatile);
+      assert(AO == AtomicOrdering::NotAtomic);
       Instruction* Masked = BinaryOperator::Create(
         Instruction::And, LowerAsInt, ConstantInt::get(IntPtrTy, AtomicBoxBit),
         "filc_lower_atomic_box_bit", InsertBefore);
@@ -2114,28 +2132,12 @@ class Pizlonator {
       Instruction* ElseTerm;
       SplitBlockAndInsertIfThenElse(expectTrue(IsNotBox, InsertBefore), InsertBefore,
                                     &ThenTerm, &ElseTerm);
-      Value* AtomicCaseNotBoxPtr = nullptr;
-      if (isVolatile || AO != AtomicOrdering::NotAtomic)
-        AtomicCaseNotBoxPtr = FinishCreatingFlight(ThenTerm);
       Instruction* BoxAsInt = BinaryOperator::Create(
         Instruction::And, LowerAsInt, ConstantInt::get(IntPtrTy, ~AtomicBoxBit),
         "filc_box_as_int", ElseTerm);
       BoxAsInt->setDebugLoc(InsertBefore->getDebugLoc());
       Instruction* Box = new IntToPtrInst(BoxAsInt, RawPtrTy, "filc_box", ElseTerm);
       Box->setDebugLoc(InsertBefore->getDebugLoc());
-      if (isVolatile || AO != AtomicOrdering::NotAtomic) {
-        // FIXME: Maybe it would be better if this was a function call.
-        Instruction* PtrWord = new LoadInst(
-          Int128Ty, Box, "filc_ptr_word_from_box", isVolatile, std::max(A, Align(FlightPtrAlign)),
-          getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO), SyncScope::System, ElseTerm);
-        PtrWord->setDebugLoc(InsertBefore->getDebugLoc());
-        Value* AtomicCaseBoxPtr = flightPtrForWord(PtrWord, ElseTerm);
-        PHINode* Result = PHINode::Create(FlightPtrTy, 2, "filc_ptr_load_phi", InsertBefore);
-        Result->setDebugLoc(InsertBefore->getDebugLoc());
-        Result->addIncoming(AtomicCaseNotBoxPtr, ThenTerm->getParent());
-        Result->addIncoming(AtomicCaseBoxPtr, ElseTerm->getParent());
-        return Result;
-      }
       Instruction* LowerFromBoxLoadInt = new LoadInst(
         IntPtrTy, flightPtrLowerPtr(Box, ElseTerm), "filc_lower_from_box", isVolatile,
         Align(WordSize), getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO),
@@ -2196,10 +2198,14 @@ class Pizlonator {
       assert(AO == AtomicOrdering::NotAtomic);
     }
 
-    if (MAD.MK == MemoryKind::Heap && (AO != AtomicOrdering::NotAtomic || isVolatile)) {
+    if (AO != AtomicOrdering::NotAtomic || isVolatile) {
+      assert(MAD.MK == MemoryKind::Heap);
+      assert(MAD.Lower);
+      assert(MAD.P);
+      storeOrigin(getOrigin(InsertBefore->getDebugLoc()), InsertBefore);
       CallInst::Create(
-        StorePtrAtomicWithPtrPairOutline, { MyThread, MAD.P, MAD.AuxP, V }, "", InsertBefore)
-        ->setDebugLoc(InsertBefore->getDebugLoc());
+        StorePtrAtomicOutline, { MyThread, createFlightPtr(MAD.Lower, MAD.P, InsertBefore), V }, "",
+        InsertBefore)->setDebugLoc(InsertBefore->getDebugLoc());
       return;
     }
     
@@ -3214,6 +3220,7 @@ class Pizlonator {
     FMAD.MAD.P = flightPtrPtr(P, InsertBefore);
     Value* Offset;
     if (FMAD.POD.PK == PointerKind::Escaping) {
+      FMAD.MAD.Lower = flightPtrLower(P, InsertBefore);
       if (verbose) {
         errs() << "For " << *I << " and operand index " << OperandIdx << " got AuxBaseVar = "
                << *FMAD.POD.AuxBaseVar << "\n";
@@ -3731,6 +3738,8 @@ class Pizlonator {
     assert(T != FlightPtrTy);
 
     if (T == RawPtrTy) {
+      // FIXME: atomic accesses do checks in native code, so it's kinda redundant that we also do them
+      // in compiled code. The aux ptr shenanigans are especially redundant.
       buildCheck(WordSize, WordSize, HighP, Offset, AK, DI, Checks);
       Checks.push_back(AccessCheckWithDI(HighP, 0, 0, CheckKind::GetAuxPtr, DI));
       if (AK == AccessKind::Write)
@@ -5425,7 +5434,7 @@ class Pizlonator {
       switch (AI.AK) {
       case ArgKind::Direct:
         Result = loadValueRecurseAfterCheck(
-          ArgT, MemoryAccessData(PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC), false,
+          ArgT, MemoryAccessData(nullptr, PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC), false,
           DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System, InsertBefore);
         break;
       case ArgKind::ByVal:
@@ -5513,8 +5522,9 @@ class Pizlonator {
       switch (AI.AK) {
       case ArgKind::Direct: {
         storeValueRecurseAfterCheck(
-          ArgT, Vs[Index], MemoryAccessData(PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC), false,
-          DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System, InsertBefore);
+          ArgT, Vs[Index], MemoryAccessData(nullptr, PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC),
+          false, DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System,
+          InsertBefore);
         break;
       }
       case ArgKind::ByVal: {
@@ -8046,7 +8056,7 @@ class Pizlonator {
         RawPtrTy, Call, { 1 }, "filc_ptr_pair_aux_ptr", VI);
       P->setDebugLoc(VI->getDebugLoc());
       Value* Load = loadValueRecurseAfterCheck(
-        CanonicalT, MemoryAccessData(P, AuxP, AuxP, MemoryKind::Heap), false,
+        CanonicalT, MemoryAccessData(nullptr, P, AuxP, AuxP, MemoryKind::Heap), false,
         DL.getABITypeAlign(CanonicalT), AtomicOrdering::NotAtomic, SyncScope::System, VI);
       VI->replaceAllUsesWith(Load);
       VI->eraseFromParent();
@@ -9792,9 +9802,10 @@ public:
       "filc_pollcheck_slow", VoidTy, RawPtrTy, RawPtrTy);
     StoreBarrierForLowerSlow = M.getOrInsertFunction(
       "filc_store_barrier_for_lower_slow", VoidTy, RawPtrTy, RawPtrTy);
-    StorePtrAtomicWithPtrPairOutline = M.getOrInsertFunction(
-      "filc_store_ptr_atomic_with_ptr_pair_outline",
-      VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, FlightPtrTy);
+    StorePtrAtomicOutline = M.getOrInsertFunction(
+      "filc_store_ptr_atomic_outline", VoidTy, RawPtrTy, FlightPtrTy, FlightPtrTy);
+    LoadPtrAtomicOutline = M.getOrInsertFunction(
+      "filc_load_ptr_atomic_with_manual_tracking_outline", FlightPtrTy, FlightPtrTy);
     ObjectEnsureAuxPtrOutline = M.getOrInsertFunction(
       "filc_object_ensure_aux_ptr_outline", RawPtrTy, RawPtrTy, RawPtrTy);
     ThreadEnsureCCOutlineBufferSlow = M.getOrInsertFunction(
@@ -10126,7 +10137,8 @@ public:
         Return->getOperandUse(0) = Lower;
         Value* Const = constantToFlightValue(G->getInitializer(), Return);
         storeValueRecurseAfterCheck(
-          G->getValueType(), Const, MemoryAccessData(Lower, AuxP, AuxP, MemoryKind::ThreadLocalInit),
+          G->getValueType(), Const,
+          MemoryAccessData(nullptr, Lower, AuxP, AuxP, MemoryKind::ThreadLocalInit),
           false, Align(Alignment), AtomicOrdering::NotAtomic, SyncScope::System, Return);
         new StoreInst(Lower, NewG, Return);
 
@@ -10307,7 +10319,7 @@ public:
         Value* C = constantToFlightValue(G->getInitializer(), Return);
         storeValueRecurseAfterCheck(
           G->getInitializer()->getType(), C,
-          MemoryAccessData(NewDataPayloadC, AuxPtr, AuxPtr, MemoryKind::GlobalInit), false,
+          MemoryAccessData(nullptr, NewDataPayloadC, AuxPtr, AuxPtr, MemoryKind::GlobalInit), false,
           Align(Alignment), AtomicOrdering::NotAtomic, SyncScope::System, Return);
       }
       

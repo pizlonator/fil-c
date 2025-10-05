@@ -1814,12 +1814,14 @@ char* filc_ptr_contents_to_new_string(filc_ptr ptr)
     return pas_string_stream_take_string(&stream);
 }
 
-void filc_store_ptr_atomic_with_ptr_pair_outline(filc_thread* my_thread,
-                                                 void** ptr_ptr,
-                                                 filc_lower_or_box* lower_or_box_ptr,
-                                                 filc_ptr value)
+filc_ptr filc_load_ptr_atomic_with_manual_tracking_outline(filc_ptr ptr)
 {
-    return filc_store_ptr_atomic_with_ptr_pair(my_thread, ptr_ptr, lower_or_box_ptr, value);
+    return filc_load_ptr_atomic_with_manual_tracking(ptr, 0);
+}
+
+void filc_store_ptr_atomic_outline(filc_thread* my_thread, filc_ptr ptr, filc_ptr value)
+{
+    filc_store_ptr_atomic(my_thread, ptr, 0, value);
 }
 
 bool filc_weak_cas_ptr(filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset,
@@ -1845,8 +1847,10 @@ bool filc_weak_cas_ptr(filc_thread* my_thread, filc_ptr ptr, ptrdiff_t offset,
                 continue;
             did_succeed = true;
         }
-        if (did_succeed)
+        if (did_succeed) {
+            pas_store_store_fence();
             *(void**)filc_ptr_ptr(ptr) = filc_ptr_ptr(new_value);
+        }
         return did_succeed;
     }
 }
