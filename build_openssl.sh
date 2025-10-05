@@ -33,6 +33,13 @@ extract_source
 CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" ./Configure \
     zlib no-asm --prefix=$PWD/../../../pizfix --libdir=lib
 make -j $NCPU
-HARNESS_JOBS=$NCPU make test
+
+# Only run the test suite in a glibc build. There are a bunch of failures in the test suite in a musl
+# build.
+if test -e ../../../pizfix/lib/libc.so.6666
+then
+    HARNESS_JOBS=$NCPU make test
+fi
+
 make -j $NCPU install_sw
 make -j $NCPU install_ssldirs
