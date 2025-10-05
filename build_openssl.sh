@@ -32,6 +32,7 @@ cd projects/openssl-3.3.1
 extract_source
 CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" ./Configure \
     zlib no-asm --prefix=$PWD/../../../pizfix --libdir=lib
-$MAKE -j $NCPU
-$MAKE -j $NCPU install_sw
-$MAKE -j $NCPU install_ssldirs
+make -j $NCPU
+HARNESS_JOBS=$NCPU make test
+make -j $NCPU install_sw
+make -j $NCPU install_ssldirs
