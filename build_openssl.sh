@@ -31,7 +31,7 @@ set -x
 cd projects/openssl-3.3.1
 extract_source
 CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" ./Configure \
-    zlib no-asm no-devcryptoeng no-afalgeng --prefix=$PWD/../../../pizfix --libdir=lib
+    zlib no-asm --prefix=$PWD/../../../pizfix --libdir=lib
 $MAKE -j $NCPU
 $MAKE -j $NCPU install_sw
 $MAKE -j $NCPU install_ssldirs
