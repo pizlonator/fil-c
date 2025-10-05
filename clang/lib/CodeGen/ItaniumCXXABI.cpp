@@ -1326,7 +1326,7 @@ ItaniumCXXABI::EmitMemberPointerIsNotNull(CodeGenFunction &CGF,
   // In Itanium, a member function pointer is not null if 'ptr' is not null.
   llvm::Value *Ptr = Builder.CreateExtractValue(MemPtr, 0, "memptr.ptr");
 
-  llvm::Constant *Zero = llvm::ConstantInt::get(Ptr->getType(), 0);
+  llvm::Constant *Zero = llvm::ConstantPointerNull::get(cast<llvm::PointerType>(Ptr->getType()));
   llvm::Value *Result = Builder.CreateICmpNE(Ptr, Zero, "memptr.tobool");
 
   // On ARM, a member function pointer is also non-null if the low bit of 'adj'
