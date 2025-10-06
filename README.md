@@ -1,4 +1,4 @@
-# Fil-C 0.671
+# Fil-C 0.672
 
 Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
 of software compiles and runs with Fil-C with zero or minimal changes. All
@@ -6,13 +6,14 @@ memory safety errors are caught as Fil-C panics. Fil-C achieves this using a
 combination of concurrent garbage collection and invisible capabilities (each
 pointer in memory has a corresponding capability, not visible to the C address
 space). Every fundamental C operation (as seen in LLVM IR) is checked against
-the capability. Fil-C has no `unsafe` escape hatch of any kind.
+the capability. Fil-C has no `unsafe` statement and only limited FFI to unsafe
+code.
 
 Fil-C is special because:
 
 - Fil-C achieves full safety with no escape hatches. There is no `unsafe`
-  keyword in Fil-C that could be used to turn off protections. It's not even
-  possible to link to unsafe code.
+  keyword in Fil-C that could be used to turn off protections. Linking to unsafe
+  code is severely restricted.
 
 - Fil-C's capability-based approach achieves a similar level of safety to
   hardware capabilities like [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/),
