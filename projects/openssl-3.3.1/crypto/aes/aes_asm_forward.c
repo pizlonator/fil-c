@@ -11,7 +11,7 @@
 int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
                         AES_KEY *key)
 {
-    zcheck_readonly(userKey, (bits + 7) / 8);
+    zcheck_readonly(userKey, zchecked_add(bits, 7) / 8);
     zcheck(key, sizeof(AES_KEY));
     return zunsafe_buf_call(bits, "AES_set_encrypt_key", userKey, bits, key);
 }
@@ -19,7 +19,7 @@ int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
 int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
                         AES_KEY *key)
 {
-    zcheck_readonly(userKey, (bits + 7) / 8);
+    zcheck_readonly(userKey, zchecked_add(bits, 7) / 8);
     zcheck(key, sizeof(AES_KEY));
     return zunsafe_buf_call(bits, "AES_set_decrypt_key", userKey, bits, key);
 }

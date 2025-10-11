@@ -25,8 +25,8 @@ void ossl_bsaes_ctr32_encrypt_blocks(const unsigned char *in,
                                      const AES_KEY *key,
                                      const unsigned char ivec[16])
 {
-    zcheck_readonly(in, len);
-    zcheck(out, len);
+    zcheck_readonly(in, zchecked_mul(len, 16));
+    zcheck(out, zchecked_mul(len, 16));
     zcheck_readonly(key, sizeof(AES_KEY));
     zcheck_readonly(ivec, 16);
     zunsafe_buf_call(len, "ossl_bsaes_ctr32_encrypt_blocks", in, out, len, key, ivec);
