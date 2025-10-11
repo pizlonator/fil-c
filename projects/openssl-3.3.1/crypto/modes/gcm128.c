@@ -12,6 +12,7 @@
 #include "internal/cryptlib.h"
 #include "internal/endian.h"
 #include "crypto/modes.h"
+#include <stdfil.h>
 
 #if defined(__GNUC__) && !defined(STRICT_ALIGNMENT)
 typedef size_t size_t_aX __attribute((__aligned__(1)));
@@ -320,9 +321,21 @@ static void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16],
 }
 #  endif
 # else
-void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16], const u8 *inp,
-                    size_t len);
+static void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16])
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zunsafe_fast_call("gcm_gmult_4bit", Xi, Htable);
+}
+
+static void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+                           size_t len)
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zcheck_readonly(inp, len);
+    zunsafe_buf_call(len, "gcm_ghash_4bit", Xi, Htable, inp, len);
+}
 # endif
 
 # define GCM_MUL(ctx)      ctx->funcs.gmult(ctx->Xi.u,ctx->Htable)
@@ -343,20 +356,56 @@ void gcm_ghash_4bit(u64 Xi[2], const u128 Htable[16], const u8 *inp,
          defined(_M_IX86)       || defined(_M_AMD64)    || defined(_M_X64))
 #  define GHASH_ASM_X86_OR_64
 
-void gcm_init_clmul(u128 Htable[16], const u64 Xi[2]);
-void gcm_gmult_clmul(u64 Xi[2], const u128 Htable[16]);
-void gcm_ghash_clmul(u64 Xi[2], const u128 Htable[16], const u8 *inp,
-                     size_t len);
+static void gcm_init_clmul(u128 Htable[16], const u64 Xi[2])
+{
+    zcheck(Htable, sizeof(u128) * 16);
+    zcheck_readonly(Xi, sizeof(u64) * 2);
+    zunsafe_fast_call("gcm_init_clmul", Htable, Xi);
+}
+
+static void gcm_gmult_clmul(u64 Xi[2], const u128 Htable[16])
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zunsafe_fast_call("gcm_gmult_clmul", Xi, Htable);
+}
+
+static void gcm_ghash_clmul(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+                            size_t len)
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zcheck_readonly(inp, len);
+    zunsafe_buf_call(len, "gcm_ghash_clmul", Xi, Htable, inp, len);
+}
 
 #  if defined(__i386) || defined(__i386__) || defined(_M_IX86)
 #   define gcm_init_avx   gcm_init_clmul
 #   define gcm_gmult_avx  gcm_gmult_clmul
 #   define gcm_ghash_avx  gcm_ghash_clmul
 #  else
-void gcm_init_avx(u128 Htable[16], const u64 Xi[2]);
-void gcm_gmult_avx(u64 Xi[2], const u128 Htable[16]);
+static void gcm_init_avx(u128 Htable[16], const u64 Xi[2])
+{
+    zcheck(Htable, sizeof(u128) * 16);
+    zcheck_readonly(Xi, sizeof(u64) * 2);
+    zunsafe_fast_call("gcm_init_avx", Htable, Xi);
+}
+
+static void gcm_gmult_avx(u64 Xi[2], const u128 Htable[16])
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zunsafe_fast_call("gcm_gmult_avx", Xi, Htable);
+}
+
 void gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *inp,
-                   size_t len);
+                          size_t len)
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(Htable, sizeof(u128) * 16);
+    zcheck_readonly(inp, len);
+    zunsafe_buf_call(len, "gcm_ghash_avx", Xi, Htable, inp, len);
+}
 #  endif
 
 #  if   defined(__i386) || defined(__i386__) || defined(_M_IX86)

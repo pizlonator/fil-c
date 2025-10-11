@@ -27,6 +27,7 @@
 #include "crypto/evp.h"
 #include "internal/constant_time.h"
 #include "evp_local.h"
+#include <stdfil.h>
 
 typedef struct {
     AES_KEY ks;
@@ -99,7 +100,12 @@ static int aesni_cbc_hmac_sha1_init_key(EVP_CIPHER_CTX *ctx,
 #  define aes_off 0
 # endif
 
-void sha1_block_data_order(void *c, const void *p, size_t len);
+void sha1_block_data_order(void *c, const void *p, size_t len)
+{
+    zcheck(c, sizeof(SHA_CTX));
+    zcheck_readonly(p, zchecked_mul(len, SHA_CBLOCK));
+    zunsafe_buf_call(zchecked_mul(len, SHA_CBLOCK), "sha1_block_data_order", c, p, len);
+}
 
 static void sha1_update(SHA_CTX *c, const void *data, size_t len)
 {
@@ -147,7 +153,20 @@ typedef struct {
     int blocks;
 } HASH_DESC;
 
-void sha1_multi_block(SHA1_MB_CTX *, const HASH_DESC *, int);
+void sha1_multi_block(SHA1_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
+{
+    zcheck(ctx, sizeof(SHA1_MB_CTX));
+    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
+    unsigned len = n4x * 4;
+    zcheck_readonly(inp, zchecked_mul(len, sizeof(HASH_DESC)));
+    unsigned i;
+    unsigned total = 0;
+    for (i = len; i--;) {
+        zcheck_readonly(inp[i].ptr, zchecked_mul(inp[i].blocks, 64));
+        total += zchecked_mul(inp[i].blocks, 64);
+    }
+    zunsafe_buf_call(total, "sha1_multi_block", ctx, inp, n4x);
+}
 
 typedef struct {
     const unsigned char *inp;

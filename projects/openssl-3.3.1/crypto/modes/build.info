@@ -4,7 +4,7 @@ $MODESASM=
 IF[{- !$disabled{asm} -}]
   $MODESASM_x86=ghash-x86.S
   $MODESDEF_x86=GHASH_ASM
-  $MODESASM_x86_64=ghash-x86_64.s aesni-gcm-x86_64.s aes-gcm-avx512.s
+  $MODESASM_x86_64=ghash-x86_64.s aesni_gcm_asm_forward.c aesni-gcm-x86_64.s aes-gcm-avx512.s
   $MODESDEF_x86_64=GHASH_ASM
 
   # ghash-ia64.s doesn't work on VMS

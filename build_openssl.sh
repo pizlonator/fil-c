@@ -30,8 +30,8 @@ set -x
 
 cd projects/openssl-3.3.1
 extract_source
-CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" ./Configure \
-    zlib no-asm --prefix=$PWD/../../../pizfix --libdir=lib
+CC="$PWD/../../../build/bin/clang -g -O2" ./Configure \
+    zlib --prefix=$PWD/../../../pizfix --libdir=lib
 make -j $NCPU
 
 # Only run the test suite in a glibc build. There are a bunch of failures in the test suite in a musl

@@ -21,16 +21,16 @@
  * appears to lead to invalid ELF files being produced.
  */
 
+#define TOBN(hi,lo) (((unsigned long)hi<<32)|(unsigned long)lo)
+
 #if defined(__GNUC__)
-__attribute((aligned(4096)))
+__attribute__((aligned(4096)))
 #elif defined(_MSC_VER)
 __declspec(align(4096))
 #elif defined(__SUNPRO_C)
 # pragma align 4096(ecp_nistz256_precomputed)
 #endif
-static const BN_ULONG ecp_nistz256_precomputed[37][64 *
-                                                   sizeof(P256_POINT_AFFINE) /
-                                                   sizeof(BN_ULONG)] = {
+const unsigned long ecp_nistz256_precomputed[37][64 * 8] = {
     {TOBN(0x79e730d4, 0x18a9143c), TOBN(0x75ba95fc, 0x5fedb601),
      TOBN(0x79fb732b, 0x77622510), TOBN(0x18905f76, 0xa53755c6),
      TOBN(0xddf25357, 0xce95560a), TOBN(0x8b4ab8e4, 0xba19e45c),

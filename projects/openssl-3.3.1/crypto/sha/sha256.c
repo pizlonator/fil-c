@@ -23,6 +23,7 @@
 #include <openssl/opensslv.h>
 #include "internal/endian.h"
 #include "crypto/sha.h"
+#include <stdfil.h>
 
 int SHA224_Init(SHA256_CTX *c)
 {
@@ -122,6 +123,15 @@ void sha256_block_data_order_c(SHA256_CTX *ctx, const void *in, size_t num);
 # endif /* INCLUDE_C_SHA256 */
 #endif /* SHA256_ASM */
 void sha256_block_data_order(SHA256_CTX *ctx, const void *in, size_t num);
+
+#ifdef SHA256_ASM
+void sha256_block_data_order(SHA256_CTX *ctx, const void *in, size_t num)
+{
+    zcheck(ctx, sizeof(SHA256_CTX));
+    zcheck_readonly(in, zchecked_mul(num, SHA256_CBLOCK));
+    zunsafe_buf_call(zchecked_mul(num, SHA256_CBLOCK), "sha256_block_data_order", ctx, in, num);
+}
+#endif
 
 #include "crypto/md32_common.h"
 

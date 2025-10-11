@@ -3,7 +3,7 @@ LIBS=../../libcrypto
 $RC4ASM=rc4_enc.c rc4_skey.c
 IF[{- !$disabled{asm} -}]
   $RC4ASM_x86=rc4-586.S
-  $RC4ASM_x86_64=rc4-x86_64.s rc4-md5-x86_64.s
+  $RC4ASM_x86_64=rc4-x86_64.s rc4_md5_asm_forward.c rc4-md5-x86_64.s
   $RC4ASM_s390x=rc4-s390x.s
   $RC4ASM_parisc11=rc4-parisc.s
   $RC4ASM_parisc20_64=$RC4ASM_parisc11
@@ -12,7 +12,7 @@ IF[{- !$disabled{asm} -}]
   # Now that we have defined all the arch specific variables, use the
   # appropriate one, and define the appropriate macros
   IF[$RC4ASM_{- $target{asm_arch} -}]
-    $RC4ASM=$RC4ASM_{- $target{asm_arch} -}
+    $RC4ASM=rc4_asm_forward.c $RC4ASM_{- $target{asm_arch} -}
     $RC4DEF=RC4_ASM
   ENDIF
 ENDIF

@@ -27,6 +27,7 @@
 #include "internal/constant_time.h"
 #include "crypto/evp.h"
 #include "evp_local.h"
+#include <stdfil.h>
 
 typedef struct {
     AES_KEY ks;
@@ -141,7 +142,20 @@ typedef struct {
     int blocks;
 } HASH_DESC;
 
-void sha256_multi_block(SHA256_MB_CTX *, const HASH_DESC *, int);
+void sha256_multi_block(SHA256_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
+{
+    zcheck(ctx, sizeof(SHA256_MB_CTX));
+    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
+    unsigned len = n4x * 4;
+    zcheck_readonly(inp, zchecked_mul(len, sizeof(HASH_DESC)));
+    unsigned i;
+    unsigned total = 0;
+    for (i = len; i--;) {
+        zcheck_readonly(inp[i].ptr, zchecked_mul(inp[i].blocks, 64));
+        total += zchecked_mul(inp[i].blocks, 64);
+    }
+    zunsafe_buf_call(total, "sha256_multi_block", ctx, inp, n4x);
+}
 
 typedef struct {
     const unsigned char *inp;

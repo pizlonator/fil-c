@@ -3,7 +3,7 @@ IF[{- !$disabled{asm} -}]
   $ECASM_x86=ecp_nistz256.c ecp_nistz256-x86.S
   $ECDEF_x86=ECP_NISTZ256_ASM
 
-  $ECASM_x86_64=ecp_nistz256.c ecp_nistz256-x86_64.s
+  $ECASM_x86_64=ecp_nistz256.c ecp_nistz256_table.c ecp_nistz256-x86_64.s
   $ECDEF_x86_64=ECP_NISTZ256_ASM
   IF[{- !$disabled{'ecx'} -}]
     $ECASM_x86_64=$ECASM_x86_64 x25519-x86_64.s

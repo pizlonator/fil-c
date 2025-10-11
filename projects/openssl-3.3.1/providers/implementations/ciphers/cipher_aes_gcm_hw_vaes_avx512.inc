@@ -19,27 +19,69 @@
 # define VAES_GCM_ENABLED
 
 /* Returns non-zero when AVX512F + VAES + VPCLMULDQD combination is available */
-int ossl_vaes_vpclmulqdq_capable(void);
+static int ossl_vaes_vpclmulqdq_capable(void)
+{
+    return zunsafe_fast_call("ossl_vaes_vpclmulqdq_capable");
+}
 
 # define OSSL_AES_GCM_UPDATE(direction)                                 \
+    static                                                              \
     void ossl_aes_gcm_ ## direction ## _avx512(const void *ks,          \
                                                void *gcm128ctx,         \
                                                unsigned int *pblocklen, \
                                                const unsigned char *in, \
                                                size_t len,              \
-                                               unsigned char *out);
+                                               unsigned char *out)      \
+    {                                                                   \
+        zcheck_readonly(ks, sizeof(AES_KEY));                           \
+        zcheck(gcm128ctx, sizeof(GCM128_CONTEXT));                      \
+        zcheck(pblocklen, sizeof(unsigned int));                        \
+        zcheck_readonly(in, len);                                       \
+        zcheck(out, len);                                               \
+        zunsafe_buf_call(                                               \
+            len, "ossl_aes_gcm_" #direction "_avx512",                  \
+            ks, gcm128ctx, pblocklen, in, len, out);                    \
+    }
 
 OSSL_AES_GCM_UPDATE(encrypt)
 OSSL_AES_GCM_UPDATE(decrypt)
 
-void ossl_aes_gcm_init_avx512(const void *ks, void *gcm128ctx);
-void ossl_aes_gcm_setiv_avx512(const void *ks, void *gcm128ctx,
-                               const unsigned char *iv, size_t ivlen);
-void ossl_aes_gcm_update_aad_avx512(void *gcm128ctx, const unsigned char *aad,
-                                    size_t aadlen);
-void ossl_aes_gcm_finalize_avx512(void *gcm128ctx, unsigned int pblocklen);
+static void ossl_aes_gcm_init_avx512(const void *ks, void *gcm128ctx)
+{
+    zcheck_readonly(ks, sizeof(AES_KEY));
+    zcheck(gcm128ctx, sizeof(GCM128_CONTEXT));
+    zunsafe_fast_call("ossl_aes_gcm_init_avx512", ks, gcm128ctx);
+}
 
-void ossl_gcm_gmult_avx512(u64 Xi[2], const void *gcm128ctx);
+static void ossl_aes_gcm_setiv_avx512(const void *ks, void *gcm128ctx,
+                                      const unsigned char *iv, size_t ivlen)
+{
+    zcheck_readonly(ks, sizeof(AES_KEY));
+    zcheck(gcm128ctx, sizeof(GCM128_CONTEXT));
+    zcheck_readonly(iv, ivlen);
+    zunsafe_buf_call(ivlen, "ossl_aes_gcm_setiv_avx512", ks, gcm128ctx, iv, ivlen);
+}
+
+static void ossl_aes_gcm_update_aad_avx512(void *gcm128ctx, const unsigned char *aad,
+                                           size_t aadlen)
+{
+    zcheck(gcm128ctx, sizeof(GCM128_CONTEXT));
+    zcheck_readonly(aad, aadlen);
+    zunsafe_buf_call(aadlen, "ossl_aes_gcm_update_aad_avx512", gcm128ctx, aad, aadlen);
+}
+
+static void ossl_aes_gcm_finalize_avx512(void *gcm128ctx, unsigned int pblocklen)
+{
+    zcheck(gcm128ctx, sizeof(GCM128_CONTEXT));
+    zunsafe_fast_call("ossl_aes_gcm_finalize_avx512", gcm128ctx, pblocklen);
+}
+
+static void ossl_gcm_gmult_avx512(u64 Xi[2], const void *gcm128ctx)
+{
+    zcheck(Xi, sizeof(u64) * 2);
+    zcheck_readonly(gcm128ctx, sizeof(GCM128_CONTEXT));
+    zunsafe_fast_call("ossl_gcm_gmult_avx512", Xi, gcm128ctx);
+}
 
 static int vaes_gcm_setkey(PROV_GCM_CTX *ctx, const unsigned char *key,
                            size_t keylen)

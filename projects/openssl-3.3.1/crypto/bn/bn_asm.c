@@ -11,6 +11,7 @@
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include <stdfil.h>
 
 #if defined(BN_LLONG) || defined(BN_UMULT_HIGH)
 
@@ -1040,3 +1041,16 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
 # endif
 
 #endif                          /* !BN_MUL_COMBA */
+
+#ifndef OPENSSL_NO_ASM
+int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
+                const BN_ULONG *np, const BN_ULONG *n0, int num)
+{
+    zcheck(rp, zchecked_mul(num, sizeof(BN_ULONG)));
+    zcheck_readonly(ap, zchecked_mul(num, sizeof(BN_ULONG)));
+    zcheck_readonly(bp, zchecked_mul(num, sizeof(BN_ULONG)));
+    zcheck_readonly(np, zchecked_mul(num, sizeof(BN_ULONG)));
+    zcheck_readonly(n0, sizeof(BN_ULONG));
+    return zunsafe_buf_call(num, "bn_mul_mont", rp, ap, bp, np, n0, num);
+}
+#endif

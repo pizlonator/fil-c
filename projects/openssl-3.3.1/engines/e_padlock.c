@@ -24,6 +24,7 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <openssl/modes.h>
+#include <stdfil.h>
 
 #ifndef OPENSSL_NO_PADLOCKENG
 
@@ -214,27 +215,83 @@ struct padlock_cipher_data {
 };
 
 /* Interface to assembler module */
-unsigned int padlock_capability(void);
-void padlock_key_bswap(AES_KEY *key);
-void padlock_verify_context(struct padlock_cipher_data *ctx);
-void padlock_reload_key(void);
-void padlock_aes_block(void *out, const void *inp,
-                       struct padlock_cipher_data *ctx);
-int padlock_ecb_encrypt(void *out, const void *inp,
-                        struct padlock_cipher_data *ctx, size_t len);
-int padlock_cbc_encrypt(void *out, const void *inp,
-                        struct padlock_cipher_data *ctx, size_t len);
-int padlock_cfb_encrypt(void *out, const void *inp,
-                        struct padlock_cipher_data *ctx, size_t len);
-int padlock_ofb_encrypt(void *out, const void *inp,
-                        struct padlock_cipher_data *ctx, size_t len);
-int padlock_ctr32_encrypt(void *out, const void *inp,
-                          struct padlock_cipher_data *ctx, size_t len);
-int padlock_xstore(void *out, int edx);
-void padlock_sha1_oneshot(void *ctx, const void *inp, size_t len);
-void padlock_sha1(void *ctx, const void *inp, size_t len);
-void padlock_sha256_oneshot(void *ctx, const void *inp, size_t len);
-void padlock_sha256(void *ctx, const void *inp, size_t len);
+static unsigned int padlock_capability(void)
+{
+    return zunsafe_fast_call("padlock_capability");
+}
+
+static void padlock_key_bswap(AES_KEY *key)
+{
+    zcheck(key, sizeof(AES_KEY));
+    zunsafe_fast_call("padlock_key_bswap", key);
+}
+
+static void padlock_reload_key(void)
+{
+    zunsafe_fast_call("padlock_reload_key");
+}
+
+static void padlock_aes_block(void *out, const void *inp,
+                              struct padlock_cipher_data *ctx)
+{
+    zcheck(out, AES_BLOCK_SIZE);
+    zcheck_readonly(inp, AES_BLOCK_SIZE);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    zunsafe_fast_call("padlock_aes_block", out, inp, ctx);
+}
+
+static int padlock_ecb_encrypt(void *out, const void *inp,
+                               struct padlock_cipher_data *ctx, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    return zunsafe_buf_call(len, "padlock_ecb_encrypt", out, inp, ctx, len);
+}
+
+static int padlock_cbc_encrypt(void *out, const void *inp,
+                               struct padlock_cipher_data *ctx, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    return zunsafe_buf_call(len, "padlock_cbc_encrypt", out, inp, ctx, len);
+}
+
+static int padlock_cfb_encrypt(void *out, const void *inp,
+                               struct padlock_cipher_data *ctx, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    return zunsafe_buf_call(len, "padlock_cfb_encrypt", out, inp, ctx, len);
+}
+
+static int padlock_ofb_encrypt(void *out, const void *inp,
+                               struct padlock_cipher_data *ctx, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    return zunsafe_buf_call(len, "padlock_ofb_encrypt", out, inp, ctx, len);
+}
+
+static int padlock_ctr32_encrypt(void *out, const void *inp,
+                                 struct padlock_cipher_data *ctx, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(ctx, sizeof(struct padlock_cipher_data));
+    return zunsafe_buf_call(len, "padlock_ctr32_encrypt", out, inp, ctx, len);
+}
+
+static int padlock_xstore(void *out, int edx)
+{
+    zcheck(out, 8); /* Really, the xstore might be requested to store only 4 bytes and out may point
+                       at an int. But we don't have to be so precise since an int in Fil-C is really
+                       16 bytes. */
+    return zunsafe_fast_call("padlock_xstore", out, edx);
+}
 
 /*
  * Load supported features of the CPU to see if the PadLock is available.

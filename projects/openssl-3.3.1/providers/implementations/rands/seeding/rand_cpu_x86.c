@@ -11,6 +11,7 @@
 #include <openssl/opensslconf.h>
 #include "crypto/rand_pool.h"
 #include "prov/seeding.h"
+#include <stdfil.h>
 
 #ifdef OPENSSL_RAND_SEED_RDCPU
 # if defined(OPENSSL_SYS_TANDEM) && defined(_TNS_X_TARGET)

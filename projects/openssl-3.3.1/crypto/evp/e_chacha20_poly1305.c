@@ -18,6 +18,7 @@
 # include "crypto/evp.h"
 # include "evp_local.h"
 # include "crypto/chacha.h"
+# include <stdfil.h>
 
 typedef struct {
     union {
@@ -204,8 +205,20 @@ static int chacha20_poly1305_init_key(EVP_CIPHER_CTX *ctx,
 #   if defined(POLY1305_ASM) && (defined(__x86_64) || defined(__x86_64__) || \
                                  defined(_M_AMD64) || defined(_M_X64))
 #    define XOR128_HELPERS
-void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
-void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
+void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(otp, (len + 15) & -16);
+    return zmkptr(otp, zunsafe_buf_call(len, "xor128_encrypt_n_pad", out, inp, otp, len));
+}
+void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
+{
+    zcheck(out, len);
+    zcheck_readonly(inp, len);
+    zcheck(otp, (len + 15) & -16);
+    return zmkptr(otp, zunsafe_buf_call(len, "xor128_decrypt_n_pad", out, inp, otp, len));
+}
 static const unsigned char zero[4 * CHACHA_BLK_SIZE] = { 0 };
 #   else
 static const unsigned char zero[2 * CHACHA_BLK_SIZE] = { 0 };

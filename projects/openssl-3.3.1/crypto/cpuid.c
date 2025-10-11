@@ -9,6 +9,7 @@
 
 #include "internal/e_os.h"
 #include "crypto/cryptlib.h"
+#include <stdfil.h>
 
 #if     defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \
         defined(__x86_64) || defined(__x86_64__) || \
@@ -92,10 +93,18 @@ static variant_char *ossl_strchr(const variant_char *str, char srch)
 #  define OPENSSL_CPUID_SETUP
 typedef uint64_t IA32CAP;
 
+unsigned int OPENSSL_ia32cap_P[4];
+asm(".filc_unsafe_export OPENSSL_ia32cap_P");
+
+static IA32CAP OPENSSL_ia32_cpuid(unsigned int *ptr)
+{
+    zcheck(ptr, sizeof(unsigned int) * 4);
+    return zunsafe_fast_call("OPENSSL_ia32_cpuid", ptr);
+}
+
 void OPENSSL_cpuid_setup(void)
 {
     static int trigger = 0;
-    IA32CAP OPENSSL_ia32_cpuid(unsigned int *);
     IA32CAP vec;
     const variant_char *env;
 
@@ -154,6 +163,39 @@ void OPENSSL_cpuid_setup(void)
      */
     OPENSSL_ia32cap_P[0] = (unsigned int)vec | (1 << 10);
     OPENSSL_ia32cap_P[1] = (unsigned int)(vec >> 32);
+}
+static void init(void) __attribute__((constructor));
+static void init(void)
+{
+    OPENSSL_cpuid_setup();
+}
+
+void OPENSSL_cleanse(void *ptr, size_t len)
+{
+    zmemset(ptr, 0, len);
+}
+
+int CRYPTO_memcmp(const void *a, const void *b, size_t len)
+{
+    zcheck_readonly(a, len);
+    zcheck_readonly(b, len);
+    return zunsafe_buf_call(len, "CRYPTO_memcmp", a, b, len);
+}
+
+uint32_t OPENSSL_rdtsc(void)
+{
+    return zunsafe_fast_call("OPENSSL_rdtsc");
+}
+
+size_t OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len)
+{
+    zcheck(buf, len);
+    return zunsafe_buf_call(len, "OPENSSL_ia32_rdseed_bytes", buf, len);
+}
+size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len)
+{
+    zcheck(buf, len);
+    return zunsafe_buf_call(len, "OPENSSL_ia32_rdrand_bytes", buf, len);
 }
 # else
 unsigned int OPENSSL_ia32cap_P[4];

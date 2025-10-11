@@ -12,6 +12,7 @@
 #include <openssl/crypto.h>
 
 #include "crypto/poly1305.h"
+#include <stdfil.h>
 
 size_t Poly1305_ctx_size(void)
 {
@@ -423,11 +424,28 @@ static void poly1305_emit(void *ctx, unsigned char mac[16],
 }
 # endif
 #else
-int poly1305_init(void *ctx, const unsigned char key[16], void *func);
-void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
-                     unsigned int padbit);
-void poly1305_emit(void *ctx, unsigned char mac[16],
-                   const unsigned int nonce[4]);
+static int poly1305_init(void *ctx, const unsigned char key[16], void *func)
+{
+    zcheck(ctx, sizeof(poly1305_opaque));
+    zcheck_readonly(key, 16);
+    zcheck(func, sizeof(void*) * 2);
+    return zunsafe_fast_call("poly1305_init", ctx, key, func);
+}
+static void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
+                            unsigned int padbit)
+{
+    zcheck(ctx, sizeof(poly1305_opaque));
+    zcheck_readonly(inp, len);
+    zunsafe_buf_call(len, "poly1305_blocks", ctx, inp, len, padbit);
+}
+static void poly1305_emit(void *ctx, unsigned char mac[16],
+                          const unsigned int nonce[4])
+{
+    zcheck(ctx, sizeof(poly1305_opaque));
+    zcheck(mac, 16);
+    zcheck_readonly(nonce, sizeof(unsigned) * 4);
+    zunsafe_fast_call("poly1305_emit", ctx, mac, nonce);
+}
 #endif
 
 void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
@@ -456,26 +474,8 @@ void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
 
 }
 
-#ifdef POLY1305_ASM
-/*
- * This "eclipses" poly1305_blocks and poly1305_emit, but it's
- * conscious choice imposed by -Wshadow compiler warnings.
- */
-# define poly1305_blocks (*poly1305_blocks_p)
-# define poly1305_emit   (*poly1305_emit_p)
-#endif
-
 void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
 {
-#ifdef POLY1305_ASM
-    /*
-     * As documented, poly1305_blocks is never called with input
-     * longer than single block and padbit argument set to 0. This
-     * property is fluently used in assembly modules to optimize
-     * padbit handling on loop boundary.
-     */
-    poly1305_blocks_f poly1305_blocks_p = ctx->func.blocks;
-#endif
     size_t rem, num;
 
     if ((num = ctx->num)) {
@@ -509,10 +509,6 @@ void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
 
 void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
 {
-#ifdef POLY1305_ASM
-    poly1305_blocks_f poly1305_blocks_p = ctx->func.blocks;
-    poly1305_emit_f poly1305_emit_p = ctx->func.emit;
-#endif
     size_t num;
 
     if ((num = ctx->num)) {

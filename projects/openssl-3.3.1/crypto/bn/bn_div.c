@@ -159,7 +159,7 @@ static int bn_left_align(BIGNUM *num)
 }
 
 # if !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM) \
-    && !defined(PEDANTIC) && !defined(BN_DIV3W)
+    && !defined(PEDANTIC) && !defined(BN_DIV3W) && !defined(__FILC__)
 #  if defined(__GNUC__) && __GNUC__>=2
 #   if defined(__i386) || defined (__i386__)
    /*-

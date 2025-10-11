@@ -4706,35 +4706,35 @@ $code.=<<___ if ($addx);
 ___
 }
 
-########################################################################
-# Convert ecp_nistz256_table.c to layout expected by ecp_nistz_gather_w7
-#
-open TABLE,"<ecp_nistz256_table.c"		or
-open TABLE,"<${dir}../ecp_nistz256_table.c"	or
-die "failed to open ecp_nistz256_table.c:",$!;
-
-use integer;
-
-foreach(<TABLE>) {
-	s/TOBN\(\s*(0x[0-9a-f]+),\s*(0x[0-9a-f]+)\s*\)/push @arr,hex($2),hex($1)/geo;
-}
-close TABLE;
-
-die "insane number of elements" if ($#arr != 64*16*37-1);
-
-print <<___;
-.text
-.globl	ecp_nistz256_precomputed
-.type	ecp_nistz256_precomputed,\@object
-.align	4096
-ecp_nistz256_precomputed:
-___
-while (@line=splice(@arr,0,16)) {
-	print ".long\t",join(',',map { sprintf "0x%08x",$_} @line),"\n";
-}
-print <<___;
-.size	ecp_nistz256_precomputed,.-ecp_nistz256_precomputed
-___
+# ########################################################################
+# # Convert ecp_nistz256_table.c to layout expected by ecp_nistz_gather_w7
+# #
+# open TABLE,"<ecp_nistz256_table.c"		or
+# open TABLE,"<${dir}../ecp_nistz256_table.c"	or
+# die "failed to open ecp_nistz256_table.c:",$!;
+# 
+# use integer;
+# 
+# foreach(<TABLE>) {
+# 	s/TOBN\(\s*(0x[0-9a-f]+),\s*(0x[0-9a-f]+)\s*\)/push @arr,hex($2),hex($1)/geo;
+# }
+# close TABLE;
+# 
+# die "insane number of elements" if ($#arr != 64*16*37-1);
+# 
+# print <<___;
+# .text
+# .globl	ecp_nistz256_precomputed
+# .type	ecp_nistz256_precomputed,\@object
+# .align	4096
+# ecp_nistz256_precomputed:
+# ___
+# while (@line=splice(@arr,0,16)) {
+# 	print ".long\t",join(',',map { sprintf "0x%08x",$_} @line),"\n";
+# }
+# print <<___;
+# .size	ecp_nistz256_precomputed,.-ecp_nistz256_precomputed
+# ___
 
 $code =~ s/\`([^\`]*)\`/eval $1/gem;
 print $code;

@@ -611,6 +611,20 @@ void zreturn(void* rets);
    literal. The remaining arguments are passed along using Yolo C ABI conventions. */
 unsigned long zunsafe_call(const char* symbol_name, ...);
 
+/* Exactly like `zunsafe_call`, but for those cases where you know that the call will complete in a
+   bounded (and sufficiently short) amount of time.
+
+   In the worst case, if you call this instead of zunsafe_call, then you're just delaying GC progress.
+   It's not the end of the world. Maybe we're talking about denial of service, at worst.
+
+   This only turns into a big problem if you use zunsafe_fast_call to do something that has truly
+   unbounded execution time (like a syscall that blocks indefinitely, or an infinite loop). Otherwise
+   it's a perf pathology that you may or may not care enough to fix. */
+unsigned long zunsafe_fast_call(const char* symbol_name, ...);
+
+/* Performs either a `zunsafe_fast_call` or `zunsafe_call` depending on the `size`. */
+unsigned long zunsafe_buf_call(__SIZE_TYPE__ size, const char* symbol_name, ...);
+
 static inline void zcheck(void* ptr, __SIZE_TYPE__ size)
 {
     if (!size)
@@ -621,12 +635,28 @@ static inline void zcheck(void* ptr, __SIZE_TYPE__ size)
         zsafety_errorf("%P is readonly.", ptr);
 }
 
-static inline void zcheck_readonly(void* ptr, __SIZE_TYPE__ size)
+static inline void zcheck_readonly(const void* ptr, __SIZE_TYPE__ size)
 {
     if (!size)
         return;
-    if (!zvalinbounds(ptr, size))
+    if (!zvalinbounds((void*)ptr, size))
         zsafety_errorf("%zu bytes are not in bounds of %P.", size, ptr);
+}
+
+static inline __SIZE_TYPE__ zchecked_add(__SIZE_TYPE__ a, __SIZE_TYPE__ b)
+{
+    __SIZE_TYPE__ result;
+    if (__builtin_add_overflow(a, b, &result))
+        zsafety_errorf("%zu + %zu overflowed.", a, b);
+    return result;
+}
+
+static inline __SIZE_TYPE__ zchecked_mul(__SIZE_TYPE__ a, __SIZE_TYPE__ b)
+{
+    __SIZE_TYPE__ result;
+    if (__builtin_mul_overflow(a, b, &result))
+        zsafety_errorf("%zu * %zu overflowed.", a, b);
+    return result;
 }
 
 /* Tells you if a va_list has another argument. */

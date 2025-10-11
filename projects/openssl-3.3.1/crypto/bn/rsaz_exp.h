@@ -16,7 +16,9 @@
 # define OSSL_CRYPTO_BN_RSAZ_EXP_H
 
 # undef RSAZ_ENABLED
-# if defined(OPENSSL_BN_ASM_MONT) && \
+/* FIXME: No reason why we can't enable these for Fil-C at some point. My understanding is that these
+   code paths are just an optimization and they're not meant to be anything but that. */
+# if !defined(__FILC__) && defined(OPENSSL_BN_ASM_MONT) &&  \
         (defined(__x86_64) || defined(__x86_64__) || \
          defined(_M_AMD64) || defined(_M_X64))
 #  define RSAZ_ENABLED

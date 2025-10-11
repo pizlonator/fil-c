@@ -58,6 +58,7 @@
 
 #include "internal/cryptlib.h"
 #include "crypto/sha.h"
+#include <stdfil.h>
 
 #if defined(__i386) || defined(__i386__) || defined(_M_IX86) || \
     defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || \
@@ -155,6 +156,15 @@ void sha512_block_data_order_c(SHA512_CTX *ctx, const void *in, size_t num);
 # endif
 #endif
 void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
+
+#ifdef SHA512_ASM
+void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num)
+{
+    zcheck(ctx, sizeof(SHA512_CTX));
+    zcheck_readonly(in, zchecked_mul(num, SHA512_CBLOCK));
+    zunsafe_buf_call(zchecked_mul(num, SHA512_CBLOCK), "sha512_block_data_order", ctx, in, num);
+}
+#endif
 
 int SHA512_Final(unsigned char *md, SHA512_CTX *c)
 {

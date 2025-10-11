@@ -16,6 +16,7 @@
 #include "internal/deprecated.h"
 
 #include "cipher_aes_gcm.h"
+#include <stdfil.h>
 
 static int aes_gcm_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
                                    size_t keylen)
@@ -26,6 +27,7 @@ static int aes_gcm_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
 # ifdef HWAES_CAPABLE
     if (HWAES_CAPABLE) {
 #  ifdef HWAES_ctr32_encrypt_blocks
+
         GCM_HW_SET_KEY_CTR_FN(ks, HWAES_set_encrypt_key, HWAES_encrypt,
                               HWAES_ctr32_encrypt_blocks);
 #  else

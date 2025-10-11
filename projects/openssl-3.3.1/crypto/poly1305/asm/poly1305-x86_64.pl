@@ -95,6 +95,11 @@ if (!$avx && `$ENV{CC} -v 2>&1` =~ /((?:clang|LLVM) version|.*based on LLVM) ([0
 	$avx = ($2>=3.0) + ($2>3.0);
 }
 
+# FIXME: We should re-enable the avx codepaths. They are disabled because this code makes it
+# necessary for user code to make indirect function calls into yololand, which Fil-C currently
+# doesn't support.
+$avx = 0;
+
 open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 *STDOUT=*OUT;

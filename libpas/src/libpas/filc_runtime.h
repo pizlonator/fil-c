@@ -1686,13 +1686,13 @@ PAS_API void filc_wait_for_world_resumption_holding_lock(void);
 
 /* Begin execution in Fil-C. Executing Fil-C comes with the promise that you'll periodically do
    a pollcheck and that all signals will be deferred to pollchecks. */
-PAS_API void filc_enter(filc_thread* my_thread);
+void filc_enter(filc_thread* my_thread);
 
 /* End execution in Fil-C. Call this before doing anything that might block or anything to
    affect signal masks.
    
    You can exit and then reenter as much as you like. It'll be super cheap eventually. */
-PAS_API void filc_exit(filc_thread* my_thread);
+void filc_exit(filc_thread* my_thread);
 
 /* These have to be called entered, currently. The only thing stopping us from making them work
    exited is that then, decrease_special_signal_deferral_depth would have to

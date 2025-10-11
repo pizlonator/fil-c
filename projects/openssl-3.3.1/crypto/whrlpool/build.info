@@ -6,7 +6,7 @@ IF[{- !$disabled{asm} -}]
     $WPASM_x86=wp_block.c wp-mmx.S
     $WPDEF_x86=WHIRLPOOL_ASM
   ENDIF
-  $WPASM_x86_64=wp-x86_64.s
+  $WPASM_x86_64=wp_asm_forward.c wp-x86_64.s
   $WPDEF_x86_64=WHIRLPOOL_ASM
 
   # Now that we have defined all the arch specific variables, use the

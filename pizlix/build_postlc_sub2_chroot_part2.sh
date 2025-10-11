@@ -128,8 +128,7 @@ cd pizlonated-openssl
     --openssldir=/etc/ssl \
     --libdir=lib \
     shared \
-    zlib-dynamic \
-    no-asm
+    zlib-dynamic
 make
 sed -i '/INSTALL_LIBS/s/libcrypto.a libssl.a//' Makefile
 make MANSUFFIX=ssl install

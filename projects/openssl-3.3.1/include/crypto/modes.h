@@ -38,7 +38,7 @@ typedef unsigned char u8;
 # endif
 #endif
 
-#if !defined(PEDANTIC) && !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM)
+#if !defined(PEDANTIC) && !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM) && !defined(__FILC__)
 # if defined(__GNUC__) && __GNUC__>=2
 #  if defined(__x86_64) || defined(__x86_64__)
 #   define BSWAP8(x) ({ u64 ret_=(x);                   \

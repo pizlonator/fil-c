@@ -72,7 +72,7 @@ IF[{- !$disabled{asm} -}]
   # Now that we have defined all the arch specific variables, use the
   # appropriate one, and define the appropriate macros
   IF[$KECCAK1600ASM_{- $target{asm_arch} -}]
-    $KECCAK1600ASM=$KECCAK1600ASM_{- $target{asm_arch} -}
+    $KECCAK1600ASM=keccak1600_asm_forward.c $KECCAK1600ASM_{- $target{asm_arch} -}
     $KECCAK1600DEF=KECCAK1600_ASM
   ENDIF
 ENDIF

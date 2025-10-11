@@ -30,6 +30,7 @@
 #include "crypto/bn.h"
 #include "ec_local.h"
 #include "internal/refcount.h"
+#include <stdfil.h>
 
 #if BN_BITS2 != 64
 # define TOBN(hi,lo)    lo,hi
@@ -39,6 +40,7 @@
 
 #define ALIGNPTR(p,N)   ((unsigned char *)p+N-(size_t)p%N)
 #define P256_LIMBS      (256/BN_BITS2)
+#define P256_BYTES      (256/8)
 
 typedef unsigned short u16;
 
@@ -87,47 +89,120 @@ struct nistz256_pre_comp_st {
  * in all cases so far...
  */
 /* Modular add: res = a+b mod P   */
-void ecp_nistz256_add(BN_ULONG res[P256_LIMBS],
-                      const BN_ULONG a[P256_LIMBS],
-                      const BN_ULONG b[P256_LIMBS]);
+static void ecp_nistz256_add(BN_ULONG res[P256_LIMBS],
+                             const BN_ULONG a[P256_LIMBS],
+                             const BN_ULONG b[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zcheck_readonly(b, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_add", res, a, b);
+}
 /* Modular mul by 2: res = 2*a mod P */
-void ecp_nistz256_mul_by_2(BN_ULONG res[P256_LIMBS],
-                           const BN_ULONG a[P256_LIMBS]);
+static void ecp_nistz256_mul_by_2(BN_ULONG res[P256_LIMBS],
+                                  const BN_ULONG a[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_mul_by_2", res, a);
+}
 /* Modular mul by 3: res = 3*a mod P */
-void ecp_nistz256_mul_by_3(BN_ULONG res[P256_LIMBS],
-                           const BN_ULONG a[P256_LIMBS]);
+static void ecp_nistz256_mul_by_3(BN_ULONG res[P256_LIMBS],
+                                  const BN_ULONG a[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_mul_by_3", res, a);
+}
 
 /* Modular div by 2: res = a/2 mod P */
-void ecp_nistz256_div_by_2(BN_ULONG res[P256_LIMBS],
-                           const BN_ULONG a[P256_LIMBS]);
+static void ecp_nistz256_div_by_2(BN_ULONG res[P256_LIMBS],
+                                  const BN_ULONG a[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_div_by_2", res, a);
+}
 /* Modular sub: res = a-b mod P   */
-void ecp_nistz256_sub(BN_ULONG res[P256_LIMBS],
-                      const BN_ULONG a[P256_LIMBS],
-                      const BN_ULONG b[P256_LIMBS]);
+static void ecp_nistz256_sub(BN_ULONG res[P256_LIMBS],
+                             const BN_ULONG a[P256_LIMBS],
+                             const BN_ULONG b[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zcheck_readonly(b, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_sub", res, a, b);
+}
 /* Modular neg: res = -a mod P    */
-void ecp_nistz256_neg(BN_ULONG res[P256_LIMBS], const BN_ULONG a[P256_LIMBS]);
+static void ecp_nistz256_neg(BN_ULONG res[P256_LIMBS], const BN_ULONG a[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_neg", res, a);
+}
 /* Montgomery mul: res = a*b*2^-256 mod P */
-void ecp_nistz256_mul_mont(BN_ULONG res[P256_LIMBS],
-                           const BN_ULONG a[P256_LIMBS],
-                           const BN_ULONG b[P256_LIMBS]);
+static void ecp_nistz256_mul_mont(BN_ULONG res[P256_LIMBS],
+                                  const BN_ULONG a[P256_LIMBS],
+                                  const BN_ULONG b[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zcheck_readonly(b, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_mul_mont", res, a, b);
+}
 /* Montgomery sqr: res = a*a*2^-256 mod P */
-void ecp_nistz256_sqr_mont(BN_ULONG res[P256_LIMBS],
-                           const BN_ULONG a[P256_LIMBS]);
+static void ecp_nistz256_sqr_mont(BN_ULONG res[P256_LIMBS],
+                                  const BN_ULONG a[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_sqr_mont", res, a);
+}
 /* Convert a number from Montgomery domain, by multiplying with 1 */
-void ecp_nistz256_from_mont(BN_ULONG res[P256_LIMBS],
-                            const BN_ULONG in[P256_LIMBS]);
+static void ecp_nistz256_from_mont(BN_ULONG res[P256_LIMBS],
+                                   const BN_ULONG in[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(in, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_from_mont", res, in);
+}
 /* Convert a number to Montgomery domain, by multiplying with 2^512 mod P*/
-void ecp_nistz256_to_mont(BN_ULONG res[P256_LIMBS],
-                          const BN_ULONG in[P256_LIMBS]);
+static void ecp_nistz256_to_mont(BN_ULONG res[P256_LIMBS],
+                                 const BN_ULONG in[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(in, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_to_mont", res, in);
+}
 /* Functions that perform constant time access to the precomputed tables */
-void ecp_nistz256_scatter_w5(P256_POINT *val,
-                             const P256_POINT *in_t, int idx);
-void ecp_nistz256_gather_w5(P256_POINT *val,
-                            const P256_POINT *in_t, int idx);
-void ecp_nistz256_scatter_w7(P256_POINT_AFFINE *val,
-                             const P256_POINT_AFFINE *in_t, int idx);
-void ecp_nistz256_gather_w7(P256_POINT_AFFINE *val,
-                            const P256_POINT_AFFINE *in_t, int idx);
+static void ecp_nistz256_scatter_w5(P256_POINT *val,
+                                    const P256_POINT *in_t, int idx)
+{
+    zcheck_readonly(in_t, sizeof(P256_POINT));
+    zcheck(val + idx - 1, sizeof(P256_POINT));
+    zunsafe_fast_call("ecp_nistz256_scatter_w5", val, in_t, idx);
+}
+static void ecp_nistz256_gather_w5(P256_POINT *val,
+                                   const P256_POINT *in_t, int idx)
+{
+    zcheck_readonly(in_t, zchecked_mul(sizeof(P256_POINT), 16));
+    zcheck(val, sizeof(P256_POINT));
+    zunsafe_fast_call("ecp_nistz256_gather_w5", val, in_t, idx);
+}
+static void ecp_nistz256_scatter_w7(P256_POINT_AFFINE *val,
+                                    const P256_POINT_AFFINE *in_t, int idx)
+{
+    zcheck_readonly(in_t, sizeof(P256_POINT_AFFINE));
+    zcheck(val + idx, sizeof(P256_POINT_AFFINE));
+    zunsafe_fast_call("ecp_nistz256_scatter_w7", val, in_t, idx);
+}
+static void ecp_nistz256_gather_w7(P256_POINT_AFFINE *val,
+                                   const P256_POINT_AFFINE *in_t, int idx)
+{
+    zcheck_readonly(in_t, zchecked_mul(sizeof(P256_POINT_AFFINE), 64));
+    zcheck(val, sizeof(P256_POINT_AFFINE));
+    zunsafe_fast_call("ecp_nistz256_gather_w7", val, in_t, idx);
+}
 
 /* One converted into the Montgomery domain */
 static const BN_ULONG ONE[P256_LIMBS] = {
@@ -246,12 +321,29 @@ static BN_ULONG is_one(const BIGNUM *z)
  * ecp_nistz256 module is ECP_NISTZ256_ASM.)
  */
 #ifndef ECP_NISTZ256_REFERENCE_IMPLEMENTATION
-void ecp_nistz256_point_double(P256_POINT *r, const P256_POINT *a);
-void ecp_nistz256_point_add(P256_POINT *r,
-                            const P256_POINT *a, const P256_POINT *b);
-void ecp_nistz256_point_add_affine(P256_POINT *r,
-                                   const P256_POINT *a,
-                                   const P256_POINT_AFFINE *b);
+static void ecp_nistz256_point_double(P256_POINT *r, const P256_POINT *a)
+{
+    zcheck(r, sizeof(P256_POINT));
+    zcheck_readonly(a, sizeof(P256_POINT));
+    zunsafe_fast_call("ecp_nistz256_point_double", r, a);
+}
+static void ecp_nistz256_point_add(P256_POINT *r,
+                                   const P256_POINT *a, const P256_POINT *b)
+{
+    zcheck(r, sizeof(P256_POINT));
+    zcheck_readonly(a, sizeof(P256_POINT));
+    zcheck_readonly(b, sizeof(P256_POINT));
+    zunsafe_fast_call("ecp_nistz256_point_add", r, a, b);
+}
+static void ecp_nistz256_point_add_affine(P256_POINT *r,
+                                          const P256_POINT *a,
+                                          const P256_POINT_AFFINE *b)
+{
+    zcheck(r, sizeof(P256_POINT));
+    zcheck_readonly(a, sizeof(P256_POINT));
+    zcheck_readonly(b, sizeof(P256_POINT_AFFINE));
+    zunsafe_fast_call("ecp_nistz256_point_add_affine", r, a, b);
+}
 #else
 /* Point double: r = 2*a */
 static void ecp_nistz256_point_double(P256_POINT *r, const P256_POINT *a)
@@ -1269,12 +1361,23 @@ static int ecp_nistz256_window_have_precompute_mult(const EC_GROUP *group)
 /*
  * Montgomery mul modulo Order(P): res = a*b*2^-256 mod Order(P)
  */
-void ecp_nistz256_ord_mul_mont(BN_ULONG res[P256_LIMBS],
-                               const BN_ULONG a[P256_LIMBS],
-                               const BN_ULONG b[P256_LIMBS]);
-void ecp_nistz256_ord_sqr_mont(BN_ULONG res[P256_LIMBS],
-                               const BN_ULONG a[P256_LIMBS],
-                               BN_ULONG rep);
+static void ecp_nistz256_ord_mul_mont(BN_ULONG res[P256_LIMBS],
+                                      const BN_ULONG a[P256_LIMBS],
+                                      const BN_ULONG b[P256_LIMBS])
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zcheck_readonly(b, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_ord_mul_mont", res, a, b);
+}
+static void ecp_nistz256_ord_sqr_mont(BN_ULONG res[P256_LIMBS],
+                                      const BN_ULONG a[P256_LIMBS],
+                                      BN_ULONG rep)
+{
+    zcheck(res, P256_BYTES);
+    zcheck_readonly(a, P256_BYTES);
+    zunsafe_fast_call("ecp_nistz256_ord_sqr_mont", res, a, rep);
+}
 
 static int ecp_nistz256_inv_mod_ord(const EC_GROUP *group, BIGNUM *r,
                                     const BIGNUM *x, BN_CTX *ctx)

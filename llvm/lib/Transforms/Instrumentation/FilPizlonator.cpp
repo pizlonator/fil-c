@@ -1337,16 +1337,6 @@ struct FullMemoryAccessData {
   MemoryAccessData MAD;
 };
 
-struct UnsafeFunc {
-  BitCastInst* Dummy { nullptr };
-  std::string Name;
-
-  UnsafeFunc() = default;
-
-  UnsafeFunc(BitCastInst* Dummy, const std::string& Name):
-    Dummy(Dummy), Name(Name) { }
-};
-
 struct UnsafeExport {
   std::string Name;
   Constant* Aliasee { nullptr };
@@ -1404,6 +1394,8 @@ class Pizlonator {
 
   // Low-level functions used by codegen.
   FunctionCallee PollcheckSlow;
+  FunctionCallee Enter;
+  FunctionCallee Exit;
   FunctionCallee StoreBarrierForLowerSlow;
   FunctionCallee StorePtrAtomicOutline;
   FunctionCallee LoadPtrAtomicOutline;
@@ -1513,7 +1505,7 @@ class Pizlonator {
 
   std::unordered_map<GlobalValue*, Comdat*> GlobalToComdat;
 
-  std::vector<UnsafeFunc> UnsafeFuncs;
+  std::unordered_map<std::string, BitCastInst*> UnsafeFuncs;
   std::unordered_set<GlobalVariable*> UnsafeExportGVs;
   std::vector<UnsafeExport> UnsafeExports;
 
@@ -7067,24 +7059,45 @@ class Pizlonator {
           return true;
         }
 
-        if (F->getName() == "zunsafe_call" &&
-            FT->getNumParams() == 1 &&
+        if ((((F->getName() == "zunsafe_call" || F->getName() == "zunsafe_fast_call") &&
+              FT->getNumParams() == 1 &&
+              FT->getParamType(0) == RawPtrTy) ||
+             (F->getName() == "zunsafe_buf_call" &&
+              FT->getNumParams() == 2 &&
+              FT->getParamType(0) == IntPtrTy &&
+              FT->getParamType(1) == RawPtrTy)) &&
             FT->isVarArg() &&
-            FT->getReturnType() == IntPtrTy &&
-            FT->getParamType(0) == RawPtrTy) {
-          GlobalVariable* StrConstGV = cast<GlobalVariable>(CI->getArgOperand(0));
+            FT->getReturnType() == IntPtrTy) {
+          Value* BufSize;
+          unsigned FirstArg;
+          if (F->getName() == "zunsafe_buf_call") {
+            FirstArg = 1;
+            BufSize = lowerConstantValue(CI->getArgOperand(0), CI);
+          } else {
+            FirstArg = 0;
+            if (F->getName() == "zunsafe_call")
+              BufSize = ConstantInt::get(IntPtrTy, MaxBytesBetweenPollchecks + 1);
+            else
+              BufSize = ConstantInt::get(IntPtrTy, 0);
+          }
+          GlobalVariable* StrConstGV = cast<GlobalVariable>(CI->getArgOperand(FirstArg));
           assert(StrConstGV->hasInitializer());
           ConstantDataSequential* StrConstCDS =
             cast<ConstantDataSequential>(StrConstGV->getInitializer());
           assert(StrConstCDS->isCString());
           std::string StrConst = StrConstCDS->getAsCString().str();
-          BitCastInst* Dummy = makeDummy(RawPtrTy);
-          UnsafeFuncs.push_back(UnsafeFunc(Dummy, StrConst));
+          BitCastInst* Dummy;
+          if (UnsafeFuncs.count(StrConst))
+            Dummy = UnsafeFuncs[StrConst];
+          else {
+            Dummy = makeDummy(RawPtrTy);
+            UnsafeFuncs[StrConst] = Dummy;
+          }
           std::vector<Value*> Args;
           assert(InstTypeVectors.count(CI));
           std::vector<Type*> ArgTypes = InstTypeVectors[CI];
           assert(ArgTypes.size() == CI->arg_size());
-          for (unsigned Idx = 1; Idx < CI->arg_size(); ++Idx) {
+          for (unsigned Idx = FirstArg + 1; Idx < CI->arg_size(); ++Idx) {
             Value* Arg = lowerConstantValue(CI->getArgOperand(Idx), CI);
             if (ArgTypes[Idx] == RawPtrTy) {
               Args.push_back(flightPtrPtr(Arg, CI));
@@ -7093,8 +7106,17 @@ class Pizlonator {
             assert(!hasPtrs(ArgTypes[Idx]));
             Args.push_back(Arg);
           }
+          Instruction* IsSmallEnough = new ICmpInst(
+            CI, ICmpInst::ICMP_ULE, BufSize, ConstantInt::get(IntPtrTy, MaxBytesBetweenPollchecks),
+            "filc_is_small_enough");
+          IsSmallEnough->setDebugLoc(CI->getDebugLoc());
+          Instruction* LargeTerm = SplitBlockAndInsertIfElse(IsSmallEnough, CI, false);
+          storeOrigin(getOrigin(CI->getDebugLoc()), LargeTerm);
+          CallInst::Create(Exit, { MyThread }, "", LargeTerm)->setDebugLoc(CI->getDebugLoc());
           CallInst* Result = CallInst::Create(UnsafeFuncTy, Dummy, Args, "filc_unsafe_call", CI);
           Result->setDebugLoc(CI->getDebugLoc());
+          LargeTerm = SplitBlockAndInsertIfElse(IsSmallEnough, CI, false);
+          CallInst::Create(Enter, { MyThread }, "", LargeTerm)->setDebugLoc(CI->getDebugLoc());
           CI->replaceAllUsesWith(Result);
           Erasify();
           return true;
@@ -9801,6 +9823,10 @@ public:
 
     PollcheckSlow = M.getOrInsertFunction(
       "filc_pollcheck_slow", VoidTy, RawPtrTy, RawPtrTy);
+    Enter = M.getOrInsertFunction(
+      "filc_enter", VoidTy, RawPtrTy);
+    Exit = M.getOrInsertFunction(
+      "filc_exit", VoidTy, RawPtrTy);
     StoreBarrierForLowerSlow = M.getOrInsertFunction(
       "filc_store_barrier_for_lower_slow", VoidTy, RawPtrTy, RawPtrTy);
     StorePtrAtomicOutline = M.getOrInsertFunction(
@@ -10734,11 +10760,11 @@ public:
       G->eraseFromParent();
     }
 
-    for (UnsafeFunc UF : UnsafeFuncs) {
-      assert(!M.getNamedValue(UF.Name));
-      UF.Dummy->replaceAllUsesWith(
-        Function::Create(UnsafeFuncTy, GlobalVariable::ExternalLinkage, 0, UF.Name, &M));
-      UF.Dummy->deleteValue();
+    for (auto& Pair : UnsafeFuncs) {
+      assert(!M.getNamedValue(Pair.first));
+      Pair.second->replaceAllUsesWith(
+        Function::Create(UnsafeFuncTy, GlobalVariable::ExternalLinkage, 0, Pair.first, &M));
+      Pair.second->deleteValue();
     }
     for (UnsafeExport UE : UnsafeExports) {
       assert(!M.getNamedValue(UE.Name));

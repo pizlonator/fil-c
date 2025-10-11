@@ -24,11 +24,12 @@ typedef void (*poly1305_blocks_f) (void *ctx, const unsigned char *inp,
 typedef void (*poly1305_emit_f) (void *ctx, unsigned char mac[16],
                                  const unsigned int nonce[4]);
 
+typedef double poly1305_opaque[24]; /* large enough to hold internal state, declared
+                                     * 'double' to ensure at least 64-bit invariant
+                                     * alignment across all platforms and
+                                     * configurations */
 struct poly1305_context {
-    double opaque[24];  /* large enough to hold internal state, declared
-                         * 'double' to ensure at least 64-bit invariant
-                         * alignment across all platforms and
-                         * configurations */
+    poly1305_opaque opaque;
     unsigned int nonce[4];
     unsigned char data[POLY1305_BLOCK_SIZE];
     size_t num;

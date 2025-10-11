@@ -27,14 +27,6 @@ open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 				 ("%rdi","%rsi","%rdx","%rcx");	# Unix order
 
 print<<___;
-.extern		OPENSSL_cpuid_setup
-.hidden		OPENSSL_cpuid_setup
-.section	.init
-	call	OPENSSL_cpuid_setup
-
-.hidden	OPENSSL_ia32cap_P
-.comm	OPENSSL_ia32cap_P,16,4
-
 .text
 
 .globl	OPENSSL_atomic_add
@@ -236,44 +228,6 @@ OPENSSL_ia32_cpuid:
 	ret
 .cfi_endproc
 .size	OPENSSL_ia32_cpuid,.-OPENSSL_ia32_cpuid
-
-.globl  OPENSSL_cleanse
-.type   OPENSSL_cleanse,\@abi-omnipotent
-.align  16
-OPENSSL_cleanse:
-.cfi_startproc
-	endbranch
-	xor	%rax,%rax
-	cmp	\$15,$arg2
-	jae	.Lot
-	cmp	\$0,$arg2
-	je	.Lret
-.Little:
-	mov	%al,($arg1)
-	sub	\$1,$arg2
-	lea	1($arg1),$arg1
-	jnz	.Little
-.Lret:
-	ret
-.align	16
-.Lot:
-	test	\$7,$arg1
-	jz	.Laligned
-	mov	%al,($arg1)
-	lea	-1($arg2),$arg2
-	lea	1($arg1),$arg1
-	jmp	.Lot
-.Laligned:
-	mov	%rax,($arg1)
-	lea	-8($arg2),$arg2
-	test	\$-8,$arg2
-	lea	8($arg1),$arg1
-	jnz	.Laligned
-	cmp	\$0,$arg2
-	jne	.Little
-	ret
-.cfi_endproc
-.size	OPENSSL_cleanse,.-OPENSSL_cleanse
 
 .globl  CRYPTO_memcmp
 .type   CRYPTO_memcmp,\@abi-omnipotent

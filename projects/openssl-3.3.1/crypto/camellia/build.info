@@ -3,7 +3,7 @@ LIBS=../../libcrypto
 $CMLLASM=camellia.c cmll_misc.c cmll_cbc.c
 IF[{- !$disabled{asm} -}]
   $CMLLASM_x86=cmll-x86.S
-  $CMLLASM_x86_64=cmll-x86_64.s cmll_misc.c
+  $CMLLASM_x86_64=camellia_asm_forward.c cmll-x86_64.s cmll_misc.c
   $CMLLASM_sparcv9=camellia.c cmll_misc.c cmll_cbc.c cmllt4-sparcv9.S
 
   # Now that we have defined all the arch specific variables, use the
