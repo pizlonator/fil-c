@@ -2064,7 +2064,7 @@ void filc_check_access_special(filc_ptr ptr, filc_special_type special_type)
     FILC_CHECK(
         filc_object_is_special(filc_ptr_object(ptr)),
         NULL,
-        "cannot access pointer as %s, object isn't even special (pts = %s).",
+        "cannot access pointer as %s, object isn't even special (ptr = %s).",
         filc_special_type_to_new_string(special_type), filc_ptr_to_new_string(ptr));
     
     FILC_CHECK(
