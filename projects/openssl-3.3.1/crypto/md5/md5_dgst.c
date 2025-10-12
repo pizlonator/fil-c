@@ -172,7 +172,7 @@ void md5_block_data_order(MD5_CTX *c, const void *data_, size_t num)
 void md5_block_data_order(MD5_CTX *c, const void *data_, size_t num)
 {
     zcheck(c, sizeof(MD5_CTX));
-    zcheck_readonly(data_, zchecked_mul(num, MD5_LBLOCK));
+    zcheck_readonly(data_, zchecked_mul(num, MD5_CBLOCK));
     zunsafe_buf_call(num, "ossl_md5_block_asm_data_order", c, data_, num);
 }
 #endif
