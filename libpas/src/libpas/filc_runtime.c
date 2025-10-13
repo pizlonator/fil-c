@@ -79,6 +79,8 @@
 #include <sys/syscall.h>
 #include <linux/perf_event.h>
 #include <linux/hw_breakpoint.h>
+#include <linux/seccomp.h>
+#include <linux/filter.h>
 #include <sys/signalfd.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -10547,7 +10549,40 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
         unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         return FILC_SYSCALL(my_thread, prctl(PR_SET_PDEATHSIG, value));
     }
-    
+
+    case PR_SET_SECCOMP: {
+        unsigned long mode = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+
+        if (mode == SECCOMP_MODE_STRICT)
+            return FILC_SYSCALL(my_thread, prctl(PR_SET_SECCOMP, mode, 0, 0, 0));
+
+        if (mode == SECCOMP_MODE_FILTER) {
+            filc_ptr fprog_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+
+            /* Validate the sock_fprog structure is readable */
+            filc_check_read(fprog_ptr, sizeof(struct sock_fprog));
+            struct sock_fprog* fprog = (struct sock_fprog*)filc_ptr_ptr(fprog_ptr);
+
+            /* Load the filter pointer from the struct */
+            filc_ptr filter_ptr = filc_load_ptr_at(my_thread, fprog_ptr, &fprog->filter);
+
+            /* Validate the filter array is readable */
+            if (fprog->len > 0 && filc_ptr_ptr(filter_ptr))
+                filc_check_read(filter_ptr, filc_mul_size(sizeof(struct sock_filter), fprog->len));
+
+            /* Now create a native sock_fprog pointing to the validated filter */
+            struct sock_fprog native_fprog;
+            native_fprog.len = fprog->len;
+            native_fprog.filter = (struct sock_filter*)filc_ptr_ptr(filter_ptr);
+
+            return FILC_SYSCALL(my_thread, prctl(PR_SET_SECCOMP, mode, &native_fprog, 0, 0));
+        }
+
+        /* Unknown or unsupported mode */
+        filc_set_errno(ENOSYS);
+        return -1;
+    }
+
     default:
         filc_set_errno(ENOSYS);
         return -1;
