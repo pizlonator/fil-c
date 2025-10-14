@@ -267,6 +267,12 @@ Driver::Driver(StringRef ClangExecutable, StringRef TargetTriple,
     llvm::sys::path::append(P, "..", "..", "pizfix");
     HasPizfix = llvm::sys::fs::is_directory(P);
   }
+  if (!HasPizfix) {
+    SmallString<128> RealPath;
+    if (!llvm::sys::fs::real_path(Dir, RealPath)
+        && RealPath == "/opt/fil/bin")
+      HasOptfil = true;
+  }
 
   if ((!SysRoot.empty()) && llvm::sys::path::is_relative(SysRoot)) {
     // Prepend InstalledDir if SysRoot is relative

@@ -74,6 +74,15 @@ tar -czf pizlonated-user-glibc.tar.gz pizlonated-user-glibc
 rm -rf pizlonated-user-glibc
 cd ../..
 
+./package-source.sh projects/libxcrypt-4.4.36 pizlonated-libxcrypt
+./package-source.sh projects/xz-5.6.2 pizlonated-xz
+./package-source.sh projects/pkgconf-2.3.0 pizlonated-pkgconf
+./package-source.sh projects/bash-5.2.32 pizlonated-bash
+./package-source.sh projects/openssl-3.3.1 pizlonated-openssl
+./package-source.sh projects/libffi-3.4.6 pizlonated-libffi
+./package-source.sh projects/sudo-1.9.15p5 pizlonated-sudo
+./package-source.sh projects/openssh-9.8p1 pizlonated-openssh
+
 test -d filc
 test -d llvm
 test -d clang

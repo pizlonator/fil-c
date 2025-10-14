@@ -116,8 +116,6 @@ extern "C" {
 #define AMDGPU_GEM_CREATE_CPU_GTT_USWC		(1 << 2)
 /* Flag that the memory should be in VRAM and cleared */
 #define AMDGPU_GEM_CREATE_VRAM_CLEARED		(1 << 3)
-/* Flag that create shadow bo(GTT) while allocating vram bo */
-#define AMDGPU_GEM_CREATE_SHADOW		(1 << 4)
 /* Flag that allocating the BO should use linear VRAM */
 #define AMDGPU_GEM_CREATE_VRAM_CONTIGUOUS	(1 << 5)
 /* Flag that BO is always valid in this VM */
@@ -125,13 +123,23 @@ extern "C" {
 /* Flag that BO sharing will be explicitly synchronized */
 #define AMDGPU_GEM_CREATE_EXPLICIT_SYNC		(1 << 7)
 /* Flag that indicates allocating MQD gart on GFX9, where the mtype
- * for the second page onward should be set to NC.
+ * for the second page onward should be set to NC. It should never
+ * be used by user space applications.
  */
-#define AMDGPU_GEM_CREATE_MQD_GFX9		(1 << 8)
+#define AMDGPU_GEM_CREATE_CP_MQD_GFX9		(1 << 8)
 /* Flag that BO may contain sensitive data that must be wiped before
  * releasing the memory
  */
 #define AMDGPU_GEM_CREATE_VRAM_WIPE_ON_RELEASE	(1 << 9)
+/* Flag that BO will be encrypted and that the TMZ bit should be
+ * set in the PTEs when mapping this buffer via GPUVM or
+ * accessing it with various hw blocks
+ */
+#define AMDGPU_GEM_CREATE_ENCRYPTED		(1 << 10)
+/* Flag that BO will be used only in preemptible context, which does
+ * not require GTT memory accounting
+ */
+#define AMDGPU_GEM_CREATE_PREEMPTIBLE		(1 << 11)
 
 struct drm_amdgpu_gem_create_in  {
 	/** the requested memory size */
@@ -345,6 +353,10 @@ struct drm_amdgpu_gem_userptr {
 #define AMDGPU_TILING_DCC_PITCH_MAX_MASK		0x3FFF
 #define AMDGPU_TILING_DCC_INDEPENDENT_64B_SHIFT		43
 #define AMDGPU_TILING_DCC_INDEPENDENT_64B_MASK		0x1
+#define AMDGPU_TILING_DCC_INDEPENDENT_128B_SHIFT	44
+#define AMDGPU_TILING_DCC_INDEPENDENT_128B_MASK		0x1
+#define AMDGPU_TILING_SCANOUT_SHIFT			63
+#define AMDGPU_TILING_SCANOUT_MASK			0x1
 
 /* Set/Get helpers for tiling flags. */
 #define AMDGPU_TILING_SET(field, value) \
@@ -492,14 +504,16 @@ struct drm_amdgpu_gem_op {
 #define AMDGPU_VM_MTYPE_MASK		(0xf << 5)
 /* Default MTYPE. Pre-AI must use this.  Recommended for newer ASICs. */
 #define AMDGPU_VM_MTYPE_DEFAULT		(0 << 5)
-/* Use NC MTYPE instead of default MTYPE */
+/* Use Non Coherent MTYPE instead of default MTYPE */
 #define AMDGPU_VM_MTYPE_NC		(1 << 5)
-/* Use WC MTYPE instead of default MTYPE */
+/* Use Write Combine MTYPE instead of default MTYPE */
 #define AMDGPU_VM_MTYPE_WC		(2 << 5)
-/* Use CC MTYPE instead of default MTYPE */
+/* Use Cache Coherent MTYPE instead of default MTYPE */
 #define AMDGPU_VM_MTYPE_CC		(3 << 5)
-/* Use UC MTYPE instead of default MTYPE */
+/* Use UnCached MTYPE instead of default MTYPE */
 #define AMDGPU_VM_MTYPE_UC		(4 << 5)
+/* Use Read Write MTYPE instead of default MTYPE */
+#define AMDGPU_VM_MTYPE_RW		(5 << 5)
 
 struct drm_amdgpu_gem_va {
 	/** GEM object handle */
@@ -552,7 +566,7 @@ struct drm_amdgpu_cs_in {
 	/**  Handle of resource list associated with CS */
 	__u32		bo_list_handle;
 	__u32		num_chunks;
-	__u32		_pad;
+	__u32		flags;
 	/** this points to __u64 * which point to cs chunks */
 	__u64		chunks;
 };
@@ -585,6 +599,14 @@ union drm_amdgpu_cs {
  * This will reset wave ID counters for the IB.
  */
 #define AMDGPU_IB_FLAG_RESET_GDS_MAX_WAVE_ID (1 << 4)
+
+/* Flag the IB as secure (TMZ)
+ */
+#define AMDGPU_IB_FLAGS_SECURE  (1 << 5)
+
+/* Tell KMD to flush and invalidate caches
+ */
+#define AMDGPU_IB_FLAG_EMIT_MEM_SYNC  (1 << 6)
 
 struct drm_amdgpu_cs_chunk_ib {
 	__u32 _pad;
@@ -647,12 +669,13 @@ struct drm_amdgpu_cs_chunk_data {
 	};
 };
 
-/**
+/*
  *  Query h/w info: Flag that this is integrated (a.h.a. fusion) GPU
  *
  */
 #define AMDGPU_IDS_FLAGS_FUSION         0x1
 #define AMDGPU_IDS_FLAGS_PREEMPTION     0x2
+#define AMDGPU_IDS_FLAGS_TMZ            0x4
 
 /* indicate if acceleration can be working */
 #define AMDGPU_INFO_ACCEL_WORKING		0x00
@@ -701,6 +724,11 @@ struct drm_amdgpu_cs_chunk_data {
 	/* Subquery id: Query DMCU firmware version */
 	#define AMDGPU_INFO_FW_DMCU		0x12
 	#define AMDGPU_INFO_FW_TA		0x13
+	/* Subquery id: Query DMCUB firmware version */
+	#define AMDGPU_INFO_FW_DMCUB		0x14
+	/* Subquery id: Query TOC firmware version */
+	#define AMDGPU_INFO_FW_TOC		0x15
+
 /* number of bytes moved for TTM migration */
 #define AMDGPU_INFO_NUM_BYTES_MOVED		0x0f
 /* the used VRAM size */
@@ -729,6 +757,8 @@ struct drm_amdgpu_cs_chunk_data {
 	#define AMDGPU_INFO_VBIOS_SIZE		0x1
 	/* Subquery id: Query vbios image */
 	#define AMDGPU_INFO_VBIOS_IMAGE		0x2
+	/* Subquery id: Query vbios info */
+	#define AMDGPU_INFO_VBIOS_INFO		0x3
 /* Query UVD handles */
 #define AMDGPU_INFO_NUM_HANDLES			0x1C
 /* Query sensor related information */
@@ -756,6 +786,12 @@ struct drm_amdgpu_cs_chunk_data {
 #define AMDGPU_INFO_VRAM_LOST_COUNTER		0x1F
 /* query ras mask of enabled features*/
 #define AMDGPU_INFO_RAS_ENABLED_FEATURES	0x20
+/* query video encode/decode caps */
+#define AMDGPU_INFO_VIDEO_CAPS			0x21
+	/* Subquery id: Decode */
+	#define AMDGPU_INFO_VIDEO_CAPS_DECODE		0
+	/* Subquery id: Encode */
+	#define AMDGPU_INFO_VIDEO_CAPS_ENCODE		1
 
 /* RAS MASK: UMC (VRAM) */
 #define AMDGPU_INFO_RAS_ENABLED_UMC			(1 << 0)
@@ -852,6 +888,10 @@ struct drm_amdgpu_info {
 		struct {
 			__u32 type;
 		} sensor_info;
+
+		struct {
+			__u32 type;
+		} video_cap;
 	};
 };
 
@@ -912,6 +952,15 @@ struct drm_amdgpu_info_firmware {
 	__u32 feature;
 };
 
+struct drm_amdgpu_info_vbios {
+	__u8 name[64];
+	__u8 vbios_pn[64];
+	__u32 version;
+	__u32 pad;
+	__u8 vbios_ver_str[32];
+	__u8 date[32];
+};
+
 #define AMDGPU_VRAM_TYPE_UNKNOWN 0
 #define AMDGPU_VRAM_TYPE_GDDR1 1
 #define AMDGPU_VRAM_TYPE_DDR2  2
@@ -922,6 +971,7 @@ struct drm_amdgpu_info_firmware {
 #define AMDGPU_VRAM_TYPE_DDR3  7
 #define AMDGPU_VRAM_TYPE_DDR4  8
 #define AMDGPU_VRAM_TYPE_GDDR6 9
+#define AMDGPU_VRAM_TYPE_DDR5  10
 
 struct drm_amdgpu_info_device {
 	/** PCI Device ID */
@@ -1047,6 +1097,30 @@ struct drm_amdgpu_info_vce_clock_table {
 	__u32 pad;
 };
 
+/* query video encode/decode caps */
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_MPEG2			0
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_MPEG4			1
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_VC1			2
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_MPEG4_AVC		3
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_HEVC			4
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_JPEG			5
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_VP9			6
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_AV1			7
+#define AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_COUNT			8
+
+struct drm_amdgpu_info_video_codec_info {
+	__u32 valid;
+	__u32 max_width;
+	__u32 max_height;
+	__u32 max_pixels_per_frame;
+	__u32 max_level;
+	__u32 pad;
+};
+
+struct drm_amdgpu_info_video_caps {
+	struct drm_amdgpu_info_video_codec_info codec_info[AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_COUNT];
+};
+
 /*
  * Supported GPU families
  */
@@ -1059,6 +1133,8 @@ struct drm_amdgpu_info_vce_clock_table {
 #define AMDGPU_FAMILY_AI			141 /* Vega10 */
 #define AMDGPU_FAMILY_RV			142 /* Raven */
 #define AMDGPU_FAMILY_NV			143 /* Navi10 */
+#define AMDGPU_FAMILY_VGH			144 /* Van Gogh */
+#define AMDGPU_FAMILY_YC			146 /* Yellow Carp */
 
 #if defined(__cplusplus)
 }

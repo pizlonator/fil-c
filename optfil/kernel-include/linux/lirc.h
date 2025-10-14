@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  * lirc.h - linux infrared remote control header file
- * last modified 2010/07/13 by Jarod Wilson
  */
 
 #ifndef _LINUX_LIRC_H
@@ -139,7 +138,7 @@
  */
 #define LIRC_GET_REC_TIMEOUT	       _IOR('i', 0x00000024, __u32)
 
-/*
+/**
  * struct lirc_scancode - decoded scancode with protocol for use with
  *	LIRC_MODE_SCANCODE
  *
@@ -196,6 +195,7 @@ struct lirc_scancode {
  * @RC_PROTO_RCMM24: RC-MM protocol 24 bits
  * @RC_PROTO_RCMM32: RC-MM protocol 32 bits
  * @RC_PROTO_XBOX_DVD: Xbox DVD Movie Playback Kit protocol
+ * @RC_PROTO_MAX: Maximum value of enum rc_proto
  */
 enum rc_proto {
 	RC_PROTO_UNKNOWN	= 0,
@@ -226,6 +226,7 @@ enum rc_proto {
 	RC_PROTO_RCMM24		= 25,
 	RC_PROTO_RCMM32		= 26,
 	RC_PROTO_XBOX_DVD	= 27,
+	RC_PROTO_MAX		= RC_PROTO_XBOX_DVD,
 };
 
 #endif

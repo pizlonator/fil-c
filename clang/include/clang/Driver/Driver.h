@@ -180,6 +180,7 @@ public:
   std::string Dir;
 
   bool HasPizfix;
+  bool HasOptfil;
 
   /// The original path to the clang executable.
   std::string ClangExecutable;

@@ -460,6 +460,8 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
       llvm::sys::path::append(P, "lib", "ld-yolo-x86_64.so");
       return std::string(P);
     }
+    if (getDriver().HasOptfil)
+        return "/opt/fil/lib/ld-yolo-x86_64.so";
     return "/lib/ld-yolo-x86_64.so";
   }
 
@@ -668,7 +670,9 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
       llvm::sys::path::append(P, "..", "..", "pizfix", "include");
       addSystemInclude(DriverArgs, CC1Args, P);
     }
-  } else
+  } else if (D.HasOptfil)
+    addSystemInclude(DriverArgs, CC1Args, "/opt/fil/include");
+  else
     addSystemInclude(DriverArgs, CC1Args, "/usr/include");
 
   SmallString<128> ResourceDirInclude(D.ResourceDir);

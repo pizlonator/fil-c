@@ -599,13 +599,18 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       llvm::sys::path::append(P, "lib", str);
       return std::string(P);
     }
+    if (ToolChain.getDriver().HasOptfil) {
+      SmallString<128> P("/opt/fil/lib");
+      llvm::sys::path::append(P, str);
+      return std::string(P);
+    }
     SmallString<128> P("/usr/lib");
     llvm::sys::path::append(P, str);
     return std::string(P);
   };
 
   auto GetGCCLibPath = [&] (const char* str) -> std::string {
-    if (ToolChain.getDriver().HasPizfix)
+    if (ToolChain.getDriver().HasPizfix || ToolChain.getDriver().HasOptfil)
       return ToolChain.GetFilePath(str);
     // FIXME LMAO
     SmallString<128> P("/yolo/lib/gcc/x86_64-lfs-linux-gnu/14.2.0");
@@ -690,6 +695,10 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back("-rpath");
       CmdArgs.push_back(Args.MakeArgString(P));
     }
+  } else if (ToolChain.getDriver().HasOptfil) {
+    CmdArgs.push_back("-L/opt/fil/lib");
+    CmdArgs.push_back("-rpath-link");
+    CmdArgs.push_back("/opt/fil/lib");
   } else {
     CmdArgs.push_back("-L/usr/lib");
     // This hack is needed for when we're using /yolo/bin/ld. And it's harmelss after that.
@@ -733,7 +742,9 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
         llvm::sys::path::append(P, "filc_crt.o");
         CmdArgs.push_back(Args.MakeArgString(P));
-      } else
+      } else if (ToolChain.getDriver().HasOptfil)
+        CmdArgs.push_back("/opt/fil/lib/filc_crt.o");
+      else
         CmdArgs.push_back("/usr/lib/filc_crt.o");
     } else {
       if (ToolChain.getDriver().HasPizfix) {
@@ -741,7 +752,9 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
         llvm::sys::path::append(P, "filc_mincrt.o");
         CmdArgs.push_back(Args.MakeArgString(P));
-      } else
+      } else if (ToolChain.getDriver().HasOptfil)
+        CmdArgs.push_back("/opt/fil/lib/filc_mincrt.o");
+      else
         CmdArgs.push_back("/usr/lib/filc_mincrt.o");
     }
   }
