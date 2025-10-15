@@ -1,0 +1,6 @@
+- Manifesto.md
+- README.md
+- clang/lib/Basic/Version.cpp
+- filc/include/stdfil.h
+- package-build.sh
+- the website
