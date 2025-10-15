@@ -390,6 +390,6 @@ cd ..
 rm -rf pizlonated-openssh
 cd ..
 test -d build
-test ../fil
+test -d ../fil
 rm -rf build
 
