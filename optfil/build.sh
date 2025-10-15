@@ -189,7 +189,7 @@ cp -rv $FILCSRC/build/include/x86_64-unknown-linux-gnu/c++ include/x86_64-unknow
 cd build
 tar -xf $FILCSRC/pizlix/zlib-1.3.1.tar.gz
 cd zlib-1.3.1
-./configure --prefix=/opt/fil
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 rm -fv /opt/fil/lib/libz.a
@@ -200,10 +200,10 @@ tar -xf $FILCSRC/pizlix/bzip2-1.0.8.tar.gz
 cd bzip2-1.0.8
 sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
 sed -i "s@(PREFIX)/man@(PREFIX)/share/man@g" Makefile
-make -j `nproc` -f Makefile-libbz2_so
-make -j `nproc` clean
-make -j `nproc`
-make -j `nproc` PREFIX=/opt/fil install
+make CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ -j `nproc` -f Makefile-libbz2_so
+make CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ -j `nproc` clean
+make CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ -j `nproc`
+make CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ -j `nproc` PREFIX=/opt/fil install
 cp -av libbz2.so.* /opt/fil/lib
 ln -sv libbz2.so.1.0.8 /opt/fil/lib/libbz2.so
 cp -v bzip2-shared /opt/fil/bin/bzip2
@@ -216,7 +216,7 @@ rm -rf bzip2-1.0.8
 
 tar -xf $FILCSRC/projects/xz-5.6.2/pizlonated-xz.tar.gz
 cd pizlonated-xz
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
     --docdir=/opt/fil/share/doc/xz-5.6.2
 make -j `nproc`
@@ -226,22 +226,65 @@ rm -rf pizlonated-xz
 
 tar -xf $FILCSRC/pizlix/lz4-1.10.0.tar.gz
 cd lz4-1.10.0
-make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil
-make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil install
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil install
 cd ..
 rm -rf lz4-1.10.0
 
 tar -xf $FILCSRC/pizlix/zstd-1.5.6.tar.gz
 cd zstd-1.5.6
-ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil
-ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil install
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil install
 rm -v /opt/fil/lib/libzstd.a
 cd ..
 rm -rf zstd-1.5.6
 
+tar -xf $FILCSRC/pizlix/ncurses-6.5.tar.gz
+cd ncurses-6.5
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
+    --mandir=/opt/fil/share/man \
+    --with-shared \
+    --without-debug \
+    --without-normal \
+    --without-ada \
+    --with-cxx-shared \
+    --enable-pc-files \
+    --with-pkg-config-libdir=/opt/fil/lib/pkgconfig \
+    --enable-overwrite
+make -j `nproc`
+make -j `nproc` DESTDIR=$PWD/dest install
+install -vm755 dest/opt/fil/lib/libncursesw.so.6.5 /opt/fil/lib
+rm -v dest/opt/fil/lib/libncursesw.so.6.5
+sed -e 's/^#if.*XOPEN.*$/#if 1/' \
+    -i dest/opt/fil/include/curses.h
+cp -av dest/* /
+for lib in ncurses form panel menu ; do
+    ln -sfv lib${lib}w.so /opt/fil/lib/lib${lib}.so
+    ln -sfv ${lib}w.pc /opt/fil/lib/pkgconfig/${lib}.pc
+done
+ln -sfv libncursesw.so /opt/fil/lib/libcurses.so
+cp -v -R doc -T /opt/fil/share/doc/ncurses-6.5
+cd ..
+rm -rf ncurses-6.5
+
+tar -xf $FILCSRC/pizlix/readline-8.2.13.tar.gz
+cd readline-8.2.13
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+sed -i 's/-Wl,-rpath,[^ ]*//' support/shobj-conf
+./configure --prefix=/opt/fil \
+    --disable-static \
+    --with-curses \
+    --docdir=/opt/fil/share/doc/readline-8.2.13
+make SHLIB_LIBS="-lncursesw"
+make SHLIB_LIBS="-lncursesw" install
+install -v -m644 doc/*.{ps,pdf,html,dvi} /opt/fil/share/doc/readline-8.2.13
+cd ..
+rm -rf readline-8.2.13
+
 tar -xf $FILCSRC/projects/pkgconf-2.3.0/pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
     --docdir=/opt/fil/share/doc/pkgconf-2.3.0
 make -j `nproc`
@@ -253,7 +296,7 @@ rm -rf pizlonated-pkgconf
 
 tar -xf $FILCSRC/projects/libxcrypt-4.4.36/pizlonated-libxcrypt.tar.gz
 cd pizlonated-libxcrypt
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --enable-hashes=strong,glibc \
     --enable-obsolete-api=no \
     --disable-static \
@@ -265,17 +308,21 @@ rm -rf pizlonated-libxcrypt
 
 tar -xf $FILCSRC/projects/bash-5.2.32/pizlonated-bash.tar.gz
 cd pizlonated-bash
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --without-bash-malloc \
     --with-installed-readline \
     bash_cv_strtold_broken=no \
     --docdir=/opt/fil/share/doc/bash-5.2.32
 make -j `nproc`
 make -j `nproc` install
+cd ..
+
+test -d ../build
+test -d ../../fil
 
 tar -xf $FILCSRC/projects/openssl-3.3.1/pizlonated-openssl.tar.gz
 cd pizlonated-openssl
-./config --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./config --prefix=/opt/fil \
     --openssldir=/etc/ssl \
     --libdir=lib \
     shared \
@@ -290,7 +337,7 @@ rm -rf pizlonated-openssl
 
 tar -xf $FILCSRC/projects/libffi-3.4.6/pizlonated-libffi.tar.gz
 cd pizlonated-libffi
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
     --with-gcc-arch=native \
     --disable-exec-static-tramp
@@ -303,12 +350,12 @@ tar -xf $FILCSRC/pizlix/coreutils-9.5.tar.xz
 cd coreutils-9.5
 patch -Np1 -i $FILCSRC/pizlix/coreutils-9.5-i18n-2.patch
 autoreconf -fiv
-FORCE_UNSAFE_CONFIGURE=1 ./configure \
-    --prefix=/opt/fil \
-    --enable-no-install-program=kill,uptime
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ FORCE_UNSAFE_CONFIGURE=1 ./configure \
+    --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 mv -v /opt/fil/bin/chroot /opt/fil/sbin
+mkdir -pv /opt/fil/share/man/man8
 mv -v /opt/fil/share/man/man1/chroot.1 /opt/fil/share/man/man8/chroot.8
 sed -i 's/"1"/"8"/' /opt/fil/share/man/man8/chroot.8
 cd ..
@@ -316,7 +363,7 @@ rm -rf coreutils-9.5
 
 tar -xf $FILCSRC/pizlix/mg-3.7.tar.gz 
 cd mg-3.7
-./configure --prefix=/opt/fil --without-curses
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 cd ..
@@ -325,7 +372,7 @@ rm -rf mg-3.7
 tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz
 cd pizlonated-openssh
 install -v -m700 -d /opt/fil/var/lib/sshd &&
-./configure --prefix=/opt/fil \
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --sysconfdir=/opt/fil/etc/ssh \
             --with-privsep-path=/opt/fil/var/lib/sshd \
             --with-default-path=/opt/fil/bin:/usr/bin:/bin \
@@ -343,5 +390,6 @@ cd ..
 rm -rf pizlonated-openssh
 cd ..
 test -d build
+test ../fil
 rm -rf build
 
