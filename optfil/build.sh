@@ -393,9 +393,9 @@ test -d build
 test -d ../fil
 rm -rf build
 
-for x in $(find lib -type f -name \*.so*)
-         $(find lib -type f -name \*a)
-         $(find {bin,sbin,libexec} -type f)
+for x in $(find lib -type f -name \*.so*) \
+         $(find lib -type f -name \*a) \
+         $(find {bin,sbin,libexec} -type f) \
 do
     strip --strip-unneeded $x || echo whatever
 done
