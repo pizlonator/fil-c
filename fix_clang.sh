@@ -28,7 +28,7 @@
 set -e
 set -x
 
-patchelf --remote-rpath build/bin/clang-20
+patchelf --remove-rpath build/bin/clang-20
 
 cd build/bin
 ln -fs clang-20 filcc
