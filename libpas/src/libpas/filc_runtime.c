@@ -5740,6 +5740,24 @@ filc_ptr filc_promote_already_checked_stack_to_heap_without_exiting(
     return result;
 }
 
+filc_ptr filc_promote_already_checked_stack_to_heap_with_alignment_without_exiting(
+    filc_thread* my_thread, void* payload, void* aux, size_t size, size_t alignment)
+{
+    if (!size)
+        return filc_ptr_forge_null();
+    
+    PAS_TESTING_ASSERT(pas_is_aligned(size, FILC_WORD_SIZE));
+
+    filc_ptr result = filc_ptr_create_with_object_and_manual_tracking(
+        allocate_aligned_impl(my_thread, size, alignment, 0, filc_exit_not_allowed, NULL));
+
+    copy_stack_to_heap_already_checked(
+        my_thread, result, payload, aux, size, filc_word_aligned, filc_word_aligned,
+        filc_word_aligned, filc_exit_not_allowed, NULL);
+
+    return result;
+}
+
 void filc_demote_word_aligned_already_checked_heap_to_stack_without_exiting(
     filc_ptr ptr, void* payload, void* aux, size_t size)
 {

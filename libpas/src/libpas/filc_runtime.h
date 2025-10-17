@@ -4113,6 +4113,9 @@ void filc_memmove_stack(
 filc_ptr filc_promote_already_checked_stack_to_heap_without_exiting(
     filc_thread* my_thread, void* payload, void* aux, size_t size);
 
+filc_ptr filc_promote_already_checked_stack_to_heap_with_alignment_without_exiting(
+    filc_thread* my_thread, void* payload, void* aux, size_t size, size_t alignment);
+
 /* Takes a known-to-be-word-aligned pointer and a known-to-be-word-aligned size, with all checks
    necessary to do the access to the pointer with that size already having been performed, and copies
    to the given stack buffer, which is also known to be big enough. */

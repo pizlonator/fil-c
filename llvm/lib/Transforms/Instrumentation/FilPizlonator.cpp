@@ -1134,10 +1134,11 @@ enum class ArgKind {
 struct ArgInfo {
   Type* T { nullptr };
   ArgKind AK { ArgKind::Direct };
+  Align A;
 
   ArgInfo() = default;
 
-  ArgInfo(Type* T, ArgKind AK): T(T), AK(AK) {
+  ArgInfo(Type* T, ArgKind AK, Align A): T(T), AK(AK), A(A) {
   }
 };
 
@@ -1444,6 +1445,7 @@ class Pizlonator {
   FunctionCallee ResumeUnwind;
   FunctionCallee JmpBufCreate;
   FunctionCallee PromoteAlreadyCheckedStackToHeapWithoutExiting;
+  FunctionCallee PromoteAlreadyCheckedStackToHeapWithAlignmentWithoutExiting;
   FunctionCallee DemoteWordAlignedAlreadyCheckedHeapToStackWithoutExiting;
   FunctionCallee DemoteAlreadyCheckedHeapToStackWithoutExiting;
   FunctionCallee PromoteArgsToHeap;
@@ -5298,7 +5300,7 @@ class Pizlonator {
   size_t argsAlignment(const std::vector<ArgInfo>& Elements) {
     size_t Alignment = WordSize;
     iterateArgs(Elements, [&] (size_t Idx, ArgInfo AI, size_t Offset) {
-      Alignment = std::max(Alignment, DL.getABITypeAlign(AI.T).value());
+      Alignment = std::max(Alignment, AI.A.value());
     });
     return Alignment;
   }
@@ -5306,11 +5308,16 @@ class Pizlonator {
   std::vector<ArgInfo> argInfosForFunction(Function* F) {
     std::vector<ArgInfo> Elements;
     for (Argument& A : F->args()) {
-      if (A.hasByValAttr())
-        Elements.push_back(ArgInfo(A.getParamByValType(), ArgKind::ByVal));
-      else {
+      if (A.hasByValAttr()) {
+        Elements.push_back(
+          ArgInfo(
+            A.getParamByValType(),
+            ArgKind::ByVal,
+            std::max(DL.getABITypeAlign(A.getParamByValType()),
+                     A.getParamAlign().valueOrOne())));
+      } else {
         assert(!A.hasPassPointeeByValueCopyAttr());
-        Elements.push_back(ArgInfo(A.getType(), ArgKind::Direct));
+        Elements.push_back(ArgInfo(A.getType(), ArgKind::Direct, DL.getABITypeAlign(A.getType())));
       }
     }
     return Elements;
@@ -5322,11 +5329,17 @@ class Pizlonator {
     std::vector<Type*> ArgTypes = InstTypeVectors[CB];
     assert(ArgTypes.size() == CB->arg_size());
     for (size_t Idx = 0; Idx < CB->arg_size(); ++Idx) {
-      if (CB->isByValArgument(Idx))
-        Elements.push_back(ArgInfo(CB->getParamByValType(Idx), ArgKind::ByVal));
-      else {
+      if (CB->isByValArgument(Idx)) {
+        Elements.push_back(
+          ArgInfo(
+            CB->getParamByValType(Idx),
+            ArgKind::ByVal,
+            std::max(DL.getABITypeAlign(CB->getParamByValType(Idx)),
+                     CB->getParamAlign(Idx).valueOrOne())));
+      } else {
         assert(!CB->isPassPointeeByValueArgument(Idx));
-        Elements.push_back(ArgInfo(ArgTypes[Idx], ArgKind::Direct));
+        Elements.push_back(
+          ArgInfo(ArgTypes[Idx], ArgKind::Direct, DL.getABITypeAlign(ArgTypes[Idx])));
       }
     }
     return Elements;
@@ -5431,6 +5444,15 @@ class Pizlonator {
           DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System, InsertBefore);
         break;
       case ArgKind::ByVal:
+        if (AI.A.value() > GCMinAlign) {
+          Result = CallInst::Create(
+            PromoteAlreadyCheckedStackToHeapWithAlignmentWithoutExiting,
+            { MyThread, PayloadPtr, AuxPtr,
+              ConstantInt::get(IntPtrTy, (DL.getTypeAllocSize(ArgT) + WordSize - 1) & -WordSize),
+              ConstantInt::get(IntPtrTy, AI.A.value()) },
+            "filc_promote_stack", InsertBefore);
+          break;
+        }
         Result = CallInst::Create(
           PromoteAlreadyCheckedStackToHeapWithoutExiting,
           { MyThread, PayloadPtr, AuxPtr,
@@ -5451,7 +5473,7 @@ class Pizlonator {
   Value* loadCC(Type* T, Value* PassedSize, FunctionCallee CCCheckFailure, Instruction* InsertBefore,
                 DebugLoc DI) {
     std::vector<ArgInfo> AIs;
-    AIs.push_back(ArgInfo(T, ArgKind::Direct));
+    AIs.push_back(ArgInfo(T, ArgKind::Direct, DL.getABITypeAlign(T)));
     std::vector<Value*> Vs = loadCC(AIs, PassedSize, CCCheckFailure, InsertBefore, DI);
     assert(Vs.size() == 1);
     return Vs[0];
@@ -5597,7 +5619,7 @@ class Pizlonator {
 
   Value* storeCC(Type* T, Value* V, Instruction* InsertBefore, DebugLoc DI) {
     std::vector<ArgInfo> AIs;
-    AIs.push_back(ArgInfo(T, ArgKind::Direct));
+    AIs.push_back(ArgInfo(T, ArgKind::Direct, DL.getABITypeAlign(T)));
     std::vector<Value*> Vs;
     Vs.push_back(V);
     return storeCC(AIs, Vs, InsertBefore, DI);
@@ -9943,6 +9965,9 @@ public:
     PromoteAlreadyCheckedStackToHeapWithoutExiting = M.getOrInsertFunction(
       "filc_promote_already_checked_stack_to_heap_without_exiting",
       FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy);
+    PromoteAlreadyCheckedStackToHeapWithAlignmentWithoutExiting = M.getOrInsertFunction(
+      "filc_promote_already_checked_stack_to_heap_with_alignment_without_exiting",
+      FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy, IntPtrTy);
     DemoteWordAlignedAlreadyCheckedHeapToStackWithoutExiting = M.getOrInsertFunction(
       "filc_demote_word_aligned_already_checked_heap_to_stack_without_exiting",
       VoidTy, FlightPtrTy, RawPtrTy, RawPtrTy, IntPtrTy);
