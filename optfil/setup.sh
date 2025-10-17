@@ -129,6 +129,38 @@ else
     /opt/fil/bin/ssh-keygen -A
     echo "New SSH host keys generated."
 fi
+
+if id sshd > /dev/null 2>&1; then
+    echo "SSH privsep user sshd already exists."
+else
+    echo
+    if getent group sshd > /dev/null 2>&1; then
+	echo "SSH privsep user sshd does not exist!"
+	echo
+	echo "To create sshd privsep user, type YES (in all caps) or anything else to skip."
+    else
+	echo "SSH privsep user sshd and group sshd do not exist!"
+	echo
+	echo "To create sshd privsep user and sshd group, type YES (in all caps) or anything"
+	echo "else to skip."
+    fi
+    read sshd_response
+
+    if [ "$sshd_response" = "YES" ]; then
+	if ! getent group sshd > /dev/null 2>&1; then
+	    groupadd sshd
+	    echo "Created sshd group."
+	fi
+	useradd -c 'sshd PrivSep' \
+		-d /opt/fil/var/lib/sshd \
+		-g sshd \
+		-s /bin/false \
+		sshd
+	echo "Created sshd privsep user."
+    else
+	echo "Not creating sshd privsep user."
+    fi
+fi
 echo
 
 echo
