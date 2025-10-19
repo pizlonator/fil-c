@@ -92,7 +92,7 @@ RUN apt-get install -y \
     python3 python3-pip python3-setuptools \
     wget rsync file less sudo \
     libncurses-dev libssl-dev zlib1g-dev \
-    xz-utils bzip2 gzip
+    xz-utils bzip2 gzip gdb lldb
 
 # Clean up apt cache to reduce image size
 RUN rm -rf /var/lib/apt/lists/*
