@@ -30,7 +30,7 @@ set -x
 
 cd projects/coreutils-9.5
 extract_source
-CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ \
+FORCE_UNSAFE_CONFIGURE=1 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ \
     ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install

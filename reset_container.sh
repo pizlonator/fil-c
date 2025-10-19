@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
 #
@@ -21,16 +21,23 @@
 # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-
-. libpas/common.sh
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set -e
-set -x
 
-cd projects/bash-5.2.32
-extract_source
-CC="$PWD/../../../build/bin/clang -w" CXX="$PWD/../../../build/bin/clang++ -w" \
-    ./configure --prefix=$PWD/../../../pizfix --without-bash-malloc
-make -j $NCPU
-make -j $NCPU install
+# Get the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Create the same image tag that enter_container.sh uses
+CHECKOUT_HASH=$(echo -n "${SCRIPT_DIR}" | sha256sum | cut -c1-8)
+IMAGE_NAME="fil-c-dev"
+IMAGE_TAG="${CHECKOUT_HASH}"
+
+# Check if the image exists
+if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
+    echo "Removing ${IMAGE_NAME}:${IMAGE_TAG} container image..."
+    podman rmi "${IMAGE_NAME}:${IMAGE_TAG}"
+    echo "Image removed successfully!"
+else
+    echo "Image ${IMAGE_NAME}:${IMAGE_TAG} does not exist. Nothing to do."
+fi

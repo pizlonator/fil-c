@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
 #
@@ -28,8 +28,6 @@ set -x
 
 ulimit -c unlimited
 
-test $EUID -ne 0
-
 test "x$FILCSRC" != "x"
 test -d $FILCSRC
 test -d $FILCSRC/libpas
@@ -37,6 +35,9 @@ test -d $FILCSRC/llvm
 test -d $FILCSRC/clang
 test -d $FILCSRC/filc
 test -d $FILCSRC/optfil
+
+FILCOWNER=`stat -c %U $FILCSRC`
+test `id -u` -eq `id -u $FILCOWNER`
 
 # FIXME: It would be super cool to avoid building yolo glibc an extra time here. We do that only
 # because I don't feel like fucking with the libpas build right now.

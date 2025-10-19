@@ -46,6 +46,8 @@ CMAKEOPTIONS="-S ../llvm -B . -G Ninja -DLLVM_ENABLE_PROJECTS=clang
     -DLLVM_ENABLE_LIBPFM=OFF -DLLVM_ENABLE_ZLIB=OFF -DLLVM_ENABLE_ZSTD=OFF
     -DLLVM_ENABLE_CURL=OFF -DLLVM_ENABLE_HTTPLIB=OFF
     -DLLVM_STATIC_LINK_CXX_STDLIB=ON -DCMAKE_EXE_LINKER_FLAGS=-static-libgcc"
+
+EXPECTEDCOOKIECONTENTS="$HOSTNAME:$PWD ::: $CMAKEOPTIONS"
  
 # Rev the cookie name anytime we want to force folks to do a 100% fresh rebuild (like when we rebase
 # LLVM).
@@ -53,12 +55,12 @@ COOKIENAME=filc_cookie_2.txt
 
 if test -e build/$COOKIENAME
 then
-    COOKIECONTENTS=`cat build/$COOKIENAME`
+    ACTUALCOOKIECONTENTS=`cat build/$COOKIENAME`
 else
-    COOKIECONTENTS=""
+    ACTUALCOOKIECONTENTS=""
 fi
 
-if test "x$COOKIECONTENTS" != "x$CMAKEOPTIONS"
+if test "x$ACTUALCOOKIECONTENTS" != "x$EXPECTEDCOOKIECONTENTS"
 then
     rm -rf build
     mkdir -p build
@@ -66,6 +68,6 @@ then
     cd build
     cmake $CMAKEOPTIONS
     
-    echo "$CMAKEOPTIONS" > $COOKIENAME
+    echo "$EXPECTEDCOOKIECONTENTS" > $COOKIENAME
 fi
 

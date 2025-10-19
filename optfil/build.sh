@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
 #
@@ -28,7 +28,7 @@ set -x
 
 ulimit -c unlimited
 
-test $EUID -eq 0
+test `id -u` -eq 0
 
 export FILCSRC=$PWD/..
 
@@ -163,7 +163,7 @@ cd pizlonated-user-glibc
 mkdir -v build
 cd build
 echo "rootsbindir=/opt/fil/sbin" > configparms
-CC="/opt/fil/bin/filcc -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" CXX="/opt/fil/bin/fil++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../configure --prefix=/opt/fil \
+CC="/opt/fil/bin/filcc -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="/opt/fil/bin/fil++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../configure --prefix=/opt/fil \
     --disable-werror \
     --enable-kernel=4.19 \
     --disable-nscd \
@@ -337,7 +337,7 @@ rm -rf pizlonated-libxcrypt
 
 tar -xf $FILCSRC/projects/bash-5.2.32/pizlonated-bash.tar.gz
 cd pizlonated-bash
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
+CC="/opt/fil/bin/filcc -w" CXX="/opt/fil/bin/fil++ -w" ./configure --prefix=/opt/fil \
     --without-bash-malloc \
     --with-installed-readline \
     bash_cv_strtold_broken=no \
@@ -422,12 +422,49 @@ test -d build
 test -d ../fil
 rm -rf build
 
+# OK, we need to strip everything, but:
+#
+# - We cannot use the system's strip, because it might not be the right version. We know which strip
+#   version we need. In fact, the one we built would work great.
+# - But we cannot use that strip unless we do the LFS section 8.84 hack. That hack is gross, and I'm
+#   worried it's a bit flaky. Basically - we cannot use the strip we built to strip the strip we built
+#   or any libraries that the strip we built depends on.
+#
+# So, we build ourselves our own strip! And we build it using Yolo-C, so that we can be sure that it
+# doesn't depend on any of the libraries we are about to strip.
+mkdir -v binutils
+cd binutils
+tar -xf $FILCSRC/pizlix/binutils-2.43.1.tar.xz
+cd binutils-2.43.1
+mkdir -v build
+cd build
+../configure --prefix=/opt/fil/binutils \
+    --disable-gold \
+    --enable-ld=default \
+    --enable-shared \
+    --disable-werror \
+    --enable-64-bit-bfd \
+    --enable-new-dtags \
+    --with-system-zlib \
+    --enable-default-hash-style=gnu \
+    --disable-gprofng
+make -j `nproc` tooldir=/opt/fil/binutils
+make -j `nproc` tooldir=/opt/fil/binutils install
+cd ../..
+test -d binutils-2.43.1
+rm -rf binutils-2.43.1
+cd ..
+test -d binutils
+test -d ../fil
+
 for x in $(find lib -type f -name \*.so*) \
          $(find lib -type f -name \*a) \
          $(find {bin,sbin,libexec} -type f)
 do
-    strip --strip-unneeded $x || echo whatever
+    LD_LIBRARY_PATH=/opt/fil/binutils/lib /opt/fil/binutils/bin/strip --strip-unneeded $x || echo whatever
 done
+
+rm -rf binutils
 
 cd ..
 tar -cf fil.tar fil
