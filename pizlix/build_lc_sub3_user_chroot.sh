@@ -18,7 +18,7 @@ patch -Np1 -i ../glibc-2.40-fhs-1.patch
 mkdir -v build
 cd build
 echo "rootsbindir=/usr/sbin" > configparms
-CC="clang -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" CXX="clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../configure --prefix=/usr \
+CC="clang -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../configure --prefix=/usr \
     --disable-werror \
     --enable-kernel=4.19 \
     --disable-nscd \
