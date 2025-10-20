@@ -1,0 +1,78 @@
+pam_filter — PAM filter module
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+This module is intended to be a platform for providing access to all of the
+input/output that passes between the user and the application. It is only
+suitable for tty-based and (stdin/stdout) applications.
+
+To function this module requires filters to be installed on the system. The
+single filter provided with the module simply transposes upper and lower case
+letters in the input and output streams. (This can be very annoying and is not
+kind to termcap based editors).
+
+Each component of the module has the potential to invoke the desired filter.
+The filter is always execv(2) with the privilege of the calling application and
+not that of the user. For this reason it cannot usually be killed by the user
+without closing their session.
+
+OPTIONS
+
+debug
+
+    Print debug information.
+
+new_term
+
+    The default action of the filter is to set the PAM_TTY item to indicate the
+    terminal that the user is using to connect to the application. This
+    argument indicates that the filter should set PAM_TTY to the filtered
+    pseudo-terminal.
+
+non_term
+
+    don't try to set the PAM_TTY item.
+
+runX
+
+    In order that the module can invoke a filter it should know when to invoke
+    it. This argument is required to tell the filter when to do this.
+
+    Permitted values for X are 1 and 2. These indicate the precise time that
+    the filter is to be run. To understand this concept it will be useful to
+    have read the pam(3) manual page. Basically, for each management group
+    there are up to two ways of calling the module's functions. In the case of
+    the authentication and session components there are actually two separate
+    functions. For the case of authentication, these functions are 
+    pam_authenticate(3) and pam_setcred(3), here run1 means run the filter from
+    the pam_authenticate function and run2 means run the filter from
+    pam_setcred. In the case of the session modules, run1 implies that the
+    filter is invoked at the pam_open_session(3) stage, and run2 for 
+    pam_close_session(3).
+
+    For the case of the account component. Either run1 or run2 may be used.
+
+    For the case of the password component, run1 is used to indicate that the
+    filter is run on the first occasion of pam_chauthtok(3) (the 
+    PAM_PRELIM_CHECK phase) and run2 is used to indicate that the filter is run
+    on the second occasion (the PAM_UPDATE_AUTHTOK phase).
+
+filter
+
+    The full pathname of the filter to be run and any command line arguments
+    that the filter might expect.
+
+EXAMPLES
+
+Add the following line to /etc/pam.d/login to see how to configure login to
+transpose upper and lower case letters once the user has logged in:
+
+        session required pam_filter.so run1 /lib/security/pam_filter/upperLOWER
+
+
+AUTHOR
+
+pam_filter was written by Andrew G. Morgan <morgan@kernel.org>.
+

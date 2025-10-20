@@ -1,0 +1,180 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_ftp">
+
+  <refmeta>
+    <refentrytitle>pam_ftp</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_ftp-name">
+    <refname>pam_ftp</refname>
+    <refpurpose>PAM module for anonymous access module</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_ftp-cmdsynopsis" sepchar=" ">
+      <command>pam_ftp.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        ignore
+      </arg>
+      <arg choice="opt" rep="repeat">
+        users=<replaceable>XXX,YYY,</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_ftp-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      pam_ftp is a PAM module which provides a pluggable
+      anonymous ftp mode of access.
+    </para>
+    <para>
+      This module intercepts the user's name and password. If the name is
+      <emphasis>ftp</emphasis> or <emphasis>anonymous</emphasis>, the
+      user's password is broken up at the <emphasis>@</emphasis> delimiter
+      into a <emphasis>PAM_RUSER</emphasis> and a
+      <emphasis>PAM_RHOST</emphasis> part; these pam-items being set
+      accordingly. The username (<emphasis>PAM_USER</emphasis>) is set
+      to <emphasis>ftp</emphasis>.  In this case the module succeeds.
+      Alternatively, the module sets the <emphasis>PAM_AUTHTOK</emphasis>
+      item with the entered password and fails.
+    </para>
+    <para>
+      This module is not safe and easily spoofable.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-options">
+
+    <title>OPTIONS</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>
+            debug
+          </term>
+          <listitem>
+            <para>
+	      Print debug information.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            ignore
+          </term>
+          <listitem>
+            <para>
+              Pay no attention to the email address of the user
+              (if supplied).
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            ftp=XXX,YYY,...
+          </term>
+          <listitem>
+            <para>
+              Instead of <emphasis>ftp</emphasis> or
+              <emphasis>anonymous</emphasis>, provide anonymous login
+              to the comma separated list of users:
+              <option><replaceable>XXX,YYY,...</replaceable></option>.
+              Should the applicant enter
+              one of these usernames the returned username is set to
+              the first in the list: <emphasis>XXX</emphasis>.
+            </para>
+          </listitem>
+	</varlistentry>
+
+      </variablelist>
+
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>auth</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>PAM_SUCCESS</term>
+          <listitem>
+            <para>
+              The authentication was successful.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_USER_UNKNOWN</term>
+          <listitem>
+            <para>
+	      User not known.
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Add the following line to <filename>/etc/pam.d/ftpd</filename> to
+      handle ftp style anonymous login:
+      <programlisting>
+#
+# ftpd; add ftp-specifics. These lines enable anonymous ftp over
+#       standard UN*X access (the listfile entry blocks access to
+#       users listed in /etc/ftpusers)
+#
+auth    sufficient  pam_ftp.so
+auth    required    pam_unix.so use_first_pass
+auth    required    pam_listfile.so \
+           onerr=succeed item=user sense=deny file=/etc/ftpusers
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_ftp-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_ftp was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

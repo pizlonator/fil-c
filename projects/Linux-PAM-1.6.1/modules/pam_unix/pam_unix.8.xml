@@ -1,0 +1,498 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_unix">
+
+  <refmeta>
+    <refentrytitle>pam_unix</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_unix-name">
+    <refname>pam_unix</refname>
+    <refpurpose>Module for traditional password authentication</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_unix-cmdsynopsis" sepchar=" ">
+      <command>pam_unix.so</command>
+      <arg choice="opt" rep="norepeat">
+        ...
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_unix-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      This is the standard Unix authentication module. It uses standard
+      calls from the system's libraries to retrieve and set account
+      information as well as authentication. Usually this is obtained
+      from the /etc/passwd and the /etc/shadow file as well if shadow is
+      enabled.
+    </para>
+
+    <para>
+      The account component performs the task of establishing the status
+      of the user's account and password based on the following
+      <emphasis>shadow</emphasis> elements: expire, last_change, max_change,
+      min_change, warn_change. In the case of the latter, it may offer advice
+      to the user on changing their password or, through the
+      <emphasis remap="B">PAM_AUTHTOKEN_REQD</emphasis> return, delay
+      giving service to the user until they have established a new password.
+      The entries listed above are documented in the <citerefentry>
+      <refentrytitle>shadow</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry> manual page. Should the user's record not contain
+      one or more of these entries, the corresponding
+      <emphasis>shadow</emphasis> check is not performed.
+    </para>
+
+    <para>
+      The authentication component performs the task of checking the
+      users credentials (password). The default action of this module
+      is to not permit the user access to a service if their official
+      password is blank.
+    </para>
+
+    <para>
+      A helper binary, <citerefentry>
+      <refentrytitle>unix_chkpwd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>, is provided
+      to check the user's password when it is stored in a read
+      protected database. This binary is very simple and will only
+      check the password of the user invoking it. It is called
+      transparently on behalf of the user by the authenticating
+      component of this module. In this way it is possible
+      for applications like <citerefentry>
+      <refentrytitle>xlock</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> to work without
+      being setuid-root. The module, by default, will temporarily turn
+      off SIGCHLD handling for the duration of execution of the helper
+      binary. This is generally the right thing to do, as many applications
+      are not prepared to handle this signal from a child they didn't know
+      was <function>fork()</function>d. The <option>noreap</option> module
+      argument can be used to suppress this temporary shielding and may be
+      needed for use with certain applications.
+    </para>
+
+    <para>
+      The maximum length of a password supported by the pam_unix module
+      via the helper binary is <emphasis>PAM_MAX_RESP_SIZE</emphasis>
+      - currently 512 bytes. The rest of the password provided by the
+      conversation function to the module will be ignored.
+    </para>
+
+    <para>
+      The password component of this module performs the task of updating
+      the user's password. The default encryption hash is taken from the
+      <emphasis remap="B">ENCRYPT_METHOD</emphasis> variable from
+      <emphasis>/etc/login.defs</emphasis>
+    </para>
+
+    <para>
+      The session component of this module logs when a user logins
+      or leave the system.
+    </para>
+
+    <para>
+      Remaining arguments, supported by others functions of this
+      module, are silently ignored. Other arguments are logged as
+      errors through <citerefentry>
+      <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_unix-options">
+
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+	    Turns on debugging via
+            <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          audit
+        </term>
+        <listitem>
+          <para>
+            A little more extreme than debug.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          quiet
+        </term>
+        <listitem>
+          <para>
+	    Turns off informational messages namely messages about
+	    session open and close via
+            <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          nullok
+        </term>
+        <listitem>
+          <para>
+            The default action of this module is to not permit the
+            user access to a service if their official password is blank.
+            The <option>nullok</option> argument overrides this default.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          nullresetok
+        </term>
+        <listitem>
+          <para>
+            Allow users to authenticate with blank password if password reset
+            is enforced even if <option>nullok</option> is not set. If password
+            reset is not required and <option>nullok</option> is not set the
+            authentication with blank password will be denied.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          try_first_pass
+        </term>
+        <listitem>
+          <para>
+            Before prompting the user for their password, the module first
+            tries the previous stacked module's password in case that
+            satisfies this module as well.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_first_pass
+        </term>
+        <listitem>
+          <para>
+            The argument <option>use_first_pass</option> forces the module
+            to use a previous stacked modules password and will never prompt
+            the user - if no password is available or the password is not
+            appropriate, the user will be denied access.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          nodelay
+        </term>
+        <listitem>
+          <para>
+            This argument can be used to discourage the authentication
+            component from requesting a delay should the authentication
+            as a whole fail. The default action is for the module to
+            request a delay-on-failure of the order of two seconds.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_authtok
+        </term>
+        <listitem>
+          <para>
+            When password changing enforce the module to set the new
+            password to the one provided by a previously stacked
+            <option>password</option> module (this is used in the
+            example of the stacking of the <command>pam_passwdqc</command>
+            module documented below).
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          authtok_type=type
+        </term>
+        <listitem>
+          <para>
+            This argument can be used to modify the password prompt
+            when changing passwords to include the type of the password.
+            Empty by default.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          nis
+        </term>
+        <listitem>
+          <para>
+            NIS RPC is used for setting new passwords.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          remember=n
+        </term>
+        <listitem>
+          <para>
+            The last <replaceable>n</replaceable> passwords for each
+            user are saved in <filename>/etc/security/opasswd</filename>
+            in order to force password change history and keep the user
+            from alternating between the same password too frequently.
+            The MD5 password hash algorithm is used for storing the
+            old passwords.
+            Instead of this option the <command>pam_pwhistory</command>
+            module should be used.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          shadow
+        </term>
+        <listitem>
+          <para>
+            Try to maintain a shadow based system.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          md5
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next, encrypt
+            it with the MD5 algorithm.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          bigcrypt
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the DEC C2 algorithm.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          sha256
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the SHA256 algorithm. The
+            SHA256 algorithm must be supported by the <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          sha512
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the SHA512 algorithm. The
+            SHA512 algorithm must be supported by the <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          blowfish
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the blowfish algorithm. The
+            blowfish algorithm must be supported by the <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          gost_yescrypt
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the gost-yescrypt algorithm. The
+            gost-yescrypt algorithm must be supported by the <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          yescrypt
+        </term>
+        <listitem>
+          <para>
+            When a user changes their password next,
+            encrypt it with the yescrypt algorithm. The
+            yescrypt algorithm must be supported by the <citerefentry>
+	    <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          rounds=n
+        </term>
+        <listitem>
+          <para>
+            Set the optional number of rounds of the SHA256, SHA512,
+            blowfish, gost-yescrypt, and yescrypt password hashing
+            algorithms to
+            <replaceable>n</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          broken_shadow
+        </term>
+        <listitem>
+          <para>
+            Ignore errors reading shadow information for
+            users in the account management module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          minlen=n
+        </term>
+        <listitem>
+          <para>
+            Set a minimum password length of <replaceable>n</replaceable>
+            characters. The max. for DES crypt based passwords is 8
+            characters.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          no_pass_expiry
+        </term>
+        <listitem>
+          <para>
+            When set ignore password expiration as defined by the
+            <emphasis>shadow</emphasis> entry of the user. The option has an
+            effect only in case <emphasis>pam_unix</emphasis> was not used
+            for the authentication or it returned authentication failure
+            meaning that other authentication source or method succeeded.
+            The example can be public key authentication in
+            <emphasis>sshd</emphasis>. The module will return
+            <emphasis remap="B">PAM_SUCCESS</emphasis> instead of eventual
+            <emphasis remap="B">PAM_NEW_AUTHTOK_REQD</emphasis> or
+            <emphasis remap="B">PAM_AUTHTOK_EXPIRED</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Invalid arguments are logged with  <citerefentry>
+      <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_unix-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>account</option>, <option>auth</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_unix-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            Ignore this module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+     </refsect1>
+
+  <refsect1 xml:id="pam_unix-examples">
+    <title>EXAMPLES</title>
+    <para>
+      An example usage for <filename>/etc/pam.d/login</filename>
+      would be:
+      <programlisting>
+# Authenticate the user
+auth       required   pam_unix.so
+# Ensure user's account and password are still active
+account    required   pam_unix.so
+# Change the user's password, but at first check the strength
+# with pam_passwdqc(8)
+password   required   pam_passwdqc.so config=/etc/passwdqc.conf
+password   required   pam_unix.so use_authtok nullok yescrypt
+session    required   pam_unix.so
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_unix-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_unix-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_unix was written by various people.
+      </para>
+  </refsect1>
+
+</refentry>

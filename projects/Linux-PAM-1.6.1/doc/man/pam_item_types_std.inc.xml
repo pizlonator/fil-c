@@ -1,0 +1,139 @@
+<!-- this file is included by pam_set_item and pam_get_item -->
+<variablelist xmlns="http://docbook.org/ns/docbook" version="5.0">
+      <varlistentry>
+        <term>PAM_SERVICE</term>
+        <listitem>
+          <para>
+            The service name (which identifies that PAM stack that
+            the PAM functions will use to authenticate the program).
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_USER</term>
+        <listitem>
+          <para>
+            The username of the entity under whose identity service
+            will be given. That is, following authentication,
+            <emphasis>PAM_USER</emphasis> identifies the local entity
+            that gets to use the service. Note, this value can be mapped
+            from something (eg., "anonymous") to something else (eg.
+            "guest119") by any module in the PAM stack. As such an
+            application should consult the value of
+            <emphasis>PAM_USER</emphasis> after each call to a PAM function.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_USER_PROMPT</term>
+        <listitem>
+          <para>
+            The string used when prompting for a user's name. The default
+            value for this string is a localized version of "login: ".
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_TTY</term>
+        <listitem>
+          <para>
+            The terminal name prefixed by <filename>/dev/</filename> for
+            device files.
+            In the past, graphical X-based applications used to store the
+            <emphasis>$DISPLAY</emphasis> variable here, but with the
+            introduction of <emphasis>PAM_XDISPLAY</emphasis> this usage
+            is deprecated.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_RUSER</term>
+        <listitem>
+          <para>
+            The requesting user name: local name for a locally
+            requesting user or a remote user name for a remote
+            requesting user.
+          </para>
+          <para>
+            Generally an application or module will attempt to supply
+            the value that is most strongly authenticated (a local account
+            before a remote one. The level of trust in this value is
+            embodied in the actual authentication stack associated with
+            the application, so it is ultimately at the discretion of the
+            system administrator.
+          </para>
+          <para>
+            <emphasis>PAM_RUSER@PAM_RHOST</emphasis> should always identify
+             the requesting user. In some cases,
+             <emphasis>PAM_RUSER</emphasis> may be NULL. In such situations,
+             it is unclear who the requesting entity is.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_RHOST</term>
+        <listitem>
+          <para>
+            The requesting hostname (the hostname of the machine from
+            which the <emphasis>PAM_RUSER</emphasis> entity is requesting
+            service). That is <emphasis>PAM_RUSER@PAM_RHOST</emphasis>
+            does identify the requesting user. In some applications,
+            <emphasis>PAM_RHOST</emphasis> may be NULL. In such situations,
+            it is unclear where the authentication request is originating
+            from.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_AUTHTOK</term>
+        <listitem>
+          <para>
+            The authentication token (often a password). This token
+            should be ignored by all module functions besides
+            <citerefentry>
+              <refentrytitle>pam_sm_authenticate</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> and
+            <citerefentry>
+              <refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+            In the former function it is used to pass the most recent
+            authentication token from one stacked module to another. In
+            the latter function the token is used for another purpose.
+            It contains the currently active authentication token.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_OLDAUTHTOK</term>
+        <listitem>
+          <para>
+            The old authentication token. This token should be ignored
+            by all module functions except
+            <citerefentry>
+              <refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term>PAM_CONV</term>
+        <listitem>
+          <para>
+            The pam_conv structure. See
+            <citerefentry>
+              <refentrytitle>pam_conv</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>

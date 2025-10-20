@@ -1,0 +1,190 @@
+'\" t
+.\"     Title: pam_stress
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_STRESS" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_stress \- The stress\-testing PAM module
+.SH "SYNOPSIS"
+.HP \w'\fBpam_stress\&.so\fR\ 'u
+\fBpam_stress\&.so\fR [debug] [no_warn] [use_first_pass] [try_first_pass] [rootok] [expired] [fail_1] [fail_2] [prelim] [required]
+.SH "DESCRIPTION"
+.PP
+The pam_stress PAM module is mainly intended to give the impression of failing as a fully functioning module might\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Put lots of information in syslog\&. *NOTE* this option writes passwords to syslog, so don\*(Aqt use anything sensitive when testing\&.
+.RE
+.PP
+no_warn
+.RS 4
+Do not give warnings about things (otherwise warnings are issued via the conversation function)
+.RE
+.PP
+use_first_pass
+.RS 4
+Do not prompt for a password, for pam_sm_authentication function just use item PAM_AUTHTOK\&.
+.RE
+.PP
+try_first_pass
+.RS 4
+Do not prompt for a password unless there has been no previous authentication token (item PAM_AUTHTOK is NULL)
+.RE
+.PP
+rootok
+.RS 4
+This is intended for the pam_sm_chauthtok function and it instructs this function to permit root to change the user\*(Aqs password without entering the old password\&.
+.RE
+.PP
+expired
+.RS 4
+An argument intended for the account and chauthtok module parts\&. It instructs the module to act as if the user\*(Aqs password has expired
+.RE
+.PP
+fail_1
+.RS 4
+This instructs the module to make its first function fail\&.
+.RE
+.PP
+fail_2
+.RS 4
+This instructs the module to make its second function (if there is one) fail\&.
+.RE
+.PP
+prelim
+.RS 4
+For pam_sm_chauthtok, means fail on PAM_PRELIM_CHECK\&.
+.RE
+.PP
+required
+.RS 4
+For pam_sm_chauthtok, means fail if the user hasn\*(Aqt already been authenticated by this module\&. (See stress_new_pwd data string in the NOTES\&.)
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_PERM_DENIED
+.RS 4
+Permission denied\&.
+.RE
+.PP
+PAM_AUTH_ERR
+.RS 4
+Access to the system was denied\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+Conversation failure\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+The function passes all checks\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user is not known to the system\&.
+.RE
+.PP
+PAM_CRED_ERR
+.RS 4
+Failure involving user credentials\&.
+.RE
+.PP
+PAM_NEW_AUTHTOK_REQD
+.RS 4
+Authentication token is no longer valid; new one required\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Session failure\&.
+.RE
+.PP
+PAM_TRY_AGAIN
+.RS 4
+Failed preliminary check by service\&.
+.RE
+.PP
+PAM_AUTHTOK_LOCK_BUSY
+.RS 4
+Authentication token lock busy\&.
+.RE
+.PP
+PAM_AUTHTOK_ERR
+.RS 4
+Authentication token manipulation error\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+System error\&.
+.RE
+.SH "NOTES"
+.PP
+This module uses the stress_new_pwd data string which tells pam_sm_chauthtok that pam_sm_acct_mgmt says we need a new password\&. The only possible value for this data string is \*(Aqyes\*(Aq\&.
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#%PAM\-1\&.0
+#
+# Any of the following will suffice
+account  required pam_stress\&.so
+auth     required pam_stress\&.so
+password required pam_stress\&.so
+session  required pam_stress\&.so
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)\&.
+.SH "AUTHORS"
+.PP
+The pam_stress PAM module was developed by Andrew Morgan <morgan@linux\&.kernel\&.org>\&. The man page for pam_stress was written by Lucas Ramage <ramage\&.lucas@protonmail\&.com>\&.

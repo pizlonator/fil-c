@@ -1,0 +1,172 @@
+'\" t
+.\"     Title: pam_filter
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_FILTER" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_filter \- PAM filter module
+.SH "SYNOPSIS"
+.HP \w'\fBpam_filter\&.so\fR\ 'u
+\fBpam_filter\&.so\fR [debug] [new_term] [non_term] run1|run2 \fIfilter\fR [\fI\&.\&.\&.\fR]
+.SH "DESCRIPTION"
+.PP
+This module is intended to be a platform for providing access to all of the input/output that passes between the user and the application\&. It is only suitable for tty\-based and (stdin/stdout) applications\&.
+.PP
+To function this module requires
+\fIfilters\fR
+to be installed on the system\&. The single filter provided with the module simply transposes upper and lower case letters in the input and output streams\&. (This can be very annoying and is not kind to termcap based editors)\&.
+.PP
+Each component of the module has the potential to invoke the desired filter\&. The filter is always
+\fBexecv\fR(2)
+with the privilege of the calling application and
+\fInot\fR
+that of the user\&. For this reason it cannot usually be killed by the user without closing their session\&.
+.SH "OPTIONS"
+.PP
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+new_term
+.RS 4
+The default action of the filter is to set the
+\fIPAM_TTY\fR
+item to indicate the terminal that the user is using to connect to the application\&. This argument indicates that the filter should set
+\fIPAM_TTY\fR
+to the filtered pseudo\-terminal\&.
+.RE
+.PP
+non_term
+.RS 4
+don\*(Aqt try to set the
+\fIPAM_TTY\fR
+item\&.
+.RE
+.PP
+runX
+.RS 4
+In order that the module can invoke a filter it should know when to invoke it\&. This argument is required to tell the filter when to do this\&.
+.sp
+Permitted values for
+\fIX\fR
+are
+\fI1\fR
+and
+\fI2\fR\&. These indicate the precise time that the filter is to be run\&. To understand this concept it will be useful to have read the
+\fBpam\fR(3)
+manual page\&. Basically, for each management group there are up to two ways of calling the module\*(Aqs functions\&. In the case of the
+\fIauthentication\fR
+and
+\fIsession\fR
+components there are actually two separate functions\&. For the case of authentication, these functions are
+\fBpam_authenticate\fR(3)
+and
+\fBpam_setcred\fR(3), here
+\fBrun1\fR
+means run the filter from the
+\fBpam_authenticate\fR
+function and
+\fBrun2\fR
+means run the filter from
+\fBpam_setcred\fR\&. In the case of the session modules,
+\fIrun1\fR
+implies that the filter is invoked at the
+\fBpam_open_session\fR(3)
+stage, and
+\fIrun2\fR
+for
+\fBpam_close_session\fR(3)\&.
+.sp
+For the case of the account component\&. Either
+\fIrun1\fR
+or
+\fIrun2\fR
+may be used\&.
+.sp
+For the case of the password component,
+\fIrun1\fR
+is used to indicate that the filter is run on the first occasion of
+\fBpam_chauthtok\fR(3)
+(the
+\fIPAM_PRELIM_CHECK\fR
+phase) and
+\fIrun2\fR
+is used to indicate that the filter is run on the second occasion (the
+\fIPAM_UPDATE_AUTHTOK\fR
+phase)\&.
+.RE
+.PP
+filter
+.RS 4
+The full pathname of the filter to be run and any command line arguments that the filter might expect\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+The new filter was set successfully\&.
+.RE
+.PP
+PAM_ABORT
+.RS 4
+Critical error, immediate abort\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/login
+to see how to configure login to transpose upper and lower case letters once the user has logged in:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        session required pam_filter\&.so run1 /lib/security/pam_filter/upperLOWER
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_filter was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.

@@ -1,0 +1,158 @@
+'\" t
+.\"     Title: pam_userdb
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_USERDB" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_userdb \- PAM module to authenticate against a db database
+.SH "SYNOPSIS"
+.HP \w'\fBpam_userdb\&.so\fR\ 'u
+\fBpam_userdb\&.so\fR db=\fI/path/database\fR [debug] [crypt=[crypt|none]] [icase] [dump] [try_first_pass] [use_first_pass] [unknown_ok] [key_only]
+.SH "DESCRIPTION"
+.PP
+The pam_userdb module is used to verify a username/password pair against values stored in a Berkeley DB database\&. The database is indexed by the username, and the data fields corresponding to the username keys are the passwords\&.
+.SH "OPTIONS"
+.PP
+crypt=[crypt|none]
+.RS 4
+Indicates whether encrypted or plaintext passwords are stored in the database\&. If it is
+\fBcrypt\fR, passwords should be stored in the database in
+\fBcrypt\fR(3)
+form\&. If
+\fBnone\fR
+is selected, passwords should be stored in the database as plaintext\&.
+.RE
+.PP
+db=/path/database
+.RS 4
+Use the
+/path/database
+database for performing lookup\&. There is no default; the module will return
+\fBPAM_IGNORE\fR
+if no database is provided\&. Note that the path to the database file should be specified without the
+\&.db
+suffix\&.
+.RE
+.PP
+debug
+.RS 4
+Print debug information\&. Note that password hashes, both from db and computed, will be printed to syslog\&.
+.RE
+.PP
+dump
+.RS 4
+Dump all the entries in the database to the log\&. Don\*(Aqt do this by default!
+.RE
+.PP
+icase
+.RS 4
+Make the password verification to be case insensitive (ie when working with registration numbers and such)\&. Only works with plaintext password storage\&.
+.RE
+.PP
+try_first_pass
+.RS 4
+Use the authentication token previously obtained by another module that did the conversation with the application\&. If this token can not be obtained then the module will try to converse\&. This option can be used for stacking different modules that need to deal with the authentication tokens\&.
+.RE
+.PP
+use_first_pass
+.RS 4
+Use the authentication token previously obtained by another module that did the conversation with the application\&. If this token can not be obtained then the module will fail\&. This option can be used for stacking different modules that need to deal with the authentication tokens\&.
+.RE
+.PP
+unknown_ok
+.RS 4
+Do not return error when checking for a user that is not in the database\&. This can be used to stack more than one pam_userdb module that will check a username/password pair in more than a database\&.
+.RE
+.PP
+key_only
+.RS 4
+The username and password are concatenated together in the database hash as \*(Aqusername\-password\*(Aq with a random value\&. if the concatenation of the username and password with a dash in the middle returns any result, the user is valid\&. this is useful in cases where the username may not be unique but the username and password pair are\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBaccount\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+Authentication failure\&.
+.RE
+.PP
+PAM_AUTHTOK_RECOVERY_ERR
+.RS 4
+Authentication information cannot be recovered\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+Conversation failure\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+Error in service module\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known to the underlying authentication module\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth  sufficient pam_userdb\&.so icase db=/etc/dbtest
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBcrypt\fR(3),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_userdb was written by Cristian Gafton >gafton@redhat\&.com<\&.

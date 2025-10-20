@@ -1,0 +1,158 @@
+'\" t
+.\"     Title: pam_issue
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_ISSUE" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_issue \- PAM module to add issue file to user prompt
+.SH "SYNOPSIS"
+.HP \w'\fBpam_issue\&.so\fR\ 'u
+\fBpam_issue\&.so\fR [noesc] [issue=\fIissue\-file\-name\fR]
+.SH "DESCRIPTION"
+.PP
+pam_issue is a PAM module to prepend an issue file to the username prompt\&. It also by default parses escape codes in the issue file similar to some common getty\*(Aqs (using \ex format)\&.
+.PP
+Recognized escapes:
+.PP
+\ed
+.RS 4
+current day
+.RE
+.PP
+\el
+.RS 4
+name of this tty
+.RE
+.PP
+\em
+.RS 4
+machine architecture (uname \-m)
+.RE
+.PP
+\en
+.RS 4
+machine\*(Aqs network node hostname (uname \-n)
+.RE
+.PP
+\eo
+.RS 4
+domain name of this system
+.RE
+.PP
+\er
+.RS 4
+release number of operating system (uname \-r)
+.RE
+.PP
+\et
+.RS 4
+current time
+.RE
+.PP
+\es
+.RS 4
+operating system name (uname \-s)
+.RE
+.PP
+\eu
+.RS 4
+number of users currently logged in
+.RE
+.PP
+\eU
+.RS 4
+same as \eu except it is suffixed with "user" or "users" (eg\&. "1 user" or "10 users")
+.RE
+.PP
+\ev
+.RS 4
+operating system version and build date (uname \-v)
+.RE
+.SH "OPTIONS"
+.PP
+.PP
+noesc
+.RS 4
+Turns off escape code parsing\&.
+.RE
+.PP
+issue=issue\-file\-name
+.RS 4
+The file to output if not using the default\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBauth\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+The prompt was already changed\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+A service module error occurred\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+The new prompt was set successfully\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/login
+to set the user specific issue at login:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        auth optional pam_issue\&.so issue=/etc/issue
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_issue was written by Ben Collins <bcollins@debian\&.org>\&.

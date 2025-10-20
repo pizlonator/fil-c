@@ -1,0 +1,131 @@
+pam_succeed_if — test account characteristics
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_succeed_if.so is designed to succeed or fail authentication based on
+characteristics of the account belonging to the user being authenticated or
+values of other PAM items. One use is to select whether to load other modules
+based on this test.
+
+The module should be given one or more conditions as module arguments, and
+authentication will succeed only if all of the conditions are met.
+
+OPTIONS
+
+The following flags are supported:
+
+debug
+
+    Turns on debugging messages sent to syslog.
+
+use_uid
+
+    Evaluate conditions using the account of the user whose UID the application
+    is running under instead of the user being authenticated.
+
+quiet
+
+    Don't log failure or success to the system log.
+
+quiet_fail
+
+    Don't log failure to the system log.
+
+quiet_success
+
+    Don't log success to the system log.
+
+audit
+
+    Log unknown users to the system log.
+
+Conditions are three words: a field, a test, and a value to test for.
+
+Available fields are user, uid, gid, shell, home, ruser, rhost, tty and service
+:
+
+field < number
+
+    Field has a value numerically less than number.
+
+field <= number
+
+    Field has a value numerically less than or equal to number.
+
+field eq number
+
+    Field has a value numerically equal to number.
+
+field >= number
+
+    Field has a value numerically greater than or equal to number.
+
+field > number
+
+    Field has a value numerically greater than number.
+
+field ne number
+
+    Field has a value numerically different from number.
+
+field = string
+
+    Field exactly matches the given string.
+
+field != string
+
+    Field does not match the given string.
+
+field =~ glob
+
+    Field matches the given glob.
+
+field !~ glob
+
+    Field does not match the given glob.
+
+field in item:item:...
+
+    Field is contained in the list of items separated by colons.
+
+field notin item:item:...
+
+    Field is not contained in the list of items separated by colons.
+
+user ingroup group[:group:....]
+
+    User is in given group(s).
+
+user notingroup group[:group:....]
+
+    User is not in given group(s).
+
+user innetgr netgroup
+
+    (user,host) is in given netgroup.
+
+user notinnetgr group
+
+    (user,host) is not in given netgroup.
+
+EXAMPLES
+
+To emulate the behaviour of pam_wheel, except there is no fallback to group 0
+being only approximated by checking also the root group membership:
+
+auth required pam_succeed_if.so quiet user ingroup wheel:root
+
+
+Given that the type matches, only loads the othermodule rule if the UID is over
+500. Adjust the number after default to skip several rules.
+
+type [default=1 success=ignore] pam_succeed_if.so quiet uid > 500
+type required othermodule.so arguments...
+
+
+AUTHOR
+
+Nalin Dahyabhai <nalin@redhat.com>
+

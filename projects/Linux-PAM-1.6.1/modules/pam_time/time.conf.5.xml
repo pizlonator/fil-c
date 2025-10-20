@@ -1,0 +1,146 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="time.conf">
+
+  <refmeta>
+    <refentrytitle>time.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>time.conf</refname>
+    <refpurpose>configuration file for the pam_time module</refpurpose>
+  </refnamediv>
+
+  <refsect1 xml:id="time.conf-description">
+    <title>DESCRIPTION</title>
+
+    <para>
+      The pam_time PAM module does not authenticate the user, but instead
+      it restricts access to a system and or specific applications at
+      various times of the day and on specific days or over various
+      terminal lines. This module can be configured to deny access to
+      (individual) users based on their name, the time of day, the day of
+      week, the service they are applying for and their terminal from which
+      they are making their request.
+    </para>
+    <para>
+      For this module to function correctly there must be a correctly
+      formatted <filename>/etc/security/time.conf</filename> file present.
+      White spaces are ignored and lines maybe extended with '\' (escaped
+      newlines). Text following a '#' is ignored to the end of the line.
+   </para>
+
+    <para>
+      The syntax of the lines is as follows:
+    </para>
+
+    <para>
+      <replaceable>services</replaceable>;<replaceable>ttys</replaceable>;<replaceable>users</replaceable>;<replaceable>times</replaceable>
+    </para>
+    <para>
+      In words, each rule occupies a line, terminated with a newline
+      or the beginning of a comment; a '<emphasis remap="B">#</emphasis>'.
+      It contains four fields separated with semicolons,
+      '<emphasis remap="B">;</emphasis>'.
+    </para>
+
+    <para>
+      The first field, the <replaceable>services</replaceable> field,
+      is a logic list of PAM service names that the rule applies to.
+    </para>
+
+    <para>
+      The second field, the <replaceable>tty</replaceable>
+      field, is a logic list of terminal names that this rule applies to.
+    </para>
+
+    <para>
+      The third field, the <replaceable>users</replaceable>
+      field, is a logic list of users or a netgroup of users to whom this
+      rule applies.
+    </para>
+
+    <para>
+      A logic list namely means individual tokens that are optionally prefixed
+      with '!' (logical not) and separated with '&amp;' (logical and) and '|'
+      (logical or).
+    </para>
+
+    <para>
+      For these items the simple wildcard '*' may be used only once.
+      With netgroups no wildcards or logic operators are allowed.
+    </para>
+
+    <para>
+      The <replaceable>times</replaceable> field is used to indicate the times
+      at which this rule applies. The format here is a logic
+      list of day/time-range entries. The days are specified by a sequence of
+      two character entries, MoTuSa for example is Monday Tuesday and Saturday.
+      Note that repeated days are unset MoMo = no day, and MoWk = all weekdays
+      bar Monday. The two character combinations accepted are Mo Tu We Th Fr Sa
+      Su Wk Wd Al, the last two being week-end days and all 7 days of the week
+      respectively. As a final example, AlFr means all days except Friday.
+    </para>
+    <para>
+      Each day/time-range can be prefixed with a '!' to indicate
+      "anything but".
+      The time-range part is two 24-hour times HHMM, separated by a hyphen,
+      indicating the start and finish time (if the finish time is smaller
+      than the start time it is deemed to apply on the following day).
+    </para>
+
+    <para>
+      For a rule to be active, ALL of service+ttys+users must be satisfied
+      by the applying process.
+    </para>
+    <para>
+      Note, currently there is no daemon enforcing the end of a session.
+      This needs to be remedied.
+    </para>
+    <para>
+      Poorly formatted rules are logged as errors using
+      <citerefentry><refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum></citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="time.conf-examples">
+    <title>EXAMPLES</title>
+    <para>
+      These are some example lines which might be specified in
+      <filename>/etc/security/time.conf</filename>.
+    </para>
+    <para>
+      All users except for <emphasis>root</emphasis> are denied access
+      to console-login at all times:
+      <programlisting>
+login ; tty* &amp; !ttyp* ; !root ; !Al0000-2400
+      </programlisting>
+    </para>
+
+    <para>
+      Games (configured to use PAM) are only to be accessed out of
+      working hours. This rule does not apply to the user
+      <emphasis>waster</emphasis>:
+      <programlisting>
+games ; * ; !waster ; Wd0000-2400 | Wk1800-0800
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="time.conf-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry><refentrytitle>pam_time</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="time.conf-author">
+    <title>AUTHOR</title>
+    <para>
+      pam_time was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+    </para>
+  </refsect1>
+</refentry>

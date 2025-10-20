@@ -1,0 +1,183 @@
+'\" t
+.\"     Title: pam_xauth
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_XAUTH" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_xauth \- PAM module to forward xauth keys between users
+.SH "SYNOPSIS"
+.HP \w'\fBpam_xauth\&.so\fR\ 'u
+\fBpam_xauth\&.so\fR [debug] [xauthpath=\fI/path/to/xauth\fR] [systemuser=\fIUID\fR] [targetuser=\fIUID\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_xauth PAM module is designed to forward xauth keys (sometimes referred to as "cookies") between users\&.
+.PP
+Without pam_xauth, when xauth is enabled and a user uses the
+\fBsu\fR(1)
+command to assume another user\*(Aqs privileges, that user is no longer able to access the original user\*(Aqs X display because the new user does not have the key needed to access the display\&. pam_xauth solves the problem by forwarding the key from the user running su (the source user) to the user whose identity the source user is assuming (the target user) when the session is created, and destroying the key when the session is torn down\&.
+.PP
+This means, for example, that when you run
+\fBsu\fR(1)
+from an xterm session, you will be able to run X programs without explicitly dealing with the
+\fBxauth\fR(1)
+xauth command or ~/\&.Xauthority files\&.
+.PP
+pam_xauth will only forward keys if xauth can list a key connected to the $DISPLAY environment variable\&.
+.PP
+Primitive access control is provided by
+~/\&.xauth/export
+in the invoking user\*(Aqs home directory and
+~/\&.xauth/import
+in the target user\*(Aqs home directory\&.
+.PP
+If a user has a
+~/\&.xauth/import
+file, the user will only receive cookies from users listed in the file\&. If there is no
+~/\&.xauth/import
+file, the user will accept cookies from any other user\&.
+.PP
+If a user has a
+\&.xauth/export
+file, the user will only forward cookies to users listed in the file\&. If there is no
+~/\&.xauth/export
+file, and the invoking user is not
+\fBroot\fR, the user will forward cookies to any other user\&. If there is no
+~/\&.xauth/export
+file, and the invoking user is
+\fBroot\fR, the user will
+\fInot\fR
+forward cookies to other users\&.
+.PP
+Both the import and export files support wildcards (such as
+\fI*\fR)\&. Both the import and export files can be empty, signifying that no users are allowed\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+xauthpath=/path/to/xauth
+.RS 4
+Specify the path the xauth program (it is expected in
+/usr/X11R6/bin/xauth,
+/usr/bin/xauth, or
+/usr/bin/X11/xauth
+by default)\&.
+.RE
+.PP
+systemuser=UID
+.RS 4
+Specify the highest UID which will be assumed to belong to a "system" user\&. pam_xauth will refuse to forward credentials to users with UID less than or equal to this number, except for root and the "targetuser", if specified\&.
+.RE
+.PP
+targetuser=UID
+.RS 4
+Specify a single target UID which is exempt from the systemuser check\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_PERM_DENIED
+.RS 4
+Permission denied by import/export file\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Cannot determine user name, UID or access users home directory\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/su
+to forward xauth keys between users when calling su:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  optional  pam_xauth\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "IMPLEMENTATION DETAILS"
+.PP
+pam_xauth will work
+\fIonly\fR
+if it is used from a setuid application in which the
+\fBgetuid\fR() call returns the id of the user running the application, and for which PAM can supply the name of the account that the user is attempting to assume\&. The typical application of this type is
+\fBsu\fR(1)\&. The application must call both
+\fBpam_open_session\fR() and
+\fBpam_close_session\fR() with the ruid set to the uid of the calling user and the euid set to root, and must have provided as the PAM_USER item the name of the target user\&.
+.PP
+pam_xauth calls
+\fBxauth\fR(1)
+as the source user to extract the key for $DISPLAY, then calls xauth as the target user to merge the key into the a temporary database and later remove the database\&.
+.PP
+pam_xauth cannot be told to not remove the keys when the session is closed\&.
+.SH "FILES"
+.PP
+~/\&.xauth/import
+.RS 4
+XXX
+.RE
+.PP
+~/\&.xauth/export
+.RS 4
+XXX
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_xauth was written by Nalin Dahyabhai <nalin@redhat\&.com>, based on original version by Michael K\&. Johnson <johnsonm@redhat\&.com>\&.

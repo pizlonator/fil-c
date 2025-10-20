@@ -1,0 +1,177 @@
+'\" t
+.\"     Title: pam_conv
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_CONV" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_conv \- PAM conversation function
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.sp
+.nf
+struct pam_message {
+    int msg_style;
+    const char *msg;
+};
+
+struct pam_response {
+    char *resp;
+    int resp_retcode;
+};
+
+struct pam_conv {
+    int (*conv)(int num_msg, const struct pam_message **msg,
+                struct pam_response **resp, void *appdata_ptr);
+    void *appdata_ptr;
+};
+    
+.fi
+.SH "DESCRIPTION"
+.PP
+The PAM library uses an application\-defined callback to allow a direct communication between a loaded module and the application\&. This callback is specified by the
+\fIstruct pam_conv\fR
+passed to
+\fBpam_start\fR(3)
+at the start of the transaction\&.
+.PP
+When a module calls the referenced conv() function, the argument
+\fIappdata_ptr\fR
+is set to the second element of this structure\&.
+.PP
+The other arguments of a call to conv() concern the information exchanged by module and application\&. That is to say,
+\fInum_msg\fR
+holds the length of the array of pointers,
+\fImsg\fR\&. After a successful return, the pointer
+\fIresp\fR
+points to an array of pam_response structures, holding the application supplied text\&. The
+\fIresp_retcode\fR
+member of this struct is unused and should be set to zero\&. It is the caller\*(Aqs responsibility to release both, this array and the responses themselves, using
+\fBfree\fR(3)\&. Note,
+\fI*resp\fR
+is a
+\fIstruct pam_response\fR
+array and not an array of pointers\&.
+.PP
+The number of responses is always equal to the
+\fInum_msg\fR
+conversation function argument\&. This does require that the response array is
+\fBfree\fR(3)\*(Aqd after every call to the conversation function\&. The index of the responses corresponds directly to the prompt index in the pam_message array\&.
+.PP
+On failure, the conversation function should release any resources it has allocated, and return one of the predefined PAM error codes\&.
+.PP
+Each message can have one of four types, specified by the
+\fImsg_style\fR
+member of
+\fIstruct pam_message\fR:
+.PP
+PAM_PROMPT_ECHO_OFF
+.RS 4
+Obtain a string without echoing any text\&.
+.RE
+.PP
+PAM_PROMPT_ECHO_ON
+.RS 4
+Obtain a string whilst echoing text\&.
+.RE
+.PP
+PAM_ERROR_MSG
+.RS 4
+Display an error message\&.
+.RE
+.PP
+PAM_TEXT_INFO
+.RS 4
+Display some text\&.
+.RE
+.PP
+The point of having an array of messages is that it becomes possible to pass a number of things to the application in a single call from the module\&. It can also be convenient for the application that related things come at once: a windows based application can then present a single form with many messages/prompts on at once\&.
+.PP
+In passing, it is worth noting that there is a discrepancy between the way Linux\-PAM handles the const struct pam_message **msg conversation function argument and the way that Solaris\*(Aq PAM (and derivatives, known to include HP/UX, are there others?) does\&. Linux\-PAM interprets the msg argument as entirely equivalent to the following prototype const struct pam_message *msg[] (which, in spirit, is consistent with the commonly used prototypes for argv argument to the familiar main() function: char **argv; and char *argv[])\&. Said another way Linux\-PAM interprets the msg argument as a pointer to an array of num_msg read only \*(Aqstruct pam_message\*(Aq pointers\&. Solaris\*(Aq PAM implementation interprets this argument as a pointer to a pointer to an array of num_msg pam_message structures\&. Fortunately, perhaps, for most module/application developers when num_msg has a value of one these two definitions are entirely equivalent\&. Unfortunately, casually raising this number to two has led to unanticipated compatibility problems\&.
+.PP
+For what its worth the two known module writer work\-arounds for trying to maintain source level compatibility with both PAM implementations are:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+never call the conversation function with num_msg greater than one\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+set up msg as doubly referenced so both types of conversation function can find the messages\&. That is, make
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+       msg[n] = & (( *msg )[n])
+       
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+Conversation failure\&. The application should not set
+\fI*resp\fR\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_start\fR(3),
+\fBpam_set_item\fR(3),
+\fBpam_get_item\fR(3),
+\fBpam_strerror\fR(3),
+\fBpam\fR(8)

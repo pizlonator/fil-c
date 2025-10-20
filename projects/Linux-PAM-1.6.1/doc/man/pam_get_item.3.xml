@@ -1,0 +1,132 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_get_item">
+
+  <refmeta>
+    <refentrytitle>pam_get_item</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_get_item-name">
+    <refname>pam_get_item</refname>
+    <refpurpose>
+       getting PAM information
+    </refpurpose>
+  </refnamediv>
+
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+
+   <funcsynopsis xml:id="pam_get_item-synopsis">
+     <funcsynopsisinfo>#include &lt;security/pam_modules.h&gt;</funcsynopsisinfo>
+     <funcprototype>
+       <funcdef>int <function>pam_get_item</function></funcdef>
+       <paramdef>const pam_handle_t *<parameter>pamh</parameter></paramdef>
+       <paramdef>int <parameter>item_type</parameter></paramdef>
+       <paramdef>const void **<parameter>item</parameter></paramdef>
+     </funcprototype>
+   </funcsynopsis>
+
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_get_item-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_get_item</function> function allows applications
+      and PAM service modules to access and retrieve PAM information
+      of <emphasis>item_type</emphasis>. Upon successful return,
+      <emphasis>item</emphasis> contains a pointer to the value of the
+      corresponding item. Note, this is a pointer to the
+      <emphasis>actual</emphasis> data and should
+      <emphasis remap="B">not</emphasis> be <emphasis>free()</emphasis>'ed or
+      over-written! The following values are supported for
+      <emphasis>item_type</emphasis>:
+   </para>
+
+   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_item_types_std.inc.xml"/>
+
+   <para>
+     The following additional items are specific to Linux-PAM and should not be used in
+     portable applications:
+   </para>
+
+   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_item_types_ext.inc.xml"/>
+
+    <para>
+      If a service module wishes to obtain the name of the user,
+      it should not use this function, but instead perform a call to
+      <citerefentry>
+        <refentrytitle>pam_get_user</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+    <para>
+      Only a service module is privileged to read the
+      authentication tokens, PAM_AUTHTOK and PAM_OLDAUTHTOK.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_item-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BAD_ITEM</term>
+        <listitem>
+           <para>
+             The application attempted to set an undefined or inaccessible
+             item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+           <para>
+             The value of <emphasis>item</emphasis> was NULL.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Data was successful updated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             The <emphasis>pam_handle_t</emphasis> passed as first
+             argument was invalid.
+          </para>
+        </listitem>
+       </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_item-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+</refentry>

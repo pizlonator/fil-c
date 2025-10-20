@@ -1,0 +1,5 @@
+#%PAM-1.0
+# test that successful sufficient module cannot affect stack
+# after failed required module
+auth     required	pam_debug.so auth=perm_denied
+auth     sufficient     pam_debug.so auth=success

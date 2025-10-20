@@ -1,0 +1,151 @@
+'\" t
+.\"     Title: pam_selinux
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SELINUX" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_selinux \- PAM module to set the default security context
+.SH "SYNOPSIS"
+.HP \w'\fBpam_selinux\&.so\fR\ 'u
+\fBpam_selinux\&.so\fR [open] [close] [restore] [nottys] [debug] [verbose] [select_context] [env_params] [use_current_range]
+.SH "DESCRIPTION"
+.PP
+pam_selinux is a PAM module that sets up the default SELinux security context for the next executed process\&.
+.PP
+When a new session is started, the open_session part of the module computes and sets up the execution security context used for the next
+\fBexecve\fR(2)
+call, the file security context for the controlling terminal, and the security context used for creating a new kernel keyring\&.
+.PP
+When the session is ended, the close_session part of the module restores old security contexts that were in effect before the change made by the open_session part of the module\&.
+.PP
+Adding pam_selinux into the PAM stack might disrupt behavior of other PAM modules which execute applications\&. To avoid that,
+\fIpam_selinux\&.so open\fR
+should be placed after such modules in the PAM stack, and
+\fIpam_selinux\&.so close\fR
+should be placed before them\&. When such a placement is not feasible,
+\fIpam_selinux\&.so restore\fR
+could be used to temporary restore original security contexts\&.
+.SH "OPTIONS"
+.PP
+open
+.RS 4
+Only execute the open_session part of the module\&.
+.RE
+.PP
+close
+.RS 4
+Only execute the close_session part of the module\&.
+.RE
+.PP
+restore
+.RS 4
+In open_session part of the module, temporarily restore the security contexts as they were before the previous call of the module\&. Another call of this module without the restore option will set up the new security contexts again\&.
+.RE
+.PP
+nottys
+.RS 4
+Do not setup security context of the controlling terminal\&.
+.RE
+.PP
+debug
+.RS 4
+Turn on debug messages via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+verbose
+.RS 4
+Attempt to inform the user when security context is set\&.
+.RE
+.PP
+select_context
+.RS 4
+Attempt to ask the user for a custom security context role\&. If MLS is on, ask also for sensitivity level\&.
+.RE
+.PP
+env_params
+.RS 4
+Attempt to obtain a custom security context role from PAM environment\&. If MLS is on, obtain also sensitivity level\&. This option and the select_context option are mutually exclusive\&. The respective PAM environment variables are
+\fISELINUX_ROLE_REQUESTED\fR,
+\fISELINUX_LEVEL_REQUESTED\fR, and
+\fISELINUX_USE_CURRENT_RANGE\fR\&. The first two variables are self describing and the last one if set to 1 makes the PAM module behave as if the use_current_range was specified on the command line of the module\&.
+.RE
+.PP
+use_current_range
+.RS 4
+Use the sensitivity level of the current process for the user context instead of the default level\&. Also suppresses asking of the sensitivity level from the user or obtaining it from PAM environment\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+The security context was set successfully\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Unable to get or set a valid context\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user is not known to the system\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory allocation error\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth     required  pam_unix\&.so
+session  required  pam_permit\&.so
+session  optional  pam_selinux\&.so
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBexecve\fR(2),
+\fBtty\fR(4),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBselinux\fR(8)
+.SH "AUTHOR"
+.PP
+pam_selinux was written by Dan Walsh <dwalsh@redhat\&.com>\&.

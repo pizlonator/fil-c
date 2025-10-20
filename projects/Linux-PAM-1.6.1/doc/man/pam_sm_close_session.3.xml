@@ -1,0 +1,97 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_sm_close_session">
+  <refmeta>
+    <refentrytitle>pam_sm_close_session</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_sm_close_session-name">
+    <refname>pam_sm_close_session</refname>
+    <refpurpose>PAM service function to terminate session management</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_sm_close_session-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_modules.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_sm_close_session</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>flags</parameter></paramdef>
+        <paramdef>int <parameter>argc</parameter></paramdef>
+        <paramdef>const char **<parameter>argv</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_sm_close_session-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_sm_close_session</function> function is the service
+      module's implementation of the
+      <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> interface.
+    </para>
+    <para>
+      This function is called to terminate a session. The only valid
+      value for <varname role="parameter">flags</varname> is zero or:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SILENT</term>
+        <listitem>
+           <para>
+             Do not emit any messages.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sm_close_session-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SESSION_ERR</term>
+        <listitem>
+          <para>
+            Cannot make/remove an entry for the specified session.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             The session was successfully terminated.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sm_close_session-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_sm_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>PAM</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

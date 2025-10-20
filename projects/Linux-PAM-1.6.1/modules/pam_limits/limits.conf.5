@@ -1,0 +1,349 @@
+'\" t
+.\"     Title: limits.conf
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "LIMITS\&.CONF" "5" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+limits.conf \- configuration file for the pam_limits module
+.SH "DESCRIPTION"
+.PP
+The
+\fIpam_limits\&.so\fR
+module applies ulimit limits, nice priority and number of simultaneous login sessions limit to user login sessions\&. This description of the configuration file syntax applies to the
+/etc/security/limits\&.conf
+file and
+*\&.conf
+files in the
+/etc/security/limits\&.d
+directory\&.
+.PP
+The syntax of the lines is as follows:
+.PP
+\fI<domain>\fR
+\fI<type>\fR
+\fI<item>\fR
+\fI<value>\fR
+.PP
+The fields listed above should be filled as follows:
+.PP
+<domain>
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a username
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a groupname, with
+\fB@group\fR
+syntax\&. This should not be confused with netgroups\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+the wildcard
+\fB*\fR, for default entry\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+the wildcard
+\fB%\fR, for maxlogins limit only, can also be used with
+\fB%group\fR
+syntax\&. If the
+\fB%\fR
+wildcard is used alone it is identical to using
+\fB*\fR
+with maxsyslogins limit\&. With a group specified after
+\fB%\fR
+it limits the total number of logins of all users that are member of the group\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+an uid range specified as
+\fI<min_uid>\fR\fB:\fR\fI<max_uid>\fR\&. If min_uid is omitted, the match is exact for the max_uid\&. If max_uid is omitted, all uids greater than or equal min_uid match\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a gid range specified as
+\fB@\fR\fI<min_gid>\fR\fB:\fR\fI<max_gid>\fR\&. If min_gid is omitted, the match is exact for the max_gid\&. If max_gid is omitted, all gids greater than or equal min_gid match\&. For the exact match all groups including the user\*(Aqs supplementary groups are examined\&. For the range matches only the user\*(Aqs primary group is examined\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+a gid specified as
+\fB%:\fR\fI<gid>\fR
+applicable to maxlogins limit only\&. It limits the total number of logins of all users that are member of the group with the specified gid\&.
+.RE
+.RE
+.PP
+<type>
+.RS 4
+.PP
+hard
+.RS 4
+for enforcing
+\fBhard\fR
+resource limits\&. These limits are set by the superuser and enforced by the Kernel\&. Users cannot raise their own requirement of system resources above such values\&.
+.RE
+.PP
+soft
+.RS 4
+for enforcing
+\fBsoft\fR
+resource limits\&. These limits are ones that the user can move up or down within the permitted range by any pre\-existing
+\fBhard\fR
+limits\&. The values specified with this token can be thought of as
+\fIdefault\fR
+values, for normal system usage\&.
+.RE
+.PP
+\-
+.RS 4
+for enforcing both
+\fBsoft\fR
+and
+\fBhard\fR
+resource limits together\&.
+.sp
+Note, if you specify a type of \*(Aq\-\*(Aq but neglect to supply the item and value fields then the module will never enforce any limits on the specified user/group etc\&. \&.
+.RE
+.RE
+.PP
+<item>
+.RS 4
+.PP
+core
+.RS 4
+limits the core file size (KB)
+.RE
+.PP
+data
+.RS 4
+maximum data size (KB)
+.RE
+.PP
+fsize
+.RS 4
+maximum filesize (KB)
+.RE
+.PP
+memlock
+.RS 4
+maximum locked\-in\-memory address space (KB)
+.RE
+.PP
+nofile
+.RS 4
+maximum number of open file descriptors
+.RE
+.PP
+rss
+.RS 4
+maximum resident set size (KB) (Ignored in Linux 2\&.4\&.30 and higher)
+.RE
+.PP
+stack
+.RS 4
+maximum stack size (KB)
+.RE
+.PP
+cpu
+.RS 4
+maximum CPU time (minutes)
+.RE
+.PP
+nproc
+.RS 4
+maximum number of processes
+.RE
+.PP
+as
+.RS 4
+address space limit (KB)
+.RE
+.PP
+maxlogins
+.RS 4
+maximum number of logins for this user (this limit does not apply to user with
+\fIuid=0\fR)
+.RE
+.PP
+maxsyslogins
+.RS 4
+maximum number of all logins on system; user is not allowed to log\-in if total number of all user logins is greater than specified number (this limit does not apply to user with
+\fIuid=0\fR)
+.RE
+.PP
+nonewprivs
+.RS 4
+value of 0 or 1; if set to 1 disables acquiring new privileges by invoking prctl(PR_SET_NO_NEW_PRIVS)
+.RE
+.PP
+priority
+.RS 4
+the priority to run user process with (negative values boost process priority)
+.RE
+.PP
+locks
+.RS 4
+maximum locked files (Linux 2\&.4 and higher)
+.RE
+.PP
+sigpending
+.RS 4
+maximum number of pending signals (Linux 2\&.6 and higher)
+.RE
+.PP
+msgqueue
+.RS 4
+maximum memory used by POSIX message queues (bytes) (Linux 2\&.6 and higher)
+.RE
+.PP
+nice
+.RS 4
+maximum nice priority allowed to raise to (Linux 2\&.6\&.12 and higher) values: [\-20,19]
+.RE
+.PP
+rtprio
+.RS 4
+maximum realtime priority allowed for non\-privileged processes (Linux 2\&.6\&.12 and higher)
+.RE
+.RE
+.PP
+All items support the values
+\fI\-1\fR,
+\fIunlimited\fR
+or
+\fIinfinity\fR
+indicating no limit, except for
+\fBpriority\fR,
+\fBnice\fR, and
+\fBnonewprivs\fR\&. If
+\fBnofile\fR
+is to be set to one of these values, it will be set to the contents of /proc/sys/fs/nr_open instead (see setrlimit(3))\&.
+.PP
+If a hard limit or soft limit of a resource is set to a valid value, but outside of the supported range of the local system, the system may reject the new limit or unexpected behavior may occur\&. If the control value
+\fIrequired\fR
+is used, the module will reject the login if a limit could not be set\&.
+.PP
+In general, individual limits have priority over group limits, so if you impose no limits for
+\fIadmin\fR
+group, but one of the members in this group have a limits line, the user will have its limits set according to this line\&.
+.PP
+Also, please note that all limit settings are set
+\fIper login\fR\&. They are not global, nor are they permanent; existing only for the duration of the session\&. One exception is the
+\fImaxlogin\fR
+option, this one is system wide\&. But there is a race, concurrent logins at the same time will not always be detect as such but only counted as one\&.
+.PP
+In the
+\fIlimits\fR
+configuration file, the \*(Aq\fB#\fR\*(Aq character introduces a comment \- after which the rest of the line is ignored\&.
+.PP
+The pam_limits module does report configuration problems found in its configuration file and errors via
+\fBsyslog\fR(3)\&.
+.SH "EXAMPLES"
+.PP
+These are some example lines which might be specified in
+/etc/security/limits\&.conf\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+*               soft    core            0
+*               hard    nofile          512
+@student        hard    nproc           20
+@faculty        soft    nproc           20
+@faculty        hard    nproc           50
+ftp             hard    nproc           0
+@student        \-       maxlogins       4
+@student        \-       nonewprivs      1
+:123            hard    cpu             5000
+@500:           soft    cpu             10000
+600:700         hard    locks           10
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBpam_limits\fR(8),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBgetrlimit\fR(2),
+\fBgetrlimit\fR(3p)
+.SH "AUTHOR"
+.PP
+pam_limits was initially written by Cristian Gafton <gafton@redhat\&.com>

@@ -1,0 +1,153 @@
+pam_access — PAM module for logdaemon style login access control
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_access PAM module is mainly for access management. It provides
+logdaemon style login access control based on login names, host or domain
+names, internet addresses or network numbers, or on terminal line names, X
+$DISPLAY values, or PAM service names in case of non-networked logins.
+
+By default rules for access management are taken from config file /etc/security
+/access.conf if you don't specify another file. Then individual *.conf files
+from the /etc/security/access.d/ directory are read. The files are parsed one
+after another in the order of the system locale. The effect of the individual
+files is the same as if all the files were concatenated together in the order
+of parsing. This means that once a pattern is matched in some file no further
+files are parsed. If a config file is explicitly specified with the accessfile
+option the files in the above directory are not parsed.
+
+By default rules for access management are taken from config file /etc/security
+/access.conf or, if that one is not present, the file %vendordir%/security/
+access.conf. These settings can be overruled by setting in a config file
+explicitly specified with the accessfile option. Then individual *.conf files
+from the /etc/security/access.d/ and %vendordir%/security/access.d directories
+are read. If /etc/security/access.d/@filename@.conf exists, then %vendordir%/
+security/access.d/@filename@.conf will not be used. All access.d/*.conf files
+are sorted by their @filename@.conf in lexicographic order regardless of which
+of the directories they reside in. The effect of the individual files is the
+same as if all the files were concatenated together in the order of parsing.
+This means that once a pattern is matched in some file no further files are
+parsed. If a config file is explicitly specified with the accessfile option the
+files in the above directories are not parsed.
+
+If Linux PAM is compiled with audit support the module will report when it
+denies access based on origin (host, tty, etc.).
+
+OPTIONS
+
+accessfile=/path/to/access.conf
+
+    Indicate an alternative access.conf style configuration file to override
+    the default. This can be useful when different services need different
+    access lists.
+
+debug
+
+    A lot of debug information is printed with syslog(3).
+
+noaudit
+
+    Do not report logins from disallowed hosts and ttys to the audit subsystem.
+
+quiet_log
+
+    Do not log denials with syslog(3).
+
+fieldsep=separators
+
+    This option modifies the field separator character that pam_access will
+    recognize when parsing the access configuration file. For example: fieldsep
+    =| will cause the default `:' character to be treated as part of a field
+    value and `|' becomes the field separator. Doing this may be useful in
+    conjunction with a system that wants to use pam_access with X based
+    applications, since the PAM_TTY item is likely to be of the form
+    "hostname:0" which includes a `:' character in its value. But you should
+    not need this.
+
+listsep=separators
+
+    This option modifies the list separator character that pam_access will
+    recognize when parsing the access configuration file. For example: listsep
+    =, will cause the default ` ' (space) and `\t' (tab) characters to be
+    treated as part of a list element value and `,' becomes the only list
+    element separator. Doing this may be useful on a system with group
+    information obtained from a Windows domain, where the default built-in
+    groups "Domain Users", "Domain Admins" contain a space.
+
+nodefgroup
+
+    User tokens which are not enclosed in parentheses will not be matched
+    against the group database. The backwards compatible default is to try the
+    group database match even for tokens not enclosed in parentheses.
+
+EXAMPLES
+
+These are some example lines which might be specified in /etc/security/
+access.conf.
+
+User root should be allowed to get access via cron, X11 terminal :0, tty1, ...,
+tty5, tty6.
+
++:root:crond :0 tty1 tty2 tty3 tty4 tty5 tty6
+
+User root should be allowed to get access from hosts which own the IPv4
+addresses. This does not mean that the connection have to be a IPv4 one, a IPv6
+connection from a host with one of this IPv4 addresses does work, too.
+
++:root:192.168.200.1 192.168.200.4 192.168.200.9
+
++:root:127.0.0.1
+
+User root should get access from network 192.168.201. where the term will be
+evaluated by string matching. But it might be better to use network/netmask
+instead. The same meaning of 192.168.201. is 192.168.201.0/24 or 192.168.201.0/
+255.255.255.0.
+
++:root:192.168.201.
+
+User root should be able to have access from hosts foo1.bar.org and 
+foo2.bar.org (uses string matching also).
+
++:root:foo1.bar.org foo2.bar.org
+
+User root should be able to have access from domain foo.bar.org (uses string
+matching also).
+
++:root:.foo.bar.org
+
+User root should be denied to get access from all other sources.
+
+-:root:ALL
+
+User foo and members of netgroup admins should be allowed to get access from
+all sources. This will only work if netgroup service is available.
+
++:@admins foo:ALL
+
+User john and foo should get access from IPv6 host address.
+
++:john foo:2001:db8:0:101::1
+
+User john and foo should get access from IPv6 link local host address.
+
++:john foo:fe80::de95:818c:1b55:7e42%eth1
+
+User john should get access from IPv6 net/mask.
+
++:john:2001:db8:0:101::/64
+
+Members of group wheel should be allowed to get access from all sources.
+
++:(wheel):ALL
+
+Disallow console logins to all but the shutdown, sync and all other accounts,
+which are a member of the wheel group.
+
+-:ALL EXCEPT (wheel) shutdown sync:LOCAL
+
+All other users should be denied to get access from all sources.
+
+-:ALL:ALL
+

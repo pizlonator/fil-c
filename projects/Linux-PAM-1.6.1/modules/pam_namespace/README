@@ -1,0 +1,246 @@
+pam_namespace — PAM module for configuring namespace for a session
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_namespace PAM module sets up a private namespace for a session with
+polyinstantiated directories. A polyinstantiated directory provides a different
+instance of itself based on user name, or when using SELinux, user name,
+security context or both. If an executable script /etc/security/namespace.init
+exists, it is used to initialize the instance directory after it is set up and
+mounted on the polyinstantiated directory. The script receives the
+polyinstantiated directory path, the instance directory path, flag whether the
+instance directory was newly created (0 for no, 1 for yes), and the user name
+as its arguments. The script is invoked with full root privileges and accessing
+the instance directory in this context needs to be done with caution, as it is
+controlled by the unprivileged user for which it has been created.
+
+If /etc/security/namespace.init does not exist, %vendordir%/security/
+namespace.init is the alternative to be used for it.
+
+The pam_namespace module disassociates the session namespace from the parent
+namespace. Any mounts/unmounts performed in the parent namespace, such as
+mounting of devices, are not reflected in the session namespace. To propagate
+selected mount/unmount events from the parent namespace into the disassociated
+session namespace, an administrator may use the special shared-subtree feature.
+For additional information on shared-subtree feature, please refer to the mount
+(8) man page and the shared-subtree description at http://lwn.net/Articles/
+159077 and http://lwn.net/Articles/159092.
+
+OPTIONS
+
+debug
+
+    A lot of debug information is logged using syslog
+
+unmnt_remnt
+
+    For programs such as su and newrole, the login session has already setup a
+    polyinstantiated namespace. For these programs, polyinstantiation is
+    performed based on new user id or security context, however the command
+    first needs to undo the polyinstantiation performed by login. This argument
+    instructs the command to first undo previous polyinstantiation before
+    proceeding with new polyinstantiation based on new id/context
+
+unmnt_only
+
+    For trusted programs that want to undo any existing bind mounts and process
+    instance directories on their own, this argument allows them to unmount
+    currently mounted instance directories
+
+require_selinux
+
+    If selinux is not enabled, return failure
+
+gen_hash
+
+    Instead of using the security context string for the instance name,
+    generate and use its md5 hash.
+
+ignore_config_error
+
+    If a line in the configuration file corresponding to a polyinstantiated
+    directory contains format error, skip that line process the next line.
+    Without this option, pam will return an error to the calling program
+    resulting in termination of the session.
+
+ignore_instance_parent_mode
+
+    Instance parent directories by default are expected to have the restrictive
+    mode of 000. Using this option, an administrator can choose to ignore the
+    mode of the instance parent. This option should be used with caution as it
+    will reduce security and isolation goals of the polyinstantiation
+    mechanism.
+
+unmount_on_close
+
+    Explicitly unmount the polyinstantiated directories instead of relying on
+    automatic namespace destruction after the last process in a namespace
+    exits. This option should be used only in case it is ensured by other means
+    that there cannot be any processes running in the private namespace left
+    after the session close. It is also useful only in case there are multiple
+    pam session calls in sequence from the same process.
+
+use_current_context
+
+    Useful for services which do not change the SELinux context with setexeccon
+    call. The module will use the current SELinux context of the calling
+    process for the level and context polyinstantiation.
+
+use_default_context
+
+    Useful for services which do not use pam_selinux for changing the SELinux
+    context with setexeccon call. The module will use the default SELinux
+    context of the user for the level and context polyinstantiation.
+
+mount_private
+
+    This option can be used on systems where the / mount point or its submounts
+    are made shared (for example with a mount --make-rshared / command). The
+    module will mark the whole directory tree so any mount and unmount
+    operations in the polyinstantiation namespace are private. Normally the
+    pam_namespace will try to detect the shared / mount point and make the
+    polyinstantiated directories private automatically. This option has to be
+    used just when only a subtree is shared and / is not.
+
+    Note that mounts and unmounts done in the private namespace will not affect
+    the parent namespace if this option is used or when the shared / mount
+    point is autodetected.
+
+DESCRIPTION
+
+The pam_namespace.so module allows setup of private namespaces with
+polyinstantiated directories. Directories can be polyinstantiated based on user
+name or, in the case of SELinux, user name, sensitivity level or complete
+security context. If an executable script /etc/security/namespace.init exists,
+it is used to initialize the namespace every time an instance directory is set
+up and mounted. The script receives the polyinstantiated directory path and the
+instance directory path as its arguments. The script is invoked with full root
+privileges and accessing the instance directory in this context needs to be
+done with caution, as it is controlled by the unprivileged user for which it
+has been created.
+
+The /etc/security/namespace.conf file specifies which directories are
+polyinstantiated, how they are polyinstantiated, how instance directories would
+be named, and any users for whom polyinstantiation would not be performed.
+
+The /etc/security/namespace.conf file ( or %vendordir%/security/namespace.conf
+if it does not exist) specifies which directories are polyinstantiated, how
+they are polyinstantiated, how instance directories would be named, and any
+users for whom polyinstantiation would not be performed. Then individual *.conf
+files from the /etc/security/namespace.d/ and %vendordir%/security/namespace.d
+directories are taken too. If /etc/security/namespace.d/@filename@.conf exists,
+then %vendordir%/security/namespace.d/@filename@.conf will not be used. All
+namespace.d/*.conf files are sorted by their @filename@.conf in lexicographic
+order regardless of which of the directories they reside in.
+
+When someone logs in, the file namespace.conf is scanned. Comments are marked
+by # characters. Each non comment line represents one polyinstantiated
+directory. The fields are separated by spaces but can be quoted by " characters
+also escape sequences \b, \n, and \t are recognized. The fields are as follows:
+
+polydir instance_prefix method list_of_uids
+
+The first field, polydir, is the absolute pathname of the directory to
+polyinstantiate. The special string $HOME is replaced with the user's home
+directory, and $USER with the username. This field cannot be blank.
+
+The second field, instance_prefix is the string prefix used to build the
+pathname for the instantiation of <polydir>. The path must end in a trailing
+slash, or in a directory prefix used to build the full per-instance path.
+Depending on the polyinstantiation method it is then appended with "instance
+differentiation string" to generate the final instance directory path. This
+directory is created if it did not exist already, and is then bind mounted on
+the <polydir> to provide an instance of <polydir> based on the <method> column.
+The special string $HOME is replaced with the user's home directory, and $USER
+with the username. This field cannot be blank.
+
+The third field, method, is the method used for polyinstantiation. It can take
+these values; "user" for polyinstantiation based on user name, "level" for
+polyinstantiation based on process MLS level and user name, "context" for
+polyinstantiation based on process security context and user name, "tmpfs" for
+mounting tmpfs filesystem as an instance dir, and "tmpdir" for creating
+temporary directory as an instance dir which is removed when the user's session
+is closed. Methods "context" and "level" are only available with SELinux. This
+field cannot be blank.
+
+The fourth field, list_of_uids, is a comma separated list of user names for
+whom the polyinstantiation is not performed. If left blank, polyinstantiation
+will be performed for all users. If the list is preceded with a single "~"
+character, polyinstantiation is performed only for users in the list.
+
+The method field can contain also following optional flags separated by :
+characters.
+
+create=mode,owner,group - create the polyinstantiated directory. The mode,
+owner and group parameters are optional. The default for mode is determined by
+umask, the default owner is the user whose session is opened, the default group
+is the primary group of the user.
+
+iscript=path - path to the instance directory init script. The base directory
+for relative paths is /etc/security/namespace.d.
+
+noinit - instance directory init script will not be executed.
+
+shared - the instance directories for "context" and "level" methods will not
+contain the user name and will be shared among all users.
+
+mntopts=value - value of this flag is passed to the mount call when the tmpfs
+mount is done. It allows for example the specification of the maximum size of
+the tmpfs instance that is created by the mount call. In addition to options
+specified in the tmpfs(5) manual the nosuid, noexec, and nodev flags can be
+used to respectively disable setuid bit effect, disable running executables,
+and disable devices to be interpreted on the mounted tmpfs filesystem.
+
+The directory where polyinstantiated instances are to be created, must exist
+and must have, by default, the mode of 0000. The requirement that the instance
+parent be of mode 0000 can be overridden with the command line option 
+ignore_instance_parent_mode
+
+In case of context or level polyinstantiation the SELinux context which is used
+for polyinstantiation is the context used for executing a new process as
+obtained by getexeccon. This context must be set by the calling application or
+pam_selinux.so module. If this context is not set the polyinstantiation will be
+based just on user name.
+
+The "instance differentiation string" is <user name> for "user" method and
+<user name>_<raw directory context> for "context" and "level" methods. If the
+whole string is too long the end of it is replaced with md5sum of itself. Also
+when command line option gen_hash is used the whole string is replaced with
+md5sum of itself.
+
+EXAMPLES
+
+These are some example lines which might be specified in /etc/security/
+namespace.conf.
+
+
+      # The following three lines will polyinstantiate /tmp,
+      # /var/tmp and user's home directories. /tmp and /var/tmp
+      # will be polyinstantiated based on the security level
+      # as well as user name, whereas home directory will be
+      # polyinstantiated based on the full security context and user name.
+      # Polyinstantiation will not be performed for user root
+      # and adm for directories /tmp and /var/tmp, whereas home
+      # directories will be polyinstantiated for all users.
+      #
+      # Note that instance directories do not have to reside inside
+      # the polyinstantiated directory. In the examples below,
+      # instances of /tmp will be created in /tmp-inst directory,
+      # where as instances of /var/tmp and users home directories
+      # will reside within the directories that are being
+      # polyinstantiated.
+      #
+      /tmp     /tmp-inst/               level      root,adm
+      /var/tmp /var/tmp/tmp-inst/    level      root,adm
+      $HOME    $HOME/$USER.inst/inst- context
+    
+
+For the <service>s you need polyinstantiation (login for example) put the
+following line in /etc/pam.d/<service> as the last line for session group:
+
+session required pam_namespace.so [arguments]
+
+This module also depends on pam_selinux.so setting the context.
+

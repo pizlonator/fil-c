@@ -1,0 +1,269 @@
+'\" t
+.\"     Title: pam_faillock
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: [FIXME: source]
+.\"  Language: English
+.\"
+.TH "PAM_FAILLOCK" "8" "04/09/2024" "[FIXME: source]" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_faillock \- Module counting authentication failures during a specified interval
+.SH "SYNOPSIS"
+.HP \w'\fBauth\ \&.\&.\&.\ pam_faillock\&.so\fR\ 'u
+\fBauth \&.\&.\&. pam_faillock\&.so\fR {preauth|authfail|authsucc} [conf=\fI/path/to/config\-file\fR] [dir=\fI/path/to/tally\-directory\fR] [even_deny_root] [deny=\fIn\fR] [fail_interval=\fIn\fR] [unlock_time=\fIn\fR] [root_unlock_time=\fIn\fR] [admin_group=\fIname\fR] [audit] [silent] [no_log_info]
+.HP \w'\fBaccount\ \&.\&.\&.\ pam_faillock\&.so\fR\ 'u
+\fBaccount \&.\&.\&. pam_faillock\&.so\fR [dir=\fI/path/to/tally\-directory\fR] [no_log_info]
+.SH "DESCRIPTION"
+.PP
+This module maintains a list of failed authentication attempts per user during a specified interval and locks the account in case there were more than
+\fIdeny\fR
+consecutive failed authentications\&.
+.PP
+Normally, failed attempts to authenticate
+\fIroot\fR
+will
+\fBnot\fR
+cause the root account to become blocked, to prevent denial\-of\-service: if your users aren\*(Aqt given shell accounts and root may only login via
+\fBsu\fR
+or at the machine console (not telnet/rsh, etc), this is safe\&.
+.SH "OPTIONS"
+.PP
+{preauth|authfail|authsucc}
+.RS 4
+This argument must be set accordingly to the position of this module instance in the PAM stack\&.
+.sp
+The
+\fIpreauth\fR
+argument must be used when the module is called before the modules which ask for the user credentials such as the password\&. The module just examines whether the user should be blocked from accessing the service in case there were anomalous number of failed consecutive authentication attempts recently\&. This call is optional if
+\fIauthsucc\fR
+is used\&.
+.sp
+The
+\fIauthfail\fR
+argument must be used when the module is called after the modules which determine the authentication outcome, failed\&. Unless the user is already blocked due to previous authentication failures, the module will record the failure into the appropriate user tally file\&.
+.sp
+The
+\fIauthsucc\fR
+argument must be used when the module is called after the modules which determine the authentication outcome, succeeded\&. Unless the user is already blocked due to previous authentication failures, the module will then clear the record of the failures in the respective user tally file\&. Otherwise it will return authentication error\&. If this call is not done, the pam_faillock will not distinguish between consecutive and non\-consecutive failed authentication attempts\&. The
+\fIpreauth\fR
+call must be used in such case\&. Due to complications in the way the PAM stack can be configured it is also possible to call
+\fIpam_faillock\fR
+as an account module\&. In such configuration the module must be also called in the
+\fIpreauth\fR
+stage\&.
+.RE
+.PP
+conf=/path/to/config\-file
+.RS 4
+Use another configuration file instead of the default
+/etc/security/faillock\&.conf\&.
+.RE
+.PP
+The options for configuring the module behavior are described in the
+\fBfaillock.conf\fR(5)
+manual page\&. The options specified on the module command line override the values from the configuration file\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBaccount\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+An invalid option was given, the module was not able to retrieve the user name, no valid counter file was found, or too many failed logins\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+The conversation method supplied by the application failed to obtain the username\&.
+.RE
+.PP
+PAM_INCOMPLETE
+.RS 4
+The conversation method supplied by the application returned PAM_CONV_AGAIN\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Everything was successful\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+User not present in passwd database\&.
+.RE
+.SH "NOTES"
+.PP
+Configuring options on the module command line is not recommend\&. The
+/etc/security/faillock\&.conf
+should be used instead\&.
+.PP
+The setup of
+\fIpam_faillock\fR
+in the PAM stack is different from the
+\fIpam_tally2\fR
+module setup\&.
+.PP
+Individual files with the failure records are created as owned by the user\&. This allows
+\fBpam_faillock\&.so\fR
+module to work correctly when it is called from a screensaver\&.
+.PP
+Note that using the module in
+\fBpreauth\fR
+without the
+\fBsilent\fR
+option specified in
+/etc/security/faillock\&.conf
+or with
+\fIrequisite\fR
+control field leaks an information about existence or non\-existence of a user account in the system because the failures are not recorded for the unknown users\&. The message about the user account being locked is never displayed for non\-existing user accounts allowing the adversary to infer that a particular account is not existing on a system\&.
+.SH "EXAMPLES"
+.PP
+Here are two possible configuration examples for
+/etc/pam\&.d/login\&. They make
+\fIpam_faillock\fR
+to lock the account after 4 consecutive failed logins during the default interval of 15 minutes\&. Root account will be locked as well\&. The accounts will be automatically unlocked after 20 minutes\&.
+.PP
+In the first example the module is called only in the
+\fIauth\fR
+phase and the module does not print any information about the account being blocked by
+\fIpam_faillock\fR\&. The
+\fIpreauth\fR
+call can be added to tell users that their logins are blocked by the module and also to abort the authentication without even asking for password in such case\&.
+.PP
+/etc/security/faillock\&.conf
+file example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+deny=4
+unlock_time=1200
+silent
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+/etc/pam\&.d/config file example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth     required       pam_securetty\&.so
+auth     required       pam_env\&.so
+auth     required       pam_nologin\&.so
+# optionally call: auth requisite pam_faillock\&.so preauth
+# to display the message about account being locked
+auth     [success=1 default=bad] pam_unix\&.so
+auth     [default=die]  pam_faillock\&.so authfail
+auth     sufficient     pam_faillock\&.so authsucc
+auth     required       pam_deny\&.so
+account  required       pam_unix\&.so
+password required       pam_unix\&.so shadow
+session  required       pam_selinux\&.so close
+session  required       pam_loginuid\&.so
+session  required       pam_unix\&.so
+session  required       pam_selinux\&.so open
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+In the second example the module is called both in the
+\fIauth\fR
+and
+\fIaccount\fR
+phases and the module informs the authenticating user when the account is locked if
+\fBsilent\fR
+option is not specified in the
+faillock\&.conf\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth     required       pam_securetty\&.so
+auth     required       pam_env\&.so
+auth     required       pam_nologin\&.so
+auth     required       pam_faillock\&.so preauth
+# optionally use requisite above if you do not want to prompt for the password
+# on locked accounts
+auth     sufficient     pam_unix\&.so
+auth     [default=die]  pam_faillock\&.so authfail
+auth     required       pam_deny\&.so
+account  required       pam_faillock\&.so
+# if you drop the above call to pam_faillock\&.so the lock will be done also
+# on non\-consecutive authentication failures
+account  required       pam_unix\&.so
+password required       pam_unix\&.so shadow
+session  required       pam_selinux\&.so close
+session  required       pam_loginuid\&.so
+session  required       pam_unix\&.so
+session  required       pam_selinux\&.so open
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "FILES"
+.PP
+/var/run/faillock/*
+.RS 4
+the files logging the authentication failures for users
+.sp
+Note: These files will disappear after reboot on systems configured with directory
+/var/run/faillock
+mounted on virtual memory\&. For persistent storage use the option
+\fIdir=\fR
+in file
+/etc/security/faillock\&.conf\&.
+.RE
+.PP
+/etc/security/faillock\&.conf
+.RS 4
+the config file for pam_faillock options
+.RE
+.SH "SEE ALSO"
+.PP
+\fBfaillock\fR(8),
+\fBfaillock.conf\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_faillock was written by Tomas Mraz\&.

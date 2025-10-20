@@ -1,0 +1,8 @@
+#%PAM-1.0
+# We jump to end of the stack with previous pam_permit.so, should pass
+auth	required			pam_permit.so
+auth	[success=1 default=ignore]	pam_debug.so auth=success
+auth	required			pam_deny.so
+# We jump to end of the stack without any module in OK state, should fail
+account	[success=1 default=ignore]      pam_debug.so account=success
+account	required			pam_deny.so

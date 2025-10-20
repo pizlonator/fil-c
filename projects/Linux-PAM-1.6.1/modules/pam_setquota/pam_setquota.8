@@ -1,0 +1,186 @@
+'\" t
+.\"     Title: pam_setquota
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SETQUOTA" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_setquota \- PAM module to set or modify disk quotas on session start
+.SH "SYNOPSIS"
+.HP \w'\fBpam_setquota\&.so\fR\ 'u
+\fBpam_setquota\&.so\fR [fs=\fI/home\fR] [overwrite=\fI0\fR] [debug=\fI0\fR] [startuid=\fI1000\fR] [enduid=\fI0\fR] [bsoftlimit=\fI19000\fR] [bhardlimit=\fI20000\fR] [isoftlimit=\fI3000\fR] [ihardlimit=\fI4000\fR]
+.SH "DESCRIPTION"
+.PP
+pam_setquota is a PAM module to set or modify a disk quota at session start
+.PP
+This makes quotas usable with central user databases, such as MySQL or LDAP\&.
+.SH "OPTIONS"
+.PP
+.PP
+fs=/home
+.RS 4
+The device file or mountpoint the policy applies to\&. Defaults to the filesystem containing the users home directory\&.
+.RE
+.PP
+overwrite=0
+.RS 4
+Overwrite an existing quota\&. Note: Enabling this will remove the ability for the admin to manually configure different quotas for users for a filesystem with
+\fBedquota\fR(8)\&. (Defaults to 0)
+.RE
+.PP
+debug=0
+.RS 4
+Enable debugging\&. A value of 1 outputs the old and new quota on a device\&. A value of 2 also prints out the matched and found filesystems should
+\fBfs\fR
+be unset\&. (Defaults to 0)
+.RE
+.PP
+startuid=1000
+.RS 4
+Describe the start of the UID range the policy is applied to\&. (Defaults to UID_MIN from login\&.defs or the uidmin value defined at compile\-time if UID_MIN is undefined\&.)
+.RE
+.PP
+enduid=0
+.RS 4
+Describe the end of the UID range the policy is applied to\&. Setting
+\fIenduid=0\fR
+results in an open\-ended UID range (i\&.e\&. all uids greater than
+\fBstartuid\fR
+are included)\&. (Defaults to 0)
+.RE
+.PP
+bsoftlimit=19000
+.RS 4
+Soft limit for disk quota blocks, as defined by
+\fBquotactl\fR(2)\&. Note:
+\fBbsoftlimit\fR
+and
+\fBbhardlimit\fR
+\fImust\fR
+be set at the same time!
+.RE
+.PP
+bhardlimit=20000
+.RS 4
+Hard limit for disk quota blocks, as defined by
+\fBquotactl\fR(2)\&. Note:
+\fBbsoftlimit\fR
+and
+\fBbhardlimit\fR
+\fImust\fR
+be set at the same time!
+.RE
+.PP
+isoftlimit=3000
+.RS 4
+Soft limit for inodes, as defined by
+\fB quotactl\fR(2)\&. Note:
+\fBisoftlimit\fR
+and
+\fBihardlimit\fR
+\fImust\fR
+be set at the same time!
+.RE
+.PP
+ihardlimit=4000
+.RS 4
+Hard limit for inodes, as defined by
+\fB quotactl\fR(2)\&. Note:
+\fBisoftlimit\fR
+and
+\fBihardlimit\fR
+\fImust\fR
+be set at the same time!
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+The quota was set successfully\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+No action was taken because either the UID of the user was outside of the specified range, a quota already existed and
+\fBoverwrite=1\fR
+was not configured or no limits were configured at all\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user was not found\&.
+.RE
+.PP
+PAM_PERM_DENIED
+.RS 4
+/proc/mounts
+could not be opened\&.
+.sp
+The filesystem or device specified was not found\&.
+.sp
+The limits for the user could not be retrieved\&. See syslog for more information\&.
+.sp
+The limits for the user could not be set\&. See syslog for more information\&.
+.sp
+Either
+\fBisoftlimit\fR/\fBihardlimit\fR
+or
+\fBbsoftlimit\fR/\fBbhardlimit\fR
+were not set at the same time\&.
+.RE
+.SH "EXAMPLES"
+.PP
+A single invocation of `pam_setquota` applies a specific policy to a UID range\&. Applying different policies to specific UID ranges is done by invoking pam_setquota more than once\&. The last matching entry defines the resulting quota\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      session  required   pam_setquota\&.so bsoftlimit=1000 bhardlimit=2000 isoftlimit=1000 ihardlimit=2000 startuid=1000 enduid=0 fs=/home
+      session  required   pam_setquota\&.so bsoftlimit=19000 bhardlimit=20000 isoftlimit=3000 ihardlimit=4000 startuid=2001 enduid=3000 fs=/dev/sda1
+      session  required   pam_setquota\&.so bsoftlimit=19000 bhardlimit=20000 isoftlimit=3000 ihardlimit=4000 startuid=3001 enduid=4000 fs=/dev/sda1 overwrite=1
+    
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_setquota was originally written by Ruslan Savchenko <savrus@mexmat\&.net>\&.
+.PP
+Further modifications were made by Shane Tzen <shane@ict\&.usc\&.edu>, Sven Hartge <sven@svenhartge\&.de> and Keller Fuchs <kellerfuchs@hashbang\&.sh>\&.

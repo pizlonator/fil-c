@@ -1,0 +1,186 @@
+'\" t
+.\"     Title: pam_pwhistory
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_PWHISTORY" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_pwhistory \- PAM module to remember last passwords
+.SH "SYNOPSIS"
+.HP \w'\fBpam_pwhistory\&.so\fR\ 'u
+\fBpam_pwhistory\&.so\fR [debug] [use_authtok] [enforce_for_root] [remember=\fIN\fR] [retry=\fIN\fR] [authtok_type=\fISTRING\fR] [file=\fI/path/filename\fR] [conf=\fI/path/to/config\-file\fR]
+.SH "DESCRIPTION"
+.PP
+This module saves the last passwords for each user in order to force password change history and keep the user from alternating between the same password too frequently\&.
+.PP
+This module does not work together with kerberos\&. In general, it does not make much sense to use this module in conjunction with NIS or LDAP, since the old passwords are stored on the local machine and are not available on another machine for password history checking\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Turns on debugging via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+use_authtok
+.RS 4
+When password changing enforce the module to use the new password provided by a previously stacked
+\fBpassword\fR
+module (this is used in the example of the stacking of the
+\fBpam_passwdqc\fR
+module documented below)\&.
+.RE
+.PP
+enforce_for_root
+.RS 4
+If this option is set, the check is enforced for root, too\&.
+.RE
+.PP
+remember=N
+.RS 4
+The last
+\fIN\fR
+passwords for each user are saved\&. The default is
+\fI10\fR\&. Value of
+\fI0\fR
+makes the module to keep the existing contents of the
+opasswd
+file unchanged\&.
+.RE
+.PP
+retry=N
+.RS 4
+Prompt user at most
+\fIN\fR
+times before returning with error\&. The default is
+\fI1\fR\&.
+.RE
+.PP
+authtok_type=STRING
+.RS 4
+See
+\fBpam_get_authtok\fR(3)
+for more details\&.
+.RE
+.PP
+file=/path/filename
+.RS 4
+Store password history in file
+/path/filename
+rather than the default location\&. The default location is
+/etc/security/opasswd\&.
+.RE
+.PP
+conf=/path/to/config\-file
+.RS 4
+Use another configuration file instead of the default
+/etc/security/pwhistory\&.conf\&.
+.RE
+.PP
+The options for configuring the module behavior are described in the
+\fBpwhistory.conf\fR(5)
+manual page\&. The options specified on the module command line override the values from the configuration file\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBpassword\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTHTOK_ERR
+.RS 4
+No new password was entered, the user aborted password change or new password couldn\*(Aqt be set\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+Password history was disabled\&.
+.RE
+.PP
+PAM_MAXTRIES
+.RS 4
+Password was rejected too often\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User is not known to system\&.
+.RE
+.SH "EXAMPLES"
+.PP
+An example password section would be:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#%PAM\-1\&.0
+password     required       pam_pwhistory\&.so
+password     required       pam_unix\&.so        use_authtok
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+In combination with
+\fBpam_passwdqc\fR:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#%PAM\-1\&.0
+password     required       pam_passwdqc\&.so    config=/etc/passwdqc\&.conf
+password     required       pam_pwhistory\&.so   use_authtok
+password     required       pam_unix\&.so        use_authtok
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "FILES"
+.PP
+/etc/security/opasswd
+.RS 4
+Default file with password history
+.RE
+.PP
+/etc/security/pwhistory\&.conf
+.RS 4
+Config file for pam_pwhistory options
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpwhistory.conf\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+\fBpam_get_authtok\fR(3)
+.SH "AUTHOR"
+.PP
+pam_pwhistory was written by Thorsten Kukuk <kukuk@thkukuk\&.de>

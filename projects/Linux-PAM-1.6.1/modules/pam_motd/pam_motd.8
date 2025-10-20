@@ -1,0 +1,195 @@
+'\" t
+.\"     Title: pam_motd
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_MOTD" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_motd \- Display the motd file
+.SH "SYNOPSIS"
+.HP \w'\fBpam_motd\&.so\fR\ 'u
+\fBpam_motd\&.so\fR [motd=\fI/path/filename\fR] [motd_dir=\fI/path/dirname\&.d\fR]
+.SH "DESCRIPTION"
+.PP
+pam_motd is a PAM module that can be used to display arbitrary motd (message of the day) files after a successful login\&. By default, pam_motd shows files in the following locations:
+.PP
+.RS 4
+/etc/motd
+.RE
+.RS 4
+/run/motd
+.RE
+.RS 4
+/usr/lib/motd
+.RE
+.RS 4
+/etc/motd\&.d/
+.RE
+.RS 4
+/run/motd\&.d/
+.RE
+.RS 4
+/usr/lib/motd\&.d/
+.RE
+.PP
+Each message size is limited to 64KB\&.
+.PP
+If
+/etc/motd
+does not exist, then
+/run/motd
+is shown\&. If
+/run/motd
+does not exist, then
+/usr/lib/motd
+is shown\&.
+.PP
+Similar overriding behavior applies to the directories\&. Files in
+/etc/motd\&.d/
+override files with the same name in
+/run/motd\&.d/
+and
+/usr/lib/motd\&.d/\&. Files in
+/run/motd\&.d/
+override files with the same name in
+/usr/lib/motd\&.d/\&.
+.PP
+Files in the directories listed above are displayed in lexicographic order by name\&. Moreover, the files are filtered by reading them with the credentials of the target user authenticating on the system\&.
+.PP
+To silence a message, a symbolic link with target
+/dev/null
+may be placed in
+/etc/motd\&.d
+with the same filename as the message to be silenced\&. Example: Creating a symbolic link as follows silences
+/usr/lib/motd\&.d/my_motd\&.
+.PP
+\fBln \-s /dev/null /etc/motd\&.d/my_motd\fR
+.PP
+The
+\fBMOTD_SHOWN=pam\fR
+environment variable is set after showing the motd files, even when all of them were silenced using symbolic links\&.
+.SH "OPTIONS"
+.PP
+motd=/path/filename
+.RS 4
+The
+/path/filename
+file is displayed as message of the day\&. Multiple paths to try can be specified as a colon\-separated list\&. By default this option is set to
+/etc/motd:/run/motd:/usr/lib/motd\&.
+.RE
+.PP
+motd_dir=/path/dirname\&.d
+.RS 4
+The
+/path/dirname\&.d
+directory is scanned and each file contained inside of it is displayed\&. Multiple directories to scan can be specified as a colon\-separated list\&. By default this option is set to
+/etc/motd\&.d:/run/motd\&.d:/usr/lib/motd\&.d\&.
+.RE
+.PP
+When no options are given, the default behavior applies for both options\&. Specifying either option (or both) will disable the default behavior for both options\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_ABORT
+.RS 4
+Not all relevant data or options could be obtained\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+This is the default return value of this module\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The suggested usage for
+/etc/pam\&.d/login
+is:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  optional  pam_motd\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+To use a
+motd
+file from a different location:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  optional  pam_motd\&.so motd=/elsewhere/motd
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+To use a
+motd
+file from elsewhere, along with a corresponding
+\&.d
+directory:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  optional  pam_motd\&.so motd=/elsewhere/motd motd_dir=/elsewhere/motd\&.d
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBmotd\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_motd was written by Ben Collins <bcollins@debian\&.org>\&.
+.PP
+The
+\fBmotd_dir=\fR
+option was added by Allison Karlitskaya <allison\&.karlitskaya@redhat\&.com>\&.

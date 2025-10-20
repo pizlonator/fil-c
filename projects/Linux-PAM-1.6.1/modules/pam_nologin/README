@@ -1,0 +1,41 @@
+pam_nologin — Prevent non-root users from login
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_nologin is a PAM module that prevents users from logging into the system
+when /var/run/nologin or /etc/nologin exists. The contents of the file are
+displayed to the user. The pam_nologin module has no effect on the root user's
+ability to log in.
+
+OPTIONS
+
+file=/path/nologin
+
+    Use this file instead the default /var/run/nologin or /etc/nologin.
+
+successok
+
+    Return PAM_SUCCESS if no file exists, the default is PAM_IGNORE.
+
+EXAMPLES
+
+The suggested usage for /etc/pam.d/login is:
+
+auth  required  pam_nologin.so
+
+
+NOTES
+
+In order to make this module effective, all login methods should be secured by
+it. It should be used as a required method listed before any sufficient methods
+in order to get standard Unix nologin semantics. Note, the use of successok
+module argument causes the module to return PAM_SUCCESS and as such would break
+such a configuration - failing sufficient modules would lead to a successful
+login because the nologin module succeeded.
+
+AUTHOR
+
+pam_nologin was written by Michael K. Johnson <johnsonm@redhat.com>.
+

@@ -1,0 +1,169 @@
+'\" t
+.\"     Title: pam_env
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_ENV" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_env \- PAM module to set/unset environment variables
+.SH "SYNOPSIS"
+.HP \w'\fBpam_env\&.so\fR\ 'u
+\fBpam_env\&.so\fR [debug] [conffile=\fIconf\-file\fR] [envfile=\fIenv\-file\fR] [readenv=\fI0|1\fR] [user_envfile=\fIenv\-file\fR] [user_readenv=\fI0|1\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_env PAM module allows the (un)setting of environment variables\&. Supported is the use of previously set environment variables as well as
+\fIPAM_ITEM\fRs such as
+\fIPAM_RHOST\fR\&.
+.PP
+By default rules for (un)setting of variables are taken from the config file
+/etc/security/pam_env\&.conf\&. An alternate file can be specified with the
+\fIconffile\fR
+option\&.
+.PP
+Second a file (/etc/environment
+by default) with simple
+\fIKEY=VAL\fR
+pairs on separate lines will be read\&. With the
+\fIenvfile\fR
+option an alternate file can be specified\&. And with the
+\fIreadenv\fR
+option this can be completely disabled\&.
+.PP
+Third it will read a user configuration file ($HOME/\&.pam_environment
+by default)\&. The default file can be changed with the
+\fIuser_envfile\fR
+option and it can be turned on and off with the
+\fIuser_readenv\fR
+option\&.
+.PP
+Since setting of PAM environment variables can have side effects to other modules, this module should be the last one on the stack\&.
+.PP
+This module is only executed if the main application calls
+\fBpam_setcred\fR(3)
+or
+\fBpam_open_session\fR(3)\&. The module does nothing and returns
+\fIPAM_IGNORE\fR
+if called by
+\fBpam_authenticate\fR(3)\&.
+.SH "OPTIONS"
+.PP
+conffile=/path/to/pam_env\&.conf
+.RS 4
+Indicate an alternative
+pam_env\&.conf
+style configuration file to override the default\&. This can be useful when different services need different environments\&.
+.RE
+.PP
+debug
+.RS 4
+A lot of debug information is printed with
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+envfile=/path/to/environment
+.RS 4
+Indicate an alternative
+environment
+file to override the default\&. The syntax are simple
+\fIKEY=VAL\fR
+pairs on separate lines\&. The
+\fIexport\fR
+instruction can be specified for bash compatibility, but will be ignored\&. This can be useful when different services need different environments\&.
+.RE
+.PP
+readenv=0|1
+.RS 4
+Turns on or off the reading of the file specified by envfile (0 is off, 1 is on)\&. By default this option is on\&.
+.RE
+.PP
+user_envfile=filename
+.RS 4
+Indicate an alternative
+\&.pam_environment
+file to override the default\&. The syntax is the same as for
+\fI/etc/security/pam_env\&.conf\fR\&. The filename is relative to the user home directory\&. This can be useful when different services need different environments\&.
+.RE
+.PP
+user_readenv=0|1
+.RS 4
+Turns on or off the reading of the user specific environment file\&. 0 is off, 1 is on\&. By default this option is off as user supplied environment variables in the PAM environment could affect behavior of subsequent modules in the stack without the consent of the system administrator\&.
+.sp
+Due to problematic security this functionality is deprecated since the 1\&.5\&.0 version and will be removed completely at some point in the future\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBsession\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_ABORT
+.RS 4
+Not all relevant data or options could be gotten\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+No pam_env\&.conf and environment file was found or the module got called by
+\fBpam_authenticate\fR(3)\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Environment variables were set\&.
+.RE
+.SH "FILES"
+.PP
+/etc/security/pam_env\&.conf
+.RS 4
+Default configuration file
+.RE
+.PP
+/etc/environment
+.RS 4
+Default environment file
+.RE
+.PP
+$HOME/\&.pam_environment
+.RS 4
+User specific environment file
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_env.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBenviron\fR(7)\&.
+.SH "AUTHOR"
+.PP
+pam_env was written by Dave Kinchlea <kinch@kinch\&.ark\&.com>\&.

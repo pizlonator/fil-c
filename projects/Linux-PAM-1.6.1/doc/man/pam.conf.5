@@ -1,0 +1,416 @@
+'\" t
+.\"     Title: pam.conf
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM\&.CONF" "5" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam.conf, pam.d \- PAM configuration files
+.SH "DESCRIPTION"
+.PP
+When a
+\fIPAM\fR
+aware privilege granting application is started, it activates its attachment to the PAM\-API\&. This activation performs a number of tasks, the most important being the reading of the configuration file(s):
+/etc/pam\&.conf\&. Alternatively and preferably, the configuration can be set by individual configuration files located in a
+pam\&.d
+directory\&. The presence of this directory will cause
+\fBLinux\-PAM\fR
+to
+\fIignore\fR
+/etc/pam\&.conf\&.
+.PP
+These files list the
+\fIPAM\fRs that will do the authentication tasks required by this service, and the appropriate behavior of the PAM\-API in the event that individual
+\fIPAM\fRs fail\&.
+.PP
+The syntax of the
+/etc/pam\&.conf
+configuration file is as follows\&. The file is made up of a list of rules, each rule is typically placed on a single line, but may be extended with an escaped end of line: `\e<LF>\*(Aq\&. Comments are preceded with `#\*(Aq marks and extend to the next end of line\&.
+.PP
+The format of each rule is a space separated collection of tokens, the first three being case\-insensitive:
+.PP
+\fB service type control module\-path module\-arguments\fR
+.PP
+The syntax of files contained in the
+/etc/pam\&.d/
+directory, are identical except for the absence of any
+\fIservice\fR
+field\&. In this case, the
+\fIservice\fR
+is the name of the file in the
+/etc/pam\&.d/
+directory\&. This filename must be in lower case\&.
+.PP
+An important feature of
+\fIPAM\fR, is that a number of rules may be
+\fIstacked\fR
+to combine the services of a number of PAMs for a given authentication task\&.
+.PP
+The
+\fIservice\fR
+is typically the familiar name of the corresponding application:
+\fIlogin\fR
+and
+\fIsu\fR
+are good examples\&. The
+\fIservice\fR\-name,
+\fIother\fR, is reserved for giving
+\fIdefault\fR
+rules\&. Only lines that mention the current service (or in the absence of such, the
+\fIother\fR
+entries) will be associated with the given service\-application\&.
+.PP
+The
+\fItype\fR
+is the management group that the rule corresponds to\&. It is used to specify which of the management groups the subsequent module is to be associated with\&. Valid entries are:
+.PP
+account
+.RS 4
+this module type performs non\-authentication based account management\&. It is typically used to restrict/permit access to a service based on the time of day, currently available system resources (maximum number of users) or perhaps the location of the applicant user \-\- \*(Aqroot\*(Aq login only on the console\&.
+.RE
+.PP
+auth
+.RS 4
+this module type provides two aspects of authenticating the user\&. Firstly, it establishes that the user is who they claim to be, by instructing the application to prompt the user for a password or other means of identification\&. Secondly, the module can grant group membership or other privileges through its credential granting properties\&.
+.RE
+.PP
+password
+.RS 4
+this module type is required for updating the authentication token associated with the user\&. Typically, there is one module for each \*(Aqchallenge/response\*(Aq based authentication (auth) type\&.
+.RE
+.PP
+session
+.RS 4
+this module type is associated with doing things that need to be done for the user before/after they can be given service\&. Such things include the logging of information concerning the opening/closing of some data exchange with a user, mounting directories, etc\&.
+.RE
+.PP
+If the
+\fItype\fR
+value from the list above is prepended with a
+\fI\-\fR
+character the PAM library will not log to the system log if it is not possible to load the module because it is missing in the system\&. This can be useful especially for modules which are not always installed on the system and are not required for correct authentication and authorization of the login session\&.
+.PP
+The third field,
+\fIcontrol\fR, indicates the behavior of the PAM\-API should the module fail to succeed in its authentication task\&. There are two types of syntax for this control field: the simple one has a single simple keyword; the more complicated one involves a square\-bracketed selection of
+\fIvalue=action\fR
+pairs\&.
+.PP
+For the simple (historical) syntax valid
+\fIcontrol\fR
+values are:
+.PP
+required
+.RS 4
+failure of such a PAM will ultimately lead to the PAM\-API returning failure but only after the remaining
+\fIstacked\fR
+modules (for this
+\fIservice\fR
+and
+\fItype\fR) have been invoked\&.
+.RE
+.PP
+requisite
+.RS 4
+like
+\fIrequired\fR, however, in the case that such a module returns a failure, control is directly returned to the application or to the superior PAM stack\&. The return value is that associated with the first required or requisite module to fail\&. Note, this flag can be used to protect against the possibility of a user getting the opportunity to enter a password over an unsafe medium\&. It is conceivable that such behavior might inform an attacker of valid accounts on a system\&. This possibility should be weighed against the not insignificant concerns of exposing a sensitive password in a hostile environment\&.
+.RE
+.PP
+sufficient
+.RS 4
+if such a module succeeds and no prior
+\fIrequired\fR
+module has failed the PAM framework returns success to the application or to the superior PAM stack immediately without calling any further modules in the stack\&. A failure of a
+\fIsufficient\fR
+module is ignored and processing of the PAM module stack continues unaffected\&.
+.RE
+.PP
+optional
+.RS 4
+the success or failure of this module is only important if it is the only module in the stack associated with this
+\fIservice\fR+\fItype\fR\&.
+.RE
+.PP
+include
+.RS 4
+include all lines of given type from the configuration file specified as an argument to this control\&.
+.RE
+.PP
+substack
+.RS 4
+include all lines of given type from the configuration file specified as an argument to this control\&. This differs from
+\fIinclude\fR
+in that evaluation of the
+\fIdone\fR
+and
+\fIdie\fR
+actions in a substack does not cause skipping the rest of the complete module stack, but only of the substack\&. Jumps in a substack also can not make evaluation jump out of it, and the whole substack is counted as one module when the jump is done in a parent stack\&. The
+\fIreset\fR
+action will reset the state of a module stack to the state it was in as of beginning of the substack evaluation\&.
+.RE
+.PP
+For the more complicated syntax valid
+\fIcontrol\fR
+values have the following form:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      [value1=action1 value2=action2 \&.\&.\&.]
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Where
+\fIvalueN\fR
+corresponds to the return code from the function invoked in the module for which the line is defined\&. It is selected from one of these:
+\fIsuccess\fR,
+\fIopen_err\fR,
+\fIsymbol_err\fR,
+\fIservice_err\fR,
+\fIsystem_err\fR,
+\fIbuf_err\fR,
+\fIperm_denied\fR,
+\fIauth_err\fR,
+\fIcred_insufficient\fR,
+\fIauthinfo_unavail\fR,
+\fIuser_unknown\fR,
+\fImaxtries\fR,
+\fInew_authtok_reqd\fR,
+\fIacct_expired\fR,
+\fIsession_err\fR,
+\fIcred_unavail\fR,
+\fIcred_expired\fR,
+\fIcred_err\fR,
+\fIno_module_data\fR,
+\fIconv_err\fR,
+\fIauthtok_err\fR,
+\fIauthtok_recover_err\fR,
+\fIauthtok_lock_busy\fR,
+\fIauthtok_disable_aging\fR,
+\fItry_again\fR,
+\fIignore\fR,
+\fIabort\fR,
+\fIauthtok_expired\fR,
+\fImodule_unknown\fR,
+\fIbad_item\fR,
+\fIconv_again\fR,
+\fIincomplete\fR, and
+\fIdefault\fR\&.
+.PP
+The last of these,
+\fIdefault\fR, implies \*(Aqall
+\fIvalueN\fR\*(Aqs not mentioned explicitly\&. Note, the full list of PAM errors is available in
+/usr/include/security/_pam_types\&.h\&. The
+\fIactionN\fR
+can take one of the following forms:
+.PP
+ignore
+.RS 4
+when used with a stack of modules, the module\*(Aqs return status will not contribute to the return code the application obtains\&.
+.RE
+.PP
+bad
+.RS 4
+this action indicates that the return code should be thought of as indicative of the module failing\&. If this module is the first in the stack to fail, its status value will be used for that of the whole stack\&. This is the default action for all return codes\&.
+.RE
+.PP
+die
+.RS 4
+equivalent to
+\fIbad\fR
+with the side effect of terminating the module stack and PAM immediately returning to the application\&.
+.RE
+.PP
+ok
+.RS 4
+this tells PAM that the administrator thinks this return code should contribute directly to the return code of the full stack of modules\&. In other words, if the former state of the stack would lead to a return of
+\fIPAM_SUCCESS\fR, the module\*(Aqs return code will override this value\&. Note, if the former state of the stack holds some value that is indicative of a modules failure, this \*(Aqok\*(Aq value will not be used to override that value\&.
+.RE
+.PP
+done
+.RS 4
+equivalent to
+\fIok\fR
+with the side effect of terminating the module stack and PAM immediately returning to the application unless there was a non\-ignored module failure before\&.
+.RE
+.PP
+N (an unsigned integer)
+.RS 4
+jump over the next N modules in the stack\&. Note that N equal to 0 is not allowed, it would be treated as
+\fIignore\fR
+in such case\&. The side effect depends on the PAM function call: for
+\fIpam_authenticate\fR,
+\fIpam_acct_mgmt\fR,
+\fIpam_chauthtok\fR, and
+\fIpam_open_session\fR
+it is
+\fIignore\fR; for
+\fIpam_setcred\fR
+and
+\fIpam_close_session\fR
+it is one of
+\fIignore\fR,
+\fIok\fR, or
+\fIbad\fR
+depending on the module\*(Aqs return value\&.
+.RE
+.PP
+reset
+.RS 4
+clear all memory of the state of the module stack and start again with the next stacked module\&.
+.RE
+.PP
+If a return code\*(Aqs action is not specifically defined via a
+\fIvalueN\fR
+token, and the
+\fIdefault\fR
+value is not specified, that return code\*(Aqs action defaults to
+\fIbad\fR\&.
+.PP
+Each of the four keywords: required; requisite; sufficient; and optional, have an equivalent expression in terms of the [\&.\&.\&.] syntax\&. They are as follows:
+.PP
+required
+.RS 4
+[success=ok new_authtok_reqd=ok ignore=ignore default=bad]
+.RE
+.PP
+requisite
+.RS 4
+[success=ok new_authtok_reqd=ok ignore=ignore default=die]
+.RE
+.PP
+sufficient
+.RS 4
+[success=done new_authtok_reqd=done default=ignore]
+.RE
+.PP
+optional
+.RS 4
+[success=ok new_authtok_reqd=ok default=ignore]
+.RE
+.PP
+\fImodule\-path\fR
+is either the full filename of the PAM to be used by the application (it begins with a \*(Aq/\*(Aq), or a relative pathname from the default module location:
+/lib/security/
+or
+/lib64/security/, depending on the architecture\&.
+.PP
+\fImodule\-arguments\fR
+are a space separated list of tokens that can be used to modify the specific behavior of the given PAM\&. Such arguments will be documented for each individual module\&. Note, if you wish to include spaces in an argument, you should surround that argument with square brackets\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+    squid auth required pam_mysql\&.so user=passwd_query passwd=mada \e
+          db=eminence [query=select user_name from internet_service \e
+          where user_name=\*(Aq%u\*(Aq and password=PASSWORD(\*(Aq%p\*(Aq) and \e
+        service=\*(Aqweb_proxy\*(Aq]
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+When using this convention, you can include `[\*(Aq characters inside the string, and if you wish to include a `]\*(Aq character inside the string that will survive the argument parsing, you should use `\e]\*(Aq\&. In other words:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+    [\&.\&.[\&.\&.\e]\&.\&.]    \-\->   \&.\&.[\&.\&.]\&.\&.
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Any line in (one of) the configuration file(s), that is not formatted correctly, will generally tend (erring on the side of caution) to make the authentication process fail\&. A corresponding error is written to the system log files with a call to
+\fBsyslog\fR(3)\&.
+.PP
+More flexible than the single configuration file is it to configure libpam via the contents of
+pam\&.d
+directories\&. In this case the directories are filled with files each of which has a filename equal to a service\-name (in lower\-case): it is the personal configuration file for the named service\&.
+.PP
+Vendor\-supplied PAM configuration files might be installed in the system directory
+/usr/lib/pam\&.d/
+or a configurable vendor specific directory instead of the machine configuration directory
+/etc/pam\&.d/\&. If no machine configuration file is found, the vendor\-supplied file is used\&. All files in
+/etc/pam\&.d/
+override files with the same name in other directories\&.
+.PP
+The syntax of each file in pam\&.d is similar to that of the
+/etc/pam\&.conf
+file and is made up of lines of the following form:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+type  control  module\-path  module\-arguments
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The only difference being that the service\-name is not present\&. The service\-name is of course the name of the given configuration file\&. For example,
+/etc/pam\&.d/login
+contains the configuration for the
+\fBlogin\fR
+service\&.
+.SH "FILES"
+.PP
+/etc/pam\&.conf
+.RS 4
+the configuration file
+.RE
+.PP
+/etc/pam\&.d
+.RS 4
+the
+\fBLinux\-PAM\fR
+configuration directory\&. Generally, if this directory is present, the
+/etc/pam\&.conf
+file is ignored\&.
+.RE
+.PP
+/usr/lib/pam\&.d
+.RS 4
+the
+\fBLinux\-PAM\fR
+vendor configuration directory\&. Files in
+/etc/pam\&.d
+override files with the same name in this directory\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam\fR(3),
+\fBPAM\fR(8),
+\fBpam_start\fR(3)

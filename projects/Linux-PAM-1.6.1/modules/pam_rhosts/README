@@ -1,0 +1,56 @@
+pam_rhosts — The rhosts PAM module
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+This module performs the standard network authentication for services, as used
+by traditional implementations of rlogin and rsh etc.
+
+The authentication mechanism of this module is based on the contents of two
+files; /etc/hosts.equiv (or and ~/.rhosts. Firstly, hosts listed in the former
+file are treated as equivalent to the localhost. Secondly, entries in the
+user's own copy of the latter file is used to map "remote-host remote-user"
+pairs to that user's account on the current host. Access is granted to the user
+if their host is present in /etc/hosts.equiv and their remote account is
+identical to their local one, or if their remote account has an entry in their
+personal configuration file.
+
+The module authenticates a remote user (internally specified by the item
+PAM_RUSER connecting from the remote host (internally specified by the item 
+PAM_RHOST). Accordingly, for applications to be compatible this authentication
+module they must set these items prior to calling pam_authenticate(). The
+module is not capable of independently probing the network connection for such
+information.
+
+OPTIONS
+
+debug
+
+    Print debug information.
+
+silent
+
+    Don't print informative messages.
+
+superuser=account
+
+    Handle account as root.
+
+EXAMPLES
+
+To grant a remote user access by /etc/hosts.equiv or .rhosts for rsh add the
+following lines to /etc/pam.d/rsh:
+
+#%PAM-1.0
+#
+auth     required       pam_rhosts.so
+auth     required       pam_nologin.so
+auth     required       pam_env.so
+auth     required       pam_unix.so
+
+
+AUTHOR
+
+pam_rhosts was written by Thorsten Kukuk <kukuk@thkukuk.de>
+

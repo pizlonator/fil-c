@@ -1,0 +1,114 @@
+'\" t
+.\"     Title: pam_canonicalize_user
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_CANONICALIZE_USE" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_canonicalize_user \- Get user name and canonicalize it
+.SH "SYNOPSIS"
+.HP \w'\fBpam_canonicalize_user\&.so\fR\ 'u
+\fBpam_canonicalize_user\&.so\fR
+.SH "DESCRIPTION"
+.PP
+This PAM module uses the name of the user obtained via
+\fBpam_get_user\fR(3)
+as a key to query the password database, and replaces
+\fIPAM_USER\fR
+with the
+\fIpw_name\fR
+value that has been returned\&.
+.SH "OPTIONS"
+.PP
+This module does not recognise any options\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBauth\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_IGNORE
+.RS 4
+The user name was set successfully\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user was not found\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+The application did not supply neither a user name nor a conversation method\&.
+.RE
+.PP
+PAM_INCOMPLETE
+.RS 4
+The conversation method supplied by the application is waiting for an event\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+The conversation method supplied by the application failed to obtain the user name\&.
+.RE
+.PP
+PAM_ABORT
+.RS 4
+Error resuming an old conversation\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Prepend the PAM auth stack with the following line to canonicalize the user name before the authentication:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        auth required pam_canonicalize_user\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam_get_user\fR(3),
+\fBpam_get_item\fR(3),
+\fBpam_set_item\fR(3),
+\fBgetpwnam\fR(3),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_canonicalize_user was written by Dmitry V\&. Levin <ldv@strace\&.io>\&.

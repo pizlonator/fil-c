@@ -1,0 +1,188 @@
+'\" t
+.\"     Title: pam_exec
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_EXEC" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_exec \- PAM module which calls an external command
+.SH "SYNOPSIS"
+.HP \w'\fBpam_exec\&.so\fR\ 'u
+\fBpam_exec\&.so\fR [debug] [expose_authtok] [seteuid] [quiet] [quiet_log] [stdout] [log=\fIfile\fR] [type=\fItype\fR] \fIcommand\fR [\fI\&.\&.\&.\fR]
+.SH "DESCRIPTION"
+.PP
+pam_exec is a PAM module that can be used to run an external command\&.
+.PP
+The child\*(Aqs environment is set to the current PAM environment list, as returned by
+\fBpam_getenvlist\fR(3)
+In addition, the following PAM items are exported as environment variables:
+\fIPAM_RHOST\fR,
+\fIPAM_RUSER\fR,
+\fIPAM_SERVICE\fR,
+\fIPAM_TTY\fR,
+\fIPAM_USER\fR
+and
+\fIPAM_TYPE\fR, which contains one of the module types:
+\fBaccount\fR,
+\fBauth\fR,
+\fBpassword\fR,
+\fBopen_session\fR
+and
+\fBclose_session\fR\&.
+.PP
+Commands called by pam_exec need to be aware of that the user can have control over the environment\&.
+.SH "OPTIONS"
+.PP
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+expose_authtok
+.RS 4
+During authentication and password change the calling command can read the password from
+\fBstdin\fR(3)\&. Only first
+\fIPAM_MAX_RESP_SIZE\fR
+bytes of a password are provided to the command\&.
+.RE
+.PP
+log=file
+.RS 4
+The output of the command is appended to
+file
+.RE
+.PP
+type=type
+.RS 4
+Only run the command if the module type matches the given type\&.
+.RE
+.PP
+stdout
+.RS 4
+Per default the output of the executed command is written to
+/dev/null\&. With this option, the stdout output of the executed command is redirected to the calling application\&. It\*(Aqs in the responsibility of this application what happens with the output\&. The
+\fBlog\fR
+option is ignored\&.
+.RE
+.PP
+quiet
+.RS 4
+Per default pam_exec\&.so will echo the exit status of the external command if it fails\&. Specifying this option will suppress the message\&.
+.RE
+.PP
+quiet_log
+.RS 4
+Per default pam_exec\&.so will log the exit status of the external command if it fails\&. Specifying this option will suppress the log message\&.
+.RE
+.PP
+seteuid
+.RS 4
+Per default pam_exec\&.so will execute the external command with the real user ID of the calling process\&. Specifying this option means the command is run with the effective user ID\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+The external command was run successfully\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+The conversation method supplied by the application failed to obtain the username\&.
+.RE
+.PP
+PAM_INCOMPLETE
+.RS 4
+The conversation method supplied by the application returned PAM_CONV_AGAIN\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+No argument or a wrong number of arguments were given\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+A system error occurred or the command to execute failed\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+\fBpam_setcred\fR
+was called, which does not execute the command\&. Or, the value given for the type= parameter did not match the module type\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/passwd
+to rebuild the NIS database after each local password change:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+        password optional pam_exec\&.so seteuid /usr/bin/make \-C /var/yp
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+This will execute the command
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+make \-C /var/yp
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+with effective user ID\&.
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_exec was written by Thorsten Kukuk <kukuk@thkukuk\&.de> and Josh Triplett <josh@joshtriplett\&.org>\&.

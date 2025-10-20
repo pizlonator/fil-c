@@ -1,0 +1,36 @@
+pam_mkhomedir — PAM module to create users home directory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_mkhomedir PAM module will create a users home directory if it does not
+exist when the session begins. This allows users to be present in central
+database (such as NIS, kerberos or LDAP) without using a distributed file
+system or pre-creating a large number of directories. The skeleton directory
+(usually /etc/skel/) is used to copy default files and also sets a umask for
+the creation.
+
+The new users home directory will not be removed after logout of the user.
+
+EXAMPLES
+
+A sample /etc/pam.d/login file:
+
+  auth       requisite   pam_securetty.so
+  auth       sufficient  pam_ldap.so
+  auth       required    pam_unix.so
+  auth       required    pam_nologin.so
+  account    sufficient  pam_ldap.so
+  account    required    pam_unix.so
+  password   required    pam_unix.so
+  session    required    pam_mkhomedir.so skel=/etc/skel/ umask=0022
+  session    required    pam_unix.so
+  session    optional    pam_lastlog.so
+  session    optional    pam_mail.so standard
+
+
+AUTHOR
+
+pam_mkhomedir was written by Jason Gunthorpe <jgg@debian.org>.
+

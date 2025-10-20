@@ -1,0 +1,53 @@
+'\" t
+.\"     Title: unix_chkpwd
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "UNIX_CHKPWD" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+unix_chkpwd \- Helper binary that verifies the password of the current user
+.SH "SYNOPSIS"
+.HP \w'\fBunix_chkpwd\fR\ 'u
+\fBunix_chkpwd\fR [\&.\&.\&.]
+.SH "DESCRIPTION"
+.PP
+\fIunix_chkpwd\fR
+is a helper program for the
+\fIpam_unix\fR
+module that verifies the password of the current user\&. It also checks password and account expiration dates in
+\fIshadow\fR\&. It is not intended to be run directly from the command line and logs a security violation if done so\&.
+.PP
+It is typically installed setuid root or setgid shadow\&.
+.PP
+The interface of the helper \- command line options, and input/output data format are internal to the
+\fIpam_unix\fR
+module and it should not be called directly from applications\&.
+.SH "SEE ALSO"
+.PP
+\fBpam_unix\fR(8)
+.SH "AUTHOR"
+.PP
+Written by Andrew Morgan and other various people\&.

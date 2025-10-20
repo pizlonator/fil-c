@@ -1,0 +1,115 @@
+'\" t
+.\"     Title: time.conf
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "TIME\&.CONF" "5" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+time.conf \- configuration file for the pam_time module
+.SH "DESCRIPTION"
+.PP
+The pam_time PAM module does not authenticate the user, but instead it restricts access to a system and or specific applications at various times of the day and on specific days or over various terminal lines\&. This module can be configured to deny access to (individual) users based on their name, the time of day, the day of week, the service they are applying for and their terminal from which they are making their request\&.
+.PP
+For this module to function correctly there must be a correctly formatted
+/etc/security/time\&.conf
+file present\&. White spaces are ignored and lines maybe extended with \*(Aq\e\*(Aq (escaped newlines)\&. Text following a \*(Aq#\*(Aq is ignored to the end of the line\&.
+.PP
+The syntax of the lines is as follows:
+.PP
+\fIservices\fR;\fIttys\fR;\fIusers\fR;\fItimes\fR
+.PP
+In words, each rule occupies a line, terminated with a newline or the beginning of a comment; a \*(Aq\fB#\fR\*(Aq\&. It contains four fields separated with semicolons, \*(Aq\fB;\fR\*(Aq\&.
+.PP
+The first field, the
+\fIservices\fR
+field, is a logic list of PAM service names that the rule applies to\&.
+.PP
+The second field, the
+\fItty\fR
+field, is a logic list of terminal names that this rule applies to\&.
+.PP
+The third field, the
+\fIusers\fR
+field, is a logic list of users or a netgroup of users to whom this rule applies\&.
+.PP
+A logic list namely means individual tokens that are optionally prefixed with \*(Aq!\*(Aq (logical not) and separated with \*(Aq&\*(Aq (logical and) and \*(Aq|\*(Aq (logical or)\&.
+.PP
+For these items the simple wildcard \*(Aq*\*(Aq may be used only once\&. With netgroups no wildcards or logic operators are allowed\&.
+.PP
+The
+\fItimes\fR
+field is used to indicate the times at which this rule applies\&. The format here is a logic list of day/time\-range entries\&. The days are specified by a sequence of two character entries, MoTuSa for example is Monday Tuesday and Saturday\&. Note that repeated days are unset MoMo = no day, and MoWk = all weekdays bar Monday\&. The two character combinations accepted are Mo Tu We Th Fr Sa Su Wk Wd Al, the last two being week\-end days and all 7 days of the week respectively\&. As a final example, AlFr means all days except Friday\&.
+.PP
+Each day/time\-range can be prefixed with a \*(Aq!\*(Aq to indicate "anything but"\&. The time\-range part is two 24\-hour times HHMM, separated by a hyphen, indicating the start and finish time (if the finish time is smaller than the start time it is deemed to apply on the following day)\&.
+.PP
+For a rule to be active, ALL of service+ttys+users must be satisfied by the applying process\&.
+.PP
+Note, currently there is no daemon enforcing the end of a session\&. This needs to be remedied\&.
+.PP
+Poorly formatted rules are logged as errors using
+\fBsyslog\fR(3)\&.
+.SH "EXAMPLES"
+.PP
+These are some example lines which might be specified in
+/etc/security/time\&.conf\&.
+.PP
+All users except for
+\fIroot\fR
+are denied access to console\-login at all times:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+login ; tty* & !ttyp* ; !root ; !Al0000\-2400
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Games (configured to use PAM) are only to be accessed out of working hours\&. This rule does not apply to the user
+\fIwaster\fR:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+games ; * ; !waster ; Wd0000\-2400 | Wk1800\-0800
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam_time\fR(8),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_time was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.

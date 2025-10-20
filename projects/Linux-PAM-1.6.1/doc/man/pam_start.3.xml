@@ -1,0 +1,164 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_start">
+
+  <refmeta>
+    <refentrytitle>pam_start</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_start-name">
+    <refname>pam_start</refname>
+    <refname>pam_start_confdir</refname>
+    <refpurpose>initialization of PAM transaction</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_start-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_start</function></funcdef>
+        <paramdef>const char *<parameter>service_name</parameter></paramdef>
+        <paramdef>const char *<parameter>user</parameter></paramdef>
+        <paramdef>const struct pam_conv *<parameter>pam_conversation</parameter></paramdef>
+        <paramdef>pam_handle_t **<parameter>pamh</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+        <funcdef>int <function>pam_start_confdir</function></funcdef>
+        <paramdef>const char *<parameter>service_name</parameter></paramdef>
+        <paramdef>const char *<parameter>user</parameter></paramdef>
+        <paramdef>const struct pam_conv *<parameter>pam_conversation</parameter></paramdef>
+        <paramdef>const char *<parameter>confdir</parameter></paramdef>
+        <paramdef>pam_handle_t **<parameter>pamh</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_start-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_start</function> function creates the PAM context
+      and initiates the PAM transaction. It is the first of the PAM
+      functions that needs to be called by an application. The transaction
+      state is contained entirely within the structure identified by this
+      handle, so it is possible to have multiple transactions in parallel.
+      But it is not possible to use the same handle for different
+      transactions, a new one is needed for every new context.
+    </para>
+
+    <para>
+      The <emphasis>service_name</emphasis> argument specifies the name
+      of the service to apply and will be stored as PAM_SERVICE item in
+      the new context. The policy for the service will be read from the
+      file <filename>/etc/pam.d/service_name</filename> or, if that file
+      does not exist, from <filename>/etc/pam.conf</filename>.
+    </para>
+
+    <para>
+       The <emphasis>user</emphasis> argument can specify the name
+       of the target user and will be stored as PAM_USER item. If
+       the argument is NULL, the module has to ask for this item if
+       necessary.
+    </para>
+
+    <para>
+       The <emphasis>pam_conversation</emphasis> argument points to
+       a <emphasis>struct pam_conv</emphasis> describing the
+       conversation function to use. An application must provide this
+       for direct communication between a loaded module and the
+       application.
+    </para>
+
+    <para>
+       Following a successful return (PAM_SUCCESS) the contents of
+       <emphasis>pamh</emphasis> is a handle that contains the PAM
+       context for successive calls to the PAM functions. In an error
+       case is the content of <emphasis>pamh</emphasis> undefined.
+    </para>
+
+    <para>
+      The <emphasis>pam_handle_t</emphasis> is a blind structure and
+      the application should not attempt to probe it directly for
+      information. Instead the PAM library provides the functions
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+      The PAM handle cannot be used for multiple authentications at the
+      same time as long as <function>pam_end</function> was not called on
+      it before.
+    </para>
+
+    <para>
+      The <function>pam_start_confdir</function> function behaves
+      like the <function>pam_start</function> function but it also
+      allows setting <emphasis>confdir</emphasis> argument with
+      a path to a directory to override the default
+      (<filename>/etc/pam.d</filename>) path for service policy
+      files. If the <emphasis>confdir</emphasis> is NULL, the function
+      works exactly the same as <function>pam_start</function>.
+    </para>
+
+  </refsect1>
+  <refsect1 xml:id="pam_start-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+              General failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Transaction was successfully started.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+              System error, for example a NULL pointer was submitted
+              instead of a pointer to data.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_start-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_get_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

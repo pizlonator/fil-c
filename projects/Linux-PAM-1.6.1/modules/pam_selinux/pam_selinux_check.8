@@ -1,0 +1,35 @@
+.TH pam_selinux_check 8 2002/05/23 "Red Hat Linux" "System Administrator's Manual"
+.SH NAME
+pam_selinux_check \- login program to test pam_selinux.so
+.SH SYNOPSIS
+.B pam_selinux_check [user]
+.br
+
+.SH DESCRIPTION
+With no arguments,
+.B pam_selinux_check
+will prompt for user
+
+.SH OPTIONS
+.IP target_user
+The user to login as.
+
+.SH DIAGNOSTICS
+You must setup a /etc/pam.d/pam_selinux_check file, in order for the check to work.
+
+When checking if a selinux is valid,
+.B pam_selinux_check
+returns an exit code of 0 for success and > 0 on error:
+
+.nf
+1: Authentication failure
+.fi
+
+.SH SEE ALSO
+pam_selinux(8)
+
+.SH BUGS
+Let's hope not, but if you find any, please email the author.
+
+.SH AUTHOR
+Dan Walsh <dwalsh@redhat.com>

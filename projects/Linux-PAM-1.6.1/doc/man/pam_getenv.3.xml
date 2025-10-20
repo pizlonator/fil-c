@@ -1,0 +1,65 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_getenv">
+  <refmeta>
+    <refentrytitle>pam_getenv</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_getenv-name">
+    <refname>pam_getenv</refname>
+    <refpurpose>get a PAM environment variable</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_getenv-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>const char *<function>pam_getenv</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>const char *<parameter>name</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_getenv-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_getenv</function> function searches the
+      PAM environment list as associated with the handle
+      <emphasis>pamh</emphasis> for an item that matches the string
+      pointed to by <emphasis>name</emphasis> and returns a pointer
+      to the value of the environment variable. The application is
+      not allowed to free the data.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_getenv-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      The <function>pam_getenv</function> function returns NULL
+      on failure.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_getenv-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_getenvlist</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_putenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

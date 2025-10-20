@@ -1,0 +1,81 @@
+'\" t
+.\"     Title: pam_open_session
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_OPEN_SESSION" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_open_session \- start PAM session management
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.HP \w'int\ pam_open_session('u
+.BI "int pam_open_session(pam_handle_t\ *" "pamh" ", int\ " "flags" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_open_session\fR
+function sets up a user session for a previously successful authenticated user\&. The session should later be terminated with a call to
+\fBpam_close_session\fR(3)\&.
+.PP
+It should be noted that the effective uid,
+\fBgeteuid\fR(2), of the application should be of sufficient privilege to perform such tasks as creating or mounting the user\*(Aqs home directory for example\&.
+.PP
+The flags argument is the binary or of zero or more of the following values:
+.PP
+PAM_SILENT
+.RS 4
+Do not emit any messages\&.
+.RE
+.SH "RETURN VALUES"
+.PP
+PAM_ABORT
+.RS 4
+General failure\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Session failure\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Session was successful created\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_close_session\fR(3),
+\fBpam_strerror\fR(3)

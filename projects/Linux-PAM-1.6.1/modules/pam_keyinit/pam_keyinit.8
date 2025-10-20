@@ -1,0 +1,150 @@
+'\" t
+.\"     Title: pam_keyinit
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_KEYINIT" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_keyinit \- Kernel session keyring initialiser module
+.SH "SYNOPSIS"
+.HP \w'\fBpam_keyinit\&.so\fR\ 'u
+\fBpam_keyinit\&.so\fR [debug] [force] [revoke]
+.SH "DESCRIPTION"
+.PP
+The pam_keyinit PAM module ensures that the invoking process has a session keyring other than the user default session keyring\&.
+.PP
+The module checks to see if the process\*(Aqs session keyring is the
+\fBuser-session-keyring\fR(7), and, if it is, creates a new
+\fBsession-keyring\fR(7)
+with which to replace it\&. If a new session keyring is created, it will install a link to the
+\fBuser-keyring\fR(7)
+in the session keyring so that keys common to the user will be automatically accessible through it\&. The session keyring of the invoking process will thenceforth be inherited by all its children unless they override it\&.
+.PP
+In order to allow other PAM modules to attach tokens to the keyring, this module provides both an
+\fIauth\fR
+(limited to
+\fBpam_setcred\fR(3)
+and a
+\fIsession\fR
+component\&. The session keyring is created in the module called\&. Moreover this module should be included as early as possible in a PAM configuration\&.
+.PP
+This module is intended primarily for use by login processes\&. Be aware that after the session keyring has been replaced, the old session keyring and the keys it contains will no longer be accessible\&.
+.PP
+This module should not, generally, be invoked by programs like
+\fBsu\fR, since it is usually desirable for the key set to percolate through to the alternate context\&. The keys have their own permissions system to manage this\&.
+.PP
+The keyutils package is used to manipulate keys more directly\&. This can be obtained from:
+.PP
+\m[blue]\fBKeyutils\fR\m[]\&\s-2\u[1]\d\s+2
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Log debug information with
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+force
+.RS 4
+Causes the session keyring of the invoking process to be replaced unconditionally\&.
+.RE
+.PP
+revoke
+.RS 4
+Causes the session keyring of the invoking process to be revoked when the invoking process exits if the session keyring was created for this process in the first place\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+This module will usually return this value
+.RE
+.PP
+PAM_AUTH_ERR
+.RS 4
+Authentication failure\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+The return value should be ignored by PAM dispatch\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+Cannot determine the user name\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+This module will return this value if its arguments are invalid or if a system error such as ENOMEM occurs\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add this line to your login entries to start each login session with its own session keyring:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  required  pam_keyinit\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+This will prevent keys from one session leaking into another session for the same user\&.
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBkeyctl\fR(1)
+.SH "AUTHOR"
+.PP
+pam_keyinit was written by David Howells, <dhowells@redhat\&.com>\&.
+.SH "NOTES"
+.IP " 1." 4
+Keyutils
+.RS 4
+\%http://people.redhat.com/~dhowells/keyutils/
+.RE

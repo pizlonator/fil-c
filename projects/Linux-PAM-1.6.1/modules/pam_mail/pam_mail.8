@@ -1,0 +1,159 @@
+'\" t
+.\"     Title: pam_mail
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_MAIL" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_mail \- Inform about available mail
+.SH "SYNOPSIS"
+.HP \w'\fBpam_mail\&.so\fR\ 'u
+\fBpam_mail\&.so\fR [close] [debug] [dir=\fImaildir\fR] [empty] [hash=\fIcount\fR] [noenv] [nopen] [quiet] [standard]
+.SH "DESCRIPTION"
+.PP
+The pam_mail PAM module provides the "you have new mail" service to the user\&. It can be plugged into any application that has credential or session hooks\&. It gives a single message indicating the
+\fInewness\fR
+of any mail it finds in the user\*(Aqs mail folder\&. This module also sets the PAM environment variable,
+\fBMAIL\fR, to the user\*(Aqs mail directory\&.
+.PP
+If the mail spool file (be it
+/var/mail/$USER
+or a pathname given with the
+\fBdir=\fR
+parameter) is a directory then pam_mail assumes it is in the
+\fIMaildir\fR
+format\&.
+.SH "OPTIONS"
+.PP
+.PP
+close
+.RS 4
+Indicate if the user has any mail also on logout\&.
+.RE
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+dir=maildir
+.RS 4
+Look for the user\*(Aqs mail in an alternative location defined by
+maildir/<login>\&. The default location for mail is
+/var/mail/<login>\&. Note, if the supplied
+maildir
+is prefixed by a \*(Aq~\*(Aq, the directory is interpreted as indicating a file in the user\*(Aqs home directory\&.
+.RE
+.PP
+empty
+.RS 4
+Also print message if user has no mail\&.
+.RE
+.PP
+hash=count
+.RS 4
+Mail directory hash depth\&. For example, a
+\fIhashcount\fR
+of 2 would make the mail file be
+/var/spool/mail/u/s/user\&.
+.RE
+.PP
+noenv
+.RS 4
+Do not set the
+\fBMAIL\fR
+environment variable\&.
+.RE
+.PP
+nopen
+.RS 4
+Don\*(Aqt print any mail information on login\&. This flag is useful to get the
+\fBMAIL\fR
+environment variable set, but to not display any information about it\&.
+.RE
+.PP
+quiet
+.RS 4
+Only report when there is new mail\&.
+.RE
+.PP
+standard
+.RS 4
+Old style "You have\&.\&.\&." format which doesn\*(Aqt show the mail spool being used\&. This also implies "empty"\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBsession\fR
+and
+\fBauth\fR
+(on establishment and deletion of credentials) module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+Badly formed arguments\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/login
+to indicate that the user has new mail when they login to the system\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session  optional  pam_mail\&.so standard
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_mail was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.

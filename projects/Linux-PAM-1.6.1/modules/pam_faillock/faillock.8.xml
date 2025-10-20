@@ -1,0 +1,137 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="faillock">
+
+  <refmeta>
+    <refentrytitle>faillock</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_faillock-name">
+    <refname>faillock</refname>
+    <refpurpose>Tool for displaying and modifying the authentication failure record files</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="faillock-cmdsynopsis" sepchar=" ">
+      <command>faillock</command>
+      <arg choice="opt" rep="norepeat">
+        --dir <replaceable>/path/to/tally-directory</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        --user <replaceable>username</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        --reset
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="faillock-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      The <emphasis>pam_faillock.so</emphasis> module maintains a list of
+      failed authentication attempts per user during a specified interval
+      and locks the account in case there were more than
+      <replaceable>deny</replaceable> consecutive failed authentications.
+      It stores the failure records into per-user files in the tally
+      directory.
+    </para>
+    <para>
+      The <command>faillock</command> command is an application which
+      can be used to examine and modify the contents of the
+      tally files. It can display the recent failed authentication
+      attempts of the <replaceable>username</replaceable> or clear the tally
+      files of all or individual <replaceable>usernames</replaceable>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="faillock-options">
+
+    <title>OPTIONS</title>
+         <variablelist>
+            <varlistentry>
+              <term>
+                --conf /path/to/config-file
+              </term>
+              <listitem>
+                <para>
+                  The file where the configuration is located. The default is
+                  <filename>/etc/security/faillock.conf</filename>.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+                --dir /path/to/tally-directory
+              </term>
+              <listitem>
+                <para>
+                  The directory where the user files with the failure records are kept.
+                </para>
+                <para>
+                  The priority to set this option is to use the value provided
+                  from the command line. If this isn't provided, then the value
+                  from the configuration file is used. Finally, if neither of
+                  them has been provided, then
+                  <filename>/var/run/faillock</filename> is used.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+                --user username
+              </term>
+              <listitem>
+                <para>
+                  The user whose failure records should be displayed or cleared.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+                --reset
+              </term>
+              <listitem>
+                <para>
+                  Instead of displaying the user's failure records, clear them.
+                </para>
+              </listitem>
+            </varlistentry>
+        </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="faillock-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/var/run/faillock/*</term>
+        <listitem>
+          <para>the files logging the authentication failures for users</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="faillock-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_faillock</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="faillock-author">
+    <title>AUTHOR</title>
+      <para>
+        faillock was written by Tomas Mraz.
+      </para>
+  </refsect1>
+
+</refentry>

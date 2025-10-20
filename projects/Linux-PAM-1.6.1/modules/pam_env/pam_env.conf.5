@@ -1,0 +1,132 @@
+'\" t
+.\"     Title: pam_env.conf
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_ENV\&.CONF" "5" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_env.conf, environment \- the environment variables config files
+.SH "DESCRIPTION"
+.PP
+The
+/etc/security/pam_env\&.conf
+file specifies the environment variables to be set, unset or modified by
+\fBpam_env\fR(8)\&. When someone logs in, this file is read and the environment variables are set according\&.
+.PP
+Each line starts with the variable name, there are then two possible options for each variable DEFAULT and OVERRIDE\&. DEFAULT allows an administrator to set the value of the variable to some default value, if none is supplied then the empty string is assumed\&. The OVERRIDE option tells pam_env that it should enter in its value (overriding the default value) if there is one to use\&. When OVERRIDE is not used, "" is assumed and no override will be done\&.
+.PP
+\fIVARIABLE\fR
+[\fIDEFAULT=[value]\fR] [\fIOVERRIDE=[value]\fR]
+.PP
+(Possibly non\-existent) environment variables may be used in values using the ${string} syntax and (possibly non\-existent) PAM_ITEMs as well as HOME and SHELL may be used in values using the @{string} syntax\&. Both the $ and @ characters can be backslash escaped to be used as literal values values can be delimited with "", escaped " not supported\&. Note that many environment variables that you would like to use may not be set by the time the module is called\&. For example, ${HOME} is used below several times, but many PAM applications don\*(Aqt make it available by the time you need it\&. The special variables @{HOME} and @{SHELL} are expanded to the values for the user from the corresponding
+\fIpasswd\fR
+entry\&.
+.PP
+The "\fI#\fR" character at start of line (no space at front) can be used to mark this line as a comment line\&.
+.PP
+The
+/etc/environment
+file specifies the environment variables to be set\&. The file must consist of simple
+\fINAME=VALUE\fR
+pairs on separate lines\&. The
+\fBpam_env\fR(8)
+module will read the file after the
+pam_env\&.conf
+file\&.
+.SH "EXAMPLES"
+.PP
+These are some example lines which might be specified in
+/etc/security/pam_env\&.conf\&.
+.PP
+Set the REMOTEHOST variable for any hosts that are remote, default to "localhost" rather than not being set at all
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      REMOTEHOST     DEFAULT=localhost OVERRIDE=@{PAM_RHOST}
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Set the DISPLAY variable if it seems reasonable
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      DISPLAY        DEFAULT=${REMOTEHOST}:0\&.0 OVERRIDE=${DISPLAY}
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Now some simple variables
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      PAGER          DEFAULT=less
+      MANPAGER       DEFAULT=less
+      LESS           DEFAULT="M q e h15 z23 b80"
+      NNTPSERVER     DEFAULT=localhost
+      PATH           DEFAULT=${HOME}/bin:/usr/local/bin:/bin\e
+      :/usr/bin:/usr/local/bin/X11:/usr/bin/X11
+      XDG_DATA_HOME  DEFAULT=@{HOME}/share/
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Silly examples of escaped variables, just to show how they work\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+      DOLLAR         DEFAULT=\e$
+      DOLLARDOLLAR   DEFAULT=        OVERRIDE=\e$${DOLLAR}
+      DOLLARPLUS     DEFAULT=\e${REMOTEHOST}${REMOTEHOST}
+      ATSIGN         DEFAULT=""      OVERRIDE=\e@
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBpam_env\fR(8),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBenviron\fR(7)
+.SH "AUTHOR"
+.PP
+pam_env was written by Dave Kinchlea <kinch@kinch\&.ark\&.com>\&.

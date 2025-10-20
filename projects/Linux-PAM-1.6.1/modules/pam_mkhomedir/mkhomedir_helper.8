@@ -1,0 +1,63 @@
+'\" t
+.\"     Title: mkhomedir_helper
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "MKHOMEDIR_HELPER" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mkhomedir_helper \- Helper binary that creates home directories
+.SH "SYNOPSIS"
+.HP \w'\fBmkhomedir_helper\fR\ 'u
+\fBmkhomedir_helper\fR {\fIuser\fR} [\fIumask\fR\ [\ \fIpath\-to\-skel\fR\ [\ \fIhome_mode\fR\ ]\ ]]
+.SH "DESCRIPTION"
+.PP
+\fImkhomedir_helper\fR
+is a helper program for the
+\fIpam_mkhomedir\fR
+module that creates home directories and populates them with contents of the specified skel directory\&.
+.PP
+The default value of
+\fIumask\fR
+is 0022 and the default value of
+\fIpath\-to\-skel\fR
+is
+\fI/etc/skel\fR\&. The default value of
+\fIhome_mode\fR
+is computed from the value of
+\fIumask\fR\&.
+.PP
+The helper is separated from the module to not require direct access from login SELinux domains to the contents of user home directories\&. The SELinux domain transition happens when the module is executing the
+\fImkhomedir_helper\fR\&.
+.PP
+The helper never touches home directories if they already exist\&.
+.SH "SEE ALSO"
+.PP
+\fBpam_mkhomedir\fR(8)
+.SH "AUTHOR"
+.PP
+Written by Tomas Mraz based on the code originally in
+\fIpam_mkhomedir\fR
+module\&.

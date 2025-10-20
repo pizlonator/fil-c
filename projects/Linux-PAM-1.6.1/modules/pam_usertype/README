@@ -1,0 +1,48 @@
+pam_usertype — check if the authenticated user is a system or regular account
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_usertype.so is designed to succeed or fail authentication based on type of
+the account of the authenticated user. The type of the account is decided with
+help of SYS_UID_MAX settings in /etc/login.defs. One use is to select whether
+to load other modules based on this test.
+
+The module should be given only one condition as module argument.
+Authentication will succeed only if the condition is met.
+
+OPTIONS
+
+The following flags are supported:
+
+use_uid
+
+    Evaluate conditions using the account of the user whose UID the application
+    is running under instead of the user being authenticated.
+
+audit
+
+    Log unknown users to the system log.
+
+Available conditions are:
+
+issystem
+
+    Succeed if the user is a system user.
+
+isregular
+
+    Succeed if the user is a regular user.
+
+EXAMPLES
+
+Skip remaining modules if the user is a system user:
+
+account sufficient pam_usertype.so issystem
+
+
+AUTHOR
+
+Pavel Březina <pbrezina@redhat.com>
+

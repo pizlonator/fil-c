@@ -1,0 +1,93 @@
+'\" t
+.\"     Title: pam_loginuid
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_LOGINUID" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_loginuid \- Record user\*(Aqs login uid to the process attribute
+.SH "SYNOPSIS"
+.HP \w'\fBpam_loginuid\&.so\fR\ 'u
+\fBpam_loginuid\&.so\fR [require_auditd]
+.SH "DESCRIPTION"
+.PP
+The pam_loginuid module sets the loginuid process attribute for the process that was authenticated\&. This is necessary for applications to be correctly audited\&. This PAM module should only be used for entry point applications like: login, sshd, gdm, vsftpd, crond and atd\&. There are probably other entry point applications besides these\&. You should not use it for applications like sudo or su as that defeats the purpose by changing the loginuid to the account they just switched to\&.
+.SH "OPTIONS"
+.PP
+require_auditd
+.RS 4
+This option, when given, will cause this module to query the audit daemon status and deny logins if it is not running\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+The loginuid value is set and auditd is running if check requested\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+The /proc/self/loginuid file is not present on the system or the login process runs inside uid namespace and kernel does not support overwriting loginuid\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Any other error prevented setting loginuid or auditd is not running\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#%PAM\-1\&.0
+auth       required     pam_unix\&.so
+auth       required     pam_nologin\&.so
+account    required     pam_unix\&.so
+password   required     pam_unix\&.so
+session    required     pam_unix\&.so
+session    required     pam_loginuid\&.so
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8),
+\fBauditctl\fR(8),
+\fBauditd\fR(8)
+.SH "AUTHOR"
+.PP
+pam_loginuid was written by Steve Grubb <sgrubb@redhat\&.com>

@@ -1,0 +1,228 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_debug">
+
+  <refmeta>
+    <refentrytitle>pam_debug</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_debug-name">
+    <refname>pam_debug</refname>
+    <refpurpose>PAM module to debug the PAM stack</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_debug-cmdsynopsis" sepchar=" ">
+      <command>pam_debug.so</command>
+      <arg choice="opt" rep="norepeat">
+	auth=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	cred=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	acct=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	prechauthtok=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	chauthtok=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	auth=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	open_session=<replaceable>value</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	close_session=<replaceable>value</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_debug-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_debug PAM module is intended as a debugging aide for
+      determining how the PAM stack is operating. This module returns
+      what its module arguments tell it to return.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          auth=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_authenticate</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          cred=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_setcred</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          acct=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_acct_mgmt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          prechauthtok=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable> if the
+            <emphasis>PAM_PRELIM_CHECK</emphasis> flag is set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          chauthtok=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable> if the
+            <emphasis>PAM_PRELIM_CHECK</emphasis> flag is
+            <emphasis remap="B">not</emphasis> set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          open_session=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_open_session</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          close_session=value
+        </term>
+        <listitem>
+          <para>
+            The
+	    <citerefentry>
+              <refentrytitle>pam_sm_close_session</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> function will return
+            <replaceable>value</replaceable>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Where <replaceable>value</replaceable> can be one of: success,
+      open_err, symbol_err, service_err, system_err, buf_err, perm_denied,
+      auth_err, cred_insufficient, authinfo_unavail, user_unknown,
+      maxtries, new_authtok_reqd, acct_expired, session_err, cred_unavail,
+      cred_expired, cred_err, no_module_data, conv_err, authtok_err,
+      authtok_recover_err, authtok_lock_busy, authtok_disable_aging,
+      try_again, ignore, abort, authtok_expired, module_unknown,
+      bad_item, conv_again, incomplete.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>auth</option>, <option>account</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Default return code if no other value was specified,
+            else specified return value.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-examples">
+    <title>EXAMPLES</title>
+    <programlisting>
+auth    requisite       pam_permit.so
+auth    [success=2 default=ok]  pam_debug.so auth=perm_denied cred=success
+auth    [default=reset]         pam_debug.so auth=success cred=perm_denied
+auth    [success=done default=die] pam_debug.so
+auth    optional        pam_debug.so auth=perm_denied cred=perm_denied
+auth    sufficient      pam_debug.so auth=success cred=success
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_debug-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_debug was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

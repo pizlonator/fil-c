@@ -1,0 +1,122 @@
+'\" t
+.\"     Title: pam_setcred
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SETCRED" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_setcred \- establish / delete user credentials
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.HP \w'int\ pam_setcred('u
+.BI "int pam_setcred(pam_handle_t\ *" "pamh" ", int\ " "flags" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_setcred\fR
+function is used to establish, maintain and delete the credentials of a user\&. It should be called to set the credentials after a user has been authenticated and before a session is opened for the user (with
+\fBpam_open_session\fR(3))\&. The credentials should be deleted after the session has been closed (with
+\fBpam_close_session\fR(3))\&.
+.PP
+A credential is something that the user possesses\&. It is some property, such as a
+\fIKerberos\fR
+ticket, or a supplementary group membership that make up the uniqueness of a given user\&. On a Linux system the user\*(Aqs
+\fIUID\fR
+and
+\fIGID\fR\*(Aqs are credentials too\&. However, it has been decided that these properties (along with the default supplementary groups of which the user is a member) are credentials that should be set directly by the application and not by PAM\&. Such credentials should be established, by the application, prior to a call to this function\&. For example,
+\fBinitgroups\fR(2)
+(or equivalent) should have been performed\&.
+.PP
+Valid
+\fIflags\fR, any one of which, may be logically OR\*(Aqd with
+\fBPAM_SILENT\fR, are:
+.PP
+PAM_ESTABLISH_CRED
+.RS 4
+Initialize the credentials for the user\&.
+.RE
+.PP
+PAM_DELETE_CRED
+.RS 4
+Delete the user\*(Aqs credentials\&.
+.RE
+.PP
+PAM_REINITIALIZE_CRED
+.RS 4
+Fully reinitialize the user\*(Aqs credentials\&.
+.RE
+.PP
+PAM_REFRESH_CRED
+.RS 4
+Extend the lifetime of the existing credentials\&.
+.RE
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_CRED_ERR
+.RS 4
+Failed to set user credentials\&.
+.RE
+.PP
+PAM_CRED_EXPIRED
+.RS 4
+User credentials are expired\&.
+.RE
+.PP
+PAM_CRED_UNAVAIL
+.RS 4
+Failed to retrieve user credentials\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Data was successful stored\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+A NULL pointer was submitted as PAM handle, the function was called by a module or another system error occurred\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User is not known to an authentication module\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_authenticate\fR(3),
+\fBpam_open_session\fR(3),
+\fBpam_close_session\fR(3),
+\fBpam_strerror\fR(3)

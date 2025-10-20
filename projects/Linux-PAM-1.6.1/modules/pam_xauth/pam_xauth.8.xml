@@ -1,0 +1,290 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_xauth">
+
+  <refmeta>
+    <refentrytitle>pam_xauth</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_xauth-name">
+    <refname>pam_xauth</refname>
+    <refpurpose>PAM module to forward xauth keys between users</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_xauth-cmdsynopsis" sepchar=" ">
+      <command>pam_xauth.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        xauthpath=<replaceable>/path/to/xauth</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        systemuser=<replaceable>UID</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        targetuser=<replaceable>UID</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_xauth-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_xauth PAM module is designed to forward xauth keys
+      (sometimes referred to as "cookies") between users.
+    </para>
+    <para>
+      Without pam_xauth, when xauth is enabled and a user uses the
+       <citerefentry>
+        <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> command to assume another user's privileges,
+      that user is no longer able to access the original user's X display
+      because the new user does not have the key needed to access the
+      display. pam_xauth solves the problem by forwarding the key from
+      the user running su (the source user) to the user whose identity the
+      source user is assuming (the target user) when the session is created,
+      and destroying the key when the session is torn down.
+    </para>
+    <para>
+      This means, for example, that when you run
+       <citerefentry>
+        <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> from an xterm session, you will be able to run
+      X programs without explicitly dealing with the
+      <citerefentry>
+        <refentrytitle>xauth</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> xauth command or ~/.Xauthority files.
+    </para>
+    <para>
+      pam_xauth will only forward keys if xauth can list a key connected
+      to the $DISPLAY environment variable.
+    </para>
+    <para>
+      Primitive access control is provided by
+      <filename>~/.xauth/export</filename> in the invoking user's home
+      directory and <filename>~/.xauth/import</filename> in the target
+      user's home directory.
+    </para>
+    <para>
+      If a user has a <filename>~/.xauth/import</filename> file, the user
+      will only receive cookies from users listed in the file. If there is
+      no <filename>~/.xauth/import</filename> file, the user will accept
+      cookies from any other user.
+    </para>
+    <para>
+      If a user has a <filename>.xauth/export</filename> file, the user will
+      only forward cookies to users listed in the file. If there is no
+      <filename>~/.xauth/export</filename> file, and the invoking user is
+      not <emphasis remap="B">root</emphasis>, the user will forward cookies
+      to any other user. If there is no <filename>~/.xauth/export</filename>
+      file, and the invoking user is <emphasis remap="B">root</emphasis>,
+      the user will <emphasis remap="I">not</emphasis> forward cookies to
+      other users.
+    </para>
+    <para>
+      Both the import and export files support wildcards (such as
+      <emphasis remap="I">*</emphasis>). Both the import and export files
+      can be empty, signifying that no users are allowed.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+	    Print debug information.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          xauthpath=/path/to/xauth
+        </term>
+        <listitem>
+          <para>
+            Specify the path the xauth program (it is expected in
+            <filename>/usr/X11R6/bin/xauth</filename>,
+            <filename>/usr/bin/xauth</filename>, or
+            <filename>/usr/bin/X11/xauth</filename> by default).
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          systemuser=UID
+        </term>
+        <listitem>
+          <para>
+            Specify the highest UID which will be assumed to belong to a
+            "system" user. pam_xauth will refuse to forward credentials to
+            users with UID less than or equal to this number, except for
+            root and the "targetuser", if specified.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          targetuser=UID
+        </term>
+        <listitem>
+          <para>
+            Specify  a single target UID which is exempt from the
+            systemuser check.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <emphasis remap="B">session</emphasis> type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+          <para>
+            Permission denied by import/export file.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_SESSION_ERR</term>
+        <listitem>
+          <para>
+	    Cannot determine user name, UID or access users home directory.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Success.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User not known.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Add the following line to <filename>/etc/pam.d/su</filename> to
+      forward xauth keys between users when calling su:
+      <programlisting>
+session  optional  pam_xauth.so
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-implementation">
+    <title>IMPLEMENTATION DETAILS</title>
+    <para>
+      pam_xauth will work <emphasis remap="I">only</emphasis> if it is
+      used from a setuid application in which the
+      <function>getuid</function>() call returns the id of the user
+      running the application, and for which PAM can supply the name
+      of the account that the user is attempting to assume. The typical
+      application of this type is
+      <citerefentry>
+       <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>.
+      The application must call both <function>pam_open_session</function>()
+      and <function>pam_close_session</function>() with the ruid set to the
+      uid of the calling user and the euid set to root, and must have
+      provided as the PAM_USER item the name of the target user.
+    </para>
+    <para>
+      pam_xauth calls
+      <citerefentry>
+       <refentrytitle>xauth</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> as the source user to extract the key for $DISPLAY,
+      then calls xauth as the target user to merge the key into the a
+      temporary database and later remove the database.
+    </para>
+    <para>
+      pam_xauth cannot be told to not remove the keys when the session
+      is closed.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_lastlog-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>~/.xauth/import</term>
+        <listitem>
+          <para>XXX</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>~/.xauth/export</term>
+        <listitem>
+          <para>XXX</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_xauth-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_xauth-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_xauth was written by Nalin Dahyabhai &lt;nalin@redhat.com&gt;,
+        based on original version by
+        Michael K. Johnson &lt;johnsonm@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

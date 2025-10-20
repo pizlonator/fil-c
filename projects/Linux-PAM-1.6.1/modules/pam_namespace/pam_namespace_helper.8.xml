@@ -1,0 +1,59 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_namespace_helper">
+
+  <refmeta>
+    <refentrytitle>pam_namespace_helper</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_namespace_helper-name">
+    <refname>pam_namespace_helper</refname>
+    <refpurpose>Helper binary that creates home directories</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_namespace_helper-cmdsynopsis" sepchar=" ">
+      <command>pam_namespace_helper</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_namespace_helper-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      <emphasis>pam_namespace_helper</emphasis> is a helper program
+      for the <emphasis>pam_namespace</emphasis> module that sets up a
+      private namespace for a session with polyinstantiated
+      directories. The helper ensures that the namespace mount points
+      exist before they are started to be used for the
+      polyinstantiated directories. Mount points for home directories
+      (lines with $HOME) are not created.
+    </para>
+
+    <para>
+      <emphasis>pam_namespace_helper</emphasis> should be run by
+      systemd at system startup. It should also be run by the
+      administrator after defining the polyinstantiated directories
+      but before enabling them.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_namespace_helper-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam_namespace</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_namespace_helper-author">
+    <title>AUTHOR</title>
+      <para>
+        Written by Topi Miettinen.
+      </para>
+  </refsect1>
+
+</refentry>

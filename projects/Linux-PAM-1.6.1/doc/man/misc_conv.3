@@ -1,0 +1,127 @@
+'\" t
+.\"     Title: misc_conv
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "MISC_CONV" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+misc_conv \- text based conversation function
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_misc\&.h>
+.fi
+.ft
+.HP \w'int\ misc_conv('u
+.BI "int misc_conv(int\ " "num_msg" ", const\ struct\ pam_message\ **" "msgm" ", struct\ pam_response\ **" "response" ", void\ *" "appdata_ptr" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBmisc_conv\fR
+function is part of
+\fBlibpam_misc\fR
+and not of the standard
+\fBlibpam\fR
+library\&. This function will prompt the user with the appropriate comments and obtain the appropriate inputs as directed by authentication modules\&.
+.PP
+In addition to simply slotting into the appropriate
+\fBpam_conv\fR(3), this function provides some time\-out facilities\&. The function exports five variables that can be used by an application programmer to limit the amount of time this conversation function will spend waiting for the user to type something\&. The five variables are as follows:
+.PP
+time_t pam_misc_conv_warn_time;
+.RS 4
+This variable contains the
+\fItime\fR
+(as returned by
+\fBtime\fR(2)) that the user should be first warned that the clock is ticking\&. By default it has the value
+0, which indicates that no such warning will be given\&. The application may set its value to sometime in the future, but this should be done prior to passing control to the
+\fILinux\-PAM\fR
+library\&.
+.RE
+.PP
+const char *pam_misc_conv_warn_line;
+.RS 4
+Used in conjunction with
+\fIpam_misc_conv_warn_time\fR, this variable is a pointer to the string that will be displayed when it becomes time to warn the user that the timeout is approaching\&. Its default value is a translated version of
+\(lq\&.\&.\&.Time is running out\&.\&.\&.\(rq, but this can be changed by the application prior to passing control to
+\fILinux\-PAM\fR\&.
+.RE
+.PP
+time_t pam_misc_conv_die_time;
+.RS 4
+This variable contains the
+\fItime\fR
+(as returned by
+\fBtime\fR(2)) that the will time out\&. By default it has the value
+0, which indicates that the conversation function will not timeout\&. The application may set its value to sometime in the future, but this should be done prior to passing control to the
+\fILinux\-PAM\fR
+library\&.
+.RE
+.PP
+const char *pam_misc_conv_die_line;
+.RS 4
+Used in conjunction with
+\fIpam_misc_conv_die_time\fR, this variable is a pointer to the string that will be displayed when the conversation times out\&. Its default value is a translated version of
+\(lq\&.\&.\&.Sorry, your time is up!\(rq, but this can be changed by the application prior to passing control to
+\fILinux\-PAM\fR\&.
+.RE
+.PP
+int pam_misc_conv_died;
+.RS 4
+Following a return from the
+\fILinux\-PAM\fR
+library, the value of this variable indicates whether the conversation has timed out\&. A value of
+1
+indicates the time\-out occurred\&.
+.RE
+.PP
+The following two function pointers are available for supporting binary prompts in the conversation function\&. They are optimized for the current incarnation of the
+\fBlibpamc\fR
+library and are subject to change\&.
+.PP
+int (*pam_binary_handler_fn)(void *appdata, pamc_bp_t *prompt_p);
+.RS 4
+This function pointer is initialized to
+NULL
+but can be filled with a function that provides machine\-machine (hidden) message exchange\&. It is intended for use with hidden authentication protocols such as RSA or Diffie\-Hellman key exchanges\&. (This is still under development\&.)
+.RE
+.PP
+int (*pam_binary_handler_free)(void *appdata, pamc_bp_t *delete_me);
+.RS 4
+This function pointer is initialized to
+\fBPAM_BP_RENEW(delete_me, 0, 0)\fR, but can be redefined as desired by the application\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_conv\fR(3),
+\fBpam\fR(8)
+.SH "STANDARDS"
+.PP
+The
+\fBmisc_conv\fR
+function is part of the
+\fBlibpam_misc\fR
+Library and not defined in any standard\&.

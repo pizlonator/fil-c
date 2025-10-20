@@ -1,0 +1,62 @@
+'\" t
+.\"     Title: pam_misc_drop_env
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_MISC_DROP_ENV" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_misc_drop_env \- liberating a locally saved environment
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_misc\&.h>
+.fi
+.ft
+.HP \w'int\ pam_misc_drop_env('u
+.BI "int pam_misc_drop_env(char\ **" "env" ");"
+.SH "DESCRIPTION"
+.PP
+This function is defined to complement the
+\fBpam_getenvlist\fR(3)
+function\&. It liberates the memory associated with
+\fIenv\fR,
+\fIoverwriting\fR
+with
+\fI0\fR
+all memory before
+\fBfree()\fRing it\&.
+.SH "SEE ALSO"
+.PP
+\fBpam_getenvlist\fR(3),
+\fBpam\fR(8)
+.SH "STANDARDS"
+.PP
+The
+\fBpam_misc_drop_env\fR
+function is part of the
+\fBlibpam_misc\fR
+Library and not defined in any standard\&.

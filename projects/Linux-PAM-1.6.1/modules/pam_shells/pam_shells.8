@@ -1,0 +1,95 @@
+'\" t
+.\"     Title: pam_shells
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SHELLS" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_shells \- PAM module to check for valid login shell
+.SH "SYNOPSIS"
+.HP \w'\fBpam_shells\&.so\fR\ 'u
+\fBpam_shells\&.so\fR
+.SH "DESCRIPTION"
+.PP
+pam_shells is a PAM module that only allows access to the system if the user\*(Aqs shell is listed in
+/etc/shells\&.
+.PP
+It also checks if needed files (e\&.g\&.
+/etc/shells) are plain files and not world writable\&.
+.SH "OPTIONS"
+.PP
+This module does not recognise any options\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBaccount\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+Access to the system was denied\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+The user\*(Aqs login shell was listed as valid shell in
+/etc/shells\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user does not exist or the user\*(Aqs login shell could not be determined\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+The module was not able to get the name of the user\&.
+.RE
+.SH "EXAMPLES"
+.PP
+.if n \{\
+.RS 4
+.\}
+.nf
+auth  required  pam_shells\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBshells\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_shells was written by Erik Troan <ewt@redhat\&.com>\&.

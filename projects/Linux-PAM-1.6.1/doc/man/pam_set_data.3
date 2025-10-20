@@ -1,0 +1,120 @@
+'\" t
+.\"     Title: pam_set_data
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SET_DATA" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_set_data \- set module internal data
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_modules\&.h>
+.fi
+.ft
+.HP \w'int\ pam_set_data('u
+.BI "int pam_set_data(pam_handle_t\ *" "pamh" ", const\ char\ *" "module_data_name" ", void\ *" "data" ", void\ " "(*cleanup)(pam_handle_t\ *pamh,\ void\ *data,\ int\ error_status)" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_set_data\fR
+function associates a pointer to an object with the (hopefully) unique string
+\fImodule_data_name\fR
+in the PAM context specified by the
+\fIpamh\fR
+argument\&.
+.PP
+PAM modules may be dynamically loadable objects\&. In general such files should not contain
+\fIstatic\fR
+variables\&. This function and its counterpart
+\fBpam_get_data\fR(3), provide a mechanism for a module to associate some data with the handle
+\fIpamh\fR\&. Typically a module will call the
+\fBpam_set_data\fR
+function to register some data under a (hopefully) unique
+\fImodule_data_name\fR\&. The data is available for use by other modules too but
+\fInot\fR
+by an application\&. Since this functions stores only a pointer to the
+\fIdata\fR, the module should not modify or free the content of it\&.
+.PP
+The function
+\fBcleanup()\fR
+is associated with the
+\fIdata\fR
+and, if non\-NULL, it is called when this data is over\-written or following a call to
+\fBpam_end\fR(3)\&.
+.PP
+The
+\fIerror_status\fR
+argument is used to indicate to the module the sort of action it is to take in cleaning this data item\&. As an example, Kerberos creates a ticket file during the authentication phase, this file might be associated with a data item\&. When
+\fBpam_end\fR(3)
+is called by the module, the
+\fIerror_status\fR
+carries the return value of the
+\fBpam_authenticate\fR(3)
+or other
+\fIlibpam\fR
+function as appropriate\&. Based on this value the Kerberos module may choose to delete the ticket file (\fIauthentication failure\fR) or leave it in place\&.
+.PP
+The
+\fIerror_status\fR
+may have been logically OR\*(Aqd with either of the following two values:
+.PP
+PAM_DATA_REPLACE
+.RS 4
+When a data item is being replaced (through a second call to
+\fBpam_set_data\fR) this mask is used\&. Otherwise, the call is assumed to be from
+\fBpam_end\fR(3)\&.
+.RE
+.PP
+PAM_DATA_SILENT
+.RS 4
+Which indicates that the process would prefer to perform the
+\fBcleanup()\fR
+quietly\&. That is, discourages logging/messages to the user\&. It is generally used to indicate that the current closing of the library is in a
+\fBfork\fR(2)ed process, and that the parent will take care of cleaning up things that exist outside of the current process space (files etc\&.)\&.
+.RE
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Data was successful stored\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+A NULL pointer was submitted as PAM handle or the function was called by an application\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_end\fR(3),
+\fBpam_get_data\fR(3),
+\fBpam_strerror\fR(3)

@@ -1,0 +1,33 @@
+pam_faildelay — Change the delay on failure per-application
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_faildelay is a PAM module that can be used to set the delay on failure
+per-application.
+
+If no delay is given, pam_faildelay will use the value of FAIL_DELAY from /etc/
+login.defs.
+
+OPTIONS
+
+debug
+
+    Turns on debugging messages sent to syslog.
+
+delay=N
+
+    Set the delay on failure to N microseconds.
+
+EXAMPLES
+
+The following example will set the delay on failure to 10 seconds:
+
+auth  optional  pam_faildelay.so  delay=10000000
+
+
+AUTHOR
+
+pam_faildelay was written by Darren Tucker <dtucker@zip.com.au>.
+

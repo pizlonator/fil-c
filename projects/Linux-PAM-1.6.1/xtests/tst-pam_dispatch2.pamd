@@ -1,0 +1,3 @@
+# https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=196859
+# This stack should not return PAM_IGNORE to the application:
+auth [default=die] pam_debug.so auth=ignore

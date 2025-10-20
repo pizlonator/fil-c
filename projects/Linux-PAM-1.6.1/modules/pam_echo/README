@@ -1,0 +1,50 @@
+pam_echo — PAM module for printing text messages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_echo PAM module is for printing text messages to inform user about
+special things. Sequences starting with the % character are interpreted in the
+following way:
+
+%H
+
+    The name of the remote host (PAM_RHOST).
+
+%h
+
+    The name of the local host.
+
+%s
+
+    The service name (PAM_SERVICE).
+
+%t
+
+    The name of the controlling terminal (PAM_TTY).
+
+%U
+
+    The remote user name (PAM_RUSER).
+
+%u
+
+    The local user name (PAM_USER).
+
+All other sequences beginning with % expands to the characters following the %
+character.
+
+EXAMPLES
+
+For an example of the use of this module, we show how it may be used to print
+information about good passwords:
+
+password optional pam_echo.so file=/usr/share/doc/good-password.txt
+password required pam_unix.so
+
+
+AUTHOR
+
+Thorsten Kukuk <kukuk@thkukuk.de>
+

@@ -1,0 +1,197 @@
+'\" t
+.\"     Title: pam_lastlog
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_LASTLOG" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_lastlog \- PAM module to display date of last login and perform inactive account lock out
+.SH "SYNOPSIS"
+.HP \w'\fBpam_lastlog\&.so\fR\ 'u
+\fBpam_lastlog\&.so\fR [debug] [silent] [never] [nodate] [nohost] [noterm] [nowtmp] [noupdate] [showfailed] [inactive=<days>] [unlimited]
+.SH "DESCRIPTION"
+.PP
+pam_lastlog is a PAM module to display a line of information about the last login of the user\&. In addition, the module maintains the
+/var/log/lastlog
+file\&.
+.PP
+Some applications may perform this function themselves\&. In such cases, this module is not necessary\&.
+.PP
+The module checks
+\fBLASTLOG_UID_MAX\fR
+option in
+/etc/login\&.defs
+and does not update or display last login records for users with UID higher than its value\&. If the option is not present or its value is invalid, no user ID limit is applied\&.
+.PP
+If the module is called in the auth or account phase, the accounts that were not used recently enough will be disallowed to log in\&. The check is not performed for the root account so the root is never locked out\&. It is also not performed for users with UID higher than the
+\fBLASTLOG_UID_MAX\fR
+value\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+silent
+.RS 4
+Don\*(Aqt inform the user about any previous login, just update the
+/var/log/lastlog
+file\&. This option does not affect display of bad login attempts\&.
+.RE
+.PP
+never
+.RS 4
+If the
+/var/log/lastlog
+file does not contain any old entries for the user, indicate that the user has never previously logged in with a welcome message\&.
+.RE
+.PP
+nodate
+.RS 4
+Don\*(Aqt display the date of the last login\&.
+.RE
+.PP
+noterm
+.RS 4
+Don\*(Aqt display the terminal name on which the last login was attempted\&.
+.RE
+.PP
+nohost
+.RS 4
+Don\*(Aqt indicate from which host the last login was attempted\&.
+.RE
+.PP
+nowtmp
+.RS 4
+Don\*(Aqt update the wtmp entry\&.
+.RE
+.PP
+noupdate
+.RS 4
+Don\*(Aqt update any file\&.
+.RE
+.PP
+showfailed
+.RS 4
+Display number of failed login attempts and the date of the last failed attempt from btmp\&. The date is not displayed when
+\fBnodate\fR
+is specified\&.
+.RE
+.PP
+inactive=<days>
+.RS 4
+This option is specific for the auth or account phase\&. It specifies the number of days after the last login of the user when the user will be locked out by the module\&. The default value is 90\&.
+.RE
+.PP
+unlimited
+.RS 4
+If the
+\fIfsize\fR
+limit is set, this option can be used to override it, preventing failures on systems with large UID values that lead lastlog to become a huge sparse file\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBaccount\fR
+module type allows one to lock out users who did not login recently enough\&. The
+\fBsession\fR
+module type is provided for displaying the information about the last login and/or updating the lastlog and wtmp files\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+Everything was successful\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+Internal service module error\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known\&.
+.RE
+.PP
+PAM_AUTH_ERR
+.RS 4
+User locked out in the auth or account phase due to inactivity\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+There was an error during reading the lastlog file in the auth or account phase and thus inactivity of the user cannot be determined\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/login
+to display the last login time of a user:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+    session  required  pam_lastlog\&.so nowtmp
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+To reject users if they did not login during the previous 50 days the following line can be used:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+    auth  required  pam_lastlog\&.so inactive=50
+      
+.fi
+.if n \{\
+.RE
+.\}
+.SH "FILES"
+.PP
+/var/log/lastlog
+.RS 4
+Lastlog logging file
+.RE
+.SH "SEE ALSO"
+.PP
+\fBlimits.conf\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_lastlog was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.
+.PP
+Inactive account lock out added by Tomáš Mráz <tm@t8m\&.info>\&.

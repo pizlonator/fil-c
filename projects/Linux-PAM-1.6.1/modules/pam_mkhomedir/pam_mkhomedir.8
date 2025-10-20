@@ -1,0 +1,135 @@
+'\" t
+.\"     Title: pam_mkhomedir
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_MKHOMEDIR" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_mkhomedir \- PAM module to create users home directory
+.SH "SYNOPSIS"
+.HP \w'\fBpam_mkhomedir\&.so\fR\ 'u
+\fBpam_mkhomedir\&.so\fR [silent] [debug] [umask=\fImode\fR] [skel=\fIskeldir\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_mkhomedir PAM module will create a users home directory if it does not exist when the session begins\&. This allows users to be present in central database (such as NIS, kerberos or LDAP) without using a distributed file system or pre\-creating a large number of directories\&. The skeleton directory (usually
+/etc/skel/) is used to copy default files and also sets a umask for the creation\&.
+.PP
+The new users home directory will not be removed after logout of the user\&.
+.SH "OPTIONS"
+.PP
+silent
+.RS 4
+Don\*(Aqt print informative messages\&.
+.RE
+.PP
+debug
+.RS 4
+Turns on debugging via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+umask=mask
+.RS 4
+The file mode creation mask is set to
+\fImask\fR\&. The default value of mask is 0022\&. If this option is not specified, then the permissions of created user home directory is set to the value of
+\fBHOME_MODE\fR
+configuration item from
+/etc/login\&.defs\&. If there is no such configuration item then the value is computed from the value of
+\fBUMASK\fR
+in the same file\&. If there is no such configuration option either the default value of 0755 is used for the mode\&.
+.RE
+.PP
+skel=/path/to/skel/directory
+.RS 4
+Indicate an alternative
+skel
+directory to override the default
+/etc/skel\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_PERM_DENIED
+.RS 4
+Not enough permissions to create the new directory or read the skel directory\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known to the underlying authentication module\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Environment variables were set\&.
+.RE
+.SH "FILES"
+.PP
+/etc/skel
+.RS 4
+Default skel directory
+.RE
+.SH "EXAMPLES"
+.PP
+A sample /etc/pam\&.d/login file:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+  auth       requisite   pam_securetty\&.so
+  auth       sufficient  pam_ldap\&.so
+  auth       required    pam_unix\&.so
+  auth       required    pam_nologin\&.so
+  account    sufficient  pam_ldap\&.so
+  account    required    pam_unix\&.so
+  password   required    pam_unix\&.so
+  session    required    pam_mkhomedir\&.so skel=/etc/skel/ umask=0022
+  session    required    pam_unix\&.so
+  session    optional    pam_lastlog\&.so
+  session    optional    pam_mail\&.so standard
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.d\fR(5),
+\fBpam\fR(8)\&.
+.SH "AUTHOR"
+.PP
+pam_mkhomedir was written by Jason Gunthorpe <jgg@debian\&.org>\&.

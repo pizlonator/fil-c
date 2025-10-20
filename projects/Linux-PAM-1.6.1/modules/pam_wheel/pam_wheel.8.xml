@@ -1,0 +1,240 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_wheel">
+
+  <refmeta>
+    <refentrytitle>pam_wheel</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_wheel-name">
+    <refname>pam_wheel</refname>
+    <refpurpose>Only permit root access to members of group wheel</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_wheel-cmdsynopsis" sepchar=" ">
+      <command>pam_wheel.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        deny
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	group=<replaceable>name</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	root_only
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	trust
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	use_uid
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_wheel-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_wheel PAM module is used to enforce the so-called
+      <emphasis>wheel</emphasis> group. By default it permits
+      access to the target user if the applicant user is a member of the
+      <emphasis>wheel</emphasis> group. If no group with this name exist,
+      the module is using the group with the group-ID
+      <emphasis remap="B">0</emphasis>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+            Print debug information.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          deny
+        </term>
+        <listitem>
+          <para>
+            Reverse the sense of the auth operation: if the user
+            is trying to get UID 0 access and is a member of the
+            wheel group (or the group of the <option>group</option> option),
+            deny access. Conversely, if the user is not in the group, return
+            PAM_IGNORE (unless <option>trust</option> was also specified,
+            in which case we return PAM_SUCCESS).
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          group=name
+        </term>
+        <listitem>
+          <para>
+            Instead of checking the wheel or GID 0 groups, use
+            the <option><replaceable>name</replaceable></option> group
+            to perform the authentication.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          root_only
+        </term>
+        <listitem>
+          <para>
+            The check for wheel membership is done only when the target user
+            UID is 0.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          trust
+        </term>
+        <listitem>
+          <para>
+            The pam_wheel module will return PAM_SUCCESS instead
+            of PAM_IGNORE if the user is a member of the wheel group
+            (thus with a little play stacking the modules the wheel
+            members may be able to su to root without being prompted
+            for a passwd).
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_uid
+        </term>
+        <listitem>
+          <para>
+            The check will be done against the real uid of the calling process,
+            instead of trying to obtain the user from the login session
+            associated with the terminal in use.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <emphasis remap="B">auth</emphasis> and
+      <emphasis remap="B">account</emphasis> module types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+           <para>
+             Authentication failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            The return value should be ignored by PAM dispatch.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENY</term>
+        <listitem>
+          <para>
+            Permission denied.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+          <para>
+	    Cannot determine the user name.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Success.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User not known.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-examples">
+    <title>EXAMPLES</title>
+    <para>
+      The root account gains access by default (rootok), only wheel
+      members can become root (wheel) but Unix authenticate non-root
+      applicants.
+      <programlisting>
+su      auth     sufficient     pam_rootok.so
+su      auth     required       pam_wheel.so
+su      auth     required       pam_unix.so
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_wheel-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_wheel was written by Cristian Gafton &lt;gafton@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

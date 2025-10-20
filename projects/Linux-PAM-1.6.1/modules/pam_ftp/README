@@ -1,0 +1,52 @@
+pam_ftp — PAM module for anonymous access module
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_ftp is a PAM module which provides a pluggable anonymous ftp mode of
+access.
+
+This module intercepts the user's name and password. If the name is ftp or 
+anonymous, the user's password is broken up at the @ delimiter into a PAM_RUSER
+and a PAM_RHOST part; these pam-items being set accordingly. The username (
+PAM_USER) is set to ftp. In this case the module succeeds. Alternatively, the
+module sets the PAM_AUTHTOK item with the entered password and fails.
+
+This module is not safe and easily spoofable.
+
+OPTIONS
+
+debug
+
+    Print debug information.
+
+ignore
+
+    Pay no attention to the email address of the user (if supplied).
+
+ftp=XXX,YYY,...
+
+    Instead of ftp or anonymous, provide anonymous login to the comma separated
+    list of users: XXX,YYY,.... Should the applicant enter one of these
+    usernames the returned username is set to the first in the list: XXX.
+
+EXAMPLES
+
+Add the following line to /etc/pam.d/ftpd to handle ftp style anonymous login:
+
+#
+# ftpd; add ftp-specifics. These lines enable anonymous ftp over
+#       standard UN*X access (the listfile entry blocks access to
+#       users listed in /etc/ftpusers)
+#
+auth    sufficient  pam_ftp.so
+auth    required    pam_unix.so use_first_pass
+auth    required    pam_listfile.so \
+           onerr=succeed item=user sense=deny file=/etc/ftpusers
+
+
+AUTHOR
+
+pam_ftp was written by Andrew G. Morgan <morgan@kernel.org>.
+

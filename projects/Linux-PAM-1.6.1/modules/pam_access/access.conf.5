@@ -1,0 +1,232 @@
+'\" t
+.\"     Title: access.conf
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: [FIXME: source]
+.\"  Language: English
+.\"
+.TH "ACCESS\&.CONF" "5" "04/09/2024" "[FIXME: source]" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+access.conf \- the login access control table file
+.SH "DESCRIPTION"
+.PP
+The
+/etc/security/access\&.conf
+file specifies (\fIuser/group\fR,
+\fIhost\fR), (\fIuser/group\fR,
+\fInetwork/netmask\fR), (\fIuser/group\fR,
+\fItty\fR), (\fIuser/group\fR,
+\fIX\-$DISPLAY\-value\fR), or (\fIuser/group\fR,
+\fIpam\-service\-name\fR) combinations for which a login will be either accepted or refused\&.
+.PP
+When someone logs in, the file
+access\&.conf
+is scanned for the first entry that matches the (\fIuser/group\fR,
+\fIhost\fR) or (\fIuser/group\fR,
+\fInetwork/netmask\fR) combination, or, in case of non\-networked logins, the first entry that matches the (\fIuser/group\fR,
+\fItty\fR) combination, or in the case of non\-networked logins without a tty, the first entry that matches the (\fIuser/group\fR,
+\fIX\-$DISPLAY\-value\fR) or (\fIuser/group\fR,
+\fIpam\-service\-name/\fR) combination\&. The permissions field of that table entry determines whether the login will be accepted or refused\&.
+.PP
+Each line of the login access control table has three fields separated by a ":" character (colon):
+.PP
+\fIpermission\fR:\fIusers/groups\fR:\fIorigins\fR
+.PP
+The first field, the
+\fIpermission\fR
+field, can be either a "\fI+\fR" character (plus) for access granted or a "\fI\-\fR" character (minus) for access denied\&.
+.PP
+The second field, the
+\fIusers\fR/\fIgroup\fR
+field, should be a list of one or more login names, group names, or
+\fIALL\fR
+(which always matches)\&. To differentiate user entries from group entries, group entries should be written with brackets, e\&.g\&.
+\fI(group)\fR\&.
+.PP
+The third field, the
+\fIorigins\fR
+field, should be a list of one or more tty names (for non\-networked logins), X
+\fI$DISPLAY\fR
+values or PAM service names (for non\-networked logins without a tty), host names, domain names (begin with "\&."), host addresses, internet network numbers (end with "\&."), internet network addresses with network mask (where network mask can be a decimal number or an internet address also),
+\fIALL\fR
+(which always matches) or
+\fILOCAL\fR\&. The
+\fILOCAL\fR
+keyword matches if and only if
+\fBpam_get_item\fR(3), when called with an
+\fIitem_type\fR
+of
+\fIPAM_RHOST\fR, returns
+NULL
+or an empty string (and therefore the
+\fIorigins\fR
+field is compared against the return value of
+\fBpam_get_item\fR(3)
+called with an
+\fIitem_type\fR
+of
+\fIPAM_TTY\fR
+or, absent that,
+\fIPAM_SERVICE\fR)\&.
+.PP
+If supported by the system you can use
+\fI@netgroupname\fR
+in host or user patterns\&. The
+\fI@@netgroupname\fR
+syntax is supported in the user pattern only and it makes the local system hostname to be passed to the netgroup match call in addition to the user name\&. This might not work correctly on some libc implementations causing the match to always fail\&.
+.PP
+The
+\fIEXCEPT\fR
+operator makes it possible to write very compact rules\&.
+.PP
+If the
+\fBnodefgroup\fR
+is not set, the group file is searched when a name does not match that of the logged\-in user\&. Only groups are matched in which users are explicitly listed\&. However the PAM module does not look at the primary group id of a user\&.
+.PP
+The "\fI#\fR" character at start of line (no space at front) can be used to mark this line as a comment line\&.
+.SH "EXAMPLES"
+.PP
+These are some example lines which might be specified in
+/etc/security/access\&.conf\&.
+.PP
+User
+\fIroot\fR
+should be allowed to get access via
+\fIcron\fR, X11 terminal
+\fI:0\fR,
+\fItty1\fR, \&.\&.\&.,
+\fItty5\fR,
+\fItty6\fR\&.
+.PP
++:root:crond :0 tty1 tty2 tty3 tty4 tty5 tty6
+.PP
+User
+\fIroot\fR
+should be allowed to get access from hosts which own the IPv4 addresses\&. This does not mean that the connection have to be a IPv4 one, a IPv6 connection from a host with one of this IPv4 addresses does work, too\&.
+.PP
++:root:192\&.168\&.200\&.1 192\&.168\&.200\&.4 192\&.168\&.200\&.9
+.PP
++:root:127\&.0\&.0\&.1
+.PP
+User
+\fIroot\fR
+should get access from network
+192\&.168\&.201\&.
+where the term will be evaluated by string matching\&. But it might be better to use network/netmask instead\&. The same meaning of
+192\&.168\&.201\&.
+is
+\fI192\&.168\&.201\&.0/24\fR
+or
+\fI192\&.168\&.201\&.0/255\&.255\&.255\&.0\fR\&.
+.PP
++:root:192\&.168\&.201\&.
+.PP
+User
+\fIroot\fR
+should be able to have access from hosts
+\fIfoo1\&.bar\&.org\fR
+and
+\fIfoo2\&.bar\&.org\fR
+(uses string matching also)\&.
+.PP
++:root:foo1\&.bar\&.org foo2\&.bar\&.org
+.PP
+User
+\fIroot\fR
+should be able to have access from domain
+\fIfoo\&.bar\&.org\fR
+(uses string matching also)\&.
+.PP
++:root:\&.foo\&.bar\&.org
+.PP
+User
+\fIroot\fR
+should be denied to get access from all other sources\&.
+.PP
+\-:root:ALL
+.PP
+User
+\fIfoo\fR
+and members of netgroup
+\fIadmins\fR
+should be allowed to get access from all sources\&. This will only work if netgroup service is available\&.
+.PP
++:@admins foo:ALL
+.PP
+User
+\fIjohn\fR
+and
+\fIfoo\fR
+should get access from IPv6 host address\&.
+.PP
++:john foo:2001:db8:0:101::1
+.PP
+User
+\fIjohn\fR
+and
+\fIfoo\fR
+should get access from IPv6 link local host address\&.
+.PP
++:john foo:fe80::de95:818c:1b55:7e42%eth1
+.PP
+User
+\fIjohn\fR
+should get access from IPv6 net/mask\&.
+.PP
++:john:2001:db8:0:101::/64
+.PP
+Members of group
+\fIwheel\fR
+should be allowed to get access from all sources\&.
+.PP
++:(wheel):ALL
+.PP
+Disallow console logins to all but the shutdown, sync and all other accounts, which are a member of the wheel group\&.
+.PP
+\-:ALL EXCEPT (wheel) shutdown sync:LOCAL
+.PP
+All other users should be denied to get access from all sources\&.
+.PP
+\-:ALL:ALL
+.SH "NOTES"
+.PP
+The default separators of list items in a field are space, \*(Aq,\*(Aq, and tabulator characters\&. Thus conveniently if spaces are put at the beginning and the end of the fields they are ignored\&. However if the list separator is changed with the
+\fIlistsep\fR
+option, the spaces will become part of the actual item and the line will be most probably ignored\&. For this reason, it is not recommended to put spaces around the \*(Aq:\*(Aq characters\&.
+.PP
+An IPv6 link local host address must contain the interface identifier\&. IPv6 link local network/netmask is not supported\&.
+.SH "SEE ALSO"
+.PP
+\fBpam_access\fR(8),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHORS"
+.PP
+Original
+\fBlogin.access\fR(5)
+manual was provided by Guido van Rooij which was renamed to
+\fBaccess.conf\fR(5)
+to reflect relation to default config file\&.
+.PP
+Network address / netmask description and example text was introduced by Mike Becher <mike\&.becher@lrz\-muenchen\&.de>\&.

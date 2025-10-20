@@ -1,0 +1,38 @@
+pam_time — PAM module for time control access
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_time PAM module does not authenticate the user, but instead it
+restricts access to a system and or specific applications at various times of
+the day and on specific days or over various terminal lines. This module can be
+configured to deny access to (individual) users based on their name, the time
+of day, the day of week, the service they are applying for and their terminal
+from which they are making their request.
+
+By default rules for time/port access are taken from config file /etc/security/
+time.conf. An alternative file can be specified with the conffile option.
+
+If there is no explicitly specified configuration file and /etc/security/
+time.conf does not exist, %vendordir%/security/time.conf is used.
+
+If Linux PAM is compiled with audit support the module will report when it
+denies access.
+
+EXAMPLES
+
+These are some example lines which might be specified in /etc/security/
+time.conf.
+
+All users except for root are denied access to console-login at all times:
+
+login ; tty* & !ttyp* ; !root ; !Al0000-2400
+
+
+Games (configured to use PAM) are only to be accessed out of working hours.
+This rule does not apply to the user waster:
+
+games ; * ; !waster ; Wd0000-2400 | Wk1800-0800
+
+

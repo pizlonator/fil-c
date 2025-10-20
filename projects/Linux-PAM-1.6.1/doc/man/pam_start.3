@@ -1,0 +1,117 @@
+'\" t
+.\"     Title: pam_start
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_START" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_start, pam_start_confdir \- initialization of PAM transaction
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.HP \w'int\ pam_start('u
+.BI "int pam_start(const\ char\ *" "service_name" ", const\ char\ *" "user" ", const\ struct\ pam_conv\ *" "pam_conversation" ", pam_handle_t\ **" "pamh" ");"
+.HP \w'int\ pam_start_confdir('u
+.BI "int pam_start_confdir(const\ char\ *" "service_name" ", const\ char\ *" "user" ", const\ struct\ pam_conv\ *" "pam_conversation" ", const\ char\ *" "confdir" ", pam_handle_t\ **" "pamh" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_start\fR
+function creates the PAM context and initiates the PAM transaction\&. It is the first of the PAM functions that needs to be called by an application\&. The transaction state is contained entirely within the structure identified by this handle, so it is possible to have multiple transactions in parallel\&. But it is not possible to use the same handle for different transactions, a new one is needed for every new context\&.
+.PP
+The
+\fIservice_name\fR
+argument specifies the name of the service to apply and will be stored as PAM_SERVICE item in the new context\&. The policy for the service will be read from the file
+/etc/pam\&.d/service_name
+or, if that file does not exist, from
+/etc/pam\&.conf\&.
+.PP
+The
+\fIuser\fR
+argument can specify the name of the target user and will be stored as PAM_USER item\&. If the argument is NULL, the module has to ask for this item if necessary\&.
+.PP
+The
+\fIpam_conversation\fR
+argument points to a
+\fIstruct pam_conv\fR
+describing the conversation function to use\&. An application must provide this for direct communication between a loaded module and the application\&.
+.PP
+Following a successful return (PAM_SUCCESS) the contents of
+\fIpamh\fR
+is a handle that contains the PAM context for successive calls to the PAM functions\&. In an error case is the content of
+\fIpamh\fR
+undefined\&.
+.PP
+The
+\fIpam_handle_t\fR
+is a blind structure and the application should not attempt to probe it directly for information\&. Instead the PAM library provides the functions
+\fBpam_set_item\fR(3)
+and
+\fBpam_get_item\fR(3)\&. The PAM handle cannot be used for multiple authentications at the same time as long as
+\fBpam_end\fR
+was not called on it before\&.
+.PP
+The
+\fBpam_start_confdir\fR
+function behaves like the
+\fBpam_start\fR
+function but it also allows setting
+\fIconfdir\fR
+argument with a path to a directory to override the default (/etc/pam\&.d) path for service policy files\&. If the
+\fIconfdir\fR
+is NULL, the function works exactly the same as
+\fBpam_start\fR\&.
+.SH "RETURN VALUES"
+.PP
+PAM_ABORT
+.RS 4
+General failure\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Transaction was successfully started\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+System error, for example a NULL pointer was submitted instead of a pointer to data\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_get_data\fR(3),
+\fBpam_set_data\fR(3),
+\fBpam_end\fR(3),
+\fBpam_strerror\fR(3)

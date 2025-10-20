@@ -1,0 +1,87 @@
+'\" t
+.\"     Title: faillock
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "FAILLOCK" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+faillock \- Tool for displaying and modifying the authentication failure record files
+.SH "SYNOPSIS"
+.HP \w'\fBfaillock\fR\ 'u
+\fBfaillock\fR [\-\-dir\ \fI/path/to/tally\-directory\fR] [\-\-user\ \fIusername\fR] [\-\-reset]
+.SH "DESCRIPTION"
+.PP
+The
+\fIpam_faillock\&.so\fR
+module maintains a list of failed authentication attempts per user during a specified interval and locks the account in case there were more than
+\fIdeny\fR
+consecutive failed authentications\&. It stores the failure records into per\-user files in the tally directory\&.
+.PP
+The
+\fBfaillock\fR
+command is an application which can be used to examine and modify the contents of the tally files\&. It can display the recent failed authentication attempts of the
+\fIusername\fR
+or clear the tally files of all or individual
+\fIusernames\fR\&.
+.SH "OPTIONS"
+.PP
+\-\-conf /path/to/config\-file
+.RS 4
+The file where the configuration is located\&. The default is
+/etc/security/faillock\&.conf\&.
+.RE
+.PP
+\-\-dir /path/to/tally\-directory
+.RS 4
+The directory where the user files with the failure records are kept\&.
+.sp
+The priority to set this option is to use the value provided from the command line\&. If this isn\*(Aqt provided, then the value from the configuration file is used\&. Finally, if neither of them has been provided, then
+/var/run/faillock
+is used\&.
+.RE
+.PP
+\-\-user username
+.RS 4
+The user whose failure records should be displayed or cleared\&.
+.RE
+.PP
+\-\-reset
+.RS 4
+Instead of displaying the user\*(Aqs failure records, clear them\&.
+.RE
+.SH "FILES"
+.PP
+/var/run/faillock/*
+.RS 4
+the files logging the authentication failures for users
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_faillock\fR(8),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+faillock was written by Tomas Mraz\&.

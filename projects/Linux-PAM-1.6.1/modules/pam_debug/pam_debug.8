@@ -1,0 +1,144 @@
+'\" t
+.\"     Title: pam_debug
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_DEBUG" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_debug \- PAM module to debug the PAM stack
+.SH "SYNOPSIS"
+.HP \w'\fBpam_debug\&.so\fR\ 'u
+\fBpam_debug\&.so\fR [auth=\fIvalue\fR] [cred=\fIvalue\fR] [acct=\fIvalue\fR] [prechauthtok=\fIvalue\fR] [chauthtok=\fIvalue\fR] [auth=\fIvalue\fR] [open_session=\fIvalue\fR] [close_session=\fIvalue\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_debug PAM module is intended as a debugging aide for determining how the PAM stack is operating\&. This module returns what its module arguments tell it to return\&.
+.SH "OPTIONS"
+.PP
+auth=value
+.RS 4
+The
+\fBpam_sm_authenticate\fR(3)
+function will return
+\fIvalue\fR\&.
+.RE
+.PP
+cred=value
+.RS 4
+The
+\fBpam_sm_setcred\fR(3)
+function will return
+\fIvalue\fR\&.
+.RE
+.PP
+acct=value
+.RS 4
+The
+\fBpam_sm_acct_mgmt\fR(3)
+function will return
+\fIvalue\fR\&.
+.RE
+.PP
+prechauthtok=value
+.RS 4
+The
+\fBpam_sm_chauthtok\fR(3)
+function will return
+\fIvalue\fR
+if the
+\fIPAM_PRELIM_CHECK\fR
+flag is set\&.
+.RE
+.PP
+chauthtok=value
+.RS 4
+The
+\fBpam_sm_chauthtok\fR(3)
+function will return
+\fIvalue\fR
+if the
+\fIPAM_PRELIM_CHECK\fR
+flag is
+\fBnot\fR
+set\&.
+.RE
+.PP
+open_session=value
+.RS 4
+The
+\fBpam_sm_open_session\fR(3)
+function will return
+\fIvalue\fR\&.
+.RE
+.PP
+close_session=value
+.RS 4
+The
+\fBpam_sm_close_session\fR(3)
+function will return
+\fIvalue\fR\&.
+.RE
+.PP
+Where
+\fIvalue\fR
+can be one of: success, open_err, symbol_err, service_err, system_err, buf_err, perm_denied, auth_err, cred_insufficient, authinfo_unavail, user_unknown, maxtries, new_authtok_reqd, acct_expired, session_err, cred_unavail, cred_expired, cred_err, no_module_data, conv_err, authtok_err, authtok_recover_err, authtok_lock_busy, authtok_disable_aging, try_again, ignore, abort, authtok_expired, module_unknown, bad_item, conv_again, incomplete\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+Default return code if no other value was specified, else specified return value\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth    requisite       pam_permit\&.so
+auth    [success=2 default=ok]  pam_debug\&.so auth=perm_denied cred=success
+auth    [default=reset]         pam_debug\&.so auth=success cred=perm_denied
+auth    [success=done default=die] pam_debug\&.so
+auth    optional        pam_debug\&.so auth=perm_denied cred=perm_denied
+auth    sufficient      pam_debug\&.so auth=success cred=success
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_debug was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.

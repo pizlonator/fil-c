@@ -1,0 +1,170 @@
+'\" t
+.\"     Title: pam_get_authtok
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_GET_AUTHTOK" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_get_authtok, pam_get_authtok_verify, pam_get_authtok_noverify \- get authentication token
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_ext\&.h>
+.fi
+.ft
+.HP \w'int\ pam_get_authtok('u
+.BI "int pam_get_authtok(pam_handle_t\ *" "pamh" ", int\ " "item" ", const\ char\ **" "authtok" ", const\ char\ *" "prompt" ");"
+.HP \w'int\ pam_get_authtok_noverify('u
+.BI "int pam_get_authtok_noverify(pam_handle_t\ *" "pamh" ", const\ char\ **" "authtok" ", const\ char\ *" "prompt" ");"
+.HP \w'int\ pam_get_authtok_verify('u
+.BI "int pam_get_authtok_verify(pam_handle_t\ *" "pamh" ", const\ char\ **" "authtok" ", const\ char\ *" "prompt" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_get_authtok\fR
+function returns the cached authentication token, or prompts the user if no token is currently cached\&. It is intended for internal use by Linux\-PAM and PAM service modules\&. Upon successful return,
+\fIauthtok\fR
+contains a pointer to the value of the authentication token\&. Note, this is a pointer to the
+\fIactual\fR
+data and should
+\fBnot\fR
+be
+\fIfree()\fR\*(Aqed or over\-written!
+.PP
+The
+\fIprompt\fR
+argument specifies a prompt to use if no token is cached\&. If a NULL pointer is given,
+\fBpam_get_authtok\fR
+uses pre\-defined prompts\&.
+.PP
+The following values are supported for
+\fIitem\fR:
+.PP
+PAM_AUTHTOK
+.RS 4
+Returns the current authentication token\&. Called from
+\fBpam_sm_chauthtok\fR(3)
+\fBpam_get_authtok\fR
+will ask the user to confirm the new token by retyping it\&. If a prompt was specified, "Retype" will be used as prefix\&.
+.RE
+.PP
+PAM_OLDAUTHTOK
+.RS 4
+Returns the previous authentication token when changing authentication tokens\&.
+.RE
+.PP
+The
+\fBpam_get_authtok_noverify\fR
+function can only be used for changing the password (from
+\fBpam_sm_chauthtok\fR(3))\&. It returns the cached authentication token, or prompts the user if no token is currently cached\&. The difference to
+\fBpam_get_authtok\fR
+is, that this function does not ask a second time for the password to verify it\&. Upon successful return,
+\fIauthtok\fR
+contains a pointer to the value of the authentication token\&. Note, this is a pointer to the
+\fIactual\fR
+data and should
+\fBnot\fR
+be
+\fIfree()\fR\*(Aqed or over\-written!
+.PP
+The
+\fBpam_get_authtok_verify\fR
+function can only be used to verify a password for mistypes gotten by
+\fBpam_get_authtok_noverify\fR(3)\&. This function asks a second time for the password and verify it with the password provided by
+\fIauthtok\fR
+argument\&. In case of an error, the value of
+\fIauthtok\fR
+is undefined\&. Else this argument will point to the
+\fIactual\fR
+data and should
+\fBnot\fR
+be
+\fIfree()\fR\*(Aqed or over\-written!
+.SH "OPTIONS"
+.PP
+\fBpam_get_authtok\fR
+honours the following module options:
+.PP
+try_first_pass
+.RS 4
+Before prompting the user for their password, the module first tries the previous stacked module\*(Aqs password in case that satisfies this module as well\&.
+.RE
+.PP
+use_first_pass
+.RS 4
+The argument
+\fBuse_first_pass\fR
+forces the module to use a previous stacked modules password and will never prompt the user \- if no password is available or the password is not appropriate, the user will be denied access\&.
+.RE
+.PP
+use_authtok
+.RS 4
+When password changing enforce the module to set the new token to the one provided by a previously stacked
+\fBpassword\fR
+module\&. If no token is available token changing will fail\&.
+.RE
+.PP
+authtok_type=XXX
+.RS 4
+The default action is for the module to use the following prompts when requesting passwords: "New UNIX password: " and "Retype UNIX password: "\&. The example word
+\fIUNIX\fR
+can be replaced with this option, by default it is empty\&.
+.RE
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+Authentication token could not be retrieved\&.
+.RE
+.PP
+PAM_AUTHTOK_ERR
+.RS 4
+New authentication could not be retrieved\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Authentication token was successfully retrieved\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+No space for an authentication token was provided\&.
+.RE
+.PP
+PAM_TRY_AGAIN
+.RS 4
+New authentication tokens mismatch\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam\fR(8)
+.SH "STANDARDS"
+.PP
+The
+\fBpam_get_authtok\fR
+function is a Linux\-PAM extensions\&.

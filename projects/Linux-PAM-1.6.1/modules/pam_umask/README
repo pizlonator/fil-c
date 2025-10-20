@@ -1,0 +1,65 @@
+pam_umask — PAM module to set the file mode creation mask
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_umask is a PAM module to set the file mode creation mask of the current
+environment. The umask affects the default permissions assigned to newly
+created files.
+
+The PAM module tries to get the umask value from the following places in the
+following order:
+
+  • umask= entry in the user's GECOS field
+
+  • umask= argument
+
+  • UMASK entry from /etc/login.defs
+
+  • UMASK= entry from /etc/default/login
+
+The GECOS field is split on comma ',' characters. The module also in addition
+to the umask= entry recognizes pri= entry, which sets the nice priority value
+for the session, and ulimit= entry, which sets the maximum size of files the
+processes in the session can create.
+
+OPTIONS
+
+debug
+
+    Print debug information.
+
+silent
+
+    Don't print informative messages.
+
+usergroups
+
+    If the user is not root and the username is the same as primary group name,
+    the umask group bits are set to be the same as owner bits (examples: 022 ->
+    002, 077 -> 007).
+
+nousergroups
+
+    This is the direct opposite of the usergroups option described above, which
+    can be useful in case pam_umask has been compiled with usergroups enabled
+    by default and you want to disable it at runtime.
+
+umask=mask
+
+    Sets the calling process's file mode creation mask (umask) to mask & 0777.
+    The value is interpreted as Octal.
+
+EXAMPLES
+
+Add the following line to /etc/pam.d/login to set the user specific umask at
+login:
+
+        session optional pam_umask.so umask=0022
+
+
+AUTHOR
+
+pam_umask was written by Thorsten Kukuk <kukuk@thkukuk.de>.
+

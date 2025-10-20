@@ -1,0 +1,300 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_pwhistory">
+
+  <refmeta>
+    <refentrytitle>pam_pwhistory</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_pwhistory-name">
+    <refname>pam_pwhistory</refname>
+    <refpurpose>PAM module to remember last passwords</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_pwhistory-cmdsynopsis" sepchar=" ">
+      <command>pam_pwhistory.so</command>
+      <arg choice="opt" rep="norepeat">
+        debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        use_authtok
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        enforce_for_root
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        remember=<replaceable>N</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        retry=<replaceable>N</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        authtok_type=<replaceable>STRING</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	      file=<replaceable>/path/filename</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	      conf=<replaceable>/path/to/config-file</replaceable>
+      </arg>
+
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_pwhistory-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      This module saves the last passwords for each user in order
+      to force password change history and keep the user from
+      alternating between the same password too frequently.
+    </para>
+    <para>
+      This module does not work together with kerberos. In general,
+      it does not make much sense to use this module in conjunction
+      with NIS or LDAP, since the old passwords are stored on the
+      local machine and are not available on another machine for
+      password history checking.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+            Turns on debugging via
+            <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_authtok
+        </term>
+        <listitem>
+          <para>
+           When password changing enforce the module to use the new password
+           provided by a previously stacked <option>password</option>
+           module (this is used in the example of the stacking of the
+           <command>pam_passwdqc</command> module documented below).
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          enforce_for_root
+        </term>
+        <listitem>
+          <para>
+            If this option is set, the check is enforced for root, too.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          remember=N
+        </term>
+        <listitem>
+          <para>
+            The last <replaceable>N</replaceable> passwords for each
+            user are saved.
+            The default is <emphasis>10</emphasis>. Value of
+            <emphasis>0</emphasis> makes the module to keep the existing
+            contents of the <filename>opasswd</filename> file unchanged.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term>
+            retry=N
+          </term>
+          <listitem>
+            <para>
+              Prompt user at most <replaceable>N</replaceable> times
+              before returning with error. The default is
+              <emphasis>1</emphasis>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            authtok_type=STRING
+          </term>
+          <listitem>
+            <para>
+              See <citerefentry>
+	<refentrytitle>pam_get_authtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> for more details.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            file=/path/filename
+          </term>
+          <listitem>
+            <para>
+              Store password history in file <filename>/path/filename</filename>
+              rather than the default location. The default location is
+	      <filename>/etc/security/opasswd</filename>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            conf=/path/to/config-file
+          </term>
+          <listitem>
+            <para>
+              Use another configuration file instead of the default
+              <filename>/etc/security/pwhistory.conf</filename>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+    </variablelist>
+    <para>
+      The options for configuring the module behavior are described in the
+      <citerefentry><refentrytitle>pwhistory.conf</refentrytitle>
+      <manvolnum>5</manvolnum></citerefentry> manual page. The options
+      specified on the module command line override the values from the
+      configuration file.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>password</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+      <term>PAM_AUTHTOK_ERR</term>
+        <listitem>
+          <para>
+            No new password was entered, the user aborted password
+            change or new password couldn't be set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            Password history was disabled.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_MAXTRIES</term>
+        <listitem>
+          <para>
+            Password was rejected too often.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User is not known to system.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-examples">
+    <title>EXAMPLES</title>
+    <para>
+      An example password section would be:
+      <programlisting>
+#%PAM-1.0
+password     required       pam_pwhistory.so
+password     required       pam_unix.so        use_authtok
+      </programlisting>
+    </para>
+    <para>
+     In combination with <command>pam_passwdqc</command>:
+      <programlisting>
+#%PAM-1.0
+password     required       pam_passwdqc.so    config=/etc/passwdqc.conf
+password     required       pam_pwhistory.so   use_authtok
+password     required       pam_unix.so        use_authtok
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/etc/security/opasswd</term>
+        <listitem>
+          <para>Default file with password history</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><filename>/etc/security/pwhistory.conf</filename></term>
+        <listitem>
+          <para>Config file for pam_pwhistory options</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term><filename>%vendordir%/security/pwhistory.conf</filename></term>
+        <listitem>
+          <para>
+            Config file for pam_pwhistory options. It will be used if
+            <filename>/etc/security/pwhistory.conf</filename> does not exist.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pwhistory.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+      <citerefentry>
+	<refentrytitle>pam_get_authtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_pwhistory-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_pwhistory was written by Thorsten Kukuk &lt;kukuk@thkukuk.de&gt;
+      </para>
+  </refsect1>
+
+</refentry>

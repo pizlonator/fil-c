@@ -1,0 +1,130 @@
+'\" t
+.\"     Title: pam_timestamp
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_TIMESTAMP" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_timestamp \- Authenticate using cached successful authentication attempts
+.SH "SYNOPSIS"
+.HP \w'\fBpam_timestamp\&.so\fR\ 'u
+\fBpam_timestamp\&.so\fR [timestampdir=\fIdirectory\fR] [timestamp_timeout=\fInumber\fR] [verbose] [debug]
+.SH "DESCRIPTION"
+.PP
+In a nutshell,
+\fIpam_timestamp\fR
+caches successful authentication attempts, and allows you to use a recent successful attempt as the basis for authentication\&. This is similar mechanism which is used in
+\fBsudo\fR\&.
+.PP
+When an application opens a session using
+\fIpam_timestamp\fR, a timestamp file is created in the
+\fItimestampdir\fR
+directory for the user\&. When an application attempts to authenticate the user, a
+\fIpam_timestamp\fR
+will treat a sufficiently recent timestamp file as grounds for succeeding\&.
+.SH "OPTIONS"
+.PP
+timestampdir=directory
+.RS 4
+Specify an alternate directory where
+\fIpam_timestamp\fR
+creates timestamp files\&.
+.RE
+.PP
+timestamp_timeout=number
+.RS 4
+How long should
+\fIpam_timestamp\fR
+treat timestamp as valid after their last modification date (in seconds)\&. Default is 300 seconds\&.
+.RE
+.PP
+verbose
+.RS 4
+Attempt to inform the user when access is granted\&.
+.RE
+.PP
+debug
+.RS 4
+Turns on debugging messages sent to
+\fBsyslog\fR(3)\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBsession\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+The module was not able to retrieve the user name or no valid timestamp file was found\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Everything was successful\&.
+.RE
+.PP
+PAM_SESSION_ERR
+.RS 4
+Timestamp file could not be created or updated\&.
+.RE
+.SH "NOTES"
+.PP
+Users can get confused when they are not always asked for passwords when running a given program\&. Some users reflexively begin typing information before noticing that it is not being asked for\&.
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth sufficient pam_timestamp\&.so verbose
+auth required   pam_unix\&.so
+
+session required pam_unix\&.so
+session optional pam_timestamp\&.so
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "FILES"
+.PP
+/var/run/pam_timestamp/\&.\&.\&.
+.RS 4
+timestamp files and directories
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_timestamp_check\fR(8),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_timestamp was written by Nalin Dahyabhai\&.

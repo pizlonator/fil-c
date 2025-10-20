@@ -1,0 +1,145 @@
+'\" t
+.\"     Title: pam_access
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_ACCESS" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_access \- PAM module for logdaemon style login access control
+.SH "SYNOPSIS"
+.HP \w'\fBpam_access\&.so\fR\ 'u
+\fBpam_access\&.so\fR [debug] [nodefgroup] [noaudit] [quiet_log] [accessfile=\fIfile\fR] [fieldsep=\fIsep\fR] [listsep=\fIsep\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_access PAM module is mainly for access management\&. It provides logdaemon style login access control based on login names, host or domain names, internet addresses or network numbers, or on terminal line names, X
+\fI$DISPLAY\fR
+values, or PAM service names in case of non\-networked logins\&.
+.PP
+By default rules for access management are taken from config file
+/etc/security/access\&.conf
+if you don\*(Aqt specify another file\&. Then individual
+*\&.conf
+files from the
+/etc/security/access\&.d/
+directory are read\&. The files are parsed one after another in the order of the system locale\&. The effect of the individual files is the same as if all the files were concatenated together in the order of parsing\&. This means that once a pattern is matched in some file no further files are parsed\&. If a config file is explicitly specified with the
+\fBaccessfile\fR
+option the files in the above directory are not parsed\&.
+.PP
+If Linux PAM is compiled with audit support the module will report when it denies access based on origin (host, tty, etc\&.)\&.
+.SH "OPTIONS"
+.PP
+accessfile=/path/to/access\&.conf
+.RS 4
+Indicate an alternative
+access\&.conf
+style configuration file to override the default\&. This can be useful when different services need different access lists\&.
+.RE
+.PP
+debug
+.RS 4
+A lot of debug information is printed with
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+noaudit
+.RS 4
+Do not report logins from disallowed hosts and ttys to the audit subsystem\&.
+.RE
+.PP
+quiet_log
+.RS 4
+Do not log denials with
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+fieldsep=separators
+.RS 4
+This option modifies the field separator character that pam_access will recognize when parsing the access configuration file\&. For example:
+\fBfieldsep=|\fR
+will cause the default `:\*(Aq character to be treated as part of a field value and `|\*(Aq becomes the field separator\&. Doing this may be useful in conjunction with a system that wants to use pam_access with X based applications, since the
+\fBPAM_TTY\fR
+item is likely to be of the form "hostname:0" which includes a `:\*(Aq character in its value\&. But you should not need this\&.
+.RE
+.PP
+listsep=separators
+.RS 4
+This option modifies the list separator character that pam_access will recognize when parsing the access configuration file\&. For example:
+\fBlistsep=,\fR
+will cause the default ` \*(Aq (space) and `\et\*(Aq (tab) characters to be treated as part of a list element value and `,\*(Aq becomes the only list element separator\&. Doing this may be useful on a system with group information obtained from a Windows domain, where the default built\-in groups "Domain Users", "Domain Admins" contain a space\&.
+.RE
+.PP
+nodefgroup
+.RS 4
+User tokens which are not enclosed in parentheses will not be matched against the group database\&. The backwards compatible default is to try the group database match even for tokens not enclosed in parentheses\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+Access was granted\&.
+.RE
+.PP
+PAM_PERM_DENIED
+.RS 4
+Access was not granted\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+\fBpam_setcred\fR
+was called which does nothing\&.
+.RE
+.PP
+PAM_ABORT
+.RS 4
+Not all relevant data or options could be gotten\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+The user is not known to the system\&.
+.RE
+.SH "FILES"
+.PP
+/etc/security/access\&.conf
+.RS 4
+Default configuration file
+.RE
+.SH "SEE ALSO"
+.PP
+\fBaccess.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)\&.
+.SH "AUTHORS"
+.PP
+The logdaemon style login access control scheme was designed and implemented by Wietse Venema\&. The pam_access PAM module was developed by Alexei Nogin <alexei@nogin\&.dnttm\&.ru>\&. The IPv6 support and the network(address) / netmask feature was developed and provided by Mike Becher <mike\&.becher@lrz\-muenchen\&.de>\&.

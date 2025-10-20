@@ -1,0 +1,138 @@
+'\" t
+.\"     Title: pam_get_user
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_GET_USER" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_get_user \- get user name
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_modules\&.h>
+.fi
+.ft
+.HP \w'int\ pam_get_user('u
+.BI "int pam_get_user(const\ pam_handle_t\ *" "pamh" ", const\ char\ **" "user" ", const\ char\ *" "prompt" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_get_user\fR
+function returns the name of the user specified by
+\fBpam_start\fR(3)\&. If no user was specified it returns what
+\fBpam_get_item (pamh, PAM_USER, \&.\&.\&. );\fR
+would have returned\&. If this is NULL it obtains the username via the
+\fBpam_conv\fR(3)
+mechanism, it prompts the user with the first non\-NULL string in the following list:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The
+\fIprompt\fR
+argument passed to the function\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+What is returned by pam_get_item (pamh, PAM_USER_PROMPT, \&.\&.\&. );
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The default prompt: "login: "
+.RE
+.PP
+By whatever means the username is obtained, a pointer to it is returned as the contents of
+\fI*user\fR\&. Note, this memory should
+\fBnot\fR
+be
+\fIfree()\fR\*(Aqd or
+\fImodified\fR
+by the module\&.
+.PP
+This function sets the
+\fIPAM_USER\fR
+item associated with the
+\fBpam_set_item\fR(3)
+and
+\fBpam_get_item\fR(3)
+functions\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+User name was successful retrieved\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+A NULL pointer was submitted\&.
+.RE
+.PP
+PAM_CONV_ERR
+.RS 4
+The conversation method supplied by the application failed to obtain the username\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_ABORT
+.RS 4
+Error resuming an old conversation\&.
+.RE
+.PP
+PAM_CONV_AGAIN
+.RS 4
+The conversation method supplied by the application is waiting for an event\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_end\fR(3),
+\fBpam_get_item\fR(3),
+\fBpam_set_item\fR(3),
+\fBpam_strerror\fR(3)

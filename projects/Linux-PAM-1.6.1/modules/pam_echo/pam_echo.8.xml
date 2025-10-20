@@ -1,0 +1,167 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_echo">
+  <refmeta>
+    <refentrytitle>pam_echo</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_echo-name">
+    <refname>pam_echo</refname>
+    <refpurpose>PAM module for printing text messages</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_echo-cmdsynopsis" sepchar=" ">
+      <command>pam_echo.so</command>
+      <arg choice="opt" rep="norepeat">
+        file=<replaceable>/path/message</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_echo-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <emphasis>pam_echo</emphasis> PAM module is for printing
+      text messages to inform user about special things. Sequences
+      starting with the <emphasis>%</emphasis> character are
+      interpreted in the following way:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>%H</term>
+        <listitem>
+          <para>The name of the remote host (PAM_RHOST).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>%h</term>
+        <listitem>
+          <para>The name of the local host.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>%s</term>
+        <listitem>
+          <para>The service name (PAM_SERVICE).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>%t</term>
+        <listitem>
+          <para>The name of the controlling terminal (PAM_TTY).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>%U</term>
+        <listitem>
+          <para>The remote user name (PAM_RUSER).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>%u</term>
+        <listitem>
+          <para>The local user name (PAM_USER).</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      All other sequences beginning with <emphasis>%</emphasis>
+      expands to the characters following the <emphasis>%</emphasis>
+      character.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_echo-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          file=/path/message
+        </term>
+        <listitem>
+          <para>
+            The content of the file <filename>/path/message</filename>
+            will be printed with the PAM conversion function as PAM_TEXT_INFO.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_echo-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>auth</option>, <option>account</option>,
+      <option>password</option> and <option>session</option>) are provided.
+
+    </para>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_echo-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Message was successful printed.
+          </para>
+        </listitem>
+      </varlistentry>
+          <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+           <para>
+             PAM_SILENT flag was given or message file does not
+             exist, no message printed.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_echo-examples">
+    <title>EXAMPLES</title>
+    <para>
+      For an example of the use of this module, we show how it may be
+      used to print information about good passwords:
+      <programlisting>
+password optional pam_echo.so file=/usr/share/doc/good-password.txt
+password required pam_unix.so
+      </programlisting>
+    </para>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_echo-see_also"><title>SEE ALSO</title>
+  <para>
+    <citerefentry>
+      <refentrytitle>pam.conf</refentrytitle><manvolnum>8</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+    </citerefentry>,
+    <citerefentry>
+      <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+    </citerefentry></para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_echo-author">
+    <title>AUTHOR</title>
+    <para>Thorsten Kukuk &lt;kukuk@thkukuk.de&gt;</para>
+  </refsect1>
+</refentry>

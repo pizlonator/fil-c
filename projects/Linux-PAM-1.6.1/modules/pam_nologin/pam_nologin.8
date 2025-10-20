@@ -1,0 +1,130 @@
+'\" t
+.\"     Title: pam_nologin
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_NOLOGIN" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_nologin \- Prevent non\-root users from login
+.SH "SYNOPSIS"
+.HP \w'\fBpam_nologin\&.so\fR\ 'u
+\fBpam_nologin\&.so\fR [file=\fI/path/nologin\fR] [successok]
+.SH "DESCRIPTION"
+.PP
+pam_nologin is a PAM module that prevents users from logging into the system when
+/var/run/nologin
+or
+/etc/nologin
+exists\&. The contents of the file are displayed to the user\&. The pam_nologin module has no effect on the root user\*(Aqs ability to log in\&.
+.SH "OPTIONS"
+.PP
+file=/path/nologin
+.RS 4
+Use this file instead the default
+/var/run/nologin
+or
+/etc/nologin\&.
+.RE
+.PP
+successok
+.RS 4
+Return PAM_SUCCESS if no file exists, the default is PAM_IGNORE\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+The
+\fBauth\fR
+and
+\fBaccount\fR
+module types are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_AUTH_ERR
+.RS 4
+The user is not root and
+/etc/nologin
+exists, so the user is not permitted to log in\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+This is the default return value\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success: either the user is root or the nologin file does not exist\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known to the underlying authentication module\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The suggested usage for
+/etc/pam\&.d/login
+is:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+auth  required  pam_nologin\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "NOTES"
+.PP
+In order to make this module effective, all login methods should be secured by it\&. It should be used as a
+\fIrequired\fR
+method listed before any
+\fIsufficient\fR
+methods in order to get standard Unix nologin semantics\&. Note, the use of
+\fBsuccessok\fR
+module argument causes the module to return
+\fIPAM_SUCCESS\fR
+and as such would break such a configuration \- failing
+\fIsufficient\fR
+modules would lead to a successful login because the nologin module
+\fIsucceeded\fR\&.
+.SH "SEE ALSO"
+.PP
+\fBnologin\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_nologin was written by Michael K\&. Johnson <johnsonm@redhat\&.com>\&.

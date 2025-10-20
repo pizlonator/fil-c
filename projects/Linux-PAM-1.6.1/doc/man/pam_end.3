@@ -1,0 +1,89 @@
+'\" t
+.\"     Title: pam_end
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_END" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_end \- termination of PAM transaction
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.HP \w'int\ pam_end('u
+.BI "int pam_end(pam_handle_t\ *" "pamh" ", int\ " "pam_status" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_end\fR
+function terminates the PAM transaction and is the last function an application should call in the PAM context\&. Upon return the handle
+\fIpamh\fR
+is no longer valid and all memory associated with it will be invalid\&.
+.PP
+The
+\fIpam_status\fR
+argument should be set to the value returned to the application by the last PAM library call\&.
+.PP
+The value taken by
+\fIpam_status\fR
+is used as an argument to the module specific callback function,
+\fBcleanup()\fR
+(See
+\fBpam_set_data\fR(3)
+and
+\fBpam_get_data\fR(3))\&. In this way the module can be given notification of the pass/fail nature of the tear\-down process, and perform any last minute tasks that are appropriate to the module before it is unlinked\&. This argument can be logically OR\*(Aqd with
+\fIPAM_DATA_SILENT\fR
+to indicate that the module should not treat the call too seriously\&. It is generally used to indicate that the current closing of the library is in a
+\fBfork\fR(2)ed process, and that the parent will take care of cleaning up things that exist outside of the current process space (files etc\&.)\&.
+.PP
+This function
+\fIfree\fR\*(Aqs all memory for items associated with the
+\fBpam_set_item\fR(3)
+and
+\fBpam_get_item\fR(3)
+functions\&. Pointers associated with such objects are not valid anymore after
+\fBpam_end\fR
+was called\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+Transaction was successful terminated\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+System error, for example a NULL pointer was submitted as PAM handle or the function was called by a module\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_get_data\fR(3),
+\fBpam_set_data\fR(3),
+\fBpam_start\fR(3),
+\fBpam_strerror\fR(3)

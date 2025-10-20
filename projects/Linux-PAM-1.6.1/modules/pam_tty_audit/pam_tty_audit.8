@@ -1,0 +1,135 @@
+'\" t
+.\"     Title: pam_tty_audit
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_TTY_AUDIT" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_tty_audit \- Enable or disable TTY auditing for specified users
+.SH "SYNOPSIS"
+.HP \w'\fBpam_tty_audit\&.so\fR\ 'u
+\fBpam_tty_audit\&.so\fR [disable=\fIpatterns\fR] [enable=\fIpatterns\fR]
+.SH "DESCRIPTION"
+.PP
+The pam_tty_audit PAM module is used to enable or disable TTY auditing\&. By default, the kernel does not audit input on any TTY\&.
+.SH "OPTIONS"
+.PP
+disable=patterns
+.RS 4
+For each user matching
+\fB\fIpatterns\fR\fR, disable TTY auditing\&. This overrides any previous
+\fBenable\fR
+option matching the same user name on the command line\&. See NOTES for further description of
+\fB\fIpatterns\fR\fR\&.
+.RE
+.PP
+enable=patterns
+.RS 4
+For each user matching
+\fB\fIpatterns\fR\fR, enable TTY auditing\&. This overrides any previous
+\fBdisable\fR
+option matching the same user name on the command line\&. See NOTES for further description of
+\fB\fIpatterns\fR\fR\&.
+.RE
+.PP
+open_only
+.RS 4
+Set the TTY audit flag when opening the session, but do not restore it when closing the session\&. Using this option is necessary for some services that don\*(Aqt
+\fBfork()\fR
+to run the authenticated session, such as
+\fBsudo\fR\&.
+.RE
+.PP
+log_passwd
+.RS 4
+Log keystrokes when ECHO mode is off but ICANON mode is active\&. This is the mode in which the tty is placed during password entry\&. By default, passwords are not logged\&. This option may not be available on older kernels (3\&.9?)\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBsession\fR
+type is supported\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SESSION_ERR
+.RS 4
+Error reading or modifying the TTY audit flag\&. See the system log for more details\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.SH "NOTES"
+.PP
+When TTY auditing is enabled, it is inherited by all processes started by that user\&. In particular, daemons restarted by a user will still have TTY auditing enabled, and audit TTY input even by other users unless auditing for these users is explicitly disabled\&. Therefore, it is recommended to use
+\fBdisable=*\fR
+as the first option for most daemons using PAM\&.
+.PP
+To view the data that was logged by the kernel to audit use the command
+\fBaureport \-\-tty\fR\&.
+.PP
+The
+\fB\fIpatterns\fR\fR
+are comma separated lists of glob patterns or ranges of uids\&. A range is specified as
+\fImin_uid\fR:\fImax_uid\fR
+where one of these values can be empty\&. If
+\fImin_uid\fR
+is empty only user with the uid
+\fImax_uid\fR
+will be matched\&. If
+\fImax_uid\fR
+is empty users with the uid greater than or equal to
+\fImin_uid\fR
+will be matched\&.
+.PP
+Please note that passwords in some circumstances may be logged by TTY auditing even if the
+\fBlog_passwd\fR
+is not used\&. For example, all input to an ssh session will be logged \- even if there is a password being typed into some software running at the remote host because only the local TTY state affects the local TTY auditing\&.
+.SH "EXAMPLES"
+.PP
+Audit all administrative actions\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+session	required pam_tty_audit\&.so disable=* enable=root
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBaureport\fR(8),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_tty_audit was written by Miloslav Trmač <mitr@redhat\&.com>\&. The log_passwd option was added by Richard Guy Briggs <rgb@redhat\&.com>\&.

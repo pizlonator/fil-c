@@ -1,0 +1,217 @@
+'\" t
+.\"     Title: pam_listfile
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_LISTFILE" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_listfile \- deny or allow services based on an arbitrary file
+.SH "SYNOPSIS"
+.HP \w'\fBpam_listfile\&.so\fR\ 'u
+\fBpam_listfile\&.so\fR item=[tty|user|rhost|ruser|group|shell] sense=[allow|deny] file=\fI/path/filename\fR onerr=[succeed|fail] [apply=[\fIuser\fR|\fI@group\fR]] [quiet]
+.SH "DESCRIPTION"
+.PP
+pam_listfile is a PAM module which provides a way to deny or allow services based on an arbitrary file\&.
+.PP
+The module gets the
+\fBitem\fR
+of the type specified \-\-
+\fIuser\fR
+specifies the username,
+\fIPAM_USER\fR;
+\fItty\fR
+specifies the name of the terminal (if any) over which the request has been made,
+\fIPAM_TTY\fR;
+\fIrhost\fR
+specifies the name of the remote host (if any) from which the request was made,
+\fIPAM_RHOST\fR; and
+\fIruser\fR
+specifies the name of the remote user (if available) who made the request,
+\fIPAM_RUSER\fR
+\-\- and looks for an instance of that item in the
+\fBfile=\fR\fB\fIfilename\fR\fR\&.
+filename
+contains one line per item listed\&. If the item is found, then if
+\fBsense=allow\fR,
+\fIPAM_SUCCESS\fR
+is returned, causing the authorization request to succeed; else if
+\fBsense=deny\fR,
+\fIPAM_AUTH_ERR\fR
+is returned, causing the authorization request to fail\&.
+.PP
+If an error is encountered (for instance, if
+filename
+does not exist, or a poorly\-constructed argument is encountered), then if
+\fBonerr=succeed\fR,
+\fIPAM_SUCCESS\fR
+is returned, otherwise if
+\fBonerr=fail\fR,
+\fIPAM_AUTH_ERR\fR
+or
+\fIPAM_SERVICE_ERR\fR
+(as appropriate) will be returned\&.
+.PP
+An additional argument,
+\fBapply=\fR, can be used to restrict the application of the above to a specific user (\fBapply=\fR\fB\fIusername\fR\fR) or a given group (\fBapply=\fR\fB\fI@groupname\fR\fR)\&. This added restriction is only meaningful when used with the
+\fItty\fR,
+\fIrhost\fR
+and
+\fIshell\fR
+items\&.
+.PP
+Besides this last one, all arguments should be specified; do not count on any default behavior\&.
+.PP
+No credentials are awarded by this module\&.
+.SH "OPTIONS"
+.PP
+.PP
+item=[tty|user|rhost|ruser|group|shell]
+.RS 4
+What is listed in the file and should be checked for\&.
+.RE
+.PP
+sense=[allow|deny]
+.RS 4
+Action to take if the item is found in the file\&. If the item is NOT found in the file, then the opposite action is requested\&.
+.RE
+.PP
+file=/path/filename
+.RS 4
+File containing one item per line\&. The file needs to be a plain file and not world writable\&.
+.RE
+.PP
+onerr=[succeed|fail]
+.RS 4
+What to do if something weird happens like being unable to open the file\&.
+.RE
+.PP
+apply=[user|@group]
+.RS 4
+Restrict the user class for which the restriction apply\&. Note that with
+\fBitem=[user|ruser|group]\fR
+this does not make sense, but for
+\fBitem=[tty|rhost|shell]\fR
+it has a meaning\&.
+.RE
+.PP
+quiet
+.RS 4
+Do not treat service refusals or missing list files as errors that need to be logged\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBauth\fR,
+\fBaccount\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_AUTH_ERR
+.RS 4
+Authentication failure\&.
+.RE
+.PP
+PAM_BUF_ERR
+.RS 4
+Memory buffer error\&.
+.RE
+.PP
+PAM_IGNORE
+.RS 4
+The rule does not apply to the
+\fBapply\fR
+option\&.
+.RE
+.PP
+PAM_SERVICE_ERR
+.RS 4
+Error in service module\&.
+.RE
+.PP
+PAM_SUCCESS
+.RS 4
+Success\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Classic \*(Aqftpusers\*(Aq authentication can be implemented with this entry in
+/etc/pam\&.d/ftpd:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#
+# deny ftp\-access to users listed in the /etc/ftpusers file
+#
+auth    required       pam_listfile\&.so \e
+        onerr=succeed item=user sense=deny file=/etc/ftpusers
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Note, users listed in
+/etc/ftpusers
+file are (counterintuitively)
+\fInot\fR
+allowed access to the ftp service\&.
+.PP
+To allow login access only for certain users, you can use a
+/etc/pam\&.d/login
+entry like this:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#
+# permit login to users listed in /etc/loginusers
+#
+auth    required       pam_listfile\&.so \e
+        onerr=fail item=user sense=allow file=/etc/loginusers
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+For this example to work, all users who are allowed to use the login service should be listed in the file
+/etc/loginusers\&. Unless you are explicitly trying to lock out root, make sure that when you do this, you leave a way for root to log in, either by listing root in
+/etc/loginusers, or by listing a user who is able to
+\fIsu\fR
+to the root account\&.
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_listfile was written by Michael K\&. Johnson <johnsonm@redhat\&.com> and Elliot Lee <sopwith@cuc\&.edu>\&.

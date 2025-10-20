@@ -1,0 +1,42 @@
+pam_securetty — Limit root login to special devices
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_securetty is a PAM module that allows root logins only if the user is
+logging in on a "secure" tty, as defined by the listing in the securetty file.
+pam_securetty checks at first, if /etc/securetty exists. If not and it was
+built with vendordir support, it will use %vendordir%/securetty. pam_securetty
+also checks that the securetty files are plain files and not world writable. It
+will also allow root logins on the tty specified with console= switch on the
+kernel command line and on ttys from the /sys/class/tty/console/active.
+
+This module has no effect on non-root users and requires that the application
+fills in the PAM_TTY item correctly.
+
+For canonical usage, should be listed as a required authentication method
+before any sufficient authentication methods.
+
+OPTIONS
+
+debug
+
+    Print debug information.
+
+noconsole
+
+    Do not automatically allow root logins on the kernel console device, as
+    specified on the kernel command line or by the sys file, if it is not also
+    specified in the securetty file.
+
+EXAMPLES
+
+auth  required  pam_securetty.so
+auth  required  pam_unix.so
+
+
+AUTHOR
+
+pam_securetty was written by Elliot Lee <sopwith@cuc.edu>.
+

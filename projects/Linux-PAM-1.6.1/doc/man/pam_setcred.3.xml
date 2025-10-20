@@ -1,0 +1,177 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_setcred">
+
+  <refmeta>
+    <refentrytitle>pam_setcred</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_setcred-name">
+    <refname>pam_setcred</refname>
+    <refpurpose>
+       establish / delete user credentials
+    </refpurpose>
+  </refnamediv>
+
+  <!-- body begins here -->
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_setcred-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_setcred</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>flags</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_setcred-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_setcred</function> function is used to establish,
+      maintain and delete the credentials of a user. It should be called
+      to set the credentials after a user has been authenticated and before
+      a session is opened for the user (with
+      <citerefentry>
+        <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+       </citerefentry>). The credentials should be deleted after the session
+      has been closed (with
+      <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+       </citerefentry>).
+     </para>
+
+     <para>
+       A credential is something that the user possesses. It is some
+       property, such as a <emphasis>Kerberos</emphasis> ticket, or a
+       supplementary group membership that make up the uniqueness of a
+       given user. On a Linux system the user's <emphasis>UID</emphasis>
+       and <emphasis>GID</emphasis>'s are credentials too. However, it
+       has been decided that these properties (along with the default
+       supplementary groups of which the user is a member) are credentials
+       that should be set directly by the application and not by PAM.
+       Such credentials should be established, by the application, prior
+       to a call to this function.  For example,
+       <citerefentry>
+         <refentrytitle>initgroups</refentrytitle><manvolnum>2</manvolnum>
+       </citerefentry> (or equivalent) should have been performed.
+      </para>
+
+      <para>
+        Valid <emphasis>flags</emphasis>, any one of which, may be
+        logically OR'd with <option>PAM_SILENT</option>, are:
+      </para>
+
+      <variablelist>
+        <varlistentry>
+          <term>PAM_ESTABLISH_CRED</term>
+          <listitem>
+            <para>Initialize the credentials for the user.</para>
+          </listitem>
+          </varlistentry>
+        <varlistentry>
+          <term>PAM_DELETE_CRED</term>
+          <listitem>
+            <para>Delete the user's credentials.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>PAM_REINITIALIZE_CRED</term>
+          <listitem>
+            <para>Fully reinitialize the user's credentials.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>PAM_REFRESH_CRED</term>
+          <listitem>
+            <para>Extend the lifetime of the existing credentials.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+   </refsect1>
+
+   <refsect1 xml:id="pam_setcred-return_values">
+     <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_ERR</term>
+        <listitem>
+           <para>
+              Failed to set user credentials.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_EXPIRED</term>
+        <listitem>
+           <para>
+             User credentials are expired.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_UNAVAIL</term>
+        <listitem>
+           <para>
+              Failed to retrieve user credentials.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Data was successful stored.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             A NULL pointer was submitted as PAM handle, the
+             function was called by a module or another system
+             error occurred.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+           <para>
+              User is not known to an authentication module.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_set_data-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+         <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+         <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

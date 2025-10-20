@@ -1,0 +1,212 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_motd">
+
+  <refmeta>
+    <refentrytitle>pam_motd</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_motd-name">
+    <refname>pam_motd</refname>
+    <refpurpose>Display the motd file</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_motd-cmdsynopsis" sepchar=" ">
+      <command>pam_motd.so</command>
+      <arg choice="opt" rep="norepeat">
+        motd=<replaceable>/path/filename</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        motd_dir=<replaceable>/path/dirname.d</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_motd-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      pam_motd is a PAM module that can be used to display
+      arbitrary motd (message of the day) files after a successful
+      login. By default, pam_motd shows files in the
+      following locations:
+    </para>
+    <para>
+      <simplelist type="vert">
+        <member><filename>/etc/motd</filename></member>
+        <member><filename>/run/motd</filename></member>
+        <member><filename>/usr/lib/motd</filename></member>
+        <member><filename>/etc/motd.d/</filename></member>
+        <member><filename>/run/motd.d/</filename></member>
+        <member><filename>/usr/lib/motd.d/</filename></member>
+      </simplelist>
+    </para>
+    <para>
+      Each message size is limited to 64KB.
+    </para>
+    <para>
+      If <filename>/etc/motd</filename> does not exist,
+      then <filename>/run/motd</filename> is shown. If
+      <filename>/run/motd</filename> does not exist, then
+      <filename>/usr/lib/motd</filename> is shown.
+    </para>
+    <para>
+      Similar overriding behavior applies to the directories.
+      Files in <filename>/etc/motd.d/</filename> override files
+      with the same name in <filename>/run/motd.d/</filename> and
+      <filename>/usr/lib/motd.d/</filename>. Files in <filename>/run/motd.d/</filename>
+      override files with the same name in <filename>/usr/lib/motd.d/</filename>.
+    </para>
+    <para>
+      Files in the directories listed above are displayed in lexicographic
+      order by name. Moreover, the files are filtered by reading them with the
+      credentials of the target user authenticating on the system.
+    </para>
+    <para>
+      To silence a message,
+      a symbolic link with target <filename>/dev/null</filename>
+      may be placed in <filename>/etc/motd.d</filename> with
+      the same filename as the message to be silenced. Example:
+      Creating a symbolic link as follows silences <filename>/usr/lib/motd.d/my_motd</filename>.
+    </para>
+    <para>
+      <command>ln -s /dev/null /etc/motd.d/my_motd</command>
+    </para>
+    <para>
+      The <emphasis remap="B">MOTD_SHOWN=pam</emphasis> environment variable
+      is set after showing the motd files, even when all of them were silenced
+      using symbolic links.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_motd-options">
+
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          motd=/path/filename
+        </term>
+        <listitem>
+          <para>
+            The <filename>/path/filename</filename> file is displayed
+            as message of the day. Multiple paths to try can be
+            specified as a colon-separated list. By default this option
+            is set to <filename>/etc/motd:/run/motd:/usr/lib/motd</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          motd_dir=/path/dirname.d
+        </term>
+        <listitem>
+          <para>
+            The <filename>/path/dirname.d</filename> directory is scanned
+            and each file contained inside of it is displayed. Multiple
+            directories to scan can be specified as a colon-separated list.
+            By default this option is set to <filename>/etc/motd.d:/run/motd.d:/usr/lib/motd.d</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      When no options are given, the default behavior applies for both
+      options. Specifying either option (or both) will disable the
+      default behavior for both options.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_motd-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>session</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_motd-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+             Not all relevant data or options could be obtained.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            This is the default return value of this module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+     </refsect1>
+
+  <refsect1 xml:id="pam_motd-examples">
+    <title>EXAMPLES</title>
+    <para>
+      The suggested usage for <filename>/etc/pam.d/login</filename> is:
+      <programlisting>
+session  optional  pam_motd.so
+      </programlisting>
+    </para>
+    <para>
+      To use a <filename>motd</filename> file from a different location:
+      <programlisting>
+session  optional  pam_motd.so motd=/elsewhere/motd
+      </programlisting>
+    </para>
+    <para>
+      To use a <filename>motd</filename> file from elsewhere, along with a
+      corresponding <filename>.d</filename> directory:
+      <programlisting>
+session  optional  pam_motd.so motd=/elsewhere/motd motd_dir=/elsewhere/motd.d
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_motd-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>motd</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_motd-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_motd was written by Ben Collins &lt;bcollins@debian.org&gt;.
+      </para>
+      <para>
+        The <option>motd_dir=</option> option was added by
+        Allison Karlitskaya &lt;allison.karlitskaya@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

@@ -1,0 +1,102 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_warn">
+
+  <refmeta>
+    <refentrytitle>pam_warn</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+  <refnamediv xml:id="pam_warn-name">
+    <refname>pam_warn</refname>
+    <refpurpose>PAM module which logs all PAM items if called</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_warn-cmdsynopsis" sepchar=" ">
+      <command>pam_warn.so</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_warn-description">
+    <title>DESCRIPTION</title>
+    <para>
+      pam_warn is a PAM module that logs the service, terminal, user,
+      remote user and remote host to
+      <citerefentry>
+	<refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>. The items are not probed for, but instead obtained
+      from the standard PAM items. The module always returns
+      <emphasis remap="B">PAM_IGNORE</emphasis>, indicating that it
+      does not want to affect the authentication process.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-options">
+    <title>OPTIONS</title>
+    <para>This module does not recognise any options.</para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option>, <option>account</option>,
+      <option>password</option> and <option>session</option> module
+      types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            This module always returns PAM_IGNORE.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-examples">
+    <title>EXAMPLES</title>
+      <programlisting>
+#%PAM-1.0
+#
+# If we don't have config entries for a service, the
+# OTHER entries are used. To be secure, warn and deny
+# access to everything.
+other auth     required       pam_warn.so
+other auth     required       pam_deny.so
+other account  required       pam_warn.so
+other account  required       pam_deny.so
+other password required       pam_warn.so
+other password required       pam_deny.so
+other session  required       pam_warn.so
+other session  required       pam_deny.so
+      </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_warn-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_warn was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

@@ -1,0 +1,118 @@
+'\" t
+.\"     Title: pwhistory.conf
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PWHISTORY\&.CONF" "5" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pwhistory.conf \- pam_pwhistory configuration file
+.SH "DESCRIPTION"
+.PP
+\fBpwhistory\&.conf\fR
+provides a way to configure the default settings for saving the last passwords for each user\&. This file is read by the
+\fIpam_pwhistory\fR
+module and is the preferred method over configuring
+\fIpam_pwhistory\fR
+directly\&.
+.PP
+The file has a very simple
+\fIname = value\fR
+format with possible comments starting with
+\fI#\fR
+character\&. The whitespace at the beginning of line, end of line, and around the
+\fI=\fR
+sign is ignored\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Turns on debugging via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+enforce_for_root
+.RS 4
+If this option is set, the check is enforced for root, too\&.
+.RE
+.PP
+remember=N
+.RS 4
+The last
+\fIN\fR
+passwords for each user are saved\&. The default is
+\fI10\fR\&. Value of
+\fI0\fR
+makes the module to keep the existing contents of the
+opasswd
+file unchanged\&.
+.RE
+.PP
+retry=N
+.RS 4
+Prompt user at most
+\fIN\fR
+times before returning with error\&. The default is 1\&.
+.RE
+.PP
+file=/path/filename
+.RS 4
+Store password history in file
+\fI/path/filename\fR
+rather than the default location\&. The default location is
+/etc/security/opasswd\&.
+.RE
+.SH "EXAMPLES"
+.PP
+/etc/security/pwhistory\&.conf file example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+debug
+remember=5
+file=/tmp/opasswd
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "FILES"
+.PP
+/etc/security/pwhistory\&.conf
+.RS 4
+the config file for custom options
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpwhistory\fR(8),
+\fBpam_pwhistory\fR(8),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_pwhistory was written by Thorsten Kukuk\&. The support for pwhistory\&.conf was written by Iker Pedrosa\&.

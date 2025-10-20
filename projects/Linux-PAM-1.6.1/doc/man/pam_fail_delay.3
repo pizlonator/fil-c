@@ -1,0 +1,168 @@
+'\" t
+.\"     Title: pam_fail_delay
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_FAIL_DELAY" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_fail_delay \- request a delay on failure
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <security/pam_appl\&.h>
+.fi
+.ft
+.HP \w'int\ pam_fail_delay('u
+.BI "int pam_fail_delay(pam_handle_t\ *" "pamh" ", unsigned\ int\ " "usec" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_fail_delay\fR
+function provides a mechanism by which an application or module can suggest a minimum delay of
+\fIusec\fR
+micro\-seconds\&. The function keeps a record of the longest time requested with this function\&. Should
+\fBpam_authenticate\fR(3)
+fail, the failing return to the application is delayed by an amount of time randomly distributed (by up to 50%) about this longest value\&.
+.PP
+Independent of success, the delay time is reset to its zero default value when the PAM service module returns control to the application\&. The delay occurs
+\fIafter\fR
+all authentication modules have been called, but
+\fIbefore\fR
+control is returned to the service application\&.
+.PP
+When using this function the programmer should check if it is available with:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#ifdef HAVE_PAM_FAIL_DELAY
+    \&.\&.\&.\&.
+#endif /* HAVE_PAM_FAIL_DELAY */
+      
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+For applications written with a single thread that are event driven in nature, generating this delay may be undesirable\&. Instead, the application may want to register the delay in some other way\&. For example, in a single threaded server that serves multiple authentication requests from a single event loop, the application might want to simply mark a given connection as blocked until an application timer expires\&. For this reason the delay function can be changed with the
+\fIPAM_FAIL_DELAY\fR
+item\&. It can be queried and set with
+\fBpam_get_item\fR(3)
+and
+\fBpam_set_item\fR(3)
+respectively\&. The value used to set it should be a function pointer of the following prototype:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+void (*delay_fn)(int retval, unsigned usec_delay, void *appdata_ptr);
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+The arguments being the
+\fIretval\fR
+return code of the module stack, the
+\fIusec_delay\fR
+micro\-second delay that libpam is requesting and the
+\fIappdata_ptr\fR
+that the application has associated with the current
+\fIpamh\fR\&. This last value was set by the application when it called
+\fBpam_start\fR(3)
+or explicitly with
+\fBpam_set_item\fR(3)\&.
+.PP
+Note that the PAM_FAIL_DELAY item is set to NULL by default\&. This indicates that PAM should perform a random delay as described above when authentication fails and a delay has been suggested\&. If an application does not want the PAM library to perform any delay on authentication failure, then the application must define a custom delay function that executes no statements and set the PAM_FAIL_DELAY item to point to this function\&.
+.SH "RATIONALE"
+.PP
+It is often possible to attack an authentication scheme by exploiting the time it takes the scheme to deny access to an applicant user\&. In cases of
+\fIshort\fR
+timeouts, it may prove possible to attempt a
+\fIbrute force\fR
+dictionary attack \-\- with an automated process, the attacker tries all possible passwords to gain access to the system\&. In other cases, where individual failures can take measurable amounts of time (indicating the nature of the failure), an attacker can obtain useful information about the authentication process\&. These latter attacks make use of procedural delays that constitute a
+\fIcovert channel\fR
+of useful information\&.
+.PP
+To minimize the effectiveness of such attacks, it is desirable to introduce a random delay in a failed authentication process\&. Preferable this value should be set by the application or a special PAM module\&. Standard PAM modules should not modify the delay unconditional\&.
+.SH "EXAMPLE"
+.PP
+For example, a login application may require a failure delay of roughly 3 seconds\&. It will contain the following code:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+    pam_fail_delay (pamh, 3000000 /* micro\-seconds */ );
+    pam_authenticate (pamh, 0);
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+if the modules do not request a delay, the failure delay will be between 1\&.5 and 4\&.5 seconds\&.
+.PP
+However, the modules, invoked in the authentication process, may also request delays:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+module #1:    pam_fail_delay (pamh, 2000000);
+module #2:    pam_fail_delay (pamh, 4000000);
+    
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+in this case, it is the largest requested value that is used to compute the actual failed delay: here between 2 and 6 seconds\&.
+.SH "RETURN VALUES"
+.PP
+PAM_SUCCESS
+.RS 4
+Delay was successful adjusted\&.
+.RE
+.PP
+PAM_SYSTEM_ERR
+.RS 4
+A NULL pointer was submitted as PAM handle\&.
+.RE
+.SH "SEE ALSO"
+.PP
+\fBpam_start\fR(3),
+\fBpam_get_item\fR(3),
+\fBpam_strerror\fR(3)
+.SH "STANDARDS"
+.PP
+The
+\fBpam_fail_delay\fR
+function is an Linux\-PAM extension\&.

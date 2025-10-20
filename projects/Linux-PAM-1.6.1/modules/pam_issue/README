@@ -1,0 +1,79 @@
+pam_issue — PAM module to add issue file to user prompt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+pam_issue is a PAM module to prepend an issue file to the username prompt. It
+also by default parses escape codes in the issue file similar to some common
+getty's (using \x format).
+
+Recognized escapes:
+
+\d
+
+    current day
+
+\l
+
+    name of this tty
+
+\m
+
+    machine architecture (uname -m)
+
+\n
+
+    machine's network node hostname (uname -n)
+
+\o
+
+    domain name of this system
+
+\r
+
+    release number of operating system (uname -r)
+
+\t
+
+    current time
+
+\s
+
+    operating system name (uname -s)
+
+\u
+
+    number of users currently logged in
+
+\U
+
+    same as \u except it is suffixed with "user" or "users" (eg. "1 user" or
+    "10 users")
+
+\v
+
+    operating system version and build date (uname -v)
+
+OPTIONS
+
+noesc
+
+    Turns off escape code parsing.
+
+issue=issue-file-name
+
+    The file to output if not using the default.
+
+EXAMPLES
+
+Add the following line to /etc/pam.d/login to set the user specific issue at
+login:
+
+        auth optional pam_issue.so issue=/etc/issue
+
+
+AUTHOR
+
+pam_issue was written by Ben Collins <bcollins@debian.org>.
+

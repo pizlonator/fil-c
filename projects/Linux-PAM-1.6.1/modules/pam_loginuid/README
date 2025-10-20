@@ -1,0 +1,29 @@
+pam_loginuid — Record user's login uid to the process attribute
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+The pam_loginuid module sets the loginuid process attribute for the process
+that was authenticated. This is necessary for applications to be correctly
+audited. This PAM module should only be used for entry point applications like:
+login, sshd, gdm, vsftpd, crond and atd. There are probably other entry point
+applications besides these. You should not use it for applications like sudo or
+su as that defeats the purpose by changing the loginuid to the account they
+just switched to.
+
+EXAMPLES
+
+#%PAM-1.0
+auth       required     pam_unix.so
+auth       required     pam_nologin.so
+account    required     pam_unix.so
+password   required     pam_unix.so
+session    required     pam_unix.so
+session    required     pam_loginuid.so
+
+
+AUTHOR
+
+pam_loginuid was written by Steve Grubb <sgrubb@redhat.com>
+

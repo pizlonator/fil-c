@@ -1,0 +1,285 @@
+'\" t
+.\"     Title: pam_unix
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_UNIX" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_unix \- Module for traditional password authentication
+.SH "SYNOPSIS"
+.HP \w'\fBpam_unix\&.so\fR\ 'u
+\fBpam_unix\&.so\fR [\&.\&.\&.]
+.SH "DESCRIPTION"
+.PP
+This is the standard Unix authentication module\&. It uses standard calls from the system\*(Aqs libraries to retrieve and set account information as well as authentication\&. Usually this is obtained from the /etc/passwd and the /etc/shadow file as well if shadow is enabled\&.
+.PP
+The account component performs the task of establishing the status of the user\*(Aqs account and password based on the following
+\fIshadow\fR
+elements: expire, last_change, max_change, min_change, warn_change\&. In the case of the latter, it may offer advice to the user on changing their password or, through the
+\fBPAM_AUTHTOKEN_REQD\fR
+return, delay giving service to the user until they have established a new password\&. The entries listed above are documented in the
+\fBshadow\fR(5)
+manual page\&. Should the user\*(Aqs record not contain one or more of these entries, the corresponding
+\fIshadow\fR
+check is not performed\&.
+.PP
+The authentication component performs the task of checking the users credentials (password)\&. The default action of this module is to not permit the user access to a service if their official password is blank\&.
+.PP
+A helper binary,
+\fBunix_chkpwd\fR(8), is provided to check the user\*(Aqs password when it is stored in a read protected database\&. This binary is very simple and will only check the password of the user invoking it\&. It is called transparently on behalf of the user by the authenticating component of this module\&. In this way it is possible for applications like
+\fBxlock\fR(1)
+to work without being setuid\-root\&. The module, by default, will temporarily turn off SIGCHLD handling for the duration of execution of the helper binary\&. This is generally the right thing to do, as many applications are not prepared to handle this signal from a child they didn\*(Aqt know was
+\fBfork()\fRd\&. The
+\fBnoreap\fR
+module argument can be used to suppress this temporary shielding and may be needed for use with certain applications\&.
+.PP
+The maximum length of a password supported by the pam_unix module via the helper binary is
+\fIPAM_MAX_RESP_SIZE\fR
+\- currently 512 bytes\&. The rest of the password provided by the conversation function to the module will be ignored\&.
+.PP
+The password component of this module performs the task of updating the user\*(Aqs password\&. The default encryption hash is taken from the
+\fBENCRYPT_METHOD\fR
+variable from
+\fI/etc/login\&.defs\fR
+.PP
+The session component of this module logs when a user logins or leave the system\&.
+.PP
+Remaining arguments, supported by others functions of this module, are silently ignored\&. Other arguments are logged as errors through
+\fBsyslog\fR(3)\&.
+.SH "OPTIONS"
+.PP
+debug
+.RS 4
+Turns on debugging via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+audit
+.RS 4
+A little more extreme than debug\&.
+.RE
+.PP
+quiet
+.RS 4
+Turns off informational messages namely messages about session open and close via
+\fBsyslog\fR(3)\&.
+.RE
+.PP
+nullok
+.RS 4
+The default action of this module is to not permit the user access to a service if their official password is blank\&. The
+\fBnullok\fR
+argument overrides this default\&.
+.RE
+.PP
+nullresetok
+.RS 4
+Allow users to authenticate with blank password if password reset is enforced even if
+\fBnullok\fR
+is not set\&. If password reset is not required and
+\fBnullok\fR
+is not set the authentication with blank password will be denied\&.
+.RE
+.PP
+try_first_pass
+.RS 4
+Before prompting the user for their password, the module first tries the previous stacked module\*(Aqs password in case that satisfies this module as well\&.
+.RE
+.PP
+use_first_pass
+.RS 4
+The argument
+\fBuse_first_pass\fR
+forces the module to use a previous stacked modules password and will never prompt the user \- if no password is available or the password is not appropriate, the user will be denied access\&.
+.RE
+.PP
+nodelay
+.RS 4
+This argument can be used to discourage the authentication component from requesting a delay should the authentication as a whole fail\&. The default action is for the module to request a delay\-on\-failure of the order of two seconds\&.
+.RE
+.PP
+use_authtok
+.RS 4
+When password changing enforce the module to set the new password to the one provided by a previously stacked
+\fBpassword\fR
+module (this is used in the example of the stacking of the
+\fBpam_passwdqc\fR
+module documented below)\&.
+.RE
+.PP
+authtok_type=type
+.RS 4
+This argument can be used to modify the password prompt when changing passwords to include the type of the password\&. Empty by default\&.
+.RE
+.PP
+nis
+.RS 4
+NIS RPC is used for setting new passwords\&.
+.RE
+.PP
+remember=n
+.RS 4
+The last
+\fIn\fR
+passwords for each user are saved in
+/etc/security/opasswd
+in order to force password change history and keep the user from alternating between the same password too frequently\&. The MD5 password hash algorithm is used for storing the old passwords\&. Instead of this option the
+\fBpam_pwhistory\fR
+module should be used\&.
+.RE
+.PP
+shadow
+.RS 4
+Try to maintain a shadow based system\&.
+.RE
+.PP
+md5
+.RS 4
+When a user changes their password next, encrypt it with the MD5 algorithm\&.
+.RE
+.PP
+bigcrypt
+.RS 4
+When a user changes their password next, encrypt it with the DEC C2 algorithm\&.
+.RE
+.PP
+sha256
+.RS 4
+When a user changes their password next, encrypt it with the SHA256 algorithm\&. The SHA256 algorithm must be supported by the
+\fBcrypt\fR(3)
+function\&.
+.RE
+.PP
+sha512
+.RS 4
+When a user changes their password next, encrypt it with the SHA512 algorithm\&. The SHA512 algorithm must be supported by the
+\fBcrypt\fR(3)
+function\&.
+.RE
+.PP
+blowfish
+.RS 4
+When a user changes their password next, encrypt it with the blowfish algorithm\&. The blowfish algorithm must be supported by the
+\fBcrypt\fR(3)
+function\&.
+.RE
+.PP
+gost_yescrypt
+.RS 4
+When a user changes their password next, encrypt it with the gost\-yescrypt algorithm\&. The gost\-yescrypt algorithm must be supported by the
+\fBcrypt\fR(3)
+function\&.
+.RE
+.PP
+yescrypt
+.RS 4
+When a user changes their password next, encrypt it with the yescrypt algorithm\&. The yescrypt algorithm must be supported by the
+\fBcrypt\fR(3)
+function\&.
+.RE
+.PP
+rounds=n
+.RS 4
+Set the optional number of rounds of the SHA256, SHA512, blowfish, gost\-yescrypt, and yescrypt password hashing algorithms to
+\fIn\fR\&.
+.RE
+.PP
+broken_shadow
+.RS 4
+Ignore errors reading shadow information for users in the account management module\&.
+.RE
+.PP
+minlen=n
+.RS 4
+Set a minimum password length of
+\fIn\fR
+characters\&. The max\&. for DES crypt based passwords is 8 characters\&.
+.RE
+.PP
+no_pass_expiry
+.RS 4
+When set ignore password expiration as defined by the
+\fIshadow\fR
+entry of the user\&. The option has an effect only in case
+\fIpam_unix\fR
+was not used for the authentication or it returned authentication failure meaning that other authentication source or method succeeded\&. The example can be public key authentication in
+\fIsshd\fR\&. The module will return
+\fBPAM_SUCCESS\fR
+instead of eventual
+\fBPAM_NEW_AUTHTOK_REQD\fR
+or
+\fBPAM_AUTHTOK_EXPIRED\fR\&.
+.RE
+.PP
+Invalid arguments are logged with
+\fBsyslog\fR(3)\&.
+.SH "MODULE TYPES PROVIDED"
+.PP
+All module types (\fBaccount\fR,
+\fBauth\fR,
+\fBpassword\fR
+and
+\fBsession\fR) are provided\&.
+.SH "RETURN VALUES"
+.PP
+PAM_IGNORE
+.RS 4
+Ignore this module\&.
+.RE
+.SH "EXAMPLES"
+.PP
+An example usage for
+/etc/pam\&.d/login
+would be:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# Authenticate the user
+auth       required   pam_unix\&.so
+# Ensure user\*(Aqs account and password are still active
+account    required   pam_unix\&.so
+# Change the user\*(Aqs password, but at first check the strength
+# with pam_passwdqc(8)
+password   required   pam_passwdqc\&.so config=/etc/passwdqc\&.conf
+password   required   pam_unix\&.so use_authtok nullok yescrypt
+session    required   pam_unix\&.so
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBlogin.defs\fR(5),
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_unix was written by various people\&.

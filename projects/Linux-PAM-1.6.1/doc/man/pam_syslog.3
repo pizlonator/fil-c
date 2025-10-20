@@ -1,0 +1,77 @@
+'\" t
+.\"     Title: pam_syslog
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_SYSLOG" "3" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_syslog, pam_vsyslog \- send messages to the system logger
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+#include <syslog\&.h>
+.fi
+.ft
+.sp
+.ft B
+.nf
+#include <security/pam_ext\&.h>
+.fi
+.ft
+.HP \w'void\ pam_syslog('u
+.BI "void pam_syslog(const\ pam_handle_t\ *" "pamh" ", int\ " "priority" ", const\ char\ *" "fmt" ", " "\&.\&.\&." ");"
+.HP \w'void\ pam_vsyslog('u
+.BI "void pam_vsyslog(const\ pam_handle_t\ *" "pamh" ", int\ " "priority" ", const\ char\ *" "fmt" ", va_list\ " "args" ");"
+.SH "DESCRIPTION"
+.PP
+The
+\fBpam_syslog\fR
+function logs messages using
+\fBsyslog\fR(3)
+and is intended for internal use by Linux\-PAM and PAM service modules\&. The
+\fIpriority\fR
+argument is formed by ORing the facility and the level values as documented in the
+\fBsyslog\fR(3)
+manual page\&.
+.PP
+The
+\fBpam_vsyslog\fR
+function performs the same task as
+\fBpam_syslog()\fR
+with the difference that it takes a set of arguments which have been obtained using the
+\fBstdarg\fR(3)
+variable argument list macros\&.
+.SH "SEE ALSO"
+.PP
+\fBpam\fR(8)
+.SH "STANDARDS"
+.PP
+The
+\fBpam_syslog\fR
+and
+\fBpam_vsyslog\fR
+functions are Linux\-PAM extensions\&.

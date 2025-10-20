@@ -1,0 +1,58 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_misc_paste_env">
+
+  <refmeta>
+    <refentrytitle>pam_misc_paste_env</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_misc_paste_env-name">
+    <refname>pam_misc_paste_env</refname>
+    <refpurpose>transcribing an environment to that of PAM</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_misc_paste_env-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_misc.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_misc_paste_env</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>const char * const *<parameter>user</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_misc_paste_env-description">
+    <title>DESCRIPTION</title>
+    <para>
+      This function takes the supplied list of environment pointers and
+      <emphasis>uploads</emphasis> its contents to the PAM environment.
+      Success is indicated by <errorname>PAM_SUCCESS</errorname>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_misc_paste_env-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_putenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_misc_paste_env-standards">
+    <title>STANDARDS</title>
+    <para>
+      The <function>pam_misc_paste_env</function> function is part of the
+      <command>libpam_misc</command> Library and not defined in any
+      standard.
+    </para>
+  </refsect1>
+
+</refentry>

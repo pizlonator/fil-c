@@ -1,0 +1,64 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="unix_update">
+
+  <refmeta>
+    <refentrytitle>unix_update</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="unix_update-name">
+    <refname>unix_update</refname>
+    <refpurpose>Helper binary that updates the password of a given user</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="unix_update-cmdsynopsis" sepchar=" ">
+      <command>unix_update</command>
+      <arg choice="opt" rep="norepeat">
+        ...
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="unix_update-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      <emphasis>unix_update</emphasis> is a helper program for the
+      <emphasis>pam_unix</emphasis> module that updates the
+      password of a given user. It is not intended to be run directly
+      from the command line and logs a security violation if done so.
+    </para>
+
+    <para>
+      The purpose of the helper is to enable tighter confinement of
+      login and password changing services. The helper is thus called only
+      when SELinux is enabled on the system.
+    </para>
+
+    <para>
+      The interface of the helper - command line options, and input/output
+      data format are internal to the <emphasis>pam_unix</emphasis>
+      module and it should not be called directly from applications.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="unix_update-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam_unix</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="unix_update-author">
+    <title>AUTHOR</title>
+      <para>
+        Written by Tomas Mraz and other various people.
+      </para>
+  </refsect1>
+
+</refentry>

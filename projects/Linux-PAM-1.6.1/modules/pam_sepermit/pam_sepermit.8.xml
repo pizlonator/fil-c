@@ -1,0 +1,195 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_sepermit">
+
+  <refmeta>
+    <refentrytitle>pam_sepermit</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_sepermit-name">
+    <refname>pam_sepermit</refname>
+    <refpurpose>PAM module to allow/deny login depending on SELinux enforcement state</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_sepermit-cmdsynopsis" sepchar=" ">
+      <command>pam_sepermit.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	conf=<replaceable>/path/to/config/file</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_sepermit-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_sepermit module allows or denies login depending on SELinux
+      enforcement state.
+    </para>
+    <para>
+      When the users which are logging in match an entry in the config file
+      they are allowed access only when SELinux is in enforcing mode. Otherwise
+      they are denied access. For users not matching any entry in the config file
+      the pam_sepermit module returns PAM_IGNORE return value.
+    </para>
+    <para>
+      The config file contains a list of user names one per line with optional arguments. If the
+      <replaceable>name</replaceable> is prefixed with <emphasis>@</emphasis> character it means that all
+      users in the group <replaceable>name</replaceable> match. If it is prefixed
+      with a <emphasis>%</emphasis> character the SELinux user is used to match against the <replaceable>name</replaceable>
+      instead of the account name. Note that when SELinux is disabled the
+      SELinux user assigned to the account cannot be determined. This means that
+      such entries are never matched when SELinux is disabled and pam_sepermit
+      will return PAM_IGNORE.
+    </para>
+    <para>
+      See <citerefentry>
+      <refentrytitle>sepermit.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry> for details.
+    </para>
+      <para condition="with_vendordir">
+      If there is no explicitly specified configuration file and
+      <filename>/etc/security/sepermit.conf</filename> does not exist,
+      <filename>%vendordir%/security/sepermit.conf</filename> is used.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+           Turns on debugging via
+	    <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          conf=/path/to/config/file
+        </term>
+        <listitem>
+          <para>
+            Path to alternative config file overriding the default.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option> and <option>account</option>
+      module types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            SELinux is disabled or in the permissive mode and the user
+            matches.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            SELinux is in the enforcing mode and the user matches.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            The user does not match any entry in the config file.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            The module was unable to determine the user's name.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+          <para>
+            Error during reading or parsing the config file.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/etc/security/sepermit.conf</term>
+        <listitem>
+          <para>Default configuration file</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-examples">
+    <title>EXAMPLES</title>
+    <programlisting>
+auth     [success=done ignore=ignore default=bad] pam_sepermit.so
+auth     required  pam_unix.so
+account  required  pam_unix.so
+session  required  pam_permit.so
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>sepermit.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+      <citerefentry>
+	<refentrytitle>selinux</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_sepermit-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_sepermit and this manual page were written by Tomas Mraz &lt;tmraz@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

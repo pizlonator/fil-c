@@ -1,0 +1,125 @@
+'\" t
+.\"     Title: pam_ftp
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.2 <http://docbook.sf.net/>
+.\"      Date: 04/09/2024
+.\"    Manual: Linux-PAM Manual
+.\"    Source: Linux-PAM
+.\"  Language: English
+.\"
+.TH "PAM_FTP" "8" "04/09/2024" "Linux\-PAM" "Linux\-PAM Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+pam_ftp \- PAM module for anonymous access module
+.SH "SYNOPSIS"
+.HP \w'\fBpam_ftp\&.so\fR\ 'u
+\fBpam_ftp\&.so\fR [debug] [ignore] [users=\fIXXX,YYY,\fR...]
+.SH "DESCRIPTION"
+.PP
+pam_ftp is a PAM module which provides a pluggable anonymous ftp mode of access\&.
+.PP
+This module intercepts the user\*(Aqs name and password\&. If the name is
+\fIftp\fR
+or
+\fIanonymous\fR, the user\*(Aqs password is broken up at the
+\fI@\fR
+delimiter into a
+\fIPAM_RUSER\fR
+and a
+\fIPAM_RHOST\fR
+part; these pam\-items being set accordingly\&. The username (\fIPAM_USER\fR) is set to
+\fIftp\fR\&. In this case the module succeeds\&. Alternatively, the module sets the
+\fIPAM_AUTHTOK\fR
+item with the entered password and fails\&.
+.PP
+This module is not safe and easily spoofable\&.
+.SH "OPTIONS"
+.PP
+.PP
+debug
+.RS 4
+Print debug information\&.
+.RE
+.PP
+ignore
+.RS 4
+Pay no attention to the email address of the user (if supplied)\&.
+.RE
+.PP
+ftp=XXX,YYY,\&.\&.\&.
+.RS 4
+Instead of
+\fIftp\fR
+or
+\fIanonymous\fR, provide anonymous login to the comma separated list of users:
+\fB\fIXXX,YYY,\&.\&.\&.\fR\fR\&. Should the applicant enter one of these usernames the returned username is set to the first in the list:
+\fIXXX\fR\&.
+.RE
+.SH "MODULE TYPES PROVIDED"
+.PP
+Only the
+\fBauth\fR
+module type is provided\&.
+.SH "RETURN VALUES"
+.PP
+.PP
+PAM_SUCCESS
+.RS 4
+The authentication was successful\&.
+.RE
+.PP
+PAM_USER_UNKNOWN
+.RS 4
+User not known\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Add the following line to
+/etc/pam\&.d/ftpd
+to handle ftp style anonymous login:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+#
+# ftpd; add ftp\-specifics\&. These lines enable anonymous ftp over
+#       standard UN*X access (the listfile entry blocks access to
+#       users listed in /etc/ftpusers)
+#
+auth    sufficient  pam_ftp\&.so
+auth    required    pam_unix\&.so use_first_pass
+auth    required    pam_listfile\&.so \e
+           onerr=succeed item=user sense=deny file=/etc/ftpusers
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "SEE ALSO"
+.PP
+\fBpam.conf\fR(5),
+\fBpam.d\fR(5),
+\fBpam\fR(8)
+.SH "AUTHOR"
+.PP
+pam_ftp was written by Andrew G\&. Morgan <morgan@kernel\&.org>\&.

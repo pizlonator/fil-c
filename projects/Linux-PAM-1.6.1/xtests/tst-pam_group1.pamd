@@ -1,0 +1,6 @@
+#%PAM-1.0
+auth     required       pam_group.so
+auth	 required	pam_permit.so
+account  required       pam_permit.so
+password required       pam_permit.so
+session  required       pam_permit.so

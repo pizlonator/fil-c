@@ -1,0 +1,172 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_nologin">
+
+  <refmeta>
+    <refentrytitle>pam_nologin</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_nologin-name">
+    <refname>pam_nologin</refname>
+    <refpurpose>Prevent non-root users from login</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_nologin-cmdsynopsis" sepchar=" ">
+      <command>pam_nologin.so</command>
+      <arg choice="opt" rep="norepeat">
+        file=<replaceable>/path/nologin</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        successok
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_nologin-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      pam_nologin is a PAM module that prevents users from logging into
+      the system when <filename>/var/run/nologin</filename> or
+      <filename>/etc/nologin</filename> exists. The contents
+      of the file are displayed to the user. The pam_nologin module
+      has no effect on the root user's ability to log in.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-options">
+
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          file=/path/nologin
+        </term>
+        <listitem>
+          <para>
+            Use this file instead the default
+            <filename>/var/run/nologin</filename> or
+            <filename>/etc/nologin</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          successok
+        </term>
+        <listitem>
+          <para>
+            Return PAM_SUCCESS if no file exists, the default is PAM_IGNORE.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option> and <option>account</option> module
+      types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            The user is not root and <filename>/etc/nologin</filename>
+            exists, so the user is not permitted to log in.
+          </para>
+        </listitem>
+      </varlistentry>
+     <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+          <para>Memory buffer error.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            This is the default return value.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Success:  either  the user is root or the
+            nologin file does not exist.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User not known to the underlying authentication module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-examples">
+    <title>EXAMPLES</title>
+    <para>
+      The suggested usage for <filename>/etc/pam.d/login</filename> is:
+      <programlisting>
+auth  required  pam_nologin.so
+      </programlisting>
+    </para>
+  </refsect1>
+  <refsect1 xml:id="pam_nologin-note">
+    <title>NOTES</title>
+    <para>
+      In order to make this module effective, all login methods should be
+      secured by it. It should be used as a <emphasis>required</emphasis>
+      method listed before any <emphasis>sufficient</emphasis> methods in
+      order to get standard Unix nologin semantics. Note, the use of
+      <option>successok</option> module argument causes the module to
+      return <emphasis>PAM_SUCCESS</emphasis> and as such would break
+      such a configuration - failing <emphasis>sufficient</emphasis> modules
+      would lead to a successful login because the nologin module
+      <emphasis>succeeded</emphasis>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>nologin</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_nologin-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_nologin was written by Michael K. Johnson &lt;johnsonm@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

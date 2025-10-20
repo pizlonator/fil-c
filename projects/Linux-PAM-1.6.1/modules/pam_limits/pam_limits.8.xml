@@ -1,0 +1,278 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_limits">
+
+  <refmeta>
+    <refentrytitle>pam_limits</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_limits-name">
+    <refname>pam_limits</refname>
+    <refpurpose>
+      PAM module to limit resources
+    </refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_limits-cmdsynopsis" sepchar=" ">
+      <command>pam_limits.so</command>
+      <arg choice="opt" rep="norepeat">
+        conf=<replaceable>/path/to/limits.conf</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        set_all
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        utmp_early
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        noaudit
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_limits-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_limits PAM module sets limits on the system resources that can be
+      obtained in a user-session. Users of <emphasis>uid=0</emphasis> are affected
+      by this limits, too.
+    </para>
+    <para condition="without_vendordir">
+      By default limits are taken from the <filename>/etc/security/limits.conf</filename>
+      config file. Then individual *.conf files from the <filename>/etc/security/limits.d/</filename>
+      directory are read. The files are parsed one after another in the order of "C" locale.
+      The effect of the individual files is the same as if all the files were
+      concatenated together in the order of parsing.
+      If a config file is explicitly specified with a module option then the
+      files in the above directory are not parsed.
+    </para>
+    <para condition="with_vendordir">
+      By default limits are taken from the <filename>/etc/security/limits.conf</filename>
+      config file or, if that one is not present, the file
+      <filename>%vendordir%/security/limits.conf</filename>.
+      Then individual <filename>*.conf</filename> files from the
+      <filename>/etc/security/limits.d/</filename> and
+      <filename>%vendordir%/security/limits.d</filename> directories are read.
+      If <filename>/etc/security/limits.d/@filename@.conf</filename> exists, then
+      <filename>%vendordir%/security/limits.d/@filename@.conf</filename> will not be used.
+      All <filename>limits.d/*.conf</filename> files are sorted by their
+      <filename>@filename@.conf</filename> in lexicographic order regardless of which
+      of the directories they reside in.
+      The effect of the individual files is the same as if all the files were
+      concatenated together in the order of parsing.
+      If a config file is explicitly specified with the <option>config</option>
+      option the files in the above directories are not parsed.
+    </para>
+    <para>
+      The module must not be called by a multithreaded application.
+    </para>
+    <para>
+      If Linux PAM is compiled with audit support the module will report
+      when it denies access based on limit of maximum number of concurrent
+      login sessions.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          conf=/path/to/limits.conf
+        </term>
+        <listitem>
+          <para>
+            Indicate an alternative limits.conf style configuration file to
+            override the default.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+            Print debug information.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          set_all
+        </term>
+        <listitem>
+          <para>
+            Set the limits for which no value is specified in the
+            configuration file to the one from the process with the
+            PID 1. Please note that if the init process is systemd
+            these limits will not be the kernel default limits and
+            this option should not be used.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          utmp_early
+        </term>
+        <listitem>
+          <para>
+            Some broken applications actually allocate a utmp entry for
+            the user before the user is admitted to the system. If some
+            of the services you are configuring PAM for do this, you can
+            selectively use this module argument to compensate for this
+            behavior and at the same time maintain system-wide consistency
+            with a single limits.conf file.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          noaudit
+        </term>
+        <listitem>
+          <para>
+            Do not report exceeded maximum logins count to the audit subsystem.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>session</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+             Cannot get current limits.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+           <para>
+             No limits found for this user.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+          <para>
+            New limits could not be set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+           <para>
+             Cannot read config file.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SESSION_ERR</term>
+        <listitem>
+           <para>
+             Error recovering account name.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Limits were changed.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+           <para>
+             The user is not known to the system.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/etc/security/limits.conf</term>
+        <listitem>
+          <para>Default configuration file</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term>%vendordir%/security/limits.conf</term>
+        <listitem>
+          <para>Default configuration file if
+	  <filename>/etc/security/limits.conf</filename> does not exist.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-examples">
+    <title>EXAMPLES</title>
+    <para>
+      For the services you need resources limits (login for example) put a
+      the following line in <filename>/etc/pam.d/login</filename> as the last
+      line for that service (usually after the pam_unix session line):
+    </para>
+    <programlisting>
+#%PAM-1.0
+#
+# Resource limits imposed on login sessions via pam_limits
+#
+session  required  pam_limits.so
+    </programlisting>
+    <para>
+      Replace "login" for each service you are using this module.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>limits.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_limits-authors">
+    <title>AUTHORS</title>
+    <para>
+      pam_limits was initially written by Cristian Gafton &lt;gafton@redhat.com&gt;
+    </para>
+  </refsect1>
+</refentry>

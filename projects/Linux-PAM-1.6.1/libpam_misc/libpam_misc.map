@@ -1,0 +1,17 @@
+LIBPAM_MISC_1.0 {
+  global:
+    misc_conv;
+    pam_misc_conv_warn_time;
+    pam_misc_conv_die_time;
+    pam_misc_conv_warn_line;
+    pam_misc_conv_die_line;
+    pam_misc_conv_died;
+    pam_binary_handler_fn;
+    pam_binary_handler_free;
+    pam_misc_paste_env;
+    pam_misc_drop_env;
+    pam_misc_setenv;
+
+  local:
+    *;
+};

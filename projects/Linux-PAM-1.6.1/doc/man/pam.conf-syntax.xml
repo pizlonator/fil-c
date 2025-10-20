@@ -1,0 +1,423 @@
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam.conf-syntax">
+  <para>
+    The syntax of the <filename>/etc/pam.conf</filename>
+    configuration file is as follows. The file is made up of a list
+    of rules, each rule is typically placed on a single line,
+    but may be extended with an escaped end of line: `\&lt;LF&gt;'.
+    Comments are preceded with `#' marks and extend to the next end of
+    line.
+  </para>
+
+    <para>
+      The format of each rule is a space separated collection of tokens,
+      the first three being case-insensitive:
+    </para>
+
+    <para>
+      <emphasis remap="B"> service  type  control  module-path  module-arguments</emphasis>
+    </para>
+
+    <para>
+      The syntax of files contained in the <filename>/etc/pam.d/</filename>
+      directory, are identical except for the absence of any
+      <emphasis>service</emphasis> field. In this case, the
+      <emphasis>service</emphasis> is the name of the file in the
+      <filename>/etc/pam.d/</filename> directory. This filename must be
+      in lower case.
+    </para>
+
+    <para>
+      An important feature of <emphasis>PAM</emphasis>, is that a
+      number of rules may be <emphasis>stacked</emphasis> to combine
+      the services of a number of PAMs for a given authentication task.
+    </para>
+
+    <para>
+      The <emphasis>service</emphasis> is typically the familiar name of
+      the corresponding application: <emphasis>login</emphasis> and
+      <emphasis>su</emphasis> are good examples. The
+      <emphasis>service</emphasis>-name, <emphasis>other</emphasis>,
+      is reserved for giving <emphasis>default</emphasis> rules.
+      Only lines that mention the current service (or in the absence
+      of such, the <emphasis>other</emphasis> entries) will be associated
+      with the given service-application.
+    </para>
+
+    <para>
+      The <emphasis>type</emphasis> is the management group that the rule
+      corresponds to. It is used to specify which of the management groups
+      the subsequent module is to be associated with. Valid entries are:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>account</term>
+        <listitem>
+          <para>
+            this module type performs non-authentication based account
+            management. It is typically used to restrict/permit access
+            to a service based on the time of day, currently available
+            system resources (maximum number of users) or perhaps the
+            location of  the applicant user -- 'root' login only on the
+            console.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>auth</term>
+        <listitem>
+          <para>
+            this module type provides two aspects of authenticating
+            the user. Firstly, it establishes that the user is who they
+            claim to be, by instructing the application to prompt the user
+            for a password or other means of identification. Secondly, the
+            module can grant group membership or other privileges through
+            its credential granting properties.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>password</term>
+        <listitem>
+          <para>
+            this module type is required for updating the authentication
+            token associated with the user. Typically, there is one module
+            for each 'challenge/response' based authentication (auth) type.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>session</term>
+        <listitem>
+          <para>
+            this module type is associated with doing things that need to
+            be done for the user before/after they can be given service.
+            Such things include the logging of information concerning the
+            opening/closing of some data exchange with a user, mounting
+            directories, etc.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      If the <emphasis>type</emphasis> value from the list above is prepended
+      with a <emphasis>-</emphasis> character the PAM library will not log to
+      the system log if it is not possible to load the module because it is
+      missing in the system. This can be useful especially for modules which
+      are not always installed on the system and are not required for correct
+      authentication and authorization of the login session.
+    </para>
+
+    <para>
+      The third field, <emphasis>control</emphasis>, indicates the
+      behavior of the PAM-API should the module fail to succeed in its
+      authentication task. There are two types of syntax for this control
+      field: the simple one has a single simple keyword; the more
+      complicated one involves a square-bracketed selection of
+      <emphasis>value=action</emphasis> pairs.
+    </para>
+
+    <para>
+      For the simple (historical) syntax valid <emphasis>control</emphasis>
+      values are:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>required</term>
+        <listitem>
+          <para>
+            failure of such a PAM will ultimately lead to the PAM-API
+            returning failure but only after the remaining
+            <emphasis>stacked</emphasis> modules (for this
+            <emphasis>service</emphasis> and <emphasis>type</emphasis>)
+            have been invoked.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>requisite</term>
+        <listitem>
+          <para>
+            like <emphasis>required</emphasis>, however, in the case that
+            such a module returns a failure, control is directly returned
+            to the application or to the superior PAM stack.
+            The return value is that associated with
+            the first required or requisite module to fail. Note, this flag
+            can be used to protect against the possibility of a user getting
+            the opportunity to enter a password over an unsafe medium. It is
+            conceivable that such behavior might inform an attacker of valid
+            accounts on a system. This possibility should be weighed against
+            the not insignificant concerns of exposing a sensitive password
+            in a hostile environment.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>sufficient</term>
+        <listitem>
+          <para>
+            if such a module succeeds and no prior <emphasis>required</emphasis>
+            module has failed the PAM framework returns success to
+            the application or to the superior PAM stack immediately without
+            calling any further modules in the stack. A failure of a
+            <emphasis>sufficient</emphasis> module is ignored and processing
+            of the PAM module stack continues unaffected.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>optional</term>
+        <listitem>
+          <para>
+            the success or failure of this module is only important if
+            it is the only module in the stack associated with this
+            <emphasis>service</emphasis>+<emphasis>type</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>include</term>
+        <listitem>
+          <para>
+            include all lines of given type from the configuration
+            file specified as an argument to this control.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>substack</term>
+        <listitem>
+          <para>
+            include all lines of given type from the configuration
+            file specified as an argument to this control. This differs from
+            <emphasis>include</emphasis> in that evaluation of the
+            <emphasis>done</emphasis> and <emphasis>die</emphasis> actions
+            in a substack does not cause skipping the rest of the complete
+            module stack, but only of the substack. Jumps in a substack
+            also can not make evaluation jump out of it, and the whole substack
+            is counted as one module when the jump is done in a parent stack.
+            The <emphasis>reset</emphasis> action will reset the state of a
+            module stack to the state it was in as of beginning of the substack
+            evaluation.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      For the more complicated syntax valid <emphasis>control</emphasis>
+      values have the following form:
+    </para>
+    <programlisting>
+      [value1=action1 value2=action2 ...]
+    </programlisting>
+
+    <para>
+      Where <emphasis>valueN</emphasis> corresponds to the return code
+      from the function invoked in the module for which the line is
+      defined. It is selected from one of these:
+      <emphasis>success</emphasis>, <emphasis>open_err</emphasis>,
+      <emphasis>symbol_err</emphasis>, <emphasis>service_err</emphasis>,
+      <emphasis>system_err</emphasis>, <emphasis>buf_err</emphasis>,
+      <emphasis>perm_denied</emphasis>, <emphasis>auth_err</emphasis>,
+      <emphasis>cred_insufficient</emphasis>,
+      <emphasis>authinfo_unavail</emphasis>,
+      <emphasis>user_unknown</emphasis>, <emphasis>maxtries</emphasis>,
+      <emphasis>new_authtok_reqd</emphasis>,
+      <emphasis>acct_expired</emphasis>, <emphasis>session_err</emphasis>,
+      <emphasis>cred_unavail</emphasis>, <emphasis>cred_expired</emphasis>,
+      <emphasis>cred_err</emphasis>, <emphasis>no_module_data</emphasis>,
+      <emphasis>conv_err</emphasis>, <emphasis>authtok_err</emphasis>,
+      <emphasis>authtok_recover_err</emphasis>,
+      <emphasis>authtok_lock_busy</emphasis>,
+      <emphasis>authtok_disable_aging</emphasis>,
+      <emphasis>try_again</emphasis>, <emphasis>ignore</emphasis>,
+      <emphasis>abort</emphasis>, <emphasis>authtok_expired</emphasis>,
+      <emphasis>module_unknown</emphasis>, <emphasis>bad_item</emphasis>,
+      <emphasis>conv_again</emphasis>, <emphasis>incomplete</emphasis>,
+      and <emphasis>default</emphasis>.
+    </para>
+    <para>
+      The last of these, <emphasis>default</emphasis>, implies 'all
+      <emphasis>valueN</emphasis>'s not mentioned explicitly. Note, the
+      full list of PAM errors is available in
+      <filename>/usr/include/security/_pam_types.h</filename>. The
+      <emphasis>actionN</emphasis> can take one of the following forms:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>ignore</term>
+        <listitem>
+           <para>
+             when used with a stack of modules, the module's return
+             status will not contribute to the return code the application
+             obtains.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>bad</term>
+        <listitem>
+           <para>
+             this action indicates that the return code should be thought
+             of as indicative of the module failing. If this module is the
+             first in the stack to fail, its status value will be used for
+             that of the whole stack.  This is the default action for
+             all return codes.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>die</term>
+        <listitem>
+           <para>
+             equivalent to <emphasis>bad</emphasis> with the side effect of
+             terminating the module stack and PAM immediately returning to
+             the application.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>ok</term>
+        <listitem>
+           <para>
+             this tells PAM that the administrator thinks this return code
+             should contribute directly to the return code of the full
+             stack of modules. In other words, if the former state of the
+             stack would lead to a return of <emphasis>PAM_SUCCESS</emphasis>,
+             the module's return code will override this value. Note, if
+             the former state of the stack holds some value that is
+             indicative of a modules failure, this 'ok' value will not be
+             used to override that value.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>done</term>
+        <listitem>
+           <para>
+             equivalent to <emphasis>ok</emphasis> with the side effect of
+             terminating the module stack and PAM immediately returning to the
+             application unless there was a non-ignored module failure before.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>N (an unsigned integer)</term>
+        <listitem>
+           <para>
+             jump over the next N modules in the stack.
+             Note that N equal to 0 is not allowed,
+             it would be treated as <emphasis>ignore</emphasis> in such case.
+             The side effect depends on the PAM function call:
+             for <emphasis>pam_authenticate</emphasis>,
+             <emphasis>pam_acct_mgmt</emphasis>,
+             <emphasis>pam_chauthtok</emphasis>, and
+             <emphasis>pam_open_session</emphasis>
+             it is <emphasis>ignore</emphasis>;
+             for <emphasis>pam_setcred</emphasis> and
+             <emphasis>pam_close_session</emphasis> it is
+             one of <emphasis>ignore</emphasis>, <emphasis>ok</emphasis>,
+             or <emphasis>bad</emphasis> depending on the module's return value.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>reset</term>
+        <listitem>
+           <para>
+             clear all memory of the state of the module stack and
+             start again with the next stacked module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      If a return code's action is not specifically defined via a
+      <emphasis>valueN</emphasis> token, and the
+      <emphasis>default</emphasis> value is not specified, that return
+      code's action defaults to <emphasis>bad</emphasis>.
+    </para>
+
+    <para>
+      Each of the four keywords: required; requisite; sufficient; and
+      optional, have an equivalent expression in terms of the [...]
+      syntax. They are as follows:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>required</term>
+        <listitem>
+           <para>
+             [success=ok new_authtok_reqd=ok ignore=ignore default=bad]
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>requisite</term>
+        <listitem>
+           <para>
+             [success=ok new_authtok_reqd=ok ignore=ignore default=die]
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>sufficient</term>
+        <listitem>
+           <para>
+             [success=done new_authtok_reqd=done default=ignore]
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>optional</term>
+        <listitem>
+           <para>
+             [success=ok new_authtok_reqd=ok default=ignore]
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      <emphasis>module-path</emphasis> is either the full filename
+      of the PAM to be used by the application (it begins with a '/'),
+      or a relative pathname from the default module location:
+      <filename>/lib/security/</filename> or
+      <filename>/lib64/security/</filename>, depending on the architecture.
+    </para>
+
+    <para>
+      <emphasis>module-arguments</emphasis> are a space separated list
+      of tokens that can be used to modify the specific behavior of the
+      given PAM. Such arguments will be documented for each individual
+      module. Note, if you wish to include spaces in an argument, you
+      should surround that argument with square brackets.
+    </para>
+    <programlisting>
+    squid auth required pam_mysql.so user=passwd_query passwd=mada \
+          db=eminence [query=select user_name from internet_service \
+          where user_name='%u' and password=PASSWORD('%p') and \
+        service='web_proxy']
+    </programlisting>
+    <para>
+      When using this convention, you can include `[' characters
+      inside the string, and if you wish to include a `]' character
+      inside the string that will survive the argument parsing, you
+      should use `\]'. In other words:
+    </para>
+    <programlisting>
+    [..[..\]..]    --&gt;   ..[..]..
+    </programlisting>
+
+    <para>
+      Any line in (one of) the configuration file(s), that is not formatted
+      correctly, will generally tend (erring on the side of caution) to make
+      the authentication process fail.  A corresponding error is written to
+      the system log files with a call to
+      <citerefentry>
+        <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+
+</section>
