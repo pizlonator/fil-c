@@ -98,7 +98,7 @@ build_triplet = @build@
 host_triplet = @host@
 @HAVE_DOC_TRUE@@WITH_SELINUX_TRUE@am__append_1 = pwhistory_helper.8
 @WITH_SELINUX_TRUE@am__append_2 = pwhistory_helper.8.xml
-@HAVE_VERSIONING_TRUE@am__append_3 = -Wl,--version-script=$(srcdir)/../modules.map
+@HAVE_VERSIONING_TRUE@am__append_3 = --version-script=$(srcdir)/../modules.map
 @WITH_SELINUX_TRUE@sbin_PROGRAMS = pwhistory_helper$(EXEEXT)
 check_PROGRAMS = tst-pam_pwhistory-retval$(EXEEXT)
 subdir = modules/pam_pwhistory

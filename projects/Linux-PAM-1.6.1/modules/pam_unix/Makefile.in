@@ -97,7 +97,7 @@ build_triplet = @build@
 host_triplet = @host@
 @HAVE_DOC_TRUE@@WITH_SELINUX_TRUE@am__append_1 = unix_update.8
 @WITH_SELINUX_TRUE@am__append_2 = unix_update.8.xml
-@HAVE_VERSIONING_TRUE@am__append_3 = -Wl,--version-script=$(srcdir)/../modules.map
+@HAVE_VERSIONING_TRUE@am__append_3 = --version-script=$(srcdir)/../modules.map
 sbin_PROGRAMS = unix_chkpwd$(EXEEXT) $(am__EXEEXT_1)
 @WITH_SELINUX_TRUE@am__append_4 = unix_update
 noinst_PROGRAMS = bigcrypt$(EXEEXT)

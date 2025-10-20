@@ -97,7 +97,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@HAVE_VERSIONING_TRUE@am__append_1 = -Wl,--version-script=$(srcdir)/../modules.map
+@HAVE_VERSIONING_TRUE@am__append_1 = --version-script=$(srcdir)/../modules.map
 check_PROGRAMS = tst-pam_faillock-retval$(EXEEXT)
 sbin_PROGRAMS = faillock$(EXEEXT)
 subdir = modules/pam_faillock

@@ -96,7 +96,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@HAVE_VERSIONING_TRUE@am__append_1 = -Wl,--version-script=$(srcdir)/../modules.map
+@HAVE_VERSIONING_TRUE@am__append_1 = --version-script=$(srcdir)/../modules.map
 sbin_PROGRAMS = pam_timestamp_check$(EXEEXT)
 @COND_USE_OPENSSL_TRUE@am__append_2 = hmac_openssl_wrapper.c
 @COND_USE_OPENSSL_FALSE@am__append_3 = hmacsha1.c sha1.c

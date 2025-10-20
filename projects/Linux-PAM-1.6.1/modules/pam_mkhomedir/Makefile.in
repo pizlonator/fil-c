@@ -95,7 +95,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@HAVE_VERSIONING_TRUE@am__append_1 = -Wl,--version-script=$(srcdir)/../modules.map
+@HAVE_VERSIONING_TRUE@am__append_1 = --version-script=$(srcdir)/../modules.map
 sbin_PROGRAMS = mkhomedir_helper$(EXEEXT)
 check_PROGRAMS = tst-pam_mkhomedir-retval$(EXEEXT)
 subdir = modules/pam_mkhomedir
