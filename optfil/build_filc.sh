@@ -56,36 +56,6 @@ test `id -u` -eq `id -u $FILCOWNER`
 
 cd $FILCSRC
 
-cd projects/yolo-glibc-2.40
-git archive --format=tar HEAD --prefix=pizlonated-yolo-glibc/ | tar -xf -
-git diff --relative HEAD . | (cd pizlonated-yolo-glibc && patch -p1)
-cd pizlonated-yolo-glibc
-autoconf
-cd ..
-tar -czf pizlonated-yolo-glibc.tar.gz pizlonated-yolo-glibc
-rm -rf pizlonated-yolo-glibc
-cd ../..
-
-cd projects/user-glibc-2.40
-git archive --format=tar HEAD --prefix=pizlonated-user-glibc/ | tar -xf -
-git diff --relative HEAD . | (cd pizlonated-user-glibc && patch -p1)
-cd pizlonated-user-glibc
-autoconf
-cd ..
-tar -czf pizlonated-user-glibc.tar.gz pizlonated-user-glibc
-rm -rf pizlonated-user-glibc
-cd ../..
-
-./package-source.sh projects/libxcrypt-4.4.36 pizlonated-libxcrypt
-./package-source.sh projects/xz-5.6.2 pizlonated-xz
-./package-source.sh projects/pkgconf-2.3.0 pizlonated-pkgconf
-./package-source.sh projects/bash-5.2.32 pizlonated-bash
-./package-source.sh projects/openssl-3.3.1 pizlonated-openssl
-./package-source.sh projects/libffi-3.4.6 pizlonated-libffi
-./package-source.sh projects/sudo-1.9.15p5 pizlonated-sudo
-./package-source.sh projects/openssh-9.8p1 pizlonated-openssh
-./package-source.sh projects/binutils-2.43.1 pizlonated-binutils
-
 test -d filc
 test -d llvm
 test -d clang

@@ -5,7 +5,7 @@
 AM_CFLAGS = -DDEFAULT_MODULE_PATH=\"$(SECUREDIR)/\" -DLIBPAM_COMPILE \
 	-DLOCALEDIR=\"$(localedir)\" -I$(top_srcdir)/libpam_internal/include \
 	-I$(srcdir)/include $(LIBPRELUDE_CFLAGS) $(ECONF_CFLAGS) \
-	-DPAM_VERSION=\"$(VERSION)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
+	-DPAM_VERSION=\"$(VERSION)\" -DSYSCONFDIR=\"$(sysconfdir)\" -DLIBDIR=\"$(libdir)\" \
 	$(WARN_CFLAGS)
 
 CLEANFILES = *~

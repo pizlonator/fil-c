@@ -39,40 +39,36 @@ test -d $FILCSRC/optfil
 FILCOWNER=`stat -c %U $FILCSRC`
 test `id -u` -eq `id -u $FILCOWNER`
 
-cd $FILCSRC/optfil
+cd $FILCSRC
 
-. ../libpas/common.sh
+cd projects/yolo-glibc-2.40
+git archive --format=tar HEAD --prefix=pizlonated-yolo-glibc/ | tar -xf -
+git diff --relative HEAD . | (cd pizlonated-yolo-glibc && patch -p1)
+cd pizlonated-yolo-glibc
+autoconf
+cd ..
+tar -czf pizlonated-yolo-glibc.tar.gz pizlonated-yolo-glibc
+rm -rf pizlonated-yolo-glibc
+cd ../..
 
-package_name=optfil-0.673-$OS-$ARCH
+cd projects/user-glibc-2.40
+git archive --format=tar HEAD --prefix=pizlonated-user-glibc/ | tar -xf -
+git diff --relative HEAD . | (cd pizlonated-user-glibc && patch -p1)
+cd pizlonated-user-glibc
+autoconf
+cd ..
+tar -czf pizlonated-user-glibc.tar.gz pizlonated-user-glibc
+rm -rf pizlonated-user-glibc
+cd ../..
 
-rm -rf $package_name
-mkdir -v $package_name
+./package-source.sh projects/libxcrypt-4.4.36 pizlonated-libxcrypt
+./package-source.sh projects/xz-5.6.2 pizlonated-xz
+./package-source.sh projects/pkgconf-2.3.0 pizlonated-pkgconf
+./package-source.sh projects/bash-5.2.32 pizlonated-bash
+./package-source.sh projects/openssl-3.3.1 pizlonated-openssl
+./package-source.sh projects/libffi-3.4.6 pizlonated-libffi
+./package-source.sh projects/sudo-1.9.15p5 pizlonated-sudo
+./package-source.sh projects/openssh-9.8p1 pizlonated-openssh
+./package-source.sh projects/binutils-2.43.1 pizlonated-binutils
+./package-source.sh projects/Linux-PAM-1.6.1 pizlonated-pam
 
-cp -v fil.tar $package_name/
-cp -v ../README.md $package_name/
-cp -v ../LLVM-LICENSE.txt $package_name/
-cp -v ../libpas/LICENSE.txt $package_name/PAS-LICENSE.txt
-cp -v setup.sh $package_name/
-
-# Copy all project license files
-cp -v bash-LICENSE.txt $package_name/
-cp -v bzip2-LICENSE.txt $package_name/
-cp -v coreutils-LICENSE.txt $package_name/
-cp -v glibc-LICENSE.txt $package_name/
-cp -v libffi-LICENSE.txt $package_name/
-cp -v libxcrypt-LICENSE.txt $package_name/
-cp -v lz4-LICENSE.txt $package_name/
-cp -v mg-LICENSE.txt $package_name/
-cp -v ncurses-LICENSE.txt $package_name/
-cp -v openssh-LICENSE.txt $package_name/
-cp -v openssl-LICENSE.txt $package_name/
-cp -v pkgconf-LICENSE.txt $package_name/
-cp -v readline-LICENSE.txt $package_name/
-cp -v xz-LICENSE.txt $package_name/
-cp -v zlib-LICENSE.txt $package_name/
-cp -v zstd-LICENSE.txt $package_name/
-cp -v binutils-LICENSE.txt $package_name/
-cp -v audit-LICENSE.txt $package_name/
-cp -v PAM-LICENSE.txt $package_name/
-
-tar -cJf $package_name.tar.xz $package_name
