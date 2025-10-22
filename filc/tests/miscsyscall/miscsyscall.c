@@ -575,6 +575,12 @@ int main(int argc, char** argv)
 
     ZASSERT(secure_getenv("PATH"));
 
+#ifndef __USE_GNU
+    struct winsize ws;
+    int result = tcgetwinsize(0, &ws);
+    ZASSERT(!result || (result == -1 && errno == ENOTTY));
+#endif
+
     zprintf("No worries.\n");
     return 0;
 }
