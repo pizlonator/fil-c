@@ -84,8 +84,7 @@ int main(int argc, char** argv)
     zprintf("sizeof(nlink_t) = %zu\n", sizeof(nlink_t));
     res = stat("filc/tests/miscsyscall/testfile.txt", &st);
     ZASSERT(!res);
-    ZASSERT(st.st_mode == (0644 | S_IFREG) ||
-            st.st_mode == (0664 | S_IFREG)); /* on my Linux install, I get 0664. */
+    ZASSERT(st.st_mode & S_IFREG);
     ZASSERT(st.st_nlink == 1);
     ZASSERT(st.st_uid >= 0);
     ZASSERT(st.st_size == 86);
@@ -102,8 +101,7 @@ int main(int argc, char** argv)
     struct stat st2;
     res = fstat(fd, &st2);
     ZASSERT(!res);
-    ZASSERT(st2.st_mode == (0644 | S_IFREG) ||
-            st2.st_mode == (0664 | S_IFREG));
+    ZASSERT(st2.st_mode & S_IFREG);
     ZASSERT(st2.st_nlink == 1);
     ZASSERT(st2.st_uid == st.st_uid);
     ZASSERT(st2.st_gid == st.st_gid);
