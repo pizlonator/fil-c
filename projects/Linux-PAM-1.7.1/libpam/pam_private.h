@@ -25,11 +25,11 @@
 
 /* the Linux-PAM configuration file */
 
-#define PAM_CONFIG         "/etc/pam.conf"
-#define PAM_CONFIG_D       "/etc/pam.d"
-#define PAM_CONFIG_DF      "/etc/pam.d/%s"
-#define PAM_CONFIG_DIST_D  "/usr/lib/pam.d"
-#define PAM_CONFIG_DIST_DF "/usr/lib/pam.d/%s"
+#define PAM_CONFIG         SYSCONFDIR"/pam.conf"
+#define PAM_CONFIG_D       SYSCONFDIR"/pam.d"
+#define PAM_CONFIG_DF      SYSCONFDIR"/pam.d/%s"
+#define PAM_CONFIG_DIST_D  LIBDIR"/pam.d"
+#define PAM_CONFIG_DIST_DF LIBDIR"/pam.d/%s"
 #ifdef VENDORDIR
 #define PAM_CONFIG_DIST2_D  VENDORDIR"/pam.d"
 #define PAM_CONFIG_DIST2_DF VENDORDIR"/pam.d/%s"

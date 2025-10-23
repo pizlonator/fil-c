@@ -42,6 +42,7 @@ cdata.set_quoted('PAM_VERSION', meson.project_version())
 cdata.set('UNUSED', '__attribute__((__unused__))')
 cdata.set('PAM_NO_HEADER_FUNCTIONS', 1, description: 'Disable function bodies in headers')
 cdata.set_quoted('SYSCONFDIR', sysconfdir)
+cdata.set_quoted('LIBDIR', libdir)
 cdata.set_quoted('LTDIR', '')
 # used in configure_file() only, so not quoted
 cdata.set('sbindir', sbindir)
