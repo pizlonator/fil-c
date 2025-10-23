@@ -405,12 +405,23 @@ make -j `nproc` install
 cd ..
 rm -rf audit-userspace-4.1.2
 
-tar -xf $FILCSRC/projects/Linux-PAM-1.6.1/pizlonated-pam.tar.gz
+tar -xf $FILCSRC/projects/Linux-PAM-1.7.1/pizlonated-pam.tar.gz
 cd pizlonated-pam
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --disable-nis --disable-selinux --disable-logind --disable-econf --enable-db=no --includedir=/opt/fil/include/security
-make -j `nproc`
-make -j `nproc` install
-cd ..
+mkdir -v build
+cd build
+PATH=/opt/fil/bin:$PATH CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ meson \
+    setup .. \
+    --prefix=/opt/fil \
+    --buildtype=release \
+    -D openssl=enabled \
+    -D read-both-confs=true \
+    -D usergroups=true \
+    -D nis=disabled \
+    -D libdir=/opt/fil/lib
+ninja
+ninja install
+cd ../..
+test -d pizlonated-pam
 rm -rf pizlonated-pam
 
 tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz

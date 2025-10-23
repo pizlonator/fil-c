@@ -223,8 +223,7 @@ RUN apt-get install -y \
     libncurses-dev libssl-dev zlib1g-dev \
     xz-utils bzip2 gzip gdb lldb mg
 
-# Clean up apt cache to reduce image size
-RUN rm -rf /var/lib/apt/lists/*
+RUN pip install meson
 
 DOCKERFILE_END
 
