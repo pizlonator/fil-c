@@ -1,0 +1,5 @@
+#%PAM-1.0
+auth	 optional	pam_debug.so auth=auth_err
+auth     sufficient     pam_debug.so auth=success
+auth     required	pam_debug.so auth=perm_denied
+account  required	pam_debug.so acct=acct_expired

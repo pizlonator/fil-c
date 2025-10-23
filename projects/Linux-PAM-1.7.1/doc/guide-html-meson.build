@@ -1,0 +1,32 @@
+# -*- mode: meson -*-
+
+html = custom_target(
+  input: xml,
+  output: name + '.html',
+  command: [
+    prog_xsltproc,
+    '--nonet',
+    '--xinclude',
+    '--stringparam', 'base.dir', meson.current_build_dir(),
+    '--stringparam', 'root.filename', name,
+    '--stringparam', 'use.id.as.filename', '1',
+    '--stringparam', 'chunk.first.sections', '1',
+    '--stringparam', 'section.autolabel', '1',
+    '--stringparam', 'section.label.includes.component.label', '1',
+    '--stringparam', 'toc.max.depth', toc_max_depth,
+    '--stringparam', 'chunker.output.encoding', 'UTF-8',
+    html_stylesheet,
+    '@INPUT@',
+  ],
+  install: true,
+  install_dir: htmldir,
+  install_tag: 'doc',
+)
+
+meson.add_install_script(
+  install_html,
+  meson.current_build_dir(),
+  htmldir,
+  html,
+  install_tag: 'doc',
+)

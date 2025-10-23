@@ -1,0 +1,119 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_end">
+
+  <refmeta>
+    <refentrytitle>pam_end</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_end-name">
+    <refname>pam_end</refname>
+    <refpurpose>termination of PAM transaction</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_end-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_end</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>pam_status</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_end-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_end</function> function terminates the PAM
+      transaction and is the last function an application should call
+      in the PAM context.  Upon return the handle <emphasis>pamh</emphasis>
+      is no longer valid and all memory associated with it will be
+      invalid.
+    </para>
+    <para>
+      The <emphasis>pam_status</emphasis> argument should be set to
+      the value returned to the application by the last PAM
+      library call.
+    </para>
+    <para>
+      The value taken by <emphasis>pam_status</emphasis> is used as
+      an argument to the module specific callback function,
+      <function>cleanup()</function>
+      (See <citerefentry>
+         <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+        <refentrytitle>pam_get_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>). In this way the module can be given notification
+      of the pass/fail nature of the tear-down process, and perform any
+      last minute tasks that are appropriate to the module before it is
+      unlinked. This argument can be logically OR'd with
+      <emphasis>PAM_DATA_SILENT</emphasis> to indicate that
+      the module should not treat the call too seriously. It is generally
+      used to indicate that the current closing of the library is in a
+      <citerefentry>
+        <refentrytitle>fork</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry>ed
+      process, and that the parent will take care of cleaning up things
+      that exist outside of the current process space (files etc.).
+    </para>
+
+    <para>
+      This function <emphasis>free</emphasis>'s all memory for items
+      associated with the
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> functions. Pointers associated with such objects
+      are not valid anymore after <function>pam_end</function> was called.
+    </para>
+
+  </refsect1>
+  <refsect1 xml:id="pam_end-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Transaction was successful terminated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+              System error, for example a NULL pointer was submitted
+              as PAM handle or the function was called by a module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_end-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_get_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

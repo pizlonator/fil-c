@@ -1,0 +1,226 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_conv">
+  <refmeta>
+    <refentrytitle>pam_conv</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_conv-name">
+    <refname>pam_conv</refname>
+    <refpurpose>PAM conversation function</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_conv-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+    </funcsynopsis>
+    <programlisting>
+struct pam_message {
+    int msg_style;
+    const char *msg;
+};
+
+struct pam_response {
+    char *resp;
+    int resp_retcode;
+};
+
+struct pam_conv {
+    int (*conv)(int num_msg, const struct pam_message **msg,
+                struct pam_response **resp, void *appdata_ptr);
+    void *appdata_ptr;
+};
+    </programlisting>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_conv-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The PAM library uses an application-defined callback to allow
+      a direct communication between a loaded module and the application.
+      This callback is specified by the
+      <emphasis>struct pam_conv</emphasis> passed to
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+      at the start of the transaction.
+    </para>
+    <para>
+      When a module calls the referenced conv() function, the argument
+      <emphasis>appdata_ptr</emphasis> is set to the second element of
+      this structure.
+    </para>
+    <para>
+      The other arguments of a call to conv() concern the information
+      exchanged by module and application. That is to say,
+      <emphasis>num_msg</emphasis> holds the length of the array of
+      pointers, <emphasis>msg</emphasis>. After a successful return, the
+      pointer <emphasis>resp</emphasis> points to an array of pam_response
+      structures, holding the application supplied text. The
+      <emphasis>resp_retcode</emphasis> member of this struct is unused and
+      should be set to zero. It is the caller's responsibility to release
+      both, this array and the responses themselves, using
+      <citerefentry>
+        <refentrytitle>free</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>. Note, <emphasis>*resp</emphasis> is a
+      <emphasis>struct pam_response</emphasis> array and not an array of
+      pointers.
+    </para>
+    <para>
+      The number of responses is always equal to the
+      <emphasis>num_msg</emphasis> conversation function argument.
+      This does require that the response array is
+      <citerefentry>
+        <refentrytitle>free</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>'d after
+      every call to the conversation function.  The index of the
+      responses corresponds directly to the prompt index in the
+      pam_message array.
+    </para>
+    <para>
+      On failure, the conversation function should release any resources
+      it has allocated, and return one of the predefined PAM error codes.
+    </para>
+    <para>
+      Each message can have one of four types, specified by the
+      <emphasis>msg_style</emphasis> member of
+      <emphasis>struct pam_message</emphasis>:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_PROMPT_ECHO_OFF</term>
+        <listitem>
+           <para>
+             Obtain a string without echoing any text.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PROMPT_ECHO_ON</term>
+        <listitem>
+          <para>
+            Obtain a string whilst echoing text.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_ERROR_MSG</term>
+        <listitem>
+          <para>
+            Display an error message.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_TEXT_INFO</term>
+        <listitem>
+          <para>
+            Display some text.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      The point of having an array of messages is that it becomes possible
+      to pass a number of things to the application in a single call from
+      the module. It can also be convenient for the application that related
+      things come at once: a windows based application can then present a
+      single form with many messages/prompts on at once.
+    </para>
+    <para>
+      In passing, it is worth noting that there is a discrepancy between
+      the way Linux-PAM handles the const struct pam_message **msg
+      conversation function argument and the way that Solaris' PAM
+      (and derivatives, known to include HP/UX, are there others?) does.
+      Linux-PAM interprets the msg argument as entirely equivalent to the
+      following prototype
+  const struct pam_message *msg[] (which, in spirit, is consistent with
+  the commonly used prototypes for argv argument to the familiar main()
+  function: char **argv; and char *argv[]). Said another way Linux-PAM
+  interprets the msg argument as a pointer to an array of num_msg read
+  only 'struct pam_message' pointers.  Solaris' PAM implementation
+  interprets this argument as a pointer to a pointer to an array of
+  num_msg pam_message structures.  Fortunately, perhaps, for most
+  module/application developers when num_msg has a value of one these
+  two definitions are entirely equivalent. Unfortunately, casually
+  raising this number to two has led to unanticipated compatibility
+  problems.
+    </para>
+    <para>
+  For what its worth the two known module writer work-arounds for trying
+  to maintain source level compatibility with both PAM implementations
+  are:
+    </para>
+   <itemizedlist>
+      <listitem>
+        <para>
+          never call the conversation function with num_msg greater than one.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          set up msg as doubly referenced so both types of conversation
+          function can find the messages. That is, make
+        </para>
+        <programlisting>
+       msg[n] = &amp; (( *msg )[n])
+       </programlisting>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_conv-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_ERR</term>
+        <listitem>
+           <para>
+             Conversation failure. The application should not set
+             <emphasis>*resp</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Success.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_conv-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

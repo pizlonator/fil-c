@@ -1,0 +1,437 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam3">
+
+  <refmeta>
+    <refentrytitle>pam</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam3-name">
+    <refname>pam</refname>
+    <refpurpose>Pluggable Authentication Modules Library</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv xml:id="pam3-synopsis">
+    <funcsynopsis>
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcsynopsisinfo>#include &lt;security/pam_modules.h&gt;</funcsynopsisinfo>
+      <funcsynopsisinfo>#include &lt;security/pam_ext.h&gt;</funcsynopsisinfo>
+   </funcsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam3-description">
+    <title>DESCRIPTION</title>
+    <para>
+      <emphasis remap="B">PAM</emphasis> is a system of libraries
+      that handle the authentication tasks of applications (services)
+      on the system. The library provides a stable general interface
+      (Application Programming Interface - API) that privilege granting
+      programs (such as
+      <citerefentry>
+        <refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> and <citerefentry>
+        <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>)
+      defer to to perform standard authentication tasks.
+    </para>
+
+    <refsect2 xml:id="pam3-initialization_and_cleanup">
+      <title>Initialization and Cleanup</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function creates the PAM context and initiates the
+        PAM transaction. It is the first of the PAM functions that needs to
+        be called by an application. The transaction state is contained
+        entirely within the structure identified by this handle, so it is
+        possible to have multiple transactions in parallel. But it is not
+        possible to use the same handle for different transactions, a new
+        one is needed for every new context.
+      </para>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function terminates the PAM transaction and is the last
+        function an application should call in the PAM context. Upon return
+        the handle pamh is no longer valid and all memory associated with it
+        will be invalid. It can be called at any time to terminate a PAM
+        transaction.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-authentication">
+      <title>Authentication</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        function is used to
+        authenticate the user. The user is required to provide an
+        authentication token depending upon the authentication service,
+        usually this is a password, but could also be a finger print.
+      </para>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_setcred</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        function manages the user's credentials.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-account_management">
+      <title>Account Management</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_acct_mgmt</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function is used to determine if the user's account is
+        valid. It checks for authentication token and account expiration and
+        verifies access restrictions. It is typically called after the user
+        has been authenticated.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-password_management">
+      <title>Password Management</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function is used to change the authentication token
+        for a given user on request or because the token has expired.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-session_management">
+      <title>Session Management</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function sets up a user session for a previously
+        successful authenticated user. The session should later be terminated
+        with a call to
+        <citerefentry>
+          <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-conversation">
+      <title>Conversation</title>
+      <para>
+        The PAM library uses an application-defined callback to allow
+        a direct communication between a loaded module and the application.
+        This callback is specified by the
+        <emphasis>struct pam_conv</emphasis> passed to
+        <citerefentry>
+          <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> at the start of the transaction. See
+        <citerefentry>
+          <refentrytitle>pam_conv</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        for details.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-data">
+      <title>Data Objects</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        and
+        <citerefentry>
+          <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        functions allow applications and PAM service modules to set and
+        retrieve PAM information.
+      </para>
+      <para>
+         The
+        <citerefentry>
+          <refentrytitle>pam_get_user</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        function is the preferred method to obtain the username.
+      </para>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        and
+        <citerefentry>
+          <refentrytitle>pam_get_data</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        function allows PAM service modules to set and retrieve free-form
+        data from one invocation to another.
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="pam3-miscellaneous">
+    <title>Environment and Error Management</title>
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_putenv</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>,
+        <citerefentry>
+          <refentrytitle>pam_getenv</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> and
+        <citerefentry>
+          <refentrytitle>pam_getenvlist</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>
+        functions are for maintaining a set of private environment variables.
+      </para>
+
+      <para>
+        The
+        <citerefentry>
+          <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> function returns a pointer to a string describing the
+        given PAM error code.
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1 xml:id="pam3-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      The following return codes are known by PAM:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+          <para>Critical error, immediate abort.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_ACCT_EXPIRED</term>
+        <listitem>
+          <para>User account has expired.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHINFO_UNAVAIL</term>
+        <listitem>
+          <para>
+            Authentication service cannot retrieve authentication info.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_DISABLE_AGING</term>
+        <listitem>
+          <para>Authentication token aging disabled.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_ERR</term>
+        <listitem>
+          <para>Authentication token manipulation error.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_EXPIRED</term>
+        <listitem>
+          <para>Authentication token expired.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_LOCK_BUSY</term>
+        <listitem>
+          <para>Authentication token lock busy.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_RECOVERY_ERR</term>
+        <listitem>
+          <para>Authentication information cannot be recovered.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>Authentication failure.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+          <para>Memory buffer error.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_ERR</term>
+        <listitem>
+          <para>Conversation failure.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_ERR</term>
+        <listitem>
+          <para>Failure setting user credentials.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_EXPIRED</term>
+        <listitem>
+          <para>User credentials expired.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_INSUFFICIENT</term>
+        <listitem>
+          <para>Insufficient credentials to access authentication data.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_UNAVAIL</term>
+        <listitem>
+          <para>Authentication service cannot retrieve user credentials.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>The return value should be ignored by PAM dispatch.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_MAXTRIES</term>
+        <listitem>
+          <para>Have exhausted maximum number of retries for service.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_MODULE_UNKNOWN</term>
+        <listitem>
+          <para>Module is unknown.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_NEW_AUTHTOK_REQD</term>
+        <listitem>
+          <para>
+            Authentication token is no longer valid; new one required.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_NO_MODULE_DATA</term>
+        <listitem>
+          <para>No module specific data is present.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_OPEN_ERR</term>
+        <listitem>
+          <para>Failed to load module.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+          <para>Permission denied.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+          <para>Error in service module.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SESSION_ERR</term>
+        <listitem>
+          <para>Cannot make/remove an entry for the specified session.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>Success.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYMBOL_ERR</term>
+        <listitem>
+          <para>Symbol not found.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+          <para>System error.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_TRY_AGAIN</term>
+        <listitem>
+          <para>Failed preliminary check by password service.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>User not known to the underlying authentication module.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="see_also"><title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_acct_mgmt</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_conv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_get_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_getenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_getenvlist</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_get_user</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_putenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_setcred</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+  <refsect1 xml:id="pam3-notes"><title>NOTES</title>
+    <para>
+      The <emphasis>libpam</emphasis> interfaces are only thread-safe if each
+      thread within the multithreaded application uses its own PAM handle.
+    </para>
+  </refsect1>
+</refentry>

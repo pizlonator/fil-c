@@ -1,0 +1,150 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_putenv">
+  <refmeta>
+    <refentrytitle>pam_putenv</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_putenv-name">
+    <refname>pam_putenv</refname>
+    <refpurpose>set or change PAM environment variable</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_putenv-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_putenv</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>const char *<parameter>name_value</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_putenv-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_putenv</function> function is used to
+      add or change the value of PAM environment variables as
+      associated with the <emphasis>pamh</emphasis> handle.
+    </para>
+    <para>
+      The <emphasis>pamh</emphasis> argument is an authentication
+      handle obtained by a prior call to pam_start().
+      The <emphasis>name_value</emphasis> argument is a single NUL
+      terminated string of one of the following forms:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>NAME=value of variable</term>
+        <listitem>
+           <para>
+             In this case the environment variable of the given NAME
+             is set to the indicated value:
+             <emphasis>value of variable</emphasis>. If this variable
+             is already known, it is overwritten. Otherwise it is added
+             to the PAM environment.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>NAME=</term>
+        <listitem>
+          <para>
+            This function sets the variable to an empty value. It is
+            listed separately to indicate that this is the correct way
+            to achieve such a setting.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>NAME</term>
+        <listitem>
+          <para>
+            Without an '=' the <function>pam_putenv</function>() function
+            will delete the
+            corresponding variable from the PAM environment.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <function>pam_putenv</function>() operates on a copy of
+      <emphasis>name_value</emphasis>, which means in contrast to
+      <citerefentry>
+        <refentrytitle>putenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>, the application is responsible for freeing the data.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_putenv-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+           <para>
+             Argument <emphasis>name_value</emphasis> given is a NULL pointer.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BAD_ITEM</term>
+        <listitem>
+           <para>
+             Variable requested (for deletion) is not currently set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+             The <emphasis>pamh</emphasis> handle is corrupt.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             The environment variable was successfully updated.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_putenv-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_getenv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_getenvlist</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,65 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pwhistory_helper">
+
+  <refmeta>
+    <refentrytitle>pwhistory_helper</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pwhistory_helper-name">
+    <refname>pwhistory_helper</refname>
+    <refpurpose>Helper binary that transfers password hashes from passwd or shadow to opasswd</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pwhistory_helper-cmdsynopsis" sepchar=" ">
+      <command>pwhistory_helper</command>
+      <arg choice="opt" rep="norepeat">
+        ...
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pwhistory_helper-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      <emphasis>pwhistory_helper</emphasis> is a helper program for the
+      <emphasis>pam_pwhistory</emphasis> module that transfers password hashes
+      from passwd or shadow file to the opasswd file and checks a password
+      supplied by user against the existing hashes in the opasswd file.
+    </para>
+
+    <para>
+      The purpose of the helper is to enable tighter confinement of
+      login and password changing services. The helper is thus called only
+      when SELinux is enabled on the system.
+    </para>
+
+    <para>
+      The interface of the helper - command line options, and input/output
+      data format are internal to the <emphasis>pam_pwhistory</emphasis>
+      module and it should not be called directly from applications.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pwhistory_helper-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam_pwhistory</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pwhistory_helper-author">
+    <title>AUTHOR</title>
+      <para>
+        Written by Tomas Mraz based on the code originally in
+        <emphasis>pam_pwhistory and pam_unix</emphasis> modules.
+      </para>
+  </refsect1>
+
+</refentry>

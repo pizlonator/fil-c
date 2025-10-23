@@ -1,0 +1,60 @@
+<!-- this file is included by pam_set_item and pam_get_item -->
+<variablelist xmlns="http://docbook.org/ns/docbook" version="5.0">
+      <varlistentry>
+        <term>PAM_FAIL_DELAY</term>
+        <listitem>
+          <para>
+            A function pointer to redirect centrally managed
+            failure delays. See
+            <citerefentry>
+              <refentrytitle>pam_fail_delay</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_XDISPLAY</term>
+        <listitem>
+          <para>
+            The name of the X display.  For graphical, X-based applications the
+	    value for this item should be the <emphasis>$DISPLAY</emphasis>
+	    variable.  This value may be used independently of
+	    <emphasis>PAM_TTY</emphasis> for passing the
+	    name of the display.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_XAUTHDATA</term>
+        <listitem>
+          <para>
+            A pointer to a structure containing the X authentication data
+	    required to make a connection to the display specified by
+	    <emphasis>PAM_XDISPLAY</emphasis>, if such information is
+	    necessary.  See
+            <citerefentry>
+              <refentrytitle>pam_xauth_data</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_AUTHTOK_TYPE</term>
+        <listitem>
+          <para>
+            The default action is for the module to use the
+            following prompts when requesting passwords:
+            "New UNIX password: " and "Retype UNIX password: ".
+            The example word <emphasis>UNIX</emphasis> can
+            be replaced with this item, by default it is empty.
+            This item is used by <citerefentry>
+            <refentrytitle>pam_get_authtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>

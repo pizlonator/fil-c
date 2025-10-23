@@ -1,0 +1,291 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_userdb">
+
+  <refmeta>
+    <refentrytitle>pam_userdb</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_userdb-name">
+    <refname>pam_userdb</refname>
+    <refpurpose>PAM module to authenticate against a db database</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_userdb-cmdsynopsis" sepchar=" ">
+      <command>pam_userdb.so</command>
+      <arg choice="plain" rep="norepeat">
+	db=<replaceable>/path/database</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        crypt=[crypt|none]
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        icase
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        dump
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        try_first_pass
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        use_first_pass
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        unknown_ok
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        key_only
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_userdb-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      The pam_userdb module is used to verify a username/password pair
+      against values stored in a Berkeley DB database. The database is
+      indexed by the username, and the data fields corresponding to the
+      username keys are the passwords.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-options">
+
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          crypt=[crypt|none]
+        </term>
+        <listitem>
+          <para>
+            Indicates whether encrypted or plaintext passwords are stored
+            in the database.  If it is <option>crypt</option>, passwords
+            should be stored in the database in
+            <citerefentry>
+	      <refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> form.  If <option>none</option> is selected,
+            passwords should be stored in the database as plaintext.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          db=/path/database
+        </term>
+        <listitem>
+          <para>
+            Use the <filename>/path/database</filename> database for
+            performing lookup. There is no default; the module will
+            return <emphasis remap="B">PAM_IGNORE</emphasis> if no
+            database is provided. Note that the path to the database file
+            should be specified without the <filename>.db</filename> suffix.
+          </para>
+        </listitem>
+      </varlistentry>
+       <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+            Print debug information. Note that password hashes, both from db
+            and computed, will be printed to syslog.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          dump
+        </term>
+        <listitem>
+          <para>
+            Dump all the entries in the database to the log.
+            Don't do this by default!
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          icase
+        </term>
+        <listitem>
+          <para>
+            Make the password verification to be case insensitive
+            (ie when working with registration numbers and such).
+            Only works with plaintext password storage.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          try_first_pass
+        </term>
+        <listitem>
+          <para>
+            Use the authentication token previously obtained by
+            another module that did the conversation with the
+            application.  If this token can not be obtained then
+            the module will try to converse. This option can
+            be used for stacking different modules that need to
+            deal with the authentication tokens.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_first_pass
+        </term>
+        <listitem>
+          <para>
+            Use the authentication token previously obtained by
+            another module that did the conversation with the
+            application.  If this token can not be obtained then
+            the module will fail. This option can be used for
+            stacking different modules that need to deal with
+            the authentication tokens.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          unknown_ok
+        </term>
+        <listitem>
+          <para>
+            Do not return error when checking for a user that is
+            not in the database. This can be used to stack more
+            than one pam_userdb module that will check a
+            username/password pair in more than a database.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          key_only
+        </term>
+        <listitem>
+          <para>
+            The username and password are concatenated together
+            in the database hash as 'username-password' with a
+            random value.  if the concatenation of the username and
+            password with a dash in the middle returns any result,
+            the user is valid.  this is useful in cases where
+            the username may not be unique but the username and
+            password pair are.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option> and <option>account</option> module
+      types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>Authentication failure.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_RECOVERY_ERR</term>
+        <listitem>
+          <para>
+            Authentication information cannot be recovered.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_ERR</term>
+        <listitem>
+           <para>
+             Conversation failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+          <para>
+             Error in service module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Success.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User not known to the underlying authentication module.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-examples">
+    <title>EXAMPLES</title>
+    <programlisting>
+auth  sufficient pam_userdb.so icase db=/etc/dbtest
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>crypt</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_userdb-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_userdb was written by Cristian Gafton &gt;gafton@redhat.com&lt;.
+      </para>
+  </refsect1>
+
+</refentry>

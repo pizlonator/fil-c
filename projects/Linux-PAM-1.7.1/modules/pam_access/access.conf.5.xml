@@ -1,0 +1,264 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="access.conf">
+
+  <refmeta>
+    <refentrytitle>access.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="sectdesc">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>access.conf</refname>
+    <refpurpose>the login access control table file</refpurpose>
+  </refnamediv>
+
+
+  <refsect1 xml:id="access.conf-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <filename>/etc/security/access.conf</filename> file specifies
+      (<replaceable>user/group</replaceable>, <replaceable>host</replaceable>),
+      (<replaceable>user/group</replaceable>, <replaceable>network/netmask</replaceable>),
+      (<replaceable>user/group</replaceable>, <replaceable>tty</replaceable>),
+      (<replaceable>user/group</replaceable>,
+      <replaceable>X-$DISPLAY-value</replaceable>), or
+      (<replaceable>user/group</replaceable>,
+      <replaceable>pam-service-name</replaceable>)
+      combinations for which a login will be either accepted or refused.
+    </para>
+    <para>
+      When someone logs in, the file <filename>access.conf</filename> is
+      scanned for the first entry that matches the
+      (<replaceable>user/group</replaceable>, <replaceable>host</replaceable>) or
+      (<replaceable>user/group</replaceable>, <replaceable>network/netmask</replaceable>)
+      combination, or, in case of non-networked logins, the first entry
+      that matches the
+      (<replaceable>user/group</replaceable>, <replaceable>tty</replaceable>)
+      combination, or in the case of non-networked logins without a
+      tty, the first entry that matches the
+      (<replaceable>user/group</replaceable>,
+      <replaceable>X-$DISPLAY-value</replaceable>) or
+      (<replaceable>user/group</replaceable>,
+      <replaceable>pam-service-name/</replaceable>)
+      combination.  The permissions field of that table entry
+      determines
+      whether the login will be accepted or refused.
+   </para>
+
+    <para>
+      Each line of the login access control table has three fields separated
+      by a ":" character (colon):
+    </para>
+
+    <para>
+      <replaceable>permission</replaceable>:<replaceable>users/groups</replaceable>:<replaceable>origins</replaceable>
+    </para>
+
+
+    <para>
+      The first field, the <replaceable>permission</replaceable> field, can be either a
+      "<emphasis>+</emphasis>" character (plus) for access granted or a
+      "<emphasis>-</emphasis>" character (minus) for access denied.
+    </para>
+
+    <para>
+      The second field, the
+      <replaceable>users</replaceable>/<replaceable>group</replaceable>
+      field, should be a list of one or more login names, group names, uid, gid, or
+      <emphasis>ALL</emphasis> (which always matches). To differentiate
+      user entries from group entries, group entries should be written
+      with brackets, e.g. <emphasis>(group)</emphasis> or <emphasis>(gid)</emphasis>.
+    </para>
+
+    <para>
+      The third field, the <replaceable>origins</replaceable>
+      field, should be a list of one or more tty names (for non-networked
+      logins), X <varname>$DISPLAY</varname> values or PAM service
+      names (for non-networked logins without a tty), host names,
+      domain names (begin with "."), host addresses,
+      internet network numbers (end with "."), internet network addresses
+      with network mask (where network mask can be a decimal number or an
+      internet address also), <emphasis>ALL</emphasis> (which always matches)
+      or <emphasis>LOCAL</emphasis>. The <emphasis>LOCAL</emphasis>
+      keyword matches when the user connects without a network
+      connection (e.g., <emphasis>su</emphasis>,
+      <emphasis>login</emphasis>). A connection through the loopback
+      device (e.g., <command>ssh user@localhost</command>) is
+      considered a network connection, and thus, the
+      <emphasis>LOCAL</emphasis> keyword does not match.
+    </para>
+
+    <para>
+      If supported by the system you can use
+      <emphasis>@netgroupname</emphasis> in host or user patterns. The
+      <emphasis>@@netgroupname</emphasis> syntax is supported in the user
+      pattern only and it makes the local system hostname to be passed
+      to the netgroup match call in addition to the user name. This might not
+      work correctly on some libc implementations causing the match to
+      always fail.
+    </para>
+
+    <para>
+      The <replaceable>EXCEPT</replaceable> operator makes it possible to
+      write very compact rules.
+    </para>
+
+    <para>
+       If the <option>nodefgroup</option> is not set, the group file
+       is searched when a name does not match that of the logged-in
+       user. Only groups are matched in which users are explicitly listed.
+       However the PAM module does not look at the primary group id of a user.
+    </para>
+
+
+    <para>
+      The "<emphasis>#</emphasis>" character at start of line (no space
+      at front) can be used to mark this line as a comment line.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="access.conf-examples">
+    <title>EXAMPLES</title>
+    <para>
+      These are some example lines which might be specified in
+      <filename>/etc/security/access.conf</filename>.
+    </para>
+
+    <para>
+      User <emphasis>root</emphasis> should be allowed to get access via
+      <emphasis>cron</emphasis>, X11 terminal <emphasis remap="I">:0</emphasis>,
+      <emphasis>tty1</emphasis>, ..., <emphasis>tty5</emphasis>,
+      <emphasis>tty6</emphasis>.
+    </para>
+    <para>+:root:crond :0 tty1 tty2 tty3 tty4 tty5 tty6</para>
+
+    <para>
+      User <emphasis>root</emphasis> should be allowed to get access from
+      hosts which own the IPv4 addresses. This does not mean that the
+      connection have to be a IPv4 one, a IPv6 connection from a host with
+      one of this IPv4 addresses does work, too.
+    </para>
+    <para>+:root:192.168.200.1 192.168.200.4 192.168.200.9</para>
+    <para>+:root:127.0.0.1</para>
+
+    <para>
+      User <emphasis>root</emphasis> should get access from network
+      <literal>192.168.201.</literal> where the term will be evaluated by
+      string matching. But it might be better to use network/netmask instead.
+      The same meaning of <literal>192.168.201.</literal> is
+      <emphasis>192.168.201.0/24</emphasis> or
+      <emphasis>192.168.201.0/255.255.255.0</emphasis>.
+    </para>
+    <para>+:root:192.168.201.</para>
+
+    <para>
+      User <emphasis>root</emphasis> should be able to have access from hosts
+      <emphasis>foo1.bar.org</emphasis> and <emphasis>foo2.bar.org</emphasis>
+      (uses string matching also).
+    </para>
+    <para>+:root:foo1.bar.org foo2.bar.org</para>
+
+    <para>
+      User <emphasis>root</emphasis> should be able to have access from
+      domain <emphasis>foo.bar.org</emphasis> (uses string matching also).
+    </para>
+    <para>+:root:.foo.bar.org</para>
+
+    <para>
+      User <emphasis>root</emphasis> should be denied to get access
+      from all other sources.
+    </para>
+    <para>-:root:ALL</para>
+
+    <para>
+      A user with uid <emphasis>1003</emphasis> and a group with gid
+      <emphasis>1000</emphasis> should be allowed to get access
+      from all other sources.
+    </para>
+    <para>+:(1000) 1003:ALL</para>
+    <para>
+      User <emphasis>foo</emphasis> and members of netgroup
+      <emphasis>admins</emphasis> should be allowed to get access
+      from all sources. This will only work if netgroup service is available.
+    </para>
+    <para>+:@admins foo:ALL</para>
+
+    <para>
+      User <emphasis>john</emphasis> and <emphasis>foo</emphasis>
+      should get access from IPv6 host address.
+    </para>
+    <para>+:john foo:2001:db8:0:101::1</para>
+
+    <para>
+      User <emphasis>john</emphasis> and <emphasis>foo</emphasis>
+      should get access from IPv6 link local host address.
+    </para>
+    <para>+:john foo:fe80::de95:818c:1b55:7e42%eth1</para>
+
+    <para>
+      User <emphasis>john</emphasis> should get access from IPv6 net/mask.
+    </para>
+    <para>+:john:2001:db8:0:101::/64</para>
+
+    <para>
+      Members of group <emphasis>wheel</emphasis> should be allowed to get access
+      from all sources.
+    </para>
+    <para>+:(wheel):ALL</para>
+
+    <para>
+      Disallow console logins to all but the shutdown, sync and all
+      other accounts, which are a member of the wheel group.
+    </para>
+    <para>-:ALL EXCEPT (wheel) shutdown sync:LOCAL</para>
+
+    <para>
+      All other users should be denied to get access from all sources.
+    </para>
+    <para>-:ALL:ALL</para>
+
+  </refsect1>
+
+  <refsect1 xml:id="access.conf-notes">
+    <title>NOTES</title>
+    <para>
+      The default separators of list items in a field are space, ',', and tabulator
+      characters. Thus conveniently if spaces are put at the beginning and the end of
+      the fields they are ignored. However if the list separator is changed with the
+      <emphasis>listsep</emphasis> option, the spaces will become part of the actual
+      item and the line will be most probably ignored. For this reason, it is not
+      recommended to put spaces around the ':' characters.
+    </para>
+    <para>
+      An IPv6 link local host address must contain the interface
+      identifier. IPv6 link local network/netmask is not supported.
+    </para>
+    <para>
+      Hostnames should be written as Fully-Qualified Host Name (FQHN) to avoid
+      confusion with device names or PAM service names.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="access.conf-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry><refentrytitle>pam_access</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="access.conf-author">
+    <title>AUTHORS</title>
+    <para>
+      Original <citerefentry><refentrytitle>login.access</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+      manual was provided by Guido van Rooij which was renamed to
+      <citerefentry><refentrytitle>access.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+      to reflect relation to default config file.
+    </para>
+    <para>
+      Network address / netmask description and example text was
+      introduced by Mike Becher &lt;mike.becher@lrz-muenchen.de&gt;.
+    </para>
+  </refsect1>
+</refentry>

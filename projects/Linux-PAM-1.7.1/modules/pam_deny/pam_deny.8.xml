@@ -1,0 +1,132 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_deny">
+
+  <refmeta>
+    <refentrytitle>pam_deny</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_deny-name">
+    <refname>pam_deny</refname>
+    <refpurpose>The locking-out PAM module</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_deny-cmdsynopsis" sepchar=" ">
+      <command>pam_deny.so</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_deny-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      This module can be used to deny access. It always indicates a failure
+      to the application through the PAM framework. It might be suitable
+      for using for default (the <emphasis>OTHER</emphasis>) entries.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-options">
+    <title>OPTIONS</title>
+    <para>This module does not recognise any options.</para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>account</option>, <option>auth</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>PAM_AUTH_ERR</term>
+          <listitem>
+            <para>
+              This is returned by the account and auth services.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_CRED_ERR</term>
+          <listitem>
+            <para>
+              This is returned by the setcred function.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_AUTHTOK_ERR</term>
+          <listitem>
+            <para>
+              This is returned by the password service.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_SESSION_ERR</term>
+          <listitem>
+            <para>
+              This is returned by the session service.
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-examples">
+    <title>EXAMPLES</title>
+    <programlisting>
+#%PAM-1.0
+#
+# If we don't have config entries for a service, the
+# OTHER entries are used. To be secure, warn and deny
+# access to everything.
+other auth     required       pam_warn.so
+other auth     required       pam_deny.so
+other account  required       pam_warn.so
+other account  required       pam_deny.so
+other password required       pam_warn.so
+other password required       pam_deny.so
+other session  required       pam_warn.so
+other session  required       pam_deny.so
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_deny-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_deny was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;
+      </para>
+  </refsect1>
+
+</refentry>

@@ -1,0 +1,246 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_get_authtok">
+
+  <refmeta>
+    <refentrytitle>pam_get_authtok</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_get_authtok-name">
+    <refname>pam_get_authtok</refname>
+    <refname>pam_get_authtok_verify</refname>
+    <refname>pam_get_authtok_noverify</refname>
+    <refpurpose>get authentication token</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv xml:id="pam_get_authtok-synopsis">
+    <funcsynopsis>
+      <funcsynopsisinfo>#include &lt;security/pam_ext.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_get_authtok</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>item</parameter></paramdef>
+        <paramdef>const char **<parameter>authtok</parameter></paramdef>
+        <paramdef>const char *<parameter>prompt</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+        <funcdef>int <function>pam_get_authtok_noverify</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>const char **<parameter>authtok</parameter></paramdef>
+        <paramdef>const char *<parameter>prompt</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+        <funcdef>int <function>pam_get_authtok_verify</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>const char **<parameter>authtok</parameter></paramdef>
+        <paramdef>const char *<parameter>prompt</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_get_authtok-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_get_authtok</function> function returns the
+      cached authentication token, or prompts the user if no token is
+      currently cached. It is intended for internal use by Linux-PAM and
+      PAM service modules. Upon successful return,
+      <emphasis>authtok</emphasis> contains a pointer to the value of the
+      authentication token. Note, this is a pointer to the
+      <emphasis>actual</emphasis> data and should
+      <emphasis remap="B">not</emphasis> be <emphasis>free()</emphasis>'ed or
+      over-written!
+    </para>
+    <para>
+      The <emphasis>prompt</emphasis> argument specifies a prompt to use
+      if no token is cached. If a NULL pointer
+      is given, <function>pam_get_authtok</function> uses pre-defined prompts.
+    </para>
+    <para>
+      The following values are supported for <emphasis>item</emphasis>:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTHTOK</term>
+        <listitem>
+          <para>
+            Returns the current authentication token. Called from
+            <citerefentry><refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> <function>pam_get_authtok</function> will
+            ask the user to confirm the new token by retyping it. If
+            a prompt was specified, "Retype" will be used as prefix.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_OLDAUTHTOK</term>
+        <listitem>
+          <para>
+            Returns the previous authentication token when changing
+            authentication tokens.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      The <function>pam_get_authtok_noverify</function> function can
+      only be used for changing the password
+      (from <citerefentry>
+        <refentrytitle>pam_sm_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>). It returns the cached
+      authentication token, or prompts the user if no token is
+      currently cached. The difference to <function>pam_get_authtok</function>
+      is, that this function does not ask a second time for the password
+      to verify it. Upon successful return, <emphasis>authtok</emphasis>
+      contains a pointer to the value of the authentication token. Note,
+      this is a pointer to the
+      <emphasis>actual</emphasis> data and should
+      <emphasis remap="B">not</emphasis> be <emphasis>free()</emphasis>'ed or
+      over-written!
+    </para>
+    <para>
+      The <function>pam_get_authtok_verify</function> function can
+      only be used to verify a password for mistypes gotten by
+     <citerefentry>
+        <refentrytitle>pam_get_authtok_noverify</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>. This function asks a second time for the password
+      and verify it with the password provided by <emphasis>authtok</emphasis>
+      argument. In case of an error, the value of <emphasis>authtok</emphasis>
+      is undefined. Else this argument will point to the
+      <emphasis>actual</emphasis> data and should
+      <emphasis remap="B">not</emphasis> be <emphasis>free()</emphasis>'ed or
+      over-written!
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_authtok-options">
+    <title>OPTIONS</title>
+    <para>
+      <function>pam_get_authtok</function> honours the following module
+      options:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          try_first_pass
+        </term>
+        <listitem>
+          <para>
+            Before prompting the user for their password, the module first
+            tries the previous stacked module's password in case that
+            satisfies this module as well.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          use_first_pass
+        </term>
+        <listitem>
+          <para>
+            The argument <option>use_first_pass</option> forces the module
+            to use a previous stacked modules password and will never prompt
+            the user - if no password is available or the password is not
+            appropriate, the user will be denied access.
+          </para>
+        </listitem>
+      </varlistentry>
+       <varlistentry>
+        <term>
+          use_authtok
+        </term>
+        <listitem>
+          <para>
+            When password changing enforce the module to set the new
+            token to the one provided by a previously stacked
+            <option>password</option> module. If no token is available
+            token changing will fail.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          authtok_type=XXX
+        </term>
+        <listitem>
+          <para>
+            The default action is for the module to use the
+            following prompts when requesting passwords:
+            "New UNIX password: " and "Retype UNIX password: ".
+            The example word <emphasis>UNIX</emphasis> can
+            be replaced with this option, by default it is empty.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_get_authtok-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+           <para>
+             Authentication token could not be retrieved.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHTOK_ERR</term>
+        <listitem>
+           <para>
+             New authentication could not be retrieved.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Authentication token was successfully retrieved.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             A NULL pointer was specified as the PAM handle, or
+             no space for an authentication token was provided.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_TRY_AGAIN</term>
+        <listitem>
+           <para>
+             New authentication tokens mismatch.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_authtok-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_authtok-standards">
+    <title>STANDARDS</title>
+    <para>
+      The <function>pam_get_authtok</function> function is a Linux-PAM
+      extensions.
+    </para>
+  </refsect1>
+
+</refentry>

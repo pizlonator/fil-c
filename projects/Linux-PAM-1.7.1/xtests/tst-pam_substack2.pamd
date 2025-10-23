@@ -1,0 +1,6 @@
+#%PAM-1.0
+# Even if the substack fails with requisite
+# the whole stack should succeed.
+auth     substack       tst-pam_substack2a
+auth     [success=reset] pam_permit.so
+auth     required	pam_debug.so auth=success

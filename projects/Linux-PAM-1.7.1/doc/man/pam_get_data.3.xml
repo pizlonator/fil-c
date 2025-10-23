@@ -1,0 +1,104 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_get_data">
+
+  <refmeta>
+    <refentrytitle>pam_get_data</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_get_data-name">
+    <refname>pam_get_data</refname>
+    <refpurpose>
+       get module internal data
+    </refpurpose>
+  </refnamediv>
+
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+
+   <funcsynopsis xml:id="pam_get_data-synopsis">
+     <funcsynopsisinfo>#include &lt;security/pam_modules.h&gt;</funcsynopsisinfo>
+     <funcprototype>
+       <funcdef>int <function>pam_get_data</function></funcdef>
+       <paramdef>const pam_handle_t *<parameter>pamh</parameter></paramdef>
+       <paramdef>const char *<parameter>module_data_name</parameter></paramdef>
+       <paramdef>const void **<parameter>data</parameter></paramdef>
+     </funcprototype>
+   </funcsynopsis>
+
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_get_data-description">
+    <title>DESCRIPTION</title>
+    <para>
+      This function together with the
+      <citerefentry>
+        <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> function
+      is useful to manage module-specific data meaningful only to
+      the calling PAM module.
+    </para>
+    <para>
+      The <function>pam_get_data</function> function looks up the
+      object associated with the (hopefully) unique string
+      <emphasis>module_data_name</emphasis> in the PAM context
+      specified by the <emphasis>pamh</emphasis> argument.
+      A successful call to
+      <function>pam_get_data</function> will result in
+      <emphasis>data</emphasis> pointing to the object. Note,
+      this data is <emphasis>not</emphasis> a copy and should be
+      treated as <emphasis>constant</emphasis> by the module.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_data-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Data was successful retrieved.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             A NULL pointer was submitted as PAM handle or the
+             function was called by an application.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_NO_MODULE_DATA</term>
+        <listitem>
+           <para>
+              No module specific data is present.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_data-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_set_data</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+</refentry>

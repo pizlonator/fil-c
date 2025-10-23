@@ -1,0 +1,212 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam8">
+
+  <refmeta>
+    <refentrytitle>pam</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam8-name">
+    <refname>PAM</refname>
+    <refname>pam</refname>
+    <refpurpose>Pluggable Authentication Modules for Linux</refpurpose>
+  </refnamediv>
+
+  <refsect1 xml:id="pam8-description">
+    <title>DESCRIPTION</title>
+    <para>
+      This manual is intended to offer a quick introduction to
+      <emphasis remap="B">Linux-PAM</emphasis>. For more information
+      the reader is directed to the
+      <emphasis remap="B">Linux-PAM system administrators' guide</emphasis>.
+    </para>
+
+    <para>
+      <emphasis remap="B">Linux-PAM</emphasis> is a system of libraries
+      that handle the authentication tasks of applications (services) on
+      the system. The library provides a stable general interface
+      (Application Programming Interface - API) that privilege granting
+      programs (such as <citerefentry>
+      <refentrytitle>login</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> and <citerefentry>
+      <refentrytitle>su</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>) defer to to perform standard authentication tasks.
+    </para>
+
+    <para>
+      The principal feature of the PAM approach is that the nature of the
+      authentication is dynamically configurable.  In other words, the
+      system administrator is free to choose how individual
+      service-providing applications will authenticate users. This dynamic
+      configuration is set by the contents of the single
+      <emphasis remap="B">Linux-PAM</emphasis> configuration file
+      <filename>/etc/pam.conf</filename>. Alternatively and preferably,
+      the configuration can be set by individual configuration files
+      located in a <filename>pam.d</filename> directory. The presence of this
+      directory will cause <emphasis remap="B">Linux-PAM</emphasis> to
+      <emphasis remap="I">ignore</emphasis> <filename>/etc/pam.conf</filename>.
+    </para>
+
+    <para>
+      Vendor-supplied PAM configuration files might be installed in
+      the system directory <filename>/usr/lib/pam.d/</filename> or
+      a configurable vendor specific directory instead
+      of the machine configuration directory <filename>/etc/pam.d/</filename>.
+      If no machine configuration file is found, the vendor-supplied file
+      is used. All files in <filename>/etc/pam.d/</filename> override
+      files with the same name in other directories.
+    </para>
+
+<para>From the point of view of the system administrator, for whom this
+manual is provided, it is not of primary importance to understand the
+internal behavior of the
+<emphasis remap="B">Linux-PAM</emphasis>
+library.  The important point to recognize is that the configuration
+file(s)
+<emphasis remap="I">define</emphasis>
+the connection between applications
+<emphasis remap="B"/>(<emphasis remap="B">services</emphasis>)
+and the pluggable authentication modules
+<emphasis remap="B"/>(<emphasis remap="B">PAM</emphasis>s)
+that perform the actual authentication tasks.</para>
+
+
+<para><emphasis remap="B">Linux-PAM</emphasis>
+separates the tasks of
+<emphasis remap="I">authentication</emphasis>
+into four independent management groups:
+<emphasis remap="B">account</emphasis> management;
+<emphasis remap="B">auth</emphasis>entication management;
+<emphasis remap="B">password</emphasis> management;
+and
+<emphasis remap="B">session</emphasis> management.
+(We highlight the abbreviations used for these groups in the
+configuration file.)</para>
+
+
+<para>Simply put, these groups take care of different aspects of a typical
+user's request for a restricted service:</para>
+
+
+<para><emphasis remap="B">account</emphasis> -
+provide account verification types of service: has the user's password
+expired?; is this user permitted access to the requested service?</para>
+
+<!-- .br -->
+<para><emphasis remap="B">auth</emphasis>entication -
+authenticate a user and set up user credentials. Typically this is via
+some challenge-response request that the user must satisfy: if you are
+who you claim to be please enter your password. Not all authentications
+are of this type, there exist hardware based authentication schemes
+(such as the use of smart-cards and biometric devices), with suitable
+modules, these may be substituted seamlessly for more standard
+approaches to authentication - such is the flexibility of
+<emphasis remap="B">Linux-PAM</emphasis>.</para>
+
+<!-- .br -->
+<para><emphasis remap="B">password</emphasis> -
+this group's responsibility is the task of updating authentication
+mechanisms. Typically, such services are strongly coupled to those of
+the
+<emphasis remap="B">auth</emphasis>
+group. Some authentication mechanisms lend themselves well to being
+updated with such a function. Standard UN*X password-based access is
+the obvious example: please enter a replacement password.</para>
+
+<!-- .br -->
+<para><emphasis remap="B">session</emphasis> -
+this group of tasks cover things that should be done prior to a
+service being given and after it is withdrawn. Such tasks include the
+maintenance of audit trails and the mounting of the user's home
+directory. The
+<emphasis remap="B">session</emphasis>
+management group is important as it provides both an opening and
+closing hook for modules to affect the services available to a user.</para>
+
+</refsect1>
+
+  <refsect1 xml:id="pam8-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/etc/pam.conf</term>
+        <listitem>
+          <para>the configuration file</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>/etc/pam.d</term>
+        <listitem>
+          <para>
+            the <emphasis remap="B">Linux-PAM</emphasis> configuration
+            directory. Generally, if this directory is present, the
+            <filename>/etc/pam.conf</filename> file is ignored.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>/usr/lib/pam.d</term>
+        <listitem>
+          <para>
+            the <emphasis remap="B">Linux-PAM</emphasis> vendor configuration
+            directory. Files in <filename>/etc/pam.d</filename> override
+            files with the same name in this directory.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term>%vendordir%/pam.d</term>
+        <listitem>
+          <para>
+	    additional <emphasis remap="B">Linux-PAM</emphasis> vendor
+	    configuration directory. Files in <filename>/etc/pam.d</filename>
+	    and <filename>/usr/lib/pam.d</filename> override files with the
+	    same name in this directory.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam8-errors">
+    <title>ERRORS</title>
+    <para>
+      Typically errors generated by the
+      <emphasis remap="B">Linux-PAM</emphasis> system of libraries, will
+      be written to <citerefentry>
+      <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam8-conforming_to">
+    <title>CONFORMING TO</title>
+    <para>
+      DCE-RFC 86.0, October 1995.
+      Contains additional features, but remains backwardly compatible
+      with this RFC.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam8-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_sm_setcred</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>PAM</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

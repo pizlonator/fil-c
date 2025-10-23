@@ -1,0 +1,143 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_acct_mgmt">
+  <refmeta>
+    <refentrytitle>pam_acct_mgmt</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_acct_mgmt-name">
+    <refname>pam_acct_mgmt</refname>
+    <refpurpose>PAM account validation management</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_acct_mgmt-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_acct_mgmt</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>flags</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_acct_mgmt-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_acct_mgmt</function> function is used to determine
+      if the user's account is valid. It checks for authentication token
+      and account expiration and verifies access restrictions. It is
+      typically called after the user has been authenticated.
+    </para>
+    <para>
+      The <emphasis>pamh</emphasis> argument is an authentication
+      handle obtained by a prior call to pam_start().
+      The flags argument is the binary or of zero or more of the
+      following values:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SILENT</term>
+        <listitem>
+           <para>
+             Do not emit any messages.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_DISALLOW_NULL_AUTHTOK</term>
+        <listitem>
+          <para>
+            The PAM module service should return PAM_NEW_AUTHTOK_REQD
+            if the user has a null authentication token.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_acct_mgmt-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ACCT_EXPIRED</term>
+        <listitem>
+           <para>
+             User account has expired.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            Authentication failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_NEW_AUTHTOK_REQD</term>
+        <listitem>
+          <para>
+            The user account is valid but their authentication token
+            is <emphasis>expired</emphasis>. The correct response to
+            this return-value is to require that the user satisfies
+            the <function>pam_chauthtok()</function> function before
+            obtaining service. It may not be possible for some
+            applications to do this. In such cases, the user should be
+            denied access until such time as they can update their password.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+          <para>
+            Permission denied.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             The authentication token was successfully updated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User unknown to password service.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_acct_mgmt-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

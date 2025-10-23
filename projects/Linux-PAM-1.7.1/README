@@ -1,0 +1,50 @@
+Hello!
+
+Thanks for downloading Linux-PAM.
+
+NOTES:
+
+How to use it is as follows:
+
+Please look at the ci/install-dependencies.sh for the necessary
+prerequisite packages to be able to build the Linux-PAM. The script
+is targeted at Debian based Linux distributions so the package
+names and availability might differ on other distributions.
+
+First, configure the build using meson setup:
+
+      mkdir build
+      meson setup <your-options> build
+
+Then compile:
+
+      meson compile -C build
+
+To make sure everything was compiled correct, run:
+
+      meson test -C build
+
+If a test fails, you should not continue to install this build.
+These tests require a suitable file /etc/pam.d/other; if necessary,
+create such a file containing, e.g., these five lines (not indented)
+
+	#%PAM-1.0
+	auth	 required	pam_deny.so
+	account	 required	pam_deny.so
+	password required	pam_deny.so
+	session	 required	pam_deny.so
+
+
+Note, if you are worried - don't even think about doing the next line
+(most Linux distributions already support PAM out of the box, so if
+something goes wrong with installing the code from this version your
+box may stop working..)
+
+      meson install -C build
+
+That said, please report problems to the bug reporting database
+at https://github.com/linux-pam/linux-pam/issues .
+
+To generate manual pages from the XML source files you need the
+docbook-xsl stylesheets in version 1.69.1 or newer, older versions had
+a bug which generates a broken layout.

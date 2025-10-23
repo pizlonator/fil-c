@@ -1,0 +1,510 @@
+# -*- mode: meson -*-
+
+module = fs.name(meson.current_source_dir())
+
+# pam_module.so
+
+pam_module_src = [module + '.c']
+pam_module_c_args = []
+pam_module_deps = [libpam_internal_dep, libpam_dep]
+
+if module == 'pam_env'
+  pam_module_deps += [libeconf]
+endif
+if module == 'pam_faillock'
+  pam_module_src += ['faillock.c', 'faillock_config.c']
+  pam_module_deps += [libaudit]
+endif
+if module == 'pam_issue'
+  pam_module_deps += [logind_dep]
+endif
+if module == 'pam_keyinit'
+  if not enable_pam_keyinit
+    subdir_done()
+  endif
+endif
+if module == 'pam_lastlog'
+  if not enable_pam_lastlog
+    subdir_done()
+  endif
+  pam_module_deps += [libutil]
+endif
+if module == 'pam_limits'
+  limits_conf_dir = sconfigdir / 'limits.d'
+  pam_module_c_args += ['-DLIMITS_FILE_DIR="@0@"'.format(limits_conf_dir)]
+  pam_module_deps += [logind_dep]
+endif
+if module == 'pam_loginuid'
+  pam_module_deps += [libaudit]
+endif
+if module == 'pam_mkhomedir'
+  pam_module_c_args += ['-DMKHOMEDIR_HELPER="@0@"'.format(sbindir / 'mkhomedir_helper')]
+endif
+if module == 'pam_namespace'
+  if cdata.get('HAVE_UNSHARE', 0) == 0
+    subdir_done()
+  endif
+  pam_module_src += ['md5.c', 'argv_parse.c']
+  pam_module_deps += [libselinux]
+endif
+if module == 'pam_pwhistory'
+  pam_module_src += ['opasswd.c', 'pwhistory_config.c']
+  if libselinux.found()
+    pam_module_c_args += ['-DPWHISTORY_HELPER="@0@"'.format(sbindir / 'pwhistory_helper')]
+  endif
+  pam_module_deps += [libcrypt, libselinux]
+endif
+if module == 'pam_rhosts'
+  if cdata.get('HAVE_RUSEROK', 0) == 0 or cdata.get('HAVE_RUSEROK_AF', 0) == 0
+    subdir_done()
+  endif
+endif
+if module == 'pam_rootok'
+  pam_module_deps += [libselinux, libaudit]
+endif
+if module == 'pam_selinux'
+  if not libselinux.found()
+    subdir_done()
+  endif
+  pam_module_deps += [libselinux, libaudit]
+endif
+if module == 'pam_sepermit'
+  if not libselinux.found()
+    subdir_done()
+  endif
+  pam_module_deps += [libselinux]
+  sepermit_lockdir = localstatedir / 'run' / 'sepermit'
+  pam_module_c_args += ['-DSEPERMIT_LOCKDIR="@0@"'.format(sepermit_lockdir)]
+endif
+if module == 'pam_setquota'
+  if cdata.get('HAVE_QUOTACTL', 0) == 0
+    subdir_done()
+  endif
+endif
+if module == 'pam_shells'
+  pam_module_deps += [libeconf]
+endif
+if module == 'pam_timestamp'
+  if cdata.get('WITH_OPENSSL', 0) == 1
+    pam_module_src += ['hmac_openssl_wrapper.c']
+  else
+    pam_module_src += ['hmacsha1.c', 'sha1.c']
+  endif
+  pam_module_deps += [libcrypto, logind_dep]
+endif
+if module == 'pam_tty_audit'
+  if cdata.get('HAVE_STRUCT_AUDIT_TTY_STATUS', 0) == 0
+    subdir_done()
+  endif
+endif
+if module == 'pam_unix'
+  if not enable_pam_unix
+    subdir_done()
+  endif
+  pam_module_src = ['bigcrypt.c',
+                    'pam_unix_acct.c',
+                    'pam_unix_auth.c',
+                    'pam_unix_passwd.c',
+                    'pam_unix_sess.c',
+                    'support.c',
+                    'passverify.c',
+                    'md5_good.c',
+                    'md5_broken.c',
+                   ]
+  if enable_nis
+    pam_module_src += ['yppasswd_xdr.c']
+  endif
+  pam_module_c_args += ['-DCHKPWD_HELPER="@0@"'.format(sbindir / 'unix_chkpwd'),
+                        '-DUPDATE_HELPER="@0@"'.format(sbindir / 'unix_update')]
+  pam_module_deps += [libcrypt, libselinux, libtirpc, libnsl]
+endif
+if module == 'pam_userdb'
+  if not enable_pam_userdb
+    subdir_done()
+  endif
+  pam_module_deps += [libdb, libcrypt]
+endif
+if module == 'pam_xauth'
+  pam_module_deps += [libselinux]
+endif
+
+pam_module = shared_module(
+  module,
+  name_prefix: '',
+  sources: pam_module_src,
+  dependencies: pam_module_deps,
+  c_args: pam_module_c_args,
+  link_depends: pam_module_link_deps,
+  link_args: pam_module_link_args,
+  install: true,
+  install_dir: securedir,
+)
+
+
+# pam_module.8
+
+pam_module_mans = [[module + '.8', []]]
+if module == 'pam_access'
+  pam_module_mans += [['access.conf.5', []]]
+endif
+if module == 'pam_env'
+  pam_module_mans += [['pam_env.conf.5', ['environment.5']]]
+endif
+if module == 'pam_group'
+  pam_module_mans += [['group.conf.5', []]]
+endif
+if module == 'pam_faillock'
+  pam_module_mans += [['faillock.8', []],
+                      ['faillock.conf.5', []]]
+endif
+if module == 'pam_limits'
+  pam_module_mans += [['limits.conf.5', []]]
+endif
+if module == 'pam_mkhomedir'
+  pam_module_mans += [['mkhomedir_helper.8', []]]
+endif
+if module == 'pam_namespace'
+  pam_module_mans += [['namespace.conf.5', []],
+                      [module + '_helper.8', []]]
+endif
+if module == 'pam_pwhistory'
+  pam_module_mans += [['pwhistory.conf.5', []]]
+  if libselinux.found()
+    pam_module_mans += [['pwhistory_helper.8', []]]
+  endif
+endif
+if module == 'pam_sepermit'
+  pam_module_mans += [['sepermit.conf.5', []]]
+endif
+if module == 'pam_time'
+  pam_module_mans += [['time.conf.5', []]]
+endif
+if module == 'pam_timestamp'
+  pam_module_mans += [['pam_timestamp_check.8', []]]
+endif
+if module == 'pam_unix'
+  pam_module_mans += [['unix_chkpwd.8', []]]
+  if libselinux.found()
+    pam_module_mans += [['unix_update.8', []]]
+  endif
+endif
+
+foreach man: pam_module_mans
+  xml = man[0] + '.xml'
+
+  run_command([prog_xmllint,
+               '--nonet',
+               '--noout',
+               '--xinclude',
+               '--relaxng', docbook_rng,
+               xml],
+              check: true)
+
+  custom_target(man[0],
+    input: xml,
+    output: man,
+    depends: [custom_man_xsl, pam_module],
+    command: [prog_xsltproc,
+              '-o', '@OUTPUT0@',
+              '--nonet',
+              '--xinclude',
+              '--path', meson.current_source_dir(),
+              stringparam_vendordir,
+              stringparam_profileconditions,
+              custom_man_xsl,
+              '@INPUT@'],
+    install: true,
+    install_dir: mandir / 'man' + man[0].substring(-1),
+    install_tag: 'man',
+  )
+endforeach
+
+
+# README
+
+readme_html = custom_target(
+  input: 'README.xml',
+  output: 'README.html',
+  depends: pam_module,
+  command: [prog_xsltproc,
+            '-o', '@OUTPUT@',
+            '--nonet',
+            '--xinclude',
+            '--path', meson.current_source_dir(),
+            '--stringparam', 'generate.toc', 'none',
+            stringparam_vendordir,
+            stringparam_profileconditions,
+            txt_stylesheet,
+            '@INPUT@'],
+)
+
+custom_target(
+  input: readme_html,
+  output: module + '.txt',
+  command: [redir_exe,
+            '@INPUT@',
+            '@OUTPUT@',
+            browser],
+  install: true,
+  install_dir: docdir / 'modules',
+  install_tag: 'doc',
+)
+
+
+# module-specific configuration files and helpers
+
+if module == 'pam_access'
+  install_data(
+    'access.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_env'
+  install_data(
+    'pam_env.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+  install_data(
+    'environment',
+    install_dir: vendor_sysconfdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_group'
+  install_data(
+    'group.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_faillock'
+  executable(
+    'faillock',
+    sources: ['main.c', 'faillock.c', 'faillock_config.c'],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep, libaudit],
+    install: true,
+    install_dir: sbindir,
+  )
+  install_data(
+    'faillock.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_filter'
+  install_data(
+    'pam_filter.h',
+    install_dir: includedir,
+    install_tag: 'devel',
+  )
+endif
+if module == 'pam_limits'
+  install_data(
+    'limits.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+  install_emptydir(
+    limits_conf_dir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_mkhomedir'
+  executable(
+    'mkhomedir_helper',
+    sources: ['mkhomedir_helper.c'],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep],
+    install: true,
+    install_dir: sbindir,
+  )
+endif
+if module == 'pam_namespace'
+  pam_namespace_helper = configure_file(
+    input: 'pam_namespace_helper.in',
+    output: 'pam_namespace_helper',
+    configuration: cdata
+  )
+  install_data(
+    pam_namespace_helper,
+    install_mode: 'rwxr-xr-x',
+    install_dir: sbindir,
+    install_tag: 'bin',
+  )
+  pam_namespace_service = configure_file(
+    input: 'pam_namespace.service.in',
+    output: 'pam_namespace.service',
+    configuration: cdata
+  )
+  install_data(
+    pam_namespace_service,
+    install_dir: systemdunitdir,
+    install_tag: 'config',
+  )
+  install_data(
+    'namespace.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+  install_data(
+    'namespace.init',
+    install_mode: 'rwxr-xr-x',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+  install_emptydir(
+    sconfigdir / 'namespace.d',
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_pwhistory'
+  executable(
+    'pwhistory_helper',
+    sources: ['pwhistory_helper.c', 'opasswd.c'],
+    c_args: ['-DHELPER_COMPILE="pwhistory_helper"'],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep, libcrypt],
+    install: true,
+    install_dir: sbindir,
+  )
+  install_data(
+    'pwhistory.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_selinux'
+  executable(
+    'pam_selinux_check',
+    sources: ['pam_selinux_check.c'],
+    include_directories: [libpamc_inc],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep, libpam_misc_dep],
+  )
+endif
+if module == 'pam_sepermit'
+  install_data(
+    'sepermit.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+  install_emptydir(
+    sepermit_lockdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_time'
+  install_data(
+    'time.conf',
+    install_dir: vendor_sconfigdir,
+    install_tag: 'config',
+  )
+endif
+if module == 'pam_timestamp'
+  executable(
+    'pam_timestamp_check',
+    sources: ['pam_timestamp_check.c'],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep, logind_dep],
+    install: true,
+    install_dir: sbindir,
+  )
+endif
+if module == 'pam_unix'
+  executable(
+    'unix_chkpwd',
+    sources: ['unix_chkpwd.c',
+              'audit.c',
+              'bigcrypt.c',
+              'md5_good.c',
+              'md5_broken.c',
+              'passverify.c',
+             ],
+    c_args: ['-DHELPER_COMPILE="unix_chkpwd"'],
+    link_args: exe_link_args,
+    dependencies: [libpam_internal_dep, libpam_dep, libcrypt, libselinux, libaudit],
+    install: true,
+    install_dir: sbindir,
+  )
+  if libselinux.found()
+    executable(
+      'unix_update',
+      sources: ['unix_update.c',
+                'audit.c',
+                'bigcrypt.c',
+                'md5_good.c',
+                'md5_broken.c',
+                'passverify.c',
+               ],
+      c_args: ['-DHELPER_COMPILE="unix_update"'],
+      link_args: exe_link_args,
+      dependencies: [libpam_internal_dep, libpam_dep, libcrypt, libselinux, libaudit],
+      install: true,
+      install_dir: sbindir,
+    )
+  endif
+  executable(
+    'bigcrypt',
+    sources: ['bigcrypt.c', 'bigcrypt_main.c'],
+    dependencies: [libpam_internal_dep, libpam_dep, libcrypt],
+  )
+endif
+
+
+# tests
+
+test(
+  'dlopen ' + module,
+  tst_dlopen,
+  args: [pam_module],
+)
+
+tst_module_retval_name = 'tst-' + module + '-retval'
+tst_module_retval_src = tst_module_retval_name + '.c'
+
+if fs.exists(tst_module_retval_src)
+  tst_module_retval_link_args = ''
+  if module == 'pam_canonicalize_user'
+    tst_module_retval_link_args = '-Wl,--export-dynamic'
+  endif
+
+  tst_module_retval_deps = [libpam_internal_dep, libpam_dep]
+  if module == 'pam_rootok'
+    tst_module_retval_deps += [libselinux, libaudit]
+  endif
+
+  tst_module_retval = executable(
+    tst_module_retval_name,
+    sources: tst_module_retval_src,
+    dependencies: tst_module_retval_deps,
+    link_args: tst_module_retval_link_args,
+  )
+
+  test(
+    tst_module_retval_name,
+    chdir_meson_build_subdir,
+    args: [tst_module_retval],
+    env: ['MESON_BUILD_SUBDIR=' + meson.current_build_dir()],
+  )
+endif
+
+
+if module == 'pam_timestamp' and cdata.get('WITH_OPENSSL', 0) != 1
+  hmacfile_exe = executable(
+    'hmacfile',
+    sources: ['hmacfile.c', 'hmacsha1.c', 'sha1.c'],
+    dependencies: [libpam_internal_dep, libpam_dep],
+  )
+  test(
+    'pam_timestamp hmacfile',
+    hmacfile_exe,
+  )
+endif
+
+
+if module == 'pam_filter'
+  subdir('upperLOWER')
+endif

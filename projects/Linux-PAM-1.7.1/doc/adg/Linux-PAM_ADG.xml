@@ -1,0 +1,749 @@
+<book xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="adg">
+  <info>
+    <title>The Linux-PAM Application Developers' Guide</title>
+    <authorgroup>
+      <author><personname><firstname>Andrew G.</firstname><surname>Morgan</surname></personname><email>morgan@kernel.org</email></author>
+      <author><personname><firstname>Thorsten</firstname><surname>Kukuk</surname></personname><email>kukuk@thkukuk.de</email></author>
+    </authorgroup>
+    <releaseinfo>Version 1.7.1, June 2025</releaseinfo>
+    <abstract>
+      <para>
+        This manual documents what an application developer needs to know
+        about the <emphasis remap="B">Linux-PAM</emphasis> library. It
+        describes how an application might use the
+        <emphasis remap="B">Linux-PAM</emphasis> library to authenticate
+        users. In addition it contains a description of the functions
+        to be found in <filename>libpam_misc</filename> library, that can
+        be used in general applications. Finally, it contains some comments
+        on PAM related security issues for the application developer.
+      </para>
+    </abstract>
+  </info>
+
+  <chapter xml:id="adg-introduction">
+    <title>Introduction</title>
+    <section xml:id="adg-introduction-description">
+      <title>Description</title>
+      <para>
+        <emphasis remap="B">Linux-PAM</emphasis>
+        (Pluggable Authentication Modules for Linux) is a library that enables
+        the local system administrator to choose how individual applications
+        authenticate users. For an overview of the
+        <emphasis remap="B">Linux-PAM</emphasis> library see the
+        <emphasis>Linux-PAM System Administrators' Guide</emphasis>.
+      </para>
+      <para>
+        It is the purpose of the <emphasis remap="B">Linux-PAM</emphasis>
+        project to liberate the development of privilege granting software
+        from the development of secure and appropriate authentication schemes.
+        This is accomplished by providing a documented library of functions
+        that an application may use for all forms of user authentication
+        management. This library dynamically loads locally configured
+        authentication modules that actually perform the authentication tasks.
+      </para>
+      <para>
+        From the perspective of an application developer the information
+        contained in the local configuration of the PAM library should not be
+        important. Indeed it is intended that an application treat the
+        functions documented here as a 'black box' that will deal with all
+        aspects of user authentication. 'All aspects' includes user
+        verification, account management, session initialization/termination
+        and also the resetting of passwords
+        (<emphasis>authentication tokens</emphasis>).
+      </para>
+    </section>
+
+    <section xml:id="adg-introduction-synopsis">
+      <title>Synopsis</title>
+      <para>
+        For general applications that wish to use the services provided by
+        <emphasis remap="B">Linux-PAM</emphasis> the following is a summary
+        of the relevant linking information:
+        <programlisting>
+#include &lt;security/pam_appl.h&gt;
+
+cc -o application .... -lpam
+        </programlisting>
+      </para>
+      <para>
+        In addition to <command>libpam</command>, there is a library of
+        miscellaneous functions that make the job of writing
+        <emphasis>PAM-aware</emphasis> applications easier (this library is not
+        covered in the DCE-RFC for PAM and is specific to the Linux-PAM
+        distribution):
+        <programlisting>
+#include &lt;security/pam_appl.h&gt;
+#include &lt;security/pam_misc.h&gt;
+
+cc -o application .... -lpam -lpam_misc
+        </programlisting>
+      </para>
+    </section>
+  </chapter>
+
+  <chapter xml:id="adg-overview">
+    <title>Overview</title>
+    <para>
+      Most service-giving applications are restricted. In other words,
+      their service is not available to all and every prospective client.
+      Instead, the applying client must jump through a number of hoops to
+      convince the serving application that they are authorized to obtain
+      service.
+    </para>
+    <para>
+      The process of <emphasis>authenticating</emphasis> a client is what
+      PAM is designed to manage. In addition to authentication, PAM provides
+      account management, credential management, session management and
+      authentication-token (password changing) management services.  It is
+      important to realize when writing a PAM based application that these
+      services are provided in a manner that is
+      <emphasis remap="B">transparent</emphasis> to the application. That is
+      to say, when the application is written, no assumptions can be made
+      about <emphasis>how</emphasis> the client will be authenticated.
+    </para>
+    <para>
+      The process of authentication is performed by the PAM library via a
+      call to <function>pam_authenticate()</function>. The return value
+      of this function will indicate whether a named client (the
+      <emphasis>user</emphasis>) has been authenticated. If the PAM library
+      needs to prompt the user for any information, such as their
+      <emphasis>name</emphasis> or a <emphasis>password</emphasis>
+      then it will do so. If the PAM library is configured to authenticate
+      the user using some silent protocol, it will do this too. (This
+      latter case might be via some hardware interface for example.)
+    </para>
+    <para>
+      It is important to note that the application must leave all decisions
+      about when to prompt the user at the discretion of the PAM library.
+    </para>
+    <para>
+      The PAM library, however, must work equally well for different styles
+      of application. Some applications, like the familiar
+      <command>login</command> and <command>passwd</command> are terminal
+      based applications, exchanges of information with the client in
+      these cases is as plain text messages. Graphically based applications,
+      however, have a more sophisticated interface. They generally interact
+      with the user via specially constructed dialogue boxes. Additionally,
+      network based services require that text messages exchanged with the
+      client are specially formatted for automated processing: one such
+      example is <command>ftpd</command> which prefixes each exchanged
+      message with a numeric identifier.
+    </para>
+    <para>
+      The presentation of simple requests to a client is thus something very
+      dependent on the protocol that the serving application will use. In
+      spite of the fact that PAM demands that it drives the whole
+      authentication process, it is not possible to leave such protocol
+      subtleties up to the PAM library.  To overcome this potential problem,
+      the application provides the PAM library with a
+      <emphasis>conversation</emphasis> function.  This function is called
+      from <emphasis>within</emphasis> the PAM library and enables the PAM
+      to directly interact with the client. The sorts of things that this
+      conversation function must be able to do are prompt the user with
+      text and/or obtain textual input from the user for processing by the
+      PAM library. The details of this function are provided in a later
+      section.
+    </para>
+    <para>
+      For example, the conversation function may be called by the PAM
+      library with a request to prompt the user for a password. Its job is
+      to reformat the prompt request into a form that the client will
+      understand. In the case of <command>ftpd</command>, this might involve
+      prefixing the string with the number <command>331</command> and sending
+      the request over the network to a connected client. The conversation
+      function will then obtain any reply and, after extracting the typed
+      password, will return this string of text to the PAM library. Similar
+      concerns need to be addressed in the case of an X-based graphical
+      server.
+    </para>
+    <para>
+      There are a number of issues that need to be addressed when one is
+      porting an existing application to become PAM compliant. A section
+      below has been devoted to this: Porting legacy applications.
+    </para>
+    <para>
+      Besides authentication, PAM provides other forms of management.
+      Session management is provided with calls to
+      <function>pam_open_session()</function> and
+      <function>pam_close_session()</function>. What these functions
+      actually do is up to the local administrator. But typically, they
+      could be used to log entry and exit from the system or for mounting
+      and unmounting the user's home directory. If an application provides
+      continuous service for a period of time, it should probably call
+      these functions, first open after the user is authenticated and then
+      close when the service is terminated.
+    </para>
+    <para>
+      Account management is another area that an application developer
+      should include with a call to <function>pam_acct_mgmt()</function>.
+      This call will perform checks on the good health of the user's account
+      (has it expired etc.). One of the things this function may check is
+      whether the user's authentication token has expired - in such a case the
+      application may choose to attempt to update it with a call to
+      <function>pam_chauthtok()</function>, although some applications
+      are not suited to this task (<command>ftp</command> for example)
+      and in this case the application should deny access to the user.
+    </para>
+    <para>
+      PAM is also capable of setting and deleting the user's credentials with
+      the call <function>pam_setcred()</function>. This function should
+      always be called after the user is authenticated and before service
+      is offered to the user. By convention, this should be the last call
+      to the PAM library before the PAM session is opened. What exactly a
+      credential is, is not well defined. However, some examples are given
+      in the glossary below.
+    </para>
+  </chapter>
+
+  <chapter xml:id="adg-interface">
+    <title>
+      The public interface to <emphasis remap="B">Linux-PAM</emphasis>
+    </title>
+    <para>
+      Firstly, the relevant include file for the
+      <emphasis remap="B">Linux-PAM</emphasis> library is
+      <function>&lt;security/pam_appl.h&gt;</function>.
+      It contains the definitions for a number of functions. After
+      listing these functions, we collect some guiding remarks for
+      programmers.
+    </para>
+    <section xml:id="adg-interface-by-app-expected">
+      <title>What can be expected by the application</title>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_start.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_end.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_set_item.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_get_item.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_strerror.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_fail_delay.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_authenticate.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_setcred.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_acct_mgmt.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_chauthtok.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_open_session.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_close_session.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_putenv.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_getenv.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_getenvlist.xml"/>
+    </section>
+    <section xml:id="adg-interface-of-app-expected">
+      <title>What is expected of an application</title>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_conv.xml"/>
+    </section>
+    <section xml:id="adg-interface-programming-notes">
+      <title>Programming notes</title>
+      <para>
+        Note, all of the authentication service function calls accept the
+        token <emphasis remap="B">PAM_SILENT</emphasis>, which instructs
+        the modules to not send messages to the application. This token
+        can be logically OR'd with any one of the permitted tokens specific
+        to the individual function calls.
+        <emphasis remap="B">PAM_SILENT</emphasis> does not override the
+        prompting of the user for passwords etc., it only stops informative
+        messages from being generated.
+      </para>
+    </section>
+  </chapter>
+
+  <chapter xml:id="adg-security">
+    <title>
+      Security issues of <emphasis remap="B">Linux-PAM</emphasis>
+    </title>
+    <para>
+      PAM, from the perspective of an application, is a convenient API for
+      authenticating users. PAM modules generally have no increased
+      privilege over that possessed by the application that is making use of
+      it. For this reason, the application must take ultimate responsibility
+      for protecting the environment in which PAM operates.
+    </para>
+    <para>
+      A poorly (or maliciously) written application can defeat any
+      <emphasis remap="B">Linux-PAM</emphasis> module's authentication
+      mechanisms by simply ignoring it's return values. It is the
+      applications task and responsibility to grant privileges and access
+      to services.  The <emphasis remap="B">Linux-PAM</emphasis> library
+      simply assumes the responsibility of <emphasis>authenticating</emphasis>
+      the user; ascertaining that the user <emphasis>is</emphasis> who they
+      say they are. Care should be taken to anticipate all of the documented
+      behavior of the <emphasis remap="B">Linux-PAM</emphasis> library
+      functions. A failure to do this will most certainly lead to a future
+      security breach.
+    </para>
+
+    <section xml:id="adg-security-library-calls">
+      <title>Care about standard library calls</title>
+      <para>
+        In general, writers of authorization-granting applications should
+        assume that each module is likely to call any or
+        <emphasis>all</emphasis> 'libc' functions. For 'libc' functions
+        that return pointers to static/dynamically allocated structures
+        (ie. the library allocates the memory and the user is not expected
+        to '<function>free()</function>' it) any module call to this
+        function is likely to corrupt a pointer previously
+        obtained by the application. The application programmer should
+        either re-call such a 'libc' function after a call to the
+        <emphasis remap="B">Linux-PAM</emphasis> library, or copy the
+        structure contents to some safe area of memory before passing
+        control to the <emphasis remap="B">Linux-PAM</emphasis> library.
+      </para>
+      <para>
+        Two important function classes that fall into this category are
+        <citerefentry>
+          <refentrytitle>getpwnam</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> and <citerefentry>
+          <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>.
+      </para>
+    </section>
+
+    <section xml:id="adg-security-service-name">
+      <title>Choice of a service name</title>
+      <para>
+        When picking the <emphasis>service-name</emphasis> that
+        corresponds to the first entry in the
+        <emphasis remap="B">Linux-PAM</emphasis> configuration file,
+        the application programmer should <emphasis>avoid</emphasis>
+        the temptation of choosing something related to
+        <varname>argv[0]</varname>. It is a trivial matter for any user
+        to invoke any application on a system under a different name and
+        this should not be permitted to cause a security breach.
+      </para>
+      <para>
+        In general, this is always the right advice if the program is
+        setuid, or otherwise more privileged than the user that invokes
+        it. In some cases, avoiding this advice is convenient, but as an
+        author of such an application, you should consider well the ways
+        in which your program will be installed and used. (Its often the
+        case that programs are not intended to be setuid, but end up
+        being installed that way for convenience. If your program falls
+        into this category, don't fall into the trap of making this mistake.)
+      </para>
+      <para>
+        To invoke some <emphasis>target</emphasis> application by
+        another name, the user may symbolically link the target application
+        with the desired name. To be precise all the user need do is,
+        <command>ln -s /target/application ./preferred_name</command>
+        and then run <command>./preferred_name</command>.
+      </para>
+      <para>
+        By studying the <emphasis remap="B">Linux-PAM</emphasis>
+        configuration file(s), an attacker can choose the
+        <command>preferred_name</command> to be that of a service enjoying
+        minimal protection; for example a game which uses
+        <emphasis remap="B">Linux-PAM</emphasis> to restrict access to
+        certain hours of the day.  If the service-name were to be linked
+        to the filename under which the service was invoked, it
+        is clear that the user is effectively in the position of
+        dictating which authentication scheme the service uses. Needless
+        to say, this is not a secure situation.
+      </para>
+      <para>
+        The conclusion is that the application developer should carefully
+        define the service-name of an application. The safest thing is to
+        make it a single hard-wired name.
+      </para>
+    </section>
+
+    <section xml:id="adg-security-conv-function">
+      <title>The conversation function</title>
+      <para>
+        Care should be taken to ensure that the <function>conv()</function>
+        function is robust. Such a function is provided in the library
+        <command>libpam_misc</command> (see
+        <link linkend="adg-libpam-functions">below</link>).
+      </para>
+    </section>
+
+    <section xml:id="adg-security-user-identity">
+      <title>The identity of the user</title>
+      <para>
+        The <emphasis remap="B">Linux-PAM</emphasis> modules will need
+        to determine the identity of the user who requests a service,
+        and the identity of the user who grants the service. These two
+        users will seldom be the same. Indeed there is generally a third
+        user identity to be considered, the new (assumed) identity of
+        the user once the service is granted.
+      </para>
+      <para>
+        The need for keeping tabs on these identities is clearly an
+        issue of security. One convention that is actively used by
+        some modules is that the identity of the user requesting a
+        service should be the current <emphasis>UID</emphasis>
+        (user ID) of the running process; the identity of the
+        privilege granting user is the <emphasis>EUID</emphasis>
+        (effective user ID) of the running process; the identity of
+        the user, under whose name the service will be executed, is
+        given by the contents of the <emphasis>PAM_USER</emphasis>
+        <citerefentry>
+          <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>. Note, modules can change the values of
+        <emphasis>PAM_USER</emphasis> and <emphasis>PAM_RUSER</emphasis>
+        during any of the <function>pam_*()</function> library calls.
+        For this reason, the application should take care to use the
+        <function>pam_get_item()</function> every time it wishes to
+        establish who the authenticated user is (or will currently be).
+      </para>
+      <para>
+        For network-serving databases and other applications that provide
+        their own security model (independent of the OS kernel) the above
+        scheme is insufficient to identify the requesting user.
+      </para>
+      <para>
+        A more portable solution to storing the identity of the requesting
+        user is to use the <emphasis>PAM_RUSER</emphasis> <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry>. The application should supply this value before
+        attempting to authenticate the user with
+        <function>pam_authenticate()</function>. How well this name can be
+        trusted will ultimately be at the discretion of the local
+        administrator (who configures PAM for your application) and a
+        selected module may attempt to override the value where it can
+        obtain more reliable data. If an application is unable to determine
+        the identity of the requesting entity/user, it should not call
+        <citerefentry>
+          <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+        </citerefentry> to set <emphasis>PAM_RUSER</emphasis>.
+      </para>
+      <para>
+        In addition to the <emphasis>PAM_RUSER</emphasis> item, the
+        application should supply the <emphasis>PAM_RHOST</emphasis>
+        (<emphasis>requesting host</emphasis>) item. As a general rule,
+        the following convention for its value can be assumed:
+        NULL = unknown; localhost = invoked directly from the local system;
+        <emphasis>other.place.xyz</emphasis> = some component of the
+        user's connection originates from this remote/requesting host. At
+        present, PAM has no established convention for indicating whether
+        the application supports a trusted path to communication from
+        this host.
+      </para>
+    </section>
+
+    <section xml:id="adg-security-resources">
+      <title>Sufficient resources</title>
+      <para>
+        Care should be taken to ensure that the proper execution of an
+        application is not compromised by a lack of system resources. If an
+        application is unable to open sufficient files to perform its service,
+        it should fail gracefully, or request additional resources.
+        Specifically, the quantities manipulated by the <citerefentry>
+        <refentrytitle>setrlimit</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry> family of commands should be taken into consideration.
+      </para>
+      <para>
+        This is also true of conversation prompts. The application should not
+        accept prompts of arbitrary length with out checking for resource
+        allocation failure and dealing with such extreme conditions gracefully
+        and in a manner that preserves the PAM API. Such tolerance may be
+        especially important when attempting to track a malicious adversary.
+      </para>
+    </section>
+  </chapter>
+
+  <chapter xml:id="adg-libpam_misc">
+    <title>A library of miscellaneous helper functions</title>
+    <para>
+      To aid the work of the application developer a library of
+      miscellaneous functions is provided.  It is called
+      <command>libpam_misc</command>, and contains a text based
+      conversation function, and routines for enhancing the standard
+      PAM-environment variable support.
+    </para>
+    <para>
+      The functions, structures and macros, made available by this
+      library can be defined by including
+      <function>&lt;security/pam_misc.h&gt;</function>. It should be
+      noted that this library is specific to
+      <emphasis remap="B">Linux-PAM</emphasis> and is not referred to in
+      the defining DCE-RFC (see <link linkend="adg-see-also">See also</link>)
+      below.
+    </para>
+    <section xml:id="adg-libpam-functions">
+      <title>Functions supplied</title>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_misc_conv.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_misc_paste_env.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_misc_drop_env.xml"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_misc_setenv.xml"/>
+    </section>
+  </chapter>
+
+  <chapter xml:id="adg-porting">
+    <title>Porting legacy applications</title>
+    <para>
+      The point of PAM is that the application is not supposed to
+      have any idea how the attached authentication modules will choose
+      to authenticate the user. So all they can do is provide a conversation
+      function that will talk directly to the user(client) on the modules'
+      behalf.
+    </para>
+    <para>
+      Consider the case that you plug a retinal scanner into the login
+      program. In this situation the user would be prompted: "please look
+      into the scanner". No username or password would be needed - all this
+      information could be deduced from the scan and a database lookup. The
+      point is that the retinal scanner is an ideal task for a "module".
+    </para>
+    <para>
+      While it is true that a pop-daemon program is designed with the POP
+      protocol in mind and no-one ever considered attaching a retinal
+      scanner to it, it is also the case that the "clean" PAM'ification of
+      such a daemon would allow for the possibility of a scanner module
+      being be attached to it. The point being that the "standard"
+      pop-authentication protocol(s) [which will be needed to satisfy
+      inflexible/legacy clients] would be supported by inserting an
+      appropriate pam_qpopper module(s).  However, having rewritten
+      <command>popd</command> once in this way any new protocols can be
+      implemented in-situ.
+    </para>
+    <para>
+      One simple test of a ported application would be to insert the
+      <command>pam_permit</command> module and see if the application
+      demands you type a password...  In such a case, <command>xlock</command>
+      would fail to lock the terminal - or would at best be a screen-saver,
+      ftp would give password free access to all etc..  Neither of
+      these is a very secure thing to do, but they do illustrate how
+      much flexibility PAM puts in the hands of the local admin.
+    </para>
+    <para>
+      The key issue, in doing things correctly, is identifying what is part
+      of the authentication procedure (how many passwords etc..) the
+      exchange protocol (prefixes to prompts etc., numbers like 331 in the
+      case of ftpd) and what is part of the service that the application
+      delivers.  PAM really needs to have total control in the
+      authentication "procedure", the conversation function should only
+      deal with reformatting user prompts and extracting responses from raw
+      input.
+    </para>
+  </chapter>
+
+  <chapter xml:id="adg-glossary">
+    <title>Glossary of PAM related terms</title>
+    <para>
+      The following are a list of terms used within this document.
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>Authentication token</term>
+        <listitem>
+          <para>
+            Generally, this is a password. However, users can authenticate
+            themselves in a variety of ways. Updating the user's
+            authentication token thus corresponds to
+            <emphasis>refreshing</emphasis> the object they use to
+            authenticate themselves with the system. The word password is
+            avoided to keep open the possibility that the authentication
+            involves a retinal scan or other non-textual mode of
+            challenge/response.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Credentials</term>
+        <listitem>
+          <para>
+            Having successfully authenticated the user, PAM is able to
+            establish certain characteristics/attributes of the user.
+            These are termed <emphasis>credentials</emphasis>. Examples
+            of which are group memberships to perform privileged tasks
+            with, and <emphasis>tickets</emphasis> in the form of
+            environment variables etc. . Some user-credentials, such as
+            the user's UID and GID (plus default group memberships) are
+            not deemed to be PAM-credentials. It is the responsibility
+            of the application to grant these directly.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </chapter>
+
+  <chapter xml:id="adg-example">
+    <title>An example application</title>
+    <para>
+      To get a flavor of the way a <emphasis remap="B">Linux-PAM</emphasis>
+      application is written we include the following example. It prompts
+      the user for their password and indicates whether their account
+      is valid on the standard output, its return code also indicates
+      the success (<returnvalue>0</returnvalue> for success;
+      <returnvalue>1</returnvalue> for failure).
+    </para>
+    <programlisting>
+/*
+  This program was contributed by Shane Watts
+  [modifications by AGM and kukuk]
+
+  You need to add the following (or equivalent) to the
+  /etc/pam.d/check_user file:
+  # check authorization
+  auth       required     pam_unix.so
+  account    required     pam_unix.so
+ */
+
+#include &lt;security/pam_appl.h&gt;
+#include &lt;security/pam_misc.h&gt;
+#include &lt;stdio.h&gt;
+
+static struct pam_conv conv = {
+    misc_conv,
+    NULL
+};
+
+int main(int argc, char *argv[])
+{
+    pam_handle_t *pamh=NULL;
+    int retval;
+    const char *user="nobody";
+
+    if(argc == 2) {
+        user = argv[1];
+    }
+
+    if(argc &gt; 2) {
+        fprintf(stderr, "Usage: check_user [username]\n");
+        exit(1);
+    }
+
+    retval = pam_start("check_user", user, &amp;conv, &amp;pamh);
+
+    if (retval == PAM_SUCCESS)
+        retval = pam_authenticate(pamh, 0);    /* is user really user? */
+
+    if (retval == PAM_SUCCESS)
+        retval = pam_acct_mgmt(pamh, 0);       /* permitted access? */
+
+    /* This is where we have been authorized or not. */
+
+    if (retval == PAM_SUCCESS) {
+        fprintf(stdout, "Authenticated\n");
+    } else {
+        fprintf(stdout, "Not Authenticated\n");
+    }
+
+    if (pam_end(pamh,retval) != PAM_SUCCESS) {     /* close Linux-PAM */
+        pamh = NULL;
+        fprintf(stderr, "check_user: failed to release authenticator\n");
+        exit(1);
+    }
+
+    return ( retval == PAM_SUCCESS ? 0:1 );       /* indicate success */
+}
+
+    </programlisting>
+  </chapter>
+
+  <chapter xml:id="adg-files">
+    <title>Files</title>
+    <variablelist>
+      <varlistentry>
+        <term>/usr/include/security/pam_appl.h</term>
+        <listitem>
+          <para>
+            Header file with interfaces for
+            <emphasis remap="B">Linux-PAM</emphasis> applications.
+           </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>/usr/include/security/pam_misc.h</term>
+        <listitem>
+          <para>
+            Header file for useful library functions for making
+            applications easier to write.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </chapter>
+
+  <chapter xml:id="adg-see-also">
+    <title>See also</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The Linux-PAM System Administrators' Guide.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The Linux-PAM Module Writers' Guide.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The V. Samar and R. Schemers (SunSoft), ``UNIFIED LOGIN WITH
+          PLUGGABLE AUTHENTICATION MODULES'', Open Software Foundation
+          Request For Comments 86.0, October 1995.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </chapter>
+
+  <chapter xml:id="adg-author">
+    <title>Author/acknowledgments</title>
+    <para>
+      This document was written by Andrew G. Morgan (morgan@kernel.org)
+      with many contributions from
+      Chris Adams, Peter Allgeyer, Tim Baverstock, Tim Berger, Craig S. Bell,
+      Derrick J. Brashear, Ben Buxton, Seth Chaiklin, Oliver Crow, Chris Dent,
+      Marc Ewing, Cristian Gafton, Emmanuel Galanos, Brad M. Garcia,
+      Eric Hester, Roger Hu, Eric Jacksch, Michael K. Johnson, David Kinchlea,
+      Olaf Kirch, Marcin Korzonek, Thorsten Kukuk, Stephen Langasek,
+      Nicolai Langfeldt, Elliot Lee, Luke Kenneth Casson Leighton,
+      Al Longyear, Ingo Luetkebohle, Marek Michalkiewicz, Robert Milkowski,
+      Aleph One, Martin Pool, Sean Reifschneider, Jan Rekorajski, Erik Troan,
+      Theodore Ts'o, Jeff Uphoff, Myles Uyema, Savochkin Andrey Vladimirovich,
+      Ronald Wahl, David Wood, John Wilmes, Joseph S. D. Yao
+      and Alex O. Yuriev.
+    </para>
+    <para>
+      Thanks are also due to Sun Microsystems, especially to Vipin Samar and
+      Charlie Lai for their advice. At an early stage in the development of
+      <emphasis remap="B">Linux-PAM</emphasis>, Sun graciously made the
+      documentation for their implementation of PAM available. This act
+      greatly accelerated the development of
+      <emphasis remap="B">Linux-PAM</emphasis>.
+    </para>
+  </chapter>
+
+  <chapter xml:id="adg-copyright">
+    <title>Copyright information for this document</title>
+    <programlisting>
+Copyright (c) 2006 Thorsten Kukuk &lt;kukuk@thkukuk.de&gt;
+Copyright (c) 1996-2002 Andrew G. Morgan &lt;morgan@kernel.org&gt;
+    </programlisting>
+    <para>
+      Redistribution and use in source and binary forms, with or without
+      modification, are permitted provided that the following conditions are
+      met:
+    </para>
+    <programlisting>
+1. Redistributions of source code must retain the above copyright
+   notice, and the entire permission notice in its entirety,
+   including the disclaimer of warranties.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. The name of the author may not be used to endorse or promote
+   products derived from this software without specific prior
+   written permission.
+    </programlisting>
+    <para>
+      Alternatively, this product may be distributed under the terms of
+      the GNU General Public License (GPL), in which case the provisions
+      of the GNU GPL are required instead of the above restrictions.
+      (This clause is necessary due to a potential bad interaction between
+      the GNU GPL and the restrictions contained in a BSD-style copyright.)
+    </para>
+    <programlisting>
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+    </programlisting>
+  </chapter>
+</book>

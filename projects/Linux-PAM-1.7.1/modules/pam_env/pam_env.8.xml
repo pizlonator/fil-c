@@ -1,0 +1,329 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_env">
+
+  <refmeta>
+    <refentrytitle>pam_env</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_env-name">
+    <refname>pam_env</refname>
+    <refpurpose>
+      PAM module to set/unset environment variables
+    </refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_env-cmdsynopsis" sepchar=" ">
+      <command>pam_env.so</command>
+      <arg choice="opt" rep="norepeat">
+        debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        conffile=<replaceable>conf-file</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        envfile=<replaceable>env-file</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        readenv=<replaceable>0|1</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        user_envfile=<replaceable>env-file</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        user_readenv=<replaceable>0|1</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_env-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_env PAM module allows the (un)setting of environment
+      variables. Supported is the use of previously set environment
+      variables as well as <emphasis>PAM_ITEM</emphasis>s such as
+      <emphasis>PAM_RHOST</emphasis>.
+    </para>
+    <para condition="with_vendordir_and_with_econf">
+      Rules for (un)setting of variables can be defined in an own config
+      file. The path to this file can be specified with the
+      <emphasis>conffile</emphasis> option.
+      If this file does not exist, the default rules are taken from the
+      config files <filename>/etc/security/pam_env.conf</filename> and
+      <filename>/etc/security/pam_env.conf.d/*.conf</filename>.
+      If the file <filename>/etc/security/pam_env.conf</filename> does not
+      exist, the rules are taken from the files
+      <filename>%vendordir%/security/pam_env.conf</filename>,
+      <filename>%vendordir%/security/pam_env.conf.d/*.conf</filename> and
+      <filename>/etc/security/pam_env.conf.d/*.conf</filename> in that order.
+    </para>
+    <para condition="with_vendordir_and_without_econf">
+      By default rules for (un)setting of variables are taken from the
+      config file <filename>/etc/security/pam_env.conf</filename>.
+      If this file does not exist <filename>%vendordir%/security/pam_env.conf</filename> is used.
+      An alternate file can be specified with the <emphasis>conffile</emphasis>
+      option, which overrules all other files.
+    </para>
+    <para condition="without_vendordir">
+      By default rules for (un)setting of variables are taken from the
+      config file <filename>/etc/security/pam_env.conf</filename>. An
+      alternate file can be specified with the <emphasis>conffile</emphasis>
+      option.
+    </para>
+    <para condition="with_vendordir_and_with_econf">
+      Environment variables can be defined in a file with simple <emphasis>KEY=VAL</emphasis>
+      pairs on separate lines. The path to this file can be specified with the
+      <emphasis>envfile</emphasis> option.
+      If this file has not been defined, the settings are read from the
+      files <filename>/etc/security/environment</filename> and
+      <filename>/etc/security/environment.d/*</filename>.
+      If the file <filename>/etc/environment</filename> does not exist, the
+      settings are read from the files <filename>%vendordir%/environment</filename>,
+      <filename>%vendordir%/environment.d/*</filename> and
+      <filename>/etc/environment.d/*</filename> in that order.
+      And last but not least, with the <emphasis>readenv</emphasis> option this mechanism can
+      be completely disabled.
+    </para>
+    <para condition="with_vendordir_and_without_econf">
+      Second a file (<filename>/etc/environment</filename> by default) with simple
+      <emphasis>KEY=VAL</emphasis> pairs on separate lines will be read.
+      If this file does not exist, <filename>%vendordir%/etc/environment</filename> is used.
+      With the <emphasis>envfile</emphasis> option an alternate file can be specified,
+      which overrules all other files.
+      And with the <emphasis>readenv</emphasis> option this can be completely disabled.
+    </para>
+    <para condition="without_vendordir">
+      Second a file (<filename>/etc/environment</filename> by default) with simple
+      <emphasis>KEY=VAL</emphasis> pairs on separate lines will be read.
+      With the <emphasis>envfile</emphasis> option an alternate file can be specified.
+      And with the <emphasis>readenv</emphasis> option this can be completely disabled.
+    </para>
+    <para>
+      Third it will read a user configuration file
+      (<filename>$HOME/.pam_environment</filename> by default).
+      The default file can be changed with the
+      <emphasis>user_envfile</emphasis> option
+      and it can be turned on and off with the <emphasis>user_readenv</emphasis> option.
+    </para>
+    <para>
+      Since setting of PAM environment variables can have side effects
+      to other modules, this module should be the last one on the stack.
+    </para>
+    <para>
+      This module is only executed if the main application calls
+      <citerefentry>
+        <refentrytitle>pam_setcred</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> or
+      <citerefentry>
+        <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+      The module does nothing and returns <emphasis>PAM_IGNORE</emphasis> if called by
+      <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-options">
+    <title>OPTIONS</title>
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          conffile=/path/to/pam_env.conf
+        </term>
+        <listitem>
+          <para>
+            Indicate an alternative <filename>pam_env.conf</filename>
+            style configuration file to override the default. This can
+            be useful when different services need different environments.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+            A lot of debug information is printed with
+            <citerefentry><refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum></citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          envfile=/path/to/environment
+        </term>
+        <listitem>
+          <para>
+            Indicate an alternative <filename>environment</filename>
+            file to override the default. The syntax are simple
+	    <emphasis>KEY=VAL</emphasis> pairs on separate lines. The
+	    <emphasis>export</emphasis> instruction can be specified for bash
+	    compatibility, but will be ignored.
+	    This can be useful when different  services need different environments.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          readenv=0|1
+        </term>
+        <listitem>
+          <para>
+            Turns on or off the reading of the file specified by envfile
+            (0 is off, 1 is on). By default this option is on.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term>
+          user_envfile=filename
+        </term>
+        <listitem>
+          <para>
+            Indicate an alternative <filename>.pam_environment</filename>
+            file to override the default. The syntax is the same as
+	    for <emphasis>/etc/security/pam_env.conf</emphasis>.
+	    The filename is relative to the user home directory.
+	    This can be useful when different services need different
+	    environments.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          user_readenv=0|1
+        </term>
+        <listitem>
+          <para>
+            Turns on or off the reading of the user specific environment
+            file. 0 is off, 1 is on. By default this option is off as user
+            supplied environment variables in the PAM environment could affect
+            behavior of subsequent modules in the stack without the consent
+            of the system administrator.
+          </para>
+          <para>
+            Due to problematic security this functionality is deprecated
+            since the 1.5.0 version and will be removed completely at some
+            point in the future.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option> and <option>session</option> module
+      types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+             Not all relevant data or options could be gotten.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+           <para>
+             No pam_env.conf and environment file was found or the module got
+	     called by
+	     <citerefentry>
+               <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+	     </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Environment variables were set.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term condition="with_vendordir">%vendordir%/security/pam_env.conf</term>
+        <term>/etc/security/pam_env.conf</term>
+        <listitem>
+          <para>Default configuration file</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term condition="with_vendordir">%vendordir%/environment</term>
+        <term>/etc/environment</term>
+        <listitem>
+          <para>Default environment file</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>$HOME/.pam_environment</term>
+        <listitem>
+          <para>User specific environment file</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_env.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>environ</refentrytitle><manvolnum>7</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env-authors">
+    <title>AUTHOR</title>
+    <para>
+      pam_env was written by Dave Kinchlea &lt;kinch@kinch.ark.com&gt;.
+    </para>
+  </refsect1>
+</refentry>

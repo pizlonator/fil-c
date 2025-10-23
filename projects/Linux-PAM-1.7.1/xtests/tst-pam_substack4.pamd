@@ -1,0 +1,5 @@
+#%PAM-1.0
+# Substack is counted as one module in jumps
+auth	 [success=1]	pam_permit.so
+auth     substack       tst-pam_substack4a
+auth	 required	pam_permit.so

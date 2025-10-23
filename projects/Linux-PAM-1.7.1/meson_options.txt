@@ -1,0 +1,101 @@
+# -*- mode: meson -*-
+
+option('i18n', type: 'feature', value: 'auto',
+       description: 'i18n support')
+option('docs', type: 'feature', value: 'auto',
+       description: 'Generate and install documentation')
+option('audit', type: 'feature', value: 'auto',
+       description: 'audit support')
+option('econf', type: 'feature', value: 'auto',
+       description: 'libeconf support')
+option('logind', type: 'feature', value: 'auto',
+       description: 'logind support in pam_issue, pam_limits, and pam_timestamp via systemd')
+option('elogind', type: 'feature', value: 'auto',
+       description: 'logind support in pam_issue, pam_limits, and pam_timestamp via elogind')
+option('openssl', type: 'feature', value: 'disabled',
+       description: 'Use OpenSSL crypto libraries in pam_timestamp')
+option('selinux', type: 'feature', value: 'auto',
+       description: 'SELinux support')
+option('nis', type: 'feature', value: 'auto',
+       description: 'NIS/YP support in pam_unix')
+
+option('examples', type: 'boolean', value: true,
+       description: 'Build examples')
+option('lckpwdf', type: 'boolean', value: true,
+       description: 'Use lckpwdf function in pam_unix')
+option('pam-debug', type: 'boolean', value: false,
+       description: 'Save debugging information into pam-debug.log')
+option('pamlocking', type: 'boolean', value: false,
+       description: 'Observe a global authentication lock')
+option('read-both-confs', type: 'boolean', value: false,
+       description: 'Read both /etc/pam.d and /etc/pam.conf files')
+option('usergroups', type: 'boolean', value: false,
+       description: 'usergroups option default in pam_umask')
+option('xtests', type: 'boolean', value: false,
+       description: 'Build xtests')
+
+option('misc-conv-bufsize', type: 'integer', value: 4096,
+       description: 'Size of input buffer for misc_conv() conversation function')
+option('kernel-overflow-uid', type: 'integer', value: 65534,
+       description: 'Linux kernel overflow uid')
+option('uidmin', type: 'integer', value: 1000,
+       description: 'Default value for regular user min uid')
+
+option('docbook-rng',
+       type: 'string',
+       value: 'http://docbook.org/xml/5.0/rng/docbookxi.rng',
+       description: 'RNG file for checking XML files')
+option('html-stylesheet',
+       type: 'string',
+       value: 'http://docbook.sourceforge.net/release/xsl-ns/current/html/chunk.xsl',
+       description: 'html stylesheet path')
+option('man-stylesheet',
+       type: 'string',
+       value: 'http://docbook.sourceforge.net/release/xsl-ns/current/manpages/profile-docbook.xsl',
+       description: 'man stylesheet path')
+option('pdf-stylesheet',
+       type: 'string',
+       value: 'http://docbook.sourceforge.net/release/xsl-ns/current/fo/docbook.xsl',
+       description: 'pdf stylesheet path')
+option('txt-stylesheet',
+       type: 'string',
+       value: 'http://docbook.sourceforge.net/release/xsl-ns/current/html/docbook.xsl',
+       description: 'txt stylesheet path')
+option('xml-catalog', type: 'string',
+       description: 'xml catalog path')
+
+option('docdir', type: 'string',
+       description: 'documentation directory')
+option('htmldir', type: 'string',
+       description: 'HTML documentation directory')
+option('pdfdir', type: 'string',
+       description: 'PDF documentation directory')
+
+option('isadir', type: 'string',
+       description: 'Arch-specific PAM modules directory, relative to SECUREDIR')
+option('securedir', type: 'string',
+       description: 'PAM modules directory')
+option('sconfigdir', type: 'string',
+       description: 'PAM module configuration files directory')
+option('systemdunitdir', type: 'string',
+       description: 'systemd service directory')
+option('mailspool', type: 'string',
+       description: 'Mail spool directory')
+option('xauth', type: 'string',
+       description: 'Additional path to check for xauth when it is called from pam_xauth')
+option('randomdev', type: 'string',
+       description: 'Random device to use instead of /dev/urandom')
+option('vendordir', type: 'string',
+       description: 'Distribution provided configuration files directory')
+
+option('pam_userdb', type: 'feature', value: 'auto',
+       description: 'pam_userdb module')
+option('db', type: 'combo', choices: ['db', 'gdbm', 'ndbm', 'auto'],
+       value: 'auto')
+option('db-uniquename', type: 'string',
+       description: 'Unique name for db libraries and functions')
+
+option('pam_lastlog', type: 'feature', value: 'disabled',
+       description: 'pam_lastlog module')
+option('pam_unix', type: 'feature', value: 'auto',
+       description: 'pam_unix module')

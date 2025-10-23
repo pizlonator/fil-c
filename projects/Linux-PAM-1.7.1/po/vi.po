@@ -1,0 +1,593 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Linux-PAM Project
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+#   <mattheu.9x@gmail.com>, 2012.
+# Tomáš Mráz <tmraz@fedoraproject.org>, 2016. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: Linux-PAM\n"
+"Report-Msgid-Bugs-To: https://github.com/linux-pam/linux-pam/issues\n"
+"POT-Creation-Date: 2025-06-16 08:00+0000\n"
+"PO-Revision-Date: 2012-11-30 06:03-0500\n"
+"Last-Translator: mattheu_9x <mattheu.9x@gmail.com>\n"
+"Language-Team: Vietnamese (http://www.transifex.com/projects/p/fedora/"
+"language/vi/)\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Zanata 3.8.3\n"
+
+#: libpam/pam_get_authtok.c:40 modules/pam_exec/pam_exec.c:182
+#: modules/pam_userdb/pam_userdb.c:62
+msgid "Password: "
+msgstr "Mật khẩu : "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:42
+#, fuzzy, c-format
+msgid "Current %s password: "
+msgstr "Mật khẩu %s mới: "
+
+#: libpam/pam_get_authtok.c:43
+#, fuzzy
+msgid "Current password: "
+msgstr "Mật khẩu mới: "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:45
+#, c-format
+msgid "New %s password: "
+msgstr "Mật khẩu %s mới: "
+
+#: libpam/pam_get_authtok.c:46
+msgid "New password: "
+msgstr "Mật khẩu mới: "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:48
+#, c-format
+msgid "Retype new %s password: "
+msgstr "Nhập lại mật khẩu %s mới: "
+
+#: libpam/pam_get_authtok.c:49
+msgid "Retype new password: "
+msgstr "Nhập lại mật khẩu mới: "
+
+#: libpam/pam_get_authtok.c:50
+msgid "Sorry, passwords do not match."
+msgstr "Xin lỗi, mật khẩu không khớp."
+
+#: libpam/pam_get_authtok.c:145 libpam/pam_get_authtok.c:249
+#, c-format
+msgid "Retype %s"
+msgstr "Nhập lại %s"
+
+#: libpam/pam_get_authtok.c:185 libpam/pam_get_authtok.c:267
+#, fuzzy
+msgid "Password change has been aborted."
+msgstr "Hủy bỏ việc thay đổi mật khẩu."
+
+#: libpam/pam_item.c:317
+msgid "login:"
+msgstr "Đăng nhập:"
+
+#: libpam/pam_strerror.c:41
+msgid "Success"
+msgstr "Thành công"
+
+#: libpam/pam_strerror.c:43
+msgid "Critical error - immediate abort"
+msgstr "Lỗi nghiêm trọng - hủy bỏ ngay"
+
+#: libpam/pam_strerror.c:45
+msgid "Failed to load module"
+msgstr "Không thể nạp mô-đun"
+
+#: libpam/pam_strerror.c:47
+msgid "Symbol not found"
+msgstr "Không tìm thấy biểu tượng"
+
+#: libpam/pam_strerror.c:49
+msgid "Error in service module"
+msgstr "Lỗi trong mô-đun dịch vụ"
+
+#: libpam/pam_strerror.c:51
+msgid "System error"
+msgstr "Lỗi hệ thống"
+
+#: libpam/pam_strerror.c:53
+msgid "Memory buffer error"
+msgstr "Lỗi bộ nhớ đệm"
+
+#: libpam/pam_strerror.c:55
+msgid "Permission denied"
+msgstr "Không có đủ quyền thực hiện"
+
+#: libpam/pam_strerror.c:57
+msgid "Authentication failure"
+msgstr "Xác thực thất bại"
+
+#: libpam/pam_strerror.c:59
+msgid "Insufficient credentials to access authentication data"
+msgstr "Không đủ quyền uỷ nhiệm để truy cập dữ liệu xác thực"
+
+#: libpam/pam_strerror.c:61
+msgid "Authentication service cannot retrieve authentication info"
+msgstr "Dịch vụ chứng thực không thể lấy các thông tin xác thực"
+
+#: libpam/pam_strerror.c:63
+msgid "User not known to the underlying authentication module"
+msgstr "Người dùng chưa biết đến mô-đun xác thực tiềm ẩn"
+
+#: libpam/pam_strerror.c:65
+msgid "Have exhausted maximum number of retries for service"
+msgstr "Đã hết số lần thử lại tối đa cho dịch vụ"
+
+#: libpam/pam_strerror.c:67
+msgid "Authentication token is no longer valid; new one required"
+msgstr "Dấu hiệu xác thực không còn hiệu lực; yêu cầu dấu hiệu xác thực mới"
+
+#: libpam/pam_strerror.c:69
+msgid "User account has expired"
+msgstr "Tài khoản người dùng đã hết hiệu lực"
+
+#: libpam/pam_strerror.c:71
+msgid "Cannot make/remove an entry for the specified session"
+msgstr "Không thể thực hiện hoặc loại bỏ một mục nhập cho phiên định"
+
+#: libpam/pam_strerror.c:73
+msgid "Authentication service cannot retrieve user credentials"
+msgstr "Dịch vụ chứng thực không thể lấy các chứng chỉ người dùng"
+
+#: libpam/pam_strerror.c:75
+msgid "User credentials expired"
+msgstr "Hết hạn ủy nhiệm người dùng"
+
+#: libpam/pam_strerror.c:77
+msgid "Failure setting user credentials"
+msgstr "Cài đặt ủy nhiệm người dùng thất bại"
+
+#: libpam/pam_strerror.c:79
+msgid "No module specific data is present"
+msgstr "Hiện tại không có mô-đun dữ liệu"
+
+#: libpam/pam_strerror.c:81
+msgid "Bad item passed to pam_*_item()"
+msgstr "Tình trạng hàng được thông qua để pam_ * _item ()"
+
+#: libpam/pam_strerror.c:83
+msgid "Conversation error"
+msgstr "Lỗi giao tiếp"
+
+#: libpam/pam_strerror.c:85
+msgid "Authentication token manipulation error"
+msgstr "Thao tác xác thực token lỗi"
+
+#: libpam/pam_strerror.c:87
+msgid "Authentication information cannot be recovered"
+msgstr "Xác thực thông tin không thể được phục hồi"
+
+#: libpam/pam_strerror.c:89
+msgid "Authentication token lock busy"
+msgstr "authentication token lock busy"
+
+#: libpam/pam_strerror.c:91
+msgid "Authentication token aging disabled"
+msgstr "xác thực token già tàn tật"
+
+#: libpam/pam_strerror.c:93
+msgid "Failed preliminary check by password service"
+msgstr "Không thành công sơ bộ kiểm tra bằng mật khẩu dịch vụ"
+
+#: libpam/pam_strerror.c:95
+msgid "The return value should be ignored by PAM dispatch"
+msgstr "Giá trị trả về phải được bỏ qua bởi PAM công văn"
+
+#: libpam/pam_strerror.c:97
+msgid "Module is unknown"
+msgstr "chưa biết mô-đun"
+
+#: libpam/pam_strerror.c:99
+msgid "Authentication token expired"
+msgstr "Hết hạn xác thực"
+
+#: libpam/pam_strerror.c:101
+msgid "Conversation is waiting for event"
+msgstr "Giao tiếp đang chờ kết quả"
+
+#: libpam/pam_strerror.c:103
+msgid "Application needs to call libpam again"
+msgstr "Ứng dụng cần gọi libpam lần nữa"
+
+#: libpam/pam_strerror.c:106
+msgid "Unknown PAM error"
+msgstr "Không biết lỗi PAM"
+
+#.
+#. * external timeout definitions - these can be overridden by the
+#. * application.
+#.
+#. time when we warn
+#. time when we timeout
+#: libpam_misc/misc_conv.c:36
+msgid "...Time is running out...\n"
+msgstr "...Thời gian đang dần hết...\n"
+
+#: libpam_misc/misc_conv.c:37
+msgid "...Sorry, your time is up!\n"
+msgstr "...Xin lỗi, đã hết thời gian!\n"
+
+#: libpam_misc/misc_conv.c:351
+#, c-format
+msgid "erroneous conversation (%d)\n"
+msgstr "hội thoại sai (%d)\n"
+
+#: modules/pam_exec/pam_exec.c:298
+#, c-format
+msgid "%s failed: exit code %d"
+msgstr "%s thất bại: lối ra mã %d"
+
+#: modules/pam_exec/pam_exec.c:308
+#, c-format
+msgid "%s failed: caught signal %d%s"
+msgstr "%s thất bại: bắt tín hiệu %d%s"
+
+#: modules/pam_exec/pam_exec.c:318
+#, c-format
+msgid "%s failed: unknown status 0x%x"
+msgstr "%s thất bại: không rõ tình trạng 0x%x"
+
+#: modules/pam_faillock/main.c:131
+#, fuzzy, c-format
+msgid ""
+"Usage: %s [--dir /path/to/tally-directory] [--user username] [--reset] [--"
+"legacy-output]\n"
+msgstr ""
+"%s: [- tập bắt rễ-filename] [- người sử dụng tên người dùng] [- đặt lại [= "
+"n]] [- yên tĩnh]\n"
+
+#: modules/pam_faillock/main.c:182
+#, fuzzy, c-format
+msgid "Login           Failures    Latest failure         From\n"
+msgstr "Đang nhập       Thất bại Thất bại cuốie     Từ  \n"
+
+#: modules/pam_faillock/pam_faillock.c:416
+#, fuzzy, c-format
+msgid "The account is locked due to %u failed logins."
+msgstr "Tài khoản bị khóa do đăng nhập %u không thành công"
+
+#: modules/pam_faillock/pam_faillock.c:425
+#: modules/pam_faillock/pam_faillock.c:431
+#, c-format
+msgid "(%d minute left to unlock)"
+msgid_plural "(%d minutes left to unlock)"
+msgstr[0] ""
+
+#. TRANSLATORS: only used if dngettext is not supported.
+#: modules/pam_faillock/pam_faillock.c:434
+#, c-format
+msgid "(%d minutes left to unlock)"
+msgstr ""
+
+#. TRANSLATORS: "strftime options for date of last login"
+#: modules/pam_lastlog/pam_lastlog.c:323 modules/pam_lastlog/pam_lastlog.c:592
+msgid " %a %b %e %H:%M:%S %Z %Y"
+msgstr " %a %b %e %H:%M:%S %Z %Y"
+
+#. TRANSLATORS: " from <host>"
+#: modules/pam_lastlog/pam_lastlog.c:332 modules/pam_lastlog/pam_lastlog.c:601
+#, c-format
+msgid " from %.*s"
+msgstr " từ %.*s"
+
+#. TRANSLATORS: " on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:344 modules/pam_lastlog/pam_lastlog.c:613
+#, c-format
+msgid " on %.*s"
+msgstr " trên %.*s"
+
+#. TRANSLATORS: "Last login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:354
+#, c-format
+msgid "Last login:%s%s%s"
+msgstr "Lần đăng nhập:%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:360
+msgid "Welcome to your new account!"
+msgstr "Chào mừng bạn đến tài khoản mới của bạn!"
+
+#. TRANSLATORS: "Last failed login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:623
+#, c-format
+msgid "Last failed login:%s%s%s"
+msgstr "Lần đăng nhập thất bại trước:%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:632 modules/pam_lastlog/pam_lastlog.c:639
+#, c-format
+msgid "There was %d failed login attempt since the last successful login."
+msgid_plural ""
+"There were %d failed login attempts since the last successful login."
+msgstr[0] ""
+"Đã có %d lần đăng nhập thất bại kể từ lần đăng nhập thành công trước đó."
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_lastlog/pam_lastlog.c:644
+#, c-format
+msgid "There were %d failed login attempts since the last successful login."
+msgstr ""
+"Có %d lần đăng nhập không thành công kể từ lần đăng nhập thành công trước."
+
+#: modules/pam_limits/pam_limits.c:1435
+#, fuzzy, c-format
+msgid "There were too many logins for '%s'."
+msgstr "Quá nhiều lần đăng nhập cho '%s'."
+
+#: modules/pam_mail/pam_mail.c:289
+#, fuzzy
+msgid "You do not have any new mail."
+msgstr "Bạn có thư mới."
+
+#: modules/pam_mail/pam_mail.c:292
+msgid "You have new mail."
+msgstr "Bạn có thư mới."
+
+#: modules/pam_mail/pam_mail.c:295
+msgid "You have old mail."
+msgstr "Bạn có thư cũ."
+
+#: modules/pam_mail/pam_mail.c:299
+msgid "You have mail."
+msgstr "Bạn có thư."
+
+#: modules/pam_mail/pam_mail.c:306
+#, c-format
+msgid "You have no mail in folder %s."
+msgstr "Bạn không có thư trong thư mục %s."
+
+#: modules/pam_mail/pam_mail.c:310
+#, c-format
+msgid "You have new mail in folder %s."
+msgstr "Bạn có thư mới trong thư mục %s."
+
+#: modules/pam_mail/pam_mail.c:314
+#, c-format
+msgid "You have old mail in folder %s."
+msgstr "Bạn có thư cũ trong thư mục %s."
+
+#: modules/pam_mail/pam_mail.c:319
+#, c-format
+msgid "You have mail in folder %s."
+msgstr "Bạn có thư trong thư mục %s."
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:120
+#, c-format
+msgid "Creating directory '%s'."
+msgstr "Tạo thư mục '%s'."
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:203
+#, c-format
+msgid "Unable to create and initialize directory '%s'."
+msgstr "Không thể khởi tạo thư mục '%s'."
+
+#: modules/pam_pwhistory/pam_pwhistory.c:383
+#: modules/pam_unix/pam_unix_passwd.c:584
+msgid "Password has been already used. Choose another."
+msgstr "Mật khẩu đã được dùng. Hãy chọn mật khẩu khác."
+
+#: modules/pam_pwhistory/pam_pwhistory.c:390
+#, fuzzy
+msgid "Password has been already used."
+msgstr "Mật khẩu đã được dùng. Hãy chọn mật khẩu khác."
+
+#: modules/pam_selinux/pam_selinux.c:173
+#, fuzzy, c-format
+msgid "The default security context is %s."
+msgstr "Bối cảnh an ninh mặc định %s\n"
+
+#: modules/pam_selinux/pam_selinux.c:177
+msgid "Would you like to enter a different role or level?"
+msgstr "Bạn có muốn nhập một vai trò khác nhau hoặc cấp?"
+
+#. Allow the user to enter role and level individually
+#: modules/pam_selinux/pam_selinux.c:190
+msgid "role:"
+msgstr "Vai trò:"
+
+#: modules/pam_selinux/pam_selinux.c:194
+#, fuzzy, c-format
+msgid "There is no default type for role %s."
+msgstr "Không có loại mặc định cho vai trò %s\n"
+
+#: modules/pam_selinux/pam_selinux.c:226
+msgid "level:"
+msgstr "trình độ:"
+
+#: modules/pam_selinux/pam_selinux.c:260
+#, fuzzy
+msgid "This is not a valid security context."
+msgstr "Không phải là một bối cảnh an ninh hợp lệ"
+
+#: modules/pam_selinux/pam_selinux.c:509
+#, c-format
+msgid "A valid context for %s could not be obtained."
+msgstr ""
+
+#: modules/pam_selinux/pam_selinux.c:639
+#, fuzzy, c-format
+msgid "Security context %s has been assigned."
+msgstr "Bối cảnh an ninh %s Giao"
+
+#: modules/pam_selinux/pam_selinux.c:655
+#, fuzzy, c-format
+msgid "Key creation context %s has been assigned."
+msgstr "Sáng tạo Context phím %s Giao"
+
+#: modules/pam_selinux/pam_selinux_check.c:101
+#, c-format
+msgid "failed to initialize PAM\n"
+msgstr "không thể khởi tạo PAM\n"
+
+#: modules/pam_selinux/pam_selinux_check.c:107
+#, c-format
+msgid "failed to pam_set_item()\n"
+msgstr "không pam_set_item ()\n"
+
+#. error in fork()
+#: modules/pam_selinux/pam_selinux_check.c:135
+#, c-format
+msgid "login: failure forking: %m"
+msgstr "đăng nhập: thất bại forking: %m"
+
+#: modules/pam_timestamp/pam_timestamp.c:387
+#, fuzzy, c-format
+msgid "Access has been granted (last access was %ld seconds ago)."
+msgstr "Được phép truy cập (lần truy cập trước %ld giây trước)"
+
+#: modules/pam_unix/pam_unix_acct.c:232 modules/pam_unix/pam_unix_acct.c:254
+#, fuzzy
+msgid "Your account has expired; please contact your system administrator."
+msgstr ""
+"Tài khoản của bạn đã hết hạn dùng: hãy liên lạc với nhà quản trị hệ thống"
+
+#: modules/pam_unix/pam_unix_acct.c:240
+#, fuzzy
+msgid ""
+"You are required to change your password immediately (administrator "
+"enforced)."
+msgstr "Bạn phải thay đổi ngay mật khẩu (người chủ ép buộc)"
+
+#: modules/pam_unix/pam_unix_acct.c:246
+#, fuzzy
+msgid ""
+"You are required to change your password immediately (password expired)."
+msgstr "Bạn phải thay đổi ngay mật khẩu (mật khẩu quá cũ)"
+
+#: modules/pam_unix/pam_unix_acct.c:271 modules/pam_unix/pam_unix_acct.c:278
+#, fuzzy, c-format
+msgid "Warning: your password will expire in %d day."
+msgid_plural "Warning: your password will expire in %d days."
+msgstr[0] "Cảnh báo: mật khẩu của bạn sẽ hết hạn trong %d ngày"
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_unix/pam_unix_acct.c:283
+#, fuzzy, c-format
+msgid "Warning: your password will expire in %d days."
+msgstr "Cảnh báo: mật khẩu của bạn sẽ hết hạn trong %d ngày"
+
+#: modules/pam_unix/pam_unix_passwd.c:459
+msgid "NIS password could not be changed."
+msgstr "NIS mật khẩu không thể được thay đổi."
+
+#: modules/pam_unix/pam_unix_passwd.c:557
+#, fuzzy
+msgid "No password has been supplied."
+msgstr "Không có mật khẩu được cung cấp"
+
+#: modules/pam_unix/pam_unix_passwd.c:558
+#, fuzzy
+msgid "The password has not been changed."
+msgstr "NIS mật khẩu không thể được thay đổi."
+
+#: modules/pam_unix/pam_unix_passwd.c:575
+msgid "You must choose a shorter password."
+msgstr "Bạn phải chọn một mật khẩu ngắn hơn."
+
+#: modules/pam_unix/pam_unix_passwd.c:579
+#, fuzzy
+msgid "You must choose a longer password."
+msgstr "Bạn phải chọn mật khẩu dài hơn"
+
+#: modules/pam_unix/pam_unix_passwd.c:684
+#, c-format
+msgid "Changing password for %s."
+msgstr "Thay đổi mật khẩu cho %s."
+
+#: modules/pam_unix/pam_unix_passwd.c:714
+#, fuzzy
+msgid "You must wait longer to change your password."
+msgstr "Bạn phải đợi thêm nữa, để thay đổi mật khẩu"
+
+#, fuzzy
+#~ msgid "You have no mail."
+#~ msgstr "Bạn có thư mới."
+
+#~ msgid "is the same as the old one"
+#~ msgstr "là giống như cũ"
+
+#~ msgid "memory allocation error"
+#~ msgstr "Lỗi cấp phát bộ nhớ"
+
+#~ msgid "is a palindrome"
+#~ msgstr "là một xâu palindrome"
+
+#~ msgid "case changes only"
+#~ msgstr "chỉ thay đổi chữ thường/hoa"
+
+#~ msgid "is too similar to the old one"
+#~ msgstr "quá giống cái cũ"
+
+#~ msgid "is too simple"
+#~ msgstr "quá đơn giản"
+
+#~ msgid "is rotated"
+#~ msgstr "được sử dụng lại"
+
+#~ msgid "not enough character classes"
+#~ msgstr "không đủ các lớp nhân vật"
+
+#~ msgid "contains too many same characters consecutively"
+#~ msgstr "chứa quá nhiều kí tự giống nhau liên tiếp"
+
+#, fuzzy
+#~ msgid "contains too long of a monotonic character sequence"
+#~ msgstr "chứa quá nhiều kí tự giống nhau liên tiếp"
+
+#~ msgid "contains the user name in some form"
+#~ msgstr "chứa tên user trong một số biểu mẫu"
+
+#~ msgid "BAD PASSWORD: %s"
+#~ msgstr "Mật khẩu không an toàn: %s"
+
+#, fuzzy
+#~ msgid "The account is temporarily locked (%ld seconds left)."
+#~ msgstr "Tài khoản tạm thời bị khóa (%ld giây còn lại)"
+
+#~ msgid "Authentication error"
+#~ msgstr "Xác thực lỗi"
+
+#~ msgid "Service error"
+#~ msgstr "Lỗi dịch vụ"
+
+#~ msgid "Unknown user"
+#~ msgstr "Người dùng không rõ"
+
+#~ msgid "Unknown error"
+#~ msgstr "Lỗi không rõ"
+
+#~ msgid "%s: Bad number given to --reset=\n"
+#~ msgstr "%s: Xấu số cho --cài lại=\n"
+
+#~ msgid "%s: Unrecognised option %s\n"
+#~ msgstr "%s: Được thừa nhận lựa chọn%s\n"
+
+#~ msgid ""
+#~ "%s: [--file rooted-filename] [--user username] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [- tập bắt rễ-filename] [- người sử dụng tên người dùng] [- đặt lại "
+#~ "[= n]] [- yên tĩnh]\n"
+
+#~ msgid "%s: Can't reset all users to non-zero\n"
+#~ msgstr "%s: Không thể thiết lập lại tất cả các người dùng khác không\n"
+
+#~ msgid ""
+#~ "%s: [-f rooted-filename] [--file rooted-filename]\n"
+#~ "   [-u username] [--user username]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [-f rooted-filename] [--file rooted-filename]\n"
+#~ "   [-u username] [--user username]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"

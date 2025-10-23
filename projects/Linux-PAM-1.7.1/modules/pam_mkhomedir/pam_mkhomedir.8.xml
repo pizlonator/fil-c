@@ -1,0 +1,216 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_mkhomedir">
+
+  <refmeta>
+    <refentrytitle>pam_mkhomedir</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_mkhomedir-name">
+    <refname>pam_mkhomedir</refname>
+    <refpurpose>
+      PAM module to create users home directory
+    </refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_mkhomedir-cmdsynopsis" sepchar=" ">
+      <command>pam_mkhomedir.so</command>
+      <arg choice="opt" rep="norepeat">
+        silent
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        umask=<replaceable>mode</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        skel=<replaceable>skeldir</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_mkhomedir-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The pam_mkhomedir PAM module will create a users home directory
+      if it does not exist when the session begins. This allows users
+      to be present in central database (such as NIS, kerberos or LDAP)
+      without using a distributed file system or pre-creating a large
+      number of directories. The skeleton directory (usually
+      <filename>/etc/skel/</filename>) is used to copy default files
+      and also sets a umask for the creation.
+    </para>
+    <para>
+      The new users home directory will not be removed after logout
+      of the user.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-options">
+    <title>OPTIONS</title>
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          silent
+        </term>
+        <listitem>
+          <para>
+            Don't print informative messages.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          debug
+        </term>
+        <listitem>
+          <para>
+           Turns on debugging via
+            <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          umask=mask
+        </term>
+        <listitem>
+          <para>
+            The file mode creation mask is set to
+            <replaceable>mask</replaceable>. The default value of mask
+            is 0022. If this option is not specified, then the permissions
+            of created user home directory  is set to the value of
+            <option>HOME_MODE</option> configuration item from
+            <filename>/etc/login.defs</filename>. If there is no such
+            configuration item then the value is computed from the
+            value of <option>UMASK</option> in the same file. If
+            there is no such configuration option either the default
+            value of 0755 is used for the mode.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          skel=/path/to/skel/directory
+        </term>
+        <listitem>
+          <para>
+            Indicate an alternative <filename>skel</filename> directory
+            to override the default <filename>/etc/skel</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>session</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_PERM_DENIED</term>
+        <listitem>
+           <para>
+             Not enough permissions to create the new directory
+             or read the skel directory.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+           <para>
+             User not known to the underlying authentication module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Environment variables were set.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/etc/skel</term>
+        <listitem>
+          <para>Default skel directory</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-examples">
+    <title>EXAMPLES</title>
+    <para>
+      A sample /etc/pam.d/login file:
+      <programlisting>
+  auth       requisite   pam_securetty.so
+  auth       sufficient  pam_ldap.so
+  auth       required    pam_unix.so
+  auth       required    pam_nologin.so
+  account    sufficient  pam_ldap.so
+  account    required    pam_unix.so
+  password   required    pam_unix.so
+  session    required    pam_mkhomedir.so skel=/etc/skel/ umask=0022
+  session    required    pam_unix.so
+  session    optional    pam_lastlog.so
+  session    optional    pam_mail.so standard
+      </programlisting>
+    </para>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_mkhomedir-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mkhomedir-author">
+    <title>AUTHOR</title>
+    <para>
+      pam_mkhomedir was written by Jason Gunthorpe &lt;jgg@debian.org&gt;.
+    </para>
+  </refsect1>
+</refentry>

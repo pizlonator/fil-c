@@ -1,0 +1,19 @@
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam.conf-desc">
+  <para>
+    When a <emphasis>PAM</emphasis> aware privilege granting application
+    is started, it activates its attachment to the PAM-API. This
+    activation performs a number of tasks, the most important being the
+    reading of the configuration file(s): <filename>/etc/pam.conf</filename>.
+    Alternatively and preferably, the configuration can be set by individual
+    configuration files located in a <filename>pam.d</filename> directory.
+    The presence of this directory will cause
+    <emphasis remap="B">Linux-PAM</emphasis> to
+    <emphasis remap="I">ignore</emphasis> <filename>/etc/pam.conf</filename>.
+  </para>
+  <para>
+    These files list the <emphasis>PAM</emphasis>s that will do the
+    authentication tasks required by this service, and the appropriate
+    behavior of the PAM-API in the event that individual
+    <emphasis>PAM</emphasis>s fail.
+  </para>
+</section>

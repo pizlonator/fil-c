@@ -1,0 +1,586 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Linux-PAM Project
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+# Klara Cihlarova <koty@seznam.cz>, 2005, 2006.
+# <tmraz@fedoraproject.org>, 2011.
+# Tomas Mraz <t8m@centrum.cz>, 2005, 2008, 2009.
+# Tomáš Mráz <tmraz@fedoraproject.org>, 2016. #zanata
+# Tomáš Mráz <tmraz@redhat.com>, 2020.
+# Dmitry V. Levin <ldv@altlinux.org>, 2020.
+# Josef Hruska <hrusjos@gmail.com>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: Linux-PAM\n"
+"Report-Msgid-Bugs-To: https://github.com/linux-pam/linux-pam/issues\n"
+"POT-Creation-Date: 2025-06-16 08:00+0000\n"
+"PO-Revision-Date: 2023-01-24 18:20+0000\n"
+"Last-Translator: Josef Hruska <hrusjos@gmail.com>\n"
+"Language-Team: Czech <https://translate.fedoraproject.org/projects/linux-pam/"
+"master/cs/>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 4.15.1\n"
+
+#: libpam/pam_get_authtok.c:40 modules/pam_exec/pam_exec.c:182
+#: modules/pam_userdb/pam_userdb.c:62
+msgid "Password: "
+msgstr "Heslo: "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:42
+#, c-format
+msgid "Current %s password: "
+msgstr "Současné %s heslo: "
+
+#: libpam/pam_get_authtok.c:43
+msgid "Current password: "
+msgstr "Současné heslo: "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:45
+#, c-format
+msgid "New %s password: "
+msgstr "Nové %s heslo: "
+
+#: libpam/pam_get_authtok.c:46
+msgid "New password: "
+msgstr "Nové heslo: "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:48
+#, c-format
+msgid "Retype new %s password: "
+msgstr "Opakujte nové %s heslo: "
+
+#: libpam/pam_get_authtok.c:49
+msgid "Retype new password: "
+msgstr "Opakujte nové heslo: "
+
+#: libpam/pam_get_authtok.c:50
+msgid "Sorry, passwords do not match."
+msgstr "Hesla se neshodují."
+
+#: libpam/pam_get_authtok.c:145 libpam/pam_get_authtok.c:249
+#, c-format
+msgid "Retype %s"
+msgstr "Opakujte %s"
+
+#: libpam/pam_get_authtok.c:185 libpam/pam_get_authtok.c:267
+msgid "Password change has been aborted."
+msgstr "Změna hesla byla přerušena."
+
+#: libpam/pam_item.c:317
+msgid "login:"
+msgstr "login:"
+
+#: libpam/pam_strerror.c:41
+msgid "Success"
+msgstr "Úspěch"
+
+#: libpam/pam_strerror.c:43
+msgid "Critical error - immediate abort"
+msgstr "Kritická chyba - okamžité ukončení"
+
+#: libpam/pam_strerror.c:45
+msgid "Failed to load module"
+msgstr "Nepodařilo se nahrát modul"
+
+#: libpam/pam_strerror.c:47
+msgid "Symbol not found"
+msgstr "Symbol nenalezen"
+
+#: libpam/pam_strerror.c:49
+msgid "Error in service module"
+msgstr "Chyba v modulu služby"
+
+#: libpam/pam_strerror.c:51
+msgid "System error"
+msgstr "Systémová chyba"
+
+#: libpam/pam_strerror.c:53
+msgid "Memory buffer error"
+msgstr "Chyba alokace paměti"
+
+#: libpam/pam_strerror.c:55
+msgid "Permission denied"
+msgstr "Přístup zamítnut"
+
+#: libpam/pam_strerror.c:57
+msgid "Authentication failure"
+msgstr "Selhání autentizace"
+
+#: libpam/pam_strerror.c:59
+msgid "Insufficient credentials to access authentication data"
+msgstr "Nedostatečná oprávnění pro přístup k autentizačním datům"
+
+#: libpam/pam_strerror.c:61
+msgid "Authentication service cannot retrieve authentication info"
+msgstr "Autentizační služba nemůže získat informace pro autentizaci"
+
+#: libpam/pam_strerror.c:63
+msgid "User not known to the underlying authentication module"
+msgstr "Uživatel není znám použitému autentizačnímu modulu"
+
+#: libpam/pam_strerror.c:65
+msgid "Have exhausted maximum number of retries for service"
+msgstr "Vyčerpán maximální počet pokusů pro službu"
+
+#: libpam/pam_strerror.c:67
+msgid "Authentication token is no longer valid; new one required"
+msgstr "Autentizační token již není platný; vyžadován nový"
+
+#: libpam/pam_strerror.c:69
+msgid "User account has expired"
+msgstr "Uživatelský účet vypršel"
+
+#: libpam/pam_strerror.c:71
+msgid "Cannot make/remove an entry for the specified session"
+msgstr "Pro zadané sezení nelze vytvořit/odstranit záznam"
+
+#: libpam/pam_strerror.c:73
+msgid "Authentication service cannot retrieve user credentials"
+msgstr "Autentizační služba nemůže získat údaje o oprávněních uživatele"
+
+#: libpam/pam_strerror.c:75
+msgid "User credentials expired"
+msgstr "Údaje o oprávněních uživatele vypršely"
+
+#: libpam/pam_strerror.c:77
+msgid "Failure setting user credentials"
+msgstr "Chyba při nastavení údajů o oprávněních uživatele"
+
+#: libpam/pam_strerror.c:79
+msgid "No module specific data is present"
+msgstr "Nelze najít data potřebná pro modul"
+
+#: libpam/pam_strerror.c:81
+msgid "Bad item passed to pam_*_item()"
+msgstr "Funkci pam_*_item() byla předána špatná položka"
+
+#: libpam/pam_strerror.c:83
+msgid "Conversation error"
+msgstr "Chyba konverzace"
+
+#: libpam/pam_strerror.c:85
+msgid "Authentication token manipulation error"
+msgstr "Chyba manipulace s autentizačním tokenem"
+
+#: libpam/pam_strerror.c:87
+msgid "Authentication information cannot be recovered"
+msgstr "Autentizační informace nelze získat"
+
+#: libpam/pam_strerror.c:89
+msgid "Authentication token lock busy"
+msgstr "Autentizační token je uzamčen"
+
+#: libpam/pam_strerror.c:91
+msgid "Authentication token aging disabled"
+msgstr "Stárnutí autentizačního tokenu vypnuto"
+
+#: libpam/pam_strerror.c:93
+msgid "Failed preliminary check by password service"
+msgstr "Selhání předběžné kontroly ve službě hesla"
+
+#: libpam/pam_strerror.c:95
+msgid "The return value should be ignored by PAM dispatch"
+msgstr "Návratová hodnota by měla být ignorována rozhodovacím mechanismem PAM"
+
+#: libpam/pam_strerror.c:97
+msgid "Module is unknown"
+msgstr "Neznámý modul"
+
+#: libpam/pam_strerror.c:99
+msgid "Authentication token expired"
+msgstr "Autentizační token vypršel"
+
+#: libpam/pam_strerror.c:101
+msgid "Conversation is waiting for event"
+msgstr "Konverzace čeká na událost"
+
+#: libpam/pam_strerror.c:103
+msgid "Application needs to call libpam again"
+msgstr "Aplikace musí znovu zavolat libpam"
+
+#: libpam/pam_strerror.c:106
+msgid "Unknown PAM error"
+msgstr "Neznámá chyba PAM"
+
+#.
+#. * external timeout definitions - these can be overridden by the
+#. * application.
+#.
+#. time when we warn
+#. time when we timeout
+#: libpam_misc/misc_conv.c:36
+msgid "...Time is running out...\n"
+msgstr "...Dochází čas...\n"
+
+#: libpam_misc/misc_conv.c:37
+msgid "...Sorry, your time is up!\n"
+msgstr "...Promiňte, čas vypršel!\n"
+
+#: libpam_misc/misc_conv.c:351
+#, c-format
+msgid "erroneous conversation (%d)\n"
+msgstr "nesprávná konverzace (%d)\n"
+
+#: modules/pam_exec/pam_exec.c:298
+#, c-format
+msgid "%s failed: exit code %d"
+msgstr "%s selhal: návratový kód %d"
+
+#: modules/pam_exec/pam_exec.c:308
+#, c-format
+msgid "%s failed: caught signal %d%s"
+msgstr "%s selhal: dostal signál %d%s"
+
+#: modules/pam_exec/pam_exec.c:318
+#, c-format
+msgid "%s failed: unknown status 0x%x"
+msgstr "%s selhal: neznámý kód stavu 0x%x"
+
+#: modules/pam_faillock/main.c:131
+#, c-format
+msgid ""
+"Usage: %s [--dir /path/to/tally-directory] [--user username] [--reset] [--"
+"legacy-output]\n"
+msgstr ""
+"Použití: %s [--dir /cesta/k/tally-adresari] [--user uzivatelske_jmeno] [--"
+"legacy-output]\n"
+
+#: modules/pam_faillock/main.c:182
+#, c-format
+msgid "Login           Failures    Latest failure         From\n"
+msgstr "Login           Selhání    Poslední selhání         Od\n"
+
+#: modules/pam_faillock/pam_faillock.c:416
+#, c-format
+msgid "The account is locked due to %u failed logins."
+msgstr "Účet je uzamčen z důvodu %u neúspěšných pokusů o přihlášení."
+
+#: modules/pam_faillock/pam_faillock.c:425
+#: modules/pam_faillock/pam_faillock.c:431
+#, c-format
+msgid "(%d minute left to unlock)"
+msgid_plural "(%d minutes left to unlock)"
+msgstr[0] "(%d minuta zbývá do odemčení)"
+msgstr[1] "(%d minuty zbývají do odemčení)"
+msgstr[2] "(%d minut zbývá do odemčení)"
+
+#. TRANSLATORS: only used if dngettext is not supported.
+#: modules/pam_faillock/pam_faillock.c:434
+#, c-format
+msgid "(%d minutes left to unlock)"
+msgstr "(%d minut zbývá do odemčení)"
+
+#. TRANSLATORS: "strftime options for date of last login"
+#: modules/pam_lastlog/pam_lastlog.c:323 modules/pam_lastlog/pam_lastlog.c:592
+msgid " %a %b %e %H:%M:%S %Z %Y"
+msgstr " %a %d.%m.%Y %H:%M:%S %Z"
+
+#. TRANSLATORS: " from <host>"
+#: modules/pam_lastlog/pam_lastlog.c:332 modules/pam_lastlog/pam_lastlog.c:601
+#, c-format
+msgid " from %.*s"
+msgstr " z %.*s"
+
+#. TRANSLATORS: " on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:344 modules/pam_lastlog/pam_lastlog.c:613
+#, c-format
+msgid " on %.*s"
+msgstr " na %.*s"
+
+#. TRANSLATORS: "Last login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:354
+#, c-format
+msgid "Last login:%s%s%s"
+msgstr "Poslední přihlášení:%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:360
+msgid "Welcome to your new account!"
+msgstr "Vítejte na vašem novém účtu!"
+
+#. TRANSLATORS: "Last failed login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:623
+#, c-format
+msgid "Last failed login:%s%s%s"
+msgstr "Poslední neúspěšné přihlášení:%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:632 modules/pam_lastlog/pam_lastlog.c:639
+#, c-format
+msgid "There was %d failed login attempt since the last successful login."
+msgid_plural ""
+"There were %d failed login attempts since the last successful login."
+msgstr[0] "Od posledního úspěšného došlo k %d neúspěšnému pokusu o přihlášení."
+msgstr[1] "Od posledního úspěšného došlo k %d neúspěšným pokusům o přihlášení."
+msgstr[2] "Od posledního úspěšného došlo k %d neúspěšným pokusům o přihlášení."
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_lastlog/pam_lastlog.c:644
+#, c-format
+msgid "There were %d failed login attempts since the last successful login."
+msgstr "Od posledního úspěšného došlo k %d neúspěšným pokusům o přihlášení."
+
+#: modules/pam_limits/pam_limits.c:1435
+#, c-format
+msgid "There were too many logins for '%s'."
+msgstr "Proběhlo příliš mnoho přihlášení pro '%s'."
+
+#: modules/pam_mail/pam_mail.c:289
+msgid "You do not have any new mail."
+msgstr "Nemáte žádnou novou poštu."
+
+#: modules/pam_mail/pam_mail.c:292
+msgid "You have new mail."
+msgstr "Máte novou poštu."
+
+#: modules/pam_mail/pam_mail.c:295
+msgid "You have old mail."
+msgstr "Máte starou poštu."
+
+#: modules/pam_mail/pam_mail.c:299
+msgid "You have mail."
+msgstr "Máte poštu."
+
+#: modules/pam_mail/pam_mail.c:306
+#, c-format
+msgid "You have no mail in folder %s."
+msgstr "Nemáte žádnou poštu ve složce %s."
+
+#: modules/pam_mail/pam_mail.c:310
+#, c-format
+msgid "You have new mail in folder %s."
+msgstr "Máte novou poštu ve složce %s."
+
+#: modules/pam_mail/pam_mail.c:314
+#, c-format
+msgid "You have old mail in folder %s."
+msgstr "Máte starou poštu ve složce %s."
+
+#: modules/pam_mail/pam_mail.c:319
+#, c-format
+msgid "You have mail in folder %s."
+msgstr "Máte poštu ve složce %s."
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:120
+#, c-format
+msgid "Creating directory '%s'."
+msgstr "Vytváření adresáře '%s'."
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:203
+#, c-format
+msgid "Unable to create and initialize directory '%s'."
+msgstr "Nezdařilo se vytvořit a inicializovat adresář '%s'."
+
+#: modules/pam_pwhistory/pam_pwhistory.c:383
+#: modules/pam_unix/pam_unix_passwd.c:584
+msgid "Password has been already used. Choose another."
+msgstr "Heslo již bylo použito. Zvolte jiné."
+
+#: modules/pam_pwhistory/pam_pwhistory.c:390
+msgid "Password has been already used."
+msgstr "Heslo již bylo použito."
+
+#: modules/pam_selinux/pam_selinux.c:173
+#, c-format
+msgid "The default security context is %s."
+msgstr "Výchozí bezpečnostní kontext je %s."
+
+#: modules/pam_selinux/pam_selinux.c:177
+msgid "Would you like to enter a different role or level?"
+msgstr "Chcete zadat jinou roli nebo úroveň?"
+
+#. Allow the user to enter role and level individually
+#: modules/pam_selinux/pam_selinux.c:190
+msgid "role:"
+msgstr "role:"
+
+#: modules/pam_selinux/pam_selinux.c:194
+#, c-format
+msgid "There is no default type for role %s."
+msgstr "Chybí výchozí typ pro roli %s."
+
+#: modules/pam_selinux/pam_selinux.c:226
+msgid "level:"
+msgstr "úroveň:"
+
+#: modules/pam_selinux/pam_selinux.c:260
+msgid "This is not a valid security context."
+msgstr "Toto není platný bezpečnostní kontext."
+
+#: modules/pam_selinux/pam_selinux.c:509
+#, c-format
+msgid "A valid context for %s could not be obtained."
+msgstr "Nepodařilo se získat platný kontext pro %s."
+
+#: modules/pam_selinux/pam_selinux.c:639
+#, c-format
+msgid "Security context %s has been assigned."
+msgstr "Bezpečnostní kontext %s byl přiřazen."
+
+#: modules/pam_selinux/pam_selinux.c:655
+#, c-format
+msgid "Key creation context %s has been assigned."
+msgstr "Kontext pro vytváření klíčů %s byl přidělen."
+
+#: modules/pam_selinux/pam_selinux_check.c:101
+#, c-format
+msgid "failed to initialize PAM\n"
+msgstr "chyba při inicializaci PAM\n"
+
+#: modules/pam_selinux/pam_selinux_check.c:107
+#, c-format
+msgid "failed to pam_set_item()\n"
+msgstr "chyba pam_set_item()\n"
+
+#. error in fork()
+#: modules/pam_selinux/pam_selinux_check.c:135
+#, c-format
+msgid "login: failure forking: %m"
+msgstr "login: chyba forku: %m"
+
+#: modules/pam_timestamp/pam_timestamp.c:387
+#, c-format
+msgid "Access has been granted (last access was %ld seconds ago)."
+msgstr "Přístup byl povolen (poslední přístup před %ld vteřinami)."
+
+#: modules/pam_unix/pam_unix_acct.c:232 modules/pam_unix/pam_unix_acct.c:254
+msgid "Your account has expired; please contact your system administrator."
+msgstr "Váš účet vypršel; kontaktujte prosím svého správce systému."
+
+#: modules/pam_unix/pam_unix_acct.c:240
+msgid ""
+"You are required to change your password immediately (administrator "
+"enforced)."
+msgstr "Nyní musíte změnit své heslo (vynuceno administrátorem)."
+
+#: modules/pam_unix/pam_unix_acct.c:246
+msgid ""
+"You are required to change your password immediately (password expired)."
+msgstr "Nyní musíte změnit své heslo (heslo vypršelo)."
+
+#: modules/pam_unix/pam_unix_acct.c:271 modules/pam_unix/pam_unix_acct.c:278
+#, c-format
+msgid "Warning: your password will expire in %d day."
+msgid_plural "Warning: your password will expire in %d days."
+msgstr[0] "Varování: Vaše heslo vyprší za %d den."
+msgstr[1] "Varování: Vaše heslo vyprší za %d dny."
+msgstr[2] "Varování: Vaše heslo vyprší za %d dní."
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_unix/pam_unix_acct.c:283
+#, c-format
+msgid "Warning: your password will expire in %d days."
+msgstr "Varování: Počet dní do vypršení hesla: %d"
+
+#: modules/pam_unix/pam_unix_passwd.c:459
+msgid "NIS password could not be changed."
+msgstr "NIS heslo se nepodařilo změnit."
+
+#: modules/pam_unix/pam_unix_passwd.c:557
+msgid "No password has been supplied."
+msgstr "Heslo nebylo zadáno."
+
+#: modules/pam_unix/pam_unix_passwd.c:558
+msgid "The password has not been changed."
+msgstr "Heslo nebylo změněno."
+
+#: modules/pam_unix/pam_unix_passwd.c:575
+msgid "You must choose a shorter password."
+msgstr "Musíte zvolit kratší heslo."
+
+#: modules/pam_unix/pam_unix_passwd.c:579
+msgid "You must choose a longer password."
+msgstr "Musíte si zvolit delší heslo."
+
+#: modules/pam_unix/pam_unix_passwd.c:684
+#, c-format
+msgid "Changing password for %s."
+msgstr "Změna hesla pro %s."
+
+#: modules/pam_unix/pam_unix_passwd.c:714
+msgid "You must wait longer to change your password."
+msgstr "Na změnu svého hesla musíte počkat déle."
+
+#~ msgid "You have no mail."
+#~ msgstr "Nemáte žádnou poštu."
+
+#~ msgid "is the same as the old one"
+#~ msgstr "je stejné jako předcházející"
+
+#~ msgid "memory allocation error"
+#~ msgstr "chyba alokace paměti"
+
+#~ msgid "is a palindrome"
+#~ msgstr "je palindrom"
+
+#~ msgid "case changes only"
+#~ msgstr "pouze mění velikost"
+
+#~ msgid "is too similar to the old one"
+#~ msgstr "je příliš podobné předcházejícímu"
+
+#~ msgid "is too simple"
+#~ msgstr "je příliš jednoduché"
+
+#~ msgid "is rotated"
+#~ msgstr "je posunuté"
+
+#~ msgid "not enough character classes"
+#~ msgstr "nemá dostatek různých druhů znaků"
+
+#~ msgid "contains too many same characters consecutively"
+#~ msgstr "obsahuje příliš mnoho stejných znaků za sebou"
+
+#~ msgid "contains too long of a monotonic character sequence"
+#~ msgstr "obsahuje příliš dlouhou postupnou sekvenci znaků"
+
+#~ msgid "contains the user name in some form"
+#~ msgstr "obsahuje v nějaké formě uživatelské jméno"
+
+#~ msgid "BAD PASSWORD: %s"
+#~ msgstr "ŠPATNÉ HESLO: %s"
+
+#~ msgid "The account is temporarily locked (%ld seconds left)."
+#~ msgstr "Účet je dočasně uzamčen (zbývá %ld vteřin)."
+
+#~ msgid "Authentication error"
+#~ msgstr "Chyba autentizace"
+
+#~ msgid "Service error"
+#~ msgstr "Chyba služby"
+
+#~ msgid "Unknown user"
+#~ msgstr "Neznámý uživatel"
+
+#~ msgid "Unknown error"
+#~ msgstr "Neznámá chyba"
+
+#~ msgid "%s: Bad number given to --reset=\n"
+#~ msgstr "%s: Zadána špatná hodnota --reset=\n"
+
+#~ msgid "%s: Unrecognised option %s\n"
+#~ msgstr "%s: Neznámá volba %s\n"
+
+#~ msgid ""
+#~ "%s: [--file rooted-filename] [--user username] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [--file jmeno_souboru] [--user uzivatelske_jmeno] [--reset[=n]] [--"
+#~ "quiet]\n"
+
+#~ msgid "%s: Can't reset all users to non-zero\n"
+#~ msgstr "%s: Nelze resetovat všechny uživatele nenulově\n"
+
+#~ msgid ""
+#~ "%s: [-f rooted-filename] [--file rooted-filename]\n"
+#~ "   [-u username] [--user username]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [-f plna-cesta-k-souboru] [--file plna-cesta-k-souboru]\n"
+#~ "   [-u uzivatelske-jmeno] [--user uzivatelske-jmeno]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"

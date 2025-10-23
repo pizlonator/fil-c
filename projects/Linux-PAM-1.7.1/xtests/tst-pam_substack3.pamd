@@ -1,0 +1,5 @@
+#%PAM-1.0
+# Reset in the substack resets to state as of it was
+# in the beginning of substack evaluation
+auth	 required	pam_permit.so
+auth     substack       tst-pam_substack3a

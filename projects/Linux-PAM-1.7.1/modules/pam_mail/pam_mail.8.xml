@@ -1,0 +1,277 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_mail">
+
+  <refmeta>
+    <refentrytitle>pam_mail</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_mail-name">
+    <refname>pam_mail</refname>
+    <refpurpose>Inform about available mail</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_mail-cmdsynopsis" sepchar=" ">
+      <command>pam_mail.so</command>
+      <arg choice="opt" rep="norepeat">
+	close
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        dir=<replaceable>maildir</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	empty
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	hash=<replaceable>count</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	noenv
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	nopen
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	quiet
+      </arg>
+      <arg choice="opt" rep="norepeat">
+	standard
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_mail-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      The pam_mail PAM module provides the "you have new mail"
+      service to the user. It can be plugged into any application
+      that has credential or session hooks. It gives a single message
+      indicating the <emphasis>newness</emphasis> of any mail it finds
+      in the user's mail folder. This module also sets the PAM
+      environment variable, <emphasis remap="B">MAIL</emphasis>, to the
+      user's mail directory.
+    </para>
+    <para>
+      If the mail spool file (be it <filename>/var/mail/$USER</filename>
+      or a pathname given with the <option>dir=</option> parameter) is
+      a directory then pam_mail assumes it is in the
+      <emphasis remap="I">Maildir</emphasis> format.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-options">
+
+    <title>OPTIONS</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>
+            close
+          </term>
+          <listitem>
+            <para>
+              Indicate if the user has any mail also on logout.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            debug
+          </term>
+          <listitem>
+            <para>
+	      Print debug information.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            dir=maildir
+          </term>
+          <listitem>
+            <para>
+              Look for the user's mail in an alternative location defined by
+             <filename>maildir/&lt;login&gt;</filename>.  The default
+             location for mail is <filename>/var/mail/&lt;login&gt;</filename>.
+             Note, if the supplied
+             <filename>maildir</filename> is prefixed by a '~', the
+             directory is interpreted as indicating a file in the user's
+             home directory.
+            </para>
+          </listitem>
+	</varlistentry>
+
+        <varlistentry>
+          <term>
+            empty
+          </term>
+          <listitem>
+            <para>
+              Also print message if user has no mail.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            hash=count
+          </term>
+          <listitem>
+            <para>
+              Mail directory hash depth. For example, a
+              <emphasis>hashcount</emphasis> of 2 would
+              make the mail file be
+              <filename>/var/spool/mail/u/s/user</filename>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            noenv
+          </term>
+          <listitem>
+            <para>
+	      Do not set the <emphasis remap="B">MAIL</emphasis>
+              environment variable.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            nopen
+          </term>
+          <listitem>
+            <para>
+	      Don't print any mail information on login. This flag is
+              useful to get the <emphasis remap="B">MAIL</emphasis>
+              environment variable set, but to not display any information
+              about it.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            quiet
+          </term>
+          <listitem>
+            <para>
+	      Only report when there is new mail.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            standard
+          </term>
+          <listitem>
+            <para>
+	      Old style "You have..." format which doesn't show the
+              mail spool being used. This also implies "empty".
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>session</option> and
+      <option>auth</option> (on establishment and
+      deletion of credentials) module types are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_SERVICE_ERR</term>
+        <listitem>
+          <para>
+	    Badly formed arguments.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Success.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User not known.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Add the following line to <filename>/etc/pam.d/login</filename> to
+      indicate that the user has new mail when they login to the system.
+      <programlisting>
+session  optional  pam_mail.so standard
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_mail-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_mail was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

@@ -1,0 +1,80 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="mkhomedir_helper">
+
+  <refmeta>
+    <refentrytitle>mkhomedir_helper</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="mkhomedir_helper-name">
+    <refname>mkhomedir_helper</refname>
+    <refpurpose>Helper binary that creates home directories</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="mkhomedir_helper-cmdsynopsis" sepchar=" ">
+      <command>mkhomedir_helper</command>
+      <arg choice="req" rep="norepeat">
+        <replaceable>user</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        <replaceable>umask</replaceable>
+      <arg choice="opt" rep="norepeat">
+        <replaceable>path-to-skel</replaceable>
+      <arg choice="opt" rep="norepeat">
+        <replaceable>home_mode</replaceable>
+      </arg>
+      </arg>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="mkhomedir_helper-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      <emphasis>mkhomedir_helper</emphasis> is a helper program for the
+      <emphasis>pam_mkhomedir</emphasis> module that creates home directories
+      and populates them with contents of the specified skel directory.
+    </para>
+
+    <para>
+      The default value of <replaceable>umask</replaceable> is 0022 and the
+      default value of <replaceable>path-to-skel</replaceable> is
+      <emphasis>/etc/skel</emphasis>. The default value of
+      <replaceable>home_mode</replaceable> is computed from the value of
+      <replaceable>umask</replaceable>.
+    </para>
+
+    <para>
+      The helper is separated from the module to not require direct access from
+      login SELinux domains to the contents of user home directories. The
+      SELinux domain transition happens when the module is executing the
+      <emphasis>mkhomedir_helper</emphasis>.
+    </para>
+
+    <para>
+      The helper never touches home directories if they already exist.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="mkhomedir_helper-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam_mkhomedir</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="mkhomedir_helper-author">
+    <title>AUTHOR</title>
+      <para>
+        Written by Tomas Mraz based on the code originally in
+        <emphasis>pam_mkhomedir</emphasis> module.
+      </para>
+  </refsect1>
+
+</refentry>

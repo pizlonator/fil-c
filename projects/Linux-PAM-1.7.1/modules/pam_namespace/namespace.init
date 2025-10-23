@@ -1,0 +1,43 @@
+#!/bin/sh
+# It receives as arguments:
+# - $1 polydir path (see WARNING below)
+# - $2 instance path (see WARNING below)
+# - $3 flag whether the instance dir was newly created (0 - no, 1 - yes)
+# - $4 user name
+# - $5 flag whether the polydir path ($1) is safe (0 - unsafe, 1 -safe)
+# - $6 flag whether the instance path ($2) is safe (0 - unsafe, 1 - safe)
+#
+# WARNING: This script is invoked with full root privileges. Accessing
+# the polydir ($1) and the instance ($2) directories in this context may be
+# extremely dangerous as those can be under user control. The flags $5 and $6
+# are provided to let you know if all the segments part of the path (except the
+# last one) are owned by root and are writable by root only. If the path does
+# not meet these criteria, you expose yourself to possible symlink attacks when
+# accessing these path.
+# However, even if the path components are safe, the content of the
+# directories may still be owned/writable by a user, so care must be taken!
+#
+# The following section will copy the contents of /etc/skel if this is a
+# newly created home directory.
+
+# Executes only if the polydir path is safe
+if [ "$5" = 1 ]; then
+
+    if [ "$3" = 1 ]; then
+            # This line will fix the labeling on all newly created directories
+            [ -x /sbin/restorecon ] && /sbin/restorecon "$1"
+            user="$4"
+            passwd=$(getent passwd "$user")
+            homedir=$(echo "$passwd" | cut -f6 -d":")
+            if [ "$1" = "$homedir" ]; then
+                    gid=$(echo "$passwd" | cut -f4 -d":")
+                    cp -rT /etc/skel "$homedir"
+                    chown -R "$user":"$gid" "$homedir"
+                    mask=$(sed -E -n 's/^UMASK[[:space:]]+([^#[:space:]]+).*/\1/p' /etc/login.defs)
+                    mode=$(printf "%o" $((0777 & ~mask)))
+                    chmod ${mode:-700} "$homedir"
+                    [ -x /sbin/restorecon ] && /sbin/restorecon -R "$homedir"
+            fi
+    fi
+fi
+exit 0

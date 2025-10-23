@@ -1,0 +1,161 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_get_user">
+
+  <refmeta>
+    <refentrytitle>pam_get_user</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_get_user-name">
+    <refname>pam_get_user</refname>
+    <refpurpose>
+       get user name
+    </refpurpose>
+  </refnamediv>
+
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+
+   <funcsynopsis xml:id="pam_get_user-synopsis">
+     <funcsynopsisinfo>#include &lt;security/pam_modules.h&gt;</funcsynopsisinfo>
+     <funcprototype>
+       <funcdef>int <function>pam_get_user</function></funcdef>
+       <paramdef>const pam_handle_t *<parameter>pamh</parameter></paramdef>
+       <paramdef>const char **<parameter>user</parameter></paramdef>
+       <paramdef>const char *<parameter>prompt</parameter></paramdef>
+     </funcprototype>
+   </funcsynopsis>
+
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_get_user-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_get_user</function> function returns the
+      name of the user specified by
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>. If no user was specified it returns what
+      <function>pam_get_item (pamh, PAM_USER, ... );</function> would
+      have returned. If this is NULL it obtains the username via the
+      <citerefentry>
+        <refentrytitle>pam_conv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> mechanism, it prompts the user with the first
+      non-NULL string in the following list:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>
+          The <emphasis>prompt</emphasis> argument passed to the function.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          What is returned by pam_get_item (pamh, PAM_USER_PROMPT, ... );
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The default prompt: "login: "
+        </para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      By whatever means the username is obtained, a pointer to it is
+      returned as the contents of <emphasis>*user</emphasis>. Note,
+      this memory should <emphasis remap="B">not</emphasis> be
+      <emphasis>free()</emphasis>'d or <emphasis>modified</emphasis>
+      by the module.
+    </para>
+    <para>
+      This function sets the <emphasis>PAM_USER</emphasis> item
+      associated with the
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> functions.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_user-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             User name was successful retrieved.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             A NULL pointer was submitted.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_ERR</term>
+        <listitem>
+           <para>
+             The conversation method supplied by the
+             application failed to obtain the username.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+             Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+            Error resuming an old conversation.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_AGAIN</term>
+        <listitem>
+           <para>
+            The conversation method supplied by the application
+            is waiting for an event.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_get_user-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+</refentry>

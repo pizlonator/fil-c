@@ -1,0 +1,112 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_send">
+
+  <refmeta>
+    <refentrytitle>pam_open_session</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_open_session-name">
+    <refname>pam_open_session</refname>
+    <refpurpose>start PAM session management</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_open_session-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_open_session</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>flags</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_open_session-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_open_session</function> function sets up a
+      user session for a previously successful authenticated user.
+      The session should later be terminated with a call to
+      <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+    <para>
+      It should be noted that the effective uid,
+      <citerefentry>
+        <refentrytitle>geteuid</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry>, of the application should be of sufficient
+      privilege to perform such tasks as creating or mounting the
+      user's home directory for example.
+    </para>
+    <para>
+      The flags argument is the binary or of zero or more of the
+      following values:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SILENT</term>
+        <listitem>
+           <para>
+             Do not emit any messages.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_open_session-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+           <para>
+              General failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+           <para>
+              Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SESSION_ERR</term>
+        <listitem>
+           <para>
+             Session failure.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             Session was successful created.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_open_session-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

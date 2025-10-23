@@ -1,0 +1,260 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_umask">
+
+  <refmeta>
+    <refentrytitle>pam_umask</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_umask-name">
+    <refname>pam_umask</refname>
+    <refpurpose>PAM module to set the file mode creation mask</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_umask-cmdsynopsis" sepchar=" ">
+      <command>pam_umask.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        silent
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        usergroups
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        nousergroups
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        umask=<replaceable>mask</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_umask-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      pam_umask is a PAM module to set the file mode creation mask
+      of the current environment. The umask affects the default
+      permissions assigned to newly created files.
+    </para>
+    <para>
+      The PAM module tries to get the umask value from the
+      following places in the following order:
+      <itemizedlist>
+        <listitem>
+          <para>
+            umask= entry in the user's GECOS field (see below for details)
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            umask= argument
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            UMASK entry from /etc/login.defs
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            UMASK= entry from /etc/default/login
+          </para>
+        </listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      The GECOS field is split on comma ',' characters. Entries must be set in
+      its 'other' (sub-)field (the 5th field within the GECOS field), which
+      could be done, for example, using <command>chfn --other</command>.
+      In addition to the umask= entry, the module also recognizes the pri=
+      entry, which sets the nice priority value for the session, and the ulimit=
+      entry, which sets the maximum size of files the processes in the session
+      can create.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-options">
+
+    <title>OPTIONS</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>
+            debug
+          </term>
+          <listitem>
+            <para>
+	      Print debug information.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            silent
+          </term>
+          <listitem>
+            <para>
+              Don't print informative messages.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            usergroups
+          </term>
+          <listitem>
+            <para>
+              If the user is not root and the username is the same as
+              primary group name, the umask group bits are set to be the
+              same as owner bits (examples: 022 -&gt; 002, 077 -&gt; 007).
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            nousergroups
+          </term>
+          <listitem>
+            <para>
+              This is the direct opposite of the usergroups option described above,
+              which can be useful in case pam_umask has been compiled with
+              usergroups enabled by default and you want to disable it at runtime.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            umask=mask
+          </term>
+          <listitem>
+            <para>
+               Sets the calling process's file mode creation mask (umask)
+               to <option>mask</option> &amp; 0777. The value is interpreted
+               as Octal.
+            </para>
+          </listitem>
+	</varlistentry>
+
+      </variablelist>
+
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>session</option> type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>PAM_SUCCESS</term>
+          <listitem>
+            <para>
+              The new umask was set successfully.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_BUF_ERR</term>
+          <listitem>
+            <para>
+              Memory buffer error.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_CONV_ERR</term>
+          <listitem>
+            <para>
+              The conversation method supplied by the application
+              failed to obtain the username.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_INCOMPLETE</term>
+          <listitem>
+            <para>
+              The conversation method supplied by the application
+              returned PAM_CONV_AGAIN.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_SERVICE_ERR</term>
+          <listitem>
+            <para>
+	      No username was given.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_USER_UNKNOWN</term>
+          <listitem>
+            <para>
+	      User not known.
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Add the following line to <filename>/etc/pam.d/login</filename> to
+      set the user specific umask at login:
+      <programlisting>
+        session optional pam_umask.so umask=0022
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_umask-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_umask was written by Thorsten Kukuk &lt;kukuk@thkukuk.de&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

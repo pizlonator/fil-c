@@ -1,0 +1,576 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Linux-PAM Project
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+# Terry Chuang <tchuang@redhat.com>, 2008-2009
+# Tomáš Mráz <tmraz@fedoraproject.org>, 2016. #zanata
+# Dmitry V. Levin <ldv@altlinux.org>, 2020.
+# Yi-Jyun Pan <pan93412@gmail.com>, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: Linux-PAM\n"
+"Report-Msgid-Bugs-To: https://github.com/linux-pam/linux-pam/issues\n"
+"POT-Creation-Date: 2025-06-16 08:00+0000\n"
+"PO-Revision-Date: 2020-05-24 12:40+0000\n"
+"Last-Translator: Yi-Jyun Pan <pan93412@gmail.com>\n"
+"Language-Team: Chinese (Traditional) <https://translate.fedoraproject.org/"
+"projects/linux-pam/master/zh_TW/>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.0.4\n"
+
+#: libpam/pam_get_authtok.c:40 modules/pam_exec/pam_exec.c:182
+#: modules/pam_userdb/pam_userdb.c:62
+msgid "Password: "
+msgstr "密碼： "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:42
+#, c-format
+msgid "Current %s password: "
+msgstr "目前的 %s 密碼： "
+
+#: libpam/pam_get_authtok.c:43
+msgid "Current password: "
+msgstr "目前密碼： "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:45
+#, c-format
+msgid "New %s password: "
+msgstr "新 %s 密碼： "
+
+#: libpam/pam_get_authtok.c:46
+msgid "New password: "
+msgstr "新 密碼： "
+
+#. For Translators: "%s" is replaced with "<service>".
+#: libpam/pam_get_authtok.c:48
+#, c-format
+msgid "Retype new %s password: "
+msgstr "再次輸入新的 %s 密碼： "
+
+#: libpam/pam_get_authtok.c:49
+msgid "Retype new password: "
+msgstr "再次輸入新的 密碼： "
+
+#: libpam/pam_get_authtok.c:50
+msgid "Sorry, passwords do not match."
+msgstr "抱歉，密碼不符合。"
+
+#: libpam/pam_get_authtok.c:145 libpam/pam_get_authtok.c:249
+#, c-format
+msgid "Retype %s"
+msgstr "重新輸入 %s"
+
+#: libpam/pam_get_authtok.c:185 libpam/pam_get_authtok.c:267
+msgid "Password change has been aborted."
+msgstr "已中止密碼變更作業。"
+
+#: libpam/pam_item.c:317
+msgid "login:"
+msgstr "登入："
+
+#: libpam/pam_strerror.c:41
+msgid "Success"
+msgstr "成功"
+
+#: libpam/pam_strerror.c:43
+msgid "Critical error - immediate abort"
+msgstr "嚴重錯誤 - 立即終止"
+
+#: libpam/pam_strerror.c:45
+msgid "Failed to load module"
+msgstr "載入模組失敗"
+
+#: libpam/pam_strerror.c:47
+msgid "Symbol not found"
+msgstr "找不到符號"
+
+#: libpam/pam_strerror.c:49
+msgid "Error in service module"
+msgstr "服務模組發生錯誤"
+
+#: libpam/pam_strerror.c:51
+msgid "System error"
+msgstr "系統錯誤"
+
+#: libpam/pam_strerror.c:53
+msgid "Memory buffer error"
+msgstr "記憶體暫存區錯誤"
+
+#: libpam/pam_strerror.c:55
+msgid "Permission denied"
+msgstr "許可權被拒絕"
+
+#: libpam/pam_strerror.c:57
+msgid "Authentication failure"
+msgstr "驗證失敗"
+
+#: libpam/pam_strerror.c:59
+msgid "Insufficient credentials to access authentication data"
+msgstr "憑證不足，無法存取驗證資料"
+
+#: libpam/pam_strerror.c:61
+msgid "Authentication service cannot retrieve authentication info"
+msgstr "驗證服務無法取出驗證資訊"
+
+#: libpam/pam_strerror.c:63
+msgid "User not known to the underlying authentication module"
+msgstr "底層的驗證模組無法識別使用者"
+
+#: libpam/pam_strerror.c:65
+msgid "Have exhausted maximum number of retries for service"
+msgstr "服務的重試次數已超過最大數量"
+
+#: libpam/pam_strerror.c:67
+msgid "Authentication token is no longer valid; new one required"
+msgstr "驗證記號已經失效；需要新的驗證記號"
+
+#: libpam/pam_strerror.c:69
+msgid "User account has expired"
+msgstr "使用者帳戶已逾期"
+
+#: libpam/pam_strerror.c:71
+msgid "Cannot make/remove an entry for the specified session"
+msgstr "無法為指定的工作階段製作/移除項目"
+
+#: libpam/pam_strerror.c:73
+msgid "Authentication service cannot retrieve user credentials"
+msgstr "驗證服務無法取出使用者憑證"
+
+#: libpam/pam_strerror.c:75
+msgid "User credentials expired"
+msgstr "使用者憑證已逾期"
+
+#: libpam/pam_strerror.c:77
+msgid "Failure setting user credentials"
+msgstr "無法設定使用者憑證"
+
+#: libpam/pam_strerror.c:79
+msgid "No module specific data is present"
+msgstr "沒有模組的詳細資料"
+
+#: libpam/pam_strerror.c:81
+msgid "Bad item passed to pam_*_item()"
+msgstr "不良的項目傳送至 pam_*_item()"
+
+#: libpam/pam_strerror.c:83
+msgid "Conversation error"
+msgstr "交談錯誤"
+
+#: libpam/pam_strerror.c:85
+msgid "Authentication token manipulation error"
+msgstr "驗證記號處理錯誤"
+
+#: libpam/pam_strerror.c:87
+msgid "Authentication information cannot be recovered"
+msgstr "無法恢復驗證資訊"
+
+#: libpam/pam_strerror.c:89
+msgid "Authentication token lock busy"
+msgstr "驗證記號鎖定忙碌"
+
+#: libpam/pam_strerror.c:91
+msgid "Authentication token aging disabled"
+msgstr "驗證記號計時已停用"
+
+#: libpam/pam_strerror.c:93
+msgid "Failed preliminary check by password service"
+msgstr "密碼服務的初步檢查失敗"
+
+#: libpam/pam_strerror.c:95
+msgid "The return value should be ignored by PAM dispatch"
+msgstr "PAM 發送應忽略傳回值"
+
+#: libpam/pam_strerror.c:97
+msgid "Module is unknown"
+msgstr "未知的模組"
+
+#: libpam/pam_strerror.c:99
+msgid "Authentication token expired"
+msgstr "驗證記號已逾期"
+
+#: libpam/pam_strerror.c:101
+msgid "Conversation is waiting for event"
+msgstr "交談正在等候事件"
+
+#: libpam/pam_strerror.c:103
+msgid "Application needs to call libpam again"
+msgstr "應用程式需要再次呼叫 libpam"
+
+#: libpam/pam_strerror.c:106
+msgid "Unknown PAM error"
+msgstr "未知的 PAM 錯誤"
+
+#.
+#. * external timeout definitions - these can be overridden by the
+#. * application.
+#.
+#. time when we warn
+#. time when we timeout
+#: libpam_misc/misc_conv.c:36
+msgid "...Time is running out...\n"
+msgstr "...時間已經超過...\n"
+
+#: libpam_misc/misc_conv.c:37
+msgid "...Sorry, your time is up!\n"
+msgstr "...抱歉，您的時間已到！\n"
+
+#: libpam_misc/misc_conv.c:351
+#, c-format
+msgid "erroneous conversation (%d)\n"
+msgstr "錯誤的交談 (%d)\n"
+
+#: modules/pam_exec/pam_exec.c:298
+#, c-format
+msgid "%s failed: exit code %d"
+msgstr "%s 失敗：退出編碼 %d"
+
+#: modules/pam_exec/pam_exec.c:308
+#, c-format
+msgid "%s failed: caught signal %d%s"
+msgstr "%s 失敗：捕捉到信號 %d%s"
+
+#: modules/pam_exec/pam_exec.c:318
+#, c-format
+msgid "%s failed: unknown status 0x%x"
+msgstr "%s 失敗：不明狀態 0x%x"
+
+#: modules/pam_faillock/main.c:131
+#, fuzzy, c-format
+msgid ""
+"Usage: %s [--dir /path/to/tally-directory] [--user username] [--reset] [--"
+"legacy-output]\n"
+msgstr ""
+"用法：%s [--dir /path/to/tally-directory] [--user username] [--reset]\n"
+
+#: modules/pam_faillock/main.c:182
+#, fuzzy, c-format
+msgid "Login           Failures    Latest failure         From\n"
+msgstr "Login           Failures Latest failure     From\n"
+
+#: modules/pam_faillock/pam_faillock.c:416
+#, c-format
+msgid "The account is locked due to %u failed logins."
+msgstr "因為 %u 次登入皆失敗，帳號已鎖定。"
+
+#: modules/pam_faillock/pam_faillock.c:425
+#: modules/pam_faillock/pam_faillock.c:431
+#, fuzzy, c-format
+msgid "(%d minute left to unlock)"
+msgid_plural "(%d minutes left to unlock)"
+msgstr[0] "（%d 分鐘後解鎖）"
+
+#. TRANSLATORS: only used if dngettext is not supported.
+#: modules/pam_faillock/pam_faillock.c:434
+#, c-format
+msgid "(%d minutes left to unlock)"
+msgstr "（%d 分鐘後解鎖）"
+
+#. TRANSLATORS: "strftime options for date of last login"
+#: modules/pam_lastlog/pam_lastlog.c:323 modules/pam_lastlog/pam_lastlog.c:592
+msgid " %a %b %e %H:%M:%S %Z %Y"
+msgstr " %a %b %e %H:%M:%S %Z %Y"
+
+#. TRANSLATORS: " from <host>"
+#: modules/pam_lastlog/pam_lastlog.c:332 modules/pam_lastlog/pam_lastlog.c:601
+#, c-format
+msgid " from %.*s"
+msgstr " 從 %.*s"
+
+#. TRANSLATORS: " on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:344 modules/pam_lastlog/pam_lastlog.c:613
+#, c-format
+msgid " on %.*s"
+msgstr " 在 %.*s"
+
+#. TRANSLATORS: "Last login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:354
+#, c-format
+msgid "Last login:%s%s%s"
+msgstr "上一次登入：%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:360
+msgid "Welcome to your new account!"
+msgstr "歡迎使用您的新帳號！"
+
+#. TRANSLATORS: "Last failed login: <date> from <host> on <terminal>"
+#: modules/pam_lastlog/pam_lastlog.c:623
+#, c-format
+msgid "Last failed login:%s%s%s"
+msgstr "上一次失敗的登入：%s%s%s"
+
+#: modules/pam_lastlog/pam_lastlog.c:632 modules/pam_lastlog/pam_lastlog.c:639
+#, c-format
+msgid "There was %d failed login attempt since the last successful login."
+msgid_plural ""
+"There were %d failed login attempts since the last successful login."
+msgstr[0] "自上次成功登入後，有 %d 次試圖登入但失敗的紀錄。"
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_lastlog/pam_lastlog.c:644
+#, c-format
+msgid "There were %d failed login attempts since the last successful login."
+msgstr "自從上次成功登入後有 %d 次嘗試登入失敗。"
+
+#: modules/pam_limits/pam_limits.c:1435
+#, c-format
+msgid "There were too many logins for '%s'."
+msgstr "登入 '%s' 太多次。"
+
+#: modules/pam_mail/pam_mail.c:289
+#, fuzzy
+msgid "You do not have any new mail."
+msgstr "您有新的郵件。"
+
+#: modules/pam_mail/pam_mail.c:292
+msgid "You have new mail."
+msgstr "您有新的郵件。"
+
+#: modules/pam_mail/pam_mail.c:295
+msgid "You have old mail."
+msgstr "您有舊的郵件。"
+
+#: modules/pam_mail/pam_mail.c:299
+msgid "You have mail."
+msgstr "您有郵件。"
+
+#: modules/pam_mail/pam_mail.c:306
+#, c-format
+msgid "You have no mail in folder %s."
+msgstr "資料夾 %s 中沒有您的郵件。"
+
+#: modules/pam_mail/pam_mail.c:310
+#, c-format
+msgid "You have new mail in folder %s."
+msgstr "資料夾 %s 中有您的新郵件。"
+
+#: modules/pam_mail/pam_mail.c:314
+#, c-format
+msgid "You have old mail in folder %s."
+msgstr "資料夾 %s 中有您的舊郵件。"
+
+#: modules/pam_mail/pam_mail.c:319
+#, c-format
+msgid "You have mail in folder %s."
+msgstr "資料夾 %s 中有您的郵件。"
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:120
+#, c-format
+msgid "Creating directory '%s'."
+msgstr "建立目錄「%s」。"
+
+#: modules/pam_mkhomedir/pam_mkhomedir.c:203
+#, c-format
+msgid "Unable to create and initialize directory '%s'."
+msgstr "無法建立和初始化「%s」目錄。"
+
+#: modules/pam_pwhistory/pam_pwhistory.c:383
+#: modules/pam_unix/pam_unix_passwd.c:584
+msgid "Password has been already used. Choose another."
+msgstr "密碼已經由其他使用者使用。請選擇其他密碼。"
+
+#: modules/pam_pwhistory/pam_pwhistory.c:390
+msgid "Password has been already used."
+msgstr "密碼已被使用過。"
+
+#: modules/pam_selinux/pam_selinux.c:173
+#, c-format
+msgid "The default security context is %s."
+msgstr "預設的安全情境為 %s。"
+
+#: modules/pam_selinux/pam_selinux.c:177
+msgid "Would you like to enter a different role or level?"
+msgstr "您是否希望輸入不同的角色或層級？"
+
+#. Allow the user to enter role and level individually
+#: modules/pam_selinux/pam_selinux.c:190
+msgid "role:"
+msgstr "角色："
+
+#: modules/pam_selinux/pam_selinux.c:194
+#, c-format
+msgid "There is no default type for role %s."
+msgstr "%s 角色沒有預設類型。"
+
+#: modules/pam_selinux/pam_selinux.c:226
+msgid "level:"
+msgstr "層級："
+
+#: modules/pam_selinux/pam_selinux.c:260
+msgid "This is not a valid security context."
+msgstr "此非有效的安全性情境。"
+
+#: modules/pam_selinux/pam_selinux.c:509
+#, c-format
+msgid "A valid context for %s could not be obtained."
+msgstr "無法取得 %s 的有效情境。"
+
+#: modules/pam_selinux/pam_selinux.c:639
+#, c-format
+msgid "Security context %s has been assigned."
+msgstr "已指定 %s 安全情境。"
+
+#: modules/pam_selinux/pam_selinux.c:655
+#, c-format
+msgid "Key creation context %s has been assigned."
+msgstr "已指定 %s 金鑰建立情境。"
+
+#: modules/pam_selinux/pam_selinux_check.c:101
+#, c-format
+msgid "failed to initialize PAM\n"
+msgstr "起始 PAM 失敗\n"
+
+#: modules/pam_selinux/pam_selinux_check.c:107
+#, c-format
+msgid "failed to pam_set_item()\n"
+msgstr "pam_set_item() 失敗\n"
+
+#. error in fork()
+#: modules/pam_selinux/pam_selinux_check.c:135
+#, c-format
+msgid "login: failure forking: %m"
+msgstr "登入：失敗的分叉：%m"
+
+#: modules/pam_timestamp/pam_timestamp.c:387
+#, c-format
+msgid "Access has been granted (last access was %ld seconds ago)."
+msgstr "已賦予存取權限（最後一次存取為 %ld 秒前）。"
+
+#: modules/pam_unix/pam_unix_acct.c:232 modules/pam_unix/pam_unix_acct.c:254
+msgid "Your account has expired; please contact your system administrator."
+msgstr "您的帳戶已經過期；請洽詢您的系統管理員。"
+
+#: modules/pam_unix/pam_unix_acct.c:240
+msgid ""
+"You are required to change your password immediately (administrator "
+"enforced)."
+msgstr "您必須立刻變更您的密碼（管理員強制執行）。"
+
+#: modules/pam_unix/pam_unix_acct.c:246
+msgid ""
+"You are required to change your password immediately (password expired)."
+msgstr "您必須立刻變更您的密碼（密碼已經過期）。"
+
+#: modules/pam_unix/pam_unix_acct.c:271 modules/pam_unix/pam_unix_acct.c:278
+#, c-format
+msgid "Warning: your password will expire in %d day."
+msgid_plural "Warning: your password will expire in %d days."
+msgstr[0] "警告：您的密碼將在 %d 天後過期。"
+
+#. TRANSLATORS: only used if dngettext is not supported
+#: modules/pam_unix/pam_unix_acct.c:283
+#, c-format
+msgid "Warning: your password will expire in %d days."
+msgstr "警告：您的密碼將在 %d 天後過期。"
+
+#: modules/pam_unix/pam_unix_passwd.c:459
+msgid "NIS password could not be changed."
+msgstr "無法變更 NIS 密碼。"
+
+#: modules/pam_unix/pam_unix_passwd.c:557
+msgid "No password has been supplied."
+msgstr "未提供密碼。"
+
+#: modules/pam_unix/pam_unix_passwd.c:558
+msgid "The password has not been changed."
+msgstr "未變更密碼。"
+
+#: modules/pam_unix/pam_unix_passwd.c:575
+msgid "You must choose a shorter password."
+msgstr "您必須選擇較短的密碼。"
+
+#: modules/pam_unix/pam_unix_passwd.c:579
+msgid "You must choose a longer password."
+msgstr "您的密碼必須更長。"
+
+#: modules/pam_unix/pam_unix_passwd.c:684
+#, c-format
+msgid "Changing password for %s."
+msgstr "正在更改 %s 的 STRESS 密碼。"
+
+#: modules/pam_unix/pam_unix_passwd.c:714
+msgid "You must wait longer to change your password."
+msgstr "請您稍等一陣子後再變更密碼。"
+
+#~ msgid "You have no mail."
+#~ msgstr "您沒有新郵件。"
+
+#~ msgid "is the same as the old one"
+#~ msgstr "與舊的密碼相同"
+
+#~ msgid "memory allocation error"
+#~ msgstr "記憶體分配錯誤"
+
+#~ msgid "is a palindrome"
+#~ msgstr "是一個回文"
+
+#~ msgid "case changes only"
+#~ msgstr "僅變更大小寫"
+
+#~ msgid "is too similar to the old one"
+#~ msgstr "與舊的密碼太相似"
+
+#~ msgid "is too simple"
+#~ msgstr "太簡單"
+
+#~ msgid "is rotated"
+#~ msgstr "已旋轉"
+
+#~ msgid "not enough character classes"
+#~ msgstr "字元類別不足"
+
+#~ msgid "contains too many same characters consecutively"
+#~ msgstr "包含了太多連續的相同字元"
+
+#~ msgid "contains too long of a monotonic character sequence"
+#~ msgstr "包含過多的單調字元序段"
+
+#~ msgid "contains the user name in some form"
+#~ msgstr "包含了某些格式的用戶名稱"
+
+#~ msgid "BAD PASSWORD: %s"
+#~ msgstr "不良的密碼： %s"
+
+#~ msgid "The account is temporarily locked (%ld seconds left)."
+#~ msgstr "帳號被暫時鎖定（剩餘 %ld 秒）。"
+
+#~ msgid "Authentication error"
+#~ msgstr "驗證錯誤"
+
+#~ msgid "Service error"
+#~ msgstr "服務錯誤"
+
+#~ msgid "Unknown user"
+#~ msgstr "未知的使用者"
+
+#~ msgid "Unknown error"
+#~ msgstr "未知的錯誤"
+
+#~ msgid "%s: Bad number given to --reset=\n"
+#~ msgstr "%s: 不良的號碼提供至 --reset=\n"
+
+#~ msgid "%s: Unrecognised option %s\n"
+#~ msgstr "%s: 未識別的選項 %s\n"
+
+#~ msgid ""
+#~ "%s: [--file rooted-filename] [--user username] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [--file rooted-filename] [--user username] [--reset[=n]] [--quiet]\n"
+
+#~ msgid "%s: Can't reset all users to non-zero\n"
+#~ msgstr "%s: 無法將所有使用者重新設定為非零\n"
+
+#~ msgid ""
+#~ "%s: [-f rooted-filename] [--file rooted-filename]\n"
+#~ "   [-u username] [--user username]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"
+#~ msgstr ""
+#~ "%s: [-f rooted-filename] [--file rooted-filename]\n"
+#~ "   [-u username] [--user username]\n"
+#~ "   [-r] [--reset[=n]] [--quiet]\n"

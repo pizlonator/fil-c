@@ -1,0 +1,240 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="namespace.conf">
+
+  <refmeta>
+    <refentrytitle>namespace.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>namespace.conf</refname>
+    <refpurpose>the namespace configuration file</refpurpose>
+  </refnamediv>
+
+
+  <refsect1 xml:id="namespace.conf-description">
+    <title>DESCRIPTION</title>
+
+    <para>
+      The <emphasis>pam_namespace.so</emphasis> module allows setup of
+      private namespaces with polyinstantiated directories.
+      Directories can be polyinstantiated based on user name
+      or, in the case of SELinux, user name, sensitivity level or complete security context.  If an
+      executable script <filename>/etc/security/namespace.init</filename>
+      exists, it is used to initialize the namespace every time an instance
+      directory is set up and mounted. The script receives the polyinstantiated
+      directory path and the instance directory path as its arguments. The
+      script is invoked with full root privileges and accessing the instance directory
+      in this context needs to be done with caution, as it is controlled by the unprivileged
+      user for which it has been created.
+    </para>
+
+    <para condition="without_vendordir">
+      The <filename>/etc/security/namespace.conf</filename> file specifies
+      which directories are polyinstantiated, how they are polyinstantiated,
+      how instance directories would be named, and any users for whom
+      polyinstantiation would not be performed.
+    </para>
+
+    <para condition="with_vendordir">
+      The <filename>/etc/security/namespace.conf</filename> file
+      ( or <filename>%vendordir%/security/namespace.conf</filename> if it does
+      not exist) specifies which directories are polyinstantiated, how they are
+      polyinstantiated, how instance directories would be named, and any users
+      for whom polyinstantiation would not be performed.
+      Then individual <filename>*.conf</filename> files from the
+      <filename>/etc/security/namespace.d/</filename> and
+      <filename>%vendordir%/security/namespace.d</filename> directories are taken too.
+      If <filename>/etc/security/namespace.d/@filename@.conf</filename> exists, then
+      <filename>%vendordir%/security/namespace.d/@filename@.conf</filename> will not be used.
+      All <filename>namespace.d/*.conf</filename> files are sorted by their
+      <filename>@filename@.conf</filename> in lexicographic order regardless of which
+      of the directories they reside in.
+    </para>
+
+    <para>
+      When someone logs in, the file <filename>namespace.conf</filename> is
+      scanned. Comments are marked by <emphasis>#</emphasis> characters.
+      Each non comment line represents one polyinstantiated
+      directory. The fields are separated by spaces but can be quoted by
+      <emphasis>"</emphasis> characters also escape
+      sequences <emphasis>\b</emphasis>, <emphasis>\n</emphasis>, and
+      <emphasis>\t</emphasis> are recognized. The fields are as follows:
+   </para>
+
+    <para><replaceable>polydir</replaceable> <replaceable>instance_prefix</replaceable> <replaceable>method</replaceable> <replaceable>list_of_uids</replaceable>
+    </para>
+
+    <para>
+      The first field, <replaceable>polydir</replaceable>, is the absolute
+      pathname of the directory to polyinstantiate. The special string
+      <emphasis>$HOME</emphasis> is replaced with the user's home directory,
+      and <emphasis>$USER</emphasis> with the username. This field cannot
+      be blank.
+    </para>
+
+    <para>
+      The second field, <replaceable>instance_prefix</replaceable> is
+      the string prefix used to build the pathname for the instantiation
+      of &lt;polydir&gt;. The path must end in a trailing slash, or
+      in a directory prefix used to build the full per-instance path.
+      Depending on the polyinstantiation <replaceable>method</replaceable> it
+      is then appended with "instance differentiation string" to generate the
+      final instance directory path. This directory is created if it did not
+      exist already, and is then bind mounted on the &lt;polydir&gt; to provide
+      an instance of &lt;polydir&gt; based on the &lt;method&gt; column.
+      The special string <emphasis>$HOME</emphasis> is replaced with the
+      user's home directory, and <emphasis>$USER</emphasis> with the username.
+      This field cannot be blank.
+    </para>
+
+    <para>
+      The third field, <replaceable>method</replaceable>, is the method
+      used for polyinstantiation. It can take these values; "user"
+      for polyinstantiation based on user name, "level" for
+      polyinstantiation based on process MLS level and user name, "context" for
+      polyinstantiation based on process security context and user name,
+      "tmpfs" for mounting tmpfs filesystem as an instance dir, and
+      "tmpdir" for creating temporary directory as an instance dir which is
+      removed when the user's session is closed.
+      Methods "context" and "level" are only available with SELinux. This
+      field cannot be blank.
+    </para>
+
+    <para>
+      The fourth field, <replaceable>list_of_uids</replaceable>, is
+      a comma separated list of user names for whom the polyinstantiation
+      is not performed. If left blank, polyinstantiation will be performed
+      for all users. If the list is preceded with a single "~" character,
+      polyinstantiation is performed only for users in the list.
+    </para>
+
+    <para>
+      The <replaceable>method</replaceable> field can contain also following
+      optional flags separated by <emphasis>:</emphasis> characters.
+    </para>
+
+    <para><emphasis>create</emphasis>=<replaceable>mode</replaceable>,<replaceable>owner</replaceable>,<replaceable>group</replaceable>
+      - create the polyinstantiated directory. The mode, owner and group parameters
+      are optional. The default for mode is determined by umask, the default
+      owner is the user whose session is opened, the default group is the
+      primary group of the user.
+    </para>
+
+    <para><emphasis>iscript</emphasis>=<replaceable>path</replaceable>
+      - path to the instance directory init script. The base directory for relative
+      paths is <filename>/etc/security/namespace.d</filename>.
+    </para>
+
+    <para><emphasis>noinit</emphasis>
+      - instance directory init script will not be executed.
+    </para>
+
+    <para><emphasis>shared</emphasis>
+      - the instance directories for "context" and "level" methods will not
+      contain the user name and will be shared among all users.
+    </para>
+
+    <para><emphasis>mntopts</emphasis>=<replaceable>value</replaceable>
+      - value of this flag is passed to the mount call when the tmpfs mount is
+      done. It allows for example the specification of the maximum size of the
+      tmpfs instance that is created by the mount call. In addition to
+      options specified in the <citerefentry>
+      <refentrytitle>tmpfs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry> manual the <emphasis>nosuid</emphasis>,
+      <emphasis>noexec</emphasis>, and <emphasis>nodev</emphasis> flags
+      can be used to respectively disable setuid bit effect, disable running
+      executables, and disable devices to be interpreted on the mounted
+      tmpfs filesystem.
+    </para>
+
+    <para>
+      The directory where polyinstantiated instances are to be
+      created, must exist and must have, by default, the mode of 0000.  The
+      requirement that the instance parent be of mode 0000 can be overridden
+      with the command line option <emphasis>ignore_instance_parent_mode</emphasis>
+    </para>
+
+    <para>
+      In case of context or level polyinstantiation the SELinux context
+      which is used for polyinstantiation is the context used for executing
+      a new process as obtained by getexeccon. This context must be set
+      by the calling application or <filename>pam_selinux.so</filename>
+      module. If this context is not set the polyinstantiation will be
+      based just on user name.
+    </para>
+
+    <para>
+      The "instance differentiation string" is &lt;user name&gt; for "user"
+      method and &lt;user name&gt;_&lt;raw directory context&gt; for "context"
+      and "level" methods. If the whole string is too long the end of it is
+      replaced with md5sum of itself. Also when command line option
+      <emphasis>gen_hash</emphasis> is used the whole string is replaced
+      with md5sum of itself.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="namespace.conf-examples">
+    <title>EXAMPLES</title>
+    <para>
+      These are some example lines which might be specified in
+      <filename>/etc/security/namespace.conf</filename>.
+    </para>
+
+    <literallayout>
+      # The following three lines will polyinstantiate /tmp,
+      # /var/tmp and user's home directories. /tmp and /var/tmp
+      # will be polyinstantiated based on the security level
+      # as well as user name, whereas home directory will be
+      # polyinstantiated based on the full security context and user name.
+      # Polyinstantiation will not be performed for user root
+      # and adm for directories /tmp and /var/tmp, whereas home
+      # directories will be polyinstantiated for all users.
+      #
+      # Note that instance directories do not have to reside inside
+      # the polyinstantiated directory. In the examples below,
+      # instances of /tmp will be created in /tmp-inst directory,
+      # where as instances of /var/tmp and users home directories
+      # will reside within the directories that are being
+      # polyinstantiated.
+      #
+      /tmp     /tmp-inst/               level      root,adm
+      /var/tmp /var/tmp/tmp-inst/   	level      root,adm
+      $HOME    $HOME/$USER.inst/inst- context
+    </literallayout>
+
+    <para>
+      For the &lt;service&gt;s you need polyinstantiation (login for example)
+      put the following line in /etc/pam.d/&lt;service&gt; as the last line for
+      session group:
+    </para>
+
+    <para>
+      session  required  pam_namespace.so [arguments]
+    </para>
+
+    <para>
+      This module also depends on pam_selinux.so setting the context.
+    </para>
+
+  </refsect1>
+
+  <refsect1 xml:id="namespace.conf-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry><refentrytitle>pam_namespace</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="namespace.conf-author">
+    <title>AUTHORS</title>
+    <para>
+      The namespace.conf manual page was written by Janak Desai &lt;janak@us.ibm.com&gt;.
+      More features added by Tomas Mraz &lt;tmraz@redhat.com&gt;.
+    </para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,167 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_authenticate">
+  <refmeta>
+    <refentrytitle>pam_authenticate</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_authenticate-name">
+    <refname>pam_authenticate</refname>
+    <refpurpose>account authentication</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_authenticate-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_authenticate</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>int <parameter>flags</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_authenticate-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_authenticate</function> function is used to
+      authenticate the user. The user is required to provide an
+      authentication token depending upon the authentication service,
+      usually this is a password, but could also be a finger print.
+    </para>
+    <para>
+      The PAM service module may request that the user enter their
+      username via the conversation mechanism (see
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+        <refentrytitle>pam_conv</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>). The name of the authenticated user
+       will be present in the PAM item PAM_USER. This item may be
+       recovered with a call to
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+    <para>
+      The <emphasis>pamh</emphasis> argument is an authentication
+      handle obtained by a prior call to pam_start().
+      The flags argument is the binary or of zero or more of the
+      following values:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SILENT</term>
+        <listitem>
+           <para>
+             Do not emit any messages.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_DISALLOW_NULL_AUTHTOK</term>
+        <listitem>
+          <para>
+            The PAM module service should return PAM_AUTH_ERR
+            if the user does not have a registered authentication token.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_authenticate-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_ABORT</term>
+        <listitem>
+          <para>
+            The application should exit immediately after calling
+            <citerefentry>
+              <refentrytitle>pam_end</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry> first.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            The user was not authenticated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CRED_INSUFFICIENT</term>
+        <listitem>
+          <para>
+            For some reason the application does not have sufficient
+            credentials to authenticate the user.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_AUTHINFO_UNAVAIL</term>
+        <listitem>
+          <para>
+            The modules were not able to access the authentication
+            information. This might be due to a network or hardware
+            failure etc.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_MAXTRIES</term>
+        <listitem>
+          <para>
+            One or more of the authentication modules has reached its
+            limit of tries authenticating the user. Do not try again.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+             The user was successfully authenticated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            User unknown to authentication service.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_authenticate-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_setcred</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>

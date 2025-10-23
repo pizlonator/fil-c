@@ -1,0 +1,206 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_fail_delay">
+
+  <refmeta>
+    <refentrytitle>pam_fail_delay</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_fail_delay-name">
+    <refname>pam_fail_delay</refname>
+    <refpurpose>request a delay on failure</refpurpose>
+  </refnamediv>
+
+<!-- body begins here -->
+
+  <refsynopsisdiv>
+    <funcsynopsis xml:id="pam_fail_delay-synopsis">
+      <funcsynopsisinfo>#include &lt;security/pam_appl.h&gt;</funcsynopsisinfo>
+      <funcprototype>
+        <funcdef>int <function>pam_fail_delay</function></funcdef>
+        <paramdef>pam_handle_t *<parameter>pamh</parameter></paramdef>
+        <paramdef>unsigned int <parameter>usec</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_fail_delay-description">
+    <title>DESCRIPTION</title>
+    <para>
+      The <function>pam_fail_delay</function> function provides a
+      mechanism by which an application or module can suggest a minimum
+      delay of <emphasis>usec</emphasis> micro-seconds. The
+      function  keeps a record of the longest time requested with this
+      function. Should
+      <citerefentry>
+        <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> fail, the failing return to the application is
+      delayed by an amount of time randomly distributed (by up to 50%)
+      about this longest value.
+    </para>
+    <para>
+      Independent of success, the delay time is reset to its zero
+      default value when the PAM service module returns control to
+      the application. The delay occurs <emphasis>after</emphasis> all
+      authentication modules have been called, but <emphasis>before</emphasis>
+      control is returned to the service application.
+    </para>
+    <para>
+      When using this function the programmer should check if it is
+      available with:
+    </para>
+      <programlisting>
+#ifdef HAVE_PAM_FAIL_DELAY
+    ....
+#endif /* HAVE_PAM_FAIL_DELAY */
+      </programlisting>
+
+    <para>
+      For applications written with a single thread that are event
+      driven in nature, generating this delay may be undesirable.
+      Instead, the application may want to register the delay in some
+      other way. For example, in a single threaded server that serves
+      multiple authentication requests from a single event loop, the
+      application might want to simply mark a given connection as
+      blocked until an application timer expires. For this reason
+      the delay function can be changed with the
+      <emphasis>PAM_FAIL_DELAY</emphasis> item. It can be queried and
+      set with
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+      and
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>  respectively. The value used to set it should be
+      a function pointer of the following prototype:
+      <programlisting>
+void (*delay_fn)(int retval, unsigned usec_delay, void *appdata_ptr);
+      </programlisting>
+      The arguments being the <emphasis>retval</emphasis> return code
+      of the module stack, the <emphasis>usec_delay</emphasis>
+      micro-second delay that libpam is requesting and the
+      <emphasis>appdata_ptr</emphasis> that the application has associated
+      with the current <emphasis>pamh</emphasis>. This last value was set
+      by the application when it called
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry> or explicitly with
+      <citerefentry>
+        <refentrytitle>pam_set_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>.
+    </para>
+    <para>
+      Note that the PAM_FAIL_DELAY item is set to NULL by default. This
+      indicates that PAM should perform a random delay as described
+      above when authentication fails and a delay has been suggested.
+      If an application does not want the PAM library to perform any
+      delay on authentication failure, then the application must define
+      a custom delay function that executes no statements and set
+      the PAM_FAIL_DELAY item to point to this function.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_fail_delay-rationale">
+    <title>RATIONALE</title>
+    <para>
+      It is often possible to attack an authentication scheme by exploiting
+      the time it takes the scheme to deny access to an applicant user.  In
+      cases of <emphasis>short</emphasis> timeouts, it may prove possible
+      to attempt a <emphasis>brute force</emphasis> dictionary attack --
+      with an automated process, the attacker tries all possible passwords
+      to gain access to the system. In other cases, where individual
+      failures can take measurable amounts of time (indicating the nature
+      of the failure), an attacker can obtain useful information about the
+      authentication process. These latter attacks make use of procedural
+      delays that constitute a <emphasis>covert channel</emphasis>
+      of useful information.
+    </para>
+    <para>
+      To minimize the effectiveness of such attacks, it is desirable to
+      introduce a random delay in a failed authentication process.
+      Preferable this value should be set by the application or a special
+      PAM module. Standard PAM modules should not modify the delay
+      unconditional.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_fail_delay-example">
+    <title>EXAMPLE</title>
+    <para>
+      For example, a login application may require a failure delay of
+      roughly 3 seconds. It will contain the following code:
+    </para>
+    <programlisting>
+    pam_fail_delay (pamh, 3000000 /* micro-seconds */ );
+    pam_authenticate (pamh, 0);
+    </programlisting>
+
+    <para>
+      if the modules do not request a delay, the failure delay will be
+      between 1.5 and 4.5 seconds.
+    </para>
+
+    <para>
+      However, the modules, invoked in the authentication process, may
+      also request delays:
+    </para>
+
+    <programlisting>
+module #1:    pam_fail_delay (pamh, 2000000);
+module #2:    pam_fail_delay (pamh, 4000000);
+    </programlisting>
+
+    <para>
+      in this case, it is the largest requested value that is used to
+      compute the actual failed delay: here between 2 and 6 seconds.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_fail_delay-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+           <para>
+            Delay was successful adjusted.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SYSTEM_ERR</term>
+        <listitem>
+           <para>
+             A NULL pointer was submitted as PAM handle.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_fail_delay-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>pam_start</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_get_item</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam_strerror</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_fail_delay-standards">
+    <title>STANDARDS</title>
+    <para>
+      The <function>pam_fail_delay</function> function is an
+      Linux-PAM extension.
+    </para>
+  </refsect1>
+
+</refentry>

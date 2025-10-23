@@ -1,0 +1,95 @@
+PAM working group                 ##              A.G. Morgan
+
+## $Id$ ##
+
+## Pluggable Authentication Modules ##
+
+## REGISTERED AGENTS AND THEIR AGENT-ID'S ##
+
+#$ Purpose of this document
+
+#$$#{definition}  Definition of an agent-id
+
+The most complete version of a "PAM agent-id" is contained in this
+reference [#$R#{PAM_RFC2}]. A copy of a recent definition is
+reproduced here for convenience. The reader is recommended to consult
+reference [#{PAM_RFC2}] for definitions of other terms that are
+used in this document.
+
+## -------------- ##
+
+The agent_id is a sequence of characters satisfying the following
+regexp:
+
+	/^[a-z0-9\_]+(@[a-z0-9\_.]+)?$/
+
+and has a specific form for each independent agent.
+
+o Agent_ids that do not contain an at-sign (@) are to be considered as
+  representing some authentication mode that is a "public
+  standard". Registered names MUST NOT contain an at-sign (@).
+
+o Anyone can define additional agents by using names in the format
+  name@domainname, e.g. "ouragent@example.com". The part following
+  the at-sign MUST be a valid fully qualified internet domain name
+  [RFC-1034] controlled by the person or organization defining the
+  name. (Said another way, if you control the email address that
+  your agent has as an identifier, they you are entitled to use
+  this identifier.) It is up to each domain how it manages its local
+  namespace.
+
+## -------------- ##
+
+#$ Registered agent-id's
+
+The structure of this section is a single subsection for each
+registered agent-id. This section includes a full definition of binary
+prompts accepted by the agent and example responses of said
+agent. Using the defining section alone, it should be possible for a
+third party to create a conforming agent and modules that can
+interoperate with other implementations of these objects.
+
+*$ "userpass" - the user+password agent
+
+Many legacy authentication systems are hardcoded to support one and
+only one authentication method. Namely,
+
+   username: joe
+   password: <secret>
+
+Indeed, this authentication method is often embedded into parts of the
+transport protocol. The "user+password" agent with PAM agent-id:
+
+   "userpass"
+
+Is intended to support this legacy authentication scheme. The protocol
+for binary prompt exchange with this 'standard agent' is as follows:
+
+Case 1: module does not know the username, but expects the agent to
+ obtain this information and also the user's password:
+
+   module: {LENGTH;PAM_BP_SELECT;userpass;'/'}
+   agent: {}
+
+Case 2: module has suggested username, but would like agent to confirm
+ it and gather password:
+
+   module: {}
+   agent: {}
+
+Case 3: module knows username and will not permit the agent to change it:
+
+   module: {}
+   agent: {}
+
+#$  References
+
+[#{PAM_RFC2}] Internet draft, "Pluggable Authentication Modules
+  (PAM)", available here:
+
+# http://linux.kernel.org/pub/linux/libs/pam/pre/doc/current-draft.txt #
+
+#$  Author's Address
+
+Andrew G. Morgan
+Email: morgan@kernel.org

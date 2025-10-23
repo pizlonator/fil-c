@@ -1,0 +1,5 @@
+#%PAM-1.0
+# Even if the substack succeeds with sufficient
+# the whole stack should fail.
+auth     substack       tst-pam_substack1a
+auth     required	pam_debug.so auth=auth_err

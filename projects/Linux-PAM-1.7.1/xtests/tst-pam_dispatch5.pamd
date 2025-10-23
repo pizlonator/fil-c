@@ -1,0 +1,4 @@
+#%PAM-1.0
+# Jump after the end of the stack
+auth [success=2 default=bad] pam_permit.so
+auth required pam_deny.so

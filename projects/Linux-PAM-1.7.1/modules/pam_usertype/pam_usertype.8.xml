@@ -1,0 +1,195 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_usertype">
+  <refmeta>
+    <refentrytitle>pam_usertype</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_usertype-name">
+    <refname>pam_usertype</refname>
+    <refpurpose>check if the authenticated user is a system or regular account</refpurpose>
+  </refnamediv>
+
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_usertype-cmdsynopsis" sepchar=" ">
+      <command>pam_usertype.so</command>
+      <arg choice="opt" rep="repeat"><replaceable>flag</replaceable></arg>
+      <arg choice="req" rep="norepeat"><replaceable>condition</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1 xml:id="pam_usertype-description">
+    <title>DESCRIPTION</title>
+    <para>
+      pam_usertype.so is designed to succeed or fail authentication
+      based on type of the account of the authenticated user.
+      The type of the account is decided with help of
+      <emphasis>SYS_UID_MAX</emphasis>
+      settings in <emphasis>/etc/login.defs</emphasis>. One use is to select
+      whether to load other modules based on this test.
+    </para>
+
+    <para>
+      The module should be given only one condition as module argument.
+      Authentication will succeed only if the condition is met.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_usertype-options">
+    <title>OPTIONS</title>
+    <para>
+      The following <emphasis>flag</emphasis>s are supported:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>use_uid</term>
+        <listitem>
+          <para>
+            Evaluate conditions using the account of the user whose UID
+            the application is running under instead of the user being
+            authenticated.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>audit</term>
+        <listitem>
+          <para>
+            Log unknown users to the system log.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      Available <emphasis>condition</emphasis>s are:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>issystem</term>
+        <listitem>
+          <para>Succeed if the user is a system user.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>isregular</term>
+        <listitem>
+          <para>Succeed if the user is a regular user.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_usertype-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>account</option>, <option>auth</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_usertype-return_values">
+    <title>RETURN VALUES</title>
+     <variablelist>
+
+        <varlistentry>
+          <term>PAM_SUCCESS</term>
+          <listitem>
+            <para>
+              The condition was true.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_BUF_ERR</term>
+          <listitem>
+            <para>
+              Memory buffer error.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_CONV_ERR</term>
+          <listitem>
+            <para>
+              The conversation method supplied by the application
+              failed to obtain the username.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_INCOMPLETE</term>
+          <listitem>
+            <para>
+              The conversation method supplied by the application
+              returned PAM_CONV_AGAIN.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_AUTH_ERR</term>
+          <listitem>
+            <para>
+              The condition was false.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_SERVICE_ERR</term>
+          <listitem>
+            <para>
+              A service error occurred or the arguments can't be
+              parsed correctly.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_USER_UNKNOWN</term>
+          <listitem>
+            <para>
+              User was not found.
+            </para>
+          </listitem>
+        </varlistentry>
+    </variablelist>
+  </refsect1>
+
+
+  <refsect1 xml:id="pam_usertype-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Skip remaining modules if the user is a system user:
+    </para>
+    <programlisting>
+account sufficient pam_usertype.so issystem
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_usertype-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>login.defs</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_usertype-author">
+    <title>AUTHOR</title>
+    <para>Pavel Březina &lt;pbrezina@redhat.com&gt;</para>
+  </refsect1>
+</refentry>

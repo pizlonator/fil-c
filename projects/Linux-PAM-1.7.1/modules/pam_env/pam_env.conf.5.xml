@@ -1,0 +1,149 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_env.conf">
+
+  <refmeta>
+    <refentrytitle>pam_env.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>pam_env.conf</refname>
+    <refname>environment</refname>
+    <refpurpose>the environment variables config files</refpurpose>
+  </refnamediv>
+
+
+  <refsect1 xml:id="pam_env.conf-description">
+    <title>DESCRIPTION</title>
+
+    <para condition="with_vendordir">
+      The <filename>%vendordir%/security/pam_env.conf</filename> and
+      <filename>/etc/security/pam_env.conf</filename> files specify
+      the environment variables to be set, unset or modified by
+      <citerefentry><refentrytitle>pam_env</refentrytitle><manvolnum>8</manvolnum></citerefentry>.
+      When someone logs in, these files are read and the environment
+      variables are set according.
+    </para>
+    <para condition="without_vendordir">
+      The <filename>/etc/security/pam_env.conf</filename> file specifies
+      the environment variables to be set, unset or modified by
+      <citerefentry><refentrytitle>pam_env</refentrytitle><manvolnum>8</manvolnum></citerefentry>.
+      When someone logs in, this file is read and the environment
+      variables are set according.
+    </para>
+    <para>
+      Each line starts with the variable name, there are then two possible
+      options for each variable DEFAULT and OVERRIDE. DEFAULT allows an
+      administrator to set the value of the variable  to some default
+      value, if none is supplied then the empty string is assumed. The
+      OVERRIDE option tells pam_env that it should enter in its value
+      (overriding the default value) if there is one to use. When OVERRIDE is
+      not used, "" is assumed and no override will be done.
+    </para>
+    <para>
+      <replaceable>VARIABLE</replaceable>
+      [<replaceable>DEFAULT=[value]</replaceable>]
+      [<replaceable>OVERRIDE=[value]</replaceable>]
+    </para>
+
+    <para>
+      (Possibly non-existent) environment variables may be used in values
+      using the ${string} syntax and (possibly non-existent) PAM_ITEMs as well
+      as HOME and SHELL may be used in values using the @{string} syntax. Both
+      the $ and @ characters can be backslash escaped to be used as literal values
+      values can be delimited with "", escaped " not supported.
+      Note that many environment variables that you would like to use
+      may not be set by the time the module is called.
+      For example, ${HOME} is used below several times, but
+      many PAM applications don't make it available by the time you need it.
+      The special variables @{HOME} and @{SHELL} are expanded to the values
+      for the user from the corresponding <emphasis>passwd</emphasis> entry.
+    </para>
+
+    <para>
+      The "<emphasis>#</emphasis>" character at start of line (no space
+      at front) can be used to mark this line as a comment line.
+    </para>
+
+    <para condition="with_vendordir">
+      The <filename>%vendordir%/environment</filename> and <filename>/etc/environment</filename> files specify
+      the environment variables to be set. These files must consist of simple
+      <emphasis>NAME=VALUE</emphasis> pairs on separate lines.
+      The <citerefentry><refentrytitle>pam_env</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+      module will read these files after the <filename>pam_env.conf</filename>
+      file.
+    </para>
+    <para condition="without_vendordir">
+      The <filename>/etc/environment</filename> file specifies
+      the environment variables to be set. The file must consist of simple
+      <emphasis>NAME=VALUE</emphasis> pairs on separate lines.
+      The <citerefentry><refentrytitle>pam_env</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+      module will read the file after the <filename>pam_env.conf</filename>
+      file.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env.conf-examples">
+    <title>EXAMPLES</title>
+    <para>
+      These are some example lines which might be specified in
+      <filename>/etc/security/pam_env.conf</filename>.
+    </para>
+
+    <para>
+      Set the REMOTEHOST variable for any hosts that are remote, default
+      to "localhost" rather than not being set at all
+    </para>
+    <programlisting>
+      REMOTEHOST     DEFAULT=localhost OVERRIDE=@{PAM_RHOST}
+    </programlisting>
+
+    <para>
+      Set the DISPLAY variable if it seems reasonable
+    </para>
+    <programlisting>
+      DISPLAY        DEFAULT=${REMOTEHOST}:0.0 OVERRIDE=${DISPLAY}
+    </programlisting>
+
+    <para>
+      Now some simple variables
+    </para>
+    <programlisting>
+      PAGER          DEFAULT=less
+      MANPAGER       DEFAULT=less
+      LESS           DEFAULT="M q e h15 z23 b80"
+      NNTPSERVER     DEFAULT=localhost
+      PATH           DEFAULT=${HOME}/bin:/usr/local/bin:/bin\
+      :/usr/bin:/usr/local/bin/X11:/usr/bin/X11
+      XDG_DATA_HOME  DEFAULT=@{HOME}/share/
+    </programlisting>
+
+    <para>
+      Silly examples of escaped variables, just to show how they work.
+    </para>
+    <programlisting>
+      DOLLAR         DEFAULT=\$
+      DOLLARDOLLAR   DEFAULT=        OVERRIDE=\$${DOLLAR}
+      DOLLARPLUS     DEFAULT=\${REMOTEHOST}${REMOTEHOST}
+      ATSIGN         DEFAULT=""      OVERRIDE=\@
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env.conf-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry><refentrytitle>pam_env</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>environ</refentrytitle><manvolnum>7</manvolnum></citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_env.conf-author">
+    <title>AUTHOR</title>
+    <para>
+      pam_env was written by Dave Kinchlea &lt;kinch@kinch.ark.com&gt;.
+    </para>
+  </refsect1>
+</refentry>

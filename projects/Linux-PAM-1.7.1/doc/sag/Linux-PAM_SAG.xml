@@ -1,0 +1,520 @@
+<book xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="sag">
+  <info>
+    <title>The Linux-PAM System Administrators' Guide</title>
+    <authorgroup>
+      <author><personname><firstname>Andrew G.</firstname><surname>Morgan</surname></personname><email>morgan@kernel.org</email></author>
+      <author><personname><firstname>Thorsten</firstname><surname>Kukuk</surname></personname><email>kukuk@thkukuk.de</email></author>
+    </authorgroup>
+    <releaseinfo>Version 1.7.1, June 2025</releaseinfo>
+    <abstract>
+      <para>
+        This manual documents what a system-administrator needs to know about
+        the <emphasis remap="B">Linux-PAM</emphasis> library. It covers the
+        correct syntax of the PAM configuration file and discusses strategies
+        for maintaining a secure system.
+      </para>
+    </abstract>
+  </info>
+
+  <chapter xml:id="sag-introduction">
+    <title>Introduction</title>
+    <para>
+      <emphasis remap="B">Linux-PAM</emphasis> (Pluggable Authentication
+      Modules for Linux) is a suite of shared libraries that enable the
+      local system administrator to choose how applications authenticate users.
+    </para>
+    <para>
+      In other words, without (rewriting and) recompiling a PAM-aware
+      application, it is possible to switch between the authentication
+      mechanism(s) it uses. Indeed, one may entirely upgrade the local
+      authentication system without touching the applications themselves.
+    </para>
+    <para>
+      Historically an application that has required a given user to be
+      authenticated, has had to be compiled to use a specific authentication
+      mechanism.  For example, in the case of traditional UN*X systems, the
+      identity of the user is verified by the user entering a correct
+      password.  This password, after being prefixed by a two character
+      ``salt'', is encrypted (with crypt(3)). The user is then authenticated
+      if this encrypted password is identical to the second field of the
+      user's entry in the system password database (the
+      <filename>/etc/passwd</filename> file).  On such systems, most if
+      not all forms of privileges are granted based on this single
+      authentication scheme. Privilege comes in the form of a personal
+      user-identifier (UID) and membership of various groups. Services and
+      applications are available based on the personal and group identity
+      of the user. Traditionally, group membership has been assigned based
+      on entries in the <filename>/etc/group</filename> file.
+    </para>
+    <para>
+      It is the purpose of the <emphasis remap="B">Linux-PAM</emphasis>
+      project to separate the development of privilege granting software
+      from the development of secure and appropriate authentication schemes.
+      This is accomplished by providing a library of functions that an
+      application may use to request that a user be authenticated. This
+      PAM library is configured locally with a system file,
+      <filename>/etc/pam.conf</filename> (or a series of configuration
+      files located in <filename>/etc/pam.d/</filename>) to authenticate a
+      user request via the locally available authentication modules. The
+      modules themselves will usually be located in the directory
+      <filename>/lib/security</filename> or
+      <filename>/lib64/security</filename> and take the form of dynamically
+      loadable object files (see <citerefentry>
+        <refentrytitle>dlopen</refentrytitle><manvolnum>3</manvolnum>
+      </citerefentry>).
+    </para>
+  </chapter>
+
+  <chapter xml:id="sag-text-conventions">
+    <title>Some comments on the text</title>
+    <para>
+      Before proceeding to read the rest of this document, it should be
+      noted that the text assumes that certain files are placed in certain
+      directories.  Where they have been specified, the conventions we adopt
+      here for locating these files are those of the relevant RFC (RFC-86.0,
+      see <link linkend="sag-see-also">bibliography"</link>). If you are
+      using a distribution of Linux (or some other operating system) that
+      supports PAM but chooses to distribute these files in a different way
+      you should be careful when copying examples directly from the text.
+    </para>
+    <para>
+      As an example of the above, where it is explicit, the text assumes
+      that PAM loadable object files (the
+      <emphasis remap="B">modules</emphasis>) are to be located in
+      the following directory: <filename>/lib/security/</filename> or
+      <filename>/lib64/security</filename> depending on the architecture.
+      This is generally the location that seems to be compatible with the
+      Filesystem Hierarchy Standard (FHS). On Solaris, which has its own
+      licensed version of PAM, and some other implementations of UN*X,
+      these files can be found in <filename>/usr/lib/security</filename>.
+      Please be careful to perform the necessary transcription when using
+      the examples from the text.
+    </para>
+  </chapter>
+
+  <chapter xml:id="sag-overview">
+    <title>Overview</title>
+    <para>
+      For the uninitiated, we begin by considering an example.  We take an
+      application that grants some service to users;
+      <command>login</command> is one such program.
+      <command>Login</command> does two things, it first establishes that
+      the requesting user is whom they claim to be and second provides
+      them with the requested service: in the case of
+      <command>login</command> the service is a command shell
+      (bash, tcsh, zsh, etc.) running with the identity of the user.
+    </para>
+    <para>
+      Traditionally, the former step is achieved by the
+      <command>login</command> application prompting the user for a
+      password and then verifying that it agrees with that located on
+      the system; hence verifying that as far as the system is concerned
+      the user is who they claim to be. This is the task that is delegated
+      to <emphasis remap="B">Linux-PAM</emphasis>.
+    </para>
+    <para>
+      From the perspective of the application programmer (in this case
+      the person that wrote the <command>login</command> application),
+      <emphasis remap="B">Linux-PAM</emphasis> takes care of this
+      authentication task -- verifying the identity of the user.
+    </para>
+    <para>
+      The flexibility of <emphasis remap="B">Linux-PAM</emphasis> is
+      that <emphasis>you</emphasis>, the system administrator, have
+      the freedom to stipulate which authentication scheme is to be
+      used. You have the freedom to set the scheme for any/all
+      PAM-aware applications on your Linux system. That is, you can
+      authenticate from anything as naive as
+      <emphasis>simple trust</emphasis> (<command>pam_permit</command>)
+      to something as paranoid as a combination of a retinal scan, a
+      voice print and a one-time password!
+    </para>
+    <para>
+      To illustrate the flexibility you face, consider the following
+      situation: system administrators (parents) wish to improve the
+      mathematical ability of their users (children). Their favorite
+      ``Shoot 'em up game'' (PAM-aware of course) can be configured to
+      authenticate them with a request for the product of a couple of
+      random numbers less than 12. It is clear that if the game is any
+      good they will soon learn their
+      <emphasis>multiplication tables</emphasis>. As they mature, the
+      authentication can be upgraded to include (long) division!
+    </para>
+    <para>
+      <emphasis remap="B">Linux-PAM</emphasis> deals with four
+      separate types of (management) task. These are:
+      <emphasis>authentication management</emphasis>;
+      <emphasis>account management</emphasis>;
+      <emphasis>session management</emphasis>; and
+      <emphasis>password management</emphasis>.
+      The association of the preferred management scheme with the behavior
+      of an application is made with entries in the relevant
+      <emphasis remap="B">Linux-PAM</emphasis> configuration file.
+      The management functions are performed by <emphasis>modules</emphasis>
+      specified in the configuration file. The syntax for this
+      file is discussed in the section
+      <link linkend="sag-configuration">below</link>.
+    </para>
+    <para>
+      Here is a figure that describes the overall organization of
+      <emphasis remap="B">Linux-PAM</emphasis>:
+      <programlisting>
+  +----------------+
+  | application: X |
+  +----------------+       /  +----------+     +================+
+  | authentication-[----&gt;--\--] Linux-   |--&lt;--| PAM config file|
+  |       +        [----&lt;--/--]   PAM    |     |================|
+  |[conversation()][--+    \  |          |     | X auth .. a.so |
+  +----------------+  |    /  +-n--n-----+     | X auth .. b.so |
+  |                |  |       __|  |           |           _____/
+  |  service user  |  A      |     |           |____,-----'
+  |                |  |      V     A
+  +----------------+  +------|-----|---------+ -----+------+
+                         +---u-----u----+    |      |      |
+                         |   auth....   |--[ a ]--[ b ]--[ c ]
+                         +--------------+
+                         |   acct....   |--[ b ]--[ d ]
+                         +--------------+
+                         |   password   |--[ b ]--[ c ]
+                         +--------------+
+                         |   session    |--[ e ]--[ c ]
+                         +--------------+
+      </programlisting>
+      By way of explanation, the left of the figure represents the
+      application; application X.  Such an application interfaces with the
+      <emphasis remap="B">Linux-PAM</emphasis> library and knows none of
+      the specifics of its configured authentication method. The
+      <emphasis remap="B">Linux-PAM</emphasis> library (in the center)
+      consults the contents of the PAM configuration file and loads the
+      modules that are appropriate for application-X. These modules fall
+      into one of four management groups (lower-center) and are stacked in
+      the order they appear in the configuration file. These modules, when
+      called by <emphasis remap="B">Linux-PAM</emphasis>, perform the
+      various authentication tasks for the application. Textual information,
+      required from/or offered to the user, can be exchanged through the
+      use of the application-supplied <emphasis>conversation</emphasis>
+      function.
+    </para>
+    <para>
+      If a program is going to use PAM, then it has to have PAM
+      functions explicitly coded into the program. If you have
+      access to the source code you can add the appropriate PAM
+      functions. If you do not have access to the source code, and
+      the binary does not have the PAM functions included, then
+      it is not possible to use PAM.
+    </para>
+  </chapter>
+
+  <chapter xml:id="sag-configuration">
+    <title>The Linux-PAM configuration file</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../man/pam.conf-desc.xml" xpointer='xpointer(id("pam.conf-desc")/*)'/>
+     <section xml:id="sag-configuration-file">
+       <title>Configuration file syntax</title>
+       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../man/pam.conf-syntax.xml" xpointer='xpointer(id("pam.conf-syntax")/*)'/>
+     </section>
+     <section xml:id="sag-configuration-directory">
+       <title>Directory based configuration</title>
+       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../man/pam.conf-dir.xml" xpointer='xpointer(id("pam.conf-dir")/*)'/>
+     </section>
+     <section xml:id="sag-configuration-example">
+       <title>Example configuration file entries</title>
+       <para>
+         In this section, we give some examples of entries that can
+         be present in the <emphasis remap="B">Linux-PAM</emphasis>
+         configuration file. As a first attempt at configuring your
+         system you could do worse than to implement these.
+       </para>
+       <para>
+         If a system is to be considered secure, it had better have a
+         reasonably secure '<emphasis remap="B">other</emphasis> entry.
+         The following is a paranoid setting (which is not a bad place
+         to start!):
+       </para>
+       <programlisting>
+#
+# default; deny access
+#
+other   auth     required       pam_deny.so
+other   account  required       pam_deny.so
+other   password required       pam_deny.so
+other   session  required       pam_deny.so
+       </programlisting>
+       <para>
+         Whilst fundamentally a secure default, this is not very
+         sympathetic to a misconfigured system. For example, such
+         a system is vulnerable to locking everyone out should the
+         rest of the file become badly written.
+       </para>
+       <para>
+         The module <command>pam_deny</command> (documented in a
+         <link linkend="sag-pam_deny">later section</link>) is not very
+         sophisticated. For example, it logs no information when it
+         is invoked so unless the users of a system contact the
+         administrator when failing to execute a service application,
+         the administrator may go for a long while in ignorance of the
+         fact that the system is misconfigured.
+       </para>
+       <para>
+         The addition of the following line before those in the above
+         example would provide a suitable warning to the administrator.
+       </para>
+       <programlisting>
+#
+# default; wake up! This application is not configured
+#
+other   auth     required       pam_warn.so
+other   password required       pam_warn.so
+       </programlisting>
+       <para>
+         Having two '<command>other auth</command>' lines is an
+         example of stacking.
+       </para>
+       <para>
+         On a system that uses the <filename>/etc/pam.d/</filename>
+         configuration, the corresponding default setup would be
+         achieved with the following file:
+       </para>
+       <programlisting>
+#
+# default configuration: /etc/pam.d/other
+#
+auth     required       pam_warn.so
+auth     required       pam_deny.so
+account  required       pam_deny.so
+password required       pam_warn.so
+password required       pam_deny.so
+session  required       pam_deny.so
+       </programlisting>
+       <para>
+         This is the only explicit example we give for an
+         <filename>/etc/pam.d/</filename> file. In general, it
+         should be clear how to transpose the remaining examples
+         to this configuration scheme.
+       </para>
+       <para>
+         On a less sensitive computer, one on which the system
+         administrator wishes to remain ignorant of much of the
+         power of <emphasis remap="B">Linux-PAM</emphasis>, the
+         following selection of lines (in
+         <filename>/etc/pam.d/other</filename>) is likely to
+         mimic the historically familiar Linux setup.
+       </para>
+       <programlisting>
+#
+# default; standard UN*X access
+#
+auth     required       pam_unix.so
+account  required       pam_unix.so
+password required       pam_unix.so
+session  required       pam_unix.so
+       </programlisting>
+       <para>
+         In general this will provide a starting place for most applications.
+       </para>
+     </section>
+  </chapter>
+
+  <chapter xml:id="sag-security-issues">
+    <title>Security issues</title>
+    <section xml:id="sag-security-issues-wrong">
+      <title>If something goes wrong</title>
+      <para>
+        <emphasis remap="B">Linux-PAM</emphasis> has the potential
+        to seriously change the security of your system. You can
+        choose to have no security or absolute security (no access
+        permitted). In general, <emphasis remap="B">Linux-PAM</emphasis>
+        errs towards the latter. Any number of configuration errors
+        can disable access to your system partially, or completely.
+      </para>
+      <para>
+        The most dramatic problem that is likely to be encountered when
+        configuring <emphasis remap="B">Linux-PAM</emphasis> is that of
+        <emphasis>deleting</emphasis> the configuration file(s):
+        <filename>/etc/pam.d/*</filename> and/or
+        <filename>/etc/pam.conf</filename>. This will lock you out of
+        your own system!
+      </para>
+      <para>
+        To recover, your best bet is to restore the system from a
+        backup or boot the system into a rescue system and correct
+        things from there.
+      </para>
+    </section>
+    <section xml:id="sag-security-issues-other">
+      <title>Avoid having a weak `other' configuration</title>
+      <para>
+        It is not a good thing to have a weak default
+        (<emphasis remap="B">other</emphasis>) entry.
+        This service is the default configuration for all PAM aware
+        applications and if it is weak, your system is likely to be
+        vulnerable to attack.
+      </para>
+      <para>
+        Here is a sample "other" configuration file. The
+        <command>pam_deny</command> module will deny access and the
+        <command>pam_warn</command> module will send a syslog message
+        to <emphasis>auth.notice</emphasis>:
+      </para>
+      <programlisting>
+#
+# The PAM configuration file for the `other' service
+#
+auth      required   pam_deny.so
+auth      required   pam_warn.so
+account   required   pam_deny.so
+account   required   pam_warn.so
+password  required   pam_deny.so
+password  required   pam_warn.so
+session   required   pam_deny.so
+session   required   pam_warn.so
+      </programlisting>
+    </section>
+  </chapter>
+
+  <chapter xml:id="sag-module-reference">
+    <title>A reference guide for available modules</title>
+    <para>
+      Here, we collect together the descriptions of the various modules
+      coming with Linux-PAM.
+    </para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_access.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_canonicalize_user.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_debug.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_deny.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_echo.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_env.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_exec.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_faildelay.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_faillock.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_filter.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_ftp.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_group.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_issue.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_keyinit.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_lastlog.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_limits.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_listfile.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_localuser.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_loginuid.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_mail.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_mkhomedir.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_motd.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_namespace.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_nologin.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_permit.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_pwhistory.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_rhosts.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_rootok.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_securetty.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_selinux.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_sepermit.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_setquota.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_shells.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_succeed_if.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_time.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_timestamp.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_tty_audit.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_umask.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_unix.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_userdb.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_warn.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_wheel.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="pam_xauth.xml"/>
+  </chapter>
+
+  <chapter xml:id="sag-see-also">
+    <title>See also</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The Linux-PAM Application Writers' Guide.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The Linux-PAM Module Writers' Guide.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The V. Samar and R. Schemers (SunSoft), ``UNIFIED LOGIN WITH
+          PLUGGABLE AUTHENTICATION MODULES'', Open Software Foundation
+          Request For Comments 86.0, October 1995.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </chapter>
+
+  <chapter xml:id="sag-author">
+    <title>Author/acknowledgments</title>
+    <para>
+      This document was written by Andrew G. Morgan (morgan@kernel.org)
+      with many contributions from
+      Chris Adams, Peter Allgeyer, Tim Baverstock, Tim Berger,
+      Craig S. Bell, Derrick J. Brashear, Ben Buxton, Seth Chaiklin,
+      Oliver Crow, Chris Dent, Marc Ewing, Cristian Gafton,
+      Emmanuel Galanos, Brad M. Garcia, Eric Hester, Michel D'Hooge,
+      Roger Hu, Eric Jacksch, Michael K. Johnson, David Kinchlea,
+      Olaf Kirch, Marcin Korzonek, Thorsten Kukuk, Stephen Langasek,
+      Nicolai Langfeldt, Elliot Lee, Luke Kenneth Casson Leighton,
+      Al Longyear, Ingo Luetkebohle, Marek Michalkiewicz,
+      Robert Milkowski, Aleph One, Martin Pool, Sean Reifschneider,
+      Jan Rekorajski, Erik Troan, Theodore Ts'o, Jeff Uphoff, Myles Uyema,
+      Savochkin Andrey Vladimirovich, Ronald Wahl, David Wood, John Wilmes,
+      Joseph S. D. Yao and Alex O. Yuriev.
+    </para>
+    <para>
+      Thanks are also due to Sun Microsystems, especially to Vipin Samar and
+      Charlie Lai for their advice. At an early stage in the development of
+      <emphasis remap="B">Linux-PAM</emphasis>, Sun graciously made the
+      documentation for their implementation of PAM available. This act
+      greatly accelerated the development of
+      <emphasis remap="B">Linux-PAM</emphasis>.
+    </para>
+  </chapter>
+
+  <chapter xml:id="sag-copyright">
+    <title>Copyright information for this document</title>
+    <programlisting>
+Copyright (c) 2006 Thorsten Kukuk &lt;kukuk@thkukuk.de&gt;
+Copyright (c) 1996-2002 Andrew G. Morgan &lt;morgan@kernel.org&gt;
+    </programlisting>
+    <para>
+      Redistribution and use in source and binary forms, with or without
+      modification, are permitted provided that the following conditions are
+      met:
+    </para>
+    <programlisting>
+1. Redistributions of source code must retain the above copyright
+   notice, and the entire permission notice in its entirety,
+   including the disclaimer of warranties.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. The name of the author may not be used to endorse or promote
+   products derived from this software without specific prior
+   written permission.
+    </programlisting>
+    <para>
+      Alternatively, this product may be distributed under the terms of
+      the GNU General Public License (GPL), in which case the provisions
+      of the GNU GPL are required instead of the above restrictions.
+      (This clause is necessary due to a potential bad interaction between
+      the GNU GPL and the restrictions contained in a BSD-style copyright.)
+    </para>
+    <programlisting>
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+    </programlisting>
+  </chapter>
+</book>

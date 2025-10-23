@@ -1,0 +1,380 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_faillock">
+
+  <refmeta>
+    <refentrytitle>pam_faillock</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_faillock-name">
+    <refname>pam_faillock</refname>
+    <refpurpose>Module counting authentication failures during a specified interval</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_faillock-cmdsynopsisauth" sepchar=" ">
+      <command>auth ... pam_faillock.so</command>
+      <arg choice="req" rep="norepeat">
+        preauth|authfail|authsucc
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        conf=<replaceable>/path/to/config-file</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        dir=<replaceable>/path/to/tally-directory</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        even_deny_root
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        deny=<replaceable>n</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        fail_interval=<replaceable>n</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        unlock_time=<replaceable>n</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        root_unlock_time=<replaceable>n</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        admin_group=<replaceable>name</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        audit
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        silent
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        no_log_info
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis xml:id="pam_faillock-cmdsynopsisacct" sepchar=" ">
+      <command>account ... pam_faillock.so</command>
+      <arg choice="opt" rep="norepeat">
+        dir=<replaceable>/path/to/tally-directory</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        no_log_info
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_faillock-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      This module maintains a list of failed authentication attempts per
+      user during a specified interval and locks the account in case
+      there were more than <replaceable>deny</replaceable> consecutive
+      failed authentications.
+    </para>
+    <para>
+      Normally, failed attempts to authenticate <emphasis>root</emphasis> will
+      <emphasis remap="B">not</emphasis> cause the root account to become
+      blocked, to prevent denial-of-service: if your users aren't given
+      shell accounts and root may only login via <command>su</command> or
+      at the machine console (not telnet/rsh, etc), this is safe.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-options">
+
+    <title>OPTIONS</title>
+        <variablelist>
+            <varlistentry>
+              <term>
+                {preauth|authfail|authsucc}
+              </term>
+              <listitem>
+                <para>
+                  This argument must be set accordingly to the position of this module
+                  instance in the PAM stack.
+                </para>
+                <para>
+                  The <emphasis>preauth</emphasis> argument must be used when the module
+                  is called before the modules which ask for the user credentials such
+                  as the password. The module just examines whether the user should
+                  be blocked from accessing the service in case there were anomalous
+                  number of failed consecutive authentication attempts recently. This
+                  call is optional if <emphasis>authsucc</emphasis> is used.
+                </para>
+                <para>
+                  The <emphasis>authfail</emphasis> argument must be used when the module
+                  is called after the modules which determine the authentication outcome,
+                  failed. Unless the user is already blocked due to previous authentication
+                  failures, the module will record the failure into the appropriate user
+                  tally file.
+                </para>
+                <para>
+                  The <emphasis>authsucc</emphasis> argument must be used when the module
+                  is called after the modules which determine the authentication outcome,
+                  succeeded. Unless the user is already blocked due to previous authentication
+                  failures, the module will then clear the record of the failures in the
+                  respective user tally file. Otherwise it will return authentication error.
+                  If this call is not done, the pam_faillock will not distinguish between
+                  consecutive and non-consecutive failed authentication attempts. The
+                  <emphasis>preauth</emphasis> call must be used in such case. Due to
+                  complications in the way the PAM stack can be configured it is also
+                  possible to call <emphasis>pam_faillock</emphasis> as an account module.
+                  In such configuration the module must be also called in the
+                  <emphasis>preauth</emphasis> stage.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term>
+                 conf=/path/to/config-file
+               </term>
+               <listitem>
+                 <para condition="without_vendordir">
+                   Use another configuration file instead of the default
+                   <filename>/etc/security/faillock.conf</filename>.
+                 </para>
+                 <para condition="with_vendordir">
+                   Use another configuration file instead of the default
+                   which is to use the file
+                   <filename>/etc/security/faillock.conf</filename> or,
+                   if that one is not present, the file
+                   <filename>%vendordir%/security/faillock.conf</filename>.
+                 </para>
+               </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+          The options for configuring the module behavior are described in the
+          <citerefentry><refentrytitle>faillock.conf</refentrytitle><manvolnum>5</manvolnum>
+          </citerefentry> manual page. The options specified on the module command
+          line override the values from the configuration file.
+        </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      The <option>auth</option> and <option>account</option> module types are
+      provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-return_values">
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            An invalid option was given, the module was not able
+            to retrieve the user name, no valid counter file
+            was found, or too many failed logins.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_BUF_ERR</term>
+        <listitem>
+          <para>
+            Memory buffer error.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_CONV_ERR</term>
+        <listitem>
+          <para>
+            The conversation method supplied by the application
+            failed to obtain the username.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_INCOMPLETE</term>
+        <listitem>
+          <para>
+            The conversation method supplied by the application
+            returned PAM_CONV_AGAIN.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            Everything was successful.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_IGNORE</term>
+        <listitem>
+          <para>
+            User not present in passwd database.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-notes">
+    <title>NOTES</title>
+    <para>
+      Configuring options on the module command line is not recommend. The
+      <filename>/etc/security/faillock.conf</filename> should be used instead.
+    </para>
+    <para>
+      The setup of <emphasis>pam_faillock</emphasis> in the PAM stack is different
+      from the <emphasis>pam_tally2</emphasis> module setup.
+    </para>
+    <para>
+      Individual files with the failure records are created as owned by
+      the user. This allows <emphasis remap="B">pam_faillock.so</emphasis> module
+      to work correctly when it is called from a screensaver.
+    </para>
+    <para>
+      Note that using the module in <option>preauth</option> without the
+      <option>silent</option> option specified in <filename>/etc/security/faillock.conf</filename>
+      or with <emphasis>requisite</emphasis> control field leaks an information about
+      existence or non-existence of a user account in the system because
+      the failures are not recorded for the unknown users. The message
+      about the user account being locked is never displayed for non-existing
+      user accounts allowing the adversary to infer that a particular account
+      is not existing on a system.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Here are two possible configuration examples for <filename>/etc/pam.d/login</filename>.
+      They make <emphasis>pam_faillock</emphasis> to lock the account after 4 consecutive
+      failed logins during the default interval of 15 minutes. Root account will be locked
+      as well. The accounts will be automatically unlocked after 20 minutes.
+    </para>
+    <para>
+      In the first example the module is called only in the <emphasis>auth</emphasis>
+      phase and the module does not print any information about the account being blocked
+      by <emphasis>pam_faillock</emphasis>. The <emphasis>preauth</emphasis> call can
+      be added to tell users that their logins are blocked by the module and also to abort
+      the authentication without even asking for password in such case.
+    </para>
+    <para>
+      <filename>/etc/security/faillock.conf</filename> file example:
+    </para>
+    <programlisting>
+deny=4
+unlock_time=1200
+silent
+    </programlisting>
+    <para>
+      /etc/pam.d/config file example:
+    </para>
+    <programlisting>
+auth     required       pam_securetty.so
+auth     required       pam_env.so
+auth     required       pam_nologin.so
+# optionally call: auth requisite pam_faillock.so preauth
+# to display the message about account being locked
+auth     [success=1 default=bad] pam_unix.so
+auth     [default=die]  pam_faillock.so authfail
+auth     sufficient     pam_faillock.so authsucc
+auth     required       pam_deny.so
+account  required       pam_unix.so
+password required       pam_unix.so shadow
+session  required       pam_selinux.so close
+session  required       pam_loginuid.so
+session  required       pam_unix.so
+session  required       pam_selinux.so open
+    </programlisting>
+    <para>
+      In the second example the module is called both in the <emphasis>auth</emphasis>
+      and <emphasis>account</emphasis> phases and the module informs the authenticating
+      user when the account is locked if <option>silent</option> option is not
+      specified in the <filename>faillock.conf</filename>.
+    </para>
+    <programlisting>
+auth     required       pam_securetty.so
+auth     required       pam_env.so
+auth     required       pam_nologin.so
+auth     required       pam_faillock.so preauth
+# optionally use requisite above if you do not want to prompt for the password
+# on locked accounts
+auth     sufficient     pam_unix.so
+auth     [default=die]  pam_faillock.so authfail
+auth     required       pam_deny.so
+account  required       pam_faillock.so
+# if you drop the above call to pam_faillock.so the lock will be done also
+# on non-consecutive authentication failures
+account  required       pam_unix.so
+password required       pam_unix.so shadow
+session  required       pam_selinux.so close
+session  required       pam_loginuid.so
+session  required       pam_unix.so
+session  required       pam_selinux.so open
+    </programlisting>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-files">
+    <title>FILES</title>
+    <variablelist>
+      <varlistentry>
+        <term>/var/run/faillock/*</term>
+        <listitem>
+          <para>the files logging the authentication failures for users</para>
+          <para>
+            Note: These files will disappear after reboot on systems configured with
+            directory <filename>/var/run/faillock</filename> mounted on virtual memory.
+            For persistent storage use the option <emphasis>dir=</emphasis> in
+            file <filename>/etc/security/faillock.conf</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>/etc/security/faillock.conf</term>
+        <listitem>
+          <para>the config file for pam_faillock options</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry condition="with_vendordir">
+        <term>%vendordir%/security/faillock.conf</term>
+        <listitem>
+          <para>
+            the config file for pam_faillock options. It will be used if
+            <filename>/etc/security/faillock.conf</filename> does not exist.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>faillock</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>faillock.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_faillock-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_faillock was written by Tomas Mraz.
+      </para>
+  </refsect1>
+
+</refentry>

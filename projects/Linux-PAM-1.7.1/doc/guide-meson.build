@@ -1,0 +1,92 @@
+# -*- mode: meson -*-
+
+guide = fs.name(meson.current_source_dir()).to_upper()
+name = 'Linux-PAM_' + guide
+
+xml = files(name + '.xml')
+
+if guide == 'SAG'
+  toc_max_depth = '2'
+else
+  toc_max_depth = '3'
+endif
+
+
+run_command(
+  [prog_xmllint,
+   '--noent',
+   '--nonet',
+   '--noout',
+   '--xinclude',
+   '--relaxng', docbook_rng,
+   xml],
+  check: true,
+)
+
+
+html = custom_target(
+  input: xml,
+  output: name + '.html',
+  command: [
+    prog_xsltproc,
+    '-o', '@OUTPUT@',
+    '--nonet',
+    '--xinclude',
+    '--stringparam', 'generate.toc', 'book toc',
+    '--stringparam', 'section.autolabel', '1',
+    '--stringparam', 'section.label.includes.component.label', '1',
+    '--stringparam', 'toc.max.depth', toc_max_depth,
+    txt_stylesheet,
+    '@INPUT@',
+  ],
+)
+
+custom_target(
+  input: html,
+  output: name + '.txt',
+  command: [
+    redir_exe,
+    '@INPUT@',
+    '@OUTPUT@',
+    browser,
+  ],
+  install: true,
+  install_dir: docdir,
+  install_tag: 'doc',
+)
+
+
+if prog_fop.found()
+  fop = custom_target(
+    input: xml,
+    output: name + '.fop',
+    command: [
+      prog_xsltproc,
+      '-o', '@OUTPUT@',
+      '--nonet',
+      '--xinclude',
+      '--stringparam', 'generate.toc', 'book toc',
+      '--stringparam', 'section.autolabel', '1',
+      '--stringparam', 'section.label.includes.component.label', '1',
+      '--stringparam', 'toc.max.depth', toc_max_depth,
+      pdf_stylesheet,
+      '@INPUT@',
+    ],
+  )
+
+  custom_target(
+    input: fop,
+    output: name + '.pdf',
+    command: [
+      prog_fop,
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+    install: true,
+    install_dir: pdfdir,
+    install_tag: 'doc',
+  )
+endif
+
+
+subdir('html')

@@ -1,0 +1,258 @@
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="pam_filter">
+
+  <refmeta>
+    <refentrytitle>pam_filter</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">Linux-PAM</refmiscinfo>
+    <refmiscinfo class="manual">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv xml:id="pam_filter-name">
+    <refname>pam_filter</refname>
+    <refpurpose>PAM filter module</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis xml:id="pam_filter-cmdsynopsis" sepchar=" ">
+      <command>pam_filter.so</command>
+      <arg choice="opt" rep="norepeat">
+	debug
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        new_term
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        non_term
+      </arg>
+      <arg choice="plain" rep="norepeat">
+        run1|run2
+      </arg>
+      <arg choice="plain" rep="norepeat">
+        <replaceable>filter</replaceable>
+      </arg>
+      <arg choice="opt" rep="norepeat">
+        <replaceable>...</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 xml:id="pam_filter-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      This module is intended to be a platform for providing access to all
+      of the input/output that passes between the user and the application.
+      It is only suitable for tty-based and (stdin/stdout) applications.
+    </para>
+    <para>
+      To function this module requires <emphasis>filters</emphasis> to be
+      installed on the system.
+      The single filter provided with the module simply transposes upper and
+      lower case letters in the input and output streams. (This can be very
+      annoying and is not kind to termcap based editors).
+    </para>
+    <para>
+      Each component of the module has the potential to invoke the
+      desired filter. The filter is always
+      <citerefentry>
+        <refentrytitle>execv</refentrytitle><manvolnum>2</manvolnum>
+      </citerefentry> with the privilege of the calling application
+      and <emphasis>not</emphasis> that of the user. For this reason it
+      cannot usually be killed by the user without closing their session.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-options">
+
+    <title>OPTIONS</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>
+            debug
+          </term>
+          <listitem>
+            <para>
+	      Print debug information.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            new_term
+          </term>
+          <listitem>
+            <para>
+              The default action of the filter is to set the
+              <emphasis>PAM_TTY</emphasis> item to indicate the
+              terminal that the user is using to connect to the
+              application. This argument indicates that the filter
+              should set <emphasis>PAM_TTY</emphasis> to the filtered
+              pseudo-terminal.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            non_term
+          </term>
+          <listitem>
+            <para>
+              don't try to set the <emphasis>PAM_TTY</emphasis> item.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            runX
+          </term>
+          <listitem>
+            <para>
+              In order that the module can invoke a filter it should
+              know when to invoke it. This argument is required to tell
+              the filter when to do this.
+            </para>
+            <para>
+              Permitted values for <emphasis>X</emphasis> are
+              <emphasis>1</emphasis> and <emphasis>2</emphasis>. These
+              indicate the precise time that the filter is to be run.
+              To understand this concept it will be useful to have read
+              the <citerefentry>
+                <refentrytitle>pam</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry> manual page.
+              Basically, for each management group there are up to two ways
+              of calling the module's functions.
+              In the case of the <emphasis>authentication</emphasis> and
+              <emphasis>session</emphasis> components there are actually
+              two separate functions. For the case of authentication, these
+              functions are
+              <citerefentry>
+                <refentrytitle>pam_authenticate</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry> and
+              <citerefentry>
+                <refentrytitle>pam_setcred</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry>, here <option>run1</option> means run the
+              filter from the <function>pam_authenticate</function> function
+              and <option>run2</option> means run the filter from
+              <function>pam_setcred</function>. In the case of the
+              session modules, <emphasis>run1</emphasis> implies
+              that the filter is invoked at the
+              <citerefentry>
+                <refentrytitle>pam_open_session</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry> stage, and <emphasis>run2</emphasis> for
+              <citerefentry>
+                <refentrytitle>pam_close_session</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry>.
+            </para>
+            <para>
+              For the case of the account component. Either
+              <emphasis>run1</emphasis> or <emphasis>run2</emphasis>
+              may be used.
+            </para>
+            <para>
+              For the case of the password component, <emphasis>run1</emphasis>
+              is used to indicate that the filter is run on the first
+              occasion of
+              <citerefentry>
+                <refentrytitle>pam_chauthtok</refentrytitle><manvolnum>3</manvolnum>
+              </citerefentry> (the <emphasis>PAM_PRELIM_CHECK</emphasis>
+              phase) and <emphasis>run2</emphasis> is used to indicate
+              that the filter is run on the second occasion (the
+              <emphasis>PAM_UPDATE_AUTHTOK</emphasis> phase).
+
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            filter
+          </term>
+          <listitem>
+            <para>
+              The full pathname of the filter to be run and any command line
+              arguments that the filter might expect.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>auth</option>, <option>account</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-return_values">
+    <title>RETURN VALUES</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>PAM_SUCCESS</term>
+          <listitem>
+            <para>
+              The new filter was set successfully.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_ABORT</term>
+          <listitem>
+            <para>
+	      Critical error, immediate abort.
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-examples">
+    <title>EXAMPLES</title>
+    <para>
+      Add the following line to <filename>/etc/pam.d/login</filename> to
+      see how to configure login to transpose upper and lower case letters
+      once the user has logged in:
+
+      <programlisting>
+        session required pam_filter.so run1 /lib/security/pam_filter/upperLOWER
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-see_also">
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 xml:id="pam_filter-author">
+    <title>AUTHOR</title>
+      <para>
+        pam_filter was written by Andrew G. Morgan &lt;morgan@kernel.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>

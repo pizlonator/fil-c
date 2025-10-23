@@ -1,0 +1,6 @@
+#%PAM-1.0
+auth     required       pam_permit.so
+account  required       pam_permit.so
+password required	pam_pwhistory.so remember=10 retry=1 enforce_for_root
+password required	pam_unix.so	use_authtok md5
+session  required       pam_permit.so
