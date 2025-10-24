@@ -846,6 +846,22 @@ static void EmitAtomicOp(CodeGenFunction &CGF, AtomicExpr *Expr, Address Dest,
   Builder.SetInsertPoint(ContBB);
 }
 
+static llvm::PointerType *getSinglePointerType(llvm::Type *Ty) {
+  if (auto *PT = dyn_cast<llvm::PointerType>(Ty))
+    return PT;
+  if (auto *ST = dyn_cast<llvm::StructType>(Ty)) {
+    if (ST->getNumElements() != 1)
+      return nullptr;
+    return getSinglePointerType(*ST->elements().begin());
+  }
+  if (auto *AT = dyn_cast<llvm::ArrayType>(Ty)) {
+    if (AT->getNumElements() != 1)
+      return nullptr;
+    return getSinglePointerType(AT->getElementType());
+  }
+  return nullptr;
+}
+
 RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
   QualType AtomicTy = E->getPtr()->getType()->getPointeeType();
   QualType MemTy = AtomicTy;
@@ -887,7 +903,8 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
   llvm::Value *Order = EmitScalarExpr(E->getOrder());
   llvm::Value *Scope =
       E->getScopeModel() ? EmitScalarExpr(E->getScope()) : nullptr;
-  bool ShouldCastToIntPtrTy = !MemTy->isPointerType();
+  llvm::PointerType *PtrTy = getSinglePointerType(Ptr.getElementType());
+  bool ShouldCastToIntPtrTy = true;
 
   switch (E->getOp()) {
   case AtomicExpr::AO__c11_atomic_init:
@@ -1038,7 +1055,13 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
   LValue AtomicVal = MakeAddrLValue(Ptr, AtomicTy);
   AtomicInfo Atomics(*this, AtomicVal);
 
-  if (ShouldCastToIntPtrTy) {
+  if (PtrTy) {
+    Ptr = Ptr.withElementType(PtrTy);
+    if (Val1.isValid())
+      Val1 = Val1.withElementType(PtrTy);
+    if (Val2.isValid())
+      Val2 = Val2.withElementType(PtrTy);
+  } else if (ShouldCastToIntPtrTy) {
     Ptr = Atomics.castToAtomicIntPointer(Ptr);
     if (Val1.isValid())
       Val1 = Atomics.convertToAtomicIntPointer(Val1);
@@ -1046,13 +1069,17 @@ RValue CodeGenFunction::EmitAtomicExpr(AtomicExpr *E) {
       Val2 = Atomics.convertToAtomicIntPointer(Val2);
   }
   if (Dest.isValid()) {
-    if (ShouldCastToIntPtrTy)
+    if (PtrTy)
+      Dest = Dest.withElementType(PtrTy);
+    else if (ShouldCastToIntPtrTy)
       Dest = Atomics.castToAtomicIntPointer(Dest);
   } else if (E->isCmpXChg())
     Dest = CreateMemTemp(RValTy, "cmpxchg.bool");
   else if (!RValTy->isVoidType()) {
     Dest = Atomics.CreateTempAlloca();
-    if (ShouldCastToIntPtrTy)
+    if (PtrTy)
+      Dest = Dest.withElementType(PtrTy);
+    else if (ShouldCastToIntPtrTy)
       Dest = Atomics.castToAtomicIntPointer(Dest);
   }
 
