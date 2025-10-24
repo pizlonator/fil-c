@@ -370,6 +370,7 @@ int pam_sm_open_session(pam_handle_t *pamh, int flags,
 			int argc, const char **argv)
 {
     int retval = PAM_IGNORE;
+    int do_update = 1;
     const char *motd_path = NULL;
     char *motd_path_copy = NULL;
     size_t num_motd_paths = 0;
@@ -379,6 +380,7 @@ int pam_sm_open_session(pam_handle_t *pamh, int flags,
     size_t num_motd_dir_paths = 0;
     char **motd_dir_path_split = NULL;
     int report_missing;
+    struct stat st;
 
     if (flags & PAM_SILENT) {
 	return retval;
@@ -408,6 +410,9 @@ int pam_sm_open_session(pam_handle_t *pamh, int flags,
 			   "motd_dir= specification missing argument - ignored");
 	    }
 	}
+	else if (!strcmp(*argv,"noupdate")) {
+		do_update = 0;
+	}
 	else
 	    pam_syslog(pamh, LOG_ERR, "unknown option: %s", *argv);
     }
@@ -418,6 +423,19 @@ int pam_sm_open_session(pam_handle_t *pamh, int flags,
 	report_missing = 0;
     } else {
 	report_missing = 1;
+    }
+
+    /* Run the update-motd dynamic motd scripts, outputting to /run/motd.dynamic.
+       This will be displayed only when calling pam_motd with
+       motd=/run/motd.dynamic; current /etc/pam.d/login and /etc/pam.d/sshd
+       display both this file and /etc/motd. */
+    if (do_update && (stat("/etc/update-motd.d", &st) == 0)
+        && S_ISDIR(st.st_mode))
+    {
+       mode_t old_mask = umask(0022);
+       if (!system("/usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin run-parts --lsbsysinit /etc/update-motd.d > /run/motd.dynamic.new"))
+           rename("/run/motd.dynamic.new", "/run/motd.dynamic");
+       umask(old_mask);
     }
 
     if (motd_path != NULL) {

@@ -573,6 +573,30 @@ long zsys_syscall(long n, ...)
         callee = zsys_pidfd_open;
         break;
 
+    case 113 /* SYS_setreuid */:
+        callee = zsys_setreuid;
+        break;
+
+    case 114 /* SYS_setregid */:
+        callee = zsys_setregid;
+        break;
+
+    case 117 /* SYS_setresuid */:
+        callee = zsys_setresuid;
+        break;
+
+    case 250 /* SYS_keyctl */:
+        callee = zsys_keyctl;
+        break;
+
+    case 203 /* SYS_sched_getaffinity */:
+        callee = zsys_sched_getaffinity;
+        break;
+
+    case 204 /* SYS_sched_setaffinity */:
+        callee = zsys_sched_setaffinity;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:

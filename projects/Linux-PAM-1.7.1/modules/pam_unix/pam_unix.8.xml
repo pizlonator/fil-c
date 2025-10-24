@@ -404,6 +404,79 @@
       </varlistentry>
       <varlistentry>
         <term>
+          <option>obscure</option>
+        </term>
+        <listitem>
+          <para>
+            Enable some extra checks on password strength.  These checks
+            are based on the "obscure" checks in the original shadow
+            package.  The behavior is similar to the pam_cracklib
+            module, but for non-dictionary-based checks.  The following
+            checks are implemented:
+            <variablelist>
+              <varlistentry>
+                <term>
+                  <option>Palindrome</option>
+                </term>
+                <listitem>
+                  <para>
+                    Verifies that the new password is not a palindrome
+                    of (i.e., the reverse of) the previous one.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                  <option>Case Change Only</option>
+                </term>
+                <listitem>
+                  <para>
+                    Verifies that the new password isn't the same as the
+                    old one with a change of case.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                  <option>Similar</option>
+                </term>
+                <listitem>
+                  <para>
+                    Verifies that the new password isn't too much like
+                    the previous one.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                  <option>Simple</option>
+                </term>
+                <listitem>
+                  <para>
+                    Is the new password too simple?  This is based on
+                    the length of the password and the number of
+                    different types of characters (alpha, numeric, etc.)
+                    used.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                  <option>Rotated</option>
+                </term>
+                <listitem>
+                  <para>
+                    Is the new password a rotated version of the old
+                    password?  (E.g., "billy" and "illyb")
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
           no_pass_expiry
         </term>
         <listitem>

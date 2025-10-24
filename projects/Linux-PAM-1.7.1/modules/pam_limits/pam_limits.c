@@ -101,6 +101,7 @@ struct pam_limit_s {
 			      specific user or to count all logins */
     int priority;	 /* the priority to run user process with */
     int nonewprivs;	/* whether to prctl(PR_SET_NO_NEW_PRIVS) */
+    char chroot_dir[8092]; /* directory to chroot into */
     struct user_limits_struct limits[RLIM_NLIMITS];
     const char *conf_file;
     int utmp_after_pam_call;
@@ -109,9 +110,9 @@ struct pam_limit_s {
 
 #define LIMIT_LOGIN (RLIM_NLIMITS+1)
 #define LIMIT_NUMSYSLOGINS (RLIM_NLIMITS+2)
-
 #define LIMIT_PRI (RLIM_NLIMITS+3)
 #define LIMIT_NONEWPRIVS (RLIM_NLIMITS+4)
+#define LIMIT_CHROOT (RLIM_NLIMITS+5)
 
 #define LIMIT_SOFT  1
 #define LIMIT_HARD  2
@@ -582,6 +583,8 @@ static int init_limits(pam_handle_t *pamh, struct pam_limit_s *pl, int ctrl)
     pl->login_limit_def = LIMITS_DEF_NONE;
     pl->login_group = NULL;
 
+    pl->chroot_dir[0] = '\0';
+    
     return retval;
 }
 
@@ -696,6 +699,8 @@ process_limit (const pam_handle_t *pamh, int source, const char *lim_type,
 	limit_item = LIMIT_PRI;
     } else if (strcmp(lim_item, "nonewprivs") == 0) {
 	limit_item = LIMIT_NONEWPRIVS;
+    } else if (strcmp(lim_item, "chroot") == 0) {
+        limit_item = LIMIT_CHROOT;
     } else {
         pam_syslog(pamh, LOG_DEBUG, "unknown limit item '%s'", lim_item);
         return;
@@ -745,9 +750,9 @@ process_limit (const pam_handle_t *pamh, int source, const char *lim_type,
 			pam_syslog(pamh, LOG_DEBUG,
 				   "wrong limit value '%s' for limit type '%s'",
 				   lim_value, lim_type);
-            return;
+			return;
 		}
-	} else {
+	} else if (limit_item != LIMIT_CHROOT) {
 #ifdef __USE_FILE_OFFSET64
 		rlimit_value = strtoull (lim_value, &endptr, 10);
 #else
@@ -822,7 +827,11 @@ process_limit (const pam_handle_t *pamh, int source, const char *lim_type,
 	break;
     }
 
-    if ( (limit_item != LIMIT_LOGIN)
+    if (limit_item == LIMIT_CHROOT) {
+	strncpy(pl->chroot_dir, value_orig, sizeof(pl->chroot_dir)-1);
+        pl->chroot_dir[sizeof(pl->chroot_dir)-1]='\0';
+    }
+    else if ( (limit_item != LIMIT_LOGIN)
 	 && (limit_item != LIMIT_NUMSYSLOGINS)
 	 && (limit_item != LIMIT_PRI)
 	 && (limit_item != LIMIT_NONEWPRIVS) ) {
@@ -1194,9 +1203,21 @@ static int setup_limits(pam_handle_t *pamh,
         if (pl->limits[i].limit.rlim_cur > pl->limits[i].limit.rlim_max)
             pl->limits[i].limit.rlim_cur = pl->limits[i].limit.rlim_max;
 	res = setrlimit(i, &pl->limits[i].limit);
-	if (res != 0)
-	  pam_syslog(pamh, LOG_ERR, "Could not set limit for '%s': %m",
-		     rlimit2str(i));
+	if (res != 0 && (i != RLIMIT_NOFILE
+	                    || pl->limits[i].limit.rlim_cur != RLIM_INFINITY))
+	{
+		int save_errno = errno;
+		pam_syslog(pamh, LOG_DEBUG,
+		           "Could not set limit for '%s' to soft=%d, hard=%d:"
+		           " %m; uid=%lu,euid=%lu", rlimit2str(i),
+		           pl->limits[i].limit.rlim_cur,
+		           pl->limits[i].limit.rlim_max,
+		           (unsigned long) getuid(),
+		           (unsigned long) geteuid());
+		errno = save_errno;
+	}
+	if (res == -1 && errno == EPERM)
+	    continue;
 	status |= res;
     }
 
@@ -1238,6 +1259,15 @@ static int setup_limits(pam_handle_t *pamh,
 #endif
     }
 
+    if (!retval && pl->chroot_dir[0]) {
+	i = chdir(pl->chroot_dir);
+	if (i == 0)
+	    i = chroot(pl->chroot_dir);
+	if (i == 0)
+	    i = chdir("/");
+	if (i != 0)
+	    retval = LIMIT_ERR;
+    }
     return retval;
 }
 

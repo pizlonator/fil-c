@@ -30,9 +30,6 @@
       <arg choice="opt" rep="norepeat">
 	trust
       </arg>
-      <arg choice="opt" rep="norepeat">
-	use_uid
-      </arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -110,18 +107,6 @@
             (thus with a little play stacking the modules the wheel
             members may be able to su to root without being prompted
             for a passwd).
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>
-          use_uid
-        </term>
-        <listitem>
-          <para>
-            The check will be done against the real uid of the calling process,
-            instead of trying to obtain the user from the login session
-            associated with the terminal in use.
           </para>
         </listitem>
       </varlistentry>

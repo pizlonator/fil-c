@@ -260,22 +260,7 @@ static int _pam_dispatch_aux(pam_handle_t *pamh, int flags, struct handler *h,
 	    if ( _PAM_ACTION_IS_JUMP(action) ) {
 
 		/* If we are evaluating a cached chain, we treat this
-		   module as required (aka _PAM_ACTION_OK) as well as
-		   executing the jump. */
-
-		if (use_cached_chain) {
-		    if (impression == _PAM_UNDEF
-			|| (impression == _PAM_POSITIVE
-			    && status == PAM_SUCCESS) ) {
-			if ( retval != PAM_IGNORE || cached_retval == retval ) {
-			    if ( impression == _PAM_UNDEF && retval == PAM_SUCCESS ) {
-				h->grantor = 1;
-			    }
-			    impression = _PAM_POSITIVE;
-			    status = retval;
-			}
-		    }
-		}
+		   module as ignored as well as executing the jump. */
 
 		/* this means that we need to skip #action stacked modules */
 		while (h->next != NULL && h->next->stack_level >= stack_level && action > 0) {

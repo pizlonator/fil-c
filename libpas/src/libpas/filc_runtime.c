@@ -102,6 +102,7 @@
 #include <sys/statfs.h>
 #include <sys/statvfs.h>
 #include <sys/reboot.h>
+#include <linux/keyctl.h>
 
 #if PAS_GLIBC
 #include <sys/pidfd.h>
@@ -12027,6 +12028,33 @@ int filc_native_zsys_timer_gettime(filc_thread* my_thread, int timer, filc_ptr v
 int filc_native_zsys_fallocate(filc_thread* my_thread, int fd, int mode, long offset, long len)
 {
     return FILC_SYSCALL(my_thread, fallocate(fd, mode, offset, len));
+}
+
+long filc_native_zsys_keyctl(filc_thread* my_thread, int op, filc_cc_cursor* args)
+{
+    switch (op) {
+    case KEYCTL_GET_KEYRING_ID:
+    case KEYCTL_LINK: {
+        int arg1 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg2 = filc_cc_cursor_get_next_int(my_thread, args);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg1, arg2));
+    }
+
+    case KEYCTL_JOIN_SESSION_KEYRING: {
+        filc_ptr desc_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        char* desc = filc_check_and_get_tmp_str_or_null(my_thread, desc_ptr);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_JOIN_SESSION_KEYRING, desc));
+    }
+
+    case KEYCTL_REVOKE: {
+        int arg = filc_cc_cursor_get_next_int(my_thread, args);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg));
+    }
+
+    default:
+        /* FIXME: Implement more! */
+        filc_internal_panic(NULL, "Unimplemented keyctl op");
+    }
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)

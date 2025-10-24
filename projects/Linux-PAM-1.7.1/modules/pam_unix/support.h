@@ -6,6 +6,7 @@
 #define _PAM_UNIX_SUPPORT_H
 
 #include <pwd.h>
+#include "pam_inline.h"
 
 /*
  * File to read value of ENCRYPT_METHOD from.
@@ -101,50 +102,54 @@ typedef struct {
 #define UNIX_GOST_YESCRYPT_PASS  31     /* new password hashes will use gost-yescrypt */
 #define UNIX_YESCRYPT_PASS       32     /* new password hashes will use yescrypt */
 #define UNIX_NULLRESETOK         33     /* allow empty password if password reset is enforced */
+#define UNIX_OBSCURE_CHECKS      34	/* enable obscure checks on passwords */
+#define UNIX_NULLOK_SECURE       35	/* deprecated alias for nullok */
 /* -------------- */
-#define UNIX_CTRLS_              34	/* number of ctrl arguments defined */
+#define UNIX_CTRLS_              36	/* number of ctrl arguments defined */
 
 #define UNIX_DES_CRYPT(ctrl)	(off(UNIX_MD5_PASS,ctrl)&&off(UNIX_BIGCRYPT,ctrl)&&off(UNIX_SHA256_PASS,ctrl)&&off(UNIX_SHA512_PASS,ctrl)&&off(UNIX_BLOWFISH_PASS,ctrl)&&off(UNIX_GOST_YESCRYPT_PASS,ctrl)&&off(UNIX_YESCRYPT_PASS,ctrl))
 
 static const UNIX_Ctrls unix_args[UNIX_CTRLS_] =
 {
-/* symbol                      token name          ctrl mask                  ctrl             *
- * --------------------------- -------------------- ------------------------- ---------------- */
+/* symbol                      token name          ctrl mask                  ctrl         *
+ * --------------------------- -------------------- ------------------------- ------------ */
 
-/* UNIX__OLD_PASSWD */         {NULL,               _ALL_ON_,                              01, 0},
-/* UNIX__VERIFY_PASSWD */      {NULL,               _ALL_ON_,                              02, 0},
-/* UNIX__IAMROOT */            {NULL,               _ALL_ON_,                              04, 0},
-/* UNIX_AUDIT */               {"audit",            _ALL_ON_,                             010, 0},
-/* UNIX_USE_FIRST_PASS */      {"use_first_pass",   _ALL_ON_^(060ULL),                    020, 0},
-/* UNIX_TRY_FIRST_PASS */      {"try_first_pass",   _ALL_ON_^(060ULL),                    040, 0},
-/* UNIX_AUTHTOK_TYPE */        {"authtok_type=",    _ALL_ON_,                            0100, 0},
-/* UNIX__PRELIM */             {NULL,               _ALL_ON_^(0600ULL),                  0200, 0},
-/* UNIX__UPDATE */             {NULL,               _ALL_ON_^(0600ULL),                  0400, 0},
-/* UNIX__NONULL */             {NULL,               _ALL_ON_,                           01000, 0},
-/* UNIX__QUIET */              {NULL,               _ALL_ON_,                           02000, 0},
-/* UNIX_USE_AUTHTOK */         {"use_authtok",      _ALL_ON_,                           04000, 0},
-/* UNIX_SHADOW */              {"shadow",           _ALL_ON_,                          010000, 0},
-/* UNIX_MD5_PASS */            {"md5",              _ALL_ON_^(015660420000ULL),        020000, 1},
-/* UNIX__NULLOK */             {"nullok",           _ALL_ON_^(01000ULL),                    0, 0},
-/* UNIX_DEBUG */               {"debug",            _ALL_ON_,                          040000, 0},
-/* UNIX_NODELAY */             {"nodelay",          _ALL_ON_,                         0100000, 0},
-/* UNIX_NIS */                 {"nis",              _ALL_ON_,                         0200000, 0},
-/* UNIX_BIGCRYPT */            {"bigcrypt",         _ALL_ON_^(015660420000ULL),       0400000, 1},
-/* UNIX_LIKE_AUTH */           {"likeauth",         _ALL_ON_,                        01000000, 0},
-/* UNIX_REMEMBER_PASSWD */     {"remember=",        _ALL_ON_,                        02000000, 0},
-/* UNIX_NOREAP */              {"noreap",           _ALL_ON_,                        04000000, 0},
-/* UNIX_BROKEN_SHADOW */       {"broken_shadow",    _ALL_ON_,                       010000000, 0},
-/* UNIX_SHA256_PASS */         {"sha256",           _ALL_ON_^(015660420000ULL),     020000000, 1},
-/* UNIX_SHA512_PASS */         {"sha512",           _ALL_ON_^(015660420000ULL),     040000000, 1},
-/* UNIX_ALGO_ROUNDS */         {"rounds=",          _ALL_ON_,                      0100000000, 0},
-/* UNIX_BLOWFISH_PASS */       {"blowfish",         _ALL_ON_^(015660420000ULL),    0200000000, 1},
-/* UNIX_MIN_PASS_LEN */        {"minlen=",          _ALL_ON_,                      0400000000, 0},
-/* UNIX_QUIET */               {"quiet",            _ALL_ON_,                     01000000000, 0},
-/* UNIX_NO_PASS_EXPIRY */      {"no_pass_expiry",   _ALL_ON_,                     02000000000, 0},
-/* UNIX_DES */                 {"des",              _ALL_ON_^(015660420000ULL),             0, 1},
-/* UNIX_GOST_YESCRYPT_PASS */  {"gost_yescrypt",    _ALL_ON_^(015660420000ULL),   04000000000, 1},
-/* UNIX_YESCRYPT_PASS */       {"yescrypt",         _ALL_ON_^(015660420000ULL),  010000000000, 1},
-/* UNIX_NULLRESETOK */         {"nullresetok",      _ALL_ON_,                    020000000000, 0},
+/* UNIX__OLD_PASSWD */         {NULL,               _ALL_ON_,                         0x1, 0},
+/* UNIX__VERIFY_PASSWD */      {NULL,               _ALL_ON_,                         0x2, 0},
+/* UNIX__IAMROOT */            {NULL,               _ALL_ON_,                         0x4, 0},
+/* UNIX_AUDIT */               {"audit",            _ALL_ON_,                         0x8, 0},
+/* UNIX_USE_FIRST_PASS */      {"use_first_pass",   _ALL_ON_^(0x30ULL),              0x10, 0},
+/* UNIX_TRY_FIRST_PASS */      {"try_first_pass",   _ALL_ON_^(0x30ULL),              0x20, 0},
+/* UNIX_AUTHTOK_TYPE */        {"authtok_type=",    _ALL_ON_,                        0x40, 0},
+/* UNIX__PRELIM */             {NULL,               _ALL_ON_^(0x180ULL),             0x80, 0},
+/* UNIX__UPDATE */             {NULL,               _ALL_ON_^(0x180ULL),            0x100, 0},
+/* UNIX__NONULL */             {NULL,               _ALL_ON_,                       0x200, 0},
+/* UNIX__QUIET */              {NULL,               _ALL_ON_,                       0x400, 0},
+/* UNIX_USE_AUTHTOK */         {"use_authtok",      _ALL_ON_,                       0x800, 0},
+/* UNIX_SHADOW */              {"shadow",           _ALL_ON_,                      0x1000, 0},
+/* UNIX_MD5_PASS */            {"md5",              _ALL_ON_^(0x6EC22000ULL),      0x2000, 1},
+/* UNIX__NULLOK */             {"nullok",           _ALL_ON_^(0x200ULL),                0, 0},
+/* UNIX_DEBUG */               {"debug",            _ALL_ON_,                      0x4000, 0},
+/* UNIX_NODELAY */             {"nodelay",          _ALL_ON_,                      0x8000, 0},
+/* UNIX_NIS */                 {"nis",              _ALL_ON_,                     0x10000, 0},
+/* UNIX_BIGCRYPT */            {"bigcrypt",         _ALL_ON_^(0x6EC22000ULL),     0x20000, 1},
+/* UNIX_LIKE_AUTH */           {"likeauth",         _ALL_ON_,                     0x40000, 0},
+/* UNIX_REMEMBER_PASSWD */     {"remember=",        _ALL_ON_,                     0x80000, 0},
+/* UNIX_NOREAP */              {"noreap",           _ALL_ON_,                    0x100000, 0},
+/* UNIX_BROKEN_SHADOW */       {"broken_shadow",    _ALL_ON_,                    0x200000, 0},
+/* UNIX_SHA256_PASS */         {"sha256",           _ALL_ON_^(0x6EC22000ULL),    0x400000, 1},
+/* UNIX_SHA512_PASS */         {"sha512",           _ALL_ON_^(0x6EC22000ULL),    0x800000, 1},
+/* UNIX_ALGO_ROUNDS */         {"rounds=",          _ALL_ON_,                   0x1000000, 0},
+/* UNIX_BLOWFISH_PASS */       {"blowfish",         _ALL_ON_^(0x6EC22000ULL),   0x2000000, 1},
+/* UNIX_MIN_PASS_LEN */        {"minlen=",          _ALL_ON_,                   0x4000000, 0},
+/* UNIX_QUIET */               {"quiet",            _ALL_ON_,                   0x8000000, 0},
+/* UNIX_NO_PASS_EXPIRY */      {"no_pass_expiry",   _ALL_ON_,                  0x10000000, 0},
+/* UNIX_DES */                 {"des",              _ALL_ON_^(0x6EC22000ULL),           0, 1},
+/* UNIX_GOST_YESCRYPT_PASS */  {"gost_yescrypt",    _ALL_ON_^(0x6EC22000ULL),  0x20000000, 1},
+/* UNIX_YESCRYPT_PASS */       {"yescrypt",         _ALL_ON_^(0x6EC22000ULL),  0x40000000, 1},
+/* UNIX_NULLRESETOK */         {"nullresetok",      _ALL_ON_,                  0x80000000, 0},
+/* UNIX_OBSCURE_CHECKS */      {"obscure",          _ALL_ON_,                 0x100000000, 0},
+/* UNIX_NULLOK_SECURE */       {"nullok_secure",    _ALL_ON_^(0x200ULL),                0, 0},
 };
 
 #define UNIX_DEFAULTS  (unix_args[UNIX__NONULL].flag)

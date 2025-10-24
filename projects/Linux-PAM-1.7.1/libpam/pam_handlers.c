@@ -127,6 +127,10 @@ static int _pam_parse_conf_file(pam_handle_t *pamh, FILE *f
 		    module_type = PAM_T_ACCT;
 		} else if (!strcasecmp("password", tok)) {
 		    module_type = PAM_T_PASS;
+		} else if (!strcasecmp("@include", tok)) {
+		    pam_include = 1;
+		    module_type = requested_module_type;
+		    goto parsing_done;
 		} else {
 		    /* Illegal module type */
 		    D(("bad module type: %s", tok));
@@ -197,6 +201,7 @@ static int _pam_parse_conf_file(pam_handle_t *pamh, FILE *f
 		_pam_set_default_control(actions, _PAM_ACTION_BAD);
 	    }
 
+parsing_done:
 	    tok = _pam_tokenize(NULL, &nexttok);
 	    if (pam_include) {
 		if (substack) {

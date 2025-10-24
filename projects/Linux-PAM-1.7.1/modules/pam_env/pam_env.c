@@ -141,9 +141,6 @@ _pam_parse (const pam_handle_t *pamh, int argc, const char **argv,
 	  pam_syslog(pamh, LOG_ERR, "unknown option: %s", *argv);
     }
 
-    if (*user_readenv)
-	pam_syslog(pamh, LOG_DEBUG, "deprecated reading of user environment enabled");
-
     return ctrl;
 }
 

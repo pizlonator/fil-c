@@ -47,9 +47,8 @@
 /* argument parsing */
 
 #define PAM_DEBUG_ARG       0x0001
-#define PAM_USE_UID_ARG     0x0002
-#define PAM_TRUST_ARG       0x0004
-#define PAM_DENY_ARG        0x0010
+#define PAM_TRUST_ARG       0x0002
+#define PAM_DENY_ARG        0x0004
 #define PAM_ROOT_ONLY_ARG   0x0020
 
 static int
@@ -68,8 +67,7 @@ _pam_parse (const pam_handle_t *pamh, int argc, const char **argv,
 
           if (!strcmp(*argv,"debug"))
                ctrl |= PAM_DEBUG_ARG;
-          else if (!strcmp(*argv,"use_uid"))
-               ctrl |= PAM_USE_UID_ARG;
+          else if (!strcmp(*argv,"use_uid")); /* ignored for compat. */
           else if (!strcmp(*argv,"trust"))
                ctrl |= PAM_TRUST_ARG;
           else if (!strcmp(*argv,"deny"))
@@ -118,39 +116,14 @@ perform_check (pam_handle_t *pamh, int ctrl, const char *use_group)
         }
     }
 
-    if (ctrl & PAM_USE_UID_ARG) {
-        tpwd = pam_modutil_getpwuid (pamh, getuid());
-        if (tpwd == NULL) {
-            if (ctrl & PAM_DEBUG_ARG) {
-                pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
-            }
-            return PAM_SERVICE_ERR;
+    tpwd = pam_modutil_getpwuid (pamh, getuid());
+    if (tpwd == NULL) {
+        if (ctrl & PAM_DEBUG_ARG) {
+            pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
         }
-        fromsu = tpwd->pw_name;
-    } else {
-        fromsu = pam_modutil_getlogin(pamh);
-
-        /* if getlogin fails try a fallback to PAM_RUSER */
-        if (fromsu == NULL) {
-            const char *rhostname;
-
-            retval = pam_get_item(pamh, PAM_RHOST, (const void **)&rhostname);
-            if (retval != PAM_SUCCESS || rhostname == NULL) {
-                retval = pam_get_item(pamh, PAM_RUSER, (const void **)&fromsu);
-            }
-        }
-
-        if (fromsu != NULL) {
-            tpwd = pam_modutil_getpwnam (pamh, fromsu);
-        }
-
-        if (fromsu == NULL || tpwd == NULL) {
-            if (ctrl & PAM_DEBUG_ARG) {
-                pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
-            }
-            return PAM_SERVICE_ERR;
-        }
+        return PAM_SERVICE_ERR;
     }
+    fromsu = tpwd->pw_name;
 
     /*
      * At this point fromsu = username-of-invoker; tpwd = pwd ptr for fromsu
