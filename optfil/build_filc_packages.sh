@@ -71,4 +71,5 @@ cd ../..
 ./package-source.sh projects/openssh-9.8p1 pizlonated-openssh
 ./package-source.sh projects/binutils-2.43.1 pizlonated-binutils
 ./package-source.sh projects/Linux-PAM-1.7.1 pizlonated-pam
+./package-source.sh projects/keyutils-1.6.3 pizlonated-keyutils
 

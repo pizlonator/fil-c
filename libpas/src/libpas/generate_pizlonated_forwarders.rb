@@ -503,6 +503,19 @@ addSig "int", "zsys_timer_delete", "int"
 addSig "int", "zsys_timer_gettime", "int", "filc_ptr"
 addSig "int", "zsys_fallocate", "int", "int", "long", "long"
 addSig "long", "zsys_keyctl", "int", "..."
+addSig "int", "zsys_add_key", "filc_ptr", "filc_ptr", "filc_ptr", "size_t", "int"
+addSig "int", "zsys_request_key", "filc_ptr", "filc_ptr", "filc_ptr", "int"
+addSig "long", "zsys_keyctl_dh_compute", "int", "int", "int", "filc_ptr", "size_t"
+addSig "long", "zsys_keyctl_dh_compute_kdf", "int", "int", "int", "filc_ptr", "filc_ptr", "size_t",
+       "filc_ptr", "size_t"
+addSig "long", "zsys_keyctl_pkey_query", "int", "filc_ptr", "filc_ptr"
+addSig "long", "zsys_keyctl_pkey_encrypt", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr",
+       "size_t"
+addSig "long", "zsys_keyctl_pkey_decrypt", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr",
+       "size_t"
+addSig "long", "zsys_keyctl_pkey_sign", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr", "size_t"
+addSig "long", "zsys_keyctl_pkey_verify", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr",
+       "size_t"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

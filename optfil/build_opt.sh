@@ -405,6 +405,12 @@ make -j `nproc` install
 cd ..
 rm -rf audit-userspace-4.1.2
 
+tar -xf $FILCSRC/projects/keyutils-1.6.3/pizlonated-keyutils.tar.gz
+cd pizlonated-keyutils
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` NO_ARLIB=1 LIBDIR=/opt/fil/lib BINDIR=/opt/fil/bin SBINDIR=/opt/fil/sbin USRLIBDIR=/opt/fil/lib SHAREDIR=/opt/fil/share/keyutils INCLUDEDIR=/opt/fil/include PREFIX=/opt/fil install-optfil
+cd ..
+rm -rf pizlonated-keyutils
+
 tar -xf $FILCSRC/projects/Linux-PAM-1.7.1/pizlonated-pam.tar.gz
 cd pizlonated-pam
 mkdir -v build

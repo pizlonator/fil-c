@@ -12034,7 +12034,11 @@ long filc_native_zsys_keyctl(filc_thread* my_thread, int op, filc_cc_cursor* arg
 {
     switch (op) {
     case KEYCTL_GET_KEYRING_ID:
-    case KEYCTL_LINK: {
+    case KEYCTL_LINK:
+    case KEYCTL_SETPERM:
+    case KEYCTL_UNLINK:
+    case KEYCTL_SET_TIMEOUT:
+    case KEYCTL_GET_PERSISTENT: {
         int arg1 = filc_cc_cursor_get_next_int(my_thread, args);
         int arg2 = filc_cc_cursor_get_next_int(my_thread, args);
         return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg1, arg2));
@@ -12046,15 +12050,265 @@ long filc_native_zsys_keyctl(filc_thread* my_thread, int op, filc_cc_cursor* arg
         return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_JOIN_SESSION_KEYRING, desc));
     }
 
-    case KEYCTL_REVOKE: {
+    case KEYCTL_REVOKE:
+    case KEYCTL_CLEAR:
+    case KEYCTL_SET_REQKEY_KEYRING:
+    case KEYCTL_ASSUME_AUTHORITY:
+    case KEYCTL_INVALIDATE: {
         int arg = filc_cc_cursor_get_next_int(my_thread, args);
         return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg));
     }
 
-    default:
-        /* FIXME: Implement more! */
-        filc_internal_panic(NULL, "Unimplemented keyctl op");
+    case KEYCTL_UPDATE: {
+        int id = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr payload_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        size_t plen = filc_cc_cursor_get_next_size_t(my_thread, args);
+        filc_check_read(payload_ptr, plen);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_UPDATE, id,
+                                               filc_ptr_ptr(payload_ptr), plen));
     }
+
+    case KEYCTL_CHOWN:
+    case KEYCTL_NEGATE: {
+        int arg1 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg2 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg3 = filc_cc_cursor_get_next_int(my_thread, args);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg1, arg2, arg3));
+    }
+
+    case KEYCTL_DESCRIBE:
+    case KEYCTL_READ:
+    case KEYCTL_GET_SECURITY: {
+        int id = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr buffer = filc_cc_cursor_get_next_ptr(my_thread, args);
+        size_t buflen = filc_cc_cursor_get_next_size_t(my_thread, args);
+        filc_check_write(buffer, buflen);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, id, filc_ptr_ptr(buffer), buflen));
+    }
+
+    case KEYCTL_SEARCH: {
+        int ringid = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr type_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        filc_ptr description_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        int destringid = filc_cc_cursor_get_next_int(my_thread, args);
+        char* type = filc_check_and_get_tmp_str(my_thread, type_ptr);
+        char* description = filc_check_and_get_tmp_str(my_thread, description_ptr);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_SEARCH, ringid, type, description,
+                                               destringid));
+    }
+
+    case KEYCTL_INSTANTIATE: {
+        int id = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr payload_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        size_t plen = filc_cc_cursor_get_next_size_t(my_thread, args);
+        int ringid = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_check_read(payload_ptr, plen);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_INSTANTIATE, id,
+                                               filc_ptr_ptr(payload_ptr), plen, ringid));
+    }
+
+    case KEYCTL_SESSION_TO_PARENT:
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op));
+
+    case KEYCTL_REJECT:
+    case KEYCTL_MOVE: {
+        int arg1 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg2 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg3 = filc_cc_cursor_get_next_int(my_thread, args);
+        int arg4 = filc_cc_cursor_get_next_int(my_thread, args);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, op, arg1, arg2, arg3, arg4));
+    }
+
+    case KEYCTL_INSTANTIATE_IOV: {
+        int id = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr payload_iov_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        unsigned ioc = filc_cc_cursor_get_next_unsigned(my_thread, args);
+        int ringid = filc_cc_cursor_get_next_int(my_thread, args);
+        struct iovec* iov = filc_prepare_iovec(my_thread, payload_iov_ptr, ioc,
+                                               filc_extended_read_access);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_INSTANTIATE_IOV, id, iov, ioc,
+                                               ringid));
+    }
+
+    case KEYCTL_DH_COMPUTE:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_DH_COMPUTE); use "
+                          "keyctl_dh_compute or keyctl_dh_compute_kdf instead.");
+
+    case KEYCTL_RESTRICT_KEYRING: {
+        int keyring = filc_cc_cursor_get_next_int(my_thread, args);
+        filc_ptr type_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        filc_ptr restriction_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        char* type = filc_check_and_get_tmp_str_or_null(my_thread, type_ptr);
+        char* restriction = filc_check_and_get_tmp_str_or_null(my_thread, restriction_ptr);
+        return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_RESTRICT_KEYRING, keyring, type,
+                                               restriction));
+    }
+
+    case KEYCTL_PKEY_QUERY:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_PKEY_QUERY); use "
+                          "keyctl_pkey_query instead.");
+
+    case KEYCTL_PKEY_ENCRYPT:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_PKEY_ENCRYPT); use "
+                          "keyctl_pkey_encrypt instead.");
+
+    case KEYCTL_PKEY_DECRYPT:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_PKEY_DECRYPT); use "
+                          "keyctl_pkey_decrypt instead.");
+
+    case KEYCTL_PKEY_SIGN:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_PKEY_SIGN); use "
+                          "keyctl_pkey_sigh instead.");
+
+    case KEYCTL_PKEY_VERIFY:
+        filc_safety_panic(NULL, "invalid direct use of keyctl(KEYCTL_PKEY_VERIFY); use "
+                          "keyctl_pkey_verify instead.");
+
+    default:
+        filc_set_errno(ENOSYS);
+        return -1;
+    }
+}
+
+int filc_native_zsys_add_key(filc_thread* my_thread, filc_ptr type_ptr, filc_ptr description_ptr,
+                             filc_ptr payload_ptr, size_t plen, int ringid)
+{
+    char* type = filc_check_and_get_tmp_str(my_thread, type_ptr);
+    char* description = filc_check_and_get_tmp_str(my_thread, description_ptr);
+    filc_check_read(payload_ptr, plen);
+    return FILC_SYSCALL(my_thread, syscall(SYS_add_key, type, description, filc_ptr_ptr(payload_ptr),
+                                           plen, ringid));
+}
+
+int filc_native_zsys_request_key(filc_thread* my_thread, filc_ptr type_ptr, filc_ptr description_ptr,
+                                 filc_ptr callout_ptr, int destringid)
+{
+    char* type = filc_check_and_get_tmp_str(my_thread, type_ptr);
+    char* description = filc_check_and_get_tmp_str(my_thread, description_ptr);
+    char* callout = filc_check_and_get_tmp_str_or_null(my_thread, callout_ptr);
+    return FILC_SYSCALL(my_thread, syscall(SYS_request_key, type, description, callout, destringid));
+}
+
+long filc_native_zsys_keyctl_dh_compute(filc_thread* my_thread, int priv, int prime, int base,
+                                        filc_ptr buffer_ptr, size_t buflen)
+{
+    filc_check_write(buffer_ptr, buflen);
+    
+    struct keyctl_dh_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.priv = priv;
+    params.prime = prime;
+    params.base = base;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_DH_COMPUTE, &params,
+                                           filc_ptr_ptr(buffer_ptr), buflen, NULL));
+}
+
+long filc_native_zsys_keyctl_dh_compute_kdf(filc_thread* my_thread, int priv, int prime, int base,
+                                            filc_ptr hashname_ptr, filc_ptr otherinfo_ptr,
+                                            size_t otherinfolen, filc_ptr buffer_ptr, size_t buflen)
+{
+    char* hashname = filc_check_and_get_tmp_str(my_thread, hashname_ptr);
+    filc_check_write(otherinfo_ptr, otherinfolen); /* Maybe this is readonly? Let's play it safe
+                                                      though. */
+    filc_check_write(buffer_ptr, buflen);
+    
+    struct keyctl_dh_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.priv = priv;
+    params.prime = prime;
+    params.base = base;
+
+    struct keyctl_kdf_params kdfparams;
+    pas_zero_memory(&kdfparams, sizeof(kdfparams));
+    kdfparams.hashname = (char*)filc_ptr_ptr(hashname_ptr);
+    kdfparams.otherinfo = (char*)filc_ptr_ptr(otherinfo_ptr);
+    kdfparams.otherinfolen = otherinfolen;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_DH_COMPUTE, &params,
+                                           filc_ptr_ptr(buffer_ptr), buflen, &kdfparams));
+}
+
+long filc_native_zsys_keyctl_pkey_query(filc_thread* my_thread, int key_id, filc_ptr info_ptr,
+                                        filc_ptr result_ptr)
+{
+    char* info = filc_check_and_get_tmp_str_or_null(my_thread, info_ptr);
+    if (filc_ptr_ptr(result_ptr))
+        filc_check_write(result_ptr, sizeof(struct keyctl_pkey_query));
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_PKEY_QUERY, key_id, NULL, info,
+                                           filc_ptr_ptr(result_ptr)));
+}
+
+long filc_native_zsys_keyctl_pkey_encrypt(filc_thread* my_thread, int key_id, filc_ptr info_ptr,
+                                          filc_ptr data_ptr, size_t data_len, filc_ptr enc_ptr,
+                                          size_t enc_len)
+{
+    char* info = filc_check_and_get_tmp_str_or_null(my_thread, info_ptr);
+    filc_check_read(data_ptr, data_len);
+    filc_check_write(enc_ptr, enc_len);
+
+    struct keyctl_pkey_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.key_id = key_id;
+    params.in_len = data_len;
+    params.out_len = enc_len;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_PKEY_ENCRYPT, &params, info,
+                                           filc_ptr_ptr(data_ptr), filc_ptr_ptr(enc_ptr)));
+}
+
+long filc_native_zsys_keyctl_pkey_decrypt(filc_thread* my_thread, int key_id, filc_ptr info_ptr,
+                                          filc_ptr enc_ptr, size_t enc_len, filc_ptr data_ptr,
+                                          size_t data_len)
+{
+    char* info = filc_check_and_get_tmp_str_or_null(my_thread, info_ptr);
+    filc_check_read(enc_ptr, enc_len);
+    filc_check_write(data_ptr, data_len);
+
+    struct keyctl_pkey_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.key_id = key_id;
+    params.in_len = enc_len;
+    params.out_len = data_len;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_PKEY_DECRYPT, &params, info,
+                                           filc_ptr_ptr(enc_ptr), filc_ptr_ptr(data_ptr)));
+}
+
+long filc_native_zsys_keyctl_pkey_sign(filc_thread* my_thread, int key_id, filc_ptr info_ptr,
+                                       filc_ptr data_ptr, size_t data_len, filc_ptr sig_ptr,
+                                       size_t sig_len)
+{
+    char* info = filc_check_and_get_tmp_str_or_null(my_thread, info_ptr);
+    filc_check_read(data_ptr, data_len);
+    filc_check_write(sig_ptr, sig_len);
+
+    struct keyctl_pkey_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.key_id = key_id;
+    params.in_len = data_len;
+    params.out_len = sig_len;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_PKEY_SIGN, &params, info,
+                                           filc_ptr_ptr(data_ptr), filc_ptr_ptr(sig_ptr)));
+}
+
+long filc_native_zsys_keyctl_pkey_verify(filc_thread* my_thread, int key_id, filc_ptr info_ptr,
+                                         filc_ptr data_ptr, size_t data_len, filc_ptr sig_ptr,
+                                         size_t sig_len)
+{
+    char* info = filc_check_and_get_tmp_str_or_null(my_thread, info_ptr);
+    filc_check_read(data_ptr, data_len);
+    filc_check_read(sig_ptr, sig_len);
+
+    struct keyctl_pkey_params params;
+    pas_zero_memory(&params, sizeof(params));
+    params.key_id = key_id;
+    params.in_len = data_len;
+    params.in2_len = sig_len;
+
+    return FILC_SYSCALL(my_thread, syscall(SYS_keyctl, KEYCTL_PKEY_VERIFY, &params, info,
+                                           filc_ptr_ptr(data_ptr), filc_ptr_ptr(sig_ptr)));
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)

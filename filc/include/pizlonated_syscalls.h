@@ -384,6 +384,22 @@ int zsys_timer_delete(int timer);
 int zsys_timer_gettime(int timer, void* value);
 int zsys_fallocate(int fd, int mode, long offset, long len);
 long zsys_keyctl(int op, ...);
+int zsys_add_key(const char* type, const char* description, const void* payload, __SIZE_TYPE__ plen,
+                 int ringid);
+int zsys_request_key(const char* type, const char* description, const char* callout_info,
+                     int destringid);
+long zsys_keyctl_dh_compute(int priv, int prime, int base, char* buffer, __SIZE_TYPE__ buflen);
+long zsys_keyctl_dh_compute_kdf(int priv, int prime, int base, char* hashname, char* otherinfo,
+                                __SIZE_TYPE__ otherinfolen, char* buffer, __SIZE_TYPE__ buflen);
+long zsys_keyctl_pkey_query(int key_id, const char* info, void* result);
+long zsys_keyctl_pkey_encrypt(int key_id, const char* info, const void* data, __SIZE_TYPE__ data_len,
+                              void* enc, __SIZE_TYPE__ enc_len);
+long zsys_keyctl_pkey_decrypt(int key_id, const char* info, const void* enc, __SIZE_TYPE__ enc_len,
+                              void* data, __SIZE_TYPE__ data_len);
+long zsys_keyctl_pkey_sign(int key_id, const char* info, const void* data, __SIZE_TYPE__ data_len,
+                           void* sig, __SIZE_TYPE__ sig_len);
+long zsys_keyctl_pkey_verify(int key_id, const char* info, const void* data, __SIZE_TYPE__ data_len,
+                             const void* sig, __SIZE_TYPE__ sig_len);
 
 #ifdef __cplusplus
 }

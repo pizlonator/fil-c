@@ -47,11 +47,6 @@ static struct watch_notification_filter filter = {
 	},
 };
 
-static inline bool after_eq(unsigned int a, unsigned int b)
-{
-        return (signed int)(a - b) >= 0;
-}
-
 static void consumer_term(int sig)
 {
 	consumer_stop = 1;
