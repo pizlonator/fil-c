@@ -597,6 +597,14 @@ long zsys_syscall(long n, ...)
         callee = zsys_sched_setaffinity;
         break;
 
+    case 248 /* SYS_add_key */:
+        callee = zsys_add_key;
+        break;
+
+    case 249 /* SYS_request_key */:
+        callee = zsys_request_key;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:

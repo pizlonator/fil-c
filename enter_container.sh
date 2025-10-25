@@ -162,7 +162,7 @@ ENV TZ=UTC
 RUN apt-get update && apt-get upgrade -y
 
 # Install essential build tools (compiler, linker, etc.)
-RUN apt-get install -y build-essential
+RUN apt-get install -y build-essential perl libxml-parser-perl
 
 # Build specific versions of autotools from source (required for Fil-C)
 # These must be built in order: m4, autoconf, automake, libtool
@@ -206,6 +206,16 @@ RUN cd /usr/local/src && \
     cd /usr/local/src && \
     rm -rf libtool-2.4.7 libtool-2.4.7.tar.xz
 
+COPY pizlix/intltool-0.51.0.tar.gz /usr/local/src/
+RUN cd /usr/local/src && \
+    tar -xf intltool-0.51.0.tar.gz && \
+    cd intltool-0.51.0 && \
+    ./configure --prefix=/usr/local && \
+    make -j $(nproc) && \
+    make -j $(nproc) install && \
+    cd /usr/local/src && \
+    rm -rf intltool-0.51.0 intltool-0.51.0.tar.gz
+
 # Install development dependencies required for building Fil-C and related projects
 RUN apt-get install -y \
     pkg-config \
@@ -217,7 +227,7 @@ RUN apt-get install -y curl vim git
 
 # Additional build dependencies for complete Fil-C development
 RUN apt-get install -y \
-    gcc g++ make gawk perl \
+    gcc g++ make gawk \
     python3 python3-pip python3-setuptools \
     wget rsync file less sudo \
     libncurses-dev libssl-dev zlib1g-dev \

@@ -430,6 +430,13 @@ cd ../..
 test -d pizlonated-pam
 rm -rf pizlonated-pam
 
+tar -xf $FILCSRC/projects/dummy-pam-ecryptfs/pizlonated-dummy-pam-ecryptfs.tar.gz
+cd pizlonated-dummy-pam-ecryptfs
+make CC=/opt/fil/bin/filcc PREFIX=/opt/fil -j `nproc`
+make CC=/opt/fil/bin/filcc PREFIX=/opt/fil -j `nproc` install
+cd ..
+rm -rf pizlonated-dummy-pam-ecryptfs
+
 tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz
 cd pizlonated-openssh
 install -v -m700 -d /opt/fil/var/lib/sshd

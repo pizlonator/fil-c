@@ -41,8 +41,7 @@ key_serial_t __weak add_key(const char *type,
 			    size_t plen,
 			    key_serial_t ringid)
 {
-	return syscall(__NR_add_key,
-		       type, description, payload, plen, ringid);
+	return zsys_add_key(type, description, payload, plen, ringid);
 }
 
 key_serial_t __weak request_key(const char *type,
@@ -50,8 +49,7 @@ key_serial_t __weak request_key(const char *type,
 				const char * callout_info,
 				key_serial_t destringid)
 {
-	return syscall(__NR_request_key,
-		       type, description, callout_info, destringid);
+	return zsys_request_key(type, description, callout_info, destringid);
 }
 
 long __weak keyctl(int cmd, ...)
