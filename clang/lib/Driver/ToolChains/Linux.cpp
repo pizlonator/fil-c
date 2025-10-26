@@ -458,8 +458,10 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
 
   if ((true)) {
     // Check for explicit override flag
-    if (Arg *A = Args.getLastArg(options::OPT_filc_dynamic_linker))
+    if (Arg *A = Args.getLastArg(options::OPT_filc_dynamic_linker)) {
+      A->claim();
       return std::string(A->getValue());
+    }
     
     if (getDriver().HasPizfix) {
       SmallString<128> P(getDriver().PizfixRoot);
@@ -660,9 +662,10 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   if (D.HasPizfix) {
     {
       std::string P;
-      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_stdfil_include))
+      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_stdfil_include)) {
+        A->claim();
         P = A->getValue();
-      else {
+      } else {
         SmallString<128> Path(D.PizfixRoot);
         llvm::sys::path::append(Path, "stdfil-include");
         P = std::string(Path);
@@ -672,9 +675,10 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     
     {
       std::string P;
-      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_os_include))
+      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_os_include)) {
+        A->claim();
         P = A->getValue();
-      else {
+      } else {
         SmallString<128> Path(D.PizfixRoot);
         llvm::sys::path::append(Path, "os-include");
         P = std::string(Path);
@@ -685,9 +689,10 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
         && !DriverArgs.hasArg(options::OPT_nostdlibinc)) {
       std::string P;
-      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_include))
+      if (Arg *A = DriverArgs.getLastArg(options::OPT_filc_include)) {
+        A->claim();
         P = A->getValue();
-      else {
+      } else {
         SmallString<128> Path(D.PizfixRoot);
         llvm::sys::path::append(Path, "include");
         P = std::string(Path);

@@ -595,9 +595,10 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   auto GetYoloLibPath = [&] (const StringRef str) -> std::string {
     if (ToolChain.getDriver().HasPizfix) {
       std::string BasePath;
-      if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path))
+      if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
+        A->claim();
         BasePath = A->getValue();
-      else {
+      } else {
         SmallString<128> P(ToolChain.getDriver().PizfixRoot);
         llvm::sys::path::append(P, "lib");
         BasePath = std::string(P);
@@ -689,9 +690,10 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   if (ToolChain.getDriver().HasPizfix) {
     std::string BasePath;
-    if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path))
+    if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
+      A->claim();
       BasePath = A->getValue();
-    else {
+    } else {
       SmallString<128> P(ToolChain.getDriver().PizfixRoot);
       llvm::sys::path::append(P, "lib");
       BasePath = std::string(P);
