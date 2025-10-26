@@ -437,6 +437,15 @@ make CC=/opt/fil/bin/filcc PREFIX=/opt/fil -j `nproc` install
 cd ..
 rm -rf pizlonated-dummy-pam-ecryptfs
 
+tar -xf $FILCSRC/projects/krb5-1.21.3/pizlonated-krb5.tar.gz
+cd pizlonated-krb5/src
+PATH=/opt/fil/bin:$PATH CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-readline --with-crypto-impl=openssl
+make -j `nproc`
+make -j `nproc` install
+cd ../..
+test -d pizlonated-krb5
+rm -rf pizlonated-krb5
+
 tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz
 cd pizlonated-openssh
 install -v -m700 -d /opt/fil/var/lib/sshd
@@ -446,7 +455,8 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --with-default-path=/opt/fil/bin:/usr/bin:/bin \
             --with-superuser-path=/opt/fil/sbin:/opt/fil/bin:/usr/sbin:/usr/bin:/bin \
             --with-pid-dir=/run \
-            --with-pam
+            --with-pam \
+            --with-kerberos5=/opt/fil
 make -j `nproc`
 make -j `nproc` install-nokeys
 install -v -m755    contrib/ssh-copy-id /opt/fil/bin

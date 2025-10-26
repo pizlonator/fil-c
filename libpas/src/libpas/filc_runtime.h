@@ -4134,8 +4134,7 @@ size_t filc_prepare_to_return_with_data(filc_thread* my_thread, filc_ptr rets,
 
 /* Checks that the ptr points at a valid C string. That is, there is a null terminator before we
    get to the upper bound. Returns a copy of that string allocated in the utility heap, and checks
-   that it still has the null terminator at the end. Kills the shit out of the program if any of the
-   checks fail.
+   that it still has the null terminator at the end. Kills the program if any of the checks fail.
    
    The fact that the string is allocated in the utility heap - and the fact that the utility heap
    has no capabilities into it other than immortal and/or opaque ones - and the fact that there is

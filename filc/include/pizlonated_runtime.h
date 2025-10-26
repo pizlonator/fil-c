@@ -38,8 +38,7 @@
    zlongjmp confirms that the caller of the jmp_buf's zsetjmp is still on the stack (that EXACT caller,
    not another frame that happens to be the same function at the same stack height) and that the
    zlongjmp is called transitively from a position in the zsetjmp caller that is dominated by that
-   exact zsetjmp. If that's true then it does a longjmp, otherwise it kills the shit out of your
-   process. */
+   exact zsetjmp. If that's true then it does a longjmp, otherwise it kills your process. */
 struct zjmp_buf;
 typedef struct zjmp_buf zjmp_buf;
 void zlongjmp(zjmp_buf* jmp_buf, int value);

@@ -1,6 +1,4 @@
-// Pizlonator was here. I fucked this shit up to use it as a varargs test. Because it's a low level
-// Deluge test, it's designed to depend on nothing. Then I made it a part of libdeluge so I can have
-// a low-level zprintf.
+// This was Fil-C's first big test. It tests varargs but also other things.
 
 /*
  * NOTE: If you change this file, please merge it into rsync, samba, etc.
