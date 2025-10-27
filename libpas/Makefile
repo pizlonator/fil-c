@@ -22,19 +22,52 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 all: \
-	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so ../pizfix/lib_gcverify/libpizlo.so \
-	../pizfix/lib_test_gcverify/libpizlo.so ../pizfix/lib/libpizlo.a \
-	../pizfix/lib/filc_crt.o ../pizfix/lib/filc_mincrt.o
+	$(FILC_LIB_DIR)/libpizlo.so $(FILC_LIB_TEST_DIR)/libpizlo.so \
+	$(FILC_LIB_GCVERIFY_DIR)/libpizlo.so $(FILC_LIB_TEST_GCVERIFY_DIR)/libpizlo.so \
+	$(FILC_LIB_DIR)/libpizlo.a \
+	$(FILC_LIB_DIR)/filc_crt.o $(FILC_LIB_DIR)/filc_mincrt.o
 
-PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo-include \
-	-isystem ../pizfix/os-include -isystem `./find_clang_include_dir.rb`
-PASASM = clang -march=x86-64-v2 -fPIC
-FILCC = ../build/bin/clang
-SHLD = clang -Wl,-dynamic-linker,$(PWD)/../pizfix/lib/ld-yolo-x86_64.so \
-	-nostdlib -shared ../pizfix/lib/crti.o \
-	`./find_system_library_file.rb crtbeginS.o` -L../pizfix/lib
-SHLDPOST = `./find_system_library_file.rb libgcc.a` -lyoloc -lyolom \
-	`./find_system_library_file.rb crtendS.o` ../pizfix/lib/crtn.o
+FILC_OUTPUT_ROOT ?= $(abspath ../pizfix)
+
+FILC_LIB_DIR ?= $(FILC_OUTPUT_ROOT)/lib
+FILC_LIB_TEST_DIR ?= $(FILC_OUTPUT_ROOT)/lib_test
+FILC_LIB_GCVERIFY_DIR ?= $(FILC_OUTPUT_ROOT)/lib_gcverify
+FILC_LIB_TEST_GCVERIFY_DIR ?= $(FILC_OUTPUT_ROOT)/lib_test_gcverify
+
+FILC_YOLO_INCLUDE ?= $(FILC_OUTPUT_ROOT)/yolo-include
+FILC_OS_INCLUDE ?= $(FILC_OUTPUT_ROOT)/os-include
+FILC_STDFIL_INCLUDE ?= $(FILC_OUTPUT_ROOT)/stdfil-include
+FILC_INCLUDE_DIR ?= $(FILC_OUTPUT_ROOT)/include
+FILC_YOLO_LIB_DIR ?= $(FILC_LIB_DIR)
+FILC_DYNAMIC_LINKER ?= $(FILC_YOLO_LIB_DIR)/ld-yolo-x86_64.so
+FILC_RUNTIME_LIBS ?= -lyoloc -lyolom
+
+HOST_CLANG ?= clang
+FILC_CLANG ?= ../build/bin/clang
+FILC_DRIVER_FLAGS ?=
+
+PASCC = $(HOST_CLANG) -march=x86-64-v2 -fPIC -pthread -nostdinc \
+	-isystem $(FILC_YOLO_INCLUDE) -isystem $(FILC_OS_INCLUDE) \
+	-isystem $(FILC_STDFIL_INCLUDE) \
+	-isystem `./find_clang_include_dir.rb`
+PASASM = $(HOST_CLANG) -march=x86-64-v2 -fPIC
+FILCC = $(FILC_CLANG) $(FILC_DRIVER_FLAGS)
+SHLD = $(HOST_CLANG) -Wl,-dynamic-linker,$(FILC_DYNAMIC_LINKER) \
+	-nostdlib -shared $(FILC_YOLO_LIB_DIR)/crti.o \
+	`./find_system_library_file.rb crtbeginS.o` -L$(FILC_YOLO_LIB_DIR)
+SHLDPOST = `./find_system_library_file.rb libgcc.a` $(FILC_RUNTIME_LIBS) \
+	`./find_system_library_file.rb crtendS.o` $(FILC_YOLO_LIB_DIR)/crtn.o
+
+DIRS_TO_CREATE = \
+	$(FILC_LIB_DIR) \
+	$(FILC_LIB_TEST_DIR) \
+	$(FILC_LIB_GCVERIFY_DIR) \
+	$(FILC_LIB_TEST_GCVERIFY_DIR)
+
+.PHONY: all clean
+
+$(DIRS_TO_CREATE):
+	mkdir -p $@
 
 include common.mk
 
@@ -81,11 +114,11 @@ clean:
 	rm -rf build
 	rm -f src/libpas/filc_native_forwarders.c
 	rm -f src/libpas/filc_native.h
-	rm -f ../pizfix/lib/filc_crt.o
-	rm -f ../pizfix/lib/filc_mincrt.o
-	rm -f ../pizfix/lib/libpizlo.so
-	rm -f ../pizfix/lib_test/libpizlo.so
-	rm -f ../pizfix/lib/libpizlo.a
+	rm -f $(FILC_LIB_DIR)/filc_crt.o
+	rm -f $(FILC_LIB_DIR)/filc_mincrt.o
+	rm -f $(FILC_LIB_DIR)/libpizlo.so
+	rm -f $(FILC_LIB_TEST_DIR)/libpizlo.so
+	rm -f $(FILC_LIB_DIR)/libpizlo.a
 
 .filc-objs: $(FILPIZLOOBJS)
 .yoloc-dynamic-objs: $(PASPIZLODYNAMICOBJS)
@@ -94,23 +127,23 @@ clean:
 .yoloc-test-gcverify-objs: $(PASPIZLOTESTGCVERIFYOBJS)
 .yoloc-static-objs: $(PASPIZLOSTATICOBJS)
 
-../pizfix/lib/libpizlo.so: $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS)
-	$(SHLD) -o ../pizfix/lib/libpizlo.so $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
+$(FILC_LIB_DIR)/libpizlo.so: $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS) | $(FILC_LIB_DIR)
+	$(SHLD) -o $@ $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
 
-../pizfix/lib_gcverify/libpizlo.so: $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS)
-	$(SHLD) -o ../pizfix/lib_gcverify/libpizlo.so $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS) \
+$(FILC_LIB_GCVERIFY_DIR)/libpizlo.so: $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS) | $(FILC_LIB_GCVERIFY_DIR)
+	$(SHLD) -o $@ $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS) \
 		$(SHLDPOST)
 
-../pizfix/lib_test/libpizlo.so: $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS)
-	$(SHLD) -o ../pizfix/lib_test/libpizlo.so $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
+$(FILC_LIB_TEST_DIR)/libpizlo.so: $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) | $(FILC_LIB_TEST_DIR)
+	$(SHLD) -o $@ $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
 
-../pizfix/lib_test_gcverify/libpizlo.so: $(PASPIZLOTESTGCVERIFYOBJS) $(FILPIZLOOBJS)
-	$(SHLD) -o ../pizfix/lib_test_gcverify/libpizlo.so $(PASPIZLOTESTGCVERIFYOBJS) \
+$(FILC_LIB_TEST_GCVERIFY_DIR)/libpizlo.so: $(PASPIZLOTESTGCVERIFYOBJS) $(FILPIZLOOBJS) | $(FILC_LIB_TEST_GCVERIFY_DIR)
+	$(SHLD) -o $@ $(PASPIZLOTESTGCVERIFYOBJS) \
 		$(FILPIZLOOBJS) $(SHLDPOST)
 
-../pizfix/lib/libpizlo.a: $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
-	rm -f ../pizfix/lib/libpizlo.a
-	ar cr ../pizfix/lib/libpizlo.a $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
+$(FILC_LIB_DIR)/libpizlo.a: $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS) | $(FILC_LIB_DIR)
+	rm -f $@
+	ar cr $@ $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
 
 build/pas-pizlo-release-%.o: src/libpas/%.c
 	$(PASCC) $(PASCFLAGS) -c -o $@ $< -DPAS_FILC=1
@@ -118,7 +151,7 @@ build/pas-pizlo-release-%.o: src/libpas/%.c
 build/pas-pizlo-test-%.o: src/libpas/%.c
 	$(PASCC) $(PASCFLAGS) -c -o $@ $< -DPAS_FILC=1 -DENABLE_PAS_TESTING=1
 
-build/fil-pizlo-%.o: ../filc/src/%.c ../build/bin/clang
+build/fil-pizlo-%.o: ../filc/src/%.c $(FILC_CLANG)
 	$(FILCC) $(FILCFLAGS) -c -o $@ $<
 
 build/pas-pizlo-release-%.o: src/libpas/%.s
@@ -131,15 +164,13 @@ build/pas-pizlo-release-filc_start_program.o: src/libpas/filc_native.h
 build/pas-pizlo-test-filc_start_program.o: src/libpas/filc_native.h
 build/pas-test-filc_start_program.o: src/libpas/filc_native.h
 
-../pizfix/lib/filc_crt.o: $(MAINSRC)
-	$(PASCC) -c -o ../pizfix/lib/filc_crt.o $(MAINSRC) $(MAINCFLAGS) -DUSE_LIBC=1
+$(FILC_LIB_DIR)/filc_crt.o: $(MAINSRC) | $(FILC_LIB_DIR)
+	$(PASCC) -c -o $@ $(MAINSRC) $(MAINCFLAGS) -DUSE_LIBC=1
 
-../pizfix/lib/filc_mincrt.o: $(MAINSRC)
-	$(PASCC) -c -o ../pizfix/lib/filc_mincrt.o $(MAINSRC) $(MAINCFLAGS) -DUSE_LIBC=0
+$(FILC_LIB_DIR)/filc_mincrt.o: $(MAINSRC) | $(FILC_LIB_DIR)
+	$(PASCC) -c -o $@ $(MAINSRC) $(MAINCFLAGS) -DUSE_LIBC=0
 
 src/libpas/filc_native.h: src/libpas/generate_pizlonated_forwarders.rb
 	ruby src/libpas/generate_pizlonated_forwarders.rb src/libpas/filc_native.h
 src/libpas/filc_native_forwarders.c: src/libpas/generate_pizlonated_forwarders.rb
 	ruby src/libpas/generate_pizlonated_forwarders.rb src/libpas/filc_native_forwarders.c
-
-
