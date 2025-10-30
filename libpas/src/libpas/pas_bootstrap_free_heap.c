@@ -181,6 +181,12 @@ pas_allocation_result pas_bootstrap_free_heap_allocate_with_alignment(
     pas_allocation_result result =
         pas_bootstrap_free_heap_try_allocate_with_alignment(
             size, alignment, name, allocation_kind);
+    if (!result.did_succeed) {
+        pas_log("Failing to allocate %zu bytes ", size);
+        pas_alignment_dump(alignment, pas_log_stream);
+        pas_log(" named %s of kind %s\n",
+                name, pas_allocation_kind_get_string(allocation_kind));
+    }
     PAS_ASSERT(result.did_succeed);
     PAS_ASSERT(result.begin);
     return result;

@@ -423,7 +423,8 @@ PATH=/opt/fil/bin:$PATH CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ meson \
     -D read-both-confs=true \
     -D usergroups=true \
     -D nis=disabled \
-    -D libdir=/opt/fil/lib
+    -D libdir=/opt/fil/lib \
+    -D sysconfdir=/etc
 ninja
 ninja install
 cd ../..
@@ -439,7 +440,7 @@ rm -rf pizlonated-dummy-pam-ecryptfs
 
 tar -xf $FILCSRC/projects/krb5-1.21.3/pizlonated-krb5.tar.gz
 cd pizlonated-krb5/src
-PATH=/opt/fil/bin:$PATH CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-readline --with-crypto-impl=openssl
+PATH=/opt/fil/bin:$PATH CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-readline --with-crypto-impl=openssl --sysconfdir=/etc --localstatedir=/var/lib --runstatedir=/run
 make -j `nproc`
 make -j `nproc` install
 cd ../..
@@ -450,7 +451,7 @@ tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz
 cd pizlonated-openssh
 install -v -m700 -d /opt/fil/var/lib/sshd
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
-            --sysconfdir=/opt/fil/etc/ssh \
+            --sysconfdir=/etc/ssh \
             --with-privsep-path=/opt/fil/var/lib/sshd \
             --with-default-path=/opt/fil/bin:/usr/bin:/bin \
             --with-superuser-path=/opt/fil/sbin:/opt/fil/bin:/usr/sbin:/usr/bin:/bin \
@@ -458,7 +459,7 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --with-pam \
             --with-kerberos5=/opt/fil
 make -j `nproc`
-make -j `nproc` install-nokeys
+make -j `nproc` install-nosysconf
 install -v -m755    contrib/ssh-copy-id /opt/fil/bin
 install -v -m644    contrib/ssh-copy-id.1 \
                     /opt/fil/share/man/man1
@@ -472,4 +473,3 @@ test -d build
 test -d ../fil
 rm -rf build
 
-cp -rv $FILCSRC/optfil/etc/* /opt/fil/etc/
