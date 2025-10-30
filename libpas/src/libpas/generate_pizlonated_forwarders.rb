@@ -384,6 +384,7 @@ addSig "int", "zsys_epoll_pwait_impl", "int", "filc_ptr", "int", "int", "filc_pt
 addSig "int", "zsys_epoll_pwait2_impl", "int", "filc_ptr", "int", "filc_ptr", "filc_ptr"
 addSig "int", "zsys_sysinfo", "filc_ptr"
 addSig "int", "zsys_sched_getaffinity", "int", "size_t", "filc_ptr"
+addSig "int", "zsys_raw_sched_getaffinity", "int", "size_t", "filc_ptr"
 addSig "int", "zsys_sched_setaffinity", "int", "size_t", "filc_ptr"
 addSig "int", "zsys_posix_fadvise", "int", "long", "long", "int"
 addSig "int", "zsys_ppoll", "filc_ptr", "unsigned long", "filc_ptr", "filc_ptr"

@@ -247,6 +247,7 @@ int zsys_epoll_pwait2(int epfd, void* events, int maxevents, const void* timeout
                       const void* sigmask);
 int zsys_sysinfo(void* info);
 int zsys_sched_getaffinity(int tid, __SIZE_TYPE__ size, void* set);
+int zsys_raw_sched_getaffinity(int tid, __SIZE_TYPE__ size, void* set);
 int zsys_sched_setaffinity(int tid, __SIZE_TYPE__ size, const void* set);
 int zsys_posix_fadvise(int fd, long base, long len, int advice);
 int zsys_ppoll(void* fds, unsigned long nfds, const void* to, const void* mask);

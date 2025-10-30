@@ -10501,6 +10501,14 @@ int filc_native_zsys_sched_setaffinity(filc_thread* my_thread, int tid, size_t s
         my_thread, sched_setaffinity(tid, size, (const cpu_set_t*)filc_ptr_ptr(set_ptr)));
 }
 
+int filc_native_zsys_raw_sched_getaffinity(filc_thread* my_thread, int tid, size_t size, filc_ptr set_ptr)
+{
+    filc_check_write(set_ptr, size);
+    return FILC_SYSCALL(my_thread,
+                        syscall(SYS_sched_getaffinity, tid, size,
+                                (unsigned long *)filc_ptr_ptr(set_ptr)));
+}
+
 int filc_native_zsys_sched_getaffinity(filc_thread* my_thread, int tid, size_t size, filc_ptr set_ptr)
 {
     filc_check_write(set_ptr, size);

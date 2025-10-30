@@ -589,12 +589,12 @@ long zsys_syscall(long n, ...)
         callee = zsys_keyctl;
         break;
 
-    case 203 /* SYS_sched_getaffinity */:
-        callee = zsys_sched_getaffinity;
+    case 203 /* SYS_sched_setaffinity */:
+        callee = zsys_sched_setaffinity;
         break;
 
-    case 204 /* SYS_sched_setaffinity */:
-        callee = zsys_sched_setaffinity;
+    case 204 /* SYS_sched_getaffinity */:
+        callee = zsys_raw_sched_getaffinity;
         break;
 
     case 248 /* SYS_add_key */:
