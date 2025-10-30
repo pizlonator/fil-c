@@ -511,6 +511,14 @@ long zsys_syscall(long n, ...)
         callee = zsys_getdents;
         break;
 
+    case 238 /* SYS_set_mempolicy */:
+        callee = zsys_set_mempolicy;
+        break;
+
+    case 239 /* SYS_get_mempolicy */:
+        callee = zsys_get_mempolicy;
+        break;
+
     case 444 /* SYS_landlock_create_ruleset */:
         callee = zsys_landlock_create_ruleset;
         break;

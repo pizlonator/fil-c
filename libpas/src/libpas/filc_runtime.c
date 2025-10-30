@@ -10507,6 +10507,42 @@ int filc_native_zsys_sched_getaffinity(filc_thread* my_thread, int tid, size_t s
     return FILC_SYSCALL(my_thread, sched_getaffinity(tid, size, (cpu_set_t*)filc_ptr_ptr(set_ptr)));
 }
 
+long filc_native_zsys_get_mempolicy(filc_thread* my_thread, filc_ptr mode, filc_ptr nodemask,
+                                    unsigned long maxnode, filc_ptr addr, unsigned long flags)
+{
+    if (filc_ptr_ptr(mode))
+        filc_check_write(mode, sizeof(int));
+    if (filc_ptr_ptr(nodemask)) {
+        filc_check_write(
+            nodemask,
+            filc_mul_size(sizeof(unsigned long),
+                          filc_add_size(maxnode, 8 * sizeof(unsigned long) - 1) /
+                              (8 * sizeof(unsigned long))));
+    }
+    if (filc_ptr_ptr(addr))
+        filc_check_read(addr, 1);
+    return FILC_SYSCALL(my_thread,
+                        syscall(SYS_get_mempolicy, (int *)filc_ptr_ptr(mode),
+                                (unsigned long *)filc_ptr_ptr(nodemask),
+                                maxnode, filc_ptr_ptr(addr), flags));
+}
+
+long filc_native_zsys_set_mempolicy(filc_thread* my_thread, int mode, filc_ptr nodemask,
+                                    unsigned long maxnode)
+{
+    if (filc_ptr_ptr(nodemask)) {
+        filc_check_read(
+            nodemask,
+            filc_mul_size(sizeof(unsigned long),
+                          filc_add_size(maxnode, 8 * sizeof(unsigned long) - 1) /
+                              (8 * sizeof(unsigned long))));
+    }
+    return FILC_SYSCALL(my_thread,
+                        syscall(SYS_set_mempolicy, mode,
+                                (const unsigned long *)filc_ptr_ptr(nodemask),
+                                maxnode));
+}
+
 int filc_native_zsys_posix_fadvise(filc_thread* my_thread, int fd, long base, long len, int advice)
 {
     check_fd(fd);

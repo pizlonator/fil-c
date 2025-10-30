@@ -516,6 +516,8 @@ addSig "long", "zsys_keyctl_pkey_decrypt", "int", "filc_ptr", "filc_ptr", "size_
 addSig "long", "zsys_keyctl_pkey_sign", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr", "size_t"
 addSig "long", "zsys_keyctl_pkey_verify", "int", "filc_ptr", "filc_ptr", "size_t", "filc_ptr",
        "size_t"
+addSig "long", "zsys_get_mempolicy", "filc_ptr", "filc_ptr", "unsigned long", "filc_ptr", "unsigned long"
+addSig "long", "zsys_set_mempolicy", "int", "filc_ptr", "unsigned long"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"
