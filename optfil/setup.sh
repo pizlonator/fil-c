@@ -42,13 +42,9 @@ echo "  - Memory safe programs compiled with Fil-C:"
 echo "    - GNU Bash                       - Compression utilities"
 echo "    - GNU Coreutils                  - OpenSSL cryptographic library"
 echo "    - GNU Binutils                   - OpenSSH client and server"
+echo "    - audit                          - keyutils"
+echo "    - PAM                            - Kerberos 5"
 echo "    - Mg text editor                 - pkgconf"
-echo
-echo "********************************************************************************"
-echo "                                  WARNING!"
-echo "********************************************************************************"
-echo "THIS IS THE FIRST RELEASE of the /opt/fil binary distribution! Take appropriate"
-echo "precautions before using! This distribution is still under active development!"
 echo
 echo "THIS SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND."
 echo "********************************************************************************"
@@ -99,65 +95,173 @@ cd /opt
 tar -xf "$OLDPWD/fil.tar"
 
 echo
-echo "Setting up SSH host keys..."
-# Check if SSH host keys exist in /etc/ssh
-if [ -f /etc/ssh/ssh_host_rsa_key ] \
-       && [ -f /etc/ssh/ssh_host_ecdsa_key ] \
-       && [ -f /etc/ssh/ssh_host_ed25519_key ] \
-       && [ -f /etc/ssh/ssh_host_rsa_key.pub ] \
-       && [ -f /etc/ssh/ssh_host_ecdsa_key.pub ] \
-       && [ -f /etc/ssh/ssh_host_ed25519_key.pub ]; then
-    echo "Found existing SSH host keys in /etc/ssh"
-    echo "Copying them to /opt/fil/etc/ssh..."
-    cp -v /etc/ssh/ssh_host_rsa_key /opt/fil/etc/ssh/
-    cp -v /etc/ssh/ssh_host_ecdsa_key /opt/fil/etc/ssh/
-    cp -v /etc/ssh/ssh_host_ed25519_key /opt/fil/etc/ssh/
-    cp -v /etc/ssh/ssh_host_rsa_key.pub /opt/fil/etc/ssh/
-    cp -v /etc/ssh/ssh_host_ecdsa_key.pub /opt/fil/etc/ssh/
-    cp -v /etc/ssh/ssh_host_ed25519_key.pub /opt/fil/etc/ssh/
-    chmod -v 600 /opt/fil/etc/ssh/ssh_host_rsa_key
-    chmod -v 600 /opt/fil/etc/ssh/ssh_host_ecdsa_key
-    chmod -v 600 /opt/fil/etc/ssh/ssh_host_ed25519_key
-    chmod -v 644 /opt/fil/etc/ssh/ssh_host_rsa_key.pub
-    chmod -v 644 /opt/fil/etc/ssh/ssh_host_ecdsa_key.pub
-    chmod -v 644 /opt/fil/etc/ssh/ssh_host_ed25519_key.pub
-    echo "SSH host keys copied successfully."
-else
-    echo "No existing SSH host keys found in /etc/ssh"
-    echo "Generating new SSH host keys for /opt/fil..."
-    /opt/fil/bin/ssh-keygen -A
-    echo "New SSH host keys generated."
+echo "Checking SSH configuration..."
+
+# Phase 1: Detection
+# ==================
+
+# Temporarily disable exit-on-error for detection phase
+set +e
+
+# Check if /etc/ssh exists and is writable
+SSH_DIR_OK=false
+if [ -d /etc/ssh ]; then
+    if [ -w /etc/ssh ]; then
+        SSH_DIR_OK=true
+    fi
+elif mkdir -p /etc/ssh 2>/dev/null; then
+    SSH_DIR_OK=true
 fi
 
-if id sshd > /dev/null 2>&1; then
-    echo "SSH privsep user sshd already exists."
-else
-    echo
-    if getent group sshd > /dev/null 2>&1; then
-	echo "SSH privsep user sshd does not exist!"
-	echo
-	echo "To create sshd privsep user, type YES (in all caps) or anything else to skip."
-    else
-	echo "SSH privsep user sshd and group sshd do not exist!"
-	echo
-	echo "To create sshd privsep user and sshd group, type YES (in all caps) or anything"
-	echo "else to skip."
-    fi
-    read sshd_response
+# Re-enable exit-on-error
+set -e
 
-    if [ "$sshd_response" = "YES" ]; then
-	if ! getent group sshd > /dev/null 2>&1; then
-	    groupadd sshd
-	    echo "Created sshd group."
-	fi
-	useradd -c 'sshd PrivSep' \
-		-d /opt/fil/var/lib/sshd \
-		-g sshd \
-		-s /bin/false \
-		sshd
-	echo "Created sshd privsep user."
+if [ "$SSH_DIR_OK" = false ]; then
+    echo "WARNING: Cannot create or write to /etc/ssh directory."
+    echo "Skipping SSH configuration setup."
+    echo "You may need to configure SSH manually."
+    echo
+else
+    # Check for required files
+    MISSING_FILES=""
+
+    # Check config files
+    if [ ! -f /etc/ssh/ssh_config ]; then
+        MISSING_FILES="$MISSING_FILES ssh_config"
+    fi
+    if [ ! -f /etc/ssh/sshd_config ]; then
+        MISSING_FILES="$MISSING_FILES sshd_config"
+    fi
+    if [ ! -f /etc/ssh/moduli ]; then
+        MISSING_FILES="$MISSING_FILES moduli"
+    fi
+
+    # Check key files
+    MISSING_KEYS=false
+    if [ ! -f /etc/ssh/ssh_host_rsa_key ] \
+           || [ ! -f /etc/ssh/ssh_host_rsa_key.pub ] \
+           || [ ! -f /etc/ssh/ssh_host_ecdsa_key ] \
+           || [ ! -f /etc/ssh/ssh_host_ecdsa_key.pub ] \
+           || [ ! -f /etc/ssh/ssh_host_ed25519_key ] \
+           || [ ! -f /etc/ssh/ssh_host_ed25519_key.pub ]; then
+        MISSING_KEYS=true
+    fi
+
+    # Check sshd user and group
+    MISSING_SSHD_USER=false
+    MISSING_SSHD_GROUP=false
+    if ! id sshd > /dev/null 2>&1; then
+        MISSING_SSHD_USER=true
+
+        # We only care about there being a sshd group if we're going to be creating a sshd user.
+        if ! getent group sshd > /dev/null 2>&1; then
+            MISSING_SSHD_GROUP=true
+        fi
+    fi
+
+    # Phase 2: Reporting and Prompting
+    # =================================
+
+    if [ -z "$MISSING_FILES" ] && [ "$MISSING_KEYS" = false ] \
+           && [ "$MISSING_SSHD_USER" = false ] && [ "$MISSING_SSHD_GROUP" = false ]; then
+        # Everything is ready
+        echo "Found complete SSH configuration in /etc/ssh:"
+        echo "  - Configuration files (ssh_config, sshd_config, moduli)"
+        echo "  - Host keys (RSA, ECDSA, ED25519)"
+        echo "  - sshd privilege separation user"
+        echo "No SSH setup needed."
     else
-	echo "Not creating sshd privsep user."
+        # Something is missing - report what we'll do
+        echo "SSH configuration needs setup. The following will be created:"
+        echo
+
+        if [ -n "$MISSING_FILES" ]; then
+            echo "  Configuration files (will copy from /opt/fil/share/examples/ssh/):"
+            for file in $MISSING_FILES; do
+                echo "    - /etc/ssh/$file"
+            done
+        fi
+
+        if [ "$MISSING_KEYS" = true ]; then
+            echo "  Host keys (will generate with /opt/fil/bin/ssh-keygen -A):"
+            echo "    - /etc/ssh/ssh_host_rsa_key{,.pub}"
+            echo "    - /etc/ssh/ssh_host_ecdsa_key{,.pub}"
+            echo "    - /etc/ssh/ssh_host_ed25519_key{,.pub}"
+        fi
+
+        if [ "$MISSING_SSHD_GROUP" = true ]; then
+            echo "  - sshd privilege separation group"
+        fi
+
+        if [ "$MISSING_SSHD_USER" = true ]; then
+            echo "  - sshd privilege separation user"
+        fi
+
+        echo
+        echo "Type YES (in all caps) to proceed with SSH setup, or anything else to skip:"
+        read ssh_response
+
+        # Phase 3: Action
+        # ================
+
+        if [ "$ssh_response" = "YES" ]; then
+            echo
+            echo "Setting up SSH configuration..."
+
+            # Disable exit-on-error for this section - we want to report errors but continue
+            set +e
+
+            # Copy missing config files
+            if [ -n "$MISSING_FILES" ]; then
+                echo "Copying configuration files..."
+                for file in $MISSING_FILES; do
+                    if cp -v /opt/fil/share/examples/ssh/$file /etc/ssh/$file 2>/dev/null; then
+                        echo "  Copied /etc/ssh/$file"
+                    else
+                        echo "  WARNING: Failed to copy $file"
+                    fi
+                done
+            fi
+
+            # Generate missing keys
+            if [ "$MISSING_KEYS" = true ]; then
+                echo "Generating SSH host keys..."
+                if /opt/fil/bin/ssh-keygen -A 2>/dev/null; then
+                    echo "  Host keys generated successfully"
+                else
+                    echo "  WARNING: Failed to generate some host keys"
+                fi
+            fi
+
+            # Create sshd group if needed
+            if [ "$MISSING_SSHD_GROUP" = true ]; then
+                if groupadd sshd 2>/dev/null; then
+                    echo "Created sshd group"
+                else
+                    echo "WARNING: Failed to create sshd group"
+                fi
+            fi
+
+            # Create sshd user if needed
+            if [ "$MISSING_SSHD_USER" = true ]; then
+                if useradd -c 'sshd PrivSep' \
+                        -d /opt/fil/var/lib/sshd \
+                        -g sshd \
+                        -s /bin/false \
+                        sshd 2>/dev/null; then
+                    echo "Created sshd privilege separation user"
+                else
+                    echo "WARNING: Failed to create sshd user"
+                fi
+            fi
+
+            # Re-enable exit-on-error
+            set -e
+
+            echo "SSH setup complete."
+        else
+            echo "Skipping SSH setup."
+        fi
     fi
 fi
 

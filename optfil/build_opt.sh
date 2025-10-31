@@ -460,6 +460,7 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --with-kerberos5=/opt/fil
 make -j `nproc`
 make -j `nproc` install-nosysconf
+make -j `nproc` sysconfdir=/opt/fil/share/examples/ssh install-sysconf 
 install -v -m755    contrib/ssh-copy-id /opt/fil/bin
 install -v -m644    contrib/ssh-copy-id.1 \
                     /opt/fil/share/man/man1
