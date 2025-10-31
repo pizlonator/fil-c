@@ -1,0 +1,56 @@
+.TH "security_getenforce" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+security_getenforce, security_setenforce, security_deny_unknown, security_reject_unknown,
+security_get_checkreqprot \- get or set the enforcing state of SELinux
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.B int security_getenforce(void);
+.sp
+.BI "int security_setenforce(int "value );
+.sp
+.B int security_deny_unknown(void);
+.sp
+.B int security_reject_unknown(void);
+.sp
+.B int security_get_checkreqprot(void);
+.
+.SH "DESCRIPTION"
+.BR security_getenforce ()
+returns 0 if SELinux is running in permissive mode, 1 if it is running in
+enforcing mode, and \-1 on error.
+
+.BR security_setenforce ()
+sets SELinux to enforcing mode if the value 1 is passed in, and sets it to
+permissive mode if 0 is passed in.  On success 0 is returned, on error \-1 is
+returned.
+
+.BR security_deny_unknown ()
+returns 0 if SELinux treats policy queries on undefined object classes or
+permissions as being allowed, 1 if such queries are denied, and \-1 on error.
+
+.BR security_reject_unknown ()
+returns 1 if the current policy was built with handle-unknown=reject and SELinux
+would reject loading it, if it did not define all kernel object classes and
+permissions. In this state, when
+.BR selinux_set_mapping()
+and
+.BR selinux_check_access()
+are used with an undefined userspace class or permission, an error is returned
+and errno is set to EINVAL.
+
+It returns 0 if the current policy was built with handle-unknown=allow or
+handle-unknown=deny. In this state, policy queries are treated according to
+.BR security_deny_unknown().
+\-1 is returned on error.
+
+.BR security_get_checkreqprot ()
+can be used to determine whether SELinux is configured to check the
+protection requested by the application or the actual protection that will
+be applied by the kernel (including the effects of READ_IMPLIES_EXEC) on
+mmap and mprotect calls.  It returns 0 if SELinux checks the actual
+protection, 1 if it checks the requested protection, and \-1 on error.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

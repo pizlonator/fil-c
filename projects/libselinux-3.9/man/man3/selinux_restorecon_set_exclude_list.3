@@ -1,0 +1,35 @@
+.TH "selinux_restorecon_set_exclude_list" "3" "20 Oct 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_set_exclude_list \- set list of directories to be
+excluded from relabeling.
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.sp
+.BI "void selinux_restorecon_set_exclude_list(const char **" exclude_list ");"
+.in +\w'void selinux_restorecon_set_exclude_list('u
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon_set_exclude_list ()
+passes to
+.BR selinux_restorecon (3)
+a pointer containing a
+.B NULL
+terminated list of one or more directories that are not to be relabeled in
+.IR exclude_list .
+.sp
+.BR selinux_restorecon_set_exclude_list ()
+must be called prior to
+.BR selinux_restorecon (3).
+.
+.SH "SEE ALSO"
+.BR selinux_restorecon (3),
+.br
+.BR selinux_restorecon_set_sehandle (3),
+.br
+.BR selinux_restorecon_default_handle (3),
+.br
+.BR selinux_restorecon_set_alt_rootpath (3),
+.br
+.BR selinux_restorecon_xattr (3)

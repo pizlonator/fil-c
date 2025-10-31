@@ -1,0 +1,23 @@
+.TH "security_check_context" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+security_check_context \- check the validity of a SELinux context
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int security_check_context(const char *" con );
+.sp
+.BI "int security_check_context_raw(const char *" con );
+.
+.SH "DESCRIPTION"
+.BR security_check_context ()
+returns 0 if SELinux is running and the context is valid, otherwise it
+returns \-1.
+
+.BR security_check_context_raw ()
+behaves identically to
+.BR \%security_check_context ()
+but does not perform context translation.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

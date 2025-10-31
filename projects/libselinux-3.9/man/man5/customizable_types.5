@@ -1,0 +1,59 @@
+.TH "customizable_types" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+customizable_types \- The SELinux customizable types configuration file
+.
+.SH "DESCRIPTION"
+The \fIcustomizable_types\fR file contains a list of types that can be customised in some way by SELinux-aware applications.
+.sp
+Generally this is a file context type that is usually set on files that need to be shared among certain domains and where the administrator wants to manually manage the type.
+.sp
+The  use  of customizable types is deprecated as the preferred approach is to use
+.BR semanage (8)
+.BR fcontext (8)
+.BR ... (8).
+However, SELinux-aware applications such as
+.BR setfiles (8)
+will use this information to obtain a list of types relating to files that should not be relabeled.
+.sp
+.BR selinux_customizable_types_path (3)
+will return the active policy path to this file. The default customizable types file is:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/customizable_types
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.sp
+.BR is_context_customizable (3)
+reads this file to determine if a context is customisable or not for the active policy.
+.
+.SH "FILE FORMAT"
+Each line in the file consists of the following:
+.RS
+.I type
+.RE
+.sp
+Where:
+.RS
+.I type
+.RS
+The type defined in the policy that can be customised.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# ./contexts/customizable_types
+.br
+mount_loopback_t
+.br
+public_content_rw_t
+.br
+public_content_t
+.br
+swapfile_t
+.br
+sysadm_untrusted_content_t
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_customizable_types_path "(3), " is_context_customizable "(3), " semanage "(8), " setfiles "(8), " selinux_config "(5) "

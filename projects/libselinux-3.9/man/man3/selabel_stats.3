@@ -1,0 +1,35 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "selabel_stats" "3" "18 Jun 2007" "" "SELinux API documentation"
+.SH "NAME"
+selabel_stats \- obtain SELinux labeling statistics
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "void selabel_stats(struct selabel_handle *" hnd ");"
+.
+.SH "DESCRIPTION"
+.BR selabel_stats ()
+causes zero or more messages to be printed containing backend-specific information about number of queries performed, number of unused entries, or other operational information.
+
+The messages are printed to standard error by default; a custom logging function can be provided via 
+.BR selinux_set_callback (3).
+.
+.SH "RETURN VALUE"
+None.
+.
+.SH "ERRORS"
+None.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR selabel_lookup (3),
+.BR selinux_set_callback (3),
+.BR selinux (8)

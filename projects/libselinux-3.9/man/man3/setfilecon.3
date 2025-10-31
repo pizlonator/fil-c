@@ -1,0 +1,68 @@
+.TH "setfilecon" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+setfilecon, fsetfilecon, lsetfilecon \- set SELinux security context of a file
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int setfilecon(const char *" path ", const char *" con );
+.sp
+.BI "int setfilecon_raw(const char *" path ", const char *" con );
+.sp
+.BI "int lsetfilecon(const char *" path ", const char *" con );
+.sp
+.BI "int lsetfilecon_raw(const char *" path ", const char *" con );
+.sp
+.BI "int fsetfilecon(int "fd ", const char *" con );
+.sp
+.BI "int fsetfilecon_raw(int "fd ", const char *" con );
+.
+.SH "DESCRIPTION"
+.BR setfilecon ()
+sets the security context of the file system object.
+
+.BR lsetfilecon ()
+is identical to setfilecon, except in the case of a symbolic link, where the
+link itself has it's context set, not the file that it refers to.
+
+.BR fsetfilecon ()
+is identical to setfilecon, only the open file pointed to by filedes (as
+returned by
+.BR open (2))
+has it's context set in place of path.  Since libselinux 3.4 a file opened via
+.I O_PATH
+is supported.
+
+.BR setfilecon_raw (),
+.BR lsetfilecon_raw (),
+and
+.BR fsetfilecon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+.
+.SH "RETURN VALUE"
+On success, zero is returned. On failure, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+If there is insufficient space remaining to store the extended
+attribute,
+.I errno
+is set to either
+.BR ENOSPC ,
+or
+.B EDQUOT
+if quota enforcement was the cause.
+
+If extended attributes are not supported by the filesystem, or are disabled,
+.I errno
+is set to
+.BR ENOTSUP .
+
+The errors documented for the
+.BR stat (2)
+system call are also applicable here.
+.
+.SH "SEE ALSO"
+.BR selinux "(3), " freecon "(3), " getfilecon "(3), " setfscreatecon "(3)"

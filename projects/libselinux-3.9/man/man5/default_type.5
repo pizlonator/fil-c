@@ -1,0 +1,39 @@
+.TH "default_type" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+default_type \- The SELinux default type configuration file
+.
+.SH "DESCRIPTION"
+The \fIdefault_type\fR file contains entries that allow SELinux-aware applications such as \fBnewrole\fR(1) to select a default type for a role if one is not supplied.
+.sp
+\fBselinux_default_type_path\fR(3) will return the active policy path to this file. The default, default type file is:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/default_type
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.sp
+\fBget_default_type\fR(3) reads this file to determine a type for the active policy.
+.
+.SH "FILE FORMAT"
+Each line within the \fIdefault_type\fR file is formatted with \fIrole\fB:\fItype\fR entries where:
+.RS
+.I role
+.RS
+The SELinux role.
+.RE
+.I type
+.RS
+The domain type that is returned for this role.
+.RE
+.
+.SH "EXAMPLE"
+# ./contexts/default_type
+.br
+auditadm_r:auditadm_t
+.br
+user_r:user_t
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " get_default_type "(3), " newrole "(1), " selinux_default_type_path "(3), " selinux_config "(5) "

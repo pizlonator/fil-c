@@ -1,0 +1,194 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2004
+.TH "avc_has_perm" "3" "27 May 2004" "" "SELinux API documentation"
+.SH "NAME"
+avc_has_perm, avc_has_perm_noaudit, avc_audit, avc_entry_ref_init \- obtain and audit SELinux access decisions
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "void avc_entry_ref_init(struct avc_entry_ref *" aeref ");"
+.sp
+.BI "int avc_has_perm(security_id_t " ssid ", security_id_t " tsid ,
+.in +\w'int avc_has_perm('u
+.BI "security_class_t " tclass ", access_vector_t " requested ,
+.br
+.BI "struct avc_entry_ref *" aeref ", void *" auditdata ");"
+.in
+.sp
+.BI "int avc_has_perm_noaudit(security_id_t " ssid ", security_id_t " tsid ,
+.in +\w'int avc_has_perm('u
+.BI "security_class_t " tclass ", access_vector_t " requested ,
+.br
+.BI "struct avc_entry_ref *" aeref ", struct av_decision *" avd ");"
+.in
+.sp
+.BI "void avc_audit(security_id_t " ssid ", security_id_t " tsid ,
+.in +\w'void avc_audit('u
+.BI "security_class_t " tclass ", access_vector_t " requested ,
+.br
+.BI "struct av_decision *" avd ", int " result ", void *" auditdata ");"
+.in
+.
+.SH "DESCRIPTION"
+
+Direct use of these functions is generally discouraged in favor of
+the higher level interface
+.BR selinux_check_access(3)
+since the latter automatically handles the dynamic mapping of class
+and permission names to their policy values and proper handling of
+allow_unknown.
+
+When using any of the functions that take policy integer values for
+classes or permissions as inputs, use
+.BR string_to_security_class(3)
+and
+.BR string_to_av_perm(3)
+to map the class and permission names to their policy values.
+These values may change across a policy reload, so they should be
+re-acquired on every use or using a
+.B SELINUX_CB_POLICYLOAD
+callback set via
+.BR selinux_set_callback(3).
+
+An alternative approach is to use
+.BR selinux_set_mapping(3)
+to create a mapping from class and permission index values
+used by the application to the policy values,
+thereby allowing the application to pass its own
+fixed constants for the classes and permissions to
+these functions and internally mapping them on demand.
+However, this also requires setting up a callback as above
+to address policy reloads.
+
+.BR avc_entry_ref_init ()
+initializes an
+.B avc_entry_ref
+structure; see
+.B ENTRY REFERENCES
+below.  This function may be implemented as a macro.
+
+.BR avc_has_perm ()
+checks whether the 
+.I requested
+permissions are granted
+for subject SID
+.IR ssid
+and target SID
+.IR tsid ,
+interpreting the permissions
+based on
+.I tclass
+and updating
+.IR aeref ,
+if non-NULL, to refer to a cache entry with the resulting decision.  The granting or denial of permissions is audited in accordance with the policy.  The
+.I auditdata
+parameter is for supplemental auditing; see
+.BR avc_audit ()
+below.
+
+.BR avc_has_perm_noaudit ()
+behaves as
+.BR avc_has_perm ()
+without producing an audit message.  The access decision is returned in
+.I avd
+and can be passed to
+.BR avc_audit ()
+explicitly.
+
+.BR avc_audit ()
+produces an audit message for the access query represented by
+.IR ssid ,
+.IR tsid ,
+.IR tclass ,
+and
+.IR requested ,
+with a decision represented by
+.IR avd .
+Pass the value returned by
+.BR avc_has_perm_noaudit ()
+as
+.IR result .
+The
+.I auditdata
+parameter is passed to the user-supplied
+.B func_audit
+callback and can be used to add supplemental information to the audit message; see
+.BR avc_init (3).
+.
+.SH "ENTRY REFERENCES"
+Entry references can be used to speed cache performance for repeated queries on the same subject and target.  The userspace AVC will check the
+.I aeref
+argument, if supplied, before searching the cache on a permission query.  After a query is performed,
+.I aeref
+will be updated to reference the cache entry for that query.  A subsequent query on the same subject and target will then have the decision at hand without having to walk the cache.
+
+After declaring an
+.B avc_entry_ref
+structure, use
+.BR avc_entry_ref_init ()
+to initialize it before passing it to
+.BR avc_has_perm ()
+or
+.BR \%avc_has_perm_noaudit ()
+for the first time.
+Using an uninitialized structure will produce undefined behavior.
+.
+.SH "RETURN VALUE"
+If requested permissions are granted, zero is returned.  If requested permissions are denied or an error occurred, \-1 is returned and
+.I errno
+is set appropriately.
+
+In permissive mode, zero will be returned and
+.I errno
+unchanged even if permissions were denied.
+.BR avc_has_perm ()
+will still produce an audit message in this case.
+.
+.SH "ERRORS"
+.TP
+.B EACCES
+A requested permission was denied.
+.TP
+.B EINVAL
+The
+.I tclass
+and/or the security contexts referenced by
+.I ssid
+and
+.I tsid
+are not recognized by the currently loaded policy.
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "NOTES"
+Internal errors encountered by the userspace AVC may cause certain values of
+.I errno
+to be returned unexpectedly.  For example, netlink socket errors may produce
+.B EACCES
+or
+.BR EINVAL .
+Make sure that userspace object managers are granted appropriate access to
+netlink by the policy.
+.
+.SH "AUTHOR"
+Originally Eamon Walsh.  Updated by Stephen Smalley <stephen.smalley.work@gmail.com>
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux_check_access(3),
+.BR string_to_security_class(3),
+.BR string_to_av_perm(3),
+.BR selinux_set_callback(3),
+.BR selinux_set_mapping(3),
+.BR avc_init (3),
+.BR avc_context_to_sid (3),
+.BR avc_cache_stats (3),
+.BR avc_add_callback (3),
+.BR security_compute_av (3),
+.BR selinux (8)

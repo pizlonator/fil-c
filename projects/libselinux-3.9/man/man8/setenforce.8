@@ -1,0 +1,31 @@
+.TH "setenforce" "8" "7 April 2004" "dwalsh@redhat.com" "SELinux Command Line documentation"
+.SH "NAME"
+setenforce \- modify the mode SELinux is running in
+.
+.SH "SYNOPSIS"
+.B setenforce
+.RB [ Enforcing | Permissive | 1 | 0 ]
+.
+.SH "DESCRIPTION"
+Use
+.B Enforcing
+or
+.B 1
+to put SELinux in enforcing mode.
+.br
+Use
+.B Permissive
+or
+.B 0
+to put SELinux in permissive mode.
+
+If SELinux is disabled and you want to enable it, or SELinux is enabled and you want to disable it, please see 
+.BR selinux (8).
+.
+.SH AUTHOR
+Dan Walsh, <dwalsh@redhat.com>
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR getenforce (8),
+.BR selinuxenabled (8)

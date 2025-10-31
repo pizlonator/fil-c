@@ -1,0 +1,15 @@
+.TH "security_policyvers" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+security_policyvers \- get the version of the SELinux policy
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.B int security_policyvers(void);
+.
+.SH "DESCRIPTION"
+.BR security_policyvers ()
+returns the version of the policy (a positive integer) on success, or \-1 on
+error.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

@@ -1,0 +1,169 @@
+.TH "selinux_restorecon_xattr" "3" "30 July 2016" "" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_xattr \- manage default
+.I security.sehash
+extended attribute entries added by
+.BR selinux_restorecon (3),
+.BR setfiles (8)
+or
+.BR restorecon (8).
+
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.sp
+.BI "int selinux_restorecon_xattr(const char *" pathname ,
+.in +\w'int selinux_restorecon('u
+.br
+.BI "unsigned int " xattr_flags ,
+.br
+.BI "struct dir_xattr ***" xattr_list ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon_xattr ()
+returns a linked list of
+.B dir_xattr
+structures containing information described below based on:
+.sp
+.RS
+.IR pathname
+containing a directory tree to be searched for
+.I security.sehash
+extended attribute entries.
+.sp
+.IR xattr_flags
+contains options as follows:
+.sp
+.RS
+.sp
+.B SELINUX_RESTORECON_XATTR_RECURSE
+recursively descend directories.
+.sp
+.B SELINUX_RESTORECON_XATTR_DELETE_NONMATCH_DIGESTS
+delete non-matching digests from each directory in
+.IR pathname .
+.sp
+.B SELINUX_RESTORECON_XATTR_DELETE_ALL_DIGESTS
+delete all digests from each directory in
+.IR pathname .
+.sp
+.B SELINUX_RESTORECON_XATTR_IGNORE_MOUNTS
+do not read
+.B /proc/mounts
+to obtain a list of non-seclabel mounts to be excluded from the search.
+.br
+Setting
+.B SELINUX_RESTORECON_XATTR_IGNORE_MOUNTS
+is useful where there is a non-seclabel fs mounted with a seclabel fs mounted
+on a directory below this.
+.RE
+.sp
+.I xattr_list
+is the returned pointer to a linked list of
+.B dir_xattr
+structures, each containing the following information:
+.sp
+.RS
+.ta 4n 16n 24n
+.nf
+struct dir_xattr {
+	char *directory;
+	char *digest;    /* Printable hex encoded string */
+	enum digest_result result;
+	struct dir_xattr *next;
+};
+.fi
+.ta
+.RE
+.sp
+The
+.B result
+entry is enumerated as follows:
+.RS
+.ta 4n 16n 24n
+.nf
+enum digest_result {
+	MATCH = 0,
+	NOMATCH,
+	DELETED_MATCH,
+	DELETED_NOMATCH,
+	ERROR
+};
+.fi
+.ta
+.RE
+.sp
+.I xattr_list
+must be set to
+.B NULL
+before calling
+.BR selinux_restorecon_xattr (3).
+The caller is responsible for freeing the returned
+.I xattr_list
+entries in the linked list.
+.RE
+.sp
+See the
+.B NOTES
+section for more information.
+
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+
+.SH "NOTES"
+.IP "1." 4
+By default
+.BR selinux_restorecon_xattr (3)
+will use the default set of specfiles described in
+.BR files_contexts (5)
+to calculate the SHA1 digests to be used for comparison.
+To change this default behavior
+.BR selabel_open (3)
+must be called specifying the required
+.B SELABEL_OPT_PATH
+and setting the
+.B SELABEL_OPT_DIGEST
+option to a non-NULL value.
+.BR selinux_restorecon_set_sehandle (3)
+is then called to set the handle to be used by
+.BR selinux_restorecon_xattr (3).
+.IP "2." 4
+By default
+.BR selinux_restorecon_xattr (3)
+reads
+.B /proc/mounts
+to obtain a list of non-seclabel mounts to be excluded from searches unless the
+.B SELINUX_RESTORECON_XATTR_IGNORE_MOUNTS
+flag has been set.
+.IP "3." 4
+.B RAMFS
+and
+.B TMPFS
+filesystems do not support the
+.IR security.sehash
+extended attribute and are automatically excluded from searches.
+.IP "4." 4
+By default
+.B stderr
+is used to log output messages and errors. This may be changed by calling
+.BR selinux_set_callback (3)
+with the
+.B SELINUX_CB_LOG
+.I type
+option.
+
+.SH "SEE ALSO"
+.BR selinux_restorecon (3)
+.br
+.BR selinux_restorecon_set_sehandle (3),
+.br
+.BR selinux_restorecon_default_handle (3),
+.br
+.BR selinux_restorecon_set_exclude_list (3),
+.br
+.BR selinux_restorecon_set_alt_rootpath (3),
+.br
+.BR selinux_set_callback (3)

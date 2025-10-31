@@ -1,0 +1,64 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "avc_compute_create" "3" "30 Mar 2007" "" "SELinux API documentation"
+.SH "NAME"
+avc_compute_create, avc_compute_member \- obtain SELinux label for new object
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_compute_create(security_id_t " ssid ", security_id_t " tsid ,
+.in +\w'int avc_compute_create('u
+.BI "security_class_t " tclass ", security_id_t *" newsid ");"
+.sp
+.in
+.BI "int avc_compute_member(security_id_t " ssid ", security_id_t " tsid ,
+.in +\w'int avc_compute_member('u
+.BI "security_class_t " tclass ", security_id_t *" newsid ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR avc_compute_create ()
+is used to compute a SID to use for labeling a new object in a particular class based on a SID pair.  This call is identical to
+.BR security_compute_create (),
+but does not require converting from userspace SID's to contexts and back again.
+
+.BR avc_compute_member ()
+is used to compute a SID to use for labeling a polyinstantiated object instance of a particular class based on a SID pair.  This call is identical to
+.BR security_compute_member (),
+but does not require converting from userspace SID's to contexts and back again.
+
+These functions
+return a SID for the computed context in the memory referenced by
+.IR sid .
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B EINVAL
+The
+.I tclass
+and/or the security contexts referenced by
+.I ssid
+and
+.I tsid
+are not recognized by the currently loaded policy.
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR avc_init (3),
+.BR avc_context_to_sid (3),
+.BR security_compute_create (3),
+.BR selinux (8)

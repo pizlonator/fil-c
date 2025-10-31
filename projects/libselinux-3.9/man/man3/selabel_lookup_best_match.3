@@ -1,0 +1,101 @@
+.TH "selabel_lookup_best_match" "3" "05 May 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selabel_lookup_best_match \- obtain a best match SELinux security
+context \- Only supported on file backend.
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "int selabel_lookup_best_match(struct selabel_handle *" hnd ,
+.in +\w'int selabel_lookup_best_match('u
+.BI "char **" context ,
+.br
+.BI "const char *" key ,
+.br
+.BI "const char **" links ,
+.br
+.BI "int " type ");"
+.in
+.sp
+.BI "int selabel_lookup_best_match_raw(struct selabel_handle *" hnd ,
+.in +\w'int selabel_lookup_best_match_raw('u
+.BI "char **" context ,
+.br
+.BI "const char *" key ,
+.br
+.BI "const char **" links ,
+.br
+.BI "int " type ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selabel_lookup_best_match ()
+performs a best match lookup operation on the handle
+.IR hnd ,
+returning the result in the memory pointed to by
+.IR context ,
+which must be freed by the caller using
+.BR freecon (3).
+The \fIkey\fR parameter is a file path to check for best match using zero or
+more \fIlink\fR (aliases) parameters. The order of precedence for best match is:
+.RS
+.IP "1." 4
+An exact match for the real path (\fIkey\fR) or
+.IP "2." 4
+An exact match for any of the \fIlink\fRs (aliases), or
+.IP "3." 4
+The longest fixed prefix match.
+.RE
+.sp
+The \fItype\fR parameter is an optional file \fImode\fR argument that should
+be set to the mode bits of the file, as determined by \fBlstat\fR(2).
+\fImode\fR may be zero, however full matching may not occur.
+
+.BR selabel_lookup_best_match_raw ()
+behaves identically to
+.BR selabel_lookup_best_match ()
+but does not perform context translation.
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B ENOENT
+No context corresponding to the input
+.I key
+and
+.I type
+was found.
+.TP
+.B EINVAL
+The
+.I key
+and/or
+.I type
+inputs are invalid, or the context being returned failed validation, or a
+regular expression in the database failed to compile.
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.sp
+.SH "NOTES"
+Example usage - When a service creates a device node, it may also create one
+or more symlinks to the device node.  These symlinks may be the only stable
+name for the device, e.g. if the partition is dynamically assigned.
+The file label backend supports this by looking up the "best match"
+for a device node based on its real path (\fIkey\fR) and any \fIlink\fRs to it
+(aliases). The order of precedence for best match is described above.
+.sp
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR selabel_stats (3),
+.BR selinux_set_callback (3),
+.BR selinux (8),
+.BR lstat (2),
+.BR selabel_file (5)

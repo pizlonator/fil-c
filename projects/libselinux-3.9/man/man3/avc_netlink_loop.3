@@ -1,0 +1,92 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: KaiGai Kohei (kaigai@ak.jp.nec.com) 2009
+.TH "avc_netlink_loop" "3" "30 Mar 2009" "" "SELinux API documentation"
+.SH "NAME"
+avc_netlink_open, avc_netlink_close, avc_netlink_acquire_fd,
+avc_netlink_release_fd, avc_netlink_check_nb, avc_netlink_loop \- SELinux
+netlink processing
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_netlink_open(int " blocking ");"
+.sp
+.B void avc_netlink_close(void);
+.sp
+.B int avc_netlink_acquire_fd(void);
+.sp
+.B void avc_netlink_release_fd(void);
+.sp
+.B void avc_netlink_loop(void);
+.sp
+.B int avc_netlink_check_nb(void);
+.
+.SH "DESCRIPTION"
+These functions enable applications to handle notification of SELinux events
+via netlink.  The userspace AVC normally checks for netlink messages on each
+call to
+.BR avc_has_perm (3).
+Applications may wish to override this behavior and check for notification
+separately, for example in a
+.BR select (2)
+loop.  These functions also permit netlink monitoring without requiring a
+call to
+.BR avc_open (3).
+
+.BR avc_netlink_open ()
+opens a netlink socket to receive SELinux notifications.  The socket
+descriptor is stored internally; use
+.BR avc_netlink_acquire_fd (3)
+to take ownership of it in application code.  The
+.I blocking
+argument controls whether the O_NONBLOCK flag is set on the socket descriptor.
+.BR avc_open (3)
+calls this function internally, specifying non-blocking behavior.
+
+.BR avc_netlink_close ()
+closes the netlink socket.  This function is called automatically by
+.BR avc_destroy (3).
+
+.BR avc_netlink_acquire_fd ()
+returns the netlink socket descriptor number and informs the userspace AVC
+not to check the socket descriptor automatically on calls to
+.BR avc_has_perm (3).
+If no such socket descriptor exists,
+.BR avc_netlink_acquire_fd (3)
+will first call
+.BR avc_netlink_open (3)
+and then return the resulting fd.
+
+.BR avc_netlink_release_fd ()
+returns control of the netlink socket to the userspace AVC, re-enabling
+automatic processing of notifications.
+
+.BR avc_netlink_check_nb ()
+checks the netlink socket for pending messages and processes them.
+Callbacks for policyload and enforcing changes will be called;
+see
+.BR selinux_set_callback (3).
+This function does not block.
+
+.BR avc_netlink_loop ()
+enters a loop blocking on the netlink socket and processing messages as they
+are received.  This function will not return unless an error occurs on
+the socket, in which case the socket is closed.
+.
+.SH "RETURN VALUE"
+.BR avc_netlink_acquire_fd ()
+returns a non-negative file descriptor number on success.  Other functions
+with a return value return zero on success.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "AUTHOR"
+Originally KaiGai Kohei. Updated by Mike Palmiotto <mike.palmiotto@crunchydata.com>
+.
+.SH "SEE ALSO"
+.BR avc_open (3),
+.BR selinux_set_callback (3),
+.BR selinux (8)

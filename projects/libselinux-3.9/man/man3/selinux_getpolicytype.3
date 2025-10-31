@@ -1,0 +1,26 @@
+.TH "selinux_getpolicytype" "3" "24 Sep 2008" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+selinux_getpolicytype \- get the type of SELinux policy running on the system
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_getpolicytype(char **" policytype );
+.
+.SH "DESCRIPTION"
+.BR selinux_getpolicytype ()
+Reads the contents of the
+.I /etc/selinux/config
+file to determine the SELinux policy used on the system, and sets
+.I \%policytype
+accordingly. Free
+.I \%policytype
+with
+.BR free (3).
+.
+.SH "RETURN VALUE"
+On success, zero is returned.
+On failure, \-1 is returned.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

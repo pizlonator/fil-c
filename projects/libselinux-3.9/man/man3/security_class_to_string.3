@@ -1,0 +1,96 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "security_class_to_string" "3" "30 Mar 2007" "" "SELinux API documentation"
+.SH "NAME"
+security_class_to_string, security_av_perm_to_string, string_to_security_class, string_to_av_perm, security_av_string, mode_to_security_class \- convert
+between SELinux class and permission values and string names.
+.
+print_access_vector \- display an access vector in human-readable form. 
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "const char *security_class_to_string(security_class_t " tclass ");"
+.sp
+.BI "const char *security_av_perm_to_string(security_class_t " tclass ", access_vector_t " av ");"
+.sp
+.BI "int security_av_string(security_class_t " tclass ", access_vector_t " av ", char **" result ");"
+.sp
+.BI "security_class_t string_to_security_class(const char *" name ");"
+.sp
+.BI "security_class_t mode_to_security_class(mode_t " mode ");"
+.sp
+.BI "access_vector_t string_to_av_perm(security_class_t " tclass ", const char *" name ");"
+.sp
+.BI "void print_access_vector(security_class_t " tclass ", access_vector_t " av ");"
+.
+.SH "DESCRIPTION"
+.BR security_class_to_string ()
+returns a string name for class
+.IR tclass ,
+or NULL if the class is invalid.  The returned string must not be modified or freed.
+
+.BR security_av_perm_to_string ()
+returns a string name for the access vector bit
+.I av
+of class
+.IR tclass ,
+or NULL if either argument is invalid.  The returned string must not be modified or freed.
+
+.BR security_av_string ()
+computes a full access vector string representation using
+.I tclass
+and
+.IR av ,
+which may have multiple bits set.  The string is returned in the memory pointed to by
+.IR result ,
+and should be freed by the caller using
+.BR free (3).
+
+.BR string_to_security_class ()
+returns the class value corresponding to the string name
+.IR name ,
+or zero if no such class exists.
+
+.BR mode_to_security_class ()
+returns the class value corresponding to the specified 
+.IR mode ,
+or zero if no such class exists.
+
+.BR string_to_av_perm ()
+returns the access vector bit corresponding to the string name
+.I name
+and security class
+.IR tclass ,
+or zero if no such value exists.
+
+.BR print_access_vector ()
+displays an access vector in human-readable form on the standard output
+stream.
+.
+.SH "RETURN VALUE"
+.BR security_av_string ()
+returns zero on success or \-1 on error with
+.I errno
+set appropriately.
+.BR print_access_vector ()
+does not return a value. All other functions return zero or NULL on error.
+.
+.SH "ERRORS"
+.TP
+.B EINVAL
+A class or access vector argument is not recognized by the currently loaded policy.
+
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR getcon (3),
+.BR getfilecon (3)
+.BR stat (3)

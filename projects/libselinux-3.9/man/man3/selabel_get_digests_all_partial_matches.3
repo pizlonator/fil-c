@@ -1,0 +1,70 @@
+.TH "selabel_get_digests_all_partial_matches" "3" "14 April 2019" "SELinux API documentation"
+
+.SH "NAME"
+selabel_get_digests_all_partial_matches \- retrieve the partial matches digest
+and the xattr digest that applies to the supplied path \- Only supported
+on file backend.
+.
+.SH "SYNOPSIS"
+.B #include <stdbool.h>
+.br
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "bool selabel_get_digests_all_partial_matches("
+.in +\w'selabel_get_digests_all_partial_matches('u
+.BI "struct selabel_handle *" hnd ,
+.br
+.BI "const char *" key ,
+.br
+.BI "uint8_t **" calculated_digest ,
+.br
+.BI "uint8_t **" xattr_digest ,
+.br
+.BI "size_t *" digest_len ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selabel_get_digests_all_partial_matches ()
+retrieves the file_contexts partial matches digest and the xattr digest that
+applies to the supplied path on the handle
+.IR hnd .
+.br
+The
+.IR key
+parameter is the path to retrieve the digests.
+.br
+The
+.IR calculated_digest
+is a pointer to the
+.IR key
+calculated file_contexts digest of all applicable partial matches, or NULL if
+none exist. The caller must
+.BR free (3)
+the buffer.
+.br
+The
+.IR xattr_digest
+is a pointer to the
+.IR key
+.BR xattr (7)
+stored digest, or NULL if it does not exist.
+The caller must
+.BR free (3)
+the buffer.
+.br
+The
+.IR digest_len
+is the length of the digests that will always be returned (even if both are
+NULL). Note that if both digests are returned, they will always be the same length.
+.sp
+.SH "RETURN VALUE"
+TRUE if the digests match or FALSE if they do not or either or both are missing.
+.sp
+.SH "SEE ALSO"
+.BR selinux_restorecon (3),
+.BR selabel_partial_match (3),
+.BR selabel_open (3),
+.BR selinux (8),
+.BR selabel_file (5)

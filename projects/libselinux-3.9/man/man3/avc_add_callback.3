@@ -1,0 +1,192 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2004
+.TH "avc_add_callback" "3" "9 June 2004" "" "SELinux API documentation"
+.SH "NAME"
+avc_add_callback \- additional event notification for SELinux userspace object managers
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_add_callback(int (*" callback ")(uint32_t " event , 
+.in +\w'int avc_add_callback(int (*callback)('u
+.BI "security_id_t " ssid ,
+.br
+.BI "security_id_t " tsid ,
+.br
+.BI "security_class_t " tclass ,
+.br
+.BI "access_vector_t " perms ,
+.br
+.BI "access_vector_t *" out_retained "),"
+.in
+.in +\w'int avc_add_callback('u
+.BI "uint32_t " events ", security_id_t " ssid , 
+.br
+.BI "security_id_t " tsid ", security_class_t " tclass ,
+.br
+.BI "access_vector_t " perms ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR avc_add_callback ()
+is used to register callback functions on security events.  The purpose of this functionality is to allow userspace object managers to take additional action when a policy change, usually a policy reload, causes permissions to be granted or revoked.
+
+.I events
+is the
+.RI bitwise- or
+of security events on which to register the callback; see
+.B SECURITY EVENTS
+below.
+
+.IR ssid ,
+.IR tsid ,
+.IR tclass ,
+and
+.I perms
+specify the source and target SID's, target class, and specific permissions that the callback wishes to monitor.  The special symbol
+.B SECSID_WILD
+may be passed as the
+.I source
+or
+.I target
+and will cause any SID to match.
+
+.I callback
+is the callback function provided by the userspace object manager.  The
+.I event
+argument indicates the security event which occurred; the remaining arguments
+are interpreted according to the event as described below.  The return value
+of the callback should be zero on success, \-1 on error with
+.I errno
+set appropriately (but see
+.B RETURN VALUE
+below).
+.
+.SH "SECURITY EVENTS"
+In all cases below,
+.I ssid
+and/or
+.I tsid
+may be set to
+.BR SECSID_WILD ,
+indicating that the change applies to all source and/or target SID's.  Unless otherwise indicated, the
+.I out_retained
+parameter is unused.
+.
+.TP
+.B AVC_CALLBACK_GRANT
+Previously denied permissions are now granted for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.I perms
+indicates the permissions to grant.
+.TP
+.B AVC_CALLBACK_TRY_REVOKE
+Previously granted permissions are now conditionally revoked for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.I perms
+indicates the permissions to revoke.  The callback should set
+.I out_retained
+to the subset of
+.I perms
+which are retained as migrated permissions.  Note that
+.I out_retained
+is ignored if the callback returns \-1.
+.TP
+.B AVC_CALLBACK_REVOKE
+Previously granted permissions are now unconditionally revoked for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.I perms
+indicates the permissions to revoke.
+.TP
+.B AVC_CALLBACK_RESET
+Indicates that the cache was flushed.  The SID, class, and permission arguments are unused and are set to NULL.
+.TP
+.B AVC_CALLBACK_AUDITALLOW_ENABLE
+The permissions given by
+.I perms
+should now be audited when granted for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.TP
+.B AVC_CALLBACK_AUDITALLOW_DISABLE
+The permissions given by
+.I perms
+should no longer be audited when granted for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.TP
+.B AVC_CALLBACK_AUDITDENY_ENABLE
+The permissions given by
+.I perms
+should now be audited when denied for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.TP
+.B AVC_CALLBACK_AUDITDENY_DISABLE
+The permissions given by
+.I perms
+should no longer be audited when denied for
+.IR ssid ,
+.I tsid
+with respect to
+.IR tclass .
+.
+.SH "RETURN VALUE"
+On success,
+.BR avc_add_callback ()
+returns zero.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+
+A return value of \-1 from a callback is interpreted as a failed policy operation.  If such a return value is encountered, all remaining callbacks registered on the event are called.  In threaded mode, the netlink handler thread may then terminate and cause the userspace AVC to return
+.B EINVAL
+on all further permission checks until
+.BR avc_destroy (3)
+is called.  In non-threaded mode, the permission check on which the error occurred will return \-1 and the value of 
+.I errno
+encountered to the caller.  In both cases, a log message is produced and the kernel may be notified of the error.
+.
+.SH "ERRORS"
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "NOTES"
+If the userspace AVC is running in threaded mode, callbacks registered via
+.BR avc_add_callback ()
+may be executed in the context of the netlink handler thread.  This will likely introduce synchronization issues requiring the use of locks.  See
+.BR avc_init (3).
+
+Support for dynamic revocation and retained permissions is mostly unimplemented in the SELinux kernel module.  The only security event that currently gets exercised is
+.BR AVC_CALLBACK_RESET .
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR avc_init (3),
+.BR avc_has_perm (3),
+.BR avc_context_to_sid (3),
+.BR avc_cache_stats (3),
+.BR security_compute_av (3)
+.BR selinux (8)

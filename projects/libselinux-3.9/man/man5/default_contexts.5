@@ -1,0 +1,71 @@
+.TH "default_contexts" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+default_contexts \- The SELinux default contexts configuration file
+.
+.SH "DESCRIPTION"
+The default contexts configuration file \fIdefault_contexts\fR contains entries that allow SELinux-aware login applications such as
+.BR PAM "(8) "
+.sp
+SELinux-aware login applications generally use one or more of the following libselinux functions that read these files from the active policy path:
+.RS
+.BR get_default_context "(3) "
+.br
+.BR get_ordered_context_list "(3) "
+.br
+.BR get_ordered_context_list_with_level "(3) "
+.br
+.BR get_default_context_with_level "(3) "
+.br
+.BR get_default_context_with_role "(3) "
+.br
+.BR get_default_context_with_rolelevel "(3) "
+.br
+.BR query_user_context "(3) "
+.br
+.BR manual_user_enter_context "(3) "
+.RE
+.sp
+The default context configuration file path for the active policy is returned by \fBselinux_default_contexts_path\fR(3). The default, default contexts file is:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/default_contexts
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.
+.SH "FILE FORMAT"
+Each line in the default configuration file consists of the following:
+.RS
+.I login_process user_login_process [user_login_process] ...
+.RE
+.sp
+Where:
+.RS
+.I login_process
+.RS
+This consists of a \fIrole\fB:\fItype\fR[\fB:\fIrange\fR] entry that represents the login process context that are defined in the policy.
+.RE
+.I user_login_process
+.RS
+This consists of one or more \fIrole\fB:\fItype\fR[\fB:\fIrange\fR] entries that represent the user login process context defined in the policy.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# ./contexts/default_contexts
+.br
+system_r:crond_t:s0			 system_r:system_crond_t:s0
+.br
+system_r:local_login_t:s0	 user_r:user_t:s0 staff_r:staff_t:s0
+.br
+system_r:remote_login_t:s0	 user_r:user_t:s0
+.br
+system_r:sshd_t:s0			 user_r:user_t:s0
+.br
+system_r:sulogin_t:s0		 sysadm_r:sysadm_t:s0
+.br
+system_r:xdm_t:s0			 user_r:user_t:s0
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_default_contexts_path "(3), " PAM "(8), " selinux_default_type_path "(3), " get_default_context "(3), " get_ordered_context_list "(3), " get_ordered_context_list_with_level "(3), " get_default_context_with_level "(3), " get_default_context_with_role "(3), " get_default_context_with_rolelevel "(3), " query_user_context "(3), " manual_user_enter_context "(3), " selinux_config "(5) "

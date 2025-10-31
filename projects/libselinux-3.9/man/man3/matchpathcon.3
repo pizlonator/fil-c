@@ -1,0 +1,127 @@
+.TH "matchpathcon" "3" "21 November 2009" "stephen.smalley.work@gmail.com" "SELinux API documentation"
+.SH "NAME"
+matchpathcon, matchpathcon_index \- get the default SELinux security context for the specified path from the file contexts configuration
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int matchpathcon_init(const char *" path ");"
+.sp
+.BI "int matchpathcon_init_prefix(const char *" path ", const char *" prefix ");"
+.sp
+.BI "int matchpathcon_fini(void);"
+.sp
+.BI "int matchpathcon(const char *" path ", mode_t " mode ", char **" con ");
+.sp
+.BI "int matchpathcon_index(const char *" name ", mode_t " mode ", char **" con ");"
+.
+.SH "DESCRIPTION"
+
+This family of functions is deprecated.  For new code, please use
+.BR selabel_open (3)
+with the
+.B SELABEL_CTX_FILE
+backend in place of
+.BR matchpathcon_init (),
+use
+.BR selabel_close (3)
+in place of
+.BR matchpathcon_fini (),
+and use
+.BR selabel_lookup (3)
+in place of
+.BR matchpathcon ().
+
+The remaining description below is for the legacy interface.
+
+.BR matchpathcon_init ()
+loads the file contexts configuration specified by
+.I path
+into memory for use by subsequent 
+.BR matchpathcon ()
+calls.  If
+.I path
+is NULL, then the active file contexts configuration is loaded by default,
+i.e. the path returned by 
+.BR selinux_file_context_path (3).
+Unless the 
+.B MATCHPATHCON_BASEONLY 
+flag has been set via 
+.BR \%set_matchpathcon_flags (3),
+files with the same path prefix but a 
+.B \%.homedirs
+and
+.B .local
+suffix are also looked up and loaded if present.  These files provide
+dynamically generated entries for user home directories and for local
+customizations.
+
+.BR matchpathcon_init_prefix ()
+is the same as
+.BR matchpathcon_init ()
+but only loads entries with regular expressions whose first pathname
+component is a prefix of
+.I \%prefix
+, e.g. pass "/dev" if you only intend to call
+.BR matchpathcon ()
+with pathnames beginning with /dev.
+However, this optimization is no longer necessary due to the use of
+.I file_contexts.bin
+files with precompiled regular expressions, so use of this interface
+is deprecated.
+
+.BR matchpathcon_fini ()
+frees the memory allocated by a prior call to
+.BR matchpathcon_init. ()
+This function can be used to free and reset the internal state between multiple 
+.BR matchpathcon_init ()
+calls, or to free memory when finished using 
+.BR matchpathcon ().
+
+.BR matchpathcon ()
+matches the specified
+.I pathname,
+after transformation via
+.BR realpath (3)
+excepting any final symbolic link component if S_IFLNK was
+specified as the
+.I mode,
+and
+.I mode
+against the
+.I file contexts
+configuration and sets the security context 
+.I con 
+to refer to the
+resulting context. The caller must free the returned security context 
+.I con
+using
+.BR freecon (3)
+when finished using it.
+.I mode
+can be 0 to disable mode matching, but
+should be provided whenever possible, as it may affect the matching.
+Only the file format bits (i.e. the file type) of the 
+.I mode 
+are used.
+If 
+.BR matchpathcon_init ()
+has not already been called, then this function will call it upon
+its first invocation with a NULL
+.I path,
+defaulting to the active file contexts configuration.
+
+.BR matchpathcon_index ()
+is the same as
+.BR matchpathcon ()
+but returns a specification index that can later be used in a
+.BR matchpathcon_filespec_add (3)
+call.
+.
+.SH "RETURN VALUE"
+Returns zero on success or \-1 otherwise.
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " set_matchpathcon_flags "(3), " set_matchpathcon_invalidcon "(3), " set_matchpathcon_printf "(3), " matchpathcon_filespec_add "(3), " matchpathcon_checkmatches "(3), " freecon "(3), " setfilecon "(3), " setfscreatecon "(3)"

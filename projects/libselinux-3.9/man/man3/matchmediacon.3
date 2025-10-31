@@ -1,0 +1,30 @@
+.TH "matchmediacon" "3" "15 November 2004" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+matchmediacon \- get the default SELinux security context for the specified mediatype from the policy
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int matchmediacon(const char *" media ", char **" con );
+.
+.SH "DESCRIPTION"
+.BR matchmediacon ()
+matches the specified media type with the media contexts configuration and
+sets the security context
+.I con
+to refer to the resulting context.
+.sp
+.B Note:
+Caller must free returned security context
+.I con
+using
+.BR freecon (3).
+.
+.SH "RETURN VALUE"
+Returns 0 on success or \-1 otherwise.
+.
+.SH Files
+.I /etc/selinux/{POLICYTYPE}/contexts/files/media
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " freecon "(3)

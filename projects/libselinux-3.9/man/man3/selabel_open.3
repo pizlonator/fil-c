@@ -1,0 +1,108 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "selabel_open" "3" "18 Jun 2007" "" "SELinux API documentation"
+.SH "NAME"
+selabel_open, selabel_close \- userspace SELinux labeling interface
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "struct selabel_handle *selabel_open(unsigned int " backend ,
+.in +\w'struct selabel_handle *selabel_open('u
+.BI "const struct selinux_opt *" options ,
+.br
+.BI "unsigned " nopt ");"
+.in
+.sp
+.BI "void selabel_close(struct selabel_handle *" hnd ");"
+.
+.SH "DESCRIPTION"
+.BR selabel_open ()
+is used to initialize a labeling handle to be used for lookup operations.  The 
+.I backend
+argument specifies which backend is to be opened; the list of current backends appears in 
+.B BACKENDS
+below.
+
+The 
+.I options
+argument should be NULL or a pointer to an array of 
+.B selinux_opt
+structures of length
+.IR nopt :
+
+.RS
+.ta 4n 16n 24n
+.nf
+struct selinux_opt {
+	int	type;
+	const char	*value;
+};
+.fi
+.ta
+.RE
+
+The available option types are described in 
+.B GLOBAL OPTIONS
+below as well as in the documentation for each individual backend.  The return value on success is a non-NULL value for use in subsequent label operations.
+
+.BR selabel_close ()
+terminates use of a handle, freeing any internal resources associated with it.  After this call has been made, the handle must not be used again.
+.
+.SH "GLOBAL OPTIONS"
+Global options which may be passed to
+.BR selabel_open ()
+include the following:
+.
+.TP
+.B SELABEL_OPT_UNUSED
+The option with a type code of zero is a no-op.  Thus an array of options may be initizalized to zero and any untouched elements will not cause an error.
+.TP
+.B SELABEL_OPT_VALIDATE
+A non-null value for this option enables context validation.  By default,
+.BR security_check_context (3)
+is used; a custom validation function can be provided via
+.BR selinux_set_callback (3).
+Note that an invalid context may not be treated as an error unless it is actually encountered during a lookup operation.
+.TP
+.B SELABEL_OPT_DIGEST
+A non-null value for this option enables the generation of an SHA1 digest of
+the spec files loaded as described in
+.BR selabel_digest (3)
+.
+.SH "BACKENDS"
+.TP
+.B SELABEL_CTX_FILE
+File contexts backend, described in 
+.BR selabel_file (5).
+.TP
+.B SELABEL_CTX_MEDIA
+Media contexts backend, described in 
+.BR selabel_media (5).
+.TP
+.B SELABEL_CTX_X
+X Windows contexts backend, described in 
+.BR selabel_x (5).
+.TP
+.B SELABEL_CTX_DB
+Database objects contexts backend, described in
+.BR selabel_db (5).
+.
+.SH "RETURN VALUE"
+A non-NULL handle value is returned on success.  On error, NULL is returned and
+.I errno
+is set appropriately.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selabel_lookup (3),
+.BR selabel_stats (3),
+.BR selinux_set_callback (3),
+.BR selinux (8)

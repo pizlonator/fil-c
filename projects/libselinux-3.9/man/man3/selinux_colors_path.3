@@ -1,0 +1,37 @@
+.TH "selinux_colors_path" "3" "08 April 2011" "SELinux API documentation"
+.SH "NAME"
+selinux_colors_path \- Return a path to the active SELinux policy color configuration file
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.B const char *selinux_colors_path(void);
+.
+.SH "DESCRIPTION"
+.BR selinux_colors_path ()
+returns the path to the active policy color configuration file. 
+.sp
+The path is built from the path returned by 
+.BR selinux_policy_root "(3)"
+with 
+.I /secolor.conf
+appended.
+.sp
+This optional configuration file whose format is shown in 
+.BR \%secolor.conf (5),
+controls the colors to be associated with the 
+.I raw
+context components of the
+.BR selinux_raw_context_to_color "(3)"
+function when information is to be displayed by an SELinux color-aware application.
+.
+.SH "RETURN VALUE"
+On success, the path to the active policy color configuration file is returned. If a path is not available NULL is returned.
+.
+.SH "ERRORS"
+None.
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_policy_root "(3), " selinux_config "(5), " selinux_raw_context_to_color "(3), " secolor.conf  "(5)"

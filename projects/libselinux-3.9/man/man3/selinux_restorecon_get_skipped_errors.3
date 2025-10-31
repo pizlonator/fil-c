@@ -1,0 +1,28 @@
+.TH "selinux_restorecon_get_skipped_errors" "3" "27 Apr 2022" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_get_skipped_errors \- get the number of errors ignored by
+.BR selinux_restorecon (3)
+or
+.BR selinux_restorecon_parallel (3)
+during the file tree walk
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.sp
+.BI "long unsigned selinux_restorecon_get_skipped_errors(void);"
+.in +\w'long unsigned selinux_restorecon_get_skipped_errors('u
+.
+.SH "DESCRIPTION"
+If
+.B SELINUX_RESTORECON_COUNT_ERRORS
+was passed to
+.BR selinux_restorecon (3)
+or
+.BR selinux_restorecon_parallel (3)
+and that function returned successfully (i.e., with a zero return value), then
+.BR selinux_restorecon_get_skipped_errors ()
+returns the number of errors ignored during the file tree walk.
+.
+.SH "SEE ALSO"
+.BR selinux_restorecon (3)

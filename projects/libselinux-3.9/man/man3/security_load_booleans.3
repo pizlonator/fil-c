@@ -1,0 +1,62 @@
+.TH "security_get_boolean_names" "3" "15 November 2004" "dwalsh@redhat.com" "SELinux API Documentation"
+.SH "NAME"
+security_set_boolean, security_commit_booleans,
+security_get_boolean_names, security_get_boolean_active,
+security_get_boolean_pending \- routines for manipulating SELinux boolean values
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp 
+.BI "int security_get_boolean_names(char ***" names ", int *" len ");"
+.sp
+.BI "int security_get_boolean_pending(const char *" name ");"
+.sp
+.BI "int security_get_boolean_active(const char *" name ");"
+.sp
+.BI "int security_set_boolean(const char *" name ", int " value ");"
+.sp
+.BI "int security_set_boolean_list(size_t " boolcnt ", SELboolean *" boollist ", int " permanent ");"
+.sp
+.BI "int security_commit_booleans(void);"
+.
+.SH "DESCRIPTION"
+The SELinux policy can include conditional rules that are enabled or
+disabled based on the current values of a set of policy booleans.
+These policy booleans allow runtime modification of the security
+policy without having to load a new policy.  
+
+The SELinux API allows for a transaction based update. So you can
+set several boolean values and then commit them all at once.
+
+.BR security_get_boolean_names ()
+provides a list of boolean names, currently supported by the loaded policy.
+
+.BR security_get_boolean_pending ()
+returns the pending value for boolean or \-1 on failure.
+
+.BR security_get_boolean_active ()
+returns the active value for boolean or \-1 on failure.
+
+.BR security_set_boolean ()
+sets the pending value for boolean 
+
+.BR security_set_boolean_list ()
+saves a list of booleans in a single transaction. Note that the
+.BI int " permanent "
+flag is deprecated and should be set to zero.
+
+.BR security_commit_booleans ()
+commits all pending values for the booleans.
+.
+.SH "RETURN VALUE"
+Where not otherwise stated, functions described in this manual page return
+zero on success or \-1 on error. 
+.
+.SH AUTHOR
+This manual page was written by Dan Walsh <dwalsh@redhat.com>.
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR getsebool (8),
+.BR booleans (8),
+.BR togglesebool (8)

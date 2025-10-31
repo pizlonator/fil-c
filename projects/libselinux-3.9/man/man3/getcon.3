@@ -1,0 +1,157 @@
+.TH "getcon" "3" "21 December 2011" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+getcon, getprevcon, getpidcon \- get SELinux security context of a process
+
+freecon, freeconary \- free memory associated with SELinux security contexts
+
+getpeercon \- get security context of a peer socket
+
+setcon \- set current security context of a process
+
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getcon(char **" context );
+.sp
+.BI "int getcon_raw(char **" context );
+.sp
+.BI "int getprevcon(char **" context );
+.sp
+.BI "int getprevcon_raw(char **" context );
+.sp
+.BI "int getpidcon(pid_t " pid ", char **" context );
+.sp
+.BI "int getpidcon_raw(pid_t " pid ", char **" context );
+.sp
+.BI "int getpidprevcon(pid_t " pid ", char **" context );
+.sp
+.BI "int getpidprevcon_raw(pid_t " pid ", char **" context );
+.sp
+.BI "int getpeercon(int " fd ", char **" context );
+.sp
+.BI "int getpeercon_raw(int " fd ", char **" context );
+.sp
+.BI "void freecon(char *" con );
+.sp
+.BI "void freeconary(char **" con );
+.sp
+.BI "int setcon(const char *" context );
+.sp
+.BI "int setcon_raw(const char *" context );
+
+.SH "DESCRIPTION"
+.TP
+.BR getcon ()
+retrieves the context of the current process, which must be free'd with
+.BR freecon ().
+
+.TP
+.BR getprevcon ()
+same as getcon but gets the context before the last exec.
+
+.TP
+.BR getpidcon ()
+returns the process context for the specified PID, which must be free'd with
+.BR freecon ().
+
+.TP
+.BR getpidprevcon ()
+returns the process context before the last exec for the specified PID, which must be free'd with
+.BR freecon ().
+
+.TP
+.BR getpeercon ()
+retrieves the context of the peer socket, which must be free'd with
+.BR freecon ().
+
+.TP
+.BR freecon ()
+frees the memory allocated for a security context.
+
+If
+.I con
+is NULL, no operation is performed.
+
+.TP
+.BR freeconary ()
+frees the memory allocated for a context array.
+
+If
+.I con
+is NULL, no operation is performed.
+
+.TP
+.BR setcon ()
+sets the current security context of the process to a new value.  Note
+that use of this function requires that the entire application be
+trusted to maintain any desired separation between the old and new
+security contexts, unlike exec-based transitions performed via
+.BR setexeccon (3).
+When possible, decompose your application and use
+.BR setexeccon (3)
+and
+.BR execve (3)
+instead.
+
+Since access to file descriptors is revalidated upon use by SELinux,
+the new context must be explicitly authorized in the policy to use the
+descriptors opened by the old context if that is desired.  Otherwise,
+attempts by the process to use any existing descriptors (including
+.IR stdin ,
+.IR stdout ,
+and
+.IR stderr )
+after performing the
+.BR setcon ()
+will fail.
+
+A multi-threaded application can perform a
+.BR setcon ()
+prior to creating
+any child threads, in which case all of the child threads will inherit
+the new context.  However, prior to Linux 2.6.28,
+.BR setcon ()
+would fail if there are any other
+threads running in the same process since this would yield
+an inconsistency among the security contexts of threads sharing
+the same memory space.  Since Linux 2.6.28,
+.BR setcon()
+is permitted for threads within a multi-threaded process if the
+new security context is bounded by the old security context, where
+the bounded relation is defined through typebounds statements in the
+policy and guarantees that the new security context has a subset of
+the permissions of the old security context.
+
+If the process was being ptraced at the time of the
+.BR setcon ()
+operation, ptrace permission will be revalidated against the new
+context and the
+.BR setcon ()
+will fail if it is not allowed by policy.
+
+.TP
+.BR *_raw()
+.BR getcon_raw (),
+.BR getprevcon_raw (),
+.BR getpidcon_raw (),
+.BR getpidprevcon_raw (),
+.BR getpeercon_raw ()
+and
+.BR setcon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+.SH "RETURN VALUE"
+On error \-1 is returned with errno set.  On success 0 is returned.
+
+.SH "NOTES"
+The retrieval functions might return success and set
+.I *context
+to NULL if and only if SELinux is not enabled.
+
+Querying a foreign process via its PID, e.g. \fBgetpidcon\fR() or
+\fBgetpidprevcon\fR(), is inherently racy and therefore should never be relied
+upon for security purposes.
+
+.SH "SEE ALSO"
+.BR selinux "(8), " setexeccon "(3)"

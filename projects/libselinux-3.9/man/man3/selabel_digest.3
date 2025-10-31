@@ -1,0 +1,61 @@
+.TH "selabel_digest" "3" "16 Sept 2015" "" "SELinux API documentation"
+.SH "NAME"
+selabel_digest \- Return digest of specfiles and list of files used
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "int selabel_digest(struct selabel_handle *" hnd ,
+.in +\w'int selabel_digest('u
+.BI "unsigned char **" digest ,
+.BI "size_t *" digest_len ,
+.br
+.BI "char ***" specfiles,
+.BI "size_t *" num_specfiles ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selabel_digest ()
+performs an operation on the handle
+.IR hnd ,
+returning the results of the SHA1 digest pointed to by
+.IR digest ,
+whose length will be
+.IR digest_len .
+The list of specfiles used in the SHA1 digest calculation is returned in
+.I specfiles
+with the number of entries in
+.IR num_specfiles .
+.sp
+To enable
+.BR selabel_digest ()
+to return this information the
+.B SELABEL_OPT_DIGEST
+option must be enable in
+.BR selabel_open (3).
+.sp
+The result of
+.BR selabel_digest ()
+must not be used after
+.BR selabel_close (3).
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B EINVAL
+No digest available (returned if
+.B SELABEL_OPT_DIGEST
+option not enabled).
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR selinux (8)

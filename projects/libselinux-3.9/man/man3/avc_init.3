@@ -1,0 +1,235 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2004
+.TH "avc_init" "3" "27 May 2004" "" "SELinux API documentation"
+.SH "NAME"
+avc_init \- legacy userspace SELinux AVC setup
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_init(const char *" msgprefix , 
+.in +\w'int avc_init('u
+.BI "const struct avc_memory_callback *" mem_callbacks ,
+.br
+.BI "const struct avc_log_callback *" log_callbacks ,
+.br
+.BI "const struct avc_thread_callback *" thread_callbacks ,
+.br
+.BI "const struct avc_lock_callback *" lock_callbacks ");"
+.
+.SH "DESCRIPTION"
+.BR avc_init ()
+is deprecated; please use
+.BR avc_open (3)
+in conjunction with
+.BR selinux_set_callback (3)
+in all new code.
+
+.BR avc_init ()
+initializes the userspace AVC and must be called before any other AVC operation can be performed.  A non-NULL
+.I msgprefix
+will be prepended to all audit messages produced by the userspace AVC.  The default is `uavc'.  The remaining arguments, if non-NULL, specify callbacks to be used by the userspace AVC.
+.
+.SH "CALLBACKS"
+The userspace AVC can be directed how to perform memory allocation, logging, thread creation, and locking via callback functions passed to
+.BR avc_init ().
+The purpose of this functionality is to allow the userspace AVC to be smoothly integrated into existing userspace object managers.
+
+Use an
+.B avc_memory_callback
+structure to specify alternate functions for dynamic memory allocation.
+
+.RS
+.ta 4n 10n 24n
+.nf
+struct avc_memory_callback {
+	void	*(*func_malloc)(size_t size);
+	void	(*func_free)(void *ptr);
+};
+.fi
+.ta
+.RE
+
+The two fields of the structure should be pointers to functions which behave as 
+.BR malloc (3)
+and
+.BR free (3),
+which are used by default. 
+
+Use an
+.B avc_log_callback
+structure to specify alternate functions for logging.
+
+.RS
+.ta 4n 10n 24n
+.nf
+struct avc_log_callback {
+	void	(*func_log)(const char *fmt, ...);
+	void	(*func_audit)(void *auditdata,
+			security_class_t class,
+			char *msgbuf, size_t msgbufsize);
+};
+.fi
+.ta
+.RE
+
+The
+.B func_log
+callback should accept a 
+.BR printf (3)
+style format and arguments and log them as desired.  The default behavior prints the message on the standard error.  The
+.B func_audit
+callback should interpret the 
+.I auditdata
+parameter for the given
+.IR class ,
+printing a human-readable interpretation to 
+.I msgbuf
+using no more than
+.I msgbufsize
+characters.  The default behavior is to ignore
+.IR auditdata .
+
+Use an
+.B avc_thread_callback
+structure to specify functions for starting and manipulating threads.
+
+.RS
+.ta 4n 10n 24n
+.nf
+struct avc_thread_callback {
+	void	*(*func_create_thread)(void (*run)(void));
+	void	(*func_stop_thread)(void *thread);
+};
+.fi
+.ta
+.RE
+
+The
+.B func_create_thread
+callback should create a new thread and return a pointer which references it.  The thread should execute the
+.I run
+argument, which does not return under normal conditions.  The
+.B func_stop_thread
+callback should cancel the running thread referenced by 
+.IR thread .
+By default, threading is not used; see 
+.B KERNEL STATUS PAGE
+and
+.B NETLINK NOTIFICATION
+below.
+
+Use an
+.B avc_lock_callback
+structure to specify functions to create, obtain, and release locks for use by threads.
+
+.RS
+.ta 4n 10n 24n
+.nf
+struct avc_lock_callback {
+	void	*(*func_alloc_lock)(void);
+	void	(*func_get_lock)(void *lock);
+	void	(*func_release_lock)(void *lock);
+	void	(*func_free_lock)(void *lock);
+};
+.fi
+.ta
+.RE
+
+The
+.B func_alloc_lock
+callback should create a new lock, returning a pointer which references it.  The
+.B func_get_lock
+callback should obtain
+.IR lock ,
+blocking if necessary.  The
+.B func_release_lock
+callback should release
+.IR lock .
+The
+.B func_free_lock
+callback should destroy
+.IR lock ,
+freeing any resources associated with it.  The default behavior is not to perform any locking.  Note that undefined behavior may result if threading is used without appropriate locking.
+.
+.SH "KERNEL STATUS PAGE"
+Linux kernel version 2.6.37 supports the SELinux kernel status page, enabling userspace applications to
+.BR mmap (2)
+SELinux status state in read-only mode to avoid system calls during the cache hit code path.
+
+.BR avc_init ()
+calls
+.BR selinux_status_open (3)
+to initialize the selinux status state. If successfully initialized, the userspace AVC will default to single-threaded mode and ignore the
+.B func_create_thread
+and
+.B func_stop_thread
+callbacks. All callbacks set via
+.BR selinux_set_callback (3)
+will still be honored.
+
+.BR avc_has_perm (3)
+and
+.BR selinux_check_access (3)
+both check for status updates through calls to
+.BR selinux_status_updated (3)
+at the start of each permission query and take the appropriate action.
+
+Two status types are currently implemented.
+.B setenforce
+events will change the effective enforcing state used within the AVC, and
+.B policyload
+events will result in a cache flush.
+.
+.SH "NETLINK NOTIFICATION"
+In the event that the kernel status page is not successfully
+.BR mmap (2)'ed
+the AVC will default to the netlink fallback mechanism, which opens a netlink socket for receiving status updates.
+.B setenforce
+and
+.B policyload
+events will have the same results as for the status page implementation, but all status update checks will now require a system call.
+
+By default,
+.BR avc_open (3)
+does not set threading or locking callbacks. In the fallback case, the userspace AVC checks for new netlink messages at the start of each permission query. If threading and locking callbacks are passed to
+.BR avc_init (),
+a dedicated thread will be started to listen on the netlink socket.  This may increase performance in the absence of the status page and will ensure that log messages are generated immediately rather than at the time of the next permission query.
+.
+.SH "RETURN VALUE"
+Functions with a return value return zero on success.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "NOTES"
+The
+.I msgprefix
+argument to
+.BR avc_init ()
+currently has a length limit of 15 characters and will be truncated if necessary.
+
+If a provided
+.B func_malloc
+callback does not set
+.I errno
+appropriately on error, userspace AVC calls may exhibit the
+same behavior.
+
+If a netlink thread has been created and an error occurs on the socket (such as an access error), the thread may terminate and cause the userspace AVC to return
+.B EINVAL
+on all further permission checks until
+.B avc_destroy 
+is called.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR avc_open (3),
+.BR selinux_status_open (3),
+.BR selinux_status_updated (3),
+.BR selinux_set_callback (3),
+.BR selinux (8)

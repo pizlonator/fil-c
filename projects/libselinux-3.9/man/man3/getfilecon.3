@@ -1,0 +1,74 @@
+.TH "getfilecon" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+getfilecon, fgetfilecon, lgetfilecon \- get SELinux security context of a file
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getfilecon(const char *" path ", char **" con );
+.sp
+.BI "int getfilecon_raw(const char *" path ", char **" con );
+.sp
+.BI "int lgetfilecon(const char *" path ", char **" con );
+.sp
+.BI "int lgetfilecon_raw(const char *" path ", char **" con );
+.sp
+.BI "int fgetfilecon(int "fd ", char **" con );
+.sp
+.BI "int fgetfilecon_raw(int "fd ", char **" con );
+.
+.SH "DESCRIPTION"
+.BR getfilecon ()
+retrieves the context associated with the given path in the file system, the
+length of the context is returned.
+
+.BR lgetfilecon ()
+is identical to
+.BR getfilecon (),
+except in the case of a symbolic link, where the
+link itself is interrogated, not the file that it refers to.
+
+.BR fgetfilecon ()
+is identical to
+.BR getfilecon (),
+only the open file pointed to by filedes (as returned by
+.BR open (2))
+is interrogated in place of path.  Since libselinux 3.4 a file opened via
+.I O_PATH
+is supported.
+
+.BR getfilecon_raw (),
+.BR lgetfilecon_raw ()
+and
+.BR fgetfilecon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+The returned context should be freed with
+.BR freecon (3)
+if non-NULL.
+.
+.SH "RETURN VALUE"
+On success, a positive number is returned indicating the size of the
+extended attribute value. On failure, \-1 is returned and
+.I errno
+is  set appropriately.
+
+If the context does not exist, or the process has no access to
+this attribute,
+.I errno
+is set to
+.BR ENODATA .
+
+If extended attributes are not supported by the filesystem, or are
+disabled,
+.I errno
+is set to
+.BR ENOTSUP .
+
+The errors documented for the
+.BR stat (2)
+system call are also applicable here.
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " freecon "(3), " setfilecon "(3), " setfscreatecon "(3)"

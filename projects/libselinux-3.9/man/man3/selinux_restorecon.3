@@ -1,0 +1,308 @@
+.TH "selinux_restorecon" "3" "20 Oct 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon \- restore file(s) default SELinux security contexts
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.sp
+.BI "int selinux_restorecon(const char *" pathname ,
+.in +\w'int selinux_restorecon('u
+.br
+.BI "unsigned int " restorecon_flags ");"
+.in
+.sp
+.BI "int selinux_restorecon_parallel(const char *" pathname ,
+.in +\w'int selinux_restorecon_parallel('u
+.br
+.BI "unsigned int " restorecon_flags ","
+.br
+.BI "size_t " nthreads ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon ()
+restores file default security contexts on filesystems that support extended
+attributes (see
+.BR xattr (7)),
+based on:
+.sp
+.RS
+.IR pathname
+containing a directory or file to be relabeled.
+.br
+If this is a directory and the
+.IR restorecon_flags
+.B SELINUX_RESTORECON_RECURSE
+has been set (for descending through directories), then
+.BR selinux_restorecon ()
+will write an SHA1 digest of specfile entries calculated by
+.BR selabel_get_digests_all_partial_matches (3)
+to an extended attribute of
+.IR security.sehash
+once the relabeling has been completed successfully (see the
+.B NOTES
+section for details).
+.br
+These digests will be checked should
+.BR selinux_restorecon ()
+be rerun with the
+.IR restorecon_flags
+.B SELINUX_RESTORECON_RECURSE
+flag set. If any of the specfile entries had been updated, the digest
+will also be updated. However if the digest is the same, no relabeling checks
+will take place.
+.br
+The
+.IR restorecon_flags
+that can be used to manage the usage of the SHA1 digest are:
+.RS
+.B SELINUX_RESTORECON_SKIP_DIGEST
+.br
+.B SELINUX_RESTORECON_IGNORE_DIGEST
+.RE
+.sp
+.IR restorecon_flags
+contains the labeling option/rules as follows:
+.sp
+.RS
+.sp
+.B SELINUX_RESTORECON_SKIP_DIGEST
+Do not check or update any extended attribute
+.IR security.sehash
+entries.
+.sp
+.B SELINUX_RESTORECON_IGNORE_DIGEST
+force the checking of labels even if the stored SHA1 digest matches the
+specfile entries SHA1 digest. The specfile entries digest will be written to the
+.IR security.sehash
+extended attribute once relabeling has been completed successfully provided the
+.B SELINUX_RESTORECON_NOCHANGE
+flag has not been set, and no errors have been skipped during the file tree walk
+due to the
+.B SELINUX_RESTORECON_COUNT_ERRORS
+flag.
+.sp
+.B SELINUX_RESTORECON_NOCHANGE
+don't change any file labels (passive check) or update the digest in the
+.IR security.sehash
+extended attribute.
+.sp
+.B SELINUX_RESTORECON_SET_SPECFILE_CTX
+If set, reset the files label to match the default specfile context.
+If not set only reset the files "type" component of the context to match the
+default specfile context.
+.sp
+.B SELINUX_RESTORECON_RECURSE
+change file and directory labels recursively (descend directories)
+and if successful write an SHA1 digest of the specfile entries to an
+extended attribute as described in the
+.B NOTES
+section.
+.sp
+.B SELINUX_RESTORECON_VERBOSE
+log file label changes.
+.RS
+Note that if
+.B SELINUX_RESTORECON_VERBOSE
+and
+.B SELINUX_RESTORECON_PROGRESS
+flags are set, then
+.B SELINUX_RESTORECON_PROGRESS
+will take precedence.
+.RE
+.sp
+.B SELINUX_RESTORECON_PROGRESS
+show progress by outputting the number of files in 1k blocks processed
+to stdout. If the
+.B SELINUX_RESTORECON_MASS_RELABEL
+flag is also set then the approximate percentage complete will be shown.
+.sp
+.B SELINUX_RESTORECON_MASS_RELABEL
+generally set when relabeling the entire OS, that will then show the
+approximate percentage complete. The
+.B SELINUX_RESTORECON_PROGRESS
+flag must also be set.
+.sp
+.B SELINUX_RESTORECON_REALPATH
+convert passed-in
+.I pathname
+to the canonical pathname using
+.BR realpath (3).
+.sp
+.B SELINUX_RESTORECON_XDEV
+prevent descending into directories that have a different device number than
+the
+.I pathname
+entry from which the descent began.
+.sp
+.B SELINUX_RESTORECON_ADD_ASSOC
+attempt to add an association between an inode and a specification. If there
+is already an association for the inode and it conflicts with the
+specification, then use the last matching specification.
+.sp
+.B SELINUX_RESTORECON_ABORT_ON_ERROR
+abort on errors during the file tree walk.
+.sp
+.B SELINUX_RESTORECON_SYSLOG_CHANGES
+log any label changes to
+.BR syslog (3).
+.sp
+.B SELINUX_RESTORECON_LOG_MATCHES
+log what specfile context matched each file.
+.sp
+.B SELINUX_RESTORECON_IGNORE_NOENTRY
+ignore files that do not exist.
+.sp
+.B SELINUX_RESTORECON_IGNORE_MOUNTS
+do not read
+.B /proc/mounts
+to obtain a list of non-seclabel mounts to be excluded from relabeling checks.
+.br
+Setting
+.B SELINUX_RESTORECON_IGNORE_MOUNTS
+is useful where there is a non-seclabel fs mounted with a seclabel fs mounted
+on a directory below this.
+.sp
+.B SELINUX_RESTORECON_CONFLICT_ERROR
+to treat conflicting specifications, such as where two hardlinks for the
+same inode have different contexts, as errors.
+.sp
+.B SELINUX_RESTORECON_COUNT_ERRORS
+Count, but otherwise ignore, errors during the file tree walk. Only makes a
+difference if the
+.B SELINUX_RESTORECON_ABORT_ON_ERROR
+flag is clear. Call
+.BR selinux_restorecon_get_skipped_errors (3)
+for fetching the ignored (skipped) error count after
+.BR selinux_restorecon (3)
+or
+.BR selinux_restorecon_parallel (3)
+completes with success. In case any errors were skipped during the file tree
+walk, the specfile entries SHA1 digest will not have been written to the
+.IR security.sehash
+extended attribute.
+.RE
+.sp
+The behavior regarding the checking and updating of the SHA1 digest described
+above is the default behavior. It is possible to change this by first calling
+.BR selabel_open (3)
+and not enabling the
+.B SELABEL_OPT_DIGEST
+option, then calling
+.BR selinux_restorecon_set_sehandle (3)
+to set the handle to be used by
+.BR selinux_restorecon (3).
+.sp
+If the
+.I pathname
+is a directory path, then it is possible to set directories to be excluded
+from the path by calling
+.BR selinux_restorecon_set_exclude_list (3)
+with a
+.B NULL
+terminated list before calling
+.BR selinux_restorecon (3).
+.sp
+By default
+.BR selinux_restorecon (3)
+reads
+.B /proc/mounts
+to obtain a list of non-seclabel mounts to be excluded from relabeling checks
+unless the
+.B SELINUX_RESTORECON_IGNORE_MOUNTS
+flag has been set.
+.RE
+.sp
+.BR selinux_restorecon_parallel()
+is similar to
+.BR selinux_restorecon (3),
+but accepts another parameter that allows to run relabeling over multiple
+threads:
+.sp
+.RS
+.IR nthreads
+specifies the number of threads to use during relabeling. When set to 1,
+the behavior is the same as calling
+.BR selinux_restorecon (3).
+When set to 0, the function will try to use as many threads as there are
+online CPU cores. When set to any other number, the function will try to use
+the given number of threads.
+.sp
+Note that to use the parallel relabeling capability, the calling process
+must be linked with the
+.B libpthread
+library (either at compile time or dynamically at run time). Otherwise the
+function will print a warning and fall back to the single threaded mode.
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "NOTES"
+.IP "1." 4
+To improve performance when relabeling file systems recursively (e.g. the
+.IR restorecon_flags
+.B SELINUX_RESTORECON_RECURSE
+flag is set)
+.BR selinux_restorecon ()
+will write a calculated SHA1 digest of the specfile entries returned by
+.BR selabel_get_digests_all_partial_matches (3)
+to an extended attribute named
+.IR security.sehash
+for each directory in the
+.IR pathname
+path.
+.IP "2." 4
+To check the extended attribute entry use
+.BR getfattr (1) ,
+for example:
+.sp
+.RS
+.RS
+getfattr -e hex -n security.sehash /
+.RE
+.RE
+.IP "3." 4
+Should any of the specfile entries have changed, then when
+.BR selinux_restorecon ()
+is run again with the
+.B SELINUX_RESTORECON_RECURSE
+flag set, new SHA1 digests will be calculated and all files automatically
+relabeled depending on the settings of the
+.B SELINUX_RESTORECON_SET_SPECFILE_CTX
+flag (provided
+.B SELINUX_RESTORECON_NOCHANGE
+is not set).
+.IP "4." 4
+.B /sys
+and in-memory filesystems do not support the
+.IR security.sehash
+extended attribute and are automatically excluded from any relabeling checks.
+.IP "5." 4
+By default
+.B stderr
+is used to log output messages and errors. This may be changed by calling
+.BR selinux_set_callback (3)
+with the
+.B SELINUX_CB_LOG
+.I type
+option.
+.
+.SH "SEE ALSO"
+.BR selabel_get_digests_all_partial_matches (3),
+.br
+.BR selinux_restorecon_set_sehandle (3),
+.br
+.BR selinux_restorecon_default_handle (3),
+.br
+.BR selinux_restorecon_get_skipped_errors (3),
+.br
+.BR selinux_restorecon_set_exclude_list (3),
+.br
+.BR selinux_restorecon_set_alt_rootpath (3),
+.br
+.BR selinux_restorecon_xattr (3),
+.br
+.BR selinux_set_callback (3)

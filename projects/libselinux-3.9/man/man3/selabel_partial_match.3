@@ -1,0 +1,34 @@
+.TH "selabel_partial_match" "3" "05 May 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selabel_partial_match \- determine whether a direct or partial match is
+possible on a file path \- Only supported on file backend.
+.
+.SH "SYNOPSIS"
+.B #include <stdbool.h>
+.br
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "bool selabel_partial_match(struct selabel_handle *" hnd ,
+.in +\w'int selabel_partial_match('u
+.BI "const char *" key ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selabel_partial_match ()
+performs a partial match operation on the handle
+.IR hnd ,
+returning TRUE or FALSE.
+The \fIkey\fR parameter is a file path to check for a direct or partial match.
+.sp
+.SH "RETURN VALUE"
+TRUE is returned if a direct or partial match is found, FALSE if not.
+.sp
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR selabel_stats (3),
+.BR selinux_set_callback (3),
+.BR selinux (8),
+.BR selabel_file (5)

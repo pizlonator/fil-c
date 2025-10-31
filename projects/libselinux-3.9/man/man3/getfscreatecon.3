@@ -1,0 +1,62 @@
+.TH "getfscreatecon" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+getfscreatecon, setfscreatecon \- get or set the SELinux security context used for creating a new file system object
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getfscreatecon(char **" con );
+.sp
+.BI "int getfscreatecon_raw(char **" con );
+.sp
+.BI "int setfscreatecon(const char *" context );
+.sp
+.BI "int setfscreatecon_raw(const char *" context );
+.
+.SH "DESCRIPTION"
+.BR getfscreatecon ()
+retrieves the context used for creating a new file system object.
+This returned context should be freed with
+.BR freecon (3)
+if non-NULL.
+.BR getfscreatecon ()
+sets *con to NULL if no fscreate context has been explicitly
+set by the program (i.e. using the default policy behavior).
+
+.BR setfscreatecon ()
+sets the context used for creating a new file system object.
+NULL can be passed to
+.BR setfscreatecon ()
+to reset to the default policy behavior.
+The fscreate context is automatically reset after the next
+.BR execve (2),
+so a program doesn't need to explicitly sanitize it upon startup.
+
+.BR setfscreatecon ()
+can be applied prior to library
+functions that internally perform an file creation,
+in order to set an file context on the objects.
+
+.BR getfscreatecon_raw ()
+and
+.BR setfscreatecon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+.B Note:
+Signal handlers that perform a
+.BR setfscreatecon ()
+must take care to
+save, reset, and restore the fscreate context to avoid unexpected behavior.
+.
+
+.br
+.B Note:
+Contexts are thread specific.
+
+.SH "RETURN VALUE"
+On error \-1 is returned.
+On success 0 is returned.
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " freecon "(3), " getcon "(3), " getexeccon "(3)"

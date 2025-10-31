@@ -1,0 +1,20 @@
+.TH "selinuxenabled" "8" "7 April 2004" "dwalsh@redhat.com" "SELinux Command Line documentation"
+.SH "NAME"
+selinuxenabled \- tool to be used within shell scripts to determine if selinux is enabled
+.
+.SH "SYNOPSIS"
+.B selinuxenabled
+.
+.SH "DESCRIPTION"
+Indicates whether SELinux is enabled or disabled.
+.
+.SH "EXIT STATUS"
+It exits with status 0 if SELinux is enabled and 1 if it is not enabled.
+.
+.SH AUTHOR
+Dan Walsh, <dwalsh@redhat.com>
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR setenforce (8),
+.BR getenforce (8)

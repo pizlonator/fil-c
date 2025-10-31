@@ -1,0 +1,123 @@
+.TH "selinux_raw_context_to_color" "3" "08 April 2011" "SELinux API documentation"
+.SH "NAME"
+selinux_raw_context_to_color \- Return RGB color string for an SELinux security context
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_raw_context_to_color(const char *" raw ", "
+.RS
+.BI "char **" color_str ");"
+.RE
+.
+.SH "DESCRIPTION"
+.BR selinux_raw_context_to_color ()
+returns a 
+.I color_str
+associated to the raw context 
+.I raw
+provided that the 
+.BR mcstransd "(8)"
+daemon is running, the policy is an MLS type policy (MCS or MLS) and there is a color configuration file
+.BR \%secolor.conf (5)
+(see the
+.B FILES
+section).
+.sp
+The 
+.I color_str
+string is a space separated list of eight hexadecimal RGB triples, each prefixed by a hash character (#). These represent the user:role:type:range components of the foreground and background colors. An example string is shown in the 
+.B EXAMPLE
+section.
+
+The returned
+.I color_str
+string must be freed with 
+.BR free "(3)." 
+
+If a color has not been configured for a specific user, role, type and/or range component of context 
+.IR raw ","
+then
+.BR \%selinux_raw_context_to_color ()
+will select the color returned in 
+.I color_str
+in order of precedence as follows:
+.RS
+role, type, range
+.br
+user, type, range
+.br
+user, role, range 
+.br
+user, role, type 
+.br
+.RE
+
+If there are no entries in the 
+.BR secolor.conf (5)
+file for any of the components of context 
+.I raw
+(or the file is not present), then the default string returned in 
+.I color_str
+is:
+.sp
+.RS
+----- user ---- ---- role ----  ---- type ----  ---- range ----
+.br
+#000000 #ffffff #000000 #ffffff #000000 #ffffff #000000 #ffffff
+.sp
+.RE
+.
+.SH "RETURN VALUE"
+On success, zero is returned.
+.br
+On failure, \-1 is returned with 
+.I errno
+set appropriately.
+.
+.SH "ERRORS"
+.B ENOENT
+If the 
+.BR mcstransd "(8)"
+daemon is not running. 
+.
+.SH "FILES"
+.BR selinux_raw_context_to_color ()
+obtains the translated entry from the active policy 
+.BR secolor.conf "(5)"
+file as returned by
+.BR \%selinux_colors_path (3).
+The file format is described in 
+.BR \%secolor.conf (5).
+.
+.SH "NOTES"
+1. The primary use of 
+.BR selinux_raw_context_to_color ()
+is to return a color that corresponds to a range, that can then be used to highlight information at different MLS levels.
+.sp
+2. The 
+.BR mcstransd "(8)"
+daemon process security level must dominate the 
+.I raw
+security level passed to it by the 
+.BR selinux_raw_context_to_color ()
+function. If not, the range color selected will be as defined by the order of precedence.
+.
+.SH "EXAMPLE"
+.BR selinux_raw_context_to_color ()
+returns the foreground and background colors of the context string components (user:role:type:range) as RGB triples as follows:
+.sp
+
+      user     :       role      :      type      :      range
+.br
+  fg       bg  :   fg       bg   :  fg       bg   :  fg       bg  
+.br
+#000000 #ffffff  #ffffff #000000  #d2b48c #ffa500  #000000 #008000
+.br
+ black   white :  white   black  : tan    orange  : black   green 
+.br
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_colors_path "(3), " mcstransd "(8), " secolor.conf "(5), " selinux_raw_to_trans_context "(3), " selinux_trans_to_raw_context "(3), " free "(3)"

@@ -1,0 +1,34 @@
+.TH "selinux_policy_root" "3" "25 May 2004" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+selinux_policy_root \- return the path of the SELinux policy files for this machine
+selinux_set_policy_root \- Set an alternate SELinux root path for the SELinux policy files for this machine.
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.B const char *selinux_policy_root(void);
+.
+.sp
+.B int selinux_set_policy_root(const char *policypath);
+.
+.SH "DESCRIPTION"
+.BR selinux_policy_root ()
+reads the contents of the
+.I /etc/selinux/config
+file to determine which policy files should be used for this machine.
+.
+.BR selinux_set_policy_root ()
+sets up all policy paths based on the alternate root
+
+.I /etc/selinux/config
+file to determine which policy files should be used for this machine.
+.
+.SH "RETURN VALUE"
+On success, selinux_policy_root returns a directory path containing the SELinux policy files.
+On failure, selinux_policy_root returns NULL.
+
+On success, selinux_set_policy_root returns 0 on success -1 on failure.
+
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

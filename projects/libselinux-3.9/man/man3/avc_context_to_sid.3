@@ -1,0 +1,73 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2004
+.TH "avc_context_to_sid" "3" "27 May 2004" "" "SELinux API documentation"
+.SH "NAME"
+avc_context_to_sid, avc_sid_to_context, avc_get_initial_sid \- obtain and manipulate SELinux security ID's
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_context_to_sid(const char *" ctx ", security_id_t *" sid ");"
+.sp
+.BI "int avc_sid_to_context(security_id_t " sid ", char **" ctx ");"
+.sp
+.BI "int avc_get_initial_sid(const char *" name ", security_id_t *" sid ");"
+.
+.SH "DESCRIPTION"
+Security ID's (SID's) are opaque representations of security contexts, managed by the userspace AVC.
+
+.BR avc_context_to_sid ()
+returns a SID for the given
+.I context
+in the memory referenced by
+.IR sid .
+
+.BR avc_sid_to_context ()
+returns a copy of the context represented by
+.I sid
+in the memory referenced by
+.IR ctx .
+The user must free the copy with
+.BR freecon (3).
+
+.BR avc_get_initial_sid ()
+returns a SID for the kernel initial security identifier specified by 
+.IR name .
+.
+.SH "RETURN VALUE"
+.BR avc_context_to_sid ()
+and
+.BR avc_sid_to_context ()
+return zero on success.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.SH "NOTES"
+As of libselinux version 2.0.86, SID's are no longer reference counted.  A SID will be valid from the time it is first obtained until the next call to
+.BR avc_destroy (3).
+The
+.BR sidget (3)
+and
+.BR sidput (3)
+functions, formerly used to adjust the reference count, are no-ops and are deprecated.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR avc_init (3),
+.BR avc_has_perm (3),
+.BR avc_cache_stats (3),
+.BR avc_add_callback (3),
+.BR getcon (3),
+.BR freecon (3),
+.BR selinux (8)

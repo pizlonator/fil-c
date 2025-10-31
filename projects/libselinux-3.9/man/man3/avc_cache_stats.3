@@ -1,0 +1,103 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2004
+.TH "avc_cache_stats" "3" "27 May 2004" "" "SELinux API documentation"
+.SH "NAME"
+avc_cache_stats, avc_av_stats, avc_sid_stats \- obtain userspace SELinux AVC statistics
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "void avc_av_stats(void);"
+.sp
+.BI "void avc_sid_stats(void);"
+.sp
+.BI "void avc_cache_stats(struct avc_cache_stats *" stats ");"
+.
+.SH "DESCRIPTION"
+The userspace AVC maintains two internal hash tables, one to store security ID's and one to cache access decisions.
+
+.BR avc_av_stats ()
+and
+.BR avc_sid_stats ()
+produce log messages indicating the status of the access decision and SID tables, respectively.  The messages contain the number of entries in the table, number of hash buckets and number of buckets used, and maximum number of entries in a single bucket.
+
+.BR avc_cache_stats ()
+populates a structure whose fields reflect cache activity:
+
+.RS
+.ta 4n 14n
+.nf
+struct avc_cache_stats {
+	unsigned	entry_lookups;
+	unsigned	entry_hits;
+	unsigned	entry_misses;
+	unsigned	entry_discards;
+	unsigned	cav_lookups;
+	unsigned	cav_hits;
+	unsigned	cav_probes;
+	unsigned	cav_misses;
+};
+.fi
+.ta
+.RE
+
+.TP
+.I entry_lookups
+Number of queries made.
+.TP
+.I entry_hits
+Number of times a decision was found in the
+.I aeref
+argument.
+.TP
+.I entry_misses
+Number of times a decision was not found in the
+.I aeref
+argument.
+.TP
+.I entry_discards
+Number of times a decision was not found in the
+.I aeref
+argument and the
+.I aeref
+argument was non-NULL.
+.TP
+.I cav_lookups
+Number of cache lookups.
+.TP
+.I cav_hits
+Number of cache hits.
+.TP
+.I cav_misses
+Number of cache misses.
+.TP
+.I cav_probes
+Number of entries examined while searching the cache.
+.
+.SH "NOTES"
+When the cache is flushed as a result of a call to
+.BR avc_reset ()
+or a policy change notification,
+the statistics returned by
+.BR avc_cache_stats ()
+are reset to zero.  The SID table, however, is left
+unchanged.
+
+When a policy change notification is received, a call to
+.BR avc_av_stats ()
+is made before the cache is flushed.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR avc_init (3),
+.BR avc_has_perm (3),
+.BR avc_context_to_sid (3),
+.BR avc_add_callback (3),
+.BR selinux (8)

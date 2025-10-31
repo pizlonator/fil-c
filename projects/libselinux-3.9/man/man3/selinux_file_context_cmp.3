@@ -1,0 +1,74 @@
+.TH "selinux_file_context_cmp" "3" "08 March 2011" "SELinux API documentation"
+.SH "NAME"
+selinux_file_context_cmp \- Compare two SELinux security contexts excluding the 'user' component
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_file_context_cmp(const char *" a ", "
+.RS
+.BI "const char *" b ");"
+.RE
+.
+.SH "DESCRIPTION"
+.BR selinux_file_context_cmp ()
+compares two context strings excluding the user component with
+.BR strcmp (3)
+as shown in the
+.B EXAMPLE
+section.
+.sp
+This is useful as for most object contexts, the user component is not relevant.
+.
+.SH "RETURN VALUE"
+The return values follow the
+.BR strcmp (3)
+function, where:
+.RS
+0  if they are equal.
+.RE
+.RS
+1  if
+.I a
+is greater than
+.I b
+.RE
+.RS
+\-1 if
+.I a
+is less than
+.I b
+.RE
+.
+.SH "ERRORS"
+None.
+.
+.SH "NOTES"
+The contexts being compared do not specifically need to be file contexts.
+.
+.SH "EXAMPLE"
+If context
+.I a
+is:
+.RS
+user_u:user_r:user_t:s0
+.RE
+.sp
+and context
+.I b
+is:
+.RS
+root:user_r:user_t:s0
+.RE
+.sp
+then the actual strings compared are:
+.RS
+:user_r:user_t:s0 and :user_r:user_t:s0
+.RE
+.sp
+Therefore they will match and
+.BR selinux_file_context_cmp ()
+will return zero.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

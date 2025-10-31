@@ -1,0 +1,107 @@
+.TH "getexeccon" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+getexeccon, setexeccon \- get or set the SELinux security context used for executing a new process
+
+rpm_execcon \- run a helper for rpm in an appropriate security context
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getexeccon(char **" context );
+.sp
+.BI "int getexeccon_raw(char **" context );
+.sp
+.BI "int setexeccon(const char *" context );
+.sp
+.BI "int setexeccon_raw(const char *" context );
+.sp
+.BI "int setexecfilecon(const char *" filename ", const char *" fallback_type );
+.sp
+.BI "int rpm_execcon(unsigned int " verified ", const char *" filename ", char *const " argv "[] , char *const " envp "[]);
+.
+.SH "DESCRIPTION"
+.BR getexeccon ()
+retrieves the context used for executing a new process.
+This returned context should be freed with
+.BR freecon (3)
+if non-NULL.
+.BR getexeccon ()
+sets
+.BI * context
+to NULL if no exec context has been explicitly
+set by the program (i.e. using the default policy behavior).
+
+.BR setexeccon ()
+sets the context used for the next
+.BR execve (2)
+call.
+NULL can be passed to
+.BR setexeccon ()
+to reset to the default policy behavior.
+The exec context is automatically reset after the next
+.BR execve (2),
+so a program doesn't need to explicitly sanitize it upon startup.
+
+.BR setexeccon ()
+can be applied prior to library
+functions that internally perform an
+.BR execve (2),
+e.g.
+.BR execl *(3),
+.BR execv *(3),
+.BR popen (3),
+in order to set an exec context for that operation.  
+
+.BR getexeccon_raw ()
+and
+.BR setexeccon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+.B Note:
+Signal handlers that perform an
+.BR execve (2)
+must take care to
+save, reset, and restore the exec context to avoid unexpected behavior.
+
+.BR setexecfilecon ()
+sets the context used for the next
+.BR execve (2)
+call, based on the policy for the
+.IR filename ,
+and falling back to a new context with a
+.I fallback_type
+in case there is no transition.
+
+.BR rpm_execcon ()
+is deprecated; please use
+.BR setexecfilecon ()
+in conjunction with
+.BR execve (2)
+in all new code. This function
+runs a helper for rpm in an appropriate security context.  The
+verified parameter should contain the return code from the signature
+verification (0 == ok, 1 == notfound, 2 == verifyfail, 3 ==
+nottrusted, 4 == nokey), although this information is not yet used by
+the function.  The function determines the proper security context for
+the helper based on policy, sets the exec context accordingly, and
+then executes the specified filename with the provided argument and
+environment arrays.
+.
+.SH "RETURN VALUE"
+On failure, \-1 is returned and
+.I errno
+is  set appropriately.
+
+On success
+.BR getexeccon (),
+.BR setexeccon ()
+and
+.BR setexecfilecon ()
+return 0.
+.BR rpm_execcon ()
+only returns upon errors, as it calls
+.BR execve (2).
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " freecon "(3), " getcon "(3)"

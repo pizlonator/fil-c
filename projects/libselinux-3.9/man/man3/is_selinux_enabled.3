@@ -1,0 +1,25 @@
+.TH "is_selinux_enabled" "3" "7 Mar 2010" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+is_selinux_enabled \- check whether SELinux is enabled
+.
+.SH "NAME"
+is_selinux_mls_enabled \- check whether SELinux is enabled for (Multi Level Security) MLS
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.B int is_selinux_enabled(void);
+.sp
+.B int is_selinux_mls_enabled(void);
+.
+.SH "DESCRIPTION"
+.BR is_selinux_enabled ()
+returns 1 if SELinux is running or 0 if it is not. 
+
+.BR is_selinux_mls_enabled ()
+returns 1 if SELinux is capable of running in MLS mode or 0 if it is not. To
+determine the policy in use on the system, use
+.BR selinux_getpolicytype (3).
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

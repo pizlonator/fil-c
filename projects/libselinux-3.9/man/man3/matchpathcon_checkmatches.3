@@ -1,0 +1,48 @@
+.TH "matchpathcon_checkmatches" "3" "21 November 2009" "stephen.smalley.work@gmail.com" "SELinux API documentation"
+.SH "NAME"
+matchpathcon_checkmatches, matchpathcon_filespec_add, matchpathcon_filespec_destroy, matchpathcon_filespec_eval \- check and report whether any specification index has no matches with any inode. Maintenance and statistics on inode associations
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "void matchpathcon_checkmatches(char *" str ");"
+.sp
+.BI "int matchpathcon_filespec_add(ino_t " ino ", int " specind ", const char *" file ");"
+.sp
+.BI "void matchpathcon_filespec_destroy(void);"
+.sp
+.BI "void matchpathcon_filespec_eval(void);"
+.
+.SH "DESCRIPTION"
+.BR matchpathcon_checkmatches ()
+checks whether any specification has no matches and reports them.
+The
+.I str
+argument is used as a prefix for any warning messages.
+.sp
+.BR matchpathcon_filespec_add ()
+maintains an association between an inode
+.I ino
+and a specification index
+.IR specind ,
+and checks whether a conflicting specification is already associated
+with the same inode (e.g. due to multiple hard links). If so, then
+it uses the latter of the two specifications based on their order in the 
+.I file
+context configuration. Returns the specification index used or \-1 on
+error.
+.sp
+.BR matchpathcon_filespec_destroy ()
+destroys any inode associations that have been added, e.g. to restart
+for a new filesystem.
+.sp
+.BR matchpathcon_filespec_eval ()
+displays statistics on the hash table usage for the inode associations.
+.
+.SH "RETURN VALUE"
+Returns zero on success or \-1 otherwise.
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " matchpathcon "(3), " matchpathcon_index "(3), " freecon "(3), " setfilecon "(3), " setfscreatecon "(3)"

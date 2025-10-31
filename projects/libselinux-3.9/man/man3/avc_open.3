@@ -1,0 +1,102 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2008
+.TH "avc_open" "3" "12 Jun 2008" "" "SELinux API documentation"
+.SH "NAME"
+avc_open, avc_destroy, avc_reset, avc_cleanup \- userspace SELinux AVC setup and teardown
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/avc.h>
+.sp
+.BI "int avc_open(const struct selinux_opt *" options ", unsigned " nopt ");"
+.sp
+.BI "void avc_destroy(void);"
+.sp
+.BI "int avc_reset(void);"
+.sp
+.BI "void avc_cleanup(void);"
+.
+.SH "DESCRIPTION"
+.BR avc_open ()
+initializes the userspace AVC and must be called before any other AVC operation can be performed.
+
+.BR avc_destroy ()
+destroys the userspace AVC, freeing all internal memory structures.  After this call has been made, 
+.BR avc_open ()
+must be called again before any AVC operations can be performed.
+.BR avc_destroy ()
+also closes the SELinux status page, which might have been opened manually by
+.BR selinux_status_open (3).
+
+.BR avc_reset ()
+flushes the userspace AVC, causing it to forget any cached access decisions.  The userspace AVC normally calls this function automatically when needed, see
+.B NETLINK NOTIFICATION
+below.
+
+.BR avc_cleanup ()
+attempts to free unused memory within the userspace AVC, but does not flush any cached access decisions.  Under normal operation, calling this function should not be necessary.
+.SH "OPTIONS"
+The userspace AVC obeys callbacks set via
+.BR selinux_set_callback (3),
+in particular the logging and audit callbacks.
+
+The options which may be passed to
+.BR avc_open ()
+include the following:
+.TP
+.B AVC_OPT_SETENFORCE
+This option forces the userspace AVC into enforcing mode if the option value is non-NULL; permissive mode otherwise.  The system enforcing mode will be ignored.
+.
+.SH "KERNEL STATUS PAGE"
+Linux kernel version 2.6.37 supports the SELinux kernel status page, enabling userspace applications to
+.BR mmap (2)
+SELinux status state in read-only mode to avoid system calls during the cache hit code path.
+
+.BR avc_open ()
+calls
+.BR selinux_status_open (3)
+to initialize the selinux status state.
+
+.BR avc_has_perm (3)
+and
+.BR selinux_check_access (3)
+both check for status updates through calls to
+.BR selinux_status_updated (3)
+at the start of each permission query and take the appropriate action.
+
+Two status types are currently implemented.
+.B setenforce
+events will change the effective enforcing state used within the AVC, and
+.B policyload
+events will result in a cache flush.
+.
+.SH "NETLINK NOTIFICATION"
+In the event that the kernel status page is not successfully
+.BR mmap (2)'ed
+the AVC will default to the netlink fallback mechanism, which opens a netlink socket for receiving status updates.
+.B setenforce
+and
+.B policyload
+events will have the same results as for the status page implementation, but all status update checks will now require a system call.
+.
+.SH "RETURN VALUE"
+Functions with a return value return zero on success.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR selinux_check_access (3),
+.BR avc_has_perm (3),
+.BR avc_context_to_sid (3),
+.BR avc_cache_stats (3),
+.BR avc_add_callback (3),
+.BR selinux_status_open (3),
+.BR selinux_status_updated (3),
+.BR selinux_set_callback (3),
+.BR security_compute_av (3)

@@ -1,0 +1,132 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "selinux_set_callback" "3" "20 Jun 2007" "" "SELinux API documentation"
+.SH "NAME"
+selinux_set_callback \- userspace SELinux callback facilities
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "void selinux_set_callback(int " type ", union selinux_callback " callback ");"
+.
+.SH "DESCRIPTION"
+.BR selinux_set_callback ()
+sets the callback indicated by
+.I type
+to the value of
+.IR callback ,
+which should be passed as a function pointer cast to type
+.B union
+.BR selinux_callback .
+
+All callback functions should return a negative value with
+.I errno
+set appropriately on error.
+
+The available values for 
+.I type
+are:
+.TP
+.B SELINUX_CB_LOG
+.BI "int (*" func_log ") (int " type ", const char *" fmt ", ...);"
+
+This callback is used for logging and should process the 
+.BR printf (3)
+style 
+.I fmt
+string and arguments as appropriate.  The
+.I type
+argument indicates the type of message and will be set to one of the following:
+
+.B SELINUX_ERROR
+
+.B SELINUX_WARNING
+
+.B SELINUX_INFO
+
+.B SELINUX_AVC
+
+.B SELINUX_POLICYLOAD
+
+.B SELINUX_SETENFORCE
+
+SELINUX_ERROR, SELINUX_WARNING, and SELINUX_INFO indicate standard log severity
+levels and are not auditable messages.
+
+The SELINUX_AVC, SELINUX_POLICYLOAD, and SELINUX_SETENFORCE message types can be
+audited with AUDIT_USER_AVC, AUDIT_USER_MAC_POLICY_LOAD, and AUDIT_USER_MAC_STATUS
+values from libaudit, respectively.  If they are not audited, SELINUX_AVC should be
+considered equivalent to SELINUX_ERROR; similarly, SELINUX_POLICYLOAD and
+SELINUX_SETENFORCE should be considered equivalent to SELINUX_INFO.
+
+.
+.TP
+.B SELINUX_CB_AUDIT
+.BI "int (*" func_audit ") (void *" auditdata ", security_class_t " cls ,
+.in +\w'int (*func_audit) ('u
+.BI "char *" msgbuf ", size_t " msgbufsize ");"
+.in
+
+This callback is used for supplemental auditing in AVC messages.  The
+.I auditdata
+and
+.I cls
+arguments are the values passed to
+.BR avc_has_perm (3).
+A human-readable interpretation should be printed to
+.I msgbuf
+using no more than
+.I msgbufsize
+characters.
+.
+.TP
+.B SELINUX_CB_VALIDATE
+.BI "int (*" func_validate ") (char **" ctx ");"
+
+This callback is used for context validation.  The callback may optionally modify the input context by setting the target of the 
+.I ctx
+pointer to a new context.  In this case, the old value should be freed with
+.BR freecon (3).
+The value of
+.I errno
+should be set to
+.B EINVAL
+to indicate an invalid context.
+.
+.TP
+.B SELINUX_CB_SETENFORCE
+.BI "int (*" func_setenforce ") (int " enforcing ");"
+
+This callback is invoked when the system enforcing state changes.
+The
+.I enforcing
+argument indicates the new value and is set to
+.I 1
+for enforcing mode, and
+.I 0
+for permissive mode.
+.
+.TP
+.B SELINUX_CB_POLICYLOAD
+.BI "int (*" func_policyload ") (int " seqno ");"
+
+This callback is invoked when the system security policy is reloaded.
+The
+.I seqno
+argument is the current sequential number of the policy generation in the system.
+.
+.SH "RETURN VALUE"
+None.
+.
+.SH "ERRORS"
+None.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR avc_init (3),
+.BR avc_netlink_open (3),
+.BR selinux (8)

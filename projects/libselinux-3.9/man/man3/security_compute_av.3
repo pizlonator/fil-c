@@ -1,0 +1,196 @@
+.TH "security_compute_av" "3" "1 January 2004" "russell@coker.com.au" "SELinux API documentation"
+.SH "NAME"
+security_compute_av, security_compute_av_flags, security_compute_create, security_compute_create_name, security_compute_relabel,
+security_compute_member, security_compute_user, security_validatetrans, security_get_initial_context \- query
+the SELinux policy database in the kernel
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int security_compute_av(const char *" scon ", const char *" tcon ", security_class_t "tclass ", access_vector_t "requested ", struct av_decision *" avd );
+.sp
+.BI "int security_compute_av_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", access_vector_t "requested ", struct av_decision *" avd );
+.sp
+.BI "int security_compute_av_flags(const char *" scon ", const char *" tcon ", security_class_t "tclass ", access_vector_t "requested ", struct av_decision *" avd );
+.sp
+.BI "int security_compute_av_flags_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", access_vector_t "requested ", struct av_decision *" avd );
+.sp
+.BI "int security_compute_create(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_create_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_create_name(const char *" scon ", const char *" tcon ", security_class_t "tclass ", const char *" objname ", char **" newcon );
+.sp
+.BI "int security_compute_create_name_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", const char *" objname ", char **" newcon );
+.sp
+.BI "int security_compute_relabel(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_relabel_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_member(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_member_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", char **" newcon );
+.sp
+.BI "int security_compute_user(const char *" scon ", const char *" username ", char ***" con );
+.sp
+.BI "int security_compute_user_raw(const char *" scon ", const char *" username ", char ***" con );
+.sp
+.BI "int security_validatetrans(const char *" scon ", const char *" tcon ", security_class_t "tclass ", const char *" newcon );
+.sp
+.BI "int security_validatetrans_raw(const char *" scon ", const char *" tcon ", security_class_t "tclass ", const char *" newcon );
+.sp
+.BI "int security_get_initial_context(const char *" name ", char **" con );
+.sp
+.BI "int security_get_initial_context_raw(const char *" name ", char **" con );
+.sp
+.BI "int selinux_check_access(const char *" scon ", const char *" tcon ", const char *" class ", const char *" perm ", void *" auditdata);
+.sp
+.BI "int selinux_check_passwd_access(access_vector_t " requested );
+.sp
+.BI "int checkPasswdAccess(access_vector_t " requested );
+.
+.SH "DESCRIPTION"
+
+This family of functions is used to obtain policy decisions from the
+SELinux kernel security server (policy engine).  In general, direct use of
+.BR security_compute_av ()
+and its variant interfaces is discouraged in favor of using
+.BR selinux_check_access ()
+since the latter automatically handles the dynamic mapping of class
+and permission names to their policy values, initialization and use of
+the Access Vector Cache (AVC), and proper handling of per-domain and
+global permissive mode and allow_unknown.
+
+When using any of the functions that take policy integer values for
+classes or permissions as inputs, use
+.BR string_to_security_class(3)
+and
+.BR string_to_av_perm(3)
+to map the class and permission names to their policy values.
+These values may change across a policy reload, so they should be
+re-acquired on every use or using a
+.B SELINUX_CB_POLICYLOAD
+callback set via
+.BR selinux_set_callback(3).
+
+An alternative approach is to use
+.BR selinux_set_mapping(3)
+to create a mapping from class and permission index values
+used by the application to the policy values,
+thereby allowing the application to pass its own
+fixed constants for the classes and permissions to
+these functions and internally mapping them on demand.
+However, this also requires setting up a callback as above
+to address policy reloads.
+
+.BR security_compute_av ()
+queries whether the policy permits the source context
+.I scon
+to access the target context
+.I tcon
+via class
+.I tclass
+with the
+.I requested
+access vector.  The decision is returned in
+.IR avd .
+
+.BR security_compute_av_flags ()
+is identical to
+.B security_compute_av
+but additionally sets the
+.I flags
+field of
+.IR avd .
+Currently one flag is supported:
+.BR SELINUX_AVD_FLAGS_PERMISSIVE ,
+which indicates the decision is computed on a permissive domain.
+
+.BR security_compute_create ()
+is used to compute a context to use for labeling a new object in a particular
+class based on a SID pair.
+
+.BR security_compute_create_name ()
+is identical to
+.BR \%security_compute_create ()
+but also takes name of the new object in creation as an argument.
+When
+.B TYPE_TRANSITION
+rule on the given class and a SID pair has object name extension,
+we shall be able to obtain a correct
+.I newcon
+according to the security policy. Note that this interface is only
+supported on the linux 2.6.40 or later.
+In the older kernel, the object name will be simply ignored.
+
+.BR security_compute_relabel ()
+is used to compute the new context to use when relabeling an object, it is used
+in the pam_selinux.so source and the newrole source to determine the correct
+label for the tty at login time, but can be used for other things.
+
+.BR security_compute_member ()
+is used to compute the context to use when labeling a polyinstantiated object
+instance.
+
+.BR security_compute_user ()
+is used to determine the set of user contexts that can be reached from a
+source context. This function is deprecated; use
+.BR get_ordered_context_list (3)
+instead.
+
+.BR security_validatetrans ()
+is used to determine if a transition from scon to newcon using tcon as the object
+is valid for object class tclass. This checks against the mlsvalidatetrans and
+validatetrans constraints in the loaded policy. Returns 0 if allowed, and -1
+if an error occurred with errno set.
+
+.BR security_get_initial_context ()
+is used to get the context of a kernel initial security identifier specified by 
+.I name
+
+.BR security_compute_av_raw (),
+.BR security_compute_av_flags_raw (),
+.BR \%security_compute_create_raw (),
+.BR \%security_compute_create_name_raw (),
+.BR \%security_compute_relabel_raw (),
+.BR \%security_compute_member_raw (),
+.BR \%security_compute_user_raw ()
+.BR \%security_validatetrans_raw ()
+and
+.BR \%security_get_initial_context_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+.BR selinux_check_access ()
+is used to check if the source context has the access permission for the specified class on the target context.
+
+.BR selinux_check_passwd_access ()
+is used to check for a permission in the
+.I passwd
+class.
+.BR selinux_check_passwd_access ()
+uses
+.BR getprevcon(3)
+for the source and target security contexts.
+
+.BR checkPasswdAccess ()
+is a deprecated alias of the
+.BR selinux_check_passwd_access ()
+function.
+.
+.SH "RETURN VALUE"
+Returns zero on success or \-1 on error.
+.
+.SH "CAVEATS"
+.sp
+These functions are not thread-safe, you have to protect them from
+concurrent calls using exclusive locks when multiple threads are executing.
+.
+.SH "SEE ALSO"
+.BR string_to_security_class (3),
+.BR string_to_av_perm (3),
+.BR selinux_set_callback (3),
+.BR selinux_set_mapping (3),
+.BR getprevcon (3),
+.BR get_ordered_context_list (3),
+.BR selinux (8)

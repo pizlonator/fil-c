@@ -1,0 +1,27 @@
+.TH "selinuxexeccon" "8" "14 May 2011" "dwalsh@redhat.com" "SELinux Command Line documentation"
+.SH "NAME"
+selinuxexeccon \- report SELinux context used for this executable
+.
+.SH "SYNOPSIS"
+.B selinuxexeccon
+.I command
+.RI [ fromcon ]
+.
+.SH "DESCRIPTION"
+.B selinuxexeccon
+reports the SELinux process context for the specified command from the specified context or the current context.
+.
+.SH EXAMPLE
+.nf
+# selinuxexeccon /usr/bin/passwd 
+staff_u:staff_r:passwd_t:s0-s0:c0.c1023
+
+# selinuxexeccon /usr/sbin/sendmail system_u:system_r:httpd_t:s0
+system_u:system_r:system_mail_t:s0
+.fi
+.
+.SH AUTHOR
+This manual page was written by Dan Walsh <dwalsh@redhat.com>.
+.
+.SH "SEE ALSO"
+.BR secon (8)

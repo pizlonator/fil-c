@@ -1,0 +1,42 @@
+.TH "virtual_image_context" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+virtual_image_context \- The SELinux virtual machine image context configuration file
+.
+.SH "DESCRIPTION"
+The
+.I virtual_image_context
+file contains a list of image contexts for use by the SELinux-aware virtualization API libvirt (see \fBlibvirtd\fR(8)).
+.sp
+.BR selinux_virtual_image_context_path "(3) "
+will return the active policy path to this file. The default virtual image context file is:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/virtual_image_context
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.
+.SH "FILE FORMAT"
+Each line in the file consists of an entry as follows:
+.RS
+.IB user : role : type \fR[\fB:\fIrange\fR]
+.RE
+.sp
+Where:
+.RS
+.I user role type range
+.RS
+A user, role, type and optional range (for MCS/MLS) separated by colons (:) that can be used as a virtual image context.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# ./contexts/virtual_image_context
+.br
+system_u:object_r:svirt_image_t:s0
+.br
+system_u:object_r:svirt_content_t:s0
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " libvirtd "(8), " selinux_virtual_image_context_path "(3), " selinux_config "(5) "

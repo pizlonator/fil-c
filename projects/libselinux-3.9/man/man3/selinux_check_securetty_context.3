@@ -1,0 +1,16 @@
+.TH "selinux_check_securetty_context" "3" "1 January 2007" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+selinux_check_securetty_context \- check whether a SELinux tty security context is defined as a securetty context
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_check_securetty_context(const char *" tty_context );
+.
+.SH "DESCRIPTION"
+.BR selinux_check_securetty_context ()
+returns 0 if tty_context is a securetty context,
+returns < 0 otherwise.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

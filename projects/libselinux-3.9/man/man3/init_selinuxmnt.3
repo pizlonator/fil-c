@@ -1,0 +1,31 @@
+.TH "init_selinuxmnt" "3" "21 Nov 2009" "" "SELinux API documentation"
+.SH "NAME"
+init_selinuxmnt \- initialize the global variable selinux_mnt
+.
+.SH "SYNOPSIS"
+.BI "static void init_selinuxmnt(void);"
+.sp
+.BI "static void fini_selinuxmnt(void);"
+.sp
+.BI "void set_selinuxmnt(const char *" mnt ");"
+.
+.SH "DESCRIPTION"
+.BR init_selinuxmnt ()
+initializes the global variable
+.I selinux_mnt
+to the selinuxfs mountpoint.
+
+.BR fini_selinuxmnt ()
+deinitializes the global variable
+.I selinux_mnt
+that stores the selinuxfs mountpoint.
+
+.BR set_selinuxmnt ()
+changes the selinuxfs mountpoint to
+.IR mnt .
+.
+.SH "AUTHOR"
+This manual page has been written by Guido Trentalancia <guido@trentalancia.com>
+.
+.SH "SEE ALSO"
+.BR selinux (8),

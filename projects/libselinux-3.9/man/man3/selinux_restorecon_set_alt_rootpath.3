@@ -1,0 +1,37 @@
+.TH "selinux_restorecon_set_alt_rootpath" "3" "29 May 2016" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_set_alt_rootpath \- set an alternate rootpath.
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.sp
+.BI "int selinux_restorecon_set_alt_rootpath(const char *" alt_rootpath ");"
+.in +\w'void selinux_restorecon_set_alt_rootpath('u
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon_set_alt_rootpath ()
+passes to
+.BR selinux_restorecon (3)
+a pointer containing an alternate rootpath
+.IR alt_rootpath .
+.sp
+.BR selinux_restorecon_set_alt_rootpath ()
+must be called prior to
+.BR selinux_restorecon (3).
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "SEE ALSO"
+.BR selinux_restorecon (3),
+.br
+.BR selinux_restorecon_set_sehandle (3),
+.br
+.BR selinux_restorecon_default_handle (3),
+.br
+.BR selinux_restorecon_set_exclude_list (3),
+.br
+.BR selinux_restorecon_xattr (3)

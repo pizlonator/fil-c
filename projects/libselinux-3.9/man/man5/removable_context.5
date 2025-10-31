@@ -1,0 +1,36 @@
+.TH "removable_context" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+removable_context \- The SELinux removable devices context configuration file
+.
+.SH "DESCRIPTION"
+This file contains the default label that should be used for removable devices.
+.sp
+.BR selinux_removable_context_path "(3) "
+will return the active policy path to this file. The default removable context file is:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/removable_context
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.
+.SH "FILE FORMAT"
+The file consists of a single line entry as follows:
+.RS
+.IB user : role : type \fR[\fB:\fIrange\fR]
+.RE
+.sp
+Where:
+.RS
+.I user role type range
+.RS
+A user, role, type and optional range (for MCS/MLS) separated by colons (:) that will be applied to removable devices.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# ./contexts/removable_contexts
+.br
+system_u:object_r:removable_t:s0
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " selinux_removable_context_path "(3), " selinux_config "(5) "

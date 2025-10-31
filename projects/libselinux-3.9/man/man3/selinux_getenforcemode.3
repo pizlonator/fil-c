@@ -1,0 +1,31 @@
+.TH "selinux_getenforcemode" "3" "25 May 2004" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+selinux_getenforcemode \- get the enforcing state of SELinux
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_getenforcemode(int *" enforce );
+.
+.SH "DESCRIPTION"
+.BR selinux_getenforcemode ()
+Reads the contents of the
+.I /etc/selinux/config
+file to determine how the system was setup to run SELinux.
+
+Sets the value of
+.I enforce
+to 1 if SELinux should be run in enforcing mode.
+Sets the value of
+.I enforce
+to 0 if SELinux should be run in permissive mode.
+Sets the value of
+.I enforce
+to \-1 if SELinux should be disabled.
+.
+.SH "RETURN VALUE"
+On success, zero is returned.
+On failure, \-1 is returned.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

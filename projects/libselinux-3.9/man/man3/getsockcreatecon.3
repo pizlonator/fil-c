@@ -1,0 +1,62 @@
+.TH "getsockcreatecon" "3" "24 September 2008" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+getsockcreatecon, setsockcreatecon \- get or set the SELinux security context used for creating a new labeled sockets
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getsockcreatecon(char **" con );
+.sp
+.BI "int getsockcreatecon_raw(char **" con );
+.sp
+.BI "int setsockcreatecon(const char *" context );
+.sp
+.BI "int setsockcreatecon_raw(const char *" context );
+.
+.SH "DESCRIPTION"
+.BR getsockcreatecon ()
+retrieves the context used for creating a new labeled network socket.
+This returned context should be freed with
+.BR freecon (3)
+if non-NULL.
+.BR getsockcreatecon ()
+sets *con to NULL if no sockcreate context has been explicitly
+set by the program (i.e. using the default policy behavior).
+
+.BR setsockcreatecon ()
+sets the context used for creating a new labeled network sockets
+NULL can be passed to
+.BR setsockcreatecon ()
+to reset to the default policy behavior.
+The sockcreate context is automatically reset after the next
+.BR execve (2),
+so a program doesn't need to explicitly sanitize it upon startup.
+
+.BR setsockcreatecon ()
+can be applied prior to library
+functions that internally perform an file creation,
+in order to set an file context on the objects.
+
+.BR getsockcreatecon_raw ()
+and
+.BR setsockcreatecon_raw ()
+behave identically to their non-raw counterparts but do not perform context
+translation.
+
+.B Note:
+Signal handlers that perform a
+.BR setsockcreatecon ()
+must take care to
+save, reset, and restore the sockcreate context to avoid unexpected behavior.
+.
+
+.br
+.B Note:
+Contexts are thread specific.
+
+.SH "RETURN VALUE"
+On error \-1 is returned.
+On success 0 is returned.
+.
+.SH "SEE ALSO"
+.BR selinux "(8), " freecon "(3), " getcon "(3)

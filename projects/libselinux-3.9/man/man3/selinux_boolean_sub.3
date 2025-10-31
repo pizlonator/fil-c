@@ -1,0 +1,29 @@
+.TH "selinux_boolean_sub" "3" "11 June 2012" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+selinux_boolean_sub \- Search the translated name for a boolean_name record
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "char *selinux_boolean_sub(const char *" boolean_name ");"
+.sp
+.SH "DESCRIPTION"
+.BR selinux_boolean_sub ()
+searches the
+.I \%/etc/selinux/{POLICYTYPE}/booleans.subs_dist
+file
+for a matching boolean_name record.  If the record exists the boolean substitution name is returned.  If not
+.BR \%selinux_boolean_sub ()
+returns the original
+.IR \%boolean_name .
+
+.SH "RETURN VALUE"
+.BR selinux_boolean_sub ()
+returns the
+.I boolean_name
+or the substituted name on success.  The returned value must be freed with
+.BR free "(3)."
+.BR selinux_boolean_sub ()
+returns NULL on error.
+.SH "SEE ALSO"
+.BR security_get_boolean_names (3)

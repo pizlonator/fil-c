@@ -1,0 +1,80 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2007
+.TH "selabel_lookup" "3" "18 Jun 2007" "" "SELinux API documentation"
+.SH "NAME"
+selabel_lookup \- obtain SELinux security context from a string label
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "int selabel_lookup(struct selabel_handle *" hnd ,
+.in +\w'int selabel_lookup('u
+.BI "char **" context ,
+.br
+.BI "const char *" key ", int " type ");"
+.in
+.sp
+.BI "int selabel_lookup_raw(struct selabel_handle *" hnd ,
+.in +\w'int selabel_lookup_raw('u
+.BI "char **" context ,
+.br
+.BI "const char *" key ", int " type ");"
+.in
+.
+.SH "DESCRIPTION"
+.BR selabel_lookup ()
+performs a lookup operation on the handle 
+.IR hnd ,
+returning the result in the memory pointed to by 
+.IR context ,
+which must be freed by the caller using
+.BR freecon (3).
+The 
+.I key
+and
+.I type
+parameters are the inputs to the lookup operation and are interpreted according to the specific backend that 
+.I handle
+is open on.
+
+.BR selabel_lookup_raw ()
+behaves identically to 
+.BR selabel_lookup ()
+but does not perform context translation.
+.
+.SH "RETURN VALUE"
+On success, zero is returned.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B ENOENT
+No context corresponding to the input 
+.I key
+and
+.I type
+was found.
+.TP
+.B EINVAL
+The
+.I key
+and/or
+.I type
+inputs are invalid, or the context being returned failed validation, or a
+regular expression in the database failed to compile.
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "AUTHOR"
+Eamon Walsh <ewalsh@tycho.nsa.gov>
+.
+.SH "SEE ALSO"
+.BR selabel_open (3),
+.BR selabel_stats (3),
+.BR selinux_set_callback (3),
+.BR selinux (8)

@@ -1,0 +1,102 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Author: Eamon Walsh (ewalsh@tycho.nsa.gov) 2008
+.TH "selinux_set_mapping" "3" "12 Jun 2008" "" "SELinux API documentation"
+.SH "NAME"
+selinux_set_mapping \- establish dynamic object class and permission mapping
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.nf
+struct security_class_mapping {
+	const char *name;
+	const char *perms[];
+};
+.fi
+.sp
+.BI "int selinux_set_mapping(const struct security_class_mapping *" map ");"
+.
+.SH "DESCRIPTION"
+.BR selinux_set_mapping ()
+establishes a mapping from a user-provided ordering of object classes and permissions to the numbers actually used by the loaded system policy. If using this function, applications should also set a
+.B SELINUX_CB_POLICYLOAD
+callback via
+.BR selinux_set_callback(3)
+that calls this function again upon a policy reload to re-create the mapping
+in case the class or permission values change in the new policy.
+Generally it is preferred to instead use
+.BR selinux_check_access(3)
+instead of
+.BR avc_has_perm(3)
+or
+.BR security_compute_av(3)
+and not use this function at all.
+
+After the mapping is established, all libselinux functions that operate on class and permission values take the user-provided numbers, which are determined as follows:
+
+The
+.I map
+argument consists of an array of 
+.B security_class_mapping
+structures, which must be terminated by a structure having a NULL name field.  Except for this last structure, the
+.I name 
+field should refer to the string name of an object class, and the corresponding
+.I perms
+field should refer to an array of permission bit names terminated by a NULL string.
+
+The object classes named in the mapping and the bit indexes of each set of permission bits named in the mapping are numbered in order starting from 1.  These numbers are the values that should be passed to subsequent libselinux calls.
+.
+.SH "RETURN VALUE"
+Zero is returned on success.  On error, \-1 is returned and
+.I errno
+is set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B EINVAL
+One of the class or permission names requested in the mapping is not present in the loaded policy.
+.TP
+.B ENOMEM
+An attempt to allocate memory failed.
+.
+.SH "EXAMPLE"
+.RS
+.ta 4n 10n
+.nf
+struct security_class_mapping map[] = {
+	{ "file", { "create", "unlink", "read", "write", NULL } },
+	{ "socket", { "bind", NULL } },
+	{ "process", { "signal", NULL } },
+	{ NULL }
+};
+
+if (selinux_set_mapping(map) < 0)
+	exit(1);
+.fi
+.ta
+.RE
+
+In this example, after the call has succeeded, classes
+.BR file ,
+.BR socket ,
+and
+.B process
+will be identified by 1, 2 and 3, respectively.  Permissions
+.IR create ,
+.IR unlink ,
+.IR read ,
+and
+.I write
+(for the 
+.B file
+class) will be identified by 1, 2, 4, and 8 respectively.  Classes and permissions not listed in the mapping cannot be used.
+.
+.SH "AUTHOR"
+Originally Eamon Walsh.  Updated by Stephen Smalley <stephen.smalley.work@gmail.com>
+.
+.SH "SEE ALSO"
+.BR selinux_check_access (3),
+.BR selinux_set_callback (3),
+.BR avc_has_perm (3),
+.BR selinux (8)

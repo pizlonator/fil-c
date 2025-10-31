@@ -1,0 +1,83 @@
+.TH "context_new" "3" "20 December 2011" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+context_new, context_str, context_free, context_type_get, context_type_set, context_range_get, context_range_set,context_role_get, context_role_set, context_user_get, context_user_set \- Routines to manipulate SELinux security contexts
+.
+.SH "SYNOPSIS"
+.B #include <selinux/context.h>
+.sp
+.BI "context_t context_new(const char *" context_str );
+.sp
+.BI "const char * context_str(context_t " con );
+.sp
+.BI "void context_free(context_t " con );
+.sp
+.BI "const char * context_type_get(context_t " con );
+.sp
+.BI "const char * context_range_get(context_t " con );
+.sp
+.BI "const char * context_role_get(context_t " con );
+.sp
+.BI "const char * context_user_get(context_t " con );
+.sp
+.BI "int context_type_set(context_t " con ", const char *" type );
+.sp
+.BI "int context_range_set(context_t " con ", const char *" range );
+.sp
+.BI "int context_role_set(context_t " con ", const char *" role );
+.sp
+.BI "int context_user_set(context_t " con ", const char *" user );
+.
+.SH "DESCRIPTION"
+These functions allow an application to manipulate the fields of a
+security context string without requiring it to know the format of the
+string.
+
+.BR context_new ()
+returns a new context initialized to a context string.
+
+.BR context_str ()
+returns a pointer to the string value of the
+.BR context_t ,
+valid until the next call to
+.BR context_str ()
+or
+.BR context_free ()
+for the same
+.BR context_t* .
+
+.BR context_free ()
+frees the storage used by a context.
+
+.BR context_type_get (),
+.BR context_range_get (),
+.BR context_role_get (),
+.BR \%context_user_get ()
+get a pointer to the string value of a context component.
+
+.B Note:
+Values returned by the get functions are only valid until the next call 
+to a set function or
+.BR context_free ()
+for the same
+.B context_t
+structure.
+
+.BR context_type_set (),
+.BR context_range_set (),
+.BR context_role_set (),
+.BR \%context_user_set ()
+set a context component.
+.
+.SH "RETURN VALUE"
+On failure
+.BR context_*_set ()
+functions return non-zero and 0 on success.
+
+The other functions return NULL on failure and non-NULL on success.
+
+On failure
+.I errno
+is set appropriately.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

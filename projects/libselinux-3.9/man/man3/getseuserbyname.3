@@ -1,0 +1,33 @@
+.TH "getseuserbyname" "3" "29 September 2005" "dwalsh@redhat.com" "SELinux API documentation"
+.SH "NAME"
+getseuserbyname \- get SELinux username and level for a given Linux username
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int getseuserbyname(const char *" linuxuser ", char **" selinuxuser ", char **" level ");
+.
+.SH "DESCRIPTION"
+.BR getseuserbyname ()
+retrieves the SELinux username and security level associated with 
+a given Linux username.  The SELinux username and security level can
+then be passed to other libselinux functions such as 
+.BR \%get_ordered_context_list_with_level (3)
+and
+.BR \%get_default_context_with_level (3).
+
+The returned SELinux username and level should be freed by the caller
+using free.  
+.
+.SH "RETURN VALUE"
+On success, 0 is returned.
+On failure, \-1 is returned and
+.I errno
+is set appropriately.
+
+The errors documented for the
+.BR stat (2)
+system call are also applicable here.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

@@ -1,0 +1,38 @@
+.TH "selinux_restorecon_set_sehandle" "3" "20 Oct 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_set_sehandle \- set a labeling handle for use by
+.BR selinux_restorecon (3)
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.BI "void selinux_restorecon_set_sehandle(struct selabel_handle *" handle ");"
+.in +\w'void selinux_restorecon_set_sehandle('u
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon_set_sehandle ()
+sets the
+.I handle
+to be use by
+.BR selinux_restorecon (3)
+when relabeling files.
+.sp
+.BR selinux_restorecon_set_sehandle ()
+is generally used when customised
+.BR selabel_open (3)
+parameters are required to perform relabeling operations with
+.BR selinux_restorecon (3).
+.
+.SH "SEE ALSO"
+.BR selinux_restorecon (3),
+.br
+.BR selinux_restorecon_set_exclude_list (3),
+.br
+.BR selinux_restorecon_default_handle (3),
+.br
+.BR selinux_restorecon_set_alt_rootpath (3),
+.br
+.BR selinux_restorecon_xattr (3)

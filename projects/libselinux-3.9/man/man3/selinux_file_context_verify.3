@@ -1,0 +1,101 @@
+.TH "selinux_file_context_verify" "3" "08 March 2011" "SELinux API documentation"
+.SH "NAME"
+selinux_file_context_verify \- Compare the SELinux security context on disk to the default security context required by the policy file contexts file
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_file_context_verify(const char *" path ", mode_t " mode ");"
+.
+.SH "DESCRIPTION"
+.BR selinux_file_context_verify ()
+compares the context of the specified
+.I path
+that is held on disk (in the extended attribute), to the system default entry held in the file contexts series of files.
+.sp
+The
+.I mode
+may be zero.
+.sp
+Note that the two contexts are compared for "significant" differences (i.e. the user component of the contexts are ignored) as shown in the
+.B EXAMPLE
+section.
+.
+.SH "RETURN VALUE"
+If the contexts significantly match, 1 (one) is returned.
+.sp
+If the contexts do not match 0 (zero) is returned and
+.I errno
+is set to either
+.B ENOENT
+or
+.B EINVAL
+for the reasons listed in the
+.B ERRORS
+section, or if
+.I errno
+= 0 then the contexts did not match.
+.sp
+On failure \-1 is returned and
+.I errno
+set appropriately.
+.
+.SH "ERRORS"
+.TP
+.B ENOTSUP
+if extended attributes are not supported by the file system.
+.TP
+.B ENOENT
+if there is no entry in the file contexts series of files or
+.I path
+does not exist.
+.TP
+.B EINVAL
+if the entry in the file contexts series of files or
+.I path
+are invalid, or the returned context fails validation.
+.TP
+.B ENOMEM
+if attempt to allocate memory failed.
+.
+.SH "FILES"
+The following configuration files (the file contexts series of files) supporting the active policy will be used (should they exist) to determine the
+.I path
+default context:
+.sp
+.RS
+.I contexts/files/file_contexts
+- This file must exist.
+.sp
+.I contexts/files/file_contexts.local
+- If exists has local customizations.
+.sp
+.I contexts/files/file_contexts.homedirs
+- If exists has users home directory customizations.
+.sp
+.I contexts/files/file_contexts.subs
+- If exists has substitutions that are then applied to the 'in memory' version of the file contexts files.
+.RE
+.
+.SH "EXAMPLE"
+If the files context is:
+.RS
+unconfined_u:object_r:admin_home_t:s0
+.RE
+.sp
+and the default context defined in the file contexts file is:
+.RS
+system_u:object_r:admin_home_t:s0
+.RE
+.sp
+then the actual strings compared are:
+.RS
+:object_r:admin_home_t:s0 and :object_r:admin_home_t:s0
+.RE
+.sp
+Therefore they will match and
+.BR selinux_file_context_verify ()
+will return 1.
+.
+.SH "SEE ALSO"
+.BR selinux "(8)"

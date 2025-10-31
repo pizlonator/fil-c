@@ -1,0 +1,20 @@
+.TH "selinux_lsetfilecon_default" "3" "21 November 2009" "stephen.smalley.work@gmail.com" "SELinux API documentation"
+.SH "NAME"
+selinux_lsetfilecon_default \- set the file context to the system defaults
+.
+.SH "SYNOPSIS"
+.B #include <selinux/selinux.h>
+.sp
+.BI "int selinux_lsetfilecon_default(const char *" path ");"
+.
+.SH "DESCRIPTION"
+.BR selinux_lsetfilecon_default ()
+sets the file context to the system defaults.
+.
+.SH "RETURN VALUE"
+Returns zero on success or \-1 otherwise.
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_file_context_cmp "(3), " selinux_file_context_verify "(3), " matchpathcon "(3), " freecon "(3), " setfilecon "(3), " setfscreatecon "(3)"

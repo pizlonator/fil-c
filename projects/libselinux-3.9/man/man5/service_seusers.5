@@ -1,0 +1,67 @@
+.TH "service_seusers" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+service_seusers \- The SELinux GNU/Linux user and service to SELinux user mapping configuration files
+.
+.SH "DESCRIPTION"
+These are optional files that allow services to define an SELinux user when authenticating via SELinux-aware login applications such as
+.BR PAM "(8). "
+.sp
+There is one file for each GNU/Linux user name that will be required to run a service with a specific SELinux user name.
+.sp
+The path for each configuration file is formed by the path returned by
+.BR selinux_policy_root "(3) with  "
+.IR /logins/username
+appended (where \fIusername\fR is a file representing the GNU/Linux user name). The default services directory is located at:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/logins
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.sp
+.BR getseuser "(3) reads this file to map services to an SELinux user. "
+.
+.SH "FILE FORMAT"
+Each line within the \fIusername\fR file is formatted as follows with each component separated by a colon:
+.RS
+.IB service : seuser \fR[\fB:\fIrange\fR]
+.RE
+.sp
+Where:
+.RS
+.I service
+.RS
+The service name used by the application.
+.RE
+.I seuser
+.RS
+The SELinux user name.
+.RE
+.I range
+.RS
+The range for MCS/MLS policies.
+.RE
+.RE
+.
+.SH "EXAMPLES"
+Example 1 - for the 'root' user:
+.RS
+# ./logins/root
+.br
+ipa:user_u:s0
+.br
+this_service:unconfined_u:s0
+.RE
+.sp
+Example 2 - for GNU/Linux user 'rch':
+.RS
+# ./logins/rch
+.br
+ipa:unconfined_u:s0
+.br
+that_service:unconfined_u:s0
+.RE
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " PAM "(8), " selinux_policy_root "(3), " getseuser "(3), " selinux_config "(5) "

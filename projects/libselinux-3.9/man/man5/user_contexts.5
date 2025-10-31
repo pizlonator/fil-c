@@ -1,0 +1,82 @@
+.TH "user_contexts" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+user_contexts \- The SELinux user contexts configuration files
+.
+.SH "DESCRIPTION"
+These optional user context configuration files contain entries that allow SELinux-aware login applications such as
+.BR PAM (8)
+(running in their own process context), to determine the context that a users login session should run under.
+.sp
+SELinux-aware login applications generally use one or more of the following libselinux functions that read these files from the active policy path:
+.RS
+.BR get_default_context (3)
+.br
+.BR get_ordered_context_list (3)
+.br
+.BR get_ordered_context_list_with_level (3)
+.br
+.BR get_default_context_with_level (3)
+.br
+.BR get_default_context_with_role (3)
+.br
+.BR get_default_context_with_rolelevel (3)
+.br
+.BR query_user_context (3)
+.br
+.BR manual_user_enter_context (3)
+.RE
+.sp
+There can be one file for each SELinux user configured on the system. The file  path is formed using the path returned by
+.BR \%selinux_user_contexts_path (3)
+for the active policy, with the SELinux user name appended, for example:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/contexts/users/unconfined_u
+.br
+.I /etc/selinux/{SELINUXTYPE}/contexts/users/xguest_u
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.sp
+These files contain context information as described in the
+.B FILE FORMAT
+section.
+.
+.SH "FILE FORMAT"
+Each line in the user context configuration file consists of the following:
+.RS
+.I login_process user_login_process
+.RE
+.sp
+Where:
+.RS
+.I login_process
+.RS
+This consists of a \fIrole\fB:\fItype\fR[\fB:\fIrange\fR] entry that represents the login process context.
+.RE
+.I user_login_process
+.RS
+This consists of a \fIrole\fB:\fItype\fR[\fB:\fIrange\fR] entry that represents the user login process context.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# Example for xguest_u at /etc/selinux/targeted/contexts/users/xguest_u
+.br
+system_r:crond_t:s0			xguest_r:xguest_t:s0
+.br
+system_r:initrc_t:s0		xguest_r:xguest_t:s0
+.br
+system_r:local_login_t:s0	xguest_r:xguest_t:s0
+.br
+system_r:remote_login_t:s0	xguest_r:xguest_t:s0
+.br
+system_r:sshd_t:s0			xguest_r:xguest_t:s0
+.br
+system_r:xdm_t:s0			xguest_r:xguest_t:s0
+.br
+xguest_r:xguest_t:s0		xguest_r:xguest_t:s0
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " selinux_user_contexts_path "(3), " PAM "(8), "  get_ordered_context_list "(3), " get_ordered_context_list_with_level "(3), " get_default_context_with_level "(3), " get_default_context_with_role "(3), " get_default_context_with_rolelevel "(3), " query_user_context "(3), " manual_user_enter_context "(3), " selinux_config "(5) "

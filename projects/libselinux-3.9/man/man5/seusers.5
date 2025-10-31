@@ -1,0 +1,63 @@
+.TH "seusers" "5" "28-Nov-2011" "Security Enhanced Linux" "SELinux configuration"
+.SH "NAME"
+seusers \- The SELinux GNU/Linux user to SELinux user mapping configuration file
+.
+.SH "DESCRIPTION"
+The
+.I seusers
+file contains a list GNU/Linux user to SELinux user mapping for use by SELinux-aware login applications such as \fBPAM\fR(8).
+.sp
+.BR selinux_usersconf_path "(3) "
+will return the active policy path to this file. The default SELinux users mapping file is located at:
+.RS
+.I /etc/selinux/{SELINUXTYPE}/seusers
+.RE
+.sp
+Where \fI{SELINUXTYPE}\fR is the entry from the selinux configuration file \fIconfig\fR (see \fBselinux_config\fR(5)).
+.sp
+.BR getseuserbyname "(3) reads this file to map a GNU/Linux user or group to an SELinux user. "
+.
+.SH "FILE FORMAT"
+Each line of the
+.I seusers
+configuration file consists of the following:
+.sp
+.RS
+\fR[\fB%\fIgroup_id\fR]|[\fIuser_id\fR]\fB:\fIseuser_id\fR[\fB:\fIrange\fR]
+.RE
+.sp
+Where:
+.RS
+\fIgroup_id\fR|\fIuser_id
+.RS
+\fRThe  GNU/Linux user id, or if preceded by the percentage (\fB%\fR) symbol, then a GNU/Linux group id.
+.br
+An optional entry set to \fB__default__\fR can be provided as a fall back if required.
+.RE
+.I seuser_id
+.RS
+The SELinux  user identity.
+.RE
+.I range
+.RS
+The optional level or range for an MLS/MCS policy.
+.RE
+.RE
+.
+.SH "EXAMPLE"
+# ./seusers
+.br
+system_u:system_u:s0\-s15:c0.c255
+.br
+root:root:s0\-s15:c0.c255
+.br
+fred:user_u:s0
+.br
+__default__:user_u:s0
+.br
+%user_group:user_u:s0
+.
+.SH "SEE ALSO"
+.ad l
+.nh
+.BR selinux "(8), " PAM "(8), " selinux_usersconf_path "(3), " getseuserbyname "(3), " selinux_config "(5) "

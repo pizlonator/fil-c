@@ -1,0 +1,22 @@
+.TH "togglesebool" "8" "26 Oct 2004" "sgrubb@redhat.com" "SELinux Command Line documentation"
+.SH "NAME"
+togglesebool \- flip the current value of a SELinux boolean
+.
+.SH "SYNOPSIS"
+.B togglesebool
+.I boolean...
+.
+.SH "DESCRIPTION"
+.B togglesebool
+flips the current value of a list of booleans. If the value is currently a 1,
+then it will be changed to a 0 and vice versa. Only the "in memory" values are
+changed; the boot-time settings are unaffected. 
+.
+.SH AUTHOR
+This man page was written by Steve Grubb <sgrubb@redhat.com>
+.
+.SH "SEE ALSO"
+.BR selinux (8),
+.BR booleans (8),
+.BR getsebool (8),
+.BR setsebool (8)

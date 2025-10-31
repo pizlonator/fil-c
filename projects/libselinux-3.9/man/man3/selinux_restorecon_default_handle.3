@@ -1,0 +1,63 @@
+.TH "selinux_restorecon_default_handle" "3" "20 Oct 2015" "Security Enhanced Linux" "SELinux API documentation"
+
+.SH "NAME"
+selinux_restorecon_default_handle \- sets default parameters for
+.BR selinux_restorecon (3)
+.
+.SH "SYNOPSIS"
+.B #include <selinux/restorecon.h>
+.br
+.B #include <selinux/label.h>
+.sp
+.B "struct selabel_handle *selinux_restorecon_default_handle(void);"
+.
+.SH "DESCRIPTION"
+.BR selinux_restorecon_default_handle ()
+sets default parameters for
+.BR selinux_restorecon (3)
+by calling
+.BR selabel_open (3)
+with the
+.B SELABEL_OPT_DIGEST
+option only. This will enable a digest to be calculated on the currently
+loaded policy
+.BR file_contexts (5)
+set of files as described in the
+.B NOTES
+section of
+.BR selinux_restorecon (3).
+.sp
+Calling
+.BR selinux_restorecon_default_handle ()
+is optional, however if used then
+.BR selinux_restorecon_set_sehandle (3)
+should be called with the returned handle to set this for use by
+.BR selinux_restorecon (3).
+.sp
+.BR selinux_restorecon_default_handle ()
+is optional as
+.BR selinux_restorecon (3)
+will automatically call this and
+.BR selinux_restorecon_set_sehandle (3)
+provided a handle has not already been set, for
+example by
+.BR selinux_restorecon_set_sehandle (3)
+to set customised
+.BR selabel_open (3)
+parameters.
+.
+.SH "RETURN VALUE"
+A non\-NULL handle value is returned on success. On error, NULL is returned and
+.I errno
+is set appropriately.
+.
+.SH "SEE ALSO"
+.BR selinux_restorecon (3),
+.br
+.BR selinux_restorecon_set_sehandle (3),
+.br
+.BR selinux_restorecon_set_exclude_list (3),
+.br
+.BR selinux_restorecon_set_alt_rootpath (3),
+.br
+.BR selinux_restorecon_xattr (3)
