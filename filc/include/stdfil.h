@@ -853,6 +853,13 @@ filc_bool zis_unsafe_signal_for_kill(int signo);
 /* Returns true if the signal number is not supported by Fil-C for handling. */
 filc_bool zis_unsafe_signal_for_handlers(int signo);
 
+/* If you pass true, this enables quiet panics, where the Fil-C runtime does not print any output
+   in case of a Fil-C panic. */
+void zset_quiet_panic(filc_bool value);
+
+/* Tells if quiet panic mode is enabled. */
+filc_bool zget_quiet_panic(void);
+
 #ifdef __cplusplus
 }
 #endif

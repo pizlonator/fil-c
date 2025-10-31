@@ -341,6 +341,7 @@ static filc_ptr user_auxv;
 static bool is_initialized = false; /* Useful for assertions. */
 
 bool filc_exit_on_panic = false;
+bool filc_quiet_panic = false;
 bool filc_dump_errnos = false;
 bool filc_run_global_ctors = true;
 bool filc_run_global_dtors = true;
@@ -442,6 +443,7 @@ void filc_initialize(void)
     fugc_initialize_settings();
 
     filc_get_bool_env("FILC_EXIT_ON_PANIC", &filc_exit_on_panic);
+    filc_get_bool_env("FILC_QUIET_PANIC", &filc_quiet_panic);
     filc_get_bool_env("FILC_DUMP_ERRNOS", &filc_dump_errnos);
     filc_get_bool_env("FILC_RUN_GLOBAL_CTORS", &filc_run_global_ctors);
     filc_get_bool_env("FILC_RUN_GLOBAL_DTORS", &filc_run_global_dtors);
@@ -3934,11 +3936,16 @@ PAS_NO_RETURN void filc_finish_panicking(filc_panic_context* context, const char
         log_fd = PAS_LOG_DEFAULT_FD;
     
     if (filc_exit_on_panic) {
-        PAS_ASSERT(write_panic_context(log_fd, context));
-        pas_log("[%d] filc panic: %s\n", pas_getpid(), kind_string);
+        if (!filc_quiet_panic) {
+            PAS_ASSERT(write_panic_context(log_fd, context));
+            pas_log("[%d] filc panic: %s\n", pas_getpid(), kind_string);
+        }
         _exit(42);
         PAS_ASSERT(!"Should not be reached");
     }
+
+    if (filc_quiet_panic)
+        __builtin_trap();
 
     char my_path[PATH_MAX];
     ssize_t my_path_length = readlink("/proc/self/exe", my_path, sizeof(my_path) - 1);
@@ -12792,6 +12799,18 @@ size_t filc_mul_size(size_t a, size_t b)
         NULL,
         "multiplication %zu * %zu overflowed", a, b);
     return result;
+}
+
+void filc_native_zset_quiet_panic(filc_thread* my_thread, bool value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_quiet_panic = value;
+}
+
+bool filc_native_zget_quiet_panic(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return filc_quiet_panic;
 }
 
 void filc_get_bool_env(const char* name, bool* value_ptr)
