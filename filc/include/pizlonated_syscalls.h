@@ -401,6 +401,10 @@ long zsys_keyctl_pkey_sign(int key_id, const char* info, const void* data, __SIZ
                            void* sig, __SIZE_TYPE__ sig_len);
 long zsys_keyctl_pkey_verify(int key_id, const char* info, const void* data, __SIZE_TYPE__ data_len,
                              const void* sig, __SIZE_TYPE__ sig_len);
+long zsys_get_mempolicy(int *mode, unsigned long *nodemask,
+                        unsigned long maxnode, void *addr, unsigned long flags);
+long zsys_set_mempolicy(int mode, const unsigned long *nodemask,
+                        unsigned long maxnode);
 
 #ifdef __cplusplus
 }
