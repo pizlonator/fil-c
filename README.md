@@ -1,4 +1,4 @@
-# Fil-C 0.673
+# Fil-C 0.674
 
 Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
 of software compiles and runs with Fil-C with zero or minimal changes. All
@@ -69,11 +69,11 @@ This has a different effect depending on which binary distribution you
 selected:
 
 - In case of the classic musl-based distribution
-  (`filc-0.673-linux-x86_64.tar.xz`), this sets up Fil-C to run in the current
+  (`filc-0.674-linux-x86_64.tar.xz`), this sets up Fil-C to run in the current
   directory.
 
 - In case of the /opt/fil glibc-based distribution
-  (`optfil-0.673-linux-x86_64.tar.xz`), this sets up Fil-C in `/opt/fil`.
+  (`optfil-0.674-linux-x86_64.tar.xz`), this sets up Fil-C in `/opt/fil`.
 
 If you downloaded Fil-C source, run:
 

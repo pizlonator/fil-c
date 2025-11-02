@@ -43,7 +43,7 @@ cd $FILCSRC/optfil
 
 . ../libpas/common.sh
 
-package_name=optfil-0.673-$OS-$ARCH
+package_name=optfil-0.674-$OS-$ARCH
 
 rm -rf $package_name
 mkdir -v $package_name
@@ -76,7 +76,7 @@ cp -v audit-LICENSE.txt $package_name/
 cp -v PAM-LICENSE.txt $package_name/
 cp -v keyutils-LICENSE.txt $package_name/
 cp -v krb5-LICENSE.txt $package_name/
-cp -v libsepol-LICSENSE.txt $package_name/
+cp -v libsepol-LICENSE.txt $package_name/
 cp -v libselinux-LICENSE.txt $package_name/
 
 tar -cJf $package_name.tar.xz $package_name
