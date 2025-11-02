@@ -72,6 +72,7 @@
 #include "llvm/Transforms/Instrumentation/HWAddressSanitizer.h"
 #include "llvm/Transforms/Instrumentation/InstrProfiling.h"
 #include "llvm/Transforms/Instrumentation/KCFI.h"
+#include "llvm/Transforms/Instrumentation/KillUB.h"
 #include "llvm/Transforms/Instrumentation/LowerAllowCheckPass.h"
 #include "llvm/Transforms/Instrumentation/MemProfiler.h"
 #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
@@ -134,6 +135,8 @@ namespace clang {
 extern llvm::cl::opt<bool> ClSanitizeGuardChecks;
 }
 
+static cl::opt<bool> FilCKillUB(
+  "filc-killub", cl::desc("Run the KillUB pass"), cl::Hidden, cl::init(true));
 static cl::opt<bool> FilCOptimize(
   "filc-optimize", cl::desc("Run Fil-C optimization pipeline"), cl::Hidden, cl::init(true));
 static cl::opt<bool> FilCInline(
@@ -1040,6 +1043,8 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
 
     PB.registerPipelineStartEPCallback(
         [](ModulePassManager &MPM, OptimizationLevel Level) {
+          if (FilCKillUB)
+            MPM.addPass(KillUBPass());
           if (Level != OptimizationLevel::O0 && FilCOptimize) {
             FunctionPassManager EarlyFPM;
             EarlyFPM.addPass(LowerExpectIntrinsicPass());

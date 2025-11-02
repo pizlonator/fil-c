@@ -6,22 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file is a part of Fil-C.
-//
-// See here for an overview:
-// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md
-//
-// This document explains the semantics we're trying to achieve:
-// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md
-//
-// Here is a non-exhaustive set of examples of issues this catches:
-// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md
-//
-// And and explanation of the disassembly:
-// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/test43.md
-//
-// This pass strongly relies on the Fil-C runtime and FUGC garbage collector.
-// Those components are in the llvm-project/libpas directory.
+// This file is a part of Fil-C. https://fil-c.org/
 //
 //===----------------------------------------------------------------------===//
 

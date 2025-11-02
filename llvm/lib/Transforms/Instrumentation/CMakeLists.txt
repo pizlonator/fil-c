@@ -14,6 +14,7 @@ add_llvm_component_library(LLVMInstrumentation
   InstrOrderFile.cpp
   InstrProfiling.cpp
   KCFI.cpp
+  KillUB.cpp
   LowerAllowCheckPass.cpp
   PGOCtxProfFlattening.cpp
   PGOCtxProfLowering.cpp
