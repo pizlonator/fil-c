@@ -10056,6 +10056,7 @@ public:
           GlobalValue::InternalLinkage, F->getAddressSpace(),
           "pizlonatedFI_" + F->getName(), &M);
         FunctionToHiddenFunction[F] = NewF;
+        NewF->setSubprogram(F->getSubprogram());
 
         PutImplIntoComdat(F, NewF);
 
