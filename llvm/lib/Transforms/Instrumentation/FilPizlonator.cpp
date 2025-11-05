@@ -6883,6 +6883,7 @@ class Pizlonator {
 
       case Intrinsic::x86_xgetbv:
       case Intrinsic::x86_sse2_pause:
+      case Intrinsic::x86_rdtsc:
         return true;
 
       case Intrinsic::returnaddress:
