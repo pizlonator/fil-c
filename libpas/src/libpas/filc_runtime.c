@@ -8950,8 +8950,12 @@ int filc_native_zsys_getsid(filc_thread* my_thread, int pid)
 static int mlock_impl(filc_thread* my_thread, filc_ptr addr_ptr, size_t len,
                       int (*actual_mlock)(const void*, size_t))
 {
-    filc_check_access(addr_ptr, len, filc_read_access);
-    check_mmap(addr_ptr);
+    /* Only check the pointer if len is not zero. If len is zero, still make the syscall, because I am
+       guessing someone might do this to check capabilities. */
+    if (len) {
+        filc_check_access(addr_ptr, len, filc_read_access);
+        check_mmap(addr_ptr);
+    }
     return FILC_SYSCALL(my_thread, actual_mlock(filc_ptr_ptr(addr_ptr), len));
 }
 
