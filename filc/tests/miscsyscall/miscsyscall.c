@@ -30,6 +30,7 @@
 #include "utils.h"
 #include <threads.h>
 #include <stdlib.h>
+#include <sys/timex.h>
 
 #ifndef SA_RESTORER
 #define SA_RESTORER 0x4000000
@@ -576,6 +577,9 @@ int main(int argc, char** argv)
     int result = tcgetwinsize(0, &ws);
     ZASSERT(!result || (result == -1 && errno == ENOTTY));
 #endif
+
+    struct timex timex;
+    ZASSERT(!adjtimex(&timex));
 
     zprintf("No worries.\n");
     return 0;

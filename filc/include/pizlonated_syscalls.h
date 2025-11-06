@@ -405,6 +405,7 @@ long zsys_get_mempolicy(int *mode, unsigned long *nodemask,
                         unsigned long maxnode, void *addr, unsigned long flags);
 long zsys_set_mempolicy(int mode, const unsigned long *nodemask,
                         unsigned long maxnode);
+int zsys_clock_adjtime(int clock_id, void* buf);
 
 #ifdef __cplusplus
 }

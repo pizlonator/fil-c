@@ -12367,6 +12367,12 @@ long filc_native_zsys_keyctl_pkey_verify(filc_thread* my_thread, int key_id, fil
                                            filc_ptr_ptr(data_ptr), filc_ptr_ptr(sig_ptr)));
 }
 
+int filc_native_zsys_clock_adjtime(filc_thread* my_thread, int clock_id, filc_ptr buf_ptr)
+{
+    filc_check_write(buf_ptr, sizeof(struct timex));
+    return FILC_SYSCALL(my_thread, clock_adjtime(clock_id, (struct timex*)filc_ptr_ptr(buf_ptr)));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;

@@ -22,31 +22,12 @@
 #include <sysdep.h>
 #include <sys/timex.h>
 #include <kernel-features.h>
+#include <pizlonated_syscalls.h>
 
 int
 __clock_adjtime64 (const clockid_t clock_id, struct __timex64 *tx64)
 {
-#ifndef __NR_clock_adjtime64
-# define __NR_clock_adjtime64 __NR_clock_adjtime
-#endif
-  int r = INLINE_SYSCALL_CALL (clock_adjtime64, clock_id, tx64);
-#ifndef __ASSUME_TIME64_SYSCALLS
-  if (r >= 0 || errno != ENOSYS)
-    return r;
-
-  if (tx64->modes & ADJ_SETOFFSET
-      && ! in_int32_t_range (tx64->time.tv_sec))
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  struct timex tx32 = valid_timex64_to_timex (*tx64);
-  r = INLINE_SYSCALL_CALL (clock_adjtime, clock_id, &tx32);
-  if (r >= 0)
-    *tx64 = valid_timex_to_timex64 (tx32);
-#endif
-  return r;
+  return zsys_clock_adjtime (clock_id, tx64);
 }
 
 #if __TIMESIZE != 64
