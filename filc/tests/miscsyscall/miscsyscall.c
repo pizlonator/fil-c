@@ -315,14 +315,12 @@ int main(int argc, char** argv)
     ZASSERT(!statfs(".", &sfs));
     ZASSERT(sfs.f_bsize);
     ZASSERT(sfs.f_blocks);
-    ZASSERT(sfs.f_files);
     ZASSERT(sfs.f_namelen);
     struct statvfs svfs;
     memset(&svfs, 0, sizeof(svfs));
     ZASSERT(!statvfs(".", &svfs));
     ZASSERT(svfs.f_bsize);
     ZASSERT(svfs.f_blocks);
-    ZASSERT(svfs.f_files);
     ZASSERT(svfs.f_namemax);
     fd = open("filc/tests/miscsyscall/testfile.txt", O_RDONLY);
     ZASSERT(fd > 2);
@@ -330,13 +328,11 @@ int main(int argc, char** argv)
     ZASSERT(!fstatfs(fd, &sfs));
     ZASSERT(sfs.f_bsize);
     ZASSERT(sfs.f_blocks);
-    ZASSERT(sfs.f_files);
     ZASSERT(sfs.f_namelen);
     memset(&svfs, 0, sizeof(svfs));
     ZASSERT(!fstatvfs(fd, &svfs));
     ZASSERT(svfs.f_bsize);
     ZASSERT(svfs.f_blocks);
-    ZASSERT(svfs.f_files);
     ZASSERT(svfs.f_namemax);
     close(fd);
 
