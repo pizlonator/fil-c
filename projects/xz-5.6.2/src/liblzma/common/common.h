@@ -90,10 +90,6 @@
 #		define LZMA_SYMVER_API(extnamever, type, intname) \
 			extern __attribute__((__symver__(extnamever))) \
 					LZMA_API(type) intname
-#	elif __PIZLONATOR_WAS_HERE__
-#		define LZMA_SYMVER_API(extnamever, type, intname) \
-			__asm__(".filc_symver " #intname "," extnamever); \
-			extern LZMA_API(type) intname
 #	else
 #		define LZMA_SYMVER_API(extnamever, type, intname) \
 			__asm__(".symver " #intname "," extnamever); \

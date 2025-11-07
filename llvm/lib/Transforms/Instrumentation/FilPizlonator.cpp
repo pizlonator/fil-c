@@ -8863,7 +8863,7 @@ class Pizlonator {
           }
           continue;
         }
-        if (Tok.Str == ".filc_symver") {
+        if (Tok.Str == ".symver" || Tok.Str == ".filc_symver") {
           std::string LocalName = MAT.getNextSpecific(MATokenKind::Identifier).Str;
           MAT.getNextSpecific(MATokenKind::Comma);
           std::string VersionedName = MAT.getNextSpecific(MATokenKind::Identifier).Str;

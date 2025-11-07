@@ -461,7 +461,7 @@
   __asm(".filc_alias " #local ", " #internal); \
   __hidden_nolink3 (local, internal, #name "@" #version)
 #  define __hidden_nolink3(local, internal, vername) \
-  __asm(".filc_symver " #internal ", " vername);
+  __asm(".symver " #internal ", " vername);
 # else
 /* For assembly, we need to do the opposite of what we do in C:
    in assembly gcc __REDIRECT stuff is not in place, so functions

@@ -223,14 +223,14 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* Referencing specific _compatibility_ symbols still needs inline asm.  */
 # define _symver_ref(extstr, intname, version) \
-  __asm__ (".filc_symver " #intname "," extstr "@" #version)
+  __asm__ (".symver " #intname "," extstr "@" #version)
 
 # else
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */
 # define symver_set(extstr, intname, version, mode) \
-  __asm__ (".filc_symver " #intname "," extstr mode #version)
+  __asm__ (".symver " #intname "," extstr mode #version)
 
 # endif
 

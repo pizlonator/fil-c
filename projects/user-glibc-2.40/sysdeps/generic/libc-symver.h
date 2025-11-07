@@ -44,7 +44,7 @@
      .symver real, name##@##version
 #else
 # define symbol_version_reference(real, name, version) \
-  __asm__ (".filc_symver " #real "," #name "@" #version)
+  __asm__ (".symver " #real "," #name "@" #version)
 #endif  /* !__ASSEMBLER__ */
 
 #if SYMVER_NEEDS_ALIAS
@@ -64,7 +64,7 @@
 # else
 #  define _set_symbol_version_2(real, alias, name_version) \
   __asm__ (".filc_alias " #real ", " #alias "\n\t"         \
-           ".filc_symver " #alias ", " name_version)
+           ".symver " #alias ", " name_version)
 # endif
 # define _set_symbol_version_1(real, alias, name_version) \
   _set_symbol_version_2 (real, alias, name_version)
@@ -79,7 +79,7 @@
   .symver real, name_version
 # else
 #  define _set_symbol_version(real, name_version) \
-  __asm__ (".filc_symver " #real "," name_version)
+  __asm__ (".symver " #real "," name_version)
 # endif
 #endif  /* !SYMVER_NEEDS_ALIAS */
 

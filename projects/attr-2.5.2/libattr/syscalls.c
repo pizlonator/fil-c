@@ -40,11 +40,11 @@
     * with all versions; use -flto-partition=none if you encounter problems.
     */
 #  define SYMVER(cn, vn) __typeof(cn) cn __attribute__((__no_reorder__)); \
-			 __asm__(".filc_symver " #cn "," vn)
+			 __asm__(".symver " #cn "," vn)
 # endif
 #endif
 #ifndef SYMVER
-#  define SYMVER(cn, vn) __asm__(".filc_symver " #cn "," vn)
+#  define SYMVER(cn, vn) __asm__(".symver " #cn "," vn)
 #endif
 
 #ifdef HAVE_VISIBILITY_ATTRIBUTE
