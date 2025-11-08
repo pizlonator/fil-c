@@ -2163,7 +2163,7 @@ local_var_name(const rb_iseq_t *diseq, VALUE level, VALUE op)
     return name;
 }
 
-int rb_insn_unified_local_var_level(VALUE);
+int rb_insn_unified_local_var_level(uintptr_t);
 VALUE rb_dump_literal(VALUE lit);
 
 VALUE

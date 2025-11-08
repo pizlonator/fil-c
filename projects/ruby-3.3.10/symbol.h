@@ -81,7 +81,7 @@ sym_type(VALUE sym)
 {
     ID id;
     if (STATIC_SYM_P(sym)) {
-        id = RSHIFT(sym, RUBY_SPECIAL_SHIFT);
+        id = RSHIFT((uintptr_t)sym, RUBY_SPECIAL_SHIFT);
         if (id<=tLAST_OP_ID) {
             return -1;
         }

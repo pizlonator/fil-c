@@ -1067,7 +1067,7 @@ typedef struct RNode_RIPPER_VALUES {
  *          8..14: nd_type,
  *          15..: nd_line
  */
-#define NODE_FL_NEWLINE              (((VALUE)1)<<7)
+#define NODE_FL_NEWLINE              (((uintptr_t)1)<<7)
 
 #define NODE_TYPESHIFT 8
 #define NODE_TYPEMASK  (((uintptr_t)0x7f)<<NODE_TYPESHIFT)

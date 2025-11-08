@@ -2223,7 +2223,7 @@ string_to_c_strict(VALUE self, int raise)
 
     if (!parse_comp(s, TRUE, &num)) {
         if (!raise) return Qnil;
-        rb_raise(rb_eArgError, "invalid value for convert(): %+"PRIsVALUE,
+        rb_raise(rb_eArgError, "invalid value for convert(): %"PRIsVALUE,
                  self);
     }
 

@@ -769,7 +769,7 @@ pm_lookup_local_index_any_scope(rb_iseq_t *iseq, pm_scope_node_t *scope_node, pm
 
     st_data_t local_index;
 
-    if (!st_lookup(scope_node->index_lookup_table, constant_id, &local_index)) {
+    if (!st_lookup(scope_node->index_lookup_table, (st_data_t)constant_id, &local_index)) {
         // Local does not exist at this level, continue recursing up
         return pm_lookup_local_index_any_scope(iseq, scope_node->previous, constant_id);
     }
@@ -782,7 +782,7 @@ pm_lookup_local_index(rb_iseq_t *iseq, pm_scope_node_t *scope_node, pm_constant_
 {
     st_data_t local_index;
 
-    if (!st_lookup(scope_node->index_lookup_table, constant_id, &local_index)) {
+    if (!st_lookup(scope_node->index_lookup_table, (st_data_t)constant_id, &local_index)) {
         rb_bug("This local does not exist");
     }
 
@@ -1881,7 +1881,7 @@ pm_compile_pattern(rb_iseq_t *iseq, pm_scope_node_t *scope_node, const pm_node_t
                     ADD_INSN(ret, &line.node, dup);
                     ADD_INSNL(ret, &line.node, branchif, match_succeeded_label);
 
-                    ADD_INSN1(ret, &line.node, putobject, rb_str_freeze(rb_sprintf("key not found: %+"PRIsVALUE, symbol)));
+                    ADD_INSN1(ret, &line.node, putobject, rb_str_freeze(rb_sprintf("key not found: %"PRIsVALUE, symbol)));
                     ADD_INSN1(ret, &line.node, setn, INT2FIX(base_index + PM_PATTERN_BASE_INDEX_OFFSET_ERROR_STRING + 2));
                     ADD_INSN1(ret, &line.node, putobject, Qtrue);
                     ADD_INSN1(ret, &line.node, setn, INT2FIX(base_index + PM_PATTERN_BASE_INDEX_OFFSET_KEY_ERROR_P + 3));
@@ -2378,7 +2378,7 @@ pm_compile_defined_expr0(rb_iseq_t *iseq, const pm_node_t *node, LINK_ANCHOR *co
       }
       case PM_BACK_REFERENCE_READ_NODE: {
         char *char_ptr = (char *)(node->location.start) + 1;
-        ID backref_val = INT2FIX(rb_intern2(char_ptr, 1)) << 1 | 1;
+        ID backref_val = (uintptr_t)INT2FIX(rb_intern2(char_ptr, 1)) << 1 | 1;
 
         PM_PUTNIL;
         ADD_INSN3(ret, &dummy_line_node, defined, INT2FIX(DEFINED_REF),
@@ -2705,7 +2705,7 @@ pm_insert_local_index(pm_constant_id_t constant_id, int local_index, st_table *i
 {
     ID local = pm_constant_id_lookup(scope_node, constant_id);
     local_table_for_iseq->ids[local_index] = local;
-    st_insert(index_lookup_table, constant_id, local_index);
+    st_insert(index_lookup_table, (st_data_t)constant_id, (st_data_t)local_index);
 }
 
 static int
@@ -2971,7 +2971,7 @@ pm_compile_node(rb_iseq_t *iseq, const pm_node_t *node, LINK_ANCHOR *const ret, 
             // Since a back reference is `$<char>`, ruby represents the ID as the
             // an rb_intern on the value after the `$`.
             char *char_ptr = (char *)(node->location.start) + 1;
-            ID backref_val = INT2FIX(rb_intern2(char_ptr, 1)) << 1 | 1;
+            ID backref_val = (uintptr_t)INT2FIX(rb_intern2(char_ptr, 1)) << 1 | 1;
             ADD_INSN2(ret, &dummy_line_node, getspecial, INT2FIX(1), backref_val);
         }
         return;
@@ -6513,7 +6513,7 @@ rb_translate_prism(pm_parser_t *parser, rb_iseq_t *iseq, pm_scope_node_t *scope_
     st_table *index_lookup_table = st_init_numtable();
     pm_constant_id_list_t *locals = &scope_node->locals;
     for (size_t i = 0; i < locals->size; i++) {
-        st_insert(index_lookup_table, locals->ids[i], i);
+        st_insert(index_lookup_table, (st_data_t)locals->ids[i], (st_data_t)i);
     }
     scope_node->constants = constants;
     scope_node->index_lookup_table = index_lookup_table;

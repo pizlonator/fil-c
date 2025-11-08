@@ -111,13 +111,13 @@ rb_insn_unified_local_var_level(uintptr_t insn)
       default:
         return -1; /* do nothing */;
       case BIN(getlocal_WC_0):
-        return 0;
+        return (int)0;
       case BIN(getlocal_WC_1):
-        return 1;
+        return (int)1;
       case BIN(setlocal_WC_0):
-        return 0;
+        return (int)0;
       case BIN(setlocal_WC_1):
-        return 1;
+        return (int)1;
       case BIN(putobject_INT2FIX_0_):
         return (int)INT2FIX(0);
       case BIN(putobject_INT2FIX_1_):

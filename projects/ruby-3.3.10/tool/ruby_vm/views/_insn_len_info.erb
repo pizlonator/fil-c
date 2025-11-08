@@ -5,7 +5,7 @@
 %# granted, to either  redistribute and/or modify this file,  provided that the
 %# conditions mentioned  in the  file COPYING  are met.   Consult the  file for
 %# details.
-CONSTFUNC(MAYBE_UNUSED(static int insn_len(VALUE insn)));
+CONSTFUNC(MAYBE_UNUSED(static int insn_len(uintptr_t insn)));
 
 RUBY_SYMBOL_EXPORT_BEGIN /* for debuggers */
 extern const uint8_t rb_vm_insn_len_info[VM_INSTRUCTION_SIZE];
@@ -22,7 +22,7 @@ ASSERT_VM_INSTRUCTION_SIZE(rb_vm_insn_len_info);
 #endif
 
 int
-insn_len(VALUE i)
+insn_len(uintptr_t i)
 {
     return rb_vm_insn_len_info[i];
 }
