@@ -581,6 +581,11 @@ int main(int argc, char** argv)
     struct timex timex;
     ZASSERT(!adjtimex(&timex));
 
+    struct sched_param param;
+    pthread_setschedparam(pthread_self(), 0, &param);
+    int policy;
+    pthread_getschedparam(pthread_self(), &policy, &param);
+
     zprintf("No worries.\n");
     return 0;
 }
