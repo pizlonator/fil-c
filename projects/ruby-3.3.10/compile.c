@@ -965,7 +965,7 @@ rb_iseq_compile_node(rb_iseq_t *iseq, const NODE *node)
     }
 #endif
     CHECK(iseq_setup_insn(iseq, ret));
-    return iseq_setup(iseq, ret);
+    return (VALUE)iseq_setup(iseq, ret);
 }
 
 static VALUE rb_translate_prism(pm_parser_t *parser, rb_iseq_t *iseq, pm_scope_node_t *scope_node, LINK_ANCHOR *const ret);
@@ -979,7 +979,7 @@ rb_iseq_compile_prism_node(rb_iseq_t * iseq, pm_scope_node_t *scope_node, pm_par
     CHECK(rb_translate_prism(parser, iseq, scope_node, ret));
 
     CHECK(iseq_setup_insn(iseq, ret));
-    return iseq_setup(iseq, ret);
+    return (VALUE)iseq_setup(iseq, ret);
 }
 
 static int
@@ -1023,7 +1023,7 @@ rb_iseq_original_iseq(const rb_iseq_t *iseq) /* cold path */
             const void *addr = (const void *)original_code[i];
             const int insn = rb_vm_insn_addr2insn(addr);
 
-            original_code[i] = insn;
+            original_code[i] = (VALUE)insn;
             i += insn_len(insn);
         }
     }
@@ -1377,7 +1377,7 @@ new_adjust_body(rb_iseq_t *iseq, LABEL *label, int line)
 static void
 iseq_insn_each_markable_object(INSN *insn, void (*func)(VALUE, VALUE), VALUE data)
 {
-    const char *types = insn_op_types(insn->insn_id);
+    const char *types = insn_op_types((uintptr_t)insn->insn_id);
     for (int j = 0; types[j]; j++) {
         char type = types[j];
         switch (type) {
@@ -1579,11 +1579,11 @@ iseq_insert_nop_between_end_and_cont(rb_iseq_t *iseq)
     const VALUE *tptr = RARRAY_CONST_PTR(catch_table_ary);
     for (i = 0; i < tlen; i++) {
         const VALUE *ptr = RARRAY_CONST_PTR(tptr[i]);
-        LINK_ELEMENT *end = (LINK_ELEMENT *)(ptr[2] & ~1);
-        LINK_ELEMENT *cont = (LINK_ELEMENT *)(ptr[4] & ~1);
+        LINK_ELEMENT *end = (LINK_ELEMENT *)zandptr(ptr[2], ~1);
+        LINK_ELEMENT *cont = (LINK_ELEMENT *)zandptr(ptr[4], ~1);
         LINK_ELEMENT *e;
 
-        enum rb_catch_type ct = (enum rb_catch_type)(ptr[0] & 0xffff);
+        enum rb_catch_type ct = (enum rb_catch_type)((uintptr_t)ptr[0] & 0xffff);
 
         if (ct != CATCH_TYPE_BREAK
             && ct != CATCH_TYPE_NEXT
@@ -2013,7 +2013,7 @@ iseq_set_arguments(rb_iseq_t *iseq, LINK_ANCHOR *const optargs, const NODE *cons
 
             while (node) {
                 label = NEW_LABEL(nd_line(RNODE(node)));
-                rb_ary_push(labels, (VALUE)label | 1);
+                rb_ary_push(labels, zorptr(label, 1));
                 ADD_LABEL(optargs, label);
                 NO_CHECK(COMPILE_POPPED(optargs, "optarg", node->nd_body));
                 node = node->nd_next;
@@ -2022,14 +2022,14 @@ iseq_set_arguments(rb_iseq_t *iseq, LINK_ANCHOR *const optargs, const NODE *cons
 
             /* last label */
             label = NEW_LABEL(nd_line(node_args));
-            rb_ary_push(labels, (VALUE)label | 1);
+            rb_ary_push(labels, zorptr(label, 1));
             ADD_LABEL(optargs, label);
 
             opt_table = ALLOC_N(VALUE, i+1);
 
             MEMCPY(opt_table, RARRAY_CONST_PTR(labels), VALUE, i+1);
             for (j = 0; j < i+1; j++) {
-                opt_table[j] &= ~1;
+                opt_table[j] = zandptr(opt_table[j], ~1);
             }
             rb_ary_clear(labels);
 
@@ -2209,7 +2209,7 @@ static int
 cdhash_set_label_i(VALUE key, VALUE val, VALUE ptr)
 {
     struct cdhash_set_label_struct *data = (struct cdhash_set_label_struct *)ptr;
-    LABEL *lobj = (LABEL *)(val & ~1);
+    LABEL *lobj = (LABEL *)zandptr(val, ~1);
     rb_hash_aset(data->hash, key, INT2FIX(lobj->position - (data->pos+data->len)));
     return ST_CONTINUE;
 }
@@ -2557,7 +2557,7 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *const anchor)
                 /* fprintf(stderr, "insn: %-16s, sp: %d\n", insn_name(iobj->insn_id), sp); */
                 operands = iobj->operands;
                 insn = iobj->insn_id;
-                generated_iseq[code_index] = insn;
+                generated_iseq[code_index] = (VALUE)insn;
                 types = insn_op_types(insn);
                 len = insn_len(insn);
 
@@ -2570,7 +2570,7 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *const anchor)
                         {
                             /* label(destination position) */
                             LABEL *lobj = (LABEL *)operands[j];
-                            generated_iseq[code_index + 1 + j] = lobj->position - (code_index + len);
+                            generated_iseq[code_index + 1 + j] = (VALUE)(lobj->position - (code_index + len));
                             break;
                         }
                       case TS_CDHASH:
@@ -2592,7 +2592,7 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *const anchor)
                         }
                       case TS_LINDEX:
                       case TS_NUM:	/* ulong */
-                        generated_iseq[code_index + 1 + j] = FIX2INT(operands[j]);
+                        generated_iseq[code_index + 1 + j] = (VALUE)FIX2INT(operands[j]);
                         break;
                       case TS_ISEQ:	/* iseq */
                       case TS_VALUE:	/* VALUE */
@@ -2665,7 +2665,7 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *const anchor)
                             break;
                         }
                       case TS_ID: /* ID */
-                        generated_iseq[code_index + 1 + j] = SYM2ID(operands[j]);
+                        generated_iseq[code_index + 1 + j] = (VALUE)SYM2ID(operands[j]);
                         break;
                       case TS_FUNCPTR:
                         generated_iseq[code_index + 1 + j] = operands[j];
@@ -2716,11 +2716,11 @@ iseq_set_sequence(rb_iseq_t *iseq, LINK_ANCHOR *const anchor)
                         if (add_adjust_info(insns_info, positions, insns_info_index, code_index, adjust)) insns_info_index++;
                     }
                     if (diff > 1) {
-                        generated_iseq[code_index++] = BIN(adjuststack);
-                        generated_iseq[code_index++] = orig_sp - sp;
+                        generated_iseq[code_index++] = (VALUE)BIN(adjuststack);
+                        generated_iseq[code_index++] = (VALUE)(orig_sp - sp);
                     }
                     else if (diff == 1) {
-                        generated_iseq[code_index++] = BIN(pop);
+                        generated_iseq[code_index++] = (VALUE)BIN(pop);
                     }
                     else if (diff < 0) {
                         int label_no = adjust->label ? adjust->label->label_no : -1;
@@ -2809,15 +2809,15 @@ iseq_set_exception_table(rb_iseq_t *iseq)
         for (i = 0; i < table->size; i++) {
             ptr = RARRAY_CONST_PTR(tptr[i]);
             entry = UNALIGNED_MEMBER_PTR(table, entries[i]);
-            entry->type = (enum rb_catch_type)(ptr[0] & 0xffff);
-            entry->start = label_get_position((LABEL *)(ptr[1] & ~1));
-            entry->end = label_get_position((LABEL *)(ptr[2] & ~1));
+            entry->type = (enum rb_catch_type)((uintptr_t)ptr[0] & 0xffff);
+            entry->start = label_get_position((LABEL *)zandptr(ptr[1], ~1));
+            entry->end = label_get_position((LABEL *)zandptr(ptr[2], ~1));
             entry->iseq = (rb_iseq_t *)ptr[3];
             RB_OBJ_WRITTEN(iseq, Qundef, entry->iseq);
 
             /* stack depth */
             if (ptr[4]) {
-                LABEL *lobj = (LABEL *)(ptr[4] & ~1);
+                LABEL *lobj = (LABEL *)zandptr(ptr[4], ~1);
                 entry->cont = label_get_position(lobj);
                 entry->sp = label_get_sp(lobj);
 
