@@ -1122,7 +1122,7 @@ inspect_enumerator(VALUE obj, VALUE dummy, int recur)
             str = rb_inspect(eobj);
         }
         else {
-            str = rb_sprintf("#<%"PRIsVALUE": %+"PRIsVALUE">", rb_class_path(cname), eobj);
+            str = rb_sprintf("#<%"PRIsVALUE": %"PRIsVALUE">", rb_class_path(cname), eobj);
         }
         for (i = 0; i < RARRAY_LEN(e->procs); i++) {
             str = rb_sprintf("#<%"PRIsVALUE": %"PRIsVALUE, cname, str);
@@ -1138,7 +1138,7 @@ inspect_enumerator(VALUE obj, VALUE dummy, int recur)
     }
 
     /* (1..100).each_cons(2) => "#<Enumerator: 1..100:each_cons(2)>" */
-    str = rb_sprintf("#<%"PRIsVALUE": %+"PRIsVALUE, rb_class_path(cname), eobj);
+    str = rb_sprintf("#<%"PRIsVALUE": %"PRIsVALUE, rb_class_path(cname), eobj);
     append_method(obj, str, e->meth, e->args);
 
     rb_str_buf_cat2(str, ">");
@@ -3341,7 +3341,7 @@ inspect_enum_chain(VALUE obj, VALUE dummy, int recur)
         return rb_sprintf("#<%"PRIsVALUE": ...>", rb_class_path(klass));
     }
 
-    return rb_sprintf("#<%"PRIsVALUE": %+"PRIsVALUE">", rb_class_path(klass), ptr->enums);
+    return rb_sprintf("#<%"PRIsVALUE": %"PRIsVALUE">", rb_class_path(klass), ptr->enums);
 }
 
 /*
@@ -3688,7 +3688,7 @@ inspect_enum_product(VALUE obj, VALUE dummy, int recur)
         return rb_sprintf("#<%"PRIsVALUE": ...>", rb_class_path(klass));
     }
 
-    return rb_sprintf("#<%"PRIsVALUE": %+"PRIsVALUE">", rb_class_path(klass), ptr->enums);
+    return rb_sprintf("#<%"PRIsVALUE": %"PRIsVALUE">", rb_class_path(klass), ptr->enums);
 }
 
 /*
@@ -3878,7 +3878,7 @@ rb_arithmetic_sequence_beg_len_step(VALUE obj, long *begp, long *lenp, long *ste
     }
 
   out_of_range:
-    rb_raise(rb_eRangeError, "%+"PRIsVALUE" out of range", obj);
+    rb_raise(rb_eRangeError, "%"PRIsVALUE" out of range", obj);
     return Qnil;
 }
 

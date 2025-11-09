@@ -80,7 +80,7 @@ VALUE rb_newobj(void);
  * @exception  rb_eNoMemError  No space left.
  * @return     An allocated object, filled with the arguments.
  */
-VALUE rb_newobj_of(VALUE klass, VALUE flags);
+VALUE rb_newobj_of(VALUE klass, uintptr_t flags);
 
 /**
  * Fills common fields in the object.

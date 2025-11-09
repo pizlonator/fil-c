@@ -340,6 +340,14 @@ size_mul_add_mul_or_raise(size_t x, size_t y, size_t z, size_t w, VALUE exc)
 
 #define nomem_error GET_VM()->special_exceptions[ruby_error_nomemory]
 
+size_t rb_iseq_memsize(const rb_iseq_t *iseq);
+
+typedef int each_obj_callback(void *, void *, size_t, void *);
+
+#define UNEXPECTED_NODE(func) \
+    rb_bug(#func"(): GC does not handle T_NODE 0x%x(%p) 0x%"PRIxVALUE, \
+           BUILTIN_TYPE(obj), (void*)(obj), RBASIC(obj)->flags)
+
 #ifdef __FILC__
 
 /* FIXME: I started out writing this chunk thinking that I'd just replace some simple API with calls
@@ -405,14 +413,14 @@ rb_objspace_free(struct rb_objspace *objspace)
 }
 
 void
-rb_objspace_set_event_hook(const rb_event_flat_t event)
+rb_objspace_set_event_hook(const rb_event_flag_t event)
 {
 }
 
 size_t
 rb_size_pool_slot_size(unsigned char pool_id)
 {
-    GC_ASSERT(pool_id < SIZE_POOL_COUNT);
+    ZASSERT(pool_id < SIZE_POOL_COUNT);
 
     return (1 << pool_id) * sizeof(RVALUE);
 }
@@ -420,7 +428,7 @@ rb_size_pool_slot_size(unsigned char pool_id)
 bool
 rb_gc_size_allocatable_p(size_t size)
 {
-    return size <= size_pool_slot_size(SIZE_POOL_COUNT - 1);
+    return size <= rb_size_pool_slot_size(SIZE_POOL_COUNT - 1);
 }
 
 static inline VALUE newobj(VALUE klass, uintptr_t flags, VALUE v1, VALUE v2, VALUE v3, size_t size)
@@ -441,7 +449,7 @@ rb_wb_unprotected_newobj_of(VALUE klass, uintptr_t flags, size_t size)
 }
 
 VALUE
-rb_wb_protected_newobj_of(rb_execution_context_t *ec VALUE klass, uintptr_t flags, size_t size)
+rb_wb_protected_newobj_of(rb_execution_context_t *ec, VALUE klass, uintptr_t flags, size_t size)
 {
     return newobj(klass, flags, 0, 0, 0, size);
 }
@@ -455,8 +463,8 @@ rb_newobj(void)
 static VALUE
 rb_class_instance_allocate_internal(VALUE klass, uintptr_t flags)
 {
-    GC_ASSERT((flags & RUBY_T_MASK) == T_OBJECT);
-    GC_ASSERT(flags & ROBJECT_EMBED);
+    ZASSERT((flags & RUBY_T_MASK) == T_OBJECT);
+    ZASSERT(flags & ROBJECT_EMBED);
 
     size_t size;
     uint32_t index_tbl_num_entries = RCLASS_EXT(klass)->max_iv_count;
@@ -525,7 +533,7 @@ rb_imemo_tmpbuf_new(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
     size_t size = sizeof(struct rb_imemo_tmpbuf_struct);
     uintptr_t flags = T_IMEMO | (imemo_tmpbuf << FL_USHIFT);
-    return newobj(v0, flags, v1, v2, v3, FALSE, size);
+    return newobj(v0, flags, v1, v2, v3, size);
 }
 
 static VALUE
@@ -606,11 +614,11 @@ rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_
 }
 
 static VALUE
-typed_data_alloc(VALUE klass, VALUE typed_flag, void *datap, const rb_data_type_t *type, size_t size)
+typed_data_alloc(VALUE klass, uintptr_t typed_flag, void *datap, const rb_data_type_t *type, size_t size)
 {
     RBIMPL_NONNULL_ARG(type);
     if (klass) rb_data_object_check(klass);
-    return newobj(klass, T_DATA, (VALUE)type, 1 | typed_flag, (VALUE)datap, size);
+    return newobj(klass, T_DATA, (VALUE)type, (VALUE)(1 | typed_flag), (VALUE)datap, size);
 }
 
 VALUE
@@ -921,10 +929,10 @@ os_id2ref(VALUE os, VALUE objid)
 }
 
 static VALUE
-rb_find_object_id(VALUE obj, VALUE (*get_heap_object_id)(VALUE))
+rb_find_object_id(VALUE obj)
 {
     if (STATIC_SYM_P(obj)) {
-        return (SYM2ID(obj) * sizeof(RVALUE) + (4 << 2)) | FIXNUM_FLAG;
+        return (VALUE)((SYM2ID(obj) * sizeof(RVALUE) + (4 << 2)) | FIXNUM_FLAG);
     }
     else if (FLONUM_P(obj)) {
 #if SIZEOF_LONG == SIZEOF_VOIDP
@@ -1371,6 +1379,12 @@ rb_gc_count(void)
 }
 
 static VALUE
+gc_count(rb_execution_context_t *ec, VALUE self)
+{
+    return SIZET2NUM(rb_gc_count());
+}
+
+static VALUE
 gc_info_decode(const VALUE hash_or_key)
 {
     VALUE hash = Qnil;
@@ -1398,7 +1412,7 @@ rb_gc_enable(void)
 }
 
 VALUE
-rb_objspace_gc_enable(rb_objspace_t *objspace)
+rb_objspace_gc_enable(struct rb_objspace *objspace)
 {
     return Qtrue;
 }
@@ -1495,7 +1509,7 @@ xmalloc2_size(const size_t count, const size_t elsize)
 void *
 ruby_xmalloc2_body(size_t n, size_t size)
 {
-    return maloc(xmalloc2_size(n, size));
+    return malloc(xmalloc2_size(n, size));
 }
 
 void *
@@ -1608,7 +1622,7 @@ rb_alloc_tmp_buffer_with_count(volatile VALUE *store, size_t size, size_t cnt)
      * get rid of potential memory leak */
     imemo = rb_imemo_tmpbuf_auto_free_maybe_mark_buffer(NULL, 0);
     *store = imemo;
-    ptr = ruby_xmalloc0(size);
+    ptr = malloc(size);
     tmpbuf = (rb_imemo_tmpbuf_t *)imemo;
     tmpbuf->ptr = ptr;
     tmpbuf->cnt = cnt;
@@ -1775,6 +1789,7 @@ rb_raw_obj_info_common(char *const buff, const size_t buff_size, const VALUE obj
         }
     }
 
+  end:
     return pos;
 }
 
@@ -2076,6 +2091,12 @@ gc_verify_internal_consistency_m(VALUE dummy)
     return Qnil;
 }
 
+static VALUE
+undefine_final(VALUE os, VALUE obj)
+{
+    return rb_undefine_finalizer(obj);
+}
+
 #include "gc.rbinc"
 
 void
@@ -2091,12 +2112,12 @@ Init_GC(void)
     rb_mGC = rb_define_module("GC");
 
     gc_constants = rb_hash_new();
-    rb_hash_aset(gc_constants, ID2SYM(rb_intern("DEBUG")), RBOOL(GC_DEBUG));
+    rb_hash_aset(gc_constants, ID2SYM(rb_intern("DEBUG")), RBOOL(Qfalse));
     rb_hash_aset(gc_constants, ID2SYM(rb_intern("BASE_SLOT_SIZE")), SIZET2NUM(sizeof(RVALUE)));
     rb_hash_aset(gc_constants, ID2SYM(rb_intern("RVALUE_OVERHEAD")), SIZET2NUM(0));
     rb_hash_aset(gc_constants, ID2SYM(rb_intern("RVALUE_SIZE")), SIZET2NUM(sizeof(RVALUE)));
     rb_hash_aset(gc_constants, ID2SYM(rb_intern("SIZE_POOL_COUNT")), LONG2FIX(SIZE_POOL_COUNT));
-    rb_hash_aset(gc_constants, ID2SYM(rb_intern("RVARGC_MAX_ALLOCATE_SIZE")), LONG2FIX(size_pool_slot_size(SIZE_POOL_COUNT - 1)));
+    rb_hash_aset(gc_constants, ID2SYM(rb_intern("RVARGC_MAX_ALLOCATE_SIZE")), LONG2FIX(rb_size_pool_slot_size(SIZE_POOL_COUNT - 1)));
     OBJ_FREEZE(gc_constants);
     /* Internal constants in the garbage collector. */
     rb_define_const(rb_mGC, "INTERNAL_CONSTANTS", gc_constants);
@@ -3146,7 +3167,6 @@ gc_compact_compare_func ruby_autocompact_compare_func;
 
 void rb_iseq_mark_and_move(rb_iseq_t *iseq, bool referece_updating);
 void rb_iseq_free(const rb_iseq_t *iseq);
-size_t rb_iseq_memsize(const rb_iseq_t *iseq);
 void rb_vm_update_references(void *ptr);
 
 void rb_gcdebug_print_obj_condition(VALUE obj);
@@ -4811,10 +4831,6 @@ rb_newobj_of(VALUE klass, uintptr_t flags)
     }
 }
 
-#define UNEXPECTED_NODE(func) \
-    rb_bug(#func"(): GC does not handle T_NODE 0x%x(%p) 0x%"PRIxVALUE, \
-           BUILTIN_TYPE(obj), (void*)(obj), RBASIC(obj)->flags)
-
 const char *
 rb_imemo_name(enum imemo_type type)
 {
@@ -5693,7 +5709,6 @@ Init_gc_stress(void)
     gc_stress_set(objspace, ruby_initial_gc_stress);
 }
 
-typedef int each_obj_callback(void *, void *, size_t, void *);
 typedef int each_page_callback(struct heap_page *, void *);
 
 static void objspace_each_objects(rb_objspace_t *objspace, each_obj_callback *callback, void *data, bool protected);

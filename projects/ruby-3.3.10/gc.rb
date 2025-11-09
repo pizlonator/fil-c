@@ -36,12 +36,10 @@ module GC
   # are not guaranteed to be future-compatible, and may be ignored if the
   # underlying implementation does not support them.
   def self.start full_mark: true, immediate_mark: true, immediate_sweep: true
-    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false
   end
 
   # Alias of GC.start
   def garbage_collect full_mark: true, immediate_mark: true, immediate_sweep: true
-    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false
   end
 
   #  call-seq:
@@ -55,7 +53,7 @@ module GC
   #     GC.enable    #=> false
   #
   def self.enable
-    Primitive.gc_enable
+    true
   end
 
   #  call-seq:
@@ -67,7 +65,7 @@ module GC
   #     GC.disable   #=> false
   #     GC.disable   #=> true
   def self.disable
-    Primitive.gc_disable
+    true
   end
 
   #  call-seq:
@@ -75,7 +73,7 @@ module GC
   #
   #  Returns current status of \GC stress mode.
   def self.stress
-    Primitive.gc_stress_get
+    false
   end
 
   #  call-seq:
@@ -93,7 +91,7 @@ module GC
   #    0x02:: no immediate sweep
   #    0x04:: full mark after malloc/calloc/realloc
   def self.stress=(flag)
-    Primitive.gc_stress_set_m flag
+    nil
   end
 
   #  call-seq:
@@ -187,7 +185,11 @@ module GC
   #
   #  This method is only expected to work on CRuby.
   def self.stat hash_or_key = nil
-    Primitive.gc_stat hash_or_key
+    if hash_or_key.is_a? Hash
+      hash_or_key
+    else
+      0
+    end
   end
 
   # call-seq:
@@ -250,7 +252,11 @@ module GC
   #   due to running out of pooled slots.
   #
   def self.stat_heap heap_name = nil, hash_or_key = nil
-    Primitive.gc_stat_heap heap_name, hash_or_key
+    if hash_or_key.is_a? Hash
+      hash_or_key
+    else
+      0
+    end
   end
 
   # call-seq:
@@ -264,7 +270,11 @@ module GC
   # it is overwritten and returned.
   # This is intended to avoid probe effect.
   def self.latest_gc_info hash_or_key = nil
-    Primitive.gc_latest_gc_info hash_or_key
+    if hash_or_key.is_a? Hash
+      hash_or_key
+    else
+      0
+    end
   end
 
   if respond_to?(:compact)
@@ -283,7 +293,6 @@ module GC
     # object, that object should be pushed on the mark stack, and will
     # make a SEGV.
     def self.verify_compaction_references(toward: nil, double_heap: false, expand_heap: false)
-      Primitive.gc_verify_compaction_references(double_heap, expand_heap, toward == :empty)
     end
   end
 
@@ -294,10 +303,6 @@ module GC
   # You can get the result with <tt>GC.stat(:time)</tt>.
   # Note that \GC time measurement can cause some performance overhead.
   def self.measure_total_time=(flag)
-    Primitive.cstmt! %{
-      rb_objspace.flags.measure_gc = RTEST(flag) ? TRUE : FALSE;
-      return flag;
-    }
   end
 
   # call-seq:
@@ -306,9 +311,7 @@ module GC
   # Return measure_total_time flag (default: +true+).
   # Note that measurement can affect the application performance.
   def self.measure_total_time
-    Primitive.cexpr! %{
-      RBOOL(rb_objspace.flags.measure_gc)
-    }
+    false
   end
 
   # call-seq:
@@ -316,16 +319,13 @@ module GC
   #
   # Return measured \GC total time in nano seconds.
   def self.total_time
-    Primitive.cexpr! %{
-      ULL2NUM(rb_objspace.profile.marking_time_ns + rb_objspace.profile.sweeping_time_ns)
-    }
+    0
   end
 end
 
 module ObjectSpace
   # Alias of GC.start
   def garbage_collect full_mark: true, immediate_mark: true, immediate_sweep: true
-    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false
   end
 
   module_function :garbage_collect

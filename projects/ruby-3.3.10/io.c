@@ -1174,7 +1174,7 @@ internal_read_func(void *ptr)
 
     if (iis->timeout && !iis->nonblock) {
         if (io_internal_wait(iis->th, iis->fptr, 0, RB_WAITFD_IN, iis->timeout) == -1) {
-            return -1;
+            return (VALUE)-1;
         }
     }
 
@@ -1184,7 +1184,7 @@ internal_read_func(void *ptr)
     if (result < 0 && !iis->nonblock) {
         if (io_again_p(errno)) {
             if (io_internal_wait(iis->th, iis->fptr, errno, RB_WAITFD_IN, iis->timeout) == -1) {
-                return -1;
+                return (VALUE)-1;
             }
             else {
                 goto retry;
@@ -1192,7 +1192,7 @@ internal_read_func(void *ptr)
         }
     }
 
-    return result;
+    return (VALUE)result;
 }
 
 #if defined __APPLE__
@@ -1209,7 +1209,7 @@ internal_write_func(void *ptr)
 
     if (iis->timeout && !iis->nonblock) {
         if (io_internal_wait(iis->th, iis->fptr, 0, RB_WAITFD_OUT, iis->timeout) == -1) {
-            return -1;
+            return (VALUE)-1;
         }
     }
 
@@ -1220,7 +1220,7 @@ internal_write_func(void *ptr)
         int e = errno;
         if (io_again_p(e)) {
             if (io_internal_wait(iis->th, iis->fptr, errno, RB_WAITFD_OUT, iis->timeout) == -1) {
-                return -1;
+                return (VALUE)-1;
             }
             else {
                 goto retry;
@@ -1228,7 +1228,7 @@ internal_write_func(void *ptr)
         }
     }
 
-    return result;
+    return (VALUE)result;
 }
 
 #ifdef HAVE_WRITEV
@@ -1240,7 +1240,7 @@ internal_writev_func(void *ptr)
 
     if (iis->timeout && !iis->nonblock) {
         if (io_internal_wait(iis->th, iis->fptr, 0, RB_WAITFD_OUT, iis->timeout) == -1) {
-            return -1;
+            return (VALUE)-1;
         }
     }
 
@@ -1250,7 +1250,7 @@ internal_writev_func(void *ptr)
     if (result < 0 && !iis->nonblock) {
         if (io_again_p(errno)) {
             if (io_internal_wait(iis->th, iis->fptr, errno, RB_WAITFD_OUT, iis->timeout) == -1) {
-                return -1;
+                return (VALUE)-1;
             }
             else {
                 goto retry;
@@ -1258,7 +1258,7 @@ internal_writev_func(void *ptr)
         }
     }
 
-    return result;
+    return (VALUE)result;
 }
 #endif
 
@@ -1816,11 +1816,11 @@ io_binwrite_string(VALUE arg)
         }
         else {
             // The error was unrelated to waiting for it to become writable, so we fail:
-            return -1;
+            return (VALUE)-1;
         }
     }
 
-    return p->length;
+    return (VALUE)p->length;
 }
 
 inline static void
@@ -1873,10 +1873,10 @@ io_binwrite(VALUE str, const char *ptr, long len, rb_io_t *fptr, int nosync)
         arg.length = len;
 
         if (!NIL_P(fptr->write_lock)) {
-            return rb_mutex_synchronize(fptr->write_lock, io_binwrite_string, (VALUE)&arg);
+            return (long)rb_mutex_synchronize(fptr->write_lock, io_binwrite_string, (VALUE)&arg);
         }
         else {
-            return io_binwrite_string((VALUE)&arg);
+            return (long)io_binwrite_string((VALUE)&arg);
         }
     }
     else {
@@ -2060,7 +2060,7 @@ io_binwritev_internal(VALUE arg)
             }
 
             if (offset == p->total) {
-                return p->total;
+                return (VALUE)p->total;
             }
 
             while (result >= (ssize_t)iov->iov_len) {
@@ -2071,7 +2071,7 @@ io_binwritev_internal(VALUE arg)
 
                 if (!--iovcnt) {
                     // I don't believe this code path can ever occur.
-                    return offset;
+                    return (VALUE)offset;
                 }
             }
 
@@ -2082,11 +2082,11 @@ io_binwritev_internal(VALUE arg)
             rb_io_check_closed(fptr);
         }
         else {
-            return -1;
+            return (VALUE)-1;
         }
     }
 
-    return offset;
+    return (VALUE)offset;
 }
 
 static long
@@ -2138,10 +2138,10 @@ io_binwritev(struct iovec *iov, int iovcnt, rb_io_t *fptr)
     arg.total = total;
 
     if (!NIL_P(fptr->write_lock)) {
-        return rb_mutex_synchronize(fptr->write_lock, io_binwritev_internal, (VALUE)&arg);
+        return (long)rb_mutex_synchronize(fptr->write_lock, io_binwritev_internal, (VALUE)&arg);
     }
     else {
-        return io_binwritev_internal((VALUE)&arg);
+        return (long)io_binwritev_internal((VALUE)&arg);
     }
 }
 
@@ -2285,7 +2285,7 @@ rb_io_writev(VALUE io, int argc, const VALUE *argv)
             VALUE klass = CLASS_OF(io);
             char sep = FL_TEST(klass, FL_SINGLETON) ? (klass = io, '.') : '#';
             rb_category_warning(
-                RB_WARN_CATEGORY_DEPRECATED, "%+"PRIsVALUE"%c""write is outdated interface"
+                RB_WARN_CATEGORY_DEPRECATED, "%"PRIsVALUE"%c""write is outdated interface"
                 " which accepts just one argument",
                 klass, sep
             );

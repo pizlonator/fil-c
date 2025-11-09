@@ -9,49 +9,11 @@
 #include "builtin.h"                /* for RB_BUILTIN_FUNCTION */
 struct rb_execution_context_struct; /* in vm_core.h */
 
-static VALUE builtin_inline_class_297(struct rb_execution_context_struct *ec, const VALUE self)
-{
-MAYBE_UNUSED(const VALUE) flag = rb_vm_lvar(ec, -3);
-#line 297 "gc.rb"
-
-      rb_objspace.flags.measure_gc = RTEST(flag) ? TRUE : FALSE;
-      return flag;
-#line 20 "gc.rbinc"
-}
-
-static VALUE builtin_inline_class_309(struct rb_execution_context_struct *ec, const VALUE self)
-{
-#line 309 "gc.rb"
-return 
-      RBOOL(rb_objspace.flags.measure_gc);
-#line 28 "gc.rbinc"
-}
-
-static VALUE builtin_inline_class_319(struct rb_execution_context_struct *ec, const VALUE self)
-{
-#line 319 "gc.rb"
-return 
-      ULL2NUM(rb_objspace.profile.marking_time_ns + rb_objspace.profile.sweeping_time_ns);
-#line 36 "gc.rbinc"
-}
-
 void Init_builtin_gc(void)
 {
   // table definition
   static const struct rb_builtin_function gc_table[] = {
-    RB_BUILTIN_FUNCTION(0, gc_start_internal, gc_start_internal, 4),
-    RB_BUILTIN_FUNCTION(1, gc_enable, gc_enable, 0),
-    RB_BUILTIN_FUNCTION(2, gc_disable, gc_disable, 0),
-    RB_BUILTIN_FUNCTION(3, gc_stress_get, gc_stress_get, 0),
-    RB_BUILTIN_FUNCTION(4, gc_stress_set_m, gc_stress_set_m, 1),
-    RB_BUILTIN_FUNCTION(5, gc_count, gc_count, 0),
-    RB_BUILTIN_FUNCTION(6, gc_stat, gc_stat, 1),
-    RB_BUILTIN_FUNCTION(7, gc_stat_heap, gc_stat_heap, 2),
-    RB_BUILTIN_FUNCTION(8, gc_latest_gc_info, gc_latest_gc_info, 1),
-    RB_BUILTIN_FUNCTION(9, gc_verify_compaction_references, gc_verify_compaction_references, 3),
-    RB_BUILTIN_FUNCTION(10, _bi0, builtin_inline_class_297, 0),
-    RB_BUILTIN_FUNCTION(11, _bi1, builtin_inline_class_309, 0),
-    RB_BUILTIN_FUNCTION(12, _bi2, builtin_inline_class_319, 0),
+    RB_BUILTIN_FUNCTION(0, gc_count, gc_count, 0),
     RB_BUILTIN_FUNCTION(-1, NULL, NULL, 0),
   };
 
@@ -60,19 +22,7 @@ COMPILER_WARNING_PUSH
 #if GCC_VERSION_SINCE(5, 1, 0) || defined __clang__
 COMPILER_WARNING_ERROR(-Wincompatible-pointer-types)
 #endif
-  if (0) rb_builtin_function_check_arity4(gc_start_internal);
-  if (0) rb_builtin_function_check_arity0(gc_enable);
-  if (0) rb_builtin_function_check_arity0(gc_disable);
-  if (0) rb_builtin_function_check_arity0(gc_stress_get);
-  if (0) rb_builtin_function_check_arity1(gc_stress_set_m);
   if (0) rb_builtin_function_check_arity0(gc_count);
-  if (0) rb_builtin_function_check_arity1(gc_stat);
-  if (0) rb_builtin_function_check_arity2(gc_stat_heap);
-  if (0) rb_builtin_function_check_arity1(gc_latest_gc_info);
-  if (0) rb_builtin_function_check_arity3(gc_verify_compaction_references);
-  if (0) rb_builtin_function_check_arity0(builtin_inline_class_297);
-  if (0) rb_builtin_function_check_arity0(builtin_inline_class_309);
-  if (0) rb_builtin_function_check_arity0(builtin_inline_class_319);
 COMPILER_WARNING_POP
 
   // load

@@ -176,7 +176,7 @@ any_hash(VALUE a, st_index_t (*other_func)(VALUE))
     switch (TYPE(a)) {
       case T_SYMBOL:
         if (STATIC_SYM_P(a)) {
-            hnum = a >> (RUBY_SPECIAL_SHIFT + ID_SCOPE_SHIFT);
+            hnum = (uintptr_t)a >> (RUBY_SPECIAL_SHIFT + ID_SCOPE_SHIFT);
             hnum = rb_hash_start(hnum);
         }
         else {
@@ -364,7 +364,7 @@ rb_ident_hash(st_data_t n)
      *   many integers get interpreted as 2.0 or -2.0 [Bug #10761]
      */
     if (FLONUM_P(n)) {
-        n ^= dbl_to_index(rb_float_value(n));
+        n = (st_data_t)((uintptr_t)n ^ dbl_to_index(rb_float_value(n)));
     }
 #endif
 
@@ -1332,7 +1332,7 @@ static inline void
 iter_lev_in_flags_set(VALUE hash, unsigned long lev)
 {
     HASH_ASSERT(lev <= RHASH_LEV_MAX);
-    RBASIC(hash)->flags = ((RBASIC(hash)->flags & ~RHASH_LEV_MASK) | ((VALUE)lev << RHASH_LEV_SHIFT));
+    RBASIC(hash)->flags = ((RBASIC(hash)->flags & ~RHASH_LEV_MASK) | ((uintptr_t)lev << RHASH_LEV_SHIFT));
 }
 
 static inline bool
@@ -1465,9 +1465,9 @@ compact_after_delete(VALUE hash)
 }
 
 static VALUE
-hash_alloc_flags(VALUE klass, VALUE flags, VALUE ifnone, bool st)
+hash_alloc_flags(VALUE klass, uintptr_t flags, VALUE ifnone, bool st)
 {
-    const VALUE wb = (RGENGC_WB_PROTECTED_HASH ? FL_WB_PROTECTED : 0);
+    const uintptr_t wb = (RGENGC_WB_PROTECTED_HASH ? FL_WB_PROTECTED : 0);
     const size_t size = sizeof(struct RHash) + (st ? sizeof(st_table) : sizeof(ar_table));
 
     NEWOBJ_OF(hash, struct RHash, klass, T_HASH | wb | flags, size, 0);
@@ -1574,7 +1574,7 @@ hash_dup_with_compare_by_id(VALUE hash)
 }
 
 static VALUE
-hash_dup(VALUE hash, VALUE klass, VALUE flags)
+hash_dup(VALUE hash, VALUE klass, uintptr_t flags)
 {
     return hash_copy(hash_alloc_flags(klass, flags, RHASH_IFNONE(hash), !RHASH_EMPTY_P(hash) && RHASH_ST_TABLE_P(hash)),
                      hash);
@@ -1583,7 +1583,7 @@ hash_dup(VALUE hash, VALUE klass, VALUE flags)
 VALUE
 rb_hash_dup(VALUE hash)
 {
-    const VALUE flags = RBASIC(hash)->flags;
+    const uintptr_t flags = RBASIC(hash)->flags;
     VALUE ret = hash_dup(hash, rb_obj_class(hash),
                          flags & (FL_EXIVAR|RHASH_PROC_DEFAULT));
     if (flags & FL_EXIVAR)
@@ -3558,7 +3558,7 @@ rb_hash_to_h(VALUE hash)
         return rb_hash_to_h_block(hash);
     }
     if (rb_obj_class(hash) != rb_cHash) {
-        const VALUE flags = RBASIC(hash)->flags;
+        const uintptr_t flags = RBASIC(hash)->flags;
         hash = hash_dup(hash, rb_cHash, flags & RHASH_PROC_DEFAULT);
     }
     return hash;
@@ -3841,8 +3841,8 @@ hash_i(VALUE key, VALUE val, VALUE arg)
     st_index_t *hval = (st_index_t *)arg;
     st_index_t hdata[2];
 
-    hdata[0] = rb_hash(key);
-    hdata[1] = rb_hash(val);
+    hdata[0] = (st_index_t)rb_hash(key);
+    hdata[1] = (st_index_t)rb_hash(val);
     *hval ^= st_hash(hdata, sizeof(hdata), 0);
     return ST_CONTINUE;
 }

@@ -830,11 +830,9 @@ static const struct {
 
 static const char prelude_name2[] = "<internal:gc>";
 static const struct {
-    RBIMPL_ATTR_NONSTRING() char L0[498]; /* 1..76 */
-    RBIMPL_ATTR_NONSTRING() char L76[507]; /* 77..253 */
-    RBIMPL_ATTR_NONSTRING() char L253[506]; /* 254..299 */
-    RBIMPL_ATTR_NONSTRING() char L299[476]; /* 300..330 */
-    RBIMPL_ATTR_NONSTRING() char L330[39]; /* 331..333 */
+    RBIMPL_ATTR_NONSTRING() char L0[508]; /* 1..169 */
+    RBIMPL_ATTR_NONSTRING() char L169[501]; /* 170..294 */
+    RBIMPL_ATTR_NONSTRING() char L294[404]; /* 295..333 */
 } prelude_code2 = {
 #line 1 "gc.rb"
 ""/* for gc.c */
@@ -875,12 +873,10 @@ static const struct {
 "\n"/* are not guaranteed to be future-compatible, and may be ignored if the */
 "\n"/* underlying implementation does not support them. */
 "  def self.start full_mark: true, immediate_mark: true, immediate_sweep: true\n"
-"    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false\n"
 "  end\n"
 "\n"
 "\n"/* Alias of GC.start */
 "  def garbage_collect full_mark: true, immediate_mark: true, immediate_sweep: true\n"
-"    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false\n"
 "  end\n"
 "\n"
 "\n"/*  call-seq: */
@@ -894,7 +890,7 @@ static const struct {
 "\n"/*     GC.enable    #=> false */
 "\n"/*  */
 "  def self.enable\n"
-"    Primitive.gc_enable\n"
+"    true\n"
 "  end\n"
 "\n"
 "\n"/*  call-seq: */
@@ -906,17 +902,15 @@ static const struct {
 "\n"/*     GC.disable   #=> false */
 "\n"/*     GC.disable   #=> true */
 "  def self.disable\n"
-"    Primitive.gc_disable\n"
+"    true\n"
 "  end\n"
 "\n"
 "\n"/*  call-seq: */
 "\n"/*    GC.stress\t    -> integer, true or false */
 "\n"/*  */
 "\n"/*  Returns current status of \\GC stress mode. */
-,
-#line 77 "gc.rb"
 "  def self.stress\n"
-"    Primitive.gc_stress_get\n"
+"    false\n"
 "  end\n"
 "\n"
 "\n"/*  call-seq: */
@@ -934,7 +928,7 @@ static const struct {
 "\n"/*    0x02:: no immediate sweep */
 "\n"/*    0x04:: full mark after malloc/calloc/realloc */
 "  def self.stress=(flag)\n"
-"    Primitive.gc_stress_set_m flag\n"
+"    nil\n"
 "  end\n"
 "\n"
 "\n"/*  call-seq: */
@@ -1010,6 +1004,8 @@ static const struct {
 "\n"/*    The total number of objects compaction has moved */
 "\n"/*  [remembered_wb_unprotected_objects] */
 "\n"/*    The total number of objects without write barriers */
+,
+#line 170 "gc.rb"
 "\n"/*  [remembered_wb_unprotected_objects_limit] */
 "\n"/*    When +:remembered_wb_unprotected_objects+ crosses this limit, */
 "\n"/*    major \\GC is triggered */
@@ -1028,7 +1024,11 @@ static const struct {
 "\n"/*  */
 "\n"/*  This method is only expected to work on CRuby. */
 "  def self.stat hash_or_key = nil\n"
-"    Primitive.gc_stat hash_or_key\n"
+"    if hash_or_key.is_a? Hash\n"
+"      hash_or_key\n"
+"    else\n"
+"      0\n"
+"    end\n"
 "  end\n"
 "\n"
 "\n"/* call-seq: */
@@ -1091,9 +1091,11 @@ static const struct {
 "\n"/*   due to running out of pooled slots. */
 "\n"/*  */
 "  def self.stat_heap heap_name = nil, hash_or_key = nil\n"
-"    Primitive.gc_stat_heap heap_name, hash_or_key\n"
-,
-#line 254 "gc.rb"
+"    if hash_or_key.is_a? Hash\n"
+"      hash_or_key\n"
+"    else\n"
+"      0\n"
+"    end\n"
 "  end\n"
 "\n"
 "\n"/* call-seq: */
@@ -1107,7 +1109,11 @@ static const struct {
 "\n"/* it is overwritten and returned. */
 "\n"/* This is intended to avoid probe effect. */
 "  def self.latest_gc_info hash_or_key = nil\n"
-"    Primitive.gc_latest_gc_info hash_or_key\n"
+"    if hash_or_key.is_a? Hash\n"
+"      hash_or_key\n"
+"    else\n"
+"      0\n"
+"    end\n"
 "  end\n"
 "\n"
 "  if respond_to?(:compact)\n"
@@ -1125,8 +1131,9 @@ static const struct {
 "\n"/* then performs a full \\GC.  If any object contains a reference to a T_MOVED */
 "\n"/* object, that object should be pushed on the mark stack, and will */
 "\n"/* make a SEGV. */
+,
+#line 295 "gc.rb"
 "    def self.verify_compaction_references(toward: nil, double_heap: false, expand_heap: false)\n"
-"      Primitive.gc_verify_compaction_references(double_heap, expand_heap, toward == :empty)\n"
 "    end\n"
 "  end\n"
 "\n"
@@ -1137,12 +1144,6 @@ static const struct {
 "\n"/* You can get the result with <tt>GC.stat(:time)</tt>. */
 "\n"/* Note that \\GC time measurement can cause some performance overhead. */
 "  def self.measure_total_time=(flag)\n"
-"    Primitive.cstmt! %{\n"
-"      rb_objspace.flags.measure_gc = RTEST(flag) ? TRUE : FALSE;\n"
-"      return flag;\n"
-,
-#line 300 "gc.rb"
-"    }\n"
 "  end\n"
 "\n"
 "\n"/* call-seq: */
@@ -1151,9 +1152,7 @@ static const struct {
 "\n"/* Return measure_total_time flag (default: +true+). */
 "\n"/* Note that measurement can affect the application performance. */
 "  def self.measure_total_time\n"
-"    Primitive.cexpr! %{\n"
-"      RBOOL(rb_objspace.flags.measure_gc)\n"
-"    }\n"
+"    false\n"
 "  end\n"
 "\n"
 "\n"/* call-seq: */
@@ -1161,23 +1160,18 @@ static const struct {
 "\n"/*  */
 "\n"/* Return measured \\GC total time in nano seconds. */
 "  def self.total_time\n"
-"    Primitive.cexpr! %{\n"
-"      ULL2NUM(rb_objspace.profile.marking_time_ns + rb_objspace.profile.sweeping_time_ns)\n"
-"    }\n"
+"    0\n"
 "  end\n"
 "end\n"
 "\n"
 "module ObjectSpace\n"
 "\n"/* Alias of GC.start */
 "  def garbage_collect full_mark: true, immediate_mark: true, immediate_sweep: true\n"
-"    Primitive.gc_start_internal full_mark, immediate_mark, immediate_sweep, false\n"
 "  end\n"
 "\n"
-,
-#line 331 "gc.rb"
 "  module_function :garbage_collect\n"
 "end\n"
-#line 1181 "miniprelude.c"
+#line 1175 "miniprelude.c"
 };
 
 static const char prelude_name3[] = "<internal:numeric>";
@@ -1569,7 +1563,7 @@ static const struct {
 "  end\n"
 "\n"
 "end\n"
-#line 1573 "miniprelude.c"
+#line 1567 "miniprelude.c"
 };
 
 static const char prelude_name4[] = "<internal:io>";
@@ -1713,7 +1707,7 @@ static const struct {
 "    Primitive.io_readline(sep, limit, chomp)\n"
 "  end\n"
 "end\n"
-#line 1717 "miniprelude.c"
+#line 1711 "miniprelude.c"
 };
 
 static const char prelude_name5[] = "<internal:marshal>";
@@ -1761,7 +1755,7 @@ static const struct {
 "    alias restore load\n"
 "  end\n"
 "end\n"
-#line 1765 "miniprelude.c"
+#line 1759 "miniprelude.c"
 };
 
 static const char prelude_name6[] = "<internal:rjit>";
@@ -1813,7 +1807,7 @@ static const struct {
 "  require 'ruby_vm/rjit/hooks'\n"
 "  require 'ruby_vm/rjit/stats'\n"
 "end\n"
-#line 1817 "miniprelude.c"
+#line 1811 "miniprelude.c"
 };
 
 static const char prelude_name7[] = "<internal:rjit_c>";
@@ -4119,7 +4113,7 @@ static const struct {
 "\n"
 "\n"/* # RJIT bindgen end ### */
 "end if Primitive.rjit_enabled_p\n"
-#line 4123 "miniprelude.c"
+#line 4117 "miniprelude.c"
 };
 
 static const char prelude_name8[] = "<internal:pack>";
@@ -4158,7 +4152,7 @@ static const struct {
 "    Primitive.pack_unpack1(fmt, offset)\n"
 "  end\n"
 "end\n"
-#line 4162 "miniprelude.c"
+#line 4156 "miniprelude.c"
 };
 
 static const char prelude_name9[] = "<internal:trace_point>";
@@ -4593,7 +4587,7 @@ static const struct {
 "    Primitive.tracepoint_attr_instruction_sequence\n"
 "  end\n"
 "end\n"
-#line 4597 "miniprelude.c"
+#line 4591 "miniprelude.c"
 };
 
 static const char prelude_name10[] = "<internal:warning>";
@@ -4654,7 +4648,7 @@ static const struct {
 "    Primitive.rb_warn_m(msgs, uplevel, category)\n"
 "  end\n"
 "end\n"
-#line 4658 "miniprelude.c"
+#line 4652 "miniprelude.c"
 };
 
 static const char prelude_name11[] = "<internal:array>";
@@ -4825,7 +4819,7 @@ static const struct {
 "    end\n"
 "  end\n"
 "end\n"
-#line 4829 "miniprelude.c"
+#line 4823 "miniprelude.c"
 };
 
 static const char prelude_name12[] = "<internal:kernel>";
@@ -5151,7 +5145,7 @@ static const struct {
 "    end\n"
 "  end\n"
 "end\n"
-#line 5155 "miniprelude.c"
+#line 5149 "miniprelude.c"
 };
 
 static const char prelude_name13[] = "<internal:ractor>";
@@ -6033,7 +6027,7 @@ static const struct {
 "    }\n"
 "  end\n"
 "end\n"
-#line 6037 "miniprelude.c"
+#line 6031 "miniprelude.c"
 };
 
 static const char prelude_name14[] = "<internal:symbol>";
@@ -6054,7 +6048,7 @@ static const struct {
 "\n"
 "  alias intern to_sym\n"
 "end\n"
-#line 6058 "miniprelude.c"
+#line 6052 "miniprelude.c"
 };
 
 static const char prelude_name15[] = "<internal:timev>";
@@ -6483,7 +6477,7 @@ static const struct {
 "    Primitive.time_init_args(year, mon, mday, hour, min, sec, zone)\n"
 "  end\n"
 "end\n"
-#line 6487 "miniprelude.c"
+#line 6481 "miniprelude.c"
 };
 
 static const char prelude_name16[] = "<internal:thread_sync>";
@@ -6562,7 +6556,7 @@ static const struct {
 "    alias_method :<<, :push\n"
 "  end\n"
 "end\n"
-#line 6566 "miniprelude.c"
+#line 6560 "miniprelude.c"
 };
 
 static const char prelude_name17[] = "<internal:nilclass>";
@@ -6595,7 +6589,7 @@ static const struct {
 "    return 0.0\n"
 "  end\n"
 "end\n"
-#line 6599 "miniprelude.c"
+#line 6593 "miniprelude.c"
 };
 
 static const char prelude_name18[] = "<internal:prelude>";
@@ -6634,7 +6628,7 @@ static const struct {
 "    klass.new(self, *args, &block)\n"
 "  end unless instance_methods.include?(:to_set)\n"/* RJIT could already load this from builtin prelude */
 "end\n"
-#line 6638 "miniprelude.c"
+#line 6632 "miniprelude.c"
 };
 
 static const char prelude_name19[] = "<internal:gem_prelude>";
@@ -6673,7 +6667,7 @@ static const struct {
 "  warn \"`syntax_suggest' was not loaded.\"\n"
 "end if defined?(SyntaxSuggest)\n"
 "\n"
-#line 6677 "miniprelude.c"
+#line 6671 "miniprelude.c"
 };
 
 static const char prelude_name20[] = "<internal:yjit>";
@@ -7278,7 +7272,7 @@ static const struct {
 "    end\n"
 "  end\n"
 "end\n"
-#line 7282 "miniprelude.c"
+#line 7276 "miniprelude.c"
 };
 
 COMPILER_WARNING_POP
