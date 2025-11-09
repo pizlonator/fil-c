@@ -670,7 +670,7 @@ cfunc_proc_new(VALUE klass, VALUE ifunc)
     vm_block_type_set(&proc->block, block_type_ifunc);
 
     *(VALUE **)&proc->block.as.captured.ep = ep = sproc->env + VM_ENV_DATA_SIZE-1;
-    ep[VM_ENV_DATA_INDEX_FLAGS]   = VM_FRAME_MAGIC_IFUNC | VM_FRAME_FLAG_CFRAME | VM_ENV_FLAG_LOCAL | VM_ENV_FLAG_ESCAPED;
+    ep[VM_ENV_DATA_INDEX_FLAGS]   = (VALUE)(VM_FRAME_MAGIC_IFUNC | VM_FRAME_FLAG_CFRAME | VM_ENV_FLAG_LOCAL | VM_ENV_FLAG_ESCAPED);
     ep[VM_ENV_DATA_INDEX_ME_CREF] = Qfalse;
     ep[VM_ENV_DATA_INDEX_SPECVAL] = VM_BLOCK_HANDLER_NONE;
     ep[VM_ENV_DATA_INDEX_ENV]     = Qundef; /* envval */
@@ -1571,7 +1571,7 @@ rb_block_to_s(VALUE self, const struct rb_block *block, const char *additional_i
         }
         break;
       case block_type_symbol:
-        rb_str_catf(str, "%p(&%+"PRIsVALUE")", (void *)self, block->as.symbol);
+        rb_str_catf(str, "%p(&%"PRIsVALUE")", (void *)self, block->as.symbol);
         break;
       case block_type_ifunc:
         rb_str_catf(str, "%p", (void *)block->as.captured.code.ifunc);
@@ -2513,7 +2513,7 @@ call_method_data(rb_execution_context_t *ec, const struct METHOD *data,
                  int argc, const VALUE *argv, VALUE passed_procval, int kw_splat)
 {
     vm_passed_block_handler_set(ec, proc_to_block_handler(passed_procval));
-    return rb_vm_call_kw(ec, data->recv, data->me->called_id, argc, argv,
+    return rb_vm_call_kw(ec, data->recv, (VALUE)data->me->called_id, argc, argv,
                          method_callable_method_entry(data), kw_splat);
 }
 
@@ -2608,7 +2608,7 @@ convert_umethod_to_method_components(const struct METHOD *data, VALUE recv, VALU
                      "singleton method called for a different object");
         }
         else {
-            rb_raise(rb_eTypeError, "bind argument must be an instance of % "PRIsVALUE,
+            rb_raise(rb_eTypeError, "bind argument must be an instance of %"PRIsVALUE,
                      methclass);
         }
     }
@@ -2724,7 +2724,7 @@ umethod_bind_call(int argc, VALUE *argv, VALUE method)
     const rb_callable_method_entry_t *cme = rb_callable_method_entry(CLASS_OF(recv), data->me->called_id);
     if (data->me == (const rb_method_entry_t *)cme) {
         vm_passed_block_handler_set(ec, proc_to_block_handler(passed_procval));
-        return rb_vm_call_kw(ec, recv, cme->called_id, argc, argv, cme, RB_PASS_CALLED_KEYWORDS);
+        return rb_vm_call_kw(ec, recv, (VALUE)cme->called_id, argc, argv, cme, RB_PASS_CALLED_KEYWORDS);
     }
     else {
         VALUE methclass, klass, iclass;
@@ -3146,7 +3146,7 @@ method_inspect(VALUE method)
     VALUE defined_class;
 
     TypedData_Get_Struct(method, struct METHOD, &method_data_type, data);
-    str = rb_sprintf("#<% "PRIsVALUE": ", rb_obj_class(method));
+    str = rb_sprintf("#<%"PRIsVALUE": ", rb_obj_class(method));
 
     mklass = data->iclass;
     if (!mklass) mklass = data->klass;
@@ -3204,7 +3204,7 @@ method_inspect(VALUE method)
         }
         rb_str_buf_append(str, rb_inspect(mklass));
         if (defined_class != mklass) {
-            rb_str_catf(str, "(% "PRIsVALUE")", defined_class);
+            rb_str_catf(str, "(%"PRIsVALUE")", defined_class);
         }
     }
     rb_str_buf_cat2(str, sharp);

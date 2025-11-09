@@ -117,9 +117,9 @@ rb_obj_reveal(VALUE obj, VALUE klass)
 }
 
 VALUE
-rb_obj_setup(VALUE obj, VALUE klass, VALUE type)
+rb_obj_setup(VALUE obj, VALUE klass, uintptr_t type)
 {
-    VALUE ignored_flags = RUBY_FL_PROMOTED | RUBY_FL_SEEN_OBJ_ID;
+    uintptr_t ignored_flags = RUBY_FL_PROMOTED | RUBY_FL_SEEN_OBJ_ID;
     RBASIC(obj)->flags = (type & ~ignored_flags) | (RBASIC(obj)->flags & ignored_flags);
     RBASIC_SET_CLASS(obj, klass);
     return obj;
@@ -396,10 +396,10 @@ special_object_p(VALUE obj)
 static VALUE
 obj_freeze_opt(VALUE freeze)
 {
-    switch (freeze) {
-      case Qfalse:
-      case Qtrue:
-      case Qnil:
+    switch ((uintptr_t)freeze) {
+      case (uintptr_t)Qfalse:
+      case (uintptr_t)Qtrue:
+      case (uintptr_t)Qnil:
         break;
       default:
         rb_raise(rb_eArgError, "unexpected value for freeze: %"PRIsVALUE, rb_obj_class(freeze));
@@ -466,8 +466,8 @@ rb_obj_clone_setup(VALUE obj, VALUE clone, VALUE kwfreeze)
 
     init_copy(clone, obj);
 
-    switch (kwfreeze) {
-      case Qnil:
+    switch ((uintptr_t)kwfreeze) {
+      case (uintptr_t)Qnil:
         rb_funcall(clone, id_init_clone, 1, obj);
         RBASIC(clone)->flags |= RBASIC(obj)->flags & FL_FREEZE;
         if (RB_OBJ_FROZEN(obj)) {
@@ -480,7 +480,7 @@ rb_obj_clone_setup(VALUE obj, VALUE clone, VALUE kwfreeze)
             }
         }
         break;
-      case Qtrue: {
+      case (uintptr_t)Qtrue: {
         static VALUE freeze_true_hash;
         if (!freeze_true_hash) {
             freeze_true_hash = rb_hash_new();
@@ -504,7 +504,7 @@ rb_obj_clone_setup(VALUE obj, VALUE clone, VALUE kwfreeze)
         }
         break;
       }
-      case Qfalse: {
+      case (uintptr_t)Qfalse: {
         static VALUE freeze_false_hash;
         if (!freeze_false_hash) {
             freeze_false_hash = rb_hash_new();
@@ -2608,7 +2608,7 @@ rb_mod_const_defined(int argc, VALUE *argv, VALUE mod)
         if (!rb_is_const_sym(name)) goto wrong_name;
         id = rb_check_id(&name);
         if (!id) return Qfalse;
-        return RTEST(recur) ? rb_const_defined(mod, id) : rb_const_defined_at(mod, id);
+        return (VALUE)(RTEST(recur) ? rb_const_defined(mod, id) : rb_const_defined_at(mod, id));
     }
 
     path = StringValuePtr(name);
@@ -3319,13 +3319,13 @@ rb_check_integer_type(VALUE val)
 int
 rb_bool_expected(VALUE obj, const char *flagname, int raise)
 {
-    switch (obj) {
-      case Qtrue:
+    switch ((uintptr_t)obj) {
+      case (uintptr_t)Qtrue:
         return TRUE;
-      case Qfalse:
+      case (uintptr_t)Qfalse:
         return FALSE;
       default: {
-        static const char message[] = "expected true or false as %s: %+"PRIsVALUE;
+        static const char message[] = "expected true or false as %s: %"PRIsVALUE;
         if (raise) {
             rb_raise(rb_eArgError, message, flagname, obj);
         }
@@ -3540,12 +3540,12 @@ rat2dbl_without_to_f(VALUE x)
 }
 
 #define special_const_to_float(val, pre, post) \
-    switch (val) { \
-      case Qnil: \
+    switch ((uintptr_t)val) { \
+      case (uintptr_t)Qnil: \
         rb_raise_static(rb_eTypeError, pre "nil" post); \
-      case Qtrue: \
+      case (uintptr_t)Qtrue: \
         rb_raise_static(rb_eTypeError, pre "true" post); \
-      case Qfalse: \
+      case (uintptr_t)Qfalse: \
         rb_raise_static(rb_eTypeError, pre "false" post); \
     }
 /*! \endcond */

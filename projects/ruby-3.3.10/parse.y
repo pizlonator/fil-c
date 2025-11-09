@@ -350,7 +350,7 @@ RBIMPL_WARNING_POP()
     parser_set_lex_state(p, ls, __LINE__)
 static inline enum lex_state_e parser_set_lex_state(struct parser_params *p, enum lex_state_e ls, int line);
 
-typedef VALUE stack_type;
+typedef uintptr_t stack_type;
 
 static const rb_code_location_t NULL_LOC = { {0, -1}, {0, -1} };
 
@@ -1932,9 +1932,9 @@ get_nd_args(struct parser_params *p, NODE *node)
 } tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL tOP_ASGN
 %printer {
 #ifndef RIPPER
-    rb_parser_printf(p, "%+"PRIsVALUE, RNODE_LIT($$)->nd_lit);
+    rb_parser_printf(p, "%"PRIsVALUE, RNODE_LIT($$)->nd_lit);
 #else
-    rb_parser_printf(p, "%+"PRIsVALUE, get_value($$));
+    rb_parser_printf(p, "%"PRIsVALUE, get_value($$));
 #endif
 } tINTEGER tFLOAT tRATIONAL tIMAGINARY tSTRING_CONTENT tCHAR
 %printer {
@@ -7413,7 +7413,7 @@ yycompile0(VALUE arg)
     }
     p->ast->body.root = tree;
     if (!p->ast->body.script_lines) p->ast->body.script_lines = INT2FIX(p->line_count);
-    return TRUE;
+    return (VALUE)TRUE;
 }
 
 static rb_ast_t *
@@ -8785,7 +8785,7 @@ dedent_string(struct parser_params *p, VALUE string, int width)
     rb_str_modify(string);
     str = RSTRING_PTR(string);
     if (RSTRING_LEN(string) != len)
-        rb_fatal("literal string changed: %+"PRIsVALUE, string);
+        rb_fatal("literal string changed: %"PRIsVALUE, string);
     MEMMOVE(str, str + i, char, len - i);
     rb_str_set_len(string, len - i);
     return i;
@@ -14619,7 +14619,7 @@ remove_duplicate_keys(struct parser_params *p, NODE *hash)
                  st_delete(literal_keys, (key = (st_data_t)RNODE_LIT(head)->nd_lit, &key), &data)) {
             NODE *dup_value = (RNODE_LIST((NODE *)data))->nd_next;
             rb_compile_warn(p->ruby_sourcefile, nd_line((NODE *)data),
-                            "key %+"PRIsVALUE" is duplicated and overwritten on line %d",
+                            "key %"PRIsVALUE" is duplicated and overwritten on line %d",
                             RNODE_LIT(head)->nd_lit, nd_line(head));
             if (dup_value == last_expr) {
                 RNODE_LIST(value)->nd_head = block_append(p, RNODE_LIST(dup_value)->nd_head, RNODE_LIST(value)->nd_head);
@@ -14656,7 +14656,7 @@ error_duplicate_pattern_variable(struct parser_params *p, ID id, const YYLTYPE *
     if (is_private_local_id(p, id)) {
         return;
     }
-    if (st_is_member(p->pvtbl, id)) {
+    if (st_is_member(p->pvtbl, (st_data_t)id)) {
         yyerror1(loc, "duplicated variable name");
     }
     else {
@@ -14665,12 +14665,12 @@ error_duplicate_pattern_variable(struct parser_params *p, ID id, const YYLTYPE *
 }
 
 static void
-error_duplicate_pattern_key(struct parser_params *p, VALUE key, const YYLTYPE *loc)
+error_duplicate_pattern_key(struct parser_params *p, ID key, const YYLTYPE *loc)
 {
     if (!p->pktbl) {
         p->pktbl = st_init_numtable();
     }
-    else if (st_is_member(p->pktbl, key)) {
+    else if (st_is_member(p->pktbl, (st_data_t)key)) {
         yyerror1(loc, "duplicated key name");
         return;
     }

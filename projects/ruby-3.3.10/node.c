@@ -483,5 +483,5 @@ rb_node_set_type(NODE *n, enum node_type t)
 #if RUBY_DEBUG
     rb_ast_node_type_change(n, t);
 #endif
-    return nd_init_type(n, t);
+    return (VALUE)(nd_init_type(n, t));
 }

@@ -103,7 +103,7 @@ VALUE rb_newobj_of(VALUE klass, uintptr_t flags);
  * They normally only concern ::RUBY_T_DATA.   This argument is mainly used for
  * specifying flags, @shyouhei suspects.
  */
-VALUE rb_obj_setup(VALUE obj, VALUE klass, VALUE type);
+VALUE rb_obj_setup(VALUE obj, VALUE klass, uintptr_t type);
 
 /**
  * Queries  the  class  of  an  object.    This  is  not  always  identical  to

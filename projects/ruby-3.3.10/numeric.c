@@ -3564,7 +3564,7 @@ VALUE
 rb_int_odd_p(VALUE num)
 {
     if (FIXNUM_P(num)) {
-        return RBOOL(num & 2);
+        return RBOOL((uintptr_t)num & 2);
     }
     else {
         assert(RB_BIGNUM_TYPE_P(num));
@@ -3576,7 +3576,7 @@ static VALUE
 int_even_p(VALUE num)
 {
     if (FIXNUM_P(num)) {
-        return RBOOL((num & 2) == 0);
+        return RBOOL(((uintptr_t)num & 2) == 0);
     }
     else {
         assert(RB_BIGNUM_TYPE_P(num));
@@ -4048,9 +4048,9 @@ fix_mul(VALUE x, VALUE y)
         return rb_fix_mul_fix(x, y);
     }
     else if (RB_BIGNUM_TYPE_P(y)) {
-        switch (x) {
-          case INT2FIX(0): return x;
-          case INT2FIX(1): return y;
+        switch ((uintptr_t)x) {
+          case (uintptr_t)INT2FIX(0): return x;
+          case (uintptr_t)INT2FIX(1): return y;
         }
         return rb_big_mul(y, x);
     }
@@ -4353,7 +4353,7 @@ int_remainder(VALUE x, VALUE y)
         if (FIXNUM_P(y)) {
             VALUE z = fix_mod(x, y);
             assert(FIXNUM_P(z));
-            if (z != INT2FIX(0) && (SIGNED_VALUE)(x ^ y) < 0)
+            if (z != INT2FIX(0) && (SIGNED_VALUE)((uintptr_t)x ^ (uintptr_t)y) < 0)
                 z = fix_minus(z, y);
             return z;
         }
@@ -4652,9 +4652,9 @@ fix_cmp(VALUE x, VALUE y)
     }
     else if (RB_BIGNUM_TYPE_P(y)) {
         VALUE cmp = rb_big_cmp(y, x);
-        switch (cmp) {
-          case INT2FIX(+1): return INT2FIX(-1);
-          case INT2FIX(-1): return INT2FIX(+1);
+        switch ((uintptr_t)cmp) {
+          case (uintptr_t)INT2FIX(+1): return INT2FIX(-1);
+          case (uintptr_t)INT2FIX(-1): return INT2FIX(+1);
         }
         return cmp;
     }
@@ -4893,7 +4893,7 @@ int_le(VALUE x, VALUE y)
 static VALUE
 fix_comp(VALUE num)
 {
-    return ~num | FIXNUM_FLAG;
+    return (VALUE)(~(uintptr_t)num | FIXNUM_FLAG);
 }
 
 VALUE

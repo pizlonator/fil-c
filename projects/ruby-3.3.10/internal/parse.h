@@ -40,7 +40,7 @@ typedef struct rb_strterm_heredoc_struct {
 #define HERETERM_LENGTH_MAX UINT_MAX
 
 typedef struct rb_strterm_struct {
-    VALUE flags;
+    uintptr_t flags;
     union {
         rb_strterm_literal_t literal;
         rb_strterm_heredoc_t heredoc;
