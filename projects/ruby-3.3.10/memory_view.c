@@ -77,7 +77,7 @@ exported_object_add_ref(st_data_t *key, st_data_t *val, st_data_t arg, int exist
         *val += 1;
     }
     else {
-        *val = 1;
+        *val = (st_data_t)1;
     }
     return ST_CONTINUE;
 }

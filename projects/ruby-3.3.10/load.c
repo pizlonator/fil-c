@@ -212,7 +212,7 @@ get_loading_table(rb_vm_t *vm)
 static st_data_t
 feature_key(const char *str, size_t len)
 {
-    return st_hash(str, len, 0xfea7009e);
+    return (st_data_t)st_hash(str, len, 0xfea7009e);
 }
 
 static bool
@@ -942,9 +942,9 @@ load_lock(rb_vm_t *vm, const char *ftptr, bool warn)
         rb_backtrace_each(rb_str_append, warning);
         rb_warning("%"PRIsVALUE, warning);
     }
-    switch (rb_thread_shield_wait((VALUE)data)) {
-      case Qfalse:
-      case Qnil:
+    switch ((uintptr_t)rb_thread_shield_wait((VALUE)data)) {
+      case (uintptr_t)Qfalse:
+      case (uintptr_t)Qnil:
         return 0;
     }
     return (char *)ftptr;
@@ -975,7 +975,7 @@ load_unlock(rb_vm_t *vm, const char *ftptr, int done)
         st_data_t key = (st_data_t)ftptr;
         st_table *loading_tbl = get_loading_table(vm);
 
-        st_update(loading_tbl, key, release_thread_shield, done);
+        st_update(loading_tbl, key, release_thread_shield, (st_data_t)done);
     }
 }
 

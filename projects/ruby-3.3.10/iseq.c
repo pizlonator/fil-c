@@ -573,7 +573,7 @@ static void
 set_relation(rb_iseq_t *iseq, const rb_iseq_t *piseq)
 {
     struct rb_iseq_constant_body *const body = ISEQ_BODY(iseq);
-    const VALUE type = body->type;
+    const enum rb_iseq_type type = body->type;
 
     /* set class nest stack */
     if (type == ISEQ_TYPE_TOP) {
@@ -1077,7 +1077,7 @@ iseq_load(VALUE data, const rb_iseq_t *parent, VALUE opt)
     VALUE name, path, realpath, code_location, node_id;
     VALUE type, body, locals, params, exception;
 
-    st_data_t iseq_type;
+    enum rb_iseq_type iseq_type;
     rb_compile_option_t option;
     int i = 0;
     rb_code_location_t tmp_loc = { {0, 0}, {-1, -1} };
@@ -2137,7 +2137,7 @@ rb_iseq_clear_event_flags(const rb_iseq_t *iseq, size_t pos, rb_event_flag_t res
 }
 
 static VALUE
-local_var_name(const rb_iseq_t *diseq, VALUE level, VALUE op)
+local_var_name(const rb_iseq_t *diseq, VALUE level, uintptr_t op)
 {
     VALUE i;
     VALUE name;
@@ -2171,7 +2171,7 @@ rb_insn_operand_intern(const rb_iseq_t *iseq,
                        VALUE insn, int op_no, VALUE op,
                        int len, size_t pos, const VALUE *pnop, VALUE child)
 {
-    const char *types = insn_op_types(insn);
+    const char *types = (const char *)insn_op_types((uintptr_t)insn);
     char type = types[op_no];
     VALUE ret = Qundef;
 
@@ -2211,18 +2211,18 @@ rb_insn_operand_intern(const rb_iseq_t *iseq,
       case TS_LINDEX:{
         int level;
         if (types[op_no+1] == TS_NUM && pnop) {
-            ret = local_var_name(iseq, *pnop, op - VM_ENV_DATA_SIZE);
+            ret = local_var_name(iseq, *pnop, (uintptr_t)op - VM_ENV_DATA_SIZE);
         }
-        else if ((level = rb_insn_unified_local_var_level(insn)) >= 0) {
-            ret = local_var_name(iseq, (VALUE)level, op - VM_ENV_DATA_SIZE);
+        else if ((level = rb_insn_unified_local_var_level((uintptr_t)insn)) >= 0) {
+            ret = local_var_name(iseq, (VALUE)level, (uintptr_t)op - VM_ENV_DATA_SIZE);
         }
         else {
-            ret = rb_inspect(INT2FIX(op));
+            ret = rb_inspect(INT2FIX((uintptr_t)op));
         }
         break;
       }
       case TS_ID:		/* ID (symbol) */
-        ret = rb_inspect(ID2SYM(op));
+        ret = rb_inspect(ID2SYM((uintptr_t)op));
         break;
 
       case TS_VALUE:		/* VALUE */
@@ -2369,7 +2369,7 @@ int
 rb_iseq_disasm_insn(VALUE ret, const VALUE *code, size_t pos,
                     const rb_iseq_t *iseq, VALUE child)
 {
-    VALUE insn = code[pos];
+    uintptr_t insn = (uintptr_t)code[pos];
     int len = insn_len(insn);
     int j;
     const char *types = insn_op_types(insn);
@@ -2387,7 +2387,7 @@ rb_iseq_disasm_insn(VALUE ret, const VALUE *code, size_t pos,
     }
 
     for (j = 0; types[j]; j++) {
-        VALUE opstr = rb_insn_operand_intern(iseq, insn, j, code[pos + j + 1],
+        VALUE opstr = rb_insn_operand_intern(iseq, (VALUE)insn, j, code[pos + j + 1],
                                              len, pos, &code[pos + j + 2],
                                              child);
         rb_str_concat(str, opstr);
@@ -2706,7 +2706,7 @@ iseq_iterate_children(const rb_iseq_t *iseq, void (*iter_func)(const rb_iseq_t *
     }
 
     for (i=0; i<body->iseq_size;) {
-        VALUE insn = code[i];
+        uintptr_t insn = (uintptr_t)code[i];
         int len = insn_len(insn);
         const char *types = insn_op_types(insn);
         int j;
@@ -2913,12 +2913,12 @@ static VALUE
 register_label(struct st_table *table, unsigned long idx)
 {
     VALUE sym = rb_str_intern(rb_sprintf("label_%lu", idx));
-    st_insert(table, idx, sym);
+    st_insert(table, (st_data_t)idx, sym);
     return sym;
 }
 
 static VALUE
-exception_type2symbol(VALUE type)
+exception_type2symbol(enum rb_catch_type type)
 {
     ID id;
     switch (type) {
@@ -2954,7 +2954,7 @@ static const rb_data_type_t label_wrapper = {
 #define INIT_ID(name) \
   id_##name = rb_intern(#name)
 
-static VALUE
+static ID
 iseq_type_id(enum rb_iseq_type type)
 {
     DECL_ID(top);
@@ -3054,7 +3054,7 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
             VALUE arg_opt_labels = rb_ary_new2(len);
 
             for (j = 0; j < len; j++) {
-                VALUE l = register_label(labels_table, iseq_body->param.opt_table[j]);
+                VALUE l = register_label(labels_table, (uintptr_t)iseq_body->param.opt_table[j]);
                 rb_ary_push(arg_opt_labels, l);
             }
             rb_hash_aset(params, ID2SYM(rb_intern("opt")), arg_opt_labels);
@@ -3092,7 +3092,7 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
     iseq_original = rb_iseq_original_iseq((rb_iseq_t *)iseq);
 
     for (seq = iseq_original; seq < iseq_original + iseq_body->iseq_size; ) {
-        VALUE insn = *seq++;
+        uintptr_t insn = (uintptr_t)*seq++;
         int j, len = insn_len(insn);
         VALUE *nseq = seq + len - 1;
         VALUE ary = rb_ary_new2(len);
@@ -3103,13 +3103,13 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
 
             switch (op_type) {
               case TS_OFFSET: {
-                unsigned long idx = nseq - iseq_original + *seq;
+                unsigned long idx = nseq - iseq_original + (uintptr_t)*seq;
                 rb_ary_push(ary, register_label(labels_table, idx));
                 break;
               }
               case TS_LINDEX:
               case TS_NUM:
-                rb_ary_push(ary, INT2FIX(*seq));
+                rb_ary_push(ary, INT2FIX((uintptr_t)*seq));
                 break;
               case TS_VALUE:
                 rb_ary_push(ary, obj_resurrect(*seq));
@@ -3173,7 +3173,7 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
                 }
                 break;
               case TS_ID:
-                rb_ary_push(ary, ID2SYM(*seq));
+                rb_ary_push(ary, ID2SYM((uintptr_t)*seq));
                 break;
               case TS_CDHASH:
                 {
@@ -3184,7 +3184,7 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
                     rb_hash_foreach(hash, cdhash_each, val);
 
                     for (i=0; i<RARRAY_LEN(val); i+=2) {
-                        VALUE pos = FIX2INT(rb_ary_entry(val, i+1));
+                        uintptr_t pos = FIX2INT(rb_ary_entry(val, i+1));
                         unsigned long idx = nseq - iseq_original + pos;
 
                         rb_ary_store(val, i+1,
@@ -3258,7 +3258,7 @@ iseq_data_to_ary(const rb_iseq_t *iseq)
         VALUE ary = RARRAY_AREF(nbody, l);
         st_data_t label;
 
-        if (st_lookup(labels_table, pos, &label)) {
+        if (st_lookup(labels_table, (st_data_t)pos, &label)) {
             rb_ary_push(body, (VALUE)label);
         }
 
@@ -3486,7 +3486,7 @@ rb_vm_encoded_insn_data_table_init(void)
 #else
 #define INSN_CODE(insn) ((VALUE)(insn))
 #endif
-    st_data_t insn;
+    uintptr_t insn;
     encoded_insn_data = st_init_numtable_with_size(VM_INSTRUCTION_SIZE / 2);
 
     for (insn = 0; insn < VM_INSTRUCTION_SIZE/2; insn++) {

@@ -519,7 +519,7 @@ w_symbol(VALUE sym, struct dump_arg *arg)
         encname = w_encivar(sym, arg);
         w_byte(TYPE_SYMBOL, arg);
         w_bytes(RSTRING_PTR(sym), RSTRING_LEN(sym), arg);
-        st_add_direct(arg->symbols, orig_sym, arg->symbols->num_entries);
+        st_add_direct(arg->symbols, orig_sym, (st_data_t)arg->symbols->num_entries);
         w_encname(encname, arg);
     }
 }
@@ -695,13 +695,13 @@ w_encoding(VALUE encname, struct dump_call_arg *arg)
 {
     int limit = arg->limit;
     if (limit >= 0) ++limit;
-    switch (encname) {
-      case Qfalse:
-      case Qtrue:
+    switch ((uintptr_t)encname) {
+      case (uintptr_t)Qfalse:
+      case (uintptr_t)Qtrue:
         w_symbol(ID2SYM(s_encoding_short), arg->arg);
         w_object(encname, arg->arg, limit);
         return 1;
-      case Qnil:
+      case (uintptr_t)Qnil:
         return 0;
     }
     w_symbol(ID2SYM(rb_id_encoding()), arg->arg);
@@ -736,7 +736,7 @@ static void
 w_ivar_each(VALUE obj, st_index_t num, struct dump_call_arg *arg)
 {
     shape_id_t shape_id = rb_shape_get_shape_id(arg->obj);
-    struct w_ivar_arg ivarg = {arg, num};
+    struct w_ivar_arg ivarg = {arg, (st_data_t)num};
     if (!num) return;
     rb_ivar_foreach(obj, w_obj_each, (st_data_t)&ivarg);
 
@@ -782,8 +782,8 @@ w_objivar(VALUE obj, struct dump_call_arg *arg)
     st_data_t num = 0;
 
     rb_ivar_foreach(obj, obj_count_ivars, (st_data_t)&num);
-    w_long(num, arg->arg);
-    w_ivar_each(obj, num, arg);
+    w_long((long)num, arg->arg);
+    w_ivar_each(obj, (st_index_t)num, arg);
 }
 
 #if SIZEOF_LONG > 4
@@ -839,7 +839,7 @@ w_bigfixnum(VALUE obj, struct dump_arg *arg)
 static void
 w_remember(VALUE obj, struct dump_arg *arg)
 {
-    st_add_direct(arg->data, obj, arg->num_entries++);
+    st_add_direct(arg->data, obj, (st_data_t)arg->num_entries++);
 }
 
 static void
@@ -1582,7 +1582,7 @@ r_symlink(struct load_arg *arg)
     st_data_t sym;
     long num = r_long(arg);
 
-    if (!st_lookup(arg->symbols, num, &sym)) {
+    if (!st_lookup(arg->symbols, (st_data_t)num, &sym)) {
         rb_raise(rb_eArgError, "bad symbol");
     }
     return (VALUE)sym;
@@ -1608,7 +1608,7 @@ r_symreal(struct load_arg *arg, int ivar)
     if (idx > 0) {
         rb_enc_associate_index(s, idx);
         if (is_broken_string(s)) {
-            rb_raise(rb_eArgError, "invalid byte sequence in %s: %+"PRIsVALUE,
+            rb_raise(rb_eArgError, "invalid byte sequence in %s: %"PRIsVALUE,
                      rb_enc_name(rb_enc_from_index(idx)), s);
         }
     }
@@ -1658,7 +1658,7 @@ r_entry0(VALUE v, st_index_t num, struct load_arg *arg)
         /* real_obj is kept if not found */
         st_lookup(arg->compat_tbl, v, &real_obj);
     }
-    st_insert(arg->data, num, real_obj);
+    st_insert(arg->data, (st_data_t)num, real_obj);
     st_insert(arg->partial_objects, (st_data_t)real_obj, Qtrue);
     return v;
 }
@@ -2019,10 +2019,10 @@ r_object_for(struct load_arg *arg, bool partial, int *ivp, VALUE extmod, int typ
 
             if (SIZEOF_VALUE >= 8 && len <= 4) {
                 // Representable within uintptr, likely FIXNUM
-                VALUE num = 0;
+                uintptr_t num = 0;
                 for (int i = 0; i < len; i++) {
-                    num |= (VALUE)r_byte(arg) << (i * 16);
-                    num |= (VALUE)r_byte(arg) << (i * 16 + 8);
+                    num |= (uintptr_t)r_byte(arg) << (i * 16);
+                    num |= (uintptr_t)r_byte(arg) << (i * 16 + 8);
                 }
 #if SIZEOF_VALUE == SIZEOF_LONG
                 v = ULONG2NUM(num);

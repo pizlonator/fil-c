@@ -3591,7 +3591,7 @@ io_readpartial(int argc, VALUE *argv, VALUE io)
 {
     VALUE ret;
 
-    ret = io_getpartial(argc, argv, io, Qnil, 0);
+    ret = io_getpartial(argc, argv, io, (int)Qnil, 0);
     if (NIL_P(ret))
         rb_eof_error();
     return ret;
@@ -6163,7 +6163,7 @@ pread_internal_call(VALUE _arg)
         VALUE result = rb_fiber_scheduler_io_pread_memory(scheduler, arg->io, arg->offset, arg->buf, arg->count, 0);
 
         if (!UNDEF_P(result)) {
-            return rb_fiber_scheduler_io_result_apply(result);
+            return (VALUE)rb_fiber_scheduler_io_result_apply(result);
         }
     }
 
@@ -6245,7 +6245,7 @@ internal_pwrite_func(void *_arg)
         VALUE result = rb_fiber_scheduler_io_pwrite_memory(scheduler, arg->io, arg->offset, arg->buf, arg->count, 0);
 
         if (!UNDEF_P(result)) {
-            return rb_fiber_scheduler_io_result_apply(result);
+            return (VALUE)rb_fiber_scheduler_io_result_apply(result);
         }
     }
 
@@ -7090,8 +7090,8 @@ io_strip_bom(VALUE io)
     GetOpenFile(io, fptr);
     if (!(fptr->mode & FMODE_READABLE)) return 0;
     if (NIL_P(b1 = rb_io_getbyte(io))) return 0;
-    switch (b1) {
-      case INT2FIX(0xEF):
+    switch ((uintptr_t)b1) {
+      case (uintptr_t)INT2FIX(0xEF):
         if (NIL_P(b2 = rb_io_getbyte(io))) break;
         if (b2 == INT2FIX(0xBB) && !NIL_P(b3 = rb_io_getbyte(io))) {
             if (b3 == INT2FIX(0xBF)) {
@@ -7102,7 +7102,7 @@ io_strip_bom(VALUE io)
         rb_io_ungetbyte(io, b2);
         break;
 
-      case INT2FIX(0xFE):
+      case (uintptr_t)INT2FIX(0xFE):
         if (NIL_P(b2 = rb_io_getbyte(io))) break;
         if (b2 == INT2FIX(0xFF)) {
             return ENCINDEX_UTF_16BE;
@@ -7110,7 +7110,7 @@ io_strip_bom(VALUE io)
         rb_io_ungetbyte(io, b2);
         break;
 
-      case INT2FIX(0xFF):
+      case (uintptr_t)INT2FIX(0xFF):
         if (NIL_P(b2 = rb_io_getbyte(io))) break;
         if (b2 == INT2FIX(0xFE)) {
             b3 = rb_io_getbyte(io);
@@ -7126,7 +7126,7 @@ io_strip_bom(VALUE io)
         rb_io_ungetbyte(io, b2);
         break;
 
-      case INT2FIX(0):
+      case (uintptr_t)INT2FIX(0):
         if (NIL_P(b2 = rb_io_getbyte(io))) break;
         if (b2 == INT2FIX(0) && !NIL_P(b3 = rb_io_getbyte(io))) {
             if (b3 == INT2FIX(0xFE) && !NIL_P(b4 = rb_io_getbyte(io))) {
@@ -10771,7 +10771,7 @@ static VALUE
 io_advise_internal(void *arg)
 {
     struct io_advise_struct *ptr = arg;
-    return posix_fadvise(ptr->fd, ptr->offset, ptr->len, ptr->advice);
+    return (VALUE)posix_fadvise(ptr->fd, ptr->offset, ptr->len, ptr->advice);
 }
 
 static VALUE
@@ -10860,7 +10860,7 @@ advice_arg_check(VALUE advice)
         advice != sym_willneed &&
         advice != sym_dontneed &&
         advice != sym_noreuse) {
-        rb_raise(rb_eNotImpError, "Unsupported advice: %+"PRIsVALUE, advice);
+        rb_raise(rb_eNotImpError, "Unsupported advice: %"PRIsVALUE, advice);
     }
 }
 
