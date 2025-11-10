@@ -63,8 +63,8 @@
 #include "ruby/internal/error.h"
 
 #define singlebit_only_p(x) !((x) & ((x)-1))
-STATIC_ASSERT(Qnil_1bit_from_Qfalse, singlebit_only_p(Qnil^Qfalse));
-STATIC_ASSERT(Qundef_1bit_from_Qnil, singlebit_only_p(Qundef^Qnil));
+STATIC_ASSERT(Qnil_1bit_from_Qfalse, singlebit_only_p((uintptr_t)Qnil^(uintptr_t)Qfalse));
+STATIC_ASSERT(Qundef_1bit_from_Qnil, singlebit_only_p((uintptr_t)Qundef^(uintptr_t)Qnil));
 
 #ifndef MAXPATHLEN
 # define MAXPATHLEN 1024
@@ -2528,7 +2528,7 @@ load_file_internal(VALUE argp_v)
 
     CONST_ID(set_encoding, "set_encoding");
     if (script) {
-        VALUE c = 1;		/* something not nil */
+        VALUE c = (VALUE)1;		/* something not nil */
         VALUE line;
         char *p, *str;
         long len;
@@ -2924,12 +2924,12 @@ opt_W_getter(ID id, VALUE *dmy)
 {
     VALUE v = *rb_ruby_verbose_ptr();
 
-    switch (v) {
-      case Qnil:
+    switch ((uintptr_t)v) {
+      case (uintptr_t)Qnil:
         return INT2FIX(0);
-      case Qfalse:
+      case (uintptr_t)Qfalse:
         return INT2FIX(1);
-      case Qtrue:
+      case (uintptr_t)Qtrue:
         return INT2FIX(2);
       default:
         return Qnil;

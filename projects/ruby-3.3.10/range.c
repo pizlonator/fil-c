@@ -314,7 +314,7 @@ step_i_iter(VALUE arg)
     VALUE *iter = (VALUE *)arg;
 
     if (FIXNUM_P(iter[0])) {
-        iter[0] -= INT2FIX(1) & ~FIXNUM_FLAG;
+        iter[0] -= (uintptr_t)INT2FIX(1) & ~FIXNUM_FLAG;
     }
     else {
         iter[0] = rb_funcall(iter[0], '-', 1, INT2FIX(1));
@@ -1751,7 +1751,7 @@ rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err)
 
     VALUE res = rb_range_component_beg_len(b, e, excl, begp, lenp, len, err);
     if (NIL_P(res) && err) {
-        rb_raise(rb_eRangeError, "%+"PRIsVALUE" out of range", range);
+        rb_raise(rb_eRangeError, "%"PRIsVALUE" out of range", range);
     }
 
     return res;

@@ -721,7 +721,7 @@ fill_random_seed(uint32_t *seed, size_t cnt)
     seed[2] ^= getpid() ^ (ATOMIC_FETCH_ADD(n, 1) << 16);
     seed[3] ^= (uint32_t)(VALUE)&seed;
 #if SIZEOF_VOIDP > SIZEOF_INT
-    seed[2] ^= (uint32_t)((VALUE)&seed >> SIZEOF_INT * CHAR_BIT);
+    seed[2] ^= (uint32_t)((uintptr_t)&seed >> SIZEOF_INT * CHAR_BIT);
 #endif
 }
 
@@ -1424,11 +1424,11 @@ invalid_argument(VALUE arg0)
 static VALUE
 check_random_number(VALUE v, const VALUE *argv)
 {
-    switch (v) {
-      case Qfalse:
+    switch ((uintptr_t)v) {
+      case (uintptr_t)Qfalse:
         (void)NUM2LONG(argv[0]);
         break;
-      case Qnil:
+      case (uintptr_t)Qnil:
         invalid_argument(argv[0]);
     }
     return v;

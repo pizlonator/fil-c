@@ -1783,7 +1783,7 @@ ractor_selector_wait(int argc, VALUE *argv, VALUE selector)
     rb_get_kwargs(options, keywords, 0, numberof(values), values);
     return ractor_selector__wait(selector,
                                  values[0] == Qundef ? Qfalse : RTEST(values[0]),
-                                 values[1] != Qundef, values[1], values[2]);
+                                 (VALUE)(values[1] != Qundef), values[1], values[2]);
 }
 
 static VALUE
@@ -2843,7 +2843,7 @@ obj_traverse_i(VALUE obj, struct obj_traverse_data *data)
       case traverse_stop: return 1; // stop search
     }
 
-    if (UNLIKELY(st_insert(obj_traverse_rec(data), obj, 1))) {
+    if (UNLIKELY(st_insert(obj_traverse_rec(data), obj, (st_data_t)1))) {
         // already traversed
         return 0;
     }
@@ -3484,14 +3484,14 @@ rb_obj_traverse_replace(VALUE obj,
 }
 
 struct RVALUE {
-    VALUE flags;
+    uintptr_t flags;
     VALUE klass;
     VALUE v1;
     VALUE v2;
     VALUE v3;
 };
 
-static const VALUE fl_users = FL_USER1  | FL_USER2  | FL_USER3  |
+static const uintptr_t fl_users = FL_USER1  | FL_USER2  | FL_USER3  |
                               FL_USER4  | FL_USER5  | FL_USER6  | FL_USER7  |
                               FL_USER8  | FL_USER9  | FL_USER10 | FL_USER11 |
                               FL_USER12 | FL_USER13 | FL_USER14 | FL_USER15 |

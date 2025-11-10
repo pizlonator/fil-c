@@ -206,7 +206,7 @@ f_minus_one_p(VALUE x)
         return x == LONG2FIX(-1);
     }
     else if (RB_BIGNUM_TYPE_P(x)) {
-        return Qfalse;
+        return (int)Qfalse;
     }
     else if (RB_TYPE_P(x, T_RATIONAL)) {
         VALUE num = RRATIONAL(x)->num;
@@ -1292,7 +1292,7 @@ nurat_round_half_up(VALUE self)
 
     num = dat->num;
     den = dat->den;
-    neg = INT_NEGATIVE_P(num);
+    neg = (VALUE)INT_NEGATIVE_P(num);
 
     if (neg)
         num = rb_int_uminus(num);
@@ -1316,7 +1316,7 @@ nurat_round_half_down(VALUE self)
 
     num = dat->num;
     den = dat->den;
-    neg = INT_NEGATIVE_P(num);
+    neg = (VALUE)INT_NEGATIVE_P(num);
 
     if (neg)
         num = rb_int_uminus(num);
@@ -1341,7 +1341,7 @@ nurat_round_half_even(VALUE self)
 
     num = dat->num;
     den = dat->den;
-    neg = INT_NEGATIVE_P(num);
+    neg = (VALUE)INT_NEGATIVE_P(num);
 
     if (neg)
         num = rb_int_uminus(num);
@@ -2482,7 +2482,7 @@ string_to_r_strict(VALUE self, int raise)
     num = parse_rat(RSTRING_PTR(self), RSTRING_END(self), 1, raise);
     if (NIL_P(num)) {
         if (!raise) return Qnil;
-        rb_raise(rb_eArgError, "invalid value for convert(): %+"PRIsVALUE,
+        rb_raise(rb_eArgError, "invalid value for convert(): %"PRIsVALUE,
                  self);
     }
 

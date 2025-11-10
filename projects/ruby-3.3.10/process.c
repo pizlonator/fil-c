@@ -2300,7 +2300,7 @@ check_exec_options_i(st_data_t st_key, st_data_t st_val, st_data_t arg)
     VALUE execarg_obj = (VALUE)arg;
     if (rb_execarg_addopt(execarg_obj, key, val) != ST_CONTINUE) {
         if (SYMBOL_P(key))
-            rb_raise(rb_eArgError, "wrong exec option symbol: % "PRIsVALUE,
+            rb_raise(rb_eArgError, "wrong exec option symbol: %"PRIsVALUE,
                      key);
         rb_raise(rb_eArgError, "wrong exec option");
     }
@@ -4399,11 +4399,11 @@ exit_status_code(VALUE status)
 {
     int istatus;
 
-    switch (status) {
-      case Qtrue:
+    switch ((uintptr_t)status) {
+      case (uintptr_t)Qtrue:
         istatus = EXIT_SUCCESS;
         break;
-      case Qfalse:
+      case (uintptr_t)Qfalse:
         istatus = EXIT_FAILURE;
         break;
       default:
@@ -5537,7 +5537,7 @@ rlimit_resource_type(VALUE rtype)
     if (r != -1)
         return r;
 
-    rb_raise(rb_eArgError, "invalid resource name: % "PRIsVALUE, rtype);
+    rb_raise(rb_eArgError, "invalid resource name: %"PRIsVALUE, rtype);
 
     UNREACHABLE_RETURN(-1);
 }
@@ -7661,7 +7661,7 @@ p_uid_switch(VALUE obj)
         proc_seteuid(uid);
         if (rb_block_given_p()) {
             under_uid_switch = 1;
-            return rb_ensure(rb_yield, Qnil, p_uid_sw_ensure, SAVED_USER_ID);
+            return rb_ensure(rb_yield, Qnil, p_uid_sw_ensure, (VALUE)SAVED_USER_ID);
         }
         else {
             return UIDT2NUM(euid);
@@ -7671,7 +7671,7 @@ p_uid_switch(VALUE obj)
         proc_seteuid(SAVED_USER_ID);
         if (rb_block_given_p()) {
             under_uid_switch = 1;
-            return rb_ensure(rb_yield, Qnil, p_uid_sw_ensure, euid);
+            return rb_ensure(rb_yield, Qnil, p_uid_sw_ensure, (VALUE)euid);
         }
         else {
             return UIDT2NUM(uid);
@@ -7775,7 +7775,7 @@ p_gid_switch(VALUE obj)
         proc_setegid(obj, GIDT2NUM(gid));
         if (rb_block_given_p()) {
             under_gid_switch = 1;
-            return rb_ensure(rb_yield, Qnil, p_gid_sw_ensure, SAVED_GROUP_ID);
+            return rb_ensure(rb_yield, Qnil, p_gid_sw_ensure, (VALUE)SAVED_GROUP_ID);
         }
         else {
             return GIDT2NUM(egid);
@@ -7785,7 +7785,7 @@ p_gid_switch(VALUE obj)
         proc_setegid(obj, GIDT2NUM(SAVED_GROUP_ID));
         if (rb_block_given_p()) {
             under_gid_switch = 1;
-            return rb_ensure(rb_yield, Qnil, p_gid_sw_ensure, egid);
+            return rb_ensure(rb_yield, Qnil, p_gid_sw_ensure, (VALUE)egid);
         }
         else {
             return GIDT2NUM(gid);
@@ -8112,7 +8112,7 @@ ruby_real_ms_time(void)
 
 #define clock_failed(name, err, arg) do { \
         int clock_error = (err); \
-        rb_syserr_fail_str(clock_error, rb_sprintf("clock_" name "(%+"PRIsVALUE")", (arg))); \
+        rb_syserr_fail_str(clock_error, rb_sprintf("clock_" name "(%"PRIsVALUE")", (arg))); \
     } while (0)
 
 /*

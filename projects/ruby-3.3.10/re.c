@@ -155,7 +155,7 @@ rb_memsearch_qs(const unsigned char *xs, long m, const unsigned char *ys, long n
 {
     const unsigned char *x = xs, *xe = xs + m;
     const unsigned char *y = ys;
-    VALUE i, qstable[256];
+    uintptr_t i, qstable[256];
 
     /* Preprocessing */
     for (i = 0; i < 256; ++i)
@@ -207,7 +207,7 @@ rb_memsearch_qs_utf8(const unsigned char *xs, long m, const unsigned char *ys, l
 {
     const unsigned char *x = xs, *xe = xs + m;
     const unsigned char *y = ys;
-    VALUE i, qstable[512];
+    uintptr_t i, qstable[512];
 
     /* Preprocessing */
     for (i = 0; i < 512; ++i) {
@@ -970,7 +970,7 @@ static VALUE
 match_alloc(VALUE klass)
 {
     size_t alloc_size = sizeof(struct RMatch) + sizeof(rb_matchext_t);
-    VALUE flags = T_MATCH | (RGENGC_WB_PROTECTED_MATCH ? FL_WB_PROTECTED : 0);
+    uintptr_t flags = T_MATCH | (RGENGC_WB_PROTECTED_MATCH ? FL_WB_PROTECTED : 0);
     NEWOBJ_OF(match, struct RMatch, klass, flags, alloc_size, 0);
 
     match->str = Qfalse;
@@ -1193,7 +1193,7 @@ NORETURN(static void name_to_backref_error(VALUE name));
 static void
 name_to_backref_error(VALUE name)
 {
-    rb_raise(rb_eIndexError, "undefined group name reference: % "PRIsVALUE,
+    rb_raise(rb_eIndexError, "undefined group name reference: %"PRIsVALUE,
              name);
 }
 
@@ -2133,12 +2133,12 @@ match_ary_aref(VALUE match, VALUE idx, VALUE result)
     int num_regs = RMATCH_REGS(match)->num_regs;
 
     /* check if idx is Range */
-    switch (rb_range_beg_len(idx, &beg, &len, (long)num_regs, !NIL_P(result))) {
-      case Qfalse:
+    switch ((uintptr_t)rb_range_beg_len(idx, &beg, &len, (long)num_regs, !NIL_P(result))) {
+      case (uintptr_t)Qfalse:
         if (NIL_P(result)) return rb_reg_nth_match(NUM2INT(idx), match);
         rb_ary_push(result, rb_reg_nth_match(NUM2INT(idx), match));
         return result;
-      case Qnil:
+      case (uintptr_t)Qnil:
         return Qnil;
       default:
         return match_ary_subseq(match, beg, len, result);
@@ -2398,7 +2398,7 @@ match_named_captures(int argc, VALUE *argv, VALUE match)
         }
         rb_get_kwargs(opt, keyword_ids, 0, 1, &symbolize_names_val);
         if (!UNDEF_P(symbolize_names_val) && RTEST(symbolize_names_val)) {
-            symbolize_names = 1;
+            symbolize_names = (VALUE)1;
         }
     }
 

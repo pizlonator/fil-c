@@ -1263,17 +1263,17 @@ trap(int sig, sighandler_t func, VALUE command)
         if (oldfunc == SIG_ERR) rb_sys_fail_str(rb_signo2signm(sig));
     }
     oldcmd = vm->trap_list.cmd[sig];
-    switch (oldcmd) {
+    switch ((uintptr_t)oldcmd) {
       case 0:
-      case Qtrue:
+      case (uintptr_t)Qtrue:
         if (oldfunc == SIG_IGN) oldcmd = rb_str_new2("IGNORE");
         else if (oldfunc == SIG_DFL) oldcmd = rb_str_new2("SYSTEM_DEFAULT");
         else if (oldfunc == sighandler) oldcmd = rb_str_new2("DEFAULT");
         else oldcmd = Qnil;
         break;
-      case Qnil:
+      case (uintptr_t)Qnil:
         break;
-      case Qundef:
+      case (uintptr_t)Qundef:
         oldcmd = rb_str_new2("EXIT");
         break;
     }
