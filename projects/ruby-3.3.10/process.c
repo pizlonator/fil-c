@@ -4058,6 +4058,10 @@ disable_child_handler_fork_child(struct child_handler_disabler_state *old, char 
     int ret;
 
     for (sig = 1; sig < NSIG; sig++) {
+        if (zis_unsafe_signal_for_handlers(sig)) {
+            continue;
+        }
+
         sig_t handler = signal(sig, SIG_DFL);
 
         if (handler == SIG_ERR && errno == EINVAL) {

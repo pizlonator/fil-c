@@ -120,7 +120,6 @@ ruby_special_consts {
 };
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Emulates Ruby's "if" statement.
@@ -160,7 +159,6 @@ RB_TEST(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is nil.
@@ -176,7 +174,6 @@ RB_NIL_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is undef.
@@ -192,7 +189,6 @@ RB_UNDEF_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX14)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is nil or undef.  Can be used to see if
@@ -232,7 +228,6 @@ RB_NIL_OR_UNDEF_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is a so-called Fixnum.
@@ -250,7 +245,6 @@ RB_FIXNUM_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX14)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is a static symbol.
@@ -266,13 +260,11 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_STATIC_SYM_P(VALUE obj)
 {
-    RBIMPL_ATTR_CONSTEXPR(CXX14)
     const uintptr_t mask = ~(RBIMPL_VALUE_FULL << RUBY_SPECIAL_SHIFT);
     return ((uintptr_t)obj & mask) == RUBY_SYMBOL_FLAG;
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is a so-called Flonum.
@@ -295,7 +287,6 @@ RB_FLONUM_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if  the given  object is  an immediate  i.e. an  object which  has no
@@ -314,7 +305,6 @@ RB_IMMEDIATE_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Checks if the given object is of enum ::ruby_special_consts.
@@ -330,7 +320,6 @@ RB_SPECIAL_CONST_P(VALUE obj)
 }
 
 RBIMPL_ATTR_CONST()
-RBIMPL_ATTR_CONSTEXPR(CXX11)
 /**
  * Identical to RB_SPECIAL_CONST_P, except it returns a ::VALUE.
  *

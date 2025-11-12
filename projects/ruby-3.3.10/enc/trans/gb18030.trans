@@ -103,7 +103,7 @@ fun_so_to_gb18030(void *statep, const unsigned char *s, size_t l, unsigned char 
 static ssize_t
 fun_sio_from_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info, unsigned char *o, size_t osize)
 {
-    unsigned int diff = (unsigned int)(info >> 8);
+    unsigned int diff = (unsigned int)((uintptr_t)info >> 8);
     unsigned int u;    /* Unicode Scalar Value */
     if (diff & 0x20000) { /* GB18030 4 bytes */
         u = ((s[0]*10+s[1])*126+s[2])*10+s[3] - diff - 0x170000;
@@ -121,7 +121,7 @@ fun_sio_from_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info,
 static ssize_t
 fun_sio_to_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info, unsigned char *o, size_t osize)
 {
-    unsigned int diff = (unsigned int)(info >> 8);
+    unsigned int diff = (unsigned int)((uintptr_t)info >> 8);
     unsigned int u;    /* Unicode Scalar Value */
 
     u = ((s[0]&0x0F)<<12) | ((s[1]&0x3F)<<6) | (s[2]&0x3F);

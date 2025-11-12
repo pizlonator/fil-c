@@ -10,14 +10,14 @@ static VALUE language_spec_switch(VALUE self, VALUE value) {
     value = Qundef;
   }
 
-  switch (value) {
-    case Qtrue:
+  switch ((uintptr_t)value) {
+    case (uintptr_t)Qtrue:
       return ID2SYM(rb_intern("true"));
-    case Qfalse:
+    case (uintptr_t)Qfalse:
       return ID2SYM(rb_intern("false"));
-    case Qnil:
+    case (uintptr_t)Qnil:
       return ID2SYM(rb_intern("nil"));
-    case Qundef:
+    case (uintptr_t)Qundef:
       return ID2SYM(rb_intern("undef"));
     default:
       return ID2SYM(rb_intern("default"));

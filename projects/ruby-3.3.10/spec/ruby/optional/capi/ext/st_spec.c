@@ -34,7 +34,7 @@ VALUE st_spec_st_init_numtable_with_size(VALUE self) {
 VALUE st_spec_st_insert(VALUE self) {
   st_index_t entries;
   st_table *tbl = st_init_numtable_with_size(128);
-  st_insert(tbl, 1, 1);
+  st_insert(tbl, (st_data_t)1, (st_data_t)1);
   entries = tbl->num_entries;
   st_free_table(tbl);
   return ST2NUM(entries);
@@ -48,8 +48,8 @@ static int sum(st_data_t key, st_data_t value, st_data_t arg) {
 VALUE st_spec_st_foreach(VALUE self) {
   int total = 0;
   st_table *tbl = st_init_numtable_with_size(128);
-  st_insert(tbl, 1, 3);
-  st_insert(tbl, 2, 4);
+  st_insert(tbl, (st_data_t)1, (st_data_t)3);
+  st_insert(tbl, (st_data_t)2, (st_data_t)4);
   st_foreach(tbl, sum, (st_data_t)&total);
   st_free_table(tbl);
   return INT2FIX(total);
@@ -58,14 +58,14 @@ VALUE st_spec_st_foreach(VALUE self) {
 VALUE st_spec_st_lookup(VALUE self) {
   st_data_t result = (st_data_t)0;
   st_table *tbl = st_init_numtable_with_size(128);
-  st_insert(tbl, 7, 42);
-  st_insert(tbl, 2, 4);
+  st_insert(tbl, (st_data_t)7, (st_data_t)42);
+  st_insert(tbl, (st_data_t)2, (st_data_t)4);
   st_lookup(tbl, (st_data_t)7, &result);
   st_free_table(tbl);
 #if SIZEOF_LONG == SIZEOF_VOIDP
-  return ULONG2NUM(result);
+  return ULONG2NUM((unsigned long)result);
 #else
-  return ULL2NUM(result);
+  return ULL2NUM((unsigned long long)result);
 #endif
 }
 

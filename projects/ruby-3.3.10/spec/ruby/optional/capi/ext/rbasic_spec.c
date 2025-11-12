@@ -14,11 +14,11 @@ extern "C" {
 #endif
 
 #ifndef FL_SHAREABLE
-static const VALUE VISIBLE_BITS = FL_TAINT | FL_FREEZE;
-static const VALUE DATA_VISIBLE_BITS = FL_TAINT | FL_FREEZE | ~(FL_USER0 - 1);
+static const uintptr_t VISIBLE_BITS = FL_TAINT | FL_FREEZE;
+static const uintptr_t DATA_VISIBLE_BITS = FL_TAINT | FL_FREEZE | ~(FL_USER0 - 1);
 #else
-static const VALUE VISIBLE_BITS = FL_FREEZE;
-static const VALUE DATA_VISIBLE_BITS = FL_FREEZE | ~(FL_USER0 - 1);
+static const uintptr_t VISIBLE_BITS = FL_FREEZE;
+static const uintptr_t DATA_VISIBLE_BITS = FL_FREEZE | ~(FL_USER0 - 1);
 #endif
 
 #if SIZEOF_VALUE == SIZEOF_LONG
@@ -42,12 +42,12 @@ VALUE rbasic_spec_freeze_flag(VALUE self) {
   return VALUE2NUM(RUBY_FL_FREEZE);
 }
 
-static VALUE spec_get_flags(VALUE obj, VALUE visible_bits) {
-  VALUE flags = RB_FL_TEST(obj, visible_bits);
+static VALUE spec_get_flags(VALUE obj, uintptr_t visible_bits) {
+  uintptr_t flags = RB_FL_TEST(obj, visible_bits);
   return VALUE2NUM(flags);
 }
 
-static VALUE spec_set_flags(VALUE obj, VALUE flags, VALUE visible_bits) {
+static VALUE spec_set_flags(VALUE obj, uintptr_t flags, uintptr_t visible_bits) {
   flags &= visible_bits;
 
   // Could also be done like:

@@ -285,11 +285,11 @@ fun_si_from_utf_16(void *statep, const unsigned char *s, size_t l)
     case 0:
         if (s[0] == 0xFE && s[1] == 0xFF) {
             *sp = BE;
-            return ZERObt;
+            return (VALUE)ZERObt;
         }
         else if (s[0] == 0xFF && s[1] == 0xFE) {
             *sp = LE;
-            return ZERObt;
+            return (VALUE)ZERObt;
         }
         break;
     case BE:
@@ -333,11 +333,11 @@ fun_si_from_utf_32(void *statep, const unsigned char *s, size_t l)
     case 0:
         if (s[0] == 0 && s[1] == 0 && s[2] == 0xFE && s[3] == 0xFF) {
             *sp = BE;
-            return ZERObt;
+            return (VALUE)ZERObt;
         }
         else if (s[0] == 0xFF && s[1] == 0xFE && s[2] == 0 && s[3] == 0) {
             *sp = LE;
-            return ZERObt;
+            return (VALUE)ZERObt;
         }
         break;
     case BE:

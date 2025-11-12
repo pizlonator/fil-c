@@ -78,8 +78,8 @@
 
 #define BYTE_ADDR(index) (<%= OUTPUT_PREFIX %>byte_array + (index))
 #define WORD_ADDR(index) (<%= OUTPUT_PREFIX %>word_array + INFO2WORDINDEX(index))
-#define BL_BASE BYTE_ADDR(BYTE_LOOKUP_BASE(WORD_ADDR(next_info)))
-#define BL_INFO WORD_ADDR(BYTE_LOOKUP_INFO(WORD_ADDR(next_info)))
+#define BL_BASE BYTE_ADDR(BYTE_LOOKUP_BASE(WORD_ADDR((uintptr_t)next_info)))
+#define BL_INFO WORD_ADDR(BYTE_LOOKUP_INFO(WORD_ADDR((uintptr_t)next_info)))
 #define BL_MIN_BYTE     (BL_BASE[0])
 #define BL_MAX_BYTE     (BL_BASE[1])
 #define BL_OFFSET(byte) (BL_BASE[2+(byte)-BL_MIN_BYTE])
@@ -150,15 +150,15 @@ buf_output_all(struct from_utf8_mac_status *sp, unsigned char *o)
     return n;
 }
 
-static VALUE
-get_info(VALUE next_info, struct from_utf8_mac_status *sp) {
+static uintptr_t
+get_info(uintptr_t next_info, struct from_utf8_mac_status *sp) {
     int pos = 0;
     while (pos < buf_bytesize(sp)) {
         unsigned char next_byte = buf_at(sp, pos++);
         if (next_byte < BL_MIN_BYTE || BL_MAX_BYTE < next_byte)
             next_info = INVALID;
         else {
-            next_info = (VALUE)BL_ACTION(next_byte);
+            next_info = BL_ACTION(next_byte);
         }
         if ((next_info & 3) == 0) continue;
         break;
@@ -170,7 +170,7 @@ static size_t
 buf_apply(struct from_utf8_mac_status *sp, unsigned char *o)
 {
     size_t n = 0;
-    VALUE next_info;
+    uintptr_t next_info;
     unsigned char buf[3];
     if (buf_bytesize(sp) < 3 || (buf_bytesize(sp) == 3 && buf_at(sp, 0) >= 0xE0)) {
         /* char length is less than 2 */

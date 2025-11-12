@@ -497,8 +497,8 @@ RUBY_CXX_DEPRECATED("Use of ANYARGS in this function is deprecated")
 inline void
 rb_ivar_foreach(VALUE q, int_type *w, VALUE e)
 {
-    st_foreach_callback_func *r =
-        reinterpret_cast<st_foreach_callback_func*>(w);
+    int (*r)(ID, VALUE, st_data_t) =
+        reinterpret_cast<int (*)(ID, VALUE, st_data_t)>(w);
     ::rb_ivar_foreach(q, r, e);
 }
 

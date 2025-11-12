@@ -388,7 +388,7 @@ static VALUE object_spec_rb_ivar_foreach(VALUE self, VALUE obj) {
 }
 
 static VALUE speced_allocator(VALUE klass) {
-  VALUE flags = 0;
+  uintptr_t flags = 0;
   VALUE instance;
   if (RTEST(rb_class_inherited_p(klass, rb_cString))) {
     flags = T_STRING;
