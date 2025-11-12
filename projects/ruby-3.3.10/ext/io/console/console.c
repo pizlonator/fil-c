@@ -205,17 +205,17 @@ rawmode_opt(int *argcp, VALUE *argv, int min_argc, int max_argc, rawmode_arg_t *
 	    opts->vtime = NUM2INT(vtime);
 	    optp = opts;
 	}
-	switch (intr) {
-	  case Qtrue:
+	switch ((uintptr_t)intr) {
+	  case (uintptr_t)Qtrue:
 	    opts->intr = 1;
 	    optp = opts;
 	    break;
-	  case Qfalse:
+	  case (uintptr_t)Qfalse:
 	    opts->intr = 0;
 	    optp = opts;
 	    break;
-	  case Qundef:
-	  case Qnil:
+	  case (uintptr_t)Qundef:
+	  case (uintptr_t)Qnil:
 	    break;
 	  default:
 	    rb_raise(rb_eArgError, "true or false expected as intr: %"PRIsVALUE,

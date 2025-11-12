@@ -679,25 +679,25 @@ Init_fiddle(void)
      *
      * The value of Qtrue
      */
-    rb_define_const(mFiddle, "Qtrue", INT2NUM(Qtrue));
+    rb_define_const(mFiddle, "Qtrue", INT2NUM((uintptr_t)Qtrue));
 
     /* Document-const: Qfalse
      *
      * The value of Qfalse
      */
-    rb_define_const(mFiddle, "Qfalse", INT2NUM(Qfalse));
+    rb_define_const(mFiddle, "Qfalse", INT2NUM((uintptr_t)Qfalse));
 
     /* Document-const: Qnil
      *
      * The value of Qnil
      */
-    rb_define_const(mFiddle, "Qnil", INT2NUM(Qnil));
+    rb_define_const(mFiddle, "Qnil", INT2NUM((uintptr_t)Qnil));
 
     /* Document-const: Qundef
      *
      * The value of Qundef
      */
-    rb_define_const(mFiddle, "Qundef", INT2NUM(Qundef));
+    rb_define_const(mFiddle, "Qundef", INT2NUM((uintptr_t)Qundef));
 
     Init_fiddle_function();
     Init_fiddle_closure();

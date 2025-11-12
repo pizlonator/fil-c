@@ -389,7 +389,7 @@ ossl_pkcs7_copy(VALUE self, VALUE other)
 static int
 ossl_pkcs7_sym2typeid(VALUE sym)
 {
-    int i, ret = Qnil;
+    int i, ret = (int)Qnil;
     const char *s;
     size_t l;
 
@@ -1032,8 +1032,8 @@ Init_ossl_pkcs7(void)
     rb_define_singleton_method(cPKCS7, "write_smime", ossl_pkcs7_s_write_smime, -1);
     rb_define_singleton_method(cPKCS7, "sign",  ossl_pkcs7_s_sign, -1);
     rb_define_singleton_method(cPKCS7, "encrypt", ossl_pkcs7_s_encrypt, -1);
-    rb_attr(cPKCS7, rb_intern("data"), 1, 0, Qfalse);
-    rb_attr(cPKCS7, rb_intern("error_string"), 1, 1, Qfalse);
+    rb_attr(cPKCS7, rb_intern("data"), 1, 0, (int)Qfalse);
+    rb_attr(cPKCS7, rb_intern("error_string"), 1, 1, (int)Qfalse);
     rb_define_alloc_func(cPKCS7, ossl_pkcs7_alloc);
     rb_define_method(cPKCS7, "initialize_copy", ossl_pkcs7_copy, 1);
     rb_define_method(cPKCS7, "initialize", ossl_pkcs7_initialize, -1);

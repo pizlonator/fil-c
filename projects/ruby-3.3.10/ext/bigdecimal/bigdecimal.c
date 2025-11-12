@@ -2906,7 +2906,7 @@ is_zero(VALUE x)
 	return FIX2LONG(x) == 0;
 
       case T_BIGNUM:
-	return Qfalse;
+	return (int)Qfalse;
 
       case T_RATIONAL:
 	num = rb_rational_num(x);
@@ -2929,7 +2929,7 @@ is_one(VALUE x)
 	return FIX2LONG(x) == 1;
 
       case T_BIGNUM:
-	return Qfalse;
+	return (int)Qfalse;
 
       case T_RATIONAL:
 	num = rb_rational_num(x);
@@ -3614,10 +3614,10 @@ rb_str_convert_to_BigDecimal(VALUE val, size_t digs, int raise_exception)
 static VALUE
 rb_convert_to_BigDecimal(VALUE val, size_t digs, int raise_exception)
 {
-    switch (val) {
-      case Qnil:
-      case Qtrue:
-      case Qfalse:
+    switch ((uintptr_t)val) {
+      case (uintptr_t)Qnil:
+      case (uintptr_t)Qtrue:
+      case (uintptr_t)Qfalse:
         if (raise_exception) {
             const char *cname = NIL_P(val)    ? "nil"   :
                                 val == Qtrue  ? "true"  :

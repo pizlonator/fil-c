@@ -1758,7 +1758,7 @@ Init_ossl_asn1(void)
      * _tagging_ is not set when a ASN.1 structure is parsed using
      * OpenSSL::ASN1.decode.
      */
-    rb_attr(cASN1Primitive, rb_intern("tagging"), 1, 1, Qtrue);
+    rb_attr(cASN1Primitive, rb_intern("tagging"), 1, 1, (int)Qtrue);
     rb_undef_method(cASN1Primitive, "indefinite_length=");
     rb_undef_method(cASN1Primitive, "infinite_length=");
     rb_define_method(cASN1Primitive, "initialize", ossl_asn1_initialize, -1);
@@ -1799,7 +1799,7 @@ Init_ossl_asn1(void)
      * _tagging_ is not set when a ASN.1 structure is parsed using
      * OpenSSL::ASN1.decode.
      */
-    rb_attr(cASN1Constructive, rb_intern("tagging"), 1, 1, Qtrue);
+    rb_attr(cASN1Constructive, rb_intern("tagging"), 1, 1, (int)Qtrue);
     rb_define_method(cASN1Constructive, "initialize", ossl_asn1_initialize, -1);
     rb_define_method(cASN1Constructive, "to_der", ossl_asn1cons_to_der, 0);
     rb_define_method(cASN1Constructive, "each", ossl_asn1cons_each, 0);

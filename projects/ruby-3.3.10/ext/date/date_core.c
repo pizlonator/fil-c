@@ -6957,7 +6957,7 @@ d_lite_hash(VALUE self)
 
     h[2] = m_jd(dat);
     h[3] = m_df(dat);
-    h[4] = m_sf(dat);
+    h[4] = (st_index_t)m_sf(dat);
 
     v = rb_memhash(h, sizeof(h));
     return ST2FIX(v);

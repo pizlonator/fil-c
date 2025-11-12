@@ -109,7 +109,7 @@ ossl_str_new(const char *ptr, long len, int *pstate)
     VALUE str;
     int state;
 
-    str = rb_protect(ossl_str_new_i, len, &state);
+    str = rb_protect(ossl_str_new_i, (VALUE)len, &state);
     if (pstate)
 	*pstate = state;
     if (state) {
