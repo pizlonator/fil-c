@@ -414,8 +414,8 @@ void filc_initialize(void)
 
     /* The compiler hardcodes these constants. */
     PAS_ASSERT(FILC_FLIGHT_PTR_ALIGNMENT == 16);
-    PAS_ASSERT(FILC_OBJECT_AUX_PTR_MASK == 0xfffffffffffflu);
-    PAS_ASSERT(FILC_OBJECT_AUX_FLAGS_SHIFT == 48);
+    PAS_ASSERT(FILC_OBJECT_AUX_PTR_SHIFT == 16);
+    PAS_ASSERT(FILC_OBJECT_AUX_FLAGS_MASK == 0xffff);
     PAS_ASSERT(sizeof(filc_object) == 16);
     PAS_ASSERT(FILC_SPECIAL_TYPE_FUNCTION == 1);
     PAS_ASSERT(FILC_SPECIAL_TYPE_MASK == 15);
@@ -6149,9 +6149,6 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
 
     lock_global_initialization(my_thread);
 
-    filc_testing_validate_object(object, NULL);
-    PAS_ASSERT(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
-
     filc_ptr gptr_value = filc_flight_ptr_load_atomic_unfenced_with_manual_tracking(pizlonated_gptr);
     if (filc_ptr_ptr(gptr_value)) {
         PAS_ASSERT(filc_ptr_object(gptr_value));
@@ -6175,9 +6172,6 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
     
     PAS_ASSERT(!filc_ptr_object(gptr_value));
 
-    if (verbose)
-        pas_log("object = %s\n", filc_object_to_new_string(object));
-    
     pas_allocation_config allocation_config;
     bmalloc_initialize_allocation_config(&allocation_config);
 
@@ -6196,6 +6190,15 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
         PAS_ASSERT(existing_object == object);
         goto return_false;
     }
+
+    /* For global variables the aux field is stored in the binary with the flags in the top 16 bits
+     * because we need to initialize the aux object pointer with a relocation and ELF doesn't support
+     * shifting by 16 bits in relocations (we avoid this for function capabilities, see
+     * filc_function_object). Fix that up here by rotating the bits into the correct place. */
+    object->aux = (object->aux << FILC_OBJECT_AUX_PTR_SHIFT) | (object->aux >> (64 - FILC_OBJECT_AUX_PTR_SHIFT));
+
+    filc_testing_validate_object(object, NULL);
+    PAS_ASSERT(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
 
     if (verbose)
         pas_log("going to initialize object = %s\n", filc_object_to_new_string(object));

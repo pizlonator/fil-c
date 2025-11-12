@@ -139,6 +139,7 @@ typedef struct filc_mark_stack filc_mark_stack;
 typedef struct filc_marker filc_marker;
 typedef struct filc_native_frame filc_native_frame;
 typedef struct filc_object filc_object;
+typedef struct filc_function_object filc_function_object;
 typedef struct filc_object_array filc_object_array;
 typedef struct filc_object_array_impl filc_object_array_impl;
 typedef struct filc_optimized_access_check_origin filc_optimized_access_check_origin;
@@ -208,8 +209,8 @@ typedef uintptr_t filc_word;
 #define FILC_WORD_SIZE                    sizeof(filc_word)
 #define FILC_FLIGHT_PTR_ALIGNMENT         16u
 
-#define FILC_OBJECT_AUX_PTR_MASK          PAS_ADDRESS_MASK
-#define FILC_OBJECT_AUX_FLAGS_SHIFT       PAS_ADDRESS_BITS
+#define FILC_OBJECT_AUX_PTR_SHIFT         (64 - PAS_ADDRESS_BITS)
+#define FILC_OBJECT_AUX_FLAGS_MASK        ((1 << FILC_OBJECT_AUX_PTR_SHIFT) - 1)
 
 /* FIXME: Need to support special aligned objects. So, we need 4 bits for the special type and 5 bits
    for alignment. That leaves 7 flags. */
@@ -439,6 +440,20 @@ struct filc_object {
        the abstract interpreter deals with check merging. */
     void* upper;
     uintptr_t aux;
+};
+
+/* This is a gross hack to create a global initializer for a function object with the aux pointer
+   shifted by 16 bits as required by InvisiCaps 1.5. It works by declaring the struct as packed which
+   means that the fptr field is laid out 2 bytes after the address of flags, so that loading a 64-bit
+   word from the address of the flags field will also load the low 48 bits of the function pointer
+   (intended for aux) into bits 16:63.
+
+   This should only be used in initializers because its size does not match filc_object. Also, it is not
+   compatible with big-endian, but who cares these days. */
+struct __attribute__((packed)) filc_function_object {
+    void* upper;
+    uint16_t flags;
+    void* fptr;
 };
 
 struct filc_alignment_header {
@@ -2182,16 +2197,15 @@ static inline void filc_testing_validate_ptr(filc_ptr ptr)
 
 static inline char* filc_aux_get_ptr(uintptr_t aux)
 {
-    return (char*)(aux & FILC_OBJECT_AUX_PTR_MASK);
+    return (char*)(aux >> FILC_OBJECT_AUX_PTR_SHIFT);
 }
 
 static inline filc_object_flags filc_aux_get_flags(uintptr_t aux)
 {
-    return (filc_object_flags)(aux >> FILC_OBJECT_AUX_FLAGS_SHIFT);
+    return (filc_object_flags)(aux & FILC_OBJECT_AUX_FLAGS_MASK);
 }
 
-#define FILC_AUX_CREATE(flags, ptr) ((uintptr_t)(ptr) + \
-                                     ((uintptr_t)(flags) << FILC_OBJECT_AUX_FLAGS_SHIFT))
+#define FILC_AUX_CREATE(flags, ptr) (((intptr_t)(ptr) << FILC_OBJECT_AUX_PTR_SHIFT) + ((uintptr_t)(flags)))
 
 static inline uintptr_t filc_aux_create(filc_object_flags flags, char* ptr)
 {
