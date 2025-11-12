@@ -99,7 +99,6 @@ unsigned long rb_num2ulong(VALUE num);
 RBIMPL_SYMBOL_EXPORT_END()
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Converts a C's `long` into an instance of ::rb_cInteger.
@@ -147,7 +146,6 @@ rb_long2int_inline(long n)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 /**
  * @private
  *
@@ -175,7 +173,6 @@ rbimpl_fix2long_by_idiv(VALUE x)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 /**
  * @private
  *
@@ -219,7 +216,6 @@ rbimpl_right_shift_is_arithmetic_p(void)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 /**
  * Converts a Fixnum into C's `long`.
  *
@@ -239,7 +235,6 @@ rb_fix2long(VALUE x)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 /**
  * Converts a Fixnum into C's `unsigned long`.
  *
@@ -336,21 +331,8 @@ rb_ulong2num_inline(unsigned long v)
  * VALUE does not fit into an enum (which must be a signed int).  But we cannot
  * break existing codes.
  */
-#if RBIMPL_HAS_ATTR_CONSTEXPR_CXX14
-# /* C++ can write constexpr as enum values. */
-
-#elif ! defined(HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P)
-# undef INT2FIX
-# define INT2FIX(i) (VALUE)(RBIMPL_CAST((uintptr_t)(i)) << 1 | RUBY_FIXNUM_FLAG)
-
-#else
-# undef INT2FIX
-# define INT2FIX(i)                                     \
-    __builtin_choose_expr(                              \
-        __builtin_constant_p(i),                        \
-        (VALUE)(RBIMPL_CAST((uintptr_t)(i)) << 1 | RUBY_FIXNUM_FLAG), \
-        RB_INT2FIX(i))
-#endif
+#undef INT2FIX
+#define INT2FIX(i) (VALUE)(RBIMPL_CAST((uintptr_t)(i)) << 1 | RUBY_FIXNUM_FLAG)
 /** @endcond */
 
 #endif /* RBIMPL_ARITHMETIC_LONG_H */

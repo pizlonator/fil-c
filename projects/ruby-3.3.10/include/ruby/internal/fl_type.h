@@ -774,7 +774,7 @@ static inline VALUE
 RB_OBJ_TAINTED_RAW(VALUE obj)
 {
     (void)obj;
-    return false;
+    return (VALUE)false;
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()

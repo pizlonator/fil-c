@@ -419,7 +419,7 @@ namespace test_rb_hash_foreach {
 
 namespace test_rb_ivar_foreach {
     static int
-    iter(VALUE, VALUE, VALUE)
+    iter(ID, VALUE, VALUE)
     {
         return ST_CONTINUE;
     }

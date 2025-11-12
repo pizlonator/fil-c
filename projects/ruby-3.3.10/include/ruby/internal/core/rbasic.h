@@ -89,7 +89,6 @@ RBasic {
 
 #ifdef __cplusplus
   public:
-    RBIMPL_ATTR_CONSTEXPR(CXX11)
     RBIMPL_ATTR_ARTIFICIAL()
     RBIMPL_ATTR_FORCEINLINE()
     RBIMPL_ATTR_NOALIAS()
@@ -101,7 +100,7 @@ RBasic {
      */
     RBasic() :
         flags(RBIMPL_VALUE_NULL),
-        klass(RBIMPL_VALUE_NULL)
+        klass((VALUE)RBIMPL_VALUE_NULL)
     {
     }
 # define RBASIC_INIT RBasic()
