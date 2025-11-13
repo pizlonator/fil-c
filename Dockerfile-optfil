@@ -1,0 +1,31 @@
+# Build a minimal image using /opt/fil installation method
+# https://fil-c.org/install_optfil
+# 
+# Usage:
+#   - build:
+#       docker buildx build . -f Dockerfile-optfil -t fil-c-optfil 
+#   - build a specific version:
+#       docker buildx build . -f Dockerfile-optfil -t fil-c-optfil --build-arg OPTFIL_VERSION=0.674
+#   - run a container mounting current dir to /work:
+#       docker run --rm -ti -v.:/workspace fil-c-optfil
+FROM alpine
+
+ARG OPTFIL_VERSION=0.674
+
+ADD https://github.com/pizlonator/fil-c/releases/download/v0.674/optfil-${OPTFIL_VERSION}-linux-x86_64.tar.xz /
+RUN tar -xvf optfil-${OPTFIL_VERSION}-linux-x86_64.tar.xz
+WORKDIR /optfil-${OPTFIL_VERSION}-linux-x86_64
+RUN sh -c 'yes YES | ./setup.sh'
+# Fix a bug in last tested release
+# this should be no more necessary after https://github.com/pizlonator/fil-c/issues/130
+COPY --from=gcc /usr/lib/gcc/x86_64-linux-gnu/14/crtbeginS.o /opt/fil/lib
+COPY --from=gcc /usr/lib/gcc/x86_64-linux-gnu/14/crtendS.o /opt/fil/lib
+COPY --from=gcc /usr/lib/gcc/x86_64-linux-gnu/14/libgcc.a /opt/fil/lib
+COPY --from=gcc /usr/lib/gcc/x86_64-linux-gnu/14/libgcc_eh.a /opt/fil/lib
+WORKDIR /workspace
+RUN rm -fr /optfil-${OPTFIL_VERSION}-linux-x86_64
+ENV PATH="/opt/fil/bin:$PATH"
+
+# Test the toolchain
+RUN echo -e '#include <stdio.h>\n int main(void) { printf("Hello from Fil-C!\\n"); return 0; }' > hello.c
+RUN filcc hello.c -o hello.out && ./hello.out && rm ./hello.*
