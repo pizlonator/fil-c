@@ -397,6 +397,66 @@ int ruby_disable_gc = 0;
 
 #define CEILDIV(i, mod) roomof(i, mod)
 
+static void gc_finalize_deferred(void *dmy);
+
+static VALUE
+run_single_final(VALUE cmd, VALUE objid)
+{
+    return rb_check_funcall(cmd, idCall, 1, &objid);
+}
+
+static void
+warn_exception_in_finalizer(rb_execution_context_t *ec, VALUE final)
+{
+    if (!UNDEF_P(final) && !NIL_P(ruby_verbose)) {
+        VALUE errinfo = ec->errinfo;
+        rb_warn("Exception in finalizer %+"PRIsVALUE, final);
+        rb_ec_error_print(ec, errinfo);
+    }
+}
+
+static void
+run_finalizer(VALUE obj, VALUE table)
+{
+    long i;
+    enum ruby_tag_type state;
+    volatile struct {
+        VALUE errinfo;
+        VALUE objid;
+        VALUE final;
+        rb_control_frame_t *cfp;
+        VALUE *sp;
+        long finished;
+    } saved;
+
+    rb_execution_context_t * volatile ec = GET_EC();
+#define RESTORE_FINALIZER() (\
+        ec->cfp = saved.cfp, \
+        ec->cfp->sp = saved.sp, \
+        ec->errinfo = saved.errinfo)
+
+    saved.errinfo = ec->errinfo;
+    saved.objid = rb_obj_id(obj);
+    saved.cfp = ec->cfp;
+    saved.sp = ec->cfp->sp;
+    saved.finished = 0;
+    saved.final = Qundef;
+
+    EC_PUSH_TAG(ec);
+    state = EC_EXEC_TAG();
+    if (state != TAG_NONE) {
+        ++saved.finished;	/* skip failed finalizer */
+        warn_exception_in_finalizer(ec, ATOMIC_VALUE_EXCHANGE(saved.final, Qundef));
+    }
+    for (i = saved.finished;
+         RESTORE_FINALIZER(), i<RARRAY_LEN(table);
+         saved.finished = ++i) {
+        run_single_final(saved.final = RARRAY_AREF(table, i), saved.objid);
+    }
+    EC_POP_TAG();
+#undef RESTORE_FINALIZER
+}
+
 #ifdef __FILC__
 
 /* FIXME: I started out writing this chunk thinking that I'd just replace some simple API with calls
@@ -449,10 +509,28 @@ typedef struct RVALUE {
 
 #define RANY(o) ((RVALUE*)(o))
 
+struct rb_objspace {
+    zweak_map *finalizer_table;
+    zgc_finq *finalizer_queue;
+    rb_postponed_job_handle_t finalize_deferred_pjob;
+    rb_atomic_t finalizing;
+    zgc_cycle_number completed_cycle;
+};
+
+#define get_objspace (*get_objspace_of(GET_VM()))
+#define get_objspace_of(vm) ((vm)->objspace)
+
 struct rb_objspace *
 rb_objspace_alloc(void)
 {
-    return malloc(0);
+    struct rb_objspace *result = malloc(sizeof(struct rb_objspace));
+    result->finalizer_table = zweak_map_new();
+    result->finalizer_queue = zgc_finq_new();
+    result->finalize_deferred_pjob = rb_postponed_job_preregister(0, gc_finalize_deferred, result);
+    if (result->finalize_deferred_pjob == POSTPONED_JOB_HANDLE_INVALID) {
+        rb_bug("Could not preregister postponed job for GC");
+    }
+    return result;
 }
 
 void
@@ -480,9 +558,28 @@ rb_gc_size_allocatable_p(size_t size)
     return size <= rb_size_pool_slot_size(SIZE_POOL_COUNT - 1);
 }
 
+struct finalizer_box {
+    VALUE object;
+    VALUE table;
+    bool is_file;
+};
+
 static inline VALUE newobj(VALUE klass, uintptr_t flags, VALUE v1, VALUE v2, VALUE v3, size_t size)
 {
+    struct rb_objspace *objspace = &get_objspace;
+    zgc_cycle_number completed_cycle = zgc_completed_cycle();
+    if (completed_cycle != objspace->completed_cycle) {
+        objspace->completed_cycle = completed_cycle;
+        rb_postponed_job_trigger(objspace->finalize_deferred_pjob);
+    }
     RVALUE *p = malloc(CEILDIV(size, sizeof(RVALUE)) * sizeof(RVALUE));
+    if ((flags & T_MASK) == T_FILE) {
+        struct finalizer_box *box = zgc_finq_alloc(objspace->finalizer_queue,
+                                                   sizeof(struct finalizer_box));
+        box->object = (VALUE)p;
+        box->is_file = true;
+        zweak_map_set(objspace->finalizer_table, p, box);
+    }
     p->as.basic.flags = flags;
     *(VALUE*)&p->as.basic.klass = klass;
     p->as.values.v1 = v1;
@@ -858,7 +955,9 @@ rb_objspace_internal_object_p(VALUE obj)
 VALUE
 rb_undefine_finalizer(VALUE obj)
 {
-    /* FIXME: Actually implement finalization. */
+    struct rb_objspace *objspace = &get_objspace;
+    rb_check_frozen(obj);
+    zweak_map_set(objspace->finalizer_table, obj, NULL);
     FL_UNSET(obj, FL_FINALIZE);
     return obj;
 }
@@ -885,11 +984,38 @@ should_be_finalizable(VALUE obj)
 VALUE
 rb_define_finalizer_no_check(VALUE obj, VALUE block)
 {
+    struct rb_objspace *objspace = &get_objspace;
+    struct finalizer_box* box;
+
     RBASIC(obj)->flags |= FL_FINALIZE;
 
-    /* FIXME: Actually implement finalization. */
+    box = zweak_map_get(objspace->finalizer_table, obj);
+    if (!box) {
+        struct finalizer_box* box = zgc_finq_alloc(objspace->finalizer_queue,
+                                                   sizeof(struct finalizer_box));
+        box->object = obj;
+        zweak_map_set(objspace->finalizer_table, obj, box);
+    }
 
-    return Qnil;
+    if (box->table) {
+        long len = RARRAY_LEN(box->table);
+        long i;
+        for (i = 0; i < len; i++) {
+            VALUE recv = RARRAY_AREF(box->table, i);
+            if (rb_equal(recv, block)) {
+                block = recv;
+                goto end;
+            }
+        }
+        rb_ary_push(box->table, block);
+    } else {
+        box->table = rb_ary_new3(1, block);
+        RBASIC_CLEAR_CLASS(box->table);
+    }
+  end:
+    block = rb_ary_new3(2, INT2FIX(0), block);
+    OBJ_FREEZE(block);
+    return block;
 }
 
 static VALUE
@@ -924,9 +1050,18 @@ rb_define_finalizer(VALUE obj, VALUE block)
 void
 rb_gc_copy_finalizer(VALUE dest, VALUE obj)
 {
+    struct rb_objspace *objspace = &get_objspace;
+
     if (!FL_TEST(obj, FL_FINALIZE)) return;
 
-    /* FIXME: Actually implement finalization. */
+    struct finalizer_box *box = zweak_map_get(objspace->finalizer_table, obj);
+    if (box) {
+        struct finalizer_box *new_box = zgc_finq_alloc(objspace->finalizer_queue,
+                                                       sizeof(struct finalizer_box));
+        new_box->object = dest;
+        new_box->table = box->table;
+        zweak_map_set(objspace->finalizer_table, dest, new_box);
+    }
 
     FL_SET(dest, FL_FINALIZE);
 }
@@ -936,10 +1071,61 @@ rb_objspace_free_objects(struct rb_objspace *objspace)
 {
 }
 
+static void
+finalize_box(struct finalizer_box* box, bool expect_valid)
+{
+    if (expect_valid) {
+        ZASSERT(box->object);
+    } else {
+        if (!box->object) {
+            return;
+        }
+    }
+    if (box->table) {
+        run_finalizer(box->object, box->table);
+    }
+    if (box->is_file) {
+        rb_io_fptr_finalize_internal(RANY(box->object)->as.file.fptr);
+    }
+    box->object = NULL;
+    box->table = NULL;
+    box->is_file = false;
+}
+
+static void
+finalize_deferred(struct rb_objspace *objspace, bool expect_valid)
+{
+    struct finalizer_box* box;
+    while ((box = zgc_finq_poll(objspace->finalizer_queue))) {
+        finalize_box(box, expect_valid);
+    }
+}
+
+static void
+gc_finalize_deferred(void *dmy)
+{
+    struct rb_objspace *objspace = dmy;
+    if (ATOMIC_EXCHANGE(objspace->finalizing, 1)) return;
+    finalize_deferred(objspace, true);
+    ATOMIC_SET(objspace->finalizing, 0);
+}
+
 void
 rb_objspace_call_finalizer(struct rb_objspace *objspace)
 {
-    /* FIXME: Actually do stuff here? */
+    if (ATOMIC_EXCHANGE(objspace->finalizing, 1)) return;
+    finalize_deferred(objspace, true);
+
+    zweak_map_iter *iter = zweak_map_get_iter(objspace->finalizer_table);
+    while (zweak_map_iter_next(iter)) {
+        finalize_box(zweak_map_iter_value(iter), false);
+    }
+
+    /* If there was a GC that was racing with us, then make sure it finishes, and then process the
+       finalizers one last time. */
+    zgc_wait(zgc_requested_cycle());
+    finalize_deferred(objspace, false);
+    ATOMIC_SET(objspace->finalizing, 0);
 }
 
 int
@@ -3302,8 +3488,6 @@ static inline void gc_prof_set_heap_info(rb_objspace_t *);
 PRINTF_ARGS(static void gc_report_body(int level, rb_objspace_t *objspace, const char *fmt, ...), 3, 4);
 static const char *obj_info(VALUE obj);
 static const char *obj_type_name(VALUE obj);
-
-static void gc_finalize_deferred(void *dmy);
 
 /*
  * 1 - TSC (H/W Time Stamp Counter)
@@ -6273,64 +6457,6 @@ rb_gc_copy_finalizer(VALUE dest, VALUE obj)
     FL_SET(dest, FL_FINALIZE);
 }
 
-static VALUE
-run_single_final(VALUE cmd, VALUE objid)
-{
-    return rb_check_funcall(cmd, idCall, 1, &objid);
-}
-
-static void
-warn_exception_in_finalizer(rb_execution_context_t *ec, VALUE final)
-{
-    if (!UNDEF_P(final) && !NIL_P(ruby_verbose)) {
-        VALUE errinfo = ec->errinfo;
-        rb_warn("Exception in finalizer %+"PRIsVALUE, final);
-        rb_ec_error_print(ec, errinfo);
-    }
-}
-
-static void
-run_finalizer(rb_objspace_t *objspace, VALUE obj, VALUE table)
-{
-    long i;
-    enum ruby_tag_type state;
-    volatile struct {
-        VALUE errinfo;
-        VALUE objid;
-        VALUE final;
-        rb_control_frame_t *cfp;
-        VALUE *sp;
-        long finished;
-    } saved;
-
-    rb_execution_context_t * volatile ec = GET_EC();
-#define RESTORE_FINALIZER() (\
-        ec->cfp = saved.cfp, \
-        ec->cfp->sp = saved.sp, \
-        ec->errinfo = saved.errinfo)
-
-    saved.errinfo = ec->errinfo;
-    saved.objid = rb_obj_id(obj);
-    saved.cfp = ec->cfp;
-    saved.sp = ec->cfp->sp;
-    saved.finished = 0;
-    saved.final = Qundef;
-
-    EC_PUSH_TAG(ec);
-    state = EC_EXEC_TAG();
-    if (state != TAG_NONE) {
-        ++saved.finished;	/* skip failed finalizer */
-        warn_exception_in_finalizer(ec, ATOMIC_VALUE_EXCHANGE(saved.final, Qundef));
-    }
-    for (i = saved.finished;
-         RESTORE_FINALIZER(), i<RARRAY_LEN(table);
-         saved.finished = ++i) {
-        run_single_final(saved.final = RARRAY_AREF(table, i), saved.objid);
-    }
-    EC_POP_TAG();
-#undef RESTORE_FINALIZER
-}
-
 static void
 run_final(rb_objspace_t *objspace, VALUE zombie)
 {
@@ -6342,7 +6468,7 @@ run_final(rb_objspace_t *objspace, VALUE zombie)
 
     key = (st_data_t)zombie;
     if (st_delete(finalizer_table, &key, &table)) {
-        run_finalizer(objspace, zombie, (VALUE)table);
+        run_finalizer(zombie, (VALUE)table);
     }
 }
 
