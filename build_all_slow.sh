@@ -84,6 +84,8 @@ test ! -d projects/pizfix
 ./build_emacs.sh
 ./build_vim.sh
 ./build_brotli.sh
+./build_yaml.sh
+./build_ruby.sh
 ./build_benchmarks.sh
 
 test ! -d projects/pizfix
