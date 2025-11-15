@@ -67,7 +67,6 @@ cd ../..
 ./package-source.sh projects/bash-5.2.32 pizlonated-bash
 ./package-source.sh projects/openssl-3.3.1 pizlonated-openssl
 ./package-source.sh projects/libffi-3.4.6 pizlonated-libffi
-./package-source.sh projects/sudo-1.9.15p5 pizlonated-sudo
 ./package-source.sh projects/openssh-9.8p1 pizlonated-openssh
 ./package-source.sh projects/binutils-2.43.1 pizlonated-binutils
 ./package-source.sh projects/Linux-PAM-1.7.1 pizlonated-pam
@@ -77,4 +76,5 @@ cd ../..
 ./package-source.sh projects/libsepol-3.9 pizlonated-sepol
 ./package-source.sh projects/libselinux-3.9 pizlonated-selinux
 ./package-source.sh projects/sudo-1.9.15p5 pizlonated-sudo
+./package-source.sh projects/libuv-1.51.0 pizlonated-libuv
 

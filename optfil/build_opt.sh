@@ -411,6 +411,14 @@ make -j `nproc` install
 cd ..
 rm -rf mg-3.7
 
+tar -xf $FILCSRC/projects/libuv-1.51.0/pizlonated-libuv.tar.gz
+cd pizlonated-libuv
+CC=/opt/fil/bin/filcc ./configure --prefix=/opt/fil
+make -j `nproc`
+make -j `nproc` install
+cd ..
+rm -rf pizlonated-libuv
+
 tar -xf $FILCSRC/pizlix/audit-userspace-4.1.2.tar.gz
 cd audit-userspace-4.1.2
 autoreconf -f --install

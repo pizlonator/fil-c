@@ -78,5 +78,7 @@ cp -v keyutils-LICENSE.txt $package_name/
 cp -v krb5-LICENSE.txt $package_name/
 cp -v libsepol-LICENSE.txt $package_name/
 cp -v libselinux-LICENSE.txt $package_name/
+cp -v sudo-LICENSE.md $package_name/
+cp -v libuv-LICENSE.txt $package_name/
 
 tar -cJf $package_name.tar.xz $package_name
