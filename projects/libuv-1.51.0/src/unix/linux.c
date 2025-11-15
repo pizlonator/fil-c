@@ -464,6 +464,9 @@ static int uv__use_io_uring(uint32_t flags) {
 #elif defined(__powerpc64__) || defined(__ppc64__)
   /* See https://github.com/libuv/libuv/issues/4283. */
   return 0; /* Random SIGSEGV in signal handler. */
+#elif defined(__FILC__)
+  /* The io_uring API is not yet supported by Fil-C, and may never be. */
+  return 0;
 #else
   /* Ternary: unknown=0, yes=1, no=-1 */
   static _Atomic int use_io_uring;

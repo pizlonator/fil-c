@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdfil.h>
 
 struct uv__process_title {
   char* str;
@@ -84,7 +85,7 @@ char** uv_setup_args(int argc, char** argv) {
   }
   new_argv[i] = NULL;
 
-  pt.cap = argv[i - 1] + size - argv[0];
+  pt.cap = zlength(pt.str);
 
   args_mem = new_argv;
   process_title = pt;

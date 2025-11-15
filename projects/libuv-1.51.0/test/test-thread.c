@@ -223,7 +223,7 @@ static void thread_check_stack(void* arg) {
   if (expected == 0)
     expected = 512 * 1024;
   ASSERT_GE(pthread_get_stacksize_np(pthread_self()), expected);
-#elif defined(__linux__) && defined(__GLIBC__)
+#elif defined(__linux__) && defined(__GLIBC__) && !defined(__FILC__)
   size_t expected;
   struct rlimit lim;
   size_t stack_size;

@@ -27,6 +27,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdfil.h>
+
+static zexact_ptrtable* handle_table;
+
+static void construct_ptrtable(void) __attribute__((constructor));
+static void construct_ptrtable(void) {
+  handle_table = zexact_ptrtable_new_weak();
+}
 
 #ifndef SA_RESTART
 # define SA_RESTART 0
@@ -199,7 +207,7 @@ static void uv__signal_handler(int signum) {
     int r;
 
     msg.signum = signum;
-    msg.handle = handle;
+    msg.handle = (void*)zexact_ptrtable_encode(handle_table, handle);
 
     /* write() should be atomic for small data chunks, so the entire message
      * should be written at once. In theory the pipe could become full, in
@@ -477,7 +485,7 @@ static void uv__signal_event(uv_loop_t* loop,
 
     for (i = 0; i < end; i += sizeof(uv__signal_msg_t)) {
       msg = (uv__signal_msg_t*) (buf + i);
-      handle = msg->handle;
+      handle = zexact_ptrtable_decode(handle_table, (uintptr_t)msg->handle);
 
       if (msg->signum == handle->signum) {
         assert(!(handle->flags & UV_HANDLE_CLOSING));

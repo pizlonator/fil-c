@@ -70,6 +70,8 @@ extern char **environ;
 #define UV_USE_SIGCHLD
 #endif
 
+#include <stdfil.h>
+
 
 #ifdef UV_USE_SIGCHLD
 static void uv__chld(uv_signal_t* handle, int signum) {
@@ -300,7 +302,7 @@ static void uv__process_child_init(const uv_process_options_t* options,
    * them internally.
    */
   for (n = 1; n < 32; n += 1) {
-    if (n == SIGKILL || n == SIGSTOP)
+    if (n == SIGKILL || n == SIGSTOP || zis_unsafe_signal_for_handlers(n))
       continue;  /* Can't be changed. */
 
 #if defined(__HAIKU__)
