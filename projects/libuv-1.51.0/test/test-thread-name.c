@@ -69,7 +69,7 @@ TEST_IMPL(thread_name) {
 #if defined(__ANDROID_API__) && __ANDROID_API__ < 26 || \
     defined(_AIX) || \
     defined(__MVS__) || \
-    defined(__PASE__)
+    defined(__PASE__) || defined(__FILC__) /* FIXME: Fil-C should support this https://github.com/pizlonator/fil-c/issues/112 */
   RETURN_SKIP("API not available on this platform");
 #endif
 
@@ -179,7 +179,7 @@ static void after_work_cb(uv_work_t* req, int status) {
 
 TEST_IMPL(thread_name_threadpool) {
 
-#if defined(_AIX) || defined(__PASE__)
+#if defined(_AIX) || defined(__PASE__) || defined(__FILC__)
   RETURN_SKIP("API not available on this platform");
 #endif
   uv_work_t req;
