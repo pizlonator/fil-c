@@ -497,7 +497,7 @@ void filc_initialize(void)
     is_initialized = true;
 }
 
-PAS_NEVER_INLINE void* filc_thread_allocate_slow(size_t size)
+PAS_NEVER_INLINE pas_allocation_result filc_thread_allocate_slow(size_t size)
 {
     return verse_heap_allocate(fugc_default_heap, size);
 }
@@ -2224,28 +2224,32 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
     PAS_TESTING_ASSERT(object != &filc_free_singleton);
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
     PAS_TESTING_ASSERT(size);
-    char* aux_ptr = filc_thread_allocate(my_thread, size);
-    if (verbose)
-        pas_log("allocated aux at %p with size %zu, ending at %p\n", aux_ptr, size, aux_ptr + size);
-    if (size_mode == filc_small_size || !exit_allowed_mode)
-        filc_memset_small_word(aux_ptr, 0, size);
-    else {
-        /* It's wild that we have to do this, but it's really necessary, and it means that anytime
-           we do a store, it's a safepoint.
-        
-           Fortunately, any object referenced from roots is guaranteed to be kept alive along with its
-           aux. even if this exit happens, anything the compiler had been able to prove about objects
-           referenced from locals will continue to be true.
-           
-           The only thing that the compiler can't reason about at all are barriers, but that was
-           already true due to the fantastic properties of Phil's concurrent marking (even if you just
-           allocated an object you still need a barrier). */
-        filc_exit_with_allocation_root(my_thread, aux_ptr);
-        memset(aux_ptr, 0, size);
-        filc_enter_with_allocation_root(my_thread, aux_ptr);
+    pas_allocation_result aux_ptr_result = filc_thread_allocate(my_thread, size);
+    if (verbose) {
+        pas_log("allocated aux at %p with size %zu, ending at %p\n",
+                (void*)aux_ptr_result.begin, size, (char*)aux_ptr_result.begin + size);
+    }
+    if (!aux_ptr_result.zero_mode) {
+        if (size_mode == filc_small_size || !exit_allowed_mode)
+            filc_memset_small_word((void*)aux_ptr_result.begin, 0, size);
+        else {
+            /* It's wild that we have to do this, but it's really necessary, and it means that anytime
+               we do a store, it's a safepoint.
+               
+               Fortunately, any object referenced from roots is guaranteed to be kept alive along with
+               its aux. even if this exit happens, anything the compiler had been able to prove about
+               objects referenced from locals will continue to be true.
+                
+               The only thing that the compiler can't reason about at all are barriers, but that was
+               already true due to the fantastic properties of Phil's concurrent marking (even if you
+               just allocated an object you still need a barrier). */
+            filc_exit_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
+            memset((void*)aux_ptr_result.begin, 0, size);
+            filc_enter_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
+        }
     }
     if (PAS_UNLIKELY(filc_current_marking_state))
-        verse_heap_set_is_marked_relaxed(aux_ptr, true);
+        verse_heap_set_is_marked_relaxed((void*)aux_ptr_result.begin, true);
     for (;;) {
         uintptr_t aux = object->aux;
         PAS_TESTING_ASSERT(!(filc_aux_get_flags(aux) & FILC_OBJECT_FLAGS_SPECIAL_MASK));
@@ -2260,17 +2264,18 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
         if (PAS_UNLIKELY(filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_FREE))
             ensure_aux_ptr_free_fail(object);
         if (not_atomic_hack) {
-            object->aux = filc_aux_create(filc_aux_get_flags(aux), aux_ptr);
-            return aux_ptr;
+            object->aux = filc_aux_create(filc_aux_get_flags(aux), (void*)aux_ptr_result.begin);
+            return (void*)aux_ptr_result.begin;
         }
         if (pas_compare_and_swap_uintptr_weak(
-                &object->aux, aux, filc_aux_create(filc_aux_get_flags(aux), aux_ptr))) {
+                &object->aux, aux, filc_aux_create(filc_aux_get_flags(aux),
+                                                   (void*)aux_ptr_result.begin))) {
             if (verbose) {
-                pas_log("created aux at %p: ", aux_ptr);
+                pas_log("created aux at %p: ", (void*)aux_ptr_result.begin);
                 filc_object_dump(object, pas_log_stream);
                 pas_log("\n");
             }
-            return aux_ptr;
+            return (void*)aux_ptr_result.begin;
         }
     }
 }
@@ -2340,7 +2345,8 @@ char* filc_object_ensure_aux_ptr_outline(filc_thread* my_thread, filc_object* ob
 
 filc_atomic_box* filc_atomic_box_create_for_ptr_store(filc_thread* my_thread, filc_ptr value)
 {
-    filc_atomic_box* result = filc_thread_allocate(my_thread, sizeof(filc_atomic_box));
+    filc_atomic_box* result = (filc_atomic_box*)filc_thread_allocate(my_thread,
+                                                                     sizeof(filc_atomic_box)).begin;
     /* We know that the ptr value is already barriered. */
     result->ptr = value;
     if (PAS_UNLIKELY(filc_current_marking_state))
@@ -2395,22 +2401,25 @@ filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment
         base_size = sizeof(filc_object);
     PAS_ASSERT(!pas_add_uintptr_overflow(base_size, size, &total_size));
 
-    void* allocation = verse_heap_allocate_with_alignment(heap, total_size, alignment);
+    pas_allocation_result allocation_result =
+        verse_heap_allocate_with_alignment(heap, total_size, alignment);
     filc_log_align log_align;
     filc_object* result;
     if (alignment > FILC_MINALIGN) {
-        filc_alignment_header_construct(NULL, (filc_alignment_header*)allocation, alignment, NULL);
-        result = (filc_object*)((char*)allocation + alignment) - 1;
+        filc_alignment_header_construct(NULL, (filc_alignment_header*)allocation_result.begin,
+                                        alignment, NULL);
+        result = (filc_object*)((char*)allocation_result.begin + alignment) - 1;
         log_align = pas_log2(alignment);
     } else {
-        result = (filc_object*)allocation;
+        result = (filc_object*)allocation_result.begin;
         log_align = 0;
     }
     PAS_ASSERT((log_align & FILC_LOG_ALIGN_MASK) == log_align);
     filc_object_flags object_flags = filc_object_flags_create(0, special_type, log_align);
     result->upper = filc_object_lower_not_null(result);
     result->aux = filc_aux_create(object_flags, filc_object_lower(result));
-    pas_zero_memory(filc_object_lower(result), size);
+    if (!allocation_result.zero_mode)
+        pas_zero_memory(filc_object_lower(result), size);
     pas_store_store_fence();
 
     return result;
@@ -2491,7 +2500,7 @@ filc_object* filc_allocate_special_with_existing_payload(
     PAS_ASSERT(special_type == FILC_SPECIAL_TYPE_FUNCTION ||
                special_type == FILC_SPECIAL_TYPE_DL_HANDLE);
 
-    filc_object* result = (filc_object*)filc_thread_allocate(my_thread, sizeof(filc_object));
+    filc_object* result = (filc_object*)filc_thread_allocate(my_thread, sizeof(filc_object)).begin;
     result->upper = filc_object_lower_not_null(result);
     result->aux = filc_aux_create(
         filc_object_flags_create(0, special_type, 0),
@@ -2552,50 +2561,61 @@ static PAS_ALWAYS_INLINE filc_object* initialize_object_header(
 }
 
 static PAS_NEVER_INLINE filc_object* finish_allocate_large(
-    filc_thread* my_thread, filc_object* result, size_t size)
+    filc_thread* my_thread, filc_object* result, size_t size, pas_zero_mode zero_mode,
+    filc_object_flags object_flags)
 {
     static const bool verbose = false;
 
     if (verbose)
-        pas_log("allocated large %p\n", result);
-    
-    filc_exit_with_allocation_root(my_thread, filc_object_mark_base(result));
-    
-    pas_zero_memory(filc_object_lower(result), size);
-    
-    pas_store_store_fence();
-    
-    filc_enter_with_allocation_root(my_thread, filc_object_mark_base(result));
+        pas_log("allocated large %p %s\n", result, pas_zero_mode_get_string(zero_mode));
+
+    if (zero_mode || (object_flags & FILC_OBJECT_FLAG_MMAP))
+        pas_store_store_fence();
+    else {
+        filc_exit_with_allocation_root(my_thread, filc_object_mark_base(result));
+        
+        pas_zero_memory(filc_object_lower(result), size);
+        
+        pas_store_store_fence();
+        
+        filc_enter_with_allocation_root(my_thread, filc_object_mark_base(result));
+    }
     return result;
 }
 
-static PAS_ALWAYS_INLINE filc_object* finish_allocate_small(filc_object* result, size_t size)
+static PAS_ALWAYS_INLINE filc_object* finish_allocate_small(filc_object* result, size_t size,
+                                                            pas_zero_mode zero_mode,
+                                                            filc_object_flags object_flags)
 {
-    filc_memset_small_word(filc_object_lower(result), 0, size);
+    if (!zero_mode && !(object_flags & FILC_OBJECT_FLAG_MMAP))
+        filc_memset_small_word(filc_object_lower(result), 0, size);
     pas_store_store_fence();
     return result;
 }
 
 static PAS_ALWAYS_INLINE filc_object* finish_allocate(
-    filc_thread* my_thread, void* allocation, size_t size, size_t alignment,
+    filc_thread* my_thread, pas_allocation_result allocation_result, size_t size, size_t alignment,
     size_t offset_to_payload, filc_object_flags object_flags,
     filc_exit_allowed_mode exit_allowed_mode, filc_finalizer_queue* finalizer_queue)
 {
     static const bool verbose = false;
     if (verbose && (object_flags & FILC_OBJECT_FLAG_MMAP)) {
-        pas_log("[%d] allocated mmap %p...%p\n",
+        pas_log("[%d] allocated mmap %p...%p, %s\n",
                 getpid(),
-                (char*)allocation + offset_to_payload,
-                (char*)allocation + offset_to_payload + size);
+                (char*)allocation_result.begin + offset_to_payload,
+                (char*)allocation_result.begin + offset_to_payload + size,
+                pas_zero_mode_get_string(allocation_result.zero_mode));
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
-    filc_thread_assert_allocation_color(my_thread, allocation);
+    filc_thread_assert_allocation_color(my_thread, (void*)allocation_result.begin);
     filc_object* result = initialize_object_header(
-        my_thread, allocation, size, alignment, offset_to_payload, object_flags, NULL,
-        finalizer_queue);
-    if (PAS_UNLIKELY(size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) && exit_allowed_mode)
-        return finish_allocate_large(my_thread, result, size);
-    return finish_allocate_small(result, size);
+        my_thread, (void*)allocation_result.begin, size, alignment, offset_to_payload, object_flags,
+        NULL, finalizer_queue);
+    if (PAS_UNLIKELY(size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) && exit_allowed_mode) {
+        return finish_allocate_large(my_thread, result, size, allocation_result.zero_mode,
+                                     object_flags);
+    }
+    return finish_allocate_small(result, size, allocation_result.zero_mode, object_flags);
 }
 
 static PAS_ALWAYS_INLINE filc_object* allocate_impl(
@@ -2688,15 +2708,15 @@ filc_object* filc_allocate_finalizable_with_alignment(filc_thread* my_thread,
 }
 
 static filc_object* finish_reallocate(
-    filc_thread* my_thread, void* allocation, filc_object* old_object, size_t new_size,
-    size_t alignment, size_t offset_to_payload)
+    filc_thread* my_thread, pas_allocation_result allocation_result, filc_object* old_object,
+    size_t new_size, size_t alignment, size_t offset_to_payload)
 {
     static const bool verbose = false;
 
     if (verbose)
         pas_log("new_size = %zu\n", new_size);
 
-    filc_thread_assert_allocation_color(my_thread, allocation);
+    filc_thread_assert_allocation_color(my_thread, (void*)allocation_result.begin);
     
     check_object_accessible(old_object);
 
@@ -2704,36 +2724,37 @@ static filc_object* finish_reallocate(
     char* old_aux_ptr = filc_object_aux_ptr(old_object);
 
     size_t common_size = pas_min_uintptr(new_size, old_size);
-    char* new_aux_ptr = NULL;
+    pas_allocation_result new_aux_ptr_result = pas_allocation_result_create_failure();
     if (old_aux_ptr) {
-        new_aux_ptr = filc_thread_allocate(my_thread, new_size);
+        new_aux_ptr_result = filc_thread_allocate(my_thread, new_size);
         if (PAS_UNLIKELY(filc_current_marking_state)) {
             /* It's posssible that the allocation of the object observed that we're in black
                allocation mode, but the allocation of the aux didn't, because of how TLCs work. So,
                we need to mark the aux if marking is set, just like allocating the aux in
                filc_object_ensure_aux_ptr_slow. */
-            verse_heap_set_is_marked_relaxed(new_aux_ptr, true);
+            verse_heap_set_is_marked_relaxed((void*)new_aux_ptr_result.begin, true);
         }
     }
 
     filc_object* result = initialize_object_header(
-        my_thread, allocation, new_size, alignment, offset_to_payload, 0, new_aux_ptr, NULL);
+        my_thread, (void*)allocation_result.begin, new_size, alignment, offset_to_payload, 0,
+        (void*)new_aux_ptr_result.begin, NULL);
     if (verbose)
         pas_log("old_object = %p, result = %p\n", old_object, result);
     if (new_size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) {
-        if (new_aux_ptr)
-            filc_push_allocation_root(my_thread, new_aux_ptr);
-        filc_exit_with_allocation_root(my_thread, allocation);
+        if (new_aux_ptr_result.begin)
+            filc_push_allocation_root(my_thread, (void*)new_aux_ptr_result.begin);
+        filc_exit_with_allocation_root(my_thread, (void*)allocation_result.begin);
     }
     memcpy(filc_object_lower(result), filc_object_lower(old_object), common_size);
-    if (new_size > common_size)
+    if (new_size > common_size && !allocation_result.zero_mode)
         pas_zero_memory((char*)filc_object_lower(result) + common_size, new_size - common_size);
-    if (new_aux_ptr)
-        pas_zero_memory(new_aux_ptr, new_size);
+    if (new_aux_ptr_result.begin && !new_aux_ptr_result.zero_mode)
+        pas_zero_memory((void*)new_aux_ptr_result.begin, new_size);
     if (new_size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) {
-        filc_enter_with_allocation_root(my_thread, allocation);
-        if (new_aux_ptr)
-            filc_pop_allocation_root(my_thread, new_aux_ptr);
+        filc_enter_with_allocation_root(my_thread, (void*)allocation_result.begin);
+        if (new_aux_ptr_result.begin)
+            filc_pop_allocation_root(my_thread, (void*)new_aux_ptr_result.begin);
         FILC_CHECK(
             !(filc_object_get_flags(old_object) & FILC_OBJECT_FLAG_FREE),
             NULL,
@@ -2743,12 +2764,13 @@ static filc_object* finish_reallocate(
     /* FIXME: We could conditionalize this. */
     filc_thread_track_object(my_thread, result);
     /* FIXME: This could be optimized the same way that memmove is. */
-    if (new_aux_ptr) {
+    if (new_aux_ptr_result.begin) {
         size_t offset;
         PAS_ASSERT(pas_is_aligned(common_size, sizeof(filc_lower_or_box)));
         for (offset = 0; offset < common_size; offset += sizeof(filc_lower_or_box)) {
             filc_lower_or_box* old_lower_or_box_ptr = (filc_lower_or_box*)(old_aux_ptr + offset);
-            filc_lower_or_box* new_lower_or_box_ptr = (filc_lower_or_box*)(new_aux_ptr + offset);
+            filc_lower_or_box* new_lower_or_box_ptr = (filc_lower_or_box*)(new_aux_ptr_result.begin
+                                                                           + offset);
             filc_lower_or_box lower_or_box = filc_lower_or_box_load_unfenced(old_lower_or_box_ptr);
             void* lower = filc_lower_or_box_extract_lower(lower_or_box);
             filc_store_barrier(my_thread, filc_object_for_lower(lower));
@@ -7457,7 +7479,7 @@ filc_ptr filc_native_zclosure_new(filc_thread* my_thread, filc_ptr function_ptr,
 {
     filc_check_function_call(function_ptr);
     filc_object* object = (filc_object*)filc_thread_allocate(
-        my_thread, sizeof(filc_object) + sizeof(filc_closure));
+        my_thread, sizeof(filc_object) + sizeof(filc_closure)).begin;
     object->upper = filc_object_lower_not_null(object);
     object->aux = filc_aux_create(
         filc_object_flags_create(FILC_OBJECT_FLAG_CLOSURE | FILC_OBJECT_FLAG_READONLY,

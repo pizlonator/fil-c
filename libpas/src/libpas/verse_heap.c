@@ -385,7 +385,7 @@ static pas_allocation_result try_allocate_large_in_transaction(
     return result;
 }
 
-static void* try_allocate_large(
+static pas_allocation_result try_allocate_large(
     pas_heap* heap, size_t size, size_t alignment, pas_allocation_result_filter result_filter)
 {
     pas_physical_memory_transaction transaction;
@@ -408,10 +408,10 @@ static void* try_allocate_large(
 
     pas_scavenger_notify_eligibility_if_needed();
 
-    return (void*)result_filter(result).begin;
+    return result_filter(result);
 }
 
-static PAS_ALWAYS_INLINE void* try_allocate_impl(
+static PAS_ALWAYS_INLINE pas_allocation_result try_allocate_impl(
     pas_heap* heap, size_t size, size_t alignment, pas_allocation_result_filter result_filter)
 {
     static const bool verbose = false;
@@ -459,11 +459,12 @@ static PAS_ALWAYS_INLINE void* try_allocate_impl(
         allocator.allocator = baseline_allocator_result.allocator;
     }
     
-    return (void*)pas_local_allocator_try_allocate(
-        allocator.allocator, size, alignment, VERSE_HEAP_CONFIG, &verse_heap_allocator_counts, result_filter).begin;
+    return pas_local_allocator_try_allocate(
+        allocator.allocator, size, alignment, VERSE_HEAP_CONFIG, &verse_heap_allocator_counts,
+        result_filter);
 }
 
-void* verse_heap_try_allocate(pas_heap* heap, size_t size)
+pas_allocation_result verse_heap_try_allocate(pas_heap* heap, size_t size)
 {
     return try_allocate_impl(heap, size, 1, pas_allocation_result_identity);
 }
@@ -476,17 +477,19 @@ allocation_result_crash_on_error_for_filc(pas_allocation_result result)
     return result;
 }
 
-void* verse_heap_allocate(pas_heap* heap, size_t size)
+pas_allocation_result verse_heap_allocate(pas_heap* heap, size_t size)
 {
     return try_allocate_impl(heap, size, 1, allocation_result_crash_on_error_for_filc);
 }
 
-void* verse_heap_try_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment)
+pas_allocation_result verse_heap_try_allocate_with_alignment(pas_heap* heap, size_t size,
+                                                             size_t alignment)
 {
     return try_allocate_impl(heap, size, alignment, pas_allocation_result_identity);
 }
 
-void* verse_heap_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment)
+pas_allocation_result verse_heap_allocate_with_alignment(pas_heap* heap, size_t size,
+                                                         size_t alignment)
 {
     return try_allocate_impl(heap, size, alignment, allocation_result_crash_on_error_for_filc);
 }

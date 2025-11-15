@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,6 +26,7 @@
 #ifndef VERSE_HEAP_H
 #define VERSE_HEAP_H
 
+#include "pas_allocation_result.h"
 #include "pas_bitvector.h"
 #include "pas_immutable_vector.h"
 #include "pas_simple_large_free_heap.h"
@@ -246,6 +247,18 @@ static PAS_ALWAYS_INLINE void verse_heap_notify_sweep(uintptr_t bytes_swept)
    If we wanted to use this outside testing, we'd have to combine it with a GC state check and a mark bit check, plus some
    other logic. */
 PAS_API bool verse_heap_object_is_allocated(void* ptr);
+
+/* This is meant to be called as the casual case of the Verse VM allocator. It can handle any size. Note that
+   this is a different algorithm from pas_try_allocate_common.
+
+   For fast case allocation, the Verse VM should maintain its own table of local allocators for the sizes and
+   heaps it wants to use. */
+PAS_API pas_allocation_result verse_heap_try_allocate(pas_heap* heap, size_t size);
+PAS_API pas_allocation_result verse_heap_allocate(pas_heap* heap, size_t size);
+
+/* This is mean to be called as the fast case of aligned allocation. */
+PAS_API pas_allocation_result verse_heap_try_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment);
+PAS_API pas_allocation_result verse_heap_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment);
 
 PAS_END_EXTERN_C;
 

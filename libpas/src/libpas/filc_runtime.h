@@ -1637,13 +1637,16 @@ static inline void* filc_thread_allocate_with_allocator_index(filc_thread* threa
     return verse_local_allocator_allocate(filc_thread_allocator(thread, allocator_index));
 }
 
-PAS_API PAS_NEVER_INLINE void* filc_thread_allocate_slow(size_t size);
+PAS_API PAS_NEVER_INLINE pas_allocation_result filc_thread_allocate_slow(size_t size);
 
-static PAS_ALWAYS_INLINE void* filc_thread_allocate_impl(filc_thread* thread, size_t size)
+static PAS_ALWAYS_INLINE pas_allocation_result filc_thread_allocate_impl(filc_thread* thread,
+                                                                         size_t size)
 {
     size_t allocator_index = filc_compute_allocator_index(size);
-    if (PAS_LIKELY(filc_is_fast_allocator_index(allocator_index)))
-        return filc_thread_allocate_with_allocator_index(thread, allocator_index);
+    if (PAS_LIKELY(filc_is_fast_allocator_index(allocator_index))) {
+        return pas_allocation_result_create_success(
+            (uintptr_t)filc_thread_allocate_with_allocator_index(thread, allocator_index));
+    }
     return filc_thread_allocate_slow(size);
 }
 
@@ -1656,10 +1659,10 @@ static PAS_ALWAYS_INLINE void filc_thread_assert_allocation_color(filc_thread* t
 
 /* Super fast allocation function usable only when for the default heap and only if you don't need
    special alignment. */
-static PAS_ALWAYS_INLINE void* filc_thread_allocate(filc_thread* thread, size_t size)
+static PAS_ALWAYS_INLINE pas_allocation_result filc_thread_allocate(filc_thread* thread, size_t size)
 {
-    void* result = filc_thread_allocate_impl(thread, size);
-    filc_thread_assert_allocation_color(thread, result);
+    pas_allocation_result result = filc_thread_allocate_impl(thread, size);
+    filc_thread_assert_allocation_color(thread, (void*)result.begin);
     return result;
 }
 
