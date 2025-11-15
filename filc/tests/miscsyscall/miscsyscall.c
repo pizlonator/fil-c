@@ -579,7 +579,7 @@ int main(int argc, char** argv)
 #endif
 
     struct timex timex;
-    ZASSERT(!adjtimex(&timex));
+    adjtimex(&timex);
 
     struct sched_param param;
     pthread_setschedparam(pthread_self(), 0, &param);

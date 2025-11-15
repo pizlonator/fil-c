@@ -1604,6 +1604,16 @@ static inline unsigned pas_large_object_hash(uintptr_t key)
     return pas_hash_intptr(key);
 }
 
+static inline unsigned pas_hash_str(const char *str) {
+    if (!str)
+        return 0;
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c;
+    return hash;
+}
+
 #define PAS_INFINITY (1. / 0.)
 
 #define PAS_SIZE_MAX ((size_t)(intptr_t)-1)

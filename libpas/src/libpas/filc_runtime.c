@@ -35,6 +35,7 @@
 #include "bmalloc_heap_config.h"
 #include "filc_native.h"
 #include "filc_runtime_inlines.h"
+#include "filc_sampling_profiler.h"
 #include "fugc.h"
 #include "pas_hashtable.h"
 #include "pas_scavenger.h"
@@ -455,6 +456,7 @@ void filc_initialize(void)
     filc_override_settings_if_appropriate();
     
     fugc_parse_settings();
+    filc_sampling_profiler_parse_settings();
 
     bool should_dump_setup = false;
     filc_get_bool_env("FILC_DUMP_SETUP", &should_dump_setup);
@@ -467,6 +469,7 @@ void filc_initialize(void)
         pas_log("    run global dtors: %s\n", filc_run_global_dtors ? "yes" : "no");
         pas_log("    verbose stop the world: %s\n", filc_verbose_stop_the_world ? "yes" : "no");
         fugc_dump_setup();
+        filc_sampling_profiler_dump_settings();
     }
     
     fugc_initialize_heaps();
@@ -489,6 +492,7 @@ void filc_initialize(void)
 
     /* This has to happen *after* we do our primordial allocations. */
     fugc_initialize_collector();
+    filc_sampling_profiler_initialize();
 
     is_initialized = true;
 }
@@ -7713,6 +7717,7 @@ void filc_native_zsys_exit_soft(filc_thread* my_thread, int return_code)
         pas_log("%d: Soft exiting!\n", getpid());
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
+    filc_sampling_profiler_report();
     filc_exit(my_thread);
     exit(return_code);
     PAS_ASSERT(!"Should not be reached");
@@ -7725,6 +7730,7 @@ void filc_native_zsys_exit_hard(filc_thread* my_thread, int return_code)
         pas_log("%d: Hard exiting!\n", getpid());
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
+    filc_sampling_profiler_report();
     filc_exit(my_thread);
     _Exit(return_code);
     PAS_ASSERT(!"Should not be reached");
@@ -8247,8 +8253,12 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     if (verbose)
         pas_log("stopping world\n");
     filc_stop_the_world();
-    /* NOTE: We don't have to lock the soft handshake lock, since now that the world is stopped and the
-       FUGC is suspended, nobody could be using it. */
+    if (verbose)
+        pas_log("telling sampling profiler about fork\n");
+    filc_sampling_profiler_before_fork();
+    /* NOTE: We don't have to lock the soft handshake lock, since now that the world is stopped,
+       the FUGC is suspended, and the sampling profiler knows we're forking, nobody could be
+       using it. */
     if (verbose)
         pas_log("locking thread list\n");
     filc_thread_list_lock_lock();
@@ -8302,6 +8312,10 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
             pas_system_mutex_unlock(&thread->lock);
     }
     filc_thread_list_lock_unlock();
+    if (!result)
+        filc_sampling_profiler_after_fork_in_child();
+    else
+        filc_sampling_profiler_after_fork_in_parent();
     filc_resume_the_world();
     fugc_resume();
     pas_scavenger_resume();

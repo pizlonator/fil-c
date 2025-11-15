@@ -29,6 +29,7 @@ PASSRCS = \
 	src/libpas/bmalloc_type.c \
 	src/libpas/filc_native_forwarders.c \
 	src/libpas/filc_runtime.c \
+	src/libpas/filc_sampling_profiler.c \
 	src/libpas/filc_start_program.c \
 	src/libpas/fugc.c \
 	src/libpas/hotbit_heap.c \
