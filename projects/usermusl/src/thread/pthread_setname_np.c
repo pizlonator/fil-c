@@ -15,7 +15,7 @@ int pthread_setname_np(pthread_t thread, const char *name)
 	if ((len = strnlen(name, 16)) > 15) return ERANGE;
 
 	if (thread == pthread_self())
-		return prctl(PR_SET_NAME, (unsigned long)name, 0UL, 0UL, 0UL) ? errno : 0;
+		return prctl(PR_SET_NAME, name, 0UL, 0UL, 0UL) ? errno : 0;
 
 	snprintf(f, sizeof f, "/proc/self/task/%d/comm", thread->tid);
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);

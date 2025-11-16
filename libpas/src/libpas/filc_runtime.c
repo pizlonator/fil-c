@@ -10696,6 +10696,20 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
         return -1;
     }
 
+    case PR_SET_NAME: {
+        filc_ptr name_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+        return FILC_SYSCALL(my_thread, prctl(PR_SET_NAME, name));
+    }
+
+    case PR_GET_NAME: {
+        filc_ptr buf_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        /* From TFM: "The buffer should allow space for up to 16 bytes; the returned string will be
+           null-terminated." */
+        filc_check_write(buf_ptr, 16);
+        return FILC_SYSCALL(my_thread, prctl(PR_GET_NAME, (char*)filc_ptr_ptr(buf_ptr)));
+    }
+
     default:
         filc_set_errno(ENOSYS);
         return -1;

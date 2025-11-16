@@ -2991,7 +2991,7 @@ S_set_dollarzero(pTHX_ SV *sv)
             PL_origargv[i] = 0;
 #ifdef HAS_PRCTL_SET_NAME
         /* Set the legacy process name in addition to the POSIX name on Linux */
-        if (prctl(PR_SET_NAME, (unsigned long)s, 0, 0, 0) != 0) {
+        if (prctl(PR_SET_NAME, s, 0, 0, 0) != 0) {
             /* diag_listed_as: SKIPME */
             Perl_croak(aTHX_ "Can't set $0 with prctl(): %s", Strerror(errno));
         }
