@@ -848,7 +848,10 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back("-lyoloc");
       CmdArgs.push_back("-lyolom");
       CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("libgcc.a")));
-      CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("libgcc_eh.a")));
+      if (ToolChain.getDriver().HasPizfix)
+        CmdArgs.push_back("-lyolounwind");
+      else
+        CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("libgcc_eh.a")));
       if (IsStatic || IsStaticPIE)
         CmdArgs.push_back("--end-group");
     } else if (!Args.hasArg(options::OPT_nodefaultlibs)) {

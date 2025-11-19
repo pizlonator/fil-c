@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -23,31 +23,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
+. libpas/common.sh
+
 set -e
 set -x
 
-rm -rf pizfix
-
-./build_yolounwind.sh
-./configure_llvm.sh
-./build_clang.sh
-./build_os_include.sh
-
-if test "x$ALTYOLO" != "x"
-then
-    $ALTYOLO
-else
-    ./build_yolomusl.sh
-fi
-
-./build_runtime.sh
-
-if test "x$ALTUSER" != "x"
-then
-    $ALTUSER
-else
-    ./build_usermusl.sh
-fi
-    
-./build_cxx.sh
+cd yolounwind
+make -j $NCPU
+cd ..
+mkdir -p pizfix/lib
+cp yolounwind/libyolounwind.a pizfix/lib
 

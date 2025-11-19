@@ -1,6 +1,4 @@
-#!/bin/sh
-#
-# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -21,33 +19,15 @@
 # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -e
-set -x
+all: libyolounwind.a
 
-rm -rf pizfix
+clean:
+	rm -f libyolounwind.a yolounwind.o
 
-./build_yolounwind.sh
-./configure_llvm.sh
-./build_clang.sh
-./build_os_include.sh
+libyolounwind.a: yolounwind.o
+	ar cr libyolounwind.a yolounwind.o
 
-if test "x$ALTYOLO" != "x"
-then
-    $ALTYOLO
-else
-    ./build_yolomusl.sh
-fi
-
-./build_runtime.sh
-
-if test "x$ALTUSER" != "x"
-then
-    $ALTUSER
-else
-    ./build_usermusl.sh
-fi
-    
-./build_cxx.sh
-
+yolounwind.o: yolounwind.c
+	clang -c -o yolounwind.o yolounwind.c -O2 -g
