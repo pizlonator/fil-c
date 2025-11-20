@@ -25,7 +25,7 @@
 
 set -e
 
-VERSION="0.674"
+VERSION="0.675"
 
 echo "================================================================================"
 echo "                         Fil-C /opt/fil Distribution"
@@ -39,11 +39,15 @@ echo "This distribution includes:"
 echo "  - Fil-C compiler version $VERSION (filcc, fil++) and its runtime (libpizlo.so)"
 echo "  - Basic libraries compiled with Fil-C (glibc 2.40, LLVM libc++ 20.1.8)"
 echo "  - Memory safe programs compiled with Fil-C:"
-echo "    - GNU Bash              - Compression libraries       - libaudit"
-echo "    - GNU Coreutils         - OpenSSL                     - keyutils"
-echo "    - GNU Binutils          - OpenSSH client and server   - PAM"
-echo "    - libsepol/libselinux   - mg text editor              - pkgconf"
-echo "    - Kerberos 5            - PCRE2"
+echo "      - bash        - zlib        - gzip        - bzip2       - xz"
+echo "      - lz4         - zstd        - coreutils   - openssl     - openssh"
+echo "      - libaudit    - keyutils    - binutils    - pam         - kerberos5"
+echo "      - libselinux  - mg          - pkgconf     - pcre2       - sudo"
+echo "      - sed         - psmisc      - flex        - grep        - less"
+echo "      - diff        - gawk        - find        - make        - patch"
+echo "      - tar         - icu4c       - procps-ng   - libevent    - libuv"
+echo "      - tmux        - unistring   - libidn2     - libpsl      - libtasn1"
+echo "      - p11-kit     - nghttp2     - curl        - wget        - git"
 echo
 echo "THIS SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND."
 echo "********************************************************************************"

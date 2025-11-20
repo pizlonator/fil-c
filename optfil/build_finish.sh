@@ -43,7 +43,7 @@ cd $FILCSRC/optfil
 
 . ../libpas/common.sh
 
-package_name=optfil-0.674-$OS-$ARCH
+package_name=optfil-0.675-$OS-$ARCH
 
 rm -rf $package_name
 mkdir -v $package_name
@@ -55,30 +55,9 @@ cp -v ../libpas/LICENSE.txt $package_name/PAS-LICENSE.txt
 cp -v setup.sh $package_name/
 
 # Copy all project license files
-cp -v bash-LICENSE.txt $package_name/
-cp -v bzip2-LICENSE.txt $package_name/
-cp -v coreutils-LICENSE.txt $package_name/
-cp -v glibc-LICENSE.txt $package_name/
-cp -v libffi-LICENSE.txt $package_name/
-cp -v libxcrypt-LICENSE.txt $package_name/
-cp -v lz4-LICENSE.txt $package_name/
-cp -v mg-LICENSE.txt $package_name/
-cp -v ncurses-LICENSE.txt $package_name/
-cp -v openssh-LICENSE.txt $package_name/
-cp -v openssl-LICENSE.txt $package_name/
-cp -v pkgconf-LICENSE.txt $package_name/
-cp -v readline-LICENSE.txt $package_name/
-cp -v xz-LICENSE.txt $package_name/
-cp -v zlib-LICENSE.txt $package_name/
-cp -v zstd-LICENSE.txt $package_name/
-cp -v binutils-LICENSE.txt $package_name/
-cp -v audit-LICENSE.txt $package_name/
-cp -v PAM-LICENSE.txt $package_name/
-cp -v keyutils-LICENSE.txt $package_name/
-cp -v krb5-LICENSE.txt $package_name/
-cp -v libsepol-LICENSE.txt $package_name/
-cp -v libselinux-LICENSE.txt $package_name/
-cp -v sudo-LICENSE.md $package_name/
-cp -v libuv-LICENSE.txt $package_name/
+licenses_dir=$package_name/additional_licenses
+mkdir -p $licenses_dir
+cp -v *-LICENSE.txt $licenses_dir/
+cp -v *-LICENSE.md $licenses_dir/
 
 tar -cJf $package_name.tar.xz $package_name
