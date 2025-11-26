@@ -46,6 +46,8 @@ test ! -d projects/pizfix
 ./build_jpeg-turbo.sh
 ./build_tiff.sh
 ./build_libpng.sh
+./build_libwebp.sh
+./build_tiff.sh      # Rebuild tiff due to circular dep with libwebp.
 ./build_ncurses.sh
 ./build_libedit.sh
 ./build_openssl.sh
