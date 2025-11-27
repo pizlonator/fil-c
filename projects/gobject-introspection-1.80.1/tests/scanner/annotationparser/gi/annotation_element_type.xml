@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * foo_test_array:
+ * @a: (element-type):
+ * @b: (element-type x y z):
+ *
+ * Returns: (element-type utf8) (transfer container): returns %NULL.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_test_array</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+            </annotation>
+          </annotations>
+        </parameter>
+        <parameter>
+          <name>b</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>x</name>
+                </option>
+                <option>
+                  <name>y</name>
+                </option>
+                <option>
+                  <name>z</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>container</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>returns %NULL.</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: "element-type" annotation takes at least one option, none given</message>
+      <message>4: Warning: Test: "element-type" annotation takes at most 2 options, 3 given</message>
+    </messages>
+  </parser>
+  <output>/**
+ * foo_test_array:
+ * @a: (element-type):
+ * @b: (element-type x y z):
+ *
+ * Returns: (element-type utf8) (transfer container): returns %NULL.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * RegressTestObj::sig-with-hash-prop:
+ * @self: an object
+ * @hash: (element-type utf8 GObject.Value):
+ *
+ * This test signal is like TelepathyGlib's
+ *  TpAccount::status-changed
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestObj::sig-with-hash-prop</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>an object</description>
+        </parameter>
+        <parameter>
+          <name>hash</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8</name>
+                </option>
+                <option>
+                  <name>GObject.Value</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+        </parameter>
+      </parameters>
+      <description>This test signal is like TelepathyGlib's
+ TpAccount::status-changed</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * RegressTestObj::sig-with-hash-prop:
+ * @self: an object
+ * @hash: (element-type utf8 GObject.Value):
+ *
+ * This test signal is like TelepathyGlib's
+ *  TpAccount::status-changed
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * regress_test_ghash_nested_everything_return2:
+ *
+ * Another way of specifying nested parameterized types: using the
+ * element-type annotation.
+ *
+ * Return value: (element-type utf8 GLib.HashTable<utf8,utf8>) (transfer full):
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_test_ghash_nested_everything_return2</name>
+      </identifier>
+      <description>Another way of specifying nested parameterized types: using the
+element-type annotation.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8</name>
+                </option>
+                <option>
+                  <name>GLib.HashTable(utf8,utf8)</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_test_ghash_nested_everything_return2:
+ *
+ * Another way of specifying nested parameterized types: using the
+ * element-type annotation.
+ *
+ * Returns: (element-type utf8 GLib.HashTable(utf8,utf8)) (transfer full):
+ */</output>
+</test>
+
+<test>
+  <input> /**
+  * foo_test_array:
+  *
+  * Returns: (element-type invalid utf8=invalid GLib.HashTable(utf8,utf8)): returns %NULL.
+  */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_test_array</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>invalid utf8=invalid GLib.HashTable(utf8,utf8)</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>returns %NULL.</description>
+        </tag>
+      </tags>
+    </docblock>
+      <messages>
+        <message>4: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+  * Returns: (element-type invalid utf8=invalid GLib.HashTable(utf8,utf8)): returns %NULL.
+                                       ^</message>
+    </messages>
+  </parser>
+  <output> /**
+  * foo_test_array:
+  *
+  * Returns: (element-type invalid utf8=invalid GLib.HashTable(utf8,utf8)): returns %NULL.
+  */</output>
+</test>
+
+<test>
+  <input> /**
+  * foo_test_array:
+  *
+  * Returns: (element-type utf8=invalid GLib.HashTable(utf8,utf8) invalid): returns %NULL.
+  */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_test_array</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8=invalid GLib.HashTable(utf8,utf8) invalid</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>returns %NULL.</description>
+        </tag>
+      </tags>
+    </docblock>
+      <messages>
+        <message>4: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+  * Returns: (element-type utf8=invalid GLib.HashTable(utf8,utf8) invalid): returns %NULL.
+                               ^</message>
+    </messages>
+  </parser>
+  <output> /**
+  * foo_test_array:
+  *
+  * Returns: (element-type utf8=invalid GLib.HashTable(utf8,utf8) invalid): returns %NULL.
+  */</output>
+</test>
+
+</tests>

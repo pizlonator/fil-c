@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_not_nullable:
+ * @object: a #GObject
+ * @closurearg: (closure) (not nullable): This is an argument test
+ *
+ * This is a test for not-nullable arguments which would otherwise be nullable
+ * by convention.
+ *
+ * Return value: (not nullable): a pointer
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_not_nullable</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>closurearg</name>
+          <annotations>
+            <annotation>
+              <name>closure</name>
+            </annotation>
+            <annotation>
+              <name>not</name>
+              <options>
+                <option>
+                  <name>nullable</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for not-nullable arguments which would otherwise be nullable
+by convention.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>not</name>
+              <options>
+                <option>
+                  <name>nullable</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a pointer</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_not_nullable:
+ * @object: a #GObject
+ * @closurearg: (closure) (not nullable): This is an argument test
+ *
+ * This is a test for not-nullable arguments which would otherwise be nullable
+ * by convention.
+ *
+ * Returns: (not nullable): a pointer
+ */</output>
+</test>
+
+</tests>

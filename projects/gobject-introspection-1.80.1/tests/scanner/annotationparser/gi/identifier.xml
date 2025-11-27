@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <!--
+  Identifier part not on the first line.
+  -->
+  <input>/**
+ * This is not a valid section identifier
+ * SECTION:test_invalid_section_identifier
+ *
+ * Above identifier is not on the first line.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:test_invalid_section_identifier</name>
+      </identifier>
+      <description>Above identifier is not on the first line.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+ * This is not a valid section identifier
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:test_invalid_section_identifier
+ *
+ * Above identifier is not on the first line.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Identifier part not on the first line.
+  -->
+  <input>/**
+
+
+
+* SECTION:meepapp
+*/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+
+^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ */</output>
+</test>
+
+<test>
+  <!--
+  Multiple identifier parts
+  -->
+  <input>/**
+ * SECTION:meepapp
+ * SECTION:meepapp2
+ * @short_description: the application class
+ *
+ * The application class handles ...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+      </parameters>
+      <description>SECTION:meepapp2
+The application class handles ...</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ *
+ * SECTION:meepapp2
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Invalid identifier
+  -->
+  <input>/**
+ * gnm_cell_set_expr_and_value: Stores (WITHOUT COPYING) the supplied value, and
+ *        references the supplied expression and links it into the expression
+ *        list.  It marks the sheet as dirty. It is intended for use by import
+ *        routines or operations that do bulk assignment.
+ *
+ * WARNING : This is an internal routine that does not queue redraws,
+ *           does not auto-resize, does not calculate spans, and does
+ *           not render the value.
+ *
+ * NOTE : This DOES check for array partitioning.
+ */</input>
+  <parser>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+ * gnm_cell_set_expr_and_value: Stores (WITHOUT COPYING) the supplied value, and
+   ^</message>
+    </messages>
+  </parser>
+</test>
+
+</tests>

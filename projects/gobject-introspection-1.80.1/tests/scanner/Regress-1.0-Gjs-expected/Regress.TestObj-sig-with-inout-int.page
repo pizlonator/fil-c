@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj-sig-with-inout-int"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="signal" type="guide"/>
+    <title type="link" role="topic">sig-with-inout-int</title>
+  </info>
+  <title>Regress.TestObj::sig-with-inout-int</title>
+  <synopsis><code mime="text/x-gjs">
+connect('sig-with-inout-int', function (testObj, position: Number(gint), ): void);
+  </code></synopsis>
+  <p>This signal is modeled after GtkEditable::insert-text.</p>
+
+<terms>
+<item>
+<title><code>testObj</code></title>
+<p>instance of <link xref="Regress.TestObj"/> that is emitting the signal</p>
+</item>
+<item>
+<title><code>position</code></title>
+  <p>The position, in characters, at which to
+    insert the new text. This is an in-out paramter. After the signal
+    emission is finished, it should point after the newly inserted text.</p>
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,20 @@
+<%! page_type="topic" %>\
+<?xml version="1.0"?>
+<page id="${page_id}"
+      type="${self.attr.page_type}"
+      style="${page_kind}"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info><%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+</%block>\
+  </info>
+  <title><%block name="title">${formatter.format_page_name(node)}</%block></title><%block name="synopsis"></%block><%block name="doc">
+${formatter.format(node, node.doc)}
+</%block><%block name="since_version">\
+% if node.version:
+  <p>Since ${node.version}</p>\
+% endif
+</%block><%block name="details"></%block><%block name="links"></%block>
+</page>

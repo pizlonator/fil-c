@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * regress_forced_method: (method)
+ * @obj: A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+        <annotations>
+          <annotation>
+            <name>method</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method: (method)
+ * @obj: A #RegressTestObj
+ */</output>
+</test>
+
+</tests>

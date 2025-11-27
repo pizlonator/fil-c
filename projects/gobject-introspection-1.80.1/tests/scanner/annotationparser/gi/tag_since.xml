@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Since: 0.6
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>0.6</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Since: 0.6
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Since: (invalid)): 0.6
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>since</name>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>4: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * Since: (invalid)): 0.6
+                   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Since:
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Since: this function is available since version 0.6
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>since</name>
+          <description>this function is available since version 0.6</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Since: this function is available since version 0.6
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Since: 0.6: this function is available since version 0.6
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>0.6</value>
+          <description>this function is available since version 0.6</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Since: 0.6: this function is available since version 0.6
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Since: (allow-none): 2.24
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_tag_not_annotatable</name>
+      </identifier>
+      <description>Tags (except Returns:) don't have annotations</description>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>2.24</value>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Error: Test: annotations not supported for tag "Since:".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Since: 2.24
+ */</output>
+</test>
+
+<test>
+  <!--
+  Multiple "Since:" tags
+  -->
+  <input>/**
+ * test_multiple_tags:
+ *
+ * Since: 3.0
+ * Since: 2.0: one of these "Since:"
+ * tags is wrong...
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_tags</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>2.0</value>
+          <description>one of these "Since:"
+tags is wrong...</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Error: Test: multiple "Since:" tags for identifier "test_multiple_tags":
+ * Since: 2.0: one of these "Since:"
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_tags:
+ *
+ * Since: 2.0: one of these "Since:"
+ * tags is wrong...
+ */</output>
+</test>
+
+</tests>

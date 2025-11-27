@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * GtkdocAnnotation:
+ * @that: (allow-none): eventualy points to something
+ *
+ * small struct
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocAnnotation</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>that</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>eventualy points to something</description>
+        </parameter>
+      </parameters>
+      <description>small struct</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocAnnotation:
+ * @that: (allow-none): eventualy points to something
+ *
+ * small struct
+ */</output>
+</test>
+
+</tests>

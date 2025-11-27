@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page id="Regress.test_callback_thaw_notifications"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>int</api:type>
+      </api:returns>
+      <api:name>regress_test_callback_thaw_notifications</api:name>
+    </api:function>
+  </info>
+  <title>Regress.test_callback_thaw_notifications</title>
+  <synopsis><code mime="text/x-python">
+@returns(int)
+def test_callback_thaw_notifications():
+    # Python wrapper for regress_test_callback_thaw_notifications()
+  </code></synopsis>
+  <p>Invokes all callbacks installed by #test_callback_destroy_notify(),
+adding up their return values, and removes them, invoking the
+corresponding destroy notfications.</p>
+
+<terms>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

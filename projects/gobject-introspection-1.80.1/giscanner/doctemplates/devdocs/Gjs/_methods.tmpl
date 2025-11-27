@@ -1,0 +1,4 @@
+<%namespace name="method" file="_method.tmpl"/>
+% for m in getattr(node, 'methods', []):
+  ${method.method(m)}
+% endfor

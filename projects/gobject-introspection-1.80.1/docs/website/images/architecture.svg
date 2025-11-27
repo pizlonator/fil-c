@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="1052.3622" height="744.09448" id="svg2" version="1.1" inkscape:version="0.48.2 r9819" sodipodi:docname="architecture.svg" inkscape:export-filename="/home/antono/Documents/Slides/lvee-winter-2012/architecture.png" inkscape:export-xdpi="303.60001" inkscape:export-ydpi="303.60001">
+  <title id="title3277">GObject Introspection Architecture</title>
+  <defs id="defs4">
+    <marker inkscape:stockid="DotM" orient="auto" refY="0" refX="0" id="DotM" style="overflow:visible">
+      <path id="path3833" d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none;marker-end:none" transform="matrix(0.4,0,0,0.4,2.96,0.4)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="Arrow2Mend" orient="auto" refY="0" refX="0" id="Arrow2Mend" style="overflow:visible">
+      <path id="path3795" style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round" d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z" transform="scale(-0.6,-0.6)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="Arrow2Lend" orient="auto" refY="0" refX="0" id="Arrow2Lend" style="overflow:visible">
+      <path id="path3789" style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round" d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z" transform="matrix(-1.1,0,0,-1.1,-1.1,0)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="Arrow1Lend" orient="auto" refY="0" refX="0" id="Arrow1Lend" style="overflow:visible">
+      <path id="path3771" d="M 0,0 5,-5 -12.5,0 5,5 0,0 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none" transform="matrix(-0.8,0,0,-0.8,-10,0)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="DotM" orient="auto" refY="0" refX="0" id="DotM-3" style="overflow:visible">
+      <path id="path3833-1" d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none;marker-end:none" transform="matrix(0.4,0,0,0.4,2.96,0.4)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="Arrow2Lend" orient="auto" refY="0" refX="0" id="Arrow2Lend-8" style="overflow:visible">
+      <path id="path3789-9" style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round" d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z" transform="matrix(-1.1,0,0,-1.1,-1.1,0)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="DotM" orient="auto" refY="0" refX="0" id="DotM-2" style="overflow:visible">
+      <path id="path3833-5" d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z" style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none;marker-end:none" transform="matrix(0.4,0,0,0.4,2.96,0.4)" inkscape:connector-curvature="0"/>
+    </marker>
+    <marker inkscape:stockid="Arrow2Lend" orient="auto" refY="0" refX="0" id="Arrow2Lend-4" style="overflow:visible">
+      <path id="path3789-0" style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round" d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z" transform="matrix(-1.1,0,0,-1.1,-1.1,0)" inkscape:connector-curvature="0"/>
+    </marker>
+  </defs>
+  <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="0.70710678" inkscape:cx="493.13397" inkscape:cy="410.25035" inkscape:document-units="px" inkscape:current-layer="layer1" showgrid="false" showguides="false" inkscape:guide-bbox="true" inkscape:window-width="1214" inkscape:window-height="776" inkscape:window-x="66" inkscape:window-y="24" inkscape:window-maximized="1" showborder="true">
+    <sodipodi:guide orientation="0,1" position="535.38085,998.03071" id="guide5157"/>
+    <sodipodi:guide orientation="1,0" position="62.629458,834.386" id="guide5159"/>
+    <sodipodi:guide orientation="1,0" position="692.96465,713.1677" id="guide5161"/>
+    <sodipodi:guide orientation="0,1" position="391.93919,785.89868" id="guide5163"/>
+    <sodipodi:guide orientation="1,0" position="359.61431,833.37585" id="guide5165"/>
+    <sodipodi:guide orientation="1,0" position="394.96965,744.48243" id="guide5167"/>
+    <sodipodi:guide orientation="0,1" position="471.74124,874.7921" id="guide5171"/>
+    <sodipodi:guide orientation="0,1" position="394.96965,684.28572" id="guide5173"/>
+    <sodipodi:guide orientation="0,1" position="333.35034,582.85802" id="guide5179"/>
+    <sodipodi:guide orientation="0,1" position="239.40615,807.11188" id="guide5195"/>
+    <sodipodi:guide orientation="0,1" position="260,444.28571" id="guide5203"/>
+    <sodipodi:guide orientation="0,1" position="274.28571,492.85714" id="guide5207"/>
+    <sodipodi:guide orientation="0,1" position="312.85714,390" id="guide5231"/>
+    <sodipodi:guide orientation="0,1" position="248.57143,251.42857" id="guide5256"/>
+    <sodipodi:guide orientation="1,0" position="201.02036,807.11188" id="guide5277"/>
+    <sodipodi:guide orientation="1,0" position="535.38085,902.06622" id="guide5279"/>
+    <sodipodi:guide orientation="1,0" position="840,492.85714" id="guide5322"/>
+    <sodipodi:guide orientation="0,1" position="1111.4286,647.14286" id="guide5324"/>
+  </sodipodi:namedview>
+  <metadata id="metadata7">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>GObject Introspection Architecture</dc:title>
+        <dc:date>2012-02-13</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Antono Vasiljev</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>http://creativecommons.org/licenses/by-sa/3.0/</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:language>English</dc:language>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>GObject</rdf:li>
+            <rdf:li>GLib</rdf:li>
+            <rdf:li>GTK</rdf:li>
+            <rdf:li>Bindings</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>http://antono.info/</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g inkscape:label="Tavolo 1" inkscape:groupmode="layer" id="layer1" transform="translate(0,-308.2677)">
+    <rect style="fill:#ffffff;fill-opacity:1;stroke:none" id="rect3211" width="1052" height="743" x="1.4142075" y="308.36215" rx="0.89988375" ry="1.2800797"/>
+    <rect style="opacity:0.60852715;fill:#16aa41;fill-opacity:1;stroke:none" id="rect5275" width="254.98872" height="84.836205" x="176.48564" y="840.18842" rx="2.6552014" ry="2.6552014"/>
+    <rect ry="2.6552014" rx="2.6552014" y="744.00201" x="176.07715" height="56.580166" width="120.5053" id="rect5268" style="opacity:0.60852715;fill:#16aa41;fill-opacity:1;stroke:none"/>
+    <rect style="opacity:0.60852715;fill:#16aa41;fill-opacity:1;stroke:none" id="rect5233" width="120.5053" height="56.580166" x="310.8797" y="744.00201" rx="2.6552014" ry="2.6552014"/>
+    <rect ry="0.51764756" rx="0.36266771" y="666.01282" x="176.48563" height="56.580166" width="120.09681" id="rect5149" style="opacity:0.60852715;fill:#8a3673;fill-opacity:1;stroke:none"/>
+    <rect style="opacity:0.60852715;fill:#606060;fill-opacity:1;stroke:none" id="rect2985" width="225.99976" height="60.405384" x="176.48564" y="498.12244" rx="0.68247288" ry="0.55264413"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="270.94678" y="531.75018" id="text3759" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan3761" x="270.94678" y="531.75018">foo.c</tspan></text>
+    <path style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)" d="m 232.44911,547.95853 0,130.51524" id="path3763" inkscape:connector-curvature="0" sodipodi:nodetypes="cc"/>
+    <text sodipodi:linespacing="125%" id="text5151" y="702.40796" x="200.86145" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan y="702.40796" x="200.86145" id="tspan5153" sodipodi:role="line">libfoo.so</tspan></text>
+    <rect style="opacity:0.60852715;fill:#606060;fill-opacity:1;stroke:none" id="rect5155" width="120.5053" height="56.580166" x="310.87967" y="583.90582" rx="0.36390126" ry="0.51764756"/>
+    <path inkscape:connector-curvature="0" id="path5169" d="m 367.66014,547.95853 0,53.10402" style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="343.13705" y="624.99677" id="text5175" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan5177" x="343.13705" y="624.99677">Foo.gir</tspan></text>
+    <rect ry="0.51764756" rx="0.36390126" y="666.01282" x="310.87967" height="56.580166" width="120.5053" id="rect5181" style="opacity:0.60852715;fill:#8a3673;fill-opacity:1;stroke:none"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="263.1763" y="575.32751" id="text5187" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan5189" x="263.1763" y="575.32751">g-ir-scanner</tspan></text>
+    <text sodipodi:linespacing="125%" id="text5191" y="575.32751" x="196.09328" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan y="575.32751" x="196.09328" id="tspan5193" sodipodi:role="line">gcc</tspan></text>
+    <path style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)" d="m 367.86439,635.58016 0,37.37708" id="path5197" inkscape:connector-curvature="0" sodipodi:nodetypes="cc"/>
+    <text sodipodi:linespacing="125%" id="text5199" y="655.83643" x="256.62698" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan y="655.83643" x="256.62698" id="tspan5201" sodipodi:role="line">g-ir-compiler</tspan></text>
+    <text sodipodi:linespacing="125%" id="text5209" y="702.40796" x="327.53925" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan y="702.40796" x="327.53925" id="tspan5211" sodipodi:role="line">Foo.typelib</tspan></text>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="297.02197" y="896.43829" id="text5215" sodipodi:linespacing="125%"><tspan sodipodi:role="line" x="297.02197" y="896.43829" id="tspan5219" style="font-size:40px;text-align:center;text-anchor:middle">bindings</tspan></text>
+    <text sodipodi:linespacing="125%" id="text5242" y="777.79724" x="319.70181" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan style="font-size:11.32283497px" y="777.79724" x="319.70181" id="tspan5244" sodipodi:role="line">libgirrepository.so</tspan></text>
+    <path style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)" d="m 367.66014,753.2557 0,-37.37707" id="path5260" inkscape:connector-curvature="0" sodipodi:nodetypes="cc"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="201.32657" y="779.81921" id="text5262" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan5264" x="201.32657" y="779.81921" style="font-size:19.41057587px">libffi.so</tspan></text>
+    <path sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path5266" d="m 233.0969,749.47378 -0.64779,-30.70879" style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)"/>
+    <path sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path5281" d="m 367.66014,847.01924 0,-55.35074" style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)"/>
+    <path style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)" d="m 232.44911,845.8143 0,-55.35074" id="path5283" inkscape:connector-curvature="0" sodipodi:nodetypes="cc"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="490.84418" y="722.04968" id="text5308" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan5310" x="490.84418" y="722.04968" style="font-size:58.23171997px;font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;fill:#8a3673;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Medium">Deployment</tspan></text>
+    <text sodipodi:linespacing="125%" id="text5318" y="853.72321" x="490.84418" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan style="font-size:58.23171997px;font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;fill:#16aa41;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Medium" y="853.72321" x="490.84418" id="tspan5320" sodipodi:role="line">Consumption</tspan></text>
+    <text sodipodi:linespacing="125%" id="text5326" y="601.31128" x="490.84418" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#606060;fill-opacity:1;stroke:none;font-family:Sans" xml:space="preserve"><tspan style="font-size:58.23171997px;font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;fill:#606060;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Medium" y="601.31128" x="490.84418" id="tspan5328" sodipodi:role="line">Development</tspan></text>
+    <rect style="opacity:0.60852715;fill:#606060;fill-opacity:1;stroke:none" id="rect2985-6" width="254.89937" height="60.405384" x="178.17885" y="404.4209" rx="0.76974374" ry="0.55264413"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="280.45071" y="438.04865" id="text3759-4" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan3761-3" x="280.45071" y="438.04865">foo.vala</tspan></text>
+    <path inkscape:connector-curvature="0" id="path5169-3" d="m 369.35335,454.25697 0,53.10403" style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)"/>
+    <text xml:space="preserve" style="font-size:16.17547798px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans" x="373.75293" y="486.75397" id="text5187-3" sodipodi:linespacing="125%"><tspan sodipodi:role="line" id="tspan5189-8" x="373.75293" y="486.75397">valac</tspan></text>
+    <path inkscape:connector-curvature="0" id="path5169-3-5" d="m 419.70848,452.574 0,148.40335" style="fill:none;stroke:#000000;stroke-width:1.21316099;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-start:url(#DotM);marker-end:url(#Arrow2Lend)"/>
+  </g>
+</svg>

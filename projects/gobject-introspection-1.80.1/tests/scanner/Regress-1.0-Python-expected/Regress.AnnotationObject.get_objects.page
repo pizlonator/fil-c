@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.get_objects"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>[Regress.AnnotationObject]</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_get_objects</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.AnnotationObject.get_objects</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject)
+@returns([Regress.AnnotationObject])
+def get_objects(self):
+    # Python wrapper for regress_annotation_object_get_objects()
+  </code></synopsis>
+  <p>This is a test for returning a list of objects.
+The list itself should be freed, but not the internal objects,
+intentionally similar example to gtk_container_get_children</p>
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * shiny_function:
+ *
+ * Description: This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>shiny_function</name>
+      </identifier>
+      <description>This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GTK-Doc tag "Description:" has been deprecated:
+ * Description: This is a callback with a 'closure' argument that is not named
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * shiny_function:
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * shiny_function:
+ * Description: This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>shiny_function</name>
+      </identifier>
+      <description>This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.</description>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: GTK-Doc tag "Description:" has been deprecated:
+ * Description: This is a callback with a 'closure' argument that is not named
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * shiny_function:
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * shiny_function:
+ *
+ * Some description here, but also below...
+ *
+ * Description: This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>shiny_function</name>
+      </identifier>
+      <description>Some description here, but also below...
+
+This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GTK-Doc tag "Description:" has been deprecated:
+ * Description: This is a callback with a 'closure' argument that is not named
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * shiny_function:
+ *
+ * Some description here, but also below...
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * shiny_function:
+ *
+ * Description: This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ *
+ *   etc...  
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>shiny_function</name>
+      </identifier>
+      <description>This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.
+
+  etc...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GTK-Doc tag "Description:" has been deprecated:
+ * Description: This is a callback with a 'closure' argument that is not named
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * shiny_function:
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ *
+ *   etc...
+ */</output>
+</test>
+
+</tests>

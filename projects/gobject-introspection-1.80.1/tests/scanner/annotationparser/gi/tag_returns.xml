@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (allow-none): some boolean
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>some boolean</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (allow-none): some boolean
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (allow-none)): some boolean
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * Returns: (allow-none)): some boolean
+                        ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns:
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_unexpected_tag:
+ * @param1: first parameter
+ * Returns: something
+ *
+ * Tags should go after the comment block description
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_unexpected_tag</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <description>first parameter</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something
+
+Tags should go after the comment block description</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_unexpected_tag:
+ * @param1: first parameter
+ *
+ * Returns: something
+ *
+ * Tags should go after the comment block description
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Return value:" tag
+  -->
+  <input>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Return value: (allow-none): some boolean
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>some boolean</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (allow-none): some boolean
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "@returns" as a parameter
+  -->
+  <input>/**
+ * annotation_object_string_out:
+ * @returns: (allow-none): some boolean
+ *
+ * Test returning a string as an out parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>some boolean</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (allow-none): some boolean
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of "@returns" as a parameter
+  -->
+  <input>/**
+ * annotation_object_string_out:
+ * @returns: (allow-none)): some boolean
+ *
+ * Test returning a string as an out parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>3: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * @returns: (allow-none)): some boolean
+                         ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns:
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of "@returns" as a parameter
+  -->
+  <input>/**
+ * annotation_object_string_out:
+ * @returns:
+ *
+ * Test returning a string as an out parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns:
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of multiple "Returns:" notations
+  -->
+  <input>/**
+ * test_multiple_returns_tag_and_parameter:
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Return Value: something
+ * @returns: something else
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_returns_tag_and_parameter</name>
+      </identifier>
+      <description>Multiple return value warnings are checked for when a returns
+parameter is encountered.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something else</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>8: Warning: Test: "@returns" parameter unexpected at this location:
+ * @returns: something else
+    ^</message>
+      <message>8: Error: Test: encountered multiple "Returns" parameters or tags for "test_multiple_returns_tag_and_parameter".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_returns_tag_and_parameter:
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Returns: something else
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of multiple "Returns:" notations
+  -->
+  <input>/**
+ * test_multiple_returns_tag_and_parameter:
+ * @returns: something
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Return Value: something else
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_returns_tag_and_parameter</name>
+      </identifier>
+      <description>Multiple return value warnings are checked for when a returns
+parameter is encountered.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something else</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>8: Error: Test: encountered multiple return value parameters or tags for "test_multiple_returns_tag_and_parameter".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_returns_tag_and_parameter:
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Returns: something else
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of multiple "Returns:" notations
+  -->
+  <input>/**
+ * test_multiple_returns_tag_and_parameter:
+ * @returns: something
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Returns: something else
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_returns_tag_and_parameter</name>
+      </identifier>
+      <description>Multiple return value warnings are checked for when a returns
+parameter is encountered.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something else</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>8: Error: Test: encountered multiple return value parameters or tags for "test_multiple_returns_tag_and_parameter".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_returns_tag_and_parameter:
+ *
+ * Multiple return value warnings are checked for when a returns
+ * parameter is encountered.
+ *
+ * Returns: something else
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * gtk_rc_get_im_module_path:
+ * @returns: a newly-allocated string containing the path in which to 
+ *    look for IM modules.
+ *
+ * Obtains the path in which to look for IM modules. See the documentation
+ * of the <link linkend="im-module-path"><envar>GTK_PATH</envar></link>
+ * environment variable for more details about looking up modules. This
+ * function is useful solely for utilities supplied with GTK+ and should
+ * not be used by applications under normal circumstances.
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>gtk_rc_get_im_module_path</name>
+      </identifier>
+      <description><![CDATA[Obtains the path in which to look for IM modules. See the documentation
+of the <link linkend="im-module-path"><envar>GTK_PATH</envar></link>
+environment variable for more details about looking up modules. This
+function is useful solely for utilities supplied with GTK+ and should
+not be used by applications under normal circumstances.]]></description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>a newly-allocated string containing the path in which to
+   look for IM modules.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output><![CDATA[/**
+ * gtk_rc_get_im_module_path:
+ *
+ * Obtains the path in which to look for IM modules. See the documentation
+ * of the <link linkend="im-module-path"><envar>GTK_PATH</envar></link>
+ * environment variable for more details about looking up modules. This
+ * function is useful solely for utilities supplied with GTK+ and should
+ * not be used by applications under normal circumstances.
+ *
+ * Returns: a newly-allocated string containing the path in which to
+ *    look for IM modules.
+ */]]></output>
+</test>
+
+<test>
+  <!--
+  Technically not a valid Returns: tag, but we need to support this for backwards compatibility
+  with the old annotationparser.
+  -->
+  <input>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ * @x: the X coordinate, relative to the actor
+ * @y: the Y coordinate, relative to the actor
+ *
+ * Retrieves the position of the character at the given coordinates.
+ *
+ * Return: the position of the character
+ *
+ * Since: 1.10
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>clutter_text_coords_to_position</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>a #ClutterText</description>
+        </parameter>
+        <parameter>
+          <name>x</name>
+          <description>the X coordinate, relative to the actor</description>
+        </parameter>
+        <parameter>
+          <name>y</name>
+          <description>the Y coordinate, relative to the actor</description>
+        </parameter>
+      </parameters>
+      <description>Retrieves the position of the character at the given coordinates.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the position of the character</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>1.10</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ * @x: the X coordinate, relative to the actor
+ * @y: the Y coordinate, relative to the actor
+ *
+ * Retrieves the position of the character at the given coordinates.
+ *
+ * Returns: the position of the character
+ * Since: 1.10
+ */</output>
+</test>
+
+<test>
+  <!--
+  Technically not a valid Returns: tag, but we need to support this for backwards compatibility
+  with the old annotationparser.
+  -->
+  <input>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ * @x: the X coordinate, relative to the actor
+ * @y: the Y coordinate, relative to the actor
+ *
+ * Retrieves the position of the character at the given coordinates.
+ *
+ * Returns value: the position of the character
+ *
+ * Since: 1.10
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>clutter_text_coords_to_position</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>a #ClutterText</description>
+        </parameter>
+        <parameter>
+          <name>x</name>
+          <description>the X coordinate, relative to the actor</description>
+        </parameter>
+        <parameter>
+          <name>y</name>
+          <description>the Y coordinate, relative to the actor</description>
+        </parameter>
+      </parameters>
+      <description>Retrieves the position of the character at the given coordinates.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the position of the character</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>1.10</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ * @x: the X coordinate, relative to the actor
+ * @y: the Y coordinate, relative to the actor
+ *
+ * Retrieves the position of the character at the given coordinates.
+ *
+ * Returns: the position of the character
+ * Since: 1.10
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (out): some boolean
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_string_out</name>
+      </identifier>
+      <description>Test returning a string as an out parameter</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+          </annotations>
+          <description>some boolean</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: unexpected annotation: out</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_string_out:
+ *
+ * Test returning a string as an out parameter
+ *
+ * Returns: (out): some boolean
+ */</output>
+</test>
+
+</tests>

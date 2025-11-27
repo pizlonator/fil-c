@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<page id="Regress.test_value_return"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>Any</api:type>
+      </api:returns>
+      <api:name>regress_test_value_return</api:name>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>i</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_value_return</title>
+  <synopsis><code mime="text/x-gjs">
+function test_value_return(i: Number(gint)): Any {
+    // Gjs wrapper for regress_test_value_return()
+}
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>i</code></title>
+  <p>an int</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+  <p>the int wrapped in a GValue.</p>
+</item>
+</terms>
+
+</page>

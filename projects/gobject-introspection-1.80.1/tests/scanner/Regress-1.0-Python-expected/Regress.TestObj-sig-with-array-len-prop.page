@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj-sig-with-array-len-prop"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="signal" type="guide"/>
+    <title type="link" role="topic">sig-with-array-len-prop</title>
+  </info>
+  <title>Regress.TestObj::sig-with-array-len-prop</title>
+  <synopsis><code mime="text/x-python">
+def callback(test_obj, arr, len, user_param1, ...)
+  </code></synopsis>
+  <p>This test signal similar to GSettings::change-event.
+You can use this with <link xref="Regress.TestObj.emit_sig_with_array_len_prop"/>, or
+raise from the introspection client language.</p>
+
+<terms>
+<item>
+<title><code>test_obj</code></title>
+<p>instance of <link xref="Regress.TestObj"/> that is emitting the signal</p>
+</item>
+<item>
+<title><code>arr</code></title>
+  <p>numbers, or <code>None</code></p>
+</item>
+<item>
+<title><code>len</code></title>
+  <p>length of <code>arr</code>, or 0</p>
+</item>
+<title><code>user_param1</code></title>
+<p>first user parameter (if any) specified with the connect() method</p>
+<item>
+<title><code>...</code></title>
+<p>additional user parameters (if any)</p>
+</item>
+</terms>
+
+</page>

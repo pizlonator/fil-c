@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * Bug324535:
+ * @BUG_324535_A: enum 1
+ * @BUG_324535_B: enum 2
+ * @BUG_324535_C: enum 3
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=324535
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug324535</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>BUG_324535_A</name>
+          <description>enum 1</description>
+        </parameter>
+        <parameter>
+          <name>BUG_324535_B</name>
+          <description>enum 2</description>
+        </parameter>
+        <parameter>
+          <name>BUG_324535_C</name>
+          <description>enum 3</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=324535</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug324535:
+ * @BUG_324535_A: enum 1
+ * @BUG_324535_B: enum 2
+ * @BUG_324535_C: enum 3
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=324535
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_481811:
+ * @x: argument
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=481811
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_481811</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>x</name>
+          <description>argument</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=481811</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_481811:
+ * @x: argument
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=481811
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_501038:
+ * @a: value
+ * @b: deprecated value
+ * @_b: scrambled deprecated value
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=501038
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_501038</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>value</description>
+        </parameter>
+        <parameter>
+          <name>b</name>
+          <description>deprecated value</description>
+        </parameter>
+        <parameter>
+          <name>_b</name>
+          <description>scrambled deprecated value</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=501038</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_501038:
+ * @a: value
+ * @b: deprecated value
+ * @_b: scrambled deprecated value
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=501038
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_460127:
+ * @a: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=460127
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_460127</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>field</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=460127</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_460127:
+ * @a: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=460127
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_477532:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=477532
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_477532</name>
+      </identifier>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=477532</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_477532:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=477532
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_411739_rettype:
+ * @test: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=411739
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_411739_rettype</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>test</name>
+          <description>field</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=411739</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_411739_rettype:
+ * @test: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=411739
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug446648:
+ * @BUG_446648_FOO: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=446648
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug446648</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>BUG_446648_FOO</name>
+          <description>field</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=446648</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug446648:
+ * @BUG_446648_FOO: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=446648
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug512154:
+ * @index: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512154
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug512154</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>index</name>
+          <description>field</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=512154</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug512154:
+ * @index: field
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512154
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_512155a_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_512155a_function_pointer_t</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>arg1</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg3</name>
+          <description>param 1</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=512155</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_512155a_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_512155b_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_512155b_function_pointer_t</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>arg1</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg3</name>
+          <description>param 1</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=512155</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_512155b_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_512155c_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_512155c_function_pointer_t</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>arg1</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <description>param 1</description>
+        </parameter>
+        <parameter>
+          <name>arg3</name>
+          <description>param 1</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=512155</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_512155c_function_pointer_t:
+ * @arg1: param 1
+ * @arg2: param 1
+ * @arg3: param 1
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=512155
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * BUG_530758:
+ *
+ * {{![CDATA[http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1]]!}}
+ *
+ * <ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1">Test</ulink>
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_530758</name>
+      </identifier>
+      <description><![CDATA[{{![CDATA[http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1]]!}}
+
+<ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1">Test</ulink>]]></description>
+    </docblock>
+  </parser>
+  <output><![CDATA[/**
+ * BUG_530758:
+ *
+ * {{![CDATA[http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1]]!}}
+ *
+ * <ulink url="http://bugzilla.gnome.org/show_bug.cgi?id=530758#c1">Test</ulink>
+ */]]></output>
+</test>
+
+<test>
+  <input>/**
+ * bug_532395a:
+ * @number: a number
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=532395
+ *
+ * Returns: number
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_532395a</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>number</name>
+          <description>a number</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=532395</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>number</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_532395a:
+ * @number: a number
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=532395
+ *
+ * Returns: number
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_532395b:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=532395
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_532395b</name>
+      </identifier>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=532395</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_532395b:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=532395
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_544172:
+ * @self: object pointer.
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=544172
+ *
+ * Returns: result or %NULL.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_544172</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>object pointer.</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=544172</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>result or %NULL.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_544172:
+ * @self: object pointer.
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=544172
+ *
+ * Returns: result or %NULL.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_554833:
+ * @i: value;
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=554833
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_554833</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>i</name>
+          <description>value;</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=554833</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_554833:
+ * @i: value;
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=554833
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * bug_554833_new:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=554833
+ *
+ * Returns: result
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>bug_554833_new</name>
+      </identifier>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=554833</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>result</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * bug_554833_new:
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=554833
+ *
+ * Returns: result
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug165425a:
+ * @i: data as int
+ * @f: data as float
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=165425
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug165425a</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>i</name>
+          <description>data as int</description>
+        </parameter>
+        <parameter>
+          <name>f</name>
+          <description>data as float</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=165425</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug165425a:
+ * @i: data as int
+ * @f: data as float
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=165425
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug165425b:
+ * @i: data as int
+ * @f: data as float
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=165425
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug165425b</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>i</name>
+          <description>data as int</description>
+        </parameter>
+        <parameter>
+          <name>f</name>
+          <description>data as float</description>
+        </parameter>
+      </parameters>
+      <description>http://bugzilla.gnome.org/show_bug.cgi?id=165425</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug165425b:
+ * @i: data as int
+ * @f: data as float
+ *
+ * http://bugzilla.gnome.org/show_bug.cgi?id=165425
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug642998:
+ * @red: red color intensity, from 0–255
+ * @green: green color intensity, from 0–255
+ * @blue: blue color intensity, from 0–255
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=642998
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug642998</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>red</name>
+          <description>red color intensity, from 0–255</description>
+        </parameter>
+        <parameter>
+          <name>green</name>
+          <description>green color intensity, from 0–255</description>
+        </parameter>
+        <parameter>
+          <name>blue</name>
+          <description>blue color intensity, from 0–255</description>
+        </parameter>
+      </parameters>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=642998</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug642998:
+ * @red: red color intensity, from 0–255
+ * @green: green color intensity, from 0–255
+ * @blue: blue color intensity, from 0–255
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=642998
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug644291:
+ * @BUG_644291_START: foo
+ * @BUG_644291_TEXT: bar
+ * @BUG_644291_END: milk
+ * @BUG_644291_ATTRIBUTE: comes
+ * @BUG_644291_XMLNS: from
+ * @BUG_644291_ASSIGN_TO: cows
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=644291
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug644291</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>BUG_644291_START</name>
+          <description>foo</description>
+        </parameter>
+        <parameter>
+          <name>BUG_644291_TEXT</name>
+          <description>bar</description>
+        </parameter>
+        <parameter>
+          <name>BUG_644291_END</name>
+          <description>milk</description>
+        </parameter>
+        <parameter>
+          <name>BUG_644291_ATTRIBUTE</name>
+          <description>comes</description>
+        </parameter>
+        <parameter>
+          <name>BUG_644291_XMLNS</name>
+          <description>from</description>
+        </parameter>
+        <parameter>
+          <name>BUG_644291_ASSIGN_TO</name>
+          <description>cows</description>
+        </parameter>
+      </parameters>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=644291</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug644291:
+ * @BUG_644291_START: foo
+ * @BUG_644291_TEXT: bar
+ * @BUG_644291_END: milk
+ * @BUG_644291_ATTRIBUTE: comes
+ * @BUG_644291_XMLNS: from
+ * @BUG_644291_ASSIGN_TO: cows
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=644291
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_000000_VA2:
+ * @name: a name
+ * @...: A printf-style message to output
+ *
+ * Outputs a message.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_000000_VA2</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>name</name>
+          <description>a name</description>
+        </parameter>
+        <parameter>
+          <name>...</name>
+          <description>A printf-style message to output</description>
+        </parameter>
+      </parameters>
+      <description>Outputs a message.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_000000_VA2:
+ * @name: a name
+ * @...: A printf-style message to output
+ *
+ * Outputs a message.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_000000_VA3:
+ * @name: a name
+ * @...: A printf-style message to output
+ *
+ * Outputs a message.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_000000_VA3</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>name</name>
+          <description>a name</description>
+        </parameter>
+        <parameter>
+          <name>...</name>
+          <description>A printf-style message to output</description>
+        </parameter>
+      </parameters>
+      <description>Outputs a message.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_000000_VA3:
+ * @name: a name
+ * @...: A printf-style message to output
+ *
+ * Outputs a message.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug000000Scope:
+ *
+ * Opaque structure.
+ * "warning: Field descriptions for Bug000000Scope are missing in source code comment block."
+ * but not if we remove the blank line before "int b";
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug000000Scope</name>
+      </identifier>
+      <description>Opaque structure.
+"warning: Field descriptions for Bug000000Scope are missing in source code comment block."
+but not if we remove the blank line before "int b";</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug000000Scope:
+ *
+ * Opaque structure.
+ * "warning: Field descriptions for Bug000000Scope are missing in source code comment block."
+ * but not if we remove the blank line before "int b";
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * gst_play_marshal_BUFFER__BOXED:
+ * @closure: test
+ * @return_value: test
+ * @marshal_data: test
+ *
+ * test.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>gst_play_marshal_BUFFER__BOXED</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>closure</name>
+          <description>test</description>
+        </parameter>
+        <parameter>
+          <name>return_value</name>
+          <description>test</description>
+        </parameter>
+        <parameter>
+          <name>marshal_data</name>
+          <description>test</description>
+        </parameter>
+      </parameters>
+      <description>test.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * gst_play_marshal_BUFFER__BOXED:
+ * @closure: test
+ * @return_value: test
+ * @marshal_data: test
+ *
+ * test.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_656773a:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_656773a</name>
+      </identifier>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=656773</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_656773a:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_656773b:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_656773b</name>
+      </identifier>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=656773</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_656773b:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_656773c:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_656773c</name>
+      </identifier>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=656773</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_656773c:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656773
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_656946:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656946
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_656946</name>
+      </identifier>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=656946</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_656946:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=656946
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * BUG_731417_DEPRECATED:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=731417
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>BUG_731417_DEPRECATED</name>
+      </identifier>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=731417</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * BUG_731417_DEPRECATED:
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=731417
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * Bug730658:
+ * @BUG_730658_CAN_READ: Can read
+ * @BUG_730658_CAN_WRITE: Can write
+ * @BUG_730658_IS_DEPRECATED: Is deprecated
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=730658
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Bug730658</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>BUG_730658_CAN_READ</name>
+          <description>Can read</description>
+        </parameter>
+        <parameter>
+          <name>BUG_730658_CAN_WRITE</name>
+          <description>Can write</description>
+        </parameter>
+        <parameter>
+          <name>BUG_730658_IS_DEPRECATED</name>
+          <description>Is deprecated</description>
+        </parameter>
+      </parameters>
+      <description>https://bugzilla.gnome.org/show_bug.cgi?id=730658</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * Bug730658:
+ * @BUG_730658_CAN_READ: Can read
+ * @BUG_730658_CAN_WRITE: Can write
+ * @BUG_730658_IS_DEPRECATED: Is deprecated
+ *
+ * https://bugzilla.gnome.org/show_bug.cgi?id=730658
+ */</output>
+</test>
+
+</tests>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref)
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>ref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_ref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Ref func:" tag syntax
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * This object tests regressions...
+ *
+ * Ref func: regress_test_fundamental_object_ref
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>ref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_ref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Ref func" has been deprecated, please use annotations on the identifier instead:
+ * Ref func: regress_test_fundamental_object_ref
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Ref func:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * Ref func: regress_test_fundamental_object_ref
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>ref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_ref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Ref func" has been deprecated, please use annotations on the identifier instead:
+ * Ref func: regress_test_fundamental_object_ref
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref=invalid)
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>ref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_ref=invalid</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref=invalid)
+                                                                              ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (ref-func regress_test_fundamental_object_ref=invalid)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+</tests>

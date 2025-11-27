@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<page id="Regress.FooObject.virtual_method"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.FooObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>bool</api:type>
+      </api:returns>
+      <api:name>regress_foo_object_virtual_method</api:name>
+      <api:arg>
+        <api:type>Regress.FooObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>first_param</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.FooObject.virtual_method</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.FooObject, int)
+@returns(bool)
+def virtual_method(self, first_param):
+    # Python wrapper for regress_foo_object_virtual_method()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>self</code></title>
+
+</item>
+<item>
+<title><code>first_param</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * FooForeignStruct: (foreign)
+ *
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>FooForeignStruct</name>
+        <annotations>
+          <annotation>
+            <name>foreign</name>
+          </annotation>
+        </annotations>
+      </identifier>
+    </docblock>
+  </parser>
+  <output>/**
+ * FooForeignStruct: (foreign)
+ */</output>
+</test>
+
+</tests>

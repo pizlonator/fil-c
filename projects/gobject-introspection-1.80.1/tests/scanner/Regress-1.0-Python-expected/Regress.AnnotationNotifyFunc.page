@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationNotifyFunc"
+      type="topic"
+      style="callback"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="callback" type="guide"/>
+  </info>
+  <title>Regress.AnnotationNotifyFunc</title>
+  <synopsis><code mime="text/x-python">
+@accepts(gpointer)
+@returns(none)
+def on_AnnotationNotifyFunc(data):
+  </code></synopsis>
+  <p>This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.</p>
+
+<terms>
+<item>
+<title><code>data</code></title>
+  <p>The user data</p>
+</item>
+</terms>
+
+</page>

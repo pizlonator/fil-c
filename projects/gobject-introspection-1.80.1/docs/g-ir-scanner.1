@@ -1,0 +1,194 @@
+.\" Man page generated from reStructuredText.
+.
+.TH G-IR-SCANNER 1 "" "" ""
+.SH NAME
+g-ir-scanner \- Extracting C metadata from sources and headers
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+\fBg\-ir\-scanner\fP [OPTION...] FILES...
+.SH DESCRIPTION
+.sp
+g\-ir\-scanner is a tool which generates GIR XML files by parsing headers and
+introspecting GObject based libraries. It is usually invoked during the normal
+build step for a project and the information is saved to disk and later
+installed, so that language bindings and other applications can use it. Header
+files and source files are passed in as arguments on the command line. The
+suffix determines whether a file be treated as a source file (.c) or a header
+file (.h). Currently only C based libraries are supported by the scanner.
+.SH OPTIONS
+.INDENT 0.0
+.TP
+.B \-\-help
+Show help options
+.TP
+.B \-\-quiet
+If passed, do not print details of normal operation.
+.TP
+.B \-\-warn\-all
+Display warnings for public API which is not introspectable.
+.TP
+.B \-\-warn\-error
+Make warnings be fatal errors.
+.TP
+.B \-\-strict
+Display warnings for strict introspectable API.
+.TP
+.BI \-\-format\fB= FORMAT
+This parameters decides which the resulting format will be used. The
+default value is gir.
+.TP
+.BI \-\-include\fB= NAME
+Add the specified introspection dependency to the scanned namespace.
+NAME is of the form NAMESPACE\-VERSION, like Gtk\-3.0.
+.TP
+.BI \-\-include\-uninstalled\fB= PATH
+Add the specified introspection dependency to the scanned namespace.
+This differs from \fB\-\-include\fP in that it takes a file path, and does not
+process the pkg\-config dependencies (since they may not be installed yet).
+.TP
+.BI \-\-add\-include\-path\fB= PATH
+Add a directory to the path which the scanner uses to find GIR files. Can
+be used multiple times to specify multiple directories
+.TP
+.BI \-i\fP,\fB  \-\-library\fB= LIBRARY
+Specifies a library that will be introspected. This means that the
+*_get_type() functions in it will be called for GObject data types. The
+name of the library should not contain the leading lib prefix nor the
+ending shared library suffix.
+.TP
+.BI \-L\fP,\fB  \-\-library\-path\fB= PATH
+Include this directory when searching for a library. This option can be
+specified multiple times to include more than one directory to look for
+libraries in.
+.TP
+.BI \-I\fB directory
+Include this directory in the list of directories to be searched for
+header files. You need to pass to the scanner all the directories you\(aqd
+normally pass to the compiler when using the specified source files.
+.TP
+.BI \-\-c\-include\fB= C_INCLUDES
+Headers which should be included in C programs. This option can be
+specified multiple times to include more than one header.
+.TP
+.BI \-n\fP,\fB  \-\-namespace\fB= NAME
+The namespace name. This name should be capitalized, eg the first letter
+should be upper case. Examples: Gtk, Clutter, WebKit.
+.TP
+.B \-\-no\-libtool
+Disable usage of libtool for compiling stub introspection binary. Use this
+if your build system does not require libtool.
+.TP
+.B \-\-libtool
+Full path to libtool executable. Typically used for Automake systems.
+.TP
+.BI \-\-nsversion\fB= VERSION
+The namespace version. For instance 1.0. This is usually the platform
+version, eg 2.0 for Gtk+, not 2.12.7.
+.TP
+.BI \-p\fP,\fB  \-\-program\fB= PROGRAM
+Specifies a binary that will be introspected. This means that the
+*_get_type() functions in it will be called for GObject data types. The
+binary must be modified to take a \fB\-\-introspect\-dump=\fP option, and to pass
+the argument to this function to g_irepository_dump.
+.TP
+.BI \-\-program\-arg\fB= ARG
+Additional argument to pass to program for introspection.
+.TP
+.BI \-\-identifier\-prefix\fB= PREFIX
+This option may be specified multiple times. Each one gives a prefix that
+will be stripped from all C identifiers. If none specified, the namespace
+will be used. Eg, an identifier prefix of Foo will export the identifier
+typdef struct _FooBar FooBar; as Foo.Bar.
+.TP
+.BI \-\-symbol\-prefix\fB= PREFIX
+This option may be specified multiple times. Each one gives a
+prefix that will be stripped from all C symbols. Eg, an symbol
+prefix of foo will export the symbol foo_bar_do_something as
+Foo.Bar.do_something.
+.TP
+.B \-\-accept\-unprefixed
+If specified, the scanner will accept identifiers and symbols which do not
+match the namespace prefix. Try to avoid using this if possible.
+.TP
+.BI \-\-output\fB= FILENAME
+Name of the file to output. Normally namespace + format extension. Eg,
+GLib\-2.0.gir.
+.TP
+.BI \-\-pkg\fB= PACKAGE
+List of pkg\-config packages to get compiler and linker flags from. This
+option can be specified multiple times to include flags from several
+pkg\-config packages.
+.TP
+.BI \-\-pkg\-export\fB= PACKAGE
+List of pkg\-config packages that are provided by the generated gir. This
+option can be specified multiple times if the gir provides more packages.
+If not specified, the packages specified with \fB\-\-pkg=\fP will be used.
+.TP
+.BI \-\-compiler\fB= COMPILER
+The C compiler to be used internally by g\-ir\-scanner when introspecting
+the run time type information, like properties, signals, ancestors, and
+implemented interfaces. It has the same semantics as the \fBCC\fP environment
+variable.
+.TP
+.B \-\-verbose
+Be verbose, include some debugging information.
+.UNINDENT
+.SH ENVIRONMENT VARIABLES
+.sp
+The g\-ir\-scanner uses the \fBXDG_DATA_DIRS\fP variable to check for dirs, the
+girs are located in \fBXDG_DATA_DIRS/gir\-1.0\fP\&. It is normally set on a
+distribution so you shouldn\(aqt need to set it yourself.
+.sp
+The variable \fBGI_SCANNER_DISABLE_CACHE\fP ensures that the scanner will not
+write cache data to \fB$HOME\fP\&.
+.sp
+The variable \fBGI_SCANNER_DEBUG\fP can be used to debug issues in the
+build\-system that involve g\-ir\-scanner. When it is set to \fBsave\-temps\fP, then
+g\-ir\-scanner will not remove temporary files and directories after it
+terminates.
+.sp
+The variable \fBGI_HOST_OS\fP can be used to control the OS name on the host
+that runs the scanner. It has the same semantics as the Python \fBos.name\fP
+property.
+.sp
+The variable \fBGI_CROSS_LAUNCHER\fP can be used to wrap the GType introspection
+binary generated by g\-ir\-scanner before executing it. It is useful when
+generating introspection data in a cross-compilation environment.
+.SH BUGS
+.sp
+Report bugs at \fI\%https://gitlab.gnome.org/GNOME/gobject\-introspection/issues\fP
+.SH HOMEPAGE AND CONTACT
+.sp
+\fI\%https://gi.readthedocs.io/\fP
+.SH AUTHORS
+.sp
+Johan Dahlin
+.\" Generated by docutils manpage writer.
+.

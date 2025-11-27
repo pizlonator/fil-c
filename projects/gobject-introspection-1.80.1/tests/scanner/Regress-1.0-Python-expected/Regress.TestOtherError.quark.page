@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<page id="Regress.TestOtherError.quark"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestOtherError" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>GLib.Quark</api:type>
+      </api:returns>
+      <api:name>regress_test_unconventional_error_quark</api:name>
+    </api:function>
+  </info>
+  <title>Regress.TestOtherError.quark</title>
+  <synopsis><code mime="text/x-python">
+@returns(GLib.Quark)
+def quark():
+    # Python wrapper for regress_test_unconventional_error_quark()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

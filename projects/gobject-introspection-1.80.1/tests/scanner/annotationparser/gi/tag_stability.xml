@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Stability: Stable
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Stable</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Stability: Stable
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Stability: Unstable
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Unstable</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Stability: Unstable
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Stability: Private
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Private</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Stability: Private
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Stability: behavior tends to vary depending on the phase of the moon.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <description>behavior tends to vary depending on the phase of the moon.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Stability: behavior tends to vary depending on the phase of the moon.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Stability: (allow-none): Private
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_tag_not_annotatable</name>
+      </identifier>
+      <description>Tags (except Returns:) don't have annotations</description>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Private</value>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Error: Test: annotations not supported for tag "Stability:".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Stability: Private
+ */</output>
+</test>
+
+<test>
+  <!--
+  Multiple "Stability:" tags
+  -->
+  <input>/**
+ * test_multiple_tags:
+ *
+ * Stability: Public
+ * Stability: Private
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_tags</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Private</value>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Error: Test: multiple "Stability:" tags for identifier "test_multiple_tags":
+ * Stability: Private
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_tags:
+ *
+ * Stability: Private
+ */</output>
+</test>
+
+<test>
+  <!--
+  "Stability:" description
+  -->
+  <input>/**
+ * test_stability_description:
+ *
+ * Stability: Unstable: maybe one day this will work
+ *                      correctly...
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_stability_description</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Unstable</value>
+          <description>maybe one day this will work
+                     correctly...</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_stability_description:
+ *
+ * Stability: Unstable: maybe one day this will work
+ *                      correctly...
+ */</output>
+</test>
+
+</tests>

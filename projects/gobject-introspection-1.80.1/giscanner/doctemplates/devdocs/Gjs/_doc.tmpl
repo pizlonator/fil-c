@@ -1,0 +1,37 @@
+<%def name="format_documentation(node)">
+  % if node.version:
+    <p class="since-note">
+      New in version ${node.version}.
+      ${formatter.format_inline(node, node.version_doc)}
+    </p>
+  % endif
+  % if node.deprecated:
+    <p class="deprecated-note">
+      Deprecated since ${node.deprecated}.
+      ${formatter.format_inline(node, node.deprecated_doc)}
+    </p>
+  % endif
+  % if node.stability:
+    ## Not sure what this looks like in the wild
+    <p class="stability-note">
+      Stability: ${node.stability}.
+      ${formatter.format_inline(node, node.stability_doc)}
+    </p>
+  % endif
+
+  % if node.doc:
+    ${formatter.format(node, node.doc)}
+  % endif
+</%def>
+
+<%def name="deprecated_class(node)">
+  % if node.deprecated:
+    deprecated
+  % endif
+</%def>
+
+<%def name="introspectable(node)">
+  % if getattr(node, "introspectable", True):
+    ${caller.body()}
+  % endif
+</%def>

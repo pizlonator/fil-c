@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * foo_object_read: (virtual read_fn)
+ * @object: obj
+ * @offset: offset
+ * @length: length
+ *
+ * Read some stuff.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_object_read</name>
+        <annotations>
+          <annotation>
+            <name>virtual</name>
+            <options>
+              <option>
+                <name>read_fn</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>obj</description>
+        </parameter>
+        <parameter>
+          <name>offset</name>
+          <description>offset</description>
+        </parameter>
+        <parameter>
+          <name>length</name>
+          <description>length</description>
+        </parameter>
+      </parameters>
+      <description>Read some stuff.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * foo_object_read: (virtual read_fn)
+ * @object: obj
+ * @offset: offset
+ * @length: length
+ *
+ * Read some stuff.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Virtual:" tag syntax
+  -->
+  <input>/**
+ * foo_object_read:
+ * @object: obj
+ * @offset: offset
+ * @length: length
+ *
+ * Read some stuff.
+ *
+ * Virtual: read_fn
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_object_read</name>
+        <annotations>
+          <annotation>
+            <name>virtual</name>
+            <options>
+              <option>
+                <name>read_fn</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>obj</description>
+        </parameter>
+        <parameter>
+          <name>offset</name>
+          <description>offset</description>
+        </parameter>
+        <parameter>
+          <name>length</name>
+          <description>length</description>
+        </parameter>
+      </parameters>
+      <description>Read some stuff.</description>
+    </docblock>
+    <messages>
+      <message>9: Warning: Test: GObject-Introspection specific GTK-Doc tag "Virtual" has been deprecated, please use annotations on the identifier instead:
+ * Virtual: read_fn
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * foo_object_read: (virtual read_fn)
+ * @object: obj
+ * @offset: offset
+ * @length: length
+ *
+ * Read some stuff.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Virtual:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * foo_object_read:
+ *
+ * Virtual: read_fn
+ *
+ * Read some stuff.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>foo_object_read</name>
+        <annotations>
+          <annotation>
+            <name>virtual</name>
+            <options>
+              <option>
+                <name>read_fn</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Read some stuff.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Virtual" has been deprecated, please use annotations on the identifier instead:
+ * Virtual: read_fn
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * foo_object_read: (virtual read_fn)
+ *
+ * Read some stuff.
+ */</output>
+</test>
+
+</tests>

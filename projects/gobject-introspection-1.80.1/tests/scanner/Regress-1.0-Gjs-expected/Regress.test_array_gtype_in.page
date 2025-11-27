@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<page id="Regress.test_array_gtype_in"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>String</api:type>
+      </api:returns>
+      <api:name>regress_test_array_gtype_in</api:name>
+      <api:arg>
+        <api:type>Array(GObject.Type)</api:type>
+        <api:name>types</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_array_gtype_in</title>
+  <synopsis><code mime="text/x-gjs">
+function test_array_gtype_in(types: Array(GObject.Type)): String {
+    // Gjs wrapper for regress_test_array_gtype_in()
+}
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>types</code></title>
+  <p>List of types</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+  <p>string representation of provided types</p>
+</item>
+</terms>
+
+</page>

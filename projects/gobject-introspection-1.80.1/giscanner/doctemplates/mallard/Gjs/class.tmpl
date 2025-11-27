@@ -1,0 +1,30 @@
+<%inherit file="/class.tmpl"/>
+<%block name="synopsis">
+  <synopsis>\
+% if node.namespace is not None:
+<code>
+const ${namespace.name} = imports.gi.${namespace.name};
+
+let ${formatter.to_lower_camel_case(node.name)} = new ${namespace.name}.${node.name}(\
+% if isinstance(node, (ast.Class, ast.Interface)):
+% if len(node.properties) > 0:
+{
+% for ix, property_ in enumerate(node.properties):
+% if (property_.construct or property_.construct_only) and property_.writable:
+    <link xref='${namespace.name}.${node.name}-${property_.name}'>${property_.name.replace('-', '_')}</link>: value,
+% endif
+% endfor
+}\
+% endif
+% else:
+${formatter.format_gboxed_constructor(node)}\
+% endif
+);
+  </code>\
+% else:
+  <p>
+    This structure is inside ${node.parent.namespace.name}.${node.parent.name}
+    and can only be used as a field of that.
+  </p>
+% endif
+</synopsis></%block>

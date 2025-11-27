@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.parse_args"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_parse_args</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>argc</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>[unicode]</api:type>
+        <api:name>argv</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.AnnotationObject.parse_args</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject, int, [unicode])
+@returns(none)
+def parse_args(self, argc, argv):
+    # Python wrapper for regress_annotation_object_parse_args()
+  </code></synopsis>
+  <p>Test taking a zero-terminated array with length parameter</p>
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>a <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>argc</code></title>
+  <p>Length of the argument vector</p>
+</item>
+<item>
+<title><code>argv</code></title>
+  <p>Argument vector</p>
+</item>
+</terms>
+
+</page>

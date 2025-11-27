@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * test_parameter_missing_colon:
+ * @param1: (allow-none) first parameter
+ *
+ * Forgotten colon above will result in a warning.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_parameter_missing_colon</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>first parameter</description>
+        </parameter>
+      </parameters>
+      <description>Forgotten colon above will result in a warning.</description>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: missing ":" at column 25:
+ * @param1: (allow-none) first parameter
+                        ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_parameter_missing_colon:
+ * @param1: (allow-none): first parameter
+ *
+ * Forgotten colon above will result in a warning.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_unexpected_parameter:
+ *
+ * Parameters should go before the comment block description.
+ *
+ * @param1: first parameter
+ * Returns: something
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_unexpected_parameter</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <description>first parameter</description>
+        </parameter>
+      </parameters>
+      <description>Parameters should go before the comment block description.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: "@param1" parameter unexpected at this location:
+ * @param1: first parameter
+    ^</message>
+      <message>7: Warning: Test: "Returns:" tag unexpected at this location:
+ * Returns: something
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_unexpected_parameter:
+ * @param1: first parameter
+ *
+ * Parameters should go before the comment block description.
+ *
+ * Returns: something
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiple_parameters:
+ * @param1: first parameter
+ * @param1: first parameter again
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_parameters</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <description>first parameter again</description>
+        </parameter>
+      </parameters>
+    </docblock>
+    <messages>
+      <message>4: Error: Test: multiple "@param1" parameters for identifier "test_multiple_parameters":
+ * @param1: first parameter again
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_parameters:
+ * @param1: first parameter again
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_annotations_on_parameter:
+ * @param1: (allow-none)
+ * (transfer full): first parameter
+ *
+ * Annotations spanning multiple lines are not valid
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_annotations_on_parameter</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>first parameter</description>
+        </parameter>
+      </parameters>
+      <description>Annotations spanning multiple lines are not valid</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_annotations_on_parameter:
+ * @param1: (allow-none) (transfer full): first parameter
+ *
+ * Annotations spanning multiple lines are not valid
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_annotations_on_parameter:
+ * @param1: (allow-none): first parameter having a second line which looks
+ * (like an annotation), but isn't. This should not result in a warning.
+ *
+ * Annotations spanning multiple lines are not valid
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_annotations_on_parameter</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>first parameter having a second line which looks
+(like an annotation), but isn't. This should not result in a warning.</description>
+        </parameter>
+      </parameters>
+      <description>Annotations spanning multiple lines are not valid</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_annotations_on_parameter:
+ * @param1: (allow-none): first parameter having a second line which looks
+ * (like an annotation), but isn't. This should not result in a warning.
+ *
+ * Annotations spanning multiple lines are not valid
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * anjuta_async_notify_get_error:
+ *
+ * @self: An #AnjutaAsyncNotify object
+ * @error: Return location for the error set by the called interface to which
+ *                 this object was passed. If no error is set, @error is set to NULL.
+ *
+ * Gets the error set on @self.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>anjuta_async_notify_get_error</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>An #AnjutaAsyncNotify object</description>
+        </parameter>
+        <parameter>
+          <name>error</name>
+          <description>Return location for the error set by the called interface to which
+                this object was passed. If no error is set, @error is set to NULL.</description>
+        </parameter>
+      </parameters>
+      <description>Gets the error set on @self.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "@self" parameter unexpected at this location:
+ * @self: An #AnjutaAsyncNotify object
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * anjuta_async_notify_get_error:
+ * @self: An #AnjutaAsyncNotify object
+ * @error: Return location for the error set by the called interface to which
+ *                 this object was passed. If no error is set, @error is set to NULL.
+ *
+ * Gets the error set on @self.
+ */</output>
+</test>
+
+<test>
+  <input>  /**
+   * GtkPrintOperation::done
+   * @operation: the #GtkPrintOperation on which the signal was emitted
+   * @result: the result of the print operation
+   *
+   * Emitted when the print operation run has finished doing
+   * everything required for printing.
+   *
+   * @result gives you information about what happened during the run.
+   * If @result is %GTK_PRINT_OPERATION_RESULT_ERROR then you can call
+   * gtk_print_operation_get_error() for more information.
+   *
+   * If you enabled print status tracking then
+   * gtk_print_operation_is_finished() may still return %FALSE
+   * after #GtkPrintOperation::done was emitted.
+   *
+   * Since: 2.10
+   */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkPrintOperation::done</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>operation</name>
+          <description>the #GtkPrintOperation on which the signal was emitted</description>
+        </parameter>
+        <parameter>
+          <name>result</name>
+          <description>the result of the print operation</description>
+        </parameter>
+      </parameters>
+      <description>Emitted when the print operation run has finished doing
+everything required for printing.
+
+@result gives you information about what happened during the run.
+If @result is %GTK_PRINT_OPERATION_RESULT_ERROR then you can call
+gtk_print_operation_get_error() for more information.
+
+If you enabled print status tracking then
+gtk_print_operation_is_finished() may still return %FALSE
+after #GtkPrintOperation::done was emitted.</description>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>2.10</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>  /**
+   * GtkPrintOperation::done:
+   * @operation: the #GtkPrintOperation on which the signal was emitted
+   * @result: the result of the print operation
+   *
+   * Emitted when the print operation run has finished doing
+   * everything required for printing.
+   *
+   * @result gives you information about what happened during the run.
+   * If @result is %GTK_PRINT_OPERATION_RESULT_ERROR then you can call
+   * gtk_print_operation_get_error() for more information.
+   *
+   * If you enabled print status tracking then
+   * gtk_print_operation_is_finished() may still return %FALSE
+   * after #GtkPrintOperation::done was emitted.
+   *
+   * Since: 2.10
+   */</output>
+</test>
+
+<test>
+  <input>/**
+ * TrackerDirectoryFlags:
+ * @TRACKER_DIRECTORY_FLAG_NONE: No flags.
+ * @TRACKER_DIRECTORY_FLAG_RECURSE: Should recurse in the directory.
+ * @TRACKER_DIRECTORY_FLAG_CHECK_MTIME: Should check mtimes of items in the directory.
+ * @TRACKER_DIRECTORY_FLAG_MONITOR: Should setup monitors in the items found in the directory.
+ * @TRACKER_DIRECTORY_FLAG_IGNORE: Should ignore the directory contents.
+ * @TRACKER_DIRECTORY_FLAG_PRESERVE: Should preserve items in the directory even if the directory gets removed.
+ *
+ * Flags used when adding a new directory to be indexed in the #TrackerIndexingTree.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>TrackerDirectoryFlags</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_NONE</name>
+          <description>No flags.</description>
+        </parameter>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_RECURSE</name>
+          <description>Should recurse in the directory.</description>
+        </parameter>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_CHECK_MTIME</name>
+          <description>Should check mtimes of items in the directory.</description>
+        </parameter>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_MONITOR</name>
+          <description>Should setup monitors in the items found in the directory.</description>
+        </parameter>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_IGNORE</name>
+          <description>Should ignore the directory contents.</description>
+        </parameter>
+        <parameter>
+          <name>TRACKER_DIRECTORY_FLAG_PRESERVE</name>
+          <description>Should preserve items in the directory even if the directory gets removed.</description>
+        </parameter>
+      </parameters>
+      <description>Flags used when adding a new directory to be indexed in the #TrackerIndexingTree.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * TrackerDirectoryFlags:
+ * @TRACKER_DIRECTORY_FLAG_NONE: No flags.
+ * @TRACKER_DIRECTORY_FLAG_RECURSE: Should recurse in the directory.
+ * @TRACKER_DIRECTORY_FLAG_CHECK_MTIME: Should check mtimes of items in the directory.
+ * @TRACKER_DIRECTORY_FLAG_MONITOR: Should setup monitors in the items found in the directory.
+ * @TRACKER_DIRECTORY_FLAG_IGNORE: Should ignore the directory contents.
+ * @TRACKER_DIRECTORY_FLAG_PRESERVE: Should preserve items in the directory even if the directory gets removed.
+ *
+ * Flags used when adding a new directory to be indexed in the #TrackerIndexingTree.
+ */</output>
+</test>
+
+</tests>

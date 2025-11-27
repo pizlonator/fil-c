@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj.not_nullable_element_typed_gpointer_in"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_test_obj_not_nullable_element_typed_gpointer_in</api:name>
+      <api:arg>
+        <api:type>Regress.TestObj</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>[guint8]</api:type>
+        <api:name>input</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>count</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.TestObj.not_nullable_element_typed_gpointer_in</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.TestObj, [guint8], int)
+@returns(none)
+def not_nullable_element_typed_gpointer_in(self, input, count):
+    # Python wrapper for regress_test_obj_not_nullable_element_typed_gpointer_in()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>A <link xref="Regress.TestObj"/></p>
+</item>
+<item>
+<title><code>input</code></title>
+  <p>some uint8 array</p>
+</item>
+<item>
+<title><code>count</code></title>
+  <p>length of <code>input</code></p>
+</item>
+</terms>
+
+</page>

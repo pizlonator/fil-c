@@ -1,0 +1,78 @@
+<%namespace name="doc" file="_doc.tmpl"/>
+
+<%def name="describe_parameters(m, static=False, virtual=False)">
+  <dl>
+    % if static:
+      <dt>Type:</dt>
+      <dd>Static</dd>
+    % elif virtual:
+      <dt>Type:</dt>
+      <dd>Virtual</dd>
+    % endif
+    <%
+      in_params = formatter.get_in_parameters(m)
+      out_params = formatter.get_out_parameters(m)
+    %>
+    % if in_params or isinstance(m, ast.Signal):
+      <dt>Parameters:</dt>
+      <dd>
+        <ul>
+          % if isinstance(m, ast.Signal):
+            <li>
+              <strong>${formatter.to_lower_camel_case(m.parent.name)}</strong>
+              (<code>${m.parent.gi_name}</code>)
+              &mdash; the emitting object
+            </li>
+          %endif
+          % for p in in_params:
+            <li>
+              <strong>${p.argname}</strong>
+              (<code>${formatter.format_type(p.type)}</code>)
+              % if p.doc:
+                &mdash; ${formatter.format_inline(m, p.doc)}
+              % endif
+            </li>
+          % endfor
+        </ul>
+      </dd>
+    % endif
+    % if out_params:
+      <dt>Returns:</dt>
+      <dd>
+        <ul>
+          % for p in out_params:
+            <li>
+              % if len(out_params) > 1:
+                <strong>${p.argname}</strong>
+              % endif
+              (<code>${formatter.format_type(p.type)}</code>)
+              % if p.doc:
+                &mdash; ${formatter.format_inline(m, p.doc)}
+              % endif
+            </li>
+          % endfor
+        </ul>
+      </dd>
+    % endif
+    % if m.throws:
+      <dt>Throws exception:</dt>
+      <dd>Yes</dd>
+    % endif
+  </dl>
+</%def>
+
+<%def name="method(m, static=False, virtual=False)">
+  <%doc:introspectable node="${m}">
+    <% invocation = ", ".join(map(lambda p: p.argname, m.parameters)) %>
+  
+    <h3>
+      <span class="entry ${get_node_kind(m)} ${doc.deprecated_class(m)}"
+          id="${formatter.make_anchor(m)}">
+      ${formatter.format_function_name(m)}<!-- no space
+      --></span><!-- no space
+      -->(${formatter.format_in_parameters(m)})
+    </h3>
+    ${describe_parameters(m, static, virtual)}
+    ${doc.format_documentation(m)}
+  </%doc:introspectable>
+</%def>

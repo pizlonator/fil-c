@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:t="http://schemas.gnome.org/gobject-introspection/2013/test"
+           targetNamespace="http://schemas.gnome.org/gobject-introspection/2013/test"
+           elementFormDefault="qualified"
+           version="1.0.0">
+
+  <xs:annotation>
+    <xs:documentation><![CDATA[
+      GObject-Introspection - a framework for introspecting GObject libraries
+      Copyright © 2013 Dieter Verfaillie <dieterv@optionexplicit.be>
+
+      This program is free software; you can redistribute it and/or
+      modify it under the terms of the GNU General Public License
+      as published by the Free Software Foundation; either version 2
+      of the License, or (at your option) any later version.
+
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU General Public License for more details.
+
+      You should have received a copy of the GNU General Public License
+      along with this program; if not, write to the Free Software
+      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+      02110-1301, USA.]]>
+     </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="PreservedStringtype">
+    <xs:restriction base="xs:string">
+       <xs:whiteSpace value="preserve"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="OutputType">
+    <xs:simpleContent>
+      <xs:extension base="t:PreservedStringtype">
+        <xs:attribute name="indent" type="xs:boolean" default="true" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:element name="tests">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:test" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="test">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="input" type="t:PreservedStringtype" />
+        <xs:element ref="t:parser" minOccurs="0" />
+        <xs:element name="output" minOccurs="0" type="t:OutputType" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="parser">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:docblock" minOccurs="0" />
+        <xs:element ref="t:messages" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="docblock">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:identifier" />
+        <xs:element ref="t:parameters" minOccurs="0" />
+        <xs:element name="description" type="t:PreservedStringtype" minOccurs="0" />
+        <xs:element ref="t:tags" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="identifier">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" type="xs:string" />
+        <xs:element ref="t:annotations" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tags">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:tag" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tag">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" />
+        <xs:element ref="t:annotations" minOccurs="0" />
+        <xs:element name="value" minOccurs="0" />
+        <xs:element name="description" type="t:PreservedStringtype" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="parameters">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:parameter" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="parameter">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" />
+        <xs:element ref="t:annotations" minOccurs="0" />
+        <xs:element name="description" type="t:PreservedStringtype" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="annotations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:annotation" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="annotation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" />
+        <xs:element ref="t:options" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="options">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="t:option" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="option">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="name" />
+        <xs:element name="value" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="messages">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="message" type="t:PreservedStringtype" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

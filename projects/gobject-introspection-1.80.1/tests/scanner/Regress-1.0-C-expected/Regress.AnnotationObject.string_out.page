@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.string_out"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>gboolean</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_string_out</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationObject*</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>char**</api:type>
+        <api:name>str_out</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_object_string_out</title>
+  <synopsis><code mime="text/x-csrc">
+gboolean regress_annotation_object_string_out (RegressAnnotationObject* object,
+                                               char** str_out);
+  </code></synopsis>
+  <p>Test returning a string as an out parameter</p>
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>a <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>str_out</code></title>
+  <p>string return value</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+  <p>some boolean</p>
+</item>
+</terms>
+
+</page>

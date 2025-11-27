@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj.skip_out_param"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>Boolean</api:type>
+      </api:returns>
+      <api:name>regress_test_obj_skip_out_param</api:name>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>a</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>Number(gdouble)</api:type>
+        <api:name>c</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>inout_d</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>num1</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>num2</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.TestObj.prototype.skip_out_param</title>
+  <synopsis><code mime="text/x-gjs">
+function skip_out_param(a: Number(gint), c: Number(gdouble), inout_d: Number(gint), num1: Number(gint), num2: Number(gint)): [ok: Boolean, out_b: Number(gint), inout_d: Number(gint), out_sum: Number(gint)] {
+    // Gjs wrapper for regress_test_obj_skip_out_param()
+}
+  </code></synopsis>
+  <p>Check that the out value is skipped</p>
+
+<terms>
+<item>
+<title><code>a</code></title>
+  <p>Parameter.</p>
+</item>
+<item>
+<title><code>c</code></title>
+  <p>Other parameter.</p>
+</item>
+<item>
+<title><code>inout_d</code></title>
+  <p>Will be incremented.</p>
+</item>
+<item>
+<title><code>num1</code></title>
+  <p>Number.</p>
+</item>
+<item>
+<title><code>num2</code></title>
+  <p>Number.</p>
+</item>
+<item>
+<title><code>ok</code></title>
+  <p><code>true</code> if the call succeeds, <code>false</code> if @error is set.</p>
+</item>
+<item>
+<title><code>out_b</code></title>
+  <p>Return value.</p>
+</item>
+<item>
+<title><code>inout_d (out)</code></title>
+  <p>Will be incremented.</p>
+</item>
+<item>
+<title><code>out_sum</code></title>
+  <p>Return value.</p>
+</item>
+</terms>
+
+</page>

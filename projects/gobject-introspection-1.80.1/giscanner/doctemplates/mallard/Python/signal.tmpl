@@ -1,0 +1,41 @@
+<%inherit file="/base.tmpl"/>
+<%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+    <title type="link" role="topic">${node.name}</title>
+</%block>
+<%block name="synopsis">
+  <synopsis><code mime="text/x-python">
+def callback(${formatter.to_underscores(node.parent).lower()}, \
+% for arg in formatter.get_in_parameters(node):
+${arg.argname}, \
+% endfor
+user_param1, ...)
+  </code></synopsis></%block>
+<%block name="details">
+<terms>
+<item>
+<title><code>${formatter.to_underscores(node.parent).lower()}</code></title>
+<p>instance of ${formatter.format_xref(node.parent)} that is emitting the signal</p>
+</item>
+% for arg in formatter.get_in_parameters(node):
+<item>
+<title><code>${arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+<title><code>user_param1</code></title>
+<p>first user parameter (if any) specified with the connect() method</p>
+<item>
+<title><code>...</code></title>
+<p>additional user parameters (if any)</p>
+</item>
+% if node.retval and \
+     node.retval.type.ctype != 'void' and \
+     node.retval.type.ctype is not None:
+<item>
+<title><code>Returns</code></title>
+${formatter.format(node, node.retval.doc)}
+</item>
+% endif
+</terms>
+</%block>

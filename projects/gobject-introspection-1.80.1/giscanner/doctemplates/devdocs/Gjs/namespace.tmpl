@@ -1,0 +1,57 @@
+<%def name="get_types(n, types)">
+  <% nodes = [] %>
+  % for a in n.values():
+    % if isinstance(a, types):
+      % if formatter.should_render_node(a):
+        <% nodes.append(a) %>
+      % endif
+    % endif
+  % endfor
+  <% return nodes %>
+</%def>
+
+<%def name="render_list(nodes)">
+   <ul>
+  % for a in nodes:
+      <li>${formatter.format_inline(a, formatter.format_xref(a))}</li>
+  % endfor
+  </ul>
+</%def>
+
+<html>
+<body>
+  <section>
+    <h1 class="namespace">${node.name}</h1>
+  </section>
+  
+      <% nodes = get_types(node, (ast.Class, ast.Interface)) %>
+      % if len(nodes) > 0:
+         <h1>Classes</h1>
+        ${render_list(nodes)}
+      % endif
+  
+      <% nodes = get_types(node, (ast.Enum)) %>
+      % if len(nodes) > 0:
+         <h1>Enums</h1>
+        ${render_list(nodes)}
+      % endif
+  
+     <% nodes = get_types(node, (ast.Function)) %>
+      % if len(nodes) > 0:
+        <h1>Functions</h1>
+        ${render_list(nodes)}
+      % endif
+  
+      <% nodes = get_types(node, (ast.Constant)) %>
+      % if len(nodes) > 0:
+        <h1>Constants</h1>
+        ${render_list(nodes)}
+      % endif
+  
+      <% nodes = get_types(node, (ast.Property)) %>
+      % if len(nodes) > 0:
+        <h1>Properties</h1>
+        ${render_list(nodes)}
+      % endif
+</body>
+</html>

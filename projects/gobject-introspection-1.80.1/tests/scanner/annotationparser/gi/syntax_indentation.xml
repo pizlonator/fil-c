@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>  /**
+   * SECTION:test
+   *
+   * Describe section here
+   */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:test</name>
+      </identifier>
+      <description>Describe section here</description>
+    </docblock>
+  </parser>
+  <output>  /**
+   * SECTION:test
+   *
+   * Describe section here
+   */</output>
+</test>
+
+<test>
+  <input>	/**
+	* SECTION:test
+	*
+	* Describe section here
+	*/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:test</name>
+      </identifier>
+      <description>Describe section here</description>
+    </docblock>
+  </parser>
+  <output>	/**
+	 * SECTION:test
+	 *
+	 * Describe section here
+	 */</output>
+</test>
+
+<test>
+  <input> 	/**
+	* SECTION:test
+	*
+	* Describe section here
+	*/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:test</name>
+      </identifier>
+      <description>Describe section here</description>
+    </docblock>
+  </parser>
+  <output>	/**
+	 * SECTION:test
+	 *
+	 * Describe section here
+	 */</output>
+</test>
+
+<test>
+  <input>    /**
+     * SECTION:test
+     *
+     * Describe section here
+     */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:test</name>
+      </identifier>
+      <description>Describe section here</description>
+    </docblock>
+  </parser>
+  <output indent="false">/**
+ * SECTION:test
+ *
+ * Describe section here
+ */</output>
+</test>
+
+</tests>

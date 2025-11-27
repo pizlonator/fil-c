@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *   (skip)
+ *   (method)
+ * @obj: A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+          <annotation>
+            <name>method</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method: (skip) (method)
+ * @obj: A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method: (skip)
+ * (method)
+ * @obj: A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+          <annotation>
+            <name>method</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method: (skip) (method)
+ * @obj: A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method: (skip)
+ *     (method)
+ * @obj: A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+          <annotation>
+            <name>method</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method: (skip) (method)
+ * @obj: A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *   (skip) (method)
+ * @obj: A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+          <annotation>
+            <name>method</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method: (skip) (method)
+ * @obj: A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ * @obj:
+ *   (skip)
+ *   (nullable): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ * @obj: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ * @obj:
+ *   (skip)
+ *   (nullable):
+ *   A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>
+  A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ * @obj: (skip) (nullable):
+ *   A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ * @obj: (skip)
+ * (nullable): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ * @obj: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ * @obj: (skip)
+ *     (nullable) A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: missing ":" at column 18:
+ *     (nullable) A #RegressTestObj
+                 ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ * @obj: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ * @obj: (skip)
+ *     (skip): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>obj</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </parameter>
+      </parameters>
+    </docblock>
+    <messages>
+      <message>4: Error: Test: multiple "skip" annotations:
+ *     (skip): A #RegressTestObj
+            ^
+      </message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ * @obj: (skip): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *
+ * Returns:
+ *   (skip)
+ *   (nullable): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *
+ * Returns:
+ *   (skip)
+ *   (nullable):
+ *   A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>
+  A #RegressTestObj</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip) (nullable):
+ *   A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip)
+ * (nullable): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip)
+ *     (nullable) A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Warning: Test: missing ":" at column 18:
+ *     (nullable) A #RegressTestObj
+                 ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip) (nullable): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip)
+ *     (skip): A #RegressTestObj
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_forced_method</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+          </annotations>
+          <description>A #RegressTestObj</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Error: Test: multiple "skip" annotations:
+ *     (skip): A #RegressTestObj
+            ^
+      </message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_forced_method:
+ *
+ * Returns: (skip): A #RegressTestObj
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * gtk_window_set_has_frame:
+ * @window: a #GtkWindow
+ * @setting: a boolean
+ *
+ * (Note: this is a special-purpose function for the framebuffer port,
+ *  that causes GTK+ to draw its own window border. For most applications,
+ *  you want gtk_window_set_decorated() instead, which tells the window
+ *  manager whether to draw the window border.)
+ *
+ * If this function is called on a window with setting of %TRUE, before
+ * it is realized or showed, it will have a "frame" window around
+ * @window->window, accessible in @window->frame. Using the signal
+ * frame_event you can receive all events targeted at the frame.
+ *
+ * This function is used by the linux-fb port to implement managed
+ * windows, but it could conceivably be used by X-programs that
+ * want to do their own window decorations.
+ *
+ * Deprecated: 2.24: This function will be removed in GTK+ 3
+ **/</input>
+  <parser>
+<docblock>
+      <identifier>
+        <name>gtk_window_set_has_frame</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>window</name>
+          <description>a #GtkWindow</description>
+        </parameter>
+        <parameter>
+          <name>setting</name>
+          <description>a boolean</description>
+        </parameter>
+      </parameters>
+      <description>(Note: this is a special-purpose function for the framebuffer port,
+ that causes GTK+ to draw its own window border. For most applications,
+ you want gtk_window_set_decorated() instead, which tells the window
+ manager whether to draw the window border.)
+
+If this function is called on a window with setting of %TRUE, before
+it is realized or showed, it will have a "frame" window around
+@window->window, accessible in @window->frame. Using the signal
+frame_event you can receive all events targeted at the frame.
+
+This function is used by the linux-fb port to implement managed
+windows, but it could conceivably be used by X-programs that
+want to do their own window decorations.</description>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>2.24</value>
+          <description>This function will be removed in GTK+ 3</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * gtk_window_set_has_frame:
+ * @window: a #GtkWindow
+ * @setting: a boolean
+ *
+ * (Note: this is a special-purpose function for the framebuffer port,
+ *  that causes GTK+ to draw its own window border. For most applications,
+ *  you want gtk_window_set_decorated() instead, which tells the window
+ *  manager whether to draw the window border.)
+ *
+ * If this function is called on a window with setting of %TRUE, before
+ * it is realized or showed, it will have a "frame" window around
+ * @window->window, accessible in @window->frame. Using the signal
+ * frame_event you can receive all events targeted at the frame.
+ *
+ * This function is used by the linux-fb port to implement managed
+ * windows, but it could conceivably be used by X-programs that
+ * want to do their own window decorations.
+ *
+ * Deprecated: 2.24: This function will be removed in GTK+ 3
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * gtk_window_set_has_frame:
+ * @window: a #GtkWindow
+ * @setting:
+ * (Note: this is a special-purpose function for the framebuffer port,
+ *  that causes GTK+ to draw its own window border. For most applications,
+ *  you want gtk_window_set_decorated() instead, which tells the window
+ *  manager whether to draw the window border.)
+ *
+ * If this function is called on a window with setting of %TRUE, before
+ * it is realized or showed, it will have a "frame" window around
+ * @window->window, accessible in @window->frame. Using the signal
+ * frame_event you can receive all events targeted at the frame.
+ *
+ * This function is used by the linux-fb port to implement managed
+ * windows, but it could conceivably be used by X-programs that
+ * want to do their own window decorations.
+ *
+ * Deprecated: 2.24: This function will be removed in GTK+ 3
+ **/</input>
+  <parser>
+<docblock>
+      <identifier>
+        <name>gtk_window_set_has_frame</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>window</name>
+          <description>a #GtkWindow</description>
+        </parameter>
+        <parameter>
+          <name>setting</name>
+          <description>(Note: this is a special-purpose function for the framebuffer port,
+ that causes GTK+ to draw its own window border. For most applications,
+ you want gtk_window_set_decorated() instead, which tells the window
+ manager whether to draw the window border.)</description>
+        </parameter>
+      </parameters>
+      <description>If this function is called on a window with setting of %TRUE, before
+it is realized or showed, it will have a "frame" window around
+@window->window, accessible in @window->frame. Using the signal
+frame_event you can receive all events targeted at the frame.
+
+This function is used by the linux-fb port to implement managed
+windows, but it could conceivably be used by X-programs that
+want to do their own window decorations.</description>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>2.24</value>
+          <description>This function will be removed in GTK+ 3</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * (Note: this is a special-purpose function for the framebuffer port,
+                                                                     ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * gtk_window_set_has_frame:
+ * @window: a #GtkWindow
+ * @setting: (Note: this is a special-purpose function for the framebuffer port,
+ *  that causes GTK+ to draw its own window border. For most applications,
+ *  you want gtk_window_set_decorated() instead, which tells the window
+ *  manager whether to draw the window border.)
+ *
+ * If this function is called on a window with setting of %TRUE, before
+ * it is realized or showed, it will have a "frame" window around
+ * @window->window, accessible in @window->frame. Using the signal
+ * frame_event you can receive all events targeted at the frame.
+ *
+ * This function is used by the linux-fb port to implement managed
+ * windows, but it could conceivably be used by X-programs that
+ * want to do their own window decorations.
+ *
+ * Deprecated: 2.24: This function will be removed in GTK+ 3
+ */</output>
+</test>
+
+</tests>

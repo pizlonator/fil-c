@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<page id="Regress.test_array_struct_in_none"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_test_array_struct_in_none</api:name>
+      <api:arg>
+        <api:type>[Regress.TestStructA]</api:type>
+        <api:name>arr</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gsize</api:type>
+        <api:name>len</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_array_struct_in_none</title>
+  <synopsis><code mime="text/x-python">
+@accepts([Regress.TestStructA], gsize)
+@returns(none)
+def test_array_struct_in_none(arr, len):
+    # Python wrapper for regress_test_array_struct_in_none()
+  </code></synopsis>
+  <p>Test flat array input with transfer none.</p>  <p>Similar to <link href="../GLib-2.0/GLib.MainContext.check.html">GLib.MainContext.check</link> or gtk_target_list_new().</p>
+
+<terms>
+<item>
+<title><code>arr</code></title>
+  <p>An array.</p>
+</item>
+<item>
+<title><code>len</code></title>
+  <p>Length of <code>arr</code></p>
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.watch"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_watch_full</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationObject*</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>RegressAnnotationForeachFunc</api:type>
+        <api:name>func</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gpointer</api:type>
+        <api:name>user_data</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GDestroyNotify</api:type>
+        <api:name>destroy</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_object_watch_full</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_annotation_object_watch_full (RegressAnnotationObject* object,
+                                           RegressAnnotationForeachFunc func,
+                                           gpointer user_data,
+                                           GDestroyNotify destroy);
+  </code></synopsis>
+  <p>Test overriding via the "Rename To" annotation.</p>
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>A <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>func</code></title>
+  <p>The callback</p>
+</item>
+<item>
+<title><code>user_data</code></title>
+  <p>The callback data</p>
+</item>
+<item>
+<title><code>destroy</code></title>
+  <p>Destroy notification</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

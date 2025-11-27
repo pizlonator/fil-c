@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * RegressTestFundamentalObject: (unref-func regress_test_fundamental_object_unref)
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>unref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_unref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (unref-func regress_test_fundamental_object_unref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Unref func:" tag syntax
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * This object tests regressions...
+ *
+ * Unref func: regress_test_fundamental_object_unref
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>unref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_unref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Unref func" has been deprecated, please use annotations on the identifier instead:
+ * Unref func: regress_test_fundamental_object_unref
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (unref-func regress_test_fundamental_object_unref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Unref func:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * Unref func: regress_test_fundamental_object_unref
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>unref-func</name>
+            <options>
+              <option>
+                <name>regress_test_fundamental_object_unref</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Unref func" has been deprecated, please use annotations on the identifier instead:
+ * Unref func: regress_test_fundamental_object_unref
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (unref-func regress_test_fundamental_object_unref)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+</tests>

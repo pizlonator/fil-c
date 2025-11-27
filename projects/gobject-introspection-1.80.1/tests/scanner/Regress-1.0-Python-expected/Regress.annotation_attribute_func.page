@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<page id="Regress.annotation_attribute_func"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>int</api:type>
+      </api:returns>
+      <api:name>regress_annotation_attribute_func</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>unicode</api:type>
+        <api:name>data</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.annotation_attribute_func</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject, unicode)
+@returns(int)
+def annotation_attribute_func(object, data):
+    # Python wrapper for regress_annotation_attribute_func()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>A <link xref="Regress.AnnotationObject"/>.</p>
+</item>
+<item>
+<title><code>data</code></title>
+  <p>Some data.</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <namespace name="Identfilter"
+             version="1.0"
+             shared-library=""
+             c:identifier-prefixes="Identfilter"
+             c:symbol-prefixes="identfilter">
+    <record name="Context" c:type="identfilter_t" disguised="1" opaque="1">
+      <source-position filename="identfilter.h" line="4"/>
+    </record>
+    <record name="Object"
+            c:type="identfilter_object_t"
+            disguised="1"
+            opaque="1">
+      <source-position filename="identfilter.h" line="5"/>
+      <method name="foo_method" c:identifier="identfilter_object_foo_method">
+        <source-position filename="identfilter.h" line="8"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <type name="Object" c:type="identfilter_object_t*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
+      <method name="free" c:identifier="identfilter_object_free">
+        <source-position filename="identfilter.h" line="9"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <type name="Object" c:type="identfilter_object_t*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
+      <function name="new"
+                c:identifier="identfilter_object_new"
+                introspectable="0">
+        <source-position filename="identfilter.h" line="7"/>
+        <return-value>
+          <type name="Object" c:type="identfilter_object_t*"/>
+        </return-value>
+      </function>
+    </record>
+  </namespace>
+</repository>

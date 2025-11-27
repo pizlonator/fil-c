@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * regress_constructor: (constructor)
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_constructor</name>
+        <annotations>
+          <annotation>
+            <name>constructor</name>
+          </annotation>
+        </annotations>
+      </identifier>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_constructor: (constructor)
+ */</output>
+</test>
+
+</tests>

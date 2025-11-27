@@ -1,0 +1,27 @@
+<%inherit file="/base.tmpl"/>
+<%block name="synopsis">
+  <synopsis><code mime="text/x-gjs">
+function on${node.name}(\
+${', '.join('%s: %s' % (arg.argname, formatter.format_type(arg.type, True)) for arg in formatter.get_in_parameters(node))}\
+): ${formatter.format_out_parameters(node)} {
+}
+  </code></synopsis></%block>
+<%block name="details">
+% if formatter.has_any_parameters(node):
+<terms>
+% for arg in formatter.get_in_parameters(node):
+<item>
+<title><code>${arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+% for arg in formatter.get_out_parameters(node):
+<item>
+<title><code>${(arg.argname + ' (out)') if arg.direction == 'inout' else arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+</terms>
+% endif
+</%block>
+

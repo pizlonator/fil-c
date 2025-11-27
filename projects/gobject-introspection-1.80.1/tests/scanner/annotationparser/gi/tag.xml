@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * test_tag_missing_colon:
+ *
+ * Forgotten colon below will result in a warning.
+ *
+ * Returns: (allow-none) return value
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_tag_missing_colon</name>
+      </identifier>
+      <description>Forgotten colon below will result in a warning.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>return value</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: missing ":" at column 25:
+ * Returns: (allow-none) return value
+                        ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_tag_missing_colon:
+ *
+ * Forgotten colon below will result in a warning.
+ *
+ * Returns: (allow-none): return value
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_unexpected_tag:
+ *
+ * @param1: first parameter
+ * does something
+ * Returns: something
+ * returning something
+ *
+ * Probably intended as the comment block description part but in reality belongs to
+ * the "Returns:"" tag description field.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_unexpected_tag</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <description>first parameter
+does something</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>something
+returning something
+
+Probably intended as the comment block description part but in reality belongs to
+the "Returns:"" tag description field.</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "@param1" parameter unexpected at this location:
+ * @param1: first parameter
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_unexpected_tag:
+ * @param1: first parameter
+ * does something
+ *
+ * Returns: something
+ * returning something
+ *
+ * Probably intended as the comment block description part but in reality belongs to
+ * the "Returns:"" tag description field.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_unknown_tag:
+ *
+ * Foo: something
+ *
+ * Returns: True
+ * Moo: anything
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_unknown_tag</name>
+      </identifier>
+      <description>Foo: something</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>True
+Moo: anything</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_unknown_tag:
+ *
+ * Foo: something
+ *
+ * Returns: True
+ * Moo: anything
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_tag:
+ *
+ * Returns:
+ * True
+ * Since:
+ * 1.0: yeah
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_tag</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>True</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <description>1.0: yeah</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_tag:
+ *
+ * Returns: True
+ * Since: 1.0: yeah
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_annotations_on_tag:
+ *
+ * Annotations spanning multiple lines are not valid
+ *
+ * Returns: (allow-none)
+ * (transfer full): something
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_annotations_on_tag</name>
+      </identifier>
+      <description>Annotations spanning multiple lines are not valid</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>something</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_annotations_on_tag:
+ *
+ * Annotations spanning multiple lines are not valid
+ *
+ * Returns: (allow-none) (transfer full): something
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_annotations_on_tag:
+ *
+ * Annotations spanning multiple lines are not valid
+ *
+ * Returns: (allow-none): Returns tag having a second line which looks
+ * (like an annotation), but isn't. This should not result in a warning.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_annotations_on_tag</name>
+      </identifier>
+      <description>Annotations spanning multiple lines are not valid</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>Returns tag having a second line which looks
+(like an annotation), but isn't. This should not result in a warning.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_annotations_on_tag:
+ *
+ * Annotations spanning multiple lines are not valid
+ *
+ * Returns: (allow-none): Returns tag having a second line which looks
+ * (like an annotation), but isn't. This should not result in a warning.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * gdk_device_list_axes:
+ * @device: a pointer #GdkDevice
+ *
+ * Returns a #GList of #GdkAtom<!-- -->s, containing the labels for
+ * the axes that @device currently has.
+ *
+ * Returns: (transfer container) (element-type GdkAtom):
+ *     A #GList of #GdkAtom<!-- -->s, free
+ *     with g_list_free().
+ *
+ * Since: 3.0
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>gdk_device_list_axes</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>device</name>
+          <description>a pointer #GdkDevice</description>
+        </parameter>
+      </parameters>
+      <description>Returns a #GList of #GdkAtom<!-- -->s, containing the labels for
+the axes that @device currently has.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>container</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>GdkAtom</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>
+    A #GList of #GdkAtom<!-- -->s, free
+    with g_list_free().</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>3.0</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * gdk_device_list_axes:
+ * @device: a pointer #GdkDevice
+ *
+ * Returns a #GList of #GdkAtom<!-- -->s, containing the labels for
+ * the axes that @device currently has.
+ *
+ * Returns: (transfer container) (element-type GdkAtom):
+ *     A #GList of #GdkAtom<!-- -->s, free
+ *     with g_list_free().
+ * Since: 3.0
+ */</output>
+</test>
+
+<test>
+  <input>/**
+   * FsSession:codec-preferences:
+   *
+   * Type: GLib.List(FsCodec)
+   * Transfer: full
+   *
+   * This is the current preferences list for the local codecs. It is
+   * set by the user to specify the codec options and priorities. The user may
+   * change its value with fs_session_set_codec_preferences() at any time
+   * during a session. It is a #GList of #FsCodec.
+   * The user must free this codec list using fs_codec_list_destroy() when done.
+   *
+   * The payload type may be a valid dynamic PT (96-127), %FS_CODEC_ID_DISABLE
+   * or %FS_CODEC_ID_ANY. If the encoding name is "reserve-pt", then the
+   * payload type of the codec will be "reserved" and not be used by any
+   * dynamically assigned payload type.
+   */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>FsSession:codec-preferences</name>
+        <annotations>
+          <annotation>
+            <name>type</name>
+            <options>
+              <option>
+                <name>GLib.List(FsCodec)</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>transfer</name>
+            <options>
+              <option>
+                <name>full</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is the current preferences list for the local codecs. It is
+set by the user to specify the codec options and priorities. The user may
+change its value with fs_session_set_codec_preferences() at any time
+during a session. It is a #GList of #FsCodec.
+The user must free this codec list using fs_codec_list_destroy() when done.
+
+The payload type may be a valid dynamic PT (96-127), %FS_CODEC_ID_DISABLE
+or %FS_CODEC_ID_ANY. If the encoding name is "reserve-pt", then the
+payload type of the codec will be "reserved" and not be used by any
+dynamically assigned payload type.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Type" has been deprecated, please use annotations on the identifier instead:
+   * Type: GLib.List(FsCodec)
+     ^</message>
+     <message>5: Warning: Test: GObject-Introspection specific GTK-Doc tag "Transfer" has been deprecated, please use annotations on the identifier instead:
+   * Transfer: full
+     ^</message>
+    </messages>
+  </parser>
+  <output>  /**
+   * FsSession:codec-preferences: (type GLib.List(FsCodec)) (transfer full)
+   *
+   * This is the current preferences list for the local codecs. It is
+   * set by the user to specify the codec options and priorities. The user may
+   * change its value with fs_session_set_codec_preferences() at any time
+   * during a session. It is a #GList of #FsCodec.
+   * The user must free this codec list using fs_codec_list_destroy() when done.
+   *
+   * The payload type may be a valid dynamic PT (96-127), %FS_CODEC_ID_DISABLE
+   * or %FS_CODEC_ID_ANY. If the encoding name is "reserve-pt", then the
+   * payload type of the codec will be "reserved" and not be used by any
+   * dynamically assigned payload type.
+   */</output>
+</test>
+
+</tests>

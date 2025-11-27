@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * AnnotationObject: (attributes org.example.test1=horses org.example.test2 org.example.test3=cows)
+ *
+ * This is an object used to test annotations.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+        <annotations>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>org.example.test1</name>
+                <value>horses</value>
+              </option>
+              <option>
+                <name>org.example.test2</name>
+              </option>
+              <option>
+                <name>org.example.test3</name>
+                <value>cows</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * AnnotationObject: (attributes org.example.test1=horses org.example.test2 org.example.test3=cows)
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Attributes:" tag
+  -->
+  <input>/**
+ * AnnotationObject:
+ *
+ * This is an object used to test annotations.
+ *
+ * Attributes: (org.example.test1 horses) (org.example.test2) (org.example.test3 cows)
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+        <annotations>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>org.example.test1</name>
+                <value>horses</value>
+              </option>
+              <option>
+                <name>org.example.test2</name>
+              </option>
+              <option>
+                <name>org.example.test3</name>
+                <value>cows</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Attributes" has been deprecated, please use annotations on the identifier instead:
+ * Attributes: (org.example.test1 horses) (org.example.test2) (org.example.test3 cows)
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject: (attributes org.example.test1=horses org.example.test2 org.example.test3=cows)
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Variation of "Attributes:" tag
+  -->
+  <input>/**
+ * AnnotationObject:
+ *
+ * This is an object used to test annotations.
+ *
+ * Attributes: (org.example.test1 horses))
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Attributes" has been deprecated, please use annotations on the identifier instead:
+ * Attributes: (org.example.test1 horses))
+   ^</message>
+      <message>6: Error: Test: unbalanced parentheses, annotations will be ignored:
+Attributes: (org.example.test1 horses))
+                             ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject:
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <!--
+  (attributes) annotation on the identifier together with a
+  deprecated "Attributes:" tag.
+  -->
+  <input>/**
+ * AnnotationObject: (attributes org.example.test1=horses)
+ *
+ * This is an object used to test annotations.
+ *
+ * Attributes: (org.example.test1 horses) (org.example.test2 cows)
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+        <annotations>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>org.example.test1</name>
+                <value>horses</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Attributes" has been deprecated, please use annotations on the identifier instead:
+ * Attributes: (org.example.test1 horses) (org.example.test2 cows)
+   ^</message>
+      <message>6: Error: Test: Duplicate "Attributes:" annotation will be ignored:
+ * Attributes: (org.example.test1 horses) (org.example.test2 cows)
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject: (attributes org.example.test1=horses)
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Attributes:" tag in the wrong location
+  -->
+  <input>/**
+ * AnnotationObject:
+ *
+ * Attributes: (org.example.Test horses) (org.example.test2 cows)
+ *
+ * This is an object used to test annotations.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+        <annotations>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>org.example.Test</name>
+                <value>horses</value>
+              </option>
+              <option>
+                <name>org.example.test2</name>
+                <value>cows</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Attributes" has been deprecated, please use annotations on the identifier instead:
+ * Attributes: (org.example.Test horses) (org.example.test2 cows)
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject: (attributes org.example.Test=horses org.example.test2=cows)
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * AnnotationObject:
+ *
+ * Attributes: (org.example.Test horses cows)
+ *
+ * This is an object used to test annotations.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject</name>
+      </identifier>
+      <description>This is an object used to test annotations.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Attributes" has been deprecated, please use annotations on the identifier instead:
+ * Attributes: (org.example.Test horses cows)
+   ^</message>
+      <message>4: Error: Test: malformed "Attributes:" tag will be ignored:
+ * Attributes: (org.example.Test horses cows)
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject:
+ *
+ * This is an object used to test annotations.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * AnnotationObject::attribute-signal:
+ * @annotation: the annotation object
+ * @arg1: (attributes some.annotation.foo1=val1): a value
+ * @arg2: (attributes some.annotation.foo2=val2): another value
+ * @arg3: (array fixed-size=2): a third value
+ *
+ * This signal tests a signal with attributes.
+ *
+ * Returns: (attributes some.annotation.foo3=val3): the return value
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject::attribute-signal</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>annotation</name>
+          <description>the annotation object</description>
+        </parameter>
+        <parameter>
+          <name>arg1</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo1</name>
+                  <value>val1</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a value</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo2</name>
+                  <value>val2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>another value</description>
+        </parameter>
+        <parameter>
+          <name>arg3</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>fixed-size</name>
+                  <value>2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a third value</description>
+        </parameter>
+      </parameters>
+      <description>This signal tests a signal with attributes.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo3</name>
+                  <value>val3</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the return value</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * AnnotationObject::attribute-signal:
+ * @annotation: the annotation object
+ * @arg1: (attributes some.annotation.foo1=val1): a value
+ * @arg2: (attributes some.annotation.foo2=val2): another value
+ * @arg3: (array fixed-size=2): a third value
+ *
+ * This signal tests a signal with attributes.
+ *
+ * Returns: (attributes some.annotation.foo3=val3): the return value
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated (attribute) annotation.
+  -->
+  <input>/**
+ * AnnotationObject::attribute-signal:
+ * @annotation: the annotation object
+ * @arg1: (attribute some.annotation.foo1): a value
+ * @arg2: (attribute some.annotation.foo2 val2): another value
+ * @arg3: (attribute x y z): something special
+ * @arg4: (array fixed-size=2): a third value
+ *
+ * This signal tests a signal with attributes.
+ *
+ * Returns: (attribute some.annotation.foo3 val3): the return value
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject::attribute-signal</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>annotation</name>
+          <description>the annotation object</description>
+        </parameter>
+        <parameter>
+          <name>arg1</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo1</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a value</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo2</name>
+                  <value>val2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>another value</description>
+        </parameter>
+        <parameter>
+          <name>arg3</name>
+          <description>something special</description>
+        </parameter>
+        <parameter>
+          <name>arg4</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>fixed-size</name>
+                  <value>2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a third value</description>
+        </parameter>
+      </parameters>
+      <description>This signal tests a signal with attributes.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>attributes</name>
+              <options>
+                <option>
+                  <name>some.annotation.foo3</name>
+                  <value>val3</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the return value</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+    <message>4: Warning: Test: "attribute" annotation has been deprecated, please use "attributes" instead:
+ * @arg1: (attribute some.annotation.foo1): a value
+          ^</message>
+    <message>5: Warning: Test: "attribute" annotation has been deprecated, please use "attributes" instead:
+ * @arg2: (attribute some.annotation.foo2 val2): another value
+          ^</message>
+    <message>6: Warning: Test: "attribute" annotation has been deprecated, please use "attributes" instead:
+ * @arg3: (attribute x y z): something special
+          ^</message>
+    <message>6: Error: Test: malformed "(attribute)" annotation will be ignored:
+ * @arg3: (attribute x y z): something special
+          ^</message>
+    <message>11: Warning: Test: "attribute" annotation has been deprecated, please use "attributes" instead:
+ * Returns: (attribute some.annotation.foo3 val3): the return value
+            ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * AnnotationObject::attribute-signal:
+ * @annotation: the annotation object
+ * @arg1: (attributes some.annotation.foo1): a value
+ * @arg2: (attributes some.annotation.foo2=val2): another value
+ * @arg3: something special
+ * @arg4: (array fixed-size=2): a third value
+ *
+ * This signal tests a signal with attributes.
+ *
+ * Returns: (attributes some.annotation.foo3=val3): the return value
+ */</output>
+</test>
+
+</tests>

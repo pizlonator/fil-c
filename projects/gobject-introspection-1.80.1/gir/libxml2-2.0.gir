@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0">
+  <package name="libxml-2.0"/>
+  <namespace name="libxml2" version="2.0"
+	     c:identifier-prefixes="xml"
+	     c:symbol-prefixes="xml">
+    <record name="Node" c:type="xmlNode"/>
+    <record name="NodePtr" c:type="xmlNodePtr"/>
+    <record name="Doc" c:type="xmlDoc"/>
+    <record name="DocPtr" c:type="xmlDocPtr"/>
+    <record name="NsPtr" c:type="xmlNsPtr"/>
+    <record name="Char" c:type="xmlChar"/>
+    <record name="TextWriter" c:type="xmlTextWriterPtr"/>
+    <record name="TextReader" c:type="xmlTextReaderPtr"/>
+    <function name="dummy" c:identifier="dummy">
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

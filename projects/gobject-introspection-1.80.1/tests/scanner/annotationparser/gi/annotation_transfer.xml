@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * AnnotationObject::list-signal:
+ * @annotation: the annotation object
+ * @list: (type GLib.List) (element-type utf8) (transfer container): a list of strings
+ *
+ * This is a signal which takes a list of strings, but it's not
+ * known by GObject as it's only marked as G_TYPE_POINTER
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationObject::list-signal</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>annotation</name>
+          <description>the annotation object</description>
+        </parameter>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>type</name>
+              <options>
+                <option>
+                  <name>GLib.List</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>container</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a list of strings</description>
+        </parameter>
+      </parameters>
+      <description>This is a signal which takes a list of strings, but it's not
+known by GObject as it's only marked as G_TYPE_POINTER</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * AnnotationObject::list-signal:
+ * @annotation: the annotation object
+ * @list: (type GLib.List) (element-type utf8) (transfer container): a list of strings
+ *
+ * This is a signal which takes a list of strings, but it's not
+ * known by GObject as it's only marked as G_TYPE_POINTER
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_in:
+ * @object: a #GObject
+ * @inarg: (in) (transfer none): This is an argument test
+ *
+ * This is a test for in arguments
+ *
+ * Return value: an int
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_in</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>inarg</name>
+          <annotations>
+            <annotation>
+              <name>in</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for in arguments</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an int</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_in:
+ * @object: a #GObject
+ * @inarg: (in) (transfer none): This is an argument test
+ *
+ * This is a test for in arguments
+ *
+ * Returns: an int
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_transfer_floating:
+ *
+ * Returns: (transfer floating): A floating object
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_transfer_floating</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>floating</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>A floating object</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_transfer_floating:
+ *
+ * Returns: (transfer floating): A floating object
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * FsSession:codecs-without-config: (transfer full)
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>FsSession:codecs-without-config</name>
+        <annotations>
+          <annotation>
+            <name>transfer</name>
+            <options>
+              <option>
+                <name>full</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is the same list of codecs as #FsSession:codecs
+without....</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * FsSession:codecs-without-config: (transfer full)
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Transfer:" tag syntax
+  -->
+  <input>/**
+ * FsSession:codecs-without-config:
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ *
+ * Transfer: full
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>FsSession:codecs-without-config</name>
+        <annotations>
+          <annotation>
+            <name>transfer</name>
+            <options>
+              <option>
+                <name>full</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is the same list of codecs as #FsSession:codecs
+without....</description>
+    </docblock>
+    <messages>
+      <message>7: Warning: Test: GObject-Introspection specific GTK-Doc tag "Transfer" has been deprecated, please use annotations on the identifier instead:
+ * Transfer: full
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * FsSession:codecs-without-config: (transfer full)
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Transfer:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * FsSession:codecs-without-config:
+ *
+ * Transfer: full
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>FsSession:codecs-without-config</name>
+        <annotations>
+          <annotation>
+            <name>transfer</name>
+            <options>
+              <option>
+                <name>full</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is the same list of codecs as #FsSession:codecs
+without....</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Transfer" has been deprecated, please use annotations on the identifier instead:
+ * Transfer: full
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * FsSession:codecs-without-config: (transfer full)
+ *
+ * This is the same list of codecs as #FsSession:codecs
+ * without....
+ */</output>
+</test>
+
+</tests>

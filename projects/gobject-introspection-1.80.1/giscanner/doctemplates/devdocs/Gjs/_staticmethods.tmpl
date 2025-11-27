@@ -1,0 +1,4 @@
+<%namespace name="method" file="_method.tmpl"/>
+% for m in getattr(node, 'static_methods', []) + getattr(node, 'constructors', []):
+  ${method.method(m, static=True)}
+% endfor

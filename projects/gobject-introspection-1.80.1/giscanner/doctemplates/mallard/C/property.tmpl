@@ -1,0 +1,5 @@
+<%inherit file="/base.tmpl"/>
+<%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+    <title type="link" role="topic">${node.name}</title>
+</%block>

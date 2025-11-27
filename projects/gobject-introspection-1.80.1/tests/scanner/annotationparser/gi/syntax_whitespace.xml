@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * whitespace_test:
+ * @object: (skip):    
+ *       
+ *       A #AnnotationObject
+ *        
+ *        
+ * @func: The callback
+ *                
+ *
+ * Test overriding via the "Rename To" annotation.
+ *        
+ *
+ * Returns: nothing
+ *        
+ * 
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>whitespace_test</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+          </annotations>
+        </parameter>
+        <parameter>
+          <name>func</name>
+          <description>The callback</description>
+        </parameter>
+      </parameters>
+      <description>A #AnnotationObject
+       
+       
+
+Test overriding via the "Rename To" annotation.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>nothing</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>8: Warning: Test: "@func" parameter unexpected at this location:
+ * @func: The callback
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * whitespace_test:
+ * @object: (skip):
+ * @func: The callback
+ *
+ * A #AnnotationObject
+ *        
+ *        
+ *
+ * Test overriding via the "Rename To" annotation.
+ *
+ * Returns: nothing
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ *atk_text_get_default_attributes:
+ *@text: an #AtkText
+ *
+ *Creates ...
+ *
+ *Returns: (transfer full): an ...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>atk_text_get_default_attributes</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>text</name>
+          <description>an #AtkText</description>
+        </parameter>
+      </parameters>
+      <description>Creates ...</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>an ...</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * atk_text_get_default_attributes:
+ * @text: an #AtkText
+ *
+ * Creates ...
+ *
+ * Returns: (transfer full): an ...
+ */</output>
+</test>
+
+</tests>

@@ -1,0 +1,47 @@
+<%inherit file="/base.tmpl"/>
+<%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+    <api:function>
+      <api:returns>
+        <api:type>${formatter.format_type(node.retval.type) | x}</api:type>
+      </api:returns>
+      <api:name>${node.symbol}</api:name>
+% for arg in formatter.get_in_parameters(node):
+% if arg.type.ctype == '<varargs>':
+      <api:varargs/>
+% else:
+      <api:arg>
+        <api:type>${formatter.format_type(arg.type) | x}</api:type>
+        <api:name>${formatter.format_parameter_name(node, arg)}</api:name>
+      </api:arg>
+% endif
+% endfor
+    </api:function>
+</%block>
+<%block name="synopsis">
+  <synopsis><code mime="text/x-python">
+% if formatter.get_in_parameters(node):
+@accepts(${', '.join((formatter.format_type(arg.type) for arg in formatter.get_in_parameters(node)))})
+% endif
+@returns(${formatter.format_type(node.retval.type) | x})
+def ${node.name}(${', '.join((formatter.format_parameter_name(node, arg) for arg in formatter.get_in_parameters(node)))}):
+    # Python wrapper for ${node.symbol}()
+  </code></synopsis></%block>
+<%block name="details">
+% if formatter.get_in_parameters(node) or node.retval:
+<terms>
+% for ix, arg in enumerate(formatter.get_in_parameters(node)):
+<item>
+<title><code>${formatter.format_parameter_name(node, arg)}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+% if node.retval and node.retval.type.ctype != 'void':
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+% endif
+</terms>
+% endif
+</%block>

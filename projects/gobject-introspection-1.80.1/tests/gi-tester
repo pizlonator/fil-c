@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+
+import io
+import sys
+import os
+import re
+import difflib
+import subprocess
+
+
+def assert_files_no_diff(a, b, ignore=None):
+    if ignore is None:
+        ignore = []
+
+    def filter_lines(lines):
+        filtered = []
+        for line in lines:
+            do_ignore = False
+            for pattern in ignore:
+                if re.search(pattern, line) is not None:
+                    do_ignore = True
+                    break
+            if not do_ignore:
+                filtered.append(line)
+        return filtered
+
+    with io.open(a, encoding="utf-8") as ah, \
+            io.open(b, encoding="utf-8") as bh:
+
+        result = difflib.unified_diff(
+            filter_lines(ah.readlines()),
+            filter_lines(bh.readlines()),
+            fromfile=a, tofile=b)
+
+        result = "".join(result)
+        if result:
+            raise AssertionError(result)
+
+
+def assert_dirs_no_diff(a, b, ignore=None):
+    list_a = sorted(os.listdir(a))
+    list_b = sorted(os.listdir(b))
+
+    result = difflib.unified_diff(
+        [l + "\n" for l in list_a],
+        [l + "\n" for l in list_b],
+        fromfile=a, tofile=b)
+    result = "".join(result)
+    if result:
+        raise AssertionError(result)
+
+    for entry in list_a:
+        assert_files_no_diff(
+            os.path.join(a, entry),
+            os.path.join(b, entry),
+            ignore=ignore)
+
+
+def assert_no_diff(a, b, ignore=None):
+    """
+    Args:
+        a (str): file or directory
+        b (str): file or directory
+        ignore (list): a list of regexes for lines in files to ignore
+    """
+
+    if os.path.isdir(a) != os.path.isdir(b):
+        raise AssertionError
+
+    if os.path.isdir(a):
+        assert_dirs_no_diff(a, b, ignore=ignore)
+    else:
+        assert_files_no_diff(a, b, ignore=ignore)
+
+
+def main(argv):
+    if len(argv) != 2:
+        raise SystemError("exactly one arg, not %r" % argv[1:])
+
+    targetname = argv[1]
+    targetbase = os.path.basename(targetname)
+    srcdir = os.environ.get("srcdir", "")
+    builddir = os.environ.get("builddir", "")
+
+    if targetname.endswith(".typelib"):
+        # Do nothing for typelibs, this just ensures they build as part of
+        # the tests
+        if not os.path.exists(targetname):
+            raise SystemError("%s does not exist" % targetname)
+    elif targetname.endswith(".gir"):
+        # The "shared-library" field of the GIR is platform-dependent.
+        # For example, on OSX, shared libraries have the extension .dylib.
+        # Ignore this field when determining whether the output succeeded.
+        ignore = [r'shared-library=".*"$']
+        expected = os.path.join(
+            srcdir, os.path.splitext(targetbase)[0] + "-expected.gir")
+        actual = os.path.join(builddir, targetname)
+        assert_no_diff(expected, actual, ignore=ignore)
+    elif targetname.rsplit("-")[-1] in ("C", "Python", "Gjs"):
+        expected = os.path.join(srcdir, targetbase + "-expected")
+        actual = os.path.join(builddir, targetbase)
+        assert_no_diff(expected, actual, ignore=[r'^\s*$'])
+    elif targetname.endswith("-sections.txt"):
+        expected = os.path.join(
+            srcdir, os.path.splitext(targetname)[0] + "-expected.txt")
+        actual = os.path.join(builddir, targetname)
+        assert_no_diff(expected, actual, ignore=[r'^\s*$'])
+    elif targetname.endswith(".py"):
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.pathsep.join(
+            filter(
+                None,
+                [os.environ.get("top_builddir"),
+                 os.environ.get("top_srcdir"),
+                 os.environ.get("PYTHONPATH")]))
+        subprocess.check_call([env["PYTHON"], targetname], env=env)
+    else:
+        raise SystemError("Unknown file type: %s" % targetbase)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

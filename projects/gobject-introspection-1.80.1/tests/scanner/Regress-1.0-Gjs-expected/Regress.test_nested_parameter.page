@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<page id="Regress.test_nested_parameter"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_test_nested_parameter</api:name>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>a</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_nested_parameter</title>
+  <synopsis><code mime="text/x-gjs">
+function test_nested_parameter(a: Number(gint)): void {
+    // Gjs wrapper for regress_test_nested_parameter()
+}
+  </code></synopsis>
+  <p>&lt;informaltable&gt;
+  &lt;tgroup cols="3"&gt;
+    &lt;thead&gt;
+      &lt;row&gt;
+        &lt;entry&gt;Syntax&lt;/entry&gt;
+        &lt;entry&gt;Explanation&lt;/entry&gt;
+        &lt;entry&gt;Examples&lt;/entry&gt;
+      &lt;/row&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;row&gt;
+        &lt;entry&gt;rgb(@r, @g, @b)&lt;/entry&gt;
+        &lt;entry&gt;An opaque color; @r, @g, @b can be either integers between
+               0 and 255 or percentages&lt;/entry&gt;
+        &lt;entry&gt;&lt;literallayout&gt;rgb(128, 10, 54)
+rgb(20%, 30%, 0%)&lt;/literallayout&gt;&lt;/entry&gt;
+      &lt;/row&gt;
+      &lt;row&gt;
+        &lt;entry&gt;rgba(@r, @g, @b, <code>a</code>)&lt;/entry&gt;
+        &lt;entry&gt;A translucent color; @r, @g, @b are as in the previous row,
+               <code>a</code> is a floating point number between 0 and 1&lt;/entry&gt;
+        &lt;entry&gt;&lt;literallayout&gt;rgba(255, 255, 0, 0.5)&lt;/literallayout&gt;&lt;/entry&gt;
+      &lt;/row&gt;
+   &lt;/tbody&gt;
+ &lt;/tgroup&gt;
+&lt;/informaltable&gt;</p>  <p>What we're testing here is that the scanner ignores the <code>a</code> nested inside XML.</p>
+
+<terms>
+<item>
+<title><code>a</code></title>
+  <p>An integer</p>
+</item>
+</terms>
+
+</page>

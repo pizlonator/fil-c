@@ -1,0 +1,18 @@
+<%inherit file="/class.tmpl"/>
+<%block name="synopsis">
+  <synopsis><code>
+from gi.repository import ${namespace.name}
+
+${formatter.to_underscores(node).lower()} = ${namespace.name}.${node.name}(\
+% if isinstance(node, (ast.Class, ast.Interface)):
+% for ix, property_ in enumerate(node.properties):
+% if property_.construct or property_.construct_only or property_.writable:
+<link xref='${namespace.name}.${node.name}-${property_.name}'>${property_.name.replace('-', '_')}</link>=value\
+% if ix != len(node.properties) - 1:
+, \
+% endif
+% endif
+% endfor
+% endif
+)
+  </code></synopsis></%block>

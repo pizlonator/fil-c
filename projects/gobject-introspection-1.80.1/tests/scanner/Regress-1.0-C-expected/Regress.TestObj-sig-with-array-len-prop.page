@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj-sig-with-array-len-prop"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="signal" type="guide"/>
+    <title type="link" role="topic">sig-with-array-len-prop</title>
+  </info>
+  <title>Regress.TestObj::sig-with-array-len-prop</title>
+  <synopsis><code mime="text/x-csrc">
+void sig-with-array-len-prop (guint* arr,
+                              gint len);
+  </code></synopsis>
+  <p>This test signal similar to GSettings::change-event.
+You can use this with <link xref="Regress.TestObj.emit_sig_with_array_len_prop"/>, or
+raise from the introspection client language.</p>
+
+<terms>
+<item>
+<title><code>arr</code></title>
+  <p>numbers, or <code>NULL</code></p>
+</item>
+<item>
+<title><code>len</code></title>
+  <p>length of <code>arr</code>, or 0</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

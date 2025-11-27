@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="Gio" version="2.0"/>
+  <c:include name="warnlib.h"/>
+  <namespace name="WarnLib"
+             version="1.0"
+             shared-library="libwarnlib-1.0.so"
+             c:identifier-prefixes="WarnLib"
+             c:symbol-prefixes="warnlib_">
+    <function-macro name="IS_WHATEVER"
+                    c:identifier="WARNLIB_IS_WHATEVER"
+                    introspectable="0">
+      <source-position filename="warnlib.h" line="20"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="WHATEVER"
+                    c:identifier="WARNLIB_WHATEVER"
+                    introspectable="0">
+      <source-position filename="warnlib.h" line="19"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="WHATEVER_GET_IFACE"
+                    c:identifier="WARNLIB_WHATEVER_GET_IFACE"
+                    introspectable="0">
+      <source-position filename="warnlib.h" line="21"/>
+      <parameters>
+        <parameter name="obj">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <interface name="Whatever"
+               c:symbol-prefix="whatever"
+               c:type="WarnLibWhatever"
+               glib:type-name="WarnLibWhatever"
+               glib:get-type="warnlib_whatever_get_type"
+               glib:type-struct="WhateverIface">
+      <source-position filename="warnlib.h" line="36"/>
+      <virtual-method name="do_boo" invoker="do_boo">
+        <doc xml:space="preserve"
+             filename="warnlib.c"
+             line="38">Does boo.</doc>
+        <source-position filename="warnlib.h" line="35"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="warnlib.c"
+                 line="40">a WarnLibWhatever</doc>
+            <type name="Whatever" c:type="WarnLibWhatever*"/>
+          </instance-parameter>
+          <parameter name="x" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="warnlib.c"
+                 line="41">x parameter</doc>
+            <type name="gint" c:type="int"/>
+          </parameter>
+          <parameter name="y"
+                     transfer-ownership="none"
+                     nullable="1"
+                     allow-none="1">
+            <doc xml:space="preserve"
+                 filename="warnlib.c"
+                 line="42">y parameter</doc>
+            <type name="gpointer" c:type="gpointer"/>
+          </parameter>
+        </parameters>
+      </virtual-method>
+      <virtual-method name="do_moo" invoker="do_moo">
+        <source-position filename="warnlib.h" line="33"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <type name="Whatever" c:type="WarnLibWhatever*"/>
+          </instance-parameter>
+          <parameter name="arg1" transfer-ownership="none">
+            <type name="gint" c:type="int"/>
+          </parameter>
+          <parameter name="arg2"
+                     transfer-ownership="none"
+                     nullable="1"
+                     allow-none="1">
+            <type name="gpointer" c:type="gpointer"/>
+          </parameter>
+        </parameters>
+      </virtual-method>
+      <method name="do_boo" c:identifier="warnlib_whatever_do_boo">
+        <doc xml:space="preserve"
+             filename="warnlib.c"
+             line="38">Does boo.</doc>
+        <source-position filename="warnlib.h" line="41"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="warnlib.c"
+                 line="40">a WarnLibWhatever</doc>
+            <type name="Whatever" c:type="WarnLibWhatever*"/>
+          </instance-parameter>
+          <parameter name="arg1" transfer-ownership="none">
+            <type name="gint" c:type="int"/>
+          </parameter>
+          <parameter name="arg2"
+                     transfer-ownership="none"
+                     nullable="1"
+                     allow-none="1">
+            <type name="gpointer" c:type="gpointer"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="do_moo" c:identifier="warnlib_whatever_do_moo">
+        <source-position filename="warnlib.h" line="39"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="self" transfer-ownership="none">
+            <type name="Whatever" c:type="WarnLibWhatever*"/>
+          </instance-parameter>
+          <parameter name="arg1" transfer-ownership="none">
+            <type name="gint" c:type="int"/>
+          </parameter>
+          <parameter name="arg2"
+                     transfer-ownership="none"
+                     nullable="1"
+                     allow-none="1">
+            <type name="gpointer" c:type="gpointer"/>
+          </parameter>
+        </parameters>
+      </method>
+    </interface>
+    <record name="WhateverIface"
+            c:type="WarnLibWhateverIface"
+            glib:is-gtype-struct-for="Whatever">
+      <source-position filename="warnlib.h" line="36"/>
+      <field name="parent_iface">
+        <type name="GObject.TypeInterface" c:type="GTypeInterface"/>
+      </field>
+      <field name="do_moo">
+        <callback name="do_moo">
+          <source-position filename="warnlib.h" line="33"/>
+          <return-value transfer-ownership="none">
+            <type name="none" c:type="void"/>
+          </return-value>
+          <parameters>
+            <parameter name="self" transfer-ownership="none">
+              <type name="Whatever" c:type="WarnLibWhatever*"/>
+            </parameter>
+            <parameter name="arg1" transfer-ownership="none">
+              <type name="gint" c:type="int"/>
+            </parameter>
+            <parameter name="arg2"
+                       transfer-ownership="none"
+                       nullable="1"
+                       allow-none="1">
+              <type name="gpointer" c:type="gpointer"/>
+            </parameter>
+          </parameters>
+        </callback>
+      </field>
+      <field name="do_boo">
+        <callback name="do_boo">
+          <source-position filename="warnlib.h" line="35"/>
+          <return-value transfer-ownership="none">
+            <type name="none" c:type="void"/>
+          </return-value>
+          <parameters>
+            <parameter name="self" transfer-ownership="none">
+              <doc xml:space="preserve"
+                   filename="warnlib.c"
+                   line="40">a WarnLibWhatever</doc>
+              <type name="Whatever" c:type="WarnLibWhatever*"/>
+            </parameter>
+            <parameter name="x" transfer-ownership="none">
+              <doc xml:space="preserve"
+                   filename="warnlib.c"
+                   line="41">x parameter</doc>
+              <type name="gint" c:type="int"/>
+            </parameter>
+            <parameter name="y"
+                       transfer-ownership="none"
+                       nullable="1"
+                       allow-none="1">
+              <doc xml:space="preserve"
+                   filename="warnlib.c"
+                   line="42">y parameter</doc>
+              <type name="gpointer" c:type="gpointer"/>
+            </parameter>
+          </parameters>
+        </callback>
+      </field>
+    </record>
+    <function name="throw_unpaired"
+              c:identifier="warnlib_throw_unpaired"
+              throws="1">
+      <source-position filename="warnlib.h" line="15"/>
+      <return-value transfer-ownership="none">
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+    </function>
+    <function name="unpaired_error_quark"
+              c:identifier="warnlib_unpaired_error_quark">
+      <return-value transfer-ownership="none">
+        <type name="GLib.Quark" c:type="GQuark"/>
+      </return-value>
+    </function>
+  </namespace>
+</repository>

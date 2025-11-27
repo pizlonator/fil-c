@@ -1,0 +1,181 @@
+***FIXME****
+Currently annotations are required to be pooled in one place,
+sorted by entry offset. That makes it impossible to add annotations
+in incremental manner, making it impossible for dynamic languages
+like Python to give correct metadata. We should probably remove that
+requirement, and add offset to annotations to each annotatable entry,
+this however means 4*n more bytes used :\
+***FIXME****
+
+		mclasen: Incremental generation of metadata is already
+                problematic without annotations, since you have to grow the
+		directory, and we currently assume that local entries
+                are before remote entries in the directory. 
+                Adding 4 bytes to each type, value and arg blob is certainly
+                going to blow the size of the metadata up unreasonably,
+                since these are the most common blob types.
+                
+
+Typed annotations:
+
+struct AnnotationBlob
+{
+  guint32 entry_offset;
+  guint32 type;
+  guint32 values_offset;
+};
+
+entry_offset:	offset of metadata entry (must be valid target for this
+		annotation) described by this annotation
+
+type:		offset of AttributeBlob describing type of this annotation
+
+values_offset:	offset to n_fields (read from corresponding AttributeBlob)
+		values of appropriate types, specifying value of this
+		annotation
+       
+
+		mclasen: What type of blob is being pointed to here ?
+		ValueBlob only holds integer types (for use in enums).
+		For general types, you will probably have to use 
+		ConstantBlobs.
+
+
+typedef enum
+{
+  function = 1 << 0,
+  type	   = 1 << 1,
+  param	   = 1 << 2,
+  value	   = 1 << 3,
+  signal   = 1 << 4,
+  property = 1 << 5,
+
+  all 	   = 0x3F,
+} AttributeTargets;
+
+
+		mclasen: Does "all" mean just all of the above, or
+		any blob ? Whats the rationale for not allowing annotations
+		on some blob types ? Wouldn't it be better to specify
+		the attribut target using the blob type enum (no way to 
+		specify a subset of targets then, but we could still 
+		indicate "all", e.g. as 0)
+
+
+struct AttributeBlob
+{
+  guint16      		blob_type;    /* 11 */
+  guint        		deprecated      : 1;
+  guint        		allow_multiple  : 1;
+  AttributeTargets	targets         : 6;
+  guint 		has_constructor : 1;
+  guint        		reserved        : 8;
+  guint32      		name;
+
+  GTypeBlob    		gtype;
+  guint32		constructor;
+  guint16      		n_fields;
+  FieldBlob    		fields[];   
+};
+
+allow_multiple: if that attribute can be applied multiple times to one
+		annotated entry.
+
+targets:	bitmask of allowed targets for annotation with this attribute. 
+		Possible targets are: function (including methods), function 
+		parameter, type (that is, object, enum, or interface), value 
+		(constant or variable exposed from metadata), signal or 
+		property.
+
+has_constructor: if that attribute has constructor. If 0, default constructor 
+		 is used.
+
+name:		name of this attribute.
+
+gtype:		GType under which is the attribute registered.
+
+		
+		mclasen: This is unclear. Why would attributes be registered
+		in GType ? Do we have a special base type for them ? Do
+		they need to conform to some interface ?
+
+
+constructor:	offset to constructor function for this attribute, or 0 if
+		default is used.
+
+		
+		mclasen: This is unclear. Who uses this constructor, and 
+		what is it used for ?
+		
+
+n_fields:	number of fields this attribute has
+
+		
+		mclasen: it seems to me that, since we have struct support,
+		a single field would be sufficient.
+
+		
+fields:		array of SimpleTypeBlobs describing fields this attribute has.
+		Only allowed are types for which valid literals exist. Currently
+		that's the following types:
+		 void
+	 	 boolean
+	 	 int8
+	 	 uint8
+	 	 int16
+	 	 uint16
+	 	 int32
+	 	 uint32
+	 	 int64
+	 	 uint64
+	 	 int
+	 	 uint 
+	 	 long
+	 	 ulong
+	 	 ssize_t
+	 	 size_t
+	 	 float
+	 	 double
+	 	 utf8
+	 	 filename
+		 type
+		 
+		"type" is guint32 specifying offset to another metadata
+		entry describing one of: object, interface, enum, function
+		(including methods), callback, signal or constant. "type"
+		literals should be exposed to the user either as strings 
+		specyfing fully qualified name of one of above types, 
+		mangled according to rules of language used (if the language 
+		uses any mangling of type names), or type expressed as 
+		valid type literal in syntax of language.
+		Implementation is responsible for reading such type name and
+		converting it to correct guint32 value.
+		
+		
+		mclasen: I would be pragmatic and specify types just be
+		a qualified name, as you already do in your C example below.
+		But I think there is a case for allowing arrays of basic
+		types. I could imagine storing the "Since: 2.6" annotation 
+		as { 2, 6 }
+
+
+		For example, Python might use the following syntax:
+
+		gobject.annotation(my_container, ContainerTypeAttribute, 
+				   type=gobject.GObject)
+		
+		Here, my_container is variable of some container class,
+		ContainerTypeAttribute is hypothetical attribute specifying
+		specialisation for containers, and type=gobject.GObject says
+		that this given container will hold GObjects. Python 
+		implementation is now responsible for converting gobject.GObject
+		into guint32 value pointing to definition of GObject (***FIXME***
+		how do we deal with GObject which is fundamental type?).
+
+		The same expressed in C could look as follows:
+		
+		G_OBJECT_ANNOTATION(my_container_constant, ContainerTypeAttribute
+				    "type", "GObject.GObject")
+
+		where G_OBJECT_ANNOTATION is hypothetical macro used for marking
+		annotations for metadata scanner.

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.set_data2"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_set_data2</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>[gint8]</api:type>
+        <api:name>data</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gsize</api:type>
+        <api:name>length</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.AnnotationObject.set_data2</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject, [gint8], gsize)
+@returns(none)
+def set_data2(self, data, length):
+    # Python wrapper for regress_annotation_object_set_data2()
+  </code></synopsis>
+  <p>Test taking a gchar * with a length.</p>
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>a <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>data</code></title>
+  <p>The data</p>
+</item>
+<item>
+<title><code>length</code></title>
+  <p>Length of the data</p>
+</item>
+</terms>
+
+</page>

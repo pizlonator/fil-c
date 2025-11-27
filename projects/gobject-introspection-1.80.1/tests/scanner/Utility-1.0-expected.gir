@@ -1,0 +1,221 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GObject" version="2.0"/>
+  <package name="gobject-2.0"/>
+  <c:include name="utility.h"/>
+  <namespace name="Utility"
+             version="1.0"
+             shared-library="libutility-1.0.so"
+             c:identifier-prefixes="Utility"
+             c:symbol-prefixes="utility">
+    <alias name="Glyph" c:type="UtilityGlyph">
+      <source-position filename="utility.h" line="26"/>
+      <type name="guint32" c:type="guint32"/>
+    </alias>
+    <record name="Buffer" c:type="UtilityBuffer">
+      <source-position filename="utility.h" line="54"/>
+      <field name="data" writable="1">
+        <doc xml:space="preserve" filename="utility.c" line="14">the data</doc>
+        <type name="gpointer"/>
+      </field>
+      <field name="length" writable="1">
+        <type name="gsize" c:type="gsize"/>
+      </field>
+    </record>
+    <union name="Byte" c:type="UtilityByte">
+      <source-position filename="utility.h" line="47"/>
+      <field name="value" writable="1">
+        <type name="guint8" c:type="guint8"/>
+      </field>
+      <record name="parts" c:type="parts">
+        <source-position filename="utility.h" line="46"/>
+        <field name="first_nibble" writable="1" bits="4">
+          <type name="guint8" c:type="guint8"/>
+        </field>
+        <field name="second_nibble" writable="1" bits="4">
+          <type name="guint8" c:type="guint8"/>
+        </field>
+      </record>
+    </union>
+    <enumeration name="EnumType" c:type="UtilityEnumType">
+      <source-position filename="utility.h" line="74"/>
+      <member name="a" value="0" c:identifier="UTILITY_ENUM_A">
+      </member>
+      <member name="b" value="1" c:identifier="UTILITY_ENUM_B">
+      </member>
+      <member name="c" value="2" c:identifier="UTILITY_ENUM_C">
+      </member>
+    </enumeration>
+    <callback name="FileFunc" c:type="UtilityFileFunc">
+      <source-position filename="utility.h" line="56"/>
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+        <parameter name="path" transfer-ownership="none">
+          <type name="utf8" c:type="const char*"/>
+        </parameter>
+        <parameter name="user_data"
+                   transfer-ownership="none"
+                   nullable="1"
+                   allow-none="1"
+                   closure="1">
+          <type name="gpointer" c:type="gpointer"/>
+        </parameter>
+      </parameters>
+    </callback>
+    <bitfield name="FlagType" c:type="UtilityFlagType">
+      <source-position filename="utility.h" line="82"/>
+      <member name="a" value="1" c:identifier="UTILITY_FLAG_A">
+      </member>
+      <member name="b" value="2" c:identifier="UTILITY_FLAG_B">
+      </member>
+      <member name="c" value="4" c:identifier="UTILITY_FLAG_C">
+      </member>
+    </bitfield>
+    <function-macro name="IS_OBJECT"
+                    c:identifier="UTILITY_IS_OBJECT"
+                    introspectable="0">
+      <source-position filename="utility.h" line="10"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="OBJECT"
+                    c:identifier="UTILITY_OBJECT"
+                    introspectable="0">
+      <source-position filename="utility.h" line="9"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <class name="Object"
+           c:symbol-prefix="object"
+           c:type="UtilityObject"
+           parent="GObject.Object"
+           glib:type-name="UtilityObject"
+           glib:get-type="utility_object_get_type"
+           glib:type-struct="ObjectClass">
+      <source-position filename="utility.h" line="23"/>
+      <method name="watch_dir" c:identifier="utility_object_watch_dir">
+        <source-position filename="utility.h" line="63"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="object" transfer-ownership="none">
+            <type name="Object" c:type="UtilityObject*"/>
+          </instance-parameter>
+          <parameter name="path" transfer-ownership="none">
+            <type name="utf8" c:type="const char*"/>
+          </parameter>
+          <parameter name="func"
+                     transfer-ownership="none"
+                     scope="notified"
+                     closure="2"
+                     destroy="3">
+            <type name="FileFunc" c:type="UtilityFileFunc"/>
+          </parameter>
+          <parameter name="user_data"
+                     transfer-ownership="none"
+                     nullable="1"
+                     allow-none="1">
+            <type name="gpointer" c:type="gpointer"/>
+          </parameter>
+          <parameter name="destroy" transfer-ownership="none" scope="async">
+            <type name="GLib.DestroyNotify" c:type="GDestroyNotify"/>
+          </parameter>
+        </parameters>
+      </method>
+      <field name="parent_instance">
+        <type name="GObject.Object" c:type="GObject"/>
+      </field>
+    </class>
+    <record name="ObjectClass"
+            c:type="UtilityObjectClass"
+            glib:is-gtype-struct-for="Object">
+      <source-position filename="utility.h" line="23"/>
+      <field name="parent_class">
+        <type name="GObject.ObjectClass" c:type="GObjectClass"/>
+      </field>
+    </record>
+    <record name="Struct" c:type="UtilityStruct">
+      <source-position filename="utility.h" line="90"/>
+      <field name="field" writable="1">
+        <type name="gint" c:type="int"/>
+      </field>
+      <field name="bitfield1" writable="1" bits="3">
+        <type name="guint" c:type="guint"/>
+      </field>
+      <field name="bitfield2" writable="1" bits="2">
+        <type name="guint" c:type="guint"/>
+      </field>
+      <field name="data" writable="1">
+        <array zero-terminated="0" fixed-size="16">
+          <type name="guint8" c:type="guint8"/>
+        </array>
+      </field>
+    </record>
+    <record name="TaggedValue" c:type="UtilityTaggedValue">
+      <source-position filename="utility.h" line="37"/>
+      <field name="tag" writable="1">
+        <type name="gint" c:type="int"/>
+      </field>
+      <union name="value" c:type="value">
+        <source-position filename="utility.h" line="36"/>
+        <field name="v_pointer" writable="1">
+          <type name="gpointer" c:type="gpointer"/>
+        </field>
+        <field name="v_real" writable="1">
+          <type name="gdouble" c:type="double"/>
+        </field>
+        <field name="v_integer" writable="1">
+          <type name="glong" c:type="long"/>
+        </field>
+      </union>
+    </record>
+    <union name="Union" c:type="UtilityUnion">
+      <source-position filename="utility.h" line="97"/>
+      <field name="pointer" writable="1">
+        <type name="utf8" c:type="char*"/>
+      </field>
+      <field name="integer" writable="1">
+        <type name="glong" c:type="glong"/>
+      </field>
+      <field name="real" writable="1">
+        <type name="gdouble" c:type="double"/>
+      </field>
+    </union>
+    <function name="dir_foreach" c:identifier="utility_dir_foreach">
+      <source-position filename="utility.h" line="100"/>
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+        <parameter name="path" transfer-ownership="none">
+          <type name="utf8" c:type="const char*"/>
+        </parameter>
+        <parameter name="func"
+                   transfer-ownership="none"
+                   scope="call"
+                   closure="2">
+          <type name="FileFunc" c:type="UtilityFileFunc"/>
+        </parameter>
+        <parameter name="user_data"
+                   transfer-ownership="none"
+                   nullable="1"
+                   allow-none="1">
+          <type name="gpointer" c:type="gpointer"/>
+        </parameter>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

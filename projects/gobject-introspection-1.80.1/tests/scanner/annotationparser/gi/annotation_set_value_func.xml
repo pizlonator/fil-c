@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * RegressTestFundamentalObject: (set-value-func regress_test_value_set_fundamental_object)
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>set-value-func</name>
+            <options>
+              <option>
+                <name>regress_test_value_set_fundamental_object</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (set-value-func regress_test_value_set_fundamental_object)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Set value func:" tag syntax
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * This object tests regressions...
+ *
+ * Set value func: regress_test_value_set_fundamental_object
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>set-value-func</name>
+            <options>
+              <option>
+                <name>regress_test_value_set_fundamental_object</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: GObject-Introspection specific GTK-Doc tag "Set value func" has been deprecated, please use annotations on the identifier instead:
+ * Set value func: regress_test_value_set_fundamental_object
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (set-value-func regress_test_value_set_fundamental_object)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Set value func:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * RegressTestFundamentalObject:
+ *
+ * Set value func: regress_test_value_set_fundamental_object
+ *
+ * This object tests regressions...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>RegressTestFundamentalObject</name>
+        <annotations>
+          <annotation>
+            <name>set-value-func</name>
+            <options>
+              <option>
+                <name>regress_test_value_set_fundamental_object</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This object tests regressions...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Set value func" has been deprecated, please use annotations on the identifier instead:
+ * Set value func: regress_test_value_set_fundamental_object
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * RegressTestFundamentalObject: (set-value-func regress_test_value_set_fundamental_object)
+ *
+ * This object tests regressions...
+ */</output>
+</test>
+
+</tests>

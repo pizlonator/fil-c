@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_not_optional:
+ * @object: a #GObject
+ * @out_string: (out) (nullable) (not optional): This is an argument test
+ *
+ * This is a test for not-optional arguments which would otherwise be optional
+ * by convention.
+ *
+ * Return value: a pointer
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_not_optional</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>out_string</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+            <annotation>
+              <name>not</name>
+              <options>
+                <option>
+                  <name>optional</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for not-optional arguments which would otherwise be optional
+by convention.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>a pointer</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_not_optional:
+ * @object: a #GObject
+ * @out_string: (out) (nullable) (not optional): This is an argument test
+ *
+ * This is a test for not-optional arguments which would otherwise be optional
+ * by convention.
+ *
+ * Returns: a pointer
+ */</output>
+</test>
+
+</tests>

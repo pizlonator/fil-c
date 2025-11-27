@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page id="Regress.test_ssize"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>gssize</api:type>
+      </api:returns>
+      <api:name>regress_test_ssize</api:name>
+      <api:arg>
+        <api:type>gssize</api:type>
+        <api:name>in</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_ssize</title>
+  <synopsis><code mime="text/x-python">
+@accepts(gssize)
+@returns(gssize)
+def test_ssize(in):
+    # Python wrapper for regress_test_ssize()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>in</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

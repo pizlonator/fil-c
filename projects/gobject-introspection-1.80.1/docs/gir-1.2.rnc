@@ -1,0 +1,775 @@
+default namespace core = "http://www.gtk.org/introspection/core/1.0"
+namespace c = "http://www.gtk.org/introspection/c/1.0"
+namespace glib = "http://www.gtk.org/introspection/glib/1.0"
+
+start = Repository
+
+Repository =
+  # Root node of a GIR repository. It contains  namespaces, which can in turn be implemented in several libraries
+  element repository {
+    ## version number of the repository
+    attribute version { xsd:string }?,
+    ## prefixes to filter out from C identifiers for data structures and types. For example, GtkWindow will be Window. If c:symbol-prefixes is not used, then this element is used for both
+    attribute c:identifier-prefixes { xsd:string }?,
+    ## prefixes to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefixes { xsd:string }?,
+
+    # Other elements a repository can contain
+    (Include*
+     & CInclude*
+     & Package*
+     & Namespace*)
+  }
+
+Namespace =
+  # Namespace which maps metadata entries to C functionality. This a similar concept to namespace in C++, but for GObject-based C libraries
+  element namespace {
+    ## name of the namespace. For example, 'Gtk'
+    attribute name { xsd:string }?,
+    ## version number of the namespace
+    attribute version { xsd:string }?,
+    ## prefixes to filter out from C identifiers for data structures and types. For example, GtkWindow will be Window. If c:symbol-prefixes is not used, then this element is used for both
+    attribute c:identifier-prefixes { xsd:string }?,
+    ## prefixes to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefixes { xsd:string }?,
+    ## Deprecated: the same as c:identifier-prefixes. Only used for backward compatibility 
+    attribute c:prefix { xsd:string }?,
+    ## Path to the shared library implementing the namespace. It can be a comma-separated list, with relative path only
+    attribute shared-library { xsd:string }?,
+
+    # Other elements a namespace can contain
+    (Alias*
+     & Class*
+     & Interface*
+     & Record*
+     & Enum*
+     & Function*
+     & FunctionInline*
+     & FunctionMacro*
+     & Union*
+     & BitField*
+     & Callback*
+     & Constant*
+     & Annotation*
+     & Boxed*
+     & DocSection*)
+  }
+
+Annotation =
+  # element defining an annotation from the source code, usually a user-defined annotation associated to a parameter or a return value
+  element attribute {
+    ## name of the attribute
+    attribute name { xsd:string },
+    ## value of the attribute
+    attribute value { xsd:string }
+  }
+
+CInclude =
+  # Dependant C header file which should be included in C programs
+  element c:include {
+    ## File name of the C header file. The path can be relative.
+    attribute name { xsd:string },
+
+    empty
+  }
+
+Include =
+  # Dependant namespace to include with the current namespace. For example, Gtk will need the namespace GLib
+  element include {
+    ## name of the dependant namespace to include
+    attribute name { xsd:string },
+    ## version of the dependant namespace to use
+    attribute version { xsd:string }?,
+
+    empty
+  }
+
+Package =
+  # Deprecated: package name containing the library
+  element package {
+    ## name of the package
+    attribute name { xsd:string },
+
+    empty
+  }
+
+Alias =
+  # Type's name substitution, representing a typedef in C
+  element alias {
+    # Attributes of an Alias (see definition below)
+    Info.attrs,
+    ## the new name or typedef'd name
+    attribute name { xsd:string },
+    ## the corresponding C type's name
+    attribute c:type { xsd:string },
+
+    # Other elements an alias can contain
+    (Info.elements
+     & AnyType?)
+  }
+
+Interface =
+  # Abstract interface to other classes
+  element interface {
+    # Attributes of an Interface (see definition below)
+    Info.attrs,
+    ## name of the interface
+    attribute name { xsd:string },
+    ## Type name compatible with the GObject type system
+    attribute glib:type-name { xsd:string },
+    ## Function to get the GObject compatible type of the interface 
+    attribute glib:get-type { xsd:string },
+    ## prefix to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefix { xsd:string }?,
+    ## Corresponding C type
+    attribute c:type { xsd:string }?,
+    ## GObject compatible C structure defining the Interface
+    attribute glib:type-struct { xsd:string }?,
+
+    # Other elements an interface can contain
+    (Info.elements
+     & Prerequisite*
+     & Implements*
+     & Function*
+     & FunctionInline*
+     & Constructor?
+     & Method*
+     & MethodInline*
+     & VirtualMethod*
+     & Field*
+     & Property*
+     & Signal*
+     & Callback*
+     & Constant*)
+  }
+
+Class =
+  # GObject inherited class definition
+  element class {
+    Info.attrs,
+
+    ## Name of the class
+    attribute name { xsd:string },
+    ## GObject compatible type name of the class
+    attribute glib:type-name { xsd:string },
+    ## Function to get the GObject compatible type of the class
+    attribute glib:get-type { xsd:string },
+    ## Name of the parent class if any
+    attribute parent { xsd:string }?,
+    ## GObject compatible C structure defining the class
+    attribute glib:type-struct { xsd:string }?,
+    ## GObject compatible function to reference or increase the reference count of the class
+    attribute glib:ref-func { xsd:string }?,
+    ## GObject compatible function to unreference or decrease the reference count of the class
+    attribute glib:unref-func { xsd:string }?,
+    ## GObject compatible function to set a value of a property of the class
+    attribute glib:set-value-func { xsd:string }?,
+    ## GObject compatible function to get a value of a property of the class
+    attribute glib:get-value-func { xsd:string }?,
+    ## C type of the class
+    attribute c:type { xsd:string }?,
+    ## prefix to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefix { xsd:string }?,
+    ## Binary attribute to declare the class abstract or not
+    attribute abstract { "0" | "1" }?,
+    ## Binary attribute to declare the class fundamental or not (top-level class which do not derives from any other type)
+    attribute glib:fundamental { "0" | "1" }?,
+    ## Binary attribute to declare the class final or not (non-derivable class in a derivable hierarchy)
+    attribute final { "0" | "1" }?,
+
+    # Other elements a class can contain
+    (Info.elements
+     & Implements*
+     & Constructor*
+     & Method*
+     & MethodInline*
+     & Function*
+     & FunctionInline*
+     & VirtualMethod*
+     & Field*
+     & Property*
+     & Signal*
+     & Union*
+     & Constant*
+     & Record*
+     & Callback*)
+  }
+
+Boxed =
+  # Boxed type (wrapper to opaque C structures registered by the type system)
+  element glib:boxed {
+    Info.attrs,
+    ## GObject compatible type name of the boxed type
+    attribute glib:name { xsd:string },
+    ## prefix to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefix { xsd:string }?,
+    ## GObject compatible type name of the boxed type
+    attribute glib:type-name { xsd:string }?,
+    ## Function to get the GObject compatible type of the boxed type
+    attribute glib:get-type { xsd:string }?,
+
+    # Other elements a Boxed type can contain
+    (Info.elements
+     & Function*
+     & FunctionInline*)
+  }
+
+Record =
+  # Record definition, equivalent to a C struct, that is a simple structure, not a class
+  element record {
+    Info.attrs,
+    ## name of the record
+    attribute name { xsd:string },
+    ## Corresponding C type of the record
+    attribute c:type { xsd:string }?,
+    ## Deprecated. Binary attribute to tell if the record is disguised, i.e. whether the c:type
+    ## is a typedef that doesn't look like a pointer, but is one internally. Its second meaning
+    ## is "private" and is set when any typedef struct is parsed which doesn't also include a
+    ## full struct with fields (https://gitlab.gnome.org/GNOME/gobject-introspection/issues/101)
+    ## Replaced by "opaque" and "pointer".
+    attribute disguised { "0" | "1" }?,
+    ## Binary attribute for a typedef struct that does not have a corresponding public structure definition
+    attribute opaque { "0" | "1" }?,
+    ## Binary attribute for a typedef struct pointer, e.g. typedef struct Foo* FooPtr
+    attribute pointer { "0" | "1" }?,
+    ## GObject compatible C type of the record
+    attribute glib:type-name { xsd:string }?,
+    ## Function to get the GObject compatible type of the record
+    attribute glib:get-type { xsd:string }?,
+    ## prefix to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefix { xsd:string }?,
+    ## Binary attribute to tell if the record is foreign, that is it is not available in a g-i supported library
+    attribute foreign { "0" | "1" }?,
+    ## Name of the GObject compatible gtype this record represents. If empty, this record will be hidden from generated public APIs.
+    attribute glib:is-gtype-struct-for { xsd:string }?,
+    ## Name of the function used to copy the record
+    attribute copy-function { xsd:string }?,
+    ## Name of the function used to free the record
+    attribute free-function { xsd:string }?,
+
+    # Other elements a record can contain
+      # mandatory 
+    (Info.elements
+     & Field*
+     & Function*
+     & FunctionInline*
+     & Union*
+     & Method*
+     & MethodInline*
+     & Constructor*)
+  }
+
+# Some base information for most elements like version, deprecation, stability, if they are introspectable or not, etc...
+Info.attrs = (
+  ## Binary attribute which is "0" (false) if the element is not introspectable. It doesn't exist in the bindings, due in general to missing information in the annotations in the original C code
+  attribute introspectable { "0" | "1" }?,
+  ## Binary attribute which is "1" (true) if the element has been deprecated
+  attribute deprecated { "0" | "1" }?,
+  ## Version number from which this element is deprecated
+  attribute deprecated-version { xsd:string }?,
+  ## version number of an element
+  attribute version { xsd:string }?,
+  ## give the statibility status of the element. Can take the values "Stable", "Unstable" or "Private"
+  attribute stability { xsd:string }?
+)
+
+# Documentation of elements
+DocElements = (
+  ## Version of the documentation
+  element doc-version {
+    ## Preserve the original formatting of the documentation from the source code
+    attribute xml:space { "preserve" }?,
+    ## Preserve the original formatting of the documentation from the source code. Recommended to use this instead of xml:space
+    attribute xml:whitespace { "preserve" }?,
+    ## the text of the version of the documentation
+    text
+  }? &
+  ## give the stability of the documentation
+  element doc-stability {
+    ## Preserve the original formatting of the documentation from the source code
+    attribute xml:space { "preserve" }?,
+    ## Preserve the original formatting of the documentation from the source code. Recommended to use this instead of xml:space
+    attribute xml:whitespace { "preserve" }?,
+    ## a text value about the stability of the documentation. Usually a simple description like stable or unstable
+    text
+  }? &
+  ## documentation of an element
+  element doc {
+    ## Preserve the original formatting of the documentation from the source code
+    attribute xml:space { "preserve" }?,
+    ## Keep the whitespace as they were in the source code
+    attribute xml:whitespace { "preserve" }?,
+    ## The file containing this documentation
+    attribute filename { xsd:string },
+    ## The first line of the documentation in the source code
+    attribute line { xsd:string },
+    ## The first column of the documentation in the source code
+    attribute column { xsd:string }?,
+    ## the text of the documentation
+    text
+  }? &
+  ## Deprecated documentation of an element. Kept for historical reasons in general
+  element doc-deprecated {
+    ## Preserve the original formatting of the documentation from the source code
+    attribute xml:space { "preserve" }?,
+    ## Keep the whitespace as they were in the source code
+    attribute xml:whitespace { "preserve" }?,
+    ## the text of the deprecated documentation
+    text
+  }? &
+  ## Position of the documentation in the original source code
+  element source-position {
+    ## File name of the source of the documentation
+    attribute filename { xsd:string },
+    ## The first line of the documentation in the source code
+    attribute line { xsd:string },
+    ## The first column of the documentation in the source code
+    attribute column { xsd:string }?
+  }?
+)
+
+# Information about elements can be a documentation of annotations
+Info.elements = (
+  DocElements
+  & Annotation*
+)
+
+Constant =
+  # A constant entity, similar to const variable in C
+  element constant {
+    Info.attrs,
+    ## name of the constant
+    attribute name { xsd:string },
+    ## value of the constant
+    attribute value { xsd:string },
+    ## corresponding C type of the constant in C
+    attribute c:type { xsd:string }?,
+    ## corresponding C identifier in the source code
+    attribute c:identifier { xsd:string }?,
+
+    # Other elements a constant can contain
+    (Info.elements
+     & AnyType?)
+  }
+
+Property =
+  # Property, that is a variable or members with getter and setter functions
+  element property {
+    Info.attrs,
+    ## name of the property
+    attribute name { xsd:string },
+    ## Binary attribute, true if the property is writeable, that is it has a setter function
+    attribute writable { "0" | "1" }?,
+    ## Binary attribute, true if the property is readable, that is it has a getter function
+    attribute readable { "0" | "1" }?,
+    ## Binary attribute, true if the property will be set upon construction
+    attribute construct { "0" | "1" }?,
+    ## Binary attribute, true if the property can only be set upon construction
+    attribute construct-only { "0" | "1" }?,
+    ## The setter function for this property
+    attribute setter { xsd:string }?,
+    ## The getter function for this property
+    attribute getter { xsd:string }?,
+    ## The default value of the property, as a string; if missing, the default value is zero for integer types, and null for pointer types
+    attribute default-value { xsd:string }?,
+    # Define the transfer of ownership of the property element
+    TransferOwnership?,
+
+    # Other elements a property can contain
+    (Info.elements
+     & AnyType)
+  }
+
+Signal =
+  # A signal as defined in the GObject system (https://docs.gtk.org/gobject/concepts.html#signals)
+  element glib:signal {
+    Info.attrs,
+    ## name of the signal
+    attribute name { xsd:string },
+    ## Binary attribute, true if the signal has a detailed parameter (https://docs.gtk.org/gobject/concepts.html#the-detail-argument and https://docs.gtk.org/gobject/flags.SignalFlags.html)
+    attribute detailed { "0" | "1" }?,
+    ## When to run the signal during the 5 steps of signal emission (https://docs.gtk.org/gobject/concepts.html#signal-emission and https://docs.gtk.org/gobject/flags.SignalFlags.html)
+    attribute when { "first" | "last" | "cleanup" }?,
+    ## Binary attribute, true if the signal can be freely emitted on alive objects from user code (https://docs.gtk.org/gobject/flags.SignalFlags.html)
+    attribute action { "0" | "1" }?,
+    ## Binary attribute, true if no emission hooks are supported for this signal (https://docs.gtk.org/gobject/flags.SignalFlags.html) 
+    attribute no-hooks { "0" | "1" }?,
+    ## Binary attribute, true if signals emitted for an object while currently being in emission for this very object will not be emitted recursively, but instead cause the first emission to be restarted (https://docs.gtk.org/gobject/flags.SignalFlags.html)
+    attribute no-recurse { "0" | "1" }?,
+    ## The emitter method for the signal
+    attribute emitter { xsd:string }?,
+
+    # Other elements a signal can contain
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+Field =
+  # A field of struct of union structure, that is a C bit field, that is a fixed length in bits variable
+  element field {
+    Info.attrs,
+    ## name of the field
+    attribute name { xsd:string },
+    ## Binary attribute, true if the field is writeable
+    attribute writable { "0" | "1" }?,
+    ## Binary attribute, true if the field is readable
+    attribute readable { "0" | "1" }?,
+    ## Binary attribute, true if the field is private to the structure or has public ("0") visibility
+    attribute private { "0" | "1" }?,
+    ## number of bits of the field
+    attribute bits { xsd:integer }?,
+
+    # Other elements a field can contain
+    (Info.elements
+     & (Callback | AnyType))
+  }
+
+Callback =
+  # A callback closure, that is a function called when a signal is emitted (as an answer to that signal)
+  element callback {
+    Info.attrs,
+    ## name of the callback
+    attribute name { xsd:string },
+    ## the C type returned by the callback closure (i.e. function)
+    attribute c:type { xsd:string }?,
+    ## Binary attribute, true if the callback can throw an error
+    attribute throws { "0" | "1" }?,
+
+    # Other elements a callback can contain
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+Implements  =
+  # Give the name of the interface it implements. This element is generally used within a class element
+  element implements {
+    ## name of the interface implemented by a class
+    attribute name { xsd:string }
+  }
+
+Prerequisite  =
+  # Interface which is pre-required to implement another interface. This node is generally using within an interface element
+  element prerequisite {
+    ## name of the required interface
+    attribute name { xsd:string }
+  }
+
+# A generic grammar element to represent either a simple Type or an Array of the same Type
+AnyType = (Type | ArrayType)
+
+Type =
+  # A simple type of data (as opposed to an array)
+  element type {
+    ## name of the type
+    attribute name { xsd:string }?,
+    ## the C representation of the type
+    attribute c:type { xsd:string }?,
+    ## Binary attribute which is "0" (false) if the element is not introspectable. It doesn't exist in the bindings, due in general to missing information in the annotations in the original C code
+    attribute introspectable { "0" | "1" }?,
+
+    (DocElements & AnyType*)
+  }
+
+ArrayType =
+  # An array type of data where each element is of the same type
+  element array {
+    ## name of the array type
+    attribute name { xsd:string }?,
+    ## Binary attribute, true if the last element of the array is zero. For example, in an array of pointers, the last pointer would be NULL
+    attribute zero-terminated { "0" | "1" }?,
+    ## size of an array of predetermined fixed size. For example a C array declared as char arr[5].
+    attribute fixed-size { xsd:integer }?,
+    ## Binary attribute which is "0" (false) if the element is not introspectable. It doesn't exist in the bindings, due in general to missing information in the annotations in the original C code
+    attribute introspectable { "0" | "1" }?,
+        ## 0-based index of parameter element that specifies the length of the array
+    attribute length { xsd:integer }?,
+    ## the C representation of the array type
+    attribute c:type { xsd:string }?,
+
+    # Type of the values contained in the array
+    AnyType
+  }
+
+TransferOwnership =
+  # attributes used by many elements for the transfer of ownership, with for example, a returned value. "none" if the recipient does not own the value, "container" if the recipient owns the container but not the value (for arrays or lists for example) , "full" the recipient owns the entire value. For details, see https://gi.readthedocs.io/en/latest/annotations/giannotations.html#memory-and-lifecycle-management
+  attribute transfer-ownership { "none" | "container" | "full" }
+
+Constructor =
+  # A constructor of a class
+  element constructor {
+    Callable.attrs,
+
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+# Attributes of a Callable (functions, callbacks, closures, etc...)
+Callable.attrs = (
+  Info.attrs,
+  ## name of the Callable
+  attribute name { xsd:string },
+  # C identifier in the source code of the Callable
+  attribute c:identifier { xsd:string }?,
+  ## Callable it is shadowed by. For example, in C++, only one version of an overloaded callable will appear
+  attribute shadowed-by { xsd:string }?,
+  ## Callable it shadows. For example, in C++, only one version of an overloaded callable will appear
+  attribute shadows { xsd:string }?,
+  ## Binary attribute, true if the callable can throw an error
+  attribute throws { "0" | "1" }?,
+  ## if for backward compatibility reason the callable has a name in the source code but should be known by another one, this attribute contains the new name
+  attribute moved-to { xsd:string }?,
+  ## The name of the asynchronous version of this callable
+  attribute glib:async-func { xsd:string }?,
+  ## The name of the synchronous version of this callable
+  attribute glib:sync-func { xsd:string }?,
+  ## The name of the callable which finishes the asynchronuos operation of this function
+  attribute glib:finish-func { xsd:string }?
+)
+
+VarArgs =
+  # an element usually found in a parameter element for variadic parameter in a function or callable
+  element varargs {
+    empty
+  }
+
+# Refer to https://gi.readthedocs.io/en/latest/annotations/giannotations.html#support-for-gobject-closures
+Callable.params =
+  ## parameters element of a callable, that is in general parameters of a function or similar
+  element parameters {
+    ## parameter element of a list of parameters
+    element parameter {
+      ## name of the parameter
+      attribute name { xsd:string }?,
+      ## Binary attribute, true if the parameter can have a null value
+      attribute nullable { "0" | "1" }?,
+      ## Deprecated. Replaced by nullable and optional
+      attribute allow-none { "0" | "1" }?,
+    ## Binary attribute which is "0" (false) if the element is not introspectable. It doesn't exist in the bindings, due in general to missing information in the annotations in the original C code
+      attribute introspectable { "0" | "1" }?,
+      ## the parameter is a user_data for callbacks. The value points to a different parameter that is the actual callback
+      attribute closure { xsd:integer }?,
+      ## the parameter is a destroy_data for callbacks. The value points to a different parameter that is the actual callback
+      attribute destroy { xsd:integer }?,
+      ## the parameter is a callback, the value indicates the lifetime of the call. For language bindings which want to know when the resources required to do the call can be freed. "notified" valid until a GDestroyNotify argument is called, "async" only valid for the duration of the first callback invocation (can only be called once), "call" only valid for the duration of the call, can be called multiple times during the call, "forever" valid until the process terminates.
+      attribute scope { "notified" | "async" | "call" | "forever" }?,
+      ## direction of the parameter. "in" goes into the callable, "out" for output parameters from the callable (reference in C++, var in Pascal, etc...), "inout" for both (like a pre-allocated structure which will be filled-in by the callable)
+      attribute direction { "out" | "in" | "inout" }?,
+      ## Binary attribute, true if the caller should allocate the parameter before calling the callable
+      attribute caller-allocates { "0" | "1" }?,
+      ## Binary attribute, true if the parameter is optional
+      attribute optional { "0" | "1" }?,
+      ##  Binary attribute, true if the parameter can be omitted from the introspected output
+      attribute skip { "0" | "1" }?,
+      TransferOwnership?,
+
+      (DocElements
+       & (AnyType | VarArgs)?
+       & Annotation*)
+    }* &
+
+    ## instance-parameter is a parameter of a C function which is an instance of an existing object. So the callable is surely a method of a class, and this parameter points to the instance of the object. In C++, this would be equivalent to the pointer this which is not passed to the method, in Python it's equivalent to self.
+    element instance-parameter {
+      ## name of the instance-parameter
+      attribute name { xsd:string },
+      ## Binary attribute, true if the parameter can have a null value
+      attribute nullable { "0" | "1" }?,
+      ## Deprecated. Replaced by nullable and optional
+      attribute allow-none { "0" | "1" }?,
+      ## direction of the parameter. "in" goes into the callable, "out" for output parameters from the callable (reference in C++, var in Pascal, etc...), "inout" for both (like a pre-allocated structure which will be filled-in by the callable)
+      attribute direction { "out" | "in" | "inout" }?,
+      ## Binary attribute, true if the caller should allocate the parameter before calling the callable
+      attribute caller-allocates { "0" | "1" }?,
+      TransferOwnership?,
+
+      (DocElements
+       & Type)
+    }?
+  }
+
+Callable.return =
+  # return value of a callable
+  element return-value {
+    ## Binary attribute which is "0" (false) if the element is not introspectable. It doesn't exist in the bindings, due in general to missing information in the annotations in the original C code
+    attribute introspectable { "0" | "1" }?,
+    ## Binary attribute, true if the parameter can have a null value
+    attribute nullable { "0" | "1" }?,
+    ## the parameter is a user_data for callbacks. The value points to a different parameter that is the actual callback
+    attribute closure { xsd:integer }?,
+    ## the parameter is a callback, the value indicates the lifetime of the call. For language bindings which want to know when the resources required to do the call can be freed. "notified" valid until a GDestroyNotify argument is called, "async" only valid for the duration of the first callback invocation (can only be called once), "call" only valid for the duration of the call, can be called multiple times during the call, "forever" valid until the process terminates.
+    attribute scope { "notified" | "async" | "call" | "forever" }?,
+    ## the parameter is a destroy_data for callbacks. The value points to a different parameter that is the actual callback
+    attribute destroy { xsd:integer }?,
+    ##  Binary attribute, true if the parameter can be omitted from the introspected output
+    attribute skip { "0" | "1" }?,
+    ## Deprecated. Replaced by nullable and optional
+    attribute allow-none { "0" | "1" }?,
+    TransferOwnership?,
+
+    (DocElements
+     & Annotation*
+     & AnyType)
+  }
+
+Function =
+  # element defining a standalone function (as usual in most programming languages)
+  element function {
+    Callable.attrs,
+
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+FunctionInline =
+  ## element defining an inline function
+  element function-inline {
+    Callable.attrs,
+
+    (Callable.params?
+     & Callable.return?
+     & DocElements)
+  }
+
+FunctionMacro =
+  # element defining a pre-processor macro that behaves like a function. Unlike functions, function macros do not have a return value.
+  element function-macro {
+    Callable.attrs,
+
+    (Info.elements
+     & Callable.params?)
+  }
+
+Method =
+  # element defining a method from a class
+  element method {
+    Callable.attrs,
+
+    ## The GObject property that is set by this method
+    attribute glib:set-property { xsd:string }?,
+    ## The GObject property that is retrieved by this method
+    attribute glib:get-property { xsd:string }?,
+
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+MethodInline =
+  ## element defining an inline method from a type
+  element method-inline {
+    Callable.attrs,
+
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+VirtualMethod =
+  # element defining a virtual method from a class, concept similar to C++
+  element virtual-method {
+    Callable.attrs,
+    ## name of the callable called when invoking this virtual method
+    attribute invoker { xsd:string }?,
+
+    (Info.elements
+     & Callable.params?
+     & Callable.return?)
+  }
+
+Union =
+  # element defining a type of data being a union of type, similar to union in C/C++ but extended with fields and methods
+  element union {
+    Info.attrs,
+    ## name of the union
+    attribute name { xsd:string }?,
+    ## C type defining the union
+    attribute c:type { xsd:string }?,
+    ## prefix to filter out from C functions. For example, gtk_window_new will lose gtk_
+    attribute c:symbol-prefix { xsd:string }?,
+    ## GObject compatible type name
+    attribute glib:type-name { xsd:string }?,
+    ## function to retrieve the GObject compatible type of the element
+    attribute glib:get-type { xsd:string }?,
+    ## Name of the function used to copy the union
+    attribute copy-function { xsd:string }?,
+    ## Name of the function used to free the union
+    attribute free-function { xsd:string }?,
+
+    (Info.elements
+     & Field*
+     & Constructor*
+     & Method*
+     & MethodInline*
+     & Function*
+     & FunctionInline*
+     & Record*)
+  }
+
+BitField =
+  # element defining a bit field (as in C)
+  element bitfield {
+    Info.attrs,
+    ## name of the bit field
+    attribute name { xsd:string },
+    ## corresponding C type of the bit field type
+    attribute c:type { xsd:string },
+    ## GObject compatible type name
+    attribute glib:type-name { xsd:string }?,
+    ## function to retrieve the GObject compatible type of the element
+    attribute glib:get-type { xsd:string }?,
+
+    (Info.elements
+     & Member*
+     & Function*
+     & FunctionInline*)
+  }
+
+Enum =
+  # element defining a enumeration type similar to enum in C/C++
+  element enumeration {
+    Info.attrs,
+    ## name of the enumeration
+    attribute name { xsd:string },
+    ## corresponding C type of the enumeration type
+    attribute c:type { xsd:string },
+    ## GObject compatible type name
+    attribute glib:type-name { xsd:string }?,
+    ## function to retrieve the GObject compatible type of the element
+    attribute glib:get-type { xsd:string }?,
+    ## Error domain of this enumeration in a stringified form
+    attribute glib:error-domain { xsd:string }?,
+
+    (Info.elements
+     & Member*
+     & Function*
+     & FunctionInline*)
+  }
+
+Member =
+  # element defining a member of a bit field or an enumeration
+  element member {
+    Info.attrs,
+    ## name of the member
+    attribute name { xsd:string },
+    ## value of the member
+    attribute value { xsd:string },
+    ## corresponding C type of the member
+    attribute c:identifier { xsd:string },
+    ## short nickname of the member (from GEnumValue/GFlagsValue)
+    attribute glib:nick { xsd:string }?,
+    ## name of the member (from GEnumValue/GFlagsValue)
+    attribute glib:name { xsd:string }?,
+
+    Info.elements
+  }
+
+DocSection =
+  # element defining a gtk-doc documentation section
+  element docsection {
+    attribute name { xsd:string },
+
+    DocElements
+  }

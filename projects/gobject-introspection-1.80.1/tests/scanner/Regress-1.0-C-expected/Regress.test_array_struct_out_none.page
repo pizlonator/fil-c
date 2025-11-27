@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<page id="Regress.test_array_struct_out_none"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_test_array_struct_out_none</api:name>
+      <api:arg>
+        <api:type>RegressTestStructA**</api:type>
+        <api:name>arr</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gsize*</api:type>
+        <api:name>len</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_test_array_struct_out_none</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_test_array_struct_out_none (RegressTestStructA** arr,
+                                         gsize* len);
+  </code></synopsis>
+  <p>Test flat array output with transfer none.</p>  <p>Similar to:
+- mm_modem_peek_ports() with structs
+- gdk_query_visual_types() with enums
+- gdk_event_get_axes() with doubles</p>
+
+<terms>
+<item>
+<title><code>arr</code></title>
+  <p>An array</p>
+</item>
+<item>
+<title><code>len</code></title>
+  <p>Length of <code>arr</code></p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject-list-signal"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="signal" type="guide"/>
+    <title type="link" role="topic">list-signal</title>
+  </info>
+  <title>Regress.AnnotationObject::list-signal</title>
+  <synopsis><code mime="text/x-python">
+def callback(annotation_object, list, user_param1, ...)
+  </code></synopsis>
+  <p>This is a signal which takes a list of strings, but it's not
+known by GObject as it's only marked as G_TYPE_POINTER</p>
+
+<terms>
+<item>
+<title><code>annotation_object</code></title>
+<p>instance of <link xref="Regress.AnnotationObject"/> that is emitting the signal</p>
+</item>
+<item>
+<title><code>list</code></title>
+  <p>a list of strings</p>
+</item>
+<title><code>user_param1</code></title>
+<p>first user parameter (if any) specified with the connect() method</p>
+<item>
+<title><code>...</code></title>
+<p>additional user parameters (if any)</p>
+</item>
+</terms>
+
+</page>

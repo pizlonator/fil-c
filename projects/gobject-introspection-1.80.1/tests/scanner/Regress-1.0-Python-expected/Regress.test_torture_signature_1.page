@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<page id="Regress.test_torture_signature_1"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>bool</api:type>
+      </api:returns>
+      <api:name>regress_test_torture_signature_1</api:name>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>x</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>float</api:type>
+        <api:name>y</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>z</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>unicode</api:type>
+        <api:name>foo</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>q</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>m</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_torture_signature_1</title>
+  <synopsis><code mime="text/x-python">
+@accepts(int, float, int, unicode, int, int)
+@returns(bool)
+def test_torture_signature_1(x, y, z, foo, q, m):
+    # Python wrapper for regress_test_torture_signature_1()
+  </code></synopsis>
+  <p>This function throws an error if m is odd.</p>
+
+<terms>
+<item>
+<title><code>x</code></title>
+
+</item>
+<item>
+<title><code>y</code></title>
+
+</item>
+<item>
+<title><code>z</code></title>
+
+</item>
+<item>
+<title><code>foo</code></title>
+
+</item>
+<item>
+<title><code>q</code></title>
+
+</item>
+<item>
+<title><code>m</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="Gio" version="2.0"/>
+  <c:include name="sletter.h"/>
+  <namespace name="SLetter"
+             version="1.0"
+             shared-library="libsletter.so"
+             c:identifier-prefixes="S"
+             c:symbol-prefixes="s">
+    <enumeration name="DBusError"
+                 c:type="SDBusError"
+                 glib:error-domain="s-dbus-error">
+      <source-position filename="sletter.h" line="33"/>
+      <member name="code1" value="1" c:identifier="S_DBUS_ERROR_CODE1">
+      </member>
+      <member name="code2" value="2" c:identifier="S_DBUS_ERROR_CODE2">
+      </member>
+      <member name="code3" value="3" c:identifier="S_DBUS_ERROR_CODE3">
+      </member>
+    </enumeration>
+    <record name="Point" c:type="SPoint">
+      <source-position filename="sletter.h" line="11"/>
+      <field name="x" writable="1">
+        <type name="gdouble" c:type="double"/>
+      </field>
+      <field name="y" writable="1">
+        <type name="gdouble" c:type="double"/>
+      </field>
+    </record>
+    <enumeration name="SpawnError"
+                 c:type="SSpawnError"
+                 glib:error-domain="s-spawn-error">
+      <source-position filename="sletter.h" line="22"/>
+      <member name="code1" value="1" c:identifier="S_SPAWN_ERROR_CODE1">
+      </member>
+      <member name="code2" value="2" c:identifier="S_SPAWN_ERROR_CODE2">
+      </member>
+      <member name="code3" value="3" c:identifier="S_SPAWN_ERROR_CODE3">
+      </member>
+    </enumeration>
+    <function name="dbus_error_quark" c:identifier="s_dbus_error_quark">
+      <return-value transfer-ownership="none">
+        <type name="GLib.Quark" c:type="GQuark"/>
+      </return-value>
+    </function>
+    <function name="hello" c:identifier="s_hello">
+      <source-position filename="sletter.h" line="14"/>
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+    </function>
+    <function name="spawn_error_quark" c:identifier="s_spawn_error_quark">
+      <return-value transfer-ownership="none">
+        <type name="GLib.Quark" c:type="GQuark"/>
+      </return-value>
+    </function>
+  </namespace>
+</repository>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<page id="Regress.foo_async_ready_callback"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_foo_async_ready_callback</api:name>
+      <api:arg>
+        <api:type>GCancellable*</api:type>
+        <api:name>cancellable</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GAsyncReadyCallback</api:type>
+        <api:name>callback</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gpointer</api:type>
+        <api:name>user_data</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_foo_async_ready_callback</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_foo_async_ready_callback (GCancellable* cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data);
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>cancellable</code></title>
+
+</item>
+<item>
+<title><code>callback</code></title>
+
+</item>
+<item>
+<title><code>user_data</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

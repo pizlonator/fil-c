@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input><![CDATA[/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ *
+ * As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+ * returns nothing.
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>module for gtk-doc unit test</description>
+        </parameter>
+      </parameters>
+      <description><![CDATA[This file contains non-sense code for the sole purpose of testing the docs.
+
+As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+returns nothing.]]></description>
+    </docblock>
+  </parser>
+  <output><![CDATA[/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ *
+ * As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+ * returns nothing.
+ */]]></output>
+</test>
+
+<test>
+  <input>/**
+ * test:
+ * @a: arg
+ *
+ * lonely function
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>arg</description>
+        </parameter>
+      </parameters>
+      <description>lonely function</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test:
+ * @a: arg
+ *
+ * lonely function
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkDocTestIf:
+ *
+ * test object
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkDocTestIf</name>
+      </identifier>
+      <description>test object</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkDocTestIf:
+ *
+ * test object
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkDocTestIfInterface:
+ * @parent: parent interface type.
+ *
+ * test interface
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkDocTestIfInterface</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parent</name>
+          <description>parent interface type.</description>
+        </parameter>
+      </parameters>
+      <description>test interface</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkDocTestIfInterface:
+ * @parent: parent interface type.
+ *
+ * test interface
+ */</output>
+</test>
+
+</tests>

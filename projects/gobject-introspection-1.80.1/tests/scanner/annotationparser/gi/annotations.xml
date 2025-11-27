@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_test: (skip) (skip)
+ *
+ * Oops.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Oops.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: multiple "skip" annotations:
+ * annotation_test: (skip) (skip)
+                                ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test: (skip)
+ *
+ * Oops.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (hello) (world)
+ * @param: (invalid-annotation-option): sizeof (x) == 1
+ *
+ * Test unknown annotations without options.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>hello</name>
+          </annotation>
+          <annotation>
+            <name>world</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param</name>
+          <annotations>
+            <annotation>
+              <name>invalid-annotation-option</name>
+            </annotation>
+          </annotations>
+          <description>sizeof (x) == 1</description>
+        </parameter>
+      </parameters>
+      <description>Test unknown annotations without options.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: unknown annotation: hello</message>
+      <message>2: Warning: Test: unknown annotation: world</message>
+      <message>3: Warning: Test: unknown annotation: invalid-annotation-option</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test: (hello) (world)
+ * @param: (invalid-annotation-option): sizeof (x) == 1
+ *
+ * Test unknown annotations without options.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: some data: (foo bar)
+ *
+ * Oops.
+ */</input>
+  <parser>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+ * annotation_test: some data: (foo bar)
+   ^</message>
+    </messages>
+  </parser>
+</test>
+
+<test>
+  <input>/**
+ * annotationtest some data (foo bar)
+ * @object: some data (foo bar)
+ *
+ * Oops.
+ */</input>
+  <parser>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+ * annotationtest some data (foo bar)
+   ^</message>
+    </messages>
+  </parser>
+</test>
+
+<test>
+  <input>/**
+ * annotationtest
+ * @object: some data (foo bar)
+ *
+ * Oops.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotationtest</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>some data (foo bar)</description>
+        </parameter>
+      </parameters>
+      <description>Oops.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotationtest:
+ * @object: some data (foo bar)
+ *
+ * Oops.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: )skip)
+ *
+ * Oops.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Oops.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * annotation_test: )skip)
+                    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Oops.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (hello)(world)
+ *
+ * Test unknown annotations without options.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>hello</name>
+          </annotation>
+          <annotation>
+            <name>world</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test unknown annotations without options.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: unknown annotation: hello</message>
+      <message>2: Warning: Test: unknown annotation: world</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test: (hello) (world)
+ *
+ * Test unknown annotations without options.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (hello   x=y    z   ) (world something else)
+ *
+ * Test unknown annotations with options.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>hello</name>
+            <options>
+              <option>
+                <name>x=y    z</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>world</name>
+            <options>
+              <option>
+                <name>something else</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test unknown annotations with options.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: unknown annotation: hello</message>
+      <message>2: Warning: Test: unknown annotation: world</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test: (hello x=y    z) (world something else)
+ *
+ * Test unknown annotations with options.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test:
+ * @test: (element-type gint gint) (transfer none) 
+ *
+ * Test multiple identical option names.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>test</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>gint</name>
+                </option>
+                <option>
+                  <name>gint</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+        </parameter>
+      </parameters>
+      <description>Test multiple identical option names.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_test:
+ * @test: (element-type gint gint) (transfer none):
+ *
+ * Test multiple identical option names.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (type GLib.HashTable(utf8,gint8)) (attributes x=1 y=2)
+ *
+ * Test nested parentheses.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>type</name>
+            <options>
+              <option>
+                <name>GLib.HashTable(utf8,gint8)</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>x</name>
+                <value>1</value>
+              </option>
+              <option>
+                <name>y</name>
+                <value>2</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test nested parentheses.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_test: (type GLib.HashTable(utf8,gint8)) (attributes x=1 y=2)
+ *
+ * Test nested parentheses.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (type GLib.HashTable(utf8,GLib.HashTable(utf8,gint8))) (attributes x=1 y=2)
+ *
+ * Test nested parentheses.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>type</name>
+            <options>
+              <option>
+                <name>GLib.HashTable(utf8,GLib.HashTable(utf8,gint8))</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>x</name>
+                <value>1</value>
+              </option>
+              <option>
+                <name>y</name>
+                <value>2</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test nested parentheses.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_test: (type GLib.HashTable(utf8,GLib.HashTable(utf8,gint8))) (attributes x=1 y=2)
+ *
+ * Test nested parentheses.
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * annotation_test: (type GLib.HashTable<utf8,GLib.HashTable<utf8,gint8>>) (attributes x=1 y=2)
+ *
+ * Test deprecated angled brackets.
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+        <annotations>
+          <annotation>
+            <name>type</name>
+            <options>
+              <option>
+                <name>GLib.HashTable(utf8,GLib.HashTable(utf8,gint8))</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>attributes</name>
+            <options>
+              <option>
+                <name>x</name>
+                <value>1</value>
+              </option>
+              <option>
+                <name>y</name>
+                <value>2</value>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test deprecated angled brackets.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_test: (type GLib.HashTable(utf8,GLib.HashTable(utf8,gint8))) (attributes x=1 y=2)
+ *
+ * Test deprecated angled brackets.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: ((skip)
+ *
+ * Test too many '('.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Test too many '('.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unexpected parentheses, annotations will be ignored:
+ * annotation_test: ((skip)
+                     ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Test too many '('.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (skip) element-type (int))
+ *
+ * Test missing '('.
+ */</input>
+  <parser>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+ * annotation_test: (skip) element-type (int))
+   ^</message>
+    </messages>
+  </parser>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: ()
+ *
+ * Closing should not follow an opening parentheses.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Closing should not follow an opening parentheses.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unexpected parentheses, annotations will be ignored:
+ * annotation_test: ()
+                     ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Closing should not follow an opening parentheses.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (hello()) (world(())) (foo)
+ *
+ * Closing should not follow an opening parentheses.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Closing should not follow an opening parentheses.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unexpected parentheses, annotations will be ignored:
+ * annotation_test: (hello()) (world(())) (foo)
+                           ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Closing should not follow an opening parentheses.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (skip)) (type uint))
+ *
+ * Test too many ')'.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Test too many ')'.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * annotation_test: (skip)) (type uint))
+                          ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Test too many ')'.
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * annotation_test:
+ * @test: (type GLib.HashTableutf8,gint8)) (element-type <int>)
+ *
+ * Test missing '('.
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>test</name>
+        </parameter>
+      </parameters>
+      <description>Test missing '('.</description>
+    </docblock>
+    <messages>
+      <message><![CDATA[3: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * @test: (type GLib.HashTableutf8,gint8)) (element-type <int>)
+                                         ^]]></message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ * @test:
+ *
+ * Test missing '('.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_test: (skip (element-type (int))
+ *
+ * Test missing ')'.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <description>Test missing ')'.</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * annotation_test: (skip (element-type (int))
+                                             ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ *
+ * Test missing ')'.
+ */</output>
+</test>
+
+<test>
+  <input><![CDATA[/**
+ * annotation_test:
+ * @test: (type GLib.HashTable(utf8,gint8) (element-type <int>)
+ *
+ * Test missing ')'.
+ */]]></input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_test</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>test</name>
+        </parameter>
+      </parameters>
+      <description>Test missing ')'.</description>
+    </docblock>
+    <messages>
+      <message><![CDATA[3: Error: Test: unbalanced parentheses, annotations will be ignored:
+ * @test: (type GLib.HashTable(utf8,gint8) (element-type <int>)
+                                                              ^]]></message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_test:
+ * @test:
+ *
+ * Test missing ')'.
+ */</output>
+</test>
+
+</tests>

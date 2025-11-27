@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_inout:
+ * @object: a #GObject
+ * @inoutarg: (inout): This is an argument test
+ * @inoutarg2: (in-out): This is an argument test
+ *
+ * This is a test for inout arguments
+ *
+ * Return value: an int
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_inout</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>inoutarg</name>
+          <annotations>
+            <annotation>
+              <name>inout</name>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+        <parameter>
+          <name>inoutarg2</name>
+          <annotations>
+            <annotation>
+              <name>inout</name>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for inout arguments</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an int</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Warning: Test: "in-out" annotation has been deprecated, please use "inout" instead:
+ * @inoutarg2: (in-out): This is an argument test
+               ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_inout:
+ * @object: a #GObject
+ * @inoutarg: (inout): This is an argument test
+ * @inoutarg2: (inout): This is an argument test
+ *
+ * This is a test for inout arguments
+ *
+ * Returns: an int
+ */</output>
+</test>
+
+</tests>

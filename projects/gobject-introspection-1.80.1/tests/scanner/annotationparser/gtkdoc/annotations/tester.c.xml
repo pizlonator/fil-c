@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ * @stability: stable
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>module for gtk-doc unit test</description>
+        </parameter>
+        <parameter>
+          <name>stability</name>
+          <description>stable</description>
+        </parameter>
+      </parameters>
+      <description>This file contains non-sense code for the sole purpose of testing the docs.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ * @stability: stable
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_array_length:
+ * @list: a #GtkListStore
+ * @n_columns: number of columns
+ * @types: (array length=n_columns): list of types
+ *
+ * Document parameter relation for array length.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_array_length</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <description>a #GtkListStore</description>
+        </parameter>
+        <parameter>
+          <name>n_columns</name>
+          <description>number of columns</description>
+        </parameter>
+        <parameter>
+          <name>types</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                  <value>n_columns</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>list of types</description>
+        </parameter>
+      </parameters>
+      <description>Document parameter relation for array length.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_array_length:
+ * @list: a #GtkListStore
+ * @n_columns: number of columns
+ * @types: (array length=n_columns): list of types
+ *
+ * Document parameter relation for array length.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_allow_none:
+ * @uri: a uri
+ * @label: (allow-none): an optional string, which is used in ways too
+ *  complicated to describe in a single line, making it necessary to wrap it
+ *
+ * Document optional parameters.
+ *
+ * Returns: (transfer full) (allow-none): Returns stuff which you have to
+ *  free after use, whose description is also rather long
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_allow_none</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>uri</name>
+          <description>a uri</description>
+        </parameter>
+        <parameter>
+          <name>label</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>an optional string, which is used in ways too
+ complicated to describe in a single line, making it necessary to wrap it</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>Returns stuff which you have to
+ free after use, whose description is also rather long</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_allow_none:
+ * @uri: a uri
+ * @label: (allow-none): an optional string, which is used in ways too
+ *  complicated to describe in a single line, making it necessary to wrap it
+ *
+ * Document optional parameters.
+ *
+ * Returns: (transfer full) (allow-none): Returns stuff which you have to
+ *  free after use, whose description is also rather long
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_nullable:
+ * @uri: a uri
+ * @label: (nullable): an optional string, which is used in ways too
+ *  complicated to describe in a single line, making it necessary to wrap it
+ *
+ * Document optional parameters.
+ *
+ * Returns: (transfer full) (nullable): Returns stuff which you have to
+ *  free after use, whose description is also rather long
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_nullable</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>uri</name>
+          <description>a uri</description>
+        </parameter>
+        <parameter>
+          <name>label</name>
+          <annotations>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>an optional string, which is used in ways too
+ complicated to describe in a single line, making it necessary to wrap it</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>Returns stuff which you have to
+ free after use, whose description is also rather long</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_nullable:
+ * @uri: a uri
+ * @label: (nullable): an optional string, which is used in ways too
+ *  complicated to describe in a single line, making it necessary to wrap it
+ *
+ * Document optional parameters.
+ *
+ * Returns: (transfer full) (nullable): Returns stuff which you have to
+ *  free after use, whose description is also rather long
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_elementtype:
+ * @list: (element-type GObject): list of #GObject instances to search
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_elementtype</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>GObject</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>list of #GObject instances to search</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_elementtype:
+ * @list: (element-type GObject): list of #GObject instances to search
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_elementtype_transfer:
+ * @list: (element-type utf8) (transfer full): list of #GObject instances to search
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_elementtype_transfer</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>utf8</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>list of #GObject instances to search</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_elementtype_transfer:
+ * @list: (element-type utf8) (transfer full): list of #GObject instances to search
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_elementtype_returns:
+ *
+ * Document optional parameters.
+ *
+ * Returns: (element-type GObject): A list of #GObject instances.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_elementtype_returns</name>
+      </identifier>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>element-type</name>
+              <options>
+                <option>
+                  <name>GObject</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>A list of #GObject instances.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_elementtype_returns:
+ *
+ * Document optional parameters.
+ *
+ * Returns: (element-type GObject): A list of #GObject instances.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_outparams:
+ * @list: (out) (transfer none): a pointer to take a list
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_outparams</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a pointer to take a list</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_outparams:
+ * @list: (out) (transfer none): a pointer to take a list
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_outparams_optional:
+ * @list: (out) (transfer none) (optional): a pointer to take a list, or %NULL
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_outparams_optional</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>optional</name>
+            </annotation>
+          </annotations>
+          <description>a pointer to take a list, or %NULL</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_outparams_optional:
+ * @list: (out) (transfer none) (optional): a pointer to take a list, or %NULL
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_outparams_nullable:
+ * @list: (out) (transfer none) (nullable): a pointer to take a list; but %NULL
+ * may also be returned
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_outparams_nullable</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>a pointer to take a list; but %NULL
+may also be returned</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_outparams_nullable:
+ * @list: (out) (transfer none) (nullable): a pointer to take a list; but %NULL
+ * may also be returned
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_outparams_optional_nullable:
+ * @list: (out) (transfer none) (optional) (nullable): a pointer to take a
+ * list, or %NULL; but %NULL may also be returned in @list — isn’t that cool?
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_outparams_optional_nullable</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>none</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>optional</name>
+            </annotation>
+            <annotation>
+              <name>nullable</name>
+            </annotation>
+          </annotations>
+          <description>a pointer to take a
+list, or %NULL; but %NULL may also be returned in @list — isn’t that cool?</description>
+        </parameter>
+      </parameters>
+      <description>Document optional parameters.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_outparams_optional_nullable:
+ * @list: (out) (transfer none) (optional) (nullable): a pointer to take a
+ * list, or %NULL; but %NULL may also be returned in @list — isn’t that cool?
+ *
+ * Document optional parameters.
+ *
+ * Returns: %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_skip: (skip)
+ * @list: a pointer to take a list
+ *
+ * Documentation for this function.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_skip</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <description>a pointer to take a list</description>
+        </parameter>
+      </parameters>
+      <description>Documentation for this function.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_skip: (skip)
+ * @list: a pointer to take a list
+ *
+ * Documentation for this function.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_skip_return: (skip)
+ * @list: a pointer to take a list
+ *
+ * Documentation for this function.
+ *
+ * Returns: (skip): %TRUE for success
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_skip_return</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>list</name>
+          <description>a pointer to take a list</description>
+        </parameter>
+      </parameters>
+      <description>Documentation for this function.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>skip</name>
+            </annotation>
+          </annotations>
+          <description>%TRUE for success</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_skip_return: (skip)
+ * @list: a pointer to take a list
+ *
+ * Documentation for this function.
+ *
+ * Returns: (skip): %TRUE for success
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_scope:
+ * @callback: (scope async): a callback
+ * @user_data: data to pass to callback
+ *
+ * Documentation for this function.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_scope</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>callback</name>
+          <annotations>
+            <annotation>
+              <name>scope</name>
+              <options>
+                <option>
+                  <name>async</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a callback</description>
+        </parameter>
+        <parameter>
+          <name>user_data</name>
+          <description>data to pass to callback</description>
+        </parameter>
+      </parameters>
+      <description>Documentation for this function.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_scope:
+ * @callback: (scope async): a callback
+ * @user_data: data to pass to callback
+ *
+ * Documentation for this function.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_rename_to: (rename-to annotation_scope)
+ *
+ * Documentation for this function.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_rename_to</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_scope</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Documentation for this function.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_rename_to: (rename-to annotation_scope)
+ *
+ * Documentation for this function.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * stability_unstable:
+ *
+ * An experimental function.
+ *
+ * Stability: unstable
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>stability_unstable</name>
+      </identifier>
+      <description>An experimental function.</description>
+      <tags>
+        <tag>
+          <name>stability</name>
+          <value>Unstable</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * stability_unstable:
+ *
+ * An experimental function.
+ *
+ * Stability: Unstable
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_multiline_on_function: (rename-to annotation_scope)
+ *                                   (skip)
+ *
+ * Documentation for this function.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_multiline_on_function</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_scope</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Documentation for this function.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_multiline_on_function: (rename-to annotation_scope) (skip)
+ *
+ * Documentation for this function.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_multiline_on_function2:
+ * (rename-to annotation_scope)(skip)
+ *
+ * Documentation for this function.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_multiline_on_function2</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_scope</name>
+              </option>
+            </options>
+          </annotation>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Documentation for this function.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_multiline_on_function2: (rename-to annotation_scope) (skip)
+ *
+ * Documentation for this function.
+ */</output>
+</test>
+
+</tests>

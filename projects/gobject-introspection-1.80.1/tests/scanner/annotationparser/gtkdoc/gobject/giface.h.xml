@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * GtkdocIface:
+ *
+ * opaque instance of gtk-doc unit test interface
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocIface</name>
+      </identifier>
+      <description>opaque instance of gtk-doc unit test interface</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocIface:
+ *
+ * opaque instance of gtk-doc unit test interface
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocIface2:
+ *
+ * opaque instance of gtk-doc unit test interface
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocIface2</name>
+      </identifier>
+      <description>opaque instance of gtk-doc unit test interface</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocIface2:
+ *
+ * opaque instance of gtk-doc unit test interface
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocIfaceInterface:
+ * @parent: this is a bug :/
+ * @test: overideable method
+ *
+ * class data of gtk-doc unit test interface
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocIfaceInterface</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parent</name>
+          <description>this is a bug :/</description>
+        </parameter>
+        <parameter>
+          <name>test</name>
+          <description>overideable method</description>
+        </parameter>
+      </parameters>
+      <description>class data of gtk-doc unit test interface</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocIfaceInterface:
+ * @parent: this is a bug :/
+ * @test: overideable method
+ *
+ * class data of gtk-doc unit test interface
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GTKDOC_IFACE_MACRO_DUMMY:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro does nothing.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GTKDOC_IFACE_MACRO_DUMMY</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parameter_1</name>
+          <description>first arg</description>
+        </parameter>
+        <parameter>
+          <name>parameter_2</name>
+          <description>second arg</description>
+        </parameter>
+      </parameters>
+      <description>This macro does nothing.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GTKDOC_IFACE_MACRO_DUMMY:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro does nothing.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GTKDOC_IFACE_MACRO_SUM:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro adds its args.
+ *
+ * Returns: the sum of @parameter_1 and @parameter_2
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GTKDOC_IFACE_MACRO_SUM</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parameter_1</name>
+          <description>first arg</description>
+        </parameter>
+        <parameter>
+          <name>parameter_2</name>
+          <description>second arg</description>
+        </parameter>
+      </parameters>
+      <description>This macro adds its args.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the sum of @parameter_1 and @parameter_2</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * GTKDOC_IFACE_MACRO_SUM:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro adds its args.
+ *
+ * Returns: the sum of @parameter_1 and @parameter_2
+ */</output>
+</test>
+
+</tests>

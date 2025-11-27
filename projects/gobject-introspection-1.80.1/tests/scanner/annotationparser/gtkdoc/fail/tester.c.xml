@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/*
+ * SECTION:tester_nodocs
+ * @short_description: module for gtk-doc unit test
+ * @title: GtkdocTesterNoDocs
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</input>
+</test>
+
+<test>
+  <input>/**
+ * SECTION:tester_nolongdesc
+ * @short_description: module for gtk-doc unit test
+ * @title: GtkdocTesterNoLongDesc
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester_nolongdesc</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>module for gtk-doc unit test</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>GtkdocTesterNoLongDesc</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:tester_nolongdesc
+ * @short_description: module for gtk-doc unit test
+ * @title: GtkdocTesterNoLongDesc
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * SECTION:tester_noshortdesc
+ * @title: GtkdocTesterNoShortDesc
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester_noshortdesc</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>title</name>
+          <description>GtkdocTesterNoShortDesc</description>
+        </parameter>
+      </parameters>
+      <description>This file contains non-sense code for the sole purpose of testing the docs.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:tester_noshortdesc
+ * @title: GtkdocTesterNoShortDesc
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * SECTION:tester_brokendocs
+ * @short_description: module for gtk-doc unit test
+ * @title: GtkdocTesterBrokenDocs
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester_brokendocs</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>module for gtk-doc unit test</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>GtkdocTesterBrokenDocs</description>
+        </parameter>
+      </parameters>
+      <description>This file contains non-sense code for the sole purpose of testing the docs.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:tester_brokendocs
+ * @short_description: module for gtk-doc unit test
+ * @title: GtkdocTesterBrokenDocs
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * func_no_docs:
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>func_no_docs</name>
+      </identifier>
+    </docblock>
+  </parser>
+  <output>/**
+ * func_no_docs:
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * func_no_item_docs:
+ *
+ * Here we document the function but not the parameters.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>func_no_item_docs</name>
+      </identifier>
+      <description>Here we document the function but not the parameters.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * func_no_item_docs:
+ *
+ * Here we document the function but not the parameters.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * func_incomplete_docs:
+ * @a: a value
+ *
+ * Here we document the function but not all the parameters.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>func_incomplete_docs</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>a value</description>
+        </parameter>
+      </parameters>
+      <description>Here we document the function but not all the parameters.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * func_incomplete_docs:
+ * @a: a value
+ *
+ * Here we document the function but not all the parameters.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * func_unused_docs:
+ * @a: a value
+ * @b: a value
+ * @c: an unexisting value
+ *
+ * Here we document the function and more than the actual parameters.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>func_unused_docs</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>a value</description>
+        </parameter>
+        <parameter>
+          <name>b</name>
+          <description>a value</description>
+        </parameter>
+        <parameter>
+          <name>c</name>
+          <description>an unexisting value</description>
+        </parameter>
+      </parameters>
+      <description>Here we document the function and more than the actual parameters.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * func_unused_docs:
+ * @a: a value
+ * @b: a value
+ * @c: an unexisting value
+ *
+ * Here we document the function and more than the actual parameters.
+ */</output>
+</test>
+
+</tests>

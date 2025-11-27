@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * AnnotationNotifyFunc:
+ * @data: (closure): The user data
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>AnnotationNotifyFunc</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>data</name>
+          <annotations>
+            <annotation>
+              <name>closure</name>
+            </annotation>
+          </annotations>
+          <description>The user data</description>
+        </parameter>
+      </parameters>
+      <description>This is a callback with a 'closure' argument that is not named
+'user_data' and hence has to be annotated.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * AnnotationNotifyFunc:
+ * @data: (closure): The user data
+ *
+ * This is a callback with a 'closure' argument that is not named
+ * 'user_data' and hence has to be annotated.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_custom_destroy:
+ * @callback: (destroy destroy) (closure data): Destroy notification
+ *
+ * Test messing up the heuristic of closure/destroy-notification
+ * detection, and fixing it via annotations.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_custom_destroy</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>callback</name>
+          <annotations>
+            <annotation>
+              <name>destroy</name>
+              <options>
+                <option>
+                  <name>destroy</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>closure</name>
+              <options>
+                <option>
+                  <name>data</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>Destroy notification</description>
+        </parameter>
+      </parameters>
+      <description>Test messing up the heuristic of closure/destroy-notification
+detection, and fixing it via annotations.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_custom_destroy:
+ * @callback: (destroy destroy) (closure data): Destroy notification
+ *
+ * Test messing up the heuristic of closure/destroy-notification
+ * detection, and fixing it via annotations.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_custom_destroy:
+ * @callback: (destroy destroy) (closure data=invalid): Destroy notification
+ *
+ * Test messing up the heuristic of closure/destroy-notification
+ * detection, and fixing it via annotations.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_custom_destroy</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>callback</name>
+          <annotations>
+            <annotation>
+              <name>destroy</name>
+              <options>
+                <option>
+                  <name>destroy</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>closure</name>
+              <options>
+                <option>
+                  <name>data=invalid</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>Destroy notification</description>
+        </parameter>
+      </parameters>
+      <description>Test messing up the heuristic of closure/destroy-notification
+detection, and fixing it via annotations.</description>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+ * @callback: (destroy destroy) (closure data=invalid): Destroy notification
+                                             ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_custom_destroy:
+ * @callback: (destroy destroy) (closure data=invalid): Destroy notification
+ *
+ * Test messing up the heuristic of closure/destroy-notification
+ * detection, and fixing it via annotations.
+ */</output>
+</test>
+
+</tests>

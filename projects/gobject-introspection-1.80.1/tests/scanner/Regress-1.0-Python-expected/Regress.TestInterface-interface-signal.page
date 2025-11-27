@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page id="Regress.TestInterface-interface-signal"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestInterface" group="signal" type="guide"/>
+    <title type="link" role="topic">interface-signal</title>
+  </info>
+  <title>Regress.TestInterface::interface-signal</title>
+  <synopsis><code mime="text/x-python">
+def callback(test_interface, ptr, user_param1, ...)
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>test_interface</code></title>
+<p>instance of <link xref="Regress.TestInterface"/> that is emitting the signal</p>
+</item>
+<item>
+<title><code>ptr</code></title>
+  <p>the code must look up the signal with
+  g_interface_info_find_signal() in order to get this to work.</p>
+</item>
+<title><code>user_param1</code></title>
+<p>first user parameter (if any) specified with the connect() method</p>
+<item>
+<title><code>...</code></title>
+<p>additional user parameters (if any)</p>
+</item>
+</terms>
+
+</page>

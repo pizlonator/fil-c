@@ -1,0 +1,6 @@
+<%namespace name="method" file="_method.tmpl"/>
+% if getattr(node, 'virtual_methods', []):
+  % for m in node.virtual_methods:
+    ${method.method(m, virtual=True)}
+  % endfor
+% endif

@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>//Test</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>// Test</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/**
+//</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/*Test*/</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/* Test */</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/* Test
+something */</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/*
+Test
+something */</input>
+</test>
+
+<test>
+  <!--
+  Not GTK-Doc
+  -->
+  <input>/**
+*/</input>
+</test>
+
+<test>
+  <input>/** Test **/</input>
+  <parser>
+    <messages>
+      <message>1: Error: Test: Skipping invalid GTK-Doc comment block:
+/** Test **/
+^</message>
+    </messages>
+  </parser>
+</test>
+
+<test>
+  <input>/**Test
+*/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+    </docblock>
+    <messages>
+      <message>1: Warning: Test: GTK-Doc comment block start token "/**" should not be followed by comment text:
+/**Test
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * Test:
+ */</output>
+</test>
+
+<test>
+  <input>/**
+Test */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: GTK-Doc comment block end token "*/" should not be preceded by comment text:
+Test */
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * Test:
+ */</output>
+</test>
+
+<test>
+  <input>/** Test
+something */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+      <description>something</description>
+    </docblock>
+    <messages>
+      <message>1: Warning: Test: GTK-Doc comment block start token "/**" should not be followed by comment text:
+/** Test
+    ^</message>
+      <message>2: Warning: Test: GTK-Doc comment block end token "*/" should not be preceded by comment text:
+something */
+         ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * Test:
+ *
+ * something
+ */</output>
+</test>
+
+<test>
+  <input>/**
+Test
+something */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+      <description>something</description>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: GTK-Doc comment block end token "*/" should not be preceded by comment text:
+something */
+         ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * Test:
+ *
+ * something
+ */</output>
+</test>
+
+<test>
+  <input>/**
+Test
+something **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+      <description>something</description>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: GTK-Doc comment block end token "*/" should not be preceded by comment text:
+something **/
+         ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * Test:
+ *
+ * something
+ */</output>
+</test>
+
+<test>
+  <input>code goes here /** Test
+something */ code goes here</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>Test</name>
+      </identifier>
+      <description>something</description>
+    </docblock>
+    <messages>
+      <message>1: Warning: Test: GTK-Doc comment block start token "/**" should not be preceded by code:
+code goes here /** Test
+              ^</message>
+      <message>1: Warning: Test: GTK-Doc comment block start token "/**" should not be followed by comment text:
+code goes here /** Test
+                   ^</message>
+      <message>2: Warning: Test: GTK-Doc comment block end token "*/" should not be followed by code:
+something */ code goes here
+                           ^</message>
+      <message>2: Warning: Test: GTK-Doc comment block end token "*/" should not be preceded by comment text:
+something */ code goes here
+         ^</message>
+    </messages>
+  </parser>
+  <output><![CDATA[code goes here
+/**
+ * Test:
+ *
+ * something
+ */
+ code goes here]]></output>
+</test>
+
+<test>
+  <!--
+  Malformed comment block, signal the start of the comment block description followed
+  by a parameter instead.
+  -->
+  <input>/**
+ * SECTION:meepapp
+ *
+ * @short_description: the application class
+ *
+ * The application class handles ...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+      </parameters>
+      <description>The application class handles ...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "@short_description" parameter unexpected at this location:
+ * @short_description: the application class
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ *
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  identifier not on the first line.
+  -->
+  <input>/**
+
+ *
+
+ * regress_test_invalid_comment:
+ * @foo: a param
+
+ * comment having lines without ' * '
+ * https://bugzilla.gnome.org/show_bug.cgi?id=673806
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_test_invalid_comment</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>foo</name>
+          <description>a param</description>
+        </parameter>
+      </parameters>
+      <description>comment having lines without ' * '
+https://bugzilla.gnome.org/show_bug.cgi?id=673806</description>
+    </docblock>
+    <messages>
+      <message>2: Error: Test: identifier not found on the first line:
+
+^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_test_invalid_comment:
+ * @foo: a param
+ *
+ * comment having lines without ' * '
+ * https://bugzilla.gnome.org/show_bug.cgi?id=673806
+ */</output>
+</test>
+
+<test>
+  <!-- Confusing but well formed mixing of lines starting with and without * -->
+  <input>/**
+ * atk_hyperlink_is_inline:
+ * @link_: an #AtkHyperlink
+ *
+ * Indicates whether the link currently displays some or all of its
+ *           content inline.  Ordinary HTML links will usually return
+ *           %FALSE, but an inline &lt;src&gt; HTML element will return
+ *           %TRUE.
+ a *
+ * Returns: whether or not this link displays its content inline.
+ *
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>atk_hyperlink_is_inline</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>link_</name>
+          <description>an #AtkHyperlink</description>
+        </parameter>
+      </parameters>
+      <description>Indicates whether the link currently displays some or all of its
+          content inline.  Ordinary HTML links will usually return
+          %FALSE, but an inline &lt;src&gt; HTML element will return
+          %TRUE.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>whether or not this link displays its content inline.</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>9: Error: Test: invalid comment text:
+ a *
+ ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * atk_hyperlink_is_inline:
+ * @link_: an #AtkHyperlink
+ *
+ * Indicates whether the link currently displays some or all of its
+ *           content inline.  Ordinary HTML links will usually return
+ *           %FALSE, but an inline &lt;src&gt; HTML element will return
+ *           %TRUE.
+ *
+ * Returns: whether or not this link displays its content inline.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * gtk_tooltip_set_custom:
+ *
+ * Replaces the widget packed into the tooltip with
+ * @custom_widget. @custom_widget does not get destroyed when the tooltip goes
+ * away.
+ * By default a box with a #GtkImage and #GtkLabel is embedded in
+ * the tooltip, which can be configured using gtk_tooltip_set_markup()
+ * and gtk_tooltip_set_icon().
+
+ *
+ * Since: 2.12
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>gtk_tooltip_set_custom</name>
+      </identifier>
+      <description>Replaces the widget packed into the tooltip with
+@custom_widget. @custom_widget does not get destroyed when the tooltip goes
+away.
+By default a box with a #GtkImage and #GtkLabel is embedded in
+the tooltip, which can be configured using gtk_tooltip_set_markup()
+and gtk_tooltip_set_icon().</description>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>2.12</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * gtk_tooltip_set_custom:
+ *
+ * Replaces the widget packed into the tooltip with
+ * @custom_widget. @custom_widget does not get destroyed when the tooltip goes
+ * away.
+ * By default a box with a #GtkImage and #GtkLabel is embedded in
+ * the tooltip, which can be configured using gtk_tooltip_set_markup()
+ * and gtk_tooltip_set_icon().
+ *
+ * Since: 2.12
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ * Return: the position of the character
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>clutter_text_coords_to_position</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>self</name>
+          <description>a #ClutterText</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the position of the character</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * clutter_text_coords_to_position:
+ * @self: a #ClutterText
+ *
+ * Returns: the position of the character
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * clutter_text_coords_to_position:
+ * Return: the position of the character
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>clutter_text_coords_to_position</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the position of the character</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * clutter_text_coords_to_position:
+ *
+ * Returns: the position of the character
+ */</output>
+</test>
+
+</tests>

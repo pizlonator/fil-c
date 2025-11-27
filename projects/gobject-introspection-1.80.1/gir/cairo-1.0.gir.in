@@ -1,0 +1,689 @@
+<?xml version="1.0"?>
+<repository version="1.2"
+	    xmlns="http://www.gtk.org/introspection/core/1.0"
+	    xmlns:c="http://www.gtk.org/introspection/c/1.0"
+	    xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GObject" version="2.0"/>
+  <package name="@CAIRO_GIR_PACKAGE@"/>
+  <c:include name="cairo-gobject.h"/>
+  <namespace name="cairo" version="1.0"
+	     shared-library="@CAIRO_SHARED_LIBRARY@"
+	     c:identifier-prefixes="cairo"
+	     c:symbol-prefixes="cairo">
+    <record name="Context" c:type="cairo_t" foreign="1"
+	    glib:type-name="CairoContext"
+	    glib:get-type="cairo_gobject_context_get_type"/>
+    <record name="Device" c:type="cairo_device_t" foreign="1"
+	    glib:type-name="CairoDevice"
+	    glib:get-type="cairo_gobject_device_get_type"/>
+    <record name="Surface" c:type="cairo_surface_t" foreign="1"
+	    glib:type-name="CairoSurface"
+	    glib:get-type="cairo_gobject_surface_get_type"/>
+    <record name="Matrix" c:type="cairo_matrix_t" foreign="1"/>
+    <record name="Pattern" c:type="cairo_pattern_t" foreign="1"
+	    glib:type-name="CairoPattern"
+	    glib:get-type="cairo_gobject_pattern_get_type"/>
+    <record name="Region" c:type="cairo_region_t" foreign="1"
+	    glib:type-name="CairoRegion"
+	    glib:get-type="cairo_gobject_region_get_type"/>
+    <enumeration name="Status" c:type="cairo_status_t"
+		 glib:type-name="cairo_status_t"
+		 glib:get-type="cairo_gobject_status_get_type">
+      <member name="success"
+	      value="0"
+	      c:identifier="CAIRO_STATUS_SUCCESS"/>
+      <member name="no_memory"
+	      value="1"
+	      c:identifier="CAIRO_STATUS_NO_MEMORY"/>
+      <member name="invalid_restore"
+	      value="2"
+	      c:identifier="CAIRO_STATUS_INVALID_RESTORE"/>
+      <member name="invalid_pop_group"
+	      value="3"
+	      c:identifier="CAIRO_STATUS_INVALID_POP_GROUP"/>
+      <member name="no_current_point"
+	      value="4"
+	      c:identifier="CAIRO_STATUS_NO_CURRENT_POINT"/>
+      <member name="invalid_matrix"
+	      value="5"
+	      c:identifier="CAIRO_STATUS_INVALID_MATRIX"/>
+      <member name="invalid_status"
+	      value="6"
+	      c:identifier="CAIRO_STATUS_INVALID_STATUS"/>
+      <member name="null_pointer"
+	      value="7"
+	      c:identifier="CAIRO_STATUS_NULL_POINTER"/>
+      <member name="invalid_string"
+	      value="8"
+	      c:identifier="CAIRO_STATUS_INVALID_STRING"/>
+      <member name="invalid_path_data"
+	      value="9"
+	      c:identifier="CAIRO_STATUS_INVALID_PATH_DATA"/>
+      <member name="read_error"
+	      value="10"
+	      c:identifier="CAIRO_STATUS_READ_ERROR"/>
+      <member name="write_error"
+	      value="11"
+	      c:identifier="CAIRO_STATUS_WRITE_ERROR"/>
+      <member name="surface_finished"
+	      value="12"
+	      c:identifier="CAIRO_STATUS_SURFACE_FINISHED"/>
+      <member name="surface_type_mismatch"
+	      value="13"
+	      c:identifier="CAIRO_STATUS_SURFACE_TYPE_MISMATCH"/>
+      <member name="pattern_type_mismatch"
+	      value="14"
+	      c:identifier="CAIRO_STATUS_PATTERN_TYPE_MISMATCH"/>
+      <member name="invalid_content"
+	      value="15"
+	      c:identifier="CAIRO_STATUS_INVALID_CONTENT"/>
+      <member name="invalid_format"
+	      value="16"
+	      c:identifier="CAIRO_STATUS_INVALID_FORMAT"/>
+      <member name="invalid_visual"
+	      value="17"
+	      c:identifier="CAIRO_STATUS_INVALID_VISUAL"/>
+      <member name="file_not_found"
+	      value="18"
+	      c:identifier="CAIRO_STATUS_FILE_NOT_FOUND"/>
+      <member name="invalid_dash"
+	      value="19"
+	      c:identifier="CAIRO_STATUS_INVALID_DASH"/>
+      <member name="invalid_dsc_comment"
+	      value="20"
+	      c:identifier="CAIRO_STATUS_INVALID_DSC_COMMENT"/>
+      <member name="invalid_index"
+	      value="21"
+	      c:identifier="CAIRO_STATUS_INVALID_INDEX"/>
+      <member name="clip_not_representable"
+	      value="22"
+	      c:identifier="CAIRO_STATUS_CLIP_NOT_REPRESENTABLE"/>
+      <member name="temp_file_error"
+	      value="23"
+	      c:identifier="CAIRO_STATUS_TEMP_FILE_ERROR"/>
+      <member name="invalid_stride"
+	      value="24"
+	      c:identifier="CAIRO_STATUS_INVALID_STRIDE"/>
+      <member name="font_type_mismatch"
+	      value="25"
+	      c:identifier="CAIRO_STATUS_FONT_TYPE_MISMATCH"/>
+      <member name="user_font_immutable"
+	      value="26"
+	      c:identifier="CAIRO_STATUS_USER_FONT_IMMUTABLE"/>
+      <member name="user_font_error"
+	      value="27"
+	      c:identifier="CAIRO_STATUS_USER_FONT_ERROR"/>
+      <member name="negative_count"
+	      value="28"
+	      c:identifier="CAIRO_STATUS_NEGATIVE_COUNT"/>
+      <member name="invalid_clusters"
+	      value="29"
+	      c:identifier="CAIRO_STATUS_INVALID_CLUSTERS"/>
+      <member name="invalid_slant"
+	      value="30"
+	      c:identifier="CAIRO_STATUS_INVALID_SLANT"/>
+      <member name="invalid_weight"
+	      value="31"
+	      c:identifier="CAIRO_STATUS_INVALID_WEIGHT"/>
+      <member name="invalid_size"
+	      value="32"
+	      c:identifier="CAIRO_STATUS_INVALID_SIZE"/>
+      <member name="user_font_not_implemented"
+	      value="33"
+	      c:identifier="CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED"/>
+      <member name="device_type_mismatch"
+	      value="34"
+	      c:identifier="CAIRO_STATUS_DEVICE_TYPE_MISMATCH"/>
+      <member name="device_error"
+	      value="35"
+	      c:identifier="CAIRO_STATUS_DEVICE_ERROR"/>
+      <member name="invalid_mesh_construction"
+	      value="36"
+	      c:identifier="CAIRO_STATUS_INVALID_MESH_CONSTRUCTION"/>
+      <member name="device_finished"
+	      value="37"
+	      c:identifier="CAIRO_STATUS_DEVICE_FINISHED"/>
+      <member name="jbig2_global_missing"
+	      value="38"
+	      c:identifier="CAIRO_STATUS_JBIG2_GLOBAL_MISSING"/>
+    </enumeration>
+    <enumeration name="Content" c:type="cairo_content_t"
+		 glib:type-name="cairo_content_t"
+		 glib:get-type="cairo_gobject_content_get_type">
+      <member name="color"
+	      value="4096"
+	      c:identifier="CAIRO_CONTENT_COLOR"/>
+      <member name="alpha"
+	      value="8192"
+	      c:identifier="CAIRO_CONTENT_ALPHA"/>
+      <member name="color_alpha"
+	      value="12288"
+	      c:identifier="CAIRO_CONTENT_COLOR_ALPHA"/>
+    </enumeration>
+    <enumeration name="Operator" c:type="cairo_operator_t"
+		 glib:type-name="cairo_operator_t"
+		 glib:get-type="cairo_gobject_operator_get_type">
+      <member name="clear"
+	      value="0"
+	      c:identifier="CAIRO_OPERATOR_CLEAR"/>
+      <member name="source"
+	      value="1"
+	      c:identifier="CAIRO_OPERATOR_SOURCE"/>
+      <member name="over"
+	      value="2"
+	      c:identifier="CAIRO_OPERATOR_OVER"/>
+      <member name="in"
+	      value="3"
+	      c:identifier="CAIRO_OPERATOR_IN"/>
+      <member name="out"
+	      value="4"
+	      c:identifier="CAIRO_OPERATOR_OUT"/>
+      <member name="atop"
+	      value="5"
+	      c:identifier="CAIRO_OPERATOR_ATOP"/>
+      <member name="dest"
+	      value="6"
+	      c:identifier="CAIRO_OPERATOR_DEST"/>
+      <member name="dest_over"
+	      value="7"
+	      c:identifier="CAIRO_OPERATOR_DEST_OVER"/>
+      <member name="dest_in"
+	      value="8"
+	      c:identifier="CAIRO_OPERATOR_DEST_IN"/>
+      <member name="dest_out"
+	      value="9"
+	      c:identifier="CAIRO_OPERATOR_DEST_OUT"/>
+      <member name="dest_atop"
+	      value="10"
+	      c:identifier="CAIRO_OPERATOR_DEST_ATOP"/>
+      <member name="xor"
+	      value="11"
+	      c:identifier="CAIRO_OPERATOR_XOR"/>
+      <member name="add"
+	      value="12"
+	      c:identifier="CAIRO_OPERATOR_ADD"/>
+      <member name="saturate"
+	      value="13"
+	      c:identifier="CAIRO_OPERATOR_SATURATE"/>
+      <member name="multiply"
+	      value="14"
+	      c:identifier="CAIRO_OPERATOR_MULTIPLY"/>
+      <member name="screen"
+	      value="15"
+	      c:identifier="CAIRO_OPERATOR_SCREEN"/>
+      <member name="overlay"
+	      value="16"
+	      c:identifier="CAIRO_OPERATOR_OVERLAY"/>
+      <member name="darken"
+	      value="17"
+	      c:identifier="CAIRO_OPERATOR_DARKEN"/>
+      <member name="lighten"
+	      value="18"
+	      c:identifier="CAIRO_OPERATOR_LIGHTEN"/>
+      <member name="color_dodge"
+	      value="19"
+	      c:identifier="CAIRO_OPERATOR_COLOR_DODGE"/>
+      <member name="color_burn"
+	      value="20"
+	      c:identifier="CAIRO_OPERATOR_COLOR_BURN"/>
+      <member name="hard_light"
+	      value="21"
+	      c:identifier="CAIRO_OPERATOR_HARD_LIGHT"/>
+      <member name="soft_light"
+	      value="22"
+	      c:identifier="CAIRO_OPERATOR_SOFT_LIGHT"/>
+      <member name="difference"
+	      value="23"
+	      c:identifier="CAIRO_OPERATOR_DIFFERENCE"/>
+      <member name="exclusion"
+	      value="24"
+	      c:identifier="CAIRO_OPERATOR_EXCLUSION"/>
+      <member name="hsl_hue"
+	      value="25"
+	      c:identifier="CAIRO_OPERATOR_HSL_HUE"/>
+      <member name="hsl_saturation"
+	      value="26"
+	      c:identifier="CAIRO_OPERATOR_HSL_SATURATION"/>
+      <member name="hsl_color"
+	      value="27"
+	      c:identifier="CAIRO_OPERATOR_HSL_COLOR"/>
+      <member name="hsl_luminosity"
+	      value="28"
+	      c:identifier="CAIRO_OPERATOR_HSL_LUMINOSITY"/>
+    </enumeration>
+    <enumeration name="Antialias" c:type="cairo_antialias_t"
+		 glib:type-name="cairo_antialias_t"
+		 glib:get-type="cairo_gobject_antialias_get_type">
+      <member name="default"
+	      value="0"
+	      c:identifier="CAIRO_ANTIALIAS_DEFAULT"/>
+      <member name="none"
+	      value="1"
+	      c:identifier="CAIRO_ANTIALIAS_NONE"/>
+      <member name="gray"
+	      value="2"
+	      c:identifier="CAIRO_ANTIALIAS_GRAY"/>
+      <member name="subpixel"
+	      value="3"
+	      c:identifier="CAIRO_ANTIALIAS_SUBPIXEL"/>
+      <member name="fast"
+	      value="4"
+	      c:identifier="CAIRO_ANTIALIAS_FAST"/>
+      <member name="good"
+	      value="5"
+	      c:identifier="CAIRO_ANTIALIAS_GOOD"/>
+      <member name="best"
+	      value="6"
+	      c:identifier="CAIRO_ANTIALIAS_BEST"/>
+    </enumeration>
+    <enumeration name="FillRule" c:type="cairo_fill_rule_t"
+		 glib:type-name="cairo_fill_rule_t"
+		 glib:get-type="cairo_gobject_fill_rule_get_type">
+      <member name="winding"
+	      value="0"
+	      c:identifier="CAIRO_FILL_RULE_WINDING"/>
+      <member name="even_odd"
+	      value="1"
+	      c:identifier="CAIRO_FILL_RULE_EVEN_ODD"/>
+    </enumeration>
+    <enumeration name="LineCap" c:type="cairo_line_cap_t"
+		 glib:type-name="cairo_line_cap_t"
+		 glib:get-type="cairo_gobject_line_cap_get_type">
+      <member name="butt"
+	      value="0"
+	      c:identifier="CAIRO_LINE_CAP_BUTT"/>
+      <member name="round"
+	      value="1"
+	      c:identifier="CAIRO_LINE_CAP_ROUND"/>
+      <member name="square"
+	      value="2"
+	      c:identifier="CAIRO_LINE_CAP_SQUARE"/>
+    </enumeration>
+    <enumeration name="LineJoin" c:type="cairo_line_join_t"
+		 glib:type-name="cairo_line_join_t"
+		 glib:get-type="cairo_gobject_line_join_get_type">
+      <member name="miter"
+	      value="0"
+	      c:identifier="CAIRO_LINE_JOIN_MITER"/>
+      <member name="round"
+	      value="1"
+	      c:identifier="CAIRO_LINE_JOIN_ROUND"/>
+      <member name="bevel"
+	      value="2"
+	      c:identifier="CAIRO_LINE_JOIN_BEVEL"/>
+    </enumeration>
+    <enumeration name="TextClusterFlags" c:type="cairo_text_cluster_flags_t"
+		 glib:type-name="cairo_text_cluster_flags_t"
+		 glib:get-type="cairo_gobject_text_cluster_flags_get_type">
+      <member name="backward"
+	      value="1"
+	      c:identifier="CAIRO_TEXT_CLUSTER_FLAG_BACKWARD"/>
+    </enumeration>
+    <enumeration name="FontSlant" c:type="cairo_font_slant_t"
+		 glib:type-name="cairo_font_slant_t"
+		 glib:get-type="cairo_gobject_font_slant_get_type">
+      <member name="normal"
+	      value="0"
+	      c:identifier="CAIRO_FONT_SLANT_NORMAL"/>
+      <member name="italic"
+	      value="1"
+	      c:identifier="CAIRO_FONT_SLANT_ITALIC"/>
+      <member name="oblique"
+	      value="2"
+	      c:identifier="CAIRO_FONT_SLANT_OBLIQUE"/>
+    </enumeration>
+    <enumeration name="FontWeight" c:type="cairo_font_weight_t"
+		 glib:type-name="cairo_font_weight_t"
+		 glib:get-type="cairo_gobject_font_weight_get_type">
+      <member name="normal"
+	      value="0"
+	      c:identifier="CAIRO_FONT_WEIGHT_NORMAL"/>
+      <member name="bold"
+	      value="1"
+	      c:identifier="CAIRO_FONT_WEIGHT_BOLD"/>
+    </enumeration>
+    <enumeration name="SubpixelOrder" c:type="cairo_subpixel_order_t"
+		 glib:type-name="cairo_subpixel_order_t"
+		 glib:get-type="cairo_gobject_subpixel_order_get_type">
+      <member name="default"
+	      value="0"
+	      c:identifier="CAIRO_SUBPIXEL_ORDER_DEFAULT"/>
+      <member name="rgb"
+	      value="1"
+	      c:identifier="CAIRO_SUBPIXEL_ORDER_RGB"/>
+      <member name="bgr"
+	      value="2"
+	      c:identifier="CAIRO_SUBPIXEL_ORDER_BGR"/>
+      <member name="vrgb"
+	      value="3"
+	      c:identifier="CAIRO_SUBPIXEL_ORDER_VRGB"/>
+      <member name="vbgr"
+	      value="4"
+	      c:identifier="CAIRO_SUBPIXEL_ORDER_VBGR"/>
+    </enumeration>
+    <enumeration name="HintStyle" c:type="cairo_hint_style_t"
+		 glib:type-name="cairo_hint_style_t"
+		 glib:get-type="cairo_gobject_hint_style_get_type">
+      <member name="default"
+	      value="0"
+	      c:identifier="CAIRO_HINT_STYLE_DEFAULT"/>
+      <member name="none"
+	      value="1"
+	      c:identifier="CAIRO_HINT_STYLE_NONE"/>
+      <member name="slight"
+	      value="2"
+	      c:identifier="CAIRO_HINT_STYLE_SLIGHT"/>
+      <member name="medium"
+	      value="3"
+	      c:identifier="CAIRO_HINT_STYLE_MEDIUM"/>
+      <member name="full"
+	      value="4"
+	      c:identifier="CAIRO_HINT_STYLE_FULL"/>
+    </enumeration>
+    <enumeration name="HintMetrics" c:type="cairo_hint_metrics_t"
+		 glib:type-name="cairo_hint_metrics_t"
+		 glib:get-type="cairo_gobject_hint_metrics_get_type">
+      <member name="default"
+	      value="0"
+	      c:identifier="CAIRO_HINT_METRICS_DEFAULT"/>
+      <member name="off"
+	      value="1"
+	      c:identifier="CAIRO_HINT_METRICS_OFF"/>
+      <member name="on"
+	      value="2"
+	      c:identifier="CAIRO_HINT_METRICS_ON"/>
+    </enumeration>
+    <record name="FontOptions" c:type="cairo_font_options_t" foreign="1"
+	    glib:type-name="CairoFontOptions"
+	    glib:get-type="cairo_gobject_font_options_get_type"/>
+    <enumeration name="FontType" c:type="cairo_font_type_t"
+		 glib:type-name="cairo_font_type_t"
+		 glib:get-type="cairo_gobject_font_type_get_type">
+      <member name="toy"
+	      value="0"
+	      c:identifier="CAIRO_FONT_TYPE_TOY"/>
+      <member name="ft"
+	      value="1"
+	      c:identifier="CAIRO_FONT_TYPE_FT"/>
+      <member name="win32"
+	      value="2"
+	      c:identifier="CAIRO_FONT_TYPE_WIN32"/>
+      <member name="quartz"
+	      value="3"
+	      c:identifier="CAIRO_FONT_TYPE_QUARTZ"/>
+      <member name="user"
+	      value="4"
+	      c:identifier="CAIRO_FONT_TYPE_USER"/>
+    </enumeration>
+    <enumeration name="PathDataType" c:type="cairo_path_data_type_t"
+		 glib:type-name="cairo_path_data_type_t"
+		 glib:get-type="cairo_gobject_path_data_type_get_type">
+      <member name="move_to"
+	      value="0"
+	      c:identifier="CAIRO_PATH_MOVE_TO"/>
+      <member name="line_to"
+	      value="1"
+	      c:identifier="CAIRO_PATH_LINE_TO"/>
+      <member name="curve_to"
+	      value="2"
+	      c:identifier="CAIRO_PATH_CURVE_TO"/>
+      <member name="close_path"
+	      value="3"
+	      c:identifier="CAIRO_PATH_CLOSE_PATH"/>
+    </enumeration>
+    <enumeration name="DeviceType" c:type="cairo_device_type_t"
+		 glib:type-name="cairo_device_type_t"
+		 glib:get-type="cairo_gobject_device_type_get_type">
+      <member name="drm"
+	      value="0"
+	      c:identifier="CAIRO_DEVICE_TYPE_DRM"/>
+      <member name="gl"
+	      value="1"
+	      c:identifier="CAIRO_DEVICE_TYPE_GL"/>
+      <member name="script"
+	      value="2"
+	      c:identifier="CAIRO_DEVICE_TYPE_SCRIPT"/>
+      <member name="xcb"
+	      value="3"
+	      c:identifier="CAIRO_DEVICE_TYPE_XCB"/>
+      <member name="xlib"
+	      value="4"
+	      c:identifier="CAIRO_DEVICE_TYPE_XLIB"/>
+      <member name="xml"
+	      value="5"
+	      c:identifier="CAIRO_DEVICE_TYPE_XML"/>
+      <member name="cogl"
+	      value="6"
+	      c:identifier="CAIRO_DEVICE_TYPE_COGL"/>
+      <member name="win32"
+	      value="7"
+	      c:identifier="CAIRO_DEVICE_TYPE_WIN32"/>
+      <member name="invalid"
+	      value="-1"
+	      c:identifier="CAIRO_DEVICE_TYPE_INVALID"/>
+    </enumeration>
+    <enumeration name="SurfaceType" c:type="cairo_surface_type_t"
+		 glib:type-name="cairo_surface_type_t"
+		 glib:get-type="cairo_gobject_surface_type_get_type">
+      <member name="image"
+	      value="0"
+	      c:identifier="CAIRO_SURFACE_TYPE_IMAGE"/>
+      <member name="pdf"
+	      value="1"
+	      c:identifier="CAIRO_SURFACE_TYPE_PDF"/>
+      <member name="ps"
+	      value="2"
+	      c:identifier="CAIRO_SURFACE_TYPE_PS"/>
+      <member name="xlib"
+	      value="3"
+	      c:identifier="CAIRO_SURFACE_TYPE_XLIB"/>
+      <member name="xcb"
+	      value="4"
+	      c:identifier="CAIRO_SURFACE_TYPE_XCB"/>
+      <member name="glitz"
+	      value="5"
+	      c:identifier="CAIRO_SURFACE_TYPE_GLITZ"/>
+      <member name="quartz"
+	      value="6"
+	      c:identifier="CAIRO_SURFACE_TYPE_QUARTZ"/>
+      <member name="win32"
+	      value="7"
+	      c:identifier="CAIRO_SURFACE_TYPE_WIN32"/>
+      <member name="beos"
+	      value="8"
+	      c:identifier="CAIRO_SURFACE_TYPE_BEOS"/>
+      <member name="directfb"
+	      value="9"
+	      c:identifier="CAIRO_SURFACE_TYPE_DIRECTFB"/>
+      <member name="svg"
+	      value="10"
+	      c:identifier="CAIRO_SURFACE_TYPE_SVG"/>
+      <member name="os2"
+	      value="11"
+	      c:identifier="CAIRO_SURFACE_TYPE_OS2"/>
+      <member name="win32_printing"
+	      value="12"
+	      c:identifier="CAIRO_SURFACE_TYPE_WIN32_PRINTING"/>
+      <member name="quartz_image"
+	      value="13"
+	      c:identifier="CAIRO_SURFACE_TYPE_QUARTZ_IMAGE"/>
+      <member name="script"
+	      value="14"
+	      c:identifier="CAIRO_SURFACE_TYPE_SCRIPT"/>
+      <member name="qt"
+	      value="15"
+	      c:identifier="CAIRO_SURFACE_TYPE_QT"/>
+      <member name="recording"
+	      value="16"
+	      c:identifier="CAIRO_SURFACE_TYPE_RECORDING"/>
+      <member name="vg"
+	      value="17"
+	      c:identifier="CAIRO_SURFACE_TYPE_VG"/>
+      <member name="gl"
+	      value="18"
+	      c:identifier="CAIRO_SURFACE_TYPE_GL"/>
+      <member name="drm"
+	      value="19"
+	      c:identifier="CAIRO_SURFACE_TYPE_DRM"/>
+      <member name="tee"
+	      value="20"
+	      c:identifier="CAIRO_SURFACE_TYPE_TEE"/>
+      <member name="xml"
+	      value="21"
+	      c:identifier="CAIRO_SURFACE_TYPE_XML"/>
+      <member name="skia"
+	      value="22"
+	      c:identifier="CAIRO_SURFACE_TYPE_SKIA"/>
+      <member name="subsurface"
+	      value="23"
+	      c:identifier="CAIRO_SURFACE_TYPE_SUBSURFACE"/>
+      <member name="cogl"
+	      value="24"
+	      c:identifier="CAIRO_SURFACE_TYPE_COGL"/>
+    </enumeration>
+    <enumeration name="Format" c:type="cairo_format_t"
+		 glib:type-name="cairo_format_t"
+		 glib:get-type="cairo_gobject_format_get_type">
+      <member name="invalid"
+	      value="-1"
+	      c:identifier="CAIRO_FORMAT_INVALID"/>
+      <member name="argb32"
+	      value="0"
+	      c:identifier="CAIRO_FORMAT_ARGB32"/>
+      <member name="rgb24"
+	      value="1"
+	      c:identifier="CAIRO_FORMAT_RGB24"/>
+      <member name="a8"
+	      value="2"
+	      c:identifier="CAIRO_FORMAT_A8"/>
+      <member name="a1"
+	      value="3"
+	      c:identifier="CAIRO_FORMAT_A1"/>
+      <member name="rgb16_565"
+	      value="4"
+	      c:identifier="CAIRO_FORMAT_RGB16_565"/>
+      <member name="rgb30"
+	      value="5"
+	      c:identifier="CAIRO_FORMAT_RGB30"/>
+    </enumeration>
+    <enumeration name="PatternType" c:type="cairo_pattern_type_t"
+		 glib:type-name="cairo_pattern_type_t"
+		 glib:get-type="cairo_gobject_pattern_type_get_type">
+      <member name="solid"
+	      value="0"
+	      c:identifier="CAIRO_PATTERN_TYPE_SOLID"/>
+      <member name="surface"
+	      value="1"
+	      c:identifier="CAIRO_PATTERN_TYPE_SURFACE"/>
+      <member name="linear"
+	      value="2"
+	      c:identifier="CAIRO_PATTERN_TYPE_LINEAR"/>
+      <member name="radial"
+	      value="3"
+	      c:identifier="CAIRO_PATTERN_TYPE_RADIAL"/>
+      <member name="mesh"
+	      value="4"
+	      c:identifier="CAIRO_PATTERN_TYPE_MESH"/>
+      <member name="raster_source"
+	      value="5"
+	      c:identifier="CAIRO_PATTERN_TYPE_RASTER_SOURCE"/>
+    </enumeration>
+    <enumeration name="Extend" c:type="cairo_extend_t"
+		 glib:type-name="cairo_extend_t"
+		 glib:get-type="cairo_gobject_extend_get_type">
+      <member name="none"
+	      value="0"
+	      c:identifier="CAIRO_EXTEND_NONE"/>
+      <member name="repeat"
+	      value="1"
+	      c:identifier="CAIRO_EXTEND_REPEAT"/>
+      <member name="reflect"
+	      value="2"
+	      c:identifier="CAIRO_EXTEND_REFLECT"/>
+      <member name="pad"
+	      value="3"
+	      c:identifier="CAIRO_EXTEND_PAD"/>
+    </enumeration>
+    <enumeration name="Filter" c:type="cairo_filter_t"
+		 glib:type-name="cairo_filter_t"
+		 glib:get-type="cairo_gobject_filter_get_type">
+      <member name="fast"
+	      value="0"
+	      c:identifier="CAIRO_FILTER_FAST"/>
+      <member name="good"
+	      value="1"
+	      c:identifier="CAIRO_FILTER_GOOD"/>
+      <member name="best"
+	      value="2"
+	      c:identifier="CAIRO_FILTER_BEST"/>
+      <member name="nearest"
+	      value="3"
+	      c:identifier="CAIRO_FILTER_NEAREST"/>
+      <member name="bilinear"
+	      value="4"
+	      c:identifier="CAIRO_FILTER_BILINEAR"/>
+      <member name="gaussian"
+	      value="5"
+	      c:identifier="CAIRO_FILTER_GAUSSIAN"/>
+    </enumeration>
+    <enumeration name="RegionOverlap" c:type="cairo_region_overlap_t"
+		 glib:type-name="cairo_region_overlap_t"
+		 glib:get-type="cairo_gobject_region_overlap_get_type">
+      <member name="in"
+	      value="0"
+	      c:identifier="CAIRO_REGION_OVERLAP_IN"/>
+      <member name="out"
+	      value="1"
+	      c:identifier="CAIRO_REGION_OVERLAP_OUT"/>
+      <member name="part"
+	      value="2"
+	      c:identifier="CAIRO_REGION_OVERLAP_PART"/>
+    </enumeration>
+    <record name="FontFace" c:type="cairo_font_face_t" foreign="1"
+	    glib:type-name="CairoFontFace"
+	    glib:get-type="cairo_gobject_font_face_get_type"/>
+    <record name="ScaledFont" c:type="cairo_scaled_font_t" foreign="1"
+	    glib:type-name="CairoScaledFont"
+	    glib:get-type="cairo_gobject_scaled_font_get_type"/>
+    <record name="Path" c:type="cairo_path_t" foreign="1"/>
+    <record name="Rectangle" c:type="cairo_rectangle_t"
+            glib:type-name="CairoRectangle"
+            glib:get-type="cairo_gobject_rectangle_get_type">
+      <field name="x" writable="1">
+        <type name="gdouble" c:type="gdouble"/>
+      </field>
+      <field name="y" writable="1">
+        <type name="gdouble" c:type="gdouble"/>
+      </field>
+      <field name="width" writable="1">
+        <type name="gdouble" c:type="gdouble"/>
+      </field>
+      <field name="height" writable="1">
+        <type name="gdouble" c:type="gdouble"/>
+      </field>
+    </record>
+    <record name="RectangleInt" c:type="cairo_rectangle_int_t"
+	    glib:type-name="CairoRectangleInt"
+	    glib:get-type="cairo_gobject_rectangle_int_get_type">
+      <field name="x" writable="1">
+	<type name="gint" c:type="gint"/>
+      </field>
+      <field name="y" writable="1">
+	<type name="gint" c:type="gint"/>
+      </field>
+      <field name="width" writable="1">
+	<type name="gint" c:type="gint"/>
+      </field>
+      <field name="height" writable="1">
+	<type name="gint" c:type="gint"/>
+      </field>
+    </record>
+    <function name="image_surface_create" c:identifier="cairo_image_surface_create">
+      <return-value transfer-ownership="none">
+	<type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

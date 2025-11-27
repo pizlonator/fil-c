@@ -1,0 +1,60 @@
+Problem statement
+=================
+On-disk registry for mapping namespace to typelib. 
+Conceptually similar to mono /etc/mono/config.
+
+It should be possible in a dynamic language such as python to just do:
+
+>>> import PythonIntrospectionBindings
+>>> import Gtk
+
+
+Gtk should be a special namespace provided by the package containing the
+Gtk namespace
+
+Layout of the on disk tool
+==========================
+
+Location to should be /var/lib/glib/introspection-registry.xml
+Should be read completely. Not expected to be larger than one page on most
+systems.
+
+Layout in XML:
+
+<root>
+  <registry-path location="/usr/lib/typelibs/1.0/">
+  <registry-path location="$HOME/.typelibs/">
+  <entry namespace="Gtk" 
+         library-location="libgtk-x11-2.0.so.0"
+         typelib-location="gtk.typelib"/>
+</root>
+
+FIXME: version?
+FIXME: pkg-config name?
+
+The overhead should be reduced to a minimum, both runtime and memory footprint.
+Thus a binary format that is mmap(2):able is ideal:
+
+gir-registry-tool
+================
+Is a command line utility, probably written in C which should be used
+to update/modify the registry.
+
+Example use cases, installing a new typelib
+
+gir-registry-tool --install Gtk /usr/lib/glib/introspection/gtk.typelib 2.12.0
+gir-registry-tool --uninstall Gtk /usr/lib/glib/introspection/gtk.typelib 2.12.0
+
+It's the registry tools responsibility to sort the disk format.
+
+API
+===
+
+libgirepository should provide an api:
+
+gi_locale_typelib (const gchar *name, const gchar * version);
+
+version should NULL, if so it should pick the first one in the on-disk registry.
+
+libgirepository should mmap the registry and read it when that API is called
+the first time.

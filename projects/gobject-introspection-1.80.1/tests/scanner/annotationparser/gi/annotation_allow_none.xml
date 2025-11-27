@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_inout:
+ * @object: a #GObject
+ * @inoutarg: (inout) (allow-none): This is an argument test
+ *
+ * This is a test for out arguments
+ *
+ * Return value: (allow-none): an int
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_inout</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>inoutarg</name>
+          <annotations>
+            <annotation>
+              <name>inout</name>
+            </annotation>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for out arguments</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+          </annotations>
+          <description>an int</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_inout:
+ * @object: a #GObject
+ * @inoutarg: (inout) (allow-none): This is an argument test
+ *
+ * This is a test for out arguments
+ *
+ * Returns: (allow-none): an int
+ */</output>
+</test>
+
+</tests>

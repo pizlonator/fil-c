@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<page id="Regress.TestInterface-interface-signal"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestInterface" group="signal" type="guide"/>
+    <title type="link" role="topic">interface-signal</title>
+  </info>
+  <title>Regress.TestInterface::interface-signal</title>
+  <synopsis><code mime="text/x-csrc">
+void interface-signal (gpointer ptr);
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>ptr</code></title>
+  <p>the code must look up the signal with
+  g_interface_info_find_signal() in order to get this to work.</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

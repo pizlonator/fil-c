@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<page id="Regress.annotation_custom_destroy"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_annotation_custom_destroy</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationCallback</api:type>
+        <api:name>callback</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>RegressAnnotationNotifyFunc</api:type>
+        <api:name>destroy</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gpointer</api:type>
+        <api:name>data</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_custom_destroy</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_annotation_custom_destroy (RegressAnnotationCallback callback,
+                                        RegressAnnotationNotifyFunc destroy,
+                                        gpointer data);
+  </code></synopsis>
+  <p>Test messing up the heuristic of closure/destroy-notification
+detection, and fixing it via annotations.</p>
+
+<terms>
+<item>
+<title><code>callback</code></title>
+  <p>Destroy notification</p>
+</item>
+<item>
+<title><code>destroy</code></title>
+
+</item>
+<item>
+<title><code>data</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

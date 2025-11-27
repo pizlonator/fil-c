@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<page id="Regress.test_callback_destroy_notify"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>int</api:type>
+      </api:returns>
+      <api:name>regress_test_callback_destroy_notify</api:name>
+      <api:arg>
+        <api:type>RegressTestCallbackUserData</api:type>
+        <api:name>callback</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gpointer</api:type>
+        <api:name>user_data</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GDestroyNotify</api:type>
+        <api:name>notify</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_test_callback_destroy_notify</title>
+  <synopsis><code mime="text/x-csrc">
+int regress_test_callback_destroy_notify (RegressTestCallbackUserData callback,
+                                          gpointer user_data,
+                                          GDestroyNotify notify);
+  </code></synopsis>
+  <p>Notified - callback persists until a DestroyNotify delegate
+is invoked.</p>
+
+<terms>
+<item>
+<title><code>callback</code></title>
+
+</item>
+<item>
+<title><code>user_data</code></title>
+
+</item>
+<item>
+<title><code>notify</code></title>
+
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

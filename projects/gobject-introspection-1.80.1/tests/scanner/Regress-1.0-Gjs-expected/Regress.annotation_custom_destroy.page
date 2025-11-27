@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page id="Regress.annotation_custom_destroy"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_annotation_custom_destroy</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationCallback</api:type>
+        <api:name>callback</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.annotation_custom_destroy</title>
+  <synopsis><code mime="text/x-gjs">
+function annotation_custom_destroy(callback: <link xref="Regress.AnnotationCallback">Regress.AnnotationCallback</link>): void {
+    // Gjs wrapper for regress_annotation_custom_destroy()
+}
+  </code></synopsis>
+  <p>Test messing up the heuristic of closure/destroy-notification
+detection, and fixing it via annotations.</p>
+
+<terms>
+<item>
+<title><code>callback</code></title>
+  <p>Destroy notification</p>
+</item>
+</terms>
+
+</page>

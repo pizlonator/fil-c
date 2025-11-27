@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Deprecated: 0.6: Use something else instead
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>0.6</value>
+          <description>Use something else instead</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Deprecated: 0.6: Use something else instead
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_versioned:
+ *
+ * Deprecated: 0.6
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_versioned</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>0.6</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_versioned:
+ *
+ * Deprecated: 0.6
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Deprecated: (allow-none): 2.24
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_tag_not_annotatable</name>
+      </identifier>
+      <description>Tags (except Returns:) don't have annotations</description>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>2.24</value>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Error: Test: annotations not supported for tag "Deprecated:".</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_tag_not_annotatable:
+ *
+ * Tags (except Returns:) don't have annotations
+ *
+ * Deprecated: 2.24
+ */</output>
+</test>
+
+<test>
+  <!--
+  Multiple "Deprecated:" tags
+  -->
+  <input>/**
+ * test_multiple_tags:
+ *
+ * Deprecated: 3.0
+ * Deprecated: 2.0
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiple_tags</name>
+      </identifier>
+      <tags>
+        <tag>
+          <name>deprecated</name>
+          <value>2.0</value>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>5: Error: Test: multiple "Deprecated:" tags for identifier "test_multiple_tags":
+ * Deprecated: 2.0
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_multiple_tags:
+ *
+ * Deprecated: 2.0
+ */</output>
+</test>
+
+</tests>

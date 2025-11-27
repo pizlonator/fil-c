@@ -1,0 +1,34 @@
+<%inherit file="base.tmpl"/>
+% if isinstance(node, ast.Constant):
+  <dl>
+    <dt>Value</dt>
+    <dd>
+      <code data-mime="application/javascript"><!--
+      -->${formatter.format_value(node)}</code>
+    </dd>
+  </dl>
+% endif
+% if isinstance(node, ast.Alias):
+  <dl>
+    <dt>Equivalent Type</dt>
+    <dd>
+      <code data-mime="application/javascript">
+        % if node.target.target_fundamental:
+          ${formatter.format_fundamental_type(node.target.target_fundamental)}
+        % else:
+          ${node.target.target_giname}
+        % endif
+      </code>
+    </dd>
+  </dl>
+% endif
+
+## This should belong in get_node_kind(), but we don't want to change the way
+## all the other templates work.
+<%def name="extra_class()">
+  % if isinstance(node, ast.Constant):
+    constant
+  % elif isinstance(node, ast.Alias):
+    alias
+  % endif
+</%def>

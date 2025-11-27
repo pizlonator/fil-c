@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * SECTION:types
+ * @title: GtkdocTypes
+ * @short_description: other gobject types for gtk-doc unit test
+ * @see_also: #GtkdocObject, #GtkdocIface
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:types</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>title</name>
+          <description>GtkdocTypes</description>
+        </parameter>
+        <parameter>
+          <name>short_description</name>
+          <description>other gobject types for gtk-doc unit test</description>
+        </parameter>
+        <parameter>
+          <name>see_also</name>
+          <description>#GtkdocObject, #GtkdocIface</description>
+        </parameter>
+      </parameters>
+      <description>This file contains non-sense code for the sole purpose of testing the docs.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:types
+ * @title: GtkdocTypes
+ * @short_description: other gobject types for gtk-doc unit test
+ * @see_also: #GtkdocObject, #GtkdocIface
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ */</output>
+</test>
+
+</tests>

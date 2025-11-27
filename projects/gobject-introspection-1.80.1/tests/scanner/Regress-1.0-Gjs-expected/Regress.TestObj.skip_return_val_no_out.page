@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj.skip_return_val_no_out"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>Boolean</api:type>
+      </api:returns>
+      <api:name>regress_test_obj_skip_return_val_no_out</api:name>
+      <api:arg>
+        <api:type>Number(gint)</api:type>
+        <api:name>a</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.TestObj.prototype.skip_return_val_no_out</title>
+  <synopsis><code mime="text/x-gjs">
+function skip_return_val_no_out(a: Number(gint)): Boolean {
+    // Gjs wrapper for regress_test_obj_skip_return_val_no_out()
+}
+  </code></synopsis>
+  <p>Check that the return value is skipped. Succeed if a is nonzero, otherwise
+raise an error.</p>
+
+<terms>
+<item>
+<title><code>a</code></title>
+  <p>Parameter.</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+  <p><code>true</code> if the call succeeds, <code>false</code> if @error is set.</p>
+</item>
+</terms>
+
+</page>

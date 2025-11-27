@@ -1,0 +1,38 @@
+<%inherit file="/base.tmpl"/>
+<%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+    <title type="link" role="topic">${node.name}</title>
+</%block>
+<%block name="synopsis">
+  <synopsis><code mime="text/x-gjs">
+connect('${node.name}', function (${formatter.to_lower_camel_case(node.parent.name)}, \
+% for arg in formatter.get_in_parameters(node):
+% if arg.type.target_fundamental != 'none':
+${arg.argname}: ${formatter.format_type(arg.type, True)}, \
+% endif
+% endfor
+): ${formatter.format_type(node.retval.type, True)});
+  </code></synopsis></%block>
+<%block name="details">
+<terms>
+<item>
+<title><code>${formatter.to_lower_camel_case(node.parent.name)}</code></title>
+<p>instance of ${formatter.format_xref(node.parent)} that is emitting the signal</p>
+</item>
+% for arg in formatter.get_in_parameters(node):
+<item>
+<title><code>${arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+% if node.retval and \
+     node.retval.type.ctype != 'void' and \
+     node.retval.type.ctype is not None:
+<item>
+<title><code>Returns</code></title>
+${formatter.format(node, node.retval.doc)}
+</item>
+% endif
+</terms>
+</%block>
+

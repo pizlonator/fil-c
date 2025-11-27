@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_compute_sum:
+ * @nums: (array): Sequence of numbers
+ *
+ * Test taking a zero-terminated array
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_compute_sum</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>nums</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+            </annotation>
+          </annotations>
+          <description>Sequence of numbers</description>
+        </parameter>
+      </parameters>
+      <description>Test taking a zero-terminated array</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_compute_sum:
+ * @nums: (array): Sequence of numbers
+ *
+ * Test taking a zero-terminated array
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_compute_sum_n:
+ * @object: a #AnnotationObject
+ * @nums: (array length=n_nums zero-terminated=0): Sequence of
+ *   numbers that are zero-terminated
+ * @n_nums: Length of number array
+ *
+ * Test taking an array with length parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_compute_sum_n</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>nums</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                  <value>n_nums</value>
+                </option>
+                <option>
+                  <name>zero-terminated</name>
+                  <value>0</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>Sequence of
+  numbers that are zero-terminated</description>
+        </parameter>
+        <parameter>
+          <name>n_nums</name>
+          <description>Length of number array</description>
+        </parameter>
+      </parameters>
+      <description>Test taking an array with length parameter</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_compute_sum_n:
+ * @object: a #AnnotationObject
+ * @nums: (array length=n_nums zero-terminated=0): Sequence of
+ *   numbers that are zero-terminated
+ * @n_nums: Length of number array
+ *
+ * Test taking an array with length parameter
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_compute_sum_nz:
+ * @object: a #AnnotationObject
+ * @nums: (array length=n_nums zero-terminated=1): Sequence of numbers that
+ * are zero-terminated
+ * @n_nums: Length of number array
+ *
+ * Test taking a zero-terminated array with length parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_compute_sum_nz</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>nums</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                  <value>n_nums</value>
+                </option>
+                <option>
+                  <name>zero-terminated</name>
+                  <value>1</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>Sequence of numbers that
+are zero-terminated</description>
+        </parameter>
+        <parameter>
+          <name>n_nums</name>
+          <description>Length of number array</description>
+        </parameter>
+      </parameters>
+      <description>Test taking a zero-terminated array with length parameter</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_compute_sum_nz:
+ * @object: a #AnnotationObject
+ * @nums: (array length=n_nums zero-terminated=1): Sequence of numbers that
+ * are zero-terminated
+ * @n_nums: Length of number array
+ *
+ * Test taking a zero-terminated array with length parameter
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_parse_args:
+ * @object: a #AnnotationObject
+ * @argc: (inout): Length of the argument vector
+ * @argv: (inout) (array length=argc zero-terminated): Argument vector
+ *
+ * Test taking a zero-terminated array with length parameter
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_parse_args</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>argc</name>
+          <annotations>
+            <annotation>
+              <name>inout</name>
+            </annotation>
+          </annotations>
+          <description>Length of the argument vector</description>
+        </parameter>
+        <parameter>
+          <name>argv</name>
+          <annotations>
+            <annotation>
+              <name>inout</name>
+            </annotation>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                  <value>argc</value>
+                </option>
+                <option>
+                  <name>zero-terminated</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>Argument vector</description>
+        </parameter>
+      </parameters>
+      <description>Test taking a zero-terminated array with length parameter</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_parse_args:
+ * @object: a #AnnotationObject
+ * @argc: (inout): Length of the argument vector
+ * @argv: (inout) (array length=argc zero-terminated): Argument vector
+ *
+ * Test taking a zero-terminated array with length parameter
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_set_data:
+ * @object: a #AnnotationObject
+ * @data: (array length=length): The data
+ * @length: Length of the data
+ *
+ * Test taking a guchar * with a length.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_set_data</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>data</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                  <value>length</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>The data</description>
+        </parameter>
+        <parameter>
+          <name>length</name>
+          <description>Length of the data</description>
+        </parameter>
+      </parameters>
+      <description>Test taking a guchar * with a length.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_set_data:
+ * @object: a #AnnotationObject
+ * @data: (array length=length): The data
+ * @length: Length of the data
+ *
+ * Test taking a guchar * with a length.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_string_zero_terminated:
+ * @data: (array fixed-size=2): a third value
+ *
+ * Return value: (transfer full) (array zero-terminated=1): The return value
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_string_zero_terminated</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>data</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>fixed-size</name>
+                  <value>2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a third value</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>zero-terminated</name>
+                  <value>1</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>The return value</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_string_zero_terminated:
+ * @data: (array fixed-size=2): a third value
+ *
+ * Returns: (transfer full) (array zero-terminated=1): The return value
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_string_zero_terminated:
+ * @data: (array invalid fixed-size=2): a third value
+ *
+ * Return value: (transfer full) (array zero-terminated=1): The return value
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_string_zero_terminated</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>data</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>invalid</name>
+                </option>
+                <option>
+                  <name>fixed-size</name>
+                  <value>2</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a third value</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>zero-terminated</name>
+                  <value>1</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>The return value</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: invalid "array" annotation option: "invalid"</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_string_zero_terminated:
+ * @data: (array invalid fixed-size=2): a third value
+ *
+ * Returns: (transfer full) (array zero-terminated=1): The return value
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_array_fixed_size:
+ * @data1: (array fixed-size): a value
+ * @data2: (array fixed-size=a): a value
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_array_fixed_size</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>data1</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>fixed-size</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a value</description>
+        </parameter>
+        <parameter>
+          <name>data2</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>fixed-size</name>
+                  <value>a</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>a value</description>
+        </parameter>
+      </parameters>
+    </docblock>
+    <messages>
+      <message>3: Warning: Test: "array" annotation option "fixed-size" needs a value</message>
+      <message>4: Warning: Test: invalid "array" annotation option "fixed-size" value "a", must be an integer</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_array_fixed_size:
+ * @data1: (array fixed-size): a value
+ * @data2: (array fixed-size=a): a value
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * g_app_launch_context_get_environment:
+ * @arg1: (array zero-terminated): ...
+ * @arg2: (array length): ...
+ *
+ * Returns: (array zero-terminated=yes): the child's environment
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>g_app_launch_context_get_environment</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>arg1</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>zero-terminated</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>...</description>
+        </parameter>
+        <parameter>
+          <name>arg2</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>length</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>...</description>
+        </parameter>
+      </parameters>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <annotations>
+            <annotation>
+              <name>array</name>
+              <options>
+                <option>
+                  <name>zero-terminated</name>
+                  <value>yes</value>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the child's environment</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "array" annotation option "length" needs a value</message>
+      <message>6: Warning: Test: invalid "array" annotation option "zero-terminated" value "yes", must be 0 or 1</message>
+    </messages>
+  </parser>
+  <output>/**
+ * g_app_launch_context_get_environment:
+ * @arg1: (array zero-terminated): ...
+ * @arg2: (array length): ...
+ *
+ * Returns: (array zero-terminated=yes): the child's environment
+ */</output>
+</test>
+
+</tests>

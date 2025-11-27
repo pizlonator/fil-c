@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<page id="Regress.FooObject.various"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.FooObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_foo_object_various</api:name>
+      <api:arg>
+        <api:type>Regress.FooObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gpointer</api:type>
+        <api:name>data</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GType</api:type>
+        <api:name>some_type</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.FooObject.various</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.FooObject, gpointer, GType)
+@returns(none)
+def various(self, data, some_type):
+    # Python wrapper for regress_foo_object_various()
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>self</code></title>
+
+</item>
+<item>
+<title><code>data</code></title>
+
+</item>
+<item>
+<title><code>some_type</code></title>
+
+</item>
+</terms>
+
+</page>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch_full</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_object_watch</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>A #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>func</name>
+          <description>The callback</description>
+        </parameter>
+        <parameter>
+          <name>user_data</name>
+          <description>The callback data</description>
+        </parameter>
+        <parameter>
+          <name>destroy</name>
+          <description>Destroy notification</description>
+        </parameter>
+      </parameters>
+      <description>Test overriding via the "Rename To" annotation.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Rename to:" tag syntax
+  -->
+  <input>/**
+ * annotation_object_watch_full:
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ *
+ * Rename to: annotation_object_watch
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch_full</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_object_watch</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>A #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>func</name>
+          <description>The callback</description>
+        </parameter>
+        <parameter>
+          <name>user_data</name>
+          <description>The callback data</description>
+        </parameter>
+        <parameter>
+          <name>destroy</name>
+          <description>Destroy notification</description>
+        </parameter>
+      </parameters>
+      <description>Test overriding via the "Rename To" annotation.</description>
+    </docblock>
+    <messages>
+      <message>10: Warning: Test: GObject-Introspection specific GTK-Doc tag "Rename to" has been deprecated, please use annotations on the identifier instead:
+ * Rename to: annotation_object_watch
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated "Rename to:" tag syntax in the wrong location
+  -->
+  <input>/**
+ * annotation_object_watch_full:
+ *
+ * Rename to: annotation_object_watch
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch_full</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_object_watch</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Test overriding via the "Rename To" annotation.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: GObject-Introspection specific GTK-Doc tag "Rename to" has been deprecated, please use annotations on the identifier instead:
+ * Rename to: annotation_object_watch
+   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch)
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch=invalid)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch_full</name>
+        <annotations>
+          <annotation>
+            <name>rename-to</name>
+            <options>
+              <option>
+                <name>annotation_object_watch=invalid</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>A #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>func</name>
+          <description>The callback</description>
+        </parameter>
+        <parameter>
+          <name>user_data</name>
+          <description>The callback data</description>
+        </parameter>
+        <parameter>
+          <name>destroy</name>
+          <description>Destroy notification</description>
+        </parameter>
+      </parameters>
+      <description>Test overriding via the "Rename To" annotation.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+ * annotation_object_watch_full: (rename-to annotation_object_watch=invalid)
+                                                                   ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_watch_full: (rename-to annotation_object_watch=invalid)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ * @destroy: Destroy notification
+ *
+ * Test overriding via the "Rename To" annotation.
+ */</output>
+</test>
+
+</tests>

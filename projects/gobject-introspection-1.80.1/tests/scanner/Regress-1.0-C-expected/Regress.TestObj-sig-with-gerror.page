@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page id="Regress.TestObj-sig-with-gerror"
+      type="topic"
+      style="signal"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.TestObj" group="signal" type="guide"/>
+    <title type="link" role="topic">sig-with-gerror</title>
+  </info>
+  <title>Regress.TestObj::sig-with-gerror</title>
+  <synopsis><code mime="text/x-csrc">
+void sig-with-gerror (GError error);
+  </code></synopsis>
+  <p>This signal is modeled after #GstDiscoverer::discovered, and is added to
+exercise the path of a <link href="../GLib-2.0/GLib.Error.html">GLib.Error</link> being marshalled as a boxed type instead of
+an exception in the introspected language.</p>  <p>Use via <link xref="Regress.TestObj.emit_sig_with_error"/> and
+<link xref="Regress.TestObj.emit_sig_with_null_error"/>, or emit via the introspected
+language.</p>
+
+<terms>
+<item>
+<title><code>error</code></title>
+  <p>A <link href="../GLib-2.0/GLib.Error.html">GLib.Error</link> if something went wrong
+  internally in @self. You must not free this <link href="../GLib-2.0/GLib.Error.html">GLib.Error</link>.</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

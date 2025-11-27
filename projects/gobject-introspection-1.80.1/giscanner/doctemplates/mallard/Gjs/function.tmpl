@@ -1,0 +1,47 @@
+<%inherit file="/base.tmpl"/>
+<%block name="info">
+    ${formatter.format_xref(node.parent, type="guide", group=page_kind)}
+    <api:function>
+      <api:returns>
+        <api:type>${formatter.format_type(node.retval.type) | x}</api:type>
+      </api:returns>
+      <api:name>${node.symbol}</api:name>
+% for arg in formatter.get_in_parameters(node):
+% if arg.type.ctype == '<varargs>':
+      <api:varargs/>
+% else:
+      <api:arg>
+        <api:type>${formatter.format_type(arg.type) | x}</api:type>
+        <api:name>${formatter.format_parameter_name(node, arg)}</api:name>
+      </api:arg>
+% endif
+% endfor
+    </api:function>
+</%block>
+<%block name="synopsis">
+  <synopsis><code mime="text/x-gjs">
+function \
+${node.name if node.shadows is None else node.shadows}(\
+${', '.join('%s: %s' % (arg.argname, formatter.format_type(arg.type, True)) for arg in formatter.get_in_parameters(node))}\
+): ${formatter.format_out_parameters(node)} {
+    // Gjs wrapper for ${node.symbol}()
+}
+  </code></synopsis></%block>
+<%block name="details">
+% if formatter.has_any_parameters(node):
+<terms>
+% for arg in formatter.get_in_parameters(node):
+<item>
+<title><code>${arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+% for arg in formatter.get_out_parameters(node):
+<item>
+<title><code>${(arg.argname + ' (out)') if arg.direction == 'inout' else arg.argname}</code></title>
+${formatter.format(node, arg.doc)}
+</item>
+% endfor
+</terms>
+% endif
+</%block>

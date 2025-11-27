@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.calleesowns"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>int</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_calleesowns</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GObject.Object</api:type>
+        <api:name>toown1</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>GObject.Object</api:type>
+        <api:name>toown2</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.AnnotationObject.calleesowns</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject, GObject.Object, GObject.Object)
+@returns(int)
+def calleesowns(self, toown1, toown2):
+    # Python wrapper for regress_annotation_object_calleesowns()
+  </code></synopsis>
+  <p>This is a test for out arguments, one transferred, other not</p>
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>toown1</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>toown2</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

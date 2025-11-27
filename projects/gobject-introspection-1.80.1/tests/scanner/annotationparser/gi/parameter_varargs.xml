@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * function_name:
+ * @par1:  description of parameter 1. These can extend over more than
+ * one line.
+ * @par2:  description of parameter 2
+ * @...: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ *
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>function_name</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>par1</name>
+          <description>description of parameter 1. These can extend over more than
+one line.</description>
+        </parameter>
+        <parameter>
+          <name>par2</name>
+          <description>description of parameter 2</description>
+        </parameter>
+        <parameter>
+          <name>...</name>
+          <description>a %NULL-terminated list of bars</description>
+        </parameter>
+      </parameters>
+      <description>The function description goes here. You can use @par1 to refer to parameters
+so that they are highlighted in the output. You can also use %constant
+for constants, function_name2() for functions and #GtkWidget for links to
+other declarations (which may be documented elsewhere).</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an integer.</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>2.2</value>
+        </tag>
+        <tag>
+          <name>deprecated</name>
+          <value>2.18</value>
+          <description>Use other_function() instead.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * function_name:
+ * @par1: description of parameter 1. These can extend over more than
+ * one line.
+ * @par2: description of parameter 2
+ * @...: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</output>
+</test>
+
+<test>
+  <!--
+  gtkdoc-mkdb has deprecated named __VA_ARGS__ parameter notation.
+  But there is a gcc CPP extension that, for macros, makes it possible to give a more descriptive
+  name for the variable argument than simply __VA_ARGS__. See
+  http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html for more information.
+  Encountered in the wild in for example:
+  http://git.kernel.org/?p=bluetooth/bluez.git;a=blob;f=src/log.h;h=3d34fa3774e5400c030d29a264824fe0584de2a8;hb=HEAD#l44
+  -->
+  <input>/**
+ * DBG:
+ * @fmt: format string
+ * @arg...: list of arguments
+ *
+ * Simple macro around btd_debug() which also include the function
+ * name it is called in.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>DBG</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>fmt</name>
+          <description>format string</description>
+        </parameter>
+        <parameter>
+          <name>...</name>
+          <description>list of arguments</description>
+        </parameter>
+      </parameters>
+      <description>Simple macro around btd_debug() which also include the function
+name it is called in.</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "@arg..." parameter is deprecated, please use "@..." instead:
+ * @arg...: list of arguments
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * DBG:
+ * @fmt: format string
+ * @...: list of arguments
+ *
+ * Simple macro around btd_debug() which also include the function
+ * name it is called in.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Deprecated @Vargargs parameter
+  -->
+  <input>/**
+ * function_name:
+ * @par1:  description of parameter 1. These can extend over more than
+ * one line.
+ * @par2:  description of parameter 2
+ * @Varargs: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ *
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>function_name</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>par1</name>
+          <description>description of parameter 1. These can extend over more than
+one line.</description>
+        </parameter>
+        <parameter>
+          <name>par2</name>
+          <description>description of parameter 2</description>
+        </parameter>
+        <parameter>
+          <name>...</name>
+          <description>a %NULL-terminated list of bars</description>
+        </parameter>
+      </parameters>
+      <description>The function description goes here. You can use @par1 to refer to parameters
+so that they are highlighted in the output. You can also use %constant
+for constants, function_name2() for functions and #GtkWidget for links to
+other declarations (which may be documented elsewhere).</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an integer.</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>2.2</value>
+        </tag>
+        <tag>
+          <name>deprecated</name>
+          <value>2.18</value>
+          <description>Use other_function() instead.</description>
+        </tag>
+      </tags>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: "@Varargs" parameter is deprecated, please use "@..." instead:
+ * @Varargs: a %NULL-terminated list of bars
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * function_name:
+ * @par1: description of parameter 1. These can extend over more than
+ * one line.
+ * @par2: description of parameter 2
+ * @...: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</output>
+</test>
+
+<test>
+  <!--
+  Normal @vargargs parameter (usually seen for va_list)
+  -->
+  <input>/**
+ * function_name:
+ * @par1:  description of parameter 1. These can extend over more than
+ * one line.
+ * @par2:  description of parameter 2
+ * @varargs: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ *
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>function_name</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>par1</name>
+          <description>description of parameter 1. These can extend over more than
+one line.</description>
+        </parameter>
+        <parameter>
+          <name>par2</name>
+          <description>description of parameter 2</description>
+        </parameter>
+        <parameter>
+          <name>varargs</name>
+          <description>a %NULL-terminated list of bars</description>
+        </parameter>
+      </parameters>
+      <description>The function description goes here. You can use @par1 to refer to parameters
+so that they are highlighted in the output. You can also use %constant
+for constants, function_name2() for functions and #GtkWidget for links to
+other declarations (which may be documented elsewhere).</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an integer.</description>
+        </tag>
+        <tag>
+          <name>since</name>
+          <value>2.2</value>
+        </tag>
+        <tag>
+          <name>deprecated</name>
+          <value>2.18</value>
+          <description>Use other_function() instead.</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * function_name:
+ * @par1: description of parameter 1. These can extend over more than
+ * one line.
+ * @par2: description of parameter 2
+ * @varargs: a %NULL-terminated list of bars
+ *
+ * The function description goes here. You can use @par1 to refer to parameters
+ * so that they are highlighted in the output. You can also use %constant
+ * for constants, function_name2() for functions and #GtkWidget for links to
+ * other declarations (which may be documented elsewhere).
+ *
+ * Returns: an integer.
+ * Since: 2.2
+ * Deprecated: 2.18: Use other_function() instead.
+ */</output>
+</test>
+
+</tests>

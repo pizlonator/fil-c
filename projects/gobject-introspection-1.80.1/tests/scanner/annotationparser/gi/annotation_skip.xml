@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_watch: (skip)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ *
+ * This is here just for the sake of being overriden by its
+ * annotation_object_watch_full().
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>A #AnnotationObject</description>
+        </parameter>
+        <parameter>
+          <name>func</name>
+          <description>The callback</description>
+        </parameter>
+        <parameter>
+          <name>user_data</name>
+          <description>The callback data</description>
+        </parameter>
+      </parameters>
+      <description>This is here just for the sake of being overriden by its
+annotation_object_watch_full().</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_watch: (skip)
+ * @object: A #AnnotationObject
+ * @func: The callback
+ * @user_data: The callback data
+ *
+ * This is here just for the sake of being overriden by its
+ * annotation_object_watch_full().
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * annotation_object_watch: (skip yes)
+ *
+ * This is here just for the sake of being overriden by its
+ * annotation_object_watch_full().
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_watch</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+            <options>
+              <option>
+                <name>yes</name>
+              </option>
+            </options>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>This is here just for the sake of being overriden by its
+annotation_object_watch_full().</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: "skip" annotation needs no options, 1 given</message>
+    </messages>
+  </parser>
+  <output>/**
+ * annotation_object_watch: (skip yes)
+ *
+ * This is here just for the sake of being overriden by its
+ * annotation_object_watch_full().
+ */</output>
+</test>
+
+</tests>

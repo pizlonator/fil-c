@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * annotation_object_out:
+ * @object: a #GObject
+ * @outarg: (out): This is an argument test
+ *
+ * This is a test for out arguments
+ *
+ * Return value: an int
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>annotation_object_out</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>object</name>
+          <description>a #GObject</description>
+        </parameter>
+        <parameter>
+          <name>outarg</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+            </annotation>
+          </annotations>
+          <description>This is an argument test</description>
+        </parameter>
+      </parameters>
+      <description>This is a test for out arguments</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>an int</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * annotation_object_out:
+ * @object: a #GObject
+ * @outarg: (out): This is an argument test
+ *
+ * This is a test for out arguments
+ *
+ * Returns: an int
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_test_struct_a_clone:
+ * @a: the structure
+ * @a_out: (out caller-allocates): the cloned structure
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_test_struct_a_clone</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>the structure</description>
+        </parameter>
+        <parameter>
+          <name>a_out</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+              <options>
+                <option>
+                  <name>caller-allocates</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the cloned structure</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_test_struct_a_clone:
+ * @a: the structure
+ * @a_out: (out caller-allocates): the cloned structure
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_test_struct_a_clone:
+ * @a: the structure
+ * @a_out: (out callee-allocates): the cloned structure
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_test_struct_a_clone</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>the structure</description>
+        </parameter>
+        <parameter>
+          <name>a_out</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+              <options>
+                <option>
+                  <name>callee-allocates</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the cloned structure</description>
+        </parameter>
+      </parameters>
+    </docblock>
+  </parser>
+  <output>/**
+ * regress_test_struct_a_clone:
+ * @a: the structure
+ * @a_out: (out callee-allocates): the cloned structure
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * regress_test_struct_a_clone:
+ * @a: (out invalid): the structure
+ * @a_out: (out callee-allocates=invalid): the cloned structure
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>regress_test_struct_a_clone</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+              <options>
+                <option>
+                  <name>invalid</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the structure</description>
+        </parameter>
+        <parameter>
+          <name>a_out</name>
+          <annotations>
+            <annotation>
+              <name>out</name>
+              <options>
+                <option>
+                  <name>callee-allocates=invalid</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>the cloned structure</description>
+        </parameter>
+      </parameters>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: invalid annotation options: expected a "list" but received "key=value pairs":
+ * @a_out: (out callee-allocates=invalid): the cloned structure
+                                ^</message>
+      <message>3: Warning: Test: invalid "out" annotation option: "invalid"</message>
+      <message>4: Warning: Test: invalid "out" annotation option: "callee-allocates=invalid"</message>
+    </messages>
+  </parser>
+  <output>/**
+ * regress_test_struct_a_clone:
+ * @a: (out invalid): the structure
+ * @a_out: (out callee-allocates=invalid): the cloned structure
+ */</output>
+</test>
+
+</tests>

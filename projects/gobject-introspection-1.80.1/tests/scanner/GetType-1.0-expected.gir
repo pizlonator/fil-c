@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GObject" version="2.0"/>
+  <package name="gobject-2.0"/>
+  <c:include name="gettype.h"/>
+  <namespace name="GetType"
+             version="1.0"
+             shared-library="libgettype-1.0.so"
+             c:identifier-prefixes="GetType"
+             c:symbol-prefixes="gettype">
+    <function-macro name="IS_OBJECT"
+                    c:identifier="GETTYPE_IS_OBJECT"
+                    introspectable="0">
+      <source-position filename="gettype.h" line="10"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="OBJECT"
+                    c:identifier="GETTYPE_OBJECT"
+                    introspectable="0">
+      <source-position filename="gettype.h" line="9"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <class name="Object"
+           c:symbol-prefix="object"
+           c:type="GetTypeObject"
+           parent="GObject.Object"
+           glib:type-name="GetTypeObject"
+           glib:get-type="gettype_object_get_type"
+           glib:type-struct="ObjectClass">
+      <source-position filename="gettype.h" line="22"/>
+      <constructor name="new" c:identifier="gettype_object_new">
+        <source-position filename="gettype.h" line="28"/>
+        <return-value transfer-ownership="full">
+          <type name="Object" c:type="GetTypeObject*"/>
+        </return-value>
+      </constructor>
+      <function name="nonmeta2_get_type"
+                c:identifier="gettype_object_nonmeta2_get_type">
+        <doc xml:space="preserve"
+             filename="gettype.c"
+             line="38">This shouldn't be scanned as a *_get_type function because it doesn't return
+a GType. It will generate a warning.</doc>
+        <source-position filename="gettype.h" line="35"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="gettype.c" line="44">true</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+      </function>
+      <function name="nonmeta_get_gtype"
+                c:identifier="gettype_object_nonmeta_get_gtype">
+        <doc xml:space="preserve"
+             filename="gettype.c"
+             line="52">This shouldn't be scanned as a *_get_type function because it doesn't return
+a GType. It will generate a warning.</doc>
+        <source-position filename="gettype.h" line="38"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="gettype.c" line="58">true</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+      </function>
+      <method name="nonmeta1_get_type"
+              c:identifier="gettype_object_nonmeta1_get_type">
+        <doc xml:space="preserve"
+             filename="gettype.c"
+             line="23">This shouldn't be scanned as a *_get_type function because it takes
+arguments.</doc>
+        <source-position filename="gettype.h" line="32"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="gettype.c" line="30">0</doc>
+          <type name="GType" c:type="GType"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="obj" transfer-ownership="none">
+            <doc xml:space="preserve" filename="gettype.c" line="25">self</doc>
+            <type name="Object" c:type="GetTypeObject*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
+      <field name="parent_instance">
+        <type name="GObject.Object" c:type="GObject"/>
+      </field>
+    </class>
+    <record name="ObjectClass"
+            c:type="GetTypeObjectClass"
+            glib:is-gtype-struct-for="Object">
+      <source-position filename="gettype.h" line="22"/>
+      <field name="parent_class">
+        <type name="GObject.ObjectClass" c:type="GObjectClass"/>
+      </field>
+    </record>
+  </namespace>
+</repository>

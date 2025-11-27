@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.string_out"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>bool</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_string_out</api:name>
+      <api:arg>
+        <api:type>Regress.AnnotationObject</api:type>
+        <api:name>self</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>unicode</api:type>
+        <api:name>str_out</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.AnnotationObject.string_out</title>
+  <synopsis><code mime="text/x-python">
+@accepts(Regress.AnnotationObject, unicode)
+@returns(bool)
+def string_out(self, str_out):
+    # Python wrapper for regress_annotation_object_string_out()
+  </code></synopsis>
+  <p>Test returning a string as an out parameter</p>
+
+<terms>
+<item>
+<title><code>self</code></title>
+  <p>a <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>str_out</code></title>
+  <p>string return value</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+{formatter.format(node, node.retval.doc)}
+</item>
+</terms>
+
+</page>

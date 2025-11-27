@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * test_symbol
+ *
+ * test_symbol does something nifty.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_symbol</name>
+      </identifier>
+      <description>test_symbol does something nifty.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_symbol:
+ *
+ * test_symbol does something nifty.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_symbol_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_symbol_unnecessary_colon</name>
+      </identifier>
+      <description>Unnecessary colon.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_symbol_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_annotated_symbol: (skip)
+ *
+ * test_annotated_symbol does something nifty.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_annotated_symbol</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>test_annotated_symbol does something nifty.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_annotated_symbol: (skip)
+ *
+ * test_annotated_symbol does something nifty.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_symbol_missing_colon (skip)
+ *
+ * Missing colon will result in a warning.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_symbol_missing_colon</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Missing colon will result in a warning.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: missing ":" at column 30:
+ * test_symbol_missing_colon (skip)
+                             ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * test_symbol_missing_colon: (skip)
+ *
+ * Missing colon will result in a warning.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_malformed_symbol: (skip):
+ *
+ * Malformed symbol identifier.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_malformed_symbol</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Malformed symbol identifier.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_malformed_symbol: (skip)
+ *
+ * Malformed symbol identifier.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget:test_property
+ *
+ * Some property.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget:test_property</name>
+      </identifier>
+      <description>Some property.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget:test_property:
+ *
+ * Some property.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget:test_property_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget:test_property_unnecessary_colon</name>
+      </identifier>
+      <description>Unnecessary colon.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget:test_property_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget:test_annotated_property: (skip)
+ *
+ * Some annotated property.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget:test_annotated_property</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Some annotated property.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget:test_annotated_property: (skip)
+ *
+ * Some annotated property.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget:test_property_missing_colon (skip)
+ *
+ * Missing colon will result in a warning.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget:test_property_missing_colon</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Missing colon will result in a warning.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: missing ":" at column 42:
+ * GtkWidget:test_property_missing_colon (skip)
+                                         ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * GtkWidget:test_property_missing_colon: (skip)
+ *
+ * Missing colon will result in a warning.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget:test_malformed_property: (skip):
+ *
+ * Malformed property identifier.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget:test_malformed_property</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Malformed property identifier.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget:test_malformed_property: (skip)
+ *
+ * Malformed property identifier.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget::test_signal
+ *
+ * Some signal.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget::test_signal</name>
+      </identifier>
+      <description>Some signal.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget::test_signal:
+ *
+ * Some signal.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget::test_signal_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget::test_signal_unnecessary_colon</name>
+      </identifier>
+      <description>Unnecessary colon.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget::test_signal_unnecessary_colon:
+ *
+ * Unnecessary colon.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget::test_annotated_signal: (skip)
+ *
+ * Some annotated signal.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget::test_annotated_signal</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Some annotated signal.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget::test_annotated_signal: (skip)
+ *
+ * Some annotated signal.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget::test_signal_missing_colon (skip)
+ *
+ * Missing colon will result in a warning.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget::test_signal_missing_colon</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Missing colon will result in a warning.</description>
+    </docblock>
+    <messages>
+      <message>2: Warning: Test: missing ":" at column 41:
+ * GtkWidget::test_signal_missing_colon (skip)
+                                        ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * GtkWidget::test_signal_missing_colon: (skip)
+ *
+ * Missing colon will result in a warning.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkWidget::test_malformed_signal: (skip):
+ *
+ * Malformed signal identifier.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkWidget::test_malformed_signal</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <description>Malformed signal identifier.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkWidget::test_malformed_signal: (skip)
+ *
+ * Malformed signal identifier.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * test_multiline_annotations_on_identifier: (skip)
+ * (foreign)
+ * @param1: (allow-none) (transfer full): first parameter
+ *
+ * Annotations spanning multiple lines are not valid
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>test_multiline_annotations_on_identifier</name>
+        <annotations>
+          <annotation>
+            <name>skip</name>
+          </annotation>
+          <annotation>
+            <name>foreign</name>
+          </annotation>
+        </annotations>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>param1</name>
+          <annotations>
+            <annotation>
+              <name>allow-none</name>
+            </annotation>
+            <annotation>
+              <name>transfer</name>
+              <options>
+                <option>
+                  <name>full</name>
+                </option>
+              </options>
+            </annotation>
+          </annotations>
+          <description>first parameter</description>
+        </parameter>
+      </parameters>
+      <description>Annotations spanning multiple lines are not valid</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * test_multiline_annotations_on_identifier: (skip) (foreign)
+ * @param1: (allow-none) (transfer full): first parameter
+ *
+ * Annotations spanning multiple lines are not valid
+ */</output>
+</test>
+
+</tests>

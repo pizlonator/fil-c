@@ -1,0 +1,104 @@
+#!@PYTHON_CMD@
+# -*- Mode: Python -*-
+# GObject-Introspection - a framework for introspecting GObject libraries
+# Copyright (C) 2008  Johan Dahlin
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+
+import os
+import sys
+import sysconfig
+import builtins
+
+
+debug = os.getenv('GI_SCANNER_DEBUG')
+if debug:
+    if 'pydevd' in debug.split(','):
+        # http://pydev.org/manual_adv_remote_debugger.html
+        pydevdpath = os.getenv('PYDEVDPATH', None)
+        if pydevdpath is not None and os.path.isdir(pydevdpath):
+            sys.path.insert(0, pydevdpath)
+            import pydevd
+            pydevd.settrace()
+    else:
+        def on_exception(exctype, value, tb):
+            print("Caught exception: %r %r" % (exctype, value))
+            import pdb
+            pdb.pm()
+        sys.excepthook = on_exception
+
+# Detect and set datadir, pylibdir, etc as applicable
+# Similar to the method used in gdbus-codegen
+filedir = os.path.dirname(__file__)
+
+# Try using relative paths first so that the installation prefix is relocatable
+datadir = os.path.abspath(os.path.join(filedir, '..', 'share'))
+# Fallback to hard-coded paths if the relocatable paths are wrong
+if not os.path.isdir(os.path.join(datadir, 'gir-1.0')):
+    datadir = "@datarootdir@"
+
+builtins.__dict__['DATADIR'] = datadir
+
+gir_dir = os.path.abspath(os.path.join(filedir, '..', '@gir_dir_prefix@', 'gir-1.0'))
+# Fallback to hard-coded paths if the relocatable paths are wrong
+if not os.path.isdir(gir_dir):
+    gir_dir = "@GIR_DIR@"
+
+builtins.__dict__['GIR_DIR'] = gir_dir
+
+# Again, relative paths first so that the installation prefix is relocatable
+pylibdir = os.path.abspath(os.path.join(filedir, '..', 'lib', 'gobject-introspection'))
+
+# EXT_SUFFIX for py3 SO for py2
+py_mod_suffix = sysconfig.get_config_var('EXT_SUFFIX') or sysconfig.get_config_var('SO')
+
+if not os.path.isfile(os.path.join(pylibdir, 'giscanner', '_giscanner' + py_mod_suffix)):
+    # Running uninstalled?
+    builddir = os.getenv('UNINSTALLED_INTROSPECTION_BUILDDIR', None)
+    if builddir is not None:
+        # Autotools, most likely
+        builddir = os.path.abspath(builddir)
+        # For _giscanner.so
+        sys.path.insert(0, os.path.join(builddir, '.libs'))
+        srcdir = os.getenv('UNINSTALLED_INTROSPECTION_SRCDIR', None)
+        if srcdir:
+            # For the giscanner python files
+            pylibdir = srcdir
+    elif os.path.isdir(os.path.join(filedir, '..', 'giscanner')):
+        # We're running uninstalled inside meson
+        builddir = os.path.abspath(os.path.join(filedir, '..'))
+        pylibdir = builddir
+
+        if 'GI_GIR_PATH' not in os.environ:
+            os.environ['GI_GIR_PATH'] = os.path.join(filedir, os.pardir, 'gir')
+
+        gdump_path = os.path.join(builddir, 'giscanner', 'gdump.c')
+        if os.path.isfile(gdump_path):
+            builtins.__dict__['GDUMP_PATH'] = gdump_path
+    else:
+        # Okay, we're not running uninstalled and the prefix is not
+        # relocatable. Use hard-coded libdir.
+        pylibdir = os.path.join('@libdir@', 'gobject-introspection')
+
+sys.path.insert(0, pylibdir)
+
+from giscanner.utils import dll_dirs
+dll_dirs = dll_dirs()
+dll_dirs.add_dll_dirs(['gio-2.0'])
+
+from giscanner.@TOOL_MODULE@ import @TOOL_FUNCTION@
+sys.exit(@TOOL_FUNCTION@(sys.argv))

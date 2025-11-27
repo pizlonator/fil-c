@@ -1,0 +1,16 @@
+<%inherit file="base.tmpl"/>
+<ul>
+% for m in node.members:
+  <li>
+    <code>
+      <span class="entry" id="${formatter.make_anchor(m)}">
+        ${m.name.upper()}
+      </span>
+      = ${m.value}
+    </code>
+    % if m.doc:
+      &mdash; ${formatter.format_inline(node, m.doc)}
+    % endif
+  </li>
+% endfor
+</ul>

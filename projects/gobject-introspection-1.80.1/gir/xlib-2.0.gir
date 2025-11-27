@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0">
+  <namespace name="xlib" version="2.0"
+	     c:identifier-prefixes=""
+	     c:symbol-prefixes="X">
+    <alias name="Atom" c:type="Atom">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="Colormap" c:type="Colormap">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="Cursor" c:type="Cursor">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <record name="Display" c:type="Display"/>
+    <alias name="Drawable" c:type="Drawable">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="GC" c:type="GC">
+      <type name="gpointer" c:type="gpointer"/>
+    </alias>
+    <alias name="KeyCode" c:type="KeyCode">
+      <type name="guint8" c:type="guint8"/>
+    </alias>
+    <alias name="KeySym" c:type="KeySym">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="Picture" c:type="Picture">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <record name="Screen" c:type="Screen"/>
+    <alias name="Time" c:type="Time">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <record name="Visual" c:type="Visual"/>
+    <alias name="VisualID" c:type="VisualID">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="Window" c:type="Window">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <union name="XEvent" c:type="XEvent"/>
+    <record name="XConfigureEvent" c:type="XConfigureEvent"/>
+    <alias name="XID" c:type="XID">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <alias name="Pixmap" c:type="Pixmap">
+      <type name="gulong" c:type="gulong"/>
+    </alias>
+    <record name="XImage" c:type="XImage"/>
+    <record name="XFontStruct" c:type="XFontStruct"/>
+    <record name="XTrapezoid" c:type="XTrapezoid"/>
+    <record name="XVisualInfo" c:type="XVisualInfo"/>
+    <record name="XWindowAttributes" c:type="XWindowAttributes"/>
+
+    <function name="open_display" c:identifier="XOpenDisplay">
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+      </parameters>
+    </function>
+
+  </namespace>
+</repository>

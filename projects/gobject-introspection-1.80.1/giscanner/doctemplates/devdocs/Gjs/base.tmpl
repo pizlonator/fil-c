@@ -1,0 +1,21 @@
+<%namespace name="doc" file="_doc.tmpl"/>
+<html>
+<body>
+  <section>
+    <h1 class="${page_kind} ${doc.deprecated_class(node)} ${self.extra_class()}">
+      ${formatter.format_page_name(node)}
+    </h1>
+    <%include file="_index.tmpl"/>
+    <h2>Details</h2>
+    ${doc.format_documentation(node)}
+    <%include file="_staticmethods.tmpl"/>
+    <%include file="_methods.tmpl"/>
+    <%include file="_vfuncs.tmpl"/>
+    <%include file="_signals.tmpl"/>
+    <%include file="_properties.tmpl"/>
+    ${self.body()}
+  </section>
+</body>
+</html>
+
+<%def name="extra_class()"/>

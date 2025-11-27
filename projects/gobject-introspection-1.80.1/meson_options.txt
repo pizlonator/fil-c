@@ -1,0 +1,47 @@
+option('cairo', type: 'feature', value : 'auto',
+  description: 'Use cairo for tests'
+)
+
+option('doctool', type: 'feature', value : 'auto',
+  description: 'Install g-ir-doc-tool and run related tests'
+)
+
+option('glib_src_dir', type: 'string',
+  description: 'Source directory for glib - needed to add docs to gir'
+)
+
+option('gtk_doc', type: 'boolean', value: false,
+  description: 'Build and install documentation'
+)
+
+option('cairo_libname', type: 'string',
+  description: 'Custom name for the cairo-gobject library name'
+)
+
+option('python', type: 'string', value: 'python3',
+  description: 'Path or name of the Python interpreter to build for'
+)
+
+option('gir_dir_prefix', type: 'string',
+  description: 'Intermediate prefix for gir installation under ${prefix}'
+)
+
+option('gi_cross_use_prebuilt_gi', type: 'boolean', value : false,
+  description: 'Use gobject introspection tools installed in the build system (useful when cross-compiling)'
+)
+
+option('gi_cross_binary_wrapper', type: 'string',
+  description: 'Use a wrapper to run gicompiler and binaries produced by giscanner (useful when cross-compiling)'
+)
+
+option('gi_cross_ldd_wrapper', type: 'string',
+  description: 'Use a ldd wrapper instead of system ldd command in giscanner (useful when cross-compiling)'
+)
+
+option('build_introspection_data', type: 'boolean', value : true,
+  description: 'Build introspection data (.gir and .typelib files) in addition to library and tools'
+)
+
+option('gi_cross_pkgconfig_sysroot_path', type: 'string',
+  description: 'Specify a sysroot path to prepend to pkgconfig output (useful when cross-compiling)'
+)

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0"
+	    c:identifier-prefixes="DBus"
+	    c:symbol-prefixes="DBus">
+  <package name="dbus-1"/>
+  <namespace name="DBus"
+             version="1.0"
+             c:prefix="DBus">
+    <enumeration name="BusType" c:type="DBusBusType">
+      <member name="session" value="0" c:identifier="DBUS_BUS_SESSION"/>
+      <member name="system" value="1" c:identifier="DBUS_BUS_SYSTEM"/>
+      <member name="starter" value="2" c:identifier="DBUS_BUS_STARTER"/>
+    </enumeration>
+    <record name="Connection"
+            c:type="DBusConnection"
+            glib:type-name="DBusConnection"
+            glib:get-type="dbus_connection_get_type">
+    </record>
+    <record name="Error" c:type="DBusError">
+    </record>
+    <record name="Message"
+            c:type="DBusMessage">
+    </record>
+    <record name="MessageIter" c:type="DBusMessageIter">
+    </record>
+    <record name="PendingCall" c:type="DBusPendingCall">
+    </record>
+  </namespace>
+</repository>

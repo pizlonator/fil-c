@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<page id="Regress.test_array_int_inout"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_test_array_int_inout</api:name>
+      <api:arg>
+        <api:type>Array(Number(gint))</api:type>
+        <api:name>ints</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.test_array_int_inout</title>
+  <synopsis><code mime="text/x-gjs">
+function test_array_int_inout(ints: Array(Number(gint))): Array(Number(gint)) {
+    // Gjs wrapper for regress_test_array_int_inout()
+}
+  </code></synopsis>
+
+
+<terms>
+<item>
+<title><code>Returns</code></title>
+  <p>a list of integers whose items will be increased by 1, except the first that will be dropped</p>
+</item>
+<item>
+<title><code>Returns (out)</code></title>
+  <p>a list of integers whose items will be increased by 1, except the first that will be dropped</p>
+</item>
+</terms>
+
+</page>

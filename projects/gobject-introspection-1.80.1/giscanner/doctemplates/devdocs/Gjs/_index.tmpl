@@ -1,0 +1,191 @@
+<%namespace name="doc" file="_doc.tmpl"/>
+
+<%
+  ancestors = []
+  if isinstance(node, ast.Class):
+    ancestors = formatter.get_inheritable_types(node)
+
+  fields = getattr(node, 'fields', [])
+  extra_fields = [getattr(f.anonymous_node, 'fields', []) for f in fields
+    if f.anonymous_node is not None]
+  extra_fields = [field for sublist in extra_fields for field in sublist]
+  non_private_fields = [f for f in fields + extra_fields
+      if not formatter.is_private_field(node, f)]
+
+  def get_ancestor_counts(*kinds):
+    counts = {}
+    for a in ancestors:
+      count = 0
+      for kind in kinds:
+        if kind == 'fields':
+          count += len(non_private_fields)
+        else:
+          count += len(getattr(a, kind, []))
+      if count:
+        counts[a] = count
+    return counts
+
+  def should_render(*kinds):
+    has_nonempty = False
+    for kind in kinds:
+      if kind == 'fields':
+        if non_private_fields:
+          has_nonempty = True
+      elif getattr(node, kind, []):
+        has_nonempty = True
+    return has_nonempty or get_ancestor_counts(*kinds)
+%>
+
+<%def name="inherited(*kinds)">
+  <% counts = get_ancestor_counts(*kinds) %>
+  % if counts:
+    <%
+      links = ', '.join(['{} ({})'.format(formatter.format_xref(a), count)
+        for a, count in counts.items()])
+    %>
+    ${formatter.format(node, '**Inherited:** ' + links)}
+  % endif
+</%def>
+
+<%def name="format_function_cell(m)">
+  <td class="${doc.deprecated_class(m)}">
+    <a href="#${formatter.make_anchor(m)}">
+      ${formatter.format_function_name(m)}<!-- no space
+    --></a><!-- no space
+    -->(${formatter.format_in_parameters(m)})
+  </td>
+</%def>
+
+% if should_render('static_methods', 'constructors', 'methods'):
+  <h2 id="index-methods">Methods</h2>
+  ${inherited('static_methods', 'constructors', 'methods')}
+  <%
+    static_methods = getattr(node, 'static_methods', []) + getattr(node, 'constructors', [])
+    methods = static_methods + getattr(node, 'methods', [])
+  %>
+  % if methods:
+    <table class="index">
+      <tbody>
+      % for m in methods:
+        <%doc:introspectable node="${m}">
+        <tr>
+          % if m in static_methods:
+            <td class="static-method-indicator">static</td>
+          % else:
+            <td></td>
+          % endif
+          ${format_function_cell(m)}
+        </tr>
+        </%doc:introspectable>
+      % endfor
+      </tbody>
+    </table>
+  % endif
+% endif
+
+% if should_render('virtual_methods'):
+  <h2 id="index-vfuncs">Virtual methods</h2>
+  ${inherited('virtual_methods')}
+  % if getattr(node, 'virtual_methods', []):
+    <table>
+      <tbody>
+      % for m in node.virtual_methods:
+        <%doc:introspectable node="${m}">
+        <tr>
+          ${format_function_cell(m)}
+        </tr>
+        </%doc:introspectable>
+      % endfor
+      </tbody>
+    </table>
+  % endif
+% endif
+
+% if should_render('properties'):
+  <h2 id="index-properties">Properties</h2>
+  ${inherited('properties')}
+  % if getattr(node, 'properties', []):
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Flags</th>
+        </tr>
+      </thead>
+      <tbody>
+      % for p in node.properties:
+        <%doc:introspectable node="${p}">
+        <tr>
+          <td class="${doc.deprecated_class(p)}">
+            <a href="#${formatter.make_anchor(p)}">${p.name}</a>
+          </td>
+          <td>${formatter.format_type(p.type)}</td>
+          <td>${formatter.format_property_flags(p, abbrev=True)}</td>
+        </tr>
+        </%doc:introspectable>
+      % endfor
+      </tbody>
+    </table>
+  % endif
+% endif
+
+% if should_render('signals'):
+  <h2 id="index-signals">Signals</h2>
+  ${inherited('signals')}
+  % if getattr(node, 'signals', []):
+    <table>
+      <tbody>
+      % for s in node.signals:
+        <%doc:introspectable node="${s}">
+        <tr>
+          <td class="${doc.deprecated_class(s)}">
+            <a href="#${formatter.make_anchor(s)}">${s.name}</a><!-- no space
+            -->(${formatter.format_signal_parameters(s)})
+          </td>
+        </tr>
+        </%doc:introspectable>
+      % endfor
+      </tbody>
+    </table>
+  % endif
+% endif
+
+% if should_render('fields'):
+  <h2 id="index-fields">Fields</h2>
+  ${inherited('fields')}
+  % if non_private_fields:
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Access</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+      % for f in non_private_fields:
+        <%doc:introspectable node="${f}">
+        <tr>
+          <td class="${doc.deprecated_class(f)}">
+            <span class="entry" href="#${formatter.make_anchor(f)}">
+              ${f.name}
+            </span>
+          </td>
+          <td>${formatter.format_type(f.type)}</td>
+          <td>${formatter.format_property_flags(f, abbrev=True)}</td>
+          ## Fields almost never warrant a detailed entry, we'll just make this
+          ## the entry to be indexed by DevDocs
+          <td>
+          % if f.doc:
+            ${formatter.format_inline(node, f.doc)}
+          % endif
+          </td>
+        </tr>
+        </%doc:introspectable>
+      % endfor
+      </tbody>
+    </table>
+  % endif
+% endif

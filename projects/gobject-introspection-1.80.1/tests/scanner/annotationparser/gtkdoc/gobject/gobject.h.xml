@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * GtkdocObject:
+ *
+ * instance data of gtk-doc unit test class
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocObject</name>
+      </identifier>
+      <description>instance data of gtk-doc unit test class</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocObject:
+ *
+ * instance data of gtk-doc unit test class
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocObjectClass:
+ * @parent: this is a bug :/
+ * @test: overideable method
+ * @ping: can be used before calling the @test() function
+ * @foo_bar: lets you refine your frobnicator
+ *
+ * class data of gtk-doc unit test class
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocObjectClass</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parent</name>
+          <description>this is a bug :/</description>
+        </parameter>
+        <parameter>
+          <name>test</name>
+          <description>overideable method</description>
+        </parameter>
+        <parameter>
+          <name>ping</name>
+          <description>can be used before calling the @test() function</description>
+        </parameter>
+        <parameter>
+          <name>foo_bar</name>
+          <description>lets you refine your frobnicator</description>
+        </parameter>
+      </parameters>
+      <description>class data of gtk-doc unit test class</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocObjectClass:
+ * @parent: this is a bug :/
+ * @test: overideable method
+ * @ping: can be used before calling the @test() function
+ * @foo_bar: lets you refine your frobnicator
+ *
+ * class data of gtk-doc unit test class
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocObject2:
+ *
+ * instance data of gtk-doc unit test class
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocObject2</name>
+      </identifier>
+      <description>instance data of gtk-doc unit test class</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocObject2:
+ *
+ * instance data of gtk-doc unit test class
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocObject2Class:
+ * @parent: this is a bug :/
+ *
+ * class data of gtk-doc unit test class
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocObject2Class</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parent</name>
+          <description>this is a bug :/</description>
+        </parameter>
+      </parameters>
+      <description>class data of gtk-doc unit test class</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocObject2Class:
+ * @parent: this is a bug :/
+ *
+ * class data of gtk-doc unit test class
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocHelperStruct:
+ * @a: field
+ *
+ * GtkdocHelperStruct
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocHelperStruct</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>a</name>
+          <description>field</description>
+        </parameter>
+      </parameters>
+      <description>GtkdocHelperStruct</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocHelperStruct:
+ * @a: field
+ *
+ * GtkdocHelperStruct
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocHelperEnum:
+ * @GTKDOC_HELPER_ENUM_A: enum a
+ * @GTKDOC_HELPER_ENUM_B: enum b
+ *
+ * GtkdocHelperEnum
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocHelperEnum</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>GTKDOC_HELPER_ENUM_A</name>
+          <description>enum a</description>
+        </parameter>
+        <parameter>
+          <name>GTKDOC_HELPER_ENUM_B</name>
+          <description>enum b</description>
+        </parameter>
+      </parameters>
+      <description>GtkdocHelperEnum</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocHelperEnum:
+ * @GTKDOC_HELPER_ENUM_A: enum a
+ * @GTKDOC_HELPER_ENUM_B: enum b
+ *
+ * GtkdocHelperEnum
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GTKDOC_OBJECT_MACRO_DUMMY:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro does nothing.
+ *
+ * Since: 0.1
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GTKDOC_OBJECT_MACRO_DUMMY</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parameter_1</name>
+          <description>first arg</description>
+        </parameter>
+        <parameter>
+          <name>parameter_2</name>
+          <description>second arg</description>
+        </parameter>
+      </parameters>
+      <description>This macro does nothing.</description>
+      <tags>
+        <tag>
+          <name>since</name>
+          <value>0.1</value>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * GTKDOC_OBJECT_MACRO_DUMMY:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro does nothing.
+ *
+ * Since: 0.1
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GTKDOC_OBJECT_MACRO_SUM:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro adds its args.
+ *
+ * Returns: the sum of @parameter_1 and @parameter_2
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GTKDOC_OBJECT_MACRO_SUM</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>parameter_1</name>
+          <description>first arg</description>
+        </parameter>
+        <parameter>
+          <name>parameter_2</name>
+          <description>second arg</description>
+        </parameter>
+      </parameters>
+      <description>This macro adds its args.</description>
+      <tags>
+        <tag>
+          <name>returns</name>
+          <description>the sum of @parameter_1 and @parameter_2</description>
+        </tag>
+      </tags>
+    </docblock>
+  </parser>
+  <output>/**
+ * GTKDOC_OBJECT_MACRO_SUM:
+ * @parameter_1: first arg
+ * @parameter_2: second arg
+ *
+ * This macro adds its args.
+ *
+ * Returns: the sum of @parameter_1 and @parameter_2
+ */</output>
+</test>
+
+</tests>

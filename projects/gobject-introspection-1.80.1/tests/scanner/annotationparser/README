@@ -1,0 +1,51 @@
+test_patterns.py
+================
+
+Notes
+-----
+
+The tests included within test_patterns.py are designed to torture the regular
+expression programs used to match different parts of GTK-Doc comment blocks
+by giscanner/annotationparser.py
+
+
+test_parser.py
+==============
+
+Notes
+-----
+
+- the names of the directories containing test .xml and the .xml files themselves should
+  not contain the hyphen ('-') character. This because we use the directory and file
+  names to generate valid Python method names (where the hyphen character is illegal).
+
+- GTK-Doc comment blocks can contain XML (DocBook) fragments on their own. You can wrap such
+  comment blocks into a CDATA section to prevent the tests XML parser from doing the
+  wrong thing.
+  Occasionally, GTK-Doc comment blocks containing XML (DocBook) fragments can also contain
+  CDATA sections on their own. This can be handled by wrapping the GTK-Doc comment block into
+  a CDATA section as described above, and escape the embedded GTK-Doc CDATA section's
+  opening bracket "<!" with "{{!" and the matching close bracket ">" with "!}}".
+
+- *Note well* that trailing whitespace characters in test .xml files are not there by accident.
+  So whatever your text editor of choice or scm du jour might claim, trailing whitespace
+  is required!
+
+
+Test files
+----------
+
+gtk-doc/*.xml:
+  The GTK-Doc comment block tests in this directory are copied verbatim from the GTK-Doc
+  test suite. Not all of these tests make sense from GTK-Doc's point of view without the
+  actual C sources they document, but are great for testing the level of understanding
+  GtkDocCommentBlockParser has about the GTK-Doc comment block syntax.
+
+  GTK-Doc tests originally taken at revision:
+  http://git.gnome.org/browse/gtk-doc/tree/tests?id=2a6b01253fe41412172a60f26705114b953d0a95
+  and should be updated regularly to reflect changes in the GTK-Doc project.
+
+gobject-introspection/*.xml:
+  GTK-Doc comment blocks specifically designed to ensure GtkDocCommentBlockParser does the
+  right thing and continues to function correctly. The goal is to exercise all possible
+  combinations of tags, parameters and annotations (both current and deprecated syntax).

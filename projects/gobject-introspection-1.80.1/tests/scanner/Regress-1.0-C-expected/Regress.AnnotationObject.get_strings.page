@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.get_strings"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>GList*</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_get_strings</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationObject*</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_object_get_strings</title>
+  <synopsis><code mime="text/x-csrc">
+GList* regress_annotation_object_get_strings (RegressAnnotationObject* object);
+  </code></synopsis>
+  <p>This is a test for returning a list of strings, where
+each string needs to be freed.</p>
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>Returns</code></title>
+  <p>list of strings</p>
+</item>
+</terms>
+
+</page>

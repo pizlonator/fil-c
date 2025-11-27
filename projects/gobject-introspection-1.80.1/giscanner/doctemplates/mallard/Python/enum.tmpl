@@ -1,0 +1,13 @@
+<%inherit file="/base.tmpl"/>
+<%block name="details">
+% if node.members:
+<terms>
+% for member in node.members:
+<item>
+<title><code>${node.name}.${member.name.upper()}</code></title>
+${formatter.format(node, member.doc)}
+</item>
+% endfor
+</terms>
+% endif
+</%block>

@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GObject" version="2.0"/>
+  <package name="gobject-2.0"/>
+  <namespace name="Bar"
+             version="1.0"
+             shared-library="libbarapp-1.0.so"
+             c:identifier-prefixes="Bar"
+             c:symbol-prefixes="bar">
+    <function-macro name="BAZ" c:identifier="BAR_BAZ" introspectable="0">
+      <source-position filename="barapp.h" line="7"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <class name="Baz"
+           c:symbol-prefix="baz"
+           c:type="BarBaz"
+           parent="GObject.Object"
+           glib:type-name="BarBaz"
+           glib:get-type="bar_baz_get_type"
+           glib:type-struct="BazClass">
+      <source-position filename="barapp.h" line="21"/>
+      <field name="parent_instance">
+        <type name="GObject.Object" c:type="GObject"/>
+      </field>
+    </class>
+    <record name="BazClass"
+            c:type="BarBazClass"
+            glib:is-gtype-struct-for="Baz">
+      <source-position filename="barapp.h" line="21"/>
+      <field name="parent_class">
+        <type name="GObject.ObjectClass" c:type="GObjectClass"/>
+      </field>
+    </record>
+    <function-macro name="IS_BAZ" c:identifier="BAR_IS_BAZ" introspectable="0">
+      <source-position filename="barapp.h" line="8"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="MUTTER_IS_WINDOW"
+                    c:identifier="MUTTER_IS_WINDOW"
+                    introspectable="0">
+      <source-position filename="barapp.h" line="40"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <function-macro name="MUTTER_WINDOW"
+                    c:identifier="MUTTER_WINDOW"
+                    introspectable="0">
+      <source-position filename="barapp.h" line="39"/>
+      <parameters>
+        <parameter name="object">
+        </parameter>
+      </parameters>
+    </function-macro>
+    <class name="MutterWindow"
+           c:symbol-prefix="mutter_window"
+           c:type="MutterWindow"
+           parent="GObject.Object"
+           glib:type-name="MutterWindow"
+           glib:get-type="mutter_window_get_type"
+           glib:type-struct="MutterWindowClass">
+      <source-position filename="barapp.h" line="53"/>
+      <method name="func" c:identifier="mutter_window_func">
+        <source-position filename="barapp.h" line="59"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="window" transfer-ownership="none">
+            <type name="MutterWindow" c:type="MutterWindow*"/>
+          </instance-parameter>
+          <parameter name="v" transfer-ownership="none">
+            <type name="guint" c:type="guint"/>
+          </parameter>
+        </parameters>
+      </method>
+      <field name="parent_instance">
+        <type name="GObject.Object" c:type="GObject"/>
+      </field>
+    </class>
+    <record name="MutterWindowClass"
+            c:type="MutterWindowClass"
+            glib:is-gtype-struct-for="MutterWindow">
+      <source-position filename="barapp.h" line="53"/>
+      <field name="parent_class">
+        <type name="GObject.ObjectClass" c:type="GObjectClass"/>
+      </field>
+    </record>
+    <function name="app_func" c:identifier="bar_app_func">
+      <source-position filename="barapp.h" line="28"/>
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+    </function>
+    <function name="app_func2" c:identifier="bar_app_func2">
+      <source-position filename="barapp.h" line="31"/>
+      <return-value transfer-ownership="none">
+        <type name="none" c:type="void"/>
+      </return-value>
+      <parameters>
+        <parameter name="x" transfer-ownership="none">
+          <type name="gint" c:type="int"/>
+        </parameter>
+        <parameter name="y" transfer-ownership="none">
+          <type name="gdouble" c:type="double"/>
+        </parameter>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

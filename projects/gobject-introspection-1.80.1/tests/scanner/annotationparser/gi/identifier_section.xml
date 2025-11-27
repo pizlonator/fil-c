@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <!--
+  Section documentation including all optional metadata.
+  -->
+  <input>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>Meep application</description>
+        </parameter>
+        <parameter>
+          <name>section_id</name>
+        </parameter>
+        <parameter>
+          <name>see_also</name>
+          <description>#MeepSettings</description>
+        </parameter>
+        <parameter>
+          <name>stability</name>
+          <description>Stable</description>
+        </parameter>
+        <parameter>
+          <name>include</name>
+          <description>meep/app.h</description>
+        </parameter>
+        <parameter>
+          <name>image</name>
+          <description>application.png</description>
+        </parameter>
+      </parameters>
+      <description>The application class handles ...</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Broken comment block with empty line between identifier and parameters parts.
+  -->
+  <input>/**
+ * SECTION:meepapp
+ *
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>Meep application</description>
+        </parameter>
+        <parameter>
+          <name>section_id</name>
+        </parameter>
+        <parameter>
+          <name>see_also</name>
+          <description>#MeepSettings</description>
+        </parameter>
+        <parameter>
+          <name>stability</name>
+          <description>Stable</description>
+        </parameter>
+        <parameter>
+          <name>include</name>
+          <description>meep/app.h</description>
+        </parameter>
+        <parameter>
+          <name>image</name>
+          <description>application.png</description>
+        </parameter>
+      </parameters>
+      <description>The application class handles ...</description>
+    </docblock>
+    <messages>
+      <message>4: Warning: Test: "@short_description" parameter unexpected at this location:
+ * @short_description: the application class
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Broken comment block with description part before parameters part, without empty line.
+  -->
+  <input>/**
+ * SECTION:meepapp
+ *
+ * The application class handles ...
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>Meep application</description>
+        </parameter>
+        <parameter>
+          <name>section_id</name>
+        </parameter>
+        <parameter>
+          <name>see_also</name>
+          <description>#MeepSettings</description>
+        </parameter>
+        <parameter>
+          <name>stability</name>
+          <description>Stable</description>
+        </parameter>
+        <parameter>
+          <name>include</name>
+          <description>meep/app.h</description>
+        </parameter>
+        <parameter>
+          <name>image</name>
+          <description>application.png</description>
+        </parameter>
+      </parameters>
+      <description>The application class handles ...</description>
+    </docblock>
+    <messages>
+      <message>5: Warning: Test: "@short_description" parameter unexpected at this location:
+ * @short_description: the application class
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Broken comment block with description part before parameters part, with empty line.
+  -->
+  <input>/**
+ * SECTION:meepapp
+ *
+ * The application class handles ...
+ *
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:meepapp</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>the application class</description>
+        </parameter>
+        <parameter>
+          <name>title</name>
+          <description>Meep application</description>
+        </parameter>
+        <parameter>
+          <name>section_id</name>
+        </parameter>
+        <parameter>
+          <name>see_also</name>
+          <description>#MeepSettings</description>
+        </parameter>
+        <parameter>
+          <name>stability</name>
+          <description>Stable</description>
+        </parameter>
+        <parameter>
+          <name>include</name>
+          <description>meep/app.h</description>
+        </parameter>
+        <parameter>
+          <name>image</name>
+          <description>application.png</description>
+        </parameter>
+      </parameters>
+      <description>The application class handles ...</description>
+    </docblock>
+    <messages>
+      <message>6: Warning: Test: "@short_description" parameter unexpected at this location:
+ * @short_description: the application class
+    ^</message>
+    </messages>
+  </parser>
+  <output>/**
+ * SECTION:meepapp
+ * @short_description: the application class
+ * @title: Meep application
+ * @section_id:
+ * @see_also: #MeepSettings
+ * @stability: Stable
+ * @include: meep/app.h
+ * @image: application.png
+ *
+ * The application class handles ...
+ */</output>
+</test>
+
+<test>
+  <!--
+  Old style implicit returns.
+  https://bugzilla.gnome.org/show_bug.cgi?id=457077
+  -->
+  <input>/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ *
+ * As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+ * returns nothing.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>SECTION:tester</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>short_description</name>
+          <description>module for gtk-doc unit test</description>
+        </parameter>
+      </parameters>
+      <description>This file contains non-sense code for the sole purpose of testing the docs.
+
+As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+returns nothing.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * SECTION:tester
+ * @short_description: module for gtk-doc unit test
+ *
+ * This file contains non-sense code for the sole purpose of testing the docs.
+ *
+ * As described in http://bugzilla.gnome.org/show_bug.cgi?id=457077 it
+ * returns nothing.
+ */</output>
+</test>
+
+</tests>

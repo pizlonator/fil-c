@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.compute_sum_n"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_compute_sum_n</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationObject*</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int*</api:type>
+        <api:name>nums</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>n_nums</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_object_compute_sum_n</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_annotation_object_compute_sum_n (RegressAnnotationObject* object,
+                                              int* nums,
+                                              int n_nums);
+  </code></synopsis>
+  <p>Test taking an array with length parameter</p>
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>a <link href="../GObject-2.0/GObject.Object.html">GObject.Object</link></p>
+</item>
+<item>
+<title><code>nums</code></title>
+  <p>Sequence of
+  numbers that are zero-terminated</p>
+</item>
+<item>
+<title><code>n_nums</code></title>
+  <p>Length of number array</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

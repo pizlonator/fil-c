@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+<!ENTITY version SYSTEM "xml/version.xml">
+]>
+<book id="index" lang="en" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <title>libgirepository API Reference</title>
+  <bookinfo>
+    <title>libgirepository API Reference</title>
+    <releaseinfo>
+      This document is for libgirepository version &version;.
+      The latest version of this documentation can be found <ulink type="http"
+      url="https://gnome.pages.gitlab.gnome.org/gobject-introspection/girepository/">on-line</ulink>.
+      <para>
+        For more information on how to build libgirepository, for how to build
+        bindings with it and for information on GObject Introspection in
+        general see
+        <ulink type="http" url="https://gi.readthedocs.io">https://gi.readthedocs.io</ulink>.
+      </para>
+    </releaseinfo>
+  </bookinfo>
+
+    <xi:include href="xml/girepository.xml"/>
+    <xi:include href="xml/gitypelib.xml" />
+    <xi:include href="xml/giversion.xml"/>
+    <xi:include href="xml/gicommontypes.xml"/>
+
+    <chapter>
+      <title>GIBaseInfo</title>
+      <xi:include href="xml/gi-struct-hierarchy.xml"/>
+
+      <xi:include href="xml/gibaseinfo.xml"/>
+
+      <xi:include href="xml/gicallableinfo.xml"/>
+        <xi:include href="xml/gifunctioninfo.xml"/>
+        <xi:include href="xml/gicallbackinfo.xml"/>
+        <xi:include href="xml/gisignalinfo.xml"/>
+        <xi:include href="xml/givfuncinfo.xml"/>
+
+      <xi:include href="xml/giregisteredtypeinfo.xml"/>
+        <xi:include href="xml/gienuminfo.xml"/>
+        <xi:include href="xml/gistructinfo.xml"/>
+        <xi:include href="xml/giunioninfo.xml"/>
+        <xi:include href="xml/giobjectinfo.xml"/>
+        <xi:include href="xml/giinterfaceinfo.xml"/>
+
+      <xi:include href="xml/giarginfo.xml"/>
+      <xi:include href="xml/giconstantinfo.xml"/>
+      <xi:include href="xml/gifieldinfo.xml"/>
+      <xi:include href="xml/gipropertyinfo.xml"/>
+      <xi:include href="xml/gitypeinfo.xml"/>
+      <xi:include href="xml/givalueinfo.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>FFI Interface</title>
+      <xi:include href="xml/girffi.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Internals &amp; Typelib Format</title>
+      <xi:include href="xml/gitypelib-internal.xml"/>
+    </chapter>
+
+  <index id="api-index-full">
+    <title id="index-all">Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-deprecated" role="deprecated">
+    <title>Index of deprecated symbols</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-30" role="1.30">
+    <title>Index of new symbols in 1.30</title>
+    <xi:include href="xml/api-index-1.30.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-32" role="1.32">
+    <title>Index of new symbols in 1.32</title>
+    <xi:include href="xml/api-index-1.32.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-34" role="1.34">
+    <title>Index of new symbols in 1.34</title>
+    <xi:include href="xml/api-index-1.34.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-36" role="1.36">
+    <title>Index of new symbols in 1.36</title>
+    <xi:include href="xml/api-index-1.36.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-42" role="1.42">
+    <title>Index of new symbols in 1.42</title>
+    <xi:include href="xml/api-index-1.42.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-44" role="1.44">
+    <title>Index of new symbols in 1.44</title>
+    <xi:include href="xml/api-index-1.44.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-46" role="1.46">
+    <title>Index of new symbols in 1.46</title>
+    <xi:include href="xml/api-index-1.46.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-60" role="1.60">
+    <title>Index of new symbols in 1.60</title>
+    <xi:include href="xml/api-index-1.60.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-62" role="1.62">
+    <title>Index of new symbols in 1.62</title>
+    <xi:include href="xml/api-index-1.62.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-66" role="1.66">
+    <title>Index of new symbols in 1.66</title>
+    <xi:include href="xml/api-index-1.66.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-70" role="1.70">
+    <title>Index of new symbols in 1.70</title>
+    <xi:include href="xml/api-index-1.70.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-72" role="1.72">
+    <title>Index of new symbols in 1.72</title>
+    <xi:include href="xml/api-index-1.72.xml"><xi:fallback /></xi:include>
+  </index>
+  <xi:include href="xml/annotation-glossary.xml" />
+</book>

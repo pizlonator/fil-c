@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<page id="Regress.AnnotationObject.set_data"
+      type="topic"
+      style="method"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="Regress.AnnotationObject" group="method" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>void</api:type>
+      </api:returns>
+      <api:name>regress_annotation_object_set_data</api:name>
+      <api:arg>
+        <api:type>RegressAnnotationObject*</api:type>
+        <api:name>object</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>guchar*</api:type>
+        <api:name>data</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>gsize</api:type>
+        <api:name>length</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>regress_annotation_object_set_data</title>
+  <synopsis><code mime="text/x-csrc">
+void regress_annotation_object_set_data (RegressAnnotationObject* object,
+                                         guchar* data,
+                                         gsize length);
+  </code></synopsis>
+  <p>Test taking a guchar * with a length.</p>
+
+<terms>
+<item>
+<title><code>object</code></title>
+  <p>a <link xref="Regress.AnnotationObject"/></p>
+</item>
+<item>
+<title><code>data</code></title>
+  <p>The data</p>
+</item>
+<item>
+<title><code>length</code></title>
+  <p>Length of the data</p>
+</item>
+<item>
+<title><code>Returns</code></title>
+
+</item>
+</terms>
+
+</page>

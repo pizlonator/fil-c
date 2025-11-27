@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<page id="Regress.has_parameter_named_attrs"
+      type="topic"
+      style="function"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/1.0/ui/">
+  <info>
+    <link xref="index" group="function" type="guide"/>
+    <api:function>
+      <api:returns>
+        <api:type>none</api:type>
+      </api:returns>
+      <api:name>regress_has_parameter_named_attrs</api:name>
+      <api:arg>
+        <api:type>int</api:type>
+        <api:name>foo</api:name>
+      </api:arg>
+      <api:arg>
+        <api:type>[guint32]</api:type>
+        <api:name>attributes</api:name>
+      </api:arg>
+    </api:function>
+  </info>
+  <title>Regress.has_parameter_named_attrs</title>
+  <synopsis><code mime="text/x-python">
+@accepts(int, [guint32])
+@returns(none)
+def has_parameter_named_attrs(foo, attributes):
+    # Python wrapper for regress_has_parameter_named_attrs()
+  </code></synopsis>
+  <p>This test case mirrors GnomeKeyringPasswordSchema from
+libgnome-keyring.</p>
+
+<terms>
+<item>
+<title><code>foo</code></title>
+  <p>some int</p>
+</item>
+<item>
+<title><code>attributes</code></title>
+  <p>list of attributes</p>
+</item>
+</terms>
+
+</page>

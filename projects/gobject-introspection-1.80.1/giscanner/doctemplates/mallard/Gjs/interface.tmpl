@@ -1,0 +1,17 @@
+<%inherit file="/class.tmpl"/>
+<%block name="synopsis">
+  <synopsis><code>
+const ${namespace.name} = imports.gi.${namespace.name};
+
+let ${formatter.to_underscores(node).lower()} = new ${namespace.name}.${node.name}(\
+% if len(node.properties) > 0:
+{
+% for ix, property_ in enumerate(node.properties):
+% if (property_.construct or property_.construct_only) and property_.writable:
+    <link xref='${namespace.name}.${node.name}-${property_.name}'>${property_.name.replace('-', '_')}</link>: value,
+% endif
+% endfor
+}\
+% endif
+);
+  </code></synopsis></%block>

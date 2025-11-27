@@ -1,0 +1,156 @@
+stages:
+  - build
+  - deploy
+
+image: registry.gitlab.gnome.org/gnome/gobject-introspection:v13
+
+cache:
+  paths:
+    - _ccache/
+
+variables:
+  COMMON_MESON_FLAGS: "--prefix /usr --libdir lib64 --buildtype=debug -Dglib:werror=false -Dcairo=enabled -Dpython=python3"
+
+fedora-x86_64-meson:
+  stage: build
+  variables:
+    CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
+    CCACHE_DIR: "${CI_PROJECT_DIR}/_ccache"
+    EXTRA_MESON_FLAGS: "-Ddoctool=enabled -Dgtk_doc=true -Dwerror=true"
+  script:
+    - meson setup ${COMMON_MESON_FLAGS} ${EXTRA_MESON_FLAGS} _build .
+    - .gitlab-ci/show-git-commits.sh || true
+    - meson compile -C _build
+    - meson test -C _build --print-errorlogs --suite=gobject-introspection --no-suite=glib
+    - ninja -C _build gi-doc
+    - mkdir -p public
+    - mv _build/docs/reference/html/ public/girepository/
+    - python3 -m pip install --user flake8 mypy types-Markdown
+    - python3 -m flake8 --count
+    - python3 -m mypy _build
+  except:
+    - tags
+  artifacts:
+    when: always
+    name: "gi-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+      - public
+
+fedora-x86_64-subprojects:
+  image: registry.gitlab.gnome.org/gnome/gobject-introspection:min-v6
+  stage: build
+  variables:
+    CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
+    CCACHE_DIR: "${CI_PROJECT_DIR}/_ccache"
+  script:
+    - meson setup _build .
+    - .gitlab-ci/show-git-commits.sh || true
+    - meson compile -C _build
+    - meson test -C _build --print-errorlogs --suite=gobject-introspection
+  except:
+    - tags
+  artifacts:
+    when: always
+    name: "gi-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+      - public
+
+fedora-x86_64-no-introspection-data:
+  stage: build
+  variables:
+    CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
+    CCACHE_DIR: "${CI_PROJECT_DIR}/_ccache"
+    EXTRA_MESON_FLAGS: "-Dwerror=true"
+  script:
+    - meson setup ${COMMON_MESON_FLAGS} ${EXTRA_MESON_FLAGS} _build .
+    - .gitlab-ci/show-git-commits.sh || true
+    - meson compile -C _build
+    - meson test -C _build --print-errorlogs --suite=gobject-introspection --no-suite=glib
+  except:
+    - tags
+  artifacts:
+    when: always
+    name: "gi-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+      - public
+
+fedora-x86_64-python3.8:
+  stage: build
+  variables:
+    CCACHE_BASEDIR: "${CI_PROJECT_DIR}"
+    CCACHE_DIR: "${CI_PROJECT_DIR}/_ccache"
+    PYENV_VERSION: "3.8.17"
+  script:
+    - meson setup ${COMMON_MESON_FLAGS} ${EXTRA_MESON_FLAGS} _build .
+    - .gitlab-ci/show-git-commits.sh || true
+    - meson compile -C _build
+    - meson test -C _build --print-errorlogs --suite=gobject-introspection --no-suite=glib
+  except:
+    - tags
+  artifacts:
+    when: always
+    name: "gi-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+      - public
+
+msys2-mingw64-meson:
+  stage: build
+  tags:
+    - win32-ps
+  variables:
+    MSYSTEM: "MINGW64"
+    CHERE_INVOKING: "yes"
+  script:
+    - C:\msys64\usr\bin\pacman --noconfirm -Syyuu --ask 20
+    - C:\msys64\usr\bin\bash -lc "bash -x ./.gitlab-ci/test-msys2-meson.sh"
+  artifacts:
+    when: on_failure
+    name: "gi-_${env:CI_COMMIT_REF_NAME}"
+    paths:
+      - _build/meson-logs
+  allow_failure: true
+
+msys2-clang64-meson:
+  stage: build
+  tags:
+    - win32-ps
+  variables:
+    MSYSTEM: "CLANG64"
+    CHERE_INVOKING: "yes"
+  script:
+    - C:\msys64\usr\bin\pacman --noconfirm -Syyuu
+    - C:\msys64\usr\bin\bash -lc "bash -x ./.gitlab-ci/test-msys2-meson.sh"
+  artifacts:
+    when: on_failure
+    name: "gi-_${env:CI_COMMIT_REF_NAME}"
+    paths:
+      - _build/meson-logs
+  allow_failure: true
+
+vs2017-x64-meson:
+  stage: build
+  tags:
+    - win32-ps
+  script:
+    - .gitlab-ci/test-msvc.bat
+  artifacts:
+    when: on_failure
+    name: "gi-_${env:CI_COMMIT_REF_NAME}"
+    paths:
+      - _build/meson-logs
+
+pages:
+  stage: deploy
+  dependencies:
+    - fedora-x86_64-meson
+  script:
+   - echo
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

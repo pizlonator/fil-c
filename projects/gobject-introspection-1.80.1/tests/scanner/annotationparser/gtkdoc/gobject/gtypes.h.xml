@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tests xmlns="http://schemas.gnome.org/gobject-introspection/2013/test">
+
+<test>
+  <input>/**
+ * GtkdocEnum:
+ * @GTKDOC_ENUM_V1: first
+ * @GTKDOC_ENUM_V2: second
+ *    Since: 0.5
+ *
+ * Enum values for the #GtkdocEnum type.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocEnum</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>GTKDOC_ENUM_V1</name>
+          <description>first</description>
+        </parameter>
+        <parameter>
+          <name>GTKDOC_ENUM_V2</name>
+          <description>second
+   Since: 0.5</description>
+        </parameter>
+      </parameters>
+      <description>Enum values for the #GtkdocEnum type.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocEnum:
+ * @GTKDOC_ENUM_V1: first
+ * @GTKDOC_ENUM_V2: second
+ *    Since: 0.5
+ *
+ * Enum values for the #GtkdocEnum type.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocEnum2:
+ * @GTKDOC_ENUM2_V1: first
+ * @GTKDOC_ENUM2_V2: second
+ *
+ * Enum values for the #GtkdocEnum2 type.
+ */</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocEnum2</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>GTKDOC_ENUM2_V1</name>
+          <description>first</description>
+        </parameter>
+        <parameter>
+          <name>GTKDOC_ENUM2_V2</name>
+          <description>second</description>
+        </parameter>
+      </parameters>
+      <description>Enum values for the #GtkdocEnum2 type.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocEnum2:
+ * @GTKDOC_ENUM2_V1: first
+ * @GTKDOC_ENUM2_V2: second
+ *
+ * Enum values for the #GtkdocEnum2 type.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocPlainOldData:
+ * @n: Some integer member.
+ * @x: Some floating point member.
+ *
+ * Unboxed plain old data that should default to public members.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocPlainOldData</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>n</name>
+          <description>Some integer member.</description>
+        </parameter>
+        <parameter>
+          <name>x</name>
+          <description>Some floating point member.</description>
+        </parameter>
+      </parameters>
+      <description>Unboxed plain old data that should default to public members.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocPlainOldData:
+ * @n: Some integer member.
+ * @x: Some floating point member.
+ *
+ * Unboxed plain old data that should default to public members.
+ */</output>
+</test>
+
+<test>
+  <input>/**
+ * GtkdocBoxedPlainOldData:
+ * @n: Some integer member.
+ * @x: Some floating point member.
+ *
+ * Boxed plain old data that should default to public members.
+ **/</input>
+  <parser>
+    <docblock>
+      <identifier>
+        <name>GtkdocBoxedPlainOldData</name>
+      </identifier>
+      <parameters>
+        <parameter>
+          <name>n</name>
+          <description>Some integer member.</description>
+        </parameter>
+        <parameter>
+          <name>x</name>
+          <description>Some floating point member.</description>
+        </parameter>
+      </parameters>
+      <description>Boxed plain old data that should default to public members.</description>
+    </docblock>
+  </parser>
+  <output>/**
+ * GtkdocBoxedPlainOldData:
+ * @n: Some integer member.
+ * @x: Some floating point member.
+ *
+ * Boxed plain old data that should default to public members.
+ */</output>
+</test>
+
+</tests>
