@@ -24,5 +24,7 @@ rm -vf projects/*/pizlonated-*.tar.gz
 ./package-source.sh projects/weston-12.0.5 pizlonated-weston
 ./package-source.sh projects/seatd-0.9.1 pizlonated-seatd
 ./package-source.sh projects/libdrm-2.4.122 pizlonated-libdrm
-
-
+./package-source.sh projects/libjpeg-turbo-3.0.1 pizlonated-libjpeg-turbo
+./package-source.sh projects/tiff-4.6.0 pizlonated-tiff
+./package-source.sh projects/libwebp-1.4.0 pizlonated-libwebp
+./package-source.sh projects/openjpeg-2.5.2 pizlonated-openjpeg

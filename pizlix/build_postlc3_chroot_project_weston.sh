@@ -20,8 +20,8 @@ meson setup \
       -D xwayland=false \
       -D remoting=false \
       -D pipewire=false \
-      -D image-jpeg=false \
-      -D image-webp=false \
+      -D image-jpeg=true \
+      -D image-webp=true \
       -D color-management-lcms=false \
       -D backend-drm-screencast-vaapi=false \
       -D systemd=false \

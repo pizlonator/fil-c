@@ -73,7 +73,7 @@ hash -r
 
 tar -xf pizlonated-xkbcommon.tar.gz
 cd pizlonated-xkbcommon
-mkdir build
+mkdir -v build
 cd build
 meson setup ..             \
       --prefix=/usr        \
@@ -95,9 +95,70 @@ cd ..
 rm -rf pizlonated-libpng
 hash -r
 
+tar -xf pizlonated-libjpeg-turbo.tar.gz
+cd pizlonated-libjpeg-turbo
+mkdir -v build
+cd build
+cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_ASM_NASM_COMPILER="" \
+      -D CMAKE_BUILD_TYPE=RELEASE         \
+      -D ENABLE_STATIC=FALSE              \
+      -D CMAKE_INSTALL_DEFAULT_LIBDIR=lib \
+      -D CMAKE_SKIP_INSTALL_RPATH=ON      \
+      -D CMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-3.0.1
+make
+make install
+cd ../..
+rm -rf pizlonated-libjpeg-turbo
+hash -r
+
+tar -xf pizlonated-tiff.tar.gz
+cd pizlonated-tiff
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-tiff
+hash -r
+
+tar -xf pizlonated-libwebp.tar.gz
+cd pizlonated-libwebp
+./configure \
+    --prefix=/usr \
+    --enable-libwebpmux     \
+    --enable-libwebpdemux   \
+    --enable-libwebpdecoder \
+    --enable-libwebpextras  \
+    --enable-swap-16bit-csp    
+make
+make install
+cd ..
+rm -rf pizlonated-libwebp
+hash -r
+
+# Rebuild tiff because of circular dep with libwebp
+tar -xf pizlonated-tiff.tar.gz
+cd pizlonated-tiff
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-tiff
+hash -r
+
+tar -xf pizlonated-openjpeg.tar.gz
+cd pizlonated-openjpeg
+mkdir -v build
+cd build
+cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
+make
+make install
+cd ../..
+rm -rf pizlonated-openjpeg
+hash -r
+
 tar -xf pixman-0.43.4.tar.gz
 cd pixman-0.43.4
-mkdir build
+mkdir -v build
 cd build
 meson setup --prefix=/usr --buildtype=debugoptimized ..
 ninja
