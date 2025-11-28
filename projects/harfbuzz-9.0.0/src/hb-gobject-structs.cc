@@ -64,14 +64,14 @@
 GType \
 hb_gobject_##name##_get_type () \
 { \
-   static gsize type_id = 0; \
-   if (g_once_init_enter (&type_id)) { \
+   static gpointer type_id = 0; \
+   if (g_once_init_enter_pointer (&type_id)) { \
       GType id = g_boxed_type_register_static (g_intern_static_string ("hb_" #name "_t"), \
 					       (GBoxedCopyFunc) copy_func, \
 					       (GBoxedFreeFunc) free_func); \
-      g_once_init_leave (&type_id, id); \
+      g_once_init_leave_pointer (&type_id, id); \
    } \
-   return type_id; \
+   return (GType) type_id; \
 }
 
 #define HB_DEFINE_OBJECT_TYPE(name) \

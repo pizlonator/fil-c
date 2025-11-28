@@ -55,9 +55,9 @@
 GType
 @enum_name@_get_type ()
 {
-  static gsize type_id = 0;
+  static gpointer type_id = 0;
 
-  if (g_once_init_enter (&type_id))
+  if (g_once_init_enter_pointer (&type_id))
     {
       static const G@Type@Value values[] = {
 /*** END value-header ***/
@@ -71,10 +71,10 @@ GType
       };
       GType id =
         g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
-      g_once_init_leave (&type_id, id);
+      g_once_init_leave_pointer (&type_id, id);
     }
 
-  return type_id;
+  return (GType) type_id;
 }
 
 /*** END value-tail ***/
