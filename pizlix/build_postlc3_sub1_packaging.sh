@@ -29,3 +29,5 @@ rm -vf projects/*/pizlonated-*.tar.gz
 ./package-source.sh projects/libwebp-1.4.0 pizlonated-libwebp
 ./package-source.sh projects/openjpeg-2.5.2 pizlonated-openjpeg
 ./package-source.sh projects/gobject-introspection-1.80.1 pizlonated-gobject-introspection
+./package-source.sh projects/yaml-0.2.5 pizlonated-yaml
+./package-source.sh projects/ruby-3.3.10 pizlonated-ruby

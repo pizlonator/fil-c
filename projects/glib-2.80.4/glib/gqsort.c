@@ -264,6 +264,7 @@ msort_r (void *b, size_t n, size_t s, GCompareDataFunc cmp, void *arg)
     }
   else
     {
+#ifndef __FILC__
       if ((s & (sizeof (guint32) - 1)) == 0
 	  && (gsize) (guintptr) b % G_ALIGNOF(guint32) == 0)
 	{
@@ -276,6 +277,7 @@ msort_r (void *b, size_t n, size_t s, GCompareDataFunc cmp, void *arg)
 		   && (gsize) (guintptr) b % G_ALIGNOF(void *) == 0)
 	    p.var = 2;
 	}
+#endif
       msort_with_tmp (&p, b, n);
     }
   g_free (tmp);

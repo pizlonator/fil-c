@@ -14,5 +14,4 @@ test -d $FILCSRC/projects
 cd $FILCSRC
 
 rm -vf projects/*/pizlonated-*.tar.gz
-./package-source.sh projects/yaml-0.2.5 pizlonated-yaml
-./package-source.sh projects/ruby-3.3.10 pizlonated-ruby
+# FIXME: Add things
