@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+]>
+<book id="index">
+  <bookinfo>
+    <title>Graphene Reference Manual</title>
+    <releaseinfo>
+      <para>This document is the API reference for the Graphene library.</para>
+      <para>
+        The latest version of Graphene, as well as the latest version of
+        this API reference, is <ulink role="online-location" url="http://ebassi.github.com/graphene">available online</ulink>.
+      </para>
+    </releaseinfo>
+  </bookinfo>
+
+  <chapter>
+    <title>Graphene</title>
+
+    <refsect2 id="overview">
+      <para>
+        Graphene is a library of data types commonly used to implement 2D-in-3D or full 3D canvases.
+      </para>
+      <para>
+        Graphene only contains math data types, like vectors and matrices; it does not deal with windowing
+        system calls, event handling, drawing, or a full scene graph.
+      </para>
+    </refsect2>
+
+    <xi:include href="xml/graphene-point.xml"/>
+    <xi:include href="xml/graphene-point3d.xml"/>
+    <xi:include href="xml/graphene-size.xml"/>
+    <xi:include href="xml/graphene-rect.xml"/>
+    <xi:include href="xml/graphene-quad.xml"/>
+    <xi:include href="xml/graphene-triangle.xml"/>
+    <xi:include href="xml/graphene-box.xml"/>
+    <xi:include href="xml/graphene-sphere.xml"/>
+    <xi:include href="xml/graphene-frustum.xml"/>
+    <xi:include href="xml/graphene-simd4f.xml"/>
+    <xi:include href="xml/graphene-simd4x4f.xml"/>
+    <xi:include href="xml/graphene-vectors.xml"/>
+    <xi:include href="xml/graphene-matrix.xml"/>
+    <xi:include href="xml/graphene-euler.xml"/>
+    <xi:include href="xml/graphene-quaternion.xml"/>
+    <xi:include href="xml/graphene-plane.xml"/>
+    <xi:include href="xml/graphene-ray.xml"/>
+    <xi:include href="xml/graphene-version.xml"/>
+    <xi:include href="xml/graphene-gobject.xml"/>
+
+  </chapter>
+  <index id="api-index">
+    <title>API Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="deprecated-api-index" role="deprecated">
+    <title>Index of deprecated API</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="1.0">
+    <title>Index of new symbols in 1.0</title>
+    <xi:include href="xml/api-index-1.0.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="1.2">
+    <title>Index of new symbols in 1.2</title>
+    <xi:include href="xml/api-index-1.2.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="1.4">
+    <title>Index of new symbols in 1.4</title>
+    <xi:include href="xml/api-index-1.4.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="1.6">
+    <title>Index of new symbols in 1.6</title>
+    <xi:include href="xml/api-index-1.6.xml"><xi:fallback /></xi:include>
+  </index>
+  <index role="1.10">
+    <title>Index of new symbols in 1.10</title>
+    <xi:include href="xml/api-index-1.10.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

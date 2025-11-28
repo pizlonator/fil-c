@@ -1,0 +1,555 @@
+<meta charset="utf-8"><link rel="stylesheet" href="apidoc.css"/>
+
+**µTest — A small C testing library**
+
+ * [Main](./mutest.md.html)
+
+## Matchers
+
+_Matchers_ are functions passed to [`mutest_expect()`](mutest-general.md.html#//functions/mutest_expect).
+A matcher function takes a pointer to the expectation object, and a pointer to
+a value wrapper which containes the expected value.
+
+If the value contained in the expectation object matches the expected value,
+the the matcher is satisfied. If all matcher functions passed to
+[`mutest_expect()`](mutest-general.md.html#//functions/mutest_expect) are
+satisfied, the expectation is satisfied.
+
+For instance, the following expectation:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  const char *str = "hello, world";
+
+  mutest_expect ("the string to match a greeting",
+                 mutest_string_value (str),
+                 mutest_to_be, "hello, world",
+                 NULL);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Contains a single matcher, [`mutest_to_be()`](#/matchers/functions/mutest_to_be). The
+[`mutest_to_be()`](#//functions/mutest_to_be) matcher is satisfied if the value
+in `str` and wrapped by [`mutest_string_value()`](mutest-wrappers.md.html#/valuewrappers/functions/mutest_string_value)
+matches the function parameter, following [`mutest_to_be()`](#/matchers/functions/mutest_to_be)
+in the expectation.
+
+In the following example:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  const char *str = "hello, world";
+
+  mutest_expect ("the string to contain all parts of the greeting",
+                 mutest_string_value (str),
+                 mutest_to_start_with_string, "hello",
+                 mutest_to_contain, ",",
+                 mutest_to_end_with_string, "world",
+                 NULL);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The expectation is composed of three separate matchers:
+
+ - [`mutest_to_start_with_string()`](#/matchers/functions/mutest_to_start_with_string),
+   which checks that the string value starts with the matcher parameter
+ - [`mutest_to_contain()`](#/matchers/functions/mutest_to_contain), which checks that
+   the string value contains the matcher parameter
+ - [`mutest_to_end_with_string()`](#/matchers/functions/mutest_to_end_with_string),
+   which checks that the string value ends with the matcher parameter
+
+The expectation, in the case above, is only satisfied if all three
+matcher functions are satisfied.
+
+!!! Note
+    Matcher functions provided by µTest can automatically collect the
+    expected values from the variadic arguments list passed to
+    [`mutest_expect()`](mutest-general.md.html#//functions/mutest_expect)
+    without explicitly wrapping them with a `mutest_expect_res_t`. Custom
+    matchers, on the other hand, require an explicit value wrapper.
+
+### Includes
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <mutest.h>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### Functions
+
+#### `mutest_not`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_not (mutest_expect_t *e,
+            mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A special matcher function that negates the condition of the following matcher
+function.
+
+For instance:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mutest_expect ("a to not be true",
+                 mutest_bool_value (false),
+                 mutest_not, mutest_to_be, true,
+                 NULL);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be (mutest_expect_t *e,
+              mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Matches the value in `e` to the value in `check` exactly.
+
+This matcher collects a value that matches the type of the value
+passed to `mutest_expect()`.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_close_to`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_close_to (mutest_expect_t *e,
+                       mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the value in `e` is within a given tolerance of the value
+wrapped by `check`.
+
+This matcher collects two values:
+
+ - the numeric value to be used in the comparison
+ - the numeric value to be used as a tolerance
+
+e.g.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mutest_expect ("angle to be close to π",
+                 mutest_float_value (angle),
+                 mutest_to_be_close_to, M_PI, 0.0001,
+                 NULL);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_nan`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_nan (mutest_expect_t *e,
+                  mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the floating point value in `e` is NaN (Not a Number).
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_positive_infinity`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_positive_infinity (mutest_expect_t *e,
+                                mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the floating point value in `e` is a positive infinity.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_negative_infinity`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_negative_infinity (mutest_expect_t *e,
+                                mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the floating point value in `e` is a negative infinity.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_greater_than`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_greater_than (mutest_expect_t *e,
+                           mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the numeric value in `e` is greater than the value in `check`.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_greater_than_or_equal`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_greater_than_or_equal (mutest_expect_t *e,
+                                    mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the numeric value in `e` is greater than, or equal to
+the value in `check`.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_less_than_or_equal`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_less_than_or_equal (mutest_expect_t *e,
+                                 mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the numeric value in `e` is less than, or equal to
+the value in `check`.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_less_than`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_less_than (mutest_expect_t *e,
+                        mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks whether the numeric value in `e` is less than the value in `check`.
+
+This matcher collects the numeric value to be used in the comparison.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_in_range`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_in_range (mutest_expect_t *e,
+                       mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks if the numeric value in `e` is inside the range in `check`.
+
+This matcher collects the numeric range as two values, e.g.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mutest_expect ("number to be between 0 and 100",
+                 mutest_int_value (random_number),
+                 mutest_to_be_in_range, 0, 100,
+                 NULL);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_contain`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_contain (mutest_expect_t *e,
+                   mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks if the numeric range, or string, in `e` contains the numeric
+value, or string, in `check`.
+
+This matcher collects the numeric or string value that should be
+contained in the numeric range or string value passed to `mutest_expect()`.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_start_with_string`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_start_with_string (mutest_expect_t *e,
+                             mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the string in `e` starts with the string in `check`.
+
+This matcher collects the expected string that should be at
+the beginning of the string value passed to `mutest_expect()`.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_end_with_string`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_end_with_string (mutest_expect_t *e,
+                           mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the string in `e` ends with the string in `check`.
+
+This matcher collects the expected string that should be at
+the end of the string value passed to `mutest_expect()`.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_true`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_true (mutest_expect_t *e,
+                   mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the boolean value in `e` is true.
+
+This matcher does not collect any value.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_false`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_false (mutest_expect_t *e,
+                    mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the boolean value in `e` is false.
+
+This matcher does not collect any value.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_to_be_null`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_to_be_null (mutest_expect_t *e,
+                   mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the pointer value in `e` is `NULL`.
+
+This matcher does not collect any value.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_skip`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_skip (mutest_expect_t *e,
+             mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A special matcher function that will cause the expectation to be marked as
+skipped.
+
+This matcher collects a string that contains a human readable reason for
+the expectation to be skipped.
+
+You should use this matcher as the only one in an expectation.
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+----
+
+#### `mutest_expect_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_expect_value (mutest_expect_t *expect);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the pointer to the value wrapper passed to `mutest_expect()` from
+the `mutest_expect_t` object.
+
+This function is typically used when implementing custom matchers. For
+instance:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static bool
+test_my_object_is_equal (mutest_expect_t *e,
+                         mutest_expect_res_t *check)
+{
+  mutest_expect_res_t *value = mutest_expect_value (e);
+
+  MyObject *a = mutest_get_pointer (value);
+  MyObject *b = mutest_get_pointer (check);
+
+  // Simple equality
+  if (a == b)
+    return true;
+
+  // my_object_deep_equal() is defined elsewhere as a deep
+  // equality of two MyObject instances
+  return my_object_deep_equal (a, b);
+}
+
+...
+
+  // Custom matchers must use the explicit value wrappers,
+  // as µTest doesn't know how to collect the values
+  mutest_expect ("the objects to be equal",
+                 mutest_pointer (foo),
+                 test_my_object_is_equal, mutest_pointer (bar),
+                 NULL);
+...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### Types
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+typedef bool
+(* mutest_matcher_func_t) (mutest_expect_t *e,
+                           mutest_expect_res_t *check);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+e
+: the expectation object
+check
+: the matcher argument
+return value
+: `true` if the matcher is satisfied, and `false` otherwise
+
+The prototype of a matcher function to pass to `mutest_expect()`.
+
+----
+
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'medium'};</script>
+<!-- Markdeep: --><script src="markdeep.min.js" charset="utf-8"></script>

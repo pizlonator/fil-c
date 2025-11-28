@@ -1,0 +1,25 @@
+option('gtk_doc', type: 'boolean',
+       value: false,
+       description: 'Enable generating the API reference (depends on GTK-Doc)')
+option('gobject_types', type: 'boolean',
+       value: true,
+       description: 'Enable GObject types (depends on GObject)')
+option('introspection', type: 'feature',
+       value: 'auto',
+       yield: true,
+       description: 'Enable GObject Introspection (depends on GObject)')
+option('gcc_vector', type: 'boolean',
+       value: true,
+       description: 'Enable GCC vector fast paths (requires GCC)')
+option('sse2', type: 'boolean',
+       value: true,
+       description: 'Enable SSE2 fast paths (requires SSE2 or later)')
+option('arm_neon', type: 'boolean',
+       value: true,
+       description: 'Enable ARM NEON fast paths (requires ARM)')
+option('tests', type: 'boolean',
+       value: true,
+       description: 'Build the test suite (requires GObject)')
+option('installed_tests', type: 'boolean',
+       value: true,
+       description: 'Install tests')

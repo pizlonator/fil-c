@@ -1,0 +1,37 @@
+sudo: false
+
+os:
+  - linux
+
+services:
+  - docker
+
+language:
+  - c
+
+before_install:
+  - docker pull ebassi/mutestci:latest
+
+before_script:
+  - echo FROM ebassi/mutestci > Dockerfile
+  - echo ADD . /home/user/app >> Dockerfile
+  - echo WORKDIR /home/user/app >> Dockerfile
+  - docker build -t withgit .
+
+jobs:
+  include:
+    - stage: "Tests"
+      name: "Build"
+      script: docker run withgit /bin/sh -c "sh -x .travis-ci/run-ci.sh ${BUILD_OPTS}"
+      env:
+        - BUILD_OPTS=""
+#        - BUILD_OPTS="-Db_sanitize=address -Db_lundef=false"
+    - script: docker run withgit /bin/sh -c "sh -x .travis-ci/run-ci.sh ${BUILD_OPTS}"
+      name: "UBSan"
+      env:
+        - BUILD_OPTS="-Db_sanitize=undefined -Db_lundef=false"
+    - stage: "Analysis"
+      script: docker run withgit /bin/sh -c "sh -x .travis-ci/run-static.sh"
+      name: "Code scan"
+    - script: docker run withgit /bin/sh -c "sh -x .travis-ci/run-coverage.sh"
+      name: "Coverage"

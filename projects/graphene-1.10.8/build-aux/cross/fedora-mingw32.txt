@@ -1,0 +1,18 @@
+[binaries]
+c = '/usr/bin/i686-w64-mingw32-gcc'
+cpp = '/usr/bin/i686-w64-mingw32-cpp'
+ar = '/usr/bin/i686-w64-mingw32-ar'
+strip = '/usr/bin/i686-w64-mingw32-strip'
+pkgconfig = '/usr/bin/i686-w64-mingw32-pkg-config'
+exe_wrapper = 'wine'
+
+[properties]
+root = '/usr/i686-w64-mingw32/sys-root/mingw'
+c_args = [ '-O2', '-g', '-pipe', '-Wall', '-Wp', '-D_FORTIFY_SOURCE=2', '-fexceptions', '--param=ssp-buffer-size=4', '-I/usr/i686-w64-mingw32/sys-root/mingw/include' ]
+c_link_args = [ '-L/usr/i686-w64-mingw32/sys-root/mingw/lib' ]
+
+[host_machine]
+system = 'windows'
+cpu_family = 'i686'
+cpu = 'i686'
+endian = 'little'

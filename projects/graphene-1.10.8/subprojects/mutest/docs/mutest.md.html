@@ -1,0 +1,257 @@
+<meta charset="utf-8"><link rel="stylesheet" href="apidoc.css"/>
+
+**µTest — A small C testing library**
+
+## What is µTest?
+
+µTest aims to be a small unit testing library for C projects, with an API
+heavily modelled on high level [Behavior-Driven Development][bdd] frameworks
+like [Jasmine][jasmine] or [Mocha][mocha].
+
+[bdd]: https://en.wikipedia.org/wiki/Behavior-driven_development
+[jasmine]: https://jasmine.github.io/
+[mocha]: https://mochajs.org/
+
+## Adding µTest to your project
+
+The preferred way to use µTest is to include it in your own projects using
+a Git sub-module, and then building µTest as a static library. If you are
+using [Meson](http://mesonbuild.com), you can use a wrap file in the
+`subprojects` directory:
+
+```
+[wrap-git]
+directory=mutest
+url=https://github.com/ebassi/mutest.git
+revision=master
+```
+
+and then use the `fallback` dependency type:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_dep = dependency('mutest-1',
+  fallback: [ 'mutest', 'mutest_dep' ],
+  default_options: ['static=true'],
+  required: false,
+  disabler: true,
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!! Note
+    The `static` option will build µTest as an uninstalled static library.
+    You can remove the `default_options` argument to get an installed
+    shared library.
+
+µTest can also build a shared library and a [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/)
+file to describe the necessary compiler and linker flags, if you want to
+install µTest in your library path; if you decide to depend on the shared
+library, you can use the normal `pkg-config`-based dependency discovery.
+For instance, if you are using [Meson](http://mesonbuild.com):
+
+```meson
+mutest_dep = dependency('mutest-1')
+```
+
+And if you're using Autotools:
+
+```m4
+PKG_CHECK_MODULES(MUTEST, [mutest-1])
+AC_SUBST(MUTEST_CFLAGS)
+AC_SUBST(MUTEST_LIBS)
+```
+
+## Writing tests using µTest
+
+Writing a test program using µTest requires initializing the test framework,
+defining the various tests, and gathering the results. For convenience, µTest
+provides a simple macro meant to replace the `main` entry point of any C
+binary:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MUTEST_MAIN (
+  // your code goes here
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `MUTEST_MAIN` macro will initialize µTest and print the report.
+
+Each µTest-based test starts from a *suite*, which is created by calling
+`mutest_describe()` in the main entry point of your test binary:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MUTEST_MAIN (
+  mutest_describe ("A test suite", main_suite);
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A test binary can have multiple suites.
+
+The purpose of the `main_suite()` function is to create a *specification*,
+or *spec*. A spec describes an aspect of your data type, service, or API.
+Each spec is made of various expectations, which are defined by calling
+`mutest_it()`:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+main_suite (void)
+{
+  mutest_it ("is made of at least one spec", first_spec);
+  mutest_it ("can contain multiple specs", second_spec);
+  mutest_it ("can have specs that can be skipped", skipped_spec);
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As you can see, the description of suites and specs tries to match a
+natural language description of what the suite is about, and what aspect
+of the API is covered by each spec. The descriptions will be logged in
+the test output.
+
+Inside each spec we have *expectations* that must be satisfied, in order
+to say that the test suite is successful. An expectation is made of
+three parts:
+
+ - a description of the expectation
+ - the value we are testing
+ - a *matcher function*, which will compare the value we are testing
+   with the expected value
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+first_spec (void)
+{
+  bool a = true;
+
+  mutest_expect ("a to be true", mutest_bool_value (a),
+                 mutest_to_be, true, NULL);
+  mutest_expect ("a not to be false", mutest_bool_value (a),
+                 mutest_not, mutest_to_be, false,
+                 NULL);
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Expectations can chain multiple matching functions in order to
+create multiple conditions that must be all satisfied:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+second_spec (void)
+{
+  // The get_greeting() function is defined elsewhere, and
+  // we are testing its output
+  const char *str = get_greeting ();
+
+  mutest_expect ("get_greeting() to return all parts of a greeting",
+                 mutest_string_value (str),
+                 mutest_to_start_with_string, "hello",
+                 mutest_to_contain, ",",
+                 mutest_to_end_with_string, "world",
+                 NULL);
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the example above, the expectation will only be satisfied if all three
+matchers are successful.
+
+Expectations can be programmatically skipped. For instance, if you haven't
+implemented some functionality, yet. These expectations will be satisfied,
+but still logged not as successes:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+skipped_spec (void)
+{
+  // The get_answer() function is defined elsewhere
+  int answer = get_answer ();
+
+  mutest_expect ("an answer to the ultimate question of life, the universe, and everything",
+                 mutest_int_value (answer),
+                 mutest_skip, "Deep Thought hasn't finished yet",
+                 NULL);
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the example above, the `skipped_spec()` specification will succeed, but
+it will be marked as skipped.
+
+## Output formats
+
+By default, µTest uses an output similar to Mocha:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ ./test-suite
+
+  A test suite
+    is made of at least one spec
+      ✓ a to be true
+      ✓ a not to be false
+
+      2 passing (80.0 µs)
+
+    can contain multiple specs
+      ✓ get_greeting() to return all parts of a greeting
+
+      1 passing (60.0 µs)
+
+    can have specs that can be skipped
+      - an answer to the ultimate question of life, the universe and everything
+
+      0 passing (34.0 µs)
+      1 skipped
+
+Total
+3 passing (202.0 µs)
+1 skipped
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Additionally, µTest supports [TAP](https://testanything.org/)—Test Anything
+Protocol. If you have a TAP harness, like [prove(1)](https://linux.die.net/man/1/prove),
+you can use the `MUTEST_OUTPUT` environment variable set to `tap` in order to
+get a TAP output:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ MUTEST_OUTPUT=tap ./test-suite
+# A test suite
+# is made of at least one spec
+ok 1 - a to be true
+ok 2 - a not to be false
+# can contain multiple specs
+ok 3 - get_greeting() to return all parts of a greeting
+# can have specs that can be skipped
+ok 4 - an answer to the ultimate question of life, the universe and everything # SKIP: Deep Thought hasn't finished yet
+1..4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## API Reference
+
+ - [General](./mutest-general.md.html)
+ - [Matchers](./mutest-matchers.md.html)
+ - [Value wrappers](./mutest-wrappers.md.html)
+ - [Hooks](./mutest-hooks.md.html)
+
+## Copyright and license
+
+Copyright 2019  Emmanuele Bassi
+
+µTest and this documentation are released under the terms of the
+[MIT](https://opensource.org/licenses/MIT) license.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'medium'};</script>
+<!-- Markdeep: --><script src="markdeep.min.js" charset="utf-8"></script>

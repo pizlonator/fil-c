@@ -1,0 +1,187 @@
+<meta charset="utf-8"><link rel="stylesheet" href="apidoc.css"/>
+
+**µTest — A small C testing library**
+
+ * [Main](./mutest.md.html)
+
+## Hooks
+
+µTest allows calling custom functions before and after each test suite,
+as well as before and after each specification.
+
+Typically, these functions are used to perform environment checks that
+may lead to different testing conditions; or to set up mock objects and
+state that will be used in the specifications and expectations. For
+instance, a hook called before all specifications can set up a server
+connection, and a hook called after all specifications can close it
+gracefully, instead of relying on the end of the process.
+
+Additionally, you can use hook functions to decide whether or not a suite
+or a specification need to run at all; in the case above, if the server
+connection is not available, you could decide to skip the whole test suite
+without necessarily failing the test.
+
+### Includes
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <mutest.h>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### Functions
+
+#### `mutest_before`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_before (mutest_hook_func_t hook);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the function to be called once before a suite
+defined by `mutest_describe()`.
+
+For instance:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+before_func (void)
+{
+}
+
+static void
+hooks_suite (mutest_suite_t *suite)
+{
+  // test cases
+}
+
+MUTEST_MAIN (
+  // runs once before all tests cases
+  mutest_before (before_func);
+
+  mutest_describe ("hooks", hooks_suite);
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+hook
+: a `mutest_hook_func_t` function
+
+----
+
+#### `mutest_after`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_after (mutest_hook_func_t hook);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the function to be called once after a suite
+defined by `mutest_describe()`.
+
+For instance:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+after_func (void)
+{
+}
+
+static void
+hooks_suite (mutest_suite_t *suite)
+{
+  // test cases
+}
+
+MUTEST_MAIN (
+  // runs once after all tests cases
+  mutest_after (after_func);
+
+  mutest_describe ("hooks", hooks_suite);
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+hook
+: a `mutest_hook_func_t` function
+
+----
+
+#### `mutest_before_each`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_before_each (mutest_hook_func_t hook);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the function to be called before every specification
+defined by `mutest_it()`.
+
+For instance:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+before_each_func (void)
+{
+}
+
+static void
+hooks_suite (mutest_suite_t *suite)
+{
+  // runs before each tests case
+  mutest_before_each (before_each_func);
+
+  // test cases
+}
+
+MUTEST_MAIN (
+  mutest_describe ("hooks", hooks_suite);
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+hook
+: a `mutest_hook_func_t` function
+
+----
+
+#### `mutest_after_each`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_after_each (mutest_hook_func_t hook);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the function to be called after each specification
+defined by `mutest_it()`.
+
+For instance:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+static void
+after_each_func (void)
+{
+}
+
+static void
+hooks_suite (mutest_suite_t *suite)
+{
+  // runs after each tests case
+  mutest_after_each (after_each_func);
+
+  // test cases
+}
+
+MUTEST_MAIN (
+  mutest_describe ("hooks", hooks_suite);
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+hook
+: a `mutest_hook_func_t` function
+
+### Types
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+typedef void (* mutest_hook_func_t) (void)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The prototype of a function to pass to `mutest_before()`, `mutest_before_each()`,
+`mutest_after_each()`, or `mutest_after()`.
+
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'medium'};</script>
+<!-- Markdeep: --><script src="markdeep.min.js" charset="utf-8"></script>

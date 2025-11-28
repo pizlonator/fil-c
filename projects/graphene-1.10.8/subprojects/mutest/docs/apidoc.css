@@ -1,0 +1,195 @@
+/* Custom stylesheet for API documentation by Aras Pranckevičius, http://aras-p.info/
+   and tweaked by Morgan McGuire.
+   Licensed as public domain or BSD 2-clause, whichever is more convenient for you.
+   Originally from https://github.com/aras-p/markdeep-docs-style */
+body {
+    max-width: 70%;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-align: left;
+    margin: 2.5em;
+    padding: 0 1em;
+}
+
+@media screen and (max-width: 64em) {
+    body { max-width: 100%; }
+}
+
+/* if screen is wide enough, put table of contents on the right side */
+@media screen and (min-width: 64em) {
+    .md .longTOC, .md .mediumTOC, .md .shortTOC {
+        max-width: 26em;
+	right: 4em;
+        position: fixed;
+        top: 0;
+        margin: 0 1em;
+        padding: 1.2em 2em;
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+        z-index: 500;
+        box-sizing: border-box;
+        display: block;
+        color: rgba(0, 0, 0, 0.3);
+        transform: translateX(0px);
+        transition: .2s background-color, color;
+    }
+}
+
+/* for narrow screens or print, hide table of contents */
+@media screen and (max-width: 64em) {
+    .md .longTOC, .md .mediumTOC, .md .shortTOC { display: none; }
+}
+
+@media print {
+    .md .longTOC, .md .mediumTOC, .md .shortTOC { display: none; }
+    body { max-width: 100%; }
+}
+
+/* reset heading/link fonts to that of body */
+.md a,
+.md div.title, contents, .md .tocHeader,
+.md h1, .md h2, .md h3, .md h4, .md h5, .md h6,
+.md .nonumberh1, .md .nonumberh2, .md .nonumberh3, .md .nonumberh4, .md .nonumberh5, .md .nonumberh6,
+.md .shortTOC, .md .mediumTOC, .md .longTOC {
+    font-family: inherit;
+}
+
+@media screen {.md .tocTop {
+    display: inline;
+}}
+
+.md div.title {
+    margin: 0.4em 0 0 0;
+    padding: 0;
+    text-align: inherit;
+}
+
+.md div.subtitle {
+    text-align: inherit;
+}
+
+/* faint border below headings */
+.md h1, .md h2, .md h3, .md h4,
+.md .nonumberh1, .md .nonumberh2, .md .nonumberh3, .md .nonumberh4 {
+    border-bottom: 1px solid rgba(0,0,0,.1);
+}
+/* heading font styles */
+.md h1, .md .nonumberh1, .md div.title {
+    font-size: 150%;
+    font-weight: 600;
+    color: rgba(0,0,0,.7);
+}
+.md h2, .md .nonumberh2 {
+    font-size: 120%;
+    font-weight: 400;
+    color: rgba(0,0,0,.9);
+}
+.md h3, .md .nonumberh3 {
+    font-size: 110%;
+    font-weight: 400;
+    color: rgba(0,0,0,.7);
+}
+/* no numbering of headings */
+.md h1:before, .md h2:before, .md h3:before, .md h4:before { content: none; }
+
+/* link styling */
+.md a:link, .md a:visited {
+    color: #3f51b5;
+}
+
+.md code { font-family: monospace; }
+
+/* inline and block code */
+.md pre.listing {
+   background-color: rgba(0, 0, 0, 0.05);
+   border-radius: 6px;
+   box-shadow: 0px 5px 8px 0px rgba(0, 0, 0, 0.25);
+   font-family: monospace;
+   line-height: 1.2em;
+   border: none;
+   padding: 10px 1em;
+   overflow: auto;
+   white-space: pre;
+   word-break: normal;
+   word-wrap: normal;
+}
+
+.md pre.listing code {
+    background-color: transparent;
+    padding: 0;
+    border: none;
+}
+
+/* table of contents styling; make all 3 forms of it look the same */
+.md .longTOC, .md .mediumTOC, .md .shortTOC {
+    font-size: inherit;
+    line-height: 120%;
+    margin: 1em 0;
+    padding: .4rem;
+    border: none;
+    /*border-left: .1rem solid #3f51b5;*/
+}
+
+.md .tocHeader {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+}
+
+.md .tocNumber {
+    display: none;
+}
+
+.md .longTOC .level1, .md .mediumTOC .level1, .md .shortTOC .level1 {
+    font-weight: inherit;
+    padding: 0;
+    margin: 0;
+}
+
+.md .longTOC p, .md .mediumTOC p, .md .shortTOC p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.md .longTOC center, .md .mediumTOC center, .md .shortTOC center, .md .tocHeader {
+    text-align: left;
+}
+
+.md .longTOC b, .md .mediumTOC b, .md .shortTOC b {
+    font-weight: 400;
+}
+
+.md .longTOC center b, .md .mediumTOC center b, .md .shortTOC center b {
+    font-weight: bold;
+}
+
+.md .longTOC a, .md .mediumTOC a, .md .shortTOC a {
+    color: black;
+}
+
+.md .longTOC .level1, .md .mediumTOC .level1, .md .shortTOC .level1,
+.md .longTOC .level2, .md .mediumTOC .level2, .md .shortTOC .level2,
+.md .longTOC .level3, .md .mediumTOC .level3, .md .shortTOC .level3 {
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+    font-size: 90%;
+}
+
+/* tables; use fainter colors than regular markdeep style */
+.md table.table {
+    font-size: 90%;
+}
+
+.md table.table th {
+    border: none;
+    background-color: #ccc;
+    color: rgba(0,0,0,.6);
+}
+.md table.table tr, .md table.table td {
+    border-color: #eee;
+}
+.md table.table tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+

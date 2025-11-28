@@ -1,0 +1,256 @@
+<meta charset="utf-8"><link rel="stylesheet" href="apidoc.css"/>
+
+**µTest — A small C testing library**
+
+ * [Main](./mutest.md.html)
+
+## Value Wrappers
+
+### Includes
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <mutest.h>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### Functions
+
+#### `mutest_bool_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_bool_value (bool value);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a boolean value to pass to `mutest_expect()`.
+
+value
+: a boolean scalar
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_bool_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool
+mutest_get_bool_value (const mutest_expect_res_t *res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the boolean value in the `res` wrapper.
+
+res
+: a `mutest_expect_res_t`
+return value
+: a boolean value
+
+----
+
+#### `mutest_int_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_int_value (int value);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps an integer value to pass to `mutest_expect()`.
+
+value
+: an integer scalar
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_int_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int
+mutest_get_int_value (const mutest_expect_res_t *res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the integer value in the `res` wrapper.
+
+res
+: a `mutest_expect_res_t`
+return value
+: an integer value
+
+----
+
+#### `mutest_string_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_string_value (const char *value);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a C string to pass to `mutest_expect()`.
+
+value
+: a C string
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_string_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const char *
+mutest_get_string_value (const mutest_expect_res_t *res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the string in the `res` wrapper.
+
+res
+: a `mutest_expect_res_t`
+return value
+: a string
+
+----
+
+#### `mutest_float_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_float_value (double value);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a floating point value to pass to `mutest_expect()`.
+
+value
+: a floating point value
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_float_value`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+double
+mutest_get_float_value (const mutest_expect_res_t *res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the floating point value in the `res` wrapper.
+
+res
+: a `mutest_expect_res_t`
+return value
+: a floating point value
+
+----
+
+#### `mutest_int_range`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_int_range (int min,
+                  int max);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a range of integers between `min` and `max`, inclusive,
+to pass to mutest_expect().
+
+min
+: the minimum value of a range
+max
+: the maximum value of a range
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_int_range`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_get_int_range (const mutest_expect_res_t *res,
+                      int *min,
+                      int *max);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the range in the result wrapper.
+
+res
+: a `mutest_expect_res_t`
+min
+: return location for the minimum value of the range
+max
+: return location for the maximum value of the range
+
+----
+
+#### `mutest_float_range`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_float_range (double min,
+                    double max);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a range of floating point values between @min and @max,
+inclusive, to pass to mutest_expect().
+
+min
+: the minimum value of a range
+max
+: the maximum value of a range
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_float_range`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void
+mutest_get_float_range (const mutest_expect_res_t *res,
+                        double *min,
+                        double *max);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the range in the result wrapper.
+
+res
+: a `mutest_expect_res_t`
+min
+: return location for the minimum value of the range
+max
+: return location for the maximum value of the range
+
+----
+
+#### `mutest_pointer`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mutest_expect_res_t *
+mutest_pointer (const void *pointer);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wraps a pointer to pass to mutest_expect().
+
+pointer
+: a generic pointer
+return value
+: a newly allocated `mutest_expect_res_t`
+
+----
+
+#### `mutest_get_pointer`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const void *
+mutest_get_pointer (const mutest_expect_res_t *res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves the pointer value in the result wrapper.
+
+res
+: a `mutest_expect_res_`
+return value
+: a pointer value
+
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'medium'};</script>
+<!-- Markdeep: --><script src="markdeep.min.js" charset="utf-8"></script>

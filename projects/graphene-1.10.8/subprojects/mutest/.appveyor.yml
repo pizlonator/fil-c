@@ -1,0 +1,47 @@
+version: 2019.1.{build}
+
+image: Visual Studio 2019
+
+configuration: Release
+
+# Configure both 32-bit and 64-bit builds for MSVC / MSYS2
+environment:
+  matrix:
+    - MSVC_PLATFORM: x64
+      DO_DEPLOY: true
+    - MSVC_PLATFORM: x86
+      DO_DEPLOY: true
+#    - MSYSTEM: MINGW64
+#    - MSYSTEM: MINGW32
+
+# AppVeyor doesn't do this automatically like Travis does
+install:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - git submodule update --init --recursive
+
+build_script:
+  - IF DEFINED MSVC_PLATFORM ".appveyor/msvc.bat"
+# Disabled because of GCC 9.1 upgrade disaster
+#  - IF DEFINED MSYSTEM set CHERE_INVOKING=yes
+#  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash -lc "bash -x .appveyor/msys2-pre.sh"
+#  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash -lc "bash -x .appveyor/msys2.sh"
+
+artifacts:
+  - path: mutest-shared-win-%MSVC_PLATFORM%.zip
+    name: mutest-shared-%MSVC_PLATFORM%
+
+test: off
+
+# Upload .zip file to GitHub release
+deploy:
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: "muTest $(APPVEYOR_REPO_TAG_NAME)"
+  provider: GitHub
+  auth_token:
+    secure: G7OR0N4yFnjd0bZY7XioO4m9LMpC25WsLHm8UUwjD0bN2qteuYrEr6IQSBWyKb3c
+  artifact: mutest-shared-$(MSVC_PLATFORM)
+  draft: false
+  prerelease: false
+  on:
+    appveyor_repo_tag: true # deploy on tag push only
+    DO_DEPLOY: true
