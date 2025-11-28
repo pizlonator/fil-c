@@ -9820,7 +9820,7 @@ _LT_EOF
           archive_expsym_cmds='echo "{ global:" > $output_objdir/$libname.ver~
             cat $export_symbols | $SED -e "s/\(.*\)/\1;/" >> $output_objdir/$libname.ver~
             echo "local: *; };" >> $output_objdir/$libname.ver~
-            $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags $wl-soname $wl$soname $wl-version-script $wl$output_objdir/$libname.ver -o $lib'
+            $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags $wl-soname $wl$soname --version-script=$output_objdir/$libname.ver -o $lib'
         fi
 
 	case $cc_basename in
