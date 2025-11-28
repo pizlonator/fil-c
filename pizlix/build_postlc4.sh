@@ -30,10 +30,13 @@ su $FILCOWNER ./build_postlc4_sub1_packaging.sh
 ./build_unmount.sh
 ./build_mount.sh
 
-# cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 cp -v build_postlc4_sub2_chroot.sh $LFS/sources
 cp -v fribidi-1.0.15.tar.xz $LFS/sources
 cp -v shared-mime-info-2.4.tar.gz $LFS/sources
+cp -v pycairo-1.26.1.tar.gz $LFS/sources
+cp -v build_postlc4_chroot_project_graphene.sh $LFS/sources
+cp -v build_postlc4_chroot_project_pygobject.sh $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc4_sub2_chroot.sh
 

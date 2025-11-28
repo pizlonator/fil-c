@@ -28,3 +28,17 @@ ninja install
 cd ../..
 rm -rf shared-mime-info-2.4
 hash -r
+
+tar -xf pycairo-1.26.1.tar.gz
+cd pycairo-1.26.1
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf pycairo-1.26.1
+hash -r
+
+./build_postlc4_chroot_project_pygobject.sh
+./build_postlc4_chroot_project_graphene.sh
