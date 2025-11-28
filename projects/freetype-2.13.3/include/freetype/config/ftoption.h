@@ -123,7 +123,7 @@ FT_BEGIN_HEADER
    * When this macro is not defined, FreeType offers alternative LCD
    * rendering technology that produces excellent output.
    */
-/* #define FT_CONFIG_OPTION_SUBPIXEL_RENDERING */
+#define FT_CONFIG_OPTION_SUBPIXEL_RENDERING
 
 
   /**************************************************************************
