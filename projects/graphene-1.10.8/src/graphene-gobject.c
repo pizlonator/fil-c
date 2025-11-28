@@ -140,14 +140,14 @@
   GType \
     type_name ## _get_type (void) \
   { \
-    static gsize graphene_define_id__volatile = 0; \
-    if (g_once_init_enter (&graphene_define_id__volatile)) \
+    static gpointer graphene_define_id__volatile = 0; \
+    if (g_once_init_enter_pointer (&graphene_define_id__volatile)) \
       { \
         GType graphene_define_id = \
           g_boxed_type_register_static (g_intern_static_string (#TypeName), \
                                         (GBoxedCopyFunc) type_name ## _copy_internal, \
                                         (GBoxedFreeFunc) type_name ## _free); \
-        g_once_init_leave (&graphene_define_id__volatile, graphene_define_id); \
+        g_once_init_leave_pointer (&graphene_define_id__volatile, graphene_define_id); \
       } \
     return graphene_define_id__volatile; \
   }
