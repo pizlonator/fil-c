@@ -42,6 +42,7 @@ cp -v Mako-1.3.5.tar.gz $LFS/sources
 cp -v build_postlc4_chroot_project_mesa.sh $LFS/sources
 cp -v libepoxy-1.5.10.tar.xz $LFS/sources
 cp -v build_postlc4_chroot_project_pango.sh $LFS/sources
+cp -v build_postlc4_chroot_project_gdk-pixbuf.sh $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc4_sub2_chroot.sh
 

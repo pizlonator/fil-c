@@ -76,5 +76,6 @@ rm -rf libepoxy-1.5.10
 hash -r
 
 ./build_postlc4_chroot_project_pango.sh
+./build_postlc4_chroot_project_gdk-pixbuf.sh
 hash -r
 
