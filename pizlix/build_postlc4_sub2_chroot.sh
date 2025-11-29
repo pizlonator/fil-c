@@ -42,6 +42,7 @@ hash -r
 
 ./build_postlc4_chroot_project_pygobject.sh
 ./build_postlc4_chroot_project_graphene.sh
+hash -r
 
 tar -xf iso-codes_4.16.0.orig.tar.xz
 cd iso-codes-4.16.0
@@ -61,3 +62,16 @@ rm -rf Mako-1.3.5
 hash -r
 
 ./build_postlc4_chroot_project_mesa.sh
+hash -r
+
+tar -xf libepoxy-1.5.10.tar.xz
+cd libepoxy-1.5.10
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized .. -Dx11=false
+ninja
+ninja install
+cd ../..
+rm -rf libepoxy-1.5.10
+hash -r
+
