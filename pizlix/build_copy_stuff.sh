@@ -83,7 +83,6 @@ cp -v \
     man-db-2.12.1.tar.xz \
     man-pages-6.9.1.tar.xz \
     MarkupSafe-2.1.5.tar.gz \
-    meson-1.5.1.tar.gz \
     mg-3.7.tar.gz \
     mpc-1.3.1.tar.gz \
     mpfr-4.2.1.tar.xz \
@@ -127,6 +126,7 @@ cp -v \
     build_postlc_sub2_chroot_part2.sh \
     build_postlc_chroot_project_systemd.sh \
     build_postlc_chroot_project_perl.sh \
+    build_postlc_chroot_project_meson.sh \
     linux-config-6.10.5 \
     preserve-yolo.txt \
     $LFS/sources

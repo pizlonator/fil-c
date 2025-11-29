@@ -236,14 +236,7 @@ cd ..
 rm -rf ninja-1.12.1
 hash -r
 
-tar -xf meson-1.5.1.tar.gz
-cd meson-1.5.1
-pip3 wheel -w dist --no-cache-dir --no-build-isolation --no-deps $PWD
-pip3 install --no-index --find-links dist meson
-install -vDm644 data/shell-completions/bash/meson /usr/share/bash-completion/completions/meson
-install -vDm644 data/shell-completions/zsh/_meson /usr/share/zsh/site-functions/_meson
-cd ..
-rm -rf meson-1.5.1
+./build_postlc_chroot_project_meson.sh
 hash -r
 
 tar -xf coreutils-9.5.tar.xz

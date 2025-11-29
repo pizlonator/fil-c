@@ -1878,7 +1878,7 @@ class GnomeModule(ExtensionModule):
             GType
             {func_prefix}@enum_name@_get_type (void)
             {{
-                static gsize gtype_id = 0;
+                static gpointer gtype_id = 0;
                 static const G@Type@Value values[] = {{'''))
 
         c_cmd.extend(['--vprod', '        { C_@TYPE@ (@VALUENAME@), "@VALUENAME@", "@valuenick@" },'])
@@ -1888,9 +1888,9 @@ class GnomeModule(ExtensionModule):
             '''\
                     { 0, NULL, NULL }
                 };
-                if (g_once_init_enter (&gtype_id)) {
+                if (g_once_init_enter_pointer (&gtype_id)) {
                     GType new_type = g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
-                    g_once_init_leave (&gtype_id, new_type);
+                    g_once_init_leave_pointer (&gtype_id, new_type);
                 }
                 return (GType) gtype_id;
             }'''))
