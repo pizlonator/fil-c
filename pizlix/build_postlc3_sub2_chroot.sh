@@ -182,7 +182,13 @@ rm -rf packaging-24.1
 hash -r
 
 ./build_postlc3_chroot_project_glib.sh
+./build_postlc3_chroot_project_freetype.sh
+./build_postlc3_chroot_project_graphite.sh
+./build_postlc3_chroot_project_fontconfig.sh
 ./build_postlc3_chroot_project_cairo.sh
+./build_postlc3_chroot_project_harfbuzz.sh
+./build_postlc3_chroot_project_freetype.sh
+./build_postlc3_chroot_project_graphite.sh
 ./build_postlc3_chroot_project_libdrm.sh
 ./build_postlc3_chroot_project_seatd.sh
 ./build_postlc3_chroot_project_weston.sh
