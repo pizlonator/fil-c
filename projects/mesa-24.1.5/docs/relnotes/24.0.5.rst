@@ -1,0 +1,212 @@
+Mesa 24.0.5 Release Notes / 2024-04-10
+======================================
+
+Mesa 24.0.5 is a bug fix release which fixes bugs found since the 24.0.4 release.
+
+Mesa 24.0.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.0.5 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    38cc245ca8faa3c69da6d2687f8906377001f63365348a62cc6f7fafb1e8c018  mesa-24.0.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- anv: vkd3d-proton test_stress_suballocation failure
+- d3d12: Zwift renders with bad textures/lighting
+- NVK: Misrendering with Civilization 6
+- radv: RDR2 might need zerovram
+- Issues rendering gtk4 window decorations on v3d on Fedora-40/mesa-24.0
+- clc: Failure when linking with llvm+clang 18.1 (-Dshared-llvm=disabled)
+- LLVM-18 build issue
+
+
+Changes
+-------
+
+Axel Davy (5):
+
+- frontend/nine: Fix ff ps key
+- frontend/nine: Fix programmable vs check
+- frontend/nine: Fix missing light flag check
+- frontend/nine: Fix destruction race
+- frontend/nine: Reset should EndScene
+
+Connor Abbott (2):
+
+- freedreno/a7xx: Add CP_CCHE_INVALIDATE
+- tu: Implement CCHE invalidation
+
+Dave Airlie (1):
+
+- mesa: reorder st context teardown
+
+David Heidelberg (7):
+
+- r300: add missing licence to the r300_public.h
+- r300: add missing copyright header
+- docs: we support EGL 1.5 for a long time
+- ci/amd: drop old PIGLIT_REPLAY_DESCRIPTION_FILE surpassed by PIGLIT_TRACES_FILE
+- r600: add license header to r600_formats.h
+- r600: add license info to the r600_opcodes.h
+- r600: add license information to the sfn_shader_gs.h
+
+David Stern (1):
+
+- vulkan/wsi/x11: Explicitly discard errors from xcb_present_pixmap.
+
+Eric Engestrom (5):
+
+- docs: add sha256sum for 24.0.4
+- .pick_status.json: Update to 3d68dd78d07b30cefe90d76af681075f4ed6b33d
+- .pick_status.json: Update to fcb568a5d5a52db75fa2f6d04579bb404ca7f597
+- .pick_status.json: Update to 078fe5454e97d073feb18bcdcf7ed1874e8b4835
+- .pick_status.json: Update to 2c1cb65949933a05eedb2eacc15cd893ecaef8aa
+
+Eric R. Smith (2):
+
+- panfrost: mark indirect compute buffer as read
+- gallium: handle copy_image of depth textures
+
+Faith Ekstrand (2):
+
+- nvk: Add a _pad field to nvk_cbuf
+- nvk: Add a _pad field to nvk_fs_key
+
+Georg Lehmann (2):
+
+- aco: don't combine mul+add_clamp to mad_clamp
+- aco/ra: use SDWA for 16bit instructions when the second byte is blocked
+
+Iago Toral Quiroga (2):
+
+- v3d: implement fix for GFXH-1602
+- broadcom/compiler: fix workaround for GFXH-1602
+
+Ian Romanick (3):
+
+- intel/brw: Clear write_accumulator flag when changing the destination
+- intel/brw: Use enums for DPAS source regioning
+- nir: intel/brw: Change the order of sources for nir_dpas_intel
+
+Jesse Natalie (1):
+
+- glsl: Use a stable attr sort for VS in / FS out
+
+Jordan Justen (1):
+
+- intel/dev: Add 0x56be and 0x56bf DG2 PCI IDs
+
+José Roberto de Souza (4):
+
+- anv: Fix calculation of syncs required in Xe KMD
+- iris: Wait for drm_xe_exec_queue to be idle before destroying it
+- anv: Create protected engine context when i915 supports vm control
+- intel: Enable Xe KMD support by default
+
+Juston Li (1):
+
+- Revert "zink: store last pipeline directly for zink_gfx_program::last_pipeline"
+
+Karol Herbst (1):
+
+- meson: fix link failure with llvm-18
+
+Kenneth Graunke (2):
+
+- intel/brw: Fix generate_mov_indirect to check has_64bit_int not float
+- intel/brw: Fix lower_regioning for BROADCAST, MOV_INDIRECT on Q types
+
+Konstantin Seurer (1):
+
+- nir/serialize: Encode data for temporaries
+
+Lionel Landwerlin (7):
+
+- anv: fix protected memory allocations
+- anv: disable protected content around surface state copies
+- anv: disable generated draws in protected command buffers
+- anv: update protection fault property
+- anv: add missing data flush out of L3 for transform feedback writes
+- anv: mark descriptors & pipeline dirty after blorp compute
+- isl: set NullPageCoherencyEnable for depth/stencil sparse surfaces
+
+Lucas Stach (2):
+
+- etnaviv: fix depth writes without testing
+- etnaviv: rs: take src dimensions into account when increasing height alignment
+
+Mike Blumenkrantz (12):
+
+- zink: only check that CUBE_COMPATIBLE for images doesn't subtract flags
+- zink: don't use set_foreach_remove with dmabuf_exports
+- zink: make descriptor pool creation more robust
+- zink: fix shaderdb pipeline compile
+- zink: don't clobber indirect array reads with missing components
+- zink: fix add_derefs case for compact arrays
+- llvmpipe: fix DRAW_USE_LLVM=0
+- glsl: handle xfb resources for spirv before running varying opts
+- mesa: clamp binary pointer in ShaderBinary if length==0
+- glsl: set PSIZ bit in outputs_written when injecting a 1.0 psiz write
+- nir/lower_clamp_color_outputs: fix use with lowered io
+- nir/texcoord_replace: fix scalarized io handling
+
+Nikita Popov (1):
+
+- Pass no-verify-fixpoint option to instcombine in LLVM 18
+
+Patrick Lerda (1):
+
+- r300: fix constants_remap_table memory leak related to the dummy shader path
+
+Paul Gofman (3):
+
+- glsl: allow out arrays in #110 with allow_glsl_120_subset_in_110
+- driconf: add a workaround for Joe Danger 2
+- driconf: add a workaround for Joe Danger
+
+Paulo Zanoni (2):
+
+- anv/xe: don't leak xe_syncs during trtt submission
+- anv, iris: add missing CS_STALL bit for GPGPU texture invalidation
+
+Samuel Pitoiset (3):
+
+- radv: fix conditional rendering with mesh+task and multiview (again)
+- radv: enable radv_zero_vram for Red Dead Redemption 2
+- radv: make sure the heap budget is less than or equal to the heap size
+
+Tapani Pälli (1):
+
+- anv: disable fcv optimization on >= gfx125
+
+Yonggang Luo (1):
+
+- util: Fixes futex_wait on win32
+
+Zack Rusin (1):
+
+- svga: Fix instanced draw detection
+
+Zan Dobersek (1):
+
+- tu: fix memory leaks in tu_shader

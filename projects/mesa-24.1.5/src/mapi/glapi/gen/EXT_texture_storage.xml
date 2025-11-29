@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_texture_storage" number="556">
+
+  <enum name="TEXTURE_IMMUTABLE_FORMAT_EXT" value="0x912F"/>
+  <enum name="ALPHA8_EXT" value="0x803C"/>
+  <enum name="LUMINANCE8_EXT" value="0x8040"/>
+  <enum name="LUMINANCE8_ALPHA8_EXT" value="0x8045"/>
+
+  <function name="TexStorage1DEXT" alias="TexStorage1D">
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+  </function>
+
+  <function name="TexStorage2DEXT" es2="2.0" alias="TexStorage2D">
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+    <param name="height" type="GLsizei"/>
+  </function>
+
+  <function name="TexStorage3DEXT" es2="2.0" alias="TexStorage3D">
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+    <param name="height" type="GLsizei"/>
+    <param name="depth" type="GLsizei"/>
+  </function>
+
+  <function name="TextureStorage1DEXT">
+    <param name="texture" type="GLuint"/>
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+  </function>
+
+  <function name="TextureStorage2DEXT">
+    <param name="texture" type="GLuint"/>
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+    <param name="height" type="GLsizei"/>
+  </function>
+
+  <function name="TextureStorage3DEXT">
+    <param name="texture" type="GLuint"/>
+    <param name="target" type="GLenum"/>
+    <param name="levels" type="GLsizei"/>
+    <param name="internalFormat" type="GLenum"/>
+    <param name="width" type="GLsizei"/>
+    <param name="height" type="GLsizei"/>
+    <param name="depth" type="GLsizei"/>
+  </function>
+
+</category>
+
+
+</OpenGLAPI>

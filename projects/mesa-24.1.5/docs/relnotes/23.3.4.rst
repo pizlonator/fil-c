@@ -1,0 +1,199 @@
+Mesa 23.3.4 Release Notes / 2024-01-24
+======================================
+
+Mesa 23.3.4 is a bug fix release which fixes bugs found since the 23.3.3 release.
+
+Mesa 23.3.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.3.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    df12d765be4650fe532860b18aa18e6da1d0b07d1a21dfdfe04660e6b7bac39a  mesa-23.3.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [AMDGPU RDNA3] Antialiasing is broken in Blender
+- Assassin's Creed Odyssey wrong colors on Arc A770
+- The Finals fails to launch with DX12 on Intel Arc unless "force_vk_vendor" is set to -1.
+- zink crashes on nvidia
+- radv: games render with garbage output on RX5600M through PRIME with DCC
+- radv: RGP reports for mesh shaders are confusing
+- d3d10umd: Build failure regression with MSVC during 23.3 development cycle
+- VA-API CI tests freeze
+- Radeon: YUYV DMA BUF eglCreateImageKHR fails
+
+
+Changes
+-------
+
+Alessandro Astone (1):
+
+- zink: Fix resizable BAR detection logic
+
+Boris Brezillon (3):
+
+- panvk: Fix tracing
+- panvk: Fix access to unitialized panvk_pipeline_layout::num_sets field
+- panfrost: Clamp the render area to the damage region
+
+Daniel Schürmann (1):
+
+- aco: give spiller more room to assign spilled SGPRs to VGPRs
+
+Dave Airlie (2):
+
+- radv/video: refactor sq start/end code to avoid decode hangs.
+- radv: don't submit empty command buffers on encoder ring.
+
+David Rosca (1):
+
+- radeonsi/vcn: Fix H264 slice header when encoding I frames
+
+Eric Engestrom (7):
+
+- docs: add sha256sum for 23.3.3
+- .pick_status.json: Update to 68f5277887aae1cdc202f45ecd44df2c3c59ba7d
+- .pick_status.json: Update to 4fe5f06d400a7310ffc280761c27b036aec86646
+- .pick_status.json: Update to ff84aef116f9d0d13440fd13edf2ac0b69a8c132
+- .pick_status.json: Update to 6e4bb8253ed36f911a0a45dfecf89c237a8cd362
+- .pick_status.json: Update to d0a3bac163ca803eda03feb3afea80e516568caf
+- .pick_status.json: Update to eca4f0f632b1e3e6e24bd12ee5f00522eb7d0fdb
+
+Friedrich Vock (4):
+
+- radv/rt: Add workaround to make leaves always active
+- radv: Fix shader replay allocation condition
+- nir: Make is_trivial_deref_cast public
+- nir: Handle casts in nir_opt_copy_prop_vars
+
+Georg Lehmann (1):
+
+- aco: stop scheduling at p_logical_end
+
+Hans-Kristian Arntzen (1):
+
+- wsi/x11: Add workaround for Detroit Become Human.
+
+Ian Romanick (1):
+
+- intel/compiler: Track mue_compaction and mue_header_packing flags in brw_get_compiler_config_value
+
+Jesse Natalie (1):
+
+- mesa: Consider mesa format in addition to internal format for mip/cube completeness
+
+Karol Herbst (3):
+
+- rusticl/kernel: run opt/lower_memcpy later to fix a crash
+- nir: rework and fix rotate lowering
+- rusticl/kernel: check that local size on dispatch doesn't exceed limits
+
+Konstantin Seurer (4):
+
+- ac/llvm: Enable helper invocations for quad OPs
+- lavapipe: Fix DGC vertex buffer handling
+- lavapipe: Mark vertex elements dirty if the stride changed
+- lavapipe: Report the correct preprocess buffer size
+
+Lionel Landwerlin (4):
+
+- anv: fix disabled Wa_14017076903/18022508906
+- anv: hide vendor ID for The Finals
+- anv: fix pipeline executable properties with graphics libraries
+- anv: implement undocumented tile cache flush requirements
+
+Lucas Stach (1):
+
+- etnaviv: disable 64bpp render/sampler formats
+
+Matt Turner (4):
+
+- symbols-check: Add _GLOBAL_OFFSET_TABLE_
+- nir: Fix cast
+- util: Add DETECT_ARCH_HPPA macro
+- util/tests: Disable half-float NaN test on hppa/old-mips
+
+Max R (1):
+
+- d3d10umd: Fix compilation
+
+Mike Blumenkrantz (5):
+
+- lavapipe: fix devenv icd filename
+- zink: always force flushes when originating from api frontend
+- zink: ignore tc buffer replacement info
+- zink: fix buffer rebind early-out check
+- zink: fix separate shader patch variable location adjustment
+
+Patrick Lerda (1):
+
+- glsl/nir: fix gl_nir_cross_validate_outputs_to_inputs() memory leak
+
+Pavel Ondračka (1):
+
+- r300: fix reusing of color varying slots for generic ones
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- ac/surface: don't oversize surf_size
+- radeonsi: compute epitch when modifying surf_pitch
+
+Rhys Perry (3):
+
+- radv: do nir_shader_gather_info after radv_nir_lower_rt_abi
+- nir/lower_non_uniform: set non_uniform=false when lowering is not needed
+- nir/lower_shader_calls: remove CF before nir_opt_if
+
+Samuel Pitoiset (2):
+
+- radv: do not issue SQTT marker with DISPATCH_MESH_INDIRECT_MULTI
+- radv: fix indirect dispatches on the compute queue on GFX7
+
+Sviatoslav Peleshko (1):
+
+- nir: Use alu source components count in nir_alu_srcs_negative_equal
+
+Tapani Pälli (4):
+
+- anv: check for wa 16013994831 in emit_so_memcpy_end
+- iris: expand pre-hiz data cache flush to gfx >= 125
+- anv: expand pre-hiz data cache flush to gfx >= 125
+- iris: replace constant cache invalidate with hdc flush
+
+Tatsuyuki Ishi (1):
+
+- radv: never set DISABLE_WR_CONFIRM for CP DMA clears and copies
+
+Timur Kristóf (1):
+
+- radv: Correctly select SDMA support for PRIME blit.
+
+Yiwei Zhang (4):
+
+- vulkan/wsi/wayland: fix returns and avoid leaks for failed swapchain
+- venus: fix pipeline layout lifetime
+- venus: fix pipeline derivatives
+- venus: fix to respect the final pipeline layout
+
+Yonggang Luo (1):
+
+- compiler/spirv: The spirv shader is binary, should write in binary mode

@@ -1,0 +1,23 @@
+# timeouts unless marked otherwise
+spec@!opengl 1.1@copypixels-sync
+spec@!opengl 1.1@draw-sync
+spec@!opengl 1.2@tex3d-maxsize
+
+# assert due to a malformed vert decl
+spec@!opengl 1.1@vertex-fallbacks
+
+# arb_compute_shader: a crash and a timeout
+spec@arb_compute_shader@compute-and-render-bug-109630
+spec@arb_compute_shader@local-id-explosion
+
+# arb_separate_shader_objects: three crashes
+spec@arb_separate_shader_objects@xfb-explicit-location-array_gs
+spec@arb_separate_shader_objects@xfb-explicit-location-array_gs_max
+spec@arb_separate_shader_objects@xfb-explicit-location-array_vs
+
+spec@arb_shader_image_load_store@max-size
+spec@arb_texture_cube_map_array@texsubimage cube_map_array
+spec@arb_vertex_buffer_object@vbo-subdata-many drawarrays
+spec@arb_vertex_buffer_object@vbo-subdata-many drawelements
+spec@arb_vertex_buffer_object@vbo-subdata-many drawrangeelements
+spec@ext_texture_array@fbo-depth-array stencil-layered-clear

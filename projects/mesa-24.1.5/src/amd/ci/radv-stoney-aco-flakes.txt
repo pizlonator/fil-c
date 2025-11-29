@@ -1,0 +1,16 @@
+# The following tests started to flake after CI fix, see
+# https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/16325
+dEQP-VK.rasterization.interpolation_multisample_4_bit.triangles
+
+# uprev Piglit in Mesa
+dEQP-GLES31.functional.texture.specification.teximage3d_depth.depth32f_stencil8_cube_array
+dEQP-GLES31.functional.texture.specification.teximage3d_depth.depth_component24_cube_array
+dEQP-GLES31.functional.texture.specification.texsubimage3d_depth.depth24_stencil8_cube_array
+dEQP-GLES31.functional.texture.specification.texsubimage3d_depth.depth_component24_cube_array
+multisample-dEQP-GLES31.functional.blend_equation_advanced.barrier.multiply
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.colordodge
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.darken
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.overlay
+
+# New CTS flakes in 1.3.8.0
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_pot_same_format_clear

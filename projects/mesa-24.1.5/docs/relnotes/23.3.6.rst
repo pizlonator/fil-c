@@ -1,0 +1,192 @@
+Mesa 23.3.6 Release Notes / 2024-02-15
+======================================
+
+Mesa 23.3.6 is a bug fix release which fixes bugs found since the 23.3.5 release.
+
+Mesa 23.3.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.3.6 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    cd3d6c60121dea73abbae99d399dc2facaecde1a8c6bd647e6d85410ff4b577b  mesa-23.3.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- zink: flickering artifacts in Selaco
+- Intermittent compiler failures when building valhall tests
+- panfrost: graphical artifacts on T604 (T600)
+- Dying Light native artifacts on Intel A770
+- r300: Amnesia: The Dark Descent heavy corruption
+- [ANV/DG2] Age of Empires IV fullscreen "banding" artefacts
+- [mtl][anv] dEQP-VK.pipeline.monolithic.depth.format.d32_sfloat.compare_ops.* failures when run multithreaded
+- [mtl][anv] flaky tests in pipeline.monolithic.extended_dynamic_state*stencil_state_face* series
+- Broken colors/dual-source blending on PinePhone (Pro) since 23.1.0
+- Regression between 23.0.4 and 23.1.0: texture glitches in osgEarth
+- radeonsi unsynchronized flips/tearing with KMS DRM rendering on 780M
+
+
+Changes
+-------
+
+Blisto (1):
+
+- driconf: set vk_x11_strict_image_count for Atlas Fallen Vulkan
+
+Boris Brezillon (2):
+
+- panfrost: Pad compute jobs with zeros on v4
+- pan/va: Add missing valhall_enums dep to valhall_disasm
+
+Christian Duerr (1):
+
+- panfrost: Fix dual-source blending
+
+Connor Abbott (1):
+
+- ir3/ra: Fix bug with collect source handling
+
+Corentin Noël (1):
+
+- zink: Only call reapply_color_write if EXT_color_write_enable is available
+
+Dave Airlie (5):
+
+- zink: use sparse residency for buffers.
+- radv: fix correct padding on uvd
+- radv: init decoder ip block earlier.
+- radv/uvd: uvd kernel checks for full dpb allocation.
+- radv: don't submit 0 length on UVD either.
+
+David Heidelberg (1):
+
+- meson: upgrade zlib wrap to 1.3.1
+
+David Rosca (2):
+
+- frontends/va: Fix updating AV1 rate control parameters
+- radeonsi/vcn: Don't reinitialize encode session on bitrate/fps change
+
+Eric Engestrom (10):
+
+- docs: add sha256sum for 23.3.5
+- .pick_status.json: Update to 5d293f01cc718af0ea5db3309605cf49dcbf8cca
+- vk/util: fix 'beta' check for physical device features
+- vk/util: fix 'beta' check for physical device properties
+- .pick_status.json: Mark 62508856401e082486f2ff0dc80f17ac852f4882 as denominated
+- .pick_status.json: Mark 7b7a581a52db21ed8826d6f2986ea6dfc208fb2a as denominated
+- .pick_status.json: Mark 46f5a226d6613e0a4c7b3a3496e745090fc14429 as denominated
+- .pick_status.json: Mark 38e92556a041cc421dadb95aaac43a4619311a87 as denominated
+- .pick_status.json: Update to fa8e0ba3f739cb46cf7bb709903c0206f240c584
+- .pick_status.json: Update to 90eae30bcb84d54dc871ddbb8355f729cf8fa900
+
+Friedrich Vock (2):
+
+- radv/rt: Write inactive node data in ALWAYS_ACTIVE workaround
+- radv,driconf: Enable active AS leaf workaround for Jedi Survivor
+
+Georg Lehmann (3):
+
+- aco/gfx11+: disable v_pk_fmac_f16_dpp
+- aco: don't remove branches that skip v_writelane_b32
+- aco/gfx11+: limit hard clauses to 32 instructions
+
+José Roberto de Souza (2):
+
+- iris: Fix return of iris_wait_syncobj()
+- intel: Fix intel_get_mesh_urb_config()
+
+Juston Li (1):
+
+- venus: refactor query feedback cmds
+
+Karol Herbst (1):
+
+- nir/lower_cl_images: record image_buffers and msaa_images
+
+Kenneth Graunke (1):
+
+- driconf: Advertise GL_EXT_shader_image_load_store on iris for SVP13
+
+Konstantin Seurer (2):
+
+- zink: Always set mfence->submit_count to the fence submit_count
+- Revert "zink: always force flushes when originating from api frontend"
+
+Lepton Wu (1):
+
+- llvmpipe: Set "+64bit" for X86_64
+
+Lionel Landwerlin (1):
+
+- vulkan/runtime: add helper to query attachment layout
+
+M Henning (1):
+
+- nvk: Don't clobber vb0 after repeated blits
+
+Mark Janes (1):
+
+- hasvk: add missing linker arguments
+
+Mike Blumenkrantz (7):
+
+- zink: fix sparse bo placement
+- zink: zero allocate resident_defs array in ntv
+- zink: move sparse lowering up in file
+- zink: run sparse lowering after all optimization passes
+- mesa: plumb errors through to texture allocation
+- zink: adjust swizzled deref loads by the variable component offset
+- nir/lower_io: fix handling for compact arrays with indirect derefs
+
+Pavel Ondračka (1):
+
+- r300: fix vs output register indexing
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- egl/drm: flush before calling get_back_bo
+
+Rhys Perry (1):
+
+- aco: fix >8 byte linear vgpr copies
+
+Rob Clark (1):
+
+- freedreno: Fix MSAA z/s layout in GMEM
+
+Samuel Pitoiset (1):
+
+- radv: fix RGP barrier reason for RP barriers inserted by the runtime
+
+Sviatoslav Peleshko (2):
+
+- anv,driconf: Add sampler coordinate precision workaround for AoE 4
+- driconf: Apply dual color blending workaround to Dying Light
+
+Tapani Pälli (1):
+
+- anv: flush tile cache independent of format with HIZ-CCS flush
+
+Timothy Arceri (2):
+
+- glsl: don't tree graft globals
+- Revert "ci: Enable GALLIUM_DUMP_CPU=true only in the clang job"

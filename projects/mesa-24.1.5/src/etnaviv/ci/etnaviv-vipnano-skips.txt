@@ -1,0 +1,31 @@
+# The blob produces the same result as Mesa, but different from XNNPACK
+Add.Op/input_size_8_weight_size_3_input_channels_32_output_channels_120_stride_1_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_32_output_channels_256_stride_1_padding_same_1_is_signed_0
+
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_1_stride_2_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_32_stride_2_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_120_stride_2_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_128_stride_2_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_160_stride_2_padding_same_1_is_signed_0
+Add.Op/input_size_8_weight_size_5_input_channels_1_output_channels_256_stride_2_padding_same_1_is_signed_0
+
+# No idea why this one is failing, needs investigation.
+# It takes a long time, so better skip for now.
+MobileDet.Whole
+
+# These tests below (adds) aren't well constructed and thus fail in TF
+MobileDetParam.Op/mobiledet8
+MobileDetParam.Op/mobiledet11
+MobileDetParam.Op/mobiledet14
+MobileDetParam.Op/mobiledet19
+MobileDetParam.Op/mobiledet22
+MobileDetParam.Op/mobiledet25
+MobileDetParam.Op/mobiledet32
+MobileDetParam.Op/mobiledet35
+MobileDetParam.Op/mobiledet38
+MobileDetParam.Op/mobiledet45
+MobileDetParam.Op/mobiledet49
+MobileDetParam.Op/mobiledet53
+MobileDetParam.Op/mobiledet60
+MobileDetParam.Op/mobiledet64
+MobileDetParam.Op/mobiledet68

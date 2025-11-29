@@ -1,0 +1,154 @@
+Mesa 23.3.5 Release Notes / 2024-01-31
+======================================
+
+Mesa 23.3.5 is a bug fix release which fixes bugs found since the 23.3.4 release.
+
+Mesa 23.3.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.3.5 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    69ccb1278641ff5bad71ca0f866188aeb1a92aadc4dbb9d35f50aebec5b8b50f  mesa-23.3.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [radeonsi] Regression: graphical artifacting on water texture in OpenGOAL
+- VAAPI: EFC on VCN2 produces broken H264 video and crashes the HEVC encoder
+
+
+Changes
+-------
+
+Antoine Coutant (1):
+
+- clc: retrieve libclang path at runtime.
+
+Daniel Schürmann (1):
+
+- aco/insert_exec_mask: Fix unconditional demote at top-level control flow.
+
+David Heidelberg (1):
+
+- ci/freedreno: timestamp-get no longer fails on Adreno
+
+Dmitry Baryshkov (1):
+
+- freedreno/drm: don't crash for unsupported devices
+
+Eric Engestrom (8):
+
+- docs: add sha256sum for 23.3.4
+- .pick_status.json: Update to b75ee1a0670a3207dfd99917e4f47d064a44197f
+- .pick_status.json: Update to 4cd5b2b5426e8d670fc3657eee040a79e3f9df1e
+- util: rename __check_suid() to __normal_user()
+- tree-wide: use __normal_user() everywhere instead of writing the check manually
+- util: simplify logic in __normal_user()
+- util: check for setgid() as well in __normal_user()
+- .pick_status.json: Mark 321e2cee5315e94c050f8659a8cd55e0e7cd9076 as denominated
+
+Faith Ekstrand (1):
+
+- nvk: Don't exnore ExternalImageFormatInfo
+
+Friedrich Vock (7):
+
+- util: Provide a secure_getenv fallback for platforms without it
+- aux/trace: Guard triggers behind __normal_user
+- mesa/main: Use secure_getenv for shader dumping
+- radv: Use secure_getenv in radv_builtin_cache_path
+- radv: Use secure_getenv for RADV_THREAD_TRACE_TRIGGER
+- util/disk_cache: Use secure_getenv to determine cache directories
+- vulkan: Use secure_getenv for trigger files
+
+Gert Wollny (5):
+
+- r600: lower dround_even also on hardware that supports fp64
+- virgl: Use better reporting for mirror_clamp features
+- radv: Fix compilation with gcc-13 and tsan enabled
+- nir/lower_int64: Fix compilation with gcc-13 and tsan enabled
+- nir/builder: Fix compilation with gcc-13 when tsan is enabled
+
+Haihao Xiang (1):
+
+- anv: Fix typo in transition_color_buffer
+
+Hyunjun Ko (1):
+
+- anv/video: fix out-of-bounds read
+
+Iago Toral Quiroga (3):
+
+- broadcom/compiler: fix incorrect flags setup in non-uniform if path
+- broadcom/compiler: fix incorrect flags update for subgroup elect
+- broadcom/compiler: be more careful with unifa in non-uniform control flow
+
+Karol Herbst (1):
+
+- clc: force fPIC for every user when using shared LLVM
+
+Lionel Landwerlin (2):
+
+- anv: don't prevent L1 untyped cache flush in 3D mode
+- anv: fix transfer barriers flushes with compute queue
+
+Louis-Francis Ratté-Boulianne (4):
+
+- panfrost: factor out method to check whether we can discard resource
+- panfrost: add copy_resource flag to pan_resource_modifier_convert
+- panfrost: add can_discard flag to pan_legalize_afbc_format
+- panfrost: Legalize before updating part of a AFBC-packed texture
+
+Mike Blumenkrantz (3):
+
+- zink: set more dynamic states when using shader objects
+- zink: always map descriptor buffers as COHERENT
+- zink: fix descriptor buffer unmaps on screen destroy
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: emit cache flushes before draw registers
+
+Rhys Perry (1):
+
+- aco: fix labelling of s_not with constant
+
+Rob Clark (3):
+
+- freedreno: De-duplicate 19.2MHz RBBM tick conversion
+- freedreno: Fix timestamp conversion
+- freedreno: Implement PIPE_CAP_TIMER_RESOLUTION
+
+Rohan Garg (1):
+
+- anv: untyped data port flush required when a pipeline sets the VK_ACCESS_2_SHADER_STORAGE_READ_BIT
+
+Sebastian Wick (1):
+
+- radeonsi: Destroy queues before the aux contexts
+
+Tapani Pälli (1):
+
+- anv: move \*bits_for_access_flags to genX_cmd_buffer
+
+Thong Thai (1):
+
+- radeonsi/vcn: remove EFC support for renoir

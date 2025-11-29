@@ -1,0 +1,297 @@
+# Copyright 2024 Collabora Ltd.
+# SPDX-License-Identifier: MIT
+
+# Columns:
+#   name: PIPE_FORMAT enum
+#   czt: Color/Z target format if renderable or NONE
+#   tcs: TIC component sizes
+#   type: Data type:
+#       S: SNORM
+#       N: UNORM
+#       I: SINT
+#       U: UINT
+#       F: FLOAT
+#   src: Swizzle of the form RGBAX01
+#   caps: Format capabilities:
+#       C: Color target
+#       T: Texture
+#       Z: Depth/stencil target
+#       B: Bufer
+#       A: Alpha blend
+#       S: Storage
+#       D: Scanout
+#   hw: First hardware generation on which the format
+
+# name                    czt                     tcs                 type   src    support     hw
+
+R1_UNORM                , NONE                  , R1                , N    , R001 , T
+
+A4B4G4R4_UNORM          , NONE                  , A4B4G4R4          , NNNN , ABGR , T
+A4R4G4B4_UNORM          , NONE                  , A4B4G4R4          , NNNN , GBAR , T
+B4G4R4A4_UNORM          , NONE                  , A4B4G4R4          , NNNN , BGRA , T
+B4G4R4X4_UNORM          , NONE                  , A4B4G4R4          , NNNN , BGR1 , T
+R4G4B4A4_UNORM          , NONE                  , A4B4G4R4          , NNNN , RGBA , T
+R4G4B4X4_UNORM          , NONE                  , A4B4G4R4          , NNNN , RGB1 , T
+
+B5G6R5_UNORM            , R5G6B5                , B5G6R5            , NNN  , BGR1 , CTAD
+R5G6B5_UNORM            , NONE                  , B5G6R5            , NNN  , RGB1 , T
+R5G5B5A1_UNORM          , NONE                  , A1B5G5R5          , NNNN , RGBA , T
+B5G5R5A1_UNORM          , A1R5G5B5              , A1B5G5R5          , NNNN , BGRA , CTAD
+B5G5R5X1_UNORM          , X1R5G5B5              , A1B5G5R5          , NNNN , BGR1 , CTAD
+
+R8_UNORM                , R8                    , R8                , N    , R001 , CTBSA
+R8_SNORM                , RN8                   , R8                , S    , R001 , CTBSA
+R8_SINT                 , RS8                   , R8                , I    , R001 , CTBS
+R8_UINT                 , RU8                   , R8                , U    , R001 , CTBS
+R8_SRGB                 , NONE                  , R8                , N    , R001 , T
+
+R8G8_UNORM              , G8R8                  , G8R8              , NN   , RG01 , CTBSA
+R8G8_SNORM              , GN8RN8                , G8R8              , SS   , RG01 , CTBSA
+R8G8_SINT               , GS8RS8                , G8R8              , II   , RG01 , CTBS
+R8G8_UINT               , GU8RU8                , G8R8              , UU   , RG01 , CTBS
+# On Fermi+, the green component doesn't get decoding?
+# R8G8_SRGB             , NONE                  , G8R8              , NN   , RG01 , T
+
+# BGRA display formats
+B8G8R8A8_UNORM          , A8R8G8B8              , A8B8G8R8          , NNNN , BGRA , CTBASD
+B8G8R8X8_UNORM          , X8R8G8B8              , A8B8G8R8          , NNNN , BGR1 , CTAD
+B8G8R8A8_SRGB           , A8RL8GL8BL8           , A8B8G8R8          , NNNN , BGRA , CTAD
+B8G8R8X8_SRGB           , X8RL8GL8BL8           , A8B8G8R8          , NNNN , BGR1 , CTAD
+R8G8B8A8_UNORM          , A8B8G8R8              , A8B8G8R8          , NNNN , RGBA , CTBSA
+R8G8B8X8_UNORM          , X8B8G8R8              , A8B8G8R8          , NNNN , RGB1 , CTA
+R8G8B8A8_SRGB           , A8BL8GL8RL8           , A8B8G8R8          , NNNN , RGBA , CTA
+R8G8B8X8_SRGB           , X8BL8GL8RL8           , A8B8G8R8          , NNNN , RGB1 , CTA
+
+R8G8B8A8_SNORM          , AN8BN8GN8RN8          , A8B8G8R8          , SSSS , RGBA , CTBSA
+R8G8B8A8_SINT           , AS8BS8GS8RS8          , A8B8G8R8          , IIII , RGBA , CTBS
+R8G8B8A8_UINT           , AU8BU8GU8RU8          , A8B8G8R8          , UUUU , RGBA , CTBS
+R8G8B8X8_SNORM          , AN8BN8GN8RN8          , A8B8G8R8          , SSSS , RGB1 , T
+R8G8B8X8_SINT           , AS8BS8GS8RS8          , A8B8G8R8          , IIII , RGB1 , CT
+R8G8B8X8_UINT           , AU8BU8GU8RU8          , A8B8G8R8          , UUUU , RGB1 , CT
+
+R9G9B9E5_FLOAT          , NONE                  , E5B9G9R9_SHAREDEXP, FFFF , RGB1 , T
+
+R10G10B10A2_UNORM       , A2B10G10R10           , A2B10G10R10       , NNNN , RGBA , TCBASD
+R10G10B10X2_UNORM       , A2B10G10R10           , A2B10G10R10       , NNN  , RGB1 , T
+B10G10R10A2_UNORM       , A2R10G10B10           , A2B10G10R10       , NNNN , BGRA , CTA
+B10G10R10X2_UNORM       , A2R10G10B10           , A2B10G10R10       , NNN  , BGR1 , T
+R10G10B10A2_UINT        , AU2BU10GU10RU10       , A2B10G10R10       , UUUU , RGBA , CTBS
+B10G10R10A2_UINT        , NONE                  , A2B10G10R10       , UUUU , BGRA , TB
+
+# These formats are disabled because the image/texture hardware doesn't clamp
+# the 2-bit SNORM alpha to [-1, 1] so you can end up with a = -2 which is out
+# of spec for both GL and Vulkan.
+# R10G10B10A2_SNORM     , NONE                  , A2B10G10R10       , SSSS , RGBA , T
+# B10G10R10A2_SNORM     , NONE                  , A2B10G10R10       , SSSS , BGRA , T
+
+R11G11B10_FLOAT         , BF10GF11RF11          , BF10GF11RF11      , FFF  , RGB1 , CTBSA
+
+R16_FLOAT               , RF16                  , R16               , F    , R001 , CTBSA
+R16_UNORM               , R16                   , R16               , N    , R001 , CTBSA
+R16_SNORM               , RN16                  , R16               , S    , R001 , CTBSA
+R16_SINT                , RS16                  , R16               , I    , R001 , CTBS
+R16_UINT                , RU16                  , R16               , U    , R001 , CTBS
+
+R16G16_FLOAT            , RF16_GF16             , R16_G16           , FF   , RG01 , CTBSA
+R16G16_UNORM            , R16_G16               , R16_G16           , NN   , RG01 , CTBSA
+R16G16_SNORM            , RN16_GN16             , R16_G16           , SS   , RG01 , CTBSA
+R16G16_SINT             , RS16_GS16             , R16_G16           , II   , RG01 , CTBS
+R16G16_UINT             , RU16_GU16             , R16_G16           , UU   , RG01 , CTBS
+
+R16G16B16A16_FLOAT      , RF16_GF16_BF16_AF16   , R16_G16_B16_A16   , FFFF , RGBA , CTBSA
+R16G16B16A16_UNORM      , R16_G16_B16_A16       , R16_G16_B16_A16   , NNNN , RGBA , CTBSA
+R16G16B16A16_SNORM      , RN16_GN16_BN16_AN16   , R16_G16_B16_A16   , SSSS , RGBA , CTBSA
+R16G16B16A16_SINT       , RS16_GS16_BS16_AS16   , R16_G16_B16_A16   , IIII , RGBA , CTBS
+R16G16B16A16_UINT       , RU16_GU16_BU16_AU16   , R16_G16_B16_A16   , UUUU , RGBA , CTBS
+R16G16B16X16_FLOAT      , RF16_GF16_BF16_X16    , R16_G16_B16_A16   , FFFF , RGB1 , CTA
+R16G16B16X16_UNORM      , R16_G16_B16_A16       , R16_G16_B16_A16   , NNNN , RGB1 , T
+R16G16B16X16_SNORM      , RN16_GN16_BN16_AN16   , R16_G16_B16_A16   , SSSS , RGB1 , T
+R16G16B16X16_SINT       , RS16_GS16_BS16_AS16   , R16_G16_B16_A16   , IIII , RGB1 , CT
+R16G16B16X16_UINT       , RU16_GU16_BU16_AU16   , R16_G16_B16_A16   , UUUU , RGB1 , CT
+
+R32_FLOAT               , RF32                  , R32               , F    , R001 , CTBSA
+R32_UNORM               , NONE                  , R32               , N    , R001 , T
+R32_SNORM               , NONE                  , R32               , S    , R001 , T
+R32_SINT                , RS32                  , R32               , I    , R001 , CTBS
+R32_UINT                , RU32                  , R32               , U    , R001 , CTBS
+
+R32G32_FLOAT            , RF32_GF32             , R32_G32           , FF   , RG01 , CTBSA
+R32G32_UNORM            , NONE                  , R32_G32           , NN   , RG01 , T
+R32G32_SNORM            , NONE                  , R32_G32           , SS   , RG01 , T
+R32G32_SINT             , RS32_GS32             , R32_G32           , II   , RG01 , CTBS
+R32G32_UINT             , RU32_GU32             , R32_G32           , UU   , RG01 , CTBS
+
+R32G32B32_FLOAT         , NONE                  , R32_G32_B32       , FFF  , RGB1 , TB
+R32G32B32_SINT          , NONE                  , R32_G32_B32       , III  , RGB1 , TB
+R32G32B32_UINT          , NONE                  , R32_G32_B32       , UUU  , RGB1 , TB
+
+R32G32B32A32_FLOAT      , RF32_GF32_BF32_AF32   , R32_G32_B32_A32   , FFFF , RGBA , CTBSA
+R32G32B32A32_UNORM      , NONE                  , R32_G32_B32_A32   , NNNN , RGBA , T
+R32G32B32A32_SNORM      , NONE                  , R32_G32_B32_A32   , SSSS , RGBA , T
+R32G32B32A32_SINT       , RS32_GS32_BS32_AS32   , R32_G32_B32_A32   , IIII , RGBA , CTBS
+R32G32B32A32_UINT       , RU32_GU32_BU32_AU32   , R32_G32_B32_A32   , UUUU , RGBA , CTBS
+R32G32B32X32_FLOAT      , RF32_GF32_BF32_X32    , R32_G32_B32_A32   , FFFF , RGB1 , CTA
+R32G32B32X32_SINT       , RS32_GS32_BS32_X32    , R32_G32_B32_A32   , IIII , RGB1 , CT
+R32G32B32X32_UINT       , RU32_GU32_BU32_X32    , R32_G32_B32_A32   , UUUU , RGB1 , CT
+
+R64_SINT                , NONE                  , R32_G32           , II   , RG01 , S
+R64_UINT                , NONE                  , R32_G32           , UU   , RG01 , S
+
+# Depth/stencil formats
+Z16_UNORM               , Z16                   , Z16               , N    , R001 , TZ        , MaxwellA
+Z32_FLOAT               , ZF32                  , ZF32              , F    , R001 , TZ
+Z24X8_UNORM             , X8Z24                 , X8Z24             , NU   , R001 , TZ
+X8Z24_UNORM             , Z24S8                 , Z24S8             , UN   , G001 , TZ
+Z24_UNORM_S8_UINT       , S8Z24                 , S8Z24             , NU   , R001 , TZ
+S8_UINT_Z24_UNORM       , Z24S8                 , Z24S8             , UN   , G001 , TZ
+Z32_FLOAT_S8X24_UINT    , ZF32_X24S8            , ZF32_X24S8        , FU   , R001 , TZ
+
+# Stencil-only formats
+S8_UINT                 , S8                    , R8                , U    , R001 , TZ        , MaxwellB
+X24S8_UINT              , NONE                  , G8R24             , UU   , G001 , T
+S8X24_UINT              , NONE                  , G24R8             , UU   , R001 , T
+X32_S8X24_UINT          , NONE                  , R32_B24G8         , UU   , G001 , T
+
+# Luminance formats
+L8_UNORM                , R8                    , R8                , N    , RRR1 , CTA
+L8_SRGB                 , NONE                  , R8                , N    , RRR1 , T
+L8_SNORM                , RN8                   , R8                , S    , RRR1 , CTA
+L8_SINT                 , RS8                   , R8                , I    , RRR1 , CT
+L8_UINT                 , RU8                   , R8                , U    , RRR1 , CT
+L16_UNORM               , R16                   , R16               , N    , RRR1 , CTA
+L16_SNORM               , RN16                  , R16               , S    , RRR1 , CTA
+L16_FLOAT               , RF16                  , R16               , F    , RRR1 , CTA
+L16_SINT                , RS16                  , R16               , I    , RRR1 , CT
+L16_UINT                , RU16                  , R16               , U    , RRR1 , CT
+L32_FLOAT               , RF32                  , R32               , F    , RRR1 , CTA
+L32_SINT                , RS32                  , R32               , I    , RRR1 , CT
+L32_UINT                , RU32                  , R32               , U    , RRR1 , CT
+
+# Intensity formats
+I8_UNORM                , R8                    , R8                , N    , RRRR , CT
+I8_SNORM                , RN8                   , R8                , S    , RRRR , CT
+I8_SINT                 , RS8                   , R8                , I    , RRRR , CT
+I8_UINT                 , RU8                   , R8                , U    , RRRR , CT
+I16_UNORM               , R16                   , R16               , N    , RRRR , CT
+I16_SNORM               , RN16                  , R16               , S    , RRRR , CT
+I16_FLOAT               , RF16                  , R16               , F    , RRRR , CT
+I16_SINT                , RS16                  , R16               , I    , RRRR , CT
+I16_UINT                , RU16                  , R16               , U    , RRRR , CT
+I32_FLOAT               , RF32                  , R32               , F    , RRRR , CT
+I32_SINT                , RS32                  , R32               , I    , RRRR , CT
+I32_UINT                , RU32                  , R32               , U    , RRRR , CT
+
+# Alpha formats
+A8_UNORM                , A8                    , R8                , N    , 000R , CTBSA
+A8_SNORM                , NONE                  , R8                , S    , 000R , T
+A8_SINT                 , NONE                  , R8                , I    , 000R , T
+A8_UINT                 , NONE                  , R8                , U    , 000R , T
+A16_UNORM               , NONE                  , R16               , N    , 000R , T
+A16_SNORM               , NONE                  , R16               , S    , 000R , T
+A16_FLOAT               , AF16                  , R16               , F    , 000R , T
+A16_SINT                , NONE                  , R16               , I    , 000R , T
+A16_UINT                , NONE                  , R16               , U    , 000R , T
+A32_FLOAT               , AF32                  , R32               , F    , 000R , T
+A32_SINT                , NONE                  , R32               , I    , 000R , T
+A32_UINT                , NONE                  , R32               , U    , 000R , T
+
+# Luminance/alpha formats
+L4A4_UNORM              , NONE                  , G4R4              , NN   , RRRG , T
+L8A8_UNORM              , NONE                  , G8R8              , NN   , RRRG , T
+L8A8_SNORM              , NONE                  , G8R8              , SS   , RRRG , T
+L8A8_SRGB               , NONE                  , G8R8              , NN   , RRRG , T
+L8A8_SINT               , NONE                  , G8R8              , II   , RRRG , T
+L8A8_UINT               , NONE                  , G8R8              , UU   , RRRG , T
+L16A16_UNORM            , NONE                  , R16_G16           , NN   , RRRG , T
+L16A16_SNORM            , NONE                  , R16_G16           , SS   , RRRG , T
+L16A16_FLOAT            , NONE                  , R16_G16           , FF   , RRRG , T
+L16A16_SINT             , NONE                  , R16_G16           , II   , RRRG , T
+L16A16_UINT             , NONE                  , R16_G16           , UU   , RRRG , T
+L32A32_FLOAT            , NONE                  , R32_G32           , FF   , RRRG , T
+L32A32_SINT             , NONE                  , R32_G32           , II   , RRRG , T
+L32A32_UINT             , NONE                  , R32_G32           , UU   , RRRG , T
+
+# Red/alpha formats
+R4A4_UNORM              , NONE                  , G4R4              , NN   , R00G , T
+R8A8_UNORM              , NONE                  , G8R8              , NN   , R00G , T
+A4R4_UNORM              , NONE                  , G4R4              , NN   , G00R , T
+A8R8_UNORM              , NONE                  , G8R8              , NN   , G00R , T
+
+# YCbCr formats
+R8G8_B8G8_UNORM         , NONE                  , G8B8G8R8          , NNNN , RGB1 , T
+G8R8_B8R8_UNORM         , NONE                  , G8B8G8R8          , NNNN , GRB1 , T
+G8R8_G8B8_UNORM         , NONE                  , B8G8R8G8          , NNNN , RGB1 , T
+R8G8_R8B8_UNORM         , NONE                  , B8G8R8G8          , NNNN , GRB1 , T
+G8B8_G8R8_UNORM         , NONE                  , B8G8R8G8          , NNNN , BGR1 , T
+B8G8_R8G8_UNORM         , NONE                  , G8B8G8R8          , NNNN , BGR1 , T
+
+# Weird D3D9 formats
+R8SG8SB8UX8U_NORM       , NONE                  , A8B8G8R8          , SSNN , RGB1 , T
+R5SG5SB6U_NORM          , NONE                  , B6G5R5            , SSNN , RGB1 , T
+
+# DXT compressed formats
+DXT1_RGB                , NONE                  , DXT1              , NNNN , RGB1 , T
+DXT1_SRGB               , NONE                  , DXT1              , NNNN , RGB1 , T
+DXT1_RGBA               , NONE                  , DXT1              , NNNN , RGBA , T
+DXT1_SRGBA              , NONE                  , DXT1              , NNNN , RGBA , T
+DXT3_RGBA               , NONE                  , DXT23             , NNNN , RGBA , T
+DXT3_SRGBA              , NONE                  , DXT23             , NNNN , RGBA , T
+DXT5_RGBA               , NONE                  , DXT45             , NNNN , RGBA , T
+DXT5_SRGBA              , NONE                  , DXT45             , NNNN , RGBA , T
+
+RGTC1_UNORM             , NONE                  , DXN1              , NNNN , R001 , T
+RGTC1_SNORM             , NONE                  , DXN1              , SSSS , R001 , T
+RGTC2_UNORM             , NONE                  , DXN2              , NNNN , RG01 , T
+RGTC2_SNORM             , NONE                  , DXN2              , SSSS , RG01 , T
+LATC1_UNORM             , NONE                  , DXN1              , NNNN , RRR1 , T
+LATC1_SNORM             , NONE                  , DXN1              , SSSS , RRR1 , T
+LATC2_UNORM             , NONE                  , DXN2              , NNNN , RRRG , T
+LATC2_SNORM             , NONE                  , DXN2              , SSSS , RRRG , T
+
+BPTC_RGBA_UNORM         , NONE                  , BC7U              , NNNN , RGBA , T
+BPTC_SRGBA              , NONE                  , BC7U              , NNNN , RGBA , T
+BPTC_RGB_FLOAT          , NONE                  , BC6H_SF16         , FFFF , RGB1 , T
+BPTC_RGB_UFLOAT         , NONE                  , BC6H_UF16         , FFFF , RGB1 , T
+
+ETC1_RGB8               , NONE                  , ETC2_RGB          , NNNN , RGB1 , T         , MaxwellA
+ETC2_RGB8               , NONE                  , ETC2_RGB          , NNNN , RGB1 , T         , MaxwellA
+ETC2_SRGB8              , NONE                  , ETC2_RGB          , NNNN , RGB1 , T         , MaxwellA
+ETC2_RGB8A1             , NONE                  , ETC2_RGB_PTA      , NNNN , RGBA , T         , MaxwellA
+ETC2_SRGB8A1            , NONE                  , ETC2_RGB_PTA      , NNNN , RGBA , T         , MaxwellA
+ETC2_RGBA8              , NONE                  , ETC2_RGBA         , NNNN , RGBA , T         , MaxwellA
+ETC2_SRGBA8             , NONE                  , ETC2_RGBA         , NNNN , RGBA , T         , MaxwellA
+ETC2_R11_UNORM          , NONE                  , EAC               , NNNN , R001 , T         , MaxwellA
+ETC2_R11_SNORM          , NONE                  , EAC               , SSSS , R001 , T         , MaxwellA
+ETC2_RG11_UNORM         , NONE                  , EACX2             , NNNN , RG01 , T         , MaxwellA
+ETC2_RG11_SNORM         , NONE                  , EACX2             , SSSS , RG01 , T         , MaxwellA
+
+# ASTC compressed formats
+ASTC_4x4                , NONE                  , ASTC_2D_4X4       , NNNN , RGBA , T         , TK1
+ASTC_5x4                , NONE                  , ASTC_2D_5X4       , NNNN , RGBA , T         , TK1
+ASTC_5x5                , NONE                  , ASTC_2D_5X5       , NNNN , RGBA , T         , TK1
+ASTC_6x5                , NONE                  , ASTC_2D_6X5       , NNNN , RGBA , T         , TK1
+ASTC_6x6                , NONE                  , ASTC_2D_6X6       , NNNN , RGBA , T         , TK1
+ASTC_8x5                , NONE                  , ASTC_2D_8X5       , NNNN , RGBA , T         , TK1
+ASTC_8x6                , NONE                  , ASTC_2D_8X6       , NNNN , RGBA , T         , TK1
+ASTC_8x8                , NONE                  , ASTC_2D_8X8       , NNNN , RGBA , T         , TK1
+ASTC_10x5               , NONE                  , ASTC_2D_10X5      , NNNN , RGBA , T         , TK1
+ASTC_10x6               , NONE                  , ASTC_2D_10X6      , NNNN , RGBA , T         , TK1
+ASTC_10x8               , NONE                  , ASTC_2D_10X8      , NNNN , RGBA , T         , TK1
+ASTC_10x10              , NONE                  , ASTC_2D_10X10     , NNNN , RGBA , T         , TK1
+ASTC_12x10              , NONE                  , ASTC_2D_12X10     , NNNN , RGBA , T         , TK1
+ASTC_12x12              , NONE                  , ASTC_2D_12X12     , NNNN , RGBA , T         , TK1
+
+ASTC_4x4_SRGB           , NONE                  , ASTC_2D_4X4       , NNNN , RGBA , T         , TK1
+ASTC_5x4_SRGB           , NONE                  , ASTC_2D_5X4       , NNNN , RGBA , T         , TK1
+ASTC_5x5_SRGB           , NONE                  , ASTC_2D_5X5       , NNNN , RGBA , T         , TK1
+ASTC_6x5_SRGB           , NONE                  , ASTC_2D_6X5       , NNNN , RGBA , T         , TK1
+ASTC_6x6_SRGB           , NONE                  , ASTC_2D_6X6       , NNNN , RGBA , T         , TK1
+ASTC_8x5_SRGB           , NONE                  , ASTC_2D_8X5       , NNNN , RGBA , T         , TK1
+ASTC_8x6_SRGB           , NONE                  , ASTC_2D_8X6       , NNNN , RGBA , T         , TK1
+ASTC_8x8_SRGB           , NONE                  , ASTC_2D_8X8       , NNNN , RGBA , T         , TK1
+ASTC_10x5_SRGB          , NONE                  , ASTC_2D_10X5      , NNNN , RGBA , T         , TK1
+ASTC_10x6_SRGB          , NONE                  , ASTC_2D_10X6      , NNNN , RGBA , T         , TK1
+ASTC_10x8_SRGB          , NONE                  , ASTC_2D_10X8      , NNNN , RGBA , T         , TK1
+ASTC_10x10_SRGB         , NONE                  , ASTC_2D_10X10     , NNNN , RGBA , T         , TK1
+ASTC_12x10_SRGB         , NONE                  , ASTC_2D_12X10     , NNNN , RGBA , T         , TK1
+ASTC_12x12_SRGB         , NONE                  , ASTC_2D_12X12     , NNNN , RGBA , T         , TK1

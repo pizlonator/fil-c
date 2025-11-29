@@ -1,0 +1,80 @@
+Name
+
+    MESA_x11_native_visual_id
+
+Name Strings
+
+    EGL_MESA_x11_native_visual_id
+
+Contact
+
+    Eric Engestrom <eric@engestrom.ch>
+
+Status
+
+    Complete, shipping.
+
+Version
+
+    Version 2, May 10, 2024
+
+Number
+
+    EGL Extension #TBD
+
+Extension Type
+
+    EGL display extension
+
+Dependencies
+
+    None.  This extension is written against the
+    wording of the EGL 1.5 specification.
+
+Overview
+
+    This extension allows EGL_NATIVE_VISUAL_ID to be used in
+    eglChooseConfig() for a display of type EGL_PLATFORM_X11_EXT.
+
+IP Status
+
+    Open-source; freely implementable.
+
+New Types
+
+    None
+
+New Procedures and Functions
+
+    None
+
+New Tokens
+
+    None
+
+In section 3.4.1.1 "Selection of EGLConfigs" of the EGL 1.5
+Specification, replace:
+
+    If EGL_MAX_PBUFFER_WIDTH, EGL_MAX_PBUFFER_HEIGHT,
+    EGL_MAX_PBUFFER_PIXELS, or EGL_NATIVE_VISUAL_ID are specified in
+    attrib list, then they are ignored [...]
+
+with:
+
+    If EGL_MAX_PBUFFER_WIDTH, EGL_MAX_PBUFFER_HEIGHT,
+    or EGL_MAX_PBUFFER_PIXELS are specified in attrib list, then they
+    are ignored [...]. EGL_NATIVE_VISUAL_ID is ignored except on
+    a display of type EGL_PLATFORM_X11_EXT when EGL_ALPHA_SIZE is
+    greater than zero.
+
+Issues
+
+    None.
+
+Revision History
+
+    Version 1, March 27, 2024 (Eric Engestrom)
+        Initial draft
+    Version 2, May 10, 2024 (David Heidelberg)
+	add EGL_ALPHA_SIZE condition
+	add Extension type and set it to display extension

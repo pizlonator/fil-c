@@ -1,0 +1,51 @@
+/*
+ * Copyright © 2023 Valve Corporation
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference2 : require
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "build_interface.h"
+
+layout(push_constant) uniform CONSTS
+{
+   header_args args;
+};
+
+void
+main(void)
+{
+   uint32_t compacted_size = args.bvh_offset + DEREF(args.src).dst_node_offset;
+
+   uint32_t serialization_size =
+      compacted_size +
+      align(SIZEOF(radv_accel_struct_serialization_header) + SIZEOF(uint64_t) * args.instance_count,
+            128);
+
+   uint32_t size = serialization_size - SIZEOF(radv_accel_struct_serialization_header) -
+                   SIZEOF(uint64_t) * args.instance_count;
+
+   DEREF(args.dst).compacted_size = compacted_size;
+
+   DEREF(args.dst).copy_dispatch_size[0] = DIV_ROUND_UP(compacted_size, 16 * 64);
+   DEREF(args.dst).copy_dispatch_size[1] = 1;
+   DEREF(args.dst).copy_dispatch_size[2] = 1;
+
+   DEREF(args.dst).serialization_size = serialization_size;
+
+   DEREF(args.dst).size = size;
+}

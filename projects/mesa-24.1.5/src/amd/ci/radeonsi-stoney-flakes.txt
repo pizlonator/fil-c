@@ -1,0 +1,27 @@
+spec@arb_shader_image_load_store@host-mem-barrier
+spec@arb_shader_image_load_store@host-mem-barrier@Vertex array/RaW/one bit barrier test/64x64
+
+# 2022-11-23 The following two case are xfails, but sometimes pass.
+spec@egl_chromium_sync_control@conformance
+spec@egl_chromium_sync_control@conformance@eglGetSyncValuesCHROMIUM_msc_and_sbc_test
+
+# Flaky with a Fail result since the piglit fix made it stop crashing.
+glx@glx-make-current
+
+# With X11 -> Wayland: Crash -> Flake/Fail
+glx@glx-visuals-stencil -pixmap
+glx@glx-visuals-depth -pixmap
+
+# OQ flakes/fails started with no perceivable pattern around 2023-12-13
+dEQP-GLES3.functional.occlusion_query..*
+
+# uprev Piglit in Mesa
+dEQP-GLES3.functional.occlusion_query.scissor_depth_write_stencil_write_stencil_clear
+glx@glx-multithread-texture
+spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread
+
+dEQP-GLES3.functional.occlusion_query.depth_clear_stencil_write_stencil_clear
+dEQP-GLES3.functional.occlusion_query.conservative_scissor_depth_write_stencil_write
+dEQP-GLES3.functional.occlusion_query.depth_write
+dEQP-GLES3.functional.occlusion_query.depth_write_depth_clear_stencil_write_stencil_clear
+dEQP-GLES3.functional.occlusion_query.scissor_stencil_write_stencil_clear

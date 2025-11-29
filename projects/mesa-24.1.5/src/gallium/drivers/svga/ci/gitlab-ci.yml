@@ -1,0 +1,40 @@
+include:
+  - local: 'src/gallium/drivers/svga/ci/gitlab-ci-inc.yml'
+
+vmware-qemu-traces:x86_64:
+  stage: software-renderer
+  extends:
+    - .lava-piglit-traces:x86_64
+    - .vmware-manual-rules
+  timeout: 30m
+  variables:
+    VISIBILITY_GROUP: "mesa-ci"
+    EGL_PLATFORM: "surfaceless"
+    PIGLIT_TRACES_FILE: traces-vmware.yml
+    PIGLIT_REPLAY_EXTRA_ARGS: "--download-caching-proxy-url=${FDO_HTTP_CACHE_URI}"
+    PIGLIT_REPLAY_DEVICE_NAME: "gl-vmware-llvmpipe"
+    PIGLIT_RESULTS: "llvmpipe-replay"
+    RUNNER_TAG: mesa-ci-x86-64-lava-vmware
+    DEVICE_TYPE: qemu
+    BOOT_METHOD: qemu-nfs
+    FDO_HTTP_CACHE_URI: ""
+
+vmware-vmx-piglit:x86_64:
+  stage: layered-backends
+  extends:
+    - .lava-piglit:x86_64
+    - .vmware-rules
+  timeout: 30m
+  variables:
+    VISIBILITY_GROUP: "mesa-ci"
+    GALLIUM_DRIVER: svga
+    GPU_VERSION: svga
+    PIGLIT_PLATFORM: mixed_glx_egl
+    PIGLIT_PROFILES: gpu
+    HWCI_START_WESTON: 1
+    RUNNER_TAG: mesa-ci-x86-64-lava-vmware
+    DEVICE_TYPE: x86
+    BOOT_METHOD: ipxe
+    KERNEL_REPO: "blu/linux"
+    FORCE_KERNEL_TAG: "v6.8-rc3-mesa-5e4b-3-g965b79462"
+    KERNEL_IMAGE_BASE: "https://${S3_HOST}/mesa-lava/${KERNEL_REPO}/${FORCE_KERNEL_TAG}"

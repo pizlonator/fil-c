@@ -1,0 +1,199 @@
+Mesa 24.1.3 Release Notes / 2024-07-03
+======================================
+
+Mesa 24.1.3 is a bug fix release which fixes bugs found since the 24.1.2 release.
+
+Mesa 24.1.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.1.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    63236426b25a745ba6aa2d6daf8cd769d5ea01887b0745ab7124d2ef33a9020d  mesa-24.1.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Incorrect colours on desktop and apps
+- nir: Incorrect nir_opt_algebraic semantics for signed integer constants causing end-to-end miscompiles
+- src/gallium/frontends/clover/meson.build:93:40: ERROR: Unknown variable "idep_mesaclc".
+- [radv] GPU hang in Starfield on RX 5700 XT
+- Indika: flickering black artifacting on the snow
+- MESA 24.1 - broken zink OpenGL under Windows
+- Blue flickering rectangles on AMD RX 7600
+- GPU hangs on AMD Radeon RX 6400 on a fragment shader
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- nir: fix miscompiles with rules with INT32_MIN
+
+Bas Nieuwenhuizen (1):
+
+- util/disk_cache: Fix cache marker refresh.
+
+Connor Abbott (1):
+
+- ir3: Make sure constlen includes stc/ldc.k/ldg.k instructions
+
+Daniel Schürmann (1):
+
+- aco/spill: Unconditionally add 2 SGPRs to live-in demand
+
+Dylan Baker (2):
+
+- clc: remove check for null pointer that cannot be true in llvm_mod_to_spirv
+- anv/grl: add some validation that we're not going to overflow
+
+Eric Engestrom (14):
+
+- docs: add sha256sum for 24.1.2
+- ci/shader-db: drop extra nesting section
+- ci/debian-build-testing: drop extra nesting section
+- ci: fix section_end in debian-build-testing
+- .pick_status.json: Update to 1ff86021a7a06d2548482c40b1584042e298f58e
+- .pick_status.json: Update to c4a38c658317bc8d17447fd6ee3e717a96ca9948
+- .pick_status.json: Update to dd85b50d182a2bd1c67d9a8f858d93fc4dded91c
+- .pick_status.json: Update to 037eaa962b56ff70ecf889ace05020635964e23c
+- .pick_status.json: Update to 68215332a8cd87d8109ee4c3b50e04df223d9c83
+- .pick_status.json: Update to 6b5a12611bff70ffb3c736de29ff5631efbb8770
+- .pick_status.json: Update to 076cbf605e84ad2f7353099af95969702aac5b77
+- .pick_status.json: Mark 41698eee96b17ab11773ca92bf557d35bc72e207 as denominated
+- .pick_status.json: Mark 7033623acd8b7bae8bc52911d4d1c3223726a8f9 as denominated
+- .pick_status.json: Mark 5ca85d75c05de9df7c3170122dfdb04bc795b43a as denominated
+
+Erik Faye-Lund (4):
+
+- nir: fix utf-8 encoding-issue
+- Revert "docs: use html_static_path for static files"
+- docs: use os.pardir
+- docs: fix bootstrap-extension
+
+Faith Ekstrand (1):
+
+- nir/format_convert: Smash NaN to 0 in pack_r9g9b9e5()
+
+Iago Toral Quiroga (2):
+
+- broadcom/compiler: don't spill in between multop and umul24
+- broadcom/compiler: fix per-quad spilling
+
+Jesse Natalie (2):
+
+- wgl: Delete pixelformat support query
+- wgl: Fix flag check for GDI compat
+
+José Expósito (1):
+
+- llvmpipe: Init eglQueryDmaBufModifiersEXT num_modifiers
+
+José Roberto de Souza (2):
+
+- anv: Remove block promoting non CPU mapped bos to coherent
+- anv: Fix assert in xe_gem_create()
+
+Julian Orth (1):
+
+- egl/wayland: ignore unsupported driver configs
+
+Karol Herbst (7):
+
+- util/u_printf: properly handle %%
+- rusticl/memory: assume minimum image_height of 1
+- rusticl/memory: fix clFillImage for buffer images
+- rusticl: add new CL_INVALID_BUFFER_SIZE condition for clCreateBuffer
+- rusticl: add bsymbolic to linker flags
+- rusticl/queue: gracefully stop the worker thread
+- nir/schedule: add write dep also for shared_atomic
+
+Konstantin Seurer (4):
+
+- llvmpipe: Lock shader access to sample_functions
+- llvmpipe: Stop using a sample_functions pointer as cache key
+- llvmpipe: Only evict cache entries if a fence is available
+- lavapipe: Always call finish_fence after lvp_execute_cmd_buffer
+
+Lionel Landwerlin (6):
+
+- anv: fix vkCmdWaitEvents2 handling
+- anv: add a protected scratch pool
+- anv: prepare 2 variants of all shader instructions
+- anv: allocate compute scratch using the right scratch pool
+- anv: emit the right shader instruction for protected mode
+- anv: workaround flaky xfb query results on Gfx11
+
+Luc Ma (1):
+
+- meson: Build pipe-loader when build-tests is true
+
+Mary Guillemard (1):
+
+- panvk: Report correct min value for discreteQueuePriorities
+
+Michel Dänzer (2):
+
+- egl/dri: Use packed pipe_format
+- dri: Go back to hard-coded list of RGBA formats
+
+Mike Blumenkrantz (2):
+
+- dri: rename 'implicit' param from earlier series
+- zink: null check pipe loader config before use
+
+Neha Bhende (1):
+
+- svga: Retrieve stride info from hwtnl->cmd.vdecl for swtnl draws
+
+Patrick Lerda (1):
+
+- clover: fix meson opencl-spirv option
+
+Paulo Zanoni (2):
+
+- anv/xe: fix declaration of memory flags for integrated non-LLC platforms
+- anv/sparse: fix TR-TT page table bo size and flags
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- ac/llvm: implement WA in nir to llvm
+- ac/surface: reject modifiers with retile_dcc and bpe != 32
+
+Qiang Yu (2):
+
+- nir: fix lower array to vec metadata preserve
+- nir: fix clip cull distance lowering metadata preserve
+
+Rhys Perry (3):
+
+- aco/insert_exec_mask: ensure top mask is not a temporary at loop exits
+- vtn: ensure TCS control barriers have a large enough memory scope
+- aco: skip continue_or_break LCSSA phis when not needed
+
+Samuel Pitoiset (2):
+
+- radv/amdgpu: fix chaining CS with external IBs on compute queue
+- radv: fix incorrect cache flushes before decompressing DCC on compute
+
+Tapani Pälli (1):
+
+- isl: fix condition for enabling sampler route to lsc

@@ -1,0 +1,111 @@
+dEQP-GLES31.functional.texture.border_clamp.range_clamp.linear_float_color,Fail
+
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.query_status.compute,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.query_status.vertex,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.query_status.vertex_and_fragment,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.reset_status.compute,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.reset_status.vertex,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.reset_status.vertex_and_fragment,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.sync_status.compute,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.sync_status.vertex,Fail
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.sync_status.vertex_and_fragment,Fail
+
+spec@glsl-1.20@compiler@invalid-vec4-array-to-vec3-array-conversion.vert,Fail
+spec@oes_shader_io_blocks@compiler@layout-location-aliasing.vert,Fail
+
+glx@glx-make-current,Fail
+
+glx@glx-multi-window-single-context,Fail
+glx@glx-swap-pixmap-bad,Fail
+
+# X Error of failed request:  BadDrawable (invalid Pixmap or Window parameter)
+#   Major opcode of failed request:  130 (MIT-SHM)
+#   Minor opcode of failed request:  3 (X_ShmPutImage)
+glx@glx-visuals-depth,Crash
+glx@glx-visuals-depth -pixmap,Crash
+glx@glx-visuals-stencil,Crash
+glx@glx-visuals-stencil -pixmap,Crash
+
+glx@glx_arb_create_context@invalid flag,Fail
+glx@glx_arb_create_context_es2_profile@invalid opengl es version,Fail
+
+glx@glx_arb_create_context_no_error@no error,Fail
+
+shaders@glsl-routing,Fail
+
+spec@!opengl 1.0@gl-1.0-swapbuffers-behavior,Fail
+spec@!opengl 1.0@rasterpos,Fail
+spec@!opengl 1.0@rasterpos@glsl_vs_gs_linked,Fail
+spec@!opengl 1.0@rasterpos@glsl_vs_tes_linked,Fail
+spec@!opengl 1.1@gl_select - alpha-test enabled,Fail
+spec@!opengl 1.1@gl_select - depth-test enabled,Fail
+spec@!opengl 1.1@gl_select - no test function,Fail
+spec@!opengl 1.1@gl_select - scissor-test enabled,Fail
+spec@!opengl 1.1@gl_select - stencil-test enabled,Fail
+spec@!opengl 1.1@polygon-mode-facing,Fail
+spec@!opengl 1.1@polygon-mode-offset,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 3: Expected white pixel on bottom edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 3: Expected white pixel on left edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 3: Expected white pixel on right edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 3: Expected white pixel on top edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 4: Expected white pixel on bottom edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 4: Expected white pixel on left edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 4: Expected white pixel on right edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 4: Expected white pixel on top edge,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back back2@vs and fs,Fail
+spec@!opengl 3.0@clearbuffer-depth-cs-probe,Fail
+spec@!opengl 3.2@layered-rendering@clear-color-mismatched-layer-count,Fail
+spec@arb_enhanced_layouts@execution@component-layout@vs-fs-array-dvec3,Fail
+spec@arb_pipeline_statistics_query@arb_pipeline_statistics_query-frag,Fail
+spec@arb_post_depth_coverage@arb_post_depth_coverage-multisampling,Fail
+
+spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex,Fail
+spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex@'vs_input2[1][0]' on GL_PROGRAM_INPUT,Fail
+
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-load,Crash
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-store,Crash
+
+spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgrad,Fail
+
+spec@egl_khr_gl_image@egl_khr_gl_renderbuffer_image-clear-shared-image gl_depth_component24,Fail
+
+# "error: main:90: eglChooseConfig() returned no configs"
+spec@egl 1.4@eglterminate then unbind context,Fail
+
+# "eglChooseConfig failed"
+spec@egl_khr_surfaceless_context@viewport,Fail
+spec@egl_mesa_configless_context@basic,Fail
+
+spec@ext_framebuffer_multisample@clip-and-scissor-blit 2 msaa,Fail
+spec@ext_framebuffer_multisample@clip-and-scissor-blit 2 upsample,Fail
+spec@ext_framebuffer_multisample@clip-and-scissor-blit 4 msaa,Fail
+spec@ext_framebuffer_multisample@clip-and-scissor-blit 4 upsample,Fail
+spec@ext_framebuffer_multisample@interpolation 2 centroid-edges,Fail
+spec@ext_framebuffer_multisample@interpolation 4 centroid-edges,Fail
+
+spec@khr_texture_compression_astc@miptree-gl srgb-fp,Fail
+spec@khr_texture_compression_astc@miptree-gl srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@miptree-gles srgb-fp,Fail
+spec@khr_texture_compression_astc@miptree-gles srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gl srgb-fp,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gl srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gles srgb-fp,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gles srgb-fp@sRGB decode full precision,Fail
+
+spec@oes_egl_image_external_essl3@oes_egl_image_external_essl3,Fail
+spec@oes_egl_image_external_essl3@oes_egl_image_external_essl3@oes_egl_image_external_essl3_textureSize,Fail
+
+spec@arb_tessellation_shader@execution@gs-primitiveid-instanced,Fail
+spec@!opengl 1.0@depth-clear-precision-check,Fail
+spec@!opengl 1.0@depth-clear-precision-check@depth32,Fail
+
+# Debian bookworm fails
+spec@arb_viewport_array@display-list,Fail
+spec@intel_shader_atomic_float_minmax@execution@ssbo-atomicmin-float-nan,Fail
+spec@intel_shader_atomic_float_minmax@execution@ssbo-atomicmax-float-nan,Fail
+spec@intel_shader_atomic_float_minmax@execution@ssbo-atomiccompswap-float,Crash
+spec@intel_shader_atomic_float_minmax@execution@ssbo-atomiccompswap-float-nan,Crash
+spec@intel_shader_atomic_float_minmax@execution@ssbo-atomiccompswap-float-negative-zero,Crash
+spec@!opengl 1.1@line-flat-clip-color,Fail
+spec@intel_shader_atomic_float_minmax@execution@shared-atomiccompswap-float,Crash

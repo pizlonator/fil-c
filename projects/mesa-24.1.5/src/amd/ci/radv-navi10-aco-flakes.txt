@@ -1,0 +1,15 @@
+# Catch all the line-related flakes we see on navi10
+dEQP-VK.pipeline.*.line_stipple_disable
+dEQP-VK.pipeline.*.topology_line
+
+dEQP-VK.pipeline.fast_linked_library.depth.nocolor.format.d16_unorm_s8_uint_separate_layouts.compare_ops.line_list_less_greater_or_equal_less_greater
+
+dEQP-VK.query_pool.statistics_query.host_query_reset.geometry_shader_(invocations|primitives).secondary.(32|64)bits_.*
+
+# New CTS flakes in 1.3.8.0
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_npot_diff_format_noclear
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_npot_same_format_clear
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_npot_same_format_noclear
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_pot_diff_format_clear
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.partial_image_pot_diff_format_noclear
+dEQP-VK.api.copy_and_blit.sparse.image_to_image.simple_tests.whole_image_diff_format

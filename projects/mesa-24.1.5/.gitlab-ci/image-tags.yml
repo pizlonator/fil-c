@@ -1,0 +1,46 @@
+# Keep the tags below under 20 chars each, as they end up combined into
+# docker image tags, and docker has a length limit of 128 chars total in tags.
+#
+# The word after the date doesn't need to be overly descriptive, it exists
+# purely to avoid the risk of two people updating an image tag on the same day
+# while working on different changes, so it doesn't matter whether that word
+# will make sense to someone else. Aim for "nobody else will pick that word
+# for their change".
+#
+# If you update a tag and you get an error like this:
+#     cannot parse input: "$image:$tag": invalid reference format
+# check the length of $tag; if it's > 128 chars you need to shorten your tag.
+
+variables:
+   DEBIAN_X86_64_BUILD_BASE_IMAGE: "debian/x86_64_build-base"
+   DEBIAN_BASE_TAG: "20240412-pycparser"
+
+   DEBIAN_X86_64_BUILD_IMAGE_PATH: "debian/x86_64_build"
+   DEBIAN_BUILD_TAG: "20240723-241cbindgen"
+
+   DEBIAN_X86_64_TEST_BASE_IMAGE: "debian/x86_64_test-base"
+
+   DEBIAN_X86_64_TEST_IMAGE_GL_PATH: "debian/x86_64_test-gl"
+   DEBIAN_X86_64_TEST_IMAGE_VK_PATH: "debian/x86_64_test-vk"
+   DEBIAN_X86_64_TEST_ANDROID_IMAGE_PATH: "debian/x86_64_test-android"
+
+   DEBIAN_X86_64_TEST_ANDROID_TAG: "20240423-deqp"
+   DEBIAN_X86_64_TEST_GL_TAG: "20240514-egltrans241"
+   DEBIAN_X86_64_TEST_VK_TAG: "20240423-deqp"
+   KERNEL_ROOTFS_TAG: "20240507-kernel241"
+
+   ALPINE_X86_64_BUILD_TAG: "20240412-pycparser"
+   ALPINE_X86_64_LAVA_SSH_TAG: "20240401-wlproto"
+   FEDORA_X86_64_BUILD_TAG: "20240412-pycparser"
+   KERNEL_TAG: "v6.6.21-mesa-f8ea"
+   KERNEL_REPO: "gfx-ci/linux"
+   PKG_REPO_REV: "3cc12a2a"
+
+   WINDOWS_X64_MSVC_PATH: "windows/x86_64_msvc"
+   WINDOWS_X64_MSVC_TAG: "20231222-msvc"
+
+   WINDOWS_X64_BUILD_PATH: "windows/x86_64_build"
+   WINDOWS_X64_BUILD_TAG: "20240405-vainfo-ci-1"
+
+   WINDOWS_X64_TEST_PATH: "windows/x86_64_test"
+   WINDOWS_X64_TEST_TAG: "20240405-vainfo-ci-1"

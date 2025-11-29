@@ -1,0 +1,62 @@
+# Please include a comment with the log message and a testcase triggering each
+# VUID at the bottom of the file.
+khronos_validation.message_id_filter = VUID-VkPhysicalDeviceProperties2-pNext-pNext,VUID-VkDeviceCreateInfo-pNext-pNext,VUID-RuntimeSpirv-Location-06272,VUID-vkCmdDrawMultiEXT-None-02699,VUID-RuntimeSpirv-OpEntryPoint-08743,VUID-vkCmdPipelineBarrier2-shaderTileImageColorReadAccess-08718,VUID-VkGraphicsPipelineCreateInfo-flags-06482,VUID-vkCmdPipelineBarrier2-None-08719
+khronos_validation.report_flags = error
+khronos_validation.debug_action = VK_DBG_LAYER_ACTION_LOG_MSG,VK_DBG_LAYER_ACTION_BREAK
+VK_LAYER_ENABLES=VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+khronos_validation.printf_buffer_size = 40960
+khronos_validation.printf_to_stdout = true
+khronos_validation.log_filename = stdout
+
+# VUID-VkPhysicalDeviceProperties2-pNext-pNext
+# VUID-VkDeviceCreateInfo-pNext-pNext
+# never error due to unrecognized extensions
+
+
+# KHR-GL46.shader_image_load_store.basic-allTargets-atomic:
+# [ VUID-vkCmdDrawMultiEXT-viewType-07752 ] Object 0: handle =
+# 0x5581c500000000d5, type = VK_OBJECT_TYPE_DESCRIPTOR_SET; | MessageID =
+# 0xacde5967 | vkCmdDrawMultiEXT: Descriptor set VkDescriptorSet
+# 0x5581c500000000d5[] in binding #129 index 0 requires an image view of type
+# VK_IMAGE_VIEW_TYPE_CUBE but got VkImageView 0x359e9300000000cb[] which is of
+# type VK_IMAGE_VIEW_TYPE_CUBE_ARRAY. The Vulkan spec states: If a VkImageView is
+# accessed as a result of this command, then the image view's viewType must match
+# the Dim operand of the OpTypeImage as described in Instruction/Sampler/Image
+# View Validation
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdDrawMultiEXT-viewType-07752)
+
+#  KHR-Single-GL46.enhanced_layouts.varying_array_locations:
+#
+# [ VUID-RuntimeSpirv-Location-06272 ] Object 0: handle =
+# 0x8f5f070000000095, type = VK_OBJECT_TYPE_SHADER_MODULE; | MessageID =
+# 0xa3614f8b | Invalid Pipeline CreateInfo State: Geometry shader exceeds
+# VkPhysicalDeviceLimits::maxGeometryInputComponents of 64 components by
+# 1 components The Vulkan spec states: The sum of Location and the number
+# of locations the variable it decorates consumes must be less than or
+# equal to the value for the matching {ExecutionModel} defined in Shader
+# Input and Output Locations
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-RuntimeSpirv-Location-06272)
+
+# dEQP-GLES31.functional.separate_shader.random.69
+# 
+# UNASSIGNED-CoreValidation-Shader-MissingOutput(ERROR / SPEC): msgNum: 1086655814 -
+# Validation Error: [ UNASSIGNED-CoreValidation-Shader-MissingOutput ]
+# vkCreateGraphicsPipelines(): pCreateInfos[0] VK_SHADER_STAGE_FRAGMENT_BIT declared input at Location 0
+# Comonent 2 but it is not an Output declared in VK_SHADER_STAGE_VERTEX_BIT
+#
+# VUID-RuntimeSpirv-OpEntryPoint-08743(ERROR / SPEC): msgNum: -1986897773 -
+# Validation Error: [ VUID-RuntimeSpirv-OpEntryPoint-08743 ]
+# vkCreateGraphicsPipelines(): pCreateInfos[0] VK_SHADER_STAGE_FRAGMENT_BIT declared input at
+# Location 1 Comonent 2 but it is not an Output declared in VK_SHADER_STAGE_VERTEX_BIT
+# The Vulkan spec states: Any user-defined variables shared between the OpEntryPoint of two shader stages,
+# and declared with Input as its {StorageClass} for the subsequent shader stage,
+# must have all Location slots and Component words declared in the preceding shader stage's
+# OpEntryPoint with Output as the {StorageClass}
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-RuntimeSpirv-OpEntryPoint-08743)
+#
+# VVL bug https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5735
+
+# VVL missing support for KHR_dynamic_rendering_local_read
+# VUID-vkCmdPipelineBarrier2-shaderTileImageColorReadAccess-08718
+# VUID-VkGraphicsPipelineCreateInfo-flags-06482
+# VUID-vkCmdPipelineBarrier2-None-08719

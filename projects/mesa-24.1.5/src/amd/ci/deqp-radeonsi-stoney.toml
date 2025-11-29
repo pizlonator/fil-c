@@ -1,0 +1,22 @@
+[[deqp]]
+deqp = "/deqp/external/openglcts/modules/glcts"
+caselists = [
+    "/deqp/mustpass/gles2-main.txt",
+    "/deqp/mustpass/gles3-main.txt",
+    "/deqp/mustpass/gles31-main.txt",
+]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+version_check = "GL ES 3.2.*git"
+renderer_check = "stoney"
+
+[[piglit]]
+piglit_folder = "/piglit"
+profile = "gpu"
+process_isolation = true
+timeout = 180.0
+  [piglit.env]
+  PIGLIT_NO_WINDOW = "1"

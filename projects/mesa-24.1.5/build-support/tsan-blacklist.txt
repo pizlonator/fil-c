@@ -1,0 +1,26 @@
+# For performance reasons we don't use a lock here and reading
+# a stale value is of no consequence
+fun:util_queue_fence_is_signalled
+# We also have to blacklist this function, because otherwise tsan will
+# still report the unlocked read above
+fun:util_queue_fence_signal
+
+# lavapipe:
+# Same as above for perf reasons the fence signal value is is read without
+# lock
+fun:lp_fence_signalled
+fun:lp_fence_signal
+
+# gallium/tc
+# Keeping track of tc->last_completed is an optimization and it is of no
+# consequence to read a stale value there, so surpress the warning about the
+# race condition
+fun:tc_batch_execute
+
+# This is a debug feature and ATM it is simpler to surpress the race warning
+fun:tc_set_driver_thread
+
+# vulkan/runtime
+# Even with the data race the returned value is always the same
+fun:get_max_abs_timeout_ns
+

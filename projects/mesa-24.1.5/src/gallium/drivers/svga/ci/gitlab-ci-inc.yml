@@ -1,0 +1,23 @@
+.vmware-rules:
+  rules:
+    - !reference [.test, rules]
+    - !reference [.vmware-farm-rules, rules]
+    - !reference [.gl-rules, rules]
+    - changes: &vmware_file_list
+      - src/gallium/drivers/svga/**/*
+      - src/gallium/winsys/svga/**/*
+      - src/compiler/nir/**/*
+      - src/gallium/auxiliary/nir/**/*
+      - src/gallium/auxiliary/draw/**/*
+      - src/util/**/*
+      when: on_success
+
+.vmware-manual-rules:
+  retry: !reference [.scheduled_pipeline-rules, retry]
+  rules:
+    - !reference [.test, rules]
+    - !reference [.vmware-farm-manual-rules, rules]
+    - !reference [.gl-manual-rules, rules]
+    - changes:
+        *vmware_file_list
+      when: manual

@@ -1,0 +1,45 @@
+From cab41ed387c66a5e7f3454c547fc9ea53587ec1e Mon Sep 17 00:00:00 2001
+From: David Heidelberg <david.heidelberg@collabora.com>
+Date: Thu, 9 May 2024 14:08:59 -0700
+Subject: [PATCH] Correct EGL_EXT_config_select_group extension query
+
+EGL_EXT_config_select_group is a display extension,
+not a client extension.
+
+Affects:
+dEQP-EGL.functional.choose_config.simple.selection_and_sort.*
+
+Ref: https://github.com/KhronosGroup/EGL-Registry/pull/199
+
+Fixes: 88ba9ac270db ("Implement support for the EGL_EXT_config_select_group extension")
+
+Change-Id: I38956511bdcb8e99d585ea9b99aeab53da0457e2
+Signed-off-by: David Heidelberg <david.heidelberg@collabora.com>
+---
+ framework/egl/egluConfigInfo.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/framework/egl/egluConfigInfo.cpp b/framework/egl/egluConfigInfo.cpp
+index 88c30fd65..10936055a 100644
+--- a/framework/egl/egluConfigInfo.cpp
++++ b/framework/egl/egluConfigInfo.cpp
+@@ -129,7 +129,6 @@ void queryCoreConfigInfo (const Library& egl, EGLDisplay display, EGLConfig conf
+ void queryExtConfigInfo (const eglw::Library& egl, eglw::EGLDisplay display, eglw::EGLConfig config, ConfigInfo* dst)
+ {
+ 	const std::vector<std::string>	extensions		= getDisplayExtensions(egl, display);
+-	const std::vector<std::string>	clientExtensions	= getClientExtensions(egl);
+ 
+ 	if (de::contains(extensions.begin(), extensions.end(), "EGL_EXT_yuv_surface"))
+ 	{
+@@ -159,7 +158,7 @@ void queryExtConfigInfo (const eglw::Library& egl, eglw::EGLDisplay display, egl
+ 	else
+ 		dst->colorComponentType = EGL_COLOR_COMPONENT_TYPE_FIXED_EXT;
+ 
+-	if (de::contains(clientExtensions.begin(), clientExtensions.end(), "EGL_EXT_config_select_group"))
++	if (hasExtension(egl, display, "EGL_EXT_config_select_group"))
+ 	{
+ 		egl.getConfigAttrib(display, config, EGL_CONFIG_SELECT_GROUP_EXT,	(EGLint*)&dst->groupId);
+ 
+-- 
+2.43.0
+

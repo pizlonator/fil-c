@@ -1,0 +1,282 @@
+# version field is required
+version: 1
+project:
+    name: 'mesa'
+    id: 176
+    instance: https://gitlab.freedesktop.org
+
+issues:
+    topics: &topics
+        'aco': 'ACO'
+        'anv': 'ANV'
+        'asahi': 'asahi'
+        'blorp': 'blorp'
+        'ci': 'CI'
+        'clc': 'OpenCL'
+        'clover': 'clover'
+        'crocus': 'crocus'
+        'd3d12': 'd3d12'
+        'docs': 'docs'
+        'dozen': 'dozen'
+        'drirc': 'drirc'
+        'dzn': 'dozen'
+        'egl': 'EGL'
+        'etnaviv': 'etnaviv'
+        'freedreno': 'freedreno'
+        'freedreno/ir3': ['freedreno', 'ir3']
+        'gallium': 'gallium'
+        'gbm': 'gbm'
+        'gitlab-ci': 'CI'
+        'glsl': 'GLSL'
+        'glvnd': 'GLVND'
+        'glx': 'GLX'
+        'hasvk': 'hasvk'
+        'i915': 'i915'
+        'i965': 'i965'
+        'intel/compiler': 'intel-compiler'
+        'intel/brw': 'intel-brw'
+        'intel/elk': 'intel-elk'
+        'intel/tools': 'intel-tools'
+        'iris': 'iris'
+        'isl': 'ISL'
+        'lima': 'lima'
+        'lima/ppir' : 'lima'
+        'llvmpipe': 'llvmpipe'
+        'mesa' : 'mesa'
+        'meson' : 'meson'
+        'microsoft/compiler': 'd3d12'
+        'nak' : 'NAK'
+        'nine' : 'nine'
+        'nir': 'NIR'
+        'nir2dxil': 'd3d12'
+        'nouveau' : 'nouveau'
+        'nv30' : ['nouveau', 'nv30']
+        'nv50' : ['nouveau', 'nv50']
+        'nv50/ir' : 'nouveau'
+        'nvc0' : ['nouveau', 'nvc0']
+        'nvk' : 'NVK'
+        'panfrost' : 'panfrost'
+        'pan/midgard' : 'panfrost'
+        'pvr' : 'powervr'
+        'r100' : 'r100'
+        'r200' : 'r200'
+        'r300' : 'r300'
+        'r600' : 'r600'
+        'radeonsi' : 'radeonsi'
+        'radv': 'RADV'
+        'radv/aco': ['RADV', 'ACO']
+        'rusticl': 'Rusticl'
+        'softpipe' : 'softpipe'
+        'spirv' : 'SPIR-V'
+        'swr' : 'swr'
+        'swrast' : 'swrast'
+        'tegra' : 'tegra'
+        'tgsi' : 'TGSI'
+        'turnip': 'turnip'
+        'util' : 'util'
+        'v3d': 'v3d'
+        'vaapi' : 'VA-API'
+        'vc4' : 'vc4'
+        'vdpau' : 'VDPAU'
+        'vieux' : 'vieux'
+        'virgl' : 'virgl'
+        'vmwgfx' : 'vmwgfx'
+        'zink': 'zink'
+
+    titles: &titles
+        'android': 'android'
+        'bisected': 'bisected'
+        'coverity': 'coverity'
+        'deqp': 'deqp'
+        'feature request': 'feature request'
+        'haiku' : 'haiku'
+        'regression': 'regression'
+
+        'i915_dri.so' : 'i915'
+        'i965_dri.so' : 'i965'
+        'iris_dri.so' : 'iris'
+        'nouveau_dri.so' : 'nouveau'
+        'nouveau_vieux_dri.so' : 'vieux'
+        'r200_dri.so' : 'r200'
+        'r300_dri.so' : 'r300'
+        'r600_dri.so' : 'r600'
+        'radeonsi_dri.so' : 'radeonsi'
+        'swrast_dri.so' : 'swrast'
+        'vmwgfx_dri.so' : 'vmwgfx'
+
+merge_requests:
+    topics:
+        *topics
+    titles:
+        *titles
+
+    paths:
+        '^.gitlab/issue_templates/' : ['docs']
+        '^.gitlab-ci' : ['CI']
+        '^.*/gitlab-ci(-inc)?.yml' : ['CI']
+        '^.*/ci/deqp-.*\.toml' : ['CI']
+        '^.*/ci/.*-(fails|flakes|skips)\.txt' : ['CI']
+        '^.*/ci/(restricted-)?traces-.*\.yml' : ['CI']
+        '^.*/ci/.*-validation-settings\.txt' : ['CI']
+        '^.gitlab-ci/windows/' : ['Windows']
+        '^bin/__init__.py$' : ['maintainer-scripts']
+        '^bin/gen_release_notes' : ['maintainer-scripts']
+        '^bin/git_sha1_gen.py$' : ['meson', 'android']
+        '^bin/install_megadrivers.py$' : ['meson']
+        '^bin/meson-cmd-extract.py$' : ['meson']
+        '^bin/meson.build$' : ['meson']
+        '^bin/pick-ui' : ['maintainer-scripts']
+        '^bin/pick/' : ['maintainer-scripts']
+        '^bin/post_version' : ['maintainer-scripts']
+        '^bin/symbols-check.py$' : ['meson']
+        '^docs/' : ['docs']
+        '^include/drm-uapi/i915_drm.h' : ['intel']
+        '^include/drm-uapi/xe_drm.h' : ['intel']
+        '^include/vulkan/' : ['vulkan']
+        '^meson_options.txt' : ['meson']
+        '^README.rst' : ['docs']
+        '^src/amd/addrlib/' : ['AMD common']
+        '^src/amd/common/' : ['AMD common']
+        '^src/amd/compiler/' : ['ACO']
+        '^src/amd/llvm/' : ['AMD common']
+        '^src/amd/registers/' : ['AMD common']
+        '^src/amd/vulkan/' : ['RADV']
+        '^src/asahi/' : ['asahi']
+        '^src/broadcom/drm-shim/v3d' : ['v3d']
+        '^src/broadcom/vulkan/' : ['v3dv']
+        '^src/compiler/clc' : ['OpenCL']
+        '^src/compiler/glsl' : ['GLSL']
+        '^src/compiler/nir' : ['NIR']
+        '^src/compiler/spirv/' : ['SPIR-V']
+        '^src/egl/' : ['EGL']
+        '^src/egl/drivers/wgl/' : ['wgl']
+        '^src/etnaviv/' : ['etnaviv']
+        '^src/freedreno/' : ['freedreno']
+        '^src/freedreno/ir3/' : ['ir3']
+        '^src/freedreno/vulkan/' : ['turnip']
+        '^src/gallium/auxiliary/' : ['gallium']
+        '^src/gallium/auxiliary/nir/' : ['NIR']
+        '^src/gallium/auxiliary/nir/.*tgsi.*' : ['TGSI']
+        '^src/gallium/auxiliary/tgsi/' : ['TGSI']
+        '^src/gallium/docs/' : ['gallium']
+        '^src/gallium/drivers/asahi/' : ['asahi']
+        '^src/gallium/drivers/crocus/' : ['crocus']
+        '^src/gallium/drivers/d3d12/' : ['d3d12']
+        '^src/gallium/drivers/etnaviv/' : ['etnaviv']
+        '^src/gallium/drivers/freedreno/' : ['freedreno']
+        '^src/gallium/drivers/grate/' : ['tegra']
+        '^src/gallium/drivers/i915/' : ['i915g']
+        '^src/gallium/drivers/iris/' : ['iris']
+        '^src/gallium/drivers/lima/' : ['lima']
+        '^src/gallium/drivers/llvmpipe/' : ['llvmpipe']
+        '^src/gallium/drivers/nouveau/' : ['nouveau']
+        '^src/gallium/drivers/nouveau/nv30' : ['nv30']
+        '^src/gallium/drivers/nouveau/nv50' : ['nv50']
+        '^src/gallium/drivers/nouveau/nvc0' : ['nvc0']
+        '^src/gallium/drivers/panfrost/' : ['panfrost']
+        '^src/gallium/drivers/r300/' : ['r300']
+        '^src/gallium/drivers/r600/' : ['r600']
+        '^src/gallium/drivers/radeonsi' : ['radeonsi']
+        '^src/gallium/drivers/softpipe' : ['softpipe']
+        '^src/gallium/drivers/svga/' : ['svga']
+        '^src/gallium/drivers/swr/' : ['swr']
+        '^src/gallium/drivers/tegra/' : ['tegra']
+        '^src/gallium/drivers/v3d/' : ['v3d']
+        '^src/gallium/drivers/vc4/' : ['vc4']
+        '^src/gallium/drivers/virgl/' : ['virgl']
+        '^src/gallium/drivers/zink/' : ['zink']
+        '^src/gallium/frontends/clover/' : ['clover']
+        '^src/gallium/frontends/dri/' : ['gallium']
+        '^src/gallium/frontends/glx/' : ['GLX']
+        '^src/gallium/frontends/hgl/' : ['haiku']
+        '^src/gallium/frontends/lavapipe/' : ['lavapipe']
+        '^src/gallium/frontends/nine/' : ['nine']
+        '^src/gallium/frontends/omx/' : ['omx']
+        '^src/gallium/frontends/osmesa/' : ['osmesa']
+        '^src/gallium/frontends/rusticl/' : ['Rusticl']
+        '^src/gallium/frontends/va/' : ['VA-API']
+        '^src/gallium/frontends/vdpau/' : ['VDPAU']
+        '^src/gallium/frontends/wgl/' : ['wgl']
+            #        '^src/gallium/frontends/xa/' : ['']
+        '^src/gallium/include/' : ['gallium']
+        '^src/gallium/targets/' : ['gallium']
+        '^src/gallium/targets/opencl/' : ['clover']
+        '^src/gallium/targets/osmesa/' : ['osmesa']
+        '^src/gallium/targets/rusticl/' : ['Rusticl']
+        '^src/gallium/tests/' : ['gallium']
+        '^src/gallium/tools/' : ['gallium']
+            #        '^src/gallium/winsys/amdgpu/' : ['']
+        '^src/gallium/winsys/crocus/' : ['crocus']
+        '^src/gallium/winsys/d3d12/' : ['d3d12']
+        '^src/gallium/winsys/etnaviv/' : ['etnaviv']
+        '^src/gallium/winsys/freedreno/' : ['freedreno']
+        '^src/gallium/winsys/grate/' : ['tegra']
+        '^src/gallium/winsys/i915/' : ['i915g']
+        '^src/gallium/winsys/iris/' : ['iris']
+            #        '^src/gallium/winsys/kmsro/' : ['']
+        '^src/gallium/winsys/lima/' : ['lima']
+        '^src/gallium/winsys/nouveau/' : ['nouveau']
+        '^src/gallium/winsys/panfrost/' : ['panfrost']
+            #        '^src/gallium/winsys/radeon/' : ['radeon']
+        '^src/gallium/winsys/svga/' : ['svga']
+            #        '^src/gallium/winsys/sw/' : ['']
+        '^src/gallium/winsys/sw/gdi/' : ['wgl']
+        '^src/gallium/winsys/tegra/' : ['tegra']
+        '^src/gallium/winsys/v3d/' : ['v3d']
+        '^src/gallium/winsys/vc4/' : ['vc4']
+        '^src/gallium/winsys/virgl/' : ['virgl']
+        '^src/gbm/' : ['gbm']
+        '^src/glx/' : ['GLX']
+        '^src/imagination/' : ['powervr']
+        '^src/intel/blorp/' : ['blorp']
+        '^src/intel/common/' : ['intel']
+        '^src/intel/compiler/' : ['intel-compiler']
+        '^src/intel/compiler/brw' : ['intel-brw']
+        '^src/intel/compiler/elk' : ['intel-elk']
+        '^src/intel/dev/' : ['intel']
+        '^src/intel/ds/' : ['intel']
+        '^src/intel/genxml/' : ['intel']
+        '^src/intel/isl/' : ['ISL']
+        '^src/intel/nullhw-layer/' : ['intel']
+        '^src/intel/perf/' : ['intel']
+        '^src/intel/tools/' : ['intel-tools']
+        '^src/intel/vulkan/' : ['ANV']
+        '^src/intel/vulkan_hasvk/' : ['hasvk']
+        '^src/loader/' : ['loader']
+        '^src/mapi/' : ['mapi']
+        '^src/mesa/drivers/dri/i915/' : ['i915']
+        '^src/mesa/drivers/dri/i965/' : ['i965']
+        '^src/mesa/drivers/dri/nouveau/' : ['vieux']
+        '^src/mesa/drivers/dri/r200/' : ['r200']
+        '^src/mesa/drivers/dri/radeon/' : ['radeon']
+        '^src/mesa/drivers/dri/swrast/' : ['swrast']
+        '^src/mesa/drivers/osmesa' : ['osmesa']
+        '^src/mesa/main/' : ['mesa']
+        '^src/mesa/state_tracker/.*glsl.*' : ['GLSL']
+        '^src/mesa/state_tracker/.*tgsi.*' : ['TGSI']
+        '^src/mesa/state_tracker/.*nir.*' : ['NIR']
+        '^src/microsoft/clc/' : ['d3d12']
+        '^src/microsoft/compiler/' : ['d3d12']
+        '^src/microsoft/spirv_to_dxil/' : ['dozen']
+        '^src/microsoft/vulkan/' : ['dozen']
+        '^src/nouveau/codegen/' : ['nouveau']
+        '^src/nouveau/compiler/' : ['NAK']
+        '^src/nouveau/drm-shim/' : ['nouveau']
+        '^src/nouveau/mme/' : ['NVK']
+        '^src/nouveau/nil/' : ['NVK']
+        '^src/nouveau/nvidia-headers/' : ['NVK']
+        '^src/nouveau/vulkan/' : ['NVK']
+        '^src/nouveau/winsys/' : ['NVK']
+        '^src/panfrost/' : ['panfrost']
+        '^src/virtio/vulkan/' : ['venus']
+        '^src/virtio/venus-protocol/' : ['venus']
+        '^src/virtio/ci/' : ['venus']
+        '^src/util/' : ['util']
+        '^src/util/00-mesa-defaults.conf' : ['drirc']
+        '^src/vulkan/' : ['vulkan']
+        '^VERSION$' : ['maintainer-scripts']
+
+        'Android' : ['android']
+        'EGL' : ['EGL']
+        'meson.build' : ['meson']
+        'wayland' : ['wayland']

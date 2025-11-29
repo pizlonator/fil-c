@@ -1,0 +1,173 @@
+Mesa 24.1.4 Release Notes / 2024-07-17
+======================================
+
+Mesa 24.1.4 is a bug fix release which fixes bugs found since the 24.1.3 release.
+
+Mesa 24.1.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.1.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    7cf7c6f665263ad0122889c1d4b076654c1eedea7a2f38c69c8c51579937ade1  mesa-24.1.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [regression][bisected] VMware Xv video displays as black rectangle
+- Blender 4.2,4.3 crashes when rendering with motion blur on RDNA3 cards (OpenGL/radeonsi)
+- Transparent background in Blender 3D view with nouveau
+- Stuttering and delays with AV1 decoding in Mesa 24 using VAAPI on AMD Phoenix, works fine on Mesa 23
+- 24.0.7 AV1 VA-API dropping frames
+- Gnome shell (wayland) crashes when opening any window
+- DRI Intel drivers fix a problem in Redhat 7 (Mesa 18), but are not included for Redhat 8 (Mesa versions  v23, v24)
+- Vulkan: ../src/nouveau/vulkan/nvk_physical_device.c:1109: VK_ERROR_INCOMPATIBLE_DRIVER
+- RADV: Smooth lines affect triangle rendering
+- [armhf build error][regression] error: ‘StringMapIterator’ was not declared in this scope; did you mean ‘llvm::StringMapIterator’?
+
+
+Changes
+-------
+
+Aleksi Sapon (1):
+
+- lavapipe: build "Windows" check should use the host machine, not the \`platforms` option.
+
+Connor Abbott (3):
+
+- tu: Make cs writeable for GMEM loads when FDM is enabled
+- tu: Fix fdm_apply_load_coords patchpoint size
+- ir3: Fix stg/ldg immediate offset on a7xx
+
+Dave Airlie (2):
+
+- anv/video: use correct offset for MPR row store scratch buffer.
+- radv/video: advertise mutable/extended for dst video images.
+
+David Rosca (1):
+
+- Reapply "radeonsi/vcn: AV1 skip the redundant bs resize"
+
+Doug Brown (1):
+
+- xa: add missing stride setup in renderer_draw_yuv
+
+Eric Engestrom (6):
+
+- docs: add sha256sum for 24.1.3
+- [24.1 only] ci: disable rustfmt
+- .pick_status.json: Update to d9e41e8a8ca3a8a22628513b44764fa7675ec288
+- .pick_status.json: Update to ae3e0ae26a4678b317727dc08ae64aee6577374d
+- .pick_status.json: Update to a04dc1a4517bbe359fb246a79cd38c99f250c826
+- .pick_status.json: Update to 2d260314f101540298edf973f5393e3468ed84ba
+
+Erico Nunes (1):
+
+- lima: fix surface reload flags assignment
+
+Faith Ekstrand (5):
+
+- nvk: Silently fail to enumerate if not on nouveau
+- nvk: Bump the sparse alignment requirement on buffers to 64K
+- nvk: Align sparse-bound images to the sparse binding size
+- zink/kopper: Set VK_COMPOSITE_ALPHA_OPAQUE_BIT when PresentOpaque is set
+- nvk: Drop the sparse alignment back down to 4096
+
+Karol Herbst (8):
+
+- rusticl/program: move binary parsing into its own function
+- rusticl/program: make binary API not crash on errors
+- rusticl/program: use blob.h to parse binaries
+- rusticl/program: update binary format
+- rusticl/buffer: harden bound checks against overflows
+- rusticl/context: move SVM pointer tracking into own type
+- rusticl/ptr: add a few APIs to TrackedPointers
+- rusticl/memory: complete rework on how mapping is implemented
+
+Kenneth Graunke (1):
+
+- intel/nir: Don't needlessly split u2f16 for nir_type_uint32
+
+Konstantin Seurer (1):
+
+- radv: Fix smooth lines with dynamic polygon mode and topology
+
+Marek Olšák (5):
+
+- ac/surface: finish display DCC for gfx11.5
+- radeonsi: replace si_shader::scratch_bo with scratch_va, don't set it on gfx11+
+- radeonsi: don't update compute scratch if the compute shader doesn't use it
+- ac: add radeon_info::has_scratch_base_registers
+- radeonsi: lock a mutex when updating scratch_va for compute shaders
+
+Mary Guillemard (1):
+
+- pan/kmod: Avoid deadlock on VA allocation failure on panthor
+
+MastaG (1):
+
+- gallivm: Call StringMapIterator from llvm:: scope
+
+Mike Blumenkrantz (7):
+
+- st/pbo: fix MESA_COMPUTE_PBO=spec crash on shutdown
+- st/pbo_compute: special case stencil extraction from Z24S8
+- zink: propagate valid buffer range to real buffer when mapping staging
+- zink: track the "real" buffer range from replacement buffers
+- zink: modify some buffer mapping behavior for buffer replacement srcs
+- mesa/st: load state params for feedback draws with allow_st_finalize_nir_twice
+- egl/x11/sw: fix partial image uploads
+
+Patrick Lerda (1):
+
+- st/pbo_compute: fix async->nir memory leak
+
+Paulo Zanoni (2):
+
+- anv: reimplement the anv_fake_nonlocal_memory workaround
+- iris: fix iris_xe_wait_exec_queue_idle() on release builds
+
+Pierre-Eric Pelloux-Prayer (4):
+
+- radeonsi: fix buffer_size in si_compute_shorten_ubyte_buffer
+- Revert "ac, radeonsi: remove has_syncobj, has_fence_to_handle"
+- winsys/radeon: fill lds properties
+- radeonsi: fix crash in si_update_tess_io_layout_state for gfx8 and earlier
+
+Samuel Pitoiset (1):
+
+- radv: disable VK_EXT_sampler_filter_minmax on TAHITI and VERDE
+
+Sviatoslav Peleshko (1):
+
+- mesa: Fix PopAttrib not restoring states that changed on deeper stack level
+
+Tatsuyuki Ishi (1):
+
+- vk_cmd_queue_gen: Exclude CmdDispatchGraphAMDX
+
+Tim Huang (2):
+
+- amd: add GFX v11.5.2 support
+- amd/vpelib: support VPE IP v6.1.3
+
+msizanoen (1):
+
+- egl/wayland: Fix direct scanout with EGL_EXT_present_opaque

@@ -1,0 +1,228 @@
+Mesa 24.1.2 Release Notes / 2024-06-19
+======================================
+
+Mesa 24.1.2 is a bug fix release which fixes bugs found since the 24.1.1 release.
+
+Mesa 24.1.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.1.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    a2c584c8d57d3bd8ba11790a6e9ae3713f8821df96c059b78afb29dd975c9f45  mesa-24.1.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- free_zombie_shaders() leave context in a bad state (access violation occurs)
+- [NINE]Far Cry 1 trees flicker regression[bisected][traces]
+- Vulkan: Most sync2 implementations are missing new access flags
+- Incorrect buffer_list advance when writing disjoint image descriptors
+- ANV: Block shadows in Cyberpunk on Intel A770
+- ACO ERROR: Temporary never defined or are defined after use
+- VAAPI ffmpeg encoding breaks with mesa-24.1.0
+- [ANV] Graphics memory allocation in Total War: Warhammer 3
+- NVK: Vulkan apps simply terminated with segfault under wayland and Xwayland
+- NVK: VK_ERROR_OUT_OF_DEVICE_MEMORY on swapchain creation
+- freedreno + perfetto missing dependency on adreno_common.xml.h
+
+
+Changes
+-------
+
+Amol Surati (1):
+
+- nine: avoid using post-compacted indices with state expecting pre-compacted ones
+
+Boris Brezillon (2):
+
+- pan/bi: Fix dynamic indexing of push constants
+- panvk: Fix Cube/2DArray/3D img -> buf copies
+
+Caio Oliveira (1):
+
+- intel/brw: Fix typo in DPAS emission code
+
+Daniel Schürmann (1):
+
+- aco/assembler: fix MTBUF opcode encoding on GFX11
+
+Danylo Piliaiev (1):
+
+- freedreno: Make fd_pps_driver.h usable without including other FD sources
+
+Dave Airlie (4):
+
+- nvk: Only enable WSI modifiers if the extension is supported.
+- draw/texture: handle mip_offset[0] being != 0 for layered textures.
+- nouveau/nvc0: increase overallocation on shader bo to 2K
+- radv/video: fix layered decode h264/5 tests.
+
+David Heidelberg (1):
+
+- rusticl: add -cl-std only when it's not defined
+
+David Rosca (2):
+
+- radeonsi: Fix si_compute_clear_render_target with 422 subsampled formats
+- radv/video: Add missing VCN 3.0.2 to decoder init switch
+
+Eric Engestrom (15):
+
+- docs: add sha256sum for 24.1.1
+- .pick_status.json: Update to 50e5067be77bf8f34de6616e8edca2af2cf8d310
+- v3dv: add missing bounds check in VK_EXT_4444_formats
+- .pick_status.json: Update to cc82f7f8ace50f68b06c53ad347e36d411ae9dab
+- radv/ci: fix manual rules
+- .pick_status.json: Update to 41dd1c52b1d091b36f8931c4a57d3b6dc361bc84
+- v3d/drm-shim: emulate a rpi4 instead of a rpi3
+- .pick_status.json: Update to a80a1c983844bca646d5f07d65c695a84f964bfe
+- egl: fix teardown when using xcb
+- .pick_status.json: Mark f017beb29ce6e3469da33caff2c9a493799faca6 as denominated
+- .pick_status.json: Update to 7dcba7e873c6b753930e2fdc8c714bb4da1a22dd
+- glx: fix build -D glx-direct=false
+- .pick_status.json: Update to 10d21d410068f2ca32fe898f6b4b690993d90daa
+- .pick_status.json: Mark a9fff07c2e2b1e52b00b30dc16781209f7761c04 as denominated
+- .pick_status.json: Update to 887f0e0af664b11c081b4140931e7213240c7b41
+
+Erik Faye-Lund (3):
+
+- mesa/main: remove stale prototype
+- mesa/main: do not allow RGBA_INTEGER et al in gles3
+- panvk: move macro-definition to header
+
+Faith Ekstrand (5):
+
+- nak: Only convert the written portion of the buffer in NirInstrPrinter
+- nak: BMov is always variable-latency
+- nak: Only copy-prop neg into iadd2/3 if no carry is written
+- nak/legalize: Fold immediate sources before instructions
+- nouveau: Fix a race in nouveau_ws_bo_destroy()
+
+Friedrich Vock (2):
+
+- radv/rt: Fix memory leak when compiling libraries
+- aco/spill: Don't spill phis with all-undef operands
+
+Georg Lehmann (1):
+
+- radeonsi: set COMPUTE_STATIC_THREAD_MGMT_SE2-3 correctly on gfx10-11
+
+Iago Toral Quiroga (1):
+
+- broadcom/compiler: initialize payload_conflict for all initial nodes
+
+Iván Briano (1):
+
+- vulkan/runtime: pColorAttachmentInputIndices is allowed to be NULL
+
+Job Noorman (14):
+
+- ir3: fix crash in try_evict_regs with src reg
+- ir3: fix handling of early clobbers in calc_min_limit_pressure
+- ir3: set offset on splits created while spilling
+- ir3: correctly set wrmask for reload.macro
+- ir3: don't remove intervals for non-killed tex prefetch sources
+- ir3: don't remove collects early while spilling
+- ir3: expose instruction indexing helper for merge sets
+- ir3: make indexing instructions optional in ir3_merge_regs
+- ir3: index instructions before fixing up merge sets after spilling
+- ir3: move liveness recalculation inside ir3_ra_shared
+- ir3: restore interval_offset after liveness recalculation in shared RA
+- ir3: add ir3_cursor/ir3_builder helpers
+- ir3: refactor ir3_spill.c to use the ir3_cursor/ir3_builder API
+- ir3: only add live-in phis for top-level intervals while spilling
+
+Karol Herbst (2):
+
+- rusticl/spirv: do not pass a NULL pointer to slice::from_raw_parts
+- rusticl/memory: copies might overlap for host ptrs
+
+Konstantin Seurer (2):
+
+- ac/llvm: Fix DENORM_FLUSH_TO_ZERO with exact instructions
+- ac/llvm: Enable helper invocations for vote_all/any
+
+Lionel Landwerlin (4):
+
+- anv: fix pipeline flag fields
+- anv: limit aux invalidations to primary command buffers
+- anv: ensure completion of surface state copies before secondaries
+- intel/fs: fix lower_simd_width for MOV_INDIRECT
+
+Lucas Fryzek (1):
+
+- llvmpipe: query winsys support for dmabuf mapping
+
+Marek Olšák (1):
+
+- Revert "radeonsi: fix initialization of occlusion query buffers for disabled RBs"
+
+Mary Guillemard (2):
+
+- panvk: Add missing null check in DestroyCommandPool
+- panvk: Check for maxBufferSize in panvk_CreateBuffer
+
+Mike Blumenkrantz (2):
+
+- lavapipe: fix mesh+task binding with shader objects
+- mesa/st: fix zombie shader handling for non-current programs
+
+Patrick Lerda (1):
+
+- radeonsi: fix assert triggered on gfx6 after the tessellation update
+
+Qiang Yu (2):
+
+- glsl: respect GL_EXT_shader_image_load_formatted when image is embedded in a struct
+- radeonsi: add missing nir_intrinsic_bindless_image_descriptor_amd
+
+Rhys Perry (4):
+
+- aco: don't combine vgpr into writelane src0
+- aco/gfx6: set glc for buffer_store_byte/short
+- aco: remove some missing label resets
+- aco: insert s_nop before discard early exit sendmsg(dealloc_vgpr)
+
+Samuel Pitoiset (4):
+
+- radv: fix creating unlinked shaders with ESO when nextStage is 0
+- radv: don't assume that TC_ACTION_ENA invalidates L1 cache on gfx9
+- radv: fix incorrect buffer_list advance for multi-planar descriptors
+- radv: always save/restore all shader objects for internal operations
+
+Sviatoslav Peleshko (3):
+
+- anv,driconf: Add fake non device local memory WA for Total War: Warhammer 3
+- intel/brw: Actually retype integer sources of sampler message payload
+- intel/elk: Actually retype integer sources of sampler message payload
+
+Timur Kristóf (1):
+
+- ac/nir/tess: Fix per-patch output LDS mapping.
+
+Valentine Burley (2):
+
+- tu: Handle the new sync2 flags
+- tu: Remove declaration of unused update_stencil_mask function
+
+Zan Dobersek (1):
+
+- tu: fix ZPASS_DONE interference between occlusion queries and autotuner

@@ -1,0 +1,196 @@
+Mesa 24.1.5 Release Notes / 2024-07-31
+======================================
+
+Mesa 24.1.5 is a bug fix release which fixes bugs found since the 24.1.4 release.
+
+Mesa 24.1.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.1.5 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    TBD.
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- piglit: cl-api-build-program crashes
+- i915g: glGenerateMipmap() fails with 2048×2048 textures
+- Build fails without Vulkan
+- [Bisected] Recent compile issue in libnak
+- GPU Hang in Metal Gear Rising Revengeance
+- VK_ERROR_DEVICE_LOST A770 DXVK Fallout 3
+- RustiCL (or maybe not...): radeonsi freezes after 2 hours of simulation, zink works just fine
+
+
+Changes
+-------
+
+Alessandro Astone (1):
+
+- egl/gbm: Walk device list to initialize DRM platform
+
+Dave Airlie (1):
+
+- gallivm/sample: fix sampling indirect from vertex shaders
+
+David Rosca (1):
+
+- Revert "frontends/va: Fix AV1 slice_data_offset with multiple slice data buffers"
+
+Deborah Brouwer (1):
+
+- ci/lava: Detect a6xx gpu recovery failures
+
+Dylan Baker (5):
+
+- compilers/clc: Add missing break statements.
+- mesa: fix memory leak when using shader cache
+- tgsi_to_nir: free disk cache value if the size is wrong
+- crocus: properly free resources on BO allocation failure
+- crocus: check for depth+stencil before creating resource
+
+Emma Anholt (1):
+
+- dri: Fix a pasteo in dri2_from_names()
+
+Eric Engestrom (12):
+
+- docs: add sha256sum for 24.1.4
+- .pick_status.json: Update to 534f0019d714f2331f29d1281a009bb439ebdb17
+- .pick_status.json: Mark 4e9c16b035159c01b10fadeb5930f62efba14058 as denominated
+- .pick_status.json: Update to 0cc23b652401600e57c278d8f6fe6756b13b9f6a
+- .pick_status.json: Update to 0bdc2f180f1fbce16d96d718119b4eed1e5a6731
+- [24.1 only] ci: bump cbindgen-cli to 0.65 to match actual requirements
+- nak: fix meson typo
+- venus: initialize bitset in CreateDescriptorPool()
+- meson: xcb & xcb-randr are needed by the loader whenever x11 is built
+- .pick_status.json: Update to ad90bf0500e07b1bc35f87a406f284c0a7fa7049
+- ci/baremetal: fix logic for retrying boot when it failed
+- .pick_status.json: Update to 235ce3df9baad0d7f0895e58c647914da00d7351
+
+Faith Ekstrand (4):
+
+- nvk: Fix indirect cbuf binds pre-Turing
+- nvk: Don't advertise sparse residency on Maxwell A
+- nvk: Reject sparse images on Maxwell A and earlier
+- nak/spill_values: Don't assume no trivial phis
+
+Francisco Jerez (5):
+
+- intel/brw: Implement null push constant workaround.
+- intel/dev: Add devinfo flag for TBIMR push constant workaround.
+- anv/gfx12.5: Pass non-empty push constant data to PS stage for TBIMR workaround.
+- iris/gfx12.5: Pass non-empty push constant data to PS stage for TBIMR workaround.
+- iris: Pin pixel hashing table BO from iris_batch submission instead of from iris_state.
+
+GKraats (3):
+
+- i915g: fix generation of large mipmaps
+- i915g: fix mipmap-layout for npots
+- i915g: fix max_lod at mipmap-sampling
+
+Georg Lehmann (2):
+
+- aco/optimizer: update temp_rc when converting to uniform bool alu
+- spirv: ignore more function param decorations
+
+Iván Briano (1):
+
+- anv: get scratch surface from the correct pool
+
+Jesse Natalie (1):
+
+- microsoft/clc: Split struct copies before vars_to_ssa in pre-inline optimizations
+
+Jessica Clarke (3):
+
+- Revert "meson: Do not require libdrm for DRI2 on hurd"
+- Revert "meson: fix with_dri2 definition for GNU Hurd"
+- meson: egl: Build egl_dri2 driver even for plain DRI
+
+José Roberto de Souza (2):
+
+- isl: Fix Xe2 protected mask
+- anv: Propagate protected information to blorp_batch_isl_copy_usage()
+
+Karol Herbst (17):
+
+- rusticl/event: make set_status handle error status properly
+- rusticl/queue: do not overwrite event error states
+- rusticl/queue: properly check all dependencies for an error status
+- rusticl/event: properly implement CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST
+- rusticl/queue: properly implement in-order queue error checking
+- rusticl/event: return execution errors when doing a blocking enqueue
+- rusticl/mesa: handle failures with u_upload_data
+- rusticl/mesa: set take_ownership to true in set_constant_buffer_stream
+- nak: allow clippy::not_unsafe_ptr_arg_deref lints
+- clc: force linking of spirvs with mismatching pointer types in signatures
+- spirv: generate info for FunctionParameterAttribute
+- spirv: initial parsing of function parameter decorations
+- spirv: handle function parameters passed by value
+- rusticl: fix clippy lint having bounds defined in multiple places
+- rusticl/program: protect against 0 length in slice::from_raw_parts
+- rusticl/api: protect against 0 length in slice::from_raw_parts
+- rusticl/spirv: protect against 0 length in slice::from_raw_parts
+
+Lionel Landwerlin (4):
+
+- brw: fix uniform rebuild of sources
+- isl: account for protection in base usage checks
+- anv: properly flag image/imageviews for ISL protection
+- anv: propagate protected information for blorp operations
+
+M Henning (1):
+
+- nak: Add minimum bindgen requirement
+
+Matt Turner (4):
+
+- intel/clc: Free parsed_spirv_data
+- intel/clc: Free disk_cache
+- intel/brw: Use REG_CLASS_COUNT
+- intel/elk: Use REG_CLASS_COUNT
+
+Paulo Zanoni (1):
+
+- anv/trtt: fix the process of picking device->trtt.queue
+
+Samuel Pitoiset (1):
+
+- radv: do not expose ImageFloat32AtomicMinMax on GFX11_5
+
+Sushma Venkatesh Reddy (1):
+
+- intel/clflush: Utilize clflushopt in intel_invalidate_range
+
+Vlad Schiller (2):
+
+- pvr: Handle VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO
+- pvr: Handle VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO
+
+X512 (2):
+
+- egl/haiku: fix double free of BBitmap
+- egl/haiku: fix synchronization problems, add missing header
+
+Yiwei Zhang (1):
+
+- venus: fix a race condition between gem close and gem handle tracking

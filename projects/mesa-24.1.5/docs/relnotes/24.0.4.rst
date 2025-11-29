@@ -1,0 +1,220 @@
+Mesa 24.0.4 Release Notes / 2024-03-27
+======================================
+
+Mesa 24.0.4 is a bug fix release which fixes bugs found since the 24.0.3 release.
+
+Mesa 24.0.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.0.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    90febd30a098cbcd97ff62ecc3dcf5c93d76f7fa314de944cfce81951ba745f0  mesa-24.0.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- nvk: dota 2 crashes after ~5 seconds in game
+- VAAPI: Incorrect HEVC block size reported with radeonsi
+- radv: WWE 2K24 has very quirky DCC issues on RDNA2
+- RUSTICL creating a shared reference to mutable static is discouraged and will become a hard error
+- KiCAD 3D Viewer - rounded pads rendered incorrectly (texture mapping or stencil test error)
+- OpenSCAD rendering incorrect and inconsistent on radeonsi
+- [radv] Half-Life Alyx renders solid black for reflective surfaces
+- [RX 7900 XTX] Helldivers 2 cause GPU reset
+- radeon: Crash in radeon_bo_can_reclaim_slab
+- RV530 renders improperly at non 4:3 resolutions.
+- anv: new cooperative matrix failures with CTS 1.3.8.0
+- \`[gfxhub0] no-retry page fault` triggered by \`AMD_TEST=testdmaperf` on gfx90c APU
+
+
+Changes
+-------
+
+Boris Brezillon (1):
+
+- panvk: Disable global offset on varying and non-VS attribute descriptors
+
+Caio Oliveira (2):
+
+- intel/brw: Use helper to create accumulator register
+- intel/brw: Fix validation of accumulator register
+
+Charlie Turner (1):
+
+- {vulkan,radv,anv}/video: fix issue in H264 scaling lists derivation
+
+Corentin Noël (2):
+
+- st_pbo/compute: Use the correct structure type when allocating a specialized key
+- zink: Make sure to initialize all the fields of VkMemoryBarrier
+
+Dave Airlie (1):
+
+- radv/video: fix h265 decode with unaligned w/h
+
+David Rosca (1):
+
+- radv/video: Set maxActiveReferencePictures to 16 for H264/5
+
+Eric Engestrom (5):
+
+- docs: add sha256sum for 24.0.3
+- .pick_status.json: Update to 9b6d6c1d2d0c8a517e974abbf7b75a47a607f6ec
+- .pick_status.json: Update to eac703f69128d5aa6879c9becbad627ce08a7920
+- .pick_status.json: Update to 912e203a534be8b70b3ef8bf00294e9c962e385a
+- .pick_status.json: Update to c0875d21563257442fd91aab5740248b0fd96a5c
+
+Faith Ekstrand (2):
+
+- nir/builder: Correctly handle decl_reg or undef as the first instruction
+- nir/gather_types: Support unstructured control-flow
+
+Francisco Jerez (1):
+
+- intel/eu/xe2+: Translate brw_reg fields in REG_SIZE units to physical 512b GRF units during codegen.
+
+Friedrich Vock (2):
+
+- radv: Only enable SEs that the device reports
+- radeonsi: Only enable SEs that the device reports
+
+Gert Wollny (2):
+
+- nir-to-spirv: Cast SSBO input pointer when needed
+- nir_to_spirv: Allow LOD for external images
+
+Hyunjun Ko (1):
+
+- anv/video: fix scan order for scaling lists on H265 decoding.
+
+Iván Briano (2):
+
+- compiler/types: fix serialization of cooperative matrix
+- intel/cmat: fix stride calculation in cmat load/store
+
+Jordan Justen (1):
+
+- intel/compiler/fs: Restore SIMD32 restriction for ray_queries on Xe2
+
+Karol Herbst (2):
+
+- rusticl/kernel: assign sampler locations before DCEing variables
+- nouveau: call glsl_type_singleton_init_or_ref earlier
+
+Kenneth Graunke (1):
+
+- intel/brw: Fix opt_split_sends() to allow for FIXED_GRF send sources
+
+Konstantin Seurer (1):
+
+- zink: Handle aoa derefs of images
+
+Lionel Landwerlin (6):
+
+- intel/fs: fixup sampler header message
+- anv: return unsupported for FSR images on Gfx12.0
+- anv: ignore descriptor alignment for inline uniforms
+- blorp: handle a few allocation failure cases
+- anv: fix block pool allocation failure
+- anv: fix bitfield checks in gfx runtime flushing
+
+Lucas Stach (1):
+
+- etnaviv: fix fixpoint conversion of negative values
+
+Marek Olšák (8):
+
+- amd/registers: add correct gfx11.x enums for BINNING_MODE
+- radeonsi: disable binning correctly on gfx11.5
+- radeonsi/gfx11: fix programming of PA_SC_BINNER_CNTL_1.MAX_ALLOC_COUNT
+- radeonsi/gfx10.3: add a GPU hang workaround for legacy tess+GS
+- radeonsi/gfx11: add missing DCC_RD_POLICY setting
+- ac/llvm: fix SSBO bounds checking by using raw instead of struct opcodes
+- radeonsi: fix the DMA compute shader
+- r300: port scanout pitch alignment from the DDX to fix DRI3
+
+Mary Guillemard (1):
+
+- nvk: Always copy conditional rendering value before compare
+
+Matthew Waters (1):
+
+- teximage: allow glCopyTex{Sub}Image[123]D into R/RG textures with OpenGL ES 2.0
+
+Mike Blumenkrantz (13):
+
+- zink: destroy batch states after copy context
+- mesa: force rendertarget usage on required-renderable formats
+- zink: try getting sparse page size again without storage bit on fail
+- zink: set the sparse format usage flags directly based on queried props
+- zink: rename optimal_key in update_gfx_program_optimal()
+- zink: use the sanitized key in update_gfx_program_optimal()
+- zink: always sync and replace separable progs even with ZINK_DEBUG=noopt
+- zink: add even more strict checks for separate shader usage
+- glx: only print zink failure-to-load messages if explicitly requested
+- zink: iterate all the modes when doing separate shader fixups
+- zink: do io fixup on patch variables too
+- zink: defer present barrier to flush if a clear is pending
+- zink: clamp swapchain renderarea instead of asserting
+
+Patrick Lerda (1):
+
+- ac/llvm,radeonsi: fix memory leaks triggered by ac_nir_translate() errors
+
+Paulo Zanoni (1):
+
+- anv: don't leak device->vma_samplers
+
+Philipp Zabel (1):
+
+- rusticl: work around reference-to-mutable-static warnings
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- winsys/radeon: pass priv instead NULL to radeon_bo_can_reclaim
+- radeonsi: preserve alpha if needed in kill_ps_outputs_cb
+
+Rhys Perry (4):
+
+- aco: don't reuse misaligned attribute destination VGPRs in VS prologs
+- radv: use dual_color_blend_by_location with Half-Life Alyx
+- aco/cssa: reset equal_anc_out if merging fails
+- aco/gfx11: fix scratch ST mode assembly
+
+Ruijing Dong (3):
+
+- radeonsi/vcn: add enc surface alignment caps
+- frontends/va: add surface alignment attribute
+- radeonsi/vcn: update to use correct padding size.
+
+Samuel Pitoiset (7):
+
+- ac/nir: fix exporting NGG streamout outputs with implicit PrimId from VS/TES
+- radv: disable binning correctly on GFX11.5
+- radv: fix programming of PA_SC_BINNER_CNTL_1.MAX_ALLOC_COUNT on GFX11
+- radv: fix occlusion queries with MSAA and no attachments
+- radv: add radv_force_pstate_peak_gfx11_dgpu and enable it for Helldivers 2
+- radv: add a workaround for null IBO on GFX6
+- radv: invalidate L2 metadata for VK_ACCESS_2_MEMORY_READ_BIT
+
+Yusuf Khan (1):
+
+- nvk: fix valve segfault from setting a descriptor set from NULL

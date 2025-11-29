@@ -1,0 +1,32 @@
+include:
+  - local: 'src/gallium/drivers/nouveau/ci/gitlab-ci-inc.yml'
+
+# 6 Jetson TK1 boards at anholt's house.
+gk20a-gles:
+  extends:
+    - .gk20a-test
+  parallel: 4
+  timeout: 30m
+  variables:
+    HWCI_TEST_SCRIPT: "/install/deqp-runner.sh"
+    DEQP_SUITE: nouveau-gk20a
+    FARM : anholt
+    DEVICE_TYPE: anholt-jetson
+
+# Single Jetson Nano board at anholt's house.
+.gm20b-gles-full:
+  extends:
+    - .gm20b-test
+    - .nouveau-manual-rules
+  timeout: 2h
+  variables:
+    HWCI_TEST_SCRIPT: "/install/deqp-runner.sh"
+    DEQP_SUITE: nouveau-gm20b
+    TEST_PHASE_TIMEOUT: 120
+
+.gm20b-gles:
+  extends:
+    - .gm20b-gles-full
+  timeout: 30m
+  variables:
+    DEQP_FRACTION: 10

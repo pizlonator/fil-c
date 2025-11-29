@@ -1,0 +1,187 @@
+Mesa 24.1.1 Release Notes / 2024-06-05
+======================================
+
+Mesa 24.1.1 is a bug fix release which fixes bugs found since the 24.1.0 release.
+
+Mesa 24.1.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.1.1 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    0038826c6f7e88d90b4ce6f719192fa58ca7dedf4edcaa1174cf7bd920ef89ea  mesa-24.1.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [anv] failures when upgrading vulkancts 1.3.6 -> 1.3.7 on intel mesa ci
+- RustiCL: deadlock when calling clGetProfilingInfo() on callbacks
+- zink: nir validation failures in Sparse code
+- nir: nir_opt_varyings uses more stack than musl libc has
+- dEQP-VK.pipeline.pipeline_library.shader_module_identifier.pipeline_from_id.graphics regression
+
+
+Changes
+-------
+
+Amit Pundir (1):
+
+- android: Fix zink build failure
+
+Dave Airlie (1):
+
+- Revert "zink: use a slab allocator for zink_kopper_present_info"
+
+David Heidelberg (1):
+
+- ci/nouveau: move disabled jobs back from include into main gitlab-ci.yml
+
+David Rosca (1):
+
+- frontends/va: Fix leak when destroying VAEncCodedBufferType
+
+Eric Engestrom (8):
+
+- docs: add sha256sum for 24.1.0
+- .pick_status.json: Mark 410ca6a3e99c5c1c9c91f0f79bf43a35103cbd98 as denominated
+- freedreno/a6xx: fix kernel -> compute handling
+- panfrost: mark tests as fixed
+- panfrost/ci: add missing genxml trigger path
+- .pick_status.json: Update to f32a258503b40e8e19a1498998b0d4f8b8abb488
+- .pick_status.json: Update to 0311ac50adb6016efcb455ea52b11f422d6b797e
+- .pick_status.json: Update to 6889a0a5dd970bbfcd407085c8f12356a9dfe334
+
+Eric R. Smith (4):
+
+- get_color_read_type: make sure format/type combo is legal for gles
+- glsl: test both inputs when sorting varyings for xfb
+- panfrost: fix some omissions in valhall flow control
+- panfrost: change default rounding mode for samplers
+
+Faith Ekstrand (2):
+
+- nir: Handle cmat types in lower_variable_initializers
+- spirv: Handle constant cooperative matrices in OpCompositeExtract
+
+Friedrich Vock (2):
+
+- radv: Use max_se instead of num_se where appropriate
+- radeonsi: Use max_se instead of num_se where appropriate
+
+Iago Toral Quiroga (4):
+
+- broadcom/compiler: make add_node return the node index
+- broadcom/compiler: don't assign payload registers to spilling setup temps
+- broadcom/compiler: apply payload conflict to spill setup before RA
+- v3dv: fix incorrect index buffer size
+
+Ian Romanick (1):
+
+- nir/search: Fix is_16_bits for vectors
+
+Iván Briano (1):
+
+- anv: check cmd_buffer is on a transfer queue more properly
+
+Jose Maria Casanova Crespo (8):
+
+- v3d: fix CLE MMU errors avoiding using last bytes of CL BOs.
+- v3dv: fix CLE MMU errors avoiding using last bytes of CL BOs.
+- v3d: Increase alignment to 16k on CL BO on RPi5
+- v3dv: Increase alignment to 16k on CL BO on RPi5
+- v3dv: V3D_CL_MAX_INSTR_SIZE bytes in last CL instruction not needed
+- v3dv: Emit stencil draw clear if needed for GFXH-1461
+- v3dv: really fix CLE MMU errors on 7.1HW Rpi5
+- v3d: really fix CLE MMU errors on 7.1HW Rpi5
+
+Juan A. Suarez Romero (1):
+
+- ci: define SNMP base interface on runner
+
+Karol Herbst (7):
+
+- nouveau: import nvif/ioctl.h file from libdrm_nouveau
+- gallium/vl: stub vl_video_buffer_create_as_resource
+- gallium/vl: remove stubs which are defined in mesa_util
+- meson: centralize galliumvl_stub handling
+- rusticl: link against libgalliumvl_stub
+- rusticl/event: fix deadlock when calling clGetEventProfilingInfo inside callbacks
+- iris: fix PIPE_RESOURCE_PARAM_STRIDE for buffers
+
+Kevin Chuang (1):
+
+- anv: Properly fetch partial results in vkGetQueryPoolResults
+
+Konstantin Seurer (1):
+
+- llvmpipe: Use a second LLVMContext for compiling sample functions
+
+Lionel Landwerlin (8):
+
+- .pick_status.json: Update to ce43d7eb7f97bdde61b184a99940c4b03c2f0929
+- anv: fix shader identifier handling
+- intel/brw: ensure find_live_channel don't access arch register without sync
+- anv: fix utrace compute walker timestamp captures
+- anv: fix timestamp copies from secondary buffers
+- intel: fix HW generated local-id with indirect compute walker
+- brw: use a single virtual opcode to read ARF registers
+- anv: fix Gfx9 fast clears on srgb formats
+
+Mike Blumenkrantz (1):
+
+- zink: add atomic image ops to the ms deleting pass
+
+Natanael Copa (1):
+
+- nir/opt_varyings: reduce stack usage
+
+Renato Pereyra (1):
+
+- anv: Attempt to compile all pipelines even after errors
+
+Rhys Perry (1):
+
+- radv: malloc graphics pipeline stages
+
+Samuel Pitoiset (3):
+
+- radv: fix setting a custom pitch for CB on GFX10_3+
+- radv: fix flushing DB meta cache on GFX11.5
+- radv: fix VRS subpass attachments with mipmaps
+
+Tapani Pälli (1):
+
+- anv/android: enable emulated astc for applications
+
+Timur Kristóf (1):
+
+- radv: Fix TCS -> TES I/O linking typo of VARYING_SLOT vs. BIT.
+
+Valentine Burley (1):
+
+- wsi: Guard DRM-dependent function implementations with HAVE_LIBDRM
+
+Yusuf Khan (1):
+
+- zink/query: begin time elapsed queries even if we arent in a rp
+
+bbhtt (1):
+
+- nvk: Clean up unused header from libdrm_nouveau

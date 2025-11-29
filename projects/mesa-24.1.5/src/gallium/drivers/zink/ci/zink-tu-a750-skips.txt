@@ -1,0 +1,23 @@
+GTF-GL46.gtf32.GL3Tests.packed_pixels.packed_pixels_pixelstore
+KHR-GL46.texture_swizzle.smoke
+KHR-Single-GL46.arrays_of_arrays_gl.SubroutineFunctionCalls2
+
+# crashes
+KHR-Single-GL46.enhanced_layouts.xfb_capture_inactive_output_component
+
+spec@.*dvec.*
+spec@.*dmat.*
+spec@.*int64.*
+spec@.*64bit.*
+spec@arb_texture_buffer_object@texture-buffer-size-clamp.*
+
+# hangs
+spec@arb_texture_barrier@arb_texture_barrier-blending-in-shader.*
+spec@glsl-1.50@execution@geometry@primitive-id-restart gl_line_strip_adjacency ffs
+
+# timeout
+glx@glx-visuals-stencil
+spec@!opengl 1.0@gl-1.0-drawbuffer-modes
+spec@arb_texture_cube_map@cubemap npot
+spec@arb_texture_cube_map_array@arb_texture_cube_map_array-sampler-cube-array-shadow
+spec@egl_nok_texture_from_pixmap@basic

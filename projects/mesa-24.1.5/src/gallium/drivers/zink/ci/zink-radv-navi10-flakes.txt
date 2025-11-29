@@ -1,0 +1,30 @@
+KHR-GL46.packed_pixels.varied_rectangle.rgb16
+dEQP-GLES2.functional.texture.filtering.cube.nearest_linear_clamp_rgba4444_pot
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.srgb8_alpha8_astc_10x5_khr_rgba32i.texture2d_array_to_texture2d_array
+dEQP-GLES31.functional.texture.filtering.cube_array.combinations.nearest_nearest_repeat_repeat
+spec@arb_enhanced_layouts@execution@component-layout@sso-vs-gs-fs-array-interleave
+spec@arb_fragment_shader_interlock@arb_fragment_shader_interlock-image-load-store
+spec@arb_texture_cube_map@copyteximage cube samples=6
+spec@arb_texture_cube_map@copyteximage cube samples=8
+spec@arb_texture_rectangle@copyteximage rect samples=6
+spec@arb_texture_rectangle@copyteximage rect samples=8
+spec@arb_timer_query@timestamp-get
+spec@ext_texture_array@copyteximage 1d_array samples=6
+spec@ext_texture_array@copyteximage 1d_array samples=8
+spec@ext_texture_array@copyteximage 2d_array samples=6
+spec@ext_texture_array@copyteximage 2d_array samples=8
+spec@ext_transform_feedback@max-varyings
+spec@ext_transform_feedback@max-varyings@max-varying-arrays-of-arrays
+spec@glsl-1.50@execution@geometry@point-size-out
+spec@!opengl 1.0@rasterpos
+spec@!opengl 1.0@rasterpos@glsl_vs_gs_linked
+spec@!opengl 1.0@rasterpos@glsl_vs_tes_linke
+
+# Marked as flake because it passes with ESO but crashes with pipelines.
+spec@arb_tessellation_shader@arb_tessellation_shader-tes-gs-max-output -small -scan 1 50
+
+# Nightly run expectations update
+dEQP-GLES31.functional.copy_image.mixed.viewclass_64_bits_mixed.signed_r11_eac_rgba16ui.cubemap_to_texture3d
+KHR-GL46.packed_pixels.varied_rectangle.rgb10_a2ui
+spec@arb_tessellation_shader@execution@variable-indexing@tcs-output-array-vec3-index-wr-before-barrier
+

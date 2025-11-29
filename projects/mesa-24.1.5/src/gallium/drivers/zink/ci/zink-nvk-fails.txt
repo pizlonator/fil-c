@@ -1,0 +1,902 @@
+# nvk sparse needs more testing
+KHR-GL46.sparse_texture2_tests.SparseTexture2Commitment,Fail
+KHR-GL46.sparse_texture2_tests.SparseTexture2Lookup,Fail
+KHR-GL46.sparse_texture2_tests.UncommittedRegionsAccess,Fail
+KHR-GL46.sparse_texture_clamp_tests.SparseTextureClampLookupColor,Fail
+KHR-GL46.sparse_texture_clamp_tests.SparseTextureClampLookupResidency,Fail
+
+# regressions ?
+spec@arb_bindless_texture@execution@images@ubo-named-block,Fail
+spec@arb_get_texture_sub_image@arb_get_texture_sub_image-get,Fail
+spec@egl_ext_device_query@conformance,Fail
+
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_rbo_4,Fail
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_rbo_8,Fail
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_texture_4,Fail
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_texture_8,Fail
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bits_unique_per_two_samples.multisample_texture_4,Fail
+dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bits_unique_per_two_samples.multisample_texture_8,Fail
+
+glx@glx-multi-window-single-context,Fail
+glx@glx-visuals-depth,Crash
+glx@glx-visuals-stencil,Crash
+glx@glx_arb_create_context_es2_profile@invalid opengl es version,Fail
+glx@glx_arb_create_context_no_error@no error,Fail
+glx@glx_arb_create_context_robustness@invalid reset notification strategy,Fail
+glx@glx_ext_import_context@free context,Fail
+glx@glx_ext_import_context@get context id,Fail
+glx@glx_ext_import_context@get current display,Fail
+glx@glx_ext_import_context@import context- multi process,Fail
+glx@glx_ext_import_context@import context- single process,Fail
+glx@glx_ext_import_context@imported context has same context id,Fail
+glx@glx_ext_import_context@make current- multi process,Fail
+glx@glx_ext_import_context@make current- single process,Fail
+glx@glx_ext_import_context@query context info,Fail
+glx@glx_ext_no_config_context@no fbconfig,Fail
+spec@!opengl 1.0@gl-1.0-no-op-paths,Fail
+spec@!opengl 1.0@rasterpos,Fail
+spec@!opengl 1.0@rasterpos@glsl_vs_gs_linked,Fail
+spec@!opengl 1.0@rasterpos@glsl_vs_tes_linked,Fail
+spec@!opengl 1.1@line-smooth-coverage,Fail
+spec@!opengl 1.1@line-smooth-stipple,Fail
+spec@!opengl 1.1@max-texture-size,Crash
+spec@!opengl 1.1@polygon-mode,Fail
+spec@!opengl 1.1@polygon-mode-facing,Fail
+spec@!opengl 1.1@polygon-mode-offset,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 0: Expected blue pixel in center,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 1: Expected blue pixel in center,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 2: Expected blue pixel in center,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 2: Expected white pixel on right edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 2: Expected white pixel on top edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 5: Expected blue pixel in center,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 6: Expected blue pixel in center,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 6: Expected white pixel on right edge,Fail
+spec@!opengl 1.1@polygon-mode-offset@config 6: Expected white pixel on top edge,Fail
+spec@!opengl 1.2@copyteximage 3d,Fail
+spec@!opengl 2.1@pbo,Fail
+spec@!opengl 2.1@pbo@test_polygon_stip,Fail
+spec@!opengl 2.1@polygon-stipple-fs,Fail
+spec@!opengl 3.0@clearbuffer-depth-cs-probe,Fail
+spec@!opengl es 3.0@gles-3.0-transform-feedback-uniform-buffer-object,Fail
+spec@arb_arrays_of_arrays@execution@image_store@basic-imagestore-mixed-const-non-const-uniform-index,Fail
+spec@arb_arrays_of_arrays@execution@image_store@basic-imagestore-mixed-const-non-const-uniform-index2,Fail
+spec@arb_arrays_of_arrays@execution@image_store@basic-imagestore-non-const-uniform-index,Fail
+spec@arb_arrays_of_arrays@execution@ubo@fs-const,Fail
+spec@arb_arrays_of_arrays@execution@ubo@fs-const-explicit-binding,Fail
+spec@arb_arrays_of_arrays@execution@ubo@fs-mixed-const-nonconst,Fail
+spec@arb_arrays_of_arrays@execution@ubo@fs-nonconst,Fail
+spec@arb_bindless_texture@compiler@samplers@arith-bound-sampler-texture2d.frag,Crash
+spec@arb_bindless_texture@execution@samplers@ubo-binding-samplers-conflict,Fail
+spec@arb_buffer_storage@bufferstorage-persistent draw,Fail
+spec@arb_buffer_storage@bufferstorage-persistent read,Fail
+spec@arb_buffer_storage@bufferstorage-persistent_gles3 draw,Fail
+spec@arb_buffer_storage@bufferstorage-persistent_gles3 read,Fail
+spec@arb_fragment_layer_viewport@layer-gs-writes-out-of-range,Fail
+spec@arb_fragment_layer_viewport@viewport-gs-writes-out-of-range,Fail
+spec@arb_framebuffer_object@fbo-blit-scaled-linear,Fail
+spec@arb_gl_spirv@execution@ubo@aoa-2,Fail
+spec@arb_gl_spirv@execution@ubo@array-complex,Fail
+spec@arb_gl_spirv@execution@ubo@array-different-array-stride-ubo,Fail
+spec@arb_gl_spirv@execution@ubo@array-inside-ubo,Fail
+spec@arb_gl_spirv@execution@ubo@array-inside-ubo-copy,Fail
+spec@arb_gl_spirv@execution@ubo@array-of-arrays-inside-ubo,Fail
+spec@arb_gl_spirv@execution@ubo@matrix@complex,Fail
+spec@arb_gl_spirv@execution@ubo@simple,Fail
+spec@arb_gl_spirv@execution@ubo@two-stages,Fail
+spec@arb_gl_spirv@linker@uniform@multisampler,Crash
+spec@arb_gl_spirv@linker@uniform@multisampler-array,Crash
+spec@arb_gpu_shader5@execution@ubo_array_indexing@fs-array-nonconst,Fail
+spec@arb_gpu_shader5@execution@ubo_array_indexing@gs-array-nonconst,Fail
+spec@arb_gpu_shader5@execution@ubo_array_indexing@vs-array-nonconst,Fail
+spec@arb_gpu_shader_fp64@execution@arb_gpu_shader_fp64-tf-separate,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-array-copy,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-double-array-const-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-double-array-variable-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-doubles,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-doubles-float-mixed,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-nested-struct,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-ubo-direct-1,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-ubo-load.indirect.1,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-ubo-load.indirect.2,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@fs-ubo-load.indirect.3,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@gs-array-copy,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@gs-double-array-const-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@gs-double-array-variable-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@gs-doubles-float-mixed,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@gs-nested-struct,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-array-copy,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-double-array-const-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-double-array-variable-index,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-doubles,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-doubles-float-mixed,Fail
+spec@arb_gpu_shader_fp64@uniform_buffers@vs-nested-struct,Fail
+spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex,Fail
+spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex@'vs_input2[1][0]' on GL_PROGRAM_INPUT,Fail
+spec@arb_sample_locations@test,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 0- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 1- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 2- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 1- X: 3- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 0- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 1- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 2- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 2- X: 3- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 0- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 1- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 2- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 4- X: 3- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 0- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 1- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 2- Y: 6- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 0- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 0- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 1- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 1- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 2- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 2- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 3- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 3- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 4- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 4- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 5- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 5- Grid: true,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 6- Grid: false,Fail
+spec@arb_sample_locations@test@MSAA: 8- X: 3- Y: 6- Grid: true,Fail
+spec@arb_sample_shading@arb_sample_shading-builtin-gl-sample-mask-mrt-alpha-to-coverage,Fail
+spec@arb_sample_shading@samplemask 2,Fail
+spec@arb_sample_shading@samplemask 2 all,Fail
+spec@arb_sample_shading@samplemask 2 all@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2 all@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 2 all@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2 all@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 2 all@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2 all@noms partition,Fail
+spec@arb_sample_shading@samplemask 2 all@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 2@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 2@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 2@noms partition,Fail
+spec@arb_sample_shading@samplemask 2@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4,Fail
+spec@arb_sample_shading@samplemask 4 all,Fail
+spec@arb_sample_shading@samplemask 4 all@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4 all@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 4 all@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4 all@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 4 all@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4 all@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 4 all@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4 all@noms partition,Fail
+spec@arb_sample_shading@samplemask 4 all@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 4@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 4@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 4@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 4@noms partition,Fail
+spec@arb_sample_shading@samplemask 4@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6,Fail
+spec@arb_sample_shading@samplemask 6 all,Fail
+spec@arb_sample_shading@samplemask 6 all@0.125000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6 all@0.125000 partition,Fail
+spec@arb_sample_shading@samplemask 6 all@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6 all@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 6 all@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6 all@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 6 all@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6 all@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 6 all@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6 all@noms partition,Fail
+spec@arb_sample_shading@samplemask 6 all@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@0.125000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@0.125000 partition,Fail
+spec@arb_sample_shading@samplemask 6@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 6@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 6@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 6@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 6@noms partition,Fail
+spec@arb_sample_shading@samplemask 6@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8,Fail
+spec@arb_sample_shading@samplemask 8 all,Fail
+spec@arb_sample_shading@samplemask 8 all@0.125000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8 all@0.125000 partition,Fail
+spec@arb_sample_shading@samplemask 8 all@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8 all@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 8 all@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8 all@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 8 all@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8 all@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 8 all@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8 all@noms partition,Fail
+spec@arb_sample_shading@samplemask 8 all@sample mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@0.125000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@0.125000 partition,Fail
+spec@arb_sample_shading@samplemask 8@0.250000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@0.250000 partition,Fail
+spec@arb_sample_shading@samplemask 8@0.500000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@0.500000 partition,Fail
+spec@arb_sample_shading@samplemask 8@1.000000 mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@1.000000 partition,Fail
+spec@arb_sample_shading@samplemask 8@noms mask_in_one,Fail
+spec@arb_sample_shading@samplemask 8@noms partition,Fail
+spec@arb_sample_shading@samplemask 8@sample mask_in_one,Fail
+spec@arb_shader_image_load_store@atomicity,Crash
+spec@arb_shader_image_load_store@max-size,Fail
+spec@arb_shader_image_load_store@max-size@image3D max size test/8x8x16384x1,Fail
+spec@arb_shader_image_load_store@semantics,Crash
+spec@arb_shader_image_size@builtin,Crash
+spec@arb_shader_image_size@builtin@rgba32f/Compute/image3D max size test/8x8x16384x1,Fail
+spec@arb_shader_image_size@builtin@rgba32f/Fragment/image3D max size test/8x8x16384x1,Fail
+spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgrad,Fail
+spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgradcube,Fail
+spec@arb_shading_language_packing@execution@built-in-functions@fs-packhalf2x16,Fail
+spec@arb_shading_language_packing@execution@built-in-functions@vs-packhalf2x16,Fail
+spec@arb_sync@clientwaitsync-timeout,Fail
+spec@arb_sync@clientwaitsync-timeout@read,Fail
+spec@arb_tessellation_shader@execution@variable-indexing@tes-both-input-array-float-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-both-input-array-vec2-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-both-input-array-vec3-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-both-input-array-vec4-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-patch-input-array-float-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-patch-input-array-vec2-index-invalid-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-patch-input-array-vec2-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-patch-input-array-vec3-index-rd,Crash
+spec@arb_tessellation_shader@execution@variable-indexing@tes-patch-input-array-vec4-index-rd,Crash
+spec@arb_texture_buffer_object@formats (fs- arb),Crash
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA8UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA8UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA16,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_ALPHA32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE16,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE16_ALPHA16,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE8,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE8UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE8_ALPHA8,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (fs- arb)@GL_LUMINANCE_ALPHA8UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb),Crash
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA16,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_ALPHA32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE16,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE16_ALPHA16,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE8,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE8UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE8_ALPHA8,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA16F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA16I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA16UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA32F_ARB,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA32I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA32UI_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA8I_EXT,Fail
+spec@arb_texture_buffer_object@formats (vs- arb)@GL_LUMINANCE_ALPHA8UI_EXT,Fail
+spec@arb_texture_cube_map_array@texsubimage cube_map_array,Fail
+spec@arb_texture_float@multisample-formats 2 gl_arb_texture_float,Fail
+spec@arb_texture_float@multisample-formats 4 gl_arb_texture_float,Fail
+spec@arb_texture_float@multisample-formats 6 gl_arb_texture_float,Fail
+spec@arb_texture_float@multisample-formats 8 gl_arb_texture_float,Fail
+spec@arb_texture_rg@multisample-formats 2 gl_arb_texture_rg,Fail
+spec@arb_texture_rg@multisample-formats 2 gl_arb_texture_rg-float,Fail
+spec@arb_texture_rg@multisample-formats 4 gl_arb_texture_rg,Fail
+spec@arb_texture_rg@multisample-formats 4 gl_arb_texture_rg-float,Fail
+spec@arb_texture_rg@multisample-formats 6 gl_arb_texture_rg,Fail
+spec@arb_texture_rg@multisample-formats 6 gl_arb_texture_rg-float,Fail
+spec@arb_texture_rg@multisample-formats 8 gl_arb_texture_rg,Fail
+spec@arb_texture_rg@multisample-formats 8 gl_arb_texture_rg-float,Fail
+spec@arb_timer_query@query gl_timestamp,Fail
+spec@arb_uniform_buffer_object@2-buffers-bug,Fail
+spec@arb_uniform_buffer_object@execution@fs-array-of-structs-std140-indirect,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-#column_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-array-array-struct-array,Fail
+spec@arb_uniform_buffer_object@execution@shared-array-struct-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-array-struct-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-column_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat2x2-and-column_major-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat2x3-and-column_major-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat2x4-and-column_major-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat3x2-and-column_major-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat3x3-and-column_major-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat3x4-and-column_major-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat4x2-and-column_major-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat4x3-and-column_major-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat4x4-and-column_major-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat2x2-and-column_major-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat2x3-and-column_major-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat2x4-and-column_major-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat3x2-and-column_major-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat3x3-and-column_major-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat3x4-and-column_major-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat4x2-and-column_major-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat4x3-and-column_major-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-mat4x4-and-column_major-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@shared-row_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-array-array-array,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-array-array-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-array-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-struct,Fail
+spec@arb_uniform_buffer_object@execution@shared-struct-struct-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-#column_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-array-array-struct-array,Fail
+spec@arb_uniform_buffer_object@execution@std140-array-struct-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-array-struct-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-column_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat2x2-and-column_major-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat2x3-and-column_major-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat2x4-and-column_major-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat3x2-and-column_major-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat3x3-and-column_major-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat3x4-and-column_major-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat4x2-and-column_major-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat4x3-and-column_major-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-mat4x4-and-column_major-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-array-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat2x2-and-column_major-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat2x3-and-column_major-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat2x4-and-column_major-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat3x2-and-column_major-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat3x3-and-column_major-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat3x4-and-column_major-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat4x2-and-column_major-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat4x3-and-column_major-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-mat4x4-and-column_major-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-array-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat2x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat2x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat2x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat3x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat3x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat3x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat4x2,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat4x3,Fail
+spec@arb_uniform_buffer_object@execution@std140-row_major-struct-mat4x4,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-array-array-array,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-array-array-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-array-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-array-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-struct,Fail
+spec@arb_uniform_buffer_object@execution@std140-struct-struct-struct,Fail
+spec@egl 1.4@egl-copy-buffers,Crash
+spec@egl_chromium_sync_control@conformance,Fail
+spec@egl_chromium_sync_control@conformance@eglGetSyncValuesCHROMIUM_msc_and_sbc_test,Fail
+spec@egl_chromium_sync_control@conformance@eglGetSyncValuesCHROMIUM_ust_test,Fail
+spec@egl_khr_gl_colorspace@linear,Crash
+spec@egl_khr_gl_colorspace@srgb,Crash
+spec@egl_khr_gl_image@egl_khr_gl_renderbuffer_image-clear-shared-image gl_depth_component24,Fail
+spec@egl_nok_texture_from_pixmap@basic,Crash
+spec@ext_direct_state_access@named-buffers 30,Fail
+spec@ext_direct_state_access@named-buffers 30@FlushMappedNamedBufferRangeEXT,Fail
+spec@ext_external_objects@vk-image-overwrite,Crash
+spec@ext_framebuffer_blit@fbo-blit-check-limits,Fail
+spec@ext_framebuffer_multisample@accuracy 2 srgb small depthstencil,Fail
+spec@ext_framebuffer_multisample@accuracy 2 srgb small depthstencil linear,Fail
+spec@ext_framebuffer_multisample@accuracy 4 srgb small depthstencil,Fail
+spec@ext_framebuffer_multisample@accuracy 4 srgb small depthstencil linear,Fail
+spec@ext_framebuffer_multisample@accuracy 6 srgb small depthstencil,Fail
+spec@ext_framebuffer_multisample@accuracy 6 srgb small depthstencil linear,Fail
+spec@ext_framebuffer_multisample@accuracy 8 srgb small depthstencil,Fail
+spec@ext_framebuffer_multisample@accuracy 8 srgb small depthstencil linear,Fail
+spec@ext_framebuffer_multisample@accuracy all_samples srgb small depthstencil,Fail
+spec@ext_framebuffer_multisample@accuracy all_samples srgb small depthstencil linear,Fail
+spec@ext_framebuffer_multisample@blit-mismatched-formats,Fail
+spec@ext_framebuffer_multisample@enable-flag,Fail
+spec@ext_framebuffer_multisample@formats 2,Fail
+spec@ext_framebuffer_multisample@formats 4,Fail
+spec@ext_framebuffer_multisample@formats 6,Fail
+spec@ext_framebuffer_multisample@formats 8,Fail
+spec@ext_framebuffer_multisample@formats all_samples,Fail
+spec@ext_framebuffer_multisample@interpolation 2 centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 2 centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 2 non-centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 2 non-centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 4 centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 4 centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 4 non-centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 4 non-centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 6 centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 6 centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 6 non-centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 6 non-centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 8 centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 8 centroid-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 8 non-centroid-deriv-disabled,Fail
+spec@ext_framebuffer_multisample@interpolation 8 non-centroid-disabled,Fail
+spec@ext_packed_float@query-rgba-signed-components,Fail
+spec@ext_texture_array@texsubimage array,Fail
+spec@ext_texture_env_combine@texture-env-combine,Timeout
+spec@ext_texture_snorm@multisample-formats 2 gl_ext_texture_snorm,Fail
+spec@ext_texture_snorm@multisample-formats 4 gl_ext_texture_snorm,Fail
+spec@ext_texture_snorm@multisample-formats 6 gl_ext_texture_snorm,Fail
+spec@ext_texture_snorm@multisample-formats 8 gl_ext_texture_snorm,Fail
+spec@ext_texture_srgb@multisample-formats 2 gl_ext_texture_srgb,Fail
+spec@ext_texture_srgb@multisample-formats 4 gl_ext_texture_srgb,Fail
+spec@ext_texture_srgb@multisample-formats 6 gl_ext_texture_srgb,Fail
+spec@ext_texture_srgb@multisample-formats 8 gl_ext_texture_srgb,Fail
+spec@ext_timer_query@time-elapsed,Fail
+spec@ext_transform_feedback@immediate-reuse-uniform-buffer,Fail
+spec@ext_transform_feedback@tessellation quad_strip wireframe,Fail
+spec@ext_transform_feedback@tessellation quads wireframe,Fail
+spec@glsl-1.10@execution@glsl-fs-inline-explosion,Crash
+spec@glsl-1.10@execution@glsl-vs-inline-explosion,Crash
+spec@glsl-1.10@execution@loops@glsl-fs-unroll-explosion,Crash
+spec@glsl-1.10@execution@loops@glsl-vs-unroll-explosion,Crash
+spec@glsl-1.10@execution@samplers@glsl-fs-lots-of-tex,Fail
+spec@glsl-1.20@compiler@invalid-vec4-array-to-vec3-array-conversion.vert,Fail
+spec@glsl-1.40@uniform_buffer@fs-array-copy,Fail
+spec@glsl-1.40@uniform_buffer@fs-bools,Fail
+spec@glsl-1.40@uniform_buffer@fs-float-array-const-index,Fail
+spec@glsl-1.40@uniform_buffer@fs-float-array-variable-index,Fail
+spec@glsl-1.40@uniform_buffer@fs-floats,Fail
+spec@glsl-1.40@uniform_buffer@fs-struct,Fail
+spec@glsl-1.40@uniform_buffer@fs-struct-copy,Fail
+spec@glsl-1.40@uniform_buffer@fs-struct-copy-complicated,Fail
+spec@glsl-1.40@uniform_buffer@fs-struct-pad,Fail
+spec@glsl-1.40@uniform_buffer@fs-two-members,Fail
+spec@glsl-1.40@uniform_buffer@vs-array-copy,Fail
+spec@glsl-1.40@uniform_buffer@vs-bools,Fail
+spec@glsl-1.40@uniform_buffer@vs-float-array-const-index,Fail
+spec@glsl-1.40@uniform_buffer@vs-float-array-variable-index,Fail
+spec@glsl-1.40@uniform_buffer@vs-floats,Fail
+spec@glsl-1.40@uniform_buffer@vs-struct,Fail
+spec@glsl-1.40@uniform_buffer@vs-struct-copy,Fail
+spec@glsl-1.40@uniform_buffer@vs-struct-copy-complicated,Fail
+spec@glsl-1.40@uniform_buffer@vs-struct-pad,Fail
+spec@glsl-1.40@uniform_buffer@vs-two-members,Fail
+spec@glsl-1.50@execution@primitive-id-no-gs-quad-strip,Fail
+spec@glsl-1.50@execution@primitive-id-no-gs-quads,Fail
+spec@glsl-1.50@uniform_buffer@gs-array-copy,Fail
+spec@glsl-1.50@uniform_buffer@gs-bools,Fail
+spec@glsl-1.50@uniform_buffer@gs-float-array-const-index,Fail
+spec@glsl-1.50@uniform_buffer@gs-float-array-variable-index,Fail
+spec@glsl-1.50@uniform_buffer@gs-floats,Fail
+spec@glsl-1.50@uniform_buffer@gs-struct,Fail
+spec@glsl-1.50@uniform_buffer@gs-struct-copy,Fail
+spec@glsl-1.50@uniform_buffer@gs-struct-copy-complicated,Fail
+spec@glsl-1.50@uniform_buffer@gs-struct-pad,Fail
+spec@glsl-1.50@uniform_buffer@gs-two-members,Fail
+spec@glsl-es-3.00@execution@built-in-functions@fs-packhalf2x16,Fail
+spec@glsl-es-3.00@execution@built-in-functions@vs-packhalf2x16,Fail
+spec@khr_texture_compression_astc@miptree-gl srgb-fp,Fail
+spec@khr_texture_compression_astc@miptree-gl srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@miptree-gles srgb-fp,Fail
+spec@khr_texture_compression_astc@miptree-gles srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gl srgb-fp,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gl srgb-fp@sRGB decode full precision,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gles srgb-fp,Fail
+spec@khr_texture_compression_astc@sliced-3d-miptree-gles srgb-fp@sRGB decode full precision,Fail
+spec@oes_shader_io_blocks@compiler@layout-location-aliasing.vert,Fail
+spec@oes_viewport_array@viewport-gs-writes-out-of-range,Fail
