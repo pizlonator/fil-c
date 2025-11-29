@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAdjustment" id="size_adjustment">
+    <property name="lower">7</property>
+    <property name="upper">100</property>
+    <property name="value">14</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="basic_value_changed" object="size_entry" swapped="false"/>
+  </object>
+  <object class="GtkAdjustment" id="letterspacing_adjustment">
+    <property name="lower">-1024</property>
+    <property name="upper">8192</property>
+    <property name="value">0</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">512</property>
+    <signal name="value-changed" handler="basic_value_changed" object="letterspacing_entry" swapped="false"/>
+  </object>
+  <object class="GtkAdjustment" id="line_height_adjustment">
+    <property name="lower">0.75</property>
+    <property name="upper">2.5</property>
+    <property name="value">1.0</property>
+    <property name="step_increment">0.1</property>
+    <property name="page_increment">1</property>
+    <signal name="value-changed" handler="basic_value_changed" object="line_height_entry" swapped="false"/>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="default-width">600</property>
+    <property name="default-height">500</property>
+    <property name="title">Font Explorer</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child>
+          <object class="GtkButton" id="reset">
+            <property name="receives-default">1</property>
+            <property name="tooltip-text">Reset</property>
+            <property name="icon-name">view-refresh-symbolic</property>
+            <signal name="clicked" handler="font_features_reset_basic" swapped="no"/>
+            <signal name="clicked" handler="font_features_reset_features" swapped="no"/>
+            <signal name="clicked" handler="font_features_reset_variations" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="GtkViewport">
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="margin-bottom">10</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkFontDialogButton" id="font">
+                        <accessibility>
+                          <property name="label">Font</property>
+                        </accessibility>
+                        <property name="dialog">
+                          <object class="GtkFontDialog">
+                          </object>
+                        </property>
+                        <property name="receives-default">1</property>
+                        <property name="level">face</property>
+                        <signal name="notify::font-desc" handler="font_features_font_changed" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="column-spacing">10</property>
+                        <property name="row-spacing">10</property>
+                        <child>
+                          <object class="GtkLabel" id="size_label">
+                            <property name="label">Size</property>
+                            <property name="xalign">0</property>
+                            <property name="valign">baseline</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScale" id="size_scale">
+                            <property name="hexpand">1</property>
+                            <property name="width-request">100</property>
+                            <property name="valign">baseline</property>
+                            <property name="adjustment">size_adjustment</property>
+                            <accessibility>
+                              <relation name="labelled-by">size_label</relation>
+                            </accessibility>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="size_entry">
+                            <property name="width-chars">4</property>
+                            <property name="max-width-chars">4</property>
+                            <property name="hexpand">0</property>
+                            <property name="valign">baseline</property>
+                            <accessibility>
+                              <relation name="labelled-by">size_label</relation>
+                            </accessibility>
+                            <signal name="activate" handler="basic_entry_activated"
+                                    object="size_adjustment" swapped="false"/>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="letterspacing_label">
+                            <property name="label">Letterspacing</property>
+                            <property name="xalign">0</property>
+                            <property name="valign">baseline</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScale">
+                            <property name="hexpand">1</property>
+                            <property name="width-request">100</property>
+                            <property name="valign">baseline</property>
+                            <property name="adjustment">letterspacing_adjustment</property>
+                            <accessibility>
+                              <relation name="labelled-by">letterspacing_label</relation>
+                            </accessibility>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="letterspacing_entry">
+                            <property name="width-chars">4</property>
+                            <property name="max-width-chars">4</property>
+                            <property name="hexpand">0</property>
+                            <property name="valign">baseline</property>
+                            <accessibility>
+                              <relation name="labelled-by">letterspacing_label</relation>
+                            </accessibility>
+                            <signal name="activate" handler="basic_entry_activated"
+                                    object="letterspacing_adjustment" swapped="false"/>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="line_height_label">
+                            <property name="label">Line Height</property>
+                            <property name="xalign">0</property>
+                            <property name="valign">baseline</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScale">
+                            <property name="hexpand">1</property>
+                            <property name="width-request">100</property>
+                            <property name="valign">baseline</property>
+                            <property name="adjustment">line_height_adjustment</property>
+                            <accessibility>
+                              <relation name="labelled-by">line_height_label</relation>
+                            </accessibility>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="line_height_entry">
+                            <property name="width-chars">4</property>
+                            <property name="max-width-chars">4</property>
+                            <property name="hexpand">0</property>
+                            <property name="valign">baseline</property>
+                            <accessibility>
+                              <relation name="labelled-by">line_height_label</relation>
+                            </accessibility>
+                            <signal name="activate" handler="basic_entry_activated"
+                                    object="line_height_adjustment" swapped="false"/>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="foreground_label">
+                            <property name="label">Foreground</property>
+                            <property name="xalign">0</property>
+                            <property name="valign">baseline</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">3</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColorDialogButton" id="foreground">
+                            <property name="dialog">
+                              <object class="GtkColorDialog">
+                              </object>
+                            </property>
+                            <property name="valign">baseline</property>
+                            <property name="rgba">black</property>
+                            <accessibility>
+                              <relation name="labelled-by">foreground_label</relation>
+                            </accessibility>
+                            <signal name="notify::rgba" handler="color_set_cb"/>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">3</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="background_label">
+                            <property name="label">Background</property>
+                            <property name="xalign">0</property>
+                            <property name="valign">baseline</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">4</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColorDialogButton" id="background">
+                            <property name="dialog">
+                              <object class="GtkColorDialog">
+                              </object>
+                            </property>
+                            <property name="valign">baseline</property>
+                            <property name="rgba">white</property>
+                            <accessibility>
+                              <relation name="labelled-by">background_label</relation>
+                            </accessibility>
+                            <signal name="notify::rgba" handler="color_set_cb"/>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">4</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="icon-name">object-flip-vertical-symbolic</property>
+                            <property name="halign">start</property>
+                            <property name="valign">center</property>
+                            <accessibility>
+                              <property name="label">Swap colors</property>
+                            </accessibility>
+                            <style>
+                              <class name="circular"/>
+                            </style>
+                            <signal name="clicked" handler="swap_colors"/>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">3</property>
+                              <property name="row-span">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkExpander">
+                        <child type="label">
+                          <object class="GtkLabel">
+                            <property name="xalign">0</property>
+                            <property name="label" translatable="yes">OpenType Features</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
+                            <style>
+                              <class name="title-4"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="feature_list">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkDropDown" id="script_lang">
+                                <property name="tooltip-text" translatable="yes">Language System</property>
+                                <property name="margin-top">10</property>
+                                <signal name="notify::selected" handler="font_features_script_changed" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkExpander">
+                        <child type="label">
+                          <object class="GtkLabel" id="variations_heading">
+                            <property name="label" translatable="yes">Variation Axes</property>
+                            <property name="xalign">0</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
+                            <style>
+                              <class name="title-4"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGrid" id="variations_grid">
+                            <property name="column-spacing">10</property>
+                            <property name="row-spacing">10</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <style>
+                  <class name="view"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="margin-start">20</property>
+            <property name="margin-end">20</property>
+            <property name="margin-top">20</property>
+            <property name="margin-bottom">20</property>
+            <property name="spacing">20</property>
+            <child>
+              <object class="GtkScrolledWindow" id="swin">
+                <property name="hscrollbar-policy">automatic</property>
+                <property name="vscrollbar-policy">automatic</property>
+                <property name="propagate-natural-height">1</property>
+                <property name="vexpand">1</property>
+                <style>
+                  <class name="font_features_background"/>
+                </style>
+                <child>
+                  <object class="GtkStack" id="stack">
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">label</property>
+                        <property name="child">
+                          <object class="GtkLabel" id="label">
+                            <property name="wrap">1</property>
+                            <property name="xalign">0</property>
+                            <property name="yalign">0</property>
+                            <property name="valign">start</property>
+                            <property name="selectable">1</property>
+                            <accessibility>
+                              <property name="label">Font example</property>
+                            </accessibility>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">entry</property>
+                        <property name="child">
+                          <object class="GtkTextView" id="entry">
+                            <accessibility>
+                              <property name="label">Example text</property>
+                            </accessibility>
+                            <property name="buffer">
+                              <object class="GtkTextBuffer">
+                                <property name="text">Grumpy wizards make toxic brew for the evil Queen and Jack. A quick movement of the enemy will jeopardize six gunboats. The job of waxing linoleum frequently peeves chintzy kids. My girl wove six dozen plaid jackets before she quit. Twelve ziggurats quickly jumped a finch box.
+
+    Разъяренный чтец эгоистично бьёт пятью жердями шустрого фехтовальщика. Наш банк вчера же выплатил Ф.Я. Эйхгольду комиссию за ценные вещи. Эх, чужак, общий съём цен шляп (юфть) – вдрызг! В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!
+
+    Τάχιστη αλώπηξ βαφής ψημένη γη, δρασκελίζει υπέρ νωθρού κυνός</property>
+                              </object>
+                            </property>
+                            <property name="valign">fill</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkLabel" id="settings">
+                    <property name="wrap">1</property>
+                    <property name="xalign">0</property>
+                    <property name="valign">end</property>
+                    <property name="width-chars">50</property>
+                    <property name="max-width-chars">50</property>
+                    <property name="hexpand">1</property>
+                    <style>
+                      <class name="monospace"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Alphabet</property>
+                    <signal name="clicked" handler="set_text_alphabet"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Paragraph</property>
+                    <signal name="clicked" handler="set_text_paragraph"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkLabel" id="description">
+                    <property name="wrap">1</property>
+                    <property name="wrap-mode">char</property>
+                    <property name="xalign">0</property>
+                    <property name="valign">end</property>
+                    <property name="width-chars">50</property>
+                    <property name="max-width-chars">50</property>
+                    <property name="hexpand">1</property>
+                    <style>
+                      <class name="monospace"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                    <property name="valign">end</property>
+                    <child>
+                      <object class="GtkToggleButton" id="plain_toggle">
+                        <property name="label" translatable="yes">Plain</property>
+                        <property name="active">1</property>
+                        <property name="valign">baseline</property>
+                        <signal name="toggled" handler="font_features_toggle_plain"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="waterfall_toggle">
+                        <property name="label" translatable="yes">Waterfall</property>
+                        <property name="valign">baseline</property>
+                        <property name="group">plain_toggle</property>
+                        <signal name="toggled" handler="font_features_toggle_plain"/>
+                        <signal name="notify::active" handler="font_features_notify_waterfall"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="edit_toggle">
+                    <property name="group">waterfall_toggle</property>
+                    <property name="icon-name">document-edit-symbolic</property>
+                    <property name="halign">end</property>
+                    <property name="valign">end</property>
+                    <accessibility>
+                      <property name="label">Edit text</property>
+                    </accessibility>
+                    <signal name="clicked" handler="font_features_toggle_edit"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

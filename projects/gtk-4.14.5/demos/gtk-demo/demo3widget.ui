@@ -1,0 +1,41 @@
+<interface>
+  <menu id="model">
+    <item>
+      <attribute name="label">Zoom Out</attribute>
+      <attribute name="action">zoom.out</attribute>
+    </item>
+    <item>
+      <attribute name="label">Zoom In</attribute>
+      <attribute name="action">zoom.in</attribute>
+    </item>
+    <item>
+      <attribute name="label">1∶1</attribute>
+      <attribute name="action">zoom.reset</attribute>
+    </item>
+    <item>
+      <attribute name="label">Rotate</attribute>
+      <attribute name="action">rotate</attribute>
+      <attribute name="target" type="i">90</attribute>
+    </item>
+  </menu>
+  <template class="Demo3Widget">
+    <accessibility>
+      <property name="label">Demo image</property>
+    </accessibility>
+    <child>
+      <object class="GtkPopoverMenu" id="menu">
+        <accessibility>
+          <property name="label">Context menu</property>
+        </accessibility>
+        <property name="has-arrow">0</property>
+        <property name="menu-model">model</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGestureClick">
+        <property name="button">3</property>
+        <signal name="pressed" handler="pressed_cb"/>
+      </object>
+    </child>
+  </template>
+</interface>

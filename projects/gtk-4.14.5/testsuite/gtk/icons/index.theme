@@ -1,0 +1,63 @@
+[Icon Theme]
+Name=Icons
+Comment=Testing of the Icon theme code
+Example=16x16/simple.png
+Inherits=icons2
+
+Directories=16x16,16x16s,32x32,32x32s,scalable,15,16-22,25+,35+
+
+[16x16]
+Context=16x16 icons
+Size=16
+Type=Fixed
+
+[32x32]
+Context=32x32 icons
+Size=32
+Type=Fixed
+
+[16x16s]
+Context=scalable 16x16 icons
+Size=16
+MinSize=12
+MaxSize=24
+Type=Scalable
+
+[32x32s]
+Context=scalable 32x32 icons
+Size=32
+MinSize=24
+MaxSize=48
+Type=Scalable
+
+[scalable]
+Context=scalable icons
+Type=Scalable
+Size=128
+MinSize=1
+MaxSize=256
+
+[15]
+Context=none
+Type=Fixed
+Size=15
+
+[16-22]
+Context=none
+Type=Threshold
+Size=19
+Threshold=3
+
+[25+]
+Context=none
+Type=Scalable
+Size=30
+MinSize=25
+MaxSize=35
+
+[35+]
+Context=none
+Type=Scalable
+Size=40
+MinSize=35
+MaxSize=1000

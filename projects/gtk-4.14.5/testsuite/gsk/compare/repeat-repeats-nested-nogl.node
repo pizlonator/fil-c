@@ -1,0 +1,14 @@
+repeat {
+  bounds: 0 0 2048 2048;
+  child: repeat {
+    bounds: 0 0 2048 2;
+    child: repeat {
+      bounds: -1 -1 2 2;
+      child: conic-gradient {
+        bounds: 0 0 32000 32000;
+        center: 16000 16000;
+        stops: 0.125 rgb(255,0,0), 0.375 rgb(0,255,0), 0.625 rgb(0,0,255), 0.875 rgb(255,255,0);
+      }
+    }
+  }
+}

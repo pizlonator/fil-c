@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkTextBuffer" id="textbuffer1">
+    <property name="text" translatable="yes">TEST123
+TEST123</property>
+  </object>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkFixed" id="fixed1">
+        <child>
+          <object class="GtkTextView" id="textview1">
+            <property name="width_request">100</property>
+            <property name="height_request">100</property>
+            <property name="buffer">textbuffer1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTextView" id="textview2">
+            <property name="width_request">100</property>
+            <property name="height_request">100</property>
+            <property name="buffer">textbuffer1</property>
+            <layout>
+              <property name="transform">translate(50, 50)</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

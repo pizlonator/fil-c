@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkDialog" id="window1">
+    <property name="title" translatable="yes">Dubstep</property>
+    <property name="resizable">0</property>
+    <property name="modal">1</property>
+    <property name="use_header_bar">1</property>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox2">
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkLabel" id="screen_reader_blurb">
+            <property name="margin_start">12</property>
+            <property name="margin_end">6</property>
+            <property name="margin_top">6</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">WubWubWubWubWubWubWubWubWubWubWubWubWub
+Ts</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid" id="grid3">
+            <property name="margin_start">12</property>
+            <property name="margin_end">6</property>
+            <property name="margin_top">12</property>
+            <property name="margin_bottom">12</property>
+            <property name="row_spacing">12</property>
+            <property name="column_spacing">6</property>
+            <child>
+              <object class="GtkLabel" id="screen_reader_label">
+                <property name="hexpand">1</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">The _Base</property>
+                <property name="use_underline">1</property>
+                <property name="mnemonic_widget">screen_reader_switch</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSwitch" id="screen_reader_switch">
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

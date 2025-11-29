@@ -1,0 +1,15 @@
+container {
+  color {
+    bounds: 0 0 800 600;
+    color: red;
+  }
+  transform {
+    transform: translate(40,40);
+    child: subsurface {
+      child: texture {
+        texture: url('data:image/svg+xml;utf-8,<svg width="16" height="16"></svg>');
+        bounds: 0 0 20 20;
+      }
+    }
+  }
+}

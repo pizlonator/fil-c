@@ -1,0 +1,17 @@
+color {
+  bounds: 0 0 50 50;
+  color: rgb(0,0,0);
+}
+clip {
+  clip: 10 10 30 30;
+  child: transform {
+    transform: translate(10, 10);
+    child: opacity {
+      opacity: 0.8;
+      child: color {
+        bounds: -50 -50 100 100;
+        color: rgb(255,0,0);
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="resizable">1</property>
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
+    <property name="title">Frames</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="end">
+          <object class="GtkLabel" id="fps">
+            <attributes>
+              <attribute name="font-features" value="tnum=1"/>
+            </attributes>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="box">
+      </object>
+    </child>
+  </object>
+</interface>

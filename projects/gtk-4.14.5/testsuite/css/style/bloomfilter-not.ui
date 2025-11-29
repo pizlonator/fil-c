@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkApplicationWindow" id="window1">
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">0</property>
+        <child type="title">
+          <object class="GtkStackSwitcher" id="stack_switcher">
+            <property name="stack">toplevel_stack</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkStack" id="toplevel_stack">
+        <property name="transition-duration">1000</property>
+        <child>
+          <object class="GtkStackPage">
+            <property name="title" translatable="yes">Page 1</property>
+            <property name="child">
+              <object class="GtkBox" />
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="title" translatable="yes">Page 2</property>
+            <property name="child">
+              <object class="GtkBox" />
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="title" translatable="yes">Page 3</property>
+            <property name="child">
+              <object class="GtkBox" />
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

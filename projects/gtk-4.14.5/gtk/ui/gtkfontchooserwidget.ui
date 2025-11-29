@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <object class="GtkSingleSelection" id="selection">
+    <signal name="notify::selected-item" handler="selection_changed_cb" object="GtkFontChooserWidget" swapped="0"/>
+    <signal name="items-changed" handler="rows_changed_cb" object="GtkFontChooserWidget" swapped="1"/>
+    <property name="model">
+      <object class="GtkFilterListModel" id="filter_model">
+        <signal name="notify::pending" handler="rows_changed_cb" object="GtkFontChooserWidget" swapped="1"/>
+        <property name="incremental">1</property>
+        <property name="filter">
+          <object class="GtkEveryFilter" id="multi_filter">
+            <child>
+              <object class="GtkStringFilter">
+                <binding name="search">
+                  <lookup name="text">search_entry</lookup>
+                </binding>
+                <property name="expression">
+                  <closure type="gchararray" swapped="1" function="get_font_name"/>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCustomFilter" id="custom_filter"/>
+            </child>
+            <child>
+              <object class="GtkCustomFilter" id="user_filter"/>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+  <object class="GtkAdjustment" id="slider_adjustment">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <signal name="value-changed" handler="size_change_cb" swapped="no"/>
+  </object>
+  <object class="GtkAdjustment" id="spin_adjustment">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <signal name="value-changed" handler="size_change_cb" swapped="no"/>
+  </object>
+  <template class="GtkFontChooserWidget" parent="GtkWidget">
+    <child>
+      <object class="GtkStack" id="stack">
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">list</property>
+            <property name="child">
+              <object class="GtkGrid" id="grid">
+                <property name="row-spacing">6</property>
+                <property name="column-spacing">6</property>
+                <child>
+                  <object class="GtkBox">
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="hexpand">1</property>
+                        <property name="activates-default">1</property>
+                        <property name="placeholder-text" translatable="yes">Search font name</property>
+                        <signal name="stop-search" handler="stop_search_cb" swapped="no"/>
+                        <accessibility>
+                          <property name="label" translatable="1">Search font name</property>
+                        </accessibility>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton">
+                        <accessibility>
+                          <property name="label" translatable="1">Filters</property>
+                        </accessibility>
+                        <property name="icon-name">pan-down-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Filters</property>
+                        <property name="popover">
+                          <object class="GtkPopover">
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">1</property>
+                                <property name="spacing">6</property>
+                                <accessibility>
+                                  <relation name="labelled-by">filter_by_label</relation>
+                                </accessibility>
+                                <child>
+                                  <object class="GtkLabel" id="filter_by_label">
+                                    <property name="label" translatable="yes">Filter by</property>
+                                    <property name="width-chars">20</property>
+                                    <property name="margin-bottom">10</property>
+                                    <style>
+                                      <class name="title-4"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="monospace_button">
+                                    <property name="label" translatable="yes">Monospace</property>
+                                    <signal name="notify::active" handler="monospace_check_changed"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="language_button">
+                                    <property name="label" translatable="yes">Language</property>
+                                    <signal name="notify::active" handler="language_check_changed"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkFrame" id="language_frame">
+                                    <property name="margin-start">12</property>
+                                    <child>
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">200</property>
+                                        <property name="hscrollbar-policy">2</property>
+                                        <child>
+                                          <object class="GtkListView" id="language_list"/>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStack" id="list_stack">
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">list</property>
+                        <property name="child">
+                          <object class="GtkGrid">
+                            <property name="row-spacing">6</property>
+                            <property name="column-spacing">6</property>
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="width-request">400</property>
+                                <property name="height-request">300</property>
+                                <property name="hexpand">1</property>
+                                <property name="vexpand">1</property>
+                                <property name="hscrollbar-policy">2</property>
+                                <property name="has-frame">1</property>
+                                <child>
+                                  <object class="GtkListView" id="family_face_list">
+                                    <property name="model">selection</property>
+                                    <signal name="activate" handler="row_activated_cb" swapped="no"/>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="ellipsize">end</property>
+        <property name="xalign">0</property>
+        <binding name="label">
+          <closure type="gchararray" function="get_font_name">
+            <lookup name="item">GtkListItem</lookup>
+          </closure>
+        </binding>
+        <binding name="attributes">
+          <closure type="PangoAttrList" function="get_font_attributes">
+            <lookup name="item">GtkListItem</lookup>
+          </closure>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                                        ]]></property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                  <property name="column-span">3</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="preview">
+                                <property name="tooltip-text" translatable="yes">Preview Font</property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">Preview Font</property>
+                                </accessibility>
+                                <child>
+                                  <object class="GtkEventControllerScroll">
+                                    <property name="flags">horizontal</property>
+                                    <signal name="scroll" handler="resize_by_scroll_cb"/>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">2</property>
+                                  <property name="column-span">3</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="size_label">
+                                <property name="label" translatable="yes">Size</property>
+                                <property name="xalign">0</property>
+                                <property name="valign">4</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">3</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScale" id="size_slider">
+                                <property name="hexpand">1</property>
+                                <property name="adjustment">slider_adjustment</property>
+                                <property name="round-digits">0</property>
+                                <accessibility>
+                                  <relation name="labelled-by">size_label</relation>
+                                </accessibility>
+                                <child>
+                                  <object class="GtkEventControllerScroll">
+                                    <property name="flags">horizontal</property>
+                                    <signal name="scroll" handler="resize_by_scroll_cb"/>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">3</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="size_spin">
+                                <property name="adjustment">spin_adjustment</property>
+                                <property name="valign">3</property>
+                                <accessibility>
+                                  <relation name="labelled-by">size_label</relation>
+                                </accessibility>
+                                <signal name="output" handler="output_cb"/>
+                                <layout>
+                                  <property name="column">2</property>
+                                  <property name="row">3</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">empty</property>
+                        <property name="child">
+                          <object class="GtkGrid">
+                            <property name="row-spacing">12</property>
+                            <property name="hexpand">1</property>
+                            <property name="vexpand">1</property>
+                            <property name="halign">3</property>
+                            <property name="valign">3</property>
+                            <property name="accessible-role">alert</property>
+                            <accessibility>
+                              <relation name="labelled-by">no_fonts_label</relation>
+                            </accessibility>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="gicon">fonticon</property>
+                                <property name="pixel-size">64</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                                <accessibility>
+                                  <relation name="labelled-by">no_fonts_label</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="no_fonts_label">
+                                <property name="label" translatable="yes">No Fonts Found</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"></attribute>
+                                  <attribute name="scale" value="1.2"></attribute>
+                                </attributes>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">tweaks</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">1</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="font_name_label">
+                    <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="ellipsize">3</property>
+                    <property name="xalign">0</property>
+                    <accessibility>
+                      <property name="description" translatable="1">Font Name</property>
+                    </accessibility>
+                    <binding name="label" object="GtkFontChooserWidget">
+                      <closure type="gchararray" function="get_font_name">
+                        <lookup name="selected-item">selection</lookup>
+                      </closure>
+                    </binding>
+                    <binding name="attributes" object="GtkFontChooserWidget">
+                      <closure type="PangoAttrList" function="get_font_attributes">
+                        <lookup name="selected-item">selection</lookup>
+                      </closure>
+                    </binding>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="preview2">
+                    <property name="tooltip-text" translatable="yes">Preview Font</property>
+                    <property name="text" bind-source="preview" bind-property="text" bind-flags="bidirectional"/>
+                    <property name="attributes" bind-source="preview" bind-property="attributes" bind-flags="bidirectional"/>
+                    <accessibility>
+                      <property name="label" translatable="yes">Preview Font</property>
+                    </accessibility>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">2</property>
+                    <property name="has-frame">1</property>
+                    <property name="vexpand">1</property>
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">1</property>
+                        <property name="spacing">12</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <child>
+                          <object class="GtkGrid" id="axis_grid">
+                            <property name="row-spacing">6</property>
+                            <property name="column-spacing">12</property>
+                            <accessibility>
+                              <property name="label" translatable="1">Font Variation Axes</property>
+                            </accessibility>
+                            <child>
+                              <object class="GtkLabel" id="size_label2">
+                                <property name="label" translatable="yes">Size</property>
+                                <property name="xalign">0</property>
+                                <property name="valign">4</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScale" id="size_slider2">
+                                <property name="hexpand">1</property>
+                                <property name="adjustment">slider_adjustment</property>
+                                <property name="round-digits">0</property>
+                                <accessibility>
+                                  <relation name="labelled-by">size_label2</relation>
+                                </accessibility>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="size_spin2">
+                                <property name="adjustment">spin_adjustment</property>
+                                <property name="valign">3</property>
+                                <signal name="output" handler="output_cb"/>
+                                <accessibility>
+                                  <relation name="labelled-by">size_label2</relation>
+                                </accessibility>
+                                <layout>
+                                  <property name="column">2</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="feature_box">
+                            <property name="orientation">1</property>
+                            <property name="spacing">12</property>
+                            <accessibility>
+                              <property name="label" translatable="1">Font Features</property>
+                            </accessibility>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GThemedIcon" id="fonticon">
+    <property name="names">font-x-generic-symbolic
+emblem-documents-symbolic</property>
+  </object>
+</interface>

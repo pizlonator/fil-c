@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="model">
+    <section>
+      <submenu>
+        <attribute name="label">Style</attribute>
+        <section>
+          <item>
+            <attribute name="label">Item</attribute>
+          </item>
+        </section>
+      </submenu>
+      <item>
+        <attribute name="label">Transition</attribute>
+        <attribute name="action">misc.toggle-visibility</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Inspector</attribute>
+      </item>
+      <item>
+        <attribute name="label">About</attribute>
+        <attribute name="action">text.redo</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="GtkText">
+    <child>
+      <object class="GtkPopoverMenu">
+        <property name="autohide">0</property>
+        <property name="menu-model">model</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+      </object>
+    </child>
+  </object>
+</interface>

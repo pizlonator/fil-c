@@ -1,0 +1,28 @@
+clip {
+  clip: 0 0 12 8;
+  child: color-matrix "node1" {
+    matrix: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 255);
+    child: shadow "node2" {
+      shadows: rgb(255,0,0) 0 0 10;
+      child: texture "node3" {
+        bounds: 0 0 20 20;
+        texture: "texture1" url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAOUlEQVRIiWNk+M/wn4HGgInWFoxa\
+QjJgwSrKyMBItolYEtLwCa5RS0YtGbVk1JKhaAnjaB0/Mi0BALtiBi9IMFUcAAAAAElFTkSuQmCC\
+\
+");
+      }
+    }
+  }
+}
+clip {
+  clip: 0 8 8 12;
+  child: "node1";
+}
+clip {
+  clip: 8 12 12 8;
+  child: "node1";
+}
+clip {
+  clip: 12 0 8 12;
+  child: "node1";
+}

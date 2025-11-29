@@ -1,0 +1,75 @@
+<interface>
+  <object class="GtkShortcutsWindow" id="help_overlay">
+    <property name="modal">1</property>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">shortcuts</property>
+        <property name="max-height">12</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">General</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">app.new</property>
+                <property name="title" translatable="yes">New Window</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">app.quit</property>
+                <property name="title" translatable="yes">Quit</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.fullscreen</property>
+                <property name="title" translatable="yes">Fullscreen</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.show-help-overlay</property>
+                <property name="title" translatable="yes">Shortcuts</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Text</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.copy</property>
+                <property name="title" translatable="yes">Copy</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.paste</property>
+                <property name="title" translatable="yes">Paste</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.justify::left</property>
+                <property name="title" translatable="yes">Justify left</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.justify::center</property>
+                <property name="title" translatable="yes">Justify center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="action-name">win.justify::right</property>
+                <property name="title" translatable="yes">Justify right</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

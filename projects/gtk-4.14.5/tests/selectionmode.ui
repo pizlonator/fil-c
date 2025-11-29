@@ -1,0 +1,102 @@
+<interface>
+  <menu id="selectionmenu">
+    <section>
+      <item>
+        <attribute name="label">Select All</attribute>
+        <attribute name="action">win.select-all</attribute>
+      </item>
+      <item>
+        <attribute name="label">Select None</attribute>
+        <attribute name="action">win.select-none</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="GtkWindow" id="window">
+    <property name="default-width">640</property>
+    <property name="default-height">480</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="start">
+          <object class="GtkButton" id="headerbutton">
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">emblem-system-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="title">
+          <object class="GtkStack" id="titlestack">
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">title</property>
+                <property name="child">
+                  <object class="GtkLabel">
+                    <property name="label">Docker Docker Docker</property>
+                    <property name="ellipsize">end</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">selection</property>
+                <property name="child">
+                  <object class="GtkMenuButton">
+                    <property name="menu-model">selectionmenu</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">4</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label">Click on items to select them</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="icon-name">pan-down-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="select-button">
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">object-select-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="cancel-button">
+            <property name="visible">0</property>
+            <property name="label">Cancel</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <child>
+          <object class="GtkListBox" id="list">
+            <property name="selection-mode">none</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

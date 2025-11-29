@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="width_request">200</property>
+    <property name="height_request">100</property>
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkOverlay" id="overlay1">
+        <child>
+          <placeholder/>
+        </child>
+        <child type="overlay">
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">I&apos;m the invisible label.
+Incredible how you can
+see right through me.</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,43 @@
+mask {
+  source: color {
+    bounds: 0 0 50 50;
+    color: rgb(255,0,0);
+  }
+  mask: color {
+    bounds: 0 0 50 50;
+    color: rgba(204,204,204,0.666667);
+  }
+}
+mask {
+  mode: luminance;
+  source: color {
+    bounds: 50 0 50 50;
+    color: rgb(255,0,0);
+  }
+  mask: color {
+    bounds: 50 0 50 50;
+    color: rgba(204,204,204,0.666667);
+  }
+}
+mask {
+  mode: inverted-alpha;
+  source: color {
+    bounds: 0 50 50 50;
+    color: rgb(255,0,0);
+  }
+  mask: color {
+    bounds: 0 50 50 50;
+    color: rgba(204,204,204,0.666667);
+  }
+}
+mask {
+  mode: inverted-luminance;
+  source: color {
+    bounds: 50 50 50 50;
+    color: rgb(255,0,0);
+  }
+  mask: color {
+    bounds: 50 50 50 50;
+    color: rgba(204,204,204,0.666667);
+  }
+}

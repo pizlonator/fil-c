@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkStringList" id="targets">
+    <items>
+      <item>None</item>
+      <item>Left</item>
+      <item>Right</item>
+      <item>Top</item>
+      <item>Bottom</item>
+      <item>Start</item>
+      <item>End</item>
+      <item>Width</item>
+      <item>Height</item>
+      <item>Center X</item>
+      <item>Center Y</item>
+      <item>Baseline</item>
+    </items>
+  </object>
+  <template class="ConstraintEditor" parent="GtkWidget">
+    <child>
+      <object class="GtkGrid" id="grid">
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">20</property>
+        <property name="row-spacing">10</property>
+        <property name="column-spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Target</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="target">
+            <signal name="notify::selected" handler="update_preview" swapped="yes"/>
+            <signal name="notify::selected" handler="update_button" swapped="yes"/>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="target_attr">
+            <property name="model">targets</property>
+            <signal name="notify::selected" handler="update_preview" swapped="yes"/>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Relation</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="relation">
+            <signal name="notify::selected" handler="update_preview" swapped="yes"/>
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item>≤</item>
+                  <item>=</item>
+                  <item>≥</item>
+                </items>
+              </object>
+            </property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Source</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="source">
+            <signal name="notify::selected" handler="update_preview" swapped="yes"/>
+            <signal name="notify::selected" handler="update_button" swapped="yes"/>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="source_attr">
+            <property name="model">targets</property>
+            <signal name="notify::selected" handler="update_preview" swapped="yes"/>
+            <signal name="notify::selected" handler="source_attr_changed" swapped="yes"/>
+            <signal name="notify::selected" handler="update_button" swapped="yes"/>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Multiplier</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="multiplier">
+            <signal name="changed" handler="update_preview" swapped="yes"/>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Constant</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="constant">
+            <signal name="changed" handler="update_preview" swapped="yes"/>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Strength</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">6</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="strength">
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item>Weak</item>
+                  <item>Medium</item>
+                  <item>Strong</item>
+                  <item>Required</item>
+                </items>
+              </object>
+            </property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">6</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="preview">
+            <property name="xalign">0</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">7</property>
+              <property name="column-span">2</property>
+            </layout>
+            <attributes>
+              <attribute name="scale" value="1.44"/>
+            </attributes>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button">
+            <property name="label">Create</property>
+            <signal name="clicked" handler="create_constraint"/>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">8</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

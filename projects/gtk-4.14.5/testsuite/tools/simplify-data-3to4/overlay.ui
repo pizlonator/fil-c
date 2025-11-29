@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkOverlay">
+    <property name="visible">1</property>
+    <child type="overlay">
+      <object class="GtkButton" id="button">
+        <property name="visible">1</property>
+        <property name="icon-name">document-new</property>
+      </object>
+      <packing>
+        <property name="pass-through">True</property>
+        <property name="index">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label"/>
+    </child>
+  </object>
+</interface>

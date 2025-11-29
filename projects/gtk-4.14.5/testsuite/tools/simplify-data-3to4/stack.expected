@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkWindow" id="window1">
+    <property name="child">
+      <object class="GtkBox" id="box1">
+        <child>
+          <object class="GtkStackSwitcher" id="stackswitcher1">
+            <property name="stack">stack1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack1">
+            <property name="vhomogeneous">0</property>
+            <property name="hhomogeneous">0</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page1</property>
+                <property name="title">Page 1</property>
+                <property name="needs-attention">1</property>
+                <property name="child">
+                  <object class="GtkButton" id="page1">
+                    <property name="label" translatable="1">Yes</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page2</property>
+                <property name="title">Page 2</property>
+                <property name="icon-name">page2-icon</property>
+                <property name="child">
+                  <object class="GtkButton" id="page2">
+                    <property name="label" translatable="1">No</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

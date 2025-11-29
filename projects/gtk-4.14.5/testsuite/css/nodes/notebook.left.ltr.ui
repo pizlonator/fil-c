@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkNotebook">
+        <property name="tab-pos">left</property>
+        <child>
+          <object class="GtkNotebookPage">
+            <property name="child">
+              <object class="GtkButton">
+                <property name="name">page1</property>
+                <property name="label" translatable="yes">Yes</property>
+              </object>
+            </property>
+            <property name="tab">
+              <object class="GtkLabel">
+                <property name="name">tab1</property>
+                <property name="label" translatable="yes">Tab 1</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkNotebookPage">
+            <property name="child">
+              <object class="GtkButton">
+                <property name="name">page2</property>
+                <property name="label" translatable="yes">No</property>
+              </object>
+            </property>
+            <property name="tab">
+              <object class="GtkLabel" id="tab2">
+                <property name="name">tab2</property>
+                <property name="label" translatable="yes">Tab 2</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child type="action-start">
+          <object class="GtkButton">
+            <property name="name">start</property>
+            <property name="label" translatable="yes">Action</property>
+          </object>
+        </child>
+        <child type="action-end">
+          <object class="GtkButton">
+            <property name="name">end</property>
+            <property name="label" translatable="yes">Action</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

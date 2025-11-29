@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox">
+        <property name="name">progressbars</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkProgressBar">
+            <property name="show-text">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkProgressBar">
+            <property name="fraction">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkProgressBar">
+            <property name="show-text">1</property>
+            <property name="fraction">0.4</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkProgressBar">
+            <property name="inverted">1</property>
+            <property name="fraction">0.4</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkProgressBar">
+            <property name="orientation">vertical</property>
+            <property name="fraction">0.4</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

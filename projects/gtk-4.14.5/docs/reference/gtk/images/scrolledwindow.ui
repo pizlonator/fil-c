@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <style>
+       <class name="background"/>
+    </style>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <property name="vscrollbar-policy">always</property>
+        <property name="overlay-scrolling">0</property>
+        <style>
+          <class name="frame"/>
+        </style>
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">ScrolledWindow</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

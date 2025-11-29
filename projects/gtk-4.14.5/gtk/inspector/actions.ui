@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorActions" parent="GtkWidget">
+    <style>
+      <class name="view"/>
+    </style>
+    <child>
+      <object class="GtkScrolledWindow" id="swin">
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkColumnView" id="list">
+            <style>
+              <class name="list"/>
+            </style>
+            <child>
+              <object class="GtkColumnViewColumn" id="name">
+                <property name="title" translatable="yes">Name</property>
+                <property name="resizable">1</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_name_cb"/>
+                    <signal name="bind" handler="bind_name_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="enabled">
+                <property name="title" translatable="yes">Enabled</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_enabled_cb"/>
+                    <signal name="bind" handler="bind_enabled_cb"/>
+                    <signal name="unbind" handler="unbind_enabled_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="parameter">
+                <property name="title" translatable="yes">Parameter Type</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_parameter_cb"/>
+                    <signal name="bind" handler="bind_parameter_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="state">
+                <property name="title" translatable="yes">State</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_state_cb"/>
+                    <signal name="bind" handler="bind_state_cb"/>
+                    <signal name="unbind" handler="unbind_state_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="changes">
+                <property name="title"></property>
+                <property name="expand">1</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_changes_cb"/>
+                    <signal name="bind" handler="bind_changes_cb"/>
+                    <signal name="unbind" handler="unbind_changes_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

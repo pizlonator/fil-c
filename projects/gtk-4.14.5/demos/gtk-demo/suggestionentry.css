@@ -1,0 +1,28 @@
+entry.suggestion > popover.menu.background > contents {
+  padding: 0;
+}
+
+entry.suggestion arrow {
+  -gtk-icon-source: -gtk-icontheme('pan-down-symbolic');
+  min-height: 16px;
+  min-width: 16px;
+}
+
+entry.suggestion > popover {
+  margin-top: 6px;
+  padding: 0;
+}
+
+entry.suggestion > popover listview {
+  margin: 8px 0;
+}
+
+entry.suggestion > popover listview > row {
+  padding: 8px;
+}
+
+entry.suggestion > popover listview > row:selected {
+  outline-color: rgba(1,1,1,0.2);
+  color: @theme_text_color;
+  background-color: shade(#f6f5f4, 0.97);
+}

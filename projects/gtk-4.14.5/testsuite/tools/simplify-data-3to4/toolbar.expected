@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkBox">
+    <property name="css-classes">toolbar</property>
+    <child>
+      <object class="GtkButton">
+        <property name="label" translatable="1">New</property>
+        <property name="icon-name">document-new</property>
+        <property name="tooltip-text" translatable="1">Create a new document</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator">
+        <property name="orientation">vertical</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleButton"/>
+    </child>
+  </object>
+</interface>

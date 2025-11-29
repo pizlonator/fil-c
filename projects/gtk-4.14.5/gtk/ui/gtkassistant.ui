@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkAssistant" parent="GtkWindow">
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="headerbar">
+        <property name="show-title-buttons">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="main_box">
+        <child>
+          <object class="GtkBox" id="sidebar">
+            <property name="orientation">1</property>
+            <style>
+              <class name="sidebar"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="content_box">
+            <property name="orientation">1</property>
+            <property name="hexpand">1</property>
+            <child>
+              <object class="GtkStack" id="content">
+                <property name="vexpand">1</property>
+                <child type="tab"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="action_area">
+                <property name="halign">2</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <child>
+                  <object class="GtkButton" id="close">
+                    <property name="visible">0</property>
+                    <property name="label" translatable="yes">_Close</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_close" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="cancel">
+                    <property name="visible">0</property>
+                    <property name="label" translatable="yes">_Cancel</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_cancel" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="last">
+                    <property name="visible">0</property>
+                    <property name="label" translatable="yes">_Finish</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_last" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="back">
+                    <property name="label" translatable="yes">_Back</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_back" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="forward">
+                    <property name="label" translatable="yes">_Next</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_forward" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="apply">
+                    <property name="visible">0</property>
+                    <property name="label" translatable="yes">_Apply</property>
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <style>
+                      <class name="text-button"/>
+                    </style>
+                    <signal name="clicked" handler="on_assistant_apply" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup" id="button_size_group">
+    <widgets>
+      <widget name="apply"/>
+      <widget name="forward"/>
+      <widget name="back"/>
+      <widget name="last"/>
+      <widget name="cancel"/>
+      <widget name="close"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup" id="title_size_group"/>
+</interface>

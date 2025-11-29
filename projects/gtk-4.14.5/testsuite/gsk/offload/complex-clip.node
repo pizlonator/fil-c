@@ -1,0 +1,18 @@
+rounded-clip {
+  clip: 0 0 50 50 / 20;
+  child: clip {
+    clip: 2 2 40 40;
+    child: container {
+      color {
+        color: white;
+        bounds: 0 0 50 50;
+      }
+      subsurface {
+        child: texture {
+          bounds: 10 10 20 20;
+          texture: url('data:image/svg+xml;utf-8,<svg width="20" height="20"></svg>');
+        }
+      }
+    }
+  }
+}

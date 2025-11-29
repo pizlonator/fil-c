@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
+    <property name="icon-name">preferences-desktop-font</property>
+    <child type="titlebar">
+      <object class="GtkBox">
+        <child>
+          <object class="GtkHeaderBar" id="sidebar-header">
+            <child type="end">
+              <object class="GtkCheckButton">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">vertical</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkHeaderBar" id="main-header">
+            <property name="hexpand">1</property>
+            <child type="start">
+              <object class="GtkBox">
+                <style>
+                  <class name="linked"/>
+                </style>
+                <child>
+                  <object class="GtkButton">
+                    <property name="icon-name">go-previous-symbolic</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="icon-name">go-next-symbolic</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkListBox" id="sidebar-content">
+            <property name="selection-mode">none</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Bla</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Bla bla</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Bla bla bla</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Bla bla bla bla</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="main-content">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hscrollbar-policy">always</property>
+            <property name="vscrollbar-policy">always</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="margin-start">20</property>
+                <property name="margin-end">20</property>
+                <property name="margin-top">20</property>
+                <property name="margin-bottom">20</property>
+                <property name="row-spacing">10</property>
+                <property name="column-spacing">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Layout</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="layout-entry">
+                    <property name="width-chars">25</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Decorations</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="decorations">
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="sidebar-header"/>
+      <widget name="sidebar-content"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="main-header"/>
+      <widget name="main-content"/>
+    </widgets>
+  </object>
+</interface>

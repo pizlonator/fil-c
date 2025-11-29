@@ -1,0 +1,46 @@
+opacity {
+  opacity: 0.4;
+  child: color-matrix {
+    matrix: matrix3d(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1);
+    child: color {
+      bounds: 0 0 50 50;
+      color: rgb(255,0,0);
+    }
+  }
+}
+opacity {
+  opacity: 0.4;
+  child: color-matrix {
+    matrix: matrix3d(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1);
+    child: texture {
+      bounds: 50 0 50 50;
+      texture: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAV0lEQVRoge3PAQ3AMAzAsH78Ofck\
+Li26bATJszM7P3BuB3zFSI2RGiM1RmqM1BipMVJjpMZIjZEaIzVGaozUGKkxUmOkxkiNkRojNUZq\
+jNQYqTFSY6TmBQexAmLPVmNqAAAAAElFTkSuQmCC\
+");
+    }
+  }
+}
+color-matrix {
+  matrix: matrix3d(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1);
+  child: opacity {
+    opacity: 0.4;
+    child: color {
+      bounds: 0 50 50 50;
+      color: rgb(255,0,0);
+    }
+  }
+}
+color-matrix {
+  matrix: matrix3d(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1);
+  child: opacity {
+    opacity: 0.4;
+    child: texture {
+      bounds: 50 50 50 50;
+      texture: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAV0lEQVRoge3PAQ3AMAzAsH78Ofck\
+Li26bATJszM7P3BuB3zFSI2RGiM1RmqM1BipMVJjpMZIjZEaIzVGaozUGKkxUmOkxkiNkRojNUZq\
+jNQYqTFSY6TmBQexAmLPVmNqAAAAAElFTkSuQmCC\
+");
+    }
+  }
+}

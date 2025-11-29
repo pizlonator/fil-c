@@ -1,0 +1,21 @@
+@define-color some-color currentColor;
+
+a {
+  color: currentColor;
+}
+
+b {
+  color: shade(currentColor, 1.5);
+}
+
+c {
+  color: alpha(currentColor, 0.5);
+}
+
+d {
+  color: mix(currentColor, @some-color, 0.5);
+}
+
+e {
+  color: mix(@some-color, currentColor, 0.5);
+}

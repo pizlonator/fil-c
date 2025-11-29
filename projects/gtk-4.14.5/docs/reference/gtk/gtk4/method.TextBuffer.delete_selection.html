@@ -1,0 +1,404 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TextBuffer.delete_selection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.TextBuffer.delete_selection"/>
+  <meta priority="og:description" content="Reference for Gtk.TextBuffer.delete_selection"/>
+  <meta name="twitter:title" content="Gtk.TextBuffer.delete_selection"/>
+  <meta name="twitter:description" content="Reference for Gtk.TextBuffer.delete_selection"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.TextBuffer.html">TextBuffer</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TextBuffer.add_mark.html">add_mark</a>
+  
+    <a class="method" href="method.TextBuffer.add_selection_clipboard.html">add_selection_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.apply_tag.html">apply_tag</a>
+  
+    <a class="method" href="method.TextBuffer.apply_tag_by_name.html">apply_tag_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.backspace.html">backspace</a>
+  
+    <a class="method" href="method.TextBuffer.begin_irreversible_action.html">begin_irreversible_action</a>
+  
+    <a class="method" href="method.TextBuffer.begin_user_action.html">begin_user_action</a>
+  
+    <a class="method" href="method.TextBuffer.copy_clipboard.html">copy_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.create_child_anchor.html">create_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.create_mark.html">create_mark</a>
+  
+    <a class="method" href="method.TextBuffer.create_tag.html">create_tag</a>
+  
+    <a class="method" href="method.TextBuffer.cut_clipboard.html">cut_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.delete.html">delete</a>
+  
+    <a class="method" href="method.TextBuffer.delete_interactive.html">delete_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.delete_mark.html">delete_mark</a>
+  
+    <a class="method" href="method.TextBuffer.delete_mark_by_name.html">delete_mark_by_name</a>
+  
+    <a class="method current" href="method.TextBuffer.delete_selection.html">delete_selection</a>
+  
+    <a class="method" href="method.TextBuffer.end_irreversible_action.html">end_irreversible_action</a>
+  
+    <a class="method" href="method.TextBuffer.end_user_action.html">end_user_action</a>
+  
+    <a class="method" href="method.TextBuffer.get_bounds.html">get_bounds</a>
+  
+    <a class="method" href="method.TextBuffer.get_can_redo.html">get_can_redo</a>
+  
+    <a class="method" href="method.TextBuffer.get_can_undo.html">get_can_undo</a>
+  
+    <a class="method" href="method.TextBuffer.get_char_count.html">get_char_count</a>
+  
+    <a class="method" href="method.TextBuffer.get_enable_undo.html">get_enable_undo</a>
+  
+    <a class="method" href="method.TextBuffer.get_end_iter.html">get_end_iter</a>
+  
+    <a class="method" href="method.TextBuffer.get_has_selection.html">get_has_selection</a>
+  
+    <a class="method" href="method.TextBuffer.get_insert.html">get_insert</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_child_anchor.html">get_iter_at_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line.html">get_iter_at_line</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line_index.html">get_iter_at_line_index</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line_offset.html">get_iter_at_line_offset</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_mark.html">get_iter_at_mark</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_offset.html">get_iter_at_offset</a>
+  
+    <a class="method" href="method.TextBuffer.get_line_count.html">get_line_count</a>
+  
+    <a class="method" href="method.TextBuffer.get_mark.html">get_mark</a>
+  
+    <a class="method" href="method.TextBuffer.get_max_undo_levels.html">get_max_undo_levels</a>
+  
+    <a class="method" href="method.TextBuffer.get_modified.html">get_modified</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_bound.html">get_selection_bound</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_bounds.html">get_selection_bounds</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_content.html">get_selection_content</a>
+  
+    <a class="method" href="method.TextBuffer.get_slice.html">get_slice</a>
+  
+    <a class="method" href="method.TextBuffer.get_start_iter.html">get_start_iter</a>
+  
+    <a class="method" href="method.TextBuffer.get_tag_table.html">get_tag_table</a>
+  
+    <a class="method" href="method.TextBuffer.get_text.html">get_text</a>
+  
+    <a class="method" href="method.TextBuffer.insert.html">insert</a>
+  
+    <a class="method" href="method.TextBuffer.insert_at_cursor.html">insert_at_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_child_anchor.html">insert_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_interactive.html">insert_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.insert_interactive_at_cursor.html">insert_interactive_at_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_markup.html">insert_markup</a>
+  
+    <a class="method" href="method.TextBuffer.insert_paintable.html">insert_paintable</a>
+  
+    <a class="method" href="method.TextBuffer.insert_range.html">insert_range</a>
+  
+    <a class="method" href="method.TextBuffer.insert_range_interactive.html">insert_range_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.insert_with_tags.html">insert_with_tags</a>
+  
+    <a class="method" href="method.TextBuffer.insert_with_tags_by_name.html">insert_with_tags_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.move_mark.html">move_mark</a>
+  
+    <a class="method" href="method.TextBuffer.move_mark_by_name.html">move_mark_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.paste_clipboard.html">paste_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.place_cursor.html">place_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.redo.html">redo</a>
+  
+    <a class="method" href="method.TextBuffer.remove_all_tags.html">remove_all_tags</a>
+  
+    <a class="method" href="method.TextBuffer.remove_selection_clipboard.html">remove_selection_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.remove_tag.html">remove_tag</a>
+  
+    <a class="method" href="method.TextBuffer.remove_tag_by_name.html">remove_tag_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.select_range.html">select_range</a>
+  
+    <a class="method" href="method.TextBuffer.set_enable_undo.html">set_enable_undo</a>
+  
+    <a class="method" href="method.TextBuffer.set_max_undo_levels.html">set_max_undo_levels</a>
+  
+    <a class="method" href="method.TextBuffer.set_modified.html">set_modified</a>
+  
+    <a class="method" href="method.TextBuffer.set_text.html">set_text</a>
+  
+    <a class="method" href="method.TextBuffer.undo.html">undo</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.TextBuffer.html">TextBuffer</a><span class="sep"></span>delete_selection</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtktextbuffer.h#L428">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">gboolean</span>
+<span class="n">gtk_text_buffer_delete_selection</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkTextBuffer</span><span class="o">*</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span>
+<span class="w">  </span><span class="n">gboolean</span><span class="w"> </span><span class="n">interactive</span><span class="p">,</span>
+<span class="w">  </span><span class="n">gboolean</span><span class="w"> </span><span class="n">default_editable</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtktextbuffer.c#L3978">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Deletes the range between the “insert” and “selection_bound” marks,
+that is, the currently-selected&nbsp;text.</p>
+<p>If <code>interactive</code> is <code>TRUE</code>, the editability of the selection will be
+considered (users can’t delete uneditable&nbsp;text).</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>interactive</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p>Whether the deletion is caused by user&nbsp;interaction.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>default_editable</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p>Whether the buffer is editable by&nbsp;default.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p>Whether there was a non-empty selection to&nbsp;delete.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

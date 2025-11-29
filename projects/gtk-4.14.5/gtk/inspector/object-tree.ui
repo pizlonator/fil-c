@@ -1,0 +1,91 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorObjectTree" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkSearchBar" id="search_bar">
+        <property name="show-close-button">1</property>
+        <child>
+          <object class="GtkBox">
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+                <property name="max-width-chars">40</property>
+                <signal name="search-changed" handler="on_search_changed"/>
+                <signal name="next-match" handler="next_match"/>
+                <signal name="previous-match" handler="previous_match"/>
+                <signal name="stop-search" handler="stop_search"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-down-symbolic</property>
+                <signal name="clicked" handler="next_match"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-up-symbolic</property>
+                <signal name="clicked" handler="previous_match"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkColumnView" id="list">
+            <signal name="activate" handler="on_row_activated"/>
+            <style>
+              <class name="data-table"/>
+            </style>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title">Type</property>
+                <property name="expand">1</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_type_cb"/>
+                    <signal name="bind" handler="bind_type_cb"/>
+                    <signal name="unbind" handler="unbind_type_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title">Name</property>
+                <property name="expand">1</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_name_cb"/>
+                    <signal name="bind" handler="bind_name_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title">Label</property>
+                <property name="expand">1</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory">
+                    <signal name="setup" handler="setup_label_cb"/>
+                    <signal name="bind" handler="bind_label_cb"/>
+                    <signal name="unbind" handler="unbind_label_cb"/>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

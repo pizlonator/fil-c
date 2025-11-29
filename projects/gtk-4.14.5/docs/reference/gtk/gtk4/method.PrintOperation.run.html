@@ -1,0 +1,389 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.PrintOperation.run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.PrintOperation.run"/>
+  <meta priority="og:description" content="Reference for Gtk.PrintOperation.run"/>
+  <meta name="twitter:title" content="Gtk.PrintOperation.run"/>
+  <meta name="twitter:description" content="Reference for Gtk.PrintOperation.run"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.PrintOperation.html">PrintOperation</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.PrintOperation.cancel.html">cancel</a>
+  
+    <a class="method" href="method.PrintOperation.draw_page_finish.html">draw_page_finish</a>
+  
+    <a class="method" href="method.PrintOperation.get_default_page_setup.html">get_default_page_setup</a>
+  
+    <a class="method" href="method.PrintOperation.get_embed_page_setup.html">get_embed_page_setup</a>
+  
+    <a class="method" href="method.PrintOperation.get_error.html">get_error</a>
+  
+    <a class="method" href="method.PrintOperation.get_has_selection.html">get_has_selection</a>
+  
+    <a class="method" href="method.PrintOperation.get_n_pages_to_print.html">get_n_pages_to_print</a>
+  
+    <a class="method" href="method.PrintOperation.get_print_settings.html">get_print_settings</a>
+  
+    <a class="method" href="method.PrintOperation.get_status.html">get_status</a>
+  
+    <a class="method" href="method.PrintOperation.get_status_string.html">get_status_string</a>
+  
+    <a class="method" href="method.PrintOperation.get_support_selection.html">get_support_selection</a>
+  
+    <a class="method" href="method.PrintOperation.is_finished.html">is_finished</a>
+  
+    <a class="method current" href="method.PrintOperation.run.html">run</a>
+  
+    <a class="method" href="method.PrintOperation.set_allow_async.html">set_allow_async</a>
+  
+    <a class="method" href="method.PrintOperation.set_current_page.html">set_current_page</a>
+  
+    <a class="method" href="method.PrintOperation.set_custom_tab_label.html">set_custom_tab_label</a>
+  
+    <a class="method" href="method.PrintOperation.set_default_page_setup.html">set_default_page_setup</a>
+  
+    <a class="method" href="method.PrintOperation.set_defer_drawing.html">set_defer_drawing</a>
+  
+    <a class="method" href="method.PrintOperation.set_embed_page_setup.html">set_embed_page_setup</a>
+  
+    <a class="method" href="method.PrintOperation.set_export_filename.html">set_export_filename</a>
+  
+    <a class="method" href="method.PrintOperation.set_has_selection.html">set_has_selection</a>
+  
+    <a class="method" href="method.PrintOperation.set_job_name.html">set_job_name</a>
+  
+    <a class="method" href="method.PrintOperation.set_n_pages.html">set_n_pages</a>
+  
+    <a class="method" href="method.PrintOperation.set_print_settings.html">set_print_settings</a>
+  
+    <a class="method" href="method.PrintOperation.set_show_progress.html">set_show_progress</a>
+  
+    <a class="method" href="method.PrintOperation.set_support_selection.html">set_support_selection</a>
+  
+    <a class="method" href="method.PrintOperation.set_track_print_status.html">set_track_print_status</a>
+  
+    <a class="method" href="method.PrintOperation.set_unit.html">set_unit</a>
+  
+    <a class="method" href="method.PrintOperation.set_use_full_page.html">set_use_full_page</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.PrintOperation.html">PrintOperation</a><span class="sep"></span>run</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/print/gtkprintoperation.h#L268">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">GtkPrintOperationResult</span>
+<span class="n">gtk_print_operation_run</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkPrintOperation</span><span class="o">*</span><span class="w"> </span><span class="n">op</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GtkPrintOperationAction</span><span class="w"> </span><span class="n">action</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GtkWindow</span><span class="o">*</span><span class="w"> </span><span class="n">parent</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GError</span><span class="o">**</span><span class="w"> </span><span class="n">error</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/print/gtkprintoperation.c#L2994">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Runs the print&nbsp;operation.</p>
+<p>Normally that this function does not return until the rendering
+of all pages is complete. You can connect to the
+<a href="signal.PrintOperation.status-changed.html"><code>GtkPrintOperation::status-changed</code></a> signal on <code>op</code> to obtain
+some information about the progress of the print&nbsp;operation.</p>
+<p>Furthermore, it may use a recursive mainloop to show the print&nbsp;dialog.</p>
+<p>If you set the [Gtk.PrintOperation:allow-async] property, the operation
+will run asynchronously if this is supported on the platform. The
+<a href="signal.PrintOperation.done.html"><code>GtkPrintOperation::done</code></a> signal will be emitted with the result
+of the operation when the it is done (i.e. when the dialog is canceled,
+or when the print succeeds or&nbsp;fails).</p>
+<div class="codehilite"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">settings</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="w">  </span><span class="n">gtk_print_operation_set_print_settings</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">,</span><span class="w"> </span><span class="n">settings</span><span class="p">);</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">page_setup</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="w">  </span><span class="n">gtk_print_operation_set_default_page_setup</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">,</span><span class="w"> </span><span class="n">page_setup</span><span class="p">);</span>
+
+<span class="n">g_signal_connect</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;begin-print&quot;</span><span class="p">,</span>
+<span class="w">                  </span><span class="n">G_CALLBACK</span><span class="w"> </span><span class="p">(</span><span class="n">begin_print</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+<span class="n">g_signal_connect</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;draw-page&quot;</span><span class="p">,</span>
+<span class="w">                  </span><span class="n">G_CALLBACK</span><span class="w"> </span><span class="p">(</span><span class="n">draw_page</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+
+<span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_print_operation_run</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">parent</span><span class="p">,</span>
+<span class="w">                               </span><span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GTK_PRINT_OPERATION_RESULT_ERROR</span><span class="p">)</span>
+<span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">error_dialog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_message_dialog_new</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WINDOW</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">),</span>
+<span class="w">                                 </span><span class="n">GTK_DIALOG_DESTROY_WITH_PARENT</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">GTK_MESSAGE_ERROR</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">GTK_BUTTONS_CLOSE</span><span class="p">,</span>
+<span class="w">                         </span><span class="s">&quot;Error printing file:</span><span class="se">\n</span><span class="s">%s&quot;</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">message</span><span class="p">);</span>
+<span class="w">   </span><span class="n">g_signal_connect</span><span class="w"> </span><span class="p">(</span><span class="n">error_dialog</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;response&quot;</span><span class="p">,</span>
+<span class="w">                     </span><span class="n">G_CALLBACK</span><span class="w"> </span><span class="p">(</span><span class="n">gtk_window_destroy</span><span class="p">),</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">   </span><span class="n">gtk_window_present</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WINDOW</span><span class="w"> </span><span class="p">(</span><span class="n">error_dialog</span><span class="p">));</span>
+<span class="w">   </span><span class="n">g_error_free</span><span class="w"> </span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+<span class="w"> </span><span class="p">}</span>
+<span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GTK_PRINT_OPERATION_RESULT_APPLY</span><span class="p">)</span>
+<span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">settings</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="n">g_object_unref</span><span class="w"> </span><span class="p">(</span><span class="n">settings</span><span class="p">);</span>
+<span class="w">   </span><span class="n">settings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g_object_ref</span><span class="w"> </span><span class="p">(</span><span class="n">gtk_print_operation_get_print_settings</span><span class="w"> </span><span class="p">(</span><span class="n">print</span><span class="p">));</span>
+<span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>Note that <code>gtk_print_operation_run()</code> can only be called once on a
+given <code>GtkPrintOperation</code>.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>action</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="enum.PrintOperationAction.html"><code>GtkPrintOperationAction</code></a></p>
+            <p>The action to&nbsp;start.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>parent</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="class.Window.html"><code>GtkWindow</code></a></p>
+            <p>Transient parent of the&nbsp;dialog.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+
+          
+          <dt class="arg-name"><code>error</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-namespace="GLib" data-link="struct.Error.html" class="external"><code>GError **</code></a></p>
+            <p>The return location for <a href="https://docs.gtk.org/glib/error-reporting.html#rules-for-use-of-gerror">a recoverable error</a>.</p>
+            <table>
+              <tr><td>The argument can be <code>NULL</code>.</td></tr>
+              <tr><td>If the return location is not <code>NULL</code>, then you must initialize it to a <code>NULL</code> <code>GError*</code>.</td></tr>
+              <tr><td>The argument will be left initialized to <code>NULL</code> by the method if there are no errors.</td></tr>
+              <tr><td>In case of error, the argument will be set to a newly allocated <code>GError</code>; the caller will take ownership of the data, and be responsible for freeing it.</td></tr>
+            </table>
+          </dd>
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="enum.PrintOperationResult.html"><code>GtkPrintOperationResult</code></a></p>
+            <p>The result of the print operation. A return value of
+  <code>GTK_PRINT_OPERATION_RESULT_APPLY</code> indicates that the printing was
+  completed successfully. In this case, it is a good idea to obtain
+  the used print settings with
+  <a href="method.PrintOperation.get_print_settings.html"><code>gtk_print_operation_get_print_settings()</code></a>
+  and store them for reuse with the next print operation. A value of
+  <code>GTK_PRINT_OPERATION_RESULT_IN_PROGRESS</code> means the operation is running
+  asynchronously, and will emit the <a href="signal.PrintOperation.done.html"><code>GtkPrintOperation::done</code></a>
+  signal when&nbsp;done.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

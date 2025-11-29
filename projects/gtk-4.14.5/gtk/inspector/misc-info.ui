@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorMiscInfo" parent="GtkWidget">
+    <child>
+      <object class="GtkScrolledWindow" id="swin">
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">60</property>
+            <property name="margin-end">60</property>
+            <property name="margin-top">30</property>
+            <property name="margin-bottom">60</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkListBox">
+                <property name="selection-mode">none</property>
+                <property name="halign">center</property>
+                <property name="hexpand">False</property>
+                <style>
+                  <class name="rich-list"/>
+                  <class name="boxed-list"/>
+                </style>
+                <child>
+                  <object class="GtkListBoxRow" id="address_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="address_label">
+                            <property name="label" translatable="yes">Address</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="address">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="type_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="type_label">
+                            <property name="label" translatable="yes">Type</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuButton" id="type">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="refcount_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="refcount_label">
+                            <property name="label" translatable="yes">Reference Count</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="refcount">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="state_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="state_label">
+                            <property name="label" translatable="yes">State</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="state">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="direction_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="direction_label">
+                            <property name="label" translatable="yes">Direction</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="direction">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="buildable_id_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="buildable_id_label">
+                            <property name="label" translatable="yes">Buildable ID</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="buildable_id">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="mnemonic_label_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Mnemonic Label</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="mnemonic_label">
+                            <property name="spacing">10</property>
+                            <property name="halign">end</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="request_mode_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Request Mode</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="request_mode">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="measure_info_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Measure map</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="measure_show">
+                            <property name="label" translatable="yes">Show</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <signal name="clicked" handler="measure_graph_measure" after="1" swapped="yes"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="measure_expand_toggle">
+                            <property name="label" translatable="yes">Expand</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <signal name="clicked" handler="update_measure_picture" swapped="yes" after="1" object="measure_picture"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="measure_row">
+                    <property name="activatable">0</property>
+                    <property name="visible" bind-source="measure_show" bind-property="active" bind-flags="sync-create"/>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkPicture" id="measure_picture">
+                            <property name="paintable">
+                              <object class="GtkInspectorMeasureGraph" id="measure_graph" />
+                            </property>
+                            <property name="can-shrink">0</property>
+                            <property name="hexpand">1</property>
+                            <child>
+                              <object class="GtkDragSource">
+                                <signal name="prepare" handler="measure_picture_drag_prepare" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="bounds_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Bounds</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="bounds">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="baseline_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Baseline</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="baseline">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="surface_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="surface_label">
+                            <property name="label" translatable="yes">Surface</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="surface">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="surface_button">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="label" translatable="yes">Properties</property>
+                            <signal name="clicked" handler="show_surface"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="renderer_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="renderer_label">
+                            <property name="label" translatable="yes">Renderer</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="renderer">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="renderer_button">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="label" translatable="yes">Properties</property>
+                            <signal name="clicked" handler="show_renderer"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="frame_clock_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel" id="frame_clock_label">
+                            <property name="label" translatable="yes">Frame Clock</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="frame_clock">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="frame_clock_button">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="label" translatable="yes">Properties</property>
+                            <signal name="clicked" handler="show_frame_clock"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="tick_callback_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Tick Callback</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="tick_callback">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="icon-name">object-select-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="framecount_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Frame Count</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="framecount">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="framerate_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Frame Rate</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="framerate">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="scale_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Scale</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="scale">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="mapped_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Mapped</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="mapped">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="icon-name">object-select-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="realized_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Realized</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="realized">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="icon-name">object-select-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="is_toplevel_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Is Toplevel</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="is_toplevel">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="icon-name">object-select-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="child_visible_row">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Child Visible</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="child_visible">
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="icon-name">object-select-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="address_label"/>
+      <widget name="refcount_label"/>
+      <widget name="state_label"/>
+      <widget name="direction_label"/>
+      <widget name="buildable_id_label"/>
+      <widget name="surface_label"/>
+      <widget name="renderer_label"/>
+      <widget name="frame_clock_label"/>
+    </widgets>
+  </object>
+</interface>

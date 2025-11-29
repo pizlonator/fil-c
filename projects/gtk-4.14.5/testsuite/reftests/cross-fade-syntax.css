@@ -1,0 +1,91 @@
+#test1 {
+  background-image: cross-fade(60% image(red), image(blue));
+}
+#ref1 {
+  background-color: #906;
+}
+
+#test2 {
+  background-image: cross-fade( image(red) 60%, image(blue));
+}
+#ref2 {
+  background-color: #906;
+}
+
+#test3 {
+  background-image: cross-fade( image(red) 60%, 40% image(blue));
+}
+#ref3 {
+  background-color: #906;
+}
+
+#test4 {
+  background-image: cross-fade( image(red) 60%, 40% image(blue), image(lime));
+}
+#ref4 {
+  background-color: #906;
+}
+
+#test5 {
+  background-image: cross-fade(image(lime), image(red) 60%, image(blue) 40%, image(lime));
+}
+#ref5 {
+  background-color: #906;
+}
+
+#test6 {
+  background-image: cross-fade(90% image(red), 60% image(blue));
+}
+#ref6 {
+  background-color: #906;
+}
+
+#test7 {
+  background-image: cross-fade(40% image(red), 20% image(blue));
+}
+#ref7 {
+  background-color: #A059;
+}
+
+#test8 {
+  background-image: cross-fade( image(red), image(blue), image(lime));
+}
+#ref8 {
+  background-color: #555;
+}
+
+#test9 {
+  background-image: cross-fade( image(red) 100%, 100% image(blue), image(lime) 100%);
+}
+#ref9 {
+  background-color: #555;
+}
+
+#test10 {
+  background-image: cross-fade(40% image(lime), image(red) 40%, image(blue) 40%, image(lime));
+}
+#ref10 {
+  background-color: #555;
+}
+
+#test11 {
+  background-image: cross-fade(image(red));
+}
+#ref11 {
+  background-color: #F00;
+}
+
+#test12 {
+  background-image: cross-fade(image(red) 0%);
+}
+#ref12 {
+  background-color: #0000;
+}
+
+#test13 {
+  background-image: cross-fade(image(red), image(lime), image(blue), image(white), image(black));
+}
+#ref13 {
+  background-color: #666;
+}
+

@@ -1,0 +1,124 @@
+
+Overview of Changes in GTK+ 1.0.0:
+
+* A few bug fixes.
+
+Overview of Changes in GTK+ 0.99.10:
+
+* Lots of bug fixes
+* Documentation improvements
+* Better looking handlebox
+* A few convenience functions
+
+Overview of Changes in GTK+ 0.99.9:
+
+* Added examples directory, even more examples soon
+* Added optional word wrap to gtktext
+* Changes to gtkhandlebox
+* Lots of bug fixes
+
+Overview of Changes in GTK+ 0.99.8:
+
+* Compilation and configuration fixes
+* DND Fixes
+* New test in testgtk: cursors
+* Tutorial updates/additions
+* Few more FAQ additions
+* More prep for 1.0
+
+Overview of Changes in GTK+ 0.99.7:
+
+* This release is mainly because 0.99.6 did not compile completely
+  due to a missing file.
+* Fixes to Gtk's quit handlers.
+
+Overview of Changes in GTK+ 0.99.6:
+
+* Intermediate release to become 1.0.
+* More signedness corrections for handler functions in gtkmain.h.
+* Semantics of GtkWidget::delete_event changed.
+* Documentation updates.
+* Inclusion of Gtk tutorial.
+* Implementation of a new shutdown method for GtkObject's executed prior to
+  actual destruction. WARNING: this breaks binary compatibility, programs using
+  Gtk need to be recompiled.
+* Clean ups due to compiler warnings.
+* Various widget fixes.
+
+Overview of Fixes in GTK+ 0.99.5:
+
+* Signal signedness and naming corrections
+* rc/style fixes
+* text, entry widget fixes
+* gtkeditable fixes
+* scrollbar flickering fixed
+* check casts are more descriptive
+* DND fixes
+* FAQ updates
+* Bug fixes
+
+Overview of Changes in GTK+ 0.99.4:
+
+* Reference counting revolution integrated.
+  Refer to docs/refcounting.txt on this issue.
+* Implementation of a decent debugging system, you would want
+  to export GTK_DEBUG=objects if you are going to develop gtk applications,
+  refer to docs/debugging.txt for further information.
+* Additions on the signal code for querying information about certain signals,
+  and pending handlers of signals.
+* Support for user signals, and major changes to internal signal handler
+  handling for proper signal removal and invokation of after signals.
+* Additional signals for various widgets e.g, GtkHandleBox::child_attached,
+  GtkHandleBox::child_detached, GtkWidget::style_set, GtkWidget::parent_set.
+* GtkTooltips became a true descendant of GtkObject via derivation from
+  GtkData and facilitates an extra tip string which can be used as e.g. an
+  index into context help.
+* Split up of the widget/object flags into a private and a public portion,
+  consult docs/widget_system.txt on this.
+* Support for hot keys on gtk programs via gtk_key_snooper_install().
+* Reimplementation of the *_interp functions as *_full functions to provide
+  simple callback functions as well.
+* Idle functions are now prioritized.
+* Many enhancements to GtkNotebook.
+* New widget GtkSpinButton, check out testgtk.
+* New widget GtkTipsQuery for letting the user query tooltips of widgets.
+* Addition of GtkEditable base widget to encapsulate selection and
+  clipboard handling. (GtkEntry and GtkText use this)
+* Text widget more complete.
+* Additions to GtkStatusBar to make it complete.
+* Gdk now supports regions.
+* Access masks for widget arguments (GTK_ARG_READABLE/GTK_ARG_WRITABLE).
+* Function replacements:
+  g_string_hash() -> g_str_hash()
+  g_string_equal() -> g_str_equal()
+  gtk_tooltips_set_tips() -> gtk_tooltips_set_tip()
+* Support for quit handlers in gtk_main().
+* Motif window mangaer hints support.
+* Widget arguments are now flagged for readability/writability.
+* Additions to documentation.
+* Various FAQ updates. (FAQ now included)
+* Clean ups and many many bug fixes by a lot of people all over the place.
+* New, long and descriptive ChangeLog entries for bored readers ;)
+
+Overview of Changes in GTK+ 0.99.3:
+
+* Filesel enhancement / stability changes
+* New widget, gtkcombo 
+* Widgets in the toolbar do not get the focus
+* New widget, gtkstatusbar (still in-progress)
+* g_string_equal renamed g_str_equal
+* g_string_hash renamed g_str_hash
+* new gtkbox functions to allow modification of the child 
+  linkage after the widget tree is setup
+* gtk_*_get_arg() and gtk_*_set_arg() fixes and implementations
+* DND changes/fixes
+* Entry widget now has set_max_length function
+* Handlebox widget changes/fixes 
+* Some work on text widget (still in-progress)
+* Now the toolbar supports arbitrary widgets as well
+* CList has resizable columns again
+* CList now looks consistant with scrolled windows
+* Remove flickering from entry widget
+* Added switch_page signal to notebook widget
+* Documentation additions
+* Other bug fixes...

@@ -1,0 +1,4753 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Widget</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Widget"/>
+  <meta property="og:description" content="Reference for Gtk.Widget"/>
+  <meta name="twitter:title" content="Gtk.Widget"/>
+  <meta name="twitter:description" content="Reference for Gtk.Widget"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Widget.html#description">Widget</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  
+    <a class="func" href="type_func.Widget.get_default_direction.html">get_default_direction</a>
+  
+    <a class="func" href="type_func.Widget.set_default_direction.html">set_default_direction</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Widget.action_set_enabled.html">action_set_enabled</a>
+  
+    <a class="method" href="method.Widget.activate.html">activate</a>
+  
+    <a class="method" href="method.Widget.activate_action.html">activate_action</a>
+  
+    <a class="method" href="method.Widget.activate_action_variant.html">activate_action_variant</a>
+  
+    <a class="method" href="method.Widget.activate_default.html">activate_default</a>
+  
+    <a class="method" href="method.Widget.add_controller.html">add_controller</a>
+  
+    <a class="method" href="method.Widget.add_css_class.html">add_css_class</a>
+  
+    <a class="method" href="method.Widget.add_mnemonic_label.html">add_mnemonic_label</a>
+  
+    <a class="method" href="method.Widget.add_tick_callback.html">add_tick_callback</a>
+  
+    <a class="method" href="method.Widget.allocate.html">allocate</a>
+  
+    <a class="method" href="method.Widget.child_focus.html">child_focus</a>
+  
+    <a class="method" href="method.Widget.compute_bounds.html">compute_bounds</a>
+  
+    <a class="method" href="method.Widget.compute_expand.html">compute_expand</a>
+  
+    <a class="method" href="method.Widget.compute_point.html">compute_point</a>
+  
+    <a class="method" href="method.Widget.compute_transform.html">compute_transform</a>
+  
+    <a class="method" href="method.Widget.contains.html">contains</a>
+  
+    <a class="method" href="method.Widget.create_pango_context.html">create_pango_context</a>
+  
+    <a class="method" href="method.Widget.create_pango_layout.html">create_pango_layout</a>
+  
+    <a class="method" href="method.Widget.dispose_template.html">dispose_template</a>
+  
+    <a class="method" href="method.Widget.drag_check_threshold.html">drag_check_threshold</a>
+  
+    <a class="method" href="method.Widget.error_bell.html">error_bell</a>
+  
+    <a class="method" href="method.Widget.get_allocated_baseline.html">get_allocated_baseline</a>
+  
+    <a class="method" href="method.Widget.get_allocated_height.html">get_allocated_height</a>
+  
+    <a class="method" href="method.Widget.get_allocated_width.html">get_allocated_width</a>
+  
+    <a class="method" href="method.Widget.get_allocation.html">get_allocation</a>
+  
+    <a class="method" href="method.Widget.get_ancestor.html">get_ancestor</a>
+  
+    <a class="method" href="method.Widget.get_baseline.html">get_baseline</a>
+  
+    <a class="method" href="method.Widget.get_can_focus.html">get_can_focus</a>
+  
+    <a class="method" href="method.Widget.get_can_target.html">get_can_target</a>
+  
+    <a class="method" href="method.Widget.get_child_visible.html">get_child_visible</a>
+  
+    <a class="method" href="method.Widget.get_clipboard.html">get_clipboard</a>
+  
+    <a class="method" href="method.Widget.get_color.html">get_color</a>
+  
+    <a class="method" href="method.Widget.get_css_classes.html">get_css_classes</a>
+  
+    <a class="method" href="method.Widget.get_css_name.html">get_css_name</a>
+  
+    <a class="method" href="method.Widget.get_cursor.html">get_cursor</a>
+  
+    <a class="method" href="method.Widget.get_direction.html">get_direction</a>
+  
+    <a class="method" href="method.Widget.get_display.html">get_display</a>
+  
+    <a class="method" href="method.Widget.get_first_child.html">get_first_child</a>
+  
+    <a class="method" href="method.Widget.get_focus_child.html">get_focus_child</a>
+  
+    <a class="method" href="method.Widget.get_focus_on_click.html">get_focus_on_click</a>
+  
+    <a class="method" href="method.Widget.get_focusable.html">get_focusable</a>
+  
+    <a class="method" href="method.Widget.get_font_map.html">get_font_map</a>
+  
+    <a class="method" href="method.Widget.get_font_options.html">get_font_options</a>
+  
+    <a class="method" href="method.Widget.get_frame_clock.html">get_frame_clock</a>
+  
+    <a class="method" href="method.Widget.get_halign.html">get_halign</a>
+  
+    <a class="method" href="method.Widget.get_has_tooltip.html">get_has_tooltip</a>
+  
+    <a class="method" href="method.Widget.get_height.html">get_height</a>
+  
+    <a class="method" href="method.Widget.get_hexpand.html">get_hexpand</a>
+  
+    <a class="method" href="method.Widget.get_hexpand_set.html">get_hexpand_set</a>
+  
+    <a class="method" href="method.Widget.get_last_child.html">get_last_child</a>
+  
+    <a class="method" href="method.Widget.get_layout_manager.html">get_layout_manager</a>
+  
+    <a class="method" href="method.Widget.get_mapped.html">get_mapped</a>
+  
+    <a class="method" href="method.Widget.get_margin_bottom.html">get_margin_bottom</a>
+  
+    <a class="method" href="method.Widget.get_margin_end.html">get_margin_end</a>
+  
+    <a class="method" href="method.Widget.get_margin_start.html">get_margin_start</a>
+  
+    <a class="method" href="method.Widget.get_margin_top.html">get_margin_top</a>
+  
+    <a class="method" href="method.Widget.get_name.html">get_name</a>
+  
+    <a class="method" href="method.Widget.get_native.html">get_native</a>
+  
+    <a class="method" href="method.Widget.get_next_sibling.html">get_next_sibling</a>
+  
+    <a class="method" href="method.Widget.get_opacity.html">get_opacity</a>
+  
+    <a class="method" href="method.Widget.get_overflow.html">get_overflow</a>
+  
+    <a class="method" href="method.Widget.get_pango_context.html">get_pango_context</a>
+  
+    <a class="method" href="method.Widget.get_parent.html">get_parent</a>
+  
+    <a class="method" href="method.Widget.get_preferred_size.html">get_preferred_size</a>
+  
+    <a class="method" href="method.Widget.get_prev_sibling.html">get_prev_sibling</a>
+  
+    <a class="method" href="method.Widget.get_primary_clipboard.html">get_primary_clipboard</a>
+  
+    <a class="method" href="method.Widget.get_realized.html">get_realized</a>
+  
+    <a class="method" href="method.Widget.get_receives_default.html">get_receives_default</a>
+  
+    <a class="method" href="method.Widget.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="method.Widget.get_root.html">get_root</a>
+  
+    <a class="method" href="method.Widget.get_scale_factor.html">get_scale_factor</a>
+  
+    <a class="method" href="method.Widget.get_sensitive.html">get_sensitive</a>
+  
+    <a class="method" href="method.Widget.get_settings.html">get_settings</a>
+  
+    <a class="method" href="method.Widget.get_size.html">get_size</a>
+  
+    <a class="method" href="method.Widget.get_size_request.html">get_size_request</a>
+  
+    <a class="method" href="method.Widget.get_state_flags.html">get_state_flags</a>
+  
+    <a class="method" href="method.Widget.get_style_context.html">get_style_context</a>
+  
+    <a class="method" href="method.Widget.get_template_child.html">get_template_child</a>
+  
+    <a class="method" href="method.Widget.get_tooltip_markup.html">get_tooltip_markup</a>
+  
+    <a class="method" href="method.Widget.get_tooltip_text.html">get_tooltip_text</a>
+  
+    <a class="method" href="method.Widget.get_valign.html">get_valign</a>
+  
+    <a class="method" href="method.Widget.get_vexpand.html">get_vexpand</a>
+  
+    <a class="method" href="method.Widget.get_vexpand_set.html">get_vexpand_set</a>
+  
+    <a class="method" href="method.Widget.get_visible.html">get_visible</a>
+  
+    <a class="method" href="method.Widget.get_width.html">get_width</a>
+  
+    <a class="method" href="method.Widget.grab_focus.html">grab_focus</a>
+  
+    <a class="method" href="method.Widget.has_css_class.html">has_css_class</a>
+  
+    <a class="method" href="method.Widget.has_default.html">has_default</a>
+  
+    <a class="method" href="method.Widget.has_focus.html">has_focus</a>
+  
+    <a class="method" href="method.Widget.has_visible_focus.html">has_visible_focus</a>
+  
+    <a class="method" href="method.Widget.hide.html">hide</a>
+  
+    <a class="method" href="method.Widget.in_destruction.html">in_destruction</a>
+  
+    <a class="method" href="method.Widget.init_template.html">init_template</a>
+  
+    <a class="method" href="method.Widget.insert_action_group.html">insert_action_group</a>
+  
+    <a class="method" href="method.Widget.insert_after.html">insert_after</a>
+  
+    <a class="method" href="method.Widget.insert_before.html">insert_before</a>
+  
+    <a class="method" href="method.Widget.is_ancestor.html">is_ancestor</a>
+  
+    <a class="method" href="method.Widget.is_drawable.html">is_drawable</a>
+  
+    <a class="method" href="method.Widget.is_focus.html">is_focus</a>
+  
+    <a class="method" href="method.Widget.is_sensitive.html">is_sensitive</a>
+  
+    <a class="method" href="method.Widget.is_visible.html">is_visible</a>
+  
+    <a class="method" href="method.Widget.keynav_failed.html">keynav_failed</a>
+  
+    <a class="method" href="method.Widget.list_mnemonic_labels.html">list_mnemonic_labels</a>
+  
+    <a class="method" href="method.Widget.map.html">map</a>
+  
+    <a class="method" href="method.Widget.measure.html">measure</a>
+  
+    <a class="method" href="method.Widget.mnemonic_activate.html">mnemonic_activate</a>
+  
+    <a class="method" href="method.Widget.observe_children.html">observe_children</a>
+  
+    <a class="method" href="method.Widget.observe_controllers.html">observe_controllers</a>
+  
+    <a class="method" href="method.Widget.pick.html">pick</a>
+  
+    <a class="method" href="method.Widget.queue_allocate.html">queue_allocate</a>
+  
+    <a class="method" href="method.Widget.queue_draw.html">queue_draw</a>
+  
+    <a class="method" href="method.Widget.queue_resize.html">queue_resize</a>
+  
+    <a class="method" href="method.Widget.realize.html">realize</a>
+  
+    <a class="method" href="method.Widget.remove_controller.html">remove_controller</a>
+  
+    <a class="method" href="method.Widget.remove_css_class.html">remove_css_class</a>
+  
+    <a class="method" href="method.Widget.remove_mnemonic_label.html">remove_mnemonic_label</a>
+  
+    <a class="method" href="method.Widget.remove_tick_callback.html">remove_tick_callback</a>
+  
+    <a class="method" href="method.Widget.set_can_focus.html">set_can_focus</a>
+  
+    <a class="method" href="method.Widget.set_can_target.html">set_can_target</a>
+  
+    <a class="method" href="method.Widget.set_child_visible.html">set_child_visible</a>
+  
+    <a class="method" href="method.Widget.set_css_classes.html">set_css_classes</a>
+  
+    <a class="method" href="method.Widget.set_cursor.html">set_cursor</a>
+  
+    <a class="method" href="method.Widget.set_cursor_from_name.html">set_cursor_from_name</a>
+  
+    <a class="method" href="method.Widget.set_direction.html">set_direction</a>
+  
+    <a class="method" href="method.Widget.set_focus_child.html">set_focus_child</a>
+  
+    <a class="method" href="method.Widget.set_focus_on_click.html">set_focus_on_click</a>
+  
+    <a class="method" href="method.Widget.set_focusable.html">set_focusable</a>
+  
+    <a class="method" href="method.Widget.set_font_map.html">set_font_map</a>
+  
+    <a class="method" href="method.Widget.set_font_options.html">set_font_options</a>
+  
+    <a class="method" href="method.Widget.set_halign.html">set_halign</a>
+  
+    <a class="method" href="method.Widget.set_has_tooltip.html">set_has_tooltip</a>
+  
+    <a class="method" href="method.Widget.set_hexpand.html">set_hexpand</a>
+  
+    <a class="method" href="method.Widget.set_hexpand_set.html">set_hexpand_set</a>
+  
+    <a class="method" href="method.Widget.set_layout_manager.html">set_layout_manager</a>
+  
+    <a class="method" href="method.Widget.set_margin_bottom.html">set_margin_bottom</a>
+  
+    <a class="method" href="method.Widget.set_margin_end.html">set_margin_end</a>
+  
+    <a class="method" href="method.Widget.set_margin_start.html">set_margin_start</a>
+  
+    <a class="method" href="method.Widget.set_margin_top.html">set_margin_top</a>
+  
+    <a class="method" href="method.Widget.set_name.html">set_name</a>
+  
+    <a class="method" href="method.Widget.set_opacity.html">set_opacity</a>
+  
+    <a class="method" href="method.Widget.set_overflow.html">set_overflow</a>
+  
+    <a class="method" href="method.Widget.set_parent.html">set_parent</a>
+  
+    <a class="method" href="method.Widget.set_receives_default.html">set_receives_default</a>
+  
+    <a class="method" href="method.Widget.set_sensitive.html">set_sensitive</a>
+  
+    <a class="method" href="method.Widget.set_size_request.html">set_size_request</a>
+  
+    <a class="method" href="method.Widget.set_state_flags.html">set_state_flags</a>
+  
+    <a class="method" href="method.Widget.set_tooltip_markup.html">set_tooltip_markup</a>
+  
+    <a class="method" href="method.Widget.set_tooltip_text.html">set_tooltip_text</a>
+  
+    <a class="method" href="method.Widget.set_valign.html">set_valign</a>
+  
+    <a class="method" href="method.Widget.set_vexpand.html">set_vexpand</a>
+  
+    <a class="method" href="method.Widget.set_vexpand_set.html">set_vexpand_set</a>
+  
+    <a class="method" href="method.Widget.set_visible.html">set_visible</a>
+  
+    <a class="method" href="method.Widget.should_layout.html">should_layout</a>
+  
+    <a class="method" href="method.Widget.show.html">show</a>
+  
+    <a class="method" href="method.Widget.size_allocate.html">size_allocate</a>
+  
+    <a class="method" href="method.Widget.snapshot_child.html">snapshot_child</a>
+  
+    <a class="method" href="method.Widget.translate_coordinates.html">translate_coordinates</a>
+  
+    <a class="method" href="method.Widget.trigger_tooltip_query.html">trigger_tooltip_query</a>
+  
+    <a class="method" href="method.Widget.unmap.html">unmap</a>
+  
+    <a class="method" href="method.Widget.unparent.html">unparent</a>
+  
+    <a class="method" href="method.Widget.unrealize.html">unrealize</a>
+  
+    <a class="method" href="method.Widget.unset_state_flags.html">unset_state_flags</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Widget.can-focus.html">can-focus</a>
+  
+    <a class="property" href="property.Widget.can-target.html">can-target</a>
+  
+    <a class="property" href="property.Widget.css-classes.html">css-classes</a>
+  
+    <a class="property" href="property.Widget.css-name.html">css-name</a>
+  
+    <a class="property" href="property.Widget.cursor.html">cursor</a>
+  
+    <a class="property" href="property.Widget.focus-on-click.html">focus-on-click</a>
+  
+    <a class="property" href="property.Widget.focusable.html">focusable</a>
+  
+    <a class="property" href="property.Widget.halign.html">halign</a>
+  
+    <a class="property" href="property.Widget.has-default.html">has-default</a>
+  
+    <a class="property" href="property.Widget.has-focus.html">has-focus</a>
+  
+    <a class="property" href="property.Widget.has-tooltip.html">has-tooltip</a>
+  
+    <a class="property" href="property.Widget.height-request.html">height-request</a>
+  
+    <a class="property" href="property.Widget.hexpand.html">hexpand</a>
+  
+    <a class="property" href="property.Widget.hexpand-set.html">hexpand-set</a>
+  
+    <a class="property" href="property.Widget.layout-manager.html">layout-manager</a>
+  
+    <a class="property" href="property.Widget.margin-bottom.html">margin-bottom</a>
+  
+    <a class="property" href="property.Widget.margin-end.html">margin-end</a>
+  
+    <a class="property" href="property.Widget.margin-start.html">margin-start</a>
+  
+    <a class="property" href="property.Widget.margin-top.html">margin-top</a>
+  
+    <a class="property" href="property.Widget.name.html">name</a>
+  
+    <a class="property" href="property.Widget.opacity.html">opacity</a>
+  
+    <a class="property" href="property.Widget.overflow.html">overflow</a>
+  
+    <a class="property" href="property.Widget.parent.html">parent</a>
+  
+    <a class="property" href="property.Widget.receives-default.html">receives-default</a>
+  
+    <a class="property" href="property.Widget.root.html">root</a>
+  
+    <a class="property" href="property.Widget.scale-factor.html">scale-factor</a>
+  
+    <a class="property" href="property.Widget.sensitive.html">sensitive</a>
+  
+    <a class="property" href="property.Widget.tooltip-markup.html">tooltip-markup</a>
+  
+    <a class="property" href="property.Widget.tooltip-text.html">tooltip-text</a>
+  
+    <a class="property" href="property.Widget.valign.html">valign</a>
+  
+    <a class="property" href="property.Widget.vexpand.html">vexpand</a>
+  
+    <a class="property" href="property.Widget.vexpand-set.html">vexpand-set</a>
+  
+    <a class="property" href="property.Widget.visible.html">visible</a>
+  
+    <a class="property" href="property.Widget.width-request.html">width-request</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Widget.destroy.html">destroy</a>
+  
+    <a class="signal" href="signal.Widget.direction-changed.html">direction-changed</a>
+  
+    <a class="signal" href="signal.Widget.hide.html">hide</a>
+  
+    <a class="signal" href="signal.Widget.keynav-failed.html">keynav-failed</a>
+  
+    <a class="signal" href="signal.Widget.map.html">map</a>
+  
+    <a class="signal" href="signal.Widget.mnemonic-activate.html">mnemonic-activate</a>
+  
+    <a class="signal" href="signal.Widget.move-focus.html">move-focus</a>
+  
+    <a class="signal" href="signal.Widget.query-tooltip.html">query-tooltip</a>
+  
+    <a class="signal" href="signal.Widget.realize.html">realize</a>
+  
+    <a class="signal" href="signal.Widget.show.html">show</a>
+  
+    <a class="signal" href="signal.Widget.state-flags-changed.html">state-flags-changed</a>
+  
+    <a class="signal" href="signal.Widget.unmap.html">unmap</a>
+  
+    <a class="signal" href="signal.Widget.unrealize.html">unrealize</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Class methods</h5>
+  <div class="links">
+  
+    <a class="method" href="class_method.Widget.add_binding.html">add_binding</a>
+  
+    <a class="method" href="class_method.Widget.add_binding_action.html">add_binding_action</a>
+  
+    <a class="method" href="class_method.Widget.add_binding_signal.html">add_binding_signal</a>
+  
+    <a class="method" href="class_method.Widget.add_shortcut.html">add_shortcut</a>
+  
+    <a class="method" href="class_method.Widget.bind_template_callback_full.html">bind_template_callback_full</a>
+  
+    <a class="method" href="class_method.Widget.bind_template_child_full.html">bind_template_child_full</a>
+  
+    <a class="method" href="class_method.Widget.get_accessible_role.html">get_accessible_role</a>
+  
+    <a class="method" href="class_method.Widget.get_activate_signal.html">get_activate_signal</a>
+  
+    <a class="method" href="class_method.Widget.get_css_name.html">get_css_name</a>
+  
+    <a class="method" href="class_method.Widget.get_layout_manager_type.html">get_layout_manager_type</a>
+  
+    <a class="method" href="class_method.Widget.install_action.html">install_action</a>
+  
+    <a class="method" href="class_method.Widget.install_property_action.html">install_property_action</a>
+  
+    <a class="method" href="class_method.Widget.query_action.html">query_action</a>
+  
+    <a class="method" href="class_method.Widget.set_accessible_role.html">set_accessible_role</a>
+  
+    <a class="method" href="class_method.Widget.set_activate_signal.html">set_activate_signal</a>
+  
+    <a class="method" href="class_method.Widget.set_activate_signal_from_name.html">set_activate_signal_from_name</a>
+  
+    <a class="method" href="class_method.Widget.set_css_name.html">set_css_name</a>
+  
+    <a class="method" href="class_method.Widget.set_layout_manager_type.html">set_layout_manager_type</a>
+  
+    <a class="method" href="class_method.Widget.set_template.html">set_template</a>
+  
+    <a class="method" href="class_method.Widget.set_template_from_resource.html">set_template_from_resource</a>
+  
+    <a class="method" href="class_method.Widget.set_template_scope.html">set_template_scope</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Widget.compute_expand.html">compute_expand</a>
+  
+    <a class="method" href="vfunc.Widget.contains.html">contains</a>
+  
+    <a class="method" href="vfunc.Widget.css_changed.html">css_changed</a>
+  
+    <a class="method" href="vfunc.Widget.direction_changed.html">direction_changed</a>
+  
+    <a class="method" href="vfunc.Widget.focus.html">focus</a>
+  
+    <a class="method" href="vfunc.Widget.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="vfunc.Widget.grab_focus.html">grab_focus</a>
+  
+    <a class="method" href="vfunc.Widget.hide.html">hide</a>
+  
+    <a class="method" href="vfunc.Widget.keynav_failed.html">keynav_failed</a>
+  
+    <a class="method" href="vfunc.Widget.map.html">map</a>
+  
+    <a class="method" href="vfunc.Widget.measure.html">measure</a>
+  
+    <a class="method" href="vfunc.Widget.mnemonic_activate.html">mnemonic_activate</a>
+  
+    <a class="method" href="vfunc.Widget.move_focus.html">move_focus</a>
+  
+    <a class="method" href="vfunc.Widget.query_tooltip.html">query_tooltip</a>
+  
+    <a class="method" href="vfunc.Widget.realize.html">realize</a>
+  
+    <a class="method" href="vfunc.Widget.root.html">root</a>
+  
+    <a class="method" href="vfunc.Widget.set_focus_child.html">set_focus_child</a>
+  
+    <a class="method" href="vfunc.Widget.show.html">show</a>
+  
+    <a class="method" href="vfunc.Widget.size_allocate.html">size_allocate</a>
+  
+    <a class="method" href="vfunc.Widget.snapshot.html">snapshot</a>
+  
+    <a class="method" href="vfunc.Widget.state_flags_changed.html">state_flags_changed</a>
+  
+    <a class="method" href="vfunc.Widget.system_setting_changed.html">system_setting_changed</a>
+  
+    <a class="method" href="vfunc.Widget.unmap.html">unmap</a>
+  
+    <a class="method" href="vfunc.Widget.unrealize.html">unrealize</a>
+  
+    <a class="method" href="vfunc.Widget.unroot.html">unroot</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Widget</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkwidget.c#L86">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.Widget : GObject.InitiallyUnowned
+  implements Gtk.Accessible, Gtk.Buildable, Gtk.ConstraintTarget {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>The base class for all&nbsp;widgets.</p>
+<p><code>GtkWidget</code> is the base class all widgets in <span class="caps">GTK</span> derive from. It manages the
+widget lifecycle, layout, states and&nbsp;style.</p>
+<h3 id="height-for-width-geometry-management">Height-for-width Geometry Management<a class="md-anchor" href="#height-for-width-geometry-management" title="Permanent link"></a></h3>
+<p><span class="caps">GTK</span> uses a height-for-width (and width-for-height) geometry management
+system. Height-for-width means that a widget can change how much
+vertical space it needs, depending on the amount of horizontal space
+that it is given (and similar for width-for-height). The most common
+example is a label that reflows to fill up the available width, wraps
+to fewer lines, and therefore needs less&nbsp;height.</p>
+<p>Height-for-width geometry management is implemented in <span class="caps">GTK</span> by way
+of two virtual&nbsp;methods:</p>
+<ul>
+<li><a href="vfunc.Widget.get_request_mode.html"><code>Gtk.WidgetClass.get_request_mode</code></a></li>
+<li><a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a></li>
+</ul>
+<p>There are some important things to keep in mind when implementing
+height-for-width and when using it in widget&nbsp;implementations.</p>
+<p>If you implement a direct <code>GtkWidget</code> subclass that supports
+height-for-width or width-for-height geometry management for itself
+or its child widgets, the <a href="vfunc.Widget.get_request_mode.html"><code>Gtk.WidgetClass.get_request_mode</code></a> virtual
+function must be implemented as well and return the widget&#8217;s preferred
+request mode. The default implementation of this virtual function
+returns <code>GTK_SIZE_REQUEST_CONSTANT_SIZE</code>, which means that the widget will
+only ever get -1 passed as the for_size value to its
+<a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a>&nbsp;implementation.</p>
+<p>The geometry management system will query a widget hierarchy in
+only one orientation at a time. When widgets are initially queried
+for their minimum sizes it is generally done in two initial passes
+in the <a href="enum.SizeRequestMode.html"><code>GtkSizeRequestMode</code></a> chosen by the&nbsp;toplevel.</p>
+<p>For example, when queried in the normal <code>GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH</code> mode:</p>
+<p>First, the default minimum and natural width for each widget
+in the interface will be computed using <a href="method.Widget.measure.html"><code>gtk_widget_measure()</code></a> with an
+orientation of <code>GTK_ORIENTATION_HORIZONTAL</code> and a for_size of -1.
+Because the preferred widths for each widget depend on the preferred
+widths of their children, this information propagates up the hierarchy,
+and finally a minimum and natural width is determined for the entire
+toplevel. Next, the toplevel will use the minimum width to query for the
+minimum height contextual to that width using <a href="method.Widget.measure.html"><code>gtk_widget_measure()</code></a> with an
+orientation of <code>GTK_ORIENTATION_VERTICAL</code> and a for_size of the just computed
+width. This will also be a highly recursive operation. The minimum height
+for the minimum width is normally used to set the minimum size constraint
+on the&nbsp;toplevel.</p>
+<p>After the toplevel window has initially requested its size in both
+dimensions it can go on to allocate itself a reasonable size (or a size
+previously specified with <a href="method.Window.set_default_size.html"><code>gtk_window_set_default_size()</code></a>). During the
+recursive allocation process it’s important to note that request cycles
+will be recursively executed while widgets allocate their children.
+Each widget, once allocated a size, will go on to first share the
+space in one orientation among its children and then request each child&#8217;s
+height for its target allocated width or its width for allocated height,
+depending. In this way a <code>GtkWidget</code> will typically be requested its size
+a number of times before actually being allocated a size. The size a
+widget is finally allocated can of course differ from the size it has
+requested. For this reason, <code>GtkWidget</code> caches a  small number of results
+to avoid re-querying for the same sizes in one allocation&nbsp;cycle.</p>
+<p>If a widget does move content around to intelligently use up the
+allocated size then it must support the request in both
+<code>GtkSizeRequestMode</code>s even if the widget in question only
+trades sizes in a single&nbsp;orientation.</p>
+<p>For instance, a <a href="class.Label.html"><code>GtkLabel</code></a> that does height-for-width word wrapping
+will not expect to have <a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a> with an orientation of
+<code>GTK_ORIENTATION_VERTICAL</code> called because that call is specific to a
+width-for-height request. In this case the label must return the height
+required for its own minimum possible width. By following this rule any
+widget that handles height-for-width or width-for-height requests will
+always be allocated at least enough space to fit its own&nbsp;content.</p>
+<p>Here are some examples of how a <code>GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH</code> widget
+generally deals with width-for-height&nbsp;requests:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_widget_measure</span><span class="w"> </span><span class="p">(</span><span class="n">GtkWidget</span><span class="w">      </span><span class="o">*</span><span class="n">widget</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">GtkOrientation</span><span class="w">  </span><span class="n">orientation</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">int</span><span class="w">             </span><span class="n">for_size</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">int</span><span class="w">            </span><span class="o">*</span><span class="n">minimum_size</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">int</span><span class="w">            </span><span class="o">*</span><span class="n">natural_size</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">int</span><span class="w">            </span><span class="o">*</span><span class="n">minimum_baseline</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">int</span><span class="w">            </span><span class="o">*</span><span class="n">natural_baseline</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">orientation</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">GTK_ORIENTATION_HORIZONTAL</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// Calculate minimum and natural width</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="k">else</span><span class="w"> </span><span class="c1">// VERTICAL</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i_am_in_height_for_width_mode</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="kt">int</span><span class="w"> </span><span class="n">min_width</span><span class="p">,</span><span class="w"> </span><span class="n">dummy</span><span class="p">;</span>
+
+<span class="w">          </span><span class="c1">// First, get the minimum width of our widget</span>
+<span class="w">          </span><span class="n">GTK_WIDGET_GET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">measure</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_ORIENTATION_HORIZONTAL</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="o">&amp;</span><span class="n">min_width</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">);</span>
+
+<span class="w">          </span><span class="c1">// Now use the minimum width to retrieve the minimum and natural height to display</span>
+<span class="w">          </span><span class="c1">// that width.</span>
+<span class="w">          </span><span class="n">GTK_WIDGET_GET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">measure</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_ORIENTATION_VERTICAL</span><span class="p">,</span><span class="w"> </span><span class="n">min_width</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="n">minimum_size</span><span class="p">,</span><span class="w"> </span><span class="n">natural_size</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="c1">// ... some widgets do both.</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Often a widget needs to get its own request during size request or
+allocation. For example, when computing height it may need to also
+compute width. Or when deciding how to use an allocation, the widget
+may need to know its natural size. In these cases, the widget should
+be careful to call its virtual methods directly, like in the code
+example&nbsp;above.</p>
+<p>It will not work to use the wrapper function <a href="method.Widget.measure.html"><code>gtk_widget_measure()</code></a>
+inside your own <a href="vfunc.Widget.size_allocate.html"><code>Gtk.WidgetClass.size_allocate</code></a> implementation.
+These return a request adjusted by <a href="class.SizeGroup.html"><code>GtkSizeGroup</code></a>, the widget&#8217;s
+align and expand flags, as well as its <span class="caps">CSS</span>&nbsp;style.</p>
+<p>If a widget used the wrappers inside its virtual method implementations,
+then the adjustments (such as widget margins) would be applied
+twice. <span class="caps">GTK</span> therefore does not allow this and will warn if you try
+to do&nbsp;it.</p>
+<p>Of course if you are getting the size request for another widget, such
+as a child widget, you must use <a href="method.Widget.measure.html"><code>gtk_widget_measure()</code></a>; otherwise, you
+would not properly consider widget margins, <a href="class.SizeGroup.html"><code>GtkSizeGroup</code></a>, and
+so&nbsp;forth.</p>
+<p><span class="caps">GTK</span> also supports baseline vertical alignment of widgets. This
+means that widgets are positioned such that the typographical baseline of
+widgets in the same row are aligned. This happens if a widget supports
+baselines, has a vertical alignment using baselines, and is inside
+a widget that supports baselines and has a natural “row” that it aligns to
+the baseline, or a baseline assigned to it by the&nbsp;grandparent.</p>
+<p>Baseline alignment support for a widget is also done by the
+<a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a> virtual function. It allows you to report
+both a minimum and natural&nbsp;size.</p>
+<p>If a widget ends up baseline aligned it will be allocated all the space in
+the parent as if it was <code>GTK_ALIGN_FILL</code>, but the selected baseline can be
+found via <a href="method.Widget.get_baseline.html"><code>gtk_widget_get_baseline()</code></a>. If the baseline has a
+value other than -1 you need to align the widget such that the baseline
+appears at the&nbsp;position.</p>
+<h3 id="gtkwidget-as-gtkbuildable">GtkWidget as GtkBuildable<a class="md-anchor" href="#gtkwidget-as-gtkbuildable" title="Permanent link"></a></h3>
+<p>The <code>GtkWidget</code> implementation of the <code>GtkBuildable</code> interface
+supports various custom elements to specify additional aspects of widgets
+that are not directly expressed as&nbsp;properties.</p>
+<p>If the widget uses a <a href="class.LayoutManager.html"><code>GtkLayoutManager</code></a>, <code>GtkWidget</code> supports
+a custom <code>&lt;layout&gt;</code> element, used to define layout&nbsp;properties:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkGrid&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;my_grid&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;child&gt;</span>
+<span class="w">    </span><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkLabel&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;label1&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="nt">&gt;</span>Description<span class="nt">&lt;/property&gt;</span>
+<span class="w">      </span><span class="nt">&lt;layout&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column&quot;</span><span class="nt">&gt;</span>0<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row&quot;</span><span class="nt">&gt;</span>0<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row-span&quot;</span><span class="nt">&gt;</span>1<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column-span&quot;</span><span class="nt">&gt;</span>1<span class="nt">&lt;/property&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/layout&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/object&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/child&gt;</span>
+<span class="w">  </span><span class="nt">&lt;child&gt;</span>
+<span class="w">    </span><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkEntry&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;description_entry&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;layout&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column&quot;</span><span class="nt">&gt;</span>1<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row&quot;</span><span class="nt">&gt;</span>0<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;row-span&quot;</span><span class="nt">&gt;</span>1<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;column-span&quot;</span><span class="nt">&gt;</span>1<span class="nt">&lt;/property&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/layout&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/object&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/child&gt;</span>
+<span class="nt">&lt;/object&gt;</span>
+</code></pre></div>
+
+<p><code>GtkWidget</code> allows style information such as style classes to
+be associated with widgets, using the custom <code>&lt;style&gt;</code> element:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkButton&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;button1&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;style&gt;</span>
+<span class="w">    </span><span class="nt">&lt;class</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;my-special-button-class&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;class</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;dark-button&quot;</span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/style&gt;</span>
+<span class="nt">&lt;/object&gt;</span>
+</code></pre></div>
+
+<p><code>GtkWidget</code> allows defining accessibility information, such as properties,
+relations, and states, using the custom <code>&lt;accessibility&gt;</code> element:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkButton&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;button1&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;accessibility&gt;</span>
+<span class="w">    </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="nt">&gt;</span>Download<span class="nt">&lt;/property&gt;</span>
+<span class="w">    </span><span class="nt">&lt;relation</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;labelled-by&quot;</span><span class="nt">&gt;</span>label1<span class="nt">&lt;/relation&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/accessibility&gt;</span>
+<span class="nt">&lt;/object&gt;</span>
+</code></pre></div>
+
+<h3 id="building-composite-widgets-from-template-xml">Building composite widgets from template XML<a class="md-anchor" href="#building-composite-widgets-from-template-xml" title="Permanent link"></a></h3>
+<p><code>GtkWidget</code>exposes some facilities to automate the procedure
+of creating composite widgets using&nbsp;&#8220;templates&#8221;.</p>
+<p>To create composite widgets with <code>GtkBuilder</code> <span class="caps">XML</span>, one must associate
+the interface description with the widget class at class initialization
+time using <a href="class_method.Widget.set_template.html"><code>gtk_widget_class_set_template()</code></a>.</p>
+<p>The interface description semantics expected in composite template descriptions
+is slightly different from regular <a href="class.Builder.html"><code>GtkBuilder</code></a> <span class="caps">XML</span>.</p>
+<p>Unlike regular interface descriptions, <a href="class_method.Widget.set_template.html"><code>gtk_widget_class_set_template()</code></a>
+will expect a <code>&lt;template&gt;</code> tag as a direct child of the toplevel
+<code>&lt;interface&gt;</code> tag. The <code>&lt;template&gt;</code> tag must specify the “class” attribute
+which must be the type name of the widget. Optionally, the “parent”
+attribute may be specified to specify the direct parent type of the widget
+type; this is ignored by <code>GtkBuilder</code> but can be used by <span class="caps">UI</span> design tools to
+introspect what kind of properties and internal children exist for a given
+type when the actual type does not&nbsp;exist.</p>
+<p>The <span class="caps">XML</span> which is contained inside the <code>&lt;template&gt;</code> tag behaves as if it were
+added to the <code>&lt;object&gt;</code> tag defining the widget itself. You may set properties
+on a widget by inserting <code>&lt;property&gt;</code> tags into the <code>&lt;template&gt;</code> tag, and also
+add <code>&lt;child&gt;</code> tags to add children and extend a widget in the normal way you
+would with <code>&lt;object&gt;</code> tags.</p>
+<p>Additionally, <code>&lt;object&gt;</code> tags can also be added before and after the initial
+<code>&lt;template&gt;</code> tag in the normal way, allowing one to define auxiliary objects
+which might be referenced by other widgets declared as children of the
+<code>&lt;template&gt;</code> tag.</p>
+<p>Since, unlike the <code>&lt;object&gt;</code> tag, the <code>&lt;template&gt;</code> tag does not contain an
+“id” attribute, if you need to refer to the instance of the object itself that
+the template will create, simply refer to the template class name in an
+applicable element&nbsp;content.</p>
+<p>Here is an example of a template definition, which includes an example of
+this in the <code>&lt;signal&gt;</code> tag:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;interface&gt;</span>
+<span class="w">  </span><span class="nt">&lt;template</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;FooWidget&quot;</span><span class="w"> </span><span class="na">parent=</span><span class="s">&quot;GtkBox&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;orientation&quot;</span><span class="nt">&gt;</span>horizontal<span class="nt">&lt;/property&gt;</span>
+<span class="w">    </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;spacing&quot;</span><span class="nt">&gt;</span>4<span class="nt">&lt;/property&gt;</span>
+<span class="w">    </span><span class="nt">&lt;child&gt;</span>
+<span class="w">      </span><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkButton&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;hello_button&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="nt">&gt;</span>Hello<span class="w"> </span>World<span class="nt">&lt;/property&gt;</span>
+<span class="w">        </span><span class="nt">&lt;signal</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;clicked&quot;</span><span class="w"> </span><span class="na">handler=</span><span class="s">&quot;hello_button_clicked&quot;</span><span class="w"> </span><span class="na">object=</span><span class="s">&quot;FooWidget&quot;</span><span class="w"> </span><span class="na">swapped=</span><span class="s">&quot;yes&quot;</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/object&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/child&gt;</span>
+<span class="w">    </span><span class="nt">&lt;child&gt;</span>
+<span class="w">      </span><span class="nt">&lt;object</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;GtkButton&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;goodbye_button&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;property</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="nt">&gt;</span>Goodbye<span class="w"> </span>World<span class="nt">&lt;/property&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/object&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/child&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/template&gt;</span>
+<span class="nt">&lt;/interface&gt;</span>
+</code></pre></div>
+
+<p>Typically, you&#8217;ll place the template fragment into a file that is
+bundled with your project, using <code>GResource</code>. In order to load the
+template, you need to call <a href="class_method.Widget.set_template_from_resource.html"><code>gtk_widget_class_set_template_from_resource()</code></a>
+from the class initialization of your <code>GtkWidget</code> type:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_widget_class_init</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidgetClass</span><span class="w"> </span><span class="o">*</span><span class="n">klass</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+
+<span class="w">  </span><span class="n">gtk_widget_class_set_template_from_resource</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span>
+<span class="w">                                               </span><span class="s">&quot;/com/example/ui/foowidget.ui&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>You will also need to call <a href="method.Widget.init_template.html"><code>gtk_widget_init_template()</code></a> from the
+instance initialization&nbsp;function:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_widget_init</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidget</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">gtk_widget_init_template</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET</span><span class="w"> </span><span class="p">(</span><span class="n">self</span><span class="p">));</span>
+
+<span class="w">  </span><span class="c1">// Initialize the rest of the widget...</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>as well as calling <a href="method.Widget.dispose_template.html"><code>gtk_widget_dispose_template()</code></a> from the dispose&nbsp;function:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_widget_dispose</span><span class="w"> </span><span class="p">(</span><span class="n">GObject</span><span class="w"> </span><span class="o">*</span><span class="n">gobject</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">FooWidget</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FOO_WIDGET</span><span class="w"> </span><span class="p">(</span><span class="n">gobject</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// Dispose objects for which you have a reference...</span>
+
+<span class="w">  </span><span class="c1">// Clear the template children for this widget type</span>
+<span class="w">  </span><span class="n">gtk_widget_dispose_template</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET</span><span class="w"> </span><span class="p">(</span><span class="n">self</span><span class="p">),</span><span class="w"> </span><span class="n">FOO_TYPE_WIDGET</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">G_OBJECT_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">foo_widget_parent_class</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">dispose</span><span class="w"> </span><span class="p">(</span><span class="n">gobject</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>You can access widgets defined in the template using the
+<a href="method.Widget.get_template_child.html"><code>gtk_widget_get_template_child()</code></a> function, but you will typically declare
+a pointer in the instance private data structure of your type using the same
+name as the widget in the template definition, and call
+<a href="class_method.Widget.bind_template_child_full.html"><code>gtk_widget_class_bind_template_child_full()</code></a> (or one of its wrapper macros
+<a href="func.widget_class_bind_template_child.html"><code>gtk_widget_class_bind_template_child()</code></a> and <a href="func.widget_class_bind_template_child_private.html"><code>gtk_widget_class_bind_template_child_private()</code></a>)
+with that name,&nbsp;e.g.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">GtkWidget</span><span class="w"> </span><span class="o">*</span><span class="n">hello_button</span><span class="p">;</span>
+<span class="w">  </span><span class="n">GtkWidget</span><span class="w"> </span><span class="o">*</span><span class="n">goodbye_button</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">FooWidgetPrivate</span><span class="p">;</span>
+
+<span class="n">G_DEFINE_TYPE_WITH_PRIVATE</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidget</span><span class="p">,</span><span class="w"> </span><span class="n">foo_widget</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_TYPE_BOX</span><span class="p">)</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="n">foo_widget_dispose</span><span class="w"> </span><span class="p">(</span><span class="n">GObject</span><span class="w"> </span><span class="o">*</span><span class="n">gobject</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">gtk_widget_dispose_template</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET</span><span class="w"> </span><span class="p">(</span><span class="n">gobject</span><span class="p">),</span><span class="w"> </span><span class="n">FOO_TYPE_WIDGET</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">G_OBJECT_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">foo_widget_parent_class</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">dispose</span><span class="w"> </span><span class="p">(</span><span class="n">gobject</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="n">foo_widget_class_init</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidgetClass</span><span class="w"> </span><span class="o">*</span><span class="n">klass</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="n">G_OBJECT_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">dispose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">foo_widget_dispose</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">gtk_widget_class_set_template_from_resource</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span>
+<span class="w">                                               </span><span class="s">&quot;/com/example/ui/foowidget.ui&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">gtk_widget_class_bind_template_child_private</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span>
+<span class="w">                                                </span><span class="n">FooWidget</span><span class="p">,</span><span class="w"> </span><span class="n">hello_button</span><span class="p">);</span>
+<span class="w">  </span><span class="n">gtk_widget_class_bind_template_child_private</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span>
+<span class="w">                                                </span><span class="n">FooWidget</span><span class="p">,</span><span class="w"> </span><span class="n">goodbye_button</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="n">foo_widget_init</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidget</span><span class="w"> </span><span class="o">*</span><span class="n">widget</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">gtk_widget_init_template</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>You can also use <a href="class_method.Widget.bind_template_callback_full.html"><code>gtk_widget_class_bind_template_callback_full()</code></a> (or
+is wrapper macro <a href="func.widget_class_bind_template_callback.html"><code>gtk_widget_class_bind_template_callback()</code></a>) to connect
+a signal callback defined in the template with a function visible in the
+scope of the class,&nbsp;e.g.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// the signal handler has the instance and user data swapped</span>
+<span class="c1">// because of the swapped=&quot;yes&quot; attribute in the template XML</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">hello_button_clicked</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidget</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
+<span class="w">                      </span><span class="n">GtkButton</span><span class="w"> </span><span class="o">*</span><span class="n">button</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">g_print</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Hello, world!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_widget_class_init</span><span class="w"> </span><span class="p">(</span><span class="n">FooWidgetClass</span><span class="w"> </span><span class="o">*</span><span class="n">klass</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="n">gtk_widget_class_set_template_from_resource</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span>
+<span class="w">                                               </span><span class="s">&quot;/com/example/ui/foowidget.ui&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">gtk_widget_class_bind_template_callback</span><span class="w"> </span><span class="p">(</span><span class="n">GTK_WIDGET_CLASS</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="p">),</span><span class="w"> </span><span class="n">hello_button_clicked</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Widget">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="403pt" height="260pt"
+ viewBox="0.00 0.00 402.88 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkWidget">
+<path fill="none" stroke="black" d="M201.75,-108C201.75,-108 149.75,-108 149.75,-108 143.75,-108 137.75,-102 137.75,-96 137.75,-96 137.75,-84 137.75,-84 137.75,-78 143.75,-72 149.75,-72 149.75,-72 201.75,-72 201.75,-72 207.75,-72 213.75,-78 213.75,-84 213.75,-84 213.75,-96 213.75,-96 213.75,-102 207.75,-108 201.75,-108"/>
+<text text-anchor="middle" x="175.75" y="-84.95" font-family="Times,serif" font-size="14.00">GtkWidget</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node link">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:href="iface.Accessible.html" xlink:title="GtkAccessible">
+<polygon fill="none" stroke="black" points="107.5,-36 0,-36 0,0 107.5,0 107.5,-36"/>
+<text text-anchor="middle" x="53.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkAccessible</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M145.28,-71.52C126.51,-60.74 102.53,-46.99 83.83,-36.26"/>
+</g>
+<!-- implements_1 -->
+<g id="node5" class="node link">
+<title>implements_1</title>
+<g id="a_node5"><a xlink:href="iface.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="226.12,-36 125.38,-36 125.38,0 226.12,0 226.12,-36"/>
+<text text-anchor="middle" x="175.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M175.75,-71.7C175.75,-60.85 175.75,-46.92 175.75,-36.1"/>
+</g>
+<!-- implements_2 -->
+<g id="node6" class="node link">
+<title>implements_2</title>
+<g id="a_node6"><a xlink:href="iface.ConstraintTarget.html" xlink:title="GtkConstraintTarget">
+<polygon fill="none" stroke="black" points="394.88,-36 244.62,-36 244.62,0 394.88,0 394.88,-36"/>
+<text text-anchor="middle" x="319.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkConstraintTarget</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_2 -->
+<g id="edge5" class="edge">
+<title>this&#45;&#45;implements_2</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M211.72,-71.52C233.87,-60.74 262.17,-46.99 284.24,-36.26"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M224.25,-180C224.25,-180 127.25,-180 127.25,-180 121.25,-180 115.25,-174 115.25,-168 115.25,-168 115.25,-156 115.25,-156 115.25,-150 121.25,-144 127.25,-144 127.25,-144 224.25,-144 224.25,-144 230.25,-144 236.25,-150 236.25,-156 236.25,-156 236.25,-168 236.25,-168 236.25,-174 230.25,-180 224.25,-180"/>
+<text text-anchor="middle" x="175.75" y="-156.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M175.75,-143.7C175.75,-132.85 175.75,-118.92 175.75,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M194.62,-252C194.62,-252 156.88,-252 156.88,-252 150.88,-252 144.88,-246 144.88,-240 144.88,-240 144.88,-228 144.88,-228 144.88,-222 150.88,-216 156.88,-216 156.88,-216 194.62,-216 194.62,-216 200.62,-216 206.62,-222 206.62,-228 206.62,-228 206.62,-240 206.62,-240 206.62,-246 200.62,-252 194.62,-252"/>
+<text text-anchor="middle" x="175.75" y="-228.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M175.75,-215.7C175.75,-204.85 175.75,-190.92 175.75,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.ActionBar.html" title="ActionBar">GtkActionBar</a></li>
+        
+          <li class="class"><a href="class.AppChooserButton.html" title="AppChooserButton">GtkAppChooserButton</a></li>
+        
+          <li class="class"><a href="class.AppChooserWidget.html" title="AppChooserWidget">GtkAppChooserWidget</a></li>
+        
+          <li class="class"><a href="class.AspectFrame.html" title="AspectFrame">GtkAspectFrame</a></li>
+        
+          <li class="class"><a href="class.Box.html" title="Box">GtkBox</a></li>
+        
+          <li class="class"><a href="class.Button.html" title="Button">GtkButton</a></li>
+        
+          <li class="class"><a href="class.Calendar.html" title="Calendar">GtkCalendar</a></li>
+        
+          <li class="class"><a href="class.CellView.html" title="CellView">GtkCellView</a></li>
+        
+          <li class="class"><a href="class.CenterBox.html" title="CenterBox">GtkCenterBox</a></li>
+        
+          <li class="class"><a href="class.CheckButton.html" title="CheckButton">GtkCheckButton</a></li>
+        
+          <li class="class"><a href="class.ColorButton.html" title="ColorButton">GtkColorButton</a></li>
+        
+          <li class="class"><a href="class.ColorChooserWidget.html" title="ColorChooserWidget">GtkColorChooserWidget</a></li>
+        
+          <li class="class"><a href="class.ColorDialogButton.html" title="ColorDialogButton">GtkColorDialogButton</a></li>
+        
+          <li class="class"><a href="class.ColumnView.html" title="ColumnView">GtkColumnView</a></li>
+        
+          <li class="class"><a href="class.ComboBox.html" title="ComboBox">GtkComboBox</a></li>
+        
+          <li class="class"><a href="class.DragIcon.html" title="DragIcon">GtkDragIcon</a></li>
+        
+          <li class="class"><a href="class.DrawingArea.html" title="DrawingArea">GtkDrawingArea</a></li>
+        
+          <li class="class"><a href="class.DropDown.html" title="DropDown">GtkDropDown</a></li>
+        
+          <li class="class"><a href="class.EditableLabel.html" title="EditableLabel">GtkEditableLabel</a></li>
+        
+          <li class="class"><a href="class.Entry.html" title="Entry">GtkEntry</a></li>
+        
+          <li class="class"><a href="class.Expander.html" title="Expander">GtkExpander</a></li>
+        
+          <li class="class"><a href="class.FileChooserWidget.html" title="FileChooserWidget">GtkFileChooserWidget</a></li>
+        
+          <li class="class"><a href="class.Fixed.html" title="Fixed">GtkFixed</a></li>
+        
+          <li class="class"><a href="class.FlowBox.html" title="FlowBox">GtkFlowBox</a></li>
+        
+          <li class="class"><a href="class.FlowBoxChild.html" title="FlowBoxChild">GtkFlowBoxChild</a></li>
+        
+          <li class="class"><a href="class.FontButton.html" title="FontButton">GtkFontButton</a></li>
+        
+          <li class="class"><a href="class.FontChooserWidget.html" title="FontChooserWidget">GtkFontChooserWidget</a></li>
+        
+          <li class="class"><a href="class.FontDialogButton.html" title="FontDialogButton">GtkFontDialogButton</a></li>
+        
+          <li class="class"><a href="class.Frame.html" title="Frame">GtkFrame</a></li>
+        
+          <li class="class"><a href="class.GLArea.html" title="GLArea">GtkGLArea</a></li>
+        
+          <li class="class"><a href="class.GraphicsOffload.html" title="GraphicsOffload">GtkGraphicsOffload</a></li>
+        
+          <li class="class"><a href="class.Grid.html" title="Grid">GtkGrid</a></li>
+        
+          <li class="class"><a href="class.HeaderBar.html" title="HeaderBar">GtkHeaderBar</a></li>
+        
+          <li class="class"><a href="class.IconView.html" title="IconView">GtkIconView</a></li>
+        
+          <li class="class"><a href="class.Image.html" title="Image">GtkImage</a></li>
+        
+          <li class="class"><a href="class.InfoBar.html" title="InfoBar">GtkInfoBar</a></li>
+        
+          <li class="class"><a href="class.Inscription.html" title="Inscription">GtkInscription</a></li>
+        
+          <li class="class"><a href="class.Label.html" title="Label">GtkLabel</a></li>
+        
+          <li class="class"><a href="class.LevelBar.html" title="LevelBar">GtkLevelBar</a></li>
+        
+          <li class="class"><a href="class.ListBase.html" title="ListBase">GtkListBase</a></li>
+        
+          <li class="class"><a href="class.ListBox.html" title="ListBox">GtkListBox</a></li>
+        
+          <li class="class"><a href="class.ListBoxRow.html" title="ListBoxRow">GtkListBoxRow</a></li>
+        
+          <li class="class"><a href="class.MediaControls.html" title="MediaControls">GtkMediaControls</a></li>
+        
+          <li class="class"><a href="class.MenuButton.html" title="MenuButton">GtkMenuButton</a></li>
+        
+          <li class="class"><a href="class.Notebook.html" title="Notebook">GtkNotebook</a></li>
+        
+          <li class="class"><a href="class.Overlay.html" title="Overlay">GtkOverlay</a></li>
+        
+          <li class="class"><a href="class.Paned.html" title="Paned">GtkPaned</a></li>
+        
+          <li class="class"><a href="class.PasswordEntry.html" title="PasswordEntry">GtkPasswordEntry</a></li>
+        
+          <li class="class"><a href="class.Picture.html" title="Picture">GtkPicture</a></li>
+        
+          <li class="class"><a href="class.Popover.html" title="Popover">GtkPopover</a></li>
+        
+          <li class="class"><a href="class.PopoverMenuBar.html" title="PopoverMenuBar">GtkPopoverMenuBar</a></li>
+        
+          <li class="class"><a href="class.ProgressBar.html" title="ProgressBar">GtkProgressBar</a></li>
+        
+          <li class="class"><a href="class.Range.html" title="Range">GtkRange</a></li>
+        
+          <li class="class"><a href="class.Revealer.html" title="Revealer">GtkRevealer</a></li>
+        
+          <li class="class"><a href="class.ScaleButton.html" title="ScaleButton">GtkScaleButton</a></li>
+        
+          <li class="class"><a href="class.Scrollbar.html" title="Scrollbar">GtkScrollbar</a></li>
+        
+          <li class="class"><a href="class.ScrolledWindow.html" title="ScrolledWindow">GtkScrolledWindow</a></li>
+        
+          <li class="class"><a href="class.SearchBar.html" title="SearchBar">GtkSearchBar</a></li>
+        
+          <li class="class"><a href="class.SearchEntry.html" title="SearchEntry">GtkSearchEntry</a></li>
+        
+          <li class="class"><a href="class.Separator.html" title="Separator">GtkSeparator</a></li>
+        
+          <li class="class"><a href="class.ShortcutLabel.html" title="ShortcutLabel">GtkShortcutLabel</a></li>
+        
+          <li class="class"><a href="class.ShortcutsShortcut.html" title="ShortcutsShortcut">GtkShortcutsShortcut</a></li>
+        
+          <li class="class"><a href="class.SpinButton.html" title="SpinButton">GtkSpinButton</a></li>
+        
+          <li class="class"><a href="class.Spinner.html" title="Spinner">GtkSpinner</a></li>
+        
+          <li class="class"><a href="class.Stack.html" title="Stack">GtkStack</a></li>
+        
+          <li class="class"><a href="class.StackSidebar.html" title="StackSidebar">GtkStackSidebar</a></li>
+        
+          <li class="class"><a href="class.StackSwitcher.html" title="StackSwitcher">GtkStackSwitcher</a></li>
+        
+          <li class="class"><a href="class.Statusbar.html" title="Statusbar">GtkStatusbar</a></li>
+        
+          <li class="class"><a href="class.Switch.html" title="Switch">GtkSwitch</a></li>
+        
+          <li class="class"><a href="class.Text.html" title="Text">GtkText</a></li>
+        
+          <li class="class"><a href="class.TextView.html" title="TextView">GtkTextView</a></li>
+        
+          <li class="class"><a href="class.TreeExpander.html" title="TreeExpander">GtkTreeExpander</a></li>
+        
+          <li class="class"><a href="class.TreeView.html" title="TreeView">GtkTreeView</a></li>
+        
+          <li class="class"><a href="class.Video.html" title="Video">GtkVideo</a></li>
+        
+          <li class="class"><a href="class.Viewport.html" title="Viewport">GtkViewport</a></li>
+        
+          <li class="class"><a href="class.Window.html" title="Window">GtkWindow</a></li>
+        
+          <li class="class"><a href="class.WindowControls.html" title="WindowControls">GtkWindowControls</a></li>
+        
+          <li class="class"><a href="class.WindowHandle.html" title="WindowHandle">GtkWindowHandle</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Accessible.html" title="Accessible">GtkAccessible</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.ConstraintTarget.html" title="ConstraintTarget">GtkConstraintTarget</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="type_func.Widget.get_default_direction.html">gtk_widget_get_default_direction</a></h6>
+        <div class="docblock">
+          <p>Obtains the current default reading&nbsp;direction.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Widget.set_default_direction.html">gtk_widget_set_default_direction</a></h6>
+        <div class="docblock">
+          <p>Sets the default reading direction for&nbsp;widgets.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Widget.action_set_enabled.html">gtk_widget_action_set_enabled</a></h6>
+          <div class="docblock">
+            <p>Enable or disable an action installed with&nbsp;gtk_widget_class_install_action().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.activate.html">gtk_widget_activate</a></h6>
+          <div class="docblock">
+            <p>For widgets that can be “activated” (buttons, menu items, etc.),
+this function activates&nbsp;them.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.activate_action.html">gtk_widget_activate_action</a></h6>
+          <div class="docblock">
+            <p>Looks up the action in the action groups associated
+with <code>widget</code> and its ancestors, and activates&nbsp;it.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.activate_action_variant.html">gtk_widget_activate_action_variant</a></h6>
+          <div class="docblock">
+            <p>Looks up the action in the action groups associated with
+<code>widget</code> and its ancestors, and activates&nbsp;it.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.activate_default.html">gtk_widget_activate_default</a></h6>
+          <div class="docblock">
+            <p>Activates the <code>default.activate</code> action from <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.add_controller.html">gtk_widget_add_controller</a></h6>
+          <div class="docblock">
+            <p>Adds <code>controller</code> to <code>widget</code> so that it will receive&nbsp;events.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.add_css_class.html">gtk_widget_add_css_class</a></h6>
+          <div class="docblock">
+            <p>Adds a style class to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.add_mnemonic_label.html">gtk_widget_add_mnemonic_label</a></h6>
+          <div class="docblock">
+            <p>Adds a widget to the list of mnemonic labels for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.add_tick_callback.html">gtk_widget_add_tick_callback</a></h6>
+          <div class="docblock">
+            <p>Queues an animation frame update and adds a callback to be called
+before each&nbsp;frame.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.allocate.html">gtk_widget_allocate</a></h6>
+          <div class="docblock">
+            <p>This function is only used by <code>GtkWidget</code> subclasses, to
+assign a size, position and (optionally) baseline to their
+child&nbsp;widgets.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.child_focus.html">gtk_widget_child_focus</a></h6>
+          <div class="docblock">
+            <p>Called by widgets as the user moves around the window using
+keyboard&nbsp;shortcuts.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.compute_bounds.html">gtk_widget_compute_bounds</a></h6>
+          <div class="docblock">
+            <p>Computes the bounds for <code>widget</code> in the coordinate space of <code>target</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.compute_expand.html">gtk_widget_compute_expand</a></h6>
+          <div class="docblock">
+            <p>Computes whether a container should give this widget
+extra space when&nbsp;possible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.compute_point.html">gtk_widget_compute_point</a></h6>
+          <div class="docblock">
+            <p>Translates the given <code>point</code> in <code>widget</code><span class="quo">&#8216;</span>s coordinates to coordinates
+relative to <code>target</code>’s coordinate&nbsp;system.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.compute_transform.html">gtk_widget_compute_transform</a></h6>
+          <div class="docblock">
+            <p>Computes a matrix suitable to describe a transformation from
+<code>widget</code><span class="quo">&#8216;</span>s coordinate system into <code>target</code><span class="quo">&#8216;</span>s coordinate&nbsp;system.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.contains.html">gtk_widget_contains</a></h6>
+          <div class="docblock">
+            <p>Tests if the point at (<code>x</code>, <code>y</code>) is contained in <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.create_pango_context.html">gtk_widget_create_pango_context</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>PangoContext</code> with the appropriate font map,
+font options, font description, and base direction for drawing
+text for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.create_pango_layout.html">gtk_widget_create_pango_layout</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>PangoLayout</code> with the appropriate font map,
+font description, and base direction for drawing text for
+this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.dispose_template.html">gtk_widget_dispose_template</a></h6>
+          <div class="docblock">
+            <p>Clears the template children for the given&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.8</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.drag_check_threshold.html">gtk_drag_check_threshold</a></h6>
+          <div class="docblock">
+            <p>Checks to see if a drag movement has passed the <span class="caps">GTK</span> drag&nbsp;threshold.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.error_bell.html">gtk_widget_error_bell</a></h6>
+          <div class="docblock">
+            <p>Notifies the user about an input-related error on this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.get_allocated_baseline.html">gtk_widget_get_allocated_baseline</a></h6>
+          <div class="docblock">
+            <p>Returns the baseline that has currently been allocated to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.get_allocated_height.html">gtk_widget_get_allocated_height</a></h6>
+          <div class="docblock">
+            <p>Returns the height that has currently been allocated to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.get_allocated_width.html">gtk_widget_get_allocated_width</a></h6>
+          <div class="docblock">
+            <p>Returns the width that has currently been allocated to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.get_allocation.html">gtk_widget_get_allocation</a></h6>
+          <div class="docblock">
+            <p>Retrieves the widget’s&nbsp;allocation.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_ancestor.html">gtk_widget_get_ancestor</a></h6>
+          <div class="docblock">
+            <p>Gets the first ancestor of <code>widget</code> with type <code>widget_type</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_baseline.html">gtk_widget_get_baseline</a></h6>
+          <div class="docblock">
+            <p>Returns the baseline that has currently been allocated to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.12</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_can_focus.html">gtk_widget_get_can_focus</a></h6>
+          <div class="docblock">
+            <p>Determines whether the input focus can enter <code>widget</code> or any
+of its&nbsp;children.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_can_target.html">gtk_widget_get_can_target</a></h6>
+          <div class="docblock">
+            <p>Queries whether <code>widget</code> can be the target of pointer&nbsp;events.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_child_visible.html">gtk_widget_get_child_visible</a></h6>
+          <div class="docblock">
+            <p>Gets the value set with&nbsp;gtk_widget_set_child_visible().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_clipboard.html">gtk_widget_get_clipboard</a></h6>
+          <div class="docblock">
+            <p>Gets the clipboard object for <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_color.html">gtk_widget_get_color</a></h6>
+          <div class="docblock">
+            <p>Gets the current foreground color for the widget’s
+<span class="caps">CSS</span>&nbsp;style.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_css_classes.html">gtk_widget_get_css_classes</a></h6>
+          <div class="docblock">
+            <p>Returns the list of style classes applied to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_css_name.html">gtk_widget_get_css_name</a></h6>
+          <div class="docblock">
+            <p>Returns the <span class="caps">CSS</span> name that is used for <code>self</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_cursor.html">gtk_widget_get_cursor</a></h6>
+          <div class="docblock">
+            <p>Queries the cursor set on <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_direction.html">gtk_widget_get_direction</a></h6>
+          <div class="docblock">
+            <p>Gets the reading direction for a particular&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_display.html">gtk_widget_get_display</a></h6>
+          <div class="docblock">
+            <p>Get the <code>GdkDisplay</code> for the toplevel window associated with
+this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_first_child.html">gtk_widget_get_first_child</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s first&nbsp;child.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_focus_child.html">gtk_widget_get_focus_child</a></h6>
+          <div class="docblock">
+            <p>Returns the current focus child of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_focus_on_click.html">gtk_widget_get_focus_on_click</a></h6>
+          <div class="docblock">
+            <p>Returns whether the widget should grab focus when it is clicked
+with the&nbsp;mouse.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_focusable.html">gtk_widget_get_focusable</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> can own the input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_font_map.html">gtk_widget_get_font_map</a></h6>
+          <div class="docblock">
+            <p>Gets the font map of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_font_options.html">gtk_widget_get_font_options</a></h6>
+          <div class="docblock">
+            <p>Returns the <code>cairo_font_options_t</code> of&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_frame_clock.html">gtk_widget_get_frame_clock</a></h6>
+          <div class="docblock">
+            <p>Obtains the frame clock for a&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_halign.html">gtk_widget_get_halign</a></h6>
+          <div class="docblock">
+            <p>Gets the horizontal alignment of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_has_tooltip.html">gtk_widget_get_has_tooltip</a></h6>
+          <div class="docblock">
+            <p>Returns the current value of the <code>has-tooltip</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_height.html">gtk_widget_get_height</a></h6>
+          <div class="docblock">
+            <p>Returns the content height of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_hexpand.html">gtk_widget_get_hexpand</a></h6>
+          <div class="docblock">
+            <p>Gets whether the widget would like any available extra horizontal&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_hexpand_set.html">gtk_widget_get_hexpand_set</a></h6>
+          <div class="docblock">
+            <p>Gets whether <code>gtk_widget_set_hexpand()</code> has been used
+to explicitly set the expand flag on this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_last_child.html">gtk_widget_get_last_child</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s last&nbsp;child.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_layout_manager.html">gtk_widget_get_layout_manager</a></h6>
+          <div class="docblock">
+            <p>Retrieves the layout manager used by <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_mapped.html">gtk_widget_get_mapped</a></h6>
+          <div class="docblock">
+            <p>Whether the widget is&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_margin_bottom.html">gtk_widget_get_margin_bottom</a></h6>
+          <div class="docblock">
+            <p>Gets the bottom margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_margin_end.html">gtk_widget_get_margin_end</a></h6>
+          <div class="docblock">
+            <p>Gets the end margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_margin_start.html">gtk_widget_get_margin_start</a></h6>
+          <div class="docblock">
+            <p>Gets the start margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_margin_top.html">gtk_widget_get_margin_top</a></h6>
+          <div class="docblock">
+            <p>Gets the top margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_name.html">gtk_widget_get_name</a></h6>
+          <div class="docblock">
+            <p>Retrieves the name of a&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_native.html">gtk_widget_get_native</a></h6>
+          <div class="docblock">
+            <p>Returns the nearest <code>GtkNative</code> ancestor of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_next_sibling.html">gtk_widget_get_next_sibling</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s next&nbsp;sibling.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_opacity.html">gtk_widget_get_opacity</a></h6>
+          <div class="docblock">
+            <p><code>Fetches</code> the requested opacity for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_overflow.html">gtk_widget_get_overflow</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s overflow&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_pango_context.html">gtk_widget_get_pango_context</a></h6>
+          <div class="docblock">
+            <p>Gets a <code>PangoContext</code> with the appropriate font map, font description,
+and base direction for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_parent.html">gtk_widget_get_parent</a></h6>
+          <div class="docblock">
+            <p>Returns the parent widget of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_preferred_size.html">gtk_widget_get_preferred_size</a></h6>
+          <div class="docblock">
+            <p>Retrieves the minimum and natural size of a widget, taking
+into account the widget’s preference for height-for-width&nbsp;management.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_prev_sibling.html">gtk_widget_get_prev_sibling</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s previous&nbsp;sibling.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_primary_clipboard.html">gtk_widget_get_primary_clipboard</a></h6>
+          <div class="docblock">
+            <p>Gets the primary clipboard of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_realized.html">gtk_widget_get_realized</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> is&nbsp;realized.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_receives_default.html">gtk_widget_get_receives_default</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> is always treated as the default widget
+within its toplevel when it has the focus, even if another widget
+is the&nbsp;default.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_request_mode.html">gtk_widget_get_request_mode</a></h6>
+          <div class="docblock">
+            <p>Gets whether the widget prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_root.html">gtk_widget_get_root</a></h6>
+          <div class="docblock">
+            <p>Returns the <code>GtkRoot</code> widget of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_scale_factor.html">gtk_widget_get_scale_factor</a></h6>
+          <div class="docblock">
+            <p>Retrieves the internal scale factor that maps from window
+coordinates to the actual device&nbsp;pixels.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_sensitive.html">gtk_widget_get_sensitive</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s&nbsp;sensitivity.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_settings.html">gtk_widget_get_settings</a></h6>
+          <div class="docblock">
+            <p>Gets the settings object holding the settings used for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_size.html">gtk_widget_get_size</a></h6>
+          <div class="docblock">
+            <p>Returns the content width or height of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_size_request.html">gtk_widget_get_size_request</a></h6>
+          <div class="docblock">
+            <p>Gets the size request that was explicitly set for the widget using&nbsp;gtk_widget_set_size_request().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_state_flags.html">gtk_widget_get_state_flags</a></h6>
+          <div class="docblock">
+            <p>Returns the widget state as a flag&nbsp;set.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.get_style_context.html">gtk_widget_get_style_context</a></h6>
+          <div class="docblock">
+            <p>Returns the style context associated to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_template_child.html">gtk_widget_get_template_child</a></h6>
+          <div class="docblock">
+            <p>Fetch an object build from the template <span class="caps">XML</span> for <code>widget_type</code> in
+this <code>widget</code> instance.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_tooltip_markup.html">gtk_widget_get_tooltip_markup</a></h6>
+          <div class="docblock">
+            <p>Gets the contents of the tooltip for <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_tooltip_text.html">gtk_widget_get_tooltip_text</a></h6>
+          <div class="docblock">
+            <p>Gets the contents of the tooltip for <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_valign.html">gtk_widget_get_valign</a></h6>
+          <div class="docblock">
+            <p>Gets the vertical alignment of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_vexpand.html">gtk_widget_get_vexpand</a></h6>
+          <div class="docblock">
+            <p>Gets whether the widget would like any available extra vertical&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_vexpand_set.html">gtk_widget_get_vexpand_set</a></h6>
+          <div class="docblock">
+            <p>Gets whether <code>gtk_widget_set_vexpand()</code> has been used to
+explicitly set the expand flag on this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_visible.html">gtk_widget_get_visible</a></h6>
+          <div class="docblock">
+            <p>Determines whether the widget is&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.get_width.html">gtk_widget_get_width</a></h6>
+          <div class="docblock">
+            <p>Returns the content width of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.grab_focus.html">gtk_widget_grab_focus</a></h6>
+          <div class="docblock">
+            <p>Causes <code>widget</code> to have the keyboard focus for the <code>GtkWindow</code> it&#8217;s&nbsp;inside.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.has_css_class.html">gtk_widget_has_css_class</a></h6>
+          <div class="docblock">
+            <p>Returns whether <code>css_class</code> is currently applied to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.has_default.html">gtk_widget_has_default</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> is the current default widget
+within its&nbsp;toplevel.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.has_focus.html">gtk_widget_has_focus</a></h6>
+          <div class="docblock">
+            <p>Determines if the widget has the global input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.has_visible_focus.html">gtk_widget_has_visible_focus</a></h6>
+          <div class="docblock">
+            <p>Determines if the widget should show a visible indication that
+it has the global input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.hide.html">gtk_widget_hide</a></h6>
+          <div class="docblock">
+            <p>Reverses the effects of&nbsp;gtk_widget_show().</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.in_destruction.html">gtk_widget_in_destruction</a></h6>
+          <div class="docblock">
+            <p>Returns whether the widget is currently being&nbsp;destroyed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.init_template.html">gtk_widget_init_template</a></h6>
+          <div class="docblock">
+            <p>Creates and initializes child widgets defined in&nbsp;templates.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.insert_action_group.html">gtk_widget_insert_action_group</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>group</code> into <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.insert_after.html">gtk_widget_insert_after</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>widget</code> into the child widget list of <code>parent</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.insert_before.html">gtk_widget_insert_before</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>widget</code> into the child widget list of <code>parent</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.is_ancestor.html">gtk_widget_is_ancestor</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> is somewhere inside <code>ancestor</code>,
+possibly with intermediate&nbsp;containers.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.is_drawable.html">gtk_widget_is_drawable</a></h6>
+          <div class="docblock">
+            <p>Determines whether <code>widget</code> can be drawn&nbsp;to.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.is_focus.html">gtk_widget_is_focus</a></h6>
+          <div class="docblock">
+            <p>Determines if the widget is the focus widget within its&nbsp;toplevel.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.is_sensitive.html">gtk_widget_is_sensitive</a></h6>
+          <div class="docblock">
+            <p>Returns the widget’s effective&nbsp;sensitivity.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.is_visible.html">gtk_widget_is_visible</a></h6>
+          <div class="docblock">
+            <p>Determines whether the widget and all its parents are marked as&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.keynav_failed.html">gtk_widget_keynav_failed</a></h6>
+          <div class="docblock">
+            <p>Emits the <code>::keynav-failed</code> signal on the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.list_mnemonic_labels.html">gtk_widget_list_mnemonic_labels</a></h6>
+          <div class="docblock">
+            <p>Returns the widgets for which this widget is the target of a&nbsp;mnemonic.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.map.html">gtk_widget_map</a></h6>
+          <div class="docblock">
+            <p>Causes a widget to be mapped if it isn’t&nbsp;already.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.measure.html">gtk_widget_measure</a></h6>
+          <div class="docblock">
+            <p>Measures <code>widget</code> in the orientation <code>orientation</code> and for the given <code>for_size</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.mnemonic_activate.html">gtk_widget_mnemonic_activate</a></h6>
+          <div class="docblock">
+            <p>Emits the ::mnemonic-activate&nbsp;signal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.observe_children.html">gtk_widget_observe_children</a></h6>
+          <div class="docblock">
+            <p>Returns a <code>GListModel</code> to track the children of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.observe_controllers.html">gtk_widget_observe_controllers</a></h6>
+          <div class="docblock">
+            <p>Returns a <code>GListModel</code> to track the <code>GtkEventController</code>s
+of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.pick.html">gtk_widget_pick</a></h6>
+          <div class="docblock">
+            <p>Finds the descendant of <code>widget</code> closest to the point (<code>x</code>, <code>y</code>).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.queue_allocate.html">gtk_widget_queue_allocate</a></h6>
+          <div class="docblock">
+            <p>Flags the widget for a rerun of the <code>Gtk.WidgetClass.size_allocate</code>
+function.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.queue_draw.html">gtk_widget_queue_draw</a></h6>
+          <div class="docblock">
+            <p>Schedules this widget to be redrawn in the paint phase
+of the current or the next&nbsp;frame.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.queue_resize.html">gtk_widget_queue_resize</a></h6>
+          <div class="docblock">
+            <p>Flags a widget to have its size&nbsp;renegotiated.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.realize.html">gtk_widget_realize</a></h6>
+          <div class="docblock">
+            <p>Creates the <span class="caps">GDK</span> resources associated with a&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.remove_controller.html">gtk_widget_remove_controller</a></h6>
+          <div class="docblock">
+            <p>Removes <code>controller</code> from <code>widget</code>, so that it doesn&#8217;t process
+events&nbsp;anymore.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.remove_css_class.html">gtk_widget_remove_css_class</a></h6>
+          <div class="docblock">
+            <p>Removes a style from <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.remove_mnemonic_label.html">gtk_widget_remove_mnemonic_label</a></h6>
+          <div class="docblock">
+            <p>Removes a widget from the list of mnemonic labels for this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.remove_tick_callback.html">gtk_widget_remove_tick_callback</a></h6>
+          <div class="docblock">
+            <p>Removes a tick callback previously registered with&nbsp;gtk_widget_add_tick_callback().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_can_focus.html">gtk_widget_set_can_focus</a></h6>
+          <div class="docblock">
+            <p>Specifies whether the input focus can enter the widget
+or any of its&nbsp;children.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_can_target.html">gtk_widget_set_can_target</a></h6>
+          <div class="docblock">
+            <p>Sets whether <code>widget</code> can be the target of pointer&nbsp;events.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_child_visible.html">gtk_widget_set_child_visible</a></h6>
+          <div class="docblock">
+            <p>Sets whether <code>widget</code> should be mapped along with its&nbsp;parent.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_css_classes.html">gtk_widget_set_css_classes</a></h6>
+          <div class="docblock">
+            <p>Clear all style classes applied to <code>widget</code>
+and replace them with <code>classes</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_cursor.html">gtk_widget_set_cursor</a></h6>
+          <div class="docblock">
+            <p>Sets the cursor to be shown when pointer devices point
+towards <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_cursor_from_name.html">gtk_widget_set_cursor_from_name</a></h6>
+          <div class="docblock">
+            <p>Sets a named cursor to be shown when pointer devices point
+towards <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_direction.html">gtk_widget_set_direction</a></h6>
+          <div class="docblock">
+            <p>Sets the reading direction on a particular&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_focus_child.html">gtk_widget_set_focus_child</a></h6>
+          <div class="docblock">
+            <p>Set <code>child</code> as the current focus child of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_focus_on_click.html">gtk_widget_set_focus_on_click</a></h6>
+          <div class="docblock">
+            <p>Sets whether the widget should grab focus when it is clicked
+with the&nbsp;mouse.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_focusable.html">gtk_widget_set_focusable</a></h6>
+          <div class="docblock">
+            <p>Specifies whether <code>widget</code> can own the input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_font_map.html">gtk_widget_set_font_map</a></h6>
+          <div class="docblock">
+            <p>Sets the font map to use for Pango&nbsp;rendering.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_font_options.html">gtk_widget_set_font_options</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>cairo_font_options_t</code> used for Pango rendering
+in this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_halign.html">gtk_widget_set_halign</a></h6>
+          <div class="docblock">
+            <p>Sets the horizontal alignment of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_has_tooltip.html">gtk_widget_set_has_tooltip</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>has-tooltip</code> property on <code>widget</code> to <code>has_tooltip</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_hexpand.html">gtk_widget_set_hexpand</a></h6>
+          <div class="docblock">
+            <p>Sets whether the widget would like any available extra horizontal&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_hexpand_set.html">gtk_widget_set_hexpand_set</a></h6>
+          <div class="docblock">
+            <p>Sets whether the hexpand flag will be&nbsp;used.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_layout_manager.html">gtk_widget_set_layout_manager</a></h6>
+          <div class="docblock">
+            <p>Sets the layout manager delegate instance that provides an
+implementation for measuring and allocating the children of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_margin_bottom.html">gtk_widget_set_margin_bottom</a></h6>
+          <div class="docblock">
+            <p>Sets the bottom margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_margin_end.html">gtk_widget_set_margin_end</a></h6>
+          <div class="docblock">
+            <p>Sets the end margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_margin_start.html">gtk_widget_set_margin_start</a></h6>
+          <div class="docblock">
+            <p>Sets the start margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_margin_top.html">gtk_widget_set_margin_top</a></h6>
+          <div class="docblock">
+            <p>Sets the top margin of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_name.html">gtk_widget_set_name</a></h6>
+          <div class="docblock">
+            <p>Sets a widgets&nbsp;name.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_opacity.html">gtk_widget_set_opacity</a></h6>
+          <div class="docblock">
+            <p>Request the <code>widget</code> to be rendered partially&nbsp;transparent.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_overflow.html">gtk_widget_set_overflow</a></h6>
+          <div class="docblock">
+            <p>Sets how <code>widget</code> treats content that is drawn outside the
+widget&#8217;s content&nbsp;area.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_parent.html">gtk_widget_set_parent</a></h6>
+          <div class="docblock">
+            <p>Sets <code>parent</code> as the parent widget of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_receives_default.html">gtk_widget_set_receives_default</a></h6>
+          <div class="docblock">
+            <p>Specifies whether <code>widget</code> will be treated as the default
+widget within its toplevel when it has the focus, even if
+another widget is the&nbsp;default.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_sensitive.html">gtk_widget_set_sensitive</a></h6>
+          <div class="docblock">
+            <p>Sets the sensitivity of a&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_size_request.html">gtk_widget_set_size_request</a></h6>
+          <div class="docblock">
+            <p>Sets the minimum size of a&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_state_flags.html">gtk_widget_set_state_flags</a></h6>
+          <div class="docblock">
+            <p>Turns on flag values in the current widget&nbsp;state.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_tooltip_markup.html">gtk_widget_set_tooltip_markup</a></h6>
+          <div class="docblock">
+            <p>Sets <code>markup</code> as the contents of the tooltip, which is marked
+up with Pango&nbsp;markup.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_tooltip_text.html">gtk_widget_set_tooltip_text</a></h6>
+          <div class="docblock">
+            <p>Sets <code>text</code> as the contents of the&nbsp;tooltip.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_valign.html">gtk_widget_set_valign</a></h6>
+          <div class="docblock">
+            <p>Sets the vertical alignment of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_vexpand.html">gtk_widget_set_vexpand</a></h6>
+          <div class="docblock">
+            <p>Sets whether the widget would like any available extra vertical&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_vexpand_set.html">gtk_widget_set_vexpand_set</a></h6>
+          <div class="docblock">
+            <p>Sets whether the vexpand flag will be&nbsp;used.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.set_visible.html">gtk_widget_set_visible</a></h6>
+          <div class="docblock">
+            <p>Sets the visibility state of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.should_layout.html">gtk_widget_should_layout</a></h6>
+          <div class="docblock">
+            <p>Returns whether <code>widget</code> should contribute to
+the measuring and allocation of its&nbsp;parent.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.show.html">gtk_widget_show</a></h6>
+          <div class="docblock">
+            <p>Flags a widget to be&nbsp;displayed.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.size_allocate.html">gtk_widget_size_allocate</a></h6>
+          <div class="docblock">
+            <p>Allocates widget with a transformation that translates
+the origin to the position in <code>allocation</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.snapshot_child.html">gtk_widget_snapshot_child</a></h6>
+          <div class="docblock">
+            <p>Snapshot the a child of <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Widget.translate_coordinates.html">gtk_widget_translate_coordinates</a></h6>
+          <div class="docblock">
+            <p>Translate coordinates relative to <code>src_widget</code>’s allocation
+to coordinates relative to <code>dest_widget</code>’s&nbsp;allocations.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.trigger_tooltip_query.html">gtk_widget_trigger_tooltip_query</a></h6>
+          <div class="docblock">
+            <p>Triggers a tooltip query on the display where the toplevel
+of <code>widget</code> is&nbsp;located.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.unmap.html">gtk_widget_unmap</a></h6>
+          <div class="docblock">
+            <p>Causes a widget to be unmapped if it’s currently&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.unparent.html">gtk_widget_unparent</a></h6>
+          <div class="docblock">
+            <p>Dissociate <code>widget</code> from its&nbsp;parent.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.unrealize.html">gtk_widget_unrealize</a></h6>
+          <div class="docblock">
+            <p>Causes a widget to be unrealized (frees all <span class="caps">GDK</span> resources
+associated with the&nbsp;widget).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Widget.unset_state_flags.html">gtk_widget_unset_state_flags</a></h6>
+          <div class="docblock">
+            <p>Turns off flag values for the current widget&nbsp;state.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Accessible.html">GtkAccessible</a> (19)</h5><div class="docblock">
+          
+            <h6><a href="method.Accessible.announce.html">gtk_accessible_announce</a></h6><div class="docblock">
+              <p>Requests the user&#8217;s screen reader to announce the given&nbsp;message.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.14</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_parent.html">gtk_accessible_get_accessible_parent</a></h6><div class="docblock">
+              <p>Retrieves the accessible parent for an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_role.html">gtk_accessible_get_accessible_role</a></h6><div class="docblock">
+              <p>Retrieves the accessible role of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_at_context.html">gtk_accessible_get_at_context</a></h6><div class="docblock">
+              <p>Retrieves the accessible implementation for the given <code>GtkAccessible</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_bounds.html">gtk_accessible_get_bounds</a></h6><div class="docblock">
+              <p>Queries the coordinates and dimensions of this&nbsp;accessible.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_first_accessible_child.html">gtk_accessible_get_first_accessible_child</a></h6><div class="docblock">
+              <p>Retrieves the first accessible child of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_next_accessible_sibling.html">gtk_accessible_get_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Retrieves the next accessible sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_platform_state.html">gtk_accessible_get_platform_state</a></h6><div class="docblock">
+              <p>Query a platform state, such as&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_property.html">gtk_accessible_reset_property</a></h6><div class="docblock">
+              <p>Resets the accessible <code>property</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_relation.html">gtk_accessible_reset_relation</a></h6><div class="docblock">
+              <p>Resets the accessible <code>relation</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_state.html">gtk_accessible_reset_state</a></h6><div class="docblock">
+              <p>Resets the accessible <code>state</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.set_accessible_parent.html">gtk_accessible_set_accessible_parent</a></h6><div class="docblock">
+              <p>Sets the parent and sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_next_accessible_sibling.html">gtk_accessible_update_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Updates the next accessible sibling of <code>self</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property.html">gtk_accessible_update_property</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property_value.html">gtk_accessible_update_property_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation.html">gtk_accessible_update_relation</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation_value.html">gtk_accessible_update_relation_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state.html">gtk_accessible_update_state</a></h6><div class="docblock">
+              <p>Updates a list of accessible states. See the <code>GtkAccessibleState</code>
+documentation for the value types of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state_value.html">gtk_accessible_update_state_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6><div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Widget.can-focus.html">Gtk.Widget:can-focus</a></h6>
+          <div class="docblock">
+            <p>Whether the widget or any of its descendents can accept
+the input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.can-target.html">Gtk.Widget:can-target</a></h6>
+          <div class="docblock">
+            <p>Whether the widget can receive pointer&nbsp;events.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.css-classes.html">Gtk.Widget:css-classes</a></h6>
+          <div class="docblock">
+            <p>A list of css classes applied to this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.css-name.html">Gtk.Widget:css-name</a></h6>
+          <div class="docblock">
+            <p>The name of this widget in the <span class="caps">CSS</span>&nbsp;tree.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.cursor.html">Gtk.Widget:cursor</a></h6>
+          <div class="docblock">
+            <p>The cursor used by <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.focus-on-click.html">Gtk.Widget:focus-on-click</a></h6>
+          <div class="docblock">
+            <p>Whether the widget should grab focus when it is clicked with the&nbsp;mouse.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.focusable.html">Gtk.Widget:focusable</a></h6>
+          <div class="docblock">
+            <p>Whether this widget itself will accept the input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.halign.html">Gtk.Widget:halign</a></h6>
+          <div class="docblock">
+            <p>How to distribute horizontal space if widget gets extra&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.has-default.html">Gtk.Widget:has-default</a></h6>
+          <div class="docblock">
+            <p>Whether the widget is the default&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.has-focus.html">Gtk.Widget:has-focus</a></h6>
+          <div class="docblock">
+            <p>Whether the widget has the input&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.has-tooltip.html">Gtk.Widget:has-tooltip</a></h6>
+          <div class="docblock">
+            <p>Enables or disables the emission of the ::query-tooltip signal on <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.height-request.html">Gtk.Widget:height-request</a></h6>
+          <div class="docblock">
+            <p>Override for height request of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.hexpand.html">Gtk.Widget:hexpand</a></h6>
+          <div class="docblock">
+            <p>Whether to expand&nbsp;horizontally.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.hexpand-set.html">Gtk.Widget:hexpand-set</a></h6>
+          <div class="docblock">
+            <p>Whether to use the <code>hexpand</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.layout-manager.html">Gtk.Widget:layout-manager</a></h6>
+          <div class="docblock">
+            <p>The <code>GtkLayoutManager</code> instance to use to compute the preferred size
+of the widget, and allocate its&nbsp;children.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.margin-bottom.html">Gtk.Widget:margin-bottom</a></h6>
+          <div class="docblock">
+            <p>Margin on bottom side of&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.margin-end.html">Gtk.Widget:margin-end</a></h6>
+          <div class="docblock">
+            <p>Margin on end of widget,&nbsp;horizontally.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.margin-start.html">Gtk.Widget:margin-start</a></h6>
+          <div class="docblock">
+            <p>Margin on start of widget,&nbsp;horizontally.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.margin-top.html">Gtk.Widget:margin-top</a></h6>
+          <div class="docblock">
+            <p>Margin on top side of&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.name.html">Gtk.Widget:name</a></h6>
+          <div class="docblock">
+            <p>The name of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.opacity.html">Gtk.Widget:opacity</a></h6>
+          <div class="docblock">
+            <p>The requested opacity of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.overflow.html">Gtk.Widget:overflow</a></h6>
+          <div class="docblock">
+            <p>How content outside the widget&#8217;s content area is&nbsp;treated.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.parent.html">Gtk.Widget:parent</a></h6>
+          <div class="docblock">
+            <p>The parent widget of this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.receives-default.html">Gtk.Widget:receives-default</a></h6>
+          <div class="docblock">
+            <p>Whether the widget will receive the default action when it is&nbsp;focused.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.root.html">Gtk.Widget:root</a></h6>
+          <div class="docblock">
+            <p>The <code>GtkRoot</code> widget of the widget tree containing this&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.scale-factor.html">Gtk.Widget:scale-factor</a></h6>
+          <div class="docblock">
+            <p>The scale factor of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.sensitive.html">Gtk.Widget:sensitive</a></h6>
+          <div class="docblock">
+            <p>Whether the widget responds to&nbsp;input.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.tooltip-markup.html">Gtk.Widget:tooltip-markup</a></h6>
+          <div class="docblock">
+            <p>Sets the text of tooltip to be the given string, which is marked up
+with Pango&nbsp;markup.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.tooltip-text.html">Gtk.Widget:tooltip-text</a></h6>
+          <div class="docblock">
+            <p>Sets the text of tooltip to be the given&nbsp;string.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.valign.html">Gtk.Widget:valign</a></h6>
+          <div class="docblock">
+            <p>How to distribute vertical space if widget gets extra&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.vexpand.html">Gtk.Widget:vexpand</a></h6>
+          <div class="docblock">
+            <p>Whether to expand&nbsp;vertically.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.vexpand-set.html">Gtk.Widget:vexpand-set</a></h6>
+          <div class="docblock">
+            <p>Whether to use the <code>vexpand</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.visible.html">Gtk.Widget:visible</a></h6>
+          <div class="docblock">
+            <p>Whether the widget is&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Widget.width-request.html">Gtk.Widget:width-request</a></h6>
+          <div class="docblock">
+            <p>Override for width request of the&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="iface.Accessible.html">GtkAccessible</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="property.Accessible.accessible-role.html">GtkAccessible:accessible-role</a></h6><div class="docblock">
+              <p>The accessible role of the given <code>GtkAccessible</code> implementation.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Widget.destroy.html">Gtk.Widget::destroy</a></h6>
+          <div class="docblock">
+            <p>Signals that all holders of a reference to the widget should release
+the reference that they&nbsp;hold.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.direction-changed.html">Gtk.Widget::direction-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the text direction of a widget&nbsp;changes.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.hide.html">Gtk.Widget::hide</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>widget</code> is&nbsp;hidden.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.keynav-failed.html">Gtk.Widget::keynav-failed</a></h6>
+          <div class="docblock">
+            <p>Emitted if keyboard navigation&nbsp;fails.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.map.html">Gtk.Widget::map</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>widget</code> is going to be&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.mnemonic-activate.html">Gtk.Widget::mnemonic-activate</a></h6>
+          <div class="docblock">
+            <p>Emitted when a widget is activated via a&nbsp;mnemonic.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.move-focus.html">Gtk.Widget::move-focus</a></h6>
+          <div class="docblock">
+            <p>Emitted when the focus is&nbsp;moved.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.query-tooltip.html">Gtk.Widget::query-tooltip</a></h6>
+          <div class="docblock">
+            <p>Emitted when the widget’s tooltip is about to be&nbsp;shown.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.realize.html">Gtk.Widget::realize</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>widget</code> is associated with a <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.show.html">Gtk.Widget::show</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>widget</code> is&nbsp;shown.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.state-flags-changed.html">Gtk.Widget::state-flags-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the widget state&nbsp;changes.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.unmap.html">Gtk.Widget::unmap</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>widget</code> is going to be&nbsp;unmapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Widget.unrealize.html">Gtk.Widget::unrealize</a></h6>
+          <div class="docblock">
+            <p>Emitted when the <code>GdkSurface</code> associated with <code>widget</code> is&nbsp;destroyed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkWidgetClass {
+  GInitiallyUnownedClass parent_class;
+  void (* show) (
+    GtkWidget* widget
+  );
+  void (* hide) (
+    GtkWidget* widget
+  );
+  void (* map) (
+    GtkWidget* widget
+  );
+  void (* unmap) (
+    GtkWidget* widget
+  );
+  void (* realize) (
+    GtkWidget* widget
+  );
+  void (* unrealize) (
+    GtkWidget* widget
+  );
+  void (* root) (
+    GtkWidget* widget
+  );
+  void (* unroot) (
+    GtkWidget* widget
+  );
+  void (* size_allocate) (
+    GtkWidget* widget,
+    int width,
+    int height,
+    int baseline
+  );
+  void (* state_flags_changed) (
+    GtkWidget* widget,
+    GtkStateFlags previous_state_flags
+  );
+  void (* direction_changed) (
+    GtkWidget* widget,
+    GtkTextDirection previous_direction
+  );
+  GtkSizeRequestMode (* get_request_mode) (
+    GtkWidget* widget
+  );
+  void (* measure) (
+    GtkWidget* widget,
+    GtkOrientation orientation,
+    int for_size,
+    int* minimum,
+    int* natural,
+    int* minimum_baseline,
+    int* natural_baseline
+  );
+  gboolean (* mnemonic_activate) (
+    GtkWidget* widget,
+    gboolean group_cycling
+  );
+  gboolean (* grab_focus) (
+    GtkWidget* widget
+  );
+  gboolean (* focus) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  );
+  void (* set_focus_child) (
+    GtkWidget* widget,
+    GtkWidget* child
+  );
+  void (* move_focus) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  );
+  gboolean (* keynav_failed) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  );
+  gboolean (* query_tooltip) (
+    GtkWidget* widget,
+    int x,
+    int y,
+    gboolean keyboard_tooltip,
+    GtkTooltip* tooltip
+  );
+  void (* compute_expand) (
+    GtkWidget* widget,
+    gboolean* hexpand_p,
+    gboolean* vexpand_p
+  );
+  void (* css_changed) (
+    GtkWidget* widget,
+    GtkCssStyleChange* change
+  );
+  void (* system_setting_changed) (
+    GtkWidget* widget,
+    GtkSystemSetting settings
+  );
+  void (* snapshot) (
+    GtkWidget* widget,
+    GtkSnapshot* snapshot
+  );
+  gboolean (* contains) (
+    GtkWidget* widget,
+    double x,
+    double y
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GInitiallyUnownedClass</code></dt>
+          <dd><p>The object class structure needs to be the first
+  element in the widget class structure in order for the class mechanism
+  to work correctly. This allows a GtkWidgetClass pointer to be cast to
+  a GObjectClass&nbsp;pointer.</p></dd>
+        
+          <dt><code>show: void (* show) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when widget is&nbsp;shown.</p></dd>
+        
+          <dt><code>hide: void (* hide) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when widget is&nbsp;hidden.</p></dd>
+        
+          <dt><code>map: void (* map) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when widget is going to be mapped, that is
+  when the widget is visible (which is controlled with
+  gtk_widget_set_visible()) and all its parents up to the toplevel
+  widget are also&nbsp;visible.</p></dd>
+        
+          <dt><code>unmap: void (* unmap) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when widget is going to be unmapped, which
+  means that either it or any of its parents up to the toplevel
+  widget have been set as&nbsp;hidden.</p></dd>
+        
+          <dt><code>realize: void (* realize) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when widget is associated with a
+  <code>GdkSurface</code>, which means that <code>gtk_widget_realize()</code> has been called or
+  the widget has been mapped (that is, it is going to be&nbsp;drawn).</p></dd>
+        
+          <dt><code>unrealize: void (* unrealize) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Signal emitted when the GdkSurface associated with
+  widget is destroyed, which means that <code>gtk_widget_unrealize()</code> has
+  been called or the widget has been unmapped (that is, it is going
+  to be&nbsp;hidden).</p></dd>
+        
+          <dt><code>root: void (* root) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Called when the widget gets added to a <code>GtkRoot</code> widget. Must
+  chain&nbsp;up.</p></dd>
+        
+          <dt><code>unroot: void (* unroot) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Called when the widget is about to be removed from its
+  <code>GtkRoot</code> widget. Must chain&nbsp;up.</p></dd>
+        
+          <dt><code>size_allocate: void (* size_allocate) (
+    GtkWidget* widget,
+    int width,
+    int height,
+    int baseline
+  )</code></dt>
+          <dd><p>Called to set the allocation, if the widget does
+  not have a layout&nbsp;manager.</p></dd>
+        
+          <dt><code>state_flags_changed: void (* state_flags_changed) (
+    GtkWidget* widget,
+    GtkStateFlags previous_state_flags
+  )</code></dt>
+          <dd><p>Signal emitted when the widget state changes,
+  see&nbsp;gtk_widget_get_state_flags().</p></dd>
+        
+          <dt><code>direction_changed: void (* direction_changed) (
+    GtkWidget* widget,
+    GtkTextDirection previous_direction
+  )</code></dt>
+          <dd><p>Signal emitted when the text direction of a
+  widget&nbsp;changes.</p></dd>
+        
+          <dt><code>get_request_mode: GtkSizeRequestMode (* get_request_mode) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Called to get the request mode, if the widget
+  does not have a layout manager.
+  This allows a widget to tell its parent container whether
+  it prefers to be allocated in <code>GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH</code> or
+  <code>GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT</code> mode.
+  <code>GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH</code> means the widget prefers to have
+  <code>GtkWidgetClass.measure()</code> called first to get the default width (passing
+  a for_size of -1), then again to get the height for said default width.
+  <code>GTK_SIZE_REQUEST_CONSTANT_SIZE</code> disables any height-for-width or
+  width-for-height geometry management for said widget and is the
+  default return.
+  It’s important to note that any widget
+  which trades height-for-width or width-for-height must respond properly
+  to a for_size value &gt;= -1 passed to <code>GtkWidgetClass.measure</code>, for both
+  possible&nbsp;orientations.</p></dd>
+        
+          <dt><code>measure: void (* measure) (
+    GtkWidget* widget,
+    GtkOrientation orientation,
+    int for_size,
+    int* minimum,
+    int* natural,
+    int* minimum_baseline,
+    int* natural_baseline
+  )</code></dt>
+          <dd><p>Called to obtain the minimum and natural size of the widget,
+  if the widget does not have a layout manager.
+  Depending on the orientation parameter, the passed for_size can be
+  interpreted as width or height. A widget will never be allocated less
+  than its minimum&nbsp;size.</p></dd>
+        
+          <dt><code>mnemonic_activate: gboolean (* mnemonic_activate) (
+    GtkWidget* widget,
+    gboolean group_cycling
+  )</code></dt>
+          <dd><p>Activates the <code>widget</code> if <code>group_cycling</code> is
+  <code>FALSE</code>, and just grabs the focus if <code>group_cycling</code> is <code>TRUE</code>.</p></dd>
+        
+          <dt><code>grab_focus: gboolean (* grab_focus) (
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Causes <code>widget</code> to have the keyboard focus for the
+  <code>GtkWindow</code> it’s&nbsp;inside.</p></dd>
+        
+          <dt><code>focus: gboolean (* focus) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  )</code></dt>
+          <dd><p>Vfunc for&nbsp;gtk_widget_child_focus().</p></dd>
+        
+          <dt><code>set_focus_child: void (* set_focus_child) (
+    GtkWidget* widget,
+    GtkWidget* child
+  )</code></dt>
+          <dd><p>Sets the focused child of a widget. Must chain&nbsp;up.</p></dd>
+        
+          <dt><code>move_focus: void (* move_focus) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  )</code></dt>
+          <dd><p>Signal emitted when a change of focus is&nbsp;requested.</p></dd>
+        
+          <dt><code>keynav_failed: gboolean (* keynav_failed) (
+    GtkWidget* widget,
+    GtkDirectionType direction
+  )</code></dt>
+          <dd><p>Signal emitted if keyboard navigation&nbsp;fails.</p></dd>
+        
+          <dt><code>query_tooltip: gboolean (* query_tooltip) (
+    GtkWidget* widget,
+    int x,
+    int y,
+    gboolean keyboard_tooltip,
+    GtkTooltip* tooltip
+  )</code></dt>
+          <dd><p>Signal emitted when “has-tooltip” is <code>TRUE</code> and the
+  hover timeout has expired with the cursor hovering “above”
+  widget; or emitted when widget got focus in keyboard&nbsp;mode.</p></dd>
+        
+          <dt><code>compute_expand: void (* compute_expand) (
+    GtkWidget* widget,
+    gboolean* hexpand_p,
+    gboolean* vexpand_p
+  )</code></dt>
+          <dd><p>Computes whether a container should give this
+  widget extra space when&nbsp;possible.</p></dd>
+        
+          <dt><code>css_changed: void (* css_changed) (
+    GtkWidget* widget,
+    GtkCssStyleChange* change
+  )</code></dt>
+          <dd><p>Vfunc called when the <span class="caps">CSS</span> used by widget was changed. Widgets
+  should then discard their caches that depend on <span class="caps">CSS</span> and queue resizes or
+  redraws accordingly. The default implementation will take care of this for
+  all the default <span class="caps">CSS</span> properties, so implementations must chain&nbsp;up.</p></dd>
+        
+          <dt><code>system_setting_changed: void (* system_setting_changed) (
+    GtkWidget* widget,
+    GtkSystemSetting settings
+  )</code></dt>
+          <dd><p>Emitted when a system setting was changed. Must chain&nbsp;up.</p></dd>
+        
+          <dt><code>snapshot: void (* snapshot) (
+    GtkWidget* widget,
+    GtkSnapshot* snapshot
+  )</code></dt>
+          <dd><p>Vfunc called when a new snapshot of the widget has to be&nbsp;taken.</p></dd>
+        
+          <dt><code>contains: gboolean (* contains) (
+    GtkWidget* widget,
+    double x,
+    double y
+  )</code></dt>
+          <dd><p>Vfunc for&nbsp;gtk_widget_contains().</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-compute_expand"><a href="vfunc.Widget.compute_expand.html">Gtk.WidgetClass.compute_expand</a></h6>
+        <div class="docblock">
+          <p>Computes whether a container should give this
+  widget extra space when&nbsp;possible.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-contains"><a href="vfunc.Widget.contains.html">Gtk.WidgetClass.contains</a></h6>
+        <div class="docblock">
+          <p>Tests if the point at (<code>x</code>, <code>y</code>) is contained in <code>widget</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-css_changed"><a href="vfunc.Widget.css_changed.html">Gtk.WidgetClass.css_changed</a></h6>
+        <div class="docblock">
+          <p>Vfunc called when the <span class="caps">CSS</span> used by widget was changed. Widgets
+  should then discard their caches that depend on <span class="caps">CSS</span> and queue resizes or
+  redraws accordingly. The default implementation will take care of this for
+  all the default <span class="caps">CSS</span> properties, so implementations must chain&nbsp;up.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-direction_changed"><a href="vfunc.Widget.direction_changed.html">Gtk.WidgetClass.direction_changed</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when the text direction of a
+  widget&nbsp;changes.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-focus"><a href="vfunc.Widget.focus.html">Gtk.WidgetClass.focus</a></h6>
+        <div class="docblock">
+          <p>Vfunc for&nbsp;gtk_widget_child_focus().</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_request_mode"><a href="vfunc.Widget.get_request_mode.html">Gtk.WidgetClass.get_request_mode</a></h6>
+        <div class="docblock">
+          <p>Gets whether the widget prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-grab_focus"><a href="vfunc.Widget.grab_focus.html">Gtk.WidgetClass.grab_focus</a></h6>
+        <div class="docblock">
+          <p>Causes <code>widget</code> to have the keyboard focus for the <code>GtkWindow</code> it&#8217;s&nbsp;inside.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-hide"><a href="vfunc.Widget.hide.html">Gtk.WidgetClass.hide</a></h6>
+        <div class="docblock">
+          <p>Reverses the effects of&nbsp;gtk_widget_show().</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-keynav_failed"><a href="vfunc.Widget.keynav_failed.html">Gtk.WidgetClass.keynav_failed</a></h6>
+        <div class="docblock">
+          <p>Emits the <code>::keynav-failed</code> signal on the&nbsp;widget.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-map"><a href="vfunc.Widget.map.html">Gtk.WidgetClass.map</a></h6>
+        <div class="docblock">
+          <p>Causes a widget to be mapped if it isn’t&nbsp;already.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-measure"><a href="vfunc.Widget.measure.html">Gtk.WidgetClass.measure</a></h6>
+        <div class="docblock">
+          <p>Measures <code>widget</code> in the orientation <code>orientation</code> and for the given <code>for_size</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-mnemonic_activate"><a href="vfunc.Widget.mnemonic_activate.html">Gtk.WidgetClass.mnemonic_activate</a></h6>
+        <div class="docblock">
+          <p>Emits the ::mnemonic-activate&nbsp;signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-move_focus"><a href="vfunc.Widget.move_focus.html">Gtk.WidgetClass.move_focus</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when a change of focus is&nbsp;requested.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-query_tooltip"><a href="vfunc.Widget.query_tooltip.html">Gtk.WidgetClass.query_tooltip</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when “has-tooltip” is <code>TRUE</code> and the
+  hover timeout has expired with the cursor hovering “above”
+  widget; or emitted when widget got focus in keyboard&nbsp;mode.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-realize"><a href="vfunc.Widget.realize.html">Gtk.WidgetClass.realize</a></h6>
+        <div class="docblock">
+          <p>Creates the <span class="caps">GDK</span> resources associated with a&nbsp;widget.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-root"><a href="vfunc.Widget.root.html">Gtk.WidgetClass.root</a></h6>
+        <div class="docblock">
+          <p>Called when the widget gets added to a <code>GtkRoot</code> widget. Must
+  chain&nbsp;up.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_focus_child"><a href="vfunc.Widget.set_focus_child.html">Gtk.WidgetClass.set_focus_child</a></h6>
+        <div class="docblock">
+          <p>Set <code>child</code> as the current focus child of <code>widget</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-show"><a href="vfunc.Widget.show.html">Gtk.WidgetClass.show</a></h6>
+        <div class="docblock">
+          <p>Flags a widget to be&nbsp;displayed.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-size_allocate"><a href="vfunc.Widget.size_allocate.html">Gtk.WidgetClass.size_allocate</a></h6>
+        <div class="docblock">
+          <p>Called to set the allocation, if the widget does
+  not have a layout&nbsp;manager.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-snapshot"><a href="vfunc.Widget.snapshot.html">Gtk.WidgetClass.snapshot</a></h6>
+        <div class="docblock">
+          <p>Vfunc called when a new snapshot of the widget has to be&nbsp;taken.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-state_flags_changed"><a href="vfunc.Widget.state_flags_changed.html">Gtk.WidgetClass.state_flags_changed</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when the widget state changes,
+  see&nbsp;gtk_widget_get_state_flags().</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-system_setting_changed"><a href="vfunc.Widget.system_setting_changed.html">Gtk.WidgetClass.system_setting_changed</a></h6>
+        <div class="docblock">
+          <p>Emitted when a system setting was changed. Must chain&nbsp;up.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-unmap"><a href="vfunc.Widget.unmap.html">Gtk.WidgetClass.unmap</a></h6>
+        <div class="docblock">
+          <p>Causes a widget to be unmapped if it’s currently&nbsp;mapped.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-unrealize"><a href="vfunc.Widget.unrealize.html">Gtk.WidgetClass.unrealize</a></h6>
+        <div class="docblock">
+          <p>Causes a widget to be unrealized (frees all <span class="caps">GDK</span> resources
+associated with the&nbsp;widget).</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-unroot"><a href="vfunc.Widget.unroot.html">Gtk.WidgetClass.unroot</a></h6>
+        <div class="docblock">
+          <p>Called when the widget is about to be removed from its
+  <code>GtkRoot</code> widget. Must chain&nbsp;up.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="class-methods">
+        Class methods
+        <a href="#class-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="class_method.Widget.add_binding.html">gtk_widget_class_add_binding</a></h6>
+        <div class="docblock">
+          <p>Creates a new shortcut for <code>widget_class</code> that calls the given <code>callback</code>
+with arguments read according to <code>format_string</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.add_binding_action.html">gtk_widget_class_add_binding_action</a></h6>
+        <div class="docblock">
+          <p>Creates a new shortcut for <code>widget_class</code> that activates the given
+<code>action_name</code> with arguments read according to <code>format_string</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.add_binding_signal.html">gtk_widget_class_add_binding_signal</a></h6>
+        <div class="docblock">
+          <p>Creates a new shortcut for <code>widget_class</code> that emits the given action
+<code>signal</code> with arguments read according to <code>format_string</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.add_shortcut.html">gtk_widget_class_add_shortcut</a></h6>
+        <div class="docblock">
+          <p>Installs a shortcut in <code>widget_class</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.bind_template_callback_full.html">gtk_widget_class_bind_template_callback_full</a></h6>
+        <div class="docblock">
+          <p>Declares a <code>callback_symbol</code> to handle <code>callback_name</code> from
+the template <span class="caps">XML</span> defined for <code>widget_type</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.bind_template_child_full.html">gtk_widget_class_bind_template_child_full</a></h6>
+        <div class="docblock">
+          <p>Automatically assign an object declared in the class template <span class="caps">XML</span> to
+be set to a location on a freshly built instance’s private data, or
+alternatively accessible via <code>gtk_widget_get_template_child()</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.get_accessible_role.html">gtk_widget_class_get_accessible_role</a></h6>
+        <div class="docblock">
+          <p>Retrieves the accessible role used by the given <code>GtkWidget</code> class.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.get_activate_signal.html">gtk_widget_class_get_activate_signal</a></h6>
+        <div class="docblock">
+          <p>Retrieves the signal id for the activation&nbsp;signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.get_css_name.html">gtk_widget_class_get_css_name</a></h6>
+        <div class="docblock">
+          <p>Gets the name used by this class for matching in <span class="caps">CSS</span>&nbsp;code.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.get_layout_manager_type.html">gtk_widget_class_get_layout_manager_type</a></h6>
+        <div class="docblock">
+          <p>Retrieves the type of the <code>GtkLayoutManager</code>
+used by widgets of class <code>widget_class</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.install_action.html">gtk_widget_class_install_action</a></h6>
+        <div class="docblock">
+          <p>This should be called at class initialization time to specify
+actions to be added for all instances of this&nbsp;class.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.install_property_action.html">gtk_widget_class_install_property_action</a></h6>
+        <div class="docblock">
+          <p>Installs an action called <code>action_name</code> on <code>widget_class</code> and
+binds its state to the value of the <code>property_name</code> property.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.query_action.html">gtk_widget_class_query_action</a></h6>
+        <div class="docblock">
+          <p>Returns details about the <code>index_</code>-th action that has been
+installed for <code>widget_class</code> during class&nbsp;initialization.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_accessible_role.html">gtk_widget_class_set_accessible_role</a></h6>
+        <div class="docblock">
+          <p>Sets the accessible role used by the given <code>GtkWidget</code> class.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_activate_signal.html">gtk_widget_class_set_activate_signal</a></h6>
+        <div class="docblock">
+          <p>Sets the <code>GtkWidgetClass.activate_signal</code> field with the
+given <code>signal_id</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_activate_signal_from_name.html">gtk_widget_class_set_activate_signal_from_name</a></h6>
+        <div class="docblock">
+          <p>Sets the <code>GtkWidgetClass.activate_signal</code> field with the signal id for
+the given <code>signal_name</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_css_name.html">gtk_widget_class_set_css_name</a></h6>
+        <div class="docblock">
+          <p>Sets the name to be used for <span class="caps">CSS</span> matching of&nbsp;widgets.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_layout_manager_type.html">gtk_widget_class_set_layout_manager_type</a></h6>
+        <div class="docblock">
+          <p>Sets the type to be used for creating layout managers for
+widgets of <code>widget_class</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_template.html">gtk_widget_class_set_template</a></h6>
+        <div class="docblock">
+          <p>This should be called at class initialization time to specify
+the <code>GtkBuilder</code> <span class="caps">XML</span> to be used to extend a&nbsp;widget.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_template_from_resource.html">gtk_widget_class_set_template_from_resource</a></h6>
+        <div class="docblock">
+          <p>A convenience function that calls <code>gtk_widget_class_set_template()</code>
+with the contents of a <code>GResource</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="class_method.Widget.set_template_scope.html">gtk_widget_class_set_template_scope</a></h6>
+        <div class="docblock">
+          <p>For use in language bindings, this will override the default
+<code>GtkBuilderScope</code> to be used when parsing GtkBuilder <span class="caps">XML</span> from
+this class’s template&nbsp;data.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#height-for-width-geometry-management"><span class="link-text">Height-for-width Geometry Management</span></a></li>
+      
+        <li class="toc-list-item"><a href="#gtkwidget-as-gtkbuildable"><span class="link-text">GtkWidget as GtkBuildable</span></a></li>
+      
+        <li class="toc-list-item"><a href="#building-composite-widgets-from-template-xml"><span class="link-text">Building composite widgets from template XML</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#implements"><span class="link-text">Implements</span></a></li>
+      
+      
+
+      
+<li class="toc-list-item"><a href="#type-functions"><span class="link-text">Functions</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#class-methods"><span class="link-text">Class methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkMessageDialog">
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <property name="icon-name">edit-copy</property>
+    <property name="text">Message Dialog</property>
+    <property name="secondary-text">With secondary text</property>
+    <child type="action">
+      <object class="GtkButton" id="button_ok">
+        <property name="label">Ok</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="ok" default="true">button_ok</action-widget>
+    </action-widgets>
+  </object>
+</interface>

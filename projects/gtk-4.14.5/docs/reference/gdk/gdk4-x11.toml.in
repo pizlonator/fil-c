@@ -1,0 +1,31 @@
+[library]
+version = "@version@"
+browse_url = "https://gitlab.gnome.org/GNOME/gtk/"
+repository_url = "https://gitlab.gnome.org/GNOME/gtk.git"
+website_url = "https://www.gtk.org"
+authors = "GTK Development Team"
+logo_url = "gtk-logo.svg"
+license = "LGPL-2.1-or-later"
+description = "The GTK toolkit"
+dependencies = ["Gdk-4.0"]
+devhelp = true
+
+  [dependencies."Gdk-4.0"]
+  name = "GDK"
+  description = "The GTK drawing kit"
+  docs_url = "https://docs.gtk.org/gdk4/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+
+[source-location]
+base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/"
+
+[extra]
+content_images = [
+  "../images/favicon.svg",
+  "../images/favicon-192x192.png",
+  "images/gtk-logo.svg",
+]
+urlmap_file = "urlmap.js"

@@ -1,0 +1,1 @@
+/* Dummy header for the Linux framebuffer backend. */

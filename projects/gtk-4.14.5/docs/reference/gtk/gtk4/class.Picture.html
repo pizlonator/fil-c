@@ -1,0 +1,1467 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Picture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Picture"/>
+  <meta property="og:description" content="Reference for Gtk.Picture"/>
+  <meta name="twitter:title" content="Gtk.Picture"/>
+  <meta name="twitter:description" content="Reference for Gtk.Picture"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Picture.html#description">Picture</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Picture.new.html">new</a>
+  
+    <a class="ctor" href="ctor.Picture.new_for_file.html">new_for_file</a>
+  
+    <a class="ctor" href="ctor.Picture.new_for_filename.html">new_for_filename</a>
+  
+    <a class="ctor" href="ctor.Picture.new_for_paintable.html">new_for_paintable</a>
+  
+    <a class="ctor" href="ctor.Picture.new_for_pixbuf.html">new_for_pixbuf</a>
+  
+    <a class="ctor" href="ctor.Picture.new_for_resource.html">new_for_resource</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Picture.get_alternative_text.html">get_alternative_text</a>
+  
+    <a class="method" href="method.Picture.get_can_shrink.html">get_can_shrink</a>
+  
+    <a class="method" href="method.Picture.get_content_fit.html">get_content_fit</a>
+  
+    <a class="method" href="method.Picture.get_file.html">get_file</a>
+  
+    <a class="method" href="method.Picture.get_keep_aspect_ratio.html">get_keep_aspect_ratio</a>
+  
+    <a class="method" href="method.Picture.get_paintable.html">get_paintable</a>
+  
+    <a class="method" href="method.Picture.set_alternative_text.html">set_alternative_text</a>
+  
+    <a class="method" href="method.Picture.set_can_shrink.html">set_can_shrink</a>
+  
+    <a class="method" href="method.Picture.set_content_fit.html">set_content_fit</a>
+  
+    <a class="method" href="method.Picture.set_file.html">set_file</a>
+  
+    <a class="method" href="method.Picture.set_filename.html">set_filename</a>
+  
+    <a class="method" href="method.Picture.set_keep_aspect_ratio.html">set_keep_aspect_ratio</a>
+  
+    <a class="method" href="method.Picture.set_paintable.html">set_paintable</a>
+  
+    <a class="method" href="method.Picture.set_pixbuf.html">set_pixbuf</a>
+  
+    <a class="method" href="method.Picture.set_resource.html">set_resource</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Picture.alternative-text.html">alternative-text</a>
+  
+    <a class="property" href="property.Picture.can-shrink.html">can-shrink</a>
+  
+    <a class="property" href="property.Picture.content-fit.html">content-fit</a>
+  
+    <a class="property" href="property.Picture.file.html">file</a>
+  
+    <a class="property" href="property.Picture.keep-aspect-ratio.html">keep-aspect-ratio</a>
+  
+    <a class="property" href="property.Picture.paintable.html">paintable</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Picture</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkpicture.c#L33">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.Picture : Gtk.Widget
+  implements Gtk.Accessible, Gtk.Buildable, Gtk.ConstraintTarget {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>The <code>GtkPicture</code> widget displays a <code>GdkPaintable</code>.</p>
+<p><img alt="An example GtkPicture" src="picture.png" /></p>
+<p>Many convenience functions are provided to make pictures simple to use.
+For example, if you want to load an image from a file, and then display
+it, there’s a convenience function to do&nbsp;this:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">GtkWidget</span><span class="w"> </span><span class="o">*</span><span class="n">widget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_picture_new_for_filename</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;myfile.png&quot;</span><span class="p">);</span>
+</code></pre></div>
+
+<p>If the file isn’t loaded successfully, the picture will contain a
+“broken image” icon similar to that used in many web browsers.
+If you want to handle errors in loading the file yourself,
+for example by displaying an error message, then load the image with
+<a href="javascript:void(0)" data-namespace="Gdk" data-link="ctor.Texture.new_from_file.html" class="external"><code>gdk_texture_new_from_file()</code></a>, then create the <code>GtkPicture</code> with
+<a href="ctor.Picture.new_for_paintable.html"><code>gtk_picture_new_for_paintable()</code></a>.</p>
+<p>Sometimes an application will want to avoid depending on external data
+files, such as image files. See the documentation of <code>GResource</code> for details.
+In this case, <a href="ctor.Picture.new_for_resource.html"><code>gtk_picture_new_for_resource()</code></a> and
+<a href="method.Picture.set_resource.html"><code>gtk_picture_set_resource()</code></a> should be&nbsp;used.</p>
+<p><code>GtkPicture</code> displays an image at its natural size. See <a href="class.Image.html"><code>GtkImage</code></a>
+if you want to display a fixed-size image, such as an&nbsp;icon.</p>
+<h2 id="sizing-the-paintable">Sizing the paintable<a class="md-anchor" href="#sizing-the-paintable" title="Permanent link"></a></h2>
+<p>You can influence how the paintable is displayed inside the <code>GtkPicture</code>
+by changing <a href="property.Picture.content-fit.html"><code>GtkPicture:content-fit</code></a>. See <a href="enum.ContentFit.html"><code>GtkContentFit</code></a>
+for details. <a href="property.Picture.can-shrink.html"><code>GtkPicture:can-shrink</code></a> can be unset to make sure
+that paintables are never made smaller than their ideal size - but
+be careful if you do not know the size of the paintable in use (like
+when displaying user-loaded images). This can easily cause the picture to
+grow larger than the screen. And <a href="property.Widget.halign.html"><code>GtkWidget:halign</code></a> and
+<a href="property.Widget.valign.html"><code>GtkWidget:valign</code></a> can be used to make sure the paintable doesn&#8217;t
+fill all available space but is instead displayed at its original&nbsp;size.</p>
+<h2 id="css-nodes">CSS nodes<a class="md-anchor" href="#css-nodes" title="Permanent link"></a></h2>
+<p><code>GtkPicture</code> has a single <span class="caps">CSS</span> node with the name <code>picture</code>.</p>
+<h2 id="accessibility">Accessibility<a class="md-anchor" href="#accessibility" title="Permanent link"></a></h2>
+<p><code>GtkPicture</code> uses the <code>GTK_ACCESSIBLE_ROLE_IMG</code> role.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Picture">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="403pt" height="332pt"
+ viewBox="0.00 0.00 402.88 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkPicture">
+<path fill="none" stroke="black" d="M201,-108C201,-108 150.5,-108 150.5,-108 144.5,-108 138.5,-102 138.5,-96 138.5,-96 138.5,-84 138.5,-84 138.5,-78 144.5,-72 150.5,-72 150.5,-72 201,-72 201,-72 207,-72 213,-78 213,-84 213,-84 213,-96 213,-96 213,-102 207,-108 201,-108"/>
+<text text-anchor="middle" x="175.75" y="-84.95" font-family="Times,serif" font-size="14.00">GtkPicture</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node5" class="node link">
+<title>implements_0</title>
+<g id="a_node5"><a xlink:href="iface.Accessible.html" xlink:title="GtkAccessible">
+<polygon fill="none" stroke="black" points="107.5,-36 0,-36 0,0 107.5,0 107.5,-36"/>
+<text text-anchor="middle" x="53.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkAccessible</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M145.28,-71.52C126.51,-60.74 102.53,-46.99 83.83,-36.26"/>
+</g>
+<!-- implements_1 -->
+<g id="node6" class="node link">
+<title>implements_1</title>
+<g id="a_node6"><a xlink:href="iface.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="226.12,-36 125.38,-36 125.38,0 226.12,0 226.12,-36"/>
+<text text-anchor="middle" x="175.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge5" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M175.75,-71.7C175.75,-60.85 175.75,-46.92 175.75,-36.1"/>
+</g>
+<!-- implements_2 -->
+<g id="node7" class="node link">
+<title>implements_2</title>
+<g id="a_node7"><a xlink:href="iface.ConstraintTarget.html" xlink:title="GtkConstraintTarget">
+<polygon fill="none" stroke="black" points="394.88,-36 244.62,-36 244.62,0 394.88,0 394.88,-36"/>
+<text text-anchor="middle" x="319.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkConstraintTarget</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_2 -->
+<g id="edge6" class="edge">
+<title>this&#45;&#45;implements_2</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M211.72,-71.52C233.87,-60.74 262.17,-46.99 284.24,-36.26"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.Widget.html" xlink:title="GtkWidget">
+<path fill="none" stroke="black" d="M201.75,-180C201.75,-180 149.75,-180 149.75,-180 143.75,-180 137.75,-174 137.75,-168 137.75,-168 137.75,-156 137.75,-156 137.75,-150 143.75,-144 149.75,-144 149.75,-144 201.75,-144 201.75,-144 207.75,-144 213.75,-150 213.75,-156 213.75,-156 213.75,-168 213.75,-168 213.75,-174 207.75,-180 201.75,-180"/>
+<text text-anchor="middle" x="175.75" y="-156.95" font-family="Times,serif" font-size="14.00">GtkWidget</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge3" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M175.75,-143.7C175.75,-132.85 175.75,-118.92 175.75,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M224.25,-252C224.25,-252 127.25,-252 127.25,-252 121.25,-252 115.25,-246 115.25,-240 115.25,-240 115.25,-228 115.25,-228 115.25,-222 121.25,-216 127.25,-216 127.25,-216 224.25,-216 224.25,-216 230.25,-216 236.25,-222 236.25,-228 236.25,-228 236.25,-240 236.25,-240 236.25,-246 230.25,-252 224.25,-252"/>
+<text text-anchor="middle" x="175.75" y="-228.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge2" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M175.75,-215.7C175.75,-204.85 175.75,-190.92 175.75,-180.1"/>
+</g>
+<!-- ancestor_2 -->
+<g id="node4" class="node">
+<title>ancestor_2</title>
+<g id="a_node4"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M194.62,-324C194.62,-324 156.88,-324 156.88,-324 150.88,-324 144.88,-318 144.88,-312 144.88,-312 144.88,-300 144.88,-300 144.88,-294 150.88,-288 156.88,-288 156.88,-288 194.62,-288 194.62,-288 200.62,-288 206.62,-294 206.62,-300 206.62,-300 206.62,-312 206.62,-312 206.62,-318 200.62,-324 194.62,-324"/>
+<text text-anchor="middle" x="175.75" y="-300.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_2&#45;&#45;ancestor_1 -->
+<g id="edge1" class="edge">
+<title>ancestor_2&#45;&#45;ancestor_1</title>
+<path fill="none" stroke="black" d="M175.75,-287.7C175.75,-276.85 175.75,-262.92 175.75,-252.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.Widget.html" title="Widget">GtkWidget</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Accessible.html" title="Accessible">GtkAccessible</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.ConstraintTarget.html" title="ConstraintTarget">GtkConstraintTarget</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Picture.new.html">gtk_picture_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new empty <code>GtkPicture</code> widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Picture.new_for_file.html">gtk_picture_new_for_file</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPicture</code> displaying the given <code>file</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Picture.new_for_filename.html">gtk_picture_new_for_filename</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPicture</code> displaying the file <code>filename</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Picture.new_for_paintable.html">gtk_picture_new_for_paintable</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPicture</code> displaying <code>paintable</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="ctor.Picture.new_for_pixbuf.html">gtk_picture_new_for_pixbuf</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPicture</code> displaying <code>pixbuf</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Picture.new_for_resource.html">gtk_picture_new_for_resource</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPicture</code> displaying the resource at <code>resource_path</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Picture.get_alternative_text.html">gtk_picture_get_alternative_text</a></h6>
+          <div class="docblock">
+            <p>Gets the alternative textual description of the&nbsp;picture.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.get_can_shrink.html">gtk_picture_get_can_shrink</a></h6>
+          <div class="docblock">
+            <p>Returns whether the <code>GtkPicture</code> respects its contents&nbsp;size.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.get_content_fit.html">gtk_picture_get_content_fit</a></h6>
+          <div class="docblock">
+            <p>Returns the fit mode for the content of the <code>GtkPicture</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.8</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.get_file.html">gtk_picture_get_file</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GFile</code> currently displayed if <code>self</code> is displaying a&nbsp;file.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Picture.get_keep_aspect_ratio.html">gtk_picture_get_keep_aspect_ratio</a></h6>
+          <div class="docblock">
+            <p>Returns whether the <code>GtkPicture</code> preserves its contents aspect&nbsp;ratio.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.8</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.get_paintable.html">gtk_picture_get_paintable</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GdkPaintable</code> being displayed by the <code>GtkPicture</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_alternative_text.html">gtk_picture_set_alternative_text</a></h6>
+          <div class="docblock">
+            <p>Sets an alternative textual description for the picture&nbsp;contents.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_can_shrink.html">gtk_picture_set_can_shrink</a></h6>
+          <div class="docblock">
+            <p>If set to <code>TRUE</code>, the <code>self</code> can be made smaller than its&nbsp;contents.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_content_fit.html">gtk_picture_set_content_fit</a></h6>
+          <div class="docblock">
+            <p>Sets how the content should be resized to fit the <code>GtkPicture</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.8</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_file.html">gtk_picture_set_file</a></h6>
+          <div class="docblock">
+            <p>Makes <code>self</code> load and display <code>file</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_filename.html">gtk_picture_set_filename</a></h6>
+          <div class="docblock">
+            <p>Makes <code>self</code> load and display the given <code>filename</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Picture.set_keep_aspect_ratio.html">gtk_picture_set_keep_aspect_ratio</a></h6>
+          <div class="docblock">
+            <p>If set to <code>TRUE</code>, the <code>self</code> will render its contents according to
+their aspect&nbsp;ratio.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.8</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_paintable.html">gtk_picture_set_paintable</a></h6>
+          <div class="docblock">
+            <p>Makes <code>self</code> display the given <code>paintable</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Picture.set_pixbuf.html">gtk_picture_set_pixbuf</a></h6>
+          <div class="docblock">
+            <p>Sets a <code>GtkPicture</code> to show a <code>GdkPixbuf</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Picture.set_resource.html">gtk_picture_set_resource</a></h6>
+          <div class="docblock">
+            <p>Makes <code>self</code> load and display the resource at the given
+<code>resource_path</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.Widget.html">GtkWidget</a> (162)</h5><div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a href="class.Widget.html#methods">GtkWidget</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Accessible.html">GtkAccessible</a> (19)</h5><div class="docblock">
+          
+            <h6><a href="method.Accessible.announce.html">gtk_accessible_announce</a></h6><div class="docblock">
+              <p>Requests the user&#8217;s screen reader to announce the given&nbsp;message.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.14</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_parent.html">gtk_accessible_get_accessible_parent</a></h6><div class="docblock">
+              <p>Retrieves the accessible parent for an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_role.html">gtk_accessible_get_accessible_role</a></h6><div class="docblock">
+              <p>Retrieves the accessible role of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_at_context.html">gtk_accessible_get_at_context</a></h6><div class="docblock">
+              <p>Retrieves the accessible implementation for the given <code>GtkAccessible</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_bounds.html">gtk_accessible_get_bounds</a></h6><div class="docblock">
+              <p>Queries the coordinates and dimensions of this&nbsp;accessible.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_first_accessible_child.html">gtk_accessible_get_first_accessible_child</a></h6><div class="docblock">
+              <p>Retrieves the first accessible child of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_next_accessible_sibling.html">gtk_accessible_get_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Retrieves the next accessible sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_platform_state.html">gtk_accessible_get_platform_state</a></h6><div class="docblock">
+              <p>Query a platform state, such as&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_property.html">gtk_accessible_reset_property</a></h6><div class="docblock">
+              <p>Resets the accessible <code>property</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_relation.html">gtk_accessible_reset_relation</a></h6><div class="docblock">
+              <p>Resets the accessible <code>relation</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_state.html">gtk_accessible_reset_state</a></h6><div class="docblock">
+              <p>Resets the accessible <code>state</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.set_accessible_parent.html">gtk_accessible_set_accessible_parent</a></h6><div class="docblock">
+              <p>Sets the parent and sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_next_accessible_sibling.html">gtk_accessible_update_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Updates the next accessible sibling of <code>self</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property.html">gtk_accessible_update_property</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property_value.html">gtk_accessible_update_property_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation.html">gtk_accessible_update_relation</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation_value.html">gtk_accessible_update_relation_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state.html">gtk_accessible_update_state</a></h6><div class="docblock">
+              <p>Updates a list of accessible states. See the <code>GtkAccessibleState</code>
+documentation for the value types of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state_value.html">gtk_accessible_update_state_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6><div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Picture.alternative-text.html">Gtk.Picture:alternative-text</a></h6>
+          <div class="docblock">
+            <p>The alternative textual description for the&nbsp;picture.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Picture.can-shrink.html">Gtk.Picture:can-shrink</a></h6>
+          <div class="docblock">
+            <p>If the <code>GtkPicture</code> can be made smaller than the natural size of its&nbsp;contents.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Picture.content-fit.html">Gtk.Picture:content-fit</a></h6>
+          <div class="docblock">
+            <p>How the content should be resized to fit inside the <code>GtkPicture</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.8</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Picture.file.html">Gtk.Picture:file</a></h6>
+          <div class="docblock">
+            <p>The <code>GFile</code> that is displayed or <code>NULL</code> if&nbsp;none.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="property.Picture.keep-aspect-ratio.html">Gtk.Picture:keep-aspect-ratio</a></h6>
+          <div class="docblock">
+            <p>Whether the GtkPicture will render its contents trying to preserve the aspect&nbsp;ratio.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.8</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Picture.paintable.html">Gtk.Picture:paintable</a></h6>
+          <div class="docblock">
+            <p>The <code>GdkPaintable</code> to be displayed by this <code>GtkPicture</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.Widget.html">GtkWidget</a> (34)</h5><div class="docblock">
+          
+            <h6><a href="property.Widget.can-focus.html">Gtk.Widget:can-focus</a></h6><div class="docblock">
+              <p>Whether the widget or any of its descendents can accept
+the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.can-target.html">Gtk.Widget:can-target</a></h6><div class="docblock">
+              <p>Whether the widget can receive pointer&nbsp;events.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.css-classes.html">Gtk.Widget:css-classes</a></h6><div class="docblock">
+              <p>A list of css classes applied to this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.css-name.html">Gtk.Widget:css-name</a></h6><div class="docblock">
+              <p>The name of this widget in the <span class="caps">CSS</span>&nbsp;tree.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.cursor.html">Gtk.Widget:cursor</a></h6><div class="docblock">
+              <p>The cursor used by <code>widget</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.focus-on-click.html">Gtk.Widget:focus-on-click</a></h6><div class="docblock">
+              <p>Whether the widget should grab focus when it is clicked with the&nbsp;mouse.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.focusable.html">Gtk.Widget:focusable</a></h6><div class="docblock">
+              <p>Whether this widget itself will accept the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.halign.html">Gtk.Widget:halign</a></h6><div class="docblock">
+              <p>How to distribute horizontal space if widget gets extra&nbsp;space.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-default.html">Gtk.Widget:has-default</a></h6><div class="docblock">
+              <p>Whether the widget is the default&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-focus.html">Gtk.Widget:has-focus</a></h6><div class="docblock">
+              <p>Whether the widget has the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-tooltip.html">Gtk.Widget:has-tooltip</a></h6><div class="docblock">
+              <p>Enables or disables the emission of the ::query-tooltip signal on <code>widget</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.height-request.html">Gtk.Widget:height-request</a></h6><div class="docblock">
+              <p>Override for height request of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.hexpand.html">Gtk.Widget:hexpand</a></h6><div class="docblock">
+              <p>Whether to expand&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.hexpand-set.html">Gtk.Widget:hexpand-set</a></h6><div class="docblock">
+              <p>Whether to use the <code>hexpand</code> property.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.layout-manager.html">Gtk.Widget:layout-manager</a></h6><div class="docblock">
+              <p>The <code>GtkLayoutManager</code> instance to use to compute the preferred size
+of the widget, and allocate its&nbsp;children.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-bottom.html">Gtk.Widget:margin-bottom</a></h6><div class="docblock">
+              <p>Margin on bottom side of&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-end.html">Gtk.Widget:margin-end</a></h6><div class="docblock">
+              <p>Margin on end of widget,&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-start.html">Gtk.Widget:margin-start</a></h6><div class="docblock">
+              <p>Margin on start of widget,&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-top.html">Gtk.Widget:margin-top</a></h6><div class="docblock">
+              <p>Margin on top side of&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.name.html">Gtk.Widget:name</a></h6><div class="docblock">
+              <p>The name of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.opacity.html">Gtk.Widget:opacity</a></h6><div class="docblock">
+              <p>The requested opacity of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.overflow.html">Gtk.Widget:overflow</a></h6><div class="docblock">
+              <p>How content outside the widget&#8217;s content area is&nbsp;treated.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.parent.html">Gtk.Widget:parent</a></h6><div class="docblock">
+              <p>The parent widget of this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.receives-default.html">Gtk.Widget:receives-default</a></h6><div class="docblock">
+              <p>Whether the widget will receive the default action when it is&nbsp;focused.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.root.html">Gtk.Widget:root</a></h6><div class="docblock">
+              <p>The <code>GtkRoot</code> widget of the widget tree containing this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.scale-factor.html">Gtk.Widget:scale-factor</a></h6><div class="docblock">
+              <p>The scale factor of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.sensitive.html">Gtk.Widget:sensitive</a></h6><div class="docblock">
+              <p>Whether the widget responds to&nbsp;input.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.tooltip-markup.html">Gtk.Widget:tooltip-markup</a></h6><div class="docblock">
+              <p>Sets the text of tooltip to be the given string, which is marked up
+with Pango&nbsp;markup.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.tooltip-text.html">Gtk.Widget:tooltip-text</a></h6><div class="docblock">
+              <p>Sets the text of tooltip to be the given&nbsp;string.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.valign.html">Gtk.Widget:valign</a></h6><div class="docblock">
+              <p>How to distribute vertical space if widget gets extra&nbsp;space.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.vexpand.html">Gtk.Widget:vexpand</a></h6><div class="docblock">
+              <p>Whether to expand&nbsp;vertically.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.vexpand-set.html">Gtk.Widget:vexpand-set</a></h6><div class="docblock">
+              <p>Whether to use the <code>vexpand</code> property.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.visible.html">Gtk.Widget:visible</a></h6><div class="docblock">
+              <p>Whether the widget is&nbsp;visible.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.width-request.html">Gtk.Widget:width-request</a></h6><div class="docblock">
+              <p>Override for width request of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="iface.Accessible.html">GtkAccessible</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="property.Accessible.accessible-role.html">GtkAccessible:accessible-role</a></h6><div class="docblock">
+              <p>The accessible role of the given <code>GtkAccessible</code> implementation.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals">
+          <h5 style="display:block;">Signals inherited from <a href="class.Widget.html">GtkWidget</a> (13)</h5><div class="docblock">
+          
+            <h6><a href="signal.Widget.destroy.html">GtkWidget::destroy</a></h6><div class="docblock">
+              <p>Signals that all holders of a reference to the widget should release
+the reference that they&nbsp;hold.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.direction-changed.html">GtkWidget::direction-changed</a></h6><div class="docblock">
+              <p>Emitted when the text direction of a widget&nbsp;changes.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.hide.html">GtkWidget::hide</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is&nbsp;hidden.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.keynav-failed.html">GtkWidget::keynav-failed</a></h6><div class="docblock">
+              <p>Emitted if keyboard navigation&nbsp;fails.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.map.html">GtkWidget::map</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is going to be&nbsp;mapped.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.mnemonic-activate.html">GtkWidget::mnemonic-activate</a></h6><div class="docblock">
+              <p>Emitted when a widget is activated via a&nbsp;mnemonic.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.move-focus.html">GtkWidget::move-focus</a></h6><div class="docblock">
+              <p>Emitted when the focus is&nbsp;moved.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.query-tooltip.html">GtkWidget::query-tooltip</a></h6><div class="docblock">
+              <p>Emitted when the widget’s tooltip is about to be&nbsp;shown.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.realize.html">GtkWidget::realize</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is associated with a <code>GdkSurface</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.show.html">GtkWidget::show</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is&nbsp;shown.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.state-flags-changed.html">GtkWidget::state-flags-changed</a></h6><div class="docblock">
+              <p>Emitted when the widget state&nbsp;changes.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.unmap.html">GtkWidget::unmap</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is going to be&nbsp;unmapped.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.unrealize.html">GtkWidget::unrealize</a></h6><div class="docblock">
+              <p>Emitted when the <code>GdkSurface</code> associated with <code>widget</code> is&nbsp;destroyed.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkPictureClass {
+  GtkWidgetClass parent_class;
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GtkWidgetClass</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#sizing-the-paintable"><span class="link-text">Sizing the paintable</span></a></li>
+      
+        <li class="toc-list-item"><a href="#css-nodes"><span class="link-text">CSS nodes</span></a></li>
+      
+        <li class="toc-list-item"><a href="#accessibility"><span class="link-text">Accessibility</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#implements"><span class="link-text">Implements</span></a></li>
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+
+      
+
+      
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

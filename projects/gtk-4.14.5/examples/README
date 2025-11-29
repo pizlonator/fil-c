@@ -1,0 +1,23 @@
+= Examples =
+
+== Building the examples ==
+
+The examples in this directory are built alongside the rest of GTK.
+
+The examples under the `application[1-9]` directories are also included in
+the GTK API reference documentation, and can be built independently, using
+the system libraries, by doing:
+
+    $ cd application1
+    $ make -f Makefile.example
+
+== Running the examples ==
+
+The examples can be run uninstalled.
+
+The later demos are using GSettings,so they need a GSettings schema.
+The code for these demos contains a workaround to look for the schema
+in the current directory, so this works:
+
+    $ cd application5
+    & ./exampleapp window.ui

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkTooltipWindow" parent="GtkWidget">
+    <style>
+      <class name="background"/>
+    </style>
+    <child>
+      <object class="GtkBox" id="box">
+        <child>
+          <object class="GtkImage" id="image">
+            <property name="icon-name">image-missing</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label">
+            <property name="hexpand">1</property>
+            <property name="wrap">1</property>
+            <property name="max-width-chars">50</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

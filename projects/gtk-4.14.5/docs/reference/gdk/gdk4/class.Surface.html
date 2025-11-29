@@ -1,0 +1,935 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gdk.Surface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gdk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gdk.Surface"/>
+  <meta property="og:description" content="Reference for Gdk.Surface"/>
+  <meta name="twitter:title" content="Gdk.Surface"/>
+  <meta name="twitter:description" content="Reference for Gdk.Surface"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gdk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gdk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Surface.html#description">Surface</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Surface.new_popup.html">new_popup</a>
+  
+    <a class="ctor" href="ctor.Surface.new_toplevel.html">new_toplevel</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Surface.beep.html">beep</a>
+  
+    <a class="method" href="method.Surface.create_cairo_context.html">create_cairo_context</a>
+  
+    <a class="method" href="method.Surface.create_gl_context.html">create_gl_context</a>
+  
+    <a class="method" href="method.Surface.create_similar_surface.html">create_similar_surface</a>
+  
+    <a class="method" href="method.Surface.create_vulkan_context.html">create_vulkan_context</a>
+  
+    <a class="method" href="method.Surface.destroy.html">destroy</a>
+  
+    <a class="method" href="method.Surface.get_cursor.html">get_cursor</a>
+  
+    <a class="method" href="method.Surface.get_device_cursor.html">get_device_cursor</a>
+  
+    <a class="method" href="method.Surface.get_device_position.html">get_device_position</a>
+  
+    <a class="method" href="method.Surface.get_display.html">get_display</a>
+  
+    <a class="method" href="method.Surface.get_frame_clock.html">get_frame_clock</a>
+  
+    <a class="method" href="method.Surface.get_height.html">get_height</a>
+  
+    <a class="method" href="method.Surface.get_mapped.html">get_mapped</a>
+  
+    <a class="method" href="method.Surface.get_scale.html">get_scale</a>
+  
+    <a class="method" href="method.Surface.get_scale_factor.html">get_scale_factor</a>
+  
+    <a class="method" href="method.Surface.get_width.html">get_width</a>
+  
+    <a class="method" href="method.Surface.hide.html">hide</a>
+  
+    <a class="method" href="method.Surface.is_destroyed.html">is_destroyed</a>
+  
+    <a class="method" href="method.Surface.queue_render.html">queue_render</a>
+  
+    <a class="method" href="method.Surface.request_layout.html">request_layout</a>
+  
+    <a class="method" href="method.Surface.set_cursor.html">set_cursor</a>
+  
+    <a class="method" href="method.Surface.set_device_cursor.html">set_device_cursor</a>
+  
+    <a class="method" href="method.Surface.set_input_region.html">set_input_region</a>
+  
+    <a class="method" href="method.Surface.set_opaque_region.html">set_opaque_region</a>
+  
+    <a class="method" href="method.Surface.translate_coordinates.html">translate_coordinates</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Surface.cursor.html">cursor</a>
+  
+    <a class="property" href="property.Surface.display.html">display</a>
+  
+    <a class="property" href="property.Surface.frame-clock.html">frame-clock</a>
+  
+    <a class="property" href="property.Surface.height.html">height</a>
+  
+    <a class="property" href="property.Surface.mapped.html">mapped</a>
+  
+    <a class="property" href="property.Surface.scale.html">scale</a>
+  
+    <a class="property" href="property.Surface.scale-factor.html">scale-factor</a>
+  
+    <a class="property" href="property.Surface.width.html">width</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Surface.enter-monitor.html">enter-monitor</a>
+  
+    <a class="signal" href="signal.Surface.event.html">event</a>
+  
+    <a class="signal" href="signal.Surface.layout.html">layout</a>
+  
+    <a class="signal" href="signal.Surface.leave-monitor.html">leave-monitor</a>
+  
+    <a class="signal" href="signal.Surface.render.html">render</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gdk</a><span class="sep" role="presentation"></span>Surface</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/gdksurface.c#L54">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gdk.Surface : GObject.Object
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>A <code>GdkSurface</code> is a rectangular region on the&nbsp;screen.</p>
+<p>It’s a low-level object, used to implement high-level objects
+such as <a href="../gtk4/class.Window.html">GtkWindow</a>.</p>
+<p>The surfaces you see in practice are either <a href="iface.Toplevel.html"><code>GdkToplevel</code></a> or
+<a href="iface.Popup.html"><code>GdkPopup</code></a>, and those interfaces provide much of the required
+<span class="caps">API</span> to interact with these surfaces. Other, more specialized surface
+types exist, but you will rarely interact with them&nbsp;directly.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gdk.Surface">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="89pt" height="116pt"
+ viewBox="0.00 0.00 88.50 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GdkSurface">
+<path fill="none" stroke="black" d="M68.5,-36C68.5,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 68.5,0 68.5,0 74.5,0 80.5,-6 80.5,-12 80.5,-12 80.5,-24 80.5,-24 80.5,-30 74.5,-36 68.5,-36"/>
+<text text-anchor="middle" x="40.25" y="-12.95" font-family="Times,serif" font-size="14.00">GdkSurface</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M59.12,-108C59.12,-108 21.38,-108 21.38,-108 15.38,-108 9.38,-102 9.38,-96 9.38,-96 9.38,-84 9.38,-84 9.38,-78 15.38,-72 21.38,-72 21.38,-72 59.12,-72 59.12,-72 65.12,-72 71.12,-78 71.12,-84 71.12,-84 71.12,-96 71.12,-96 71.12,-102 65.12,-108 59.12,-108"/>
+<text text-anchor="middle" x="40.25" y="-84.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M40.25,-71.7C40.25,-60.85 40.25,-46.92 40.25,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Surface.new_popup.html">gdk_surface_new_popup</a></h6>
+          <div class="docblock">
+            <p>Create a new popup&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Surface.new_toplevel.html">gdk_surface_new_toplevel</a></h6>
+          <div class="docblock">
+            <p>Creates a new toplevel&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Surface.beep.html">gdk_surface_beep</a></h6>
+          <div class="docblock">
+            <p>Emits a short beep associated to <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.create_cairo_context.html">gdk_surface_create_cairo_context</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GdkCairoContext</code> for rendering on <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.create_gl_context.html">gdk_surface_create_gl_context</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GdkGLContext</code> for the <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Surface.create_similar_surface.html">gdk_surface_create_similar_surface</a></h6>
+          <div class="docblock">
+            <p>Create a new Cairo surface that is as compatible as possible with the
+given <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.12</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Surface.create_vulkan_context.html">gdk_surface_create_vulkan_context</a></h6>
+          <div class="docblock">
+            <p>Sets an error and returns <code>NULL</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.14</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.destroy.html">gdk_surface_destroy</a></h6>
+          <div class="docblock">
+            <p>Destroys the window system resources associated with <code>surface</code> and
+decrements <code>surface</code><span class="quo">&#8216;</span>s reference&nbsp;count.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_cursor.html">gdk_surface_get_cursor</a></h6>
+          <div class="docblock">
+            <p>Retrieves a <code>GdkCursor</code> pointer for the cursor currently set on the
+<code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_device_cursor.html">gdk_surface_get_device_cursor</a></h6>
+          <div class="docblock">
+            <p>Retrieves a <code>GdkCursor</code> pointer for the <code>device</code> currently set on the
+specified <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_device_position.html">gdk_surface_get_device_position</a></h6>
+          <div class="docblock">
+            <p>Obtains the current device position and modifier&nbsp;state.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_display.html">gdk_surface_get_display</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GdkDisplay</code> associated with a <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_frame_clock.html">gdk_surface_get_frame_clock</a></h6>
+          <div class="docblock">
+            <p>Gets the frame clock for the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_height.html">gdk_surface_get_height</a></h6>
+          <div class="docblock">
+            <p>Returns the height of the given <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_mapped.html">gdk_surface_get_mapped</a></h6>
+          <div class="docblock">
+            <p>Checks whether the surface has been&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_scale.html">gdk_surface_get_scale</a></h6>
+          <div class="docblock">
+            <p>Returns the internal scale that maps from surface coordinates
+to the actual device&nbsp;pixels.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.12</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_scale_factor.html">gdk_surface_get_scale_factor</a></h6>
+          <div class="docblock">
+            <p>Returns the internal scale factor that maps from surface coordinates
+to the actual device&nbsp;pixels.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.get_width.html">gdk_surface_get_width</a></h6>
+          <div class="docblock">
+            <p>Returns the width of the given <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.hide.html">gdk_surface_hide</a></h6>
+          <div class="docblock">
+            <p>Hide the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.is_destroyed.html">gdk_surface_is_destroyed</a></h6>
+          <div class="docblock">
+            <p>Check to see if a surface is&nbsp;destroyed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.queue_render.html">gdk_surface_queue_render</a></h6>
+          <div class="docblock">
+            <p>Forces a <code>GdkSurface::render</code> signal emission for <code>surface</code>
+to be&nbsp;scheduled.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.request_layout.html">gdk_surface_request_layout</a></h6>
+          <div class="docblock">
+            <p>Request a layout phase from the surface&#8217;s frame&nbsp;clock.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.set_cursor.html">gdk_surface_set_cursor</a></h6>
+          <div class="docblock">
+            <p>Sets the default mouse pointer for a <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.set_device_cursor.html">gdk_surface_set_device_cursor</a></h6>
+          <div class="docblock">
+            <p>Sets a specific <code>GdkCursor</code> for a given device when it gets inside <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.set_input_region.html">gdk_surface_set_input_region</a></h6>
+          <div class="docblock">
+            <p>Apply the region to the surface for the purpose of event&nbsp;handling.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.set_opaque_region.html">gdk_surface_set_opaque_region</a></h6>
+          <div class="docblock">
+            <p>Marks a region of the <code>GdkSurface</code> as&nbsp;opaque.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Surface.translate_coordinates.html">gdk_surface_translate_coordinates</a></h6>
+          <div class="docblock">
+            <p>Translates coordinates between two&nbsp;surfaces.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Surface.cursor.html">Gdk.Surface:cursor</a></h6>
+          <div class="docblock">
+            <p>The mouse pointer for the <code>GdkSurface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.display.html">Gdk.Surface:display</a></h6>
+          <div class="docblock">
+            <p>The <code>GdkDisplay</code> connection of the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.frame-clock.html">Gdk.Surface:frame-clock</a></h6>
+          <div class="docblock">
+            <p>The <code>GdkFrameClock</code> of the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.height.html">Gdk.Surface:height</a></h6>
+          <div class="docblock">
+            <p>The height of the surface, in&nbsp;pixels.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.mapped.html">Gdk.Surface:mapped</a></h6>
+          <div class="docblock">
+            <p>Whether the surface is&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.scale.html">Gdk.Surface:scale</a></h6>
+          <div class="docblock">
+            <p>The scale of the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.12</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.scale-factor.html">Gdk.Surface:scale-factor</a></h6>
+          <div class="docblock">
+            <p>The scale factor of the&nbsp;surface.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Surface.width.html">Gdk.Surface:width</a></h6>
+          <div class="docblock">
+            <p>The width of the surface in&nbsp;pixels.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Surface.enter-monitor.html">Gdk.Surface::enter-monitor</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>surface</code> starts being present on the&nbsp;monitor.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Surface.event.html">Gdk.Surface::event</a></h6>
+          <div class="docblock">
+            <p>Emitted when <span class="caps">GDK</span> receives an input event for <code>surface</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Surface.layout.html">Gdk.Surface::layout</a></h6>
+          <div class="docblock">
+            <p>Emitted when the size of <code>surface</code> is changed, or when relayout should
+be&nbsp;performed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Surface.leave-monitor.html">Gdk.Surface::leave-monitor</a></h6>
+          <div class="docblock">
+            <p>Emitted when <code>surface</code> stops being present on the&nbsp;monitor.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Surface.render.html">Gdk.Surface::render</a></h6>
+          <div class="docblock">
+            <p>Emitted when part of the surface needs to be&nbsp;redrawn.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GdkSurfaceClass {
+  /* no available fields */
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+    </div>
+    
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- check that an invisible child does not influence the layout -->
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window_information_collection">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkCenterBox" id="box1">
+        <child type="start">
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">Hello, Hello</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkLabel" id="label3">
+            <property name="label" translatable="yes">World</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

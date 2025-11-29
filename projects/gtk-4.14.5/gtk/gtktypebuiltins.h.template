@@ -1,0 +1,29 @@
+/*** BEGIN file-header ***/
+#ifndef __GTK_TYPE_BUILTINS_H__
+#define __GTK_TYPE_BUILTINS_H__
+
+#if !defined (__GTK_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gtk/gtk.h> can be included directly."
+#endif
+
+#include <glib-object.h>
+#include <gdk/gdk.h>
+
+G_BEGIN_DECLS
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+
+/* enumerations from "@basename@" */
+/*** END file-production ***/
+
+/*** BEGIN value-header ***/
+GDK_AVAILABLE_IN_ALL GType @enum_name@_get_type (void) G_GNUC_CONST;
+#define @ENUMPREFIX@_TYPE_@ENUMSHORT@ (@enum_name@_get_type ())
+/*** END value-header ***/
+
+/*** BEGIN file-tail ***/
+G_END_DECLS
+
+#endif /* __GTK_TYPE_BUILTINS_H__ */
+/*** END file-tail ***/

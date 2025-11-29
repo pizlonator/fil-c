@@ -1,0 +1,24 @@
+The .po files in this directory contain only the ui and error 
+messages in the gtk20 domain. See ../po-properties for the 
+property nicks and blurbs in the gtk20-properties domain. 
+
+All the .po files are now in UTF-8!
+
+For information on editing UTF-8 files on Unix, see
+<http://www.cl.cam.ac.uk/~mgk25/unicode.html>
+
+If you just want to convert it back to your native encoding to
+edit and then convert again to UTF-8 to commit, please see the
+scripts in gnome-i18n/UTF-8, for example
+
+  export ENCODING_TO=ISO-8895-15
+  utftopo fi.po
+  emacs fi.po
+  potoutf.sh fi.po
+  cvs commit fi.po
+
+An alternative is to use the msgconv utility bundled along with
+gettext package >= 0.11.
+
+If you need help with this, ask, but please don't commit
+non-UTF-8 files here.

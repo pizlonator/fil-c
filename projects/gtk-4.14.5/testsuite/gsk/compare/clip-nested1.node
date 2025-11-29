@@ -1,0 +1,48 @@
+transform {
+  transform: scale(8);
+  child:container {
+
+    rounded-clip {
+      clip: 0 0 50 50 / 30 0 0 0;
+      child: rounded-clip {
+        clip: 0 0 100 100 / 0;
+        child: color {
+          bounds: 0 0 50 50;
+          color: teal;
+        }
+      }
+    }
+
+    debug {
+      message: "Clipped-out area";
+      child: container {
+         color {
+           color: black;
+           bounds: 0 16 5 14;
+         }
+         color {
+           color: black;
+           bounds: 3 12 5 5;
+         }
+         color {
+           color: black;
+           bounds: 6 7 5 5;
+         }
+         color {
+           color: black;
+           bounds: 10 3 5 5;
+         }
+         color {
+           color: black;
+           bounds: 15 0 5 5;
+         }
+         color {
+           color: black;
+           bounds: 19 0 14 2;
+         }
+      }
+    }
+
+
+  }
+}

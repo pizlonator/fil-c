@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkTreeStore" id="store">
+    <columns>
+      <column type="gchararray"/>
+      <column type="gboolean"/>
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">Line One</col>
+        <col id="1">False</col>
+        <col id="2">A</col>
+      </row>
+      <row>
+        <col id="0">Line Two</col>
+        <col id="1">True</col>
+        <col id="2">B</col>
+        <row>
+          <col id="0">Line Three</col>
+          <col id="1">False</col>
+          <col id="2">C</col>
+        </row>
+      </row>
+    </data>
+  </object>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <style>
+       <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkTreeView">
+        <style>
+          <class name="frame"/>
+        </style>
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <property name="model">store</property>
+        <child>
+          <object class="GtkTreeViewColumn">
+            <property name="title">List</property>
+            <child>
+              <object class="GtkCellRendererText"/>
+              <attributes>
+                <attribute name="text">0</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn">
+            <property name="title">and</property>
+            <child>
+              <object class="GtkCellRendererToggle"/>
+              <attributes>
+                <attribute name="active">1</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn">
+            <property name="title">Tree</property>
+            <child>
+              <object class="GtkCellRendererText"/>
+              <attributes>
+                <attribute name="text">2</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <property name="enable-tree-lines">0</property>
+        <property name="enable-grid-lines">0</property>
+      </object>
+    </child>
+  </object>
+</interface>

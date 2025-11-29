@@ -1,0 +1,36 @@
+color {
+  bounds: 40 40 70 70;
+  color: transparent;
+}
+
+clip {
+  clip: 50 50 50 50;
+  child: opacity {
+    opacity: 0.4;
+    child: rounded-clip {
+      clip: 50 50 100 100 / 50;
+      child: color {
+        bounds: 50 50 100 100;
+        color: red;
+      }
+    }
+  }
+}
+
+debug {
+  message: "clipped out area";
+  child: container {
+    color {
+      bounds: 50 70 10 30;
+      color: black;
+    }
+    color {
+      bounds: 55 55 20 20;
+      color: black;
+    }
+    color {
+      bounds: 70 50 30 10;
+      color: black;
+    }
+  }
+}

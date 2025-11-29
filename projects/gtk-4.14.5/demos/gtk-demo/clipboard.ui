@@ -1,0 +1,362 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="resizable">1</property>
+    <property name="title">Clipboard</property>
+    <accessibility>
+      <relation name="described-by">label</relation>
+    </accessibility>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkLabel" id="label">
+            <property name="label">“Copy” will copy the selected data the clipboard, “Paste” will show the current clipboard contents. You can also drag the data to the bottom.</property>
+            <property name="wrap">1</property>
+            <property name="max-width-chars">40</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkDropDown" id="source_chooser">
+                <accessibility>
+                  <property name="label">Source Type</property>
+                </accessibility>
+                <property name="valign">center</property>
+                <property name="model">
+                  <object class="GtkStringList">
+                    <items>
+                      <item>Text</item>
+                      <item>Color</item>
+                      <item>Image</item>
+                      <item>File</item>
+                      <item>Folder</item>
+                    </items>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="source_stack">
+                <signal name="notify::visible-child" handler="source_changed_cb" object="copy_button"/>
+                <property name="vexpand">1</property>
+                <binding name="visible-child-name">
+                  <lookup name="string" type="GtkStringObject">
+                    <lookup name="selected-item">
+                      source_chooser
+                    </lookup>
+                  </lookup>
+                </binding>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Text</property>
+                    <property name="child">
+                      <object class="GtkEntry" id="source_text">
+                        <accessibility>
+                          <property name="label">Text Drag Source</property>
+                        </accessibility>
+                        <property name="valign">center</property>
+                        <signal name="notify::text" handler="text_changed_cb" object="copy_button"/>
+                        <property name="text">Copy this!</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Color</property>
+                    <property name="child">
+                      <object class="GtkColorDialogButton" id="source_color">
+                        <accessibility>
+                          <property name="label">Color Drag Source</property>
+                        </accessibility>
+                        <property name="dialog">
+                          <object class="GtkColorDialog">
+                          </object>
+                        </property>
+                        <property name="valign">center</property>
+                        <property name="rgba">purple</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Image</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="linked"/>
+                        </style>
+                        <child>
+                          <object class="GtkToggleButton" id="image_rose">
+                            <accessibility>
+                              <property name="label">Photo Drag Source</property>
+                            </accessibility>
+                            <property name="active">1</property>
+                            <child>
+                            </child>
+                            <child>
+                              <object class="GtkImage">
+                                <accessibility>
+                                  <property name="label">Portland Rose Photo</property>
+                                </accessibility>
+                                <style>
+                                  <class name="large-icons"/>
+                                </style>
+                                <property name="paintable">resource:///transparent/portland-rose.jpg</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="image_floppy">
+                            <accessibility>
+                              <property name="label">Icon Drag Source</property>
+                            </accessibility>
+                            <property name="group">image_rose</property>
+                            <child>
+                              <object class="GtkDragSource">
+                                <signal name="prepare" handler="drag_prepare"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkImage">
+                                <accessibility>
+                                  <property name="label">Floppy Buddy Icon</property>
+                                </accessibility>
+                                <style>
+                                  <class name="large-icons"/>
+                                </style>
+                                <property name="paintable">resource:///images/floppybuddy.gif</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="image_logo">
+                            <accessibility>
+                              <property name="label">SVG Drag Source</property>
+                            </accessibility>
+                            <property name="group">image_floppy</property>
+                            <child>
+                              <object class="GtkDragSource">
+                                <signal name="prepare" handler="drag_prepare"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkImage">
+                                <accessibility>
+                                  <property name="label">gtk-demo logo</property>
+                                </accessibility>
+                                <style>
+                                  <class name="large-icons"/>
+                                </style>
+                                <property name="paintable">resource:///images/org.gtk.Demo4.svg</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">File</property>
+                    <property name="child">
+                      <object class="GtkButton" id="source_file">
+                        <accessibility>
+                          <property name="label">File Drag Source</property>
+                        </accessibility>
+                        <child>
+                          <object class="GtkDragSource">
+                            <property name="propagation-phase">capture</property>
+                            <signal name="prepare" handler="drag_prepare"/>
+                          </object>
+                        </child>
+                        <property name="valign">center</property>
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">—</property>
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                          </object>
+                        </property>
+                        <signal name="clicked" handler="open_file_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Folder</property>
+                    <property name="child">
+                      <object class="GtkButton" id="source_folder">
+                        <accessibility>
+                          <property name="label">Folder Drag Source</property>
+                        </accessibility>
+                        <child>
+                          <object class="GtkDragSource">
+                            <property name="propagation-phase">capture</property>
+                            <signal name="prepare" handler="drag_prepare"/>
+                          </object>
+                        </child>
+                        <property name="valign">center</property>
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">—</property>
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                          </object>
+                        </property>
+                        <signal name="clicked" handler="open_folder_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="copy_button">
+                <property name="valign">center</property>
+                <property name="label" translatable="yes">_Copy</property>
+                <signal name="clicked" handler="copy_button_clicked" object="source_stack"/>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkDropTarget">
+                <property name="actions">copy</property>
+                <property name="formats">GdkTexture GdkPaintable GFile GdkRGBA gchararray</property>
+                <signal name="drop" handler="on_drop" object="dest_stack"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="paste_button">
+                <property name="label" translatable="yes">_Paste</property>
+                <signal name="clicked" handler="paste_button_clicked" object="dest_stack"/>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="paste_label">
+                <property name="xalign">0</property>
+                <binding name="label">
+                  <lookup name="visible-child-name" type="GtkStack">
+                    dest_stack
+                  </lookup>
+                </binding>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="dest_stack">
+                <property name="halign">end</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name"></property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Text</property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <accessibility>
+                          <relation name="labelled-by">paste_label</relation>
+                        </accessibility>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="xalign">0</property>
+                        <property name="ellipsize">end</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Image</property>
+                    <property name="child">
+                      <object class="GtkImage">
+                        <accessibility>
+                          <relation name="labelled-by">paste_label</relation>
+                        </accessibility>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="large-icons"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">Color</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <child>
+                          <object class="GtkColorSwatch">
+                            <accessibility>
+                              <relation name="labelled-by">paste_label</relation>
+                            </accessibility>
+                            <property name="accessible-role">img</property>
+                            <property name="can-focus">0</property>
+                            <property name="selectable">0</property>
+                            <property name="has-menu">0</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">File</property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <accessibility>
+                          <relation name="labelled-by">paste_label</relation>
+                        </accessibility>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="xalign">0</property>
+                        <property name="hexpand">1</property>
+                        <property name="ellipsize">start</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

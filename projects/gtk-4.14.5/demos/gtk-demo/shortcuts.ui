@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">Shortcuts</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">50</property>
+        <property name="margin-end">50</property>
+        <property name="margin-top">50</property>
+        <property name="margin-bottom">50</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Builder</property>
+            <signal name="clicked" handler="shortcuts_builder_shortcuts" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">GEdit</property>
+            <signal name="clicked" handler="shortcuts_gedit_shortcuts" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Clocks - All</property>
+            <signal name="clicked" handler="shortcuts_clocks_shortcuts" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Clocks - Stopwatch</property>
+            <signal name="clicked" handler="shortcuts_clocks_shortcuts_stopwatch" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Boxes</property>
+            <signal name="clicked" handler="shortcuts_boxes_shortcuts" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Boxes - Wizard</property>
+            <signal name="clicked" handler="shortcuts_boxes_shortcuts_wizard" swapped="1" object="window1"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">Boxes - Display</property>
+            <signal name="clicked" handler="shortcuts_boxes_shortcuts_display" swapped="1" object="window1"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

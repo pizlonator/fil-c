@@ -1,0 +1,290 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.CellRenderer.get_padding</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.CellRenderer.get_padding"/>
+  <meta priority="og:description" content="Reference for Gtk.CellRenderer.get_padding"/>
+  <meta name="twitter:title" content="Gtk.CellRenderer.get_padding"/>
+  <meta name="twitter:description" content="Reference for Gtk.CellRenderer.get_padding"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.CellRenderer.html">CellRenderer</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.CellRenderer.activate.html">activate</a>
+  
+    <a class="method" href="method.CellRenderer.get_aligned_area.html">get_aligned_area</a>
+  
+    <a class="method" href="method.CellRenderer.get_alignment.html">get_alignment</a>
+  
+    <a class="method" href="method.CellRenderer.get_fixed_size.html">get_fixed_size</a>
+  
+    <a class="method" href="method.CellRenderer.get_is_expanded.html">get_is_expanded</a>
+  
+    <a class="method" href="method.CellRenderer.get_is_expander.html">get_is_expander</a>
+  
+    <a class="method current" href="method.CellRenderer.get_padding.html">get_padding</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_height.html">get_preferred_height</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_height_for_width.html">get_preferred_height_for_width</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_size.html">get_preferred_size</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_width.html">get_preferred_width</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_width_for_height.html">get_preferred_width_for_height</a>
+  
+    <a class="method" href="method.CellRenderer.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="method.CellRenderer.get_sensitive.html">get_sensitive</a>
+  
+    <a class="method" href="method.CellRenderer.get_state.html">get_state</a>
+  
+    <a class="method" href="method.CellRenderer.get_visible.html">get_visible</a>
+  
+    <a class="method" href="method.CellRenderer.is_activatable.html">is_activatable</a>
+  
+    <a class="method" href="method.CellRenderer.set_alignment.html">set_alignment</a>
+  
+    <a class="method" href="method.CellRenderer.set_fixed_size.html">set_fixed_size</a>
+  
+    <a class="method" href="method.CellRenderer.set_is_expanded.html">set_is_expanded</a>
+  
+    <a class="method" href="method.CellRenderer.set_is_expander.html">set_is_expander</a>
+  
+    <a class="method" href="method.CellRenderer.set_padding.html">set_padding</a>
+  
+    <a class="method" href="method.CellRenderer.set_sensitive.html">set_sensitive</a>
+  
+    <a class="method" href="method.CellRenderer.set_visible.html">set_visible</a>
+  
+    <a class="method" href="method.CellRenderer.snapshot.html">snapshot</a>
+  
+    <a class="method" href="method.CellRenderer.start_editing.html">start_editing</a>
+  
+    <a class="method" href="method.CellRenderer.stop_editing.html">stop_editing</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.CellRenderer.html">CellRenderer</a><span class="sep"></span>get_padding</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtkcellrenderer.h#L255">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">gtk_cell_renderer_get_padding</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkCellRenderer</span><span class="o">*</span><span class="w"> </span><span class="n">cell</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">xpad</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">ypad</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtkcellrenderer.c#L998">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Fills in <code>xpad</code> and <code>ypad</code> with the appropriate values of <code>cell</code>.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        <div class="admonition deprecation">
+          <p class="admonition-title">Deprecated since: 4.10</p><p>Please do not use it in newly written&nbsp;code.</p></div>
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>xpad</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int*</code></p>
+            <p>Location to fill in with the x padding of the&nbsp;cell.</p>
+            <table>
+            <tr><td title="direction: out">The argument will be set by the function.</td></tr>
+            
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>ypad</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int*</code></p>
+            <p>Location to fill in with the y padding of the&nbsp;cell.</p>
+            <table>
+            <tr><td title="direction: out">The argument will be set by the function.</td></tr>
+            
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="lower">0.5</property>
+    <property name="upper">99.5</property>
+    <property name="value">45.5</property>
+    <property name="step-increment">0.5</property>
+    <property name="page-increment">5.0</property>
+  </object>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox" id="box1">
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label">_entry:</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">entry1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2">
+            <property name="label">_password entry:</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">entry2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label3">
+            <property name="label">_spinbutton:</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">spinbutton1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry1">
+            <property name="text" translatable="yes">text</property>
+            <property name="progress-fraction">0.3</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry2">
+            <property name="text" translatable="yes">password text</property>
+            <property name="visibility">0</property>
+            <property name="invisible_char_set">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry3">
+            <property name="text" translatable="yes">icons</property>
+            <property name="primary-icon-name">edit-copy</property>
+            <property name="secondary-icon-name">edit-paste</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton1">
+            <property name="adjustment">adjustment1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

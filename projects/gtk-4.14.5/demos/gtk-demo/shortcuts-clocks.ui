@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkShortcutsWindow" id="shortcuts-clocks">
+    <property name="modal">1</property>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">shortcuts</property>
+        <property name="max-height">10</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">General</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;Page_Down</property>
+                <property name="title" translatable="yes">Go to the next section</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;Page_Up</property>
+                <property name="title" translatable="yes">Go to the previous section</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Q</property>
+                <property name="title" translatable="yes">Quit</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Right</property>
+                <property name="direction">ltr</property>
+                <property name="title" translatable="yes">Forward</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;Left</property>
+                <property name="direction">ltr</property>
+                <property name="title" translatable="yes">Back</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Left</property>
+                <property name="direction">rtl</property>
+                <property name="title" translatable="yes">Forward</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;Right</property>
+                <property name="direction">rtl</property>
+                <property name="title" translatable="yes">Back</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="view">world</property>
+            <property name="title" translatable="yes">World Clocks</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;N</property>
+                <property name="title" translatable="yes">Add a world clock</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;S</property>
+                <property name="title" translatable="yes">Select world clocks</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="view">alarm</property>
+            <property name="title" translatable="yes">Alarm</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;N</property>
+                <property name="title" translatable="yes">Add an alarm</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;S</property>
+                <property name="title" translatable="yes">Select alarms</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="view">stopwatch</property>
+            <property name="title" translatable="yes">Stopwatch</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Return space</property>
+                <property name="title" translatable="yes">Start / Stop / Continue</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">L</property>
+                <property name="title" translatable="yes">Lap</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Delete</property>
+                <property name="title" translatable="yes">Reset</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="view">timer</property>
+            <property name="title" translatable="yes">Timer</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Return space</property>
+                <property name="title" translatable="yes">Start / Stop / Pause</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Delete</property>
+                <property name="title" translatable="yes">Reset</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

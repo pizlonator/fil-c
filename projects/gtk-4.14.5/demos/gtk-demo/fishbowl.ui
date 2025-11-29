@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Fishbowl</property>
+    <property name="default-width">400</property>
+    <property name="default-height">400</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="">
+        <child>
+          <object class="GtkBox">
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-previous-symbolic</property>
+                <signal name="clicked" handler="fishbowl_prev_button_clicked_cb" object="bowl" swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-next-symbolic</property>
+                <signal name="clicked" handler="fishbowl_next_button_clicked_cb" object="bowl" swapped="no"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkLabel">
+            <binding name="label">
+              <closure type="gchararray" function="format_header_cb">
+                <lookup name="count">bowl</lookup>
+                <lookup name="framerate">bowl</lookup>
+              </closure>
+            </binding>
+            <attributes>
+              <attribute name="font-features" value="tnum=1"/>
+            </attributes>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkToggleButton" id="changes_allow">
+            <property name="icon-name">changes-allow</property>
+            <property name="has-frame">0</property>
+            <signal name="notify::active" handler="fishbowl_changes_toggled_cb"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFishbowl" id="bowl">
+        <property name="visible">True</property>
+        <property name="overflow">hidden</property>
+        <property name="animating">True</property>
+        <property name="benchmark" bind-source="changes_allow" bind-property="active" bind-flags="invert-boolean | sync-create"/>
+      </object>
+    </child>
+  </object>
+</interface>

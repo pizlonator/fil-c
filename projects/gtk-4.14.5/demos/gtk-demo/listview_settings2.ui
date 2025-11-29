@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkStringFilter" id="filter">
+    <property name="expression">
+      <closure type="gchararray" function="settings_key_get_search_string" />
+    </property>
+    <property name="search" bind-source="entry" bind-property="text" />
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Settings</property>
+    <property name="default-width">640</property>
+    <property name="default-height">480</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child type="end">
+          <object class="GtkToggleButton" id="search_button">
+            <property name="icon-name">system-search-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSearchBar">
+            <property name="search-mode-enabled" bind-source="search_button" bind-property="active" bind-flags="bidirectional"/>
+            <signal name="notify::search-mode-enabled" handler="search_enabled" object="entry"/>
+            <child>
+              <object class="GtkSearchEntry" id="entry">
+                <signal name="stop-search" handler="stop_search"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <child>
+              <object class="GtkListView" id="listview">
+                <property name="vexpand">1</property>
+                <style>
+                  <class name="rich-list"/>
+                </style>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkBox">
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="xalign">0</property>
+                <binding name="label">
+                  <lookup name="name" type="SettingsKey">
+                    <lookup name="item">GtkListItem</lookup>
+                  </lookup>
+                </binding>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <property name="xalign">0</property>
+                <property name="ellipsize">end</property>
+                <binding name="label">
+                  <lookup name="summary" type="SettingsKey">
+                    <lookup name="item">GtkListItem</lookup>
+                  </lookup>
+                </binding>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry">
+            <property name="hexpand">1</property>
+            <property name="halign">end</property>
+            <binding name="text">
+              <lookup name="value" type="SettingsKey">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <signal name="notify::label" handler="item_value_changed"/>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
+                  </object>
+                </property>
+                <property name="header-factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListHeader">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="schema" type="GSettings">
+            <lookup name="settings" type="SettingsKey">
+              <lookup name="item">GtkListHeader</lookup>
+            </lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

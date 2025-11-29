@@ -1,0 +1,17 @@
+/* a normal clip */
+clip {
+  clip: 0 0 50 50;
+  /* a 3D transform */
+  child: transform {
+    transform: rotateX(1);
+    /* a node that forces an offscreen */
+    child: rounded-clip {
+      clip: -30000 -30000 60000 60000 / 5;
+      child: color {
+        /* way too big, but it's clipped, so no problem */
+        bounds: -30000 -30000 60000 60000;
+        color: red;
+      }
+    }
+  }
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorClipboard" parent="GtkWidget">
+    <child>
+      <object class="GtkScrolledWindow" id="swin">
+        <property name="hscrollbar-policy">never</property>
+        <child>
+          <object class="GtkBox" id="box">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">60</property>
+            <property name="margin-end">60</property>
+            <property name="margin-top">60</property>
+            <property name="margin-bottom">60</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkListBox" id="dnd_formats">
+                <property name="selection-mode">none</property>
+                <style>
+                  <class name="rich-list"/>
+                  <class name="boxed-list"/>
+                </style>
+                <child>
+                  <object class="GtkListBoxRow">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Drag and hold here</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="dnd_info">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkDropControllerMotion">
+                        <signal name="enter" handler="on_drop_enter" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBox" id="clipboard_formats">
+                <property name="selection-mode">none</property>
+                <style>
+                  <class name="rich-list"/>
+                  <class name="boxed-list"/>
+                </style>
+                <child>
+                  <object class="GtkListBoxRow">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Clipboard</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="clipboard_info">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBox" id="primary_formats">
+                <property name="selection-mode">none</property>
+                <style>
+                  <class name="rich-list"/>
+                  <class name="boxed-list"/>
+                </style>
+                <child>
+                  <object class="GtkListBoxRow">
+                    <property name="activatable">0</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">40</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Primary</property>
+                            <property name="halign">start</property>
+                            <property name="valign">baseline</property>
+                            <property name="xalign">0.0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="primary_info">
+                            <property name="selectable">1</property>
+                            <property name="halign">end</property>
+                            <property name="valign">baseline</property>
+                            <property name="ellipsize">end</property>
+                            <property name="hexpand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

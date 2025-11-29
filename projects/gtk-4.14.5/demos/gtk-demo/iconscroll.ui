@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="resizable">0</property>
+    <property name="default-width">500</property>
+    <property name="default-height">500</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child>
+          <object class="GtkBox">
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-previous-symbolic</property>
+                <signal name="clicked" handler="iconscroll_prev_clicked_cb"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-next-symbolic</property>
+                <signal name="clicked" handler="iconscroll_next_clicked_cb"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkLabel" id="fps_label">
+            <attributes>
+              <attribute name="font-features" value="tnum=1"/>
+            </attributes>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="scrolledwindow">
+        <property name="hscrollbar-policy">never</property>
+        <property name="hadjustment">
+          <object class="GtkAdjustment" id="hadjustment"/>
+        </property>
+        <property name="vadjustment">
+          <object class="GtkAdjustment" id="vadjustment"/>
+        </property>
+      </object>
+    </child>
+  </object>
+</interface>

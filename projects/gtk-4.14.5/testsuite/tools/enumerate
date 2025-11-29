@@ -1,0 +1,37 @@
+#! /bin/bash
+
+GTK_BUILDER_TOOL=${GTK_BUILDER_TOOL:-gtk4-builder-tool}
+TEST_DATA_DIR=${G_TEST_SRCDIR:-.}/enumerate-data
+TEST_RESULT_DIR=${TEST_RESULT_DIR:-/tmp}/enumerate
+
+mkdir -p "$TEST_RESULT_DIR"
+
+shopt -s nullglob
+TESTS=( "$TEST_DATA_DIR"/*.ui )
+
+echo "1..${#TESTS[*]}"
+
+I=1
+for t in ${TESTS[*]}; do
+  name=$(basename $t .ui)
+  expected="$TEST_DATA_DIR/$name.expected"
+  result="$TEST_RESULT_DIR/$name.out"
+  diff="$TEST_RESULT_DIR/$name.diff"
+  ref="$TEST_RESULT_DIR/$name.ref"
+
+  cd $TEST_DATA_DIR
+
+  $GTK_BUILDER_TOOL enumerate --callbacks $(basename $t) >$result
+
+  cd $OLDPWD
+
+  if diff -u "$expected" "$result" > "$diff"; then
+    echo "ok $I $name"
+    rm "$diff"
+  else
+    echo "not ok $I $name"
+    cp "$expected" "$ref"
+  fi
+
+  I=$((I+1))
+done

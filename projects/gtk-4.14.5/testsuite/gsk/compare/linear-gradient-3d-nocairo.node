@@ -1,0 +1,13 @@
+clip {
+  clip: 1 -25 50 50;
+  child: transform {
+    transform: perspective(100) rotateY(45);
+    child: linear-gradient {
+        bounds: 0 -100 200 200;
+        start: 0 -100;
+        end: 0 100;
+        stops: 0.5 red,
+         0.5 lime;
+   }
+ }
+}

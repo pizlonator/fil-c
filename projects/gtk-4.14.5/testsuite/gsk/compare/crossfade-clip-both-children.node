@@ -1,0 +1,18 @@
+color {
+  bounds: 0 0 150 50;
+  color: rgb(0,0,0);
+}
+clip {
+  clip: 50 0 50 50;
+  child: cross-fade {
+    progress: 0.6;
+    start: color {
+      bounds: 0 0 50 50;
+      color: rgb(255,0,0);
+    }
+    end: color {
+      bounds: 100 0 50 50;
+      color: rgb(0,0,255);
+    }
+  }
+}

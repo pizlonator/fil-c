@@ -1,0 +1,28 @@
+<!--*- xml -*-->
+<ui>
+  <menubar>
+    <menu name="FileMenu" action="FileMenuAction">
+      <menuitem name="Open" action="OpenAction" />
+      <menuitem name="Bold" action="BoldAction" />
+    </menu>
+    <menu name="EditMenu" action="EditMenuAction">
+      <menuitem name="Cut" action="CutAction" />
+      <menu name="EmptyMenu1" action="EmptyMenu1Action">
+      </menu>
+      <menu name="EmptyMenu2" action="EmptyMenu2Action">
+      </menu>
+    </menu>
+    <placeholder name="TestPlaceholder" />
+  </menubar>
+  <toolbar name="toolbar1">
+    <placeholder name="ToolbarPlaceholder">
+       <toolitem name="nb2" action="New2Action" />
+       <separator name="Sep1" />
+    </placeholder>
+    <toolitem name="NewButton" action="NewAction" />
+    <toolitem name="CutButton" action="CutAction" />
+    <toolitem name="CopyButton" action="CopyAction" />
+    <toolitem name="PasteButton" action="PasteAction" />
+    <placeholder name="JustifyToolItems"/>
+  </toolbar>
+</ui>

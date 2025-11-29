@@ -1,0 +1,4 @@
+[Test]
+Exec=/bin/sh -c "env GTK_A11Y=test G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk-4.0/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk-4.0/reftests"
+Type=session-exclusive
+Output=TAP

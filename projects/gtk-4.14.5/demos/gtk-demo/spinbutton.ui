@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAdjustment" id="basic_adjustment">
+    <property name="lower">-10000</property>
+    <property name="upper">10000</property>
+    <property name="step-increment">0.5</property>
+    <property name="page-increment">100</property>
+  </object>
+  <object class="GtkAdjustment" id="hex_adjustment">
+    <property name="upper">255</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">16</property>
+  </object>
+  <object class="GtkAdjustment" id="time_adjustment">
+    <property name="upper">1410</property>
+    <property name="step-increment">30</property>
+    <property name="page-increment">60</property>
+  </object>
+  <object class="GtkAdjustment" id="month_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">12</property>
+    <property name="value">1</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">5</property>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Spin Button</property>
+    <child>
+      <object class="GtkGrid">
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">20</property>
+        <property name="row-spacing">10</property>
+        <property name="column-spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">_Numeric</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">basic_spin</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="basic_spin">
+            <property name="halign">start</property>
+            <property name="width-chars">5</property>
+            <property name="adjustment">basic_adjustment</property>
+            <property name="climb-rate">1</property>
+            <property name="digits">2</property>
+            <property name="numeric">1</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="basic_label">
+            <property name="width-chars">10</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">_Hexadecimal</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">hex_spin</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="hex_spin">
+            <property name="halign">start</property>
+            <property name="width-chars">4</property>
+            <property name="adjustment">hex_adjustment</property>
+            <signal name="input" handler="spinbutton_hex_spin_input"/>
+            <signal name="output" handler="spinbutton_hex_spin_output"/>
+            <property name="wrap">1</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="hex_label">
+            <property name="width-chars">10</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">_Time</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">time_spin</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="time_spin">
+            <property name="halign">start</property>
+            <property name="width-chars">5</property>
+            <property name="adjustment">time_adjustment</property>
+            <signal name="input" handler="spinbutton_time_spin_input"/>
+            <signal name="output" handler="spinbutton_time_spin_output"/>
+            <property name="wrap">1</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="time_label">
+            <property name="width-chars">10</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">_Month</property>
+            <property name="use-underline">1</property>
+            <property name="mnemonic-widget">month_spin</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="month_spin">
+            <property name="halign">start</property>
+            <property name="width-chars">9</property>
+            <signal name="input" handler="spinbutton_month_spin_input"/>
+            <signal name="output" handler="spinbutton_month_spin_output"/>
+            <property name="adjustment">month_adjustment</property>
+            <property name="wrap">1</property>
+            <property name="update-policy">if-valid</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="month_label">
+            <property name="width-chars">10</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

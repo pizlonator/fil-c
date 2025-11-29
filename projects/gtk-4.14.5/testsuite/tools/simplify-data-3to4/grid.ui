@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkToggleButton" id="button1">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="visible">True</property>
+            <property name="active">True</property>
+            <property name="receives_default">True</property>
+            <property name="expand">True</property>
+            <property name="margin">10</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="button2">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="visible">True</property>
+            <property name="active">False</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton" id="button3">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="visible">True</property>
+            <property name="active">False</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton" id="button4">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="visible">True</property>
+            <property name="active">True</property>
+            <property name="group">button3</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton" id="button4a">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="visible">True</property>
+            <property name="group">button4</property>
+            <property name="draw-indicator">False</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="button5">
+            <property name="visible">True</property>
+            <property name="active">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="button6">
+            <property name="visible">True</property>
+            <property name="active">False</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">5</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkButton" id="button7">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="label">Text Button</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button8">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+            <property name="width">1</property>
+            <property name="height">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button9">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="width">2</property>
+            <property name="height">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

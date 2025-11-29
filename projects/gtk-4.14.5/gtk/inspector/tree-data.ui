@@ -1,0 +1,34 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorTreeData" parent="GtkWidget">
+    <child>
+      <object class="GtkBox" id="box">
+        <style>
+          <class name="toolbar"/>
+        </style>
+        <child>
+          <object class="GtkToggleButton" id="show_button">
+            <property name="tooltip-text" translatable="yes">Show data</property>
+            <property name="icon-name">view-refresh-symbolic</property>
+            <signal name="toggled" handler="toggle_show"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="object_title">
+            <property name="hexpand">1</property>
+            <property name="halign">center</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="swin">
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <property name="vscrollbar-policy">always</property>
+        <child>
+          <object class="GtkTreeView" id="view"/>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

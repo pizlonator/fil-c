@@ -1,0 +1,899 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.FileDialog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.FileDialog"/>
+  <meta property="og:description" content="Reference for Gtk.FileDialog"/>
+  <meta name="twitter:title" content="Gtk.FileDialog"/>
+  <meta name="twitter:description" content="Reference for Gtk.FileDialog"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.FileDialog.html#description">FileDialog</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.FileDialog.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.FileDialog.get_accept_label.html">get_accept_label</a>
+  
+    <a class="method" href="method.FileDialog.get_default_filter.html">get_default_filter</a>
+  
+    <a class="method" href="method.FileDialog.get_filters.html">get_filters</a>
+  
+    <a class="method" href="method.FileDialog.get_initial_file.html">get_initial_file</a>
+  
+    <a class="method" href="method.FileDialog.get_initial_folder.html">get_initial_folder</a>
+  
+    <a class="method" href="method.FileDialog.get_initial_name.html">get_initial_name</a>
+  
+    <a class="method" href="method.FileDialog.get_modal.html">get_modal</a>
+  
+    <a class="method" href="method.FileDialog.get_title.html">get_title</a>
+  
+    <a class="method" href="method.FileDialog.open.html">open</a>
+  
+    <a class="method" href="method.FileDialog.open_finish.html">open_finish</a>
+  
+    <a class="method" href="method.FileDialog.open_multiple.html">open_multiple</a>
+  
+    <a class="method" href="method.FileDialog.open_multiple_finish.html">open_multiple_finish</a>
+  
+    <a class="method" href="method.FileDialog.save.html">save</a>
+  
+    <a class="method" href="method.FileDialog.save_finish.html">save_finish</a>
+  
+    <a class="method" href="method.FileDialog.select_folder.html">select_folder</a>
+  
+    <a class="method" href="method.FileDialog.select_folder_finish.html">select_folder_finish</a>
+  
+    <a class="method" href="method.FileDialog.select_multiple_folders.html">select_multiple_folders</a>
+  
+    <a class="method" href="method.FileDialog.select_multiple_folders_finish.html">select_multiple_folders_finish</a>
+  
+    <a class="method" href="method.FileDialog.set_accept_label.html">set_accept_label</a>
+  
+    <a class="method" href="method.FileDialog.set_default_filter.html">set_default_filter</a>
+  
+    <a class="method" href="method.FileDialog.set_filters.html">set_filters</a>
+  
+    <a class="method" href="method.FileDialog.set_initial_file.html">set_initial_file</a>
+  
+    <a class="method" href="method.FileDialog.set_initial_folder.html">set_initial_folder</a>
+  
+    <a class="method" href="method.FileDialog.set_initial_name.html">set_initial_name</a>
+  
+    <a class="method" href="method.FileDialog.set_modal.html">set_modal</a>
+  
+    <a class="method" href="method.FileDialog.set_title.html">set_title</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.FileDialog.accept-label.html">accept-label</a>
+  
+    <a class="property" href="property.FileDialog.default-filter.html">default-filter</a>
+  
+    <a class="property" href="property.FileDialog.filters.html">filters</a>
+  
+    <a class="property" href="property.FileDialog.initial-file.html">initial-file</a>
+  
+    <a class="property" href="property.FileDialog.initial-folder.html">initial-folder</a>
+  
+    <a class="property" href="property.FileDialog.initial-name.html">initial-name</a>
+  
+    <a class="property" href="property.FileDialog.modal.html">modal</a>
+  
+    <a class="property" href="property.FileDialog.title.html">title</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>FileDialog</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p><span class="emblem available">since: 4.10</span></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfiledialog.c#L31">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.FileDialog : GObject.Object
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>A <code>GtkFileDialog</code> object collects the arguments that
+are needed to present a file chooser dialog to the
+user, such as a title for the dialog and whether it
+should be&nbsp;modal.</p>
+<p>The dialog is shown with <a href="method.FileDialog.open.html"><code>gtk_file_dialog_open()</code></a>,
+<a href="method.FileDialog.save.html"><code>gtk_file_dialog_save()</code></a>, etc. These APIs follow the
+<span class="caps">GIO</span> async pattern, and the result can be obtained by calling
+the corresponding finish function, for example
+<a href="method.FileDialog.open_finish.html"><code>gtk_file_dialog_open_finish()</code></a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          <p>Available since: 4.10</p>
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.FileDialog">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="102pt" height="116pt"
+ viewBox="0.00 0.00 102.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkFileDialog">
+<path fill="none" stroke="black" d="M82,-36C82,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 82,0 82,0 88,0 94,-6 94,-12 94,-12 94,-24 94,-24 94,-30 88,-36 82,-36"/>
+<text text-anchor="middle" x="47" y="-12.95" font-family="Times,serif" font-size="14.00">GtkFileDialog</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M65.88,-108C65.88,-108 28.13,-108 28.13,-108 22.13,-108 16.13,-102 16.13,-96 16.13,-96 16.13,-84 16.13,-84 16.13,-78 22.13,-72 28.13,-72 28.13,-72 65.88,-72 65.88,-72 71.88,-72 77.88,-78 77.88,-84 77.88,-84 77.88,-96 77.88,-96 77.88,-102 71.88,-108 65.88,-108"/>
+<text text-anchor="middle" x="47" y="-84.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M47,-71.7C47,-60.85 47,-46.92 47,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.FileDialog.new.html">gtk_file_dialog_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkFileDialog</code> object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_accept_label.html">gtk_file_dialog_get_accept_label</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_default_filter.html">gtk_file_dialog_get_default_filter</a></h6>
+          <div class="docblock">
+            <p>Gets the filter that will be selected by default
+in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_filters.html">gtk_file_dialog_get_filters</a></h6>
+          <div class="docblock">
+            <p>Gets the filters that will be offered to the user
+in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_initial_file.html">gtk_file_dialog_get_initial_file</a></h6>
+          <div class="docblock">
+            <p>Gets the file that will be initially selected in
+the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_initial_folder.html">gtk_file_dialog_get_initial_folder</a></h6>
+          <div class="docblock">
+            <p>Gets the folder that will be set as the
+initial folder in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_initial_name.html">gtk_file_dialog_get_initial_name</a></h6>
+          <div class="docblock">
+            <p>Gets the name for the file that should be initially&nbsp;set.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_modal.html">gtk_file_dialog_get_modal</a></h6>
+          <div class="docblock">
+            <p>Returns whether the file chooser dialog
+blocks interaction with the parent window
+while it is&nbsp;presented.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.get_title.html">gtk_file_dialog_get_title</a></h6>
+          <div class="docblock">
+            <p>Returns the title that will be shown on the
+file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.open.html">gtk_file_dialog_open</a></h6>
+          <div class="docblock">
+            <p>This function initiates a file selection operation by
+presenting a file chooser dialog to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.open_finish.html">gtk_file_dialog_open_finish</a></h6>
+          <div class="docblock">
+            <p>Finishes the <code>gtk_file_dialog_open()</code> call and
+returns the resulting&nbsp;file.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.open_multiple.html">gtk_file_dialog_open_multiple</a></h6>
+          <div class="docblock">
+            <p>This function initiates a multi-file selection operation by
+presenting a file chooser dialog to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.open_multiple_finish.html">gtk_file_dialog_open_multiple_finish</a></h6>
+          <div class="docblock">
+            <p>Finishes the <code>gtk_file_dialog_open()</code> call and
+returns the resulting files in a <code>GListModel</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.save.html">gtk_file_dialog_save</a></h6>
+          <div class="docblock">
+            <p>This function initiates a file save operation by
+presenting a file chooser dialog to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.save_finish.html">gtk_file_dialog_save_finish</a></h6>
+          <div class="docblock">
+            <p>Finishes the <code>gtk_file_dialog_save()</code> call and
+returns the resulting&nbsp;file.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.select_folder.html">gtk_file_dialog_select_folder</a></h6>
+          <div class="docblock">
+            <p>This function initiates a directory selection operation by
+presenting a file chooser dialog to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.select_folder_finish.html">gtk_file_dialog_select_folder_finish</a></h6>
+          <div class="docblock">
+            <p>Finishes the <code>gtk_file_dialog_select_folder()</code> call and
+returns the resulting&nbsp;file.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.select_multiple_folders.html">gtk_file_dialog_select_multiple_folders</a></h6>
+          <div class="docblock">
+            <p>This function initiates a multi-directory selection operation by
+presenting a file chooser dialog to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.select_multiple_folders_finish.html">gtk_file_dialog_select_multiple_folders_finish</a></h6>
+          <div class="docblock">
+            <p>Finishes the <code>gtk_file_dialog_select_multiple_folders()</code>
+call and returns the resulting files in a <code>GListModel</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_accept_label.html">gtk_file_dialog_set_accept_label</a></h6>
+          <div class="docblock">
+            <p>Sets the label shown on the file chooser&#8217;s accept&nbsp;button.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_default_filter.html">gtk_file_dialog_set_default_filter</a></h6>
+          <div class="docblock">
+            <p>Sets the filter that will be selected by default
+in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_filters.html">gtk_file_dialog_set_filters</a></h6>
+          <div class="docblock">
+            <p>Sets the filters that will be offered to the user
+in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_initial_file.html">gtk_file_dialog_set_initial_file</a></h6>
+          <div class="docblock">
+            <p>Sets the file that will be initially selected in
+the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_initial_folder.html">gtk_file_dialog_set_initial_folder</a></h6>
+          <div class="docblock">
+            <p>Sets the folder that will be set as the
+initial folder in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_initial_name.html">gtk_file_dialog_set_initial_name</a></h6>
+          <div class="docblock">
+            <p>Sets the name for the file that should be initially set.
+For saving dialogs, this will usually be pre-entered into the name&nbsp;field.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_modal.html">gtk_file_dialog_set_modal</a></h6>
+          <div class="docblock">
+            <p>Sets whether the file chooser dialog
+blocks interaction with the parent window
+while it is&nbsp;presented.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.FileDialog.set_title.html">gtk_file_dialog_set_title</a></h6>
+          <div class="docblock">
+            <p>Sets the title that will be shown on the
+file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.FileDialog.accept-label.html">Gtk.FileDialog:accept-label</a></h6>
+          <div class="docblock">
+            <p>Label for the file chooser&#8217;s accept&nbsp;button.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.default-filter.html">Gtk.FileDialog:default-filter</a></h6>
+          <div class="docblock">
+            <p>The default filter, that is, the filter that is initially
+active in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.filters.html">Gtk.FileDialog:filters</a></h6>
+          <div class="docblock">
+            <p>The list of&nbsp;filters.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.initial-file.html">Gtk.FileDialog:initial-file</a></h6>
+          <div class="docblock">
+            <p>The initial file, that is, the file that is initially selected
+in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.initial-folder.html">Gtk.FileDialog:initial-folder</a></h6>
+          <div class="docblock">
+            <p>The initial folder, that is, the directory that is initially
+opened in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.initial-name.html">Gtk.FileDialog:initial-name</a></h6>
+          <div class="docblock">
+            <p>The initial name, that is, the filename that is initially
+selected in the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.modal.html">Gtk.FileDialog:modal</a></h6>
+          <div class="docblock">
+            <p>Whether the file chooser dialog is&nbsp;modal.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.FileDialog.title.html">Gtk.FileDialog:title</a></h6>
+          <div class="docblock">
+            <p>A title that may be shown on the file chooser&nbsp;dialog.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkFileDialogClass {
+  GObjectClass parent_class;
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GObjectClass</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+
+      
+
+      
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

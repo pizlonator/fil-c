@@ -1,0 +1,13 @@
+/* Repeat a child node that is not an integer size
+   and check that there's no space between the
+   tiles.
+   A color node is the easiest way to do that without
+   having to deal with visual glitches.
+ */
+repeat {
+  bounds: 0 0 50 50;
+  child: color {
+    bounds: 0 0 0.5 0.5;
+    color: rgb(255,0,0);
+  }
+}

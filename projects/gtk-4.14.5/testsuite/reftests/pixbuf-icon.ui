@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkCellRendererPixbuf" id="just-creating-a-pixbuf">
+    <property name="pixbuf-expander-open">resource:///org/gtk/libgtk/icons/16x16/status/image-missing.png</property>
+  </object>
+  <object class="GtkWindow" id="window1">
+    <property name="width_request">10</property>
+    <property name="height_request">10</property>
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkImage">
+        <property name="gicon" bind-source="just-creating-a-pixbuf" bind-property="pixbuf-expander-open" bind-flags="sync-create"/>
+      </object>
+    </child>
+  </object>
+</interface>

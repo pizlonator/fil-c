@@ -1,0 +1,30 @@
+texture-scale {
+  bounds: 4 4 24 24;
+  filter: nearest;
+  texture: "texture1" url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAJ0lEQVQYlWNkYPjwnwEPYMInSbqC\
+AwwCDAcYBPCb4HAAlc9Ie0cCAB8uBo20gfbVAAAAAElFTkSuQmCC\
+");
+}
+repeat {
+  bounds: 32 0 32 32;
+  child: texture-scale {
+    bounds: 0 0 1 1;
+    filter: nearest;
+    texture: "texture1";
+  }
+}
+repeat {
+  bounds: 0 32 32 32;
+  child: texture-scale {
+    bounds: 0 0 1 1;
+    texture: "texture1";
+  }
+}
+repeat {
+  bounds: 32 32 32 32;
+  child: texture-scale {
+    bounds: 0 0 1 1;
+    filter: trilinear;
+    texture: "texture1";
+  }
+}

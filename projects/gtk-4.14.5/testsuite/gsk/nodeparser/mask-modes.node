@@ -1,0 +1,47 @@
+mask {
+  mode: alpha;
+  source: color {
+    bounds: 0 0 30 30;
+    color: red;
+  }
+  mask: color {
+    bounds: 15 15 30 30;
+    color: white;
+  }
+}
+
+mask {
+  mode: inverted-alpha;
+  source: color {
+    bounds: 50 0 30 30;
+    color: lime;
+  }
+  mask: color {
+    bounds: 65 15 30 30;
+    color: white;
+  }
+}
+
+mask {
+  mode: luminance;
+  source: color {
+    bounds: 0 50 30 30;
+    color: yellow;
+  }
+  mask: color {
+    bounds: 15 65 30 30;
+    color: white;
+  }
+}
+
+mask {
+  mode: inverted-luminance;
+  source: color {
+    bounds: 50 50 30 30;
+    color: blue;
+  }
+  mask: color {
+    bounds: 65 65 30 30;
+    color: white;
+  }
+}

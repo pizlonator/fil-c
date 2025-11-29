@@ -1,0 +1,10 @@
+[wrap-git]
+directory = gobject-introspection
+url = https://gitlab.gnome.org/GNOME/gobject-introspection.git
+push-url = ssh://git@ssh.gitlab.gnome.org:GNOME/gobject-introspection.git
+revision = 1.76.0
+depth = 1
+
+[provide]
+dependency_names = gobject-introspection-1.0, gobject-introspection-no-export-1.0
+program_names = g-ir-annotation-tool, g-ir-compiler, g-ir-doc-tool, g-ir-generate, g-ir-inspect, g-ir-scanner

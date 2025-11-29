@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkLockButton" parent="GtkButton">
+    <property name="receives-default">1</property>
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="halign">3</property>
+        <property name="valign">3</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage" id="image">
+            <property name="icon-name">image-missing</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <child>
+              <object class="GtkLabel" id="label_lock">
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Lock</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_unlock">
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Unlock</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

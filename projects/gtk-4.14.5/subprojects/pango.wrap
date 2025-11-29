@@ -1,0 +1,14 @@
+[wrap-git]
+directory = pango
+url = https://gitlab.gnome.org/GNOME/pango.git
+push-url = ssh://git@ssh.gitlab.gnome.org:GNOME/pango.git
+# needs to be main, because we build the nightly docs from the subproject
+revision = main
+depth = 1
+
+[provide]
+pango = libpango_dep
+pangoft2 = libpangoft2_dep
+pangoxft = libpangoxft_dep
+pangowin32 = libpangowin32_dep
+pangocairo = libpangocairo_dep

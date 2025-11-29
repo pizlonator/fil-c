@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkDialog" id="dialog">
+    <property name="transient-for">toplevel</property>
+    <property name="modal">1</property>
+    <property name="resizable">0</property>
+    <property name="use-header-bar">1</property>
+    <property name="title" translatable="yes">Error States</property>
+    <property name="hide-on-close">1</property>
+    <child internal-child="content_area">
+      <object class="GtkBox">
+        <child>
+          <object class="GtkGrid">
+            <property name="row-spacing">10</property>
+            <property name="column-spacing">10</property>
+            <property name="margin-start">20</property>
+            <property name="margin-end">20</property>
+            <property name="margin-top">20</property>
+            <property name="margin-bottom">20</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="valign">baseline</property>
+                <property name="label">_Details</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">details_entry</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="details_entry">
+                <property name="valign">baseline</property>
+                <signal name="notify::text" handler="validate_more_details" object="more_details_entry" swapped="yes"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="valign">baseline</property>
+                <property name="label">More D_etails</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">more_details_entry</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="more_details_entry">
+                <property name="valign">baseline</property>
+                <signal name="notify::text" handler="validate_more_details" object="details_entry" swapped="no"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="valign">baseline</property>
+                <property name="label">_Level</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">level_scale</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="level_scale">
+                <property name="valign">baseline</property>
+                <property name="draw-value">0</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="upper">100</property>
+                    <property name="lower">0</property>
+                    <property name="value">50</property>
+                    <property name="step-increment">1</property>
+                    <property name="page-increment">10</property>
+                  </object>
+                </property>
+                <signal name="value-changed" handler="level_scale_value_changed" object="mode_switch" swapped="no"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="valign">baseline</property>
+                <property name="label">_Mode</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">mode_switch</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSwitch" id="mode_switch">
+                <property name="halign">start</property>
+                <property name="valign">baseline</property>
+                <signal name="state-set" handler="mode_switch_state_set" object="level_scale" swapped="no"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="error_label">
+                <property name="visible">0</property>
+                <property name="halign">start</property>
+                <property name="valign">baseline</property>
+                <property name="label">Level too low</property>
+                <style>
+                  <class name="error"/>
+                </style>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

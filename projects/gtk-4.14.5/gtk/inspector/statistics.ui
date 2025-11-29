@@ -1,0 +1,98 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorStatistics" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkStack" id="stack">
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">statistics</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkSearchBar" id="search_bar">
+                    <property name="show-close-button">1</property>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="max-width-chars">40</property>
+                        <signal name="search-changed" handler="search_changed"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
+                    <property name="vscrollbar-policy">always</property>
+                    <child>
+                      <object class="GtkColumnView" id="view">
+                        <style>
+                          <class name="data-table"/>
+                          <class name="list"/>
+                        </style>
+                        <child>
+                          <object class="GtkColumnViewColumn">
+                            <property name="title" translatable="yes">Type</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_self1">
+                            <property name="title" translatable="yes">Self 1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_cumulative1">
+                            <property name="title" translatable="yes">Cumulative 1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_self2">
+                            <property name="title" translatable="yes">Self 2</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_cumulative2">
+                            <property name="title" translatable="yes">Cumulative 2</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_self_graph">
+                            <property name="title" translatable="yes">Self</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="column_cumulative_graph">
+                            <property name="title" translatable="yes">Cumulative</property>
+                            <property name="expand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">excuse</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkLabel" id="excuse">
+                    <property name="selectable">1</property>
+                    <property name="label" translatable="yes">Enable statistics with GOBJECT_DEBUG=instance-count</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

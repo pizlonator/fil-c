@@ -1,0 +1,50 @@
+clip {
+  clip: 10 -10 40 20;
+  child: shadow {
+    shadows: red 60 0 1;
+    child: color {
+      bounds: -25 -25 50 50;
+      color: blue;
+    }
+  }
+}
+
+clip {
+  clip: -50 -10 40 20;
+  child: shadow {
+    shadows: red -60 0 1;
+    child: color {
+      bounds: -25 -25 50 50;
+      color: blue;
+    }
+  }
+}
+
+clip {
+  clip: -10 10 20 40;
+  child: shadow {
+    shadows: red 0 60 1;
+    child: color {
+      bounds: -25 -25 50 50;
+      color: blue;
+    }
+  }
+}
+
+clip {
+  clip: -10 -50 20 40;
+  child: shadow {
+    shadows: red 0 -60 1;
+    child: color {
+      bounds: -25 -25 50 50;
+      color: blue;
+    }
+  }
+}
+
+/* cover the blur */
+border {
+  outline: -37 -37 74 74;
+  colors: black;
+  widths: 4;
+}

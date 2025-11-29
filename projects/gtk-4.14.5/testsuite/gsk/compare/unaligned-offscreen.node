@@ -1,0 +1,23 @@
+blend {
+  mode: normal;
+  top: transform {
+    child: blend {
+      top: text {
+        color: rgb(0, 0, 0);
+        font: "Cantarell Bold 11";
+        glyphs: "|||||||||||||||||||||||";
+      }
+      bottom: text {
+        color: rgb(0, 0, 0);
+        font: "Cantarell Bold 11";
+        glyphs: "===========";
+    offset: 0 13;
+      }
+    }
+    transform: translate(1.5, 15.5);
+  }
+  bottom: color {
+    color: red;
+    bounds: 0 0 100 30;
+  }
+}

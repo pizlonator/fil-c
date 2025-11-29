@@ -1,0 +1,32 @@
+/* ensure the size of this test */
+color {
+  bounds: 0 0 50 50;
+  color: black;
+}
+clip {
+  /* Use a clip that isn't pixel-aligned.
+     Use 2 numbers that divide 255 so the expected pixel
+     doesn't cause rounding issues. */
+  clip: 3.333333 3.4 43 43;
+  /* Use a shadow node to force an offscreen */
+  child: shadow {
+    shadows: yellow 1 0;
+    /* Generate a checkerboard pattern with 1x1 tiles.
+       It is very obvious when those don't get pixel-aligned. */
+    child: repeat {
+      /* Make sure the bounds extend beyond the clip, so no
+         antialiasing artifacts are caused by the pattern. */
+      bounds: 0 0 50 50;
+      child: container {
+        color {
+          color: red;
+          bounds: 0 0 1 1;
+        }
+        color {
+          color: red;
+          bounds: 1 1 1 1;
+        }
+      }
+    }
+  }
+}

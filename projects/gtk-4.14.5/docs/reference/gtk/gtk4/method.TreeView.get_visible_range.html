@@ -1,0 +1,442 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TreeView.get_visible_range</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.TreeView.get_visible_range"/>
+  <meta priority="og:description" content="Reference for Gtk.TreeView.get_visible_range"/>
+  <meta name="twitter:title" content="Gtk.TreeView.get_visible_range"/>
+  <meta name="twitter:description" content="Reference for Gtk.TreeView.get_visible_range"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.TreeView.html">TreeView</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TreeView.append_column.html">append_column</a>
+  
+    <a class="method" href="method.TreeView.collapse_all.html">collapse_all</a>
+  
+    <a class="method" href="method.TreeView.collapse_row.html">collapse_row</a>
+  
+    <a class="method" href="method.TreeView.columns_autosize.html">columns_autosize</a>
+  
+    <a class="method" href="method.TreeView.convert_bin_window_to_tree_coords.html">convert_bin_window_to_tree_coords</a>
+  
+    <a class="method" href="method.TreeView.convert_bin_window_to_widget_coords.html">convert_bin_window_to_widget_coords</a>
+  
+    <a class="method" href="method.TreeView.convert_tree_to_bin_window_coords.html">convert_tree_to_bin_window_coords</a>
+  
+    <a class="method" href="method.TreeView.convert_tree_to_widget_coords.html">convert_tree_to_widget_coords</a>
+  
+    <a class="method" href="method.TreeView.convert_widget_to_bin_window_coords.html">convert_widget_to_bin_window_coords</a>
+  
+    <a class="method" href="method.TreeView.convert_widget_to_tree_coords.html">convert_widget_to_tree_coords</a>
+  
+    <a class="method" href="method.TreeView.create_row_drag_icon.html">create_row_drag_icon</a>
+  
+    <a class="method" href="method.TreeView.enable_model_drag_dest.html">enable_model_drag_dest</a>
+  
+    <a class="method" href="method.TreeView.enable_model_drag_source.html">enable_model_drag_source</a>
+  
+    <a class="method" href="method.TreeView.expand_all.html">expand_all</a>
+  
+    <a class="method" href="method.TreeView.expand_row.html">expand_row</a>
+  
+    <a class="method" href="method.TreeView.expand_to_path.html">expand_to_path</a>
+  
+    <a class="method" href="method.TreeView.get_activate_on_single_click.html">get_activate_on_single_click</a>
+  
+    <a class="method" href="method.TreeView.get_background_area.html">get_background_area</a>
+  
+    <a class="method" href="method.TreeView.get_cell_area.html">get_cell_area</a>
+  
+    <a class="method" href="method.TreeView.get_column.html">get_column</a>
+  
+    <a class="method" href="method.TreeView.get_columns.html">get_columns</a>
+  
+    <a class="method" href="method.TreeView.get_cursor.html">get_cursor</a>
+  
+    <a class="method" href="method.TreeView.get_dest_row_at_pos.html">get_dest_row_at_pos</a>
+  
+    <a class="method" href="method.TreeView.get_drag_dest_row.html">get_drag_dest_row</a>
+  
+    <a class="method" href="method.TreeView.get_enable_search.html">get_enable_search</a>
+  
+    <a class="method" href="method.TreeView.get_enable_tree_lines.html">get_enable_tree_lines</a>
+  
+    <a class="method" href="method.TreeView.get_expander_column.html">get_expander_column</a>
+  
+    <a class="method" href="method.TreeView.get_fixed_height_mode.html">get_fixed_height_mode</a>
+  
+    <a class="method" href="method.TreeView.get_grid_lines.html">get_grid_lines</a>
+  
+    <a class="method" href="method.TreeView.get_headers_clickable.html">get_headers_clickable</a>
+  
+    <a class="method" href="method.TreeView.get_headers_visible.html">get_headers_visible</a>
+  
+    <a class="method" href="method.TreeView.get_hover_expand.html">get_hover_expand</a>
+  
+    <a class="method" href="method.TreeView.get_hover_selection.html">get_hover_selection</a>
+  
+    <a class="method" href="method.TreeView.get_level_indentation.html">get_level_indentation</a>
+  
+    <a class="method" href="method.TreeView.get_model.html">get_model</a>
+  
+    <a class="method" href="method.TreeView.get_n_columns.html">get_n_columns</a>
+  
+    <a class="method" href="method.TreeView.get_path_at_pos.html">get_path_at_pos</a>
+  
+    <a class="method" href="method.TreeView.get_reorderable.html">get_reorderable</a>
+  
+    <a class="method" href="method.TreeView.get_row_separator_func.html">get_row_separator_func</a>
+  
+    <a class="method" href="method.TreeView.get_rubber_banding.html">get_rubber_banding</a>
+  
+    <a class="method" href="method.TreeView.get_search_column.html">get_search_column</a>
+  
+    <a class="method" href="method.TreeView.get_search_entry.html">get_search_entry</a>
+  
+    <a class="method" href="method.TreeView.get_search_equal_func.html">get_search_equal_func</a>
+  
+    <a class="method" href="method.TreeView.get_selection.html">get_selection</a>
+  
+    <a class="method" href="method.TreeView.get_show_expanders.html">get_show_expanders</a>
+  
+    <a class="method" href="method.TreeView.get_tooltip_column.html">get_tooltip_column</a>
+  
+    <a class="method" href="method.TreeView.get_tooltip_context.html">get_tooltip_context</a>
+  
+    <a class="method current" href="method.TreeView.get_visible_range.html">get_visible_range</a>
+  
+    <a class="method" href="method.TreeView.get_visible_rect.html">get_visible_rect</a>
+  
+    <a class="method" href="method.TreeView.insert_column.html">insert_column</a>
+  
+    <a class="method" href="method.TreeView.insert_column_with_attributes.html">insert_column_with_attributes</a>
+  
+    <a class="method" href="method.TreeView.insert_column_with_data_func.html">insert_column_with_data_func</a>
+  
+    <a class="method" href="method.TreeView.is_blank_at_pos.html">is_blank_at_pos</a>
+  
+    <a class="method" href="method.TreeView.is_rubber_banding_active.html">is_rubber_banding_active</a>
+  
+    <a class="method" href="method.TreeView.map_expanded_rows.html">map_expanded_rows</a>
+  
+    <a class="method" href="method.TreeView.move_column_after.html">move_column_after</a>
+  
+    <a class="method" href="method.TreeView.remove_column.html">remove_column</a>
+  
+    <a class="method" href="method.TreeView.row_activated.html">row_activated</a>
+  
+    <a class="method" href="method.TreeView.row_expanded.html">row_expanded</a>
+  
+    <a class="method" href="method.TreeView.scroll_to_cell.html">scroll_to_cell</a>
+  
+    <a class="method" href="method.TreeView.scroll_to_point.html">scroll_to_point</a>
+  
+    <a class="method" href="method.TreeView.set_activate_on_single_click.html">set_activate_on_single_click</a>
+  
+    <a class="method" href="method.TreeView.set_column_drag_function.html">set_column_drag_function</a>
+  
+    <a class="method" href="method.TreeView.set_cursor.html">set_cursor</a>
+  
+    <a class="method" href="method.TreeView.set_cursor_on_cell.html">set_cursor_on_cell</a>
+  
+    <a class="method" href="method.TreeView.set_drag_dest_row.html">set_drag_dest_row</a>
+  
+    <a class="method" href="method.TreeView.set_enable_search.html">set_enable_search</a>
+  
+    <a class="method" href="method.TreeView.set_enable_tree_lines.html">set_enable_tree_lines</a>
+  
+    <a class="method" href="method.TreeView.set_expander_column.html">set_expander_column</a>
+  
+    <a class="method" href="method.TreeView.set_fixed_height_mode.html">set_fixed_height_mode</a>
+  
+    <a class="method" href="method.TreeView.set_grid_lines.html">set_grid_lines</a>
+  
+    <a class="method" href="method.TreeView.set_headers_clickable.html">set_headers_clickable</a>
+  
+    <a class="method" href="method.TreeView.set_headers_visible.html">set_headers_visible</a>
+  
+    <a class="method" href="method.TreeView.set_hover_expand.html">set_hover_expand</a>
+  
+    <a class="method" href="method.TreeView.set_hover_selection.html">set_hover_selection</a>
+  
+    <a class="method" href="method.TreeView.set_level_indentation.html">set_level_indentation</a>
+  
+    <a class="method" href="method.TreeView.set_model.html">set_model</a>
+  
+    <a class="method" href="method.TreeView.set_reorderable.html">set_reorderable</a>
+  
+    <a class="method" href="method.TreeView.set_row_separator_func.html">set_row_separator_func</a>
+  
+    <a class="method" href="method.TreeView.set_rubber_banding.html">set_rubber_banding</a>
+  
+    <a class="method" href="method.TreeView.set_search_column.html">set_search_column</a>
+  
+    <a class="method" href="method.TreeView.set_search_entry.html">set_search_entry</a>
+  
+    <a class="method" href="method.TreeView.set_search_equal_func.html">set_search_equal_func</a>
+  
+    <a class="method" href="method.TreeView.set_show_expanders.html">set_show_expanders</a>
+  
+    <a class="method" href="method.TreeView.set_tooltip_cell.html">set_tooltip_cell</a>
+  
+    <a class="method" href="method.TreeView.set_tooltip_column.html">set_tooltip_column</a>
+  
+    <a class="method" href="method.TreeView.set_tooltip_row.html">set_tooltip_row</a>
+  
+    <a class="method" href="method.TreeView.unset_rows_drag_dest.html">unset_rows_drag_dest</a>
+  
+    <a class="method" href="method.TreeView.unset_rows_drag_source.html">unset_rows_drag_source</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.TreeView.html">TreeView</a><span class="sep"></span>get_visible_range</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtktreeview.h#L354">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">gboolean</span>
+<span class="n">gtk_tree_view_get_visible_range</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkTreeView</span><span class="o">*</span><span class="w"> </span><span class="n">tree_view</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GtkTreePath</span><span class="o">**</span><span class="w"> </span><span class="n">start_path</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GtkTreePath</span><span class="o">**</span><span class="w"> </span><span class="n">end_path</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtktreeview.c#L12705">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Sets <code>start_path</code> and <code>end_path</code> to be the first and last visible path.
+Note that there may be invisible paths in&nbsp;between.</p>
+<p>The paths should be freed with <code>gtk_tree_path_free()</code> after&nbsp;use.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        <div class="admonition deprecation">
+          <p class="admonition-title">Deprecated since: 4.10</p><p>Use <a href="class.ListView.html"><code>GtkListView</code></a> or <a href="class.ColumnView.html"><code>GtkColumnView</code></a>&nbsp;instead.</p></div>
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>start_path</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="struct.TreePath.html"><code>GtkTreePath</code></a></p>
+            <p>Return location for start of&nbsp;region.</p>
+            <table>
+            <tr><td title="direction: out">The argument will be set by the function.</td></tr>
+            
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>end_path</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="struct.TreePath.html"><code>GtkTreePath</code></a></p>
+            <p>Return location for end of&nbsp;region.</p>
+            <table>
+            <tr><td title="direction: out">The argument will be set by the function.</td></tr>
+            
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p><code>TRUE</code>, if valid paths were placed in <code>start_path</code> and <code>end_path</code>.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

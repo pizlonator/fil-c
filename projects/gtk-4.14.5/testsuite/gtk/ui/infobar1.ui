@@ -1,0 +1,16 @@
+<!-- test all valid infobar markup -->
+<interface>
+  <object class="GtkInfoBar">
+    <child>
+      <object class="GtkButton" id="button_cancel"/>
+    </child>
+    <child>
+      <object class="GtkButton" id="button_ok">
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-3">button_cancel</action-widget>
+      <action-widget response="ok">button_ok</action-widget>
+    </action-widgets>
+  </object>
+</interface>

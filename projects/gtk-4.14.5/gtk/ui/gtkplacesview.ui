@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <object class="GtkPopover" id="server_adresses_popover">
+    <property name="position">2</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">1</property>
+        <property name="spacing">6</property>
+        <property name="margin-start">18</property>
+        <property name="margin-end">18</property>
+        <property name="margin-top">18</property>
+        <property name="margin-bottom">18</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="hexpand">1</property>
+            <property name="label" translatable="yes">Server Addresses</property>
+            <attributes>
+              <attribute name="weight" value="bold"></attribute>
+            </attributes>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="hexpand">1</property>
+            <property name="label" translatable="yes">Server addresses are made up of a protocol prefix and an address. Examples:</property>
+            <property name="wrap">1</property>
+            <property name="width-chars">40</property>
+            <property name="max-width-chars">40</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="hexpand">1</property>
+            <property name="label">smb://gnome.org, ssh://192.168.0.1, ftp://[2001:db8::1]</property>
+            <property name="wrap">1</property>
+            <property name="width-chars">40</property>
+            <property name="max-width-chars">40</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid" id="available_protocols_grid">
+            <property name="margin-top">12</property>
+            <property name="hexpand">1</property>
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="hexpand">1</property>
+                <property name="label" translatable="yes">Available Protocols</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="weight" value="bold"></attribute>
+                </attributes>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Prefix</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="weight" value="bold"></attribute>
+                </attributes>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="recent_servers_popover">
+    <child>
+      <object class="GtkStack" id="recent_servers_stack">
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">empty</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="vexpand">1</property>
+                <property name="valign">3</property>
+                <property name="orientation">1</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="pixel-size">48</property>
+                    <property name="icon-name">network-server-symbolic</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes" comments="Translators: Server as any successfully connected network address">No recent servers found</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">list</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">1</property>
+                <property name="spacing">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Recent Servers</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"></attribute>
+                    </attributes>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="vexpand">1</property>
+                    <property name="has-frame">1</property>
+                    <property name="min-content-width">250</property>
+                    <property name="min-content-height">200</property>
+                    <child>
+                      <object class="GtkViewport">
+                        <child>
+                          <object class="GtkListBox" id="recent_servers_listbox">
+                            <property name="selection-mode">0</property>
+                            <signal name="row-activated" handler="on_recent_servers_listbox_row_activated" object="GtkPlacesView" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <template class="GtkPlacesView" parent="GtkBox">
+    <property name="orientation">1</property>
+    <child>
+      <object class="GtkStack" id="stack">
+        <property name="vhomogeneous">0</property>
+        <property name="transition-type">1</property>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">browse</property>
+            <property name="child">
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkViewport">
+                    <child>
+                      <object class="GtkListBox" id="listbox">
+                        <property name="selection-mode">0</property>
+                        <signal name="row-activated" handler="on_listbox_row_activated" object="GtkPlacesView" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">empty-search</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="halign">3</property>
+                <property name="valign">3</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <property name="orientation">1</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="pixel-size">72</property>
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">No results found</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"></attribute>
+                      <attribute name="scale" value="1.44"></attribute>
+                    </attributes>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Try a different search</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkActionBar" id="actionbar">
+        <property name="hexpand">1</property>
+        <style>
+          <class name="background"/>
+        </style>
+        <child>
+          <object class="GtkLabel">
+            <property name="hexpand">1</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Connect to _Server</property>
+            <property name="mnemonic-widget">address_entry</property>
+            <property name="use-underline">1</property>
+            <attributes>
+              <attribute name="weight" value="bold"></attribute>
+            </attributes>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="connect_button">
+            <property name="label" translatable="yes">Con_nect</property>
+            <property name="use-underline">1</property>
+            <property name="sensitive">0</property>
+            <property name="receives-default">1</property>
+            <property name="valign">3</property>
+            <signal name="clicked" handler="on_connect_button_clicked" object="GtkPlacesView" swapped="yes"/>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkBox">
+            <property name="hexpand">1</property>
+            <child>
+              <object class="GtkEntry" id="address_entry">
+                <property name="hexpand">1</property>
+                <property name="width-chars">20</property>
+                <property name="placeholder-text" translatable="yes">Enter server address…</property>
+                <property name="secondary-icon-name">dialog-question-symbolic</property>
+                <signal name="notify::text" handler="on_address_entry_text_changed" object="GtkPlacesView" swapped="yes"/>
+                <signal name="activate" handler="on_connect_button_clicked" object="GtkPlacesView" swapped="yes"/>
+                <signal name="icon-press" handler="on_address_entry_show_help_pressed" object="GtkPlacesView" swapped="yes"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuButton" id="server_list_button">
+                <property name="receives-default">1</property>
+                <property name="direction">0</property>
+                <property name="popover">recent_servers_popover</property>
+                <property name="icon-name">pan-down-symbolic</property>
+                <style>
+                  <class name="server-list-button"/>
+                </style>
+              </object>
+            </child>
+            <style>
+              <class name="linked"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

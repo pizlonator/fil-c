@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox" id="box">
+        <child>
+          <object class="GtkBox" id="box0">
+            <property name="orientation">vertical</property>
+            <property name="spacing">20</property>
+            <child>
+              <object class="GtkLabel" id="one">
+                <property name="label">One</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="two">
+                <property name="label">Two</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="three">
+                <property name="label">Three</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="box1">
+            <property name="orientation">vertical</property>
+            <property name="homogeneous">1</property>
+            <child>
+              <object class="GtkLabel" id="long">
+                <property name="label">Verylongtext</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="short">
+                <property name="label">Short</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="box2">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel" id="a">
+                <property name="label">A</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="b">
+                <property name="label">B</property>
+                <property name="vexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="c">
+                <property name="label">C</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

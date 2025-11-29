@@ -1,0 +1,12 @@
+# See https://www.apertis.org/policies/coding_conventions/#code-formatting
+BasedOnStyle: GNU
+AlwaysBreakAfterDefinitionReturnType: All
+BreakBeforeBinaryOperators: None
+BinPackParameters: false
+SpaceAfterCStyleCast: true
+PointerAlignment: Right
+# Our column limit is actually 80, but setting that results in clang-format
+# making a lot of dubious hanging-indent choices; disable it and assume the
+# developer will line wrap appropriately. clang-format will still check
+# existing hanging indents.
+ColumnLimit: 0

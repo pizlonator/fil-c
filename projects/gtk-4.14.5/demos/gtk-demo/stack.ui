@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">Stack</property>
+    <property name="resizable">0</property>
+    <child>
+      <object class="GtkGrid">
+        <child>
+          <object class="GtkStackSwitcher">
+            <property name="stack">stack</property>
+            <property name="halign">center</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <property name="transition-type">crossfade</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page1</property>
+                <property name="title" translatable="yes">Page 1</property>
+                <property name="child">
+                  <object class="GtkImage">
+                    <property name="margin-top">20</property>
+                    <property name="margin-bottom">20</property>
+                    <property name="pixel-size">100</property>
+                    <property name="icon-name">org.gtk.Demo4</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page2</property>
+                <property name="title" translatable="yes">Page 2</property>
+                <property name="child">
+                  <object class="GtkCheckButton">
+                    <property name="label" translatable="yes">Page 2</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page3</property>
+                <property name="icon-name">face-laugh-symbolic</property>
+                <property name="child">
+                  <object class="GtkSpinner">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="spinning">1</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

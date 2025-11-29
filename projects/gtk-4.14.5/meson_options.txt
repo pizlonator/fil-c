@@ -1,0 +1,155 @@
+# GDK backends
+
+option('x11-backend',
+       type: 'boolean',
+       value: true,
+       description : 'Enable the X11 gdk backend (only when building on Unix)')
+
+option('wayland-backend',
+       type: 'boolean',
+       value: true,
+       description : 'Enable the wayland gdk backend (only when building on Unix except for macOS)')
+
+option('broadway-backend',
+       type: 'boolean',
+       value: false,
+       description : 'Enable the broadway (HTML5) gdk backend')
+
+option('win32-backend',
+       type: 'boolean',
+       value: true,
+       description : 'Enable the Windows gdk backend (only when building on Windows)')
+
+option('macos-backend',
+       type: 'boolean',
+       value: true,
+       description : 'Enable the macOS gdk backend (only when building on macOS)')
+
+# Media backends
+# For distros: GTK guarantees support for WebM video (VP8 and VP9), so a supported build
+# should provide that.
+
+option('media-gstreamer',
+       type: 'feature',
+       value: 'enabled',
+       description : 'Build the gstreamer media backend')
+
+# Print backends
+
+option('print-cpdb',
+       type: 'feature',
+       value: 'disabled',
+       description : 'Build the cpdb print backend')
+
+option('print-cups',
+       type: 'feature',
+       value: 'auto',
+       description : 'Build the cups print backend')
+
+# Optional features
+
+option('vulkan',
+       type: 'feature',
+       value: 'enabled',
+       description : 'Enable Vulkan support including the Vulkan renderer')
+
+option('cloudproviders',
+       type: 'feature',
+       value: 'disabled',
+       description : 'Enable the cloudproviders support')
+
+option('sysprof',
+       type: 'feature',
+       value: 'disabled',
+       description : 'include tracing support for sysprof')
+
+option('tracker',
+       type: 'feature',
+       value: 'disabled',
+       description : 'Enable Tracker3 filechooser search')
+
+option('colord',
+       type: 'feature',
+       value: 'disabled',
+       description : 'Build colord support for the CUPS printing backend')
+
+option('f16c',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Enable F16C fast paths (requires F16C)')
+
+# Introspection
+
+option('introspection',
+       type: 'feature',
+       value: 'auto',
+       yield: true,
+       description : 'Build introspection data (requires gobject-introspection)')
+
+# Documentation
+
+option('documentation',
+       type: 'boolean',
+       value: false,
+       description : 'Build API reference and tools documentation')
+
+option('gtk_doc',
+       type: 'boolean',
+       value: false,
+       description : 'Build API reference and tools documentation',
+       deprecated: 'documentation')
+
+option('screenshots',
+       type: 'boolean',
+       value: false,
+       description : 'Regenerate screenshots for the documentation')
+
+option('update_screenshots',
+       type: 'boolean',
+       value: false,
+       description : 'Regenerate screenshots for the documentation',
+       deprecated: 'screenshots')
+
+option('man-pages',
+       type: 'boolean',
+       value: false,
+       description : 'Build man pages for installed tools')
+
+# Demos, examples and tests
+
+option('demo-profile',
+       type: 'combo',
+       choices: [ 'auto', 'default', 'devel' ],
+       value: 'auto',
+       deprecated: 'profile')
+
+option('profile',
+       type: 'combo',
+       choices: [ 'auto', 'default', 'devel' ],
+       value: 'auto',
+       description : 'Profile to use for demos')
+
+option('build-demos',
+       type: 'boolean',
+       value: true,
+       description : 'Build demo programs')
+
+option('demos',
+       type: 'boolean',
+       value: true,
+       deprecated: 'build-demos')
+
+option('build-testsuite',
+       type: 'boolean',
+       value: true,
+       description : 'Build testsuite')
+
+option('build-examples',
+       type: 'boolean',
+       value: true,
+       description : 'Build examples')
+
+option('build-tests',
+       type: 'boolean',
+       value: true,
+       description : 'Build tests')

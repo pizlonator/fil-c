@@ -1,0 +1,50 @@
+<interface domain="gtk40">
+  <object class="GtkTreeStore" id="model">
+    <columns>
+      <column type="gchararray"/>
+      <column type="gchararray"/>
+      <column type="gchararray"/>
+      <column type="gchararray"/>
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <template class="GtkInspectorMenu" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <property name="vscrollbar-policy">always</property>
+        <child>
+          <object class="GtkColumnView" id="view">
+            <style>
+              <class name="data-table"/>
+              <class name="list"/>
+            </style>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title" translatable="yes">Label</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title" translatable="yes">Action</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title" translatable="yes">Target</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn">
+                <property name="title" translatable="yes">Icon</property>
+                <property name="expand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <style>
+       <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="shadow"/>
+          <class name="background"/>
+          <class name="frame"/>
+        </style>
+        <child>
+          <object class="GtkButton">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="label">Button</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

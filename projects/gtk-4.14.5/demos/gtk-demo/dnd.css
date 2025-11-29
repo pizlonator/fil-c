@@ -1,0 +1,37 @@
+label.canvasitem {
+  padding: 10px;
+  margin: 1px;
+}
+
+.canvasitem.rainbow1,
+image.rainbow1 {
+  background: linear-gradient(140deg,red,orange,yellow,green,blue,purple);
+}
+
+.canvasitem.rainbow2,
+image.rainbow2 {
+  animation: rainbow2 1s infinite linear;
+}
+
+@keyframes rainbow2 {
+ 0% { background: linear-gradient(0deg,red,orange,yellow,green,blue,purple); }
+ 25% { background: linear-gradient(90deg,red,orange,yellow,green,blue,purple); }
+ 50% { background: linear-gradient(180deg,red,orange,yellow,green,blue,purple); }
+ 75% { background: linear-gradient(270deg,red,orange,yellow,green,blue,purple); }
+ 100% { background: linear-gradient(360deg,red,orange,yellow,green,blue,purple); }
+}
+
+.canvasitem.rainbow3,
+image.rainbow3 {
+  animation: rainbow3 1s infinite linear;
+}
+
+@keyframes rainbow3 {
+ 0% { background: linear-gradient(140deg,red,orange,yellow,green,blue,purple); }
+ 16.6% { background: linear-gradient(140deg,purple,red,orange,yellow,green,blue); }
+ 33.2% { background: linear-gradient(140deg,blue,purple,red,orange,yellow,green); }
+ 50% { background: linear-gradient(140deg,green,blue,purple,red,orange,yellow); }
+ 66.6% { background: linear-gradient(140deg,yellow,green,blue,purple,red,orange); }
+ 83.2% { background: linear-gradient(140deg,orange,yellow,green,blue,purple,red); }
+ 100% { background: linear-gradient(140deg,red,orange,yellow,green,blue,purple); }
+}

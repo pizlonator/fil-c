@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkExpander" id="expander1">
+        <property name="label">Hello</property>
+        <property name="resize_toplevel">1</property>
+        <signal name="map" handler="reftest:expand_expander" swapped="no"/>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Hello</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

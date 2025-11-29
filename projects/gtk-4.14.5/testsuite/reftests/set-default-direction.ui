@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <signal name="map" handler="reftest:switch_default_direction" swapped="no"/>
+    <signal name="destroy" handler="reftest:switch_default_direction" swapped="no"/>
+    <child>
+      <object class="GtkImage" id="image1">
+        <property name="icon_name">go-next</property>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<protocol name="gtk_text_input">
+  <copyright>
+    Copyright © 2012, 2013 Intel Corporation
+    Copyright © 2015, 2016 Jan Arne Petersen
+
+    Permission to use, copy, modify, distribute, and sell this
+    software and its documentation for any purpose is hereby granted
+    without fee, provided that the above copyright notice appear in
+    all copies and that both that copyright notice and this permission
+    notice appear in supporting documentation, and that the name of
+    the copyright holders not be used in advertising or publicity
+    pertaining to distribution of the software without specific,
+    written prior permission.  The copyright holders make no
+    representations about the suitability of this software for any
+    purpose.  It is provided "as is" without express or implied
+    warranty.
+
+    THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+    SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+    AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+    THIS SOFTWARE.
+  </copyright>
+
+  <interface name="gtk_text_input" version="1">
+    <description summary="text input">
+      The gtk_text_input interface represents text input and input methods
+      associated with a seat. It provides enter/leave events to follow the
+      text input focus for a seat.
+
+      Requests are used to enable/disable the text-input object and set
+      state information like surrounding and selected text or the content type.
+      The information about the entered text is sent to the text-input object
+      via the pre-edit and commit_string events. Using this interface removes
+      the need for applications to directly process hardware key events and
+      compose text out of them.
+
+      Text is valid UTF-8 encoded, indices and lengths are in bytes. Indices
+      have to always point to the first byte of an UTF-8 encoded code point.
+      Lengths are not allowed to contain just a part of an UTF-8 encoded code
+      point.
+
+      Focus moving throughout surfaces will result in the emission of
+      gtk_text_input.enter and gtk_text_input.leave events. The focused
+      surface must perform gtk_text_input.enable and
+      gtk_text_input.disable requests as the keyboard focus moves across
+      editable and non-editable elements of the UI. Those two requests are not
+      expected to be paired with each other, the compositor must be able to
+      handle consecutive series of the same request.
+
+      State is sent by the state requests (set_surrounding_text,
+      set_content_type and set_cursor_rectangle) and a commit request.
+      After an enter event or disable request all state information is
+      invalidated and needs to be resent by the client.
+
+      This protocol defines requests and events necessary for regular clients
+      to communicate with an input method. The gtk_input_method protocol
+      defines the interfaces necessary to implement standalone input methods.
+      If a compositor implements both interfaces, it will be the arbiter of the
+      communication between both.
+
+      Warning! The protocol described in this file is experimental and
+      backward incompatible changes may be made. Backward compatible changes
+      may be added together with the corresponding interface version bump.
+      Backward incompatible changes are done by bumping the version number in
+      the protocol and interface names and resetting the interface version.
+      Once the protocol is to be declared stable, the 'z' prefix and the
+      version number in the protocol and interface names are removed and the
+      interface version number is reset.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy the wp_text_input">
+       Destroy the wp_text_input object. Also disables all surfaces enabled
+       through this wp_text_input object
+      </description>
+    </request>
+
+    <enum name="enable_flags" bitfield="true">
+      <description summary="enable flags">
+       Content hint is a bitmask to allow to modify the behavior of the text
+       input.
+      </description>
+      <entry name="none" value="0x0" summary="no special behaviour"/>
+      <entry name="can_show_preedit" value="0x1" summary="hints that the UI is capable of showing pre-edit text"/>
+      <entry name="toggle_input_panel" value="0x2" summary="requests toggling input panel (eg. on-screen keyboard)"/>
+    </enum>
+
+    <request name="enable">
+      <description summary="Request text input to be enabled">
+	Requests text input on a surface. The serial provided must be the one
+        received on gtk_text_input.enter.
+      </description>
+      <arg name="serial" type="uint" summary="serial of enter event"/>
+      <arg name="show_input_panel" type="uint" summary="details of the enable request"/>
+    </request>
+
+    <request name="disable">
+      <description summary="Disable text input on a surface">
+	Explicitly disable text input in a surface (typically when there is no
+	focus on any text entry inside the surface).
+      </description>
+    </request>
+
+    <request name="set_surrounding_text">
+      <description summary="sets the surrounding text">
+       Sets the plain surrounding text around the input position. Text is
+       UTF-8 encoded. Cursor is the byte offset within the surrounding text.
+       Anchor is the byte offset of the selection anchor within the
+       surrounding text. If there is no selected text, anchor is the same as
+       cursor.
+
+       Make sure to always send some text before and after the cursor
+       except when the cursor is at the beginning or end of text.
+
+       When there was a configure_surrounding_text event take the
+       before_cursor and after_cursor arguments into account for picking how
+       much surrounding text to send.
+
+       There is a maximum length of wayland messages so text can not be
+       longer than 4000 bytes.
+      </description>
+      <arg name="text" type="string"/>
+      <arg name="cursor" type="int"/>
+      <arg name="anchor" type="int"/>
+    </request>
+
+    <enum name="content_hint" bitfield="true">
+      <description summary="content hint">
+       Content hint is a bitmask to allow to modify the behavior of the text
+       input.
+      </description>
+      <entry name="none" value="0x0" summary="no special behaviour"/>
+      <entry name="completion" value="0x1" summary="suggest word completions"/>
+      <entry name="spellcheck" value="0x2" summary="suggest word corrections"/>
+      <entry name="auto_capitalization" value="0x4" summary="switch to uppercase letters at the start of a sentence"/>
+      <entry name="lowercase" value="0x8" summary="prefer lowercase letters"/>
+      <entry name="uppercase" value="0x10" summary="prefer uppercase letters"/>
+      <entry name="titlecase" value="0x20" summary="prefer casing for titles and headings (can be language dependent)"/>
+      <entry name="hidden_text" value="0x40" summary="characters should be hidden"/>
+      <entry name="sensitive_data" value="0x80" summary="typed text should not be stored"/>
+      <entry name="latin" value="0x100" summary="just latin characters should be entered"/>
+      <entry name="multiline" value="0x200" summary="the text input is multiline"/>
+    </enum>
+
+    <enum name="content_purpose">
+      <description summary="content purpose">
+       The content purpose allows to specify the primary purpose of a text
+       input.
+
+       This allows an input method to show special purpose input panels with
+       extra characters or to disallow some characters.
+      </description>
+      <entry name="normal" value="0" summary="default input, allowing all characters"/>
+      <entry name="alpha" value="1" summary="allow only alphabetic characters"/>
+      <entry name="digits" value="2" summary="allow only digits"/>
+      <entry name="number" value="3" summary="input a number (including decimal separator and sign)"/>
+      <entry name="phone" value="4" summary="input a phone number"/>
+      <entry name="url" value="5" summary="input an URL"/>
+      <entry name="email" value="6" summary="input an email address"/>
+      <entry name="name" value="7" summary="input a name of a person"/>
+      <entry name="password" value="8" summary="input a password (combine with password or sensitive_data hint)"/>
+      <entry name="pin" value="9" summary="input is a numeric password (combine with password or sensitive_data hint)"/>
+      <entry name="date" value="10" summary="input a date"/>
+      <entry name="time" value="11" summary="input a time"/>
+      <entry name="datetime" value="12" summary="input a date and time"/>
+      <entry name="terminal" value="13" summary="input for a terminal"/>
+    </enum>
+
+    <request name="set_content_type">
+      <description summary="set content purpose and hint">
+       Sets the content purpose and content hint. While the purpose is the
+       basic purpose of an input field, the hint flags allow to modify some
+       of the behavior.
+
+       When no content type is explicitly set, a normal content purpose with
+       none hint should be assumed.
+      </description>
+      <arg name="hint" type="uint" enum="content_hint"/>
+      <arg name="purpose" type="uint" enum="content_purpose"/>
+    </request>
+
+    <request name="set_cursor_rectangle">
+      <description summary="set cursor position">
+       Sets the cursor outline as a x, y, width, height rectangle in surface
+       local coordinates.
+
+       Allows the compositor to put a window with word suggestions near the
+       cursor.
+      </description>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="commit">
+      <description summary="commit state">
+       Allows to atomically send state updates from client. The previous
+       set_surrounding_text, set_content_type and set_cursor_rectangle
+       become effective after this call.
+
+       Serial should be set to the serial from the last wp_text_input.enter
+       event.
+
+       To make sure to not receive outdated input method events after a
+       state update, wl_display_sync() should be called after making this
+       request.
+      </description>
+    </request>
+
+    <event name="enter">
+      <description summary="enter event">
+       Notification that this seat's text-input focus is on a certain surface.
+
+       When the seat has the keyboard capability the text-input focus follows
+       the keyboard focus.
+      </description>
+      <arg name="serial" type="uint" summary="serial"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </event>
+
+    <event name="leave">
+      <description summary="leave event">
+       Notification that this seat's text-input focus is no longer on
+       a certain surface. The client should reset any preedit string previously
+       set.
+
+       The leave notification is sent before the enter notification
+       for the new focus.
+
+       When the seat has the keyboard capability the text-input focus follows
+       the keyboard focus.
+      </description>
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </event>
+
+    <event name="preedit_string">
+      <description summary="pre-edit">
+       Notify when a new composing text (pre-edit) should be set around the
+       current cursor position. Any previously set composing text should
+       be removed.
+      </description>
+      <arg name="text" type="string" allow-null="true"/>
+      <arg name="cursor" type="uint"/>
+    </event>
+
+    <event name="commit_string">
+      <description summary="text commit">
+       Notify when text should be inserted into the editor widget. The text to
+       commit could be either just a single character after a key press or the
+       result of some composing (pre-edit).
+
+       The text argument could be also null if some text is removed (see
+       gtk_text_input.delete_surrounding_text).
+
+       Any previously set composing text should be removed.
+      </description>
+      <arg name="text" type="string" allow-null="true"/>
+    </event>
+
+    <event name="delete_surrounding_text">
+      <description summary="delete surrounding text">
+       Notify when the text around the current cursor position should be
+       deleted. Before_length and after_length is the length (in bytes) of text
+       before and after the current cursor position (excluding the selection)
+       to delete.
+
+       This event should be handled as part of a following commit_string or
+       preedit_string event.
+      </description>
+      <arg name="before_length" type="uint" summary="length of text before current cursor position"/>
+      <arg name="after_length" type="uint" summary="length of text after current cursor position"/>
+    </event>
+  </interface>
+
+  <interface name="gtk_text_input_manager" version="1">
+    <description summary="text input manager">
+      A factory for text-input objects. This object is a global singleton.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy the wp_text_input_manager">
+       Destroy the wp_text_input_manager object.
+      </description>
+    </request>
+
+    <request name="get_text_input">
+      <description summary="create a new text input object">
+       Creates a new text-input object for a given seat.
+      </description>
+      <arg name="id" type="new_id" interface="gtk_text_input"/>
+      <arg name="seat" type="object" interface="wl_seat"/>
+    </request>
+  </interface>
+</protocol>

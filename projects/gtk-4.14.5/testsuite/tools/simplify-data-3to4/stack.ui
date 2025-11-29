@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkStackSwitcher" id="stackswitcher1">
+            <property name="visible">True</property>
+            <property name="stack">stack1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack1">
+            <property name="visible">True</property>
+            <property name="homogeneous">0</property>
+            <child>
+              <object class="GtkButton" id="page1">
+                <property name="label" translatable="yes">Yes</property>
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="name">page1</property>
+                <property name="title">Page 1</property>
+                <property name="needs-attention">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="page2">
+                <property name="label" translatable="yes">No</property>
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="name">page2</property>
+                <property name="title">Page 2</property>
+                <property name="icon-name">page2-icon</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

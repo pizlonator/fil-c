@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Text along a Path</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child type="end">
+          <object class="GtkToggleButton" id="edit-toggle">
+            <property name="icon-name">document-edit-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkRevealer">
+            <property name="reveal-child" bind-source="edit-toggle" bind-property="active" bind-flags="sync-create"></property>
+            <child>
+              <object class="GtkEntry" id="text">
+                <property name="text">Through the looking glass</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkPathWidget" id="view">
+            <property name="editable" bind-source="edit-toggle" bind-property="active" bind-flags="sync-create"></property>
+            <property name="text" bind-source="text" bind-property="text" bind-flags="sync-create"></property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

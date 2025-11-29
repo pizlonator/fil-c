@@ -1,0 +1,1113 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Application</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Application"/>
+  <meta property="og:description" content="Reference for Gtk.Application"/>
+  <meta name="twitter:title" content="Gtk.Application"/>
+  <meta name="twitter:description" content="Reference for Gtk.Application"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Application.html#description">Application</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Application.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Application.add_window.html">add_window</a>
+  
+    <a class="method" href="method.Application.get_accels_for_action.html">get_accels_for_action</a>
+  
+    <a class="method" href="method.Application.get_actions_for_accel.html">get_actions_for_accel</a>
+  
+    <a class="method" href="method.Application.get_active_window.html">get_active_window</a>
+  
+    <a class="method" href="method.Application.get_menu_by_id.html">get_menu_by_id</a>
+  
+    <a class="method" href="method.Application.get_menubar.html">get_menubar</a>
+  
+    <a class="method" href="method.Application.get_window_by_id.html">get_window_by_id</a>
+  
+    <a class="method" href="method.Application.get_windows.html">get_windows</a>
+  
+    <a class="method" href="method.Application.inhibit.html">inhibit</a>
+  
+    <a class="method" href="method.Application.list_action_descriptions.html">list_action_descriptions</a>
+  
+    <a class="method" href="method.Application.remove_window.html">remove_window</a>
+  
+    <a class="method" href="method.Application.set_accels_for_action.html">set_accels_for_action</a>
+  
+    <a class="method" href="method.Application.set_menubar.html">set_menubar</a>
+  
+    <a class="method" href="method.Application.uninhibit.html">uninhibit</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Application.active-window.html">active-window</a>
+  
+    <a class="property" href="property.Application.menubar.html">menubar</a>
+  
+    <a class="property" href="property.Application.register-session.html">register-session</a>
+  
+    <a class="property" href="property.Application.screensaver-active.html">screensaver-active</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Application.query-end.html">query-end</a>
+  
+    <a class="signal" href="signal.Application.window-added.html">window-added</a>
+  
+    <a class="signal" href="signal.Application.window-removed.html">window-removed</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Application.window_added.html">window_added</a>
+  
+    <a class="method" href="vfunc.Application.window_removed.html">window_removed</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Application</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkapplication.c#L43">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.Application : Gio.Application
+  implements Gio.ActionGroup, Gio.ActionMap {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkApplication</code> is a high-level <span class="caps">API</span> for writing&nbsp;applications.</p>
+<p>It supports many aspects of writing a <span class="caps">GTK</span> application in a convenient
+fashion, without enforcing a one-size-fits-all&nbsp;model.</p>
+<p>Currently, <code>GtkApplication</code> handles <span class="caps">GTK</span> initialization, application
+uniqueness, session management, provides some basic scriptability and
+desktop shell integration by exporting actions and menus and manages a
+list of toplevel windows whose life-cycle is automatically tied to the
+life-cycle of your&nbsp;application.</p>
+<p>While <code>GtkApplication</code> works fine with plain <a href="class.Window.html"><code>GtkWindow</code></a>s, it is
+recommended to use it together with <a href="class.ApplicationWindow.html"><code>GtkApplicationWindow</code></a>.</p>
+<h2 id="automatic-resources">Automatic resources<a class="md-anchor" href="#automatic-resources" title="Permanent link"></a></h2>
+<p><code>GtkApplication</code> will automatically load menus from the <code>GtkBuilder</code>
+resource located at &#8220;gtk/menus.ui&#8221;, relative to the application&#8217;s
+resource base path (see <a href="javascript:void(0)" data-namespace="Gio" data-link="method.Application.set_resource_base_path.html" class="external"><code>g_application_set_resource_base_path()</code></a>).
+The menu with the <span class="caps">ID</span> &#8220;menubar&#8221; is taken as the application&#8217;s
+menubar. Additional menus (most interesting submenus) can be named
+and accessed via <a href="method.Application.get_menu_by_id.html"><code>gtk_application_get_menu_by_id()</code></a> which allows for
+dynamic population of a part of the menu&nbsp;structure.</p>
+<p>Note that automatic resource loading uses the resource base path
+that is set at construction time and will not work if the resource
+base path is changed at a later&nbsp;time.</p>
+<p>It is also possible to provide the menubar manually using
+<a href="method.Application.set_menubar.html"><code>gtk_application_set_menubar()</code></a>.</p>
+<p><code>GtkApplication</code> will also automatically setup an icon search path for
+the default icon theme by appending &#8220;icons&#8221; to the resource base
+path. This allows your application to easily store its icons as
+resources. See <a href="method.IconTheme.add_resource_path.html"><code>gtk_icon_theme_add_resource_path()</code></a> for more&nbsp;information.</p>
+<p>If there is a resource located at <code>gtk/help-overlay.ui</code> which
+defines a <a href="class.ShortcutsWindow.html"><code>GtkShortcutsWindow</code></a> with <span class="caps">ID</span> <code>help_overlay</code> then
+<code>GtkApplication</code> associates an instance of this shortcuts window with
+each <a href="class.ApplicationWindow.html"><code>GtkApplicationWindow</code></a> and sets up the keyboard accelerator
+<kbd>Control</kbd>+<kbd>?</kbd> to open it. To create a menu item that
+displays the shortcuts window, associate the item with the action
+<code>win.show-help-overlay</code>.</p>
+<h2 id="a-simple-application">A simple application<a class="md-anchor" href="#a-simple-application" title="Permanent link"></a></h2>
+<p><a href="https://gitlab.gnome.org/GNOME/gtk/tree/main/examples/bp/bloatpad.c">A simple example</a>
+is available in the <span class="caps">GTK</span> source code&nbsp;repository</p>
+<p><code>GtkApplication</code> optionally registers with a session manager of the
+users session (if you set the <a href="property.Application.register-session.html"><code>GtkApplication:register-session</code></a>
+property) and offers various functionality related to the session&nbsp;life-cycle.</p>
+<p>An application can block various ways to end the session with
+the <a href="method.Application.inhibit.html"><code>gtk_application_inhibit()</code></a> function. Typical use cases for
+this kind of inhibiting are long-running, uninterruptible operations,
+such as burning a <span class="caps">CD</span> or performing a disk backup. The session
+manager may not honor the inhibitor, but it can be expected to
+inform the user about the negative consequences of ending the
+session while inhibitors are&nbsp;present.</p>
+<h2 id="see-also">See Also<a class="md-anchor" href="#see-also" title="Permanent link"></a></h2>
+<p><a href="https://wiki.gnome.org/HowDoI/GtkApplication">HowDoI: Using GtkApplication</a>,
+<a href="getting_started.html#basics">Getting Started with <span class="caps">GTK</span>: Basics</a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Application">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="232pt" height="260pt"
+ viewBox="0.00 0.00 232.38 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkApplication">
+<path fill="none" stroke="black" d="M152.88,-108C152.88,-108 76.88,-108 76.88,-108 70.88,-108 64.88,-102 64.88,-96 64.88,-96 64.88,-84 64.88,-84 64.88,-78 70.88,-72 76.88,-72 76.88,-72 152.88,-72 152.88,-72 158.88,-72 164.88,-78 164.88,-84 164.88,-84 164.88,-96 164.88,-96 164.88,-102 158.88,-108 152.88,-108"/>
+<text text-anchor="middle" x="114.88" y="-84.95" font-family="Times,serif" font-size="14.00">GtkApplication</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:title="Gio.ActionGroup">
+<polygon fill="none" stroke="black" points="109.75,-36 0,-36 0,0 109.75,0 109.75,-36"/>
+<text text-anchor="middle" x="54.88" y="-14.45" font-family="sans-serif" font-size="14.00">GActionGroup</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M100.04,-71.7C90.74,-60.85 78.8,-46.92 69.54,-36.1"/>
+</g>
+<!-- implements_1 -->
+<g id="node5" class="node">
+<title>implements_1</title>
+<g id="a_node5"><a xlink:title="Gio.ActionMap">
+<polygon fill="none" stroke="black" points="224.38,-36 127.38,-36 127.38,0 224.38,0 224.38,-36"/>
+<text text-anchor="middle" x="175.88" y="-14.45" font-family="sans-serif" font-size="14.00">GActionMap</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M129.95,-71.7C139.41,-60.85 151.55,-46.92 160.97,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="Gio.Application">
+<path fill="none" stroke="black" d="M147.62,-180C147.62,-180 82.12,-180 82.12,-180 76.12,-180 70.12,-174 70.12,-168 70.12,-168 70.12,-156 70.12,-156 70.12,-150 76.12,-144 82.12,-144 82.12,-144 147.62,-144 147.62,-144 153.62,-144 159.62,-150 159.62,-156 159.62,-156 159.62,-168 159.62,-168 159.62,-174 153.62,-180 147.62,-180"/>
+<text text-anchor="middle" x="114.88" y="-156.95" font-family="Times,serif" font-size="14.00">GApplication</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M114.88,-143.7C114.88,-132.85 114.88,-118.92 114.88,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M133.75,-252C133.75,-252 96,-252 96,-252 90,-252 84,-246 84,-240 84,-240 84,-228 84,-228 84,-222 90,-216 96,-216 96,-216 133.75,-216 133.75,-216 139.75,-216 145.75,-222 145.75,-228 145.75,-228 145.75,-240 145.75,-240 145.75,-246 139.75,-252 133.75,-252"/>
+<text text-anchor="middle" x="114.88" y="-228.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M114.88,-215.7C114.88,-204.85 114.88,-190.92 114.88,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Application.html" data-namespace="Gio">GApplication</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a class="external" href="javascript:void(0)" data-link="iface.ActionGroup.html" data-namespace="Gio">GActionGroup</a></li>
+          
+        
+          
+          <li class="interface"><a class="external" href="javascript:void(0)" data-link="iface.ActionMap.html" data-namespace="Gio">GActionMap</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Application.new.html">gtk_application_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkApplication</code> instance.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Application.add_window.html">gtk_application_add_window</a></h6>
+          <div class="docblock">
+            <p>Adds a window to <code>application</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_accels_for_action.html">gtk_application_get_accels_for_action</a></h6>
+          <div class="docblock">
+            <p>Gets the accelerators that are currently associated with
+the given&nbsp;action.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_actions_for_accel.html">gtk_application_get_actions_for_accel</a></h6>
+          <div class="docblock">
+            <p>Returns the list of actions (possibly empty) that <code>accel</code> maps&nbsp;to.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_active_window.html">gtk_application_get_active_window</a></h6>
+          <div class="docblock">
+            <p>Gets the “active” window for the&nbsp;application.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_menu_by_id.html">gtk_application_get_menu_by_id</a></h6>
+          <div class="docblock">
+            <p>Gets a menu from automatically loaded&nbsp;resources.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_menubar.html">gtk_application_get_menubar</a></h6>
+          <div class="docblock">
+            <p>Returns the menu model that has been set with
+<code>gtk_application_set_menubar()</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_window_by_id.html">gtk_application_get_window_by_id</a></h6>
+          <div class="docblock">
+            <p>Returns the <code>GtkApplicationWindow</code> with the given <span class="caps">ID</span>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_windows.html">gtk_application_get_windows</a></h6>
+          <div class="docblock">
+            <p>Gets a list of the <code>GtkWindow</code> instances associated with <code>application</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.inhibit.html">gtk_application_inhibit</a></h6>
+          <div class="docblock">
+            <p>Inform the session manager that certain types of actions should be&nbsp;inhibited.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.list_action_descriptions.html">gtk_application_list_action_descriptions</a></h6>
+          <div class="docblock">
+            <p>Lists the detailed action names which have associated&nbsp;accelerators.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.remove_window.html">gtk_application_remove_window</a></h6>
+          <div class="docblock">
+            <p>Remove a window from <code>application</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.set_accels_for_action.html">gtk_application_set_accels_for_action</a></h6>
+          <div class="docblock">
+            <p>Sets zero or more keyboard accelerators that will trigger the
+given&nbsp;action.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.set_menubar.html">gtk_application_set_menubar</a></h6>
+          <div class="docblock">
+            <p>Sets or unsets the menubar for windows of <code>application</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.uninhibit.html">gtk_application_uninhibit</a></h6>
+          <div class="docblock">
+            <p>Removes an inhibitor that has been previously&nbsp;established.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Application.html" data-namespace="Gio">GApplication</a> (36)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Application.html#methods" data-namespace="Gio">GApplication</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="iface.ActionGroup.html" data-namespace="Gio">GActionGroup</a> (14)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.action_added.html">g_action_group_action_added</a></h6>
+            <div class="docblock">
+              <p>Emits the <code>GActionGroup::action-added</code> signal on <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.action_enabled_changed.html">g_action_group_action_enabled_changed</a></h6>
+            <div class="docblock">
+              <p>Emits the <code>GActionGroup::action-enabled-changed</code> signal on <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.action_removed.html">g_action_group_action_removed</a></h6>
+            <div class="docblock">
+              <p>Emits the <code>GActionGroup::action-removed</code> signal on <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.action_state_changed.html">g_action_group_action_state_changed</a></h6>
+            <div class="docblock">
+              <p>Emits the <code>GActionGroup::action-state-changed</code> signal on <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.activate_action.html">g_action_group_activate_action</a></h6>
+            <div class="docblock">
+              <p>Activate the named action within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.change_action_state.html">g_action_group_change_action_state</a></h6>
+            <div class="docblock">
+              <p>Request for the state of the named action within <code>action_group</code> to be
+changed to <code>value</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.get_action_enabled.html">g_action_group_get_action_enabled</a></h6>
+            <div class="docblock">
+              <p>Checks if the named action within <code>action_group</code> is currently&nbsp;enabled.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.get_action_parameter_type.html">g_action_group_get_action_parameter_type</a></h6>
+            <div class="docblock">
+              <p>Queries the type of the parameter that must be given when activating
+the named action within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.get_action_state.html">g_action_group_get_action_state</a></h6>
+            <div class="docblock">
+              <p>Queries the current state of the named action within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.get_action_state_hint.html">g_action_group_get_action_state_hint</a></h6>
+            <div class="docblock">
+              <p>Requests a hint about the valid range of values for the state of the
+named action within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.get_action_state_type.html">g_action_group_get_action_state_type</a></h6>
+            <div class="docblock">
+              <p>Queries the type of the state of the named action within
+<code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.has_action.html">g_action_group_has_action</a></h6>
+            <div class="docblock">
+              <p>Checks if the named action exists within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.list_actions.html">g_action_group_list_actions</a></h6>
+            <div class="docblock">
+              <p>Lists the actions contained within <code>action_group</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionGroup.query_action.html">g_action_group_query_action</a></h6>
+            <div class="docblock">
+              <p>Queries all aspects of the named action within an <code>action_group</code>.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="iface.ActionMap.html" data-namespace="Gio">GActionMap</a> (5)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionMap.add_action.html">g_action_map_add_action</a></h6>
+            <div class="docblock">
+              <p>Adds an action to the <code>action_map</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionMap.add_action_entries.html">g_action_map_add_action_entries</a></h6>
+            <div class="docblock">
+              <p>A convenience function for creating multiple <code>GSimpleAction</code>
+instances and adding them to a <code>GActionMap</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionMap.lookup_action.html">g_action_map_lookup_action</a></h6>
+            <div class="docblock">
+              <p>Looks up the action with the name <code>action_name</code> in <code>action_map</code>.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionMap.remove_action.html">g_action_map_remove_action</a></h6>
+            <div class="docblock">
+              <p>Removes the named action from the action&nbsp;map.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="method.ActionMap.remove_action_entries.html">g_action_map_remove_action_entries</a></h6>
+            <div class="docblock">
+              <p>Remove actions from a <code>GActionMap</code>. This is meant as the reverse of
+<code>g_action_map_add_action_entries()</code>.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Application.active-window.html">Gtk.Application:active-window</a></h6>
+          <div class="docblock">
+            <p>The currently focused window of the&nbsp;application.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.menubar.html">Gtk.Application:menubar</a></h6>
+          <div class="docblock">
+            <p>The <code>GMenuModel</code> to be used for the application&#8217;s menu&nbsp;bar.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.register-session.html">Gtk.Application:register-session</a></h6>
+          <div class="docblock">
+            <p>Set this property to <code>TRUE</code> to register with the session&nbsp;manager.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.screensaver-active.html">Gtk.Application:screensaver-active</a></h6>
+          <div class="docblock">
+            <p>This property is <code>TRUE</code> if <span class="caps">GTK</span> believes that the screensaver is
+currently&nbsp;active.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties"><h5 style="display:block;">Properties inherited from <a class="external" href="javascript:void(0)" data-link="class.Application.html" data-namespace="Gio">GApplication</a> (9)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.action-group.html">Gio.Application:action-group</a></h6>
+            <div class="docblock">
+              <p>The group of actions that the application&nbsp;exports.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.application-id.html">Gio.Application:application-id</a></h6>
+            <div class="docblock">
+              <p>The unique identifier for the&nbsp;application.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.flags.html">Gio.Application:flags</a></h6>
+            <div class="docblock">
+              <p>Flags specifying the behaviour of the&nbsp;application.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.inactivity-timeout.html">Gio.Application:inactivity-timeout</a></h6>
+            <div class="docblock">
+              <p>Time (in milliseconds) to stay alive after becoming&nbsp;idle.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.is-busy.html">Gio.Application:is-busy</a></h6>
+            <div class="docblock">
+              <p>Whether the application is currently marked as busy through
+<code>g_application_mark_busy()</code> or&nbsp;g_application_bind_busy_property().</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.is-registered.html">Gio.Application:is-registered</a></h6>
+            <div class="docblock">
+              <p>Whether <code>g_application_register()</code> has been&nbsp;called.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.is-remote.html">Gio.Application:is-remote</a></h6>
+            <div class="docblock">
+              <p>Whether this application instance is&nbsp;remote.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.resource-base-path.html">Gio.Application:resource-base-path</a></h6>
+            <div class="docblock">
+              <p>The base resource path for the&nbsp;application.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="property.Application.version.html">Gio.Application:version</a></h6>
+            <div class="docblock">
+              <p>The human-readable version number of the&nbsp;application.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Application.query-end.html">Gtk.Application::query-end</a></h6>
+          <div class="docblock">
+            <p>Emitted when the session manager is about to end the&nbsp;session.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Application.window-added.html">Gtk.Application::window-added</a></h6>
+          <div class="docblock">
+            <p>Emitted when a <code>GtkWindow</code> is added to <code>application</code> through
+<code>gtk_application_add_window()</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Application.window-removed.html">Gtk.Application::window-removed</a></h6>
+          <div class="docblock">
+            <p>Emitted when a <code>GtkWindow</code> is removed from <code>application</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Application.html" data-namespace="Gio">GApplication</a> (7)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.activate.html">GApplication::activate</a></h6>
+            <div class="docblock">
+              <p>The ::activate signal is emitted on the primary instance when an
+activation occurs. See&nbsp;g_application_activate().</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.command-line.html">GApplication::command-line</a></h6>
+            <div class="docblock">
+              <p>The ::command-line signal is emitted on the primary instance when
+a commandline is not handled locally. See <code>g_application_run()</code> and
+the <code>GApplicationCommandLine</code> documentation for more&nbsp;information.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.handle-local-options.html">GApplication::handle-local-options</a></h6>
+            <div class="docblock">
+              <p>The ::handle-local-options signal is emitted on the local instance
+after the parsing of the commandline options has&nbsp;occurred.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.name-lost.html">GApplication::name-lost</a></h6>
+            <div class="docblock">
+              <p>The ::name-lost signal is emitted only on the registered primary instance
+when a new instance has taken over. This can only happen if the application
+is using the <code>G_APPLICATION_ALLOW_REPLACEMENT</code> flag.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.open.html">GApplication::open</a></h6>
+            <div class="docblock">
+              <p>The ::open signal is emitted on the primary instance when there are
+files to open. See <code>g_application_open()</code> for more&nbsp;information.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.shutdown.html">GApplication::shutdown</a></h6>
+            <div class="docblock">
+              <p>The ::shutdown signal is emitted only on the registered primary instance
+immediately after the main loop&nbsp;terminates.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.Application.startup.html">GApplication::startup</a></h6>
+            <div class="docblock">
+              <p>The ::startup signal is emitted on the primary instance immediately
+after registration. See&nbsp;g_application_register().</p>
+            </div>
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="iface.ActionGroup.html" data-namespace="Gio">GActionGroup</a> (4)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.ActionGroup.action-added.html">GActionGroup::action-added</a></h6>
+            <div class="docblock">
+              <p>Signals that a new action was just added to the&nbsp;group.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.ActionGroup.action-enabled-changed.html">GActionGroup::action-enabled-changed</a></h6>
+            <div class="docblock">
+              <p>Signals that the enabled status of the named action has&nbsp;changed.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.ActionGroup.action-removed.html">GActionGroup::action-removed</a></h6>
+            <div class="docblock">
+              <p>Signals that an action is just about to be removed from the&nbsp;group.</p>
+            </div><h6><a class="external" href="javascript:void(0)" data-namespace="Gio" data-link="signal.ActionGroup.action-state-changed.html">GActionGroup::action-state-changed</a></h6>
+            <div class="docblock">
+              <p>Signals that the state of the named action has&nbsp;changed.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkApplicationClass {
+  GApplicationClass parent_class;
+  void (* window_added) (
+    GtkApplication* application,
+    GtkWindow* window
+  );
+  void (* window_removed) (
+    GtkApplication* application,
+    GtkWindow* window
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GApplicationClass</code></dt>
+          <dd><p>The parent&nbsp;class.</p></dd>
+        
+          <dt><code>window_added: void (* window_added) (
+    GtkApplication* application,
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Signal emitted when a <code>GtkWindow</code> is added to
+   application through&nbsp;gtk_application_add_window().</p></dd>
+        
+          <dt><code>window_removed: void (* window_removed) (
+    GtkApplication* application,
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Signal emitted when a <code>GtkWindow</code> is removed from
+   application, either as a side-effect of being destroyed or
+   explicitly through&nbsp;gtk_application_remove_window().</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-window_added"><a href="vfunc.Application.window_added.html">Gtk.ApplicationClass.window_added</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when a <code>GtkWindow</code> is added to
+   application through&nbsp;gtk_application_add_window().</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-window_removed"><a href="vfunc.Application.window_removed.html">Gtk.ApplicationClass.window_removed</a></h6>
+        <div class="docblock">
+          <p>Signal emitted when a <code>GtkWindow</code> is removed from
+   application, either as a side-effect of being destroyed or
+   explicitly through&nbsp;gtk_application_remove_window().</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#automatic-resources"><span class="link-text">Automatic resources</span></a></li>
+      
+        <li class="toc-list-item"><a href="#a-simple-application"><span class="link-text">A simple application</span></a></li>
+      
+        <li class="toc-list-item"><a href="#see-also"><span class="link-text">See Also</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#implements"><span class="link-text">Implements</span></a></li>
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

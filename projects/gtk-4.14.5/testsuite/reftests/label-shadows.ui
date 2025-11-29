@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="width-request">200</property>
+        <property name="height-request">200</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">100</property>
+            <property name="height-request">100</property>
+            <property name="label" translatable="yes">ABC</property>
+            <layout>
+              <property name="transform">translate(50, 50) rotate(0) translate(-50,-50)</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">100</property>
+            <property name="height-request">100</property>
+            <property name="label" translatable="yes">ABC</property>
+            <layout>
+              <property name="transform">translate(150, 50) rotate(90) translate(-50,-50)</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">100</property>
+            <property name="height-request">100</property>
+            <property name="label" translatable="yes">ABC</property>
+            <layout>
+              <property name="transform">translate(150, 150) rotate(180) translate(-50,-50)</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">100</property>
+            <property name="height-request">100</property>
+            <property name="label" translatable="yes">ABC</property>
+            <layout>
+              <property name="transform">translate(50, 150) rotate(180) translate(-50,-50)</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

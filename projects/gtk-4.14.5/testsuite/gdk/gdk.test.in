@@ -1,0 +1,4 @@
+[Test]
+Exec=/bin/sh -c "env GDK_DEBUG=clipboard G_ENABLE_DIAGNOSTIC=0 GTK_A11Y=test @testexecdir@/@test@ --tap -k --verbose"
+Type=session-exclusive
+Output=TAP

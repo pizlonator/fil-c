@@ -1,0 +1,65 @@
+/* some style for the inspector */
+
+.list cell {
+  font-size: smaller;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  min-height: 24px;
+}
+
+.list cell entry,
+.list cell spinbutton,
+.list cell button,
+.list cell dropdown
+.list cell combobox {
+  min-height: 24px;
+  min-width: 0;
+}
+
+.list cell entry,
+.list cell spinbutton text,
+.list cell button,
+.list cell dropdown
+.list cell combobox {
+  padding: 0 4px;
+}
+
+picture.dark {
+  background: gray;
+}
+
+picture.light {
+  background: white;
+}
+
+#css-padding-color {
+  background-color: rgba(70%, 0%, 70%, 0.6);
+  min-width: 10px;
+  min-height: 10px;
+}
+
+#css-border-color {
+  background-color: rgba(0, 0, 0, 0.0);
+  min-width: 10px;
+  min-height: 10px;
+}
+
+#css-margin-color {
+  background-color: rgba(70%, 70%, 0%, 0.6);
+  min-width: 10px;
+  min-height: 10px;
+}
+
+#widget-margin-color {
+  background-color: rgba(70%, 0%, 0%, 0.6);
+  min-width: 10px;
+  min-height: 10px;
+}
+
+row:not(:selected) > .highlight {
+  background-color: rgba(135, 206, 250, 0.4);
+}
+
+scale.inline {
+  padding: 0;
+}

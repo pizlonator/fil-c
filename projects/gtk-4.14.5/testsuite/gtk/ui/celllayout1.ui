@@ -1,0 +1,16 @@
+<!-- test valid cell layout custom tags -->
+<interface>
+  <object class="GtkIconView">
+    <child>
+      <object class="GtkCellRendererText">
+      </object>
+      <attributes>
+        <attribute name="text">1</attribute>
+      </attributes>
+      <cell-packing>
+        <property name="align" translatable="yes" comments="foo" context="bar">True</property>
+        <property name="expand">False</property>
+      </cell-packing>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,149 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>GTK Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  <meta property="og:site_name" content="https://docs.gtk.org"/>
+  <meta property="og:title" content="GTK Documentation"/>
+  <meta property="og:url" content="https://docs.gtk.org"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:description" content="API reference for GTK"/>
+
+  <meta name="twitter:title" content="GTK Documentation"/>
+  <meta name="twitter:url" content="https://docs.gtk.org"/>
+  <meta name="twitter:card" content="summary"/>
+
+  <link rel="canonical" href="https://docs.gtk.org"/>
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  <script src="main.js"></script>
+
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+
+      <div class="section">
+        <h5>Sections</h5>
+        <div class="links">
+          <a href="#user-interface">User interface</a>
+          <a href="#core-libraries">Core libraries</a>
+        </div>
+      </div>
+
+    </nav>
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    <section id="main" class="content">
+      <header>
+        <h1>GTK Documentation</h1>
+      </header>
+
+      <div class="toggle-wrapper">
+        <h4 id="user-interface">
+          User interface
+          <a href="#user-interface" class="anchor"></a>
+        </h4>
+
+        <div class="docblock">
+          <h5 id="gdk">GTK</h5>
+          <p>GTK is the primary library used to construct user interfaces. It
+          provides user interface controls and signal callbacks to respond to
+          user actions.</p>
+          <p><a href="https://docs.gtk.org/gtk4/">GTK API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="gdk">GSK</h5>
+          <p>An intermediate layer which provides a rendering API implemented using Cairo, OpenGL or Vulkan.</p>
+          <p><a href="https://docs.gtk.org/gsk4/">GSK API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="gdk">GDK</h5>
+          <p>An intermediate layer which isolates GTK from the details of the windowing system.</p>
+          <p><a href="https://docs.gtk.org/gdk4/">GDK API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="pango">Pango</h5>
+          <p>Pango is the core text and font handling library used in GTK
+          applications. It has extensive support for the different writing
+          systems used throughout the world.</p>
+          <p><a href="https://docs.gtk.org/Pango/">Pango API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="gdk-pixbuf">GdkPixbuf</h5>
+          <p>GdkPixbuf is a library for image loading and manipulation.</p>
+          <p><a href="https://docs.gtk.org/gdk-pixbuf/">GdkPixbuf API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="cairo">Cairo</h5>
+          <p>Cairo is a 2D graphics library with support for multiple output
+          devices. It is designed to produce consistent, high quality output
+          on all media.</p>
+          <p><a href="https://www.cairographics.org/manual/" class="external">Cairo API reference</a></p>
+        </div>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="core-libraries" style="display:flex;">
+          Core libraries
+          <a href="#core-libraries" class="anchor"></a>
+        </h4>
+
+        <div class="docblock">
+          <h5 id="glib">GLib</h5>
+          <p>GLib provides the core application building blocks for libraries
+          and applications written in C. It provides common data types
+          used in GTK, the main loop implementation, and a large set of
+          utility functions for strings and general portability across
+          different platforms.</p>
+          <p><a href="https://developer.gnome.org/glib/" class="external">GLib API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="gobject">GObject</h5>
+          <p>GObject provides the object system used by GTK.</p>
+          <p><a href="https://developer.gnome.org/gobject/" class="external">GObject API reference</a></p>
+        </div>
+
+        <div class="docblock">
+          <h5 id="gio">GIO</h5>
+          <p>GIO provides a portable, modern and easy-to-use file system
+          abstraction API for accessing local and remote files; a set of
+          low and high level abstractions over the <a href="https://www.freedesktop.org/wiki/Software/dbus/" class="external">DBus</a>
+          IPC specification; an application settings API; portable networking
+          abstractions; and additional utilities for writing asynchronous
+          operations without blocking the user interface of your application.</p>
+          <p><a href="https://developer.gnome.org/gio/" class="external">GIO API reference</a></p>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+    </footer>
+  </div>
+</body>
+</html>

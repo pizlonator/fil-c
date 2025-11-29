@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkSidebarRow" parent="GtkListBoxRow">
+    <property name="focus-on-click">0</property>
+    <style>
+      <class name="sidebar-row"/>
+    </style>
+    <property name="child">
+      <object class="GtkRevealer" id="revealer">
+        <property name="reveal-child">1</property>
+        <signal name="notify::child-revealed" handler="on_child_revealed"/>
+        <style>
+          <class name="sidebar-revealer"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkImage" id="start_icon_widget">
+                <style>
+                  <class name="sidebar-icon"/>
+                </style>
+                <accessibility>
+                  <relation name="labelled-by">label_widget</relation>
+                </accessibility>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_widget">
+                <property name="hexpand">1</property>
+                <property name="xalign">0</property>
+                <property name="ellipsize">end</property>
+                <style>
+                  <class name="sidebar-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="end_icon_widget">
+                <property name="visible">0</property>
+                <property name="hexpand">1</property>
+                <property name="halign">2</property>
+                <property name="valign">3</property>
+                <style>
+                  <class name="sidebar-icon"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="eject_button">
+                <property name="halign">3</property>
+                <property name="valign">3</property>
+                <property name="margin-start">4px</property>
+                <property name="icon-name">media-eject-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Unmount</property>
+                <style>
+                  <class name="sidebar-button"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinner" id="busy_spinner">
+                <property name="spinning">1</property>
+                <property name="halign">3</property>
+                <property name="valign">3</property>
+                <property name="margin-start">4px</property>
+                <property name="visible">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,251 @@
+[library]
+version = "@version@"
+browse_url = "https://gitlab.gnome.org/GNOME/gtk/"
+repository_url = "https://gitlab.gnome.org/GNOME/gtk.git"
+website_url = "https://www.gtk.org"
+docs_url = "https://docs.gtk.org/gtk4/"
+authors = "GTK Development Team"
+logo_url = "gtk-logo.svg"
+license = "LGPL-2.1-or-later"
+description = "The GTK toolkit"
+devhelp = true
+search_index = true
+
+dependencies = ["Gdk-4.0", "Gsk-4.0"]
+
+  [dependencies."Gdk-4.0"]
+  name = "Gdk"
+  description = "The GTK windowing system abstraction"
+  docs_url = "https://docs.gtk.org/gdk4/"
+
+  [dependencies."Gsk-4.0"]
+  name = "Gsk"
+  description = "The GTK rendering abstraction"
+  docs_url = "https://docs.gtk.org/gsk4/"
+
+related = ["Pango-1.0", "Graphene-1.0", "GObject-2.0", "Gio-2.0"]
+
+  [related."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
+
+  [related."Gio-2.0"]
+  name = "GIO"
+  description = "GObject Interfaces and Objects, Networking, IPC, and I/O"
+  docs_url = "https://docs.gtk.org/gio/"
+
+  [related."Graphene-1.0"]
+  name = "Graphene"
+  description = "A thin layer of mathematical types for 3D libraries"
+  docs_url = "https://ebassi.github.io/graphene/docs"
+
+  [related."Pango-1.0"]
+  name = "Pango"
+  description = "Text shaping and rendering"
+  docs_url = "https://docs.gtk.org/Pango/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/"
+
+[extra]
+# The same order will be used when generating the index
+content_files = [
+  "overview.md",
+  "getting_started.md",
+  "building.md",
+  "compiling.md",
+  "running.md",
+  "question_index.md",
+  "resources.md",
+  "initialization.md",
+  "actions.md",
+  "input-handling.md",
+  "drag-and-drop.md",
+  "drawing-model.md",
+  "coordinates.md",
+  "css-overview.md",
+  "css-properties.md",
+  "section-accessibility.md",
+  "section-list-widget.md",
+  "section-text-widget.md",
+  "section-tree-widget.md",
+  "migrating-2to4.md",
+  "migrating-3to4.md",
+  "broadway.md",
+  "osx.md",
+  "wayland.md",
+  "windows.md",
+  "x11.md",
+  "visual_index.md",
+]
+content_images = [
+  "../images/favicon.svg",
+  "../images/favicon-192x192.png",
+  "images/aboutdialog.png",
+  "images/action-bar.png",
+  "images/appchooserbutton.png",
+  "images/appchooserdialog.png",
+  "images/arrows.png",
+  "images/assistant.png",
+  "images/background.png",
+  "images/bloatpad-gnome.png",
+  "images/bloatpad-osx.png",
+  "images/bloatpad-xfce.png",
+  "images/border1.png",
+  "images/border2.png",
+  "images/border3.png",
+  "images/box.png",
+  "images/box-expand.png",
+  "images/box-packing.png",
+  "images/builder-shortcuts.png",
+  "images/button.png",
+  "images/calendar.png",
+  "images/capture-bubble.png",
+  "images/centerbox.png",
+  "images/check-button.png",
+  "images/checks.png",
+  "images/clocks-shortcuts.png",
+  "images/color-button.png",
+  "images/colorchooser.png",
+  "images/combo-box-entry.png",
+  "images/combo-box.png",
+  "images/combo-box-text.png",
+  "images/dialog.png",
+  "images/down-center.png",
+  "images/down-end.png",
+  "images/down-start.png",
+  "images/drop-down.png",
+  "images/drawing.png",
+  "images/drawingarea.png",
+  "images/ease-in-out.png",
+  "images/ease-in.png",
+  "images/ease-out.png",
+  "images/ease.png",
+  "images/editable-label.png",
+  "images/emojichooser.png",
+  "images/entry.png",
+  "images/exampleapp.png",
+  "images/expanders.png",
+  "images/expander.png",
+  "images/extensions.png",
+  "images/figure-hierarchical-drawing.png",
+  "images/figure-windowed-label.png",
+  "images/file-button.png",
+  "images/filechooser.png",
+  "images/flow-box.png",
+  "images/focus.png",
+  "images/font-button.png",
+  "images/fontchooser.png",
+  "images/frame-gap.png",
+  "images/frame.png",
+  "images/frames.png",
+  "images/gedit-shortcuts.png",
+  "images/getting-started-app10.png",
+  "images/getting-started-app1.png",
+  "images/getting-started-app2.png",
+  "images/getting-started-app3.png",
+  "images/getting-started-app4.png",
+  "images/getting-started-app6.png",
+  "images/getting-started-app7.png",
+  "images/getting-started-app8.png",
+  "images/getting-started-app9.png",
+  "images/glarea.png",
+  "images/gradient1.png",
+  "images/gradient2.png",
+  "images/gradient3.png",
+  "images/gradient4.png",
+  "images/grid.png",
+  "images/grid-packing.png",
+  "images/gtk-logo.png",
+  "images/gtk-logo.svg",
+  "images/handles.png",
+  "images/headerbar.png",
+  "images/hello-world.png",
+  "images/icon-view.png",
+  "images/image.png",
+  "images/info-bar.png",
+  "images/inspector.png",
+  "images/label.png",
+  "images/layout-btlr.png",
+  "images/layout-btrl.png",
+  "images/layout-lrbt.png",
+  "images/layout-lrtb.png",
+  "images/layout-rlbt.png",
+  "images/layout-rltb.png",
+  "images/layout-tblr.png",
+  "images/layout-tbrl.png",
+  "images/left-center.png",
+  "images/left-end.png",
+  "images/left-start.png",
+  "images/levelbar.png",
+  "images/linear.png",
+  "images/link-button.png",
+  "images/list-and-tree.png",
+  "images/list-box.png",
+  "images/lockbutton-locked.png",
+  "images/lock-button.png",
+  "images/lockbutton.png",
+  "images/lockbutton-sorry.png",
+  "images/lockbutton-unlocked.png",
+  "images/media-controls.png",
+  "images/menu.png",
+  "images/menubar.png",
+  "images/menu-button.png",
+  "images/messagedialog.png",
+  "images/multiline-text.png",
+  "images/notebook.png",
+  "images/options.png",
+  "images/overlay.png",
+  "images/pagesetupdialog.png",
+  "images/panes.png",
+  "images/password-entry.png",
+  "images/picture.png",
+  "images/popover.png",
+  "images/printdialog.png",
+  "images/progressbar.png",
+  "images/radio-button.png",
+  "images/right-center.png",
+  "images/right-end.png",
+  "images/right-start.png",
+  "images/scales.png",
+  "images/scrollbar.png",
+  "images/scrolledwindow.png",
+  "images/search-bar.png",
+  "images/search-entry.png",
+  "images/separator.png",
+  "images/shortcuts-window.png",
+  "images/sidebar.png",
+  "images/slices.png",
+  "images/sliders.png",
+  "images/spinbutton.png",
+  "images/spinner.png",
+  "images/stack.png",
+  "images/stackswitcher.png",
+  "images/statusbar.png",
+  "images/switch.png",
+  "images/toggle-button.png",
+  "images/toolbar.png",
+  "images/tree-view-coordinates.png",
+  "images/up-center.png",
+  "images/up-end.png",
+  "images/up-start.png",
+  "images/video.png",
+  "images/volumebutton.png",
+  "images/widget-hvalign.png",
+  "images/windowcontrols.png",
+  "images/window-default.png",
+  "images/window.png",
+  "images/rich-list.png",
+  "images/data-table.png",
+  "images/navigation-sidebar.png",
+  "images/box-model-light.png",
+  "images/box-model-dark.png",
+]
+content_base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/reference/gtk/"
+urlmap_file = "urlmap.js"

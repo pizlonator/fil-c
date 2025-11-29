@@ -1,0 +1,17 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorMagnifier" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkMagnifier" id="magnifier">
+            <property name="visible">True</property>
+            <property name="resize">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <signal name="map" handler="reftest:switch_default_direction" swapped="no"/>
+    <signal name="destroy" handler="reftest:switch_default_direction" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkImage">
+            <property name="icon-name">go-first</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage">
+            <property name="icon-name">go-last</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage">
+            <property name="icon-name">pan-start-symbolic</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage">
+            <property name="icon-name">pan-end-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

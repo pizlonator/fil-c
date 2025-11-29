@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkFontChooserDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Select Font</property>
+    <style>
+      <class name="fontchooser"/>
+    </style>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">1</property>
+        <property name="spacing">2</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+        <child>
+          <object class="GtkFontChooserWidget" id="fontchooser">
+            <property name="vexpand">1</property>
+            <signal name="font-activated" handler="font_activated_cb" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="use-underline">1</property>
+        <property name="label" translatable="yes">_Cancel</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="select_button">
+        <property name="label" translatable="yes">_Select</property>
+        <property name="use-underline">1</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="dialog_forward_key" swapped="no"/>
+        <signal name="key-released" handler="dialog_forward_key" swapped="no"/>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="cancel">cancel_button</action-widget>
+      <action-widget response="ok" default="true">select_button</action-widget>
+    </action-widgets>
+  </template>
+</interface>

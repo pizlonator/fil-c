@@ -1,0 +1,17 @@
+color {
+  bounds: 0 0 14 14;
+  color: rgb(255,0,0);
+}
+transform {
+  transform: scale(2) translate(0.75, 0.25);
+  child: color-matrix {
+    matrix: matrix3d(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+    child: transform {
+      transform: translate(0.25, 0.75);
+      child: color {
+        bounds: 0 0 5 5;
+        color: rgb(255,255,255);
+      }
+    }
+  }
+}

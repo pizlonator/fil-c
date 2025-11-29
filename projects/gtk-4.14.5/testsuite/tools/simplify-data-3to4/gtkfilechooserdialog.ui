@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk30">
+  <template class="GtkFileChooserDialog" parent="GtkDialog">
+    <property name="role">GtkFileChooserDialog</property>
+    <property name="type-hint">dialog</property>
+    <property name="default-width">600</property>
+    <signal name="response" handler="response_cb" swapped="no"/>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">vertical</property>
+        <property name="border-width">0</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area1">
+            <property name="border-width">6</property>
+            <property name="layout-style">end</property>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFileChooserWidget" id="widget">
+            <property name="visible">1</property>
+            <property name="orientation">vertical</property>
+            <signal name="default-size-changed" handler="file_chooser_widget_default_size_changed" swapped="no"/>
+            <signal name="file-activated" handler="file_chooser_widget_file_activated" swapped="no"/>
+            <signal name="response-requested" handler="file_chooser_widget_response_requested" swapped="no"/>
+            <signal name="selection-changed" handler="file_chooser_widget_selection_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">1</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup" id="buttons">
+    <property name="mode">vertical</property>
+  </object>
+</interface>

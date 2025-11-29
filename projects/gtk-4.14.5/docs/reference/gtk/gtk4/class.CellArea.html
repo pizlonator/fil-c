@@ -1,0 +1,2214 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.CellArea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.CellArea"/>
+  <meta property="og:description" content="Reference for Gtk.CellArea"/>
+  <meta name="twitter:title" content="Gtk.CellArea"/>
+  <meta name="twitter:description" content="Reference for Gtk.CellArea"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.CellArea.html#description">CellArea</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.CellArea.activate.html">activate</a>
+  
+    <a class="method" href="method.CellArea.activate_cell.html">activate_cell</a>
+  
+    <a class="method" href="method.CellArea.add.html">add</a>
+  
+    <a class="method" href="method.CellArea.add_focus_sibling.html">add_focus_sibling</a>
+  
+    <a class="method" href="method.CellArea.add_with_properties.html">add_with_properties</a>
+  
+    <a class="method" href="method.CellArea.apply_attributes.html">apply_attributes</a>
+  
+    <a class="method" href="method.CellArea.attribute_connect.html">attribute_connect</a>
+  
+    <a class="method" href="method.CellArea.attribute_disconnect.html">attribute_disconnect</a>
+  
+    <a class="method" href="method.CellArea.attribute_get_column.html">attribute_get_column</a>
+  
+    <a class="method" href="method.CellArea.cell_get.html">cell_get</a>
+  
+    <a class="method" href="method.CellArea.cell_get_property.html">cell_get_property</a>
+  
+    <a class="method" href="method.CellArea.cell_get_valist.html">cell_get_valist</a>
+  
+    <a class="method" href="method.CellArea.cell_set.html">cell_set</a>
+  
+    <a class="method" href="method.CellArea.cell_set_property.html">cell_set_property</a>
+  
+    <a class="method" href="method.CellArea.cell_set_valist.html">cell_set_valist</a>
+  
+    <a class="method" href="method.CellArea.copy_context.html">copy_context</a>
+  
+    <a class="method" href="method.CellArea.create_context.html">create_context</a>
+  
+    <a class="method" href="method.CellArea.event.html">event</a>
+  
+    <a class="method" href="method.CellArea.focus.html">focus</a>
+  
+    <a class="method" href="method.CellArea.foreach.html">foreach</a>
+  
+    <a class="method" href="method.CellArea.foreach_alloc.html">foreach_alloc</a>
+  
+    <a class="method" href="method.CellArea.get_cell_allocation.html">get_cell_allocation</a>
+  
+    <a class="method" href="method.CellArea.get_cell_at_position.html">get_cell_at_position</a>
+  
+    <a class="method" href="method.CellArea.get_current_path_string.html">get_current_path_string</a>
+  
+    <a class="method" href="method.CellArea.get_edit_widget.html">get_edit_widget</a>
+  
+    <a class="method" href="method.CellArea.get_edited_cell.html">get_edited_cell</a>
+  
+    <a class="method" href="method.CellArea.get_focus_cell.html">get_focus_cell</a>
+  
+    <a class="method" href="method.CellArea.get_focus_from_sibling.html">get_focus_from_sibling</a>
+  
+    <a class="method" href="method.CellArea.get_focus_siblings.html">get_focus_siblings</a>
+  
+    <a class="method" href="method.CellArea.get_preferred_height.html">get_preferred_height</a>
+  
+    <a class="method" href="method.CellArea.get_preferred_height_for_width.html">get_preferred_height_for_width</a>
+  
+    <a class="method" href="method.CellArea.get_preferred_width.html">get_preferred_width</a>
+  
+    <a class="method" href="method.CellArea.get_preferred_width_for_height.html">get_preferred_width_for_height</a>
+  
+    <a class="method" href="method.CellArea.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="method.CellArea.has_renderer.html">has_renderer</a>
+  
+    <a class="method" href="method.CellArea.inner_cell_area.html">inner_cell_area</a>
+  
+    <a class="method" href="method.CellArea.is_activatable.html">is_activatable</a>
+  
+    <a class="method" href="method.CellArea.is_focus_sibling.html">is_focus_sibling</a>
+  
+    <a class="method" href="method.CellArea.remove.html">remove</a>
+  
+    <a class="method" href="method.CellArea.remove_focus_sibling.html">remove_focus_sibling</a>
+  
+    <a class="method" href="method.CellArea.request_renderer.html">request_renderer</a>
+  
+    <a class="method" href="method.CellArea.set_focus_cell.html">set_focus_cell</a>
+  
+    <a class="method" href="method.CellArea.snapshot.html">snapshot</a>
+  
+    <a class="method" href="method.CellArea.stop_editing.html">stop_editing</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.CellArea.edit-widget.html">edit-widget</a>
+  
+    <a class="property" href="property.CellArea.edited-cell.html">edited-cell</a>
+  
+    <a class="property" href="property.CellArea.focus-cell.html">focus-cell</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.CellArea.add-editable.html">add-editable</a>
+  
+    <a class="signal" href="signal.CellArea.apply-attributes.html">apply-attributes</a>
+  
+    <a class="signal" href="signal.CellArea.focus-changed.html">focus-changed</a>
+  
+    <a class="signal" href="signal.CellArea.remove-editable.html">remove-editable</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Class methods</h5>
+  <div class="links">
+  
+    <a class="method" href="class_method.CellArea.find_cell_property.html">find_cell_property</a>
+  
+    <a class="method" href="class_method.CellArea.install_cell_property.html">install_cell_property</a>
+  
+    <a class="method" href="class_method.CellArea.list_cell_properties.html">list_cell_properties</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.CellArea.activate.html">activate</a>
+  
+    <a class="method" href="vfunc.CellArea.add.html">add</a>
+  
+    <a class="method" href="vfunc.CellArea.apply_attributes.html">apply_attributes</a>
+  
+    <a class="method" href="vfunc.CellArea.copy_context.html">copy_context</a>
+  
+    <a class="method" href="vfunc.CellArea.create_context.html">create_context</a>
+  
+    <a class="method" href="vfunc.CellArea.event.html">event</a>
+  
+    <a class="method" href="vfunc.CellArea.focus.html">focus</a>
+  
+    <a class="method" href="vfunc.CellArea.foreach.html">foreach</a>
+  
+    <a class="method" href="vfunc.CellArea.foreach_alloc.html">foreach_alloc</a>
+  
+    <a class="method" href="vfunc.CellArea.get_cell_property.html">get_cell_property</a>
+  
+    <a class="method" href="vfunc.CellArea.get_preferred_height.html">get_preferred_height</a>
+  
+    <a class="method" href="vfunc.CellArea.get_preferred_height_for_width.html">get_preferred_height_for_width</a>
+  
+    <a class="method" href="vfunc.CellArea.get_preferred_width.html">get_preferred_width</a>
+  
+    <a class="method" href="vfunc.CellArea.get_preferred_width_for_height.html">get_preferred_width_for_height</a>
+  
+    <a class="method" href="vfunc.CellArea.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="vfunc.CellArea.is_activatable.html">is_activatable</a>
+  
+    <a class="method" href="vfunc.CellArea.remove.html">remove</a>
+  
+    <a class="method" href="vfunc.CellArea.set_cell_property.html">set_cell_property</a>
+  
+    <a class="method" href="vfunc.CellArea.snapshot.html">snapshot</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>CellArea</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtkcellarea.c#L22">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.CellArea : GObject.InitiallyUnowned
+  implements Gtk.Buildable, Gtk.CellLayout {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>An abstract class for laying out <code>GtkCellRenderer</code>s</p>
+<p>The <code>GtkCellArea</code> is an abstract class for <a href="iface.CellLayout.html"><code>GtkCellLayout</code></a>
+widgets (also referred to as &#8220;layouting widgets&#8221;) to interface with
+an arbitrary number of <a href="class.CellRenderer.html"><code>GtkCellRenderer</code></a>s and interact with the user
+for a given <a href="iface.TreeModel.html"><code>GtkTreeModel</code></a>&nbsp;row.</p>
+<p>The cell area handles events, focus navigation, drawing and
+size requests and allocations for a given row of&nbsp;data.</p>
+<p>Usually users dont have to interact with the <code>GtkCellArea</code> directly
+unless they are implementing a cell-layouting widget&nbsp;themselves.</p>
+<h2 id="requesting-area-sizes">Requesting area sizes<a class="md-anchor" href="#requesting-area-sizes" title="Permanent link"></a></h2>
+<p>As outlined in
+<a href="class.Widget.html#height-for-width-geometry-management">GtkWidget’s geometry management section</a>,
+<span class="caps">GTK</span> uses a height-for-width
+geometry management system to compute the sizes of widgets and user
+interfaces. <code>GtkCellArea</code> uses the same semantics to calculate the
+size of an area for an arbitrary number of <code>GtkTreeModel</code> rows.</p>
+<p>When requesting the size of a cell area one needs to calculate
+the size for a handful of rows, and this will be done differently by
+different layouting widgets. For instance a <a href="class.TreeViewColumn.html"><code>GtkTreeViewColumn</code></a>
+always lines up the areas from top to bottom while a <a href="class.IconView.html"><code>GtkIconView</code></a>
+on the other hand might enforce that all areas received the same
+width and wrap the areas around, requesting height for more cell
+areas when allocated less&nbsp;width.</p>
+<p>It’s also important for areas to maintain some cell
+alignments with areas rendered for adjacent rows (cells can
+appear “columnized” inside an area even when the size of
+cells are different in each row). For this reason the <code>GtkCellArea</code>
+uses a <a href="class.CellAreaContext.html"><code>GtkCellAreaContext</code></a> object to store the alignments
+and sizes along the way (as well as the overall largest minimum
+and natural size for all the rows which have been calculated
+with the said&nbsp;context).</p>
+<p>The <a href="class.CellAreaContext.html"><code>GtkCellAreaContext</code></a> is an opaque object specific to the
+<code>GtkCellArea</code> which created it (see <a href="method.CellArea.create_context.html"><code>gtk_cell_area_create_context()</code></a>).</p>
+<p>The owning cell-layouting widget can create as many contexts as
+it wishes to calculate sizes of rows which should receive the
+same size in at least one orientation (horizontally or vertically),
+However, it’s important that the same <a href="class.CellAreaContext.html"><code>GtkCellAreaContext</code></a> which
+was used to request the sizes for a given <code>GtkTreeModel</code> row be
+used when rendering or processing events for that&nbsp;row.</p>
+<p>In order to request the width of all the rows at the root level
+of a <code>GtkTreeModel</code> one would do the&nbsp;following:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">minimum_width</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">natural_width</span><span class="p">;</span>
+
+<span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_get_iter_first</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">gtk_cell_area_apply_attributes</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">);</span>
+<span class="w">    </span><span class="n">gtk_cell_area_get_preferred_width</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">widget</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_iter_next</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="n">gtk_cell_area_context_get_preferred_width</span><span class="w"> </span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">minimum_width</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">natural_width</span><span class="p">);</span>
+</code></pre></div>
+
+<p>Note that in this example it’s not important to observe the
+returned minimum and natural width of the area for each row
+unless the cell-layouting object is actually interested in the
+widths of individual rows. The overall width is however stored
+in the accompanying <code>GtkCellAreaContext</code> object and can be consulted
+at any&nbsp;time.</p>
+<p>This can be useful since <code>GtkCellLayout</code> widgets usually have to
+support requesting and rendering rows in treemodels with an
+exceedingly large amount of rows. The <code>GtkCellLayout</code> widget in
+that case would calculate the required width of the rows in an
+idle or timeout source (see <a href="javascript:void(0)" data-namespace="GLib" data-link="func.timeout_add.html" class="external"><code>g_timeout_add()</code></a>) and when the widget
+is requested its actual width in <a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a>
+it can simply consult the width accumulated so far in the
+<code>GtkCellAreaContext</code> object.</p>
+<p>A simple example where rows are rendered from top to bottom and
+take up the full width of the layouting widget would look&nbsp;like:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">foo_get_preferred_width</span><span class="w"> </span><span class="p">(</span><span class="n">GtkWidget</span><span class="w"> </span><span class="o">*</span><span class="n">widget</span><span class="p">,</span>
+<span class="w">                         </span><span class="kt">int</span><span class="w">       </span><span class="o">*</span><span class="n">minimum_size</span><span class="p">,</span>
+<span class="w">                         </span><span class="kt">int</span><span class="w">       </span><span class="o">*</span><span class="n">natural_size</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">Foo</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FOO</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">);</span>
+<span class="w">  </span><span class="n">FooPrivate</span><span class="w"> </span><span class="o">*</span><span class="n">priv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">foo_get_instance_private</span><span class="w"> </span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">foo_ensure_at_least_one_handfull_of_rows_have_been_requested</span><span class="w"> </span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">gtk_cell_area_context_get_preferred_width</span><span class="w"> </span><span class="p">(</span><span class="n">priv</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">minimum_size</span><span class="p">,</span><span class="w"> </span><span class="n">natural_size</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>In the above example the <code>Foo</code> widget has to make sure that some
+row sizes have been calculated (the amount of rows that <code>Foo</code> judged
+was appropriate to request space for in a single timeout iteration)
+before simply returning the amount of space required by the area via
+the <code>GtkCellAreaContext</code>.</p>
+<p>Requesting the height for width (or width for height) of an area is
+a similar task except in this case the <code>GtkCellAreaContext</code> does not
+store the data (actually, it does not know how much space the layouting
+widget plans to allocate it for every row. It’s up to the layouting
+widget to render each row of data with the appropriate height and
+width which was requested by the <code>GtkCellArea</code>).</p>
+<p>In order to request the height for width of all the rows at the
+root level of a <code>GtkTreeModel</code> one would do the&nbsp;following:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">minimum_height</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">natural_height</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">full_minimum_height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">full_natural_height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_get_iter_first</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">gtk_cell_area_apply_attributes</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">);</span>
+<span class="w">    </span><span class="n">gtk_cell_area_get_preferred_height_for_width</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">widget</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">minimum_height</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">natural_height</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">width_is_for_allocation</span><span class="p">)</span>
+<span class="w">       </span><span class="n">cache_row_height</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">minimum_height</span><span class="p">,</span><span class="w"> </span><span class="n">natural_height</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">full_minimum_height</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">minimum_height</span><span class="p">;</span>
+<span class="w">    </span><span class="n">full_natural_height</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">natural_height</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_iter_next</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+
+<p>Note that in the above example we would need to cache the heights
+returned for each row so that we would know what sizes to render the
+areas for each row. However we would only want to really cache the
+heights if the request is intended for the layouting widgets real&nbsp;allocation.</p>
+<p>In some cases the layouting widget is requested the height for an
+arbitrary for_width, this is a special case for layouting widgets
+who need to request size for tens of thousands  of rows. For this
+case it’s only important that the layouting widget calculate
+one reasonably sized chunk of rows and return that height
+synchronously. The reasoning here is that any layouting widget is
+at least capable of synchronously calculating enough height to fill
+the screen height (or scrolled window height) in response to a single
+call to <a href="vfunc.Widget.measure.html"><code>Gtk.WidgetClass.measure</code></a>. Returning
+a perfect height for width that is larger than the screen area is
+inconsequential since after the layouting receives an allocation
+from a scrolled window it simply continues to drive the scrollbar
+values while more and more height is required for the row heights
+that are calculated in the&nbsp;background.</p>
+<h2 id="rendering-areas">Rendering Areas<a class="md-anchor" href="#rendering-areas" title="Permanent link"></a></h2>
+<p>Once area sizes have been acquired at least for the rows in the
+visible area of the layouting widget they can be rendered at
+<a href="vfunc.Widget.snapshot.html"><code>Gtk.WidgetClass.snapshot</code></a>&nbsp;time.</p>
+<p>A crude example of how to render all the rows at the root level
+runs as&nbsp;follows:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">GtkAllocation</span><span class="w"> </span><span class="n">allocation</span><span class="p">;</span>
+<span class="n">GdkRectangle</span><span class="w"> </span><span class="n">cell_area</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">};</span>
+<span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">minimum_width</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">natural_width</span><span class="p">;</span>
+
+<span class="n">gtk_widget_get_allocation</span><span class="w"> </span><span class="p">(</span><span class="n">widget</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">allocation</span><span class="p">);</span>
+<span class="n">cell_area</span><span class="p">.</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">allocation</span><span class="p">.</span><span class="n">width</span><span class="p">;</span>
+
+<span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_get_iter_first</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cell_area</span><span class="p">.</span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cached_height_for_row</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">gtk_cell_area_apply_attributes</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">);</span>
+<span class="w">    </span><span class="n">gtk_cell_area_render</span><span class="w"> </span><span class="p">(</span><span class="n">area</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">widget</span><span class="p">,</span><span class="w"> </span><span class="n">cr</span><span class="p">,</span>
+<span class="w">                          </span><span class="o">&amp;</span><span class="n">cell_area</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cell_area</span><span class="p">,</span><span class="w"> </span><span class="n">state_flags</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">cell_area</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">cell_area</span><span class="p">.</span><span class="n">height</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_iter_next</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+
+<p>Note that the cached height in this example really depends on how
+the layouting widget works. The layouting widget might decide to
+give every row its minimum or natural height or, if the model content
+is expected to fit inside the layouting widget without scrolling, it
+would make sense to calculate the allocation for each row at
+the time the widget is allocated using <a href="func.distribute_natural_allocation.html"><code>gtk_distribute_natural_allocation()</code></a>.</p>
+<h2 id="handling-events-and-driving-keyboard-focus">Handling Events and Driving Keyboard Focus<a class="md-anchor" href="#handling-events-and-driving-keyboard-focus" title="Permanent link"></a></h2>
+<p>Passing events to the area is as simple as handling events on any
+normal widget and then passing them to the <a href="method.CellArea.event.html"><code>gtk_cell_area_event()</code></a>
+<span class="caps">API</span> as they come in. Usually <code>GtkCellArea</code> is only interested in
+button events, however some customized derived areas can be implemented
+who are interested in handling other events. Handling an event can
+trigger the <a href="signal.CellArea.focus-changed.html"><code>GtkCellArea::focus-changed</code></a> signal to fire; as well
+as <a href="signal.CellArea.add-editable.html"><code>GtkCellArea::add-editable</code></a> in the case that an editable cell
+was clicked and needs to start editing. You can call
+<a href="method.CellArea.stop_editing.html"><code>gtk_cell_area_stop_editing()</code></a> at any time to cancel any cell editing
+that is currently in&nbsp;progress.</p>
+<p>The <code>GtkCellArea</code> drives keyboard focus from cell to cell in a way
+similar to <code>GtkWidget</code>. For layouting widgets that support giving
+focus to cells it’s important to remember to pass <code>GTK_CELL_RENDERER_FOCUSED</code>
+to the area functions for the row that has focus and to tell the
+area to paint the focus at render&nbsp;time.</p>
+<p>Layouting widgets that accept focus on cells should implement the
+<a href="vfunc.Widget.focus.html"><code>Gtk.WidgetClass.focus</code></a> virtual method. The layouting widget is always
+responsible for knowing where <code>GtkTreeModel</code> rows are rendered inside
+the widget, so at <a href="vfunc.Widget.focus.html"><code>Gtk.WidgetClass.focus</code></a> time the layouting widget
+should use the <code>GtkCellArea</code> methods to navigate focus inside the area
+and then observe the <a href="enum.DirectionType.html"><code>GtkDirectionType</code></a> to pass the focus to adjacent
+rows and&nbsp;areas.</p>
+<p>A basic example of how the <a href="vfunc.Widget.focus.html"><code>Gtk.WidgetClass.focus</code></a> virtual method
+should be&nbsp;implemented:</p>
+<div class="codehilite"><pre><span></span><code>static gboolean
+foo_focus (GtkWidget       *widget,
+           GtkDirectionType direction)
+{
+  Foo *self = FOO (widget);
+  FooPrivate *priv = foo_get_instance_private (self);
+  int focus_row = priv-&gt;focus_row;
+  gboolean have_focus = FALSE;
+
+  if (!gtk_widget_has_focus (widget))
+    gtk_widget_grab_focus (widget);
+
+  valid = gtk_tree_model_iter_nth_child (priv-&gt;model, &amp;iter, NULL, priv-&gt;focus_row);
+  while (valid)
+    {
+      gtk_cell_area_apply_attributes (priv-&gt;area, priv-&gt;model, &amp;iter, FALSE, FALSE);
+
+      if (gtk_cell_area_focus (priv-&gt;area, direction))
+        {
+           priv-&gt;focus_row = focus_row;
+           have_focus = TRUE;
+           break;
+        }
+      else
+        {
+          if (direction == GTK_DIR_RIGHT ||
+              direction == GTK_DIR_LEFT)
+            break;
+          else if (direction == GTK_DIR_UP ||
+                   direction == GTK_DIR_TAB_BACKWARD)
+           {
+              if (focus_row == 0)
+                break;
+              else
+               {
+                  focus_row--;
+                  valid = gtk_tree_model_iter_nth_child (priv-&gt;model, &amp;iter, NULL, focus_row);
+               }
+            }
+          else
+            {
+              if (focus_row == last_row)
+                break;
+              else
+                {
+                  focus_row++;
+                  valid = gtk_tree_model_iter_next (priv-&gt;model, &amp;iter);
+                }
+            }
+        }
+    }
+    return have_focus;
+}
+</code></pre></div>
+
+<p>Note that the layouting widget is responsible for matching the
+<code>GtkDirectionType</code> values to the way it lays out its&nbsp;cells.</p>
+<h2 id="cell-properties">Cell Properties<a class="md-anchor" href="#cell-properties" title="Permanent link"></a></h2>
+<p>The <code>GtkCellArea</code> introduces cell properties for <code>GtkCellRenderer</code>s.
+This provides some general interfaces for defining the relationship
+cell areas have with their cells. For instance in a <a href="class.CellAreaBox.html"><code>GtkCellAreaBox</code></a>
+a cell might “expand” and receive extra space when the area is allocated
+more than its full natural request, or a cell might be configured to “align”
+with adjacent rows which were requested and rendered with the same
+<code>GtkCellAreaContext</code>.</p>
+<p>Use <a href="class_method.CellArea.install_cell_property.html"><code>gtk_cell_area_class_install_cell_property()</code></a> to install cell
+properties for a cell area class and <a href="class_method.CellArea.find_cell_property.html"><code>gtk_cell_area_class_find_cell_property()</code></a>
+or <a href="class_method.CellArea.list_cell_properties.html"><code>gtk_cell_area_class_list_cell_properties()</code></a> to get information about
+existing cell&nbsp;properties.</p>
+<p>To set the value of a cell property, use <a href="method.CellArea.cell_set_property.html"><code>gtk_cell_area_cell_set_property()</code></a>,
+<a href="method.CellArea.cell_set.html"><code>gtk_cell_area_cell_set()</code></a> or <a href="method.CellArea.cell_set_valist.html"><code>gtk_cell_area_cell_set_valist()</code></a>. To obtain
+the value of a cell property, use <a href="method.CellArea.cell_get_property.html"><code>gtk_cell_area_cell_get_property()</code></a>
+<a href="method.CellArea.cell_get.html"><code>gtk_cell_area_cell_get()</code></a> or <a href="method.CellArea.cell_get_valist.html"><code>gtk_cell_area_cell_get_valist()</code></a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+          <div class="admonition deprecation">
+            <p class="admonition-title">Deprecated since: 4.10</p><p>List views use widgets for displaying their&nbsp;contents.</p></div>
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.CellArea">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="236pt" height="260pt"
+ viewBox="0.00 0.00 235.88 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkCellArea">
+<path fill="none" stroke="black" d="M141.88,-108C141.88,-108 80.88,-108 80.88,-108 74.88,-108 68.88,-102 68.88,-96 68.88,-96 68.88,-84 68.88,-84 68.88,-78 74.88,-72 80.88,-72 80.88,-72 141.88,-72 141.88,-72 147.88,-72 153.88,-78 153.88,-84 153.88,-84 153.88,-96 153.88,-96 153.88,-102 147.88,-108 141.88,-108"/>
+<text text-anchor="middle" x="111.38" y="-84.95" font-family="Times,serif" font-size="14.00">GtkCellArea</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node link">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:href="iface.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="100.75,-36 0,-36 0,0 100.75,0 100.75,-36"/>
+<text text-anchor="middle" x="50.38" y="-14.45" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M96.3,-71.7C86.84,-60.85 74.7,-46.92 65.28,-36.1"/>
+</g>
+<!-- implements_1 -->
+<g id="node5" class="node link">
+<title>implements_1</title>
+<g id="a_node5"><a xlink:href="iface.CellLayout.html" xlink:title="GtkCellLayout">
+<polygon fill="none" stroke="black" points="227.88,-36 118.88,-36 118.88,0 227.88,0 227.88,-36"/>
+<text text-anchor="middle" x="173.38" y="-14.45" font-family="sans-serif" font-size="14.00">GtkCellLayout</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M126.7,-71.7C136.31,-60.85 148.65,-46.92 158.23,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M159.88,-180C159.88,-180 62.88,-180 62.88,-180 56.88,-180 50.88,-174 50.88,-168 50.88,-168 50.88,-156 50.88,-156 50.88,-150 56.88,-144 62.88,-144 62.88,-144 159.88,-144 159.88,-144 165.88,-144 171.88,-150 171.88,-156 171.88,-156 171.88,-168 171.88,-168 171.88,-174 165.88,-180 159.88,-180"/>
+<text text-anchor="middle" x="111.38" y="-156.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M111.38,-143.7C111.38,-132.85 111.38,-118.92 111.38,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M130.25,-252C130.25,-252 92.5,-252 92.5,-252 86.5,-252 80.5,-246 80.5,-240 80.5,-240 80.5,-228 80.5,-228 80.5,-222 86.5,-216 92.5,-216 92.5,-216 130.25,-216 130.25,-216 136.25,-216 142.25,-222 142.25,-228 142.25,-228 142.25,-240 142.25,-240 142.25,-246 136.25,-252 130.25,-252"/>
+<text text-anchor="middle" x="111.38" y="-228.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M111.38,-215.7C111.38,-204.85 111.38,-190.92 111.38,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.CellAreaBox.html" title="CellAreaBox">GtkCellAreaBox</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.CellLayout.html" title="CellLayout">GtkCellLayout</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.activate.html">gtk_cell_area_activate</a></h6>
+          <div class="docblock">
+            <p>Activates <code>area</code>, usually by activating the currently focused
+cell, however some subclasses which embed widgets in the area
+can also activate a widget if it currently has the&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.activate_cell.html">gtk_cell_area_activate_cell</a></h6>
+          <div class="docblock">
+            <p>This is used by <code>GtkCellArea</code> subclasses when handling events
+to activate cells, the base <code>GtkCellArea</code> class activates cells
+for keyboard events for free in its own GtkCellArea-&gt;activate()&nbsp;implementation.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.add.html">gtk_cell_area_add</a></h6>
+          <div class="docblock">
+            <p>Adds <code>renderer</code> to <code>area</code> with the default child cell&nbsp;properties.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.add_focus_sibling.html">gtk_cell_area_add_focus_sibling</a></h6>
+          <div class="docblock">
+            <p>Adds <code>sibling</code> to <code>renderer</code>’s focusable area, focus will be drawn
+around <code>renderer</code> and all of its siblings if <code>renderer</code> can
+focus for a given&nbsp;row.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.add_with_properties.html">gtk_cell_area_add_with_properties</a></h6>
+          <div class="docblock">
+            <p>Adds <code>renderer</code> to <code>area</code>, setting cell properties at the same time.
+See <code>gtk_cell_area_add()</code> and <code>gtk_cell_area_cell_set()</code> for more&nbsp;details.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.apply_attributes.html">gtk_cell_area_apply_attributes</a></h6>
+          <div class="docblock">
+            <p>Applies any connected attributes to the renderers in
+<code>area</code> by pulling the values from <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.attribute_connect.html">gtk_cell_area_attribute_connect</a></h6>
+          <div class="docblock">
+            <p>Connects an <code>attribute</code> to apply values from <code>column</code> for the
+<code>GtkTreeModel</code> in&nbsp;use.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.attribute_disconnect.html">gtk_cell_area_attribute_disconnect</a></h6>
+          <div class="docblock">
+            <p>Disconnects <code>attribute</code> for the <code>renderer</code> in <code>area</code> so that
+attribute will no longer be updated with values from the&nbsp;model.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.attribute_get_column.html">gtk_cell_area_attribute_get_column</a></h6>
+          <div class="docblock">
+            <p>Returns the model column that an attribute has been mapped to,
+or -1 if the attribute is not&nbsp;mapped.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_get.html">gtk_cell_area_cell_get</a></h6>
+          <div class="docblock">
+            <p>Gets the values of one or more cell properties for <code>renderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_get_property.html">gtk_cell_area_cell_get_property</a></h6>
+          <div class="docblock">
+            <p>Gets the value of a cell property for <code>renderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_get_valist.html">gtk_cell_area_cell_get_valist</a></h6>
+          <div class="docblock">
+            <p>Gets the values of one or more cell properties for <code>renderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_set.html">gtk_cell_area_cell_set</a></h6>
+          <div class="docblock">
+            <p>Sets one or more cell properties for <code>cell</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_set_property.html">gtk_cell_area_cell_set_property</a></h6>
+          <div class="docblock">
+            <p>Sets a cell property for <code>renderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.cell_set_valist.html">gtk_cell_area_cell_set_valist</a></h6>
+          <div class="docblock">
+            <p>Sets one or more cell properties for <code>renderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.copy_context.html">gtk_cell_area_copy_context</a></h6>
+          <div class="docblock">
+            <p>This is sometimes needed for cases where rows need to share
+alignments in one orientation but may be separately grouped
+in the opposing&nbsp;orientation.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.create_context.html">gtk_cell_area_create_context</a></h6>
+          <div class="docblock">
+            <p>Creates a <code>GtkCellArea</code>Context to be used with <code>area</code> for
+all purposes. <code>GtkCellArea</code>Context stores geometry information
+for rows for which it was operated on, it is important to use
+the same context for the same row of data at all times (i.e.
+one should render and handle events with the same <code>GtkCellArea</code>Context
+which was used to request the size of those rows of&nbsp;data).</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.event.html">gtk_cell_area_event</a></h6>
+          <div class="docblock">
+            <p>Delegates event handling to a <code>GtkCellArea</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.focus.html">gtk_cell_area_focus</a></h6>
+          <div class="docblock">
+            <p>This should be called by the <code>area</code>’s owning layout widget
+when focus is to be passed to <code>area</code>, or moved within <code>area</code>
+for a given <code>direction</code> and row&nbsp;data.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.foreach.html">gtk_cell_area_foreach</a></h6>
+          <div class="docblock">
+            <p>Calls <code>callback</code> for every <code>GtkCellRenderer</code> in <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellArea.foreach_alloc.html">gtk_cell_area_foreach_alloc</a></h6>
+          <div class="docblock">
+            <p>Calls <code>callback</code> for every <code>GtkCellRenderer</code> in <code>area</code> with the
+allocated rectangle inside <code>cell_area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_cell_allocation.html">gtk_cell_area_get_cell_allocation</a></h6>
+          <div class="docblock">
+            <p>Derives the allocation of <code>renderer</code> inside <code>area</code> if <code>area</code>
+were to be rendered in <code>cell_area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_cell_at_position.html">gtk_cell_area_get_cell_at_position</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GtkCellRenderer</code> at <code>x</code> and <code>y</code> coordinates inside <code>area</code> and optionally
+returns the full cell allocation for it inside <code>cell_area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellArea.get_current_path_string.html">gtk_cell_area_get_current_path_string</a></h6>
+          <div class="docblock">
+            <p>Gets the current <code>GtkTreePath</code> string for the currently
+applied <code>GtkTreeIter</code>, this is implicitly updated when
+<code>gtk_cell_area_apply_attributes()</code> is called and can be
+used to interact with renderers from <code>GtkCellArea</code>
+subclasses.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_edit_widget.html">gtk_cell_area_get_edit_widget</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GtkCellEditable</code> widget currently used
+to edit the currently edited&nbsp;cell.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_edited_cell.html">gtk_cell_area_get_edited_cell</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GtkCellRenderer</code> in <code>area</code> that is currently
+being&nbsp;edited.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_focus_cell.html">gtk_cell_area_get_focus_cell</a></h6>
+          <div class="docblock">
+            <p>Retrieves the currently focused cell for <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_focus_from_sibling.html">gtk_cell_area_get_focus_from_sibling</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GtkCellRenderer</code> which is expected to be focusable
+for which <code>renderer</code> is, or may be a&nbsp;sibling.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_focus_siblings.html">gtk_cell_area_get_focus_siblings</a></h6>
+          <div class="docblock">
+            <p>Gets the focus sibling cell renderers for <code>renderer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_preferred_height.html">gtk_cell_area_get_preferred_height</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell area’s initial minimum and natural&nbsp;height.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_preferred_height_for_width.html">gtk_cell_area_get_preferred_height_for_width</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell area’s minimum and natural height if it would be given
+the specified <code>width</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_preferred_width.html">gtk_cell_area_get_preferred_width</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell area’s initial minimum and natural&nbsp;width.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.get_preferred_width_for_height.html">gtk_cell_area_get_preferred_width_for_height</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell area’s minimum and natural width if it would be given
+the specified <code>height</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellArea.get_request_mode.html">gtk_cell_area_get_request_mode</a></h6>
+          <div class="docblock">
+            <p>Gets whether the area prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.has_renderer.html">gtk_cell_area_has_renderer</a></h6>
+          <div class="docblock">
+            <p>Checks if <code>area</code> contains <code>renderer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.inner_cell_area.html">gtk_cell_area_inner_cell_area</a></h6>
+          <div class="docblock">
+            <p>This is a convenience function for <code>GtkCellArea</code> implementations
+to get the inner area where a given <code>GtkCellRenderer</code> will be
+rendered. It removes any padding previously added by&nbsp;gtk_cell_area_request_renderer().</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.is_activatable.html">gtk_cell_area_is_activatable</a></h6>
+          <div class="docblock">
+            <p>Returns whether the area can do anything when activated,
+after applying new attributes to <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.is_focus_sibling.html">gtk_cell_area_is_focus_sibling</a></h6>
+          <div class="docblock">
+            <p>Returns whether <code>sibling</code> is one of <code>renderer</code>’s focus siblings
+(see&nbsp;gtk_cell_area_add_focus_sibling()).</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.remove.html">gtk_cell_area_remove</a></h6>
+          <div class="docblock">
+            <p>Removes <code>renderer</code> from <code>area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.remove_focus_sibling.html">gtk_cell_area_remove_focus_sibling</a></h6>
+          <div class="docblock">
+            <p>Removes <code>sibling</code> from <code>renderer</code>’s focus sibling list
+(see&nbsp;gtk_cell_area_add_focus_sibling()).</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.request_renderer.html">gtk_cell_area_request_renderer</a></h6>
+          <div class="docblock">
+            <p>This is a convenience function for <code>GtkCellArea</code> implementations
+to request size for cell renderers. It’s important to use this
+function to request size and then use <code>gtk_cell_area_inner_cell_area()</code>
+at render and event time since this function will add padding
+around the cell for focus&nbsp;painting.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.set_focus_cell.html">gtk_cell_area_set_focus_cell</a></h6>
+          <div class="docblock">
+            <p>Explicitly sets the currently focused cell to <code>renderer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.snapshot.html">gtk_cell_area_snapshot</a></h6>
+          <div class="docblock">
+            <p>Snapshots <code>area</code>’s cells according to <code>area</code>’s layout onto at
+the given&nbsp;coordinates.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellArea.stop_editing.html">gtk_cell_area_stop_editing</a></h6>
+          <div class="docblock">
+            <p>Explicitly stops the editing of the currently edited&nbsp;cell.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6><div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.CellLayout.html">GtkCellLayout</a> (10)</h5><div class="docblock">
+          
+            <h6><a href="method.CellLayout.add_attribute.html">gtk_cell_layout_add_attribute</a></h6><div class="docblock">
+              <p>Adds an attribute mapping to the list in <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.clear.html">gtk_cell_layout_clear</a></h6><div class="docblock">
+              <p>Unsets all the mappings on all renderers on <code>cell_layout</code> and
+removes all renderers from <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.clear_attributes.html">gtk_cell_layout_clear_attributes</a></h6><div class="docblock">
+              <p>Clears all existing attributes previously set with&nbsp;gtk_cell_layout_set_attributes().</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.get_area.html">gtk_cell_layout_get_area</a></h6><div class="docblock">
+              <p>Returns the underlying <code>GtkCellArea</code> which might be <code>cell_layout</code>
+if called on a <code>GtkCellArea</code> or might be <code>NULL</code> if no <code>GtkCellArea</code>
+is used by <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.get_cells.html">gtk_cell_layout_get_cells</a></h6><div class="docblock">
+              <p>Returns the cell renderers which have been added to <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.pack_end.html">gtk_cell_layout_pack_end</a></h6><div class="docblock">
+              <p>Adds the <code>cell</code> to the end of <code>cell_layout</code>. If <code>expand</code> is <code>FALSE</code>, then the
+<code>cell</code> is allocated no more space than it needs. Any unused space is
+divided evenly between cells for which <code>expand</code> is <code>TRUE</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.pack_start.html">gtk_cell_layout_pack_start</a></h6><div class="docblock">
+              <p>Packs the <code>cell</code> into the beginning of <code>cell_layout</code>. If <code>expand</code> is <code>FALSE</code>,
+then the <code>cell</code> is allocated no more space than it needs. Any unused space
+is divided evenly between cells for which <code>expand</code> is <code>TRUE</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.reorder.html">gtk_cell_layout_reorder</a></h6><div class="docblock">
+              <p>Re-inserts <code>cell</code> at <code>position</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.set_attributes.html">gtk_cell_layout_set_attributes</a></h6><div class="docblock">
+              <p>Sets the attributes in the parameter list as the attributes
+of <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+            <h6><a href="method.CellLayout.set_cell_data_func.html">gtk_cell_layout_set_cell_data_func</a></h6><div class="docblock">
+              <p>Sets the <code>GtkCellLayout</code>DataFunc to use for <code>cell_layout</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.CellArea.edit-widget.html">Gtk.CellArea:edit-widget</a></h6>
+          <div class="docblock">
+            <p>The widget currently editing the edited&nbsp;cell.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellArea.edited-cell.html">Gtk.CellArea:edited-cell</a></h6>
+          <div class="docblock">
+            <p>The cell in the area that is currently&nbsp;edited.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellArea.focus-cell.html">Gtk.CellArea:focus-cell</a></h6>
+          <div class="docblock">
+            <p>The cell in the area that currently has&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.CellArea.add-editable.html">Gtk.CellArea::add-editable</a></h6>
+          <div class="docblock">
+            <p>Indicates that editing has started on <code>renderer</code> and that <code>editable</code>
+should be added to the owning cell-layouting widget at <code>cell_area</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.CellArea.apply-attributes.html">Gtk.CellArea::apply-attributes</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted whenever applying attributes to <code>area</code> from <code>model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.CellArea.focus-changed.html">Gtk.CellArea::focus-changed</a></h6>
+          <div class="docblock">
+            <p>Indicates that focus changed on this <code>area</code>. This signal
+is emitted either as a result of focus handling or event&nbsp;handling.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.CellArea.remove-editable.html">Gtk.CellArea::remove-editable</a></h6>
+          <div class="docblock">
+            <p>Indicates that editing finished on <code>renderer</code> and that <code>editable</code>
+should be removed from the owning cell-layouting&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkCellAreaClass {
+  void (* add) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer
+  );
+  void (* remove) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer
+  );
+  void (* foreach) (
+    GtkCellArea* area,
+    GtkCellCallback callback,
+    gpointer callback_data
+  );
+  void (* foreach_alloc) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    const GdkRectangle* cell_area,
+    const GdkRectangle* background_area,
+    GtkCellAllocCallback callback,
+    gpointer callback_data
+  );
+  int (* event) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    GdkEvent* event,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  );
+  void (* snapshot) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    GtkSnapshot* snapshot,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags,
+    gboolean paint_focus
+  );
+  void (* apply_attributes) (
+    GtkCellArea* area,
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    gboolean is_expander,
+    gboolean is_expanded
+  );
+  GtkCellAreaContext* (* create_context) (
+    GtkCellArea* area
+  );
+  GtkCellAreaContext* (* copy_context) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context
+  );
+  GtkSizeRequestMode (* get_request_mode) (
+    GtkCellArea* area
+  );
+  void (* get_preferred_width) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int* minimum_width,
+    int* natural_width
+  );
+  void (* get_preferred_height_for_width) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int width,
+    int* minimum_height,
+    int* natural_height
+  );
+  void (* get_preferred_height) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int* minimum_height,
+    int* natural_height
+  );
+  void (* get_preferred_width_for_height) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int height,
+    int* minimum_width,
+    int* natural_width
+  );
+  void (* set_cell_property) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer,
+    guint property_id,
+    const GValue* value,
+    GParamSpec* pspec
+  );
+  void (* get_cell_property) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer,
+    guint property_id,
+    GValue* value,
+    GParamSpec* pspec
+  );
+  gboolean (* focus) (
+    GtkCellArea* area,
+    GtkDirectionType direction
+  );
+  gboolean (* is_activatable) (
+    GtkCellArea* area
+  );
+  gboolean (* activate) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags,
+    gboolean edit_only
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>add: void (* add) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer
+  )</code></dt>
+          <dd><p>Adds a <code>GtkCellRenderer</code> to the&nbsp;area.</p></dd>
+        
+          <dt><code>remove: void (* remove) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer
+  )</code></dt>
+          <dd><p>Removes a <code>GtkCellRenderer</code> from the&nbsp;area.</p></dd>
+        
+          <dt><code>foreach: void (* foreach) (
+    GtkCellArea* area,
+    GtkCellCallback callback,
+    gpointer callback_data
+  )</code></dt>
+          <dd><p>Calls the <code>GtkCellCallback</code> function on every <code>GtkCellRenderer</code> in
+  the area with the provided user data until the callback returns <code>TRUE</code>.</p></dd>
+        
+          <dt><code>foreach_alloc: void (* foreach_alloc) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    const GdkRectangle* cell_area,
+    const GdkRectangle* background_area,
+    GtkCellAllocCallback callback,
+    gpointer callback_data
+  )</code></dt>
+          <dd><p>Calls the <code>GtkCellAllocCallback</code> function on every
+  <code>GtkCellRenderer</code> in the area with the allocated area for the cell
+  and the provided user data until the callback returns <code>TRUE</code>.</p></dd>
+        
+          <dt><code>event: int (* event) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    GdkEvent* event,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  )</code></dt>
+          <dd><p>Handle an event in the area, this is generally used to activate
+  a cell at the event location for button events but can also be used
+  to generically pass events to <code>GtkWidget</code>s drawn onto the&nbsp;area.</p></dd>
+        
+          <dt><code>snapshot: void (* snapshot) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    GtkSnapshot* snapshot,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags,
+    gboolean paint_focus
+  )</code></dt>
+          <dd><p>Actually snapshot the area’s cells to the specified rectangle,
+  <code>background_area</code> should be correctly distributed to the cells
+  corresponding background&nbsp;areas.</p></dd>
+        
+          <dt><code>apply_attributes: void (* apply_attributes) (
+    GtkCellArea* area,
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    gboolean is_expander,
+    gboolean is_expanded
+  )</code></dt>
+          <dd><p>Apply the cell attributes to the cells. This is
+  implemented as a signal and generally <code>GtkCellArea</code> subclasses don&#8217;t
+  need to implement it since it is handled by the base&nbsp;class.</p></dd>
+        
+          <dt><code>create_context: GtkCellAreaContext* (* create_context) (
+    GtkCellArea* area
+  )</code></dt>
+          <dd><p>Creates and returns a class specific <code>GtkCellAreaContext</code>
+  to store cell alignment and allocation details for a said <code>GtkCellArea</code>
+  class.</p></dd>
+        
+          <dt><code>copy_context: GtkCellAreaContext* (* copy_context) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context
+  )</code></dt>
+          <dd><p>Creates a new <code>GtkCellAreaContext</code> in the same state as
+  the passed <code>context</code> with any cell alignment data and allocations&nbsp;intact.</p></dd>
+        
+          <dt><code>get_request_mode: GtkSizeRequestMode (* get_request_mode) (
+    GtkCellArea* area
+  )</code></dt>
+          <dd><p>This allows an area to tell its layouting widget whether
+  it prefers to be allocated in <code>GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH</code> or
+  <code>GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT</code> mode.</p></dd>
+        
+          <dt><code>get_preferred_width: void (* get_preferred_width) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int* minimum_width,
+    int* natural_width
+  )</code></dt>
+          <dd><p>Calculates the minimum and natural width of the
+  areas cells with the current attributes applied while considering
+  the particular layouting details of the said <code>GtkCellArea</code>. While
+  requests are performed over a series of rows, alignments and overall
+  minimum and natural sizes should be stored in the corresponding
+  <code>GtkCellAreaContext</code>.</p></dd>
+        
+          <dt><code>get_preferred_height_for_width: void (* get_preferred_height_for_width) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int width,
+    int* minimum_height,
+    int* natural_height
+  )</code></dt>
+          <dd><p>Calculates the minimum and natural height
+  for the area if the passed <code>context</code> would be allocated the given width.
+  When implementing this virtual method it is safe to assume that <code>context</code>
+  has already stored the aligned cell widths for every <code>GtkTreeModel</code> row
+  that <code>context</code> will be allocated for since this information was stored
+  at <code>GtkCellAreaClass.get_preferred_width()</code> time. This virtual method
+  should also store any necessary alignments of cell heights for the
+  case that the context is allocated a&nbsp;height.</p></dd>
+        
+          <dt><code>get_preferred_height: void (* get_preferred_height) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int* minimum_height,
+    int* natural_height
+  )</code></dt>
+          <dd><p>Calculates the minimum and natural height of the
+  areas cells with the current attributes applied. Essentially this is
+  the same as <code>GtkCellAreaClass.get_preferred_width()</code> only for areas
+  that are being requested as <code>GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT</code>.</p></dd>
+        
+          <dt><code>get_preferred_width_for_height: void (* get_preferred_width_for_height) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    int height,
+    int* minimum_width,
+    int* natural_width
+  )</code></dt>
+          <dd><p>Calculates the minimum and natural width
+  for the area if the passed <code>context</code> would be allocated the given
+  height. The same as <code>GtkCellAreaClass.get_preferred_height_for_width()</code>
+  only for handling requests in the <code>GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT</code>
+  mode.</p></dd>
+        
+          <dt><code>set_cell_property: void (* set_cell_property) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer,
+    guint property_id,
+    const GValue* value,
+    GParamSpec* pspec
+  )</code></dt>
+          <dd><p>This should be implemented to handle changes in child
+  cell properties for a given <code>GtkCellRenderer</code> that were previously
+  installed on the <code>GtkCellAreaClass</code> with&nbsp;gtk_cell_area_class_install_cell_property().</p></dd>
+        
+          <dt><code>get_cell_property: void (* get_cell_property) (
+    GtkCellArea* area,
+    GtkCellRenderer* renderer,
+    guint property_id,
+    GValue* value,
+    GParamSpec* pspec
+  )</code></dt>
+          <dd><p>This should be implemented to report the values of
+  child cell properties for a given child <code>GtkCellRenderer</code>.</p></dd>
+        
+          <dt><code>focus: gboolean (* focus) (
+    GtkCellArea* area,
+    GtkDirectionType direction
+  )</code></dt>
+          <dd><p>This virtual method should be implemented to navigate focus from
+  cell to cell inside the <code>GtkCellArea</code>. The <code>GtkCellArea</code> should move
+  focus from cell to cell inside the area and return <code>FALSE</code> if focus
+  logically leaves the area with the following exceptions: When the
+  area contains no activatable cells, the entire area receives focus.
+  Focus should not be given to cells that are actually “focus siblings”
+  of other sibling cells (see gtk_cell_area_get_focus_from_sibling()).
+  Focus is set by calling&nbsp;gtk_cell_area_set_focus_cell().</p></dd>
+        
+          <dt><code>is_activatable: gboolean (* is_activatable) (
+    GtkCellArea* area
+  )</code></dt>
+          <dd><p>Returns whether the <code>GtkCellArea</code> can respond to
+  <code>GtkCellAreaClass.activate()</code>, usually this does not need to be
+  implemented since the base class takes care of this however it can
+  be enhanced if the <code>GtkCellArea</code> subclass can handle activation in
+  other ways than activating its <code>GtkCellRenderers</code>.</p></dd>
+        
+          <dt><code>activate: gboolean (* activate) (
+    GtkCellArea* area,
+    GtkCellAreaContext* context,
+    GtkWidget* widget,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags,
+    gboolean edit_only
+  )</code></dt>
+          <dd><p>This is called when the layouting widget rendering the
+  <code>GtkCellArea</code> activates the focus cell (see&nbsp;gtk_cell_area_get_focus_cell()).</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="deprecated">
+        <h6 id="vfunc-activate"><a href="vfunc.CellArea.activate.html">Gtk.CellAreaClass.activate</a></h6>
+        <div class="docblock">
+          <p>Activates <code>area</code>, usually by activating the currently focused
+cell, however some subclasses which embed widgets in the area
+can also activate a widget if it currently has the&nbsp;focus.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-add"><a href="vfunc.CellArea.add.html">Gtk.CellAreaClass.add</a></h6>
+        <div class="docblock">
+          <p>Adds <code>renderer</code> to <code>area</code> with the default child cell&nbsp;properties.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-apply_attributes"><a href="vfunc.CellArea.apply_attributes.html">Gtk.CellAreaClass.apply_attributes</a></h6>
+        <div class="docblock">
+          <p>Applies any connected attributes to the renderers in
+<code>area</code> by pulling the values from <code>tree_model</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-copy_context"><a href="vfunc.CellArea.copy_context.html">Gtk.CellAreaClass.copy_context</a></h6>
+        <div class="docblock">
+          <p>This is sometimes needed for cases where rows need to share
+alignments in one orientation but may be separately grouped
+in the opposing&nbsp;orientation.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-create_context"><a href="vfunc.CellArea.create_context.html">Gtk.CellAreaClass.create_context</a></h6>
+        <div class="docblock">
+          <p>Creates a <code>GtkCellArea</code>Context to be used with <code>area</code> for
+all purposes. <code>GtkCellArea</code>Context stores geometry information
+for rows for which it was operated on, it is important to use
+the same context for the same row of data at all times (i.e.
+one should render and handle events with the same <code>GtkCellArea</code>Context
+which was used to request the size of those rows of&nbsp;data).</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-event"><a href="vfunc.CellArea.event.html">Gtk.CellAreaClass.event</a></h6>
+        <div class="docblock">
+          <p>Delegates event handling to a <code>GtkCellArea</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-focus"><a href="vfunc.CellArea.focus.html">Gtk.CellAreaClass.focus</a></h6>
+        <div class="docblock">
+          <p>This should be called by the <code>area</code>’s owning layout widget
+when focus is to be passed to <code>area</code>, or moved within <code>area</code>
+for a given <code>direction</code> and row&nbsp;data.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-foreach"><a href="vfunc.CellArea.foreach.html">Gtk.CellAreaClass.foreach</a></h6>
+        <div class="docblock">
+          <p>Calls <code>callback</code> for every <code>GtkCellRenderer</code> in <code>area</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-foreach_alloc"><a href="vfunc.CellArea.foreach_alloc.html">Gtk.CellAreaClass.foreach_alloc</a></h6>
+        <div class="docblock">
+          <p>Calls <code>callback</code> for every <code>GtkCellRenderer</code> in <code>area</code> with the
+allocated rectangle inside <code>cell_area</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_cell_property"><a href="vfunc.CellArea.get_cell_property.html">Gtk.CellAreaClass.get_cell_property</a></h6>
+        <div class="docblock">
+          <p>This should be implemented to report the values of
+  child cell properties for a given child <code>GtkCellRenderer</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_height"><a href="vfunc.CellArea.get_preferred_height.html">Gtk.CellAreaClass.get_preferred_height</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell area’s initial minimum and natural&nbsp;height.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_height_for_width"><a href="vfunc.CellArea.get_preferred_height_for_width.html">Gtk.CellAreaClass.get_preferred_height_for_width</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell area’s minimum and natural height if it would be given
+the specified <code>width</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_width"><a href="vfunc.CellArea.get_preferred_width.html">Gtk.CellAreaClass.get_preferred_width</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell area’s initial minimum and natural&nbsp;width.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_width_for_height"><a href="vfunc.CellArea.get_preferred_width_for_height.html">Gtk.CellAreaClass.get_preferred_width_for_height</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell area’s minimum and natural width if it would be given
+the specified <code>height</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_request_mode"><a href="vfunc.CellArea.get_request_mode.html">Gtk.CellAreaClass.get_request_mode</a></h6>
+        <div class="docblock">
+          <p>Gets whether the area prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-is_activatable"><a href="vfunc.CellArea.is_activatable.html">Gtk.CellAreaClass.is_activatable</a></h6>
+        <div class="docblock">
+          <p>Returns whether the area can do anything when activated,
+after applying new attributes to <code>area</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-remove"><a href="vfunc.CellArea.remove.html">Gtk.CellAreaClass.remove</a></h6>
+        <div class="docblock">
+          <p>Removes <code>renderer</code> from <code>area</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_cell_property"><a href="vfunc.CellArea.set_cell_property.html">Gtk.CellAreaClass.set_cell_property</a></h6>
+        <div class="docblock">
+          <p>This should be implemented to handle changes in child
+  cell properties for a given <code>GtkCellRenderer</code> that were previously
+  installed on the <code>GtkCellAreaClass</code> with&nbsp;gtk_cell_area_class_install_cell_property().</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-snapshot"><a href="vfunc.CellArea.snapshot.html">Gtk.CellAreaClass.snapshot</a></h6>
+        <div class="docblock">
+          <p>Snapshots <code>area</code>’s cells according to <code>area</code>’s layout onto at
+the given&nbsp;coordinates.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="class-methods">
+        Class methods
+        <a href="#class-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="deprecated">
+        <h6><a href="class_method.CellArea.find_cell_property.html">gtk_cell_area_class_find_cell_property</a></h6>
+        <div class="docblock">
+          <p>Finds a cell property of a cell area class by&nbsp;name.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6><a href="class_method.CellArea.install_cell_property.html">gtk_cell_area_class_install_cell_property</a></h6>
+        <div class="docblock">
+          <p>Installs a cell property on a cell area&nbsp;class.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6><a href="class_method.CellArea.list_cell_properties.html">gtk_cell_area_class_list_cell_properties</a></h6>
+        <div class="docblock">
+          <p>Returns all cell properties of a cell area&nbsp;class.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#requesting-area-sizes"><span class="link-text">Requesting area sizes</span></a></li>
+      
+        <li class="toc-list-item"><a href="#rendering-areas"><span class="link-text">Rendering Areas</span></a></li>
+      
+        <li class="toc-list-item"><a href="#handling-events-and-driving-keyboard-focus"><span class="link-text">Handling Events and Driving Keyboard Focus</span></a></li>
+      
+        <li class="toc-list-item"><a href="#cell-properties"><span class="link-text">Cell Properties</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#implements"><span class="link-text">Implements</span></a></li>
+      
+      
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#class-methods"><span class="link-text">Class methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

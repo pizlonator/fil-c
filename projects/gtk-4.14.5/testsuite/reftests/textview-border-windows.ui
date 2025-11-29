@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkTextView" id="textview1">
+        <property name="width_request">160</property>
+        <property name="height_request">160</property>
+        <property name="wrap_mode">word</property>
+        <property name="cursor_visible">0</property>
+        <signal name="map" handler="reftest:add_border_windows" swapped="no"/>
+      </object>
+    </child>
+  </object>
+</interface>

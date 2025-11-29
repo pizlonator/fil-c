@@ -1,0 +1,35 @@
+<!--*- xml -*-->
+<ui>
+  <menubar>
+    <menu name="FileMenu" action="FileMenuAction">
+      <menuitem name="New" action="NewAction" position="top" />
+      <separator name="Sep1" />
+      <separator name="Sep2" />
+      <menuitem name="Quit" action="QuitAction" always-show-image="true" />
+      <separator name="Sep3" />
+    </menu>
+    <menu name="EditMenu" action="EditMenuAction">
+      <menu name="EmptyMenu1" action="EmptyMenu1Action">
+        <menuitem name="Cut" action="CutAction" />
+      </menu>
+      <menu name="EmptyMenu2" action="EmptyMenu2Action">
+        <menuitem name="Cut" action="CutAction" />
+      </menu>
+    </menu>
+    <menu name="HelpMenu" action="HelpMenuAction">
+      <menuitem name="About" action="AboutAction" />
+    </menu>
+  </menubar>
+  <toolbar name="toolbar1">
+    <placeholder name="ToolbarPlaceholder">
+      <toolitem name="Quit" action="QuitAction" />
+      <separator name="Sep2"/>
+    </placeholder>
+  </toolbar>
+  <popup name="FileMenu" action="FileMenuAction">
+    <menuitem name="New" action="NewAction" position="top" />
+    <menu name="HelpMenu" action="HelpMenuAction">
+      <menuitem name="About" action="AboutAction" />
+    </menu>
+  </popup>
+</ui>

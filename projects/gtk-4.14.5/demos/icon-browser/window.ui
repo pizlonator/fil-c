@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="gear_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Inspector</attribute>
+        <attribute name="action">app.inspector</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About GTK Icon Browser</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+  <template class="IconBrowserWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">Icon Browser</property>
+    <property name="default-width">1024</property>
+    <property name="default-height">768</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="title">
+          <object class="GtkBox">
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkToggleButton" id="normal_radio">
+                <property name="focus-on-click">0</property>
+                <property name="label" translatable="yes">Normal</property>
+                <property name="active">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="symbolic_radio">
+                <property name="focus-on-click">0</property>
+                <property name="label" translatable="yes">Symbolic</property>
+                <property name="group">normal_radio</property>
+                <signal name="notify::active" handler="symbolic_toggled" swapped="yes" after="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkMenuButton" id="gear_menu_button">
+            <property name="focus-on-click">0</property>
+            <property name="valign">center</property>
+            <property name="menu-model">gear_menu</property>
+            <property name="icon-name">open-menu-symbolic</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkToggleButton" id="search">
+            <property name="focus-on-click">0</property>
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child>
+              <object class="GtkImage" id="search-icon">
+                <property name="icon-name">edit-find-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkScrolledWindow">
+            <style>
+              <class name="sidebar"/>
+            </style>
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="GtkListView">
+                <style>
+                  <class name="navigation-sidebar"/>
+                </style>
+                <property name="model">
+                  <object class="GtkSingleSelection" id="context_model">
+                    <property name="model">
+                      <object class="GListStore" id="context_store">
+                        <property name="item-type">IbContext</property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes">
+<![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="name" type="IbContext">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+]]>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="content_box">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkSearchBar" id="searchbar">
+                <property name="search-mode-enabled" bind-source="search" bind-property="active" bind-flags="bidirectional"/>
+                <child>
+                  <object class="GtkSearchEntry" id="searchentry">
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="sw">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <property name="hscrollbar-policy">never</property>
+                <child>
+                  <object class="GtkGridView" id="list">
+                    <style>
+                      <class name="content-view"/>
+                    </style>
+                    <signal name="activate" handler="item_activated"/>
+                    <property name="single-click-activate">1</property>
+                    <property name="model">
+                      <object class="GtkNoSelection">
+                        <property name="model">
+                          <object class="GtkFilterListModel" id="icon_filter_model">
+                            <property name="filter">
+                              <object class="GtkEveryFilter">
+                                <child>
+                                  <object class="GtkStringFilter">
+                                    <property name="expression">
+                                      <lookup name="name" type="IbIcon"/>
+                                    </property>
+                                    <binding name="search">
+                                      <lookup name="text" type="GtkSearchEntry">
+                                        searchentry
+                                      </lookup>
+                                    </binding>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkAnyFilter">
+                                    <child>
+                                      <object class="GtkBoolFilter" id="search_mode_filter">
+                                        <property name="expression">
+                                          <lookup name="search-mode-enabled">
+                                             searchbar
+                                          </lookup>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkStringFilter">
+                                        <property name="ignore-case">0</property>
+                                        <property name="match-mode">exact</property>
+                                        <property name="expression">
+                                          <lookup name="context" type="IbIcon"/>
+                                        </property>
+                                        <binding name="search">
+                                          <lookup name="id" type="IbContext">
+                                            <lookup name="selected-item" type="GtkSingleSelection">
+                                              context_model
+                                            </lookup>
+                                          </lookup>
+                                        </binding>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                            <property name="model">
+                              <object class="GListStore" id="icon_store">
+                                <property name="item-type">IbIcon</property>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="bytes">
+<![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkImage">
+            <property name="pixel-size">48</property>
+            <binding name="icon-name">
+              <lookup name="name" type="IbIcon">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="name" type="IbIcon">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+]]>
+                        </property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+
+  <object class="GtkDialog" id="details">
+    <property name="modal">1</property>
+    <property name="use-header-bar">1</property>
+    <property name="resizable">0</property>
+    <property name="hide-on-close">1</property>
+    <child internal-child="content_area">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="row-spacing">18</property>
+            <property name="column-spacing">18</property>
+            <property name="halign">center</property>
+            <child>
+              <object class="GtkImage" id="image1">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+             <object class="GtkImage" id="image2">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image3">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image4">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image5">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image6">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">5</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image7">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image8">
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">7</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">8×8</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">16×16</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label3">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">18×18</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label4">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">24×24</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label5">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">32×32</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label6">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">48×48</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">5</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label7">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">64×64</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+           <child>
+              <object class="GtkLabel" id="label8">
+                <property name="halign">center</property>
+                <property name="valign">baseline</property>
+                <property name="label">scalable</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">7</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label" translatable="yes">Copy to Clipboard</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-start">20</property>
+            <property name="margin-end">20</property>
+            <property name="margin-top">20</property>
+            <property name="margin-bottom">20</property>
+            <signal name="clicked" handler="copy_to_clipboard"/>
+          </object>
+        </child>
+       <child>
+          <object class="GtkLabel" id="description">
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="wrap">1</property>
+            <property name="max-width-chars">60</property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
+

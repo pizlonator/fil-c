@@ -1,0 +1,17 @@
+/* make image larger so overdraw gets visible */
+border {
+  outline: 0 0 50 50;
+}
+
+/* do a non-scissorable clip */
+rounded-clip {
+  clip: 0 10 50 30 / 10;
+  /* do a scissorable clip that is larger
+     than the clip before */
+  child: clip {
+    clip: 10 0 30 50;
+    child: color {
+      color: blue;
+    }
+  }
+}

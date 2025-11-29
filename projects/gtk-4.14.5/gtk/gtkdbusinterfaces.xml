@@ -1,0 +1,91 @@
+<node>
+<interface name="org.Gtk.MountOperationHandler">
+
+  <!--
+    AskPassword:
+    @id: an opaque ID identifying the object for which the operation is requested.
+         The ID must be unique in the context of the calling process.
+    @message: the message to display
+    @icon_name: the name of an icon to display
+    @default_user: the default username for display
+    @default_domain: the default domain for display
+    @flags: a set of GAskPasswordFlags
+    @response: a GMountOperationResult
+    @response_details: a dictionary containing the response details as
+    entered by the user. The dictionary MAY contain the following properties:
+      - "password" -> (s): a password to be used to complete the mount operation
+      - "password_save" -> (u): a GPasswordSave
+
+    The dialog will stay visible until clients call the Close() method, or
+    another dialog becomes visible.
+    Calling AskPassword again for the same id will have the effect to clear
+    the existing dialog and update it with a message indicating the previous
+    attempt went wrong.
+  -->
+<method name="AskPassword">
+    <arg type="s" direction="in" name="id"/>
+    <arg type="s" direction="in" name="message"/>
+    <arg type="s" direction="in" name="icon_name"/>
+    <arg type="s" direction="in" name="default_user"/>
+    <arg type="s" direction="in" name="default_domain"/>
+    <arg type="u" direction="in" name="flags"/>
+    <arg type="u" direction="out" name="response"/>
+    <arg type="a{sv}" direction="out" name="response_details"/>
+</method>
+  <!--
+    AskQuestion:
+    @id: an opaque ID identifying the object for which the operation is requested
+         The ID must be unique in the context of the calling process.
+    @message: the message to display
+    @icon_name: the name of an icon to display
+    @choices: an array of choice strings
+    GetResponse:
+    @response: a GMountOperationResult
+    @response_details: a dictionary containing the response details as
+    entered by the user. The dictionary MAY contain the following properties:
+      - "choice" -> (i): the chosen answer among the array of strings passed in
+
+    The dialog will stay visible until clients call the Close() method, or
+    another dialog becomes visible.
+    Calling AskQuestion again for the same id will have the effect to clear
+    update the dialog with the new question.
+  -->
+<method name="AskQuestion">
+    <arg type="s" direction="in" name="id"/>
+    <arg type="s" direction="in" name="message"/>
+    <arg type="s" direction="in" name="icon_name"/>
+    <arg type="as" direction="in" name="choices"/>
+    <arg type="u" direction="out" name="response"/>
+    <arg type="a{sv}" direction="out" name="response_details"/>
+</method>
+  <!--
+    ShowProcesses:
+    @id: an opaque ID identifying the object for which the operation is requested
+         The ID must be unique in the context of the calling process.
+    @message: the message to display
+    @icon_name: the name of an icon to display
+    @application_pids: the PIDs of the applications to display
+    @choices: an array of choice strings
+    @response: a GMountOperationResult
+    @response_details: a dictionary containing the response details as
+    entered by the user. The dictionary MAY contain the following properties:
+      - "choice" -> (i): the chosen answer among the array of strings passed in
+
+    The dialog will stay visible until clients call the Close() method, or
+    another dialog becomes visible.
+    Calling ShowProcesses again for the same id will have the effect to clear
+    the existing dialog and update it with the new message and the new list
+    of processes.
+  -->
+<method name="ShowProcesses">
+    <arg type="s" direction="in" name="id"/>
+    <arg type="s" direction="in" name="message"/>
+    <arg type="s" direction="in" name="icon_name"/>
+    <arg type="ai" direction="in" name="application_pids"/>
+    <arg type="as" direction="in" name="choices"/>
+    <arg type="u" direction="out" name="response"/>
+    <arg type="a{sv}" direction="out" name="response_details"/>
+</method>
+<method name="Close"/>
+</interface>
+</node>

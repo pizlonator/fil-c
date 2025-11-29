@@ -1,0 +1,31 @@
+gtk-reftest is a new test runner supposed to do a lot of generic tests.
+Run it like this:
+
+./gtk-reftest [OPTIONS] TESTFILE [TESTFILES...]
+
+where FILE is a GtkBuilder ui file to run.
+
+For a general test named "test", you want to have the following files:
+1) test.ui
+2) test.ref.ui
+3) test.css (optional)
+The test will then check that test.ui and test.ref.ui are rendered
+identically with the provided css.
+
+In detail, for every provided TESTFILE the test runner will:
+1) Add the css to the default screen
+2) Load the test.ui file and the test.ref.ui file
+3) Grab the first GtkWindow subclass widget
+4) gtk_widget_show() it and take a snapshot image of its contents into
+   a cairo surface.
+5) Compare the two images to be bitwise identical. If they are not, a
+   diff image will be created highlighting the differences.
+6) Save the images as png files to the output directory named:
+   - test.out.png (rendering of test.ui)
+   - test.ref.png (rendering of test.ref.ui)
+   - test.diff.png (optional, differences from step 5)
+7) Fail the test if the two images are not bitwise identical
+
+Credit for the idea of reftests goes to Mozilla and in particular David
+Baron. For a larger introduction of why reftests are useful, see
+http://weblogs.mozillazine.org/roc/archives/2008/12/reftests.html

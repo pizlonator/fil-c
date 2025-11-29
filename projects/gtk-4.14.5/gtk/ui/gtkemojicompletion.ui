@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkEmojiCompletion" parent="GtkPopover">
+    <property name="autohide">0</property>
+    <property name="has-arrow">0</property>
+    <style>
+      <class name="emoji-completion"/>
+    </style>
+    <child>
+      <object class="GtkListBox" id="list">
+        <property name="selection-mode">0</property>
+        <signal name="row-activated" handler="row_activated"/>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,247 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorLogs" parent="GtkWidget">
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">20</property>
+        <property name="spacing">20</property>
+        <property name="halign">center</property>
+        <property name="hexpand">1</property>
+        <property name="valign">start</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">GDK</property>
+                <property name="margin-bottom">10</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="weight" value="bold"></attribute>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="events">
+                <property name="label">Events</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="misc">
+                <property name="label">Misc</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="dnd">
+                <property name="label">Drag-and-Drop</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="input">
+                <property name="label">Input</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="eventloop">
+                <property name="label">Event loop</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="frames">
+                <property name="label">Frames</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="settings">
+                <property name="label">Settings</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="opengl">
+                <property name="label">OpenGL</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="vulkan">
+                <property name="label">Vulkan</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="selection">
+                <property name="label">Selection</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="clipboard">
+                <property name="label">Clipboard</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="dmabuf">
+                <property name="label">Dmabuf</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="offload">
+                <property name="label">Offload</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">GSK</property>
+                <property name="margin-bottom">10</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="weight" value="bold"></attribute>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="renderer">
+                <property name="label">Renderer</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="cairo">
+                <property name="label">Cairo</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="vulkan_gsk">
+                <property name="label">Vulkan</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="shaders">
+                <property name="label">Shaders</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="glyphcache">
+                <property name="label">Glyph Cache</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="verbose">
+                <property name="label">Verbose</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">GTK</property>
+                <property name="margin-bottom">10</property>
+                <property name="xalign">0</property>
+                <attributes>
+                  <attribute name="weight" value="bold"></attribute>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="actions">
+                <property name="label">Actions</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="builder">
+                <property name="label">Builder</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="sizes">
+                <property name="label">Size allocation</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="icons">
+                <property name="label">Icons</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="keybindings">
+                <property name="label">Keybindings</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="modules">
+                <property name="label">Modules</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="printing">
+                <property name="label">Printing</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="tree">
+                <property name="label">Treeview</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="text">
+                <property name="label">Textview</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="constraints">
+                <property name="label">Constraints</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="layout">
+                <property name="label">Layout</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="a11y">
+                <property name="label">Accessibility</property>
+                <signal name="toggled" handler="flag_toggled"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

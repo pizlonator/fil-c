@@ -1,0 +1,15 @@
+a {
+  background-image: cross-fade(linear-gradient(rgb(1,2,3), rgb(1,2,3)), image(rgb(0,0,0)));
+}
+
+b {
+  background-image: cross-fade(0% linear-gradient(rgb(1,2,3), rgb(1,2,3)), image(rgb(0,0,0)));
+}
+
+c {
+  background-image: cross-fade(100% linear-gradient(rgb(1,2,3), rgb(1,2,3)), linear-gradient(rgb(3,2,1), rgb(3,2,1)));
+}
+
+d {
+  background-image: cross-fade(75% cross-fade(linear-gradient(rgb(1,2,3), rgb(1,2,3))), linear-gradient(rgb(3,2,1), rgb(3,2,1)));
+}

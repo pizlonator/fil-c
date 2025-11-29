@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="SweeperGame" id="game">
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Minesweeper</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="">
+        <child>
+          <object class="GtkButton">
+            <property name="label">New Game</property>
+            <signal name="clicked" handler="minesweeper_new_game_cb" object="game" swapped="no"/>
+          </object>
+        </child>
+        <child type="title">
+          <object class="GtkImage">
+            <property name="icon-name">trophy-gold</property>
+            <binding name="visible">
+              <lookup name="win">game</lookup>
+            </binding>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGridView" id="view">
+        <property name="model">
+          <object class="GtkNoSelection">
+            <property name="model">game</property>
+          </object>
+        </property>
+        <property name="single-click-activate">1</property>
+        <binding name="max-columns">
+          <lookup name="width">game</lookup>
+        </binding>
+        <binding name="min-columns">
+          <lookup name="width">game</lookup>
+        </binding>
+        <property name="factory">
+          <object class="GtkBuilderListItemFactory">
+            <property name="resource">/listview_minesweeper/listview_minesweeper_cell.ui</property>
+          </object>
+        </property>
+        <signal name="activate" handler="minesweeper_cell_clicked_cb" object="game" swapped="no"/>
+      </object>
+    </child>
+  </object>
+</interface>

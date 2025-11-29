@@ -1,0 +1,865 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Adjustment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Adjustment"/>
+  <meta property="og:description" content="Reference for Gtk.Adjustment"/>
+  <meta name="twitter:title" content="Gtk.Adjustment"/>
+  <meta name="twitter:description" content="Reference for Gtk.Adjustment"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Adjustment.html#description">Adjustment</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Adjustment.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Adjustment.clamp_page.html">clamp_page</a>
+  
+    <a class="method" href="method.Adjustment.configure.html">configure</a>
+  
+    <a class="method" href="method.Adjustment.get_lower.html">get_lower</a>
+  
+    <a class="method" href="method.Adjustment.get_minimum_increment.html">get_minimum_increment</a>
+  
+    <a class="method" href="method.Adjustment.get_page_increment.html">get_page_increment</a>
+  
+    <a class="method" href="method.Adjustment.get_page_size.html">get_page_size</a>
+  
+    <a class="method" href="method.Adjustment.get_step_increment.html">get_step_increment</a>
+  
+    <a class="method" href="method.Adjustment.get_upper.html">get_upper</a>
+  
+    <a class="method" href="method.Adjustment.get_value.html">get_value</a>
+  
+    <a class="method" href="method.Adjustment.set_lower.html">set_lower</a>
+  
+    <a class="method" href="method.Adjustment.set_page_increment.html">set_page_increment</a>
+  
+    <a class="method" href="method.Adjustment.set_page_size.html">set_page_size</a>
+  
+    <a class="method" href="method.Adjustment.set_step_increment.html">set_step_increment</a>
+  
+    <a class="method" href="method.Adjustment.set_upper.html">set_upper</a>
+  
+    <a class="method" href="method.Adjustment.set_value.html">set_value</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Adjustment.lower.html">lower</a>
+  
+    <a class="property" href="property.Adjustment.page-increment.html">page-increment</a>
+  
+    <a class="property" href="property.Adjustment.page-size.html">page-size</a>
+  
+    <a class="property" href="property.Adjustment.step-increment.html">step-increment</a>
+  
+    <a class="property" href="property.Adjustment.upper.html">upper</a>
+  
+    <a class="property" href="property.Adjustment.value.html">value</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Adjustment.changed.html">changed</a>
+  
+    <a class="signal" href="signal.Adjustment.value-changed.html">value-changed</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Adjustment.changed.html">changed</a>
+  
+    <a class="method" href="vfunc.Adjustment.value_changed.html">value_changed</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Adjustment</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkadjustment.c#L32">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.Adjustment : GObject.InitiallyUnowned
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkAdjustment</code> is a model for a numeric&nbsp;value.</p>
+<p>The <code>GtkAdjustment</code> has an associated lower and upper bound.
+It also contains step and page increments, and a page&nbsp;size.</p>
+<p>Adjustments are used within several <span class="caps">GTK</span> widgets, including
+<a href="class.SpinButton.html"><code>GtkSpinButton</code></a>, <a href="class.Viewport.html"><code>GtkViewport</code></a>, <a href="class.Scrollbar.html"><code>GtkScrollbar</code></a>
+and <a href="class.Scale.html"><code>GtkScale</code></a>.</p>
+<p>The <code>GtkAdjustment</code> object does not update the value itself. Instead
+it is left up to the owner of the <code>GtkAdjustment</code> to control the&nbsp;value.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Adjustment">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="129pt" height="188pt"
+ viewBox="0.00 0.00 129.00 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkAdjustment">
+<path fill="none" stroke="black" d="M98.5,-36C98.5,-36 22.5,-36 22.5,-36 16.5,-36 10.5,-30 10.5,-24 10.5,-24 10.5,-12 10.5,-12 10.5,-6 16.5,0 22.5,0 22.5,0 98.5,0 98.5,0 104.5,0 110.5,-6 110.5,-12 110.5,-12 110.5,-24 110.5,-24 110.5,-30 104.5,-36 98.5,-36"/>
+<text text-anchor="middle" x="60.5" y="-12.95" font-family="Times,serif" font-size="14.00">GtkAdjustment</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M109,-108C109,-108 12,-108 12,-108 6,-108 0,-102 0,-96 0,-96 0,-84 0,-84 0,-78 6,-72 12,-72 12,-72 109,-72 109,-72 115,-72 121,-78 121,-84 121,-84 121,-96 121,-96 121,-102 115,-108 109,-108"/>
+<text text-anchor="middle" x="60.5" y="-84.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M60.5,-71.7C60.5,-60.85 60.5,-46.92 60.5,-36.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M79.38,-180C79.38,-180 41.62,-180 41.62,-180 35.62,-180 29.62,-174 29.62,-168 29.62,-168 29.62,-156 29.62,-156 29.62,-150 35.62,-144 41.62,-144 41.62,-144 79.38,-144 79.38,-144 85.38,-144 91.38,-150 91.38,-156 91.38,-156 91.38,-168 91.38,-168 91.38,-174 85.38,-180 79.38,-180"/>
+<text text-anchor="middle" x="60.5" y="-156.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M60.5,-143.7C60.5,-132.85 60.5,-118.92 60.5,-108.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Adjustment.new.html">gtk_adjustment_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkAdjustment</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Adjustment.clamp_page.html">gtk_adjustment_clamp_page</a></h6>
+          <div class="docblock">
+            <p>Updates the value property to ensure that the range
+between <code>lower</code> and <code>upper</code> is in the current&nbsp;page.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.configure.html">gtk_adjustment_configure</a></h6>
+          <div class="docblock">
+            <p>Sets all properties of the adjustment at&nbsp;once.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_lower.html">gtk_adjustment_get_lower</a></h6>
+          <div class="docblock">
+            <p>Retrieves the minimum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_minimum_increment.html">gtk_adjustment_get_minimum_increment</a></h6>
+          <div class="docblock">
+            <p>Gets the smaller of step increment and page&nbsp;increment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_page_increment.html">gtk_adjustment_get_page_increment</a></h6>
+          <div class="docblock">
+            <p>Retrieves the page increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_page_size.html">gtk_adjustment_get_page_size</a></h6>
+          <div class="docblock">
+            <p>Retrieves the page size of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_step_increment.html">gtk_adjustment_get_step_increment</a></h6>
+          <div class="docblock">
+            <p>Retrieves the step increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_upper.html">gtk_adjustment_get_upper</a></h6>
+          <div class="docblock">
+            <p>Retrieves the maximum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.get_value.html">gtk_adjustment_get_value</a></h6>
+          <div class="docblock">
+            <p>Gets the current value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_lower.html">gtk_adjustment_set_lower</a></h6>
+          <div class="docblock">
+            <p>Sets the minimum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_page_increment.html">gtk_adjustment_set_page_increment</a></h6>
+          <div class="docblock">
+            <p>Sets the page increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_page_size.html">gtk_adjustment_set_page_size</a></h6>
+          <div class="docblock">
+            <p>Sets the page size of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_step_increment.html">gtk_adjustment_set_step_increment</a></h6>
+          <div class="docblock">
+            <p>Sets the step increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_upper.html">gtk_adjustment_set_upper</a></h6>
+          <div class="docblock">
+            <p>Sets the maximum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Adjustment.set_value.html">gtk_adjustment_set_value</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>GtkAdjustment</code> value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Adjustment.lower.html">Gtk.Adjustment:lower</a></h6>
+          <div class="docblock">
+            <p>The minimum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Adjustment.page-increment.html">Gtk.Adjustment:page-increment</a></h6>
+          <div class="docblock">
+            <p>The page increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Adjustment.page-size.html">Gtk.Adjustment:page-size</a></h6>
+          <div class="docblock">
+            <p>The page size of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Adjustment.step-increment.html">Gtk.Adjustment:step-increment</a></h6>
+          <div class="docblock">
+            <p>The step increment of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Adjustment.upper.html">Gtk.Adjustment:upper</a></h6>
+          <div class="docblock">
+            <p>The maximum value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Adjustment.value.html">Gtk.Adjustment:value</a></h6>
+          <div class="docblock">
+            <p>The value of the&nbsp;adjustment.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Adjustment.changed.html">Gtk.Adjustment::changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when one or more of the <code>GtkAdjustment</code> properties have been&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Adjustment.value-changed.html">Gtk.Adjustment::value-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the value has been&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkAdjustmentClass {
+  GInitiallyUnownedClass parent_class;
+  void (* changed) (
+    GtkAdjustment* adjustment
+  );
+  void (* value_changed) (
+    GtkAdjustment* adjustment
+  );
+  void (* _gtk_reserved1) (
+void
+  );
+  void (* _gtk_reserved2) (
+void
+  );
+  void (* _gtk_reserved3) (
+void
+  );
+  void (* _gtk_reserved4) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GInitiallyUnownedClass</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>changed: void (* changed) (
+    GtkAdjustment* adjustment
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>value_changed: void (* value_changed) (
+    GtkAdjustment* adjustment
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved1: void (* _gtk_reserved1) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved2: void (* _gtk_reserved2) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved3: void (* _gtk_reserved3) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved4: void (* _gtk_reserved4) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-changed"><a href="vfunc.Adjustment.changed.html">Gtk.AdjustmentClass.changed</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-value_changed"><a href="vfunc.Adjustment.value_changed.html">Gtk.AdjustmentClass.value_changed</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gsk.PathBuilder.free_to_path</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gsk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gsk.PathBuilder.free_to_path"/>
+  <meta priority="og:description" content="Reference for Gsk.PathBuilder.free_to_path"/>
+  <meta name="twitter:title" content="Gsk.PathBuilder.free_to_path"/>
+  <meta name="twitter:description" content="Reference for Gsk.PathBuilder.free_to_path"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gsk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gsk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="struct.PathBuilder.html">PathBuilder</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.PathBuilder.add_cairo_path.html">add_cairo_path</a>
+  
+    <a class="method" href="method.PathBuilder.add_circle.html">add_circle</a>
+  
+    <a class="method" href="method.PathBuilder.add_layout.html">add_layout</a>
+  
+    <a class="method" href="method.PathBuilder.add_path.html">add_path</a>
+  
+    <a class="method" href="method.PathBuilder.add_rect.html">add_rect</a>
+  
+    <a class="method" href="method.PathBuilder.add_reverse_path.html">add_reverse_path</a>
+  
+    <a class="method" href="method.PathBuilder.add_rounded_rect.html">add_rounded_rect</a>
+  
+    <a class="method" href="method.PathBuilder.add_segment.html">add_segment</a>
+  
+    <a class="method" href="method.PathBuilder.arc_to.html">arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.close.html">close</a>
+  
+    <a class="method" href="method.PathBuilder.conic_to.html">conic_to</a>
+  
+    <a class="method" href="method.PathBuilder.cubic_to.html">cubic_to</a>
+  
+    <a class="method current" href="method.PathBuilder.free_to_path.html">free_to_path</a>
+  
+    <a class="method" href="method.PathBuilder.get_current_point.html">get_current_point</a>
+  
+    <a class="method" href="method.PathBuilder.html_arc_to.html">html_arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.line_to.html">line_to</a>
+  
+    <a class="method" href="method.PathBuilder.move_to.html">move_to</a>
+  
+    <a class="method" href="method.PathBuilder.quad_to.html">quad_to</a>
+  
+    <a class="method" href="method.PathBuilder.ref.html">ref</a>
+  
+    <a class="method" href="method.PathBuilder.rel_arc_to.html">rel_arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_conic_to.html">rel_conic_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_cubic_to.html">rel_cubic_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_html_arc_to.html">rel_html_arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_line_to.html">rel_line_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_move_to.html">rel_move_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_quad_to.html">rel_quad_to</a>
+  
+    <a class="method" href="method.PathBuilder.rel_svg_arc_to.html">rel_svg_arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.svg_arc_to.html">svg_arc_to</a>
+  
+    <a class="method" href="method.PathBuilder.to_path.html">to_path</a>
+  
+    <a class="method" href="method.PathBuilder.unref.html">unref</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gsk</a><span class="sep"></span><a href="struct.PathBuilder.html">PathBuilder</a><span class="sep"></span>free_to_path</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p><span class="emblem available">since: 4.14</span></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gsk/gskpathbuilder.h#L44">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">GskPath</span><span class="o">*</span>
+<span class="n">gsk_path_builder_free_to_path</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GskPathBuilder</span><span class="o">*</span><span class="w"> </span><span class="n">self</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gsk/gskpathbuilder.c#L243">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Creates a new <code>GskPath</code> from the current state of the
+given builder, and unrefs the <code>builder</code> instance.</p>
+      </div>
+
+      <div class="docblock">
+        
+        <p>Available since: 4.14</p>
+        
+        
+        <p>This method is not directly available to language bindings.</p>
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="struct.Path.html"><code>GskPath</code></a></p>
+            <p>The newly created <code>GskPath</code>
+  with all the contours added to the&nbsp;builder.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkTextBuffer" id="textbuffer1">
+    <property name="text" translatable="yes">Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</property>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="decorated">0</property>
+    <property name="default_width">150</property>
+    <property name="resizable">0</property>
+    <child>
+      <object class="GtkTextView" id="textview1">
+        <property name="wrap_mode">word</property>
+        <property name="margin_start">8</property>
+        <property name="margin_end">8</property>
+        <property name="left_margin">2</property>
+        <property name="right_margin">2</property>
+        <property name="buffer">textbuffer1</property>
+      </object>
+    </child>
+  </object>
+</interface>

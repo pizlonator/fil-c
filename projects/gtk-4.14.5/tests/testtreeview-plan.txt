@@ -1,0 +1,87 @@
+This document is a laundry list of stuff to check if you want to
+verify that GtkTreeView and associated objects are working properly.
+It isn't a very formal test plan or anything.
+ 
+Launching:
+ - Launch testtreeview with --gtk-debug=tree, this will ensure that 
+   debugging code in the tree widget gets run.
+
+Automated tests:
+
+ - on startup, testtreeview runs some automated tests; these all have
+   to pass. 
+
+TreeModel testing:
+
+ - all the TreeView/TreeModel tests in this document should be run 
+   with each of the different models testtreeview supports. The 
+   option menu at the top of testtreeview lets you swap in the 
+   various models. The option menu includes each of the 
+   models that comes with GTK, in various configurations, 
+   and also NULL (no model).
+
+ - ensure that swapping in a new model for the tree view when there
+   was a preexisting one works OK 
+
+TreeViewColumn testing:
+ 
+ - clicking a column header pops up a property inspector for that 
+   column, use this to change column attributes for testing
+ 
+ - should test columns with 0, 1, and N columns in the tree view
+ 
+ - check that setting a column invisible works
+ 
+ - check that setting a column unclickable works
+
+ - check that setting the column width works 
+
+ - check that width of -1 unsets column width
+
+ - check that min/max widths can be set/unset and have the desired
+   effect
+
+ - check that setting the column title works
+
+ - check that the column with an image in it looks right, there should 
+   be such a column (once we support the custom widget feature)
+
+ - check that justification works
+
+TreeView testing:
+
+ - check that expansion/collapse of tree nodes with the expanders
+   works
+
+ - check that turning headers off works
+
+ - check that scrolling works properly
+
+ - check that autosize works (resize columns to a weird size, 
+   then click autosize to ensure they snap back to the original 
+   size)
+
+ - check move_to
+
+ - check expand_all, collapse_all
+
+Key navigation:
+ - FIXME, all the keybindings and what they are supposed to do
+
+TreeSelection testing:
+
+ - check that single and multi mode both work; single should allow zero 
+   or 1 rows selected, multi should allow any number.
+
+ - in multi, check that shift-select selects a contiguous region,
+   control-select selects a disjunct set of nodes
+
+ - check that retrieving the selection works
+
+ - check that foreach() works
+
+CellRenderer testing:
+
+ - these should be well-exercised by the multi-column test, be
+   sure everything looks correctly rendered
+

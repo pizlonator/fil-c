@@ -1,0 +1,112 @@
+This is a list of things to check when testing window size/pos functions.
+===
+
+gtk_widget_set_size_request():
+ - causes the widget to request the given size
+ - for toplevel windows, changes the default-requested size if 
+   no default size is set and gtk_window_resize() has not been called
+ - passing -1 for either width or height reverts to "natural" request
+   in that dimension
+ - passing 0 is allowed, and results in requisition of 1x1 
+   (0x0 is a permitted requisition, but equivalent to 1x1, 
+   we use 1x1 for implementation convenience)
+ - causes notifies on width_request, height_request properties
+
+gtk_window_set_default_size():
+ - has no effect after the window has been mapped the first time, 
+   unless the window has been unrealized in which case it should 
+   have an effect
+ - allows size of 0, equivalent to 1
+ - allows size of -1 to unset the default size
+ - clamped to geometry hints
+ - causes notifies on default_width, default_height properties
+
+gtk_window_get_default_size():
+ - returns the values last passed to set_default_size(), including 
+   -1. If set_default_size() has not been called, returns -1.
+
+gtk_window_move():
+ - always causes a configure request if the window is mapped, 
+   unless the last configure request we sent was for the same
+   position being moved to
+ - position may be negative to move windows offscreen
+ - if GTK_WIN_POS_CENTER_ALWAYS (or other future position 
+   constraints we may add) is in effect, the move
+   request is clamped to obey the constraints. thus
+   calling gtk_window_move() on a CENTER_ALWAYS window 
+   may trigger the window to bounce back to center if it 
+   wasn't there
+ - overrides all GTK_WIN_POS_ except CENTER_ALWAYS
+
+gtk_window_get_size():
+ - obtains the client-side known size of widget->window, 
+   as last received from a configure event
+ - prior to mapping, returns the default size we will request
+ - between realization and mapping, computes default size 
+   rather than looking at widget->window up-to-date size, 
+   so the size will be correct after force-realizing a window
+
+gtk_window_get_position():
+ - obtains the point to be passed to gtk_window_move() in order
+   to keep the window in its current position
+ - round-trips to the server to get the position; this is suboptimal
+   from both a race condition and speed standpoint but required to get
+   window frame size
+ - if the window is unmapped, returns the default position we will 
+   request
+
+gtk_window_set_position():
+ - not the inverse of get_position(), sadly
+ - modifies the default positioning of the window
+ - if set to CENTER_ALWAYS and the window is mapped, results in a
+   configure request moving the window to the center, unless the 
+   window was already centered
+ - ignored if gtk_window_move() called, with the exception 
+   of CENTER_ALWAYS
+
+gtk_window_parse_geometry():
+ - parses a standard X geometry string
+ - toggles on one or both of GDK_HINT_USER_SIZE, GDK_HINT_USER_POS
+ - "xprop" shows user size/position are set on the window
+ - calls gtk_window_set_default_size() to set the window size
+ - calls gtk_window_move() to set the window position
+ - calls gtk_window_set_gravity() to set the window gravity
+
+gtk_window_reshow_with_initial_size():
+ - for use by GUI builders; unrealizes and re-shows the window, 
+   using default size (and also position, but position 
+   is reset on any hide anyway)
+ - window should be positioned and sized as it was on initial map,
+   barring odd window managers
+
+gtk_window_set_geometry_hints():
+ - if a hint is set with this function, we do not override it
+   in other parts of the code
+
+General behavior
+===
+
+ - no infinite loops or nasty fighting-the-user flicker during 
+   operations such as moving/resizing a window
+
+Properties
+===
+
+GtkWindow::default_width, GtkWindow::default_height:
+ - default_width is -1 if unset, or >= 0 if 
+   a default width is set
+ - default_height is -1 if unset, or >= 0 if
+   a default height is set
+
+GtkWindow::resizable:
+ - if FALSE, we set the min size to the max size in the geometry 
+   hints. 
+ - If the app programmer has called gtk_window_set_geometry_hints()
+   however and set min or max size, we don't replace the hint they
+   set.
+
+GtkWidget::width_request, GtkWidget::height_request:
+ - if -1, default requisition of widget is used
+ - otherwise, override default requisition
+
+

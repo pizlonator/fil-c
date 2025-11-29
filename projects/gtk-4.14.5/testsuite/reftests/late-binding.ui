@@ -1,0 +1,18 @@
+<interface>
+  <object class="GtkWindow" id="window">
+    <child>
+      <object class="GtkLabel">
+        <style>
+          <class name="bold" />
+        </style>
+        <property name="xalign">0.0</property>
+        <binding name="label">
+          <lookup name="label">label2</lookup>
+        </binding>
+      </object>
+    </child>
+  </object>
+  <object class="GtkLabel" id="label2">
+    <property name="label">Bla</property>
+  </object>
+</interface>

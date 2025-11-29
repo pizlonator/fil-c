@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkEmojiChooser" parent="GtkPopover">
+    <property name="height-request">410</property>
+    <style>
+      <class name="emoji-picker"/>
+    </style>
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="orientation">1</property>
+        <child>
+          <object class="GtkBox">
+            <style>
+              <class name="emoji-searchbar"/>
+            </style>
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+                <property name="hexpand">1</property>
+                <signal name="search-changed" handler="search_changed"/>
+                <signal name="stop-search" handler="stop_search"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">list</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">1</property>
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolled_window">
+                        <property name="vexpand">1</property>
+                        <property name="hscrollbar-policy">2</property>
+                        <style>
+                          <class name="view"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox" id="emoji_box">
+                            <property name="orientation">1</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">6</property>
+                            <property name="margin-bottom">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkFlowBox" id="recent.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                                <child>
+                                  <object class="GtkGestureLongPress">
+                                    <signal name="pressed" handler="long_pressed_cb"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkGestureClick">
+                                    <property name="button">3</property>
+                                    <signal name="pressed" handler="pressed_cb"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="people.heading">
+                                <property name="label" translatable="yes" context="emoji category">Smileys &amp; People</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="people.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                                <child>
+                                  <object class="GtkGestureLongPress">
+                                    <signal name="pressed" handler="long_pressed_cb"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkGestureClick">
+                                    <property name="button">3</property>
+                                    <signal name="pressed" handler="pressed_cb"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="body.heading">
+                                <property name="label" translatable="yes" context="emoji category">Body &amp; Clothing</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="body.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                                <child>
+                                  <object class="GtkGestureLongPress">
+                                    <signal name="pressed" handler="long_pressed_cb"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkGestureClick">
+                                    <property name="button">3</property>
+                                    <signal name="pressed" handler="pressed_cb"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="nature.heading">
+                                <property name="label" translatable="yes" context="emoji category">Animals &amp; Nature</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="nature.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="food.heading">
+                                <property name="label" translatable="yes" context="emoji category">Food &amp; Drink</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="food.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="travel.heading">
+                                <property name="label" translatable="yes" context="emoji category">Travel &amp; Places</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="travel.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="activities.heading">
+                                <property name="label" translatable="yes" context="emoji category">Activities</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="activities.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="objects.heading">
+                                <property name="label" translatable="yes" context="emoji category">Objects</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="objects.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="symbols.heading">
+                                <property name="label" translatable="yes" context="emoji category">Symbols</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="symbols.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="flags.heading">
+                                <property name="label" translatable="yes" context="emoji category">Flags</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkFlowBox" id="flags.box">
+                                <property name="homogeneous">1</property>
+                                <property name="selection-mode">0</property>
+                                <signal name="child-activated" handler="emoji_activated"/>
+                                <signal name="keynav-failed" handler="keynav_failed"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkFlowBox">
+                        <property name="min-children-per-line">3</property>
+                        <property name="max-children-per-line">10</property>
+                        <property name="selection-mode">0</property>
+                        <style>
+                          <class name="emoji-toolbar"/>
+                        </style>
+                        <child>
+                          <object class="GtkButton" id="recent.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Recent</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="people.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Smileys &amp; People</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="body.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Body &amp; Clothing</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="nature.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Animals &amp; Nature</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="food.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Food &amp; Drink</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="travel.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Travel &amp; Places</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="activities.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Activities</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="objects.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Objects</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="symbols.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Symbols</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="flags.button">
+                            <property name="has-frame">0</property>
+                            <property name="tooltip-text" translatable="yes" context="emoji category">Flags</property>
+                            <style>
+                              <class name="emoji-section"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">empty</property>
+                <property name="child">
+                  <object class="GtkGrid">
+                    <property name="row-spacing">12</property>
+                    <property name="halign">3</property>
+                    <property name="valign">3</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">edit-find-symbolic</property>
+                        <property name="pixel-size">72</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">No Results Found</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"></attribute>
+                          <attribute name="scale" value="1.44"></attribute>
+                        </attributes>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Try a different search</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

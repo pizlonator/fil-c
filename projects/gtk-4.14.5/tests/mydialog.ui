@@ -1,0 +1,22 @@
+<interface>
+  <template class="MyDialog" parent="GtkDialog">
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="visible">True</property>
+        <property name="label">_Abort</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="go_button">
+        <property name="visible">True</property>
+        <property name="label">_Go</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="cancel">cancel_button</action-widget>
+      <action-widget response="apply" default="True">go_button</action-widget>
+    </action-widgets>
+  </template>
+</interface>

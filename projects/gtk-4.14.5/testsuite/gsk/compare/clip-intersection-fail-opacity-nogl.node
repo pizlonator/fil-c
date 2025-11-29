@@ -1,0 +1,30 @@
+color {
+  bounds: 0 0 50 50;
+  color: rgb(0,255,0);
+}
+opacity {
+  opacity: 0.2;
+  child: rounded-clip {
+    clip: 0 0 50 50 / 50 0 50 0;
+    child: clip {
+      clip: 2.5 2.5 45 45;
+      child: shadow {
+        shadows: rgb(0,0,0) 20 20, rgb(0,0,0) -20 -20;
+        child: container {
+          color {
+            bounds: 30 10 10 10;
+            color: rgb(255,0,0);
+          }
+          color {
+            bounds: 20 20 10 10;
+            color: rgb(255,0,0);
+          }
+          color {
+            bounds: 10 30 10 10;
+            color: rgb(255,0,0);
+          }
+        }
+      }
+    }
+  }
+}

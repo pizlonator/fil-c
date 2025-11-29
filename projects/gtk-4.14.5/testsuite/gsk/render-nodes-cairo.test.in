@@ -1,0 +1,4 @@
+[Test]
+Exec=/bin/sh -c "env G_ENABLE_DIAGNOSTIC=0 GSK_RENDERER=cairo GTK_A11Y=test @libexecdir@/installed-tests/gtk-4.0/gsk/test-render-nodes --tap -k --verbose"
+Type=session
+Output=TAP

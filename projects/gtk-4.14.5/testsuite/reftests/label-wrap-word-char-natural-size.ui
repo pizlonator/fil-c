@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="default-width">600</property>
+    <property name="default-height">300</property>
+    <child>
+      <object class="GtkBox">
+        <property name="halign">center</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">lots
+of
+lines</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">unwrappable words</property>
+            <property name="wrap">1</property>
+            <property name="wrap-mode">word-char</property>
+            <property name="natural-wrap-mode">word</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">single line of text</property>
+            <property name="wrap">1</property>
+            <property name="wrap-mode">word-char</property>
+            <property name="natural-wrap-mode">none</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

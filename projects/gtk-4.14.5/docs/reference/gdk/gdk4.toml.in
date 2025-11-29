@@ -1,0 +1,113 @@
+[library]
+version = "@version@"
+browse_url = "https://gitlab.gnome.org/GNOME/gtk/"
+repository_url = "https://gitlab.gnome.org/GNOME/gtk.git"
+website_url = "https://www.gtk.org"
+docs_url = "https://docs.gtk.org/gdk4/"
+authors = "GTK Development Team"
+logo_url = "gtk-logo.svg"
+license = "LGPL-2.1-or-later"
+description = "The GTK toolkit"
+dependencies = ["GObject-2.0", "Gio-2.0", "cairo-1.0", "Pango-1.0", "GdkPixbuf-2.0"]
+devhelp = true
+search_index = true
+
+  [dependencies."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
+
+  [dependencies."Gio-2.0"]
+  name = "Gio"
+  description = "GObject Interfaces and Objects, Networking, IPC, and I/O"
+  docs_url = "https://docs.gtk.org/gio/"
+
+  [dependencies."cairo-1.0"]
+  name = "cairo"
+  description = "A 2D graphics library with support for multiple output devices"
+  docs_url = "https://www.cairographics.org/manual/"
+
+  [dependencies."Pango-1.0"]
+  name = "Pango"
+  description = "Text shaping and rendering"
+  docs_url = "https://docs.gtk.org/Pango/"
+
+  [dependencies."GdkPixbuf-2.0"]
+  name = "GdkPixbuf"
+  description = "Image data loading"
+  docs_url = "https://docs.gtk.org/gdk-pixbuf/"
+
+related = ["GdkWayland-4.0", "GdkX11-4.0"]
+
+  [related."GdkWayland-4.0"]
+  name = "GdkWayland"
+  description = "GDK Wayland Backend"
+  docs_url = "https://docs.gtk.org/gdk4-wayland/"
+
+  [related."GdkX11-4.0"]
+  name = "GdkX11"
+  description = "GDK X11 Backend"
+  docs_url = "https://docs.gtk.org/gdk4-x11/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/"
+
+[extra]
+content_files = [
+  "keys.md",
+  "cairo.md",
+  "pango.md",
+  "wayland.md",
+  "x11.md",
+  "macos.md",
+]
+content_images = [
+  "../images/favicon.svg",
+  "../images/favicon-192x192.png",
+  "images/gtk-logo.svg",
+  "images/rotated-text.png",
+  "images/default_cursor.png",
+  "images/help_cursor.png",
+  "images/pointer_cursor.png",
+  "images/context_menu_cursor.png",
+  "images/progress_cursor.png",
+  "images/wait_cursor.png",
+  "images/cell_cursor.png",
+  "images/crosshair_cursor.png",
+  "images/text_cursor.png",
+  "images/vertical_text_cursor.png",
+  "images/alias_cursor.png",
+  "images/copy_cursor.png",
+  "images/no_drop_cursor.png",
+  "images/move_cursor.png",
+  "images/not_allowed_cursor.png",
+  "images/grab_cursor.png",
+  "images/grabbing_cursor.png",
+  "images/all_scroll_cursor.png",
+  "images/col_resize_cursor.png",
+  "images/row_resize_cursor.png",
+  "images/n_resize_cursor.png",
+  "images/e_resize_cursor.png",
+  "images/s_resize_cursor.png",
+  "images/w_resize_cursor.png",
+  "images/ne_resize_cursor.png",
+  "images/nw_resize_cursor.png",
+  "images/sw_resize_cursor.png",
+  "images/se_resize_cursor.png",
+  "images/ew_resize_cursor.png",
+  "images/ns_resize_cursor.png",
+  "images/nesw_resize_cursor.png",
+  "images/nwse_resize_cursor.png",
+  "images/zoom_in_cursor.png",
+  "images/zoom_out_cursor.png",
+  "images/popup-anchors.png",
+  "images/popup-flip.png",
+  "images/popup-slide.png",
+]
+content_base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/reference/gdk/"
+urlmap_file = "urlmap.js"

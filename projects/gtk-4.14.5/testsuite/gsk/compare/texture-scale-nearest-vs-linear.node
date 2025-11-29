@@ -1,0 +1,16 @@
+color-matrix {
+  matrix: matrix3d(1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1);
+  child: container {
+    texture-scale {
+      bounds: 0 0 20 10;
+      texture: "texture1" url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAEUlEQVQImWP4z8Dwn+E/w38AEPgD\
+/V+dao0AAAAASUVORK5CYII=\
+");
+    }
+    texture-scale {
+      bounds: 0 15 20 10;
+      filter: nearest;
+      texture: "texture1";
+    }
+  }
+}

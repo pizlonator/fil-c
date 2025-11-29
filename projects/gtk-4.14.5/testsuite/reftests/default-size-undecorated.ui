@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="width_request">600</property>
+    <property name="height_request">400</property>
+    <property name="decorated">0</property>
+    <property name="child">
+      <object class="GtkGrid">
+        <property name="valign">center</property>
+        <property name="halign">center</property>
+        <property name="column-spacing">10</property>
+        <property name="row-spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">default width:</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <!-- This binding should never do anything because the text is set to
+                 the correct value from the start, all we do is make sure it doesn't change -->
+            <property name="label" bind-source="window" bind-property="default-width">600</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">default height:</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <!-- This binding should never do anything because the text is set to
+                 the correct value from the start, all we do is make sure it doesn't change -->
+            <property name="label" bind-source="window" bind-property="default-height">400</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">&lt;tt&gt;left
+aligning&lt;/tt&gt;</property>
+            <property name="use_markup">1</property>
+            <property name="wrap">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2">
+            <property name="label" translatable="yes">&lt;tt&gt;center
+aligning&lt;/tt&gt;</property>
+            <property name="use_markup">1</property>
+            <property name="justify">center</property>
+            <property name="wrap">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label3">
+            <property name="label" translatable="yes">&lt;tt&gt;right
+aligning&lt;/tt&gt;</property>
+            <property name="use_markup">1</property>
+            <property name="justify">right</property>
+            <property name="wrap">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label4">
+            <property name="label" translatable="yes">&lt;tt&gt;Make the widget wide enough&lt;/tt&gt;</property>
+            <property name="use_markup">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

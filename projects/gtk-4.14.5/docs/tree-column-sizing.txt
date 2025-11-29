@@ -1,0 +1,103 @@
+The way that the GtkTreeView calculates sizing is pretty confusing.
+This is written down to help keep track of it in my head, and thus help
+anyone who hopes to work with the code in the future.
+-jrb
+
+HOW THE GTKTREEVIEW CALCULATES SIZE:
+====================================
+ When the view is given a new model, the first thing it does is walk
+through the model at the top level, creating a GtkRBNode for each
+element of the model.  Each node has a height of 0.  The RBTree is kept
+updated as the models structure changes.  Additionally, the user can
+expand, collapse, and select rows at this stage.  The RBTree is accurate
+-- it just has a height of zero for every row.
+
+When the widget is realized, it calls install_presize_handler, to setup
+the first-run function.  This is run before the expose event.
+
+HOW THE GTKTREEVIEWCOLUMN STORES SIZE:
+======================================
+
+There are a number of size related fields in the GtkTreeViewColumn
+structure.  These are all valid after realization:
+
+  column_type	    The sizing method to use when calculating the size
+		    of the column.  Can be GROW_ONLY, AUTO, and FIXED.
+
+  button_request    The width as requested by the button.
+
+  requested_width   The width of the column as requested by the column.
+		    It is the max requested width of the bcells in the
+		    column.  If the column_type is AUTO, then it is
+		    recalculated when a column changes.  Otherwise, it
+		    only grows.
+
+  resized_width     The width after the user has resized the column.
+
+  width             The actual width of the column as displayed.
+
+  fixed_width       The requested fixed width for the column iff it's
+		    sizing type is set to GTK_TREE_VIEW_COLUMN_FIXED.
+		    Used instead of requested_width in that case.
+
+  min_width	    The minimum width the column can be.  If set to -1,
+		    this field is considered unset.
+
+  max_width	    The maximum width the column can be.  This can be
+		    overridden for the last column, if the tree_view is
+		    actually wider than the sum of all of the columns
+		    requested_widths.  If set to -1, this field is
+		    considered unset.
+
+
+  use_resized_width Use resized_width to determine the size.
+
+
+--
+tree_view->priv->width  = the width the widget wants to be, including headers.
+tree_view->priv->height = the height the widget requests.  It's the sum
+			  of the width of all visible columns.
+
+Both of these are calculated in _gtk_tree_view_update_size
+
+--
+
+The following invariants are true:
+
+min_width is less than or equal to width
+
+max_width is greater than or equal to width
+
+min_width <= max_width
+
+(sizing == GTK_TREE_VIEW_COLUMN_FIXED) => (requested_width == fixed_width)
+
+(column != last visible column) => width == CLAMP (requested_width, min_width, max_width)
+
+
+HOW THE VERTICAL OFFSET IS CALCULATED
+(This has nothing to do with columns)
+=====================================
+
+The current offset of the tree is determined by:
+
+tree_view->priv->dy
+
+All motion/button/expose events take this as the offset when trying to
+draw the tree.  There are also two other related members:
+
+tree_view->priv->top_row
+tree_view->priv->top_row_dy
+
+In general _gtk_rbtree_node_find_offset (tree_view->priv->top_row) +
+tree_view->priv->top_row_dy is the same as tree_view->priv->dy.
+We have the alternate method so we can update dy when the tree changes.
+There are two functions:
+
+gtk_tree_view_dy_to_top_row
+   and
+gtk_tree_view_top_row_to_dy
+
+They are called when the tree's confirmation changes, in order to sync
+the value appropriately.  Note that these two functions sometimes call
+each other to negotiate a correct value if needed.

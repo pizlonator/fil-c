@@ -1,0 +1,24 @@
+* {all: unset; }
+
+window {
+  background: lime;
+}
+
+box {
+  background-color: red;
+  background-image: linear-gradient(yellow, yellow), linear-gradient(white, white);
+  background-clip: border-box, content-box;
+  background-size: 50% 100%, 100% 50%;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  padding: 10px;
+  border: 1px solid blue;
+}
+
+window#reference box {
+  background-image: linear-gradient(red,red), linear-gradient(yellow, yellow);
+  background-clip: content-box, border-box;
+  background-size: 100% 100%, 50% 100%;
+  background-color: transparent;
+  background-blend-mode: normal;
+}

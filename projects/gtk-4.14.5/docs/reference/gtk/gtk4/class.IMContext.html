@@ -1,0 +1,1309 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.IMContext</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.IMContext"/>
+  <meta property="og:description" content="Reference for Gtk.IMContext"/>
+  <meta name="twitter:title" content="Gtk.IMContext"/>
+  <meta name="twitter:description" content="Reference for Gtk.IMContext"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.IMContext.html#description">IMContext</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.IMContext.activate_osk.html">activate_osk</a>
+  
+    <a class="method" href="method.IMContext.delete_surrounding.html">delete_surrounding</a>
+  
+    <a class="method" href="method.IMContext.filter_key.html">filter_key</a>
+  
+    <a class="method" href="method.IMContext.filter_keypress.html">filter_keypress</a>
+  
+    <a class="method" href="method.IMContext.focus_in.html">focus_in</a>
+  
+    <a class="method" href="method.IMContext.focus_out.html">focus_out</a>
+  
+    <a class="method" href="method.IMContext.get_preedit_string.html">get_preedit_string</a>
+  
+    <a class="method" href="method.IMContext.get_surrounding.html">get_surrounding</a>
+  
+    <a class="method" href="method.IMContext.get_surrounding_with_selection.html">get_surrounding_with_selection</a>
+  
+    <a class="method" href="method.IMContext.reset.html">reset</a>
+  
+    <a class="method" href="method.IMContext.set_client_widget.html">set_client_widget</a>
+  
+    <a class="method" href="method.IMContext.set_cursor_location.html">set_cursor_location</a>
+  
+    <a class="method" href="method.IMContext.set_surrounding.html">set_surrounding</a>
+  
+    <a class="method" href="method.IMContext.set_surrounding_with_selection.html">set_surrounding_with_selection</a>
+  
+    <a class="method" href="method.IMContext.set_use_preedit.html">set_use_preedit</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.IMContext.input-hints.html">input-hints</a>
+  
+    <a class="property" href="property.IMContext.input-purpose.html">input-purpose</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.IMContext.commit.html">commit</a>
+  
+    <a class="signal" href="signal.IMContext.delete-surrounding.html">delete-surrounding</a>
+  
+    <a class="signal" href="signal.IMContext.preedit-changed.html">preedit-changed</a>
+  
+    <a class="signal" href="signal.IMContext.preedit-end.html">preedit-end</a>
+  
+    <a class="signal" href="signal.IMContext.preedit-start.html">preedit-start</a>
+  
+    <a class="signal" href="signal.IMContext.retrieve-surrounding.html">retrieve-surrounding</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.IMContext.activate_osk.html">activate_osk</a>
+  
+    <a class="method" href="vfunc.IMContext.activate_osk_with_event.html">activate_osk_with_event</a>
+  
+    <a class="method" href="vfunc.IMContext.commit.html">commit</a>
+  
+    <a class="method" href="vfunc.IMContext.delete_surrounding.html">delete_surrounding</a>
+  
+    <a class="method" href="vfunc.IMContext.filter_keypress.html">filter_keypress</a>
+  
+    <a class="method" href="vfunc.IMContext.focus_in.html">focus_in</a>
+  
+    <a class="method" href="vfunc.IMContext.focus_out.html">focus_out</a>
+  
+    <a class="method" href="vfunc.IMContext.get_preedit_string.html">get_preedit_string</a>
+  
+    <a class="method" href="vfunc.IMContext.get_surrounding.html">get_surrounding</a>
+  
+    <a class="method" href="vfunc.IMContext.get_surrounding_with_selection.html">get_surrounding_with_selection</a>
+  
+    <a class="method" href="vfunc.IMContext.preedit_changed.html">preedit_changed</a>
+  
+    <a class="method" href="vfunc.IMContext.preedit_end.html">preedit_end</a>
+  
+    <a class="method" href="vfunc.IMContext.preedit_start.html">preedit_start</a>
+  
+    <a class="method" href="vfunc.IMContext.reset.html">reset</a>
+  
+    <a class="method" href="vfunc.IMContext.retrieve_surrounding.html">retrieve_surrounding</a>
+  
+    <a class="method" href="vfunc.IMContext.set_client_widget.html">set_client_widget</a>
+  
+    <a class="method" href="vfunc.IMContext.set_cursor_location.html">set_cursor_location</a>
+  
+    <a class="method" href="vfunc.IMContext.set_surrounding.html">set_surrounding</a>
+  
+    <a class="method" href="vfunc.IMContext.set_surrounding_with_selection.html">set_surrounding_with_selection</a>
+  
+    <a class="method" href="vfunc.IMContext.set_use_preedit.html">set_use_preedit</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>IMContext</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkimcontext.c#L27">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.IMContext : GObject.Object
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkIMContext</code> defines the interface for <span class="caps">GTK</span> input&nbsp;methods.</p>
+<p><code>GtkIMContext</code> is used by <span class="caps">GTK</span> text input widgets like <code>GtkText</code>
+to map from key events to Unicode character&nbsp;strings.</p>
+<p>An input method may consume multiple key events in sequence before finally
+outputting the composed result. This is called <em>preediting</em>, and an input
+method may provide feedback about this process by displaying the intermediate
+composition states as preedit text. To do so, the <code>GtkIMContext</code> will emit
+<a href="signal.IMContext.preedit-start.html"><code>GtkIMContext::preedit-start</code></a>, <a href="signal.IMContext.preedit-changed.html"><code>GtkIMContext::preedit-changed</code></a>
+and <a href="signal.IMContext.preedit-end.html"><code>GtkIMContext::preedit-end</code></a>&nbsp;signals.</p>
+<p>For instance, the built-in <span class="caps">GTK</span> input method <a href="class.IMContextSimple.html"><code>GtkIMContextSimple</code></a>
+implements the input of arbitrary Unicode code points by holding down the
+<kbd>Control</kbd> and <kbd>Shift</kbd> keys and then typing <kbd>u</kbd>
+followed by the hexadecimal digits of the code point. When releasing the
+<kbd>Control</kbd> and <kbd>Shift</kbd> keys, preediting ends and the
+character is inserted as text. For&nbsp;example,</p>
+<div class="codehilite"><pre><span></span><code>Ctrl+Shift+u 2 0 A C
+</code></pre></div>
+
+<p>results in the €&nbsp;sign.</p>
+<p>Additional input methods can be made available for use by <span class="caps">GTK</span> widgets as
+loadable modules. An input method module is a small shared library which
+provides a <code>GIOExtension</code> for the extension point named&nbsp;&#8220;gtk-im-module&#8221;.</p>
+<p>To connect a widget to the users preferred input method, you should use
+<a href="class.IMMulticontext.html"><code>GtkIMMulticontext</code></a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.IMContext">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="104pt" height="116pt"
+ viewBox="0.00 0.00 104.25 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkIMContext">
+<path fill="none" stroke="black" d="M84.25,-36C84.25,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 84.25,0 84.25,0 90.25,0 96.25,-6 96.25,-12 96.25,-12 96.25,-24 96.25,-24 96.25,-30 90.25,-36 84.25,-36"/>
+<text text-anchor="middle" x="48.12" y="-12.95" font-family="Times,serif" font-size="14.00">GtkIMContext</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M67,-108C67,-108 29.25,-108 29.25,-108 23.25,-108 17.25,-102 17.25,-96 17.25,-96 17.25,-84 17.25,-84 17.25,-78 23.25,-72 29.25,-72 29.25,-72 67,-72 67,-72 73,-72 79,-78 79,-84 79,-84 79,-96 79,-96 79,-102 73,-108 67,-108"/>
+<text text-anchor="middle" x="48.12" y="-84.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M48.12,-71.7C48.12,-60.85 48.12,-46.92 48.12,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.IMContextSimple.html" title="IMContextSimple">GtkIMContextSimple</a></li>
+        
+          <li class="class"><a href="class.IMMulticontext.html" title="IMMulticontext">GtkIMMulticontext</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.IMContext.activate_osk.html">gtk_im_context_activate_osk</a></h6>
+          <div class="docblock">
+            <p>Requests the platform to show an on-screen keyboard for user&nbsp;input.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.14</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.delete_surrounding.html">gtk_im_context_delete_surrounding</a></h6>
+          <div class="docblock">
+            <p>Asks the widget that the input context is attached to delete
+characters around the cursor position by emitting the
+<code>::delete_surrounding</code> signal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.filter_key.html">gtk_im_context_filter_key</a></h6>
+          <div class="docblock">
+            <p>Allow an input method to forward key press and release events
+to another input method without necessarily having a <code>GdkEvent</code>
+available.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.filter_keypress.html">gtk_im_context_filter_keypress</a></h6>
+          <div class="docblock">
+            <p>Allow an input method to internally handle key press and release&nbsp;events.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.focus_in.html">gtk_im_context_focus_in</a></h6>
+          <div class="docblock">
+            <p>Notify the input method that the widget to which this
+input context corresponds has gained&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.focus_out.html">gtk_im_context_focus_out</a></h6>
+          <div class="docblock">
+            <p>Notify the input method that the widget to which this
+input context corresponds has lost&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.get_preedit_string.html">gtk_im_context_get_preedit_string</a></h6>
+          <div class="docblock">
+            <p>Retrieve the current preedit string for the input context,
+and a list of attributes to apply to the&nbsp;string.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.IMContext.get_surrounding.html">gtk_im_context_get_surrounding</a></h6>
+          <div class="docblock">
+            <p>Retrieves context around the insertion&nbsp;point.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.2</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.get_surrounding_with_selection.html">gtk_im_context_get_surrounding_with_selection</a></h6>
+          <div class="docblock">
+            <p>Retrieves context around the insertion&nbsp;point.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.2</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.reset.html">gtk_im_context_reset</a></h6>
+          <div class="docblock">
+            <p>Notify the input method that a change such as a change in cursor
+position has been&nbsp;made.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.set_client_widget.html">gtk_im_context_set_client_widget</a></h6>
+          <div class="docblock">
+            <p>Set the client widget for the input&nbsp;context.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.set_cursor_location.html">gtk_im_context_set_cursor_location</a></h6>
+          <div class="docblock">
+            <p>Notify the input method that a change in cursor
+position has been&nbsp;made.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.IMContext.set_surrounding.html">gtk_im_context_set_surrounding</a></h6>
+          <div class="docblock">
+            <p>Sets surrounding context around the insertion point and preedit&nbsp;string.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.2</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.set_surrounding_with_selection.html">gtk_im_context_set_surrounding_with_selection</a></h6>
+          <div class="docblock">
+            <p>Sets surrounding context around the insertion point and preedit
+string. This function is expected to be called in response to the
+<code>GtkIMContext::retrieve-surrounding</code> signal, and will likely
+have no effect if called at other&nbsp;times.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.2</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.IMContext.set_use_preedit.html">gtk_im_context_set_use_preedit</a></h6>
+          <div class="docblock">
+            <p>Sets whether the <span class="caps">IM</span> context should use the preedit string
+to display&nbsp;feedback.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.IMContext.input-hints.html">Gtk.IMContext:input-hints</a></h6>
+          <div class="docblock">
+            <p>Additional hints that allow input methods to fine-tune
+their&nbsp;behaviour.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.IMContext.input-purpose.html">Gtk.IMContext:input-purpose</a></h6>
+          <div class="docblock">
+            <p>The purpose of the text field that the `GtkIMContext is connected&nbsp;to.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.IMContext.commit.html">Gtk.IMContext::commit</a></h6>
+          <div class="docblock">
+            <p>The ::commit signal is emitted when a complete input sequence
+has been entered by the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.IMContext.delete-surrounding.html">Gtk.IMContext::delete-surrounding</a></h6>
+          <div class="docblock">
+            <p>The ::delete-surrounding signal is emitted when the input method
+needs to delete all or part of the context surrounding the&nbsp;cursor.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.IMContext.preedit-changed.html">Gtk.IMContext::preedit-changed</a></h6>
+          <div class="docblock">
+            <p>The ::preedit-changed signal is emitted whenever the preedit sequence
+currently being entered has&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.IMContext.preedit-end.html">Gtk.IMContext::preedit-end</a></h6>
+          <div class="docblock">
+            <p>The ::preedit-end signal is emitted when a preediting sequence
+has been completed or&nbsp;canceled.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.IMContext.preedit-start.html">Gtk.IMContext::preedit-start</a></h6>
+          <div class="docblock">
+            <p>The ::preedit-start signal is emitted when a new preediting sequence&nbsp;starts.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.IMContext.retrieve-surrounding.html">Gtk.IMContext::retrieve-surrounding</a></h6>
+          <div class="docblock">
+            <p>The ::retrieve-surrounding signal is emitted when the input method
+requires the context surrounding the&nbsp;cursor.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkIMContextClass {
+  void (* preedit_start) (
+    GtkIMContext* context
+  );
+  void (* preedit_end) (
+    GtkIMContext* context
+  );
+  void (* preedit_changed) (
+    GtkIMContext* context
+  );
+  void (* commit) (
+    GtkIMContext* context,
+    const char* str
+  );
+  gboolean (* retrieve_surrounding) (
+    GtkIMContext* context
+  );
+  gboolean (* delete_surrounding) (
+    GtkIMContext* context,
+    int offset,
+    int n_chars
+  );
+  void (* set_client_widget) (
+    GtkIMContext* context,
+    GtkWidget* widget
+  );
+  void (* get_preedit_string) (
+    GtkIMContext* context,
+    char** str,
+    PangoAttrList** attrs,
+    int* cursor_pos
+  );
+  gboolean (* filter_keypress) (
+    GtkIMContext* context,
+    GdkEvent* event
+  );
+  void (* focus_in) (
+    GtkIMContext* context
+  );
+  void (* focus_out) (
+    GtkIMContext* context
+  );
+  void (* reset) (
+    GtkIMContext* context
+  );
+  void (* set_cursor_location) (
+    GtkIMContext* context,
+    GdkRectangle* area
+  );
+  void (* set_use_preedit) (
+    GtkIMContext* context,
+    gboolean use_preedit
+  );
+  void (* set_surrounding) (
+    GtkIMContext* context,
+    const char* text,
+    int len,
+    int cursor_index
+  );
+  gboolean (* get_surrounding) (
+    GtkIMContext* context,
+    char** text,
+    int* cursor_index
+  );
+  void (* set_surrounding_with_selection) (
+    GtkIMContext* context,
+    const char* text,
+    int len,
+    int cursor_index,
+    int anchor_index
+  );
+  gboolean (* get_surrounding_with_selection) (
+    GtkIMContext* context,
+    char** text,
+    int* cursor_index,
+    int* anchor_index
+  );
+  void (* activate_osk) (
+    GtkIMContext* context
+  );
+  gboolean (* activate_osk_with_event) (
+    GtkIMContext* context,
+    GdkEvent* event
+  );
+  void (* _gtk_reserved2) (
+void
+  );
+  void (* _gtk_reserved3) (
+void
+  );
+  void (* _gtk_reserved4) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>preedit_start: void (* preedit_start) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Default handler of the <a href="signal.IMContext.preedit-start.html"><code>GtkIMContext::preedit-start</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>preedit_end: void (* preedit_end) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Default handler of the <a href="signal.IMContext.preedit-end.html"><code>GtkIMContext::preedit-end</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>preedit_changed: void (* preedit_changed) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Default handler of the <a href="signal.IMContext.preedit-changed.html"><code>GtkIMContext::preedit-changed</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>commit: void (* commit) (
+    GtkIMContext* context,
+    const char* str
+  )</code></dt>
+          <dd><p>Default handler of the <a href="signal.IMContext.commit.html"><code>GtkIMContext::commit</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>retrieve_surrounding: gboolean (* retrieve_surrounding) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Default handler of the
+  <a href="signal.IMContext.retrieve-surrounding.html"><code>GtkIMContext::retrieve-surrounding</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>delete_surrounding: gboolean (* delete_surrounding) (
+    GtkIMContext* context,
+    int offset,
+    int n_chars
+  )</code></dt>
+          <dd><p>Default handler of the
+  <a href="signal.IMContext.delete-surrounding.html"><code>GtkIMContext::delete-surrounding</code></a>&nbsp;signal.</p></dd>
+        
+          <dt><code>set_client_widget: void (* set_client_widget) (
+    GtkIMContext* context,
+    GtkWidget* widget
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.set_client_widget.html"><code>gtk_im_context_set_client_widget()</code></a> when
+  the input window where the entered text will appear changes. Override this
+  to keep track of the current input window, for instance for the purpose of
+  positioning a status display of your input&nbsp;method.</p></dd>
+        
+          <dt><code>get_preedit_string: void (* get_preedit_string) (
+    GtkIMContext* context,
+    char** str,
+    PangoAttrList** attrs,
+    int* cursor_pos
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.get_preedit_string.html"><code>gtk_im_context_get_preedit_string()</code></a>
+  to retrieve the text currently being preedited for display at the cursor
+  position. Any input method which composes complex characters or any
+  other compositions from multiple sequential key presses should override
+  this method to provide&nbsp;feedback.</p></dd>
+        
+          <dt><code>filter_keypress: gboolean (* filter_keypress) (
+    GtkIMContext* context,
+    GdkEvent* event
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.filter_keypress.html"><code>gtk_im_context_filter_keypress()</code></a> on every
+  key press or release event. Every non-trivial input method needs to
+  override this in order to implement the mapping from key events to text.
+  A return value of <code>TRUE</code> indicates to the caller that the event was
+  consumed by the input method. In that case, the <a href="signal.IMContext.commit.html"><code>GtkIMContext::commit</code></a>
+  signal should be emitted upon completion of a key sequence to pass the
+  resulting text back to the input widget. Alternatively, <code>FALSE</code> may be
+  returned to indicate that the event wasn’t handled by the input method.
+  If a builtin mapping exists for the key, it is used to produce a&nbsp;character.</p></dd>
+        
+          <dt><code>focus_in: void (* focus_in) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.focus_in.html"><code>gtk_im_context_focus_in()</code></a> when the input widget
+  has gained focus. May be overridden to keep track of the current&nbsp;focus.</p></dd>
+        
+          <dt><code>focus_out: void (* focus_out) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.focus_out.html"><code>gtk_im_context_focus_out()</code></a> when the input widget
+  has lost focus. May be overridden to keep track of the current&nbsp;focus.</p></dd>
+        
+          <dt><code>reset: void (* reset) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.reset.html"><code>gtk_im_context_reset()</code></a> to signal a change such as a
+  change in cursor position. An input method that implements preediting
+  should override this method to clear the preedit state on&nbsp;reset.</p></dd>
+        
+          <dt><code>set_cursor_location: void (* set_cursor_location) (
+    GtkIMContext* context,
+    GdkRectangle* area
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.set_cursor_location.html"><code>gtk_im_context_set_cursor_location()</code></a>
+  to inform the input method of the current cursor location relative to
+  the client window. May be overridden to implement the display of popup
+  windows at the cursor&nbsp;position.</p></dd>
+        
+          <dt><code>set_use_preedit: void (* set_use_preedit) (
+    GtkIMContext* context,
+    gboolean use_preedit
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.set_use_preedit.html"><code>gtk_im_context_set_use_preedit()</code></a> to control
+  the use of the preedit string. Override this to display feedback by some
+  other means if turned&nbsp;off.</p></dd>
+        
+          <dt><code>set_surrounding: void (* set_surrounding) (
+    GtkIMContext* context,
+    const char* text,
+    int len,
+    int cursor_index
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.set_surrounding.html"><code>gtk_im_context_set_surrounding()</code></a> in
+  response to <a href="signal.IMContext.retrieve-surrounding.html"><code>GtkIMContext::retrieve-surrounding</code></a> signal to update
+  the input method’s idea of the context around the cursor. It is not necessary
+  to override this method even with input methods which implement
+  context-dependent behavior. The base implementation is sufficient for
+  <a href="method.IMContext.get_surrounding.html"><code>gtk_im_context_get_surrounding()</code></a> to&nbsp;work.</p></dd>
+        
+          <dt><code>get_surrounding: gboolean (* get_surrounding) (
+    GtkIMContext* context,
+    char** text,
+    int* cursor_index
+  )</code></dt>
+          <dd><p>Called via <a href="method.IMContext.get_surrounding.html"><code>gtk_im_context_get_surrounding()</code></a> to update
+  the context around the cursor location. It is not necessary to override this
+  method even with input methods which implement context-dependent behavior.
+  The base implementation emits <a href="signal.IMContext.retrieve-surrounding.html"><code>GtkIMContext::retrieve-surrounding</code></a>
+  and records the context received by the subsequent invocation of
+  <a href="vfunc.IMContext.get_surrounding.html"><code>Gtk.IMContextClass.get_surrounding</code></a>.</p></dd>
+        
+          <dt><code>set_surrounding_with_selection: void (* set_surrounding_with_selection) (
+    GtkIMContext* context,
+    const char* text,
+    int len,
+    int cursor_index,
+    int anchor_index
+  )</code></dt>
+          <dd><p>Called via
+  <a href="method.IMContext.set_surrounding_with_selection.html"><code>gtk_im_context_set_surrounding_with_selection()</code></a> in response to the
+  <a href="signal.IMContext.retrieve-surrounding.html"><code>GtkIMContext::retrieve-surrounding</code></a> signal to update the input
+  method’s idea of the context around the cursor. It is not necessary to
+  override this method even with input methods which implement
+  context-dependent behavior. The base implementation is sufficient for
+  <a href="method.IMContext.get_surrounding.html"><code>gtk_im_context_get_surrounding()</code></a> to&nbsp;work.</p></dd>
+        
+          <dt><code>get_surrounding_with_selection: gboolean (* get_surrounding_with_selection) (
+    GtkIMContext* context,
+    char** text,
+    int* cursor_index,
+    int* anchor_index
+  )</code></dt>
+          <dd><p>Called via
+  <a href="method.IMContext.get_surrounding_with_selection.html"><code>gtk_im_context_get_surrounding_with_selection()</code></a> to update the
+  context around the cursor location. It is not necessary to override
+  this method even with input methods which implement context-dependent
+  behavior. The base implementation emits
+  <a href="signal.IMContext.retrieve-surrounding.html"><code>GtkIMContext::retrieve-surrounding</code></a> and records the context
+  received by the subsequent invocation of <a href="vfunc.IMContext.get_surrounding.html"><code>Gtk.IMContextClass.get_surrounding</code></a>.</p></dd>
+        
+          <dt><code>activate_osk: void (* activate_osk) (
+    GtkIMContext* context
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>activate_osk_with_event: gboolean (* activate_osk_with_event) (
+    GtkIMContext* context,
+    GdkEvent* event
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved2: void (* _gtk_reserved2) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved3: void (* _gtk_reserved3) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved4: void (* _gtk_reserved4) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-activate_osk"><a href="vfunc.IMContext.activate_osk.html">Gtk.IMContextClass.activate_osk</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-activate_osk_with_event"><a href="vfunc.IMContext.activate_osk_with_event.html">Gtk.IMContextClass.activate_osk_with_event</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-commit"><a href="vfunc.IMContext.commit.html">Gtk.IMContextClass.commit</a></h6>
+        <div class="docblock">
+          <p>Default handler of the <code>GtkIMContext::commit</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-delete_surrounding"><a href="vfunc.IMContext.delete_surrounding.html">Gtk.IMContextClass.delete_surrounding</a></h6>
+        <div class="docblock">
+          <p>Asks the widget that the input context is attached to delete
+characters around the cursor position by emitting the
+<code>::delete_surrounding</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-filter_keypress"><a href="vfunc.IMContext.filter_keypress.html">Gtk.IMContextClass.filter_keypress</a></h6>
+        <div class="docblock">
+          <p>Allow an input method to internally handle key press and release&nbsp;events.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-focus_in"><a href="vfunc.IMContext.focus_in.html">Gtk.IMContextClass.focus_in</a></h6>
+        <div class="docblock">
+          <p>Notify the input method that the widget to which this
+input context corresponds has gained&nbsp;focus.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-focus_out"><a href="vfunc.IMContext.focus_out.html">Gtk.IMContextClass.focus_out</a></h6>
+        <div class="docblock">
+          <p>Notify the input method that the widget to which this
+input context corresponds has lost&nbsp;focus.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_preedit_string"><a href="vfunc.IMContext.get_preedit_string.html">Gtk.IMContextClass.get_preedit_string</a></h6>
+        <div class="docblock">
+          <p>Retrieve the current preedit string for the input context,
+and a list of attributes to apply to the&nbsp;string.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_surrounding"><a href="vfunc.IMContext.get_surrounding.html">Gtk.IMContextClass.get_surrounding</a></h6>
+        <div class="docblock">
+          <p>Retrieves context around the insertion&nbsp;point.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.2</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_surrounding_with_selection"><a href="vfunc.IMContext.get_surrounding_with_selection.html">Gtk.IMContextClass.get_surrounding_with_selection</a></h6>
+        <div class="docblock">
+          <p>Retrieves context around the insertion&nbsp;point.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 4.2</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_changed"><a href="vfunc.IMContext.preedit_changed.html">Gtk.IMContextClass.preedit_changed</a></h6>
+        <div class="docblock">
+          <p>Default handler of the <code>GtkIMContext::preedit-changed</code>
+  signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_end"><a href="vfunc.IMContext.preedit_end.html">Gtk.IMContextClass.preedit_end</a></h6>
+        <div class="docblock">
+          <p>Default handler of the <code>GtkIMContext::preedit-end</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_start"><a href="vfunc.IMContext.preedit_start.html">Gtk.IMContextClass.preedit_start</a></h6>
+        <div class="docblock">
+          <p>Default handler of the <code>GtkIMContext::preedit-start</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-reset"><a href="vfunc.IMContext.reset.html">Gtk.IMContextClass.reset</a></h6>
+        <div class="docblock">
+          <p>Notify the input method that a change such as a change in cursor
+position has been&nbsp;made.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-retrieve_surrounding"><a href="vfunc.IMContext.retrieve_surrounding.html">Gtk.IMContextClass.retrieve_surrounding</a></h6>
+        <div class="docblock">
+          <p>Default handler of the
+  <code>GtkIMContext::retrieve-surrounding</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_client_widget"><a href="vfunc.IMContext.set_client_widget.html">Gtk.IMContextClass.set_client_widget</a></h6>
+        <div class="docblock">
+          <p>Set the client widget for the input&nbsp;context.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_cursor_location"><a href="vfunc.IMContext.set_cursor_location.html">Gtk.IMContextClass.set_cursor_location</a></h6>
+        <div class="docblock">
+          <p>Notify the input method that a change in cursor
+position has been&nbsp;made.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-set_surrounding"><a href="vfunc.IMContext.set_surrounding.html">Gtk.IMContextClass.set_surrounding</a></h6>
+        <div class="docblock">
+          <p>Sets surrounding context around the insertion point and preedit&nbsp;string.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.2</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_surrounding_with_selection"><a href="vfunc.IMContext.set_surrounding_with_selection.html">Gtk.IMContextClass.set_surrounding_with_selection</a></h6>
+        <div class="docblock">
+          <p>Sets surrounding context around the insertion point and preedit
+string. This function is expected to be called in response to the
+<code>GtkIMContext::retrieve-surrounding</code> signal, and will likely
+have no effect if called at other&nbsp;times.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 4.2</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_use_preedit"><a href="vfunc.IMContext.set_use_preedit.html">Gtk.IMContextClass.set_use_preedit</a></h6>
+        <div class="docblock">
+          <p>Sets whether the <span class="caps">IM</span> context should use the preedit string
+to display&nbsp;feedback.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

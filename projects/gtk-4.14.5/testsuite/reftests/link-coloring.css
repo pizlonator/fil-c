@@ -1,0 +1,18 @@
+@import "reset-to-defaults.css";
+
+:link {
+  color: blue;
+}
+
+:visited {
+  color: purple;
+}
+
+:link,*, :visited * {
+  text-decoration: underline;
+}
+
+/* should never happen */
+:link:visited {
+  color: red;
+}

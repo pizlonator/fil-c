@@ -1,0 +1,16 @@
+<!-- test accessible relations -->
+<interface>
+  <object class="GtkBox">
+    <child>
+      <object class="GtkButton">
+        <accessibility>
+          <relation name="labelled-by">label</relation>
+          <relation name="controls">label</relation>
+        </accessibility>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label"/>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,1318 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.PrintSettings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.PrintSettings"/>
+  <meta property="og:description" content="Reference for Gtk.PrintSettings"/>
+  <meta name="twitter:title" content="Gtk.PrintSettings"/>
+  <meta name="twitter:description" content="Reference for Gtk.PrintSettings"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.PrintSettings.html#description">PrintSettings</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.PrintSettings.new.html">new</a>
+  
+    <a class="ctor" href="ctor.PrintSettings.new_from_file.html">new_from_file</a>
+  
+    <a class="ctor" href="ctor.PrintSettings.new_from_gvariant.html">new_from_gvariant</a>
+  
+    <a class="ctor" href="ctor.PrintSettings.new_from_key_file.html">new_from_key_file</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.PrintSettings.copy.html">copy</a>
+  
+    <a class="method" href="method.PrintSettings.foreach.html">foreach</a>
+  
+    <a class="method" href="method.PrintSettings.get.html">get</a>
+  
+    <a class="method" href="method.PrintSettings.get_bool.html">get_bool</a>
+  
+    <a class="method" href="method.PrintSettings.get_collate.html">get_collate</a>
+  
+    <a class="method" href="method.PrintSettings.get_default_source.html">get_default_source</a>
+  
+    <a class="method" href="method.PrintSettings.get_dither.html">get_dither</a>
+  
+    <a class="method" href="method.PrintSettings.get_double.html">get_double</a>
+  
+    <a class="method" href="method.PrintSettings.get_double_with_default.html">get_double_with_default</a>
+  
+    <a class="method" href="method.PrintSettings.get_duplex.html">get_duplex</a>
+  
+    <a class="method" href="method.PrintSettings.get_finishings.html">get_finishings</a>
+  
+    <a class="method" href="method.PrintSettings.get_int.html">get_int</a>
+  
+    <a class="method" href="method.PrintSettings.get_int_with_default.html">get_int_with_default</a>
+  
+    <a class="method" href="method.PrintSettings.get_length.html">get_length</a>
+  
+    <a class="method" href="method.PrintSettings.get_media_type.html">get_media_type</a>
+  
+    <a class="method" href="method.PrintSettings.get_n_copies.html">get_n_copies</a>
+  
+    <a class="method" href="method.PrintSettings.get_number_up.html">get_number_up</a>
+  
+    <a class="method" href="method.PrintSettings.get_number_up_layout.html">get_number_up_layout</a>
+  
+    <a class="method" href="method.PrintSettings.get_orientation.html">get_orientation</a>
+  
+    <a class="method" href="method.PrintSettings.get_output_bin.html">get_output_bin</a>
+  
+    <a class="method" href="method.PrintSettings.get_page_ranges.html">get_page_ranges</a>
+  
+    <a class="method" href="method.PrintSettings.get_page_set.html">get_page_set</a>
+  
+    <a class="method" href="method.PrintSettings.get_paper_height.html">get_paper_height</a>
+  
+    <a class="method" href="method.PrintSettings.get_paper_size.html">get_paper_size</a>
+  
+    <a class="method" href="method.PrintSettings.get_paper_width.html">get_paper_width</a>
+  
+    <a class="method" href="method.PrintSettings.get_print_pages.html">get_print_pages</a>
+  
+    <a class="method" href="method.PrintSettings.get_printer.html">get_printer</a>
+  
+    <a class="method" href="method.PrintSettings.get_printer_lpi.html">get_printer_lpi</a>
+  
+    <a class="method" href="method.PrintSettings.get_quality.html">get_quality</a>
+  
+    <a class="method" href="method.PrintSettings.get_resolution.html">get_resolution</a>
+  
+    <a class="method" href="method.PrintSettings.get_resolution_x.html">get_resolution_x</a>
+  
+    <a class="method" href="method.PrintSettings.get_resolution_y.html">get_resolution_y</a>
+  
+    <a class="method" href="method.PrintSettings.get_reverse.html">get_reverse</a>
+  
+    <a class="method" href="method.PrintSettings.get_scale.html">get_scale</a>
+  
+    <a class="method" href="method.PrintSettings.get_use_color.html">get_use_color</a>
+  
+    <a class="method" href="method.PrintSettings.has_key.html">has_key</a>
+  
+    <a class="method" href="method.PrintSettings.load_file.html">load_file</a>
+  
+    <a class="method" href="method.PrintSettings.load_key_file.html">load_key_file</a>
+  
+    <a class="method" href="method.PrintSettings.set.html">set</a>
+  
+    <a class="method" href="method.PrintSettings.set_bool.html">set_bool</a>
+  
+    <a class="method" href="method.PrintSettings.set_collate.html">set_collate</a>
+  
+    <a class="method" href="method.PrintSettings.set_default_source.html">set_default_source</a>
+  
+    <a class="method" href="method.PrintSettings.set_dither.html">set_dither</a>
+  
+    <a class="method" href="method.PrintSettings.set_double.html">set_double</a>
+  
+    <a class="method" href="method.PrintSettings.set_duplex.html">set_duplex</a>
+  
+    <a class="method" href="method.PrintSettings.set_finishings.html">set_finishings</a>
+  
+    <a class="method" href="method.PrintSettings.set_int.html">set_int</a>
+  
+    <a class="method" href="method.PrintSettings.set_length.html">set_length</a>
+  
+    <a class="method" href="method.PrintSettings.set_media_type.html">set_media_type</a>
+  
+    <a class="method" href="method.PrintSettings.set_n_copies.html">set_n_copies</a>
+  
+    <a class="method" href="method.PrintSettings.set_number_up.html">set_number_up</a>
+  
+    <a class="method" href="method.PrintSettings.set_number_up_layout.html">set_number_up_layout</a>
+  
+    <a class="method" href="method.PrintSettings.set_orientation.html">set_orientation</a>
+  
+    <a class="method" href="method.PrintSettings.set_output_bin.html">set_output_bin</a>
+  
+    <a class="method" href="method.PrintSettings.set_page_ranges.html">set_page_ranges</a>
+  
+    <a class="method" href="method.PrintSettings.set_page_set.html">set_page_set</a>
+  
+    <a class="method" href="method.PrintSettings.set_paper_height.html">set_paper_height</a>
+  
+    <a class="method" href="method.PrintSettings.set_paper_size.html">set_paper_size</a>
+  
+    <a class="method" href="method.PrintSettings.set_paper_width.html">set_paper_width</a>
+  
+    <a class="method" href="method.PrintSettings.set_print_pages.html">set_print_pages</a>
+  
+    <a class="method" href="method.PrintSettings.set_printer.html">set_printer</a>
+  
+    <a class="method" href="method.PrintSettings.set_printer_lpi.html">set_printer_lpi</a>
+  
+    <a class="method" href="method.PrintSettings.set_quality.html">set_quality</a>
+  
+    <a class="method" href="method.PrintSettings.set_resolution.html">set_resolution</a>
+  
+    <a class="method" href="method.PrintSettings.set_resolution_xy.html">set_resolution_xy</a>
+  
+    <a class="method" href="method.PrintSettings.set_reverse.html">set_reverse</a>
+  
+    <a class="method" href="method.PrintSettings.set_scale.html">set_scale</a>
+  
+    <a class="method" href="method.PrintSettings.set_use_color.html">set_use_color</a>
+  
+    <a class="method" href="method.PrintSettings.to_file.html">to_file</a>
+  
+    <a class="method" href="method.PrintSettings.to_gvariant.html">to_gvariant</a>
+  
+    <a class="method" href="method.PrintSettings.to_key_file.html">to_key_file</a>
+  
+    <a class="method" href="method.PrintSettings.unset.html">unset</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>PrintSettings</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/print/gtkprintsettings.c#L32">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.PrintSettings : GObject.Object
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>A <code>GtkPrintSettings</code> object represents the settings of a print dialog in
+a system-independent&nbsp;way.</p>
+<p>The main use for this object is that once you’ve printed you can get a
+settings object that represents the settings the user chose, and the next
+time you print you can pass that object in so that the user doesn’t have
+to re-set all his&nbsp;settings.</p>
+<p>Its also possible to enumerate the settings so that you can easily save
+the settings for the next time your app runs, or even store them in a
+document. The predefined keys try to use shared values as much as possible
+so that moving such a document between systems still&nbsp;works.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.PrintSettings">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="114pt" height="116pt"
+ viewBox="0.00 0.00 114.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkPrintSettings">
+<path fill="none" stroke="black" d="M94,-36C94,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 94,0 94,0 100,0 106,-6 106,-12 106,-12 106,-24 106,-24 106,-30 100,-36 94,-36"/>
+<text text-anchor="middle" x="53" y="-12.95" font-family="Times,serif" font-size="14.00">GtkPrintSettings</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M71.88,-108C71.88,-108 34.12,-108 34.12,-108 28.12,-108 22.12,-102 22.12,-96 22.12,-96 22.12,-84 22.12,-84 22.12,-78 28.12,-72 34.12,-72 34.12,-72 71.88,-72 71.88,-72 77.88,-72 83.88,-78 83.88,-84 83.88,-84 83.88,-96 83.88,-96 83.88,-102 77.88,-108 71.88,-108"/>
+<text text-anchor="middle" x="53" y="-84.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M53,-71.7C53,-60.85 53,-46.92 53,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.PrintSettings.new.html">gtk_print_settings_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkPrintSettings</code> object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.PrintSettings.new_from_file.html">gtk_print_settings_new_from_file</a></h6>
+          <div class="docblock">
+            <p>Reads the print settings from <code>file_name</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.PrintSettings.new_from_gvariant.html">gtk_print_settings_new_from_gvariant</a></h6>
+          <div class="docblock">
+            <p>Deserialize print settings from an a{sv}&nbsp;variant.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.PrintSettings.new_from_key_file.html">gtk_print_settings_new_from_key_file</a></h6>
+          <div class="docblock">
+            <p>Reads the print settings from the group <code>group_name</code> in <code>key_file</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.copy.html">gtk_print_settings_copy</a></h6>
+          <div class="docblock">
+            <p>Copies a <code>GtkPrintSettings</code> object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.foreach.html">gtk_print_settings_foreach</a></h6>
+          <div class="docblock">
+            <p>Calls <code>func</code> for each key-value pair of <code>settings</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get.html">gtk_print_settings_get</a></h6>
+          <div class="docblock">
+            <p>Looks up the string value associated with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_bool.html">gtk_print_settings_get_bool</a></h6>
+          <div class="docblock">
+            <p>Returns the boolean represented by the value
+that is associated with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_collate.html">gtk_print_settings_get_collate</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_COLLATE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_default_source.html">gtk_print_settings_get_default_source</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_DEFAULT_SOURCE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_dither.html">gtk_print_settings_get_dither</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_DITHER</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_double.html">gtk_print_settings_get_double</a></h6>
+          <div class="docblock">
+            <p>Returns the double value associated with <code>key</code>, or&nbsp;0.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_double_with_default.html">gtk_print_settings_get_double_with_default</a></h6>
+          <div class="docblock">
+            <p>Returns the floating point number represented by
+the value that is associated with <code>key</code>, or <code>default_val</code>
+if the value does not represent a floating point&nbsp;number.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_duplex.html">gtk_print_settings_get_duplex</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_DUPLEX</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_finishings.html">gtk_print_settings_get_finishings</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_FINISHINGS</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_int.html">gtk_print_settings_get_int</a></h6>
+          <div class="docblock">
+            <p>Returns the integer value of <code>key</code>, or&nbsp;0.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_int_with_default.html">gtk_print_settings_get_int_with_default</a></h6>
+          <div class="docblock">
+            <p>Returns the value of <code>key</code>, interpreted as
+an integer, or the default&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_length.html">gtk_print_settings_get_length</a></h6>
+          <div class="docblock">
+            <p>Returns the value associated with <code>key</code>, interpreted
+as a&nbsp;length.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_media_type.html">gtk_print_settings_get_media_type</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_MEDIA_TYPE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_n_copies.html">gtk_print_settings_get_n_copies</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_N_COPIES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_number_up.html">gtk_print_settings_get_number_up</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_NUMBER_UP</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_number_up_layout.html">gtk_print_settings_get_number_up_layout</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_NUMBER_UP_LAYOUT</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_orientation.html">gtk_print_settings_get_orientation</a></h6>
+          <div class="docblock">
+            <p>Get the value of <code>GTK_PRINT_SETTINGS_ORIENTATION</code>,
+converted to a <code>GtkPageOrientation</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_output_bin.html">gtk_print_settings_get_output_bin</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_OUTPUT_BIN</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_page_ranges.html">gtk_print_settings_get_page_ranges</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PAGE_RANGES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_page_set.html">gtk_print_settings_get_page_set</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PAGE_SET</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_paper_height.html">gtk_print_settings_get_paper_height</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PAPER_HEIGHT</code>,
+converted to <code>unit</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_paper_size.html">gtk_print_settings_get_paper_size</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PAPER_FORMAT</code>,
+converted to a <code>GtkPaperSize</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_paper_width.html">gtk_print_settings_get_paper_width</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PAPER_WIDTH</code>,
+converted to <code>unit</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_print_pages.html">gtk_print_settings_get_print_pages</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PRINT_PAGES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_printer.html">gtk_print_settings_get_printer</a></h6>
+          <div class="docblock">
+            <p>Convenience function to obtain the value of
+<code>GTK_PRINT_SETTINGS_PRINTER</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_printer_lpi.html">gtk_print_settings_get_printer_lpi</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_PRINTER_LPI</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_quality.html">gtk_print_settings_get_quality</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_QUALITY</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_resolution.html">gtk_print_settings_get_resolution</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_RESOLUTION</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_resolution_x.html">gtk_print_settings_get_resolution_x</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_RESOLUTION_X</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_resolution_y.html">gtk_print_settings_get_resolution_y</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_RESOLUTION_Y</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_reverse.html">gtk_print_settings_get_reverse</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_REVERSE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_scale.html">gtk_print_settings_get_scale</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_SCALE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.get_use_color.html">gtk_print_settings_get_use_color</a></h6>
+          <div class="docblock">
+            <p>Gets the value of <code>GTK_PRINT_SETTINGS_USE_COLOR</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.has_key.html">gtk_print_settings_has_key</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code>, if a value is associated with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.load_file.html">gtk_print_settings_load_file</a></h6>
+          <div class="docblock">
+            <p>Reads the print settings from <code>file_name</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.load_key_file.html">gtk_print_settings_load_key_file</a></h6>
+          <div class="docblock">
+            <p>Reads the print settings from the group <code>group_name</code> in <code>key_file</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set.html">gtk_print_settings_set</a></h6>
+          <div class="docblock">
+            <p>Associates <code>value</code> with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_bool.html">gtk_print_settings_set_bool</a></h6>
+          <div class="docblock">
+            <p>Sets <code>key</code> to a boolean&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_collate.html">gtk_print_settings_set_collate</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_COLLATE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_default_source.html">gtk_print_settings_set_default_source</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_DEFAULT_SOURCE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_dither.html">gtk_print_settings_set_dither</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_DITHER</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_double.html">gtk_print_settings_set_double</a></h6>
+          <div class="docblock">
+            <p>Sets <code>key</code> to a double&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_duplex.html">gtk_print_settings_set_duplex</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_DUPLEX</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_finishings.html">gtk_print_settings_set_finishings</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_FINISHINGS</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_int.html">gtk_print_settings_set_int</a></h6>
+          <div class="docblock">
+            <p>Sets <code>key</code> to an integer&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_length.html">gtk_print_settings_set_length</a></h6>
+          <div class="docblock">
+            <p>Associates a length in units of <code>unit</code> with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_media_type.html">gtk_print_settings_set_media_type</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_MEDIA_TYPE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_n_copies.html">gtk_print_settings_set_n_copies</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_N_COPIES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_number_up.html">gtk_print_settings_set_number_up</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_NUMBER_UP</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_number_up_layout.html">gtk_print_settings_set_number_up_layout</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_NUMBER_UP_LAYOUT</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_orientation.html">gtk_print_settings_set_orientation</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_ORIENTATION</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_output_bin.html">gtk_print_settings_set_output_bin</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_OUTPUT_BIN</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_page_ranges.html">gtk_print_settings_set_page_ranges</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PAGE_RANGES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_page_set.html">gtk_print_settings_set_page_set</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PAGE_SET</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_paper_height.html">gtk_print_settings_set_paper_height</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PAPER_HEIGHT</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_paper_size.html">gtk_print_settings_set_paper_size</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PAPER_FORMAT</code>,
+<code>GTK_PRINT_SETTINGS_PAPER_WIDTH</code> and
+<code>GTK_PRINT_SETTINGS_PAPER_HEIGHT</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_paper_width.html">gtk_print_settings_set_paper_width</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PAPER_WIDTH</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_print_pages.html">gtk_print_settings_set_print_pages</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PRINT_PAGES</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_printer.html">gtk_print_settings_set_printer</a></h6>
+          <div class="docblock">
+            <p>Convenience function to set <code>GTK_PRINT_SETTINGS_PRINTER</code>
+to <code>printer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_printer_lpi.html">gtk_print_settings_set_printer_lpi</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_PRINTER_LPI</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_quality.html">gtk_print_settings_set_quality</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_QUALITY</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_resolution.html">gtk_print_settings_set_resolution</a></h6>
+          <div class="docblock">
+            <p>Sets the values of <code>GTK_PRINT_SETTINGS_RESOLUTION</code>,
+<code>GTK_PRINT_SETTINGS_RESOLUTION_X</code> and
+<code>GTK_PRINT_SETTINGS_RESOLUTION_Y</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_resolution_xy.html">gtk_print_settings_set_resolution_xy</a></h6>
+          <div class="docblock">
+            <p>Sets the values of <code>GTK_PRINT_SETTINGS_RESOLUTION</code>,
+<code>GTK_PRINT_SETTINGS_RESOLUTION_X</code> and
+<code>GTK_PRINT_SETTINGS_RESOLUTION_Y</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_reverse.html">gtk_print_settings_set_reverse</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_REVERSE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_scale.html">gtk_print_settings_set_scale</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_SCALE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.set_use_color.html">gtk_print_settings_set_use_color</a></h6>
+          <div class="docblock">
+            <p>Sets the value of <code>GTK_PRINT_SETTINGS_USE_COLOR</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.to_file.html">gtk_print_settings_to_file</a></h6>
+          <div class="docblock">
+            <p>This function saves the print settings from <code>settings</code> to <code>file_name</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.to_gvariant.html">gtk_print_settings_to_gvariant</a></h6>
+          <div class="docblock">
+            <p>Serialize print settings to an a{sv}&nbsp;variant.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.to_key_file.html">gtk_print_settings_to_key_file</a></h6>
+          <div class="docblock">
+            <p>This function adds the print settings from <code>settings</code> to <code>key_file</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.PrintSettings.unset.html">gtk_print_settings_unset</a></h6>
+          <div class="docblock">
+            <p>Removes any value associated with <code>key</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+
+      
+
+      
+
+      
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

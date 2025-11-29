@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">Constraints</property>
+    <child>
+      <object class="GtkBox">
+        <property name="layout-manager">
+          <object class="GtkConstraintLayout">
+            <constraints>
+              <guide name="space"
+                     min-width="10" min-height="10"
+                     nat-width="100" nat-height="10"
+                     max-width="200" max-height="20"
+                     strength="strong"/>
+              <constraint target="button1" target-attribute="width"
+                          relation="le"
+                          constant="200"
+                          multiplier="2.5"
+                          strength="required"/>
+              <constraint target="super" target-attribute="start"
+                          relation="eq"
+                          source="button1" source-attribute="start"
+                          constant="-8"
+                          multiplier="100"
+                          strength="strong"/>
+              <constraint target="button1" target-attribute="width"
+                          relation="eq"
+                          source="button2" source-attribute="left"
+                          strength="medium"/>
+              <constraint target="button1" target-attribute="end"
+                          relation="eq"
+                          source="space" source-attribute="right"
+                          strength="weak"/>
+              <constraint target="space" target-attribute="end"
+                          relation="eq"
+                          source="button2" source-attribute="center-x"
+                          strength="required"/>
+              <constraint target="super" target-attribute="center-y"
+                          relation="eq"
+                          source="button2" source-attribute="baseline"
+                          constant="8"
+                          strength="required"/>
+              <constraint target="super" target-attribute="start"
+                          relation="eq"
+                          source="button3" source-attribute="start"
+                          constant="-8"
+                          strength="required"/>
+              <constraint target="super" target-attribute="end"
+                          relation="eq"
+                          source="button3" source-attribute="end"
+                          constant="8"
+                          strength="required"/>
+              <constraint target="super" target-attribute="top"
+                          relation="eq"
+                          source="button1" source-attribute="top"
+                          constant="-8"
+                          strength="required"/>
+              <constraint target="super" target-attribute="top"
+                          relation="eq"
+                          source="button2" source-attribute="top"
+                          constant="-8"
+                          strength="required"/>
+              <constraint target="button1" target-attribute="bottom"
+                          relation="eq"
+                          source="button3" source-attribute="top"
+                          constant="-12"
+                          strength="required"/>
+              <constraint target="button2" target-attribute="bottom"
+                          relation="eq"
+                          source="button3" source-attribute="top"
+                          constant="-12"
+                          strength="required"/>
+              <constraint target="button3" target-attribute="height"
+                          relation="eq"
+                          source="button1" source-attribute="height"
+                          strength="required"/>
+              <constraint target="button3" target-attribute="height"
+                          relation="eq"
+                          source="button2" source-attribute="height"
+                          strength="required"/>
+              <constraint target="super" target-attribute="bottom"
+                          relation="eq"
+                          source="button3" source-attribute="bottom"
+                          constant="8"
+                          strength="required"/>
+            </constraints>
+          </object>
+        </property>
+        <child>
+          <object class="GtkButton" id="button1">
+            <property name="label">Child 1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button2">
+            <property name="label">Child 2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button3">
+            <property name="label">Child 3</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="gear_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Inspector</attribute>
+        <attribute name="action">app.inspector</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+        <attribute name="action">win.show-help-overlay</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About GTK Demo</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="GtkApplicationWindow" id="window">
+    <property name="default-width">800</property>
+    <property name="default-height">600</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="headerbar">
+        <child>
+          <object class="GtkButton">
+            <property name="valign">center</property>
+            <property name="action-name">win.run</property>
+            <property name="focus-on-click">0</property>
+            <property name="label" translatable="yes">Run</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton">
+            <property name="icon-name">edit-find-symbolic</property>
+            <property name="valign">center</property>
+            <property name="focus-on-click">0</property>
+            <property name="active" bind-source="searchbar" bind-property="search-mode-enabled" bind-flags="bidirectional|sync-create"/>
+            <accessibility>
+              <property name="label" translatable="yes">Search</property>
+            </accessibility>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkMenuButton" id="gear_menu_button">
+            <property name="valign">center</property>
+            <property name="focus-on-click">0</property>
+            <property name="menu-model">gear_menu</property>
+            <property name="icon-name">open-menu-symbolic</property>
+            <accessibility>
+              <property name="label" translatable="yes">Primary menu</property>
+            </accessibility>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkSearchBar" id="searchbar">
+                <accessibility>
+                  <relation name="labelled-by">search-entry</relation>
+                </accessibility>
+                <property name="key-capture-widget">window</property>
+                <child>
+                  <object class="GtkSearchEntry" id="search-entry">
+                    <accessibility>
+                      <property name="label" translatable="yes">Search</property>
+                      <relation name="controls">listview</relation>
+                    </accessibility>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <style>
+                  <class name="sidebar"/>
+                </style>
+                <property name="hscrollbar-policy">never</property>
+                <property name="propagate-natural-width">1</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkListView" id="listview">
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                    <property name="tab-behavior">item</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/ui/main-listitem.ui</property>
+                      </object>
+                    </property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Demo list</property>
+                      <relation name="controls">notebook</relation>
+                    </accessibility>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkNotebook" id="notebook">
+            <property name="scrollable">1</property>
+            <property name="enable-popup">1</property>
+            <property name="show-border">0</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <child>
+              <object class="GtkNotebookPage">
+                <property name="tab-expand">1</property>
+                <property name="child">
+                  <object class="GtkScrolledWindow">
+                    <child>
+                      <object class="GtkTextView" id="info-textview">
+                        <property name="left-margin">20</property>
+                        <property name="right-margin">20</property>
+                        <property name="top-margin">20</property>
+                        <property name="bottom-margin">20</property>
+                        <property name="pixels-above-lines">6</property>
+                        <property name="pixels-below-lines">6</property>
+                        <property name="monospace">0</property>
+                        <property name="editable">0</property>
+                        <property name="wrap-mode">word</property>
+                        <property name="cursor-visible">0</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Info</property>
+                          <property name="description" translatable="yes">A description of the demo</property>
+                        </accessibility>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="tab">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">_Info</property>
+                    <property name="use-underline">1</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkNotebookPage">
+                <property name="position">1</property>
+                <property name="tab-expand">1</property>
+                <property name="child">
+                  <object class="GtkScrolledWindow" id="source-scrolledwindow">
+                    <child>
+                      <object class="GtkTextView" id="source-textview">
+                        <property name="left-margin">20</property>
+                        <property name="right-margin">20</property>
+                        <property name="top-margin">20</property>
+                        <property name="bottom-margin">20</property>
+                        <property name="editable">0</property>
+                        <property name="cursor-visible">0</property>
+                        <property name="monospace">1</property>
+                        <property name="wrap-mode">word</property>
+                        <property name="pixels-above-lines">2</property>
+                        <property name="pixels-below-lines">2</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Source</property>
+                          <property name="description" translatable="yes">The source code of the demo</property>
+                        </accessibility>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="tab">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Source</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

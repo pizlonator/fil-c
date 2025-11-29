@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/org/gtk/exampleapp/" id="org.gtk.exampleapp">
+    <key name="font" type="s">
+      <default>'Monospace 12'</default>
+      <summary>Font</summary>
+      <description>The font to be used for content.</description>
+    </key>
+    <key name="transition" type="s">
+      <choices>
+        <choice value='none'/>
+        <choice value='crossfade'/>
+        <choice value='slide-left-right'/>
+      </choices>
+      <default>'none'</default>
+      <summary>Transition</summary>
+      <description>The transition to use when switching tabs.</description>
+    </key>
+  </schema>
+</schemalist>

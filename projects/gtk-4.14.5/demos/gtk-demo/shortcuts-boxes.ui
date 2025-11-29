@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkShortcutsWindow" id="shortcuts-boxes">
+    <property name="modal">1</property>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">shortcuts</property>
+        <property name="max-height">12</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Overview</property>
+            <property name="view">overview</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F1</property>
+                <property name="title" translatable="yes">Help</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;Ctrl&gt;n</property>
+                <property name="title" translatable="yes">Create a new box</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;Ctrl&gt;f</property>
+                <property name="title" translatable="yes">Search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;Ctrl&gt;k</property>
+                <property name="title" translatable="yes">Keyboard shortcuts</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;Ctrl&gt;q</property>
+                <property name="title" translatable="yes">Close Window/Quit Boxes</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Box Creation and Properties</property>
+            <property name="view">wizard</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">ltr</property>
+                <property name="accelerator">&lt;Alt&gt;Right</property>
+                <property name="title" translatable="yes">Switch to the next page</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">ltr</property>
+                <property name="accelerator">&lt;Alt&gt;Left</property>
+                <property name="title" translatable="yes">Switch to the previous page</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">rtl</property>
+                <property name="accelerator">&lt;Alt&gt;Left</property>
+                <property name="title" translatable="yes">Switch to the next page</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">rtl</property>
+                <property name="accelerator">&lt;Alt&gt;Right</property>
+                <property name="title" translatable="yes">Switch to the previous page</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Box Display</property>
+            <property name="view">display</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Control_L+Alt_L</property>
+                <property name="title" translatable="yes">Grab/Ungrab keyboard</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">ltr</property>
+                <property name="accelerator">&lt;Alt&gt;Left</property>
+                <property name="title" translatable="yes">Back to overview</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="direction">rtl</property>
+                <property name="accelerator">&lt;Alt&gt;Right</property>
+                <property name="title" translatable="yes">Back to overview</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;Ctrl&gt;q</property>
+                <property name="title" translatable="yes">Close window/Quit Boxes</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F11</property>
+                <property name="title" translatable="yes">Fullscreen/Restore from fullscreen</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

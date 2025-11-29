@@ -1,0 +1,136 @@
+{
+    "app-id" : "org.gtk.WidgetFactory4",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "master",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "gtk4-widget-factory",
+    "tags" : [
+        "devel",
+        "development",
+        "nightly"
+    ],
+    "desktop-file-name-prefix" : "(Development) ",
+    "finish-args" : [
+        "--device=dri",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--talk-name=org.gtk.vfs",
+        "--talk-name=org.gtk.vfs.*"
+    ],
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/share/pkgconfig",
+        "/share/aclocal",
+        "/man",
+        "/share/man",
+        "/share/gtk-doc",
+        "*.la",
+        ".a",
+        "/lib/girepository-1.0",
+        "/share/gir-1.0",
+        "/share/doc"
+    ],
+    "modules" : [
+        {
+            "name" : "wayland",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "-Ddocumentation=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/wayland/wayland.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "graphene",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--libdir=/app/lib",
+                "-Dtests=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/ebassi/graphene.git"
+                }
+            ]
+        },
+        {
+            "name" : "libsass",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--libdir=/app/lib"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/lazka/libsass.git",
+                    "branch" : "meson"
+                }
+            ]
+        },
+        {
+            "name" : "sassc",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--libdir=/app/lib"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/lazka/sassc.git",
+                    "branch" : "meson"
+                }
+            ]
+        },
+        {
+            "name" : "pango",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--libdir=/app/lib"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/pango.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "gtk",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--libdir=/app/lib",
+                "-Dbuildtype=debugoptimized",
+                "-Ddemo-profile=devel"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gtk.git",
+                    "branch" : "main"
+                }
+            ]
+        }
+    ],
+    "build-options" : {
+        "env" : {
+            "DBUS_SESSION_BUS_ADDRESS" : "''",
+            "GSK_RENDERER" : "opengl",
+            "G_ENABLE_DEBUG" : "true"
+        }
+    }
+}

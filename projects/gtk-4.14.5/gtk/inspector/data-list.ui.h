@@ -1,0 +1,1 @@
+N_("Show data");

@@ -1,0 +1,103 @@
+// When color definition differs for dark and light variant
+// it gets @if ed depending on $variant
+
+$base_color: if($variant == 'light', #ffffff, lighten(desaturate(#241f31, 100%), 2%));
+$text_color: if($variant == 'light', black, white);
+$bg_color: if($variant == 'light', #f6f5f4, darken(desaturate(#3d3846, 100%), 4%));
+$fg_color: if($variant == 'light', #2e3436, #eeeeec);
+
+$selected_fg_color: #ffffff;
+$selected_bg_color: if($variant == 'light', #3584e4, darken(#3584e4, 20%));
+$selected_borders_color: if($variant== 'light', darken($selected_bg_color, 15%), darken($selected_bg_color, 30%));
+$selected_text_bg_color: if($variant == 'light', transparentize($selected_bg_color, 0.7), transparentize($selected_bg_color, 0.2));
+$borders_color: if($variant == 'light', darken($bg_color, 18%), darken($bg_color, 10%));
+$alt_borders_color: if($variant == 'light', darken($bg_color, 24%), darken($bg_color, 18%));
+$borders_edge: if($variant == 'light', transparentize(white, 0.2), transparentize($fg_color, 0.93));
+$link_color: if($variant == 'light', darken($selected_bg_color, 10%), lighten($selected_bg_color, 20%));
+$link_visited_color: if($variant == 'light', darken($selected_bg_color, 20%), lighten($selected_bg_color, 10%));
+$top_hilight: $borders_edge;
+$dark_fill: mix($borders_color, $bg_color, 50%);
+$headerbar_bg_color: if($variant == 'light', lighten($bg_color, 5%), darken($bg_color, 3%));
+$menu_color: $base_color;
+$menu_selected_color: if($variant == 'light', darken($bg_color, 6%), darken($bg_color, 8%));
+
+$scrollbar_bg_color: if($variant == 'light', mix($bg_color, $fg_color, 80%), mix($base_color, $bg_color, 50%));
+$scrollbar_slider_color: mix($fg_color, $bg_color, 60%);
+$scrollbar_slider_hover_color: mix($fg_color, $bg_color, 80%);
+$scrollbar_slider_active_color: if($variant=='light', darken($selected_bg_color, 10%), lighten($selected_bg_color, 10%));
+
+$warning_color: #f57900;
+$error_color: #cc0000;
+$success_color: if($variant == 'light', #33d17a, darken(#33d17a, 10%));
+$destructive_color: if($variant == 'light', #e01b24, darken(#e01b24, 10%));
+
+$osd_fg_color: #eeeeec;
+$osd_text_color: white;
+$osd_bg_color: if($variant == 'light', transparentize(darken(desaturate(#3d3846, 100%), 4%),0.3), transparentize(darken(desaturate(#3d3846, 100%), 10%),0.3));
+$osd_insensitive_bg_color: transparentize(mix($osd_fg_color, opacify($osd_bg_color, 1), 10%), 0.5);
+$osd_insensitive_fg_color: mix($osd_fg_color, opacify($osd_bg_color, 1), 50%);
+$osd_borders_color: transparentize(black, 0.3);
+
+$sidebar_bg_color: mix($bg_color, $base_color, 50%);
+
+$tooltip_borders_color: transparentize(white, 0.9);
+$shadow_color: transparentize(black, 0.9);
+
+$drop_target_color: if($variant == 'light', #2ec27e, #26a269);
+
+//insensitive state derived colors
+$insensitive_fg_color: mix($fg_color, $bg_color, 50%);
+$insensitive_bg_color: mix($bg_color, $base_color, 60%);
+$insensitive_borders_color: mix($borders_color, $bg_color, 80%);
+
+//colors for the backdrop state, derived from the main colors.
+$backdrop_base_color: if($variant == 'light', darken($base_color, 1%), lighten($base_color, 1%));
+$backdrop_text_color: mix($text_color, $backdrop_base_color, 80%);
+$backdrop_bg_color: $bg_color;
+$backdrop_fg_color: mix($fg_color, $backdrop_bg_color, 50%);
+$backdrop_insensitive_color: if($variant == 'light', darken($backdrop_bg_color, 15%), lighten($backdrop_bg_color, 15%));
+$backdrop_selected_fg_color: if($variant == 'light', $backdrop_base_color, $backdrop_text_color);
+$backdrop_selected_bg_color: transparentize(desaturate($selected_bg_color,100%),0.5);
+$backdrop_borders_color: mix($borders_color, $bg_color, 80%);
+$backdrop_dark_fill: mix($backdrop_borders_color, $backdrop_bg_color, 35%);
+
+//special cased widget colors
+$suggested_bg_color: $selected_bg_color;
+$suggested_border_color: $selected_borders_color;
+$progress_bg_color: $selected_bg_color;
+$progress_border_color: $selected_borders_color;
+$checkradio_bg_color: $selected_bg_color;
+$checkradio_fg_color: $selected_fg_color;
+$checkradio_borders_color: if($variant == 'light',darken($selected_bg_color,10%),darken($selected_bg_color,20%));
+$switch_bg_color: $selected_bg_color;
+$switch_borders_color: if($variant == 'light',darken($switch_bg_color,15%),darken($switch_bg_color,30%));
+$focus_border_color: if($variant == 'light', transparentize($selected_bg_color, 0.5), transparentize($selected_bg_color, 0.3));
+$alt_focus_border_color: if($variant == 'light', transparentize(white, 0.2), transparentize(white,0.7));
+$dim_label_opacity: 0.55;
+
+// High Contrast color overrides
+@if $contrast == 'high' {
+
+  $fg_color: if($variant == 'light', darken($fg_color, 3%), lighten($fg_color, 2%));
+  $bg_color: if($variant == 'light', lighten($bg_color, 3%), darken($bg_color, 2%));
+  $selected_bg_color: darken($selected_bg_color,10%);
+  $selected_borders_color: darken($selected_borders_color, 10%);
+  $borders_color: if($variant == 'light', darken($borders_color, 30%), lighten($borders_color, 30%));
+  $alt_borders_color: if($variant == 'light', darken($alt_borders_color, 33%), lighten($alt_borders_color, 28%));
+  $menu_color: $base_color;
+  $menu_selected_color: darken($bg_color,10%);
+
+  //insensitive state derived colors
+  $insensitive_fg_color: mix($fg_color, $bg_color, 50%);
+  $insensitive_bg_color: mix($bg_color, $base_color, 60%);
+  $insensitive_borders_color: mix($borders_color, $bg_color, 80%);
+
+  //focus rings
+  $focus_border_color: if($variant == 'light', transparentize($selected_bg_color, 0.2), transparentize(white, 0.4));
+  $alt_focus_border_color: if($variant == 'light', white, transparentize(white,0.4));
+
+  $dim_label_opacity: 0.9;
+
+  $switch_borders_color: if($variant == 'light',darken($switch_bg_color,15%),lighten($switch_bg_color,15%));
+
+}

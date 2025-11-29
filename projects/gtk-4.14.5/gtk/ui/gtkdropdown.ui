@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkDropDown" parent="GtkWidget">
+    <accessibility>
+      <property name="has-popup">1</property>
+      <relation name="labelled-by">button_item</relation>
+      <state name="expanded">0</state>
+    </accessibility>
+    <child>
+      <object class="GtkToggleButton" id="button">
+        <signal name="toggled" handler="button_toggled"/>
+        <child>
+          <object class="GtkBox">
+            <property name="can-focus">0</property>
+            <child>
+              <object class="GtkStack" id="button_stack">
+                <property name="accessible-role">generic</property>
+                <property name="hexpand">1</property>
+                <property name="hhomogeneous">0</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">empty</property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">(None)</property>
+                        <property name="xalign">0</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">item</property>
+                    <property name="child">
+                      <object class="GtkListItemWidget" id="button_item">
+                        <property name="accessible-role">generic</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBuiltinIcon" id="arrow">
+                <property name="accessible-role">presentation</property>
+                <property name="css-name">arrow</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkPopover" id="popup">
+        <property name="accessible-role">list-box</property>
+        <signal name="closed" handler="popover_closed"/>
+        <property name="halign">1</property>
+        <property name="has-arrow">0</property>
+        <style>
+          <class name="menu"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">1</property>
+            <child>
+              <object class="GtkBox" id="search_box">
+                <property name="visible">0</property>
+                <style>
+                  <class name="dropdown-searchbar"/>
+                </style>
+                <child>
+                  <object class="GtkSearchEntry" id="search_entry">
+                    <signal name="search-changed" handler="search_changed"/>
+                    <signal name="stop-search" handler="search_stop"/>
+                    <property name="hexpand">1</property>
+                    <property name="max-width-chars">6</property>
+                    <property name="width-chars">6</property>
+                    <property name="placeholder-text" translatable="yes">Search…</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">2</property>
+                <property name="max-content-height">400</property>
+                <property name="propagate-natural-height">1</property>
+                <child>
+                  <object class="GtkListView" id="popup_list">
+                    <signal name="activate" handler="row_activated"/>
+                    <property name="single-click-activate">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

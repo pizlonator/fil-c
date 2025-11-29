@@ -1,0 +1,40 @@
+/* Force offscreen drawing by creating a clip that
+   cannot be expressed using a single rounded rect */
+rounded-clip {
+  clip: 0 0 100 100 / 0 50 50 50;
+  child: clip {
+    clip: 0 0 80 50;
+    child: color {
+      bounds: 0 0 300 500;
+      color: teal;
+    }
+  }
+}
+
+
+color {
+  bounds: 75 6 5 5;
+  color: black;
+}
+
+
+color {
+  bounds: 70 4 5 5;
+  color: black;
+}
+
+color {
+  bounds: 65 2 5 5;
+  color: black;
+}
+
+color {
+  bounds: 55 0 10 5;
+  color: black;
+}
+
+
+color {
+  bounds: 40 0 15 2;
+  color: black;
+}

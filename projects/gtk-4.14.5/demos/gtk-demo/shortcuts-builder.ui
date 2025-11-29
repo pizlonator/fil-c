@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkShortcutsWindow" id="shortcuts-builder">
+    <property name="modal">1</property>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">editor</property>
+        <property name="title" translatable="yes">Editor Shortcuts</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">General</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Global Search</property>
+                <property name="accelerator">&lt;ctrl&gt;period</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Preferences</property>
+                <property name="accelerator">&lt;ctrl&gt;comma</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Command Bar</property>
+                <property name="accelerator">&lt;ctrl&gt;Return</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Terminal</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;t</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Keyboard Shortcuts</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;question</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Panels</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Toggle left panel</property>
+                <property name="accelerator">F9</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Toggle right panel</property>
+                <property name="accelerator">&lt;shift&gt;F9</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Toggle bottom panel</property>
+                <property name="accelerator">&lt;ctrl&gt;F9</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Touchpad gestures</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-two-finger-swipe-right</property>
+                <property name="title" translatable="yes">Switch to the next document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-two-finger-swipe-left</property>
+                <property name="title" translatable="yes">Switch to the previous document</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Files</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;n</property>
+                <property name="title" translatable="yes">Create new document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;o</property>
+                <property name="title" translatable="yes">Open a document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;s</property>
+                <property name="title" translatable="yes">Save the document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;w</property>
+                <property name="title" translatable="yes">Close the document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;alt&gt;Page_Down</property>
+                <property name="title" translatable="yes">Switch to the next document</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;alt&gt;Page_Up</property>
+                <property name="title" translatable="yes">Switch to the previous document</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Find and replace</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;f</property>
+                <property name="title" translatable="yes">Find</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;g</property>
+                <property name="title" translatable="yes">Find the next match</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;g</property>
+                <property name="title" translatable="yes">Find the previous match</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;k</property>
+                <property name="title" translatable="yes">Clear highlight</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Copy and Paste</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;c</property>
+                <property name="title" translatable="yes">Copy selected text to clipboard</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;x</property>
+                <property name="title" translatable="yes">Cut selected text to clipboard</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;v</property>
+                <property name="title" translatable="yes">Paste text from clipboard</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Undo and Redo</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;z</property>
+                <property name="title" translatable="yes">Undo previous command</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;z</property>
+                <property name="title" translatable="yes">Redo previous command</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Editing</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;a</property>
+                <property name="title" translatable="yes">Increment number at cursor</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;x</property>
+                <property name="title" translatable="yes">Decrement number at cursor</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;j</property>
+                <property name="title" translatable="yes">Join selected lines</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;space</property>
+                <property name="title" translatable="yes">Show completion window</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Insert</property>
+                <property name="title" translatable="yes">Toggle overwrite</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;alt&gt;i</property>
+                <property name="title" translatable="yes">Reindent line</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Navigation</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;n</property>
+                <property name="title" translatable="yes">Move to next error in file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;p</property>
+                <property name="title" translatable="yes">Move to previous error in file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;shift&gt;&lt;alt&gt;Left</property>
+                <property name="title" translatable="yes">Move to previous edit location</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;shift&gt;&lt;alt&gt;Right</property>
+                <property name="title" translatable="yes">Move to next edit location</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;period</property>
+                <property name="title" translatable="yes">Jump to definition of symbol</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;Up</property>
+                <property name="title" translatable="yes">Move sectionport up within the file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;Down</property>
+                <property name="title" translatable="yes">Move sectionport down within the file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;End</property>
+                <property name="title" translatable="yes">Move sectionport to end of file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;Home</property>
+                <property name="title" translatable="yes">Move sectionport to beginning of file</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;percent</property>
+                <property name="title" translatable="yes">Move to matching bracket</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Selections</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;a</property>
+                <property name="title" translatable="yes">Select all</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;backslash</property>
+                <property name="title" translatable="yes">Unselect all</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="max-height">16</property>
+        <property name="section-name">terminal</property>
+        <property name="title" translatable="yes">Terminal Shortcuts</property>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">General</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Global Search</property>
+                <property name="accelerator">&lt;ctrl&gt;period</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Preferences</property>
+                <property name="accelerator">&lt;ctrl&gt;comma</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Command Bar</property>
+                <property name="accelerator">&lt;ctrl&gt;Return</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Terminal</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;t</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Keyboard Shortcuts</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;question</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Copy and Paste</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;c</property>
+                <property name="title" translatable="yes">Copy selected text to clipboard</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;v</property>
+                <property name="title" translatable="yes">Paste text from clipboard</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Switching</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;1...9</property>
+                <property name="title" translatable="yes">Switch to n-th tab</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">&apos;Special&apos; combinations</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">t+t</property>
+                <property name="title" translatable="yes">You want tea ?</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;shift&gt;&lt;ctrl&gt;</property>
+                <property name="title" translatable="yes">Shift Control</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&amp;&lt;ctrl&gt;</property>
+                <property name="title" translatable="yes">Control Control</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Control_L&amp;Control_R</property>
+                <property name="title" translatable="yes">Left and right control</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">All gestures</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-pinch</property>
+                <property name="title" translatable="yes">A stock pinch gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-stretch</property>
+                <property name="title" translatable="yes">A stock stretch gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-rotate-clockwise</property>
+                <property name="title" translatable="yes">A stock rotation gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-rotate-counterclockwise</property>
+                <property name="title" translatable="yes">A stock rotation gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-two-finger-swipe-left</property>
+                <property name="title" translatable="yes">A stock swipe gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-two-finger-swipe-right</property>
+                <property name="title" translatable="yes">A stock swipe gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-swipe-left</property>
+                <property name="title" translatable="yes">A stock swipe gesture</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="shortcut-type">gesture-swipe-right</property>
+                <property name="title" translatable="yes">A stock swipe gesture</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,17 @@
+color {
+  bounds: -10 -10 20 120;
+  color: rgb(255,255,255);
+}
+transform {
+  transform: rotate(45);
+  child: transform {
+    transform: rotate(45);
+    child: shadow {
+      shadows: rgb(0,0,0) 0 1;
+      child: color {
+        bounds: 0 0 100 1;
+        color: rgb(255,0,0);
+      }
+    }
+  }
+}

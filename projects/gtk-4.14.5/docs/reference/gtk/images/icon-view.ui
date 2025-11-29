@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="store">
+    <columns>
+      <column type="gchararray"/>
+      <column type="GdkPixbuf"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">One</col>
+        <col id="1">folder.png</col>
+      </row>
+      <row>
+        <col id="0">Two</col>
+        <col id="1">gnome.png</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <style>
+      <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="shadow"/>
+          <class name="background"/>
+          <class name="frame"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">3</property>
+            <child>
+              <object class="GtkScrolledWindow">
+                <style>
+                  <class name="frame"/>
+                </style>
+                <property name="hscrollbar-policy">never</property>
+                <property name="vscrollbar-policy">never</property>
+                <property name="propagate-natural-height">1</property>
+                <child>
+                  <object class="GtkIconView">
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
+                    <property name="model">store</property>
+                    <property name="text-column">0</property>
+                    <property name="pixbuf-column">1</property>
+                    <property name="item-orientation">horizontal</property>
+                    <property name="row-spacing">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Icon View</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

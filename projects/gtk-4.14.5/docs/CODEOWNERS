@@ -1,0 +1,77 @@
+# These are the people responsible for subsystems in GTK; if you're opening
+# a merge request for files listed here, please add the following people to
+# the list of reviewers
+
+# The syntax of this file is similar to the GitHub CODEOWNERS file:
+#   https://help.github.com/articles/about-codeowners/
+# Which, in turn, is similar to the .gitignore and .gitattributes files:
+#
+#  - comments start with `#`
+#  - the first column contains paths and globs
+#  - the second column contains GitLab user names or email addresses,
+#    separated by spaces
+#
+# If you want to be responsible for code reviews in specific sections of
+# the GTK code base, add yourself here.
+
+# Maintainer
+*                       @matthiasc
+
+# Build system
+meson.build             @ebassi @nirbheek
+*.py                    @ebassi
+
+# CSS
+gtk/gtkcss*.[ch]        @otte @baedert
+gtk/gtkstyle*.[ch]      @otte @baedert
+
+# Gestures
+gtk/gtkeventcontroller* @carlosg
+gtk/gtkgesture*.[ch]    @carlosg
+
+# GtkFileChooser
+gtk/gtkfilechooser*     @federico @ebassi
+gtk/gtkfilesystem*      @federico @ebassi
+gtk/gtkfilefilter*      @federico @ebassi
+
+# GtkFontChooser
+gtk/gtkfontchooser*     @matthiasc
+
+# Input methods
+gtk/gtkimcontext*       @carlosg
+
+# Media
+gtk/gtkmedia*           @otte
+
+# GSK
+gsk                     @otte @baedert @ebassi
+
+# GL rendering
+gsk/gl                  @baedert @ebassi
+
+# Vulkan rendering
+gsk/vulkan
+
+# Documentation
+docs/                   @ebassi @dboles
+
+# Wayland
+gdk/wayland             @jadahl
+
+# X11
+gdk/x11                 @ofourdan @matthiasc
+
+# Themes
+gtk/themes              @lapoc @jimmac
+
+# Inspector
+gtk/inspector           @otte @matthiasc
+
+# Layout managers
+gtk/gtklayout*          @ebassi
+gtk/gtkconstraint*      @ebassi
+
+# Accessibility
+gtk/gtkaccessible*.[ch] @ebassi
+gtk/gtkatcontext*.[ch]  @ebassi
+gtk/a11y                @ebassi

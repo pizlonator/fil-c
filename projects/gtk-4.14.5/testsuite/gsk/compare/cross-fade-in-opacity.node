@@ -1,0 +1,23 @@
+/* Background */
+color {
+  bounds: 0 0 200 200;
+  color: white;
+}
+
+/* It is important that the following node structure leaves the
+ * start child of the cross-fade node invisible. */
+opacity {
+  opacity: 0.4;
+
+  child: cross-fade {
+    start: color {
+      color: blue;
+      bounds: 0 0 100 100;
+    }
+    end: color {
+      color: red;
+      bounds: 100 100 100 100;
+    }
+    progress: 1.0;
+  }
+}

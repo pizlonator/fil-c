@@ -1,0 +1,25 @@
+/* test negations */
+
+box {
+  color: red;
+}
+
+label.a:not(:hover) {
+  color: green;
+}
+
+label.b:not(:hover):backdrop {
+  color: green;
+}
+
+box:not(:hover) label.c {
+  color: green;
+}
+
+box:not(:hover):backdrop label.d {
+  color: green;
+}
+
+box:not(:hover):backdrop label.e:not(.f) {
+  color: green;
+}

@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Hello World</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <child>
+          <object class="GtkImage" id="image1">
+            <property name="icon_name">edit-delete</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">icon name</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2">
+            <property name="label" translatable="yes">symbolic icon name</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image2">
+            <property name="icon_name">edit-delete</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image3">
+            <property name="icon_name">edit-delete</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image4">
+            <property name="icon_name">edit-delete-symbolic</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image5">
+            <property name="icon_name">edit-delete-symbolic</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image6">
+            <property name="icon_name">edit-delete-symbolic</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview1">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection1"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1">
+                    <property name="icon_name">edit-delete</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview2">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection3"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf2">
+                    <property name="icon_name">edit-delete</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview3">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection4"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf3">
+                    <property name="icon_name">edit-delete</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview4">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection6"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf4">
+                    <property name="icon_name">edit-delete-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview5">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection8"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn5">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf5">
+                    <property name="icon_name">edit-delete-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview6">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection9"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn6">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf6">
+                    <property name="icon_name">edit-delete-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label3">
+            <property name="label" translatable="yes">GThemedIcon</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label4">
+            <property name="label" translatable="yes">symbolic GThemedIcon</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label5">
+            <property name="label" translatable="yes">GEmeblemedIcon</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label6">
+            <property name="label" translatable="yes">symbolic GEmblemedIcon</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image7">
+            <property name="gicon">themediconsymbolic</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image8">
+            <property name="gicon">themedicon</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image9">
+            <property name="gicon">emblemedicon</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image10">
+            <property name="gicon">emblemediconsymbolic</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image11">
+            <property name="gicon">themedicon</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image12">
+            <property name="gicon">themediconsymbolic</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image13">
+            <property name="gicon">emblemedicon</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image14">
+            <property name="gicon">emblemediconsymbolic</property>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image15">
+            <property name="gicon">themedicon</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image16">
+            <property name="gicon">themediconsymbolic</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image17">
+            <property name="gicon">emblemedicon</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="image18">
+            <property name="gicon">emblemediconsymbolic</property>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview7">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection10"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn7">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf7">
+                    <property name="gicon">themedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview8">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection11"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn8">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf8">
+                    <property name="gicon">themediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview9">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection12"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn9">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf9">
+                    <property name="gicon">emblemedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview10">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection13"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn10">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf10">
+                    <property name="gicon">emblemediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview11">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection15"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn11">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf11">
+                    <property name="gicon">themedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview12">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection16"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn12">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf12">
+                    <property name="gicon">themediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview13">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection17"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn13">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf13">
+                    <property name="gicon">emblemedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview14">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection18"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn14">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf14">
+                    <property name="gicon">emblemediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="regular"/>
+            </style>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview15">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection20"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn15">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf15">
+                    <property name="gicon">themedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview16">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection21"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn16">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf16">
+                    <property name="gicon">themediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview17">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection22"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn17">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf17">
+                    <property name="gicon">emblemedicon</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview18">
+            <property name="model">liststore1</property>
+            <property name="headers_visible">0</property>
+            <property name="enable_search">0</property>
+            <property name="search_column">0</property>
+            <property name="show_expanders">0</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection23"/>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="treeviewcolumn18">
+                <property name="title" translatable="yes">column</property>
+                <child>
+                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf18">
+                    <property name="gicon">emblemediconsymbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="symbolic"/>
+            </style>
+            <layout>
+              <property name="column">6</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GThemedIcon" id="themedicon" type-func="g_themed_icon_get_type">
+    <property name="names">edit-delete</property>
+  </object>
+  <object class="GThemedIcon" id="themediconsymbolic">
+    <property name="names">edit-delete-symbolic</property>
+  </object>
+  <object class="GEmblemedIcon" id="emblemedicon" type-func="g_emblemed_icon_get_type">
+    <property name="gicon">themedicon</property>
+  </object>
+  <object class="GEmblemedIcon" id="emblemediconsymbolic">
+    <property name="gicon">themediconsymbolic</property>
+  </object>
+</interface>

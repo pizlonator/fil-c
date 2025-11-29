@@ -1,0 +1,68 @@
+[library]
+version = "@version@"
+browse_url = "https://gitlab.gnome.org/GNOME/gtk/"
+repository_url = "https://gitlab.gnome.org/GNOME/gtk.git"
+website_url = "https://www.gtk.org"
+docs_url = "https://docs.gtk.org/gsk4/"
+authors = "GTK Development Team"
+logo_url = "gtk-logo.svg"
+license = "LGPL-2.1-or-later"
+description = "The GTK toolkit"
+devhelp = true
+search_index = true
+
+dependencies = ["Graphene-1.0", "Gdk-4.0"]
+
+  [dependencies."Graphene-1.0"]
+  name = "Graphene"
+  description = "A thin layer of mathematical types for 3D libraries"
+  docs_url = "https://ebassi.github.io/graphene/docs/"
+
+  [dependencies."Gdk-4.0"]
+  name = "Gdk"
+  description = "The GTK windowing system abstraction"
+  docs_url = "https://docs.gtk.org/gdk4/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/"
+
+[extra]
+content_files = [
+  "paths.md",
+]
+content_images = [
+  "../images/favicon.svg",
+  "../images/favicon-192x192.png",
+  "gtk-logo.svg",
+  "images/arc-dark.png",
+  "images/arc-light.png",
+  "images/caps-dark.png",
+  "images/caps-light.png",
+  "images/conic-light.png",
+  "images/conic-dark.png",
+  "images/cubic-dark.png",
+  "images/cubic-light.png",
+  "images/curvature-dark.png",
+  "images/curvature-light.png",
+  "images/directions-dark.png",
+  "images/directions-light.png",
+  "images/fill-even-odd.png",
+  "images/fill-winding.png",
+  "images/join-dark.png",
+  "images/join-light.png",
+  "images/line-dark.png",
+  "images/line-light.png",
+  "images/path-dark.png",
+  "images/path-light.png",
+  "images/quad-dark.png",
+  "images/quad-light.png",
+  "images/stroke-miter.png",
+  "images/stroke-round.png",
+]
+content_base_url = "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/docs/reference/gsk/"
+urlmap_file = "urlmap.js"

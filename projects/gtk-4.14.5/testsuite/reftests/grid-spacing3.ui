@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <property name="row-spacing">10</property>
+        <property name="column-spacing">5</property>
+        <child>
+          <object class="GtkBox" id="box1">
+            <property name="name">red</property>
+            <property name="width_request">30</property>
+            <property name="height_request">30</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="box2">
+            <property name="name">green</property>
+            <property name="width_request">30</property>
+            <property name="height_request">30</property>
+            <layout>
+              <property name="column">10</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="box3">
+            <property name="name">green</property>
+            <property name="width_request">30</property>
+            <property name="height_request">30</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">10</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="box4">
+            <property name="name">red</property>
+            <property name="width_request">30</property>
+            <property name="height_request">30</property>
+            <layout>
+              <property name="column">10</property>
+              <property name="row">10</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

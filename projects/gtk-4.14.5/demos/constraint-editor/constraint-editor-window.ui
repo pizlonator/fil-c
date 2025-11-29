@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="ConstraintEditorWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">GTK Constraint Editor</property>
+    <property name="default-width">1024</property>
+    <property name="default-height">768</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="start">
+          <object class="GtkButton">
+            <property name="icon-name">document-open-symbolic</property>
+            <property name="tooltip-text">Open ui file</property>
+            <signal name="clicked" handler="open_cb"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="icon-name">document-save-symbolic</property>
+            <property name="tooltip-text">Save to ui file</property>
+            <signal name="clicked" handler="save_cb"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkPaned" id="paned">
+        <property name="orientation">horizontal</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Add Child</property>
+                    <signal name="clicked" handler="add_child" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Add Guide</property>
+                    <signal name="clicked" handler="add_guide" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Add Constraint</property>
+                    <signal name="clicked" handler="add_constraint" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vscrollbar-policy">automatic</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkListBox" id="list">
+                    <property name="show-separators">1</property>
+                    <property name="selection-mode">none</property>
+                    <signal name="row-activated" handler="row_activated"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="ConstraintView" id="view">
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

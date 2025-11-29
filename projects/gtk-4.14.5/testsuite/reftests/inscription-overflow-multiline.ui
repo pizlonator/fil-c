@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="default-width">200</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkInscription">
+            <property name="text" translatable="yes">We wrap supercalifragilisticexpialidocious into 3 lines</property>
+            <property name="text-overflow">clip</property>
+            <property name="yalign">0</property>
+            <property name="nat-lines">2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkInscription">
+            <property name="text" translatable="yes">We wrap supercalifragilisticexpialidocious into 3 lines</property>
+            <property name="text-overflow">ellipsize-start</property>
+            <property name="nat-lines">2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkInscription">
+            <property name="text" translatable="yes">We wrap supercalifragilisticexpialidocious into 3 lines</property>
+            <property name="text-overflow">ellipsize-middle</property>
+            <property name="nat-lines">2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkInscription">
+            <property name="text" translatable="yes">We wrap supercalifragilisticexpialidocious into 3 lines</property>
+            <property name="text-overflow">ellipsize-end</property>
+            <property name="nat-lines">2</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

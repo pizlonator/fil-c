@@ -1,0 +1,347 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Snapshot.push_color_matrix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.Snapshot.push_color_matrix"/>
+  <meta priority="og:description" content="Reference for Gtk.Snapshot.push_color_matrix"/>
+  <meta name="twitter:title" content="Gtk.Snapshot.push_color_matrix"/>
+  <meta name="twitter:description" content="Reference for Gtk.Snapshot.push_color_matrix"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.Snapshot.html">Snapshot</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Snapshot.append_border.html">append_border</a>
+  
+    <a class="method" href="method.Snapshot.append_cairo.html">append_cairo</a>
+  
+    <a class="method" href="method.Snapshot.append_color.html">append_color</a>
+  
+    <a class="method" href="method.Snapshot.append_conic_gradient.html">append_conic_gradient</a>
+  
+    <a class="method" href="method.Snapshot.append_fill.html">append_fill</a>
+  
+    <a class="method" href="method.Snapshot.append_inset_shadow.html">append_inset_shadow</a>
+  
+    <a class="method" href="method.Snapshot.append_layout.html">append_layout</a>
+  
+    <a class="method" href="method.Snapshot.append_linear_gradient.html">append_linear_gradient</a>
+  
+    <a class="method" href="method.Snapshot.append_node.html">append_node</a>
+  
+    <a class="method" href="method.Snapshot.append_outset_shadow.html">append_outset_shadow</a>
+  
+    <a class="method" href="method.Snapshot.append_radial_gradient.html">append_radial_gradient</a>
+  
+    <a class="method" href="method.Snapshot.append_repeating_linear_gradient.html">append_repeating_linear_gradient</a>
+  
+    <a class="method" href="method.Snapshot.append_repeating_radial_gradient.html">append_repeating_radial_gradient</a>
+  
+    <a class="method" href="method.Snapshot.append_scaled_texture.html">append_scaled_texture</a>
+  
+    <a class="method" href="method.Snapshot.append_stroke.html">append_stroke</a>
+  
+    <a class="method" href="method.Snapshot.append_texture.html">append_texture</a>
+  
+    <a class="method" href="method.Snapshot.free_to_node.html">free_to_node</a>
+  
+    <a class="method" href="method.Snapshot.free_to_paintable.html">free_to_paintable</a>
+  
+    <a class="method" href="method.Snapshot.gl_shader_pop_texture.html">gl_shader_pop_texture</a>
+  
+    <a class="method" href="method.Snapshot.perspective.html">perspective</a>
+  
+    <a class="method" href="method.Snapshot.pop.html">pop</a>
+  
+    <a class="method" href="method.Snapshot.push_blend.html">push_blend</a>
+  
+    <a class="method" href="method.Snapshot.push_blur.html">push_blur</a>
+  
+    <a class="method" href="method.Snapshot.push_clip.html">push_clip</a>
+  
+    <a class="method current" href="method.Snapshot.push_color_matrix.html">push_color_matrix</a>
+  
+    <a class="method" href="method.Snapshot.push_cross_fade.html">push_cross_fade</a>
+  
+    <a class="method" href="method.Snapshot.push_debug.html">push_debug</a>
+  
+    <a class="method" href="method.Snapshot.push_fill.html">push_fill</a>
+  
+    <a class="method" href="method.Snapshot.push_gl_shader.html">push_gl_shader</a>
+  
+    <a class="method" href="method.Snapshot.push_mask.html">push_mask</a>
+  
+    <a class="method" href="method.Snapshot.push_opacity.html">push_opacity</a>
+  
+    <a class="method" href="method.Snapshot.push_repeat.html">push_repeat</a>
+  
+    <a class="method" href="method.Snapshot.push_rounded_clip.html">push_rounded_clip</a>
+  
+    <a class="method" href="method.Snapshot.push_shadow.html">push_shadow</a>
+  
+    <a class="method" href="method.Snapshot.push_stroke.html">push_stroke</a>
+  
+    <a class="method" href="method.Snapshot.render_background.html">render_background</a>
+  
+    <a class="method" href="method.Snapshot.render_focus.html">render_focus</a>
+  
+    <a class="method" href="method.Snapshot.render_frame.html">render_frame</a>
+  
+    <a class="method" href="method.Snapshot.render_insertion_cursor.html">render_insertion_cursor</a>
+  
+    <a class="method" href="method.Snapshot.render_layout.html">render_layout</a>
+  
+    <a class="method" href="method.Snapshot.restore.html">restore</a>
+  
+    <a class="method" href="method.Snapshot.rotate.html">rotate</a>
+  
+    <a class="method" href="method.Snapshot.rotate_3d.html">rotate_3d</a>
+  
+    <a class="method" href="method.Snapshot.save.html">save</a>
+  
+    <a class="method" href="method.Snapshot.scale.html">scale</a>
+  
+    <a class="method" href="method.Snapshot.scale_3d.html">scale_3d</a>
+  
+    <a class="method" href="method.Snapshot.to_node.html">to_node</a>
+  
+    <a class="method" href="method.Snapshot.to_paintable.html">to_paintable</a>
+  
+    <a class="method" href="method.Snapshot.transform.html">transform</a>
+  
+    <a class="method" href="method.Snapshot.transform_matrix.html">transform_matrix</a>
+  
+    <a class="method" href="method.Snapshot.translate.html">translate</a>
+  
+    <a class="method" href="method.Snapshot.translate_3d.html">translate_3d</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.Snapshot.html">Snapshot</a><span class="sep"></span>push_color_matrix</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtksnapshot.h#L77">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">gtk_snapshot_push_color_matrix</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkSnapshot</span><span class="o">*</span><span class="w"> </span><span class="n">snapshot</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">graphene_matrix_t</span><span class="o">*</span><span class="w"> </span><span class="n">color_matrix</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">graphene_vec4_t</span><span class="o">*</span><span class="w"> </span><span class="n">color_offset</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtksnapshot.c#L653">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Modifies the colors of an image by applying an affine transformation
+in <span class="caps">RGB</span>&nbsp;space.</p>
+<p>In particular, the colors will be transformed by&nbsp;applying</p>
+<div class="codehilite"><pre><span></span><code>pixel = transpose(color_matrix) * pixel + color_offset
+</code></pre></div>
+
+<p>for every pixel. The transformation operates on unpremultiplied
+colors, with color components ordered R, G, B,&nbsp;A.</p>
+<p>The image is recorded until the next call to <a href="method.Snapshot.pop.html"><code>gtk_snapshot_pop()</code></a>.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>color_matrix</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-link="struct.Matrix.html" data-namespace="Graphene" class="external"><code>graphene_matrix_t</code></a></p>
+            <p>The color matrix to&nbsp;use.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>color_offset</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-link="struct.Vec4.html" data-namespace="Graphene" class="external"><code>graphene_vec4_t</code></a></p>
+            <p>The color offset to&nbsp;use.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

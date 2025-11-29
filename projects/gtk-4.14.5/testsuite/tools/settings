@@ -1,0 +1,20 @@
+#! /bin/bash
+
+GTK_QUERY_SETTINGS=${GTK_QUERY_SETTINGS:-gtk4-query-settings}
+TEST_RESULT_DIR=${TEST_RESULT_DIR:-/tmp}
+
+shopt -s nullglob
+
+echo "1..1"
+
+name=gtk-query-settings
+result=$TEST_RESULT_DIR/$name.out
+$GTK_QUERY_SETTINGS 2>/dev/null >$result
+EXPECTED=51
+SEEN=$(wc -l $result | cut -f1 -d' ')
+
+if [ $SEEN -eq $EXPECTED ]; then
+  echo "ok 1 $name."
+else
+  echo "not ok 1 $name. Expected: $EXPECTED. Seen: $SEEN"
+fi

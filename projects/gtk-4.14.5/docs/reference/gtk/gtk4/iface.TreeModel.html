@@ -1,0 +1,1490 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TreeModel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TreeModel"/>
+  <meta property="og:description" content="Reference for Gtk.TreeModel"/>
+  <meta name="twitter:title" content="Gtk.TreeModel"/>
+  <meta name="twitter:description" content="Reference for Gtk.TreeModel"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="iface.TreeModel.html#description">TreeModel</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TreeModel.filter_new.html">filter_new</a>
+  
+    <a class="method" href="method.TreeModel.foreach.html">foreach</a>
+  
+    <a class="method" href="method.TreeModel.get.html">get</a>
+  
+    <a class="method" href="method.TreeModel.get_column_type.html">get_column_type</a>
+  
+    <a class="method" href="method.TreeModel.get_flags.html">get_flags</a>
+  
+    <a class="method" href="method.TreeModel.get_iter.html">get_iter</a>
+  
+    <a class="method" href="method.TreeModel.get_iter_first.html">get_iter_first</a>
+  
+    <a class="method" href="method.TreeModel.get_iter_from_string.html">get_iter_from_string</a>
+  
+    <a class="method" href="method.TreeModel.get_n_columns.html">get_n_columns</a>
+  
+    <a class="method" href="method.TreeModel.get_path.html">get_path</a>
+  
+    <a class="method" href="method.TreeModel.get_string_from_iter.html">get_string_from_iter</a>
+  
+    <a class="method" href="method.TreeModel.get_valist.html">get_valist</a>
+  
+    <a class="method" href="method.TreeModel.get_value.html">get_value</a>
+  
+    <a class="method" href="method.TreeModel.iter_children.html">iter_children</a>
+  
+    <a class="method" href="method.TreeModel.iter_has_child.html">iter_has_child</a>
+  
+    <a class="method" href="method.TreeModel.iter_n_children.html">iter_n_children</a>
+  
+    <a class="method" href="method.TreeModel.iter_next.html">iter_next</a>
+  
+    <a class="method" href="method.TreeModel.iter_nth_child.html">iter_nth_child</a>
+  
+    <a class="method" href="method.TreeModel.iter_parent.html">iter_parent</a>
+  
+    <a class="method" href="method.TreeModel.iter_previous.html">iter_previous</a>
+  
+    <a class="method" href="method.TreeModel.ref_node.html">ref_node</a>
+  
+    <a class="method" href="method.TreeModel.row_changed.html">row_changed</a>
+  
+    <a class="method" href="method.TreeModel.row_deleted.html">row_deleted</a>
+  
+    <a class="method" href="method.TreeModel.row_has_child_toggled.html">row_has_child_toggled</a>
+  
+    <a class="method" href="method.TreeModel.row_inserted.html">row_inserted</a>
+  
+    <a class="method" href="method.TreeModel.rows_reordered.html">rows_reordered</a>
+  
+    <a class="method" href="method.TreeModel.rows_reordered_with_length.html">rows_reordered_with_length</a>
+  
+    <a class="method" href="method.TreeModel.unref_node.html">unref_node</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.TreeModel.row-changed.html">row-changed</a>
+  
+    <a class="signal" href="signal.TreeModel.row-deleted.html">row-deleted</a>
+  
+    <a class="signal" href="signal.TreeModel.row-has-child-toggled.html">row-has-child-toggled</a>
+  
+    <a class="signal" href="signal.TreeModel.row-inserted.html">row-inserted</a>
+  
+    <a class="signal" href="signal.TreeModel.rows-reordered.html">rows-reordered</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.TreeModel.get_column_type.html">get_column_type</a>
+  
+    <a class="method" href="vfunc.TreeModel.get_flags.html">get_flags</a>
+  
+    <a class="method" href="vfunc.TreeModel.get_iter.html">get_iter</a>
+  
+    <a class="method" href="vfunc.TreeModel.get_n_columns.html">get_n_columns</a>
+  
+    <a class="method" href="vfunc.TreeModel.get_path.html">get_path</a>
+  
+    <a class="method" href="vfunc.TreeModel.get_value.html">get_value</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_children.html">iter_children</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_has_child.html">iter_has_child</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_n_children.html">iter_n_children</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_next.html">iter_next</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_nth_child.html">iter_nth_child</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_parent.html">iter_parent</a>
+  
+    <a class="method" href="vfunc.TreeModel.iter_previous.html">iter_previous</a>
+  
+    <a class="method" href="vfunc.TreeModel.ref_node.html">ref_node</a>
+  
+    <a class="method" href="vfunc.TreeModel.row_changed.html">row_changed</a>
+  
+    <a class="method" href="vfunc.TreeModel.row_deleted.html">row_deleted</a>
+  
+    <a class="method" href="vfunc.TreeModel.row_has_child_toggled.html">row_has_child_toggled</a>
+  
+    <a class="method" href="vfunc.TreeModel.row_inserted.html">row_inserted</a>
+  
+    <a class="method" href="vfunc.TreeModel.rows_reordered.html">rows_reordered</a>
+  
+    <a class="method" href="vfunc.TreeModel.unref_node.html">unref_node</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Interface</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span>TreeModel</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+      </div>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtktreemodel.c#L32">[src]</a>
+          
+        </h4>
+
+        <pre><code>interface Gtk.TreeModel : GObject.Object</code></pre>
+
+        <div class="docblock">
+          <p>The tree interface used by&nbsp;GtkTreeView</p>
+<p>The <code>GtkTreeModel</code> interface defines a generic tree interface for
+use by the <code>GtkTreeView</code> widget. It is an abstract interface, and
+is designed to be usable with any appropriate data structure. The
+programmer just has to implement this interface on their own data
+type for it to be viewable by a <code>GtkTreeView</code> widget.</p>
+<p>The model is represented as a hierarchical tree of strongly-typed,
+columned data. In other words, the model can be seen as a tree where
+every node has different values depending on which column is being
+queried. The type of data found in a column is determined by using
+the GType system (ie. <code>G_TYPE_INT</code>, <code>GTK_TYPE_BUTTON</code>, <code>G_TYPE_POINTER</code>,
+etc). The types are homogeneous per column across all nodes. It is
+important to note that this interface only provides a way of examining
+a model and observing changes. The implementation of each individual
+model decides how and if changes are&nbsp;made.</p>
+<p>In order to make life simpler for programmers who do not need to
+write their own specialized model, two generic models are provided
+— the <code>GtkTreeStore</code> and the <code>GtkListStore</code>. To use these, the
+developer simply pushes data into these models as necessary. These
+models provide the data structure as well as all appropriate tree
+interfaces. As a result, implementing drag and drop, sorting, and
+storing data is trivial. For the vast majority of trees and lists,
+these two models are&nbsp;sufficient.</p>
+<p>Models are accessed on a node/column level of granularity. One can
+query for the value of a model at a certain node and a certain
+column on that node. There are two structures used to reference a
+particular node in a model. They are the <a href="struct.TreePath.html"><code>GtkTreePath</code></a> and
+the <a href="struct.TreeIter.html"><code>GtkTreeIter</code></a> (“iter” is short for iterator). Most of the
+interface consists of operations on a <a href="struct.TreeIter.html"><code>GtkTreeIter</code></a>.</p>
+<p>A path is essentially a potential node. It is a location on a model
+that may or may not actually correspond to a node on a specific
+model. A <a href="struct.TreePath.html"><code>GtkTreePath</code></a> can be converted into either an
+array of unsigned integers or a string. The string form is a list
+of numbers separated by a colon. Each number refers to the offset
+at that level. Thus, the path <code>0</code> refers to the root
+node and the path <code>2:4</code> refers to the fifth child of
+the third&nbsp;node.</p>
+<p>By contrast, a <a href="struct.TreeIter.html"><code>GtkTreeIter</code></a> is a reference to a specific node on
+a specific model. It is a generic struct with an integer and three
+generic pointers. These are filled in by the model in a model-specific
+way. One can convert a path to an iterator by calling
+gtk_tree_model_get_iter(). These iterators are the primary way
+of accessing a model and are similar to the iterators used by
+<code>GtkTextBuffer</code>. They are generally statically allocated on the
+stack and only used for a short time. The model interface defines
+a set of operations using them for navigating the&nbsp;model.</p>
+<p>It is expected that models fill in the iterator with private data.
+For example, the <code>GtkListStore</code> model, which is internally a simple
+linked list, stores a list node in one of the pointers. The
+<code>GtkTreeModel</code>Sort stores an array and an offset in two of the
+pointers. Additionally, there is an integer field. This field is
+generally filled with a unique stamp per model. This stamp is for
+catching errors resulting from using invalid iterators with a&nbsp;model.</p>
+<p>The lifecycle of an iterator can be a little confusing at first.
+Iterators are expected to always be valid for as long as the model
+is unchanged (and doesn’t emit a signal). The model is considered
+to own all outstanding iterators and nothing needs to be done to
+free them from the user’s point of view. Additionally, some models
+guarantee that an iterator is valid for as long as the node it refers
+to is valid (most notably the <code>GtkTreeStore</code> and <code>GtkListStore</code>).
+Although generally uninteresting, as one always has to allow for
+the case where iterators do not persist beyond a signal, some very
+important performance enhancements were made in the sort model.
+As a result, the <code>GTK_TREE_MODEL_ITERS_PERSIST</code> flag was added to
+indicate this&nbsp;behavior.</p>
+<p>To help show some common operation of a model, some examples are
+provided. The first example shows three ways of getting the iter at
+the location <code>3:2:5</code>. While the first method shown is
+easier, the second is much more common, as you often get paths from&nbsp;callbacks.</p>
+<h2 id="acquiring-a-gtktreeiter">Acquiring a <code>GtkTreeIter</code><a class="md-anchor" href="#acquiring-a-gtktreeiter" title="Permanent link"></a></h2>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Three ways of getting the iter pointing to the location</span>
+<span class="n">GtkTreePath</span><span class="w"> </span><span class="o">*</span><span class="n">path</span><span class="p">;</span>
+<span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">parent_iter</span><span class="p">;</span>
+
+<span class="c1">// get the iterator from a string</span>
+<span class="n">gtk_tree_model_get_iter_from_string</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
+<span class="w">                                     </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span>
+<span class="w">                                     </span><span class="s">&quot;3:2:5&quot;</span><span class="p">);</span>
+
+<span class="c1">// get the iterator from a path</span>
+<span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_path_new_from_string</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;3:2:5&quot;</span><span class="p">);</span>
+<span class="n">gtk_tree_model_get_iter</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">);</span>
+<span class="n">gtk_tree_path_free</span><span class="w"> </span><span class="p">(</span><span class="n">path</span><span class="p">);</span>
+
+<span class="c1">// walk the tree to find the iterator</span>
+<span class="n">gtk_tree_model_iter_nth_child</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span>
+<span class="w">                               </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="n">parent_iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="n">gtk_tree_model_iter_nth_child</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span>
+<span class="w">                               </span><span class="o">&amp;</span><span class="n">parent_iter</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="n">parent_iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="n">gtk_tree_model_iter_nth_child</span><span class="w"> </span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span>
+<span class="w">                               </span><span class="o">&amp;</span><span class="n">parent_iter</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span>
+</code></pre></div>
+
+<p>This second example shows a quick way of iterating through a list
+and getting a string and an integer from each row. The
+<code>populate_model()</code> function used below is not
+shown, as it is specific to the <code>GtkListStore</code>. For information on
+how to write such a function, see the <code>GtkListStore</code> documentation.</p>
+<h2 id="reading-data-from-a-gtktreemodel">Reading data from a <code>GtkTreeModel</code><a class="md-anchor" href="#reading-data-from-a-gtktreemodel" title="Permanent link"></a></h2>
+<div class="codehilite"><pre><span></span><code><span class="k">enum</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">STRING_COLUMN</span><span class="p">,</span>
+<span class="w">  </span><span class="n">INT_COLUMN</span><span class="p">,</span>
+<span class="w">  </span><span class="n">N_COLUMNS</span>
+<span class="p">};</span>
+
+<span class="p">...</span>
+
+<span class="n">GtkTreeModel</span><span class="w"> </span><span class="o">*</span><span class="n">list_store</span><span class="p">;</span>
+<span class="n">GtkTreeIter</span><span class="w"> </span><span class="n">iter</span><span class="p">;</span>
+<span class="n">gboolean</span><span class="w"> </span><span class="n">valid</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">row_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="c1">// make a new list_store</span>
+<span class="n">list_store</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_list_store_new</span><span class="w"> </span><span class="p">(</span><span class="n">N_COLUMNS</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">G_TYPE_STRING</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">G_TYPE_INT</span><span class="p">);</span>
+
+<span class="c1">// Fill the list store with data</span>
+<span class="n">populate_model</span><span class="w"> </span><span class="p">(</span><span class="n">list_store</span><span class="p">);</span>
+
+<span class="c1">// Get the first iter in the list, check it is valid and walk</span>
+<span class="c1">// through the list, reading each row.</span>
+
+<span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_get_iter_first</span><span class="w"> </span><span class="p">(</span><span class="n">list_store</span><span class="p">,</span>
+<span class="w">                                       </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+<span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str_data</span><span class="p">;</span>
+<span class="w">   </span><span class="kt">int</span><span class="w">    </span><span class="n">int_data</span><span class="p">;</span>
+
+<span class="w">   </span><span class="c1">// Make sure you terminate calls to gtk_tree_model_get() with a “-1” value</span>
+<span class="w">   </span><span class="n">gtk_tree_model_get</span><span class="w"> </span><span class="p">(</span><span class="n">list_store</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">STRING_COLUMN</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">str_data</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">INT_COLUMN</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">int_data</span><span class="p">,</span>
+<span class="w">                       </span><span class="mi">-1</span><span class="p">);</span>
+
+<span class="w">   </span><span class="c1">// Do something with the data</span>
+<span class="w">   </span><span class="n">g_print</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Row %d: (%s,%d)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="n">row_count</span><span class="p">,</span><span class="w"> </span><span class="n">str_data</span><span class="p">,</span><span class="w"> </span><span class="n">int_data</span><span class="p">);</span>
+<span class="w">   </span><span class="n">g_free</span><span class="w"> </span><span class="p">(</span><span class="n">str_data</span><span class="p">);</span>
+
+<span class="w">   </span><span class="n">valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gtk_tree_model_iter_next</span><span class="w"> </span><span class="p">(</span><span class="n">list_store</span><span class="p">,</span>
+<span class="w">                                     </span><span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+<span class="w">   </span><span class="n">row_count</span><span class="o">++</span><span class="p">;</span>
+<span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>The <code>GtkTreeModel</code> interface contains two methods for reference
+counting: <code>gtk_tree_model_ref_node()</code> and gtk_tree_model_unref_node().
+These two methods are optional to implement. The reference counting
+is meant as a way for views to let models know when nodes are being
+displayed. <code>GtkTreeView</code> will take a reference on a node when it is
+visible, which means the node is either in the toplevel or expanded.
+Being displayed does not mean that the node is currently directly
+visible to the user in the viewport. Based on this reference counting
+scheme a caching model, for example, can decide whether or not to cache
+a node based on the reference count. A file-system based model would
+not want to keep the entire file hierarchy in memory, but just the
+folders that are currently expanded in every current&nbsp;view.</p>
+<p>When working with reference counting, the following rules must be taken
+into&nbsp;account:</p>
+<ul>
+<li>
+<p>Never take a reference on a node without owning a reference on its parent.
+  This means that all parent nodes of a referenced node must be referenced
+  as&nbsp;well.</p>
+</li>
+<li>
+<p>Outstanding references on a deleted node are not released. This is not
+  possible because the node has already been deleted by the time the
+  row-deleted signal is&nbsp;received.</p>
+</li>
+<li>
+<p>Models are not obligated to emit a signal on rows of which none of its
+  siblings are referenced. To phrase this differently, signals are only
+  required for levels in which nodes are referenced. For the root level
+  however, signals must be emitted at all times (however the root level
+  is always referenced when any view is&nbsp;attached).</p>
+</li>
+</ul>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+          <div class="admonition deprecation">
+            <p class="admonition-title">Deprecated since: 4.10</p><p>Use <a href="javascript:void(0)" data-namespace="Gio" data-link="iface.ListModel.html" class="external"><code>GListModel</code></a>&nbsp;instead.</p></div>
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    <div class="toggle-wrapper prerequisite">
+      <h4 id="prerequisite">
+        Prerequisite
+        <a href="#prerequisite" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <p>In order to implement TreeModel, your type must inherit from<a data-namespace="GObject" data-link="class.Object.html" href="javascript:void(0)" class="external"><code>GObject</code></a>.</p>
+      </div>
+    </div>
+
+    
+    <div class="implementations toggle-wrapper default-hide">
+      <h4 id="implementations">Implementations<a href="#implementations" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li><a href="class.ListStore.html">GtkListStore</a></li>
+        
+          <li><a href="class.TreeModelFilter.html">GtkTreeModelFilter</a></li>
+        
+          <li><a href="class.TreeModelSort.html">GtkTreeModelSort</a></li>
+        
+          <li><a href="class.TreeStore.html">GtkTreeStore</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="methods toggle-wrapper">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.filter_new.html">gtk_tree_model_filter_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkTreeModel</code>, with <code>child_model</code> as the child_model
+and <code>root</code> as the virtual&nbsp;root.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.foreach.html">gtk_tree_model_foreach</a></h6>
+          <div class="docblock">
+            <p>Calls <code>func</code> on each node in model in a depth-first&nbsp;fashion.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get.html">gtk_tree_model_get</a></h6>
+          <div class="docblock">
+            <p>Gets the value of one or more cells in the row referenced by <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_column_type.html">gtk_tree_model_get_column_type</a></h6>
+          <div class="docblock">
+            <p>Returns the type of the&nbsp;column.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_flags.html">gtk_tree_model_get_flags</a></h6>
+          <div class="docblock">
+            <p>Returns a set of flags supported by this&nbsp;interface.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_iter.html">gtk_tree_model_get_iter</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to a valid iterator pointing to <code>path</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_iter_first.html">gtk_tree_model_get_iter_first</a></h6>
+          <div class="docblock">
+            <p>Initializes <code>iter</code> with the first iterator in the tree
+(the one at the path&nbsp;&#8220;0&#8221;).</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_iter_from_string.html">gtk_tree_model_get_iter_from_string</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to a valid iterator pointing to <code>path_string</code>, if it&nbsp;exists.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_n_columns.html">gtk_tree_model_get_n_columns</a></h6>
+          <div class="docblock">
+            <p>Returns the number of columns supported by <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_path.html">gtk_tree_model_get_path</a></h6>
+          <div class="docblock">
+            <p>Returns a newly-created <code>GtkTreePath</code> referenced by <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_string_from_iter.html">gtk_tree_model_get_string_from_iter</a></h6>
+          <div class="docblock">
+            <p>Generates a string representation of the&nbsp;iter.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_valist.html">gtk_tree_model_get_valist</a></h6>
+          <div class="docblock">
+            <p>Gets the value of one or more cells in the row referenced by <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.get_value.html">gtk_tree_model_get_value</a></h6>
+          <div class="docblock">
+            <p>Initializes and sets <code>value</code> to that at <code>column</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_children.html">gtk_tree_model_iter_children</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the first child of <code>parent</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_has_child.html">gtk_tree_model_iter_has_child</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if <code>iter</code> has children, <code>FALSE</code> otherwise.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_n_children.html">gtk_tree_model_iter_n_children</a></h6>
+          <div class="docblock">
+            <p>Returns the number of children that <code>iter</code> has.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_next.html">gtk_tree_model_iter_next</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the node following it at the current&nbsp;level.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_nth_child.html">gtk_tree_model_iter_nth_child</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to be the child of <code>parent</code>, using the given&nbsp;index.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_parent.html">gtk_tree_model_iter_parent</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to be the parent of <code>child</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.iter_previous.html">gtk_tree_model_iter_previous</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the previous node at the current&nbsp;level.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.ref_node.html">gtk_tree_model_ref_node</a></h6>
+          <div class="docblock">
+            <p>Lets the tree ref the&nbsp;node.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.row_changed.html">gtk_tree_model_row_changed</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-changed signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.row_deleted.html">gtk_tree_model_row_deleted</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-deleted signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.row_has_child_toggled.html">gtk_tree_model_row_has_child_toggled</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-has-child-toggled signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.row_inserted.html">gtk_tree_model_row_inserted</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-inserted signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.rows_reordered.html">gtk_tree_model_rows_reordered</a></h6>
+          <div class="docblock">
+            <p>Emits the ::rows-reordered signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.rows_reordered_with_length.html">gtk_tree_model_rows_reordered_with_length</a></h6>
+          <div class="docblock">
+            <p>Emits the ::rows-reordered signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.TreeModel.unref_node.html">gtk_tree_model_unref_node</a></h6>
+          <div class="docblock">
+            <p>Lets the tree unref the&nbsp;node.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+      </div>
+
+    </div>
+    
+
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.TreeModel.row-changed.html">Gtk.TreeModel::row-changed</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted when a row in the model has&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TreeModel.row-deleted.html">Gtk.TreeModel::row-deleted</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted when a row has been&nbsp;deleted.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TreeModel.row-has-child-toggled.html">Gtk.TreeModel::row-has-child-toggled</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted when a row has gotten the first child
+row or lost its last child&nbsp;row.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TreeModel.row-inserted.html">Gtk.TreeModel::row-inserted</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted when a new row has been inserted in
+the&nbsp;model.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TreeModel.rows-reordered.html">Gtk.TreeModel::rows-reordered</a></h6>
+          <div class="docblock">
+            <p>This signal is emitted when the children of a node in the
+<code>GtkTreeModel</code> have been&nbsp;reordered.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="interface toggle-wrapper default-hide">
+      <h4 style="display:flex;" id="interface-struct">
+        Interface structure
+        <a href="#interface-struct" class="anchor"></a>
+        
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkTreeModelIface {
+  void (* row_changed) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  );
+  void (* row_inserted) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  );
+  void (* row_has_child_toggled) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  );
+  void (* row_deleted) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path
+  );
+  void (* rows_reordered) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter,
+    int* new_order
+  );
+  GtkTreeModelFlags (* get_flags) (
+    GtkTreeModel* tree_model
+  );
+  int (* get_n_columns) (
+    GtkTreeModel* tree_model
+  );
+  GType (* get_column_type) (
+    GtkTreeModel* tree_model,
+    int index_
+  );
+  gboolean (* get_iter) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreePath* path
+  );
+  GtkTreePath* (* get_path) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  void (* get_value) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    int column,
+    GValue* value
+  );
+  gboolean (* iter_next) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  gboolean (* iter_previous) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  gboolean (* iter_children) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* parent
+  );
+  gboolean (* iter_has_child) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  int (* iter_n_children) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  gboolean (* iter_nth_child) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* parent,
+    int n
+  );
+  gboolean (* iter_parent) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* child
+  );
+  void (* ref_node) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  void (* unref_node) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Interface members</h6>
+
+        <table>
+        
+        <tr>
+          <td style="vertical-align:top"><code>row_changed</code></td>
+          <td style="vertical-align:top"><pre><code>void (* row_changed) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Signal emitted when a row in the model has&nbsp;changed.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>row_inserted</code></td>
+          <td style="vertical-align:top"><pre><code>void (* row_inserted) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Signal emitted when a new row has been inserted in
+   the&nbsp;model.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>row_has_child_toggled</code></td>
+          <td style="vertical-align:top"><pre><code>void (* row_has_child_toggled) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Signal emitted when a row has gotten the
+   first child row or lost its last child&nbsp;row.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>row_deleted</code></td>
+          <td style="vertical-align:top"><pre><code>void (* row_deleted) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Signal emitted when a row has been&nbsp;deleted.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>rows_reordered</code></td>
+          <td style="vertical-align:top"><pre><code>void (* rows_reordered) (
+    GtkTreeModel* tree_model,
+    GtkTreePath* path,
+    GtkTreeIter* iter,
+    int* new_order
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Signal emitted when the children of a node in the
+   GtkTreeModel have been&nbsp;reordered.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_flags</code></td>
+          <td style="vertical-align:top"><pre><code>GtkTreeModelFlags (* get_flags) (
+    GtkTreeModel* tree_model
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Get <code>GtkTreeModelFlags</code> supported by this&nbsp;interface.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_n_columns</code></td>
+          <td style="vertical-align:top"><pre><code>int (* get_n_columns) (
+    GtkTreeModel* tree_model
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Get the number of columns supported by the&nbsp;model.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_column_type</code></td>
+          <td style="vertical-align:top"><pre><code>GType (* get_column_type) (
+    GtkTreeModel* tree_model,
+    int index_
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Get the type of the&nbsp;column.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_iter</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* get_iter) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreePath* path
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to a valid iterator pointing to&nbsp;path.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_path</code></td>
+          <td style="vertical-align:top"><pre><code>GtkTreePath* (* get_path) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Gets a newly-created <code>GtkTreePath</code> referenced by&nbsp;iter.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_value</code></td>
+          <td style="vertical-align:top"><pre><code>void (* get_value) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    int column,
+    GValue* value
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Initializes and sets value to that at&nbsp;column.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_next</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_next) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to point to the node following it at the
+   current&nbsp;level.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_previous</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_previous) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to point to the previous node at the
+   current&nbsp;level.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_children</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_children) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* parent
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to point to the first child of&nbsp;parent.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_has_child</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_has_child) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p><code>TRUE</code> if iter has children, <code>FALSE</code> otherwise.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_n_children</code></td>
+          <td style="vertical-align:top"><pre><code>int (* iter_n_children) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Gets the number of children that iter&nbsp;has.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_nth_child</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_nth_child) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* parent,
+    int n
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to be the child of parent, using the
+   given&nbsp;index.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>iter_parent</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* iter_parent) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter,
+    GtkTreeIter* child
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Sets iter to be the parent of&nbsp;child.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>ref_node</code></td>
+          <td style="vertical-align:top"><pre><code>void (* ref_node) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Lets the tree ref the&nbsp;node.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>unref_node</code></td>
+          <td style="vertical-align:top"><pre><code>void (* unref_node) (
+    GtkTreeModel* tree_model,
+    GtkTreeIter* iter
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Lets the tree unref the&nbsp;node.</p></td>
+        </tr>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_column_type"><a href="vfunc.TreeModel.get_column_type.html">Gtk.TreeModel.get_column_type</a></h6>
+          <div class="docblock">
+            <p>Returns the type of the&nbsp;column.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_flags"><a href="vfunc.TreeModel.get_flags.html">Gtk.TreeModel.get_flags</a></h6>
+          <div class="docblock">
+            <p>Returns a set of flags supported by this&nbsp;interface.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_iter"><a href="vfunc.TreeModel.get_iter.html">Gtk.TreeModel.get_iter</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to a valid iterator pointing to <code>path</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_n_columns"><a href="vfunc.TreeModel.get_n_columns.html">Gtk.TreeModel.get_n_columns</a></h6>
+          <div class="docblock">
+            <p>Returns the number of columns supported by <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_path"><a href="vfunc.TreeModel.get_path.html">Gtk.TreeModel.get_path</a></h6>
+          <div class="docblock">
+            <p>Returns a newly-created <code>GtkTreePath</code> referenced by <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-get_value"><a href="vfunc.TreeModel.get_value.html">Gtk.TreeModel.get_value</a></h6>
+          <div class="docblock">
+            <p>Initializes and sets <code>value</code> to that at <code>column</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_children"><a href="vfunc.TreeModel.iter_children.html">Gtk.TreeModel.iter_children</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the first child of <code>parent</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_has_child"><a href="vfunc.TreeModel.iter_has_child.html">Gtk.TreeModel.iter_has_child</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if <code>iter</code> has children, <code>FALSE</code> otherwise.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_n_children"><a href="vfunc.TreeModel.iter_n_children.html">Gtk.TreeModel.iter_n_children</a></h6>
+          <div class="docblock">
+            <p>Returns the number of children that <code>iter</code> has.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_next"><a href="vfunc.TreeModel.iter_next.html">Gtk.TreeModel.iter_next</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the node following it at the current&nbsp;level.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_nth_child"><a href="vfunc.TreeModel.iter_nth_child.html">Gtk.TreeModel.iter_nth_child</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to be the child of <code>parent</code>, using the given&nbsp;index.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_parent"><a href="vfunc.TreeModel.iter_parent.html">Gtk.TreeModel.iter_parent</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to be the parent of <code>child</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-iter_previous"><a href="vfunc.TreeModel.iter_previous.html">Gtk.TreeModel.iter_previous</a></h6>
+          <div class="docblock">
+            <p>Sets <code>iter</code> to point to the previous node at the current&nbsp;level.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-ref_node"><a href="vfunc.TreeModel.ref_node.html">Gtk.TreeModel.ref_node</a></h6>
+          <div class="docblock">
+            <p>Lets the tree ref the&nbsp;node.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-row_changed"><a href="vfunc.TreeModel.row_changed.html">Gtk.TreeModel.row_changed</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-changed signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-row_deleted"><a href="vfunc.TreeModel.row_deleted.html">Gtk.TreeModel.row_deleted</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-deleted signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-row_has_child_toggled"><a href="vfunc.TreeModel.row_has_child_toggled.html">Gtk.TreeModel.row_has_child_toggled</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-has-child-toggled signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-row_inserted"><a href="vfunc.TreeModel.row_inserted.html">Gtk.TreeModel.row_inserted</a></h6>
+          <div class="docblock">
+            <p>Emits the ::row-inserted signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-rows_reordered"><a href="vfunc.TreeModel.rows_reordered.html">Gtk.TreeModel.rows_reordered</a></h6>
+          <div class="docblock">
+            <p>Emits the ::rows-reordered signal on <code>tree_model</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6 id="vfunc-unref_node"><a href="vfunc.TreeModel.unref_node.html">Gtk.TreeModel.unref_node</a></h6>
+          <div class="docblock">
+            <p>Lets the tree unref the&nbsp;node.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#acquiring-a-gtktreeiter"><span class="link-text">Acquiring a GtkTreeIter</span></a></li>
+      
+        <li class="toc-list-item"><a href="#reading-data-from-a-gtktreemodel"><span class="link-text">Reading data from a GtkTreeModel</span></a></li>
+      
+      
+      </ul>
+      
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

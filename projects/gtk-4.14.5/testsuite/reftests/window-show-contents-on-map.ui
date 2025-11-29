@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <signal name="map" handler="gtk_widget_show" object="label1" after="yes" swapped="yes"/>
+    <child>
+      <object class="GtkLabel" id="label1">
+        <property name="visible">0</property>
+        <property name="label" translatable="yes">This label is only shown when the window is mapped. So the window does its first size allocation without the label being visible and has to resize.</property>
+        <property name="width_chars">20</property>
+        <property name="wrap">1</property>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,1996 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TextBuffer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TextBuffer"/>
+  <meta property="og:description" content="Reference for Gtk.TextBuffer"/>
+  <meta name="twitter:title" content="Gtk.TextBuffer"/>
+  <meta name="twitter:description" content="Reference for Gtk.TextBuffer"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.TextBuffer.html#description">TextBuffer</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.TextBuffer.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TextBuffer.add_mark.html">add_mark</a>
+  
+    <a class="method" href="method.TextBuffer.add_selection_clipboard.html">add_selection_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.apply_tag.html">apply_tag</a>
+  
+    <a class="method" href="method.TextBuffer.apply_tag_by_name.html">apply_tag_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.backspace.html">backspace</a>
+  
+    <a class="method" href="method.TextBuffer.begin_irreversible_action.html">begin_irreversible_action</a>
+  
+    <a class="method" href="method.TextBuffer.begin_user_action.html">begin_user_action</a>
+  
+    <a class="method" href="method.TextBuffer.copy_clipboard.html">copy_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.create_child_anchor.html">create_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.create_mark.html">create_mark</a>
+  
+    <a class="method" href="method.TextBuffer.create_tag.html">create_tag</a>
+  
+    <a class="method" href="method.TextBuffer.cut_clipboard.html">cut_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.delete.html">delete</a>
+  
+    <a class="method" href="method.TextBuffer.delete_interactive.html">delete_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.delete_mark.html">delete_mark</a>
+  
+    <a class="method" href="method.TextBuffer.delete_mark_by_name.html">delete_mark_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.delete_selection.html">delete_selection</a>
+  
+    <a class="method" href="method.TextBuffer.end_irreversible_action.html">end_irreversible_action</a>
+  
+    <a class="method" href="method.TextBuffer.end_user_action.html">end_user_action</a>
+  
+    <a class="method" href="method.TextBuffer.get_bounds.html">get_bounds</a>
+  
+    <a class="method" href="method.TextBuffer.get_can_redo.html">get_can_redo</a>
+  
+    <a class="method" href="method.TextBuffer.get_can_undo.html">get_can_undo</a>
+  
+    <a class="method" href="method.TextBuffer.get_char_count.html">get_char_count</a>
+  
+    <a class="method" href="method.TextBuffer.get_enable_undo.html">get_enable_undo</a>
+  
+    <a class="method" href="method.TextBuffer.get_end_iter.html">get_end_iter</a>
+  
+    <a class="method" href="method.TextBuffer.get_has_selection.html">get_has_selection</a>
+  
+    <a class="method" href="method.TextBuffer.get_insert.html">get_insert</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_child_anchor.html">get_iter_at_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line.html">get_iter_at_line</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line_index.html">get_iter_at_line_index</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_line_offset.html">get_iter_at_line_offset</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_mark.html">get_iter_at_mark</a>
+  
+    <a class="method" href="method.TextBuffer.get_iter_at_offset.html">get_iter_at_offset</a>
+  
+    <a class="method" href="method.TextBuffer.get_line_count.html">get_line_count</a>
+  
+    <a class="method" href="method.TextBuffer.get_mark.html">get_mark</a>
+  
+    <a class="method" href="method.TextBuffer.get_max_undo_levels.html">get_max_undo_levels</a>
+  
+    <a class="method" href="method.TextBuffer.get_modified.html">get_modified</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_bound.html">get_selection_bound</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_bounds.html">get_selection_bounds</a>
+  
+    <a class="method" href="method.TextBuffer.get_selection_content.html">get_selection_content</a>
+  
+    <a class="method" href="method.TextBuffer.get_slice.html">get_slice</a>
+  
+    <a class="method" href="method.TextBuffer.get_start_iter.html">get_start_iter</a>
+  
+    <a class="method" href="method.TextBuffer.get_tag_table.html">get_tag_table</a>
+  
+    <a class="method" href="method.TextBuffer.get_text.html">get_text</a>
+  
+    <a class="method" href="method.TextBuffer.insert.html">insert</a>
+  
+    <a class="method" href="method.TextBuffer.insert_at_cursor.html">insert_at_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_child_anchor.html">insert_child_anchor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_interactive.html">insert_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.insert_interactive_at_cursor.html">insert_interactive_at_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.insert_markup.html">insert_markup</a>
+  
+    <a class="method" href="method.TextBuffer.insert_paintable.html">insert_paintable</a>
+  
+    <a class="method" href="method.TextBuffer.insert_range.html">insert_range</a>
+  
+    <a class="method" href="method.TextBuffer.insert_range_interactive.html">insert_range_interactive</a>
+  
+    <a class="method" href="method.TextBuffer.insert_with_tags.html">insert_with_tags</a>
+  
+    <a class="method" href="method.TextBuffer.insert_with_tags_by_name.html">insert_with_tags_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.move_mark.html">move_mark</a>
+  
+    <a class="method" href="method.TextBuffer.move_mark_by_name.html">move_mark_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.paste_clipboard.html">paste_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.place_cursor.html">place_cursor</a>
+  
+    <a class="method" href="method.TextBuffer.redo.html">redo</a>
+  
+    <a class="method" href="method.TextBuffer.remove_all_tags.html">remove_all_tags</a>
+  
+    <a class="method" href="method.TextBuffer.remove_selection_clipboard.html">remove_selection_clipboard</a>
+  
+    <a class="method" href="method.TextBuffer.remove_tag.html">remove_tag</a>
+  
+    <a class="method" href="method.TextBuffer.remove_tag_by_name.html">remove_tag_by_name</a>
+  
+    <a class="method" href="method.TextBuffer.select_range.html">select_range</a>
+  
+    <a class="method" href="method.TextBuffer.set_enable_undo.html">set_enable_undo</a>
+  
+    <a class="method" href="method.TextBuffer.set_max_undo_levels.html">set_max_undo_levels</a>
+  
+    <a class="method" href="method.TextBuffer.set_modified.html">set_modified</a>
+  
+    <a class="method" href="method.TextBuffer.set_text.html">set_text</a>
+  
+    <a class="method" href="method.TextBuffer.undo.html">undo</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.TextBuffer.can-redo.html">can-redo</a>
+  
+    <a class="property" href="property.TextBuffer.can-undo.html">can-undo</a>
+  
+    <a class="property" href="property.TextBuffer.cursor-position.html">cursor-position</a>
+  
+    <a class="property" href="property.TextBuffer.enable-undo.html">enable-undo</a>
+  
+    <a class="property" href="property.TextBuffer.has-selection.html">has-selection</a>
+  
+    <a class="property" href="property.TextBuffer.tag-table.html">tag-table</a>
+  
+    <a class="property" href="property.TextBuffer.text.html">text</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.TextBuffer.apply-tag.html">apply-tag</a>
+  
+    <a class="signal" href="signal.TextBuffer.begin-user-action.html">begin-user-action</a>
+  
+    <a class="signal" href="signal.TextBuffer.changed.html">changed</a>
+  
+    <a class="signal" href="signal.TextBuffer.delete-range.html">delete-range</a>
+  
+    <a class="signal" href="signal.TextBuffer.end-user-action.html">end-user-action</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-child-anchor.html">insert-child-anchor</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-paintable.html">insert-paintable</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-text.html">insert-text</a>
+  
+    <a class="signal" href="signal.TextBuffer.mark-deleted.html">mark-deleted</a>
+  
+    <a class="signal" href="signal.TextBuffer.mark-set.html">mark-set</a>
+  
+    <a class="signal" href="signal.TextBuffer.modified-changed.html">modified-changed</a>
+  
+    <a class="signal" href="signal.TextBuffer.paste-done.html">paste-done</a>
+  
+    <a class="signal" href="signal.TextBuffer.redo.html">redo</a>
+  
+    <a class="signal" href="signal.TextBuffer.remove-tag.html">remove-tag</a>
+  
+    <a class="signal" href="signal.TextBuffer.undo.html">undo</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.TextBuffer.apply_tag.html">apply_tag</a>
+  
+    <a class="method" href="vfunc.TextBuffer.begin_user_action.html">begin_user_action</a>
+  
+    <a class="method" href="vfunc.TextBuffer.changed.html">changed</a>
+  
+    <a class="method" href="vfunc.TextBuffer.delete_range.html">delete_range</a>
+  
+    <a class="method" href="vfunc.TextBuffer.end_user_action.html">end_user_action</a>
+  
+    <a class="method" href="vfunc.TextBuffer.insert_child_anchor.html">insert_child_anchor</a>
+  
+    <a class="method" href="vfunc.TextBuffer.insert_paintable.html">insert_paintable</a>
+  
+    <a class="method" href="vfunc.TextBuffer.insert_text.html">insert_text</a>
+  
+    <a class="method" href="vfunc.TextBuffer.mark_deleted.html">mark_deleted</a>
+  
+    <a class="method" href="vfunc.TextBuffer.mark_set.html">mark_set</a>
+  
+    <a class="method" href="vfunc.TextBuffer.modified_changed.html">modified_changed</a>
+  
+    <a class="method" href="vfunc.TextBuffer.paste_done.html">paste_done</a>
+  
+    <a class="method" href="vfunc.TextBuffer.redo.html">redo</a>
+  
+    <a class="method" href="vfunc.TextBuffer.remove_tag.html">remove_tag</a>
+  
+    <a class="method" href="vfunc.TextBuffer.undo.html">undo</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>TextBuffer</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtktextbuffer.c#L43">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.TextBuffer : GObject.Object
+{
+  priv: GtkTextBufferPrivate*
+}</pre></code>
+
+        <div class="docblock">
+          <p>Stores text and attributes for display in a <code>GtkTextView</code>.</p>
+<p>You may wish to begin by reading the
+<a href="section-text-widget.html">text widget conceptual overview</a>,
+which gives an overview of all the objects and data types
+related to the text widget and how they work&nbsp;together.</p>
+<p>GtkTextBuffer can support undoing changes to the buffer
+content, see <a href="method.TextBuffer.set_enable_undo.html"><code>gtk_text_buffer_set_enable_undo()</code></a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.TextBuffer">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="104pt" height="116pt"
+ viewBox="0.00 0.00 103.50 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkTextBuffer">
+<path fill="none" stroke="black" d="M83.5,-36C83.5,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 83.5,0 83.5,0 89.5,0 95.5,-6 95.5,-12 95.5,-12 95.5,-24 95.5,-24 95.5,-30 89.5,-36 83.5,-36"/>
+<text text-anchor="middle" x="47.75" y="-12.95" font-family="Times,serif" font-size="14.00">GtkTextBuffer</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M66.62,-108C66.62,-108 28.88,-108 28.88,-108 22.88,-108 16.88,-102 16.88,-96 16.88,-96 16.88,-84 16.88,-84 16.88,-78 22.88,-72 28.88,-72 28.88,-72 66.62,-72 66.62,-72 72.62,-72 78.62,-78 78.62,-84 78.62,-84 78.62,-96 78.62,-96 78.62,-102 72.62,-108 66.62,-108"/>
+<text text-anchor="middle" x="47.75" y="-84.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M47.75,-71.7C47.75,-60.85 47.75,-46.92 47.75,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.TextBuffer.new.html">gtk_text_buffer_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new text&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.add_mark.html">gtk_text_buffer_add_mark</a></h6>
+          <div class="docblock">
+            <p>Adds the mark at position <code>where</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.add_selection_clipboard.html">gtk_text_buffer_add_selection_clipboard</a></h6>
+          <div class="docblock">
+            <p>Adds <code>clipboard</code> to the list of clipboards in which the selection
+contents of <code>buffer</code> are&nbsp;available.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.apply_tag.html">gtk_text_buffer_apply_tag</a></h6>
+          <div class="docblock">
+            <p>Emits the “apply-tag” signal on <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.apply_tag_by_name.html">gtk_text_buffer_apply_tag_by_name</a></h6>
+          <div class="docblock">
+            <p>Emits the “apply-tag” signal on <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.backspace.html">gtk_text_buffer_backspace</a></h6>
+          <div class="docblock">
+            <p>Performs the appropriate action as if the user hit the delete
+key with the cursor at the position specified by <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.begin_irreversible_action.html">gtk_text_buffer_begin_irreversible_action</a></h6>
+          <div class="docblock">
+            <p>Denotes the beginning of an action that may not be&nbsp;undone.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.begin_user_action.html">gtk_text_buffer_begin_user_action</a></h6>
+          <div class="docblock">
+            <p>Called to indicate that the buffer operations between here and a
+call to <code>gtk_text_buffer_end_user_action()</code> are part of a single
+user-visible&nbsp;operation.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.copy_clipboard.html">gtk_text_buffer_copy_clipboard</a></h6>
+          <div class="docblock">
+            <p>Copies the currently-selected text to a&nbsp;clipboard.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.create_child_anchor.html">gtk_text_buffer_create_child_anchor</a></h6>
+          <div class="docblock">
+            <p>Creates and inserts a child&nbsp;anchor.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.create_mark.html">gtk_text_buffer_create_mark</a></h6>
+          <div class="docblock">
+            <p>Creates a mark at position <code>where</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.create_tag.html">gtk_text_buffer_create_tag</a></h6>
+          <div class="docblock">
+            <p>Creates a tag and adds it to the tag table for <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.cut_clipboard.html">gtk_text_buffer_cut_clipboard</a></h6>
+          <div class="docblock">
+            <p>Copies the currently-selected text to a clipboard,
+then deletes said text if it’s&nbsp;editable.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.delete.html">gtk_text_buffer_delete</a></h6>
+          <div class="docblock">
+            <p>Deletes text between <code>start</code> and <code>end</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.delete_interactive.html">gtk_text_buffer_delete_interactive</a></h6>
+          <div class="docblock">
+            <p>Deletes all editable text in the given&nbsp;range.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.delete_mark.html">gtk_text_buffer_delete_mark</a></h6>
+          <div class="docblock">
+            <p>Deletes <code>mark</code>, so that it’s no longer located anywhere in the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.delete_mark_by_name.html">gtk_text_buffer_delete_mark_by_name</a></h6>
+          <div class="docblock">
+            <p>Deletes the mark named <code>name</code>; the mark must&nbsp;exist.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.delete_selection.html">gtk_text_buffer_delete_selection</a></h6>
+          <div class="docblock">
+            <p>Deletes the range between the “insert” and “selection_bound” marks,
+that is, the currently-selected&nbsp;text.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.end_irreversible_action.html">gtk_text_buffer_end_irreversible_action</a></h6>
+          <div class="docblock">
+            <p>Denotes the end of an action that may not be&nbsp;undone.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.end_user_action.html">gtk_text_buffer_end_user_action</a></h6>
+          <div class="docblock">
+            <p>Ends a user-visible&nbsp;operation.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_bounds.html">gtk_text_buffer_get_bounds</a></h6>
+          <div class="docblock">
+            <p>Retrieves the first and last iterators in the buffer, i.e. the
+entire buffer lies within the range [<code>start</code>,<code>end</code>).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_can_redo.html">gtk_text_buffer_get_can_redo</a></h6>
+          <div class="docblock">
+            <p>Gets whether there is a redoable action in the&nbsp;history.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_can_undo.html">gtk_text_buffer_get_can_undo</a></h6>
+          <div class="docblock">
+            <p>Gets whether there is an undoable action in the&nbsp;history.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_char_count.html">gtk_text_buffer_get_char_count</a></h6>
+          <div class="docblock">
+            <p>Gets the number of characters in the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_enable_undo.html">gtk_text_buffer_get_enable_undo</a></h6>
+          <div class="docblock">
+            <p>Gets whether the buffer is saving modifications to the buffer
+to allow for undo and redo&nbsp;actions.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_end_iter.html">gtk_text_buffer_get_end_iter</a></h6>
+          <div class="docblock">
+            <p>Initializes <code>iter</code> with the “end iterator,” one past the last valid
+character in the text&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_has_selection.html">gtk_text_buffer_get_has_selection</a></h6>
+          <div class="docblock">
+            <p>Indicates whether the buffer has some text currently&nbsp;selected.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_insert.html">gtk_text_buffer_get_insert</a></h6>
+          <div class="docblock">
+            <p>Returns the mark that represents the cursor (insertion&nbsp;point).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_child_anchor.html">gtk_text_buffer_get_iter_at_child_anchor</a></h6>
+          <div class="docblock">
+            <p>Obtains the location of <code>anchor</code> within <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_line.html">gtk_text_buffer_get_iter_at_line</a></h6>
+          <div class="docblock">
+            <p>Initializes <code>iter</code> to the start of the given&nbsp;line.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_line_index.html">gtk_text_buffer_get_iter_at_line_index</a></h6>
+          <div class="docblock">
+            <p>Obtains an iterator pointing to <code>byte_index</code> within the given&nbsp;line.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_line_offset.html">gtk_text_buffer_get_iter_at_line_offset</a></h6>
+          <div class="docblock">
+            <p>Obtains an iterator pointing to <code>char_offset</code> within the given&nbsp;line.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_mark.html">gtk_text_buffer_get_iter_at_mark</a></h6>
+          <div class="docblock">
+            <p>Initializes <code>iter</code> with the current position of <code>mark</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_iter_at_offset.html">gtk_text_buffer_get_iter_at_offset</a></h6>
+          <div class="docblock">
+            <p>Initializes <code>iter</code> to a position <code>char_offset</code> chars from the start
+of the entire&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_line_count.html">gtk_text_buffer_get_line_count</a></h6>
+          <div class="docblock">
+            <p>Obtains the number of lines in the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_mark.html">gtk_text_buffer_get_mark</a></h6>
+          <div class="docblock">
+            <p>Returns the mark named <code>name</code> in buffer <code>buffer</code>, or <code>NULL</code> if no such
+mark exists in the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_max_undo_levels.html">gtk_text_buffer_get_max_undo_levels</a></h6>
+          <div class="docblock">
+            <p>Gets the maximum number of undo levels to&nbsp;perform.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_modified.html">gtk_text_buffer_get_modified</a></h6>
+          <div class="docblock">
+            <p>Indicates whether the buffer has been modified since the last call
+to <code>gtk_text_buffer_set_modified()</code> set the modification flag to
+<code>FALSE</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_selection_bound.html">gtk_text_buffer_get_selection_bound</a></h6>
+          <div class="docblock">
+            <p>Returns the mark that represents the selection&nbsp;bound.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_selection_bounds.html">gtk_text_buffer_get_selection_bounds</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if some text is selected; places the bounds
+of the selection in <code>start</code> and <code>end</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_selection_content.html">gtk_text_buffer_get_selection_content</a></h6>
+          <div class="docblock">
+            <p>Get a content provider for this&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_slice.html">gtk_text_buffer_get_slice</a></h6>
+          <div class="docblock">
+            <p>Returns the text in the range [<code>start</code>,<code>end</code>).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_start_iter.html">gtk_text_buffer_get_start_iter</a></h6>
+          <div class="docblock">
+            <p>Initialized <code>iter</code> with the first position in the text&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_tag_table.html">gtk_text_buffer_get_tag_table</a></h6>
+          <div class="docblock">
+            <p>Get the <code>GtkTextTagTable</code> associated with this&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.get_text.html">gtk_text_buffer_get_text</a></h6>
+          <div class="docblock">
+            <p>Returns the text in the range [<code>start</code>,<code>end</code>).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert.html">gtk_text_buffer_insert</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>len</code> bytes of <code>text</code> at position <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_at_cursor.html">gtk_text_buffer_insert_at_cursor</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>text</code> in <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_child_anchor.html">gtk_text_buffer_insert_child_anchor</a></h6>
+          <div class="docblock">
+            <p>Inserts a child widget anchor into the text buffer at <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_interactive.html">gtk_text_buffer_insert_interactive</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>text</code> in <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_interactive_at_cursor.html">gtk_text_buffer_insert_interactive_at_cursor</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>text</code> in <code>buffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_markup.html">gtk_text_buffer_insert_markup</a></h6>
+          <div class="docblock">
+            <p>Inserts the text in <code>markup</code> at position <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_paintable.html">gtk_text_buffer_insert_paintable</a></h6>
+          <div class="docblock">
+            <p>Inserts an image into the text buffer at <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_range.html">gtk_text_buffer_insert_range</a></h6>
+          <div class="docblock">
+            <p>Copies text, tags, and paintables between <code>start</code> and <code>end</code>
+and inserts the copy at <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_range_interactive.html">gtk_text_buffer_insert_range_interactive</a></h6>
+          <div class="docblock">
+            <p>Copies text, tags, and paintables between <code>start</code> and <code>end</code>
+and inserts the copy at <code>iter</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_with_tags.html">gtk_text_buffer_insert_with_tags</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>text</code> into <code>buffer</code> at <code>iter</code>, applying the list of tags to
+the newly-inserted&nbsp;text.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.insert_with_tags_by_name.html">gtk_text_buffer_insert_with_tags_by_name</a></h6>
+          <div class="docblock">
+            <p>Inserts <code>text</code> into <code>buffer</code> at <code>iter</code>, applying the list of tags to
+the newly-inserted&nbsp;text.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.move_mark.html">gtk_text_buffer_move_mark</a></h6>
+          <div class="docblock">
+            <p>Moves <code>mark</code> to the new location <code>where</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.move_mark_by_name.html">gtk_text_buffer_move_mark_by_name</a></h6>
+          <div class="docblock">
+            <p>Moves the mark named <code>name</code> (which must exist) to location <code>where</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.paste_clipboard.html">gtk_text_buffer_paste_clipboard</a></h6>
+          <div class="docblock">
+            <p>Pastes the contents of a&nbsp;clipboard.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.place_cursor.html">gtk_text_buffer_place_cursor</a></h6>
+          <div class="docblock">
+            <p>This function moves the “insert” and “selection_bound” marks&nbsp;simultaneously.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.redo.html">gtk_text_buffer_redo</a></h6>
+          <div class="docblock">
+            <p>Redoes the next redoable action on the buffer, if there is&nbsp;one.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.remove_all_tags.html">gtk_text_buffer_remove_all_tags</a></h6>
+          <div class="docblock">
+            <p>Removes all tags in the range between <code>start</code> and <code>end</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.remove_selection_clipboard.html">gtk_text_buffer_remove_selection_clipboard</a></h6>
+          <div class="docblock">
+            <p>Removes a <code>GdkClipboard</code> added with
+<code>gtk_text_buffer_add_selection_clipboard()</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.remove_tag.html">gtk_text_buffer_remove_tag</a></h6>
+          <div class="docblock">
+            <p>Emits the “remove-tag”&nbsp;signal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.remove_tag_by_name.html">gtk_text_buffer_remove_tag_by_name</a></h6>
+          <div class="docblock">
+            <p>Emits the “remove-tag”&nbsp;signal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.select_range.html">gtk_text_buffer_select_range</a></h6>
+          <div class="docblock">
+            <p>This function moves the “insert” and “selection_bound” marks&nbsp;simultaneously.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.set_enable_undo.html">gtk_text_buffer_set_enable_undo</a></h6>
+          <div class="docblock">
+            <p>Sets whether or not to enable undoable actions in the text&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.set_max_undo_levels.html">gtk_text_buffer_set_max_undo_levels</a></h6>
+          <div class="docblock">
+            <p>Sets the maximum number of undo levels to&nbsp;perform.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.set_modified.html">gtk_text_buffer_set_modified</a></h6>
+          <div class="docblock">
+            <p>Used to keep track of whether the buffer has been
+modified since the last time it was&nbsp;saved.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.set_text.html">gtk_text_buffer_set_text</a></h6>
+          <div class="docblock">
+            <p>Deletes current contents of <code>buffer</code>, and inserts <code>text</code> instead. This is
+automatically marked as an irreversible action in the undo stack. If you
+wish to mark this action as part of a larger undo operation, call
+<code>gtk_text_buffer_delete()</code> and <code>gtk_text_buffer_insert()</code> directly&nbsp;instead.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextBuffer.undo.html">gtk_text_buffer_undo</a></h6>
+          <div class="docblock">
+            <p>Undoes the last undoable action on the buffer, if there is&nbsp;one.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.can-redo.html">Gtk.TextBuffer:can-redo</a></h6>
+          <div class="docblock">
+            <p>Denotes that the buffer can reapply the last undone&nbsp;action.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.can-undo.html">Gtk.TextBuffer:can-undo</a></h6>
+          <div class="docblock">
+            <p>Denotes that the buffer can undo the last applied&nbsp;action.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.cursor-position.html">Gtk.TextBuffer:cursor-position</a></h6>
+          <div class="docblock">
+            <p>The position of the insert&nbsp;mark.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.enable-undo.html">Gtk.TextBuffer:enable-undo</a></h6>
+          <div class="docblock">
+            <p>Denotes if support for undoing and redoing changes to the buffer is&nbsp;allowed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.has-selection.html">Gtk.TextBuffer:has-selection</a></h6>
+          <div class="docblock">
+            <p>Whether the buffer has some text currently&nbsp;selected.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.tag-table.html">Gtk.TextBuffer:tag-table</a></h6>
+          <div class="docblock">
+            <p>The GtkTextTagTable for the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.TextBuffer.text.html">Gtk.TextBuffer:text</a></h6>
+          <div class="docblock">
+            <p>The text content of the&nbsp;buffer.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.apply-tag.html">Gtk.TextBuffer::apply-tag</a></h6>
+          <div class="docblock">
+            <p>Emitted to apply a tag to a range of text in a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.begin-user-action.html">Gtk.TextBuffer::begin-user-action</a></h6>
+          <div class="docblock">
+            <p>Emitted at the beginning of a single user-visible
+operation on a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.changed.html">Gtk.TextBuffer::changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the content of a <code>GtkTextBuffer</code> has&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.delete-range.html">Gtk.TextBuffer::delete-range</a></h6>
+          <div class="docblock">
+            <p>Emitted to delete a range from a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.end-user-action.html">Gtk.TextBuffer::end-user-action</a></h6>
+          <div class="docblock">
+            <p>Emitted at the end of a single user-visible
+operation on the <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.insert-child-anchor.html">Gtk.TextBuffer::insert-child-anchor</a></h6>
+          <div class="docblock">
+            <p>Emitted to insert a <code>GtkTextChildAnchor</code> in a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.insert-paintable.html">Gtk.TextBuffer::insert-paintable</a></h6>
+          <div class="docblock">
+            <p>Emitted to insert a <code>GdkPaintable</code> in a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.insert-text.html">Gtk.TextBuffer::insert-text</a></h6>
+          <div class="docblock">
+            <p>Emitted to insert text in a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.mark-deleted.html">Gtk.TextBuffer::mark-deleted</a></h6>
+          <div class="docblock">
+            <p>Emitted as notification after a <code>GtkTextMark</code> is&nbsp;deleted.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.mark-set.html">Gtk.TextBuffer::mark-set</a></h6>
+          <div class="docblock">
+            <p>Emitted as notification after a <code>GtkTextMark</code> is&nbsp;set.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.modified-changed.html">Gtk.TextBuffer::modified-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the modified bit of a <code>GtkTextBuffer</code> flips.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.paste-done.html">Gtk.TextBuffer::paste-done</a></h6>
+          <div class="docblock">
+            <p>Emitted after paste operation has been&nbsp;completed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.redo.html">Gtk.TextBuffer::redo</a></h6>
+          <div class="docblock">
+            <p>Emitted when a request has been made to redo the
+previously undone&nbsp;operation.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.remove-tag.html">Gtk.TextBuffer::remove-tag</a></h6>
+          <div class="docblock">
+            <p>Emitted to remove all occurrences of <code>tag</code> from a range
+of text in a <code>GtkTextBuffer</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextBuffer.undo.html">Gtk.TextBuffer::undo</a></h6>
+          <div class="docblock">
+            <p>Emitted when a request has been made to undo the
+previous operation or set of operations that have
+been grouped&nbsp;together.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkTextBufferClass {
+  GObjectClass parent_class;
+  void (* insert_text) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* pos,
+    const char* new_text,
+    int new_text_length
+  );
+  void (* insert_paintable) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* iter,
+    GdkPaintable* paintable
+  );
+  void (* insert_child_anchor) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* iter,
+    GtkTextChildAnchor* anchor
+  );
+  void (* delete_range) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* start,
+    GtkTextIter* end
+  );
+  void (* changed) (
+    GtkTextBuffer* buffer
+  );
+  void (* modified_changed) (
+    GtkTextBuffer* buffer
+  );
+  void (* mark_set) (
+    GtkTextBuffer* buffer,
+    const GtkTextIter* location,
+    GtkTextMark* mark
+  );
+  void (* mark_deleted) (
+    GtkTextBuffer* buffer,
+    GtkTextMark* mark
+  );
+  void (* apply_tag) (
+    GtkTextBuffer* buffer,
+    GtkTextTag* tag,
+    const GtkTextIter* start,
+    const GtkTextIter* end
+  );
+  void (* remove_tag) (
+    GtkTextBuffer* buffer,
+    GtkTextTag* tag,
+    const GtkTextIter* start,
+    const GtkTextIter* end
+  );
+  void (* begin_user_action) (
+    GtkTextBuffer* buffer
+  );
+  void (* end_user_action) (
+    GtkTextBuffer* buffer
+  );
+  void (* paste_done) (
+    GtkTextBuffer* buffer,
+    GdkClipboard* clipboard
+  );
+  void (* undo) (
+    GtkTextBuffer* buffer
+  );
+  void (* redo) (
+    GtkTextBuffer* buffer
+  );
+  void (* _gtk_reserved1) (
+void
+  );
+  void (* _gtk_reserved2) (
+void
+  );
+  void (* _gtk_reserved3) (
+void
+  );
+  void (* _gtk_reserved4) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>The class structure for <code>GtkTextBuffer</code>.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GObjectClass</code></dt>
+          <dd><p>The object class structure needs to be the&nbsp;first.</p></dd>
+        
+          <dt><code>insert_text: void (* insert_text) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* pos,
+    const char* new_text,
+    int new_text_length
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::insert-text</code> signal.</p></dd>
+        
+          <dt><code>insert_paintable: void (* insert_paintable) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* iter,
+    GdkPaintable* paintable
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::insert-paintable</code> signal.</p></dd>
+        
+          <dt><code>insert_child_anchor: void (* insert_child_anchor) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* iter,
+    GtkTextChildAnchor* anchor
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::insert-child-anchor</code> signal.</p></dd>
+        
+          <dt><code>delete_range: void (* delete_range) (
+    GtkTextBuffer* buffer,
+    GtkTextIter* start,
+    GtkTextIter* end
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::delete-range</code> signal.</p></dd>
+        
+          <dt><code>changed: void (* changed) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::changed</code> signal.</p></dd>
+        
+          <dt><code>modified_changed: void (* modified_changed) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::modified-changed</code> signal.</p></dd>
+        
+          <dt><code>mark_set: void (* mark_set) (
+    GtkTextBuffer* buffer,
+    const GtkTextIter* location,
+    GtkTextMark* mark
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::mark-set</code> signal.</p></dd>
+        
+          <dt><code>mark_deleted: void (* mark_deleted) (
+    GtkTextBuffer* buffer,
+    GtkTextMark* mark
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::mark-deleted</code> signal.</p></dd>
+        
+          <dt><code>apply_tag: void (* apply_tag) (
+    GtkTextBuffer* buffer,
+    GtkTextTag* tag,
+    const GtkTextIter* start,
+    const GtkTextIter* end
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::apply-tag</code> signal.</p></dd>
+        
+          <dt><code>remove_tag: void (* remove_tag) (
+    GtkTextBuffer* buffer,
+    GtkTextTag* tag,
+    const GtkTextIter* start,
+    const GtkTextIter* end
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::remove-tag</code> signal.</p></dd>
+        
+          <dt><code>begin_user_action: void (* begin_user_action) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::begin-user-action</code> signal.</p></dd>
+        
+          <dt><code>end_user_action: void (* end_user_action) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::end-user-action</code> signal.</p></dd>
+        
+          <dt><code>paste_done: void (* paste_done) (
+    GtkTextBuffer* buffer,
+    GdkClipboard* clipboard
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::paste-done</code> signal.</p></dd>
+        
+          <dt><code>undo: void (* undo) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::undo</code> signal.</p></dd>
+        
+          <dt><code>redo: void (* redo) (
+    GtkTextBuffer* buffer
+  )</code></dt>
+          <dd><p>The class handler for the <code>GtkTextBuffer::redo</code> signal.</p></dd>
+        
+          <dt><code>_gtk_reserved1: void (* _gtk_reserved1) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved2: void (* _gtk_reserved2) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved3: void (* _gtk_reserved3) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_gtk_reserved4: void (* _gtk_reserved4) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-apply_tag"><a href="vfunc.TextBuffer.apply_tag.html">Gtk.TextBufferClass.apply_tag</a></h6>
+        <div class="docblock">
+          <p>Emits the “apply-tag” signal on <code>buffer</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-begin_user_action"><a href="vfunc.TextBuffer.begin_user_action.html">Gtk.TextBufferClass.begin_user_action</a></h6>
+        <div class="docblock">
+          <p>Called to indicate that the buffer operations between here and a
+call to <code>gtk_text_buffer_end_user_action()</code> are part of a single
+user-visible&nbsp;operation.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-changed"><a href="vfunc.TextBuffer.changed.html">Gtk.TextBufferClass.changed</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::changed</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-delete_range"><a href="vfunc.TextBuffer.delete_range.html">Gtk.TextBufferClass.delete_range</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::delete-range</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-end_user_action"><a href="vfunc.TextBuffer.end_user_action.html">Gtk.TextBufferClass.end_user_action</a></h6>
+        <div class="docblock">
+          <p>Ends a user-visible&nbsp;operation.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-insert_child_anchor"><a href="vfunc.TextBuffer.insert_child_anchor.html">Gtk.TextBufferClass.insert_child_anchor</a></h6>
+        <div class="docblock">
+          <p>Inserts a child widget anchor into the text buffer at <code>iter</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-insert_paintable"><a href="vfunc.TextBuffer.insert_paintable.html">Gtk.TextBufferClass.insert_paintable</a></h6>
+        <div class="docblock">
+          <p>Inserts an image into the text buffer at <code>iter</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-insert_text"><a href="vfunc.TextBuffer.insert_text.html">Gtk.TextBufferClass.insert_text</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::insert-text</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-mark_deleted"><a href="vfunc.TextBuffer.mark_deleted.html">Gtk.TextBufferClass.mark_deleted</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::mark-deleted</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-mark_set"><a href="vfunc.TextBuffer.mark_set.html">Gtk.TextBufferClass.mark_set</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::mark-set</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-modified_changed"><a href="vfunc.TextBuffer.modified_changed.html">Gtk.TextBufferClass.modified_changed</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::modified-changed</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-paste_done"><a href="vfunc.TextBuffer.paste_done.html">Gtk.TextBufferClass.paste_done</a></h6>
+        <div class="docblock">
+          <p>The class handler for the <code>GtkTextBuffer::paste-done</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-redo"><a href="vfunc.TextBuffer.redo.html">Gtk.TextBufferClass.redo</a></h6>
+        <div class="docblock">
+          <p>Redoes the next redoable action on the buffer, if there is&nbsp;one.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-remove_tag"><a href="vfunc.TextBuffer.remove_tag.html">Gtk.TextBufferClass.remove_tag</a></h6>
+        <div class="docblock">
+          <p>Emits the “remove-tag”&nbsp;signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-undo"><a href="vfunc.TextBuffer.undo.html">Gtk.TextBufferClass.undo</a></h6>
+        <div class="docblock">
+          <p>Undoes the last undoable action on the buffer, if there is&nbsp;one.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

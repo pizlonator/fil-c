@@ -1,0 +1,16 @@
+blend {
+  bottom: container { }
+  top: container { }
+}
+
+blend {
+  top: container { }
+  mode: color-dodge;
+  bottom: container { }
+}
+
+blend {
+  top: color { }
+  bottom: color { }
+  mode: difference;
+}

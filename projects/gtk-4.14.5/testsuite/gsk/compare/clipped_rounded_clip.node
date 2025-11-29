@@ -1,0 +1,41 @@
+color {
+  color: white;
+  bounds: 50 70 80 90;
+}
+
+clip {
+  clip: 60 80 60 70;
+  child: rounded-clip {
+    clip: 20 50 100 100 / 50;
+    child: color {
+      bounds: 20 50 100 100;
+      color: red;
+    }
+  }
+}
+
+debug {
+  message: "clipped out area";
+  child: container {
+    color {
+      bounds: 115 80 5 45;
+      color: black;
+    }
+    color {
+      bounds: 110 121 5 11;
+      color: black;
+    }
+    color {
+      bounds: 99 129 11 11;
+      color: black;
+    }
+    color {
+      bounds: 91 140 11 5;
+      color: black;
+    }
+    color {
+      bounds: 60 145 35 5;
+      color: black;
+    }
+  }
+}

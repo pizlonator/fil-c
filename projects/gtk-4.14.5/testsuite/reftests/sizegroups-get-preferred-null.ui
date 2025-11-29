@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkFixed" id="grid1">
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">Check that a container that calls gtk_widget_get_preferred_width/height() with natural or minimum being NULL doesn&apos;t cause a crash with size groups.</property>
+            <property name="wrap">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkSizeGroup" id="sizegroup1">
+    <widgets>
+      <widget name="label1"/>
+    </widgets>
+  </object>
+</interface>

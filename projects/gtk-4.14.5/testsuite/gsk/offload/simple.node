@@ -1,0 +1,26 @@
+container {
+  transform {
+    transform: translate(20,20);
+    child: subsurface {
+      child: texture {
+        texture: url('data:image/svg+xml;utf-8,<svg width="13" height="17"></svg>');
+      }
+    }
+  }
+  transform {
+    transform: translate(0,100) scale(10, 10);
+    child: subsurface {
+      child: texture {
+        texture: url('data:image/svg+xml;utf-8,<svg width="10" height="21"></svg>');
+      }
+    }
+  }
+  opacity {
+    opacity: 0.5;
+    child: subsurface {
+      child: texture {
+        texture: url('data:image/svg+xml;utf-8,<svg width="16" height="16"></svg>');
+      }
+    }
+  }
+}

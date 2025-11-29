@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Help</property>
+    <property name="default-width">920</property>
+    <property name="default-height">600</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <child>
+          <object class="GtkTextView" id="text_view">
+            <property name="wrap-mode">word</property>
+            <property name="left-margin">20</property>
+            <property name="right-margin">20</property>
+            <property name="top-margin">20</property>
+            <property name="bottom-margin">20</property>
+            <property name="monospace">1</property>
+            <property name="buffer">
+              <object class="GtkTextBuffer" id="buffer"/>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

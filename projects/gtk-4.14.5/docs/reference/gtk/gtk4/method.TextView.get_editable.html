@@ -1,0 +1,361 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TextView.get_editable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.TextView.get_editable"/>
+  <meta priority="og:description" content="Reference for Gtk.TextView.get_editable"/>
+  <meta name="twitter:title" content="Gtk.TextView.get_editable"/>
+  <meta name="twitter:description" content="Reference for Gtk.TextView.get_editable"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.TextView.html">TextView</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TextView.add_child_at_anchor.html">add_child_at_anchor</a>
+  
+    <a class="method" href="method.TextView.add_overlay.html">add_overlay</a>
+  
+    <a class="method" href="method.TextView.backward_display_line.html">backward_display_line</a>
+  
+    <a class="method" href="method.TextView.backward_display_line_start.html">backward_display_line_start</a>
+  
+    <a class="method" href="method.TextView.buffer_to_window_coords.html">buffer_to_window_coords</a>
+  
+    <a class="method" href="method.TextView.forward_display_line.html">forward_display_line</a>
+  
+    <a class="method" href="method.TextView.forward_display_line_end.html">forward_display_line_end</a>
+  
+    <a class="method" href="method.TextView.get_accepts_tab.html">get_accepts_tab</a>
+  
+    <a class="method" href="method.TextView.get_bottom_margin.html">get_bottom_margin</a>
+  
+    <a class="method" href="method.TextView.get_buffer.html">get_buffer</a>
+  
+    <a class="method" href="method.TextView.get_cursor_locations.html">get_cursor_locations</a>
+  
+    <a class="method" href="method.TextView.get_cursor_visible.html">get_cursor_visible</a>
+  
+    <a class="method current" href="method.TextView.get_editable.html">get_editable</a>
+  
+    <a class="method" href="method.TextView.get_extra_menu.html">get_extra_menu</a>
+  
+    <a class="method" href="method.TextView.get_gutter.html">get_gutter</a>
+  
+    <a class="method" href="method.TextView.get_indent.html">get_indent</a>
+  
+    <a class="method" href="method.TextView.get_input_hints.html">get_input_hints</a>
+  
+    <a class="method" href="method.TextView.get_input_purpose.html">get_input_purpose</a>
+  
+    <a class="method" href="method.TextView.get_iter_at_location.html">get_iter_at_location</a>
+  
+    <a class="method" href="method.TextView.get_iter_at_position.html">get_iter_at_position</a>
+  
+    <a class="method" href="method.TextView.get_iter_location.html">get_iter_location</a>
+  
+    <a class="method" href="method.TextView.get_justification.html">get_justification</a>
+  
+    <a class="method" href="method.TextView.get_left_margin.html">get_left_margin</a>
+  
+    <a class="method" href="method.TextView.get_line_at_y.html">get_line_at_y</a>
+  
+    <a class="method" href="method.TextView.get_line_yrange.html">get_line_yrange</a>
+  
+    <a class="method" href="method.TextView.get_ltr_context.html">get_ltr_context</a>
+  
+    <a class="method" href="method.TextView.get_monospace.html">get_monospace</a>
+  
+    <a class="method" href="method.TextView.get_overwrite.html">get_overwrite</a>
+  
+    <a class="method" href="method.TextView.get_pixels_above_lines.html">get_pixels_above_lines</a>
+  
+    <a class="method" href="method.TextView.get_pixels_below_lines.html">get_pixels_below_lines</a>
+  
+    <a class="method" href="method.TextView.get_pixels_inside_wrap.html">get_pixels_inside_wrap</a>
+  
+    <a class="method" href="method.TextView.get_right_margin.html">get_right_margin</a>
+  
+    <a class="method" href="method.TextView.get_rtl_context.html">get_rtl_context</a>
+  
+    <a class="method" href="method.TextView.get_tabs.html">get_tabs</a>
+  
+    <a class="method" href="method.TextView.get_top_margin.html">get_top_margin</a>
+  
+    <a class="method" href="method.TextView.get_visible_rect.html">get_visible_rect</a>
+  
+    <a class="method" href="method.TextView.get_wrap_mode.html">get_wrap_mode</a>
+  
+    <a class="method" href="method.TextView.im_context_filter_keypress.html">im_context_filter_keypress</a>
+  
+    <a class="method" href="method.TextView.move_mark_onscreen.html">move_mark_onscreen</a>
+  
+    <a class="method" href="method.TextView.move_overlay.html">move_overlay</a>
+  
+    <a class="method" href="method.TextView.move_visually.html">move_visually</a>
+  
+    <a class="method" href="method.TextView.place_cursor_onscreen.html">place_cursor_onscreen</a>
+  
+    <a class="method" href="method.TextView.remove.html">remove</a>
+  
+    <a class="method" href="method.TextView.reset_cursor_blink.html">reset_cursor_blink</a>
+  
+    <a class="method" href="method.TextView.reset_im_context.html">reset_im_context</a>
+  
+    <a class="method" href="method.TextView.scroll_mark_onscreen.html">scroll_mark_onscreen</a>
+  
+    <a class="method" href="method.TextView.scroll_to_iter.html">scroll_to_iter</a>
+  
+    <a class="method" href="method.TextView.scroll_to_mark.html">scroll_to_mark</a>
+  
+    <a class="method" href="method.TextView.set_accepts_tab.html">set_accepts_tab</a>
+  
+    <a class="method" href="method.TextView.set_bottom_margin.html">set_bottom_margin</a>
+  
+    <a class="method" href="method.TextView.set_buffer.html">set_buffer</a>
+  
+    <a class="method" href="method.TextView.set_cursor_visible.html">set_cursor_visible</a>
+  
+    <a class="method" href="method.TextView.set_editable.html">set_editable</a>
+  
+    <a class="method" href="method.TextView.set_extra_menu.html">set_extra_menu</a>
+  
+    <a class="method" href="method.TextView.set_gutter.html">set_gutter</a>
+  
+    <a class="method" href="method.TextView.set_indent.html">set_indent</a>
+  
+    <a class="method" href="method.TextView.set_input_hints.html">set_input_hints</a>
+  
+    <a class="method" href="method.TextView.set_input_purpose.html">set_input_purpose</a>
+  
+    <a class="method" href="method.TextView.set_justification.html">set_justification</a>
+  
+    <a class="method" href="method.TextView.set_left_margin.html">set_left_margin</a>
+  
+    <a class="method" href="method.TextView.set_monospace.html">set_monospace</a>
+  
+    <a class="method" href="method.TextView.set_overwrite.html">set_overwrite</a>
+  
+    <a class="method" href="method.TextView.set_pixels_above_lines.html">set_pixels_above_lines</a>
+  
+    <a class="method" href="method.TextView.set_pixels_below_lines.html">set_pixels_below_lines</a>
+  
+    <a class="method" href="method.TextView.set_pixels_inside_wrap.html">set_pixels_inside_wrap</a>
+  
+    <a class="method" href="method.TextView.set_right_margin.html">set_right_margin</a>
+  
+    <a class="method" href="method.TextView.set_tabs.html">set_tabs</a>
+  
+    <a class="method" href="method.TextView.set_top_margin.html">set_top_margin</a>
+  
+    <a class="method" href="method.TextView.set_wrap_mode.html">set_wrap_mode</a>
+  
+    <a class="method" href="method.TextView.starts_display_line.html">starts_display_line</a>
+  
+    <a class="method" href="method.TextView.window_to_buffer_coords.html">window_to_buffer_coords</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.TextView.html">TextView</a><span class="sep"></span>get_editable</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtktextview.h#L344">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">gboolean</span>
+<span class="n">gtk_text_view_get_editable</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkTextView</span><span class="o">*</span><span class="w"> </span><span class="n">text_view</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtktextview.c#L3242">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Returns the default editability of the <code>GtkTextView</code>.</p>
+<p>Tags in the buffer may override this setting for some ranges of&nbsp;text.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+      <div class="docblock">
+        <table>
+        
+          <tr><td>Gets property</td><td><a href="property.TextView.editable.html"><code>Gtk.TextView:editable</code></a></td></tr>
+        
+        </table>
+      </div>
+      
+    </div>
+
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p>Whether text is editable by&nbsp;default.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

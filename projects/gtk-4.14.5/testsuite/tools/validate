@@ -1,0 +1,40 @@
+#! /bin/bash
+
+GTK_BUILDER_TOOL=${GTK_BUILDER_TOOL:-gtk4-builder-tool}
+TEST_DATA_DIR=${G_TEST_SRCDIR:-.}/validate-data
+TEST_RESULT_DIR=${TEST_RESULT_DIR:-/tmp}/validate
+
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/10293
+export LIBGL_ALWAYS_SOFTWARE=true
+
+mkdir -p "$TEST_RESULT_DIR"
+
+shopt -s nullglob
+TESTS=( "$TEST_DATA_DIR"/*.ui )
+
+echo "1..${#TESTS[*]}"
+
+I=1
+for t in ${TESTS[*]}; do
+  name=$(basename $t .ui)
+  expected="$TEST_DATA_DIR/$name.expected"
+  result="$TEST_RESULT_DIR/$name.out"
+  diff="$TEST_RESULT_DIR/$name.diff"
+  ref="$TEST_RESULT_DIR/$name.ref"
+
+  cd $TEST_DATA_DIR
+
+  $GTK_BUILDER_TOOL validate --deprecations $(basename $t) 2>$result
+
+  cd $OLDPWD
+
+  if diff -u "$expected" "$result" > "$diff"; then
+    echo "ok $I $name"
+    rm "$diff"
+  else
+    echo "not ok $I $name"
+    cp "$expected" "$ref"
+  fi
+
+  I=$((I+1))
+done

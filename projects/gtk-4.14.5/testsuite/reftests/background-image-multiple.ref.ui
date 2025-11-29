@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
+        <child>
+          <object class="GtkButton" id="ref1">
+            <property name="name">ref1</property>
+            <property name="receives_default">1</property>
+            <property name="width_request">144</property>
+            <property name="height_request">70</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="ref2">
+            <property name="name">ref2</property>
+            <property name="receives_default">1</property>
+            <property name="width_request">144</property>
+            <property name="height_request">70</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="ref3">
+            <property name="name">ref3</property>
+            <property name="receives_default">1</property>
+            <property name="width_request">144</property>
+            <property name="height_request">70</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFixed" id="fixed1">
+            <property name="width_request">144</property>
+            <property name="height_request">70</property>
+            <child>
+              <object class="GtkButton" id="ref4-bg">
+                <property name="name">ref4-bg</property>
+                <property name="receives_default">1</property>
+                <property name="width_request">144</property>
+                <property name="height_request">70</property>
+                <layout>
+                  <property name="transform">translate(0,0)</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="ref4-fg">
+                <property name="name">ref4-fg</property>
+                <property name="receives_default">1</property>
+                <property name="width_request">120</property>
+                <property name="height_request">46</property>
+                <layout>
+                  <property name="transform">translate(12,12)</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFixed" id="fixed2">
+            <property name="width_request">144</property>
+            <property name="height_request">70</property>
+            <child>
+              <object class="GtkButton" id="ref5-bg">
+                <property name="name">ref5-bg</property>
+                <property name="receives_default">1</property>
+                <property name="width_request">144</property>
+                <property name="height_request">70</property>
+                <layout>
+                  <property name="transform">translate(0,0)</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="ref5-fg">
+                <property name="name">ref5-fg</property>
+                <property name="receives_default">1</property>
+                <property name="width_request">120</property>
+                <property name="height_request">46</property>
+                <layout>
+                  <property name="transform">translate(12,12)</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

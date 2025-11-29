@@ -1,0 +1,964 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Accessible</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Accessible"/>
+  <meta property="og:description" content="Reference for Gtk.Accessible"/>
+  <meta name="twitter:title" content="Gtk.Accessible"/>
+  <meta name="twitter:description" content="Reference for Gtk.Accessible"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="iface.Accessible.html#description">Accessible</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Accessible.announce.html">announce</a>
+  
+    <a class="method" href="method.Accessible.get_accessible_parent.html">get_accessible_parent</a>
+  
+    <a class="method" href="method.Accessible.get_accessible_role.html">get_accessible_role</a>
+  
+    <a class="method" href="method.Accessible.get_at_context.html">get_at_context</a>
+  
+    <a class="method" href="method.Accessible.get_bounds.html">get_bounds</a>
+  
+    <a class="method" href="method.Accessible.get_first_accessible_child.html">get_first_accessible_child</a>
+  
+    <a class="method" href="method.Accessible.get_next_accessible_sibling.html">get_next_accessible_sibling</a>
+  
+    <a class="method" href="method.Accessible.get_platform_state.html">get_platform_state</a>
+  
+    <a class="method" href="method.Accessible.reset_property.html">reset_property</a>
+  
+    <a class="method" href="method.Accessible.reset_relation.html">reset_relation</a>
+  
+    <a class="method" href="method.Accessible.reset_state.html">reset_state</a>
+  
+    <a class="method" href="method.Accessible.set_accessible_parent.html">set_accessible_parent</a>
+  
+    <a class="method" href="method.Accessible.update_next_accessible_sibling.html">update_next_accessible_sibling</a>
+  
+    <a class="method" href="method.Accessible.update_property.html">update_property</a>
+  
+    <a class="method" href="method.Accessible.update_property_value.html">update_property_value</a>
+  
+    <a class="method" href="method.Accessible.update_relation.html">update_relation</a>
+  
+    <a class="method" href="method.Accessible.update_relation_value.html">update_relation_value</a>
+  
+    <a class="method" href="method.Accessible.update_state.html">update_state</a>
+  
+    <a class="method" href="method.Accessible.update_state_value.html">update_state_value</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Accessible.accessible-role.html">accessible-role</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Accessible.get_accessible_parent.html">get_accessible_parent</a>
+  
+    <a class="method" href="vfunc.Accessible.get_at_context.html">get_at_context</a>
+  
+    <a class="method" href="vfunc.Accessible.get_bounds.html">get_bounds</a>
+  
+    <a class="method" href="vfunc.Accessible.get_first_accessible_child.html">get_first_accessible_child</a>
+  
+    <a class="method" href="vfunc.Accessible.get_next_accessible_sibling.html">get_next_accessible_sibling</a>
+  
+    <a class="method" href="vfunc.Accessible.get_platform_state.html">get_platform_state</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Interface</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span>Accessible</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkaccessible.c#L21">[src]</a>
+          
+        </h4>
+
+        <pre><code>interface Gtk.Accessible : GObject.Object</code></pre>
+
+        <div class="docblock">
+          <p><code>GtkAccessible</code> is an interface for describing <span class="caps">UI</span> elements for
+Assistive&nbsp;Technologies.</p>
+<p>Every accessible implementation&nbsp;has:</p>
+<ul>
+<li>a “role”, represented by a value of the <a href="enum.AccessibleRole.html"><code>GtkAccessibleRole</code></a>&nbsp;enumeration</li>
+<li>an “attribute”, represented by a set of <a href="enum.AccessibleState.html"><code>GtkAccessibleState</code></a>,
+   <a href="enum.AccessibleProperty.html"><code>GtkAccessibleProperty</code></a> and <a href="enum.AccessibleRelation.html"><code>GtkAccessibleRelation</code></a>&nbsp;values</li>
+</ul>
+<p>The role cannot be changed after instantiating a <code>GtkAccessible</code>
+implementation.</p>
+<p>The attributes are updated every time a <span class="caps">UI</span> element&#8217;s state changes in
+a way that should be reflected by assistive technologies. For instance,
+if a <code>GtkWidget</code> visibility changes, the <code>GTK_ACCESSIBLE_STATE_HIDDEN</code>
+state will also change to reflect the <a href="property.Widget.visible.html"><code>GtkWidget:visible</code></a>&nbsp;property.</p>
+<p>Every accessible implementation is part of a tree of accessible objects.
+Normally, this tree corresponds to the widget tree, but can be customized
+by reimplementing the <a href="vfunc.Accessible.get_accessible_parent.html"><code>Gtk.AccessibleInterface.get_accessible_parent</code></a>,
+<a href="vfunc.Accessible.get_first_accessible_child.html"><code>Gtk.AccessibleInterface.get_first_accessible_child</code></a> and
+<a href="vfunc.Accessible.get_next_accessible_sibling.html"><code>Gtk.AccessibleInterface.get_next_accessible_sibling</code></a> virtual functions.
+Note that you can not create a top-level accessible object as of now,
+which means that you must always have a parent accessible object.
+Also note that when an accessible object does not correspond to a widget,
+and it has children, whose implementation you don&#8217;t control,
+it is necessary to ensure the correct shape of the a11y tree
+by calling <a href="method.Accessible.set_accessible_parent.html"><code>gtk_accessible_set_accessible_parent()</code></a> and
+updating the sibling by <a href="method.Accessible.update_next_accessible_sibling.html"><code>gtk_accessible_update_next_accessible_sibling()</code></a>.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    <div class="toggle-wrapper prerequisite">
+      <h4 id="prerequisite">
+        Prerequisite
+        <a href="#prerequisite" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <p>In order to implement Accessible, your type must inherit from<a data-namespace="GObject" data-link="class.Object.html" href="javascript:void(0)" class="external"><code>GObject</code></a>.</p>
+      </div>
+    </div>
+
+    
+    <div class="implementations toggle-wrapper default-hide">
+      <h4 id="implementations">Implementations<a href="#implementations" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li><a href="class.AboutDialog.html">GtkAboutDialog</a></li>
+        
+          <li><a href="class.ActionBar.html">GtkActionBar</a></li>
+        
+          <li><a href="class.AppChooserButton.html">GtkAppChooserButton</a></li>
+        
+          <li><a href="class.AppChooserDialog.html">GtkAppChooserDialog</a></li>
+        
+          <li><a href="class.AppChooserWidget.html">GtkAppChooserWidget</a></li>
+        
+          <li><a href="class.ApplicationWindow.html">GtkApplicationWindow</a></li>
+        
+          <li><a href="class.AspectFrame.html">GtkAspectFrame</a></li>
+        
+          <li><a href="class.Assistant.html">GtkAssistant</a></li>
+        
+          <li><a href="class.Box.html">GtkBox</a></li>
+        
+          <li><a href="class.Button.html">GtkButton</a></li>
+        
+          <li><a href="class.Calendar.html">GtkCalendar</a></li>
+        
+          <li><a href="class.CellView.html">GtkCellView</a></li>
+        
+          <li><a href="class.CenterBox.html">GtkCenterBox</a></li>
+        
+          <li><a href="class.CheckButton.html">GtkCheckButton</a></li>
+        
+          <li><a href="class.ColorButton.html">GtkColorButton</a></li>
+        
+          <li><a href="class.ColorChooserDialog.html">GtkColorChooserDialog</a></li>
+        
+          <li><a href="class.ColorChooserWidget.html">GtkColorChooserWidget</a></li>
+        
+          <li><a href="class.ColorDialogButton.html">GtkColorDialogButton</a></li>
+        
+          <li><a href="class.ColumnView.html">GtkColumnView</a></li>
+        
+          <li><a href="class.ComboBox.html">GtkComboBox</a></li>
+        
+          <li><a href="class.ComboBoxText.html">GtkComboBoxText</a></li>
+        
+          <li><a href="class.Dialog.html">GtkDialog</a></li>
+        
+          <li><a href="class.DragIcon.html">GtkDragIcon</a></li>
+        
+          <li><a href="class.DrawingArea.html">GtkDrawingArea</a></li>
+        
+          <li><a href="class.DropDown.html">GtkDropDown</a></li>
+        
+          <li><a href="class.EditableLabel.html">GtkEditableLabel</a></li>
+        
+          <li><a href="class.EmojiChooser.html">GtkEmojiChooser</a></li>
+        
+          <li><a href="class.Entry.html">GtkEntry</a></li>
+        
+          <li><a href="class.Expander.html">GtkExpander</a></li>
+        
+          <li><a href="class.FileChooserDialog.html">GtkFileChooserDialog</a></li>
+        
+          <li><a href="class.FileChooserWidget.html">GtkFileChooserWidget</a></li>
+        
+          <li><a href="class.Fixed.html">GtkFixed</a></li>
+        
+          <li><a href="class.FlowBox.html">GtkFlowBox</a></li>
+        
+          <li><a href="class.FlowBoxChild.html">GtkFlowBoxChild</a></li>
+        
+          <li><a href="class.FontButton.html">GtkFontButton</a></li>
+        
+          <li><a href="class.FontChooserDialog.html">GtkFontChooserDialog</a></li>
+        
+          <li><a href="class.FontChooserWidget.html">GtkFontChooserWidget</a></li>
+        
+          <li><a href="class.FontDialogButton.html">GtkFontDialogButton</a></li>
+        
+          <li><a href="class.Frame.html">GtkFrame</a></li>
+        
+          <li><a href="class.GLArea.html">GtkGLArea</a></li>
+        
+          <li><a href="class.GraphicsOffload.html">GtkGraphicsOffload</a></li>
+        
+          <li><a href="class.Grid.html">GtkGrid</a></li>
+        
+          <li><a href="class.GridView.html">GtkGridView</a></li>
+        
+          <li><a href="class.HeaderBar.html">GtkHeaderBar</a></li>
+        
+          <li><a href="class.IconView.html">GtkIconView</a></li>
+        
+          <li><a href="class.Image.html">GtkImage</a></li>
+        
+          <li><a href="class.InfoBar.html">GtkInfoBar</a></li>
+        
+          <li><a href="class.Inscription.html">GtkInscription</a></li>
+        
+          <li><a href="class.Label.html">GtkLabel</a></li>
+        
+          <li><a href="class.LevelBar.html">GtkLevelBar</a></li>
+        
+          <li><a href="class.LinkButton.html">GtkLinkButton</a></li>
+        
+          <li><a href="class.ListBase.html">GtkListBase</a></li>
+        
+          <li><a href="class.ListBox.html">GtkListBox</a></li>
+        
+          <li><a href="class.ListBoxRow.html">GtkListBoxRow</a></li>
+        
+          <li><a href="class.ListView.html">GtkListView</a></li>
+        
+          <li><a href="class.LockButton.html">GtkLockButton</a></li>
+        
+          <li><a href="class.MediaControls.html">GtkMediaControls</a></li>
+        
+          <li><a href="class.MenuButton.html">GtkMenuButton</a></li>
+        
+          <li><a href="class.MessageDialog.html">GtkMessageDialog</a></li>
+        
+          <li><a href="class.Notebook.html">GtkNotebook</a></li>
+        
+          <li><a href="class.Overlay.html">GtkOverlay</a></li>
+        
+          <li><a href="class.PageSetupUnixDialog.html">GtkPageSetupUnixDialog</a></li>
+        
+          <li><a href="class.Paned.html">GtkPaned</a></li>
+        
+          <li><a href="class.PasswordEntry.html">GtkPasswordEntry</a></li>
+        
+          <li><a href="class.Picture.html">GtkPicture</a></li>
+        
+          <li><a href="class.Popover.html">GtkPopover</a></li>
+        
+          <li><a href="class.PopoverMenu.html">GtkPopoverMenu</a></li>
+        
+          <li><a href="class.PopoverMenuBar.html">GtkPopoverMenuBar</a></li>
+        
+          <li><a href="class.PrintUnixDialog.html">GtkPrintUnixDialog</a></li>
+        
+          <li><a href="class.ProgressBar.html">GtkProgressBar</a></li>
+        
+          <li><a href="class.Range.html">GtkRange</a></li>
+        
+          <li><a href="class.Revealer.html">GtkRevealer</a></li>
+        
+          <li><a href="class.Scale.html">GtkScale</a></li>
+        
+          <li><a href="class.ScaleButton.html">GtkScaleButton</a></li>
+        
+          <li><a href="class.Scrollbar.html">GtkScrollbar</a></li>
+        
+          <li><a href="class.ScrolledWindow.html">GtkScrolledWindow</a></li>
+        
+          <li><a href="class.SearchBar.html">GtkSearchBar</a></li>
+        
+          <li><a href="class.SearchEntry.html">GtkSearchEntry</a></li>
+        
+          <li><a href="class.Separator.html">GtkSeparator</a></li>
+        
+          <li><a href="class.ShortcutLabel.html">GtkShortcutLabel</a></li>
+        
+          <li><a href="class.ShortcutsGroup.html">GtkShortcutsGroup</a></li>
+        
+          <li><a href="class.ShortcutsSection.html">GtkShortcutsSection</a></li>
+        
+          <li><a href="class.ShortcutsShortcut.html">GtkShortcutsShortcut</a></li>
+        
+          <li><a href="class.ShortcutsWindow.html">GtkShortcutsWindow</a></li>
+        
+          <li><a href="class.SpinButton.html">GtkSpinButton</a></li>
+        
+          <li><a href="class.Spinner.html">GtkSpinner</a></li>
+        
+          <li><a href="class.Stack.html">GtkStack</a></li>
+        
+          <li><a href="class.StackPage.html">GtkStackPage</a></li>
+        
+          <li><a href="class.StackSidebar.html">GtkStackSidebar</a></li>
+        
+          <li><a href="class.StackSwitcher.html">GtkStackSwitcher</a></li>
+        
+          <li><a href="class.Statusbar.html">GtkStatusbar</a></li>
+        
+          <li><a href="class.Switch.html">GtkSwitch</a></li>
+        
+          <li><a href="class.Text.html">GtkText</a></li>
+        
+          <li><a href="class.TextView.html">GtkTextView</a></li>
+        
+          <li><a href="class.ToggleButton.html">GtkToggleButton</a></li>
+        
+          <li><a href="class.TreeExpander.html">GtkTreeExpander</a></li>
+        
+          <li><a href="class.TreeView.html">GtkTreeView</a></li>
+        
+          <li><a href="class.Video.html">GtkVideo</a></li>
+        
+          <li><a href="class.Viewport.html">GtkViewport</a></li>
+        
+          <li><a href="class.VolumeButton.html">GtkVolumeButton</a></li>
+        
+          <li><a href="class.Widget.html">GtkWidget</a></li>
+        
+          <li><a href="class.Window.html">GtkWindow</a></li>
+        
+          <li><a href="class.WindowControls.html">GtkWindowControls</a></li>
+        
+          <li><a href="class.WindowHandle.html">GtkWindowHandle</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="methods toggle-wrapper">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Accessible.announce.html">gtk_accessible_announce</a></h6>
+          <div class="docblock">
+            <p>Requests the user&#8217;s screen reader to announce the given&nbsp;message.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.14</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_accessible_parent.html">gtk_accessible_get_accessible_parent</a></h6>
+          <div class="docblock">
+            <p>Retrieves the accessible parent for an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_accessible_role.html">gtk_accessible_get_accessible_role</a></h6>
+          <div class="docblock">
+            <p>Retrieves the accessible role of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_at_context.html">gtk_accessible_get_at_context</a></h6>
+          <div class="docblock">
+            <p>Retrieves the accessible implementation for the given <code>GtkAccessible</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_bounds.html">gtk_accessible_get_bounds</a></h6>
+          <div class="docblock">
+            <p>Queries the coordinates and dimensions of this&nbsp;accessible.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_first_accessible_child.html">gtk_accessible_get_first_accessible_child</a></h6>
+          <div class="docblock">
+            <p>Retrieves the first accessible child of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_next_accessible_sibling.html">gtk_accessible_get_next_accessible_sibling</a></h6>
+          <div class="docblock">
+            <p>Retrieves the next accessible sibling of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.get_platform_state.html">gtk_accessible_get_platform_state</a></h6>
+          <div class="docblock">
+            <p>Query a platform state, such as&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.reset_property.html">gtk_accessible_reset_property</a></h6>
+          <div class="docblock">
+            <p>Resets the accessible <code>property</code> to its default&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.reset_relation.html">gtk_accessible_reset_relation</a></h6>
+          <div class="docblock">
+            <p>Resets the accessible <code>relation</code> to its default&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.reset_state.html">gtk_accessible_reset_state</a></h6>
+          <div class="docblock">
+            <p>Resets the accessible <code>state</code> to its default&nbsp;value.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.set_accessible_parent.html">gtk_accessible_set_accessible_parent</a></h6>
+          <div class="docblock">
+            <p>Sets the parent and sibling of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_next_accessible_sibling.html">gtk_accessible_update_next_accessible_sibling</a></h6>
+          <div class="docblock">
+            <p>Updates the next accessible sibling of <code>self</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_property.html">gtk_accessible_update_property</a></h6>
+          <div class="docblock">
+            <p>Updates a list of accessible&nbsp;properties.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_property_value.html">gtk_accessible_update_property_value</a></h6>
+          <div class="docblock">
+            <p>Updates an array of accessible&nbsp;properties.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_relation.html">gtk_accessible_update_relation</a></h6>
+          <div class="docblock">
+            <p>Updates a list of accessible&nbsp;relations.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_relation_value.html">gtk_accessible_update_relation_value</a></h6>
+          <div class="docblock">
+            <p>Updates an array of accessible&nbsp;relations.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_state.html">gtk_accessible_update_state</a></h6>
+          <div class="docblock">
+            <p>Updates a list of accessible states. See the <code>GtkAccessibleState</code>
+documentation for the value types of accessible&nbsp;states.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Accessible.update_state_value.html">gtk_accessible_update_state_value</a></h6>
+          <div class="docblock">
+            <p>Updates an array of accessible&nbsp;states.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+    </div>
+    
+
+    
+    <div class="properties toggle-wrapper">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Accessible.accessible-role.html">Gtk.Accessible:accessible-role</a></h6>
+          <div class="docblock">
+            <p>The accessible role of the given <code>GtkAccessible</code> implementation.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+    </div>
+    
+
+    
+
+    
+    <div class="interface toggle-wrapper default-hide">
+      <h4 style="display:flex;" id="interface-struct">
+        Interface structure
+        <a href="#interface-struct" class="anchor"></a>
+        
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkAccessibleInterface {
+  GTypeInterface g_iface;
+  GtkATContext* (* get_at_context) (
+    GtkAccessible* self
+  );
+  gboolean (* get_platform_state) (
+    GtkAccessible* self,
+    GtkAccessiblePlatformState state
+  );
+  GtkAccessible* (* get_accessible_parent) (
+    GtkAccessible* self
+  );
+  GtkAccessible* (* get_first_accessible_child) (
+    GtkAccessible* self
+  );
+  GtkAccessible* (* get_next_accessible_sibling) (
+    GtkAccessible* self
+  );
+  gboolean (* get_bounds) (
+    GtkAccessible* self,
+    int* x,
+    int* y,
+    int* width,
+    int* height
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>The common interface for accessible&nbsp;objects.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Interface members</h6>
+
+        <table>
+        
+        <tr>
+          <td style="vertical-align:top"><code>g_iface</code></td>
+          <td style="vertical-align:top"><pre><code>GTypeInterface</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>No description available.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_at_context</code></td>
+          <td style="vertical-align:top"><pre><code>GtkATContext* (* get_at_context) (
+    GtkAccessible* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Retrieve the platform-specific accessibility context
+  for the accessible&nbsp;implementation.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_platform_state</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* get_platform_state) (
+    GtkAccessible* self,
+    GtkAccessiblePlatformState state
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>Retrieve the accessible&nbsp;state.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_accessible_parent</code></td>
+          <td style="vertical-align:top"><pre><code>GtkAccessible* (* get_accessible_parent) (
+    GtkAccessible* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>No description available.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_first_accessible_child</code></td>
+          <td style="vertical-align:top"><pre><code>GtkAccessible* (* get_first_accessible_child) (
+    GtkAccessible* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>No description available.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_next_accessible_sibling</code></td>
+          <td style="vertical-align:top"><pre><code>GtkAccessible* (* get_next_accessible_sibling) (
+    GtkAccessible* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>No description available.</p></td>
+        </tr>
+        
+        <tr>
+          <td style="vertical-align:top"><code>get_bounds</code></td>
+          <td style="vertical-align:top"><pre><code>gboolean (* get_bounds) (
+    GtkAccessible* self,
+    int* x,
+    int* y,
+    int* width,
+    int* height
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top"><p>No description available.</p></td>
+        </tr>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6 id="vfunc-get_accessible_parent"><a href="vfunc.Accessible.get_accessible_parent.html">Gtk.Accessible.get_accessible_parent</a></h6>
+          <div class="docblock">
+            <p>Retrieves the accessible parent for an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6 id="vfunc-get_at_context"><a href="vfunc.Accessible.get_at_context.html">Gtk.Accessible.get_at_context</a></h6>
+          <div class="docblock">
+            <p>Retrieves the accessible implementation for the given <code>GtkAccessible</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6 id="vfunc-get_bounds"><a href="vfunc.Accessible.get_bounds.html">Gtk.Accessible.get_bounds</a></h6>
+          <div class="docblock">
+            <p>Queries the coordinates and dimensions of this&nbsp;accessible.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6 id="vfunc-get_first_accessible_child"><a href="vfunc.Accessible.get_first_accessible_child.html">Gtk.Accessible.get_first_accessible_child</a></h6>
+          <div class="docblock">
+            <p>Retrieves the first accessible child of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6 id="vfunc-get_next_accessible_sibling"><a href="vfunc.Accessible.get_next_accessible_sibling.html">Gtk.Accessible.get_next_accessible_sibling</a></h6>
+          <div class="docblock">
+            <p>Retrieves the next accessible sibling of an accessible&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6 id="vfunc-get_platform_state"><a href="vfunc.Accessible.get_platform_state.html">Gtk.Accessible.get_platform_state</a></h6>
+          <div class="docblock">
+            <p>Query a platform state, such as&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.10</span></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

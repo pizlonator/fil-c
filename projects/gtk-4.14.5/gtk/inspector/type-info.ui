@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorTypePopover" parent="GtkPopover">
+    <child>
+      <object class="GtkBox">
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Hierarchy</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="has-frame">1</property>
+            <property name="min-content-width">200</property>
+            <property name="max-content-height">200</property>
+            <property name="propagate-natural-width">1</property>
+            <property name="propagate-natural-height">1</property>
+            <child>
+              <object class="GtkListBox" id="parents">
+                <property name="selection-mode">none</property>
+                <property name="activate-on-single-click">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Implements</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="has-frame">1</property>
+            <property name="min-content-width">200</property>
+            <property name="max-content-height">150</property>
+            <property name="propagate-natural-width">1</property>
+            <property name="propagate-natural-height">1</property>
+            <child>
+              <object class="GtkListBox" id="interfaces">
+                <property name="selection-mode">none</property>
+                <property name="activate-on-single-click">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

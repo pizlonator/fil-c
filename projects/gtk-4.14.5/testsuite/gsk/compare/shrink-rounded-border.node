@@ -1,0 +1,19 @@
+/* We clip out the transparent region inside the
+   border so we can check that the shrinking of
+   the inside works properly.
+   Comment out the clip to see the actual border
+ */
+
+clip {
+  /* blame sqrt(2) for those numbers:
+     The shrunkrect should be 40 40 70 70 / 70 0
+     70/sqrt(2) = 49.4974747...
+     40 + 49 = 89 and 40 + 70 - 49 = 61,
+     giving you:
+   */
+  clip: 61 61 28 28;
+  child: border {
+    outline: 0 0 150 150 / 150 0 150 0;
+    widths: 40;
+  }
+}

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <child>
+          <object class="GtkToggleButton" id="button1">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="active">1</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="button2">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="button3">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="can_focus">1</property>
+            <property name="active">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="button4">
+            <property name="label" translatable="yes">Hello World!</property>
+            <property name="group">button3</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="button5">
+            <property name="active">1</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">4</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="button6">
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <layout>
+              <property name="column">5</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button7">
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <property name="label">Text Button</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button8">
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <property name="icon-name">edit-find-replace</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button9">
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="icon-name">window-close-symbolic</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

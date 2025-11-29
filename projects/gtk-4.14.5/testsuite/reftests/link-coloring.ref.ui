@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">A &lt;span color=&quot;blue&quot; underline=&quot;single&quot;&gt;link&lt;/span&gt; to the &lt;span color=&quot;blue&quot; underline=&quot;single&quot;&gt;GNOME&lt;/span&gt; website</property>
+            <property name="use_markup">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2">
+            <property name="label" translatable="yes">&lt;span color=&quot;blue&quot; underline=&quot;single&quot;&gt;A normal link&lt;/span&gt;</property>
+            <property name="use_markup">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label3">
+            <property name="label" translatable="yes">&lt;span color=&quot;purple&quot; underline=&quot;single&quot;&gt;A visited link&lt;/span&gt;</property>
+            <property name="use_markup">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

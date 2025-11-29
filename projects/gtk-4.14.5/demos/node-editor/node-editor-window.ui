@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="gear_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Reload automatically</attribute>
+        <attribute name="action">win.auto-reload</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Help</attribute>
+        <attribute name="action">app.help</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Inspector</attribute>
+        <attribute name="action">app.inspector</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About Node Editor</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+  <menu id="extra_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Assisted _Edit</attribute>
+        <attribute name="action">smart-edit</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="GtkPopover" id="testcase_popover">
+    <child>
+      <object class="GtkGrid">
+        <property name="column-spacing">12</property>
+        <property name="row-spacing">12</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Testcase Name:</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="testcase_name_entry">
+            <property name="hexpand">1</property>
+            <property name="activates-default">1</property>
+            <signal name="notify::text" handler="testcase_name_entry_changed_cb"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="testcase_cairo_checkbutton">
+            <property name="label">Render using Cairo renderer</property>
+            <layout>
+              <property name="row">1</property>
+              <property name="column">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="wrap">1</property>
+            <property name="label">&lt;i&gt;There will be a .node and a .png file placed in the testsuite/gsk/compare directory. &lt;b&gt;You need to add it to the meson.build yourself.&lt;/b&gt;&lt;/i&gt;</property>
+            <property name="use-markup">1</property>
+            <property name="max-width-chars">50</property>
+            <layout>
+              <property name="row">2</property>
+              <property name="column">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="testcase_error_label">
+            <property name="wrap">1</property>
+            <property name="xalign">0</property>
+            <layout>
+              <property name="row">3</property>
+              <property name="column">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="testcase_save_button">
+            <property name="label">Save</property>
+            <property name="hexpand">1</property>
+            <property name="halign">end</property>
+            <property name="receives-default">1</property>
+            <property name="sensitive">0</property>
+            <signal name="clicked" handler="testcase_save_clicked_cb"/>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+            <layout>
+              <property name="row">4</property>
+              <property name="column">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <template class="NodeEditorWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">GTK Node Editor</property>
+    <property name="default-width">1024</property>
+    <property name="default-height">768</property>
+    <property name="focus-widget">text_view</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="start">
+          <object class="GtkButton">
+            <property name="focus-on-click">0</property>
+            <property name="icon-name">document-open-symbolic</property>
+            <property name="tooltip-text">Open node file</property>
+            <signal name="clicked" handler="open_cb"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="focus-on-click">0</property>
+            <property name="icon-name">document-save-symbolic</property>
+            <property name="tooltip-text">Save to node file</property>
+            <signal name="clicked" handler="save_cb"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="focus-on-click">0</property>
+            <property name="icon-name">insert-image-symbolic</property>
+            <property name="tooltip-text">Export to image</property>
+            <signal name="clicked" handler="export_image_cb"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="focus-on-click">0</property>
+            <property name="icon-name">edit-copy-symbolic</property>
+            <property name="tooltip-text">Copy image to clipboard</property>
+            <signal name="clicked" handler="clip_image_cb"/>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkMenuButton">
+            <property name="focus-on-click">0</property>
+            <property name="label">Save Testcase</property>
+            <property name="popover">testcase_popover</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkMenuButton" id="gear_menu_button">
+            <property name="focus-on-click">0</property>
+            <property name="valign">center</property>
+            <property name="menu-model">gear_menu</property>
+            <property name="icon-name">open-menu-symbolic</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkToggleButton" id="dark_bg_button">
+            <property name="focus-on-click">0</property>
+            <property name="valign">center</property>
+            <property name="has-frame">0</property>
+            <property name="icon-name">display-brightness-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Use a dark background</property>
+            <signal name="notify::active" handler="dark_mode_cb" swapped="0"/>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkScaleButton" id="scale_scale">
+            <property name="focus-on-click">0</property>
+            <property name="valign">center</property>
+            <property name="adjustment">
+              <object class="GtkAdjustment">
+                <property name="lower">-4</property>
+                <property name="value">0</property>
+                <property name="upper">4</property>
+                <property name="step-increment">0.1</property>
+                <property name="page-increment">0.5</property>
+              </object>
+            </property>
+            <property name="icons">zoom-in-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Scale the image</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkOverlay">
+        <child type="overlay">
+          <object class="GtkRevealer" id="crash_warning">
+            <property name="transition-type">slide-down</property>
+            <property name="halign">center</property>
+            <property name="valign">start</property>
+            <property name="child">
+              <object class="GtkFrame">
+                <style>
+                  <class name="app-notification"/>
+                </style>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">20</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="margin-bottom">10</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="halign">1</property>
+                        <property name="label" translatable="1">The application may have crashed.
+As a precaution, auto-loading has been turned off.
+You can turn it back on in the menu.
+</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="valign">3</property>
+                        <property name="use-underline">1</property>
+                        <property name="label" translatable="1">_Close</property>
+                        <signal name="clicked" handler="close_crash_warning"/>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <property name="child">
+          <object class="GtkPaned">
+            <property name="shrink-start-child">false</property>
+            <property name="shrink-end-child">false</property>
+            <property name="position">400</property>
+            <property name="start-child">
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkTextView" id="text_view">
+                    <property name="wrap-mode">word</property>
+                    <property name="monospace">1</property>
+                    <property name="top-margin">6</property>
+                    <property name="left-margin">6</property>
+                    <property name="right-margin">6</property>
+                    <property name="bottom-margin">6</property>
+                    <property name="has-tooltip">1</property>
+                    <property name="extra-menu">extra_menu</property>
+                    <signal name="query-tooltip" handler="text_view_query_tooltip_cb"/>
+                    <style>
+                      <class name="editor"/>
+                    </style>
+                    <child>
+                      <object class="GtkGestureClick">
+                        <property name="button">1</property>
+                        <signal name="pressed" handler="click_gesture_pressed"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+            <property name="end-child">
+              <object class="GtkBox">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
+                    <property name="min-content-height">100</property>
+                    <property name="min-content-width">100</property>
+                    <child>
+                      <object class="GtkViewport">
+                        <child>
+                          <object class="GtkPicture" id="picture">
+                            <property name="can-shrink">0</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkDragSource">
+                                <property name="actions">copy</property>
+                                <signal name="prepare" handler="on_picture_drag_prepare_cb" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkDropTargetAsync">
+                            <property name="actions">copy</property>
+                            <property name="formats">application/x-gtk-render-node</property>
+                            <signal name="drop" handler="on_picture_drop_cb" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="GtkListBox" id="renderer_listbox">
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

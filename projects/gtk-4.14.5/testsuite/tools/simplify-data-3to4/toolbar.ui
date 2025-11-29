@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkToolbar">
+    <property name="visible">1</property>
+    <property name="toolbar_style">both</property>
+    <child>
+      <object class="GtkToolButton">
+        <property name="visible">1</property>
+        <property name="label" translatable="yes">New</property>
+        <property name="icon-name">document-new</property>
+        <property name="tooltip-text" translatable="yes">Create a new document</property>
+      </object>
+      <packing>
+        <property name="homogeneous">1</property>
+      </packing>
+   </child>
+   <child>
+     <object class="GtkSeparatorToolItem">
+        <property name="visible">1</property>
+     </object>
+   </child>
+   <child>
+     <object class="GtkToggleToolButton">
+     </object>
+   </child>
+  </object>
+</interface>

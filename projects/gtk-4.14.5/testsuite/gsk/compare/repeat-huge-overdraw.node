@@ -1,0 +1,22 @@
+repeat {
+  bounds: -5 -5 10 10;
+  child-bounds: 0 0 32768 32768;
+  child: container {
+    color {
+      bounds: -128 -128 256 256;
+      color: rgb(255,0,0);
+    }
+    color {
+      bounds: -128 32640 256 256;
+      color: rgb(0,255,0);
+    }
+    color {
+      bounds: 32640 -128 256 256;
+      color: rgb(255,255,0);
+    }
+    color {
+      bounds: 32640 32640 256 256;
+      color: rgb(0,0,255);
+    }
+  }
+}

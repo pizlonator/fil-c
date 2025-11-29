@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="width_request">50</property>
+    <property name="height_request">60</property>
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkGrid" id="grid1">
+        <child>
+          <object class="GtkButton" id="no-repeat">
+            <property name="name">no-repeat</property>
+            <property name="width_request">50</property>
+            <property name="height_request">60</property>
+            <child>
+              <placeholder/>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="repeat">
+            <property name="name">repeat</property>
+            <property name="width_request">40</property>
+            <property name="height_request">60</property>
+            <child>
+              <placeholder/>
+            </child>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="default">
+            <property name="name">default</property>
+            <property name="width_request">50</property>
+            <property name="height_request">60</property>
+            <child>
+              <placeholder/>
+            </child>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+              <property name="column-span">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

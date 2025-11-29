@@ -1,0 +1,90 @@
+<interface domain="gtk40">
+  <template class="GtkInspectorCssNodeTree" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkPaned" id="paned">
+        <property name="wide-handle">1</property>
+        <property name="position">400</property>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="min-content-height">100</property>
+            <child>
+              <object class="GtkColumnView" id="node_tree">
+                <style>
+                  <class name="data-table"/>
+                  <class name="list"/>
+                </style>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="resizable">1</property>
+                    <property name="title" translatable="yes">Name</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="resizable">1</property>
+                    <property name="title" translatable="yes">ID</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="resizable">1</property>
+                    <property name="title" translatable="yes">Style Classes</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="resizable">1</property>
+                    <property name="expand">1</property>
+                    <property name="title" translatable="yes">State</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <property name="min-content-height">100</property>
+                <child>
+                  <object class="GtkColumnView" id="prop_tree">
+                    <style>
+                      <class name="data-table"/>
+                      <class name="list"/>
+                    </style>
+                    <child>
+                      <object class="GtkColumnViewColumn">
+                        <property name="title" translatable="yes">CSS Property</property>
+                        <property name="resizable">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn">
+                        <property name="title" translatable="yes">Value</property>
+                        <property name="resizable">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn">
+                        <property name="title" translatable="yes">Location</property>
+                        <property name="resizable">1</property>
+                        <property name="expand">1</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

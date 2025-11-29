@@ -1,0 +1,1383 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.CellRenderer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.CellRenderer"/>
+  <meta property="og:description" content="Reference for Gtk.CellRenderer"/>
+  <meta name="twitter:title" content="Gtk.CellRenderer"/>
+  <meta name="twitter:description" content="Reference for Gtk.CellRenderer"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.CellRenderer.html#description">CellRenderer</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.CellRenderer.activate.html">activate</a>
+  
+    <a class="method" href="method.CellRenderer.get_aligned_area.html">get_aligned_area</a>
+  
+    <a class="method" href="method.CellRenderer.get_alignment.html">get_alignment</a>
+  
+    <a class="method" href="method.CellRenderer.get_fixed_size.html">get_fixed_size</a>
+  
+    <a class="method" href="method.CellRenderer.get_is_expanded.html">get_is_expanded</a>
+  
+    <a class="method" href="method.CellRenderer.get_is_expander.html">get_is_expander</a>
+  
+    <a class="method" href="method.CellRenderer.get_padding.html">get_padding</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_height.html">get_preferred_height</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_height_for_width.html">get_preferred_height_for_width</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_size.html">get_preferred_size</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_width.html">get_preferred_width</a>
+  
+    <a class="method" href="method.CellRenderer.get_preferred_width_for_height.html">get_preferred_width_for_height</a>
+  
+    <a class="method" href="method.CellRenderer.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="method.CellRenderer.get_sensitive.html">get_sensitive</a>
+  
+    <a class="method" href="method.CellRenderer.get_state.html">get_state</a>
+  
+    <a class="method" href="method.CellRenderer.get_visible.html">get_visible</a>
+  
+    <a class="method" href="method.CellRenderer.is_activatable.html">is_activatable</a>
+  
+    <a class="method" href="method.CellRenderer.set_alignment.html">set_alignment</a>
+  
+    <a class="method" href="method.CellRenderer.set_fixed_size.html">set_fixed_size</a>
+  
+    <a class="method" href="method.CellRenderer.set_is_expanded.html">set_is_expanded</a>
+  
+    <a class="method" href="method.CellRenderer.set_is_expander.html">set_is_expander</a>
+  
+    <a class="method" href="method.CellRenderer.set_padding.html">set_padding</a>
+  
+    <a class="method" href="method.CellRenderer.set_sensitive.html">set_sensitive</a>
+  
+    <a class="method" href="method.CellRenderer.set_visible.html">set_visible</a>
+  
+    <a class="method" href="method.CellRenderer.snapshot.html">snapshot</a>
+  
+    <a class="method" href="method.CellRenderer.start_editing.html">start_editing</a>
+  
+    <a class="method" href="method.CellRenderer.stop_editing.html">stop_editing</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.CellRenderer.cell-background.html">cell-background</a>
+  
+    <a class="property" href="property.CellRenderer.cell-background-rgba.html">cell-background-rgba</a>
+  
+    <a class="property" href="property.CellRenderer.cell-background-set.html">cell-background-set</a>
+  
+    <a class="property" href="property.CellRenderer.editing.html">editing</a>
+  
+    <a class="property" href="property.CellRenderer.height.html">height</a>
+  
+    <a class="property" href="property.CellRenderer.is-expanded.html">is-expanded</a>
+  
+    <a class="property" href="property.CellRenderer.is-expander.html">is-expander</a>
+  
+    <a class="property" href="property.CellRenderer.mode.html">mode</a>
+  
+    <a class="property" href="property.CellRenderer.sensitive.html">sensitive</a>
+  
+    <a class="property" href="property.CellRenderer.visible.html">visible</a>
+  
+    <a class="property" href="property.CellRenderer.width.html">width</a>
+  
+    <a class="property" href="property.CellRenderer.xalign.html">xalign</a>
+  
+    <a class="property" href="property.CellRenderer.xpad.html">xpad</a>
+  
+    <a class="property" href="property.CellRenderer.yalign.html">yalign</a>
+  
+    <a class="property" href="property.CellRenderer.ypad.html">ypad</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.CellRenderer.editing-canceled.html">editing-canceled</a>
+  
+    <a class="signal" href="signal.CellRenderer.editing-started.html">editing-started</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.CellRenderer.activate.html">activate</a>
+  
+    <a class="method" href="vfunc.CellRenderer.editing_canceled.html">editing_canceled</a>
+  
+    <a class="method" href="vfunc.CellRenderer.editing_started.html">editing_started</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_aligned_area.html">get_aligned_area</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_preferred_height.html">get_preferred_height</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_preferred_height_for_width.html">get_preferred_height_for_width</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_preferred_width.html">get_preferred_width</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_preferred_width_for_height.html">get_preferred_width_for_height</a>
+  
+    <a class="method" href="vfunc.CellRenderer.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="vfunc.CellRenderer.snapshot.html">snapshot</a>
+  
+    <a class="method" href="vfunc.CellRenderer.start_editing.html">start_editing</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>CellRenderer</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/deprecated/gtkcellrenderer.c#L31">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.CellRenderer : GObject.InitiallyUnowned
+{
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>An object for rendering a single&nbsp;cell</p>
+<p>The <code>GtkCellRenderer</code> is a base class of a set of objects used for
+rendering a cell to a <code>cairo_t</code>.  These objects are used primarily by
+the <code>GtkTreeView</code> widget, though they aren’t tied to them in any
+specific way.  It is worth noting that <code>GtkCellRenderer</code> is not a
+<code>GtkWidget</code> and cannot be treated as&nbsp;such.</p>
+<p>The primary use of a <code>GtkCellRenderer</code> is for drawing a certain graphical
+elements on a <code>cairo_t</code>. Typically, one cell renderer is used to
+draw many cells on the screen.  To this extent, it isn’t expected that a
+CellRenderer keep any permanent state around.  Instead, any state is set
+just prior to use using <code>GObject</code>s property system.  Then, the
+cell is measured using gtk_cell_renderer_get_preferred_size(). Finally, the cell
+is rendered in the correct location using&nbsp;gtk_cell_renderer_snapshot().</p>
+<p>There are a number of rules that must be followed when writing a new
+<code>GtkCellRenderer</code>.  First and foremost, it’s important that a certain set
+of properties will always yield a cell renderer of the same size,
+barring a style change. The <code>GtkCellRenderer</code> also has a number of
+generic properties that are expected to be honored by all&nbsp;children.</p>
+<p>Beyond merely rendering a cell, cell renderers can optionally
+provide active user interface elements. A cell renderer can be
+“activatable” like <code>GtkCellRenderer</code>Toggle,
+which toggles when it gets activated by a mouse click, or it can be
+“editable” like <code>GtkCellRenderer</code>Text, which
+allows the user to edit the text using a widget implementing the
+<code>GtkCellEditable</code> interface, e.g. <code>GtkEntry</code>.
+To make a cell renderer activatable or editable, you have to
+implement the <code>GtkCellRenderer</code>Class.activate or
+<code>GtkCellRenderer</code>Class.start_editing virtual functions,&nbsp;respectively.</p>
+<p>Many properties of <code>GtkCellRenderer</code> and its subclasses have a
+corresponding “set” property, e.g. “cell-background-set” corresponds
+to “cell-background”. These “set” properties reflect whether a property
+has been set or not. You should not set them&nbsp;independently.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+          <div class="admonition deprecation">
+            <p class="admonition-title">Deprecated since: 4.10</p><p>List views use widgets for displaying their&nbsp;contents.</p></div>
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.CellRenderer">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="129pt" height="188pt"
+ viewBox="0.00 0.00 129.00 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkCellRenderer">
+<path fill="none" stroke="black" d="M102.62,-36C102.62,-36 18.38,-36 18.38,-36 12.38,-36 6.38,-30 6.38,-24 6.38,-24 6.38,-12 6.38,-12 6.38,-6 12.38,0 18.38,0 18.38,0 102.62,0 102.62,0 108.62,0 114.62,-6 114.62,-12 114.62,-12 114.62,-24 114.62,-24 114.62,-30 108.62,-36 102.62,-36"/>
+<text text-anchor="middle" x="60.5" y="-12.95" font-family="Times,serif" font-size="14.00">GtkCellRenderer</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M109,-108C109,-108 12,-108 12,-108 6,-108 0,-102 0,-96 0,-96 0,-84 0,-84 0,-78 6,-72 12,-72 12,-72 109,-72 109,-72 115,-72 121,-78 121,-84 121,-84 121,-96 121,-96 121,-102 115,-108 109,-108"/>
+<text text-anchor="middle" x="60.5" y="-84.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M60.5,-71.7C60.5,-60.85 60.5,-46.92 60.5,-36.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M79.38,-180C79.38,-180 41.62,-180 41.62,-180 35.62,-180 29.62,-174 29.62,-168 29.62,-168 29.62,-156 29.62,-156 29.62,-150 35.62,-144 41.62,-144 41.62,-144 79.38,-144 79.38,-144 85.38,-144 91.38,-150 91.38,-156 91.38,-156 91.38,-168 91.38,-168 91.38,-174 85.38,-180 79.38,-180"/>
+<text text-anchor="middle" x="60.5" y="-156.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M60.5,-143.7C60.5,-132.85 60.5,-118.92 60.5,-108.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.CellRendererPixbuf.html" title="CellRendererPixbuf">GtkCellRendererPixbuf</a></li>
+        
+          <li class="class"><a href="class.CellRendererProgress.html" title="CellRendererProgress">GtkCellRendererProgress</a></li>
+        
+          <li class="class"><a href="class.CellRendererSpinner.html" title="CellRendererSpinner">GtkCellRendererSpinner</a></li>
+        
+          <li class="class"><a href="class.CellRendererText.html" title="CellRendererText">GtkCellRendererText</a></li>
+        
+          <li class="class"><a href="class.CellRendererToggle.html" title="CellRendererToggle">GtkCellRendererToggle</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.activate.html">gtk_cell_renderer_activate</a></h6>
+          <div class="docblock">
+            <p>Passes an activate event to the cell renderer for possible processing.
+Some cell renderers may use events; for example, <code>GtkCellRendererToggle</code>
+toggles when it gets a mouse&nbsp;click.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_aligned_area.html">gtk_cell_renderer_get_aligned_area</a></h6>
+          <div class="docblock">
+            <p>Gets the aligned area used by <code>cell</code> inside <code>cell_area</code>. Used for finding
+the appropriate edit and focus&nbsp;rectangle.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_alignment.html">gtk_cell_renderer_get_alignment</a></h6>
+          <div class="docblock">
+            <p>Fills in <code>xalign</code> and <code>yalign</code> with the appropriate values of <code>cell</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_fixed_size.html">gtk_cell_renderer_get_fixed_size</a></h6>
+          <div class="docblock">
+            <p>Fills in <code>width</code> and <code>height</code> with the appropriate size of <code>cell</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_is_expanded.html">gtk_cell_renderer_get_is_expanded</a></h6>
+          <div class="docblock">
+            <p>Checks whether the given <code>GtkCellRenderer</code> is&nbsp;expanded.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_is_expander.html">gtk_cell_renderer_get_is_expander</a></h6>
+          <div class="docblock">
+            <p>Checks whether the given <code>GtkCellRenderer</code> is an&nbsp;expander.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_padding.html">gtk_cell_renderer_get_padding</a></h6>
+          <div class="docblock">
+            <p>Fills in <code>xpad</code> and <code>ypad</code> with the appropriate values of <code>cell</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_preferred_height.html">gtk_cell_renderer_get_preferred_height</a></h6>
+          <div class="docblock">
+            <p>Retrieves a renderer’s natural size when rendered to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_preferred_height_for_width.html">gtk_cell_renderer_get_preferred_height_for_width</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell renderers’s minimum and natural height if it were rendered to
+<code>widget</code> with the specified <code>width</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_preferred_size.html">gtk_cell_renderer_get_preferred_size</a></h6>
+          <div class="docblock">
+            <p>Retrieves the minimum and natural size of a cell taking
+into account the widget’s preference for height-for-width&nbsp;management.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_preferred_width.html">gtk_cell_renderer_get_preferred_width</a></h6>
+          <div class="docblock">
+            <p>Retrieves a renderer’s natural size when rendered to <code>widget</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_preferred_width_for_height.html">gtk_cell_renderer_get_preferred_width_for_height</a></h6>
+          <div class="docblock">
+            <p>Retrieves a cell renderers’s minimum and natural width if it were rendered to
+<code>widget</code> with the specified <code>height</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_request_mode.html">gtk_cell_renderer_get_request_mode</a></h6>
+          <div class="docblock">
+            <p>Gets whether the cell renderer prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_sensitive.html">gtk_cell_renderer_get_sensitive</a></h6>
+          <div class="docblock">
+            <p>Returns the cell renderer’s&nbsp;sensitivity.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_state.html">gtk_cell_renderer_get_state</a></h6>
+          <div class="docblock">
+            <p>Translates the cell renderer state to <code>GtkStateFlags</code>,
+based on the cell renderer and widget sensitivity, and
+the given <code>GtkCellRenderer</code>State.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.get_visible.html">gtk_cell_renderer_get_visible</a></h6>
+          <div class="docblock">
+            <p>Returns the cell renderer’s&nbsp;visibility.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.is_activatable.html">gtk_cell_renderer_is_activatable</a></h6>
+          <div class="docblock">
+            <p>Checks whether the cell renderer can do something when&nbsp;activated.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_alignment.html">gtk_cell_renderer_set_alignment</a></h6>
+          <div class="docblock">
+            <p>Sets the renderer’s alignment within its available&nbsp;space.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_fixed_size.html">gtk_cell_renderer_set_fixed_size</a></h6>
+          <div class="docblock">
+            <p>Sets the renderer size to be explicit, independent of the properties&nbsp;set.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_is_expanded.html">gtk_cell_renderer_set_is_expanded</a></h6>
+          <div class="docblock">
+            <p>Sets whether the given <code>GtkCellRenderer</code> is&nbsp;expanded.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_is_expander.html">gtk_cell_renderer_set_is_expander</a></h6>
+          <div class="docblock">
+            <p>Sets whether the given <code>GtkCellRenderer</code> is an&nbsp;expander.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_padding.html">gtk_cell_renderer_set_padding</a></h6>
+          <div class="docblock">
+            <p>Sets the renderer’s&nbsp;padding.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_sensitive.html">gtk_cell_renderer_set_sensitive</a></h6>
+          <div class="docblock">
+            <p>Sets the cell renderer’s&nbsp;sensitivity.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.set_visible.html">gtk_cell_renderer_set_visible</a></h6>
+          <div class="docblock">
+            <p>Sets the cell renderer’s&nbsp;visibility.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.snapshot.html">gtk_cell_renderer_snapshot</a></h6>
+          <div class="docblock">
+            <p>Invokes the virtual render function of the <code>GtkCellRenderer</code>. The three
+passed-in rectangles are areas in <code>cr</code>. Most renderers will draw within
+<code>cell_area</code>; the xalign, yalign, xpad, and ypad fields of the <code>GtkCellRenderer</code>
+should be honored with respect to <code>cell_area</code>. <code>background_area</code> includes the
+blank space around the cell, and also the area containing the tree expander;
+so the <code>background_area</code> rectangles for all cells tile to cover the entire
+<code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.start_editing.html">gtk_cell_renderer_start_editing</a></h6>
+          <div class="docblock">
+            <p>Starts editing the contents of this <code>cell</code>, through a new <code>GtkCellEditable</code>
+widget created by the <code>GtkCellRenderer</code>Class.start_editing virtual&nbsp;function.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.CellRenderer.stop_editing.html">gtk_cell_renderer_stop_editing</a></h6>
+          <div class="docblock">
+            <p>Informs the cell renderer that the editing is stopped.
+If <code>canceled</code> is <code>TRUE</code>, the cell renderer will emit the
+<code>GtkCellRenderer</code>::editing-canceled&nbsp;signal.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.cell-background.html">Gtk.CellRenderer:cell-background</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.cell-background-rgba.html">Gtk.CellRenderer:cell-background-rgba</a></h6>
+          <div class="docblock">
+            <p>Cell background as a <code>GdkRGBA</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.cell-background-set.html">Gtk.CellRenderer:cell-background-set</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.editing.html">Gtk.CellRenderer:editing</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.height.html">Gtk.CellRenderer:height</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.is-expanded.html">Gtk.CellRenderer:is-expanded</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.is-expander.html">Gtk.CellRenderer:is-expander</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.mode.html">Gtk.CellRenderer:mode</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.sensitive.html">Gtk.CellRenderer:sensitive</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.visible.html">Gtk.CellRenderer:visible</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.width.html">Gtk.CellRenderer:width</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.xalign.html">Gtk.CellRenderer:xalign</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.xpad.html">Gtk.CellRenderer:xpad</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.yalign.html">Gtk.CellRenderer:yalign</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRenderer.ypad.html">Gtk.CellRenderer:ypad</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.CellRenderer.editing-canceled.html">Gtk.CellRenderer::editing-canceled</a></h6>
+          <div class="docblock">
+            <p>This signal gets emitted when the user cancels the process of editing a
+cell.  For example, an editable cell renderer could be written to cancel
+editing when the user presses&nbsp;Escape.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.CellRenderer.editing-started.html">Gtk.CellRenderer::editing-started</a></h6>
+          <div class="docblock">
+            <p>This signal gets emitted when a cell starts to be edited.
+The intended use of this signal is to do special setup
+on <code>editable</code>, e.g. adding a <code>GtkEntryCompletion</code> or setting
+up additional columns in a <code>GtkComboBox</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkCellRendererClass {
+  GtkSizeRequestMode (* get_request_mode) (
+    GtkCellRenderer* cell
+  );
+  void (* get_preferred_width) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int* minimum_size,
+    int* natural_size
+  );
+  void (* get_preferred_height_for_width) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int width,
+    int* minimum_height,
+    int* natural_height
+  );
+  void (* get_preferred_height) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int* minimum_size,
+    int* natural_size
+  );
+  void (* get_preferred_width_for_height) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int height,
+    int* minimum_width,
+    int* natural_width
+  );
+  void (* get_aligned_area) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    GtkCellRendererState flags,
+    const GdkRectangle* cell_area,
+    GdkRectangle* aligned_area
+  );
+  void (* snapshot) (
+    GtkCellRenderer* cell,
+    GtkSnapshot* snapshot,
+    GtkWidget* widget,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  );
+  gboolean (* activate) (
+    GtkCellRenderer* cell,
+    GdkEvent* event,
+    GtkWidget* widget,
+    const char* path,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  );
+  GtkCellEditable* (* start_editing) (
+    GtkCellRenderer* cell,
+    GdkEvent* event,
+    GtkWidget* widget,
+    const char* path,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  );
+  void (* editing_canceled) (
+    GtkCellRenderer* cell
+  );
+  void (* editing_started) (
+    GtkCellRenderer* cell,
+    GtkCellEditable* editable,
+    const char* path
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>get_request_mode: GtkSizeRequestMode (* get_request_mode) (
+    GtkCellRenderer* cell
+  )</code></dt>
+          <dd><p>Called to gets whether the cell renderer prefers
+   a height-for-width layout or a width-for-height&nbsp;layout.</p></dd>
+        
+          <dt><code>get_preferred_width: void (* get_preferred_width) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int* minimum_size,
+    int* natural_size
+  )</code></dt>
+          <dd><p>Called to get a renderer’s natural&nbsp;width.</p></dd>
+        
+          <dt><code>get_preferred_height_for_width: void (* get_preferred_height_for_width) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int width,
+    int* minimum_height,
+    int* natural_height
+  )</code></dt>
+          <dd><p>Called to get a renderer’s natural height for&nbsp;width.</p></dd>
+        
+          <dt><code>get_preferred_height: void (* get_preferred_height) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int* minimum_size,
+    int* natural_size
+  )</code></dt>
+          <dd><p>Called to get a renderer’s natural&nbsp;height.</p></dd>
+        
+          <dt><code>get_preferred_width_for_height: void (* get_preferred_width_for_height) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    int height,
+    int* minimum_width,
+    int* natural_width
+  )</code></dt>
+          <dd><p>Called to get a renderer’s natural width for&nbsp;height.</p></dd>
+        
+          <dt><code>get_aligned_area: void (* get_aligned_area) (
+    GtkCellRenderer* cell,
+    GtkWidget* widget,
+    GtkCellRendererState flags,
+    const GdkRectangle* cell_area,
+    GdkRectangle* aligned_area
+  )</code></dt>
+          <dd><p>Called to get the aligned area used by <code>cell</code> inside <code>cell_area</code>.</p></dd>
+        
+          <dt><code>snapshot: void (* snapshot) (
+    GtkCellRenderer* cell,
+    GtkSnapshot* snapshot,
+    GtkWidget* widget,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  )</code></dt>
+          <dd><p>Called to snapshot the content of the <code>GtkCellRenderer</code>.</p></dd>
+        
+          <dt><code>activate: gboolean (* activate) (
+    GtkCellRenderer* cell,
+    GdkEvent* event,
+    GtkWidget* widget,
+    const char* path,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  )</code></dt>
+          <dd><p>Called to activate the content of the <code>GtkCellRenderer</code>.</p></dd>
+        
+          <dt><code>start_editing: GtkCellEditable* (* start_editing) (
+    GtkCellRenderer* cell,
+    GdkEvent* event,
+    GtkWidget* widget,
+    const char* path,
+    const GdkRectangle* background_area,
+    const GdkRectangle* cell_area,
+    GtkCellRendererState flags
+  )</code></dt>
+          <dd><p>Called to initiate editing the content of the <code>GtkCellRenderer</code>.</p></dd>
+        
+          <dt><code>editing_canceled: void (* editing_canceled) (
+    GtkCellRenderer* cell
+  )</code></dt>
+          <dd><p>Signal gets emitted when the user cancels the process of editing a&nbsp;cell.</p></dd>
+        
+          <dt><code>editing_started: void (* editing_started) (
+    GtkCellRenderer* cell,
+    GtkCellEditable* editable,
+    const char* path
+  )</code></dt>
+          <dd><p>Signal gets emitted when a cell starts to be&nbsp;edited.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="deprecated">
+        <h6 id="vfunc-activate"><a href="vfunc.CellRenderer.activate.html">Gtk.CellRendererClass.activate</a></h6>
+        <div class="docblock">
+          <p>Passes an activate event to the cell renderer for possible processing.
+Some cell renderers may use events; for example, <code>GtkCellRendererToggle</code>
+toggles when it gets a mouse&nbsp;click.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-editing_canceled"><a href="vfunc.CellRenderer.editing_canceled.html">Gtk.CellRendererClass.editing_canceled</a></h6>
+        <div class="docblock">
+          <p>Signal gets emitted when the user cancels the process of editing a&nbsp;cell.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-editing_started"><a href="vfunc.CellRenderer.editing_started.html">Gtk.CellRendererClass.editing_started</a></h6>
+        <div class="docblock">
+          <p>Signal gets emitted when a cell starts to be&nbsp;edited.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_aligned_area"><a href="vfunc.CellRenderer.get_aligned_area.html">Gtk.CellRendererClass.get_aligned_area</a></h6>
+        <div class="docblock">
+          <p>Gets the aligned area used by <code>cell</code> inside <code>cell_area</code>. Used for finding
+the appropriate edit and focus&nbsp;rectangle.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_height"><a href="vfunc.CellRenderer.get_preferred_height.html">Gtk.CellRendererClass.get_preferred_height</a></h6>
+        <div class="docblock">
+          <p>Retrieves a renderer’s natural size when rendered to <code>widget</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_height_for_width"><a href="vfunc.CellRenderer.get_preferred_height_for_width.html">Gtk.CellRendererClass.get_preferred_height_for_width</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell renderers’s minimum and natural height if it were rendered to
+<code>widget</code> with the specified <code>width</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_width"><a href="vfunc.CellRenderer.get_preferred_width.html">Gtk.CellRendererClass.get_preferred_width</a></h6>
+        <div class="docblock">
+          <p>Retrieves a renderer’s natural size when rendered to <code>widget</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_preferred_width_for_height"><a href="vfunc.CellRenderer.get_preferred_width_for_height.html">Gtk.CellRendererClass.get_preferred_width_for_height</a></h6>
+        <div class="docblock">
+          <p>Retrieves a cell renderers’s minimum and natural width if it were rendered to
+<code>widget</code> with the specified <code>height</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-get_request_mode"><a href="vfunc.CellRenderer.get_request_mode.html">Gtk.CellRendererClass.get_request_mode</a></h6>
+        <div class="docblock">
+          <p>Gets whether the cell renderer prefers a height-for-width layout
+or a width-for-height&nbsp;layout.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-snapshot"><a href="vfunc.CellRenderer.snapshot.html">Gtk.CellRendererClass.snapshot</a></h6>
+        <div class="docblock">
+          <p>Invokes the virtual render function of the <code>GtkCellRenderer</code>. The three
+passed-in rectangles are areas in <code>cr</code>. Most renderers will draw within
+<code>cell_area</code>; the xalign, yalign, xpad, and ypad fields of the <code>GtkCellRenderer</code>
+should be honored with respect to <code>cell_area</code>. <code>background_area</code> includes the
+blank space around the cell, and also the area containing the tree expander;
+so the <code>background_area</code> rectangles for all cells tile to cover the entire
+<code>window</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      <div class="deprecated">
+        <h6 id="vfunc-start_editing"><a href="vfunc.CellRenderer.start_editing.html">Gtk.CellRendererClass.start_editing</a></h6>
+        <div class="docblock">
+          <p>Starts editing the contents of this <code>cell</code>, through a new <code>GtkCellEditable</code>
+widget created by the <code>GtkCellRenderer</code>Class.start_editing virtual&nbsp;function.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

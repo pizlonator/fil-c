@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkMessageDialog" parent="GtkDialog">
+    <property name="title"></property>
+    <property name="resizable">0</property>
+    <child internal-child="headerbar">
+      <object class="GtkHeaderBar" id="headerbar1">
+        <property name="show-title-buttons">0</property>
+      </object>
+    </child>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">1</property>
+        <property name="spacing">20</property>
+        <child>
+          <object class="GtkBox" id="box">
+            <property name="margin-start">30</property>
+            <property name="margin-end">30</property>
+            <property name="spacing">30</property>
+            <child>
+              <object class="GtkBox" id="message_area">
+                <property name="orientation">1</property>
+                <property name="spacing">10</property>
+                <property name="hexpand">1</property>
+                <child>
+                  <object class="GtkLabel" id="label">
+                    <property name="halign">3</property>
+                    <property name="valign">1</property>
+                    <property name="wrap">1</property>
+                    <property name="max-width-chars">60</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="secondary_label">
+                    <property name="visible">0</property>
+                    <property name="margin-bottom">2</property>
+                    <property name="halign">3</property>
+                    <property name="valign">1</property>
+                    <property name="vexpand">1</property>
+                    <property name="wrap">1</property>
+                    <property name="max-width-chars">60</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

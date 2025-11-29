@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkPaned">
+    <property name="resize-end-child">0</property>
+    <property name="shrink-start-child">0</property>
+    <property name="start-child">
+      <object class="GtkButton" id="button"/>
+    </property>
+    <property name="end-child">
+      <object class="GtkLabel" id="label"/>
+    </property>
+  </object>
+</interface>

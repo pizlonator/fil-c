@@ -1,0 +1,327 @@
+# Actual GTK things
+{
+  GtkWidgetClass action GPtrArray
+  Memcheck:Leak
+  fun:malloc
+  fun:g_malloc
+  fun:g_slice_alloc
+  fun:g_ptr_array_sized_new
+  fun:g_ptr_array_new
+  fun:gtk_widget_class_add_action
+}
+
+{
+   GIO modules
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   ...
+   fun:_g_io_module_get_default
+}
+
+{
+   GTK media extension gio modules
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   ...
+   fun:g_io_module_new
+   ...
+   fun:gtk_media_file_extension_init
+}
+
+# AMD driver
+{
+  radeonsi_dri general
+  Memcheck:Leak
+  fun:calloc
+  ...
+  obj:/usr/lib*/dri/radeonsi_dri.so
+}
+{
+  radeonsi_dri general
+  Memcheck:Leak
+  fun:malloc
+  ...
+  obj:/usr/lib*/dri/radeonsi_dri.so
+}
+
+# mesa driver stuff
+{
+   i965 addr4
+   Memcheck:Addr4
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   i965 addr8
+   Memcheck:Addr8
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   i965 memcpy
+   Memcheck:Addr8
+   fun:memcpy*
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   i965 memcpy
+   Memcheck:Addr2
+   fun:memcpy*
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   mesa memcmp 8
+   Memcheck:Addr8
+   fun:*memcmp*
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   mesa memcmp 1
+   Memcheck:Addr1
+   fun:*memcmp*
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   mesa memset 8
+   Memcheck:Addr8
+   fun:*memset*
+   obj:/usr/lib*/dri/i965_dri.so
+}
+
+{
+   mesa realpath
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:realpath@@GLIBC_2.3
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_eglInitialize_global_rewrite_ptr
+}
+
+{
+   mesa calloc
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_eglInitialize_global_rewrite_ptr
+}
+
+{
+   epoxy strncmp
+   Memcheck:Addr8
+   fun:strncmp
+   ...
+   fun:epoxy_eglInitialize_global_rewrite_ptr
+}
+
+{
+   mesa malloc
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib*/dri/i965_dri.so*
+}
+
+{
+   mesa glReadPixels
+   Memcheck:Addr16
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_glReadPixels_global_rewrite_ptr
+}
+
+{
+   epoxy glxQueryServerString 1
+   Memcheck:Leak
+   fun:malloc
+   fun:XextAddDisplay
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_glXQueryServerString_global_rewrite_ptr
+
+}
+
+{
+   epoxy glxQueryServerString 2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:realpath*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_glXQueryServerString_global_rewrite_ptr
+}
+
+{
+   epoxy glGetTexImage
+   Memcheck:Addr16
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:epoxy_glGetTexImage_global_rewrite_ptr
+}
+
+
+
+
+# Fontconfig
+{
+   FcFontSetList
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib*/libfontconfig.so*
+   obj:/usr/lib*/libfontconfig.so*
+   fun:FcFontSetList
+}
+
+{
+   FcPatternObjectInsertElt
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:FcPatternObjectInsertElt
+}
+
+{
+   FcFontRenderPrepare
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib*/libfontconfig.so*
+   obj:/usr/lib*/libfontconfig.so*
+   fun:FcFontRenderPrepare
+}
+
+{
+   FcDefaultSubstitute
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib*/libfontconfig.so*
+   obj:/usr/lib*/libfontconfig.so*
+   fun:FcDefaultSubstitute
+}
+
+# Pixman
+{
+   pixman_image_composite32
+   Memcheck:Cond
+   obj:/usr/lib*/libpixman-1.so*
+   obj:/usr/lib*/libpixman-1.so*
+   fun:pixman_image_composite32
+}
+
+# Pango
+{
+   pango 1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib*/libfontconfig.so*
+   obj:/usr/lib*/libfontconfig.so*
+   obj:/usr/lib*/libcairo.so*
+   fun:pango_cairo_fc_font_map_fontset_key_substitute
+}
+
+{
+  pango 2
+  Memcheck:Leak
+  fun:realloc
+  obj:/usr/lib*/libfontconfig.so*
+  obj:/usr/lib*/libfontconfig.so*
+  fun:_cairo_ft_font_options_substitute
+}
+
+# GLib
+{
+  glib GQuark
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:malloc
+  ...
+  fun:g_quark_*
+}
+{
+  glib GQuark
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:malloc
+  ...
+  fun:g_intern_static_string
+}
+{
+  glib GQuark
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:malloc
+  ...
+  fun:g_intern_string
+}
+{
+  xdg-mime init
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:malloc
+  ...
+  fun:xdg_mime_init*
+}
+{
+  xdg-mime init
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:calloc
+  ...
+  fun:xdg_mime_init*
+}
+{
+  glib init
+  Memcheck:Leak
+  match-leak-kinds: definite
+  fun:malloc
+  ...
+  fun:glib_init_ctor
+}
+
+# Threads
+{
+   pthread
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+}

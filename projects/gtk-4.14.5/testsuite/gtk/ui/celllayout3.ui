@@ -1,0 +1,12 @@
+<!-- test invalid cell layout attribute name -->
+<interface>
+  <object class="GtkIconView">
+    <child>
+      <object class="GtkCellRendererText">
+      </object>
+      <attributes>
+        <attribute name="text" food="text">1</attribute>
+      </attributes>
+    </child>
+  </object>
+</interface>

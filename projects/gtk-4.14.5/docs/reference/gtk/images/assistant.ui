@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAssistant">
+    <property name="resizable">0</property>
+    <property name="default-width">300</property>
+    <property name="default-height">140</property>
+    <property name="title">Assistant</property>
+    <child>
+      <object class="GtkAssistantPage">
+        <property name="title">Assistant page</property>
+        <property name="complete">1</property>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="label">Assistant</property>
+          </object>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAssistantPage">
+        <property name="page-type">confirm</property>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="label">You sure?</property>
+          </object>
+        </property>
+      </object>
+    </child>
+  </object>
+</interface>

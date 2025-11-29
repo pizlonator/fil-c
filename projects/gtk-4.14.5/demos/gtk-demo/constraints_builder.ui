@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">Constraints — Builder</property>
+    <property name="default-width">260</property>
+    <child>
+      <object class="ConstraintsGrid">
+        <property name="halign">fill</property>
+        <property name="valign">fill</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="layout-manager">
+          <object class="GtkConstraintLayout">
+            <constraints>
+              <guide name="guide1" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide2" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide3" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide4" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide5" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide6" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide7" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide8" min-width="10" nat-width="200" strength="weak"/>
+              <guide name="guide9" min-width="0" nat-width="200" strength="weak"/>
+              <guide name="guide10" min-width="0" nat-width="200" strength="weak"/>
+              <guide name="barrier1" min-height="10"/>
+              <guide name="barrier2" min-height="10"/>
+              <guide name="barrier3" min-height="10"/>
+              <guide name="barrier4" min-height="10"/>
+
+              <!-- Spread Chain -->
+              <constraint target="super" target-attribute="top"
+                          relation="eq"
+                          source="button1" source-attribute="top"
+                          strength="required"/>
+              <constraint target="super" target-attribute="top"
+                          relation="eq"
+                          source="button2" source-attribute="top"
+                          strength="required"/>
+              <constraint target="super" target-attribute="top"
+                          relation="eq"
+                          source="button3" source-attribute="top"
+                          strength="required"/>
+
+              <constraint target="super" target-attribute="left"
+                          relation="eq"
+                          source="guide1" source-attribute="left"
+                          strength="required"/>
+              <constraint target="button1" target-attribute="left"
+                          relation="eq"
+                          source="guide1" source-attribute="right"
+                          strength="required"/>
+              <constraint target="guide2" target-attribute="left"
+                          relation="eq"
+                          source="button1" source-attribute="right"
+                          strength="required"/>
+              <constraint target="button2" target-attribute="left"
+                          relation="eq"
+                          source="guide2" source-attribute="right"
+                          strength="required"/>
+              <constraint target="guide3" target-attribute="left"
+                          relation="eq"
+                          source="button2" source-attribute="right"
+                          strength="required"/>
+              <constraint target="button3" target-attribute="left"
+                          relation="eq"
+                          source="guide3" source-attribute="right"
+                          strength="required"/>
+              <constraint target="guide4" target-attribute="left"
+                          relation="eq"
+                          source="button3" source-attribute="right"
+                          strength="required"/>
+              <constraint target="super" target-attribute="right"
+                          relation="eq"
+                          source="guide4" source-attribute="right"
+                          strength="required"/>
+
+              <constraint target="guide1" target-attribute="width"
+                          relation="eq"
+                          source="guide2" source-attribute="width"
+                          strength="required"/>
+              <constraint target="guide2" target-attribute="width"
+                          relation="eq"
+                          source="guide3" source-attribute="width"
+                          strength="required"/>
+              <constraint target="guide3" target-attribute="width"
+                          relation="eq"
+                          source="guide4" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button1" target-attribute="width"
+                          relation="eq"
+                          source="button2" source-attribute="width"
+                          strength="required"/>
+              <constraint target="button2" target-attribute="width"
+                          relation="eq"
+                          source="button3" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button1" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier1" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button2" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier1" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button3" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier1" source-attribute="top"
+                          strength="required"/>
+
+              <!-- Spread Inside Chain -->
+
+              <constraint target="super" target-attribute="left"
+                          relation="eq"
+                          source="button4" source-attribute="left"
+                          strength="required"/>
+              <constraint target="guide5" target-attribute="left"
+                          relation="eq"
+                          source="button4" source-attribute="right"
+                          strength="required"/>
+              <constraint target="button5" target-attribute="left"
+                          relation="eq"
+                          source="guide5" source-attribute="right"
+                          strength="required"/>
+              <constraint target="guide6" target-attribute="left"
+                          relation="eq"
+                          source="button5" source-attribute="right"
+                          strength="required"/>
+              <constraint target="button6" target-attribute="left"
+                          relation="eq"
+                          source="guide6" source-attribute="right"
+                          strength="required"/>
+              <constraint target="super" target-attribute="right"
+                          relation="eq"
+                          source="button6" source-attribute="right"
+                          strength="required"/>
+
+              <constraint target="guide5" target-attribute="width"
+                          relation="eq"
+                          source="guide6" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button4" target-attribute="width"
+                          relation="eq"
+                          source="button5" source-attribute="width"
+                          strength="required"/>
+              <constraint target="button5" target-attribute="width"
+                          relation="eq"
+                          source="button6" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button4" target-attribute="top"
+                          relation="eq"
+                          source="barrier1" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button5" target-attribute="top"
+                          relation="eq"
+                          source="barrier1" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button6" target-attribute="top"
+                          relation="eq"
+                          source="barrier1" source-attribute="bottom"
+                          strength="required"/>
+
+              <constraint target="button4" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier2" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button5" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier2" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button6" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier2" source-attribute="top"
+                          strength="required"/>
+
+              <!-- Weighted Chain -->
+
+              <constraint target="super" target-attribute="left"
+                          relation="eq"
+                          source="button7" source-attribute="left"
+                          strength="required"/>
+              <constraint target="button8" target-attribute="left"
+                          relation="eq"
+                          source="button7" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="button9" target-attribute="left"
+                          relation="eq"
+                          source="button8" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="super" target-attribute="right"
+                          relation="eq"
+                          source="button9" source-attribute="right"
+                          strength="required"/>
+
+              <constraint target="button8" target-attribute="width"
+                          relation="eq"
+                          source="button7" source-attribute="width"
+                          multiplier="2"
+                          strength="required"/>
+              <constraint target="button9" target-attribute="width"
+                          relation="eq"
+                          source="button7" source-attribute="width"
+                          multiplier="3"
+                          strength="required"/>
+
+              <constraint target="button7" target-attribute="top"
+                          relation="eq"
+                          source="barrier2" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button8" target-attribute="top"
+                          relation="eq"
+                          source="barrier2" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button9" target-attribute="top"
+                          relation="eq"
+                          source="barrier2" source-attribute="bottom"
+                          strength="required"/>
+
+              <constraint target="button7" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier3" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button8" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier3" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button9" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier3" source-attribute="top"
+                          strength="required"/>
+
+              <!-- Packed Chain -->
+
+              <constraint target="super" target-attribute="left"
+                          relation="eq"
+                          source="guide7" source-attribute="left"
+                          strength="required"/>
+              <constraint target="button10" target-attribute="left"
+                          relation="eq"
+                          source="guide7" source-attribute="right"
+                          strength="required"/>
+              <constraint target="button11" target-attribute="left"
+                          relation="eq"
+                          source="button10" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="button12" target-attribute="left"
+                          relation="eq"
+                          source="button11" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="guide8" target-attribute="left"
+                          relation="eq"
+                          source="button12" source-attribute="right"
+                          strength="required"/>
+              <constraint target="super" target-attribute="right"
+                          relation="eq"
+                          source="guide8" source-attribute="right"
+                          strength="required"/>
+
+              <constraint target="guide7" target-attribute="width"
+                          relation="eq"
+                          source="guide8" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button10" target-attribute="width"
+                          relation="eq"
+                          source="button11" source-attribute="width"
+                          strength="required"/>
+              <constraint target="button11" target-attribute="width"
+                          relation="eq"
+                          source="button12" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button10" target-attribute="top"
+                          relation="eq"
+                          source="barrier3" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button11" target-attribute="top"
+                          relation="eq"
+                          source="barrier3" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button12" target-attribute="top"
+                          relation="eq"
+                          source="barrier3" source-attribute="bottom"
+                          strength="required"/>
+
+              <constraint target="button10" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier4" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button11" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier4" source-attribute="top"
+                          strength="required"/>
+              <constraint target="button12" target-attribute="bottom"
+                          relation="eq"
+                          source="barrier4" source-attribute="top"
+                          strength="required"/>
+
+              <!-- Packed Chain with Bias -->
+
+              <constraint target="super" target-attribute="left"
+                          relation="eq"
+                          source="guide9" source-attribute="left"
+                          strength="required"/>
+              <constraint target="button13" target-attribute="left"
+                          relation="eq"
+                          source="guide9" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="button14" target-attribute="left"
+                          relation="eq"
+                          source="button13" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="button15" target-attribute="left"
+                          relation="eq"
+                          source="button14" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="guide10" target-attribute="left"
+                          relation="eq"
+                          source="button15" source-attribute="right"
+                          constant="10"
+                          strength="required"/>
+              <constraint target="super" target-attribute="right"
+                          relation="eq"
+                          source="guide10" source-attribute="right"
+                          strength="required"/>
+
+              <constraint target="guide9" target-attribute="width"
+                          relation="eq"
+                          source="guide10" source-attribute="width"
+                          multiplier="4"
+                          strength="required"/>
+
+              <constraint target="button13" target-attribute="width"
+                          relation="eq"
+                          source="button14" source-attribute="width"
+                          strength="required"/>
+              <constraint target="button14" target-attribute="width"
+                          relation="eq"
+                          source="button15" source-attribute="width"
+                          strength="required"/>
+
+              <constraint target="button13" target-attribute="top"
+                          relation="eq"
+                          source="barrier4" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button14" target-attribute="top"
+                          relation="eq"
+                          source="barrier4" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="button15" target-attribute="top"
+                          relation="eq"
+                          source="barrier4" source-attribute="bottom"
+                          strength="required"/>
+
+              <constraint target="super" target-attribute="bottom"
+                          relation="ge"
+                          source="button13" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="super" target-attribute="bottom"
+                          relation="ge"
+                          source="button14" source-attribute="bottom"
+                          strength="required"/>
+              <constraint target="super" target-attribute="bottom"
+                          relation="ge"
+                          source="button15" source-attribute="bottom"
+                          strength="required"/>
+            </constraints>
+          </object>
+        </property>
+        <child>
+          <object class="GtkButton" id="button1">
+            <property name="label">A</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button2">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button3">
+            <property name="label">C</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button4">
+            <property name="label">A</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button5">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button6">
+            <property name="label">C</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button7">
+            <property name="label">A</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button8">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button9">
+            <property name="label">C</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button10">
+            <property name="label">A</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button11">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button12">
+            <property name="label">C</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button13">
+            <property name="label">A</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button14">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button15">
+            <property name="label">C</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

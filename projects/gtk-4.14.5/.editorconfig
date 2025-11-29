@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2021 The GTK Authors
+# SPDX-License-Identifier: CC0-1.0
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+trim_trailing_whitespace = true
+
+[*.[ch]]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+# For the legacy tabs which still exist in the code:
+tab_width = 8
+
+[*.ui]
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+
+[*.xml]
+indent_size = 2
+indent_style = space
+
+[meson.build]
+indent_size = 2
+indent_style = space
+
+[*.md]
+max_line_length = 80

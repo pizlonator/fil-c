@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkColorChooserDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Select a Color</property>
+    <property name="resizable">0</property>
+    <style>
+      <class name="colorchooser"/>
+    </style>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">1</property>
+        <property name="spacing">2</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+        <child>
+          <object class="GtkColorChooserWidget" id="chooser">
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <property name="rgba">rgb(255,255,255)</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <signal name="color-activated" handler="color_activated_cb" swapped="no"/>
+            <signal name="notify::rgba" handler="propagate_notify" swapped="no"/>
+            <signal name="notify::show-editor" handler="propagate_notify" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="use-underline">1</property>
+        <property name="label" translatable="yes">_Cancel</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="ok_button">
+        <property name="label" translatable="yes">_Select</property>
+        <property name="use-underline">1</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="cancel">cancel_button</action-widget>
+      <action-widget response="ok" default="true">ok_button</action-widget>
+    </action-widgets>
+  </template>
+</interface>

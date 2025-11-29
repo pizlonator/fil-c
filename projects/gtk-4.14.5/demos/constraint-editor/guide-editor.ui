@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAdjustment" id="min_width_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <object class="GtkAdjustment" id="min_height_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <object class="GtkAdjustment" id="nat_width_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <object class="GtkAdjustment" id="nat_height_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <object class="GtkAdjustment" id="max_width_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <object class="GtkAdjustment" id="max_height_adj">
+    <property name="lower">0</property>
+    <property name="upper">2147483647</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+    <property name="page-size">0</property>
+  </object>
+  <template class="GuideEditor" parent="GtkWidget">
+    <child>
+      <object class="GtkGrid" id="grid">
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">20</property>
+        <property name="row-spacing">10</property>
+        <property name="column-spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Name</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="name">
+            <property name="max-width-chars">20</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Min Size</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="min_width">
+            <property name="adjustment">min_width_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="min_height">
+            <property name="adjustment">min_height_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Nat Size</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="nat_width">
+            <property name="adjustment">nat_width_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="nat_height">
+            <property name="adjustment">nat_height_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Max Size</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="max_width">
+            <property name="adjustment">max_width_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="max_height">
+            <property name="adjustment">max_height_adj</property>
+            <property name="max-width-chars">5</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Strength</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">4</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="strength">
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item>Weak</item>
+                  <item>Medium</item>
+                  <item>Strong</item>
+                  <item>Required</item>
+                </items>
+              </object>
+            </property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">4</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button">
+            <property name="label">Create</property>
+            <signal name="clicked" handler="create_guide"/>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">5</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

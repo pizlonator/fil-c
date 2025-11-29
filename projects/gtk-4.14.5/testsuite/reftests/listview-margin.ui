@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="child">
+      <object class="GtkListView">
+        <property name="model">
+          <object class="GtkNoSelection">
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item translatable="yes">One</item>
+                  <item translatable="yes">Two</item>
+                  <item translatable="yes">Three</item>
+                </items>
+              </object>
+            </property>
+          </object>
+        </property>
+        <property name="factory">
+          <object class="GtkBuilderListItemFactory">
+            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">1</property>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+            ]]></property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+</interface>

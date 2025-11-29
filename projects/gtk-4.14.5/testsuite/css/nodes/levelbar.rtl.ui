@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="value">0.5</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="inverted">1</property>
+            <property name="value">0.5</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="value">0.2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="value">0.8</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="max-value">10</property>
+            <property name="value">5</property>
+            <property name="mode">discrete</property>
+            <offsets>
+              <offset name="low" value="2"/>
+              <offset name="high" value="8"/>
+              <offset name="full" value="10"/>
+            </offsets>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="max-value">10</property>
+            <property name="value">2</property>
+            <property name="mode">discrete</property>
+            <offsets>
+              <offset name="low" value="2"/>
+              <offset name="high" value="8"/>
+              <offset name="full" value="10"/>
+            </offsets>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar">
+            <property name="max-value">10</property>
+            <property name="value">8</property>
+            <property name="mode">discrete</property>
+            <offsets>
+              <offset name="low" value="2"/>
+              <offset name="high" value="8"/>
+              <offset name="full" value="10"/>
+            </offsets>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

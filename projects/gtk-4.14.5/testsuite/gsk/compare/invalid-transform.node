@@ -1,0 +1,16 @@
+transform {
+  /* break the transform on purpose, because
+     this is valid in GSK and should result
+     in nothing being drawn. */
+  transform: scale(0);
+  child: color {
+    color: red;
+    bounds: 0 0 100 100;
+  }
+}
+
+/* make sure the rendering has a size */
+color {
+  color: transparent;
+  bounds: 0 0 1 1;
+}

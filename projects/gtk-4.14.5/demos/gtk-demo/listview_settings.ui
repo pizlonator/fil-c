@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="title" translatable="yes">Settings</property>
+    <property name="default-width">640</property>
+    <property name="default-height">480</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child type="end">
+          <object class="GtkToggleButton" id="search_button">
+            <property name="icon-name">system-search-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkPaned">
+        <property name="position">300</property>
+        <child>
+          <object class="GtkScrolledWindow">
+            <child>
+              <object class="GtkListView" id="listview">
+                <property name="tab-behavior">item</property>
+                <style>
+                  <class name="navigation-sidebar"/>
+                </style>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkTreeExpander" id="expander">
+        <binding name="list-row">
+          <lookup name="item">GtkListItem</lookup>
+        </binding>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="xalign">0</property>
+            <binding name="label">
+              <lookup name="schema" type="GSettings">
+                <lookup name="item">expander</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkSearchBar">
+                <property name="search-mode-enabled" bind-source="search_button" bind-property="active" bind-flags="bidirectional"/>
+                <signal name="notify::search-mode-enabled" handler="search_enabled" object="entry"/>
+                <child>
+                  <object class="GtkSearchEntry" id="entry">
+                    <signal name="search-changed" handler="search_changed"/>
+                    <signal name="stop-search" handler="stop_search"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkColumnView" id="columnview">
+                    <property name="tab-behavior">cell</property>
+                    <style>
+                      <class name="data-table"/>
+                    </style>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="name_column">
+                        <property name="title">Name</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="name" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn">
+                        <property name="title">Value</property>
+                        <property name="resizable">1</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkEditableLabel">
+        <binding name="text">
+          <lookup name="value" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+        <signal name="notify::label" handler="item_value_changed"/>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="type_column">
+                        <property name="title">Type</property>
+                        <property name="resizable">1</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="type" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="default_column">
+                        <property name="title">Default</property>
+                        <property name="resizable">1</property>
+                        <property name="expand">1</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="default-value" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="summary_column">
+                        <property name="title">Summary</property>
+                        <property name="resizable">1</property>
+                        <property name="visible">0</property>
+                        <property name="expand">1</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="wrap">1</property>
+        <binding name="label">
+          <lookup name="summary" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="description_column">
+                        <property name="title">Description</property>
+                        <property name="resizable">1</property>
+                        <property name="visible">0</property>
+                        <property name="expand">1</property>
+                        <property name="header-menu">header_menu</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkColumnViewCell">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="wrap">1</property>
+        <binding name="label">
+          <lookup name="description" type="SettingsKey">
+            <lookup name="item">GtkColumnViewCell</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                        ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <menu id="header_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Type</attribute>
+        <attribute name="action">columnview.show-type</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Default value</attribute>
+        <attribute name="action">columnview.show-default</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Summary</attribute>
+        <attribute name="action">columnview.show-summary</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Description</attribute>
+        <attribute name="action">columnview.show-description</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkEntryCompletion" id="name_completion">
+    <property name="model">liststore1</property>
+    <property name="text_column">0</property>
+    <property name="inline_completion">1</property>
+  </object>
+  <object class="GtkDialog" id="dialog">
+    <property name="modal">1</property>
+    <property name="destroy_with_parent">1</property>
+    <property name="default_width">500</property>
+    <property name="use_header_bar">1</property>
+    <property name="title" translatable="yes">Join Chat Room</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="titlebar">
+        <property name="show-title-buttons">0</property>
+        <child>
+          <object class="GtkButton" id="back_button">
+            <property name="visible">0</property>
+            <property name="can_focus">1</property>
+            <property name="valign">center</property>
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child>
+              <object class="GtkImage" id="back_icon"/>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="cancel_button">
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <property name="use_underline">1</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="confirm_button">
+            <property name="label" translatable="yes">_Join</property>
+            <property name="can_focus">1</property>
+            <property name="receives_default">1</property>
+            <property name="use_underline">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkStack" id="stack">
+            <property name="transition_type">slide-left-right</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">main</property>
+                <property name="child">
+                  <object class="GtkGrid" id="grid1">
+                    <property name="margin_start">24</property>
+                    <property name="margin_end">24</property>
+                    <property name="margin_top">24</property>
+                    <property name="margin_bottom">24</property>
+                    <property name="row_spacing">12</property>
+                    <property name="column_spacing">12</property>
+                    <child>
+                      <object class="GtkLabel" id="margin">
+                        <property name="width_request">24</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="password_entry">
+                        <property name="can_focus">1</property>
+                        <property name="hexpand">1</property>
+                        <property name="visibility">0</property>
+                        <property name="activates_default">1</property>
+                        <property name="placeholder_text" translatable="yes">optional</property>
+                        <property name="input_purpose">password</property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">2</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="name_entry">
+                        <property name="can_focus">1</property>
+                        <property name="hexpand">1</property>
+                        <property name="margin_top">24</property>
+                        <property name="activates_default">1</property>
+                        <property name="completion">name_completion</property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">1</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="add_connection_button">
+                        <property name="can_focus">1</property>
+                        <property name="receives_default">1</property>
+                        <child>
+                          <object class="GtkBox" id="box1">
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage" id="image1">
+                                <property name="icon_name">list-add-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label1">
+                                <property name="label" translatable="yes">_Add Connection</property>
+                                <property name="use_underline">1</property>
+                                <property name="mnemonic_widget">add_connection_button</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <layout>
+                          <property name="column">3</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="connection_combo">
+                        <property name="hexpand">1</property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="connection_label">
+                        <property name="halign">end</property>
+                        <property name="label" translatable="yes">C_onnection</property>
+                        <property name="use_underline">1</property>
+                        <property name="mnemonic_widget">connection_combo</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="name_label">
+                        <property name="halign">end</property>
+                        <property name="margin_top">24</property>
+                        <property name="label" translatable="yes">Room _Name</property>
+                        <property name="use_underline">1</property>
+                        <property name="mnemonic_widget">name_entry</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="password_label">
+                        <property name="halign">end</property>
+                        <property name="label" translatable="yes">_Password</property>
+                        <property name="use_underline">1</property>
+                        <property name="mnemonic_widget">password_entry</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">cancel_button</action-widget>
+      <action-widget response="apply">confirm_button</action-widget>
+    </action-widgets>
+  </object>
+</interface>

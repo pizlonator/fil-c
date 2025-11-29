@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <style>
+       <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="shadow"/>
+          <class name="background"/>
+          <class name="frame"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">3</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <child>
+              <object class="GtkPicture">
+                <property name="paintable">applications-graphics.png</property>
+                <property name="can-shrink">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Picture</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

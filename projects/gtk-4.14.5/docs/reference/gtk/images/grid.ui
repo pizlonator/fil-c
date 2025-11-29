@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <style>
+      <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="shadow"/>
+          <class name="background"/>
+          <class name="frame"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="margin-start">20</property>
+            <property name="margin-end">20</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">3</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="row-spacing">4</property>
+                <property name="column-spacing">4</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkButton">
+                    <style><class name="small-button"/></style>
+                    <property name="valign">center</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <style><class name="small-button"/></style>
+                    <property name="valign">center</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <style><class name="small-button"/></style>
+                    <property name="valign">center</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <style><class name="small-button"/></style>
+                    <property name="valign">center</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">⋯</property>
+                    <layout>
+                      <property name="column">2</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">⋮</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="justify">center</property>
+                <property name="label">Grid</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

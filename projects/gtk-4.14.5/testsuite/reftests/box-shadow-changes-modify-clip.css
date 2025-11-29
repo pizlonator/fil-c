@@ -1,0 +1,19 @@
+@import "reset-to-defaults.css";
+
+@keyframes foo {
+  0% { box-shadow: 20px 20px tomato; }
+  100% { box-shadow: 20px 20px tomato; }
+}
+
+label {
+  font-size: 40px;
+  animation-name: foo;
+  animation-duration: 100s;
+  animation-timing-function: linear;
+  animation-delay: 1ms;
+}
+
+.reference {
+  animation: initial;
+  box-shadow: 20px 20px tomato;
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkDialog">
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <property name="title">Dialog</property>
+    <child type="action">
+      <object class="GtkButton" id="button_cancel">
+        <property name="label">Cancel</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="button_ok">
+        <property name="label">Accept</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="label">Content</property>
+        <property name="hexpand">1</property>
+        <property name="halign">center</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="ok" default="true">button_ok</action-widget>
+      <action-widget response="cancel" default="true">button_cancel</action-widget>
+    </action-widgets>
+  </object>
+</interface>

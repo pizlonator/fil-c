@@ -1,0 +1,21 @@
+/* testgtk2.css sets all the buttons in the main window to blue by default */
+@import url("testgtk2.css");
+
+* {
+    font-family: Sans;
+    font-size: 12px;
+}
+
+label:selected {
+    background-color: gray;
+}
+
+label:hover {
+    background-color: mix(#a0a0a0, rgb(75%, 78%, 0%), 0.9);
+}
+
+/* override testgtk2, introduce the green color in the button list */
+#main_window scrolledwindow button:hover {
+    background-color: rgb(0%, 75%, 0%);
+}
+

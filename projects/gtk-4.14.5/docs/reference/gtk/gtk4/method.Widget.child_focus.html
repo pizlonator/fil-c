@@ -1,0 +1,581 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Widget.child_focus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta priority="og:title" content="Gtk.Widget.child_focus"/>
+  <meta priority="og:description" content="Reference for Gtk.Widget.child_focus"/>
+  <meta name="twitter:title" content="Gtk.Widget.child_focus"/>
+  <meta name="twitter:description" content="Reference for Gtk.Widget.child_focus"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.Widget.html">Widget</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Widget.action_set_enabled.html">action_set_enabled</a>
+  
+    <a class="method" href="method.Widget.activate.html">activate</a>
+  
+    <a class="method" href="method.Widget.activate_action.html">activate_action</a>
+  
+    <a class="method" href="method.Widget.activate_action_variant.html">activate_action_variant</a>
+  
+    <a class="method" href="method.Widget.activate_default.html">activate_default</a>
+  
+    <a class="method" href="method.Widget.add_controller.html">add_controller</a>
+  
+    <a class="method" href="method.Widget.add_css_class.html">add_css_class</a>
+  
+    <a class="method" href="method.Widget.add_mnemonic_label.html">add_mnemonic_label</a>
+  
+    <a class="method" href="method.Widget.add_tick_callback.html">add_tick_callback</a>
+  
+    <a class="method" href="method.Widget.allocate.html">allocate</a>
+  
+    <a class="method current" href="method.Widget.child_focus.html">child_focus</a>
+  
+    <a class="method" href="method.Widget.compute_bounds.html">compute_bounds</a>
+  
+    <a class="method" href="method.Widget.compute_expand.html">compute_expand</a>
+  
+    <a class="method" href="method.Widget.compute_point.html">compute_point</a>
+  
+    <a class="method" href="method.Widget.compute_transform.html">compute_transform</a>
+  
+    <a class="method" href="method.Widget.contains.html">contains</a>
+  
+    <a class="method" href="method.Widget.create_pango_context.html">create_pango_context</a>
+  
+    <a class="method" href="method.Widget.create_pango_layout.html">create_pango_layout</a>
+  
+    <a class="method" href="method.Widget.dispose_template.html">dispose_template</a>
+  
+    <a class="method" href="method.Widget.drag_check_threshold.html">drag_check_threshold</a>
+  
+    <a class="method" href="method.Widget.error_bell.html">error_bell</a>
+  
+    <a class="method" href="method.Widget.get_allocated_baseline.html">get_allocated_baseline</a>
+  
+    <a class="method" href="method.Widget.get_allocated_height.html">get_allocated_height</a>
+  
+    <a class="method" href="method.Widget.get_allocated_width.html">get_allocated_width</a>
+  
+    <a class="method" href="method.Widget.get_allocation.html">get_allocation</a>
+  
+    <a class="method" href="method.Widget.get_ancestor.html">get_ancestor</a>
+  
+    <a class="method" href="method.Widget.get_baseline.html">get_baseline</a>
+  
+    <a class="method" href="method.Widget.get_can_focus.html">get_can_focus</a>
+  
+    <a class="method" href="method.Widget.get_can_target.html">get_can_target</a>
+  
+    <a class="method" href="method.Widget.get_child_visible.html">get_child_visible</a>
+  
+    <a class="method" href="method.Widget.get_clipboard.html">get_clipboard</a>
+  
+    <a class="method" href="method.Widget.get_color.html">get_color</a>
+  
+    <a class="method" href="method.Widget.get_css_classes.html">get_css_classes</a>
+  
+    <a class="method" href="method.Widget.get_css_name.html">get_css_name</a>
+  
+    <a class="method" href="method.Widget.get_cursor.html">get_cursor</a>
+  
+    <a class="method" href="method.Widget.get_direction.html">get_direction</a>
+  
+    <a class="method" href="method.Widget.get_display.html">get_display</a>
+  
+    <a class="method" href="method.Widget.get_first_child.html">get_first_child</a>
+  
+    <a class="method" href="method.Widget.get_focus_child.html">get_focus_child</a>
+  
+    <a class="method" href="method.Widget.get_focus_on_click.html">get_focus_on_click</a>
+  
+    <a class="method" href="method.Widget.get_focusable.html">get_focusable</a>
+  
+    <a class="method" href="method.Widget.get_font_map.html">get_font_map</a>
+  
+    <a class="method" href="method.Widget.get_font_options.html">get_font_options</a>
+  
+    <a class="method" href="method.Widget.get_frame_clock.html">get_frame_clock</a>
+  
+    <a class="method" href="method.Widget.get_halign.html">get_halign</a>
+  
+    <a class="method" href="method.Widget.get_has_tooltip.html">get_has_tooltip</a>
+  
+    <a class="method" href="method.Widget.get_height.html">get_height</a>
+  
+    <a class="method" href="method.Widget.get_hexpand.html">get_hexpand</a>
+  
+    <a class="method" href="method.Widget.get_hexpand_set.html">get_hexpand_set</a>
+  
+    <a class="method" href="method.Widget.get_last_child.html">get_last_child</a>
+  
+    <a class="method" href="method.Widget.get_layout_manager.html">get_layout_manager</a>
+  
+    <a class="method" href="method.Widget.get_mapped.html">get_mapped</a>
+  
+    <a class="method" href="method.Widget.get_margin_bottom.html">get_margin_bottom</a>
+  
+    <a class="method" href="method.Widget.get_margin_end.html">get_margin_end</a>
+  
+    <a class="method" href="method.Widget.get_margin_start.html">get_margin_start</a>
+  
+    <a class="method" href="method.Widget.get_margin_top.html">get_margin_top</a>
+  
+    <a class="method" href="method.Widget.get_name.html">get_name</a>
+  
+    <a class="method" href="method.Widget.get_native.html">get_native</a>
+  
+    <a class="method" href="method.Widget.get_next_sibling.html">get_next_sibling</a>
+  
+    <a class="method" href="method.Widget.get_opacity.html">get_opacity</a>
+  
+    <a class="method" href="method.Widget.get_overflow.html">get_overflow</a>
+  
+    <a class="method" href="method.Widget.get_pango_context.html">get_pango_context</a>
+  
+    <a class="method" href="method.Widget.get_parent.html">get_parent</a>
+  
+    <a class="method" href="method.Widget.get_preferred_size.html">get_preferred_size</a>
+  
+    <a class="method" href="method.Widget.get_prev_sibling.html">get_prev_sibling</a>
+  
+    <a class="method" href="method.Widget.get_primary_clipboard.html">get_primary_clipboard</a>
+  
+    <a class="method" href="method.Widget.get_realized.html">get_realized</a>
+  
+    <a class="method" href="method.Widget.get_receives_default.html">get_receives_default</a>
+  
+    <a class="method" href="method.Widget.get_request_mode.html">get_request_mode</a>
+  
+    <a class="method" href="method.Widget.get_root.html">get_root</a>
+  
+    <a class="method" href="method.Widget.get_scale_factor.html">get_scale_factor</a>
+  
+    <a class="method" href="method.Widget.get_sensitive.html">get_sensitive</a>
+  
+    <a class="method" href="method.Widget.get_settings.html">get_settings</a>
+  
+    <a class="method" href="method.Widget.get_size.html">get_size</a>
+  
+    <a class="method" href="method.Widget.get_size_request.html">get_size_request</a>
+  
+    <a class="method" href="method.Widget.get_state_flags.html">get_state_flags</a>
+  
+    <a class="method" href="method.Widget.get_style_context.html">get_style_context</a>
+  
+    <a class="method" href="method.Widget.get_template_child.html">get_template_child</a>
+  
+    <a class="method" href="method.Widget.get_tooltip_markup.html">get_tooltip_markup</a>
+  
+    <a class="method" href="method.Widget.get_tooltip_text.html">get_tooltip_text</a>
+  
+    <a class="method" href="method.Widget.get_valign.html">get_valign</a>
+  
+    <a class="method" href="method.Widget.get_vexpand.html">get_vexpand</a>
+  
+    <a class="method" href="method.Widget.get_vexpand_set.html">get_vexpand_set</a>
+  
+    <a class="method" href="method.Widget.get_visible.html">get_visible</a>
+  
+    <a class="method" href="method.Widget.get_width.html">get_width</a>
+  
+    <a class="method" href="method.Widget.grab_focus.html">grab_focus</a>
+  
+    <a class="method" href="method.Widget.has_css_class.html">has_css_class</a>
+  
+    <a class="method" href="method.Widget.has_default.html">has_default</a>
+  
+    <a class="method" href="method.Widget.has_focus.html">has_focus</a>
+  
+    <a class="method" href="method.Widget.has_visible_focus.html">has_visible_focus</a>
+  
+    <a class="method" href="method.Widget.hide.html">hide</a>
+  
+    <a class="method" href="method.Widget.in_destruction.html">in_destruction</a>
+  
+    <a class="method" href="method.Widget.init_template.html">init_template</a>
+  
+    <a class="method" href="method.Widget.insert_action_group.html">insert_action_group</a>
+  
+    <a class="method" href="method.Widget.insert_after.html">insert_after</a>
+  
+    <a class="method" href="method.Widget.insert_before.html">insert_before</a>
+  
+    <a class="method" href="method.Widget.is_ancestor.html">is_ancestor</a>
+  
+    <a class="method" href="method.Widget.is_drawable.html">is_drawable</a>
+  
+    <a class="method" href="method.Widget.is_focus.html">is_focus</a>
+  
+    <a class="method" href="method.Widget.is_sensitive.html">is_sensitive</a>
+  
+    <a class="method" href="method.Widget.is_visible.html">is_visible</a>
+  
+    <a class="method" href="method.Widget.keynav_failed.html">keynav_failed</a>
+  
+    <a class="method" href="method.Widget.list_mnemonic_labels.html">list_mnemonic_labels</a>
+  
+    <a class="method" href="method.Widget.map.html">map</a>
+  
+    <a class="method" href="method.Widget.measure.html">measure</a>
+  
+    <a class="method" href="method.Widget.mnemonic_activate.html">mnemonic_activate</a>
+  
+    <a class="method" href="method.Widget.observe_children.html">observe_children</a>
+  
+    <a class="method" href="method.Widget.observe_controllers.html">observe_controllers</a>
+  
+    <a class="method" href="method.Widget.pick.html">pick</a>
+  
+    <a class="method" href="method.Widget.queue_allocate.html">queue_allocate</a>
+  
+    <a class="method" href="method.Widget.queue_draw.html">queue_draw</a>
+  
+    <a class="method" href="method.Widget.queue_resize.html">queue_resize</a>
+  
+    <a class="method" href="method.Widget.realize.html">realize</a>
+  
+    <a class="method" href="method.Widget.remove_controller.html">remove_controller</a>
+  
+    <a class="method" href="method.Widget.remove_css_class.html">remove_css_class</a>
+  
+    <a class="method" href="method.Widget.remove_mnemonic_label.html">remove_mnemonic_label</a>
+  
+    <a class="method" href="method.Widget.remove_tick_callback.html">remove_tick_callback</a>
+  
+    <a class="method" href="method.Widget.set_can_focus.html">set_can_focus</a>
+  
+    <a class="method" href="method.Widget.set_can_target.html">set_can_target</a>
+  
+    <a class="method" href="method.Widget.set_child_visible.html">set_child_visible</a>
+  
+    <a class="method" href="method.Widget.set_css_classes.html">set_css_classes</a>
+  
+    <a class="method" href="method.Widget.set_cursor.html">set_cursor</a>
+  
+    <a class="method" href="method.Widget.set_cursor_from_name.html">set_cursor_from_name</a>
+  
+    <a class="method" href="method.Widget.set_direction.html">set_direction</a>
+  
+    <a class="method" href="method.Widget.set_focus_child.html">set_focus_child</a>
+  
+    <a class="method" href="method.Widget.set_focus_on_click.html">set_focus_on_click</a>
+  
+    <a class="method" href="method.Widget.set_focusable.html">set_focusable</a>
+  
+    <a class="method" href="method.Widget.set_font_map.html">set_font_map</a>
+  
+    <a class="method" href="method.Widget.set_font_options.html">set_font_options</a>
+  
+    <a class="method" href="method.Widget.set_halign.html">set_halign</a>
+  
+    <a class="method" href="method.Widget.set_has_tooltip.html">set_has_tooltip</a>
+  
+    <a class="method" href="method.Widget.set_hexpand.html">set_hexpand</a>
+  
+    <a class="method" href="method.Widget.set_hexpand_set.html">set_hexpand_set</a>
+  
+    <a class="method" href="method.Widget.set_layout_manager.html">set_layout_manager</a>
+  
+    <a class="method" href="method.Widget.set_margin_bottom.html">set_margin_bottom</a>
+  
+    <a class="method" href="method.Widget.set_margin_end.html">set_margin_end</a>
+  
+    <a class="method" href="method.Widget.set_margin_start.html">set_margin_start</a>
+  
+    <a class="method" href="method.Widget.set_margin_top.html">set_margin_top</a>
+  
+    <a class="method" href="method.Widget.set_name.html">set_name</a>
+  
+    <a class="method" href="method.Widget.set_opacity.html">set_opacity</a>
+  
+    <a class="method" href="method.Widget.set_overflow.html">set_overflow</a>
+  
+    <a class="method" href="method.Widget.set_parent.html">set_parent</a>
+  
+    <a class="method" href="method.Widget.set_receives_default.html">set_receives_default</a>
+  
+    <a class="method" href="method.Widget.set_sensitive.html">set_sensitive</a>
+  
+    <a class="method" href="method.Widget.set_size_request.html">set_size_request</a>
+  
+    <a class="method" href="method.Widget.set_state_flags.html">set_state_flags</a>
+  
+    <a class="method" href="method.Widget.set_tooltip_markup.html">set_tooltip_markup</a>
+  
+    <a class="method" href="method.Widget.set_tooltip_text.html">set_tooltip_text</a>
+  
+    <a class="method" href="method.Widget.set_valign.html">set_valign</a>
+  
+    <a class="method" href="method.Widget.set_vexpand.html">set_vexpand</a>
+  
+    <a class="method" href="method.Widget.set_vexpand_set.html">set_vexpand_set</a>
+  
+    <a class="method" href="method.Widget.set_visible.html">set_visible</a>
+  
+    <a class="method" href="method.Widget.should_layout.html">should_layout</a>
+  
+    <a class="method" href="method.Widget.show.html">show</a>
+  
+    <a class="method" href="method.Widget.size_allocate.html">size_allocate</a>
+  
+    <a class="method" href="method.Widget.snapshot_child.html">snapshot_child</a>
+  
+    <a class="method" href="method.Widget.translate_coordinates.html">translate_coordinates</a>
+  
+    <a class="method" href="method.Widget.trigger_tooltip_query.html">trigger_tooltip_query</a>
+  
+    <a class="method" href="method.Widget.unmap.html">unmap</a>
+  
+    <a class="method" href="method.Widget.unparent.html">unparent</a>
+  
+    <a class="method" href="method.Widget.unrealize.html">unrealize</a>
+  
+    <a class="method" href="method.Widget.unset_state_flags.html">unset_state_flags</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.Widget.html">Widget</a><span class="sep"></span>child_focus</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkwidget.h#L506">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">gboolean</span>
+<span class="n">gtk_widget_child_focus</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">GtkWidget</span><span class="o">*</span><span class="w"> </span><span class="n">widget</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GtkDirectionType</span><span class="w"> </span><span class="n">direction</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkwidget.c#L6909">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Called by widgets as the user moves around the window using
+keyboard&nbsp;shortcuts.</p>
+<p>The <code>direction</code> argument indicates what kind of motion is taking place (up,
+down, left, right, tab forward, tab&nbsp;backward).</p>
+<p>This function calls the <a href="vfunc.Widget.focus.html"><code>Gtk.WidgetClass.focus</code></a> virtual function; widgets
+can override the virtual function in order to implement appropriate focus&nbsp;behavior.</p>
+<p>The default <code>focus()</code> virtual function for a widget should return <code>TRUE</code> if
+moving in <code>direction</code> left the focus on a focusable location inside that
+widget, and <code>FALSE</code> if moving in <code>direction</code> moved the focus outside the
+widget. When returning <code>TRUE</code>, widgets normally call <a href="method.Widget.grab_focus.html"><code>gtk_widget_grab_focus()</code></a>
+to place the focus accordingly; when returning <code>FALSE</code>, they don’t modify
+the current focus&nbsp;location.</p>
+<p>This function is used by custom widget implementations; if you&#8217;re
+writing an app, you’d use <a href="method.Widget.grab_focus.html"><code>gtk_widget_grab_focus()</code></a> to move
+the focus to a particular&nbsp;widget.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>direction</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="enum.DirectionType.html"><code>GtkDirectionType</code></a></p>
+            <p>Direction of focus&nbsp;movement.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gboolean</code></p>
+            <p><code>TRUE</code> if focus ended up inside <code>widget</code>.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

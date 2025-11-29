@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkScaleButton" parent="GtkWidget">
+    <child>
+      <object class="GtkToggleButton" id="button">
+        <property name="receives-default">1</property>
+        <property name="focus-on-click">0</property>
+        <property name="icon-name">image-missing</property>
+        <property name="has-frame">0</property>
+      </object>
+    </child>
+  </template>
+  <object class="GtkPopover" id="dock">
+    <signal name="map" handler="cb_popup_mapped" swapped="no"/>
+    <style>
+      <class name="scale-popup"/>
+    </style>
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="orientation">1</property>
+        <property name="margin-start">4</property>
+        <property name="margin-end">4</property>
+        <property name="margin-top">4</property>
+        <property name="margin-bottom">4</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkButton" id="plus_button">
+            <property name="receives-default">1</property>
+            <property name="has-frame">0</property>
+            <property name="halign">3</property>
+            <property name="valign">3</property>
+            <property name="icon-name">list-add-symbolic</property>
+            <signal name="clicked" handler="cb_button_clicked" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScale" id="scale">
+            <property name="height-request">100</property>
+            <property name="orientation">1</property>
+            <property name="inverted">1</property>
+            <property name="round-digits">1</property>
+            <signal name="value-changed" handler="cb_scale_value_changed" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="minus_button">
+            <property name="receives-default">1</property>
+            <property name="has-frame">0</property>
+            <property name="halign">3</property>
+            <property name="valign">3</property>
+            <property name="icon-name">list-remove-symbolic</property>
+            <signal name="clicked" handler="cb_button_clicked" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="resizable">0</property>
+    <property name="title">CSS Blend Modes</property>
+    <property name="default-width">400</property>
+    <property name="default-height">300</property>
+    <child>
+      <object class="GtkGrid">
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="row-spacing">12</property>
+        <property name="column-spacing">12</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Blend mode:</property>
+            <property name="xalign">0</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow">
+            <property name="vexpand">1</property>
+            <property name="has-frame">1</property>
+            <property name="min-content-width">150</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackSwitcher">
+            <property name="halign">center</property>
+            <property name="hexpand">1</property>
+            <property name="stack">stack</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hhomogeneous">0</property>
+            <property name="vhomogeneous">0</property>
+            <property name="transition-type">crossfade</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page0</property>
+                <property name="title" translatable="yes">Ducky</property>
+                <property name="child">
+                  <object class="GtkGrid">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">1</property>
+                    <property name="row-spacing">12</property>
+                    <property name="column-spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Duck</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Background</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="duck"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="gradient"/>
+                        </style>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">
+Blended picture</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="blend0"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page1</property>
+                <property name="title" translatable="yes">Blends</property>
+                <property name="child">
+                  <object class="GtkGrid">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">1</property>
+                    <property name="row-spacing">12</property>
+                    <property name="column-spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Red</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Blue</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="red"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="blue"/>
+                        </style>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">
+Blended picture</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="blend1"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page2</property>
+                <property name="title" translatable="yes">CMYK</property>
+                <property name="child">
+                  <object class="GtkGrid">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="cyan"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="magenta"/>
+                        </style>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <style>
+                          <class name="yellow"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="blend2"/>
+                        </style>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Cyan</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Magenta</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Yellow</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Blended picture</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"></attribute>
+                        </attributes>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child type="titlebar"/>
+  </object>
+</interface>

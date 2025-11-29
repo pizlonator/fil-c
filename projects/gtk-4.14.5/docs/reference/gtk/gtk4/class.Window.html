@@ -1,0 +1,2584 @@
+<!--
+SPDX-FileCopyrightText: GTK Development Team
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Window</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Window"/>
+  <meta property="og:description" content="Reference for Gtk.Window"/>
+  <meta name="twitter:title" content="Gtk.Window"/>
+  <meta name="twitter:description" content="Reference for Gtk.Window"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Gtk" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+    
+  <link rel="icon" href="favicon.svg">
+    
+  
+    
+  <link rel="icon" sizes="192x192" href="favicon-192x192.png">
+    
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <a href="index.html"><img src="gtk-logo.svg" class="logo"/></a>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.14.5</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Window.html#description">Window</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Window.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  
+    <a class="func" href="type_func.Window.get_default_icon_name.html">get_default_icon_name</a>
+  
+    <a class="func" href="type_func.Window.get_toplevels.html">get_toplevels</a>
+  
+    <a class="func" href="type_func.Window.list_toplevels.html">list_toplevels</a>
+  
+    <a class="func" href="type_func.Window.set_auto_startup_notification.html">set_auto_startup_notification</a>
+  
+    <a class="func" href="type_func.Window.set_default_icon_name.html">set_default_icon_name</a>
+  
+    <a class="func" href="type_func.Window.set_interactive_debugging.html">set_interactive_debugging</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Window.close.html">close</a>
+  
+    <a class="method" href="method.Window.destroy.html">destroy</a>
+  
+    <a class="method" href="method.Window.fullscreen.html">fullscreen</a>
+  
+    <a class="method" href="method.Window.fullscreen_on_monitor.html">fullscreen_on_monitor</a>
+  
+    <a class="method" href="method.Window.get_application.html">get_application</a>
+  
+    <a class="method" href="method.Window.get_child.html">get_child</a>
+  
+    <a class="method" href="method.Window.get_decorated.html">get_decorated</a>
+  
+    <a class="method" href="method.Window.get_default_size.html">get_default_size</a>
+  
+    <a class="method" href="method.Window.get_default_widget.html">get_default_widget</a>
+  
+    <a class="method" href="method.Window.get_deletable.html">get_deletable</a>
+  
+    <a class="method" href="method.Window.get_destroy_with_parent.html">get_destroy_with_parent</a>
+  
+    <a class="method" href="method.Window.get_focus.html">get_focus</a>
+  
+    <a class="method" href="method.Window.get_focus_visible.html">get_focus_visible</a>
+  
+    <a class="method" href="method.Window.get_group.html">get_group</a>
+  
+    <a class="method" href="method.Window.get_handle_menubar_accel.html">get_handle_menubar_accel</a>
+  
+    <a class="method" href="method.Window.get_hide_on_close.html">get_hide_on_close</a>
+  
+    <a class="method" href="method.Window.get_icon_name.html">get_icon_name</a>
+  
+    <a class="method" href="method.Window.get_mnemonics_visible.html">get_mnemonics_visible</a>
+  
+    <a class="method" href="method.Window.get_modal.html">get_modal</a>
+  
+    <a class="method" href="method.Window.get_resizable.html">get_resizable</a>
+  
+    <a class="method" href="method.Window.get_title.html">get_title</a>
+  
+    <a class="method" href="method.Window.get_titlebar.html">get_titlebar</a>
+  
+    <a class="method" href="method.Window.get_transient_for.html">get_transient_for</a>
+  
+    <a class="method" href="method.Window.has_group.html">has_group</a>
+  
+    <a class="method" href="method.Window.is_active.html">is_active</a>
+  
+    <a class="method" href="method.Window.is_fullscreen.html">is_fullscreen</a>
+  
+    <a class="method" href="method.Window.is_maximized.html">is_maximized</a>
+  
+    <a class="method" href="method.Window.is_suspended.html">is_suspended</a>
+  
+    <a class="method" href="method.Window.maximize.html">maximize</a>
+  
+    <a class="method" href="method.Window.minimize.html">minimize</a>
+  
+    <a class="method" href="method.Window.present.html">present</a>
+  
+    <a class="method" href="method.Window.present_with_time.html">present_with_time</a>
+  
+    <a class="method" href="method.Window.set_application.html">set_application</a>
+  
+    <a class="method" href="method.Window.set_child.html">set_child</a>
+  
+    <a class="method" href="method.Window.set_decorated.html">set_decorated</a>
+  
+    <a class="method" href="method.Window.set_default_size.html">set_default_size</a>
+  
+    <a class="method" href="method.Window.set_default_widget.html">set_default_widget</a>
+  
+    <a class="method" href="method.Window.set_deletable.html">set_deletable</a>
+  
+    <a class="method" href="method.Window.set_destroy_with_parent.html">set_destroy_with_parent</a>
+  
+    <a class="method" href="method.Window.set_display.html">set_display</a>
+  
+    <a class="method" href="method.Window.set_focus.html">set_focus</a>
+  
+    <a class="method" href="method.Window.set_focus_visible.html">set_focus_visible</a>
+  
+    <a class="method" href="method.Window.set_handle_menubar_accel.html">set_handle_menubar_accel</a>
+  
+    <a class="method" href="method.Window.set_hide_on_close.html">set_hide_on_close</a>
+  
+    <a class="method" href="method.Window.set_icon_name.html">set_icon_name</a>
+  
+    <a class="method" href="method.Window.set_mnemonics_visible.html">set_mnemonics_visible</a>
+  
+    <a class="method" href="method.Window.set_modal.html">set_modal</a>
+  
+    <a class="method" href="method.Window.set_resizable.html">set_resizable</a>
+  
+    <a class="method" href="method.Window.set_startup_id.html">set_startup_id</a>
+  
+    <a class="method" href="method.Window.set_title.html">set_title</a>
+  
+    <a class="method" href="method.Window.set_titlebar.html">set_titlebar</a>
+  
+    <a class="method" href="method.Window.set_transient_for.html">set_transient_for</a>
+  
+    <a class="method" href="method.Window.unfullscreen.html">unfullscreen</a>
+  
+    <a class="method" href="method.Window.unmaximize.html">unmaximize</a>
+  
+    <a class="method" href="method.Window.unminimize.html">unminimize</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Window.application.html">application</a>
+  
+    <a class="property" href="property.Window.child.html">child</a>
+  
+    <a class="property" href="property.Window.decorated.html">decorated</a>
+  
+    <a class="property" href="property.Window.default-height.html">default-height</a>
+  
+    <a class="property" href="property.Window.default-widget.html">default-widget</a>
+  
+    <a class="property" href="property.Window.default-width.html">default-width</a>
+  
+    <a class="property" href="property.Window.deletable.html">deletable</a>
+  
+    <a class="property" href="property.Window.destroy-with-parent.html">destroy-with-parent</a>
+  
+    <a class="property" href="property.Window.display.html">display</a>
+  
+    <a class="property" href="property.Window.focus-visible.html">focus-visible</a>
+  
+    <a class="property" href="property.Window.focus-widget.html">focus-widget</a>
+  
+    <a class="property" href="property.Window.fullscreened.html">fullscreened</a>
+  
+    <a class="property" href="property.Window.handle-menubar-accel.html">handle-menubar-accel</a>
+  
+    <a class="property" href="property.Window.hide-on-close.html">hide-on-close</a>
+  
+    <a class="property" href="property.Window.icon-name.html">icon-name</a>
+  
+    <a class="property" href="property.Window.is-active.html">is-active</a>
+  
+    <a class="property" href="property.Window.maximized.html">maximized</a>
+  
+    <a class="property" href="property.Window.mnemonics-visible.html">mnemonics-visible</a>
+  
+    <a class="property" href="property.Window.modal.html">modal</a>
+  
+    <a class="property" href="property.Window.resizable.html">resizable</a>
+  
+    <a class="property" href="property.Window.startup-id.html">startup-id</a>
+  
+    <a class="property" href="property.Window.suspended.html">suspended</a>
+  
+    <a class="property" href="property.Window.title.html">title</a>
+  
+    <a class="property" href="property.Window.titlebar.html">titlebar</a>
+  
+    <a class="property" href="property.Window.transient-for.html">transient-for</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Window.activate-default.html">activate-default</a>
+  
+    <a class="signal" href="signal.Window.activate-focus.html">activate-focus</a>
+  
+    <a class="signal" href="signal.Window.close-request.html">close-request</a>
+  
+    <a class="signal" href="signal.Window.enable-debugging.html">enable-debugging</a>
+  
+    <a class="signal" href="signal.Window.keys-changed.html">keys-changed</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Window.activate_default.html">activate_default</a>
+  
+    <a class="method" href="vfunc.Window.activate_focus.html">activate_focus</a>
+  
+    <a class="method" href="vfunc.Window.close_request.html">close_request</a>
+  
+    <a class="method" href="vfunc.Window.enable_debugging.html">enable_debugging</a>
+  
+    <a class="method" href="vfunc.Window.keys_changed.html">keys_changed</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2024.1</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Window</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkwindow.c#L109">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.Window : Gtk.Widget
+  implements Gtk.Accessible, Gtk.Buildable, Gtk.ConstraintTarget, Gtk.Native, Gtk.Root, Gtk.ShortcutManager {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>A <code>GtkWindow</code> is a toplevel window which can contain other&nbsp;widgets.</p>
+<p><img alt="An example GtkWindow" src="window.png" /></p>
+<p>Windows normally have decorations that are under the control
+of the windowing system and allow the user to manipulate the window
+(resize it, move it, close&nbsp;it,&#8230;).</p>
+<h1 id="gtkwindow-as-gtkbuildable">GtkWindow as GtkBuildable<a class="md-anchor" href="#gtkwindow-as-gtkbuildable" title="Permanent link"></a></h1>
+<p>The <code>GtkWindow</code> implementation of the <a href="iface.Buildable.html"><code>GtkBuildable</code></a> interface supports
+setting a child as the titlebar by specifying “titlebar” as the “type”
+attribute of a <code>&lt;child&gt;</code> element.</p>
+<h1 id="css-nodes">CSS nodes<a class="md-anchor" href="#css-nodes" title="Permanent link"></a></h1>
+<div class="codehilite"><pre><span></span><code>window.background [.csd / .solid-csd / .ssd] [.maximized / .fullscreen / .tiled]
+├── &lt;child&gt;
+╰── &lt;titlebar child&gt;.titlebar [.default-decoration]
+</code></pre></div>
+
+<p><code>GtkWindow</code> has a main <span class="caps">CSS</span> node with name window and style class&nbsp;.background.</p>
+<p>Style classes that are typically used with the main <span class="caps">CSS</span> node are .csd (when
+client-side decorations are in use), .solid-csd (for client-side decorations
+without invisible borders), .ssd (used by mutter when rendering server-side
+decorations). GtkWindow also represents window states with the following
+style classes on the main node: .maximized, .fullscreen, .tiled (when supported,
+also .tiled-top, .tiled-left, .tiled-right,&nbsp;.tiled-bottom).</p>
+<p><code>GtkWindow</code> subclasses often add their own discriminating style classes,
+such as .dialog, .popup or&nbsp;.tooltip.</p>
+<p>Generally, some <span class="caps">CSS</span> properties don&#8217;t make sense on the toplevel window node,
+such as margins or padding. When client-side decorations without invisible
+borders are in use (i.e. the .solid-csd style class is added to the
+main window node), the <span class="caps">CSS</span> border of the toplevel window is used for
+resize drags. In the .csd case, the shadow area outside of the window
+can be used to resize&nbsp;it.</p>
+<p><code>GtkWindow</code> adds the .titlebar and .default-decoration style classes to the
+widget that is added as a titlebar&nbsp;child.</p>
+<h1 id="accessibility">Accessibility<a class="md-anchor" href="#accessibility" title="Permanent link"></a></h1>
+<p>Until <span class="caps">GTK</span> 4.10, <code>GtkWindow</code> used the <code>GTK_ACCESSIBLE_ROLE_WINDOW</code> role.</p>
+<p>Since <span class="caps">GTK</span> 4.12, <code>GtkWindow</code> uses the <code>GTK_ACCESSIBLE_ROLE_APPLICATION</code> role.</p>
+<h1 id="actions">Actions<a class="md-anchor" href="#actions" title="Permanent link"></a></h1>
+<p><code>GtkWindow</code> defines a set of built-in actions:
+- <code>default.activate</code>: Activate the default widget.
+- <code>window.minimize</code>: Minimize the window.
+- <code>window.toggle-maximized</code>: Maximize or restore the window.
+- <code>window.close</code>: Close the&nbsp;window.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Window">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 12.0.0 (20240704.0754)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="765pt" height="332pt"
+ viewBox="0.00 0.00 764.50 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkWindow">
+<path fill="none" stroke="black" d="M416.12,-108C416.12,-108 357.38,-108 357.38,-108 351.38,-108 345.38,-102 345.38,-96 345.38,-96 345.38,-84 345.38,-84 345.38,-78 351.38,-72 357.38,-72 357.38,-72 416.12,-72 416.12,-72 422.12,-72 428.12,-78 428.12,-84 428.12,-84 428.12,-96 428.12,-96 428.12,-102 422.12,-108 416.12,-108"/>
+<text text-anchor="middle" x="386.75" y="-84.95" font-family="Times,serif" font-size="14.00">GtkWindow</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node5" class="node link">
+<title>implements_0</title>
+<g id="a_node5"><a xlink:href="iface.Accessible.html" xlink:title="GtkAccessible">
+<polygon fill="none" stroke="black" points="107.5,-36 0,-36 0,0 107.5,0 107.5,-36"/>
+<text text-anchor="middle" x="53.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkAccessible</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M344.93,-81.73C291.7,-72.25 197.01,-54.68 116.75,-36 113.88,-35.33 110.95,-34.62 107.99,-33.89"/>
+</g>
+<!-- implements_1 -->
+<g id="node6" class="node link">
+<title>implements_1</title>
+<g id="a_node6"><a xlink:href="iface.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="226.12,-36 125.38,-36 125.38,0 226.12,0 226.12,-36"/>
+<text text-anchor="middle" x="175.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge5" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M345.06,-75.17C310.95,-63.85 262.59,-47.81 226.28,-35.76"/>
+</g>
+<!-- implements_2 -->
+<g id="node7" class="node link">
+<title>implements_2</title>
+<g id="a_node7"><a xlink:href="iface.ConstraintTarget.html" xlink:title="GtkConstraintTarget">
+<polygon fill="none" stroke="black" points="394.88,-36 244.62,-36 244.62,0 394.88,0 394.88,-36"/>
+<text text-anchor="middle" x="319.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkConstraintTarget</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_2 -->
+<g id="edge6" class="edge">
+<title>this&#45;&#45;implements_2</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M370.19,-71.7C359.8,-60.85 346.47,-46.92 336.12,-36.1"/>
+</g>
+<!-- implements_3 -->
+<g id="node8" class="node link">
+<title>implements_3</title>
+<g id="a_node8"><a xlink:href="iface.Native.html" xlink:title="GtkNative">
+<polygon fill="none" stroke="black" points="494.38,-36 413.12,-36 413.12,0 494.38,0 494.38,-36"/>
+<text text-anchor="middle" x="453.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkNative</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_3 -->
+<g id="edge7" class="edge">
+<title>this&#45;&#45;implements_3</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M403.31,-71.7C413.7,-60.85 427.03,-46.92 437.38,-36.1"/>
+</g>
+<!-- implements_4 -->
+<g id="node9" class="node link">
+<title>implements_4</title>
+<g id="a_node9"><a xlink:href="iface.Root.html" xlink:title="GtkRoot">
+<polygon fill="none" stroke="black" points="582.75,-36 512.75,-36 512.75,0 582.75,0 582.75,-36"/>
+<text text-anchor="middle" x="547.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkRoot</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_4 -->
+<g id="edge8" class="edge">
+<title>this&#45;&#45;implements_4</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M426.96,-71.52C453.23,-60.1 487.2,-45.33 512.43,-34.36"/>
+</g>
+<!-- implements_5 -->
+<g id="node10" class="node link">
+<title>implements_5</title>
+<g id="a_node10"><a xlink:href="iface.ShortcutManager.html" xlink:title="GtkShortcutManager">
+<polygon fill="none" stroke="black" points="756.5,-36 601,-36 601,0 756.5,0 756.5,-36"/>
+<text text-anchor="middle" x="678.75" y="-14.45" font-family="sans-serif" font-size="14.00">GtkShortcutManager</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_5 -->
+<g id="edge9" class="edge">
+<title>this&#45;&#45;implements_5</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M428.59,-78.97C474.79,-67.89 550.04,-49.86 605.96,-36.45"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.Widget.html" xlink:title="GtkWidget">
+<path fill="none" stroke="black" d="M412.75,-180C412.75,-180 360.75,-180 360.75,-180 354.75,-180 348.75,-174 348.75,-168 348.75,-168 348.75,-156 348.75,-156 348.75,-150 354.75,-144 360.75,-144 360.75,-144 412.75,-144 412.75,-144 418.75,-144 424.75,-150 424.75,-156 424.75,-156 424.75,-168 424.75,-168 424.75,-174 418.75,-180 412.75,-180"/>
+<text text-anchor="middle" x="386.75" y="-156.95" font-family="Times,serif" font-size="14.00">GtkWidget</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge3" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M386.75,-143.7C386.75,-132.85 386.75,-118.92 386.75,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M435.25,-252C435.25,-252 338.25,-252 338.25,-252 332.25,-252 326.25,-246 326.25,-240 326.25,-240 326.25,-228 326.25,-228 326.25,-222 332.25,-216 338.25,-216 338.25,-216 435.25,-216 435.25,-216 441.25,-216 447.25,-222 447.25,-228 447.25,-228 447.25,-240 447.25,-240 447.25,-246 441.25,-252 435.25,-252"/>
+<text text-anchor="middle" x="386.75" y="-228.95" font-family="Times,serif" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge2" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M386.75,-215.7C386.75,-204.85 386.75,-190.92 386.75,-180.1"/>
+</g>
+<!-- ancestor_2 -->
+<g id="node4" class="node">
+<title>ancestor_2</title>
+<g id="a_node4"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M405.62,-324C405.62,-324 367.88,-324 367.88,-324 361.88,-324 355.88,-318 355.88,-312 355.88,-312 355.88,-300 355.88,-300 355.88,-294 361.88,-288 367.88,-288 367.88,-288 405.62,-288 405.62,-288 411.62,-288 417.62,-294 417.62,-300 417.62,-300 417.62,-312 417.62,-312 417.62,-318 411.62,-324 405.62,-324"/>
+<text text-anchor="middle" x="386.75" y="-300.95" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_2&#45;&#45;ancestor_1 -->
+<g id="edge1" class="edge">
+<title>ancestor_2&#45;&#45;ancestor_1</title>
+<path fill="none" stroke="black" d="M386.75,-287.7C386.75,-276.85 386.75,-262.92 386.75,-252.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.Widget.html" title="Widget">GtkWidget</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.InitiallyUnowned.html" data-namespace="GObject">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.AboutDialog.html" title="AboutDialog">GtkAboutDialog</a></li>
+        
+          <li class="class"><a href="class.ApplicationWindow.html" title="ApplicationWindow">GtkApplicationWindow</a></li>
+        
+          <li class="class"><a href="class.Assistant.html" title="Assistant">GtkAssistant</a></li>
+        
+          <li class="class"><a href="class.Dialog.html" title="Dialog">GtkDialog</a></li>
+        
+          <li class="class"><a href="class.ShortcutsWindow.html" title="ShortcutsWindow">GtkShortcutsWindow</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Accessible.html" title="Accessible">GtkAccessible</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.ConstraintTarget.html" title="ConstraintTarget">GtkConstraintTarget</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Native.html" title="Native">GtkNative</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Root.html" title="Root">GtkRoot</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.ShortcutManager.html" title="ShortcutManager">GtkShortcutManager</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Window.new.html">gtk_window_new</a></h6>
+          <div class="docblock">
+            <p>Creates a new <code>GtkWindow</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="type_func.Window.get_default_icon_name.html">gtk_window_get_default_icon_name</a></h6>
+        <div class="docblock">
+          <p>Returns the fallback icon name for&nbsp;windows.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Window.get_toplevels.html">gtk_window_get_toplevels</a></h6>
+        <div class="docblock">
+          <p>Returns a list of all existing toplevel&nbsp;windows.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Window.list_toplevels.html">gtk_window_list_toplevels</a></h6>
+        <div class="docblock">
+          <p>Returns a list of all existing toplevel&nbsp;windows.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Window.set_auto_startup_notification.html">gtk_window_set_auto_startup_notification</a></h6>
+        <div class="docblock">
+          <p>Sets whether the window should request startup&nbsp;notification.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Window.set_default_icon_name.html">gtk_window_set_default_icon_name</a></h6>
+        <div class="docblock">
+          <p>Sets an icon to be used as&nbsp;fallback.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Window.set_interactive_debugging.html">gtk_window_set_interactive_debugging</a></h6>
+        <div class="docblock">
+          <p>Opens or closes the <a href="running.html#interactive-debugging">interactive debugger</a>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Window.close.html">gtk_window_close</a></h6>
+          <div class="docblock">
+            <p>Requests that the window is&nbsp;closed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.destroy.html">gtk_window_destroy</a></h6>
+          <div class="docblock">
+            <p>Drop the internal reference <span class="caps">GTK</span> holds on toplevel&nbsp;windows.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.fullscreen.html">gtk_window_fullscreen</a></h6>
+          <div class="docblock">
+            <p>Asks to place <code>window</code> in the fullscreen&nbsp;state.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.fullscreen_on_monitor.html">gtk_window_fullscreen_on_monitor</a></h6>
+          <div class="docblock">
+            <p>Asks to place <code>window</code> in the fullscreen state on the given <code>monitor</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_application.html">gtk_window_get_application</a></h6>
+          <div class="docblock">
+            <p>Gets the <code>GtkApplication</code> associated with the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_child.html">gtk_window_get_child</a></h6>
+          <div class="docblock">
+            <p>Gets the child widget of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_decorated.html">gtk_window_get_decorated</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window has been set to have&nbsp;decorations.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_default_size.html">gtk_window_get_default_size</a></h6>
+          <div class="docblock">
+            <p>Gets the default size of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_default_widget.html">gtk_window_get_default_widget</a></h6>
+          <div class="docblock">
+            <p>Returns the default widget for <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_deletable.html">gtk_window_get_deletable</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window has been set to have a close&nbsp;button.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_destroy_with_parent.html">gtk_window_get_destroy_with_parent</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window will be destroyed with its transient&nbsp;parent.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_focus.html">gtk_window_get_focus</a></h6>
+          <div class="docblock">
+            <p>Retrieves the current focused widget within the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_focus_visible.html">gtk_window_get_focus_visible</a></h6>
+          <div class="docblock">
+            <p>Gets whether “focus rectangles” are supposed to be&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_group.html">gtk_window_get_group</a></h6>
+          <div class="docblock">
+            <p>Returns the group for <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_handle_menubar_accel.html">gtk_window_get_handle_menubar_accel</a></h6>
+          <div class="docblock">
+            <p>Returns whether this window reacts to F10 key presses by
+activating a menubar it&nbsp;contains.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.2</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_hide_on_close.html">gtk_window_get_hide_on_close</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window will be hidden when the close button is&nbsp;clicked.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_icon_name.html">gtk_window_get_icon_name</a></h6>
+          <div class="docblock">
+            <p>Returns the name of the themed icon for the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_mnemonics_visible.html">gtk_window_get_mnemonics_visible</a></h6>
+          <div class="docblock">
+            <p>Gets whether mnemonics are supposed to be&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_modal.html">gtk_window_get_modal</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window is&nbsp;modal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_resizable.html">gtk_window_get_resizable</a></h6>
+          <div class="docblock">
+            <p>Gets the value set by&nbsp;gtk_window_set_resizable().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_title.html">gtk_window_get_title</a></h6>
+          <div class="docblock">
+            <p>Retrieves the title of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_titlebar.html">gtk_window_get_titlebar</a></h6>
+          <div class="docblock">
+            <p>Returns the custom titlebar that has been set with&nbsp;gtk_window_set_titlebar().</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.get_transient_for.html">gtk_window_get_transient_for</a></h6>
+          <div class="docblock">
+            <p>Fetches the transient parent for this&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.has_group.html">gtk_window_has_group</a></h6>
+          <div class="docblock">
+            <p>Returns whether <code>window</code> has an explicit window&nbsp;group.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.is_active.html">gtk_window_is_active</a></h6>
+          <div class="docblock">
+            <p>Returns whether the window is part of the current active&nbsp;toplevel.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.is_fullscreen.html">gtk_window_is_fullscreen</a></h6>
+          <div class="docblock">
+            <p>Retrieves the current fullscreen state of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.is_maximized.html">gtk_window_is_maximized</a></h6>
+          <div class="docblock">
+            <p>Retrieves the current maximized state of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.is_suspended.html">gtk_window_is_suspended</a></h6>
+          <div class="docblock">
+            <p>Retrieves the current suspended state of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.12</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.maximize.html">gtk_window_maximize</a></h6>
+          <div class="docblock">
+            <p>Asks to maximize <code>window</code>, so that it fills the&nbsp;screen.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.minimize.html">gtk_window_minimize</a></h6>
+          <div class="docblock">
+            <p>Asks to minimize the specified <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.present.html">gtk_window_present</a></h6>
+          <div class="docblock">
+            <p>Presents a window to the&nbsp;user.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.Window.present_with_time.html">gtk_window_present_with_time</a></h6>
+          <div class="docblock">
+            <p>Presents a window to the user in response to an user&nbsp;interaction.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.14</span>&nbsp;</p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_application.html">gtk_window_set_application</a></h6>
+          <div class="docblock">
+            <p>Sets or unsets the <code>GtkApplication</code> associated with the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_child.html">gtk_window_set_child</a></h6>
+          <div class="docblock">
+            <p>Sets the child widget of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_decorated.html">gtk_window_set_decorated</a></h6>
+          <div class="docblock">
+            <p>Sets whether the window should be&nbsp;decorated.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_default_size.html">gtk_window_set_default_size</a></h6>
+          <div class="docblock">
+            <p>Sets the default size of a&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_default_widget.html">gtk_window_set_default_widget</a></h6>
+          <div class="docblock">
+            <p>Sets the default&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_deletable.html">gtk_window_set_deletable</a></h6>
+          <div class="docblock">
+            <p>Sets whether the window should be&nbsp;deletable.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_destroy_with_parent.html">gtk_window_set_destroy_with_parent</a></h6>
+          <div class="docblock">
+            <p>If <code>setting</code> is <code>TRUE</code>, then destroying the transient parent of <code>window</code>
+will also destroy <code>window</code> itself.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_display.html">gtk_window_set_display</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>GdkDisplay</code> where the <code>window</code> is&nbsp;displayed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_focus.html">gtk_window_set_focus</a></h6>
+          <div class="docblock">
+            <p>Sets the focus&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_focus_visible.html">gtk_window_set_focus_visible</a></h6>
+          <div class="docblock">
+            <p>Sets whether “focus rectangles” are supposed to be&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_handle_menubar_accel.html">gtk_window_set_handle_menubar_accel</a></h6>
+          <div class="docblock">
+            <p>Sets whether this window should react to F10 key presses
+by activating a menubar it&nbsp;contains.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.2</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_hide_on_close.html">gtk_window_set_hide_on_close</a></h6>
+          <div class="docblock">
+            <p>If <code>setting</code> is <code>TRUE</code>, then clicking the close button on the window
+will not destroy it, but only hide&nbsp;it.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_icon_name.html">gtk_window_set_icon_name</a></h6>
+          <div class="docblock">
+            <p>Sets the icon for the window from a named themed&nbsp;icon.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_mnemonics_visible.html">gtk_window_set_mnemonics_visible</a></h6>
+          <div class="docblock">
+            <p>Sets whether mnemonics are supposed to be&nbsp;visible.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_modal.html">gtk_window_set_modal</a></h6>
+          <div class="docblock">
+            <p>Sets a window modal or&nbsp;non-modal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_resizable.html">gtk_window_set_resizable</a></h6>
+          <div class="docblock">
+            <p>Sets whether the user can resize a&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_startup_id.html">gtk_window_set_startup_id</a></h6>
+          <div class="docblock">
+            <p>Sets the startup notification <span class="caps">ID</span>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_title.html">gtk_window_set_title</a></h6>
+          <div class="docblock">
+            <p>Sets the title of the <code>GtkWindow</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_titlebar.html">gtk_window_set_titlebar</a></h6>
+          <div class="docblock">
+            <p>Sets a custom titlebar for <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.set_transient_for.html">gtk_window_set_transient_for</a></h6>
+          <div class="docblock">
+            <p>Dialog windows should be set transient for the main application
+window they were spawned from. This allows window managers to e.g.
+keep the dialog on top of the main window, or center the dialog
+over the main window. <code>gtk_dialog_new_with_buttons()</code> and other
+convenience functions in <span class="caps">GTK</span> will sometimes call
+<code>gtk_window_set_transient_for()</code> on your&nbsp;behalf.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.unfullscreen.html">gtk_window_unfullscreen</a></h6>
+          <div class="docblock">
+            <p>Asks to remove the fullscreen state for <code>window</code>, and return to
+its previous&nbsp;state.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.unmaximize.html">gtk_window_unmaximize</a></h6>
+          <div class="docblock">
+            <p>Asks to unmaximize <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Window.unminimize.html">gtk_window_unminimize</a></h6>
+          <div class="docblock">
+            <p>Asks to unminimize the specified <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.Widget.html">GtkWidget</a> (162)</h5><div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a href="class.Widget.html#methods">GtkWidget</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Accessible.html">GtkAccessible</a> (19)</h5><div class="docblock">
+          
+            <h6><a href="method.Accessible.announce.html">gtk_accessible_announce</a></h6><div class="docblock">
+              <p>Requests the user&#8217;s screen reader to announce the given&nbsp;message.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.14</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_parent.html">gtk_accessible_get_accessible_parent</a></h6><div class="docblock">
+              <p>Retrieves the accessible parent for an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_accessible_role.html">gtk_accessible_get_accessible_role</a></h6><div class="docblock">
+              <p>Retrieves the accessible role of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_at_context.html">gtk_accessible_get_at_context</a></h6><div class="docblock">
+              <p>Retrieves the accessible implementation for the given <code>GtkAccessible</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_bounds.html">gtk_accessible_get_bounds</a></h6><div class="docblock">
+              <p>Queries the coordinates and dimensions of this&nbsp;accessible.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_first_accessible_child.html">gtk_accessible_get_first_accessible_child</a></h6><div class="docblock">
+              <p>Retrieves the first accessible child of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_next_accessible_sibling.html">gtk_accessible_get_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Retrieves the next accessible sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.get_platform_state.html">gtk_accessible_get_platform_state</a></h6><div class="docblock">
+              <p>Query a platform state, such as&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_property.html">gtk_accessible_reset_property</a></h6><div class="docblock">
+              <p>Resets the accessible <code>property</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_relation.html">gtk_accessible_reset_relation</a></h6><div class="docblock">
+              <p>Resets the accessible <code>relation</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.reset_state.html">gtk_accessible_reset_state</a></h6><div class="docblock">
+              <p>Resets the accessible <code>state</code> to its default&nbsp;value.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.set_accessible_parent.html">gtk_accessible_set_accessible_parent</a></h6><div class="docblock">
+              <p>Sets the parent and sibling of an accessible&nbsp;object.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_next_accessible_sibling.html">gtk_accessible_update_next_accessible_sibling</a></h6><div class="docblock">
+              <p>Updates the next accessible sibling of <code>self</code>.</p>
+            </div>
+            <div class="docblock">
+              <p><span class="emblem available">since: 4.10</span></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property.html">gtk_accessible_update_property</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_property_value.html">gtk_accessible_update_property_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;properties.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation.html">gtk_accessible_update_relation</a></h6><div class="docblock">
+              <p>Updates a list of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_relation_value.html">gtk_accessible_update_relation_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;relations.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state.html">gtk_accessible_update_state</a></h6><div class="docblock">
+              <p>Updates a list of accessible states. See the <code>GtkAccessibleState</code>
+documentation for the value types of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Accessible.update_state_value.html">gtk_accessible_update_state_value</a></h6><div class="docblock">
+              <p>Updates an array of accessible&nbsp;states.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6><div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Native.html">GtkNative</a> (5)</h5><div class="docblock">
+          
+            <h6><a href="method.Native.get_renderer.html">gtk_native_get_renderer</a></h6><div class="docblock">
+              <p>Returns the renderer that is used for this <code>GtkNative</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Native.get_surface.html">gtk_native_get_surface</a></h6><div class="docblock">
+              <p>Returns the surface of this <code>GtkNative</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Native.get_surface_transform.html">gtk_native_get_surface_transform</a></h6><div class="docblock">
+              <p>Retrieves the surface transform of <code>self</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Native.realize.html">gtk_native_realize</a></h6><div class="docblock">
+              <p>Realizes a <code>GtkNative</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Native.unrealize.html">gtk_native_unrealize</a></h6><div class="docblock">
+              <p>Unrealizes a <code>GtkNative</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Root.html">GtkRoot</a> (3)</h5><div class="docblock">
+          
+            <h6><a href="method.Root.get_display.html">gtk_root_get_display</a></h6><div class="docblock">
+              <p>Returns the display that this <code>GtkRoot</code> is&nbsp;on.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Root.get_focus.html">gtk_root_get_focus</a></h6><div class="docblock">
+              <p>Retrieves the current focused widget within the&nbsp;root.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="method.Root.set_focus.html">gtk_root_set_focus</a></h6><div class="docblock">
+              <p>If <code>focus</code> is not the current focus widget, and is focusable, sets
+it as the focus widget for the&nbsp;root.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Window.application.html">Gtk.Window:application</a></h6>
+          <div class="docblock">
+            <p>The <code>GtkApplication</code> associated with the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.child.html">Gtk.Window:child</a></h6>
+          <div class="docblock">
+            <p>The child&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.decorated.html">Gtk.Window:decorated</a></h6>
+          <div class="docblock">
+            <p>Whether the window should have a frame (also known as <em>decorations</em>).</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.default-height.html">Gtk.Window:default-height</a></h6>
+          <div class="docblock">
+            <p>The default height of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.default-widget.html">Gtk.Window:default-widget</a></h6>
+          <div class="docblock">
+            <p>The default&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.default-width.html">Gtk.Window:default-width</a></h6>
+          <div class="docblock">
+            <p>The default width of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.deletable.html">Gtk.Window:deletable</a></h6>
+          <div class="docblock">
+            <p>Whether the window frame should have a close&nbsp;button.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.destroy-with-parent.html">Gtk.Window:destroy-with-parent</a></h6>
+          <div class="docblock">
+            <p>If this window should be destroyed when the parent is&nbsp;destroyed.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.display.html">Gtk.Window:display</a></h6>
+          <div class="docblock">
+            <p>The display that will display this&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.focus-visible.html">Gtk.Window:focus-visible</a></h6>
+          <div class="docblock">
+            <p>Whether &#8216;focus rectangles&#8217; are currently visible in this&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.focus-widget.html">Gtk.Window:focus-widget</a></h6>
+          <div class="docblock">
+            <p>The focus&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.fullscreened.html">Gtk.Window:fullscreened</a></h6>
+          <div class="docblock">
+            <p>Whether the window is&nbsp;fullscreen.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.handle-menubar-accel.html">Gtk.Window:handle-menubar-accel</a></h6>
+          <div class="docblock">
+            <p>Whether the window frame should handle F10 for activating&nbsp;menubars.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.2</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.hide-on-close.html">Gtk.Window:hide-on-close</a></h6>
+          <div class="docblock">
+            <p>If this window should be hidden when the users clicks the close&nbsp;button.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.icon-name.html">Gtk.Window:icon-name</a></h6>
+          <div class="docblock">
+            <p>Specifies the name of the themed icon to use as the window&nbsp;icon.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.is-active.html">Gtk.Window:is-active</a></h6>
+          <div class="docblock">
+            <p>Whether the toplevel is the currently active&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.maximized.html">Gtk.Window:maximized</a></h6>
+          <div class="docblock">
+            <p>Whether the window is&nbsp;maximized.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.mnemonics-visible.html">Gtk.Window:mnemonics-visible</a></h6>
+          <div class="docblock">
+            <p>Whether mnemonics are currently visible in this&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.modal.html">Gtk.Window:modal</a></h6>
+          <div class="docblock">
+            <p>If <code>TRUE</code>, the window is&nbsp;modal.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.resizable.html">Gtk.Window:resizable</a></h6>
+          <div class="docblock">
+            <p>If <code>TRUE</code>, users can resize the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.startup-id.html">Gtk.Window:startup-id</a></h6>
+          <div class="docblock">
+            <p>A write-only property for setting window&#8217;s startup notification&nbsp;identifier.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.suspended.html">Gtk.Window:suspended</a></h6>
+          <div class="docblock">
+            <p>Whether the window is&nbsp;suspended.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.12</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.title.html">Gtk.Window:title</a></h6>
+          <div class="docblock">
+            <p>The title of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.titlebar.html">Gtk.Window:titlebar</a></h6>
+          <div class="docblock">
+            <p>The titlebar&nbsp;widget.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 4.6</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Window.transient-for.html">Gtk.Window:transient-for</a></h6>
+          <div class="docblock">
+            <p>The transient parent of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.Widget.html">GtkWidget</a> (34)</h5><div class="docblock">
+          
+            <h6><a href="property.Widget.can-focus.html">Gtk.Widget:can-focus</a></h6><div class="docblock">
+              <p>Whether the widget or any of its descendents can accept
+the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.can-target.html">Gtk.Widget:can-target</a></h6><div class="docblock">
+              <p>Whether the widget can receive pointer&nbsp;events.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.css-classes.html">Gtk.Widget:css-classes</a></h6><div class="docblock">
+              <p>A list of css classes applied to this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.css-name.html">Gtk.Widget:css-name</a></h6><div class="docblock">
+              <p>The name of this widget in the <span class="caps">CSS</span>&nbsp;tree.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.cursor.html">Gtk.Widget:cursor</a></h6><div class="docblock">
+              <p>The cursor used by <code>widget</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.focus-on-click.html">Gtk.Widget:focus-on-click</a></h6><div class="docblock">
+              <p>Whether the widget should grab focus when it is clicked with the&nbsp;mouse.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.focusable.html">Gtk.Widget:focusable</a></h6><div class="docblock">
+              <p>Whether this widget itself will accept the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.halign.html">Gtk.Widget:halign</a></h6><div class="docblock">
+              <p>How to distribute horizontal space if widget gets extra&nbsp;space.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-default.html">Gtk.Widget:has-default</a></h6><div class="docblock">
+              <p>Whether the widget is the default&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-focus.html">Gtk.Widget:has-focus</a></h6><div class="docblock">
+              <p>Whether the widget has the input&nbsp;focus.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.has-tooltip.html">Gtk.Widget:has-tooltip</a></h6><div class="docblock">
+              <p>Enables or disables the emission of the ::query-tooltip signal on <code>widget</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.height-request.html">Gtk.Widget:height-request</a></h6><div class="docblock">
+              <p>Override for height request of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.hexpand.html">Gtk.Widget:hexpand</a></h6><div class="docblock">
+              <p>Whether to expand&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.hexpand-set.html">Gtk.Widget:hexpand-set</a></h6><div class="docblock">
+              <p>Whether to use the <code>hexpand</code> property.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.layout-manager.html">Gtk.Widget:layout-manager</a></h6><div class="docblock">
+              <p>The <code>GtkLayoutManager</code> instance to use to compute the preferred size
+of the widget, and allocate its&nbsp;children.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-bottom.html">Gtk.Widget:margin-bottom</a></h6><div class="docblock">
+              <p>Margin on bottom side of&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-end.html">Gtk.Widget:margin-end</a></h6><div class="docblock">
+              <p>Margin on end of widget,&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-start.html">Gtk.Widget:margin-start</a></h6><div class="docblock">
+              <p>Margin on start of widget,&nbsp;horizontally.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.margin-top.html">Gtk.Widget:margin-top</a></h6><div class="docblock">
+              <p>Margin on top side of&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.name.html">Gtk.Widget:name</a></h6><div class="docblock">
+              <p>The name of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.opacity.html">Gtk.Widget:opacity</a></h6><div class="docblock">
+              <p>The requested opacity of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.overflow.html">Gtk.Widget:overflow</a></h6><div class="docblock">
+              <p>How content outside the widget&#8217;s content area is&nbsp;treated.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.parent.html">Gtk.Widget:parent</a></h6><div class="docblock">
+              <p>The parent widget of this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.receives-default.html">Gtk.Widget:receives-default</a></h6><div class="docblock">
+              <p>Whether the widget will receive the default action when it is&nbsp;focused.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.root.html">Gtk.Widget:root</a></h6><div class="docblock">
+              <p>The <code>GtkRoot</code> widget of the widget tree containing this&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.scale-factor.html">Gtk.Widget:scale-factor</a></h6><div class="docblock">
+              <p>The scale factor of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.sensitive.html">Gtk.Widget:sensitive</a></h6><div class="docblock">
+              <p>Whether the widget responds to&nbsp;input.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.tooltip-markup.html">Gtk.Widget:tooltip-markup</a></h6><div class="docblock">
+              <p>Sets the text of tooltip to be the given string, which is marked up
+with Pango&nbsp;markup.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.tooltip-text.html">Gtk.Widget:tooltip-text</a></h6><div class="docblock">
+              <p>Sets the text of tooltip to be the given&nbsp;string.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.valign.html">Gtk.Widget:valign</a></h6><div class="docblock">
+              <p>How to distribute vertical space if widget gets extra&nbsp;space.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.vexpand.html">Gtk.Widget:vexpand</a></h6><div class="docblock">
+              <p>Whether to expand&nbsp;vertically.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.vexpand-set.html">Gtk.Widget:vexpand-set</a></h6><div class="docblock">
+              <p>Whether to use the <code>vexpand</code> property.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.visible.html">Gtk.Widget:visible</a></h6><div class="docblock">
+              <p>Whether the widget is&nbsp;visible.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="property.Widget.width-request.html">Gtk.Widget:width-request</a></h6><div class="docblock">
+              <p>Override for width request of the&nbsp;widget.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="iface.Accessible.html">GtkAccessible</a> (1)</h5><div class="docblock">
+          
+            <h6><a href="property.Accessible.accessible-role.html">GtkAccessible:accessible-role</a></h6><div class="docblock">
+              <p>The accessible role of the given <code>GtkAccessible</code> implementation.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Window.activate-default.html">Gtk.Window::activate-default</a></h6>
+          <div class="docblock">
+            <p>Emitted when the user activates the default widget
+of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Window.activate-focus.html">Gtk.Window::activate-focus</a></h6>
+          <div class="docblock">
+            <p>Emitted when the user activates the currently focused
+widget of <code>window</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Window.close-request.html">Gtk.Window::close-request</a></h6>
+          <div class="docblock">
+            <p>Emitted when the user clicks on the close button of the&nbsp;window.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Window.enable-debugging.html">Gtk.Window::enable-debugging</a></h6>
+          <div class="docblock">
+            <p>Emitted when the user enables or disables interactive&nbsp;debugging.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="signal.Window.keys-changed.html">Gtk.Window::keys-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the set of accelerators or mnemonics that
+are associated with <code>window</code> changes.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem deprecated">deprecated: 4.10</span>&nbsp;</p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals">
+          <h5 style="display:block;">Signals inherited from <a href="class.Widget.html">GtkWidget</a> (13)</h5><div class="docblock">
+          
+            <h6><a href="signal.Widget.destroy.html">GtkWidget::destroy</a></h6><div class="docblock">
+              <p>Signals that all holders of a reference to the widget should release
+the reference that they&nbsp;hold.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.direction-changed.html">GtkWidget::direction-changed</a></h6><div class="docblock">
+              <p>Emitted when the text direction of a widget&nbsp;changes.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.hide.html">GtkWidget::hide</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is&nbsp;hidden.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.keynav-failed.html">GtkWidget::keynav-failed</a></h6><div class="docblock">
+              <p>Emitted if keyboard navigation&nbsp;fails.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.map.html">GtkWidget::map</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is going to be&nbsp;mapped.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.mnemonic-activate.html">GtkWidget::mnemonic-activate</a></h6><div class="docblock">
+              <p>Emitted when a widget is activated via a&nbsp;mnemonic.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.move-focus.html">GtkWidget::move-focus</a></h6><div class="docblock">
+              <p>Emitted when the focus is&nbsp;moved.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.query-tooltip.html">GtkWidget::query-tooltip</a></h6><div class="docblock">
+              <p>Emitted when the widget’s tooltip is about to be&nbsp;shown.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.realize.html">GtkWidget::realize</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is associated with a <code>GdkSurface</code>.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.show.html">GtkWidget::show</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is&nbsp;shown.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.state-flags-changed.html">GtkWidget::state-flags-changed</a></h6><div class="docblock">
+              <p>Emitted when the widget state&nbsp;changes.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.unmap.html">GtkWidget::unmap</a></h6><div class="docblock">
+              <p>Emitted when <code>widget</code> is going to be&nbsp;unmapped.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+            <h6><a href="signal.Widget.unrealize.html">GtkWidget::unrealize</a></h6><div class="docblock">
+              <p>Emitted when the <code>GdkSurface</code> associated with <code>widget</code> is&nbsp;destroyed.</p>
+            </div>
+            <div class="docblock">
+              <p></p>
+            </div>
+            
+          </div>
+        </div>
+        
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkWindowClass {
+  GtkWidgetClass parent_class;
+  void (* activate_focus) (
+    GtkWindow* window
+  );
+  void (* activate_default) (
+    GtkWindow* window
+  );
+  void (* keys_changed) (
+    GtkWindow* window
+  );
+  gboolean (* enable_debugging) (
+    GtkWindow* window,
+    gboolean toggle
+  );
+  gboolean (* close_request) (
+    GtkWindow* window
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GtkWidgetClass</code></dt>
+          <dd><p>The parent&nbsp;class.</p></dd>
+        
+          <dt><code>activate_focus: void (* activate_focus) (
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Activates the current focused widget within the&nbsp;window.</p></dd>
+        
+          <dt><code>activate_default: void (* activate_default) (
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Activates the default widget for the&nbsp;window.</p></dd>
+        
+          <dt><code>keys_changed: void (* keys_changed) (
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Signal gets emitted when the set of accelerators or
+  mnemonics that are associated with window&nbsp;changes.</p></dd>
+        
+          <dt><code>enable_debugging: gboolean (* enable_debugging) (
+    GtkWindow* window,
+    gboolean toggle
+  )</code></dt>
+          <dd><p>Class handler for the <code>GtkWindow::enable-debugging</code>
+  keybinding&nbsp;signal.</p></dd>
+        
+          <dt><code>close_request: gboolean (* close_request) (
+    GtkWindow* window
+  )</code></dt>
+          <dd><p>Class handler for the <code>GtkWindow::close-request</code> signal.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-activate_default"><a href="vfunc.Window.activate_default.html">Gtk.WindowClass.activate_default</a></h6>
+        <div class="docblock">
+          <p>Activates the default widget for the&nbsp;window.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-activate_focus"><a href="vfunc.Window.activate_focus.html">Gtk.WindowClass.activate_focus</a></h6>
+        <div class="docblock">
+          <p>Activates the current focused widget within the&nbsp;window.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-close_request"><a href="vfunc.Window.close_request.html">Gtk.WindowClass.close_request</a></h6>
+        <div class="docblock">
+          <p>Class handler for the <code>GtkWindow::close-request</code> signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-enable_debugging"><a href="vfunc.Window.enable_debugging.html">Gtk.WindowClass.enable_debugging</a></h6>
+        <div class="docblock">
+          <p>Class handler for the <code>GtkWindow::enable-debugging</code>
+  keybinding&nbsp;signal.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-keys_changed"><a href="vfunc.Window.keys_changed.html">Gtk.WindowClass.keys_changed</a></h6>
+        <div class="docblock">
+          <p>Signal gets emitted when the set of accelerators or
+  mnemonics that are associated with window&nbsp;changes.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#gtkwindow-as-gtkbuildable"><span class="link-text">GtkWindow as GtkBuildable</span></a></li>
+      
+        <li class="toc-list-item"><a href="#css-nodes"><span class="link-text">CSS nodes</span></a></li>
+      
+        <li class="toc-list-item"><a href="#accessibility"><span class="link-text">Accessibility</span></a></li>
+      
+        <li class="toc-list-item"><a href="#actions"><span class="link-text">Actions</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#implements"><span class="link-text">Implements</span></a></li>
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#type-functions"><span class="link-text">Functions</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

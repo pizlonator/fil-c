@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="focusable">0</property>
+    <property name="child">
+      <object class="GtkTreeExpander" id="expander">
+        <binding name="list-row">
+          <lookup name="item">GtkListItem</lookup>
+        </binding>
+        <property name="child">
+          <object class="GtkInscription">
+            <property name="hexpand">1</property>
+            <property name="nat-chars">25</property>
+            <property name="text-overflow">ellipsize-end</property>
+            <binding name="text">
+              <lookup name="title" type="GtkDemo">
+                <lookup name="item">expander</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkMessageDialog" id="warning">
+    <property name="transient-for">window</property>
+    <property name="modal">1</property>
+    <property name="hide-on-close">1</property>
+    <property name="buttons">ok-cancel</property>
+    <property name="message-type">warning</property>
+    <property name="text" translatable="yes">Warning</property>
+    <property name="secondary-text" translatable="yes">This demo involves rapidly flashing changes and may be hazardous to photosensitive viewers.</property>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="resizable">0</property>
+    <property name="title">Themes</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="start">
+          <object class="GtkToggleButton" id="toggle">
+            <property name="label">Cycle</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkLabel" id="fps">
+            <attributes>
+              <attribute name="font-features" value="tnum=1"/>
+            </attributes>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGrid" id="grid">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="row-spacing">10</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox">
+            <property name="valign">center</property>
+            <property name="halign">center</property>
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Hi, I am a button</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">And I&apos;m another button</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">This is a button party!</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkButton">
+                <property name="label">Plain</property>
+                <property name="halign">end</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label">Destructive</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label">Suggested</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

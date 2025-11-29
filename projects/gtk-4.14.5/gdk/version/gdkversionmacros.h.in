@@ -1,0 +1,146 @@
+/* gdkversionmacros.h - version boundaries checks
+ * Copyright (C) 2012 Red Hat, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.▸ See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+#if !defined (__GDK_H_INSIDE__) && !defined (__GTK_CSS_H_INSIDE__) && !defined (GTK_COMPILATION) && !defined (GTK_CSS_COMPILATION)
+#error "Only <gdk/gdk.h> can be included directly."
+#endif
+
+#pragma once
+
+#include <glib.h>
+
+/* These macros are used to mark deprecated symbols in GLib headers,
+ * and thus have to be exposed in installed headers. But please
+ * do *not* use them in other projects. Instead define your own wrappers
+ * around it.
+ */
+
+#if !defined(GDK_DISABLE_DEPRECATION_WARNINGS) && \
+    (G_GNUC_CHECK_VERSION(4, 6) ||                 \
+     __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 4))
+#define _GDK_GNUC_DO_PRAGMA(x) _Pragma(G_STRINGIFY (x))
+#define GDK_DEPRECATED_MACRO _GDK_GNUC_DO_PRAGMA(GCC warning "Deprecated pre-processor symbol")
+#define GDK_DEPRECATED_MACRO_FOR(f) \
+  _GDK_GNUC_DO_PRAGMA(GCC warning G_STRINGIFY (Deprecated pre-processor symbol: replace with #f))
+#define GDK_UNAVAILABLE_MACRO(maj,min) \
+  _GDK_GNUC_DO_PRAGMA(GCC warning G_STRINGIFY (Not available before maj.min))
+#else
+#define GDK_DEPRECATED_MACRO
+#define GDK_DEPRECATED_MACRO_FOR(f)
+#define GDK_UNAVAILABLE_MACRO(maj,min)
+#endif
+
+#if !defined(GDK_DISABLE_DEPRECATION_WARNINGS) && \
+    (G_GNUC_CHECK_VERSION(6, 1) ||                 \
+     (defined (__clang_major__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 0))))
+#define GDK_DEPRECATED_ENUMERATOR G_DEPRECATED
+#define GDK_DEPRECATED_ENUMERATOR_FOR(f) G_DEPRECATED_FOR(f)
+#define GDK_UNAVAILABLE_ENUMERATOR(maj,min) G_UNAVAILABLE(maj,min)
+#else
+#define GDK_DEPRECATED_ENUMERATOR
+#define GDK_DEPRECATED_ENUMERATOR_FOR(f)
+#define GDK_UNAVAILABLE_ENUMERATOR(maj,min)
+#endif
+
+#if !defined(GDK_DISABLE_DEPRECATION_WARNINGS) && \
+    (G_GNUC_CHECK_VERSION(3, 1) ||                 \
+     (defined (__clang_major__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 0))))
+#define GDK_DEPRECATED_TYPE G_DEPRECATED
+#define GDK_DEPRECATED_TYPE_FOR(f) G_DEPRECATED_FOR(f)
+#define GDK_UNAVAILABLE_TYPE(maj,min) G_UNAVAILABLE(maj,min)
+#else
+#define GDK_DEPRECATED_TYPE
+#define GDK_DEPRECATED_TYPE_FOR(f)
+#define GDK_UNAVAILABLE_TYPE(maj,min)
+#endif
+
+@GDK_VERSIONS@
+
+/* evaluates to the current stable version; for development cycles,
+ * this means the next stable target, with a hard backstop to the
+ * beginning of the stable series
+ */
+#if GDK_MAJOR_VERSION >= 4 && (GDK_MINOR_VERSION % 2)
+# define GDK_VERSION_CUR_STABLE         (G_ENCODE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION + 1))
+#elif G_ENCODE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION) > GDK_VERSION_4_0
+# define GDK_VERSION_CUR_STABLE         (G_ENCODE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION))
+#else
+# define GDK_VERSION_CUR_STABLE         GDK_VERSION_4_0
+#endif
+
+/* evaluates to the previous stable version, with a hard backstop
+ * to the beginning of the stable series
+ */
+#if GDK_MAJOR_VERSION >= 4 && (GDK_MINOR_VERSION % 2)
+# define GDK_VERSION_PREV_STABLE        (G_ENCODE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION - 1))
+#elif GDK_MAJOR_VERSION >= 4 && GDK_MINOR_VERSION > 2
+# define GDK_VERSION_PREV_STABLE        (G_ENCODE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION - 2))
+#else
+# define GDK_VERSION_PREV_STABLE        GDK_VERSION_4_0
+#endif
+
+/**
+ * GDK_VERSION_MIN_REQUIRED:
+ *
+ * A macro that should be defined by the user prior to including
+ * the `gdk.h` header.
+ *
+ * The definition should be one of the predefined GDK version
+ * macros: %GDK_VERSION_4_0, %GDK_VERSION_4_2,...
+ *
+ * This macro defines the lower bound for the GDK API to use.
+ *
+ * If a function has been deprecated in a newer version of GDK,
+ * it is possible to use this symbol to avoid the compiler warnings
+ * without disabling warning for every deprecated function.
+ */
+#ifndef GDK_VERSION_MIN_REQUIRED
+# define GDK_VERSION_MIN_REQUIRED      (GDK_VERSION_CUR_STABLE)
+#endif
+
+/**
+ * GDK_VERSION_MAX_ALLOWED:
+ *
+ * A macro that should be defined by the user prior to including
+ * the `gdk.h` header.
+ *
+ * The definition should be one of the predefined GDK version
+ * macros: %GDK_VERSION_4_0, %GDK_VERSION_4_2,...
+ *
+ * This macro defines the upper bound for the GDK API to use.
+ *
+ * If a function has been introduced in a newer version of GDK,
+ * it is possible to use this symbol to get compiler warnings when
+ * trying to use that function.
+ */
+#ifndef GDK_VERSION_MAX_ALLOWED
+# if GDK_VERSION_MIN_REQUIRED > GDK_VERSION_PREV_STABLE
+#  define GDK_VERSION_MAX_ALLOWED      GDK_VERSION_MIN_REQUIRED
+# else
+#  define GDK_VERSION_MAX_ALLOWED      GDK_VERSION_CUR_STABLE
+# endif
+#endif
+
+/* sanity checks */
+#if GDK_VERSION_MAX_ALLOWED < GDK_VERSION_MIN_REQUIRED
+# error "GDK_VERSION_MAX_ALLOWED must be >= GDK_VERSION_MIN_REQUIRED"
+#endif
+#if GDK_VERSION_MIN_REQUIRED < GDK_VERSION_4_0
+# error "GDK_VERSION_MIN_REQUIRED must be >= GDK_VERSION_4_0"
+#endif
+
+#include <gdk/version/gdk-visibility.h>

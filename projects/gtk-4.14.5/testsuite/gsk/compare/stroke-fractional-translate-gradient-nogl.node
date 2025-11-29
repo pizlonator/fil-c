@@ -1,0 +1,20 @@
+color {
+  bounds: 0 0 15 15;
+  color: rgb(0,0,0);
+}
+transform {
+  transform: translate(2.6, 2);
+  child: stroke {
+    child: linear-gradient {
+      bounds: -1 -1 12 12;
+      start: 0 -1;
+      end: 0 11;
+      stops: 0.5 rgb(0,80,0), 0.5 rgb(80,0,0);
+    }
+    path: "\
+M 0.5 0.5 h 9 v 9 h -9 z";
+    line-width: 1;
+    line-cap: butt;
+    line-join: miter;
+  }
+}

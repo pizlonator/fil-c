@@ -1,0 +1,7 @@
+a { color:green }
+b { color:green; color }  /* malformed declaration missing ':', value */
+c { color:red;   color; color:green }  /* same with expected recovery */
+d { color:green; color: } /* malformed declaration missing value */
+e { color:red;   color:; color:green } /* same with expected recovery */
+f { color:green; color{;color:maroon} } /* unexpected tokens { } */
+g { color:red;   color{;color:maroon}; color:green } /* same with recovery */

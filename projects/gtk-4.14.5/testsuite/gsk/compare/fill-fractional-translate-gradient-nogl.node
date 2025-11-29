@@ -1,0 +1,27 @@
+color {
+  bounds: 0 0 15 15;
+  color: rgb(0,0,0);
+}
+transform {
+  transform: translate(2, 2.6);
+  child: fill {
+    child: linear-gradient {
+      bounds: -1 -1 12 12;
+      start: -1 0;
+      end: 11 0;
+      stops: 0.5 rgb(0,80,0), 0.5 rgb(80,0,0);
+    }
+    path: "\
+M 0 0\
+L 10 0\
+L 10 10\
+L 0 10\
+Z\
+M 1 1\
+L 1 9\
+L 9 9\
+L 9 1\
+Z";
+    fill-rule: winding;
+  }
+}

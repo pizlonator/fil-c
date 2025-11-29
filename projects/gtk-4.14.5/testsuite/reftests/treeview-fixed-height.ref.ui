@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <column type="gboolean"/>
+      <column type="gchararray"/>
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">True</col>
+        <col id="1" translatable="yes">Andrea</col>
+        <col id="2" translatable="yes">Cimi</col>
+      </row>
+      <row>
+        <col id="0">False</col>
+        <col id="1" translatable="yes">Otto</col>
+        <col id="2" translatable="yes">chaotic</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkTreeView" id="treeview1">
+        <property name="model">liststore1</property>
+        <child internal-child="selection">
+          <object class="GtkTreeSelection" id="treeview-selection"/>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+            <property name="title" translatable="yes">Cool</property>
+            <property name="sizing">fixed</property>
+            <property name="fixed-width">100</property>
+            <child>
+              <object class="GtkCellRendererToggle" id="cellrenderertoggle1"/>
+              <attributes>
+                <attribute name="active">0</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+            <property name="title" translatable="yes">Name</property>
+            <property name="sizing">fixed</property>
+            <property name="fixed-width">100</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext3"/>
+              <attributes>
+                <attribute name="text">1</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+            <property name="title" translatable="yes">Nick</property>
+            <property name="sizing">fixed</property>
+            <property name="fixed-width">100</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext4"/>
+              <attributes>
+                <attribute name="text">2</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

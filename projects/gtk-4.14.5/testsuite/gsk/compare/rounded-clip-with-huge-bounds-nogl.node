@@ -1,0 +1,26 @@
+color {
+  bounds: 0 0 50 50;
+  color: black;
+}
+clip {
+  clip: 0 0 50 50;
+  child: rounded-clip {
+    clip: -4780 -4780 32768 32768 / 16384;
+    child: container {
+      color {
+        bounds: 0 0 50 50;
+        color: black;
+      }
+      mask {
+        source: color {
+          bounds: 25 25 32768 32768;
+          color: red;
+        }
+        mask: color {
+          bounds: 25 25 32768 32768;
+          color: blue;
+        }
+      }
+    }
+  }
+}

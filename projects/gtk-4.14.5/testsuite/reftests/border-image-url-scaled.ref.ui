@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkButton" id="button1">
+        <property name="name">reference</property>
+        <property name="receives_default">1</property>
+        <style>
+          <class name="button-not-image"/>
+        </style>
+        <child>
+          <object class="GtkButton" id="button2">
+            <property name="name">reference</property>
+            <property name="receives_default">1</property>
+            <style>
+              <class name="button-not-image2"/>
+            </style>
+            <child>
+              <object class="GtkButton" id="button3">
+                <property name="name">reference</property>
+                <property name="label" translatable="yes">Hello World</property>
+                <property name="receives_default">1</property>
+                <style>
+                  <class name="button-not-image3"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

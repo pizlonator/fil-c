@@ -1,0 +1,155 @@
+/* "Tradition" theme for GTK 3, by John Lindgren */
+/* Last modified: October 21, 2012 */
+/* Public domain */
+
+/* COLORS */
+
+@define-color color_base #c8c4c0;
+@define-color color_sel #406080;
+@define-color color_tip #ffffc0;
+@define-color color_dark shade(@color_base, 0.6);
+
+* {
+    background-color: @color_base;
+    border-color: @color_dark;
+    border-style: solid;
+    color: black;
+}
+
+.cell, .check, .entry, .menu, .radio, GtkTextView, GtkTreeView {
+    background-color: white;
+}
+
+image, label, .menuitem {
+    background-color: transparent;
+}
+
+.tooltip {
+    background-color: @color_tip;
+}
+
+*:disabled {
+    color: @color_dark;
+}
+
+*:selected, .menuitem:hover , *:hover {
+    background-color: @color_sel;
+    color: white;
+}
+
+GtkCheckButton:selected {
+    background-color: @color_base;
+}
+
+.check:hover, .check:selected, .radio:hover, .radio:selected {
+    background-color: white;
+    color: black;
+}
+
+.slider, .pane-separator {
+    background-color: alpha(black, 0);
+    color: alpha(black, 0);
+}
+
+/* GRADIENTS */
+
+button, .notebook tab:active, .slider {
+    background-image: linear-gradient(to bottom, shade(@color_base, 1.2), @color_base);
+}
+
+button:active, .notebook tab, .trough {
+    background-image: linear-gradient(to bottom, shade(@color_base, 0.8), @color_base);
+}
+
+button.vertical, .slider.vertical {
+    background-image: linear-gradient(to right, shade(@color_base, 1.2), @color_base);
+}
+
+button.vertical:active, .trough.vertical {
+    background-image: linear-gradient(to right, shade(@color_base, 0.8), @color_base);
+}
+
+column-header > .button {
+    background-image: none;
+}
+
+.progressbar {
+    background-image: linear-gradient(to bottom, shade(@color_sel, 1.2), @color_sel);
+    border-color: shade(@color_sel, 0.7);
+}
+
+.progressbar.vertical {
+    background-image: linear-gradient(to right, shade(@color_sel, 1.2), @color_sel);
+}
+
+/* SPACING */
+
+* {
+    border-width: 0px;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+.menu {
+    border-width: 1px;
+    padding: 1px;
+}
+
+.menuitem {
+    border-radius: 3px;
+    padding: 1px;
+}
+
+.toolbar {
+    padding: 0px 3px 0px 3px;
+}
+
+button, .check, .entry, .frame, .notebook, .progressbar, .radio, .scale,
+ .scrollbar, .slider, .trough {
+    border-radius: 2px;
+    border-width: 1px;
+}
+
+notebook tab {
+    padding: 2px;
+}
+
+notebook tab:active {
+    padding: 3px;
+}
+
+button {
+    padding: 3px;
+}
+
+.entry, column-header > .button {
+    padding: 2px;
+}
+
+GtkComboBox .button {
+    padding: 0px 2px 0px 2px;
+}
+
+.combobox-entry > .entry {
+    border-radius: 2px 0px 0px 2px;
+    border-width: 1px 0px 1px 1px;
+}
+
+.combobox-entry > .button {
+    border-radius: 0px 2px 2px 0px;
+}
+
+.spinbutton.button {
+    border-radius: 0px;
+    border-width: 0px 1px 0px 1px;
+}
+
+.spinbutton.button:last-child {
+    border-width: 0px;
+}
+
+column-header > .button {
+    border-radius: 0px;
+    border-width: 0px 0px 1px 0px;
+}
+

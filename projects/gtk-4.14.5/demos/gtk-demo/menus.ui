@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menubar">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_New</attribute>
+          <attribute name="action">app.new</attribute>
+          <attribute name="accel">&lt;Control&gt;n</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Open</attribute>
+          <attribute name="action">app.open</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save</attribute>
+          <attribute name="action">app.save</attribute>
+          <attribute name="accel">&lt;Control&gt;s</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Save _As...</attribute>
+          <attribute name="action">app.save-as</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;s</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+          <attribute name="accel">&lt;Control&gt;q</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Preferences</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Prefer Dark Theme</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+        <submenu>
+          <attribute name="label" translatable="yes">_Color</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">_Red</attribute>
+              <attribute name="action">app.color</attribute>
+              <attribute name="target">red</attribute>
+              <attribute name="accel">&lt;Control&gt;r</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_Green</attribute>
+              <attribute name="action">app.color</attribute>
+              <attribute name="target">green</attribute>
+              <attribute name="accel">&lt;Control&gt;g</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_Blue</attribute>
+              <attribute name="action">app.color</attribute>
+              <attribute name="target">blue</attribute>
+              <attribute name="accel">&lt;Control&gt;b</attribute>
+            </item>
+          </section>
+        </submenu>
+        <submenu>
+          <attribute name="label" translatable="yes">_Shape</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">_Square</attribute>
+              <attribute name="action">win.shape</attribute>
+              <attribute name="target">square</attribute>
+              <attribute name="accel">&lt;Control&gt;s</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_Rectangle</attribute>
+              <attribute name="action">win.shape</attribute>
+              <attribute name="target">rectangle</attribute>
+              <attribute name="accel">&lt;Control&gt;r</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_Oval</attribute>
+              <attribute name="action">win.shape</attribute>
+              <attribute name="target">oval</attribute>
+              <attribute name="accel">&lt;Control&gt;o</attribute>
+            </item>
+          </section>
+        </submenu>
+        <item>
+          <attribute name="label" translatable="yes">_Bold</attribute>
+          <attribute name="action">win.bold</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;b</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <item>
+        <attribute name="label" translatable="yes">_About</attribute>
+        <attribute name="action">win.about</attribute>
+        <attribute name="accel">&lt;Control&gt;a</attribute>
+      </item>
+    </submenu>
+  </menu>
+</interface>

@@ -1,0 +1,16 @@
+clip {
+  clip: 35 1 2 2;
+  child: color-matrix {
+    matrix: matrix3d(1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    child: transform {
+      transform: scale(8);
+      child: texture-scale {
+        bounds: 0 0 10 10;
+        filter: nearest;
+        texture: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAEUlEQVQImWP4z8Dwn+E/w38AEPgD\
+/V+dao0AAAAASUVORK5CYII=\
+");
+      }
+    }
+  }
+}

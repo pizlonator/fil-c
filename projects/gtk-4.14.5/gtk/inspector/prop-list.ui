@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorPropList" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <style>
+          <class name="view"/>
+        </style>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="GtkColumnView" id="list">
+                <style>
+                  <class name="data-table"/>
+                  <class name="list"/>
+                </style>
+                <child>
+                  <object class="GtkColumnViewColumn" id="name">
+                    <property name="title" translatable="yes">Name</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory">
+                        <signal name="setup" handler="setup_name_cb"/>
+                        <signal name="bind" handler="bind_name_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="type">
+                    <property name="title" translatable="yes">Type</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory">
+                        <signal name="setup" handler="setup_type_cb"/>
+                        <signal name="bind" handler="bind_type_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="origin">
+                    <property name="title" translatable="yes">Defined At</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory">
+                        <signal name="setup" handler="setup_origin_cb"/>
+                        <signal name="bind" handler="bind_origin_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title" translatable="yes">Value</property>
+                    <property name="expand">1</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory">
+                        <signal name="setup" handler="setup_value_cb"/>
+                        <signal name="bind" handler="bind_value_cb"/>
+                        <signal name="unbind" handler="unbind_value_cb"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,11 @@
+/* Add a color node to blow up the bounds so that
+   we can test the texture bounds work. */
+color {
+  bounds: 0 0 50 50;
+  color: white;
+}
+
+texture {
+  bounds: 10 10 30 30;
+  texture: url('data:,<svg width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" style="fill:red"/></svg>');
+}

@@ -1,0 +1,30 @@
+<interface>
+  <!-- test some accessible properties -->
+  <object class="GtkBox">
+    <child>
+      <object class="GtkButton">
+        <accessibility>
+          <property name="autocomplete">both</property>
+          <property name="description" translatable="yes">Bah</property>
+          <property name="has-popup">1</property>
+          <property name="key-shortcuts">shortcuts go here</property>
+          <property name="label" translatable="yes">label?</property>
+          <property name="level">99</property>
+          <property name="modal">no</property>
+          <property name="multi-line">0</property>
+          <property name="multi-selectable">false</property>
+          <property name="orientation">horizontal</property>
+          <property name="placeholder" translatable="yes">placeholder?</property>
+          <property name="read-only">F</property>
+          <property name="required">False</property>
+          <property name="role-description">Dunno</property>
+          <property name="sort">ascending</property>
+          <property name="value-max">11</property>
+          <property name="value-min">0</property>
+          <property name="value-now">10</property>
+          <property name="value-text" translatable="yes">Ten</property>
+        </accessibility>
+      </object>
+    </child>
+  </object>
+</interface>

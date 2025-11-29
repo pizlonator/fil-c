@@ -1,0 +1,63 @@
+color {
+  bounds: -10 0 70 60;
+  color: white;
+}
+
+transform {
+  transform: scale(5);
+  child: shadow {
+    shadows: black 0 1;
+    child: color {
+      bounds: 0 0 10 1;
+      color: red;
+    }
+  }
+}
+
+transform {
+  transform: rotate(90);
+  child: shadow {
+    shadows: black 5 0;
+    child: color {
+      bounds: 20 -50 5 50;
+      color: lime;
+    }
+  }
+}
+
+clip {
+  clip: 0 40 50 10;
+  child: color-matrix "larry" {
+    matrix: matrix3d(1000, 0, 0, 0,
+                     0, 1000, 0, 0,
+                     0, 0, 1000, 0,
+                     0, 0, 0, 1000);
+    child: transform {
+      transform: scale(5, 1);
+      child: shadow {
+        shadows: black 0 5 2;
+        child: color {
+          bounds: 0 40 10 5;
+          color: yellow;
+        }
+      }
+    }
+  }
+}
+
+/* This should be covered by the blur above */
+clip {
+  clip: -10 45 5 5;
+  child: "larry";
+}
+clip {
+  clip: 55 45 5 5;
+  child: "larry";
+}
+
+/* This should not */
+clip {
+  clip:  0 55 50 5;
+  child: "larry";
+}
+

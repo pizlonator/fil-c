@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkVolumeButton" parent="GtkScaleButton">
+    <property name="has-tooltip">1</property>
+    <property name="adjustment">
+      <object class="GtkAdjustment">
+        <property name="upper">1</property>
+        <property name="step-increment">0.02</property>
+        <property name="page-increment">0.2</property>
+      </object>
+    </property>
+    <property name="icons">audio-volume-muted
+audio-volume-high
+audio-volume-low
+audio-volume-medium</property>
+    <signal name="query-tooltip" handler="cb_query_tooltip" swapped="no"/>
+    <signal name="value-changed" handler="cb_value_changed" swapped="no"/>
+    <child internal-child="plus_button">
+      <object class="GtkButton" id="scalebutton-plus_button1"/>
+    </child>
+    <child internal-child="minus_button">
+      <object class="GtkButton" id="scalebutton-minus_button1"/>
+    </child>
+  </template>
+</interface>

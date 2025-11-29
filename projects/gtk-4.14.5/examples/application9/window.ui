@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="ExampleAppWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">Example Application</property>
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child>
+          <object class="GtkLabel" id="lines_label">
+            <property name="visible">0</property>
+            <property name="label" translatable="yes">Lines:</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lines">
+            <property name="visible">0</property>
+          </object>
+        </child>
+        <child type="title">
+          <object class="GtkStackSwitcher" id="tabs">
+            <property name="stack">stack</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkToggleButton" id="search">
+            <property name="sensitive">0</property>
+            <property name="icon-name">edit-find-symbolic</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkMenuButton" id="gears">
+            <property name="direction">none</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="content_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSearchBar" id="searchbar">
+            <child>
+              <object class="GtkSearchEntry" id="searchentry">
+                <signal name="search-changed" handler="search_text_changed"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox">
+            <child>
+              <object class="GtkRevealer" id="sidebar">
+                <property name="transition-type">slide-right</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="sidebar-sw">
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="GtkListBox" id="words">
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="stack">
+                <signal name="notify::visible-child" handler="visible_child_changed"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

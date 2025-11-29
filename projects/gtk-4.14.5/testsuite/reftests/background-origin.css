@@ -1,0 +1,58 @@
+@import "reset-to-defaults.css";
+
+window {
+  background-color: rgb(255,255,255);
+}
+
+button {
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(255,0,0,0.6);
+  padding: 10px;
+  background-color: rgb(0,0,255);
+
+  background-image: url("green-20x20.png");
+  background-repeat: no-repeat;
+}
+
+#button1 {
+  background-origin: border-box;
+  background-clip: border-box;
+}
+#button2 {
+  background-origin: padding-box;
+  background-clip: border-box;
+}
+#button3 {
+  background-origin: content-box;
+  background-clip: border-box;
+}
+#button4 {
+  background-origin: border-box;
+  background-clip: padding-box;
+}
+#button5 {
+  background-origin: padding-box;
+  background-clip: padding-box;
+}
+#button6 {
+  background-origin: content-box;
+  background-clip: padding-box;
+}
+#button7 {
+  background-origin: border-box;
+  background-clip: content-box;
+}
+#button8 {
+  background-origin: padding-box;
+  background-clip: content-box;
+}
+#button9 {
+  background-origin: content-box;
+  background-clip: content-box;
+}
+
+button#reference {
+  border-width: 0;
+  background-image: url("reference-background-origin.png");
+}

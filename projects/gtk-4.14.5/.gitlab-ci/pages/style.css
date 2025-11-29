@@ -1,0 +1,747 @@
+/*
+ * SPDX-FileCopyrightText: 2021 GNOME Foundation
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
+
+@import url("fonts.css");
+
+/*********************************
+ * LIGHT THEME
+ *********************************/
+:root {
+
+  /* colors */
+  --text-color: #333;
+  --text-color-muted: #999;
+  --primary: rgb(28, 118, 228);
+  --body-bg: #fff;
+  --sidebar-primary: rgb(144, 194, 255);
+  --sidebar-bg: #151515;
+  --sidebar-selected-bg: var(--primary);
+  --sidebar-text-color: #fafafa;
+  --sidebar-padding: 1.5em;
+
+  /* boxes, e.g. code blocks */
+  --box-bg: rgba(135, 135, 135, 0.085);
+  --box-radius: 0.35rem;
+  --box-padding: 0.75rem;
+  --box-margin: 0.75rem 0;
+  --box-text-color: #111;
+
+  /* typography */
+  --body-font-family: "Noto Serif",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  --body-font-scale: 0.95;
+  --body-font-size: calc(var(--body-font-scale) * clamp(16px, 1vw, 20px));
+  --body-font-weight: normal;
+
+  --monospace-font-family: "Source Code Pro", monospace;
+  --monospace-font-size: calc(0.86 * var(--body-font-size)); /* Monospace fonts are very different in terms of font-sizes. Adjust this value to scale it */
+
+  --heading-font-family: "Red Hat Display", var(--body-font-family);
+  --heading-weight: 900;
+  --heading-font-scale: 1.05;
+
+  --heading-small-font-family: var(--heading-font-family);
+  --heading-small-weight: 600;
+  --heading-small-font-scale: 1;
+
+  --heading-table-font-family: var(--heading-font-family);
+  --heading-table-weight: 600;
+
+  --heading-docblock-color: #6d6d6d;  /* docblocks have headings from source comments. we want them to differ.*/
+  --heading-docblock-scale: 0.9;        /* docblocks have headings from source comments. we want them to differ.*/
+
+  --symbol-font-family: var(--heading-font-family);
+  --symbol-font-weight: 500;
+  --symbol-font-scale: 1;
+
+  --table-font-size: 0.92em;    /* Tables often contain lots information. It's better to scale them down a big to get more sutff fitted inside */
+
+  /* misc */
+  --prefered-content-width: 90ch; /* The preferred width for the readable content */
+  --anchor-sign: "#";
+
+} 
+
+/*********************************
+ * DARK THEME (overrides)
+ *********************************/
+ @media (prefers-color-scheme: dark) {
+  :root {
+    --primary: rgb(144, 194, 255);
+    --text-color: #f6f6f6;
+    --text-color-muted: #686868;
+    --body-bg: #121212;
+    --sidebar-primary: rgb(144, 194, 255);
+    --sidebar-bg: #1e1e1e;
+    --sidebar-selected-bg: rgb(17, 112, 228);
+    --sidebar-text-color: #fafafa;
+    --box-bg: rgba(135, 135, 135, 0.1);
+    --box-text-color: #fff;
+    --heading-docblock-color: #b7b7b7;
+  }
+
+  /* fix dark theme syntax highlighting with a filter (for now) */
+  .highlight pre span {
+  	filter: brightness(6);
+  }
+}
+
+/*********************************
+ * GENERAL STYLING
+ *********************************/
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+::-moz-selection {
+  color: white;
+  background: var(--primary);
+}
+
+::selection {
+  color: white;
+  background: var(--primary);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgba(128, 128, 128, 0.6);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 1);
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(128, 128, 128, 0.15);
+}
+
+* {
+  scrollbar-width: initial;
+}
+
+body {
+  font: 16px/1.5 var(--body-font-family);
+  font-weight: var(--body-font-weight);
+  font-size: var(--body-font-size);
+  margin: 0;
+  padding: 0;
+  position: relative;
+
+  -webkit-font-feature-settings: "kern", "liga";
+  -moz-font-feature-settings: "kern", "liga";
+  font-feature-settings: "kern", "liga";
+  color: var(--text-color);
+  background: var(--body-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font-family);
+  font-weight: var(--heading-weight);
+  margin: 1.75em 0 0.75em 0;
+  display: flex;
+  align-items: center;
+}
+
+h1 {
+  font-size: calc(1.75em * var(--heading-font-scale));
+}
+
+
+header h1 {
+  margin-top: 0;
+}
+
+h2 {
+  font-size: calc(1.4em * var(--heading-font-scale));
+}
+
+h3 {
+  font-size: calc(1.2em * var(--heading-font-scale));
+}
+
+header h3 {
+  color: var(--text-color-muted);
+  margin-bottom: 0;
+}
+
+h4, h5 {
+  font-size: calc(1em * var(--heading-font-scale));
+}
+
+h6 {
+  font-size: calc(1em * var(--heading-small-font-scale));
+  font-family: var(--heading-small-font-family);
+  font-weight: var(--heading-small-weight);
+}
+
+ol, ul {
+  padding-left: 1rem;
+}
+
+ul ul, ol ul, ul ol, ol ol {
+  margin-bottom: .6em;
+}
+
+p {
+  margin: 0 0 .6em 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+summary {
+  outline: none;
+}
+
+blockquote {
+  border-left: 3px solid var(--primary);
+  background: var(--box-bg);
+  padding: var(--box-padding);
+  border-radius: var(--box-radius);
+  margin: var(--box--margin);
+}
+
+code, 
+pre {
+  font-family: var(--monospace-font-family);
+  font-size: var(--monospace-font-size);
+  color: var(--box-text-color);
+}
+
+pre {
+  background: var(--box-bg);
+  padding: var(--box-padding);
+  border-radius: var(--box-radius);
+  overflow: auto;
+}
+
+code {
+  background: var(--box-bg);
+  padding: 0 0.35em;
+  border-radius: 0.35rem;
+  word-break: break-word;
+}
+
+a > code {
+  color: var(--primary);
+}
+
+
+pre pre,
+pre code {
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
+  background: none;
+  color: inherit;
+}
+
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: 0.85em;
+}
+
+strong, b {
+  font-weight: 600;
+}
+
+/* fix unwanted margins in tables, code, lists and blockquotes */
+li > *:first-child,
+li > *:first-child > *:first-child,
+li > *:first-child > *:first-child > *:first-child,
+td > *:first-child,
+td > *:first-child > *:first-child,
+td > *:first-child > *:first-child > *:first-child,
+pre > *:first-child,
+pre > *:first-child > *:first-child,
+pre > *:first-child > *:first-child > *:first-child,
+blockquote > *:first-child,
+blockquote > *:first-child > *:first-child,
+blockquote > *:first-child > *:first-child > *:first-child {
+  margin-top: 0;
+}
+li > *:last-child,
+li > *:last-child > *:last-child,
+li > *:last-child > *:last-child > *:last-child,
+td > *:last-child,
+td > *:last-child > *:last-child,
+td > *:last-child > *:last-child > *:last-child,
+pre > *:last-child,
+pre > *:last-child > *:last-child,
+pre > *:last-child > *:last-child > *:last-child,
+blockquote > *:last-child,
+blockquote > *:last-child > *:last-child,
+blockquote > *:last-child > *:last-child > *:last-child {
+  margin-bottom: 0;
+}
+
+/*********************************
+ * PAGE STRUCTURE
+ *********************************/
+#body-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+}
+
+#body-wrapper:focus {
+  outline: none;
+}
+
+#main {
+  position: relative;
+  flex-grow: 1;
+  min-width: 0;
+  box-shadow: 0 0 134px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+  width: 100%;
+  display: none;
+}
+
+/*********************************
+ * Button
+ *********************************/
+
+#btn-to-top {
+  position: fixed;
+  bottom: 12px;
+  right: 32px;
+  z-index: 1000;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--primary);
+  background: var(--box-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  text-transform: none;
+}
+
+#btn-to-top > .up-arrow:after {
+  content: "🡅"
+}
+
+/*********************************
+ * SIDEBAR
+ *********************************/
+.sidebar {
+  scrollbar-width: thin;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-bg);
+  min-width: 40ch;
+  padding: var(--sidebar-padding);
+  color: var(--sidebar-text-color);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar a,
+.sidebar a:hover {
+  text-decoration: none;
+}
+
+.sidebar .logo {
+  display: block;
+  margin: 2rem auto 0 auto;
+  width: 70%;
+}
+
+.sidebar .section > ul > li {
+  margin-right: -10px;
+}
+
+.sidebar .section h3, .sidebar .section h5 {
+  text-align: left;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-weight: var(--heading-weight);
+}
+
+.sidebar .section h5 {
+  font-size: 1em;
+  margin-bottom: 0.5em;
+}
+
+.sidebar .namespace > h3 {
+  margin-bottom: 0;
+  padding: 0;
+  font-size: 1.5em;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+.sidebar .namespace > p {
+  font-size: 0.9em;
+  opacity: 0.8;
+  padding-left: 0.5rem;
+}
+
+.sidebar .section {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.sidebar .links {
+  margin-bottom: 1rem;
+}
+
+.sidebar .section a {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  transition: background-color 150ms ease;
+  color: var(--sidebar-primary);
+  border-radius: var(--box-radius);
+   padding: 0.2rem 0.5rem;
+  margin-bottom: 0.15rem;
+}
+
+.sidebar .section a:hover {
+  background-color: rgba(127, 127, 127, 0.2);
+  color: var(--sidebar-text-color);
+}
+
+.sidebar .section a.current {
+  background-color: var(--sidebar-selected-bg);
+  color: white;
+}
+
+.sidebar .search {
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.sidebar .search input[type="text"] {
+  border-color: transparent;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 50px;
+  padding: 6px 12px;
+  display: inline-block;
+  font-size: 80%;
+  box-shadow: inset 0 1px 3px #ddd;
+  transition: border .3s linear;
+}
+
+/*********************************
+ * ANCHORS & TOGGLERS
+ *********************************/
+.anchor,
+.md-anchor {
+  position: relative;
+  z-index: 1;
+  text-decoration: none;
+  padding: 0 0.5em;
+  color: var(--text-color-muted);
+}
+
+.anchor:hover,
+.md-anchor:hover {
+  color: var(--primary);
+}
+
+.anchor:not([href]),
+.md-anchor:not([href]) {
+  display: none;
+}
+
+.anchor:before,
+.md-anchor:before {
+  content: var(--anchor-sign); /*'§'*/
+}
+
+.toggle-wrapper {
+  position: relative;
+}
+
+.collapse-toggle {
+  position: absolute;
+  right: 0;
+  left: -2em;
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: 0.8em;
+  color: transparent;
+}
+
+.collapse-toggle > .inner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: calc(0.75 * var(--box-radius));
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--box-text-color);
+  position: relative;
+  left: -0.25rem;
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-weight: bold;
+  background: var(--box-bg);
+}
+
+/*********************************
+ * UTILITY
+ *********************************/
+.deprecated > h6 > a {
+  opacity: 0.65;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/*********************************
+ * CONTENT STYLING
+ *********************************/
+.content {
+  padding: 2em 4em;
+  overflow: visible;
+  max-width: calc(var(--prefered-content-width) + 8em);
+}
+
+.content table:not(.table-display) {
+  border-spacing: 0 0.25rem;
+}
+
+.content td {
+  vertical-align: top;
+}
+
+.content td:first-child {
+  padding-right: 1rem;
+}
+
+.content td p:first-child {
+  margin-top: 0;
+}
+
+.content td h1, .content td h2 {
+  margin-left: 0;
+  font-size: 1.1em;
+}
+
+.content tr:first-child td {
+  border-top: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font: 15px monospace;
+  line-height: 10px;
+  vertical-align: middle;
+  border: solid 1px;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0;
+  cursor: default;
+}
+
+.content tr:first-child {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.content td {
+  vertical-align: top;
+}
+
+.content td:first-child {
+  padding-right: 1rem;
+}
+
+.content td p:first-child {
+  margin-top: 0;
+}
+
+.content td h4, .content td h5 {
+  margin-left: 0;
+  font-size: 1.1em;
+}
+
+.content tr:first-child td {
+  border-top: 0;
+}
+
+.srclink {
+  color: var(--text-color-muted);
+  font-size: 1rem;
+  font-weight: var(--body-font-weight);
+  flex-grow: 0;
+  text-decoration: none;
+  margin-left: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.meta tr > td:not(:first-child) {
+  width: 100%;
+}
+
+.meta tr > td:first-child {
+  white-space: nowrap;
+}
+
+/*********************************
+ * DOCBLOCK STYLING
+ *********************************/
+.docblock {
+  position: relative;
+  text-align: left;
+}
+
+.docblock h1 {
+  font-size: calc(1.3em * var(--heading-docblock-scale) * var(--heading-font-scale));
+}
+
+.docblock h2 {
+  font-size: calc(1.2em * var(--heading-docblock-scale) * var(--heading-font-scale));
+}
+
+.docblock h3 {
+  font-size: calc(1.1em * var(--heading-docblock-scale) * var(--heading-font-scale));
+}
+
+.docblock h4 {
+  font-size: calc(1.05em * var(--heading-docblock-scale) * var(--heading-font-scale));
+}
+
+.docblock h1,
+.docblock h2,
+.docblock h3,
+.docblock h4,
+.docblock h5,
+.docblock h6 {
+  color: var(--heading-docblock-color)
+}
+
+.docblock table {
+  margin: .25em 0;
+  max-width: 100%;
+  font-size: var(--table-font-size);
+}
+
+.docblock table td {
+  padding: .25em;
+}
+
+.docblock table th {
+  padding: .25em;
+  text-align: left;
+  font-family: var(--heading-table-font-family);
+  font-weight: var(--heading-table-weight);
+}
+
+.docblock table tr th:first-child,
+.docblock table tr td:first-child {
+  padding-left: 0;
+}
+
+.docblock table tr th:last-child,
+.docblock table tr td:last-child {
+  padding-right: 0;
+}
+
+table.enum-members,
+table.results {
+  border-radius: var(--box-radius);
+  border: 1px solid var(--text-color-muted);
+  border-spacing: 0 0 !important;
+  font-size: 80%;
+}
+
+table.enum-members tr th,
+table.results tr th {
+  border-top-color: var(--body-bg);
+  background-color: var(--box-bg);
+  border-bottom: 1px solid var(--text-color-muted);
+}
+
+table.enum-members tr th:first-child,
+table.enum-members tr td:first-child {
+  min-width: 25em;
+  padding-left: .5em;
+}
+
+table.results tr th:first-child,
+table.results tr td:first-child {
+  padding-left: .5em;
+}
+
+table.enum-members tr th:last-child,
+table.enum-members tr td:last-child,
+table.results tr th:last-child,
+table.results tr td:last-child {
+  max-width: 35em;
+  padding-right: .5em;
+}
+
+table.results tr td code {
+  font-size: 100%;
+}
+
+.docblock ul li,
+.docblock ol li {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+.docblock ul.type {
+  list-style: none;
+}
+
+.docblock ul.type li::before {
+  content: "»";
+  color: var(--text-color);
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
+
+/**************************
+ RESPONSIVENESS
+**************************/
+@media (max-width: 700px) {
+  body {
+    padding-top: 0px;
+  }
+
+  #body-wrapper {
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #main {
+    width: 100%;
+    padding: 2rem;
+  }
+
+  .sidebar {
+    position: static;
+    height: initial;
+    order: 1;
+  }
+}

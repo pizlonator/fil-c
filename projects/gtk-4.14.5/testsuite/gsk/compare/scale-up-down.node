@@ -1,0 +1,39 @@
+transform{
+  transform: scale(0.5);
+  child: transform {
+    transform: scale(8);
+    child: clip {
+      clip: 0 0 50 50 / 20 0 0 0;
+      child: color {
+        color: teal;
+      }
+    }
+  }
+}
+
+debug {
+  message: "clipped-out area";
+  child: container {
+    color { color: black;
+            bounds: 0 50 10 30; }
+    color { color: black;
+            bounds: 5 40 10 10; }
+    color { color: black;
+            bounds: 10 35 10 10; }
+    color { color: black;
+            bounds: 12 30 10 10; }
+    color { color: black;
+            bounds: 17 23 10 10; }
+    color { color: black;
+            bounds: 23 16 10 10; }
+    color { color: black;
+            bounds: 30 11 10 10; }
+    color { color: black;
+            bounds: 38 4 10 10; }
+    color { color: black;
+            bounds: 47 2 10 10; }
+    color { color: black;
+            bounds: 54 0 50 10; }
+  }
+
+}

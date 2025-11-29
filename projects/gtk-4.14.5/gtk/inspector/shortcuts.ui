@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkInspectorShortcuts" parent="GtkWidget">
+    <style>
+      <class name="view"/>
+    </style>
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox">
+            <style>
+              <class name="header"/>
+            </style>
+            <child>
+              <object class="GtkLabel" id="trigger_heading">
+                <property name="label" translatable="yes">Trigger</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="action_heading">
+                <property name="label" translatable="yes">Action</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="GtkListBox" id="list">
+                <style>
+                  <class name="list"/>
+                </style>
+                <property name="selection-mode">none</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup" id="trigger">
+    <property name="mode">horizontal</property>
+    <widgets>
+      <widget name="trigger_heading"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup" id="action">
+    <property name="mode">horizontal</property>
+    <widgets>
+      <widget name="action_heading"/>
+    </widgets>
+  </object>
+</interface>

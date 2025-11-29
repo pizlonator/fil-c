@@ -1,0 +1,48 @@
+transform {
+  transform: scale(1, 1);
+  child: opacity {
+    opacity: 0.6;
+    child: container {
+      texture {
+        bounds: 0 0 50 50;
+        texture: url("data:,<svg width='50' height='50'><rect x='25' y='25' width='25' height='25' fill='red'/></svg>");
+      }
+    }
+  }
+}
+transform {
+  transform: scale(1, -1);
+  child: opacity {
+    opacity: 0.6;
+    child: container {
+      texture {
+        bounds: 0 0 50 50;
+        texture: url("data:,<svg width='50' height='50'><rect x='25' y='25' width='25' height='25' fill='lime'/></svg>");
+      }
+    }
+  }
+}
+transform {
+  transform: scale(-1, -1);
+  child: opacity {
+    opacity: 0.6;
+    child: container {
+      texture {
+        bounds: 0 0 50 50;
+        texture: url("data:,<svg width='50' height='50'><rect x='25' y='25' width='25' height='25' fill='blue'/></svg>");
+      }
+    }
+  }
+}
+transform {
+  transform: scale(-1, 1);
+  child: opacity {
+    opacity: 0.6;
+    child: container {
+      texture {
+        bounds: 0 0 50 50;
+        texture: url("data:,<svg width='50' height='50'><rect x='25' y='25' width='25' height='25' fill='yellow'/></svg>");
+      }
+    }
+  }
+}

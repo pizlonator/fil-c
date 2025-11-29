@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkPaned">
+    <property name="visible">1</property>
+    <child>
+      <object class="GtkButton" id="button">
+        <property name="visible">1</property>
+      </object>
+      <packing>
+        <property name="resize">True</property>
+        <property name="shrink">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label">
+        <property name="visible">1</property>
+      </object>
+      <packing>
+        <property name="resize">0</property>
+        <property name="shrink">1</property>
+      </packing>
+    </child>
+  </object>
+</interface>

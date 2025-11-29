@@ -1,0 +1,51 @@
+transform {
+ child: transform {
+  child: rounded-clip {
+    child: container {
+      repeat {
+        bounds: 0 0 159 34;
+        child: container {
+          color {
+            bounds: 0 0 10 10;
+            color: rgb(168,168,168);
+          }
+          color {
+            bounds: 10 0 10 10;
+            color: rgb(84,84,84);
+          }
+          color {
+            bounds: 0 10 10 10;
+            color: rgb(84,84,84);
+          }
+          color {
+            bounds: 10 10 10 10;
+            color: rgb(168,168,168);
+          }
+        }
+      }
+    }
+    clip: 0 0 159 34 / 6;
+  }
+  transform: scale(4, 4);
+ }
+ transform: translate(6, 20);
+}
+
+/* cover the rounded corners */
+color {
+  color: red;
+  bounds: 6 20 25 25;
+}
+color {
+  color: red;
+  bounds: 617 20 25 25;
+}
+color {
+  color: red;
+  bounds: 6 131 25 25;
+}
+color {
+  color: red;
+  bounds: 617 131 25 25;
+}
+

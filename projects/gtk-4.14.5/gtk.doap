@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">gtk</name>
+  <shortname>gtk</shortname>
+  <shortdesc xml:lang="en">Multi-platform toolkit</shortdesc>
+  <description xml:lang="en">GTK is a multi-platform toolkit for creating graphical user
+interfaces. Offering a complete set of widgets, GTK is suitable for
+projects ranging from small one-off tools to complete application
+suites.
+
+GTK has been designed from the ground up to support a range of
+languages, not only C/C++. Using GTK from languages such as Perl and
+Python (especially in combination with the Glade GUI builder) provides
+an effective method of rapid application development.
+
+GTK is free software and part of the GNU Project. However, the
+licensing terms for GTK, the GNU LGPL, allow it to be used by all
+developers, including those developing proprietary software, without
+any license fees or royalties.</description>
+  <homepage rdf:resource="http://www.gtk.org/" />
+  <license rdf:resource="http://usefulinc.com/doap/licenses/lgpl" />
+  <bug-database rdf:resource="https://gitlab.gnome.org/GNOME/gtk/issues/" />
+  <download-page rdf:resource="https://download.gnome.org/sources/gtk/" />
+  <developer-forum rdf:resource="https://discourse.gnome.org/c/platform/5" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#core" />
+
+  <programming-language>C</programming-language>
+
+  <repository>
+    <GitRepository>
+        <browse rdf:resource="https://gitlab.gnome.org/GNOME/gtk/"/>
+      <location rdf:resource="https://gitlab.gnome.org/GNOME/gtk.git"/>
+    </GitRepository>
+  </repository>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Matthias Clasen</foaf:name>
+      <foaf:mbox rdf:resource="mailto:mclasen@redhat.com"/>
+      <gnome:userid>matthiasc</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Emmanuele Bassi</foaf:name>
+      <foaf:mbox rdf:resource="mailto:ebassi@gnome.org"/>
+      <gnome:userid>ebassi</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Timm Baeder</foaf:name>
+      <foaf:mbox rdf:resource="mailto:mail@baedert.org"/>
+      <gnome:userid>baedert</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Benjamin Otte</foaf:name>
+      <foaf:mbox rdf:resource="mailto:otte@gnome.org"/>
+      <gnome:userid>otte</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Carlos Garnacho</foaf:name>
+      <foaf:mbox rdf:resource="mailto:carlosg@gnome.org"/>
+      <gnome:userid>carlosg</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+</Project>

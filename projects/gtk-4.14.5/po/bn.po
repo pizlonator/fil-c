@@ -1,0 +1,7025 @@
+# Bengali Translation of GTK+
+# This file is distributed under the same license as the GTK+ package.
+# Copyright (C) 2003-2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+#
+# Sayamindu Dasgupta <unmadindu@Softhome.net>, 2004.
+# Progga <progga@BengaLinux.Org>, 2004, 2005.
+# Runa Bhattacharjee <runabh@gmail.com>, 2007.
+# Runa Bhattacharjee <runab@redhat.com>, 2008, 2009.
+# Maruf Ovee <maruf@ankur.org.bd>, 2009.
+# Sadia Afroz <sadia@ankur.org.bd>, 2010
+# Israt Jahan <israt@ankur.org.bd>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bn\n"
+"Report-Msgid-Bugs-To: \"https://gitlab.gnome.org/GNOME/gtk/-/issues/\"\n"
+"POT-Creation-Date: 2023-10-19 12:21+0530\n"
+"PO-Revision-Date: 2023-10-24 16:06+0530\n"
+"Last-Translator: Israt Jahan <israt@ankur.org.bd>\n"
+"Language-Team: Bengali <ankur-bd-l10n@googlegroups.com>\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4\n"
+
+#: gdk/broadway/gdkbroadway-server.c:135
+#, c-format
+msgid "Broadway display type not supported: %s"
+msgstr "ব্রডওয়ে প্রদর্শনের ধরন সমর্থিত নয়: %s"
+
+#: gdk/gdkclipboard.c:232
+msgid "This clipboard cannot store data."
+msgstr "এই ক্লিপবোর্ড ডেটা সঞ্চয় করতে পারে না।"
+
+#: gdk/gdkclipboard.c:287 gdk/gdkclipboard.c:785 gdk/gdkclipboard.c:1085
+msgid "Cannot read from empty clipboard."
+msgstr "খালি ক্লিপবোর্ড থেকে পড়া যাবে না।"
+
+#: gdk/gdkclipboard.c:318 gdk/gdkclipboard.c:1135 gdk/gdkdrag.c:618
+msgid "No compatible formats to transfer clipboard contents."
+msgstr "ক্লিপবোর্ড বিষয়বস্তু স্থানান্তর করার জন্য কোন সামঞ্জস্যপূর্ণ বিন্যাস নেই।"
+
+#: gdk/gdkcontentprovider.c:106 gdk/gdkcontentproviderimpl.c:313 gdk/gdkcontentproviderimpl.c:532
+#, c-format
+msgid "Cannot provide contents as “%s”"
+msgstr "\"%s\" হিসাবে বিষয়বস্তু প্রদান করা যাবে না"
+
+#: gdk/gdkcontentprovider.c:127
+#, c-format
+msgid "Cannot provide contents as %s"
+msgstr "%s হিসাবে বিষয়বস্তু প্রদান করা যাবে না"
+
+#: gdk/gdkdisplay.c:164 gdk/gdkglcontext.c:442
+msgid "The current backend does not support OpenGL"
+msgstr "বর্তমান ব্যাকএন্ড OpenGL সমর্থন করে না"
+
+#: gdk/gdkdisplay.c:1259 gdk/gdksurface.c:1252
+msgid "Vulkan support disabled via GDK_DEBUG"
+msgstr "GDK_DEBUG এর মাধ্যমে ভলকান সমর্থন অক্ষম করা হয়েছে৷"
+
+#: gdk/gdkdisplay.c:1291
+msgid "GL support disabled via GDK_DEBUG"
+msgstr "GL সমর্থন GDK_DEBUG এর মাধ্যমে নিষ্ক্রিয়"
+
+#: gdk/gdkdisplay.c:1589
+msgid "No EGL configuration available"
+msgstr "কোনো EGL কনফিগারেশন উপলব্ধ নেই"
+
+#: gdk/gdkdisplay.c:1597
+msgid "Failed to get EGL configurations"
+msgstr "EGL কনফিগারেশন পেতে ব্যর্থ"
+
+#: gdk/gdkdisplay.c:1627
+msgid "No EGL configuration with required features found"
+msgstr "প্রয়োজনীয় বৈশিষ্ট্য সহ কোন EGL কনফিগারেশন পাওয়া যায়নি"
+
+#: gdk/gdkdisplay.c:1634
+msgid "No perfect EGL configuration found"
+msgstr "কোনো নিখুঁত EGL কনফিগারেশন পাওয়া যায়নি"
+
+#: gdk/gdkdisplay.c:1709
+msgid "libEGL not available in this sandbox"
+msgstr "libEGL এই স্যান্ডবক্সে উপলব্ধ নয়"
+
+#: gdk/gdkdisplay.c:1710
+msgid "libEGL not available"
+msgstr "libEGL উপলব্ধ নয়"
+
+#: gdk/gdkdisplay.c:1720
+msgid "Failed to create EGL display"
+msgstr "EGL প্রদর্শন তৈরি করতে ব্যর্থ হয়েছে৷"
+
+#: gdk/gdkdisplay.c:1730
+msgid "Could not initialize EGL display"
+msgstr "EGL প্রদর্শন আরম্ভ করা যায়নি"
+
+#: gdk/gdkdisplay.c:1741
+#, c-format
+msgid "EGL version %d.%d is too old. GTK requires %d.%d"
+msgstr "EGL সংস্করণ %d. %d খুব পুরানো৷ GTK-এর প্রয়োজন %d.%d"
+
+#: gdk/gdkdrop.c:130
+msgid "Drag’n’drop from other applications is not supported."
+msgstr "অন্যান্য অ্যাপ্লিকেশানগুলি থেকে টেনে আনা সমর্থিত নয়৷"
+
+#: gdk/gdkdrop.c:163
+msgid "No compatible formats to transfer contents."
+msgstr "বিষয়বস্তু স্থানান্তর করার জন্য কোন সামঞ্জস্যপূর্ণ বিন্যাস নেই."
+
+#: gdk/gdkglcontext.c:401 gdk/x11/gdkglcontext-glx.c:642
+msgid "No GL API allowed."
+msgstr "কোন GL API অনুমোদিত নয়।"
+
+#: gdk/gdkglcontext.c:425 gdk/win32/gdkglcontext-win32-wgl.c:387 gdk/win32/gdkglcontext-win32-wgl.c:530
+#: gdk/win32/gdkglcontext-win32-wgl.c:574 gdk/x11/gdkglcontext-glx.c:691
+msgid "Unable to create a GL context"
+msgstr "একটি GL প্রসঙ্গ তৈরি করতে অক্ষম৷"
+
+#: gdk/gdkglcontext.c:1280
+msgid "Anything but OpenGL ES disabled via GDK_DEBUG"
+msgstr "GDK_DEBUG এর মাধ্যমে OpenGL ES অক্ষম ছাড়া অন্য কিছু"
+
+#: gdk/gdkglcontext.c:1289
+#, c-format
+msgid "Application does not support %s API"
+msgstr "অ্যাপ্লিকেশন %s API সমর্থন করে না"
+
+#. translators: This is about OpenGL backend names, like
+#. * "Trying to use X11 GLX, but EGL is already in use"
+#: gdk/gdkglcontext.c:1914
+#, c-format
+msgid "Trying to use %s, but %s is already in use"
+msgstr "%s ব্যবহার করার চেষ্টা করা হচ্ছে, কিন্তু %s ইতিমধ্যেই ব্যবহার করা হচ্ছে"
+
+#: gdk/gdktexture.c:530
+msgid "Unknown image format."
+msgstr "অজানা চিত্র বিন্যাস।"
+
+#: gdk/loaders/gdkjpeg.c:63
+#, c-format
+msgid "Error interpreting JPEG image file (%s)"
+msgstr "JPEG ছবির ফাইল (%s) ব্যাখ্যা করার সময় ত্রুটি"
+
+#: gdk/loaders/gdkjpeg.c:194
+#, c-format
+msgid "Unsupported JPEG colorspace (%d)"
+msgstr "অসমর্থিত JPEG কালারস্পেস (%d)"
+
+#: gdk/loaders/gdkjpeg.c:203 gdk/loaders/gdkpng.c:280 gdk/loaders/gdktiff.c:467
+#, c-format
+msgid "Not enough memory for image size %ux%u"
+msgstr "ছবির আকার %ux%u এর জন্য যথেষ্ট মেমরি নেই"
+
+#: gdk/loaders/gdkpng.c:118
+#, c-format
+msgid "Error reading png (%s)"
+msgstr "png পড়ার ত্রুটি (%s)"
+
+# FIXME
+#: gdk/loaders/gdkpng.c:211
+#, c-format
+msgid "Unsupported depth %u in png image"
+msgstr "PNG ছবিতে অসমর্থিত গভীরতা %u"
+
+#: gdk/loaders/gdkpng.c:261
+#, c-format
+msgid "Unsupported color type %u in png image"
+msgstr "PNG লক্ষ্য অসমর্থিত গভীরতা %u"
+
+#: gdk/loaders/gdktiff.c:353
+msgid "Failed to load RGB data from TIFF file"
+msgstr "TIFF ফাইল থেকে RGB উপাত্ত লোড করতে ব্যর্থ"
+
+#: gdk/loaders/gdktiff.c:396
+msgid "Could not load TIFF data"
+msgstr "TIFF ডেটা লোড করা যায়নি"
+
+#: gdk/loaders/gdktiff.c:479
+#, c-format
+msgid "Reading data failed at row %d"
+msgstr "%d সারিতে ডেটা পড়া ব্যর্থ হয়েছে৷"
+
+#: gdk/macos/gdkmacospasteboard.c:211 gdk/wayland/gdkclipboard-wayland.c:240 gdk/wayland/gdkdrop-wayland.c:207
+#: gdk/wayland/gdkprimary-wayland.c:343 gdk/win32/gdkdrop-win32.c:1018 gdk/win32/gdkdrop-win32.c:1063
+#: gdk/x11/gdkclipboard-x11.c:807 gdk/x11/gdkdrop-x11.c:235
+msgid "No compatible transfer format found"
+msgstr "কোন সামঞ্জস্যপূর্ণ স্থানান্তর বিন্যাস পাওয়া যায়নি"
+
+#: gdk/macos/gdkmacospasteboard.c:297
+#, c-format
+msgid "Failed to decode contents with mime-type of '%s'"
+msgstr "'%s'-এর মাইম-টাইপ দিয়ে বিষয়বস্তু ডিকোড করতে ব্যর্থ হয়েছে"
+
+#: gdk/win32/gdkclipdrop-win32.c:721
+#, c-format
+msgid "Cannot claim clipboard ownership. OpenClipboard() timed out."
+msgstr "ক্লিপবোর্ডের মালিকানা দাবি করা যাবে না। OpenClipboard() সময় শেষ হয়েছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:731
+#, c-format
+msgid "Cannot claim clipboard ownership. Another process claimed it before us."
+msgstr "ক্লিপবোর্ডের মালিকানা দাবি করা যাবে না। আরেকটি প্রক্রিয়া আমাদের সামনে এটি দাবি করেছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:745
+#, c-format
+msgid "Cannot claim clipboard ownership. OpenClipboard() failed: 0x%lx."
+msgstr "ক্লিপবোর্ডের মালিকানা দাবি করা যাবে না। OpenClipboard() ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:757
+#, c-format
+msgid "Cannot claim clipboard ownership. EmptyClipboard() failed: 0x%lx."
+msgstr "ক্লিপবোর্ডের মালিকানা দাবি করা যাবে না। EmptyClipboard() ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:800
+#, c-format
+msgid "Cannot set clipboard data. OpenClipboard() timed out."
+msgstr "ক্লিপবোর্ড ডেটা সেট করা যাবে না। OpenClipboard() সময় শেষ হয়েছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:810 gdk/win32/gdkclipdrop-win32.c:841
+#, c-format
+msgid "Cannot set clipboard data. Another process claimed clipboard ownership."
+msgstr "ক্লিপবোর্ড ডেটা সেট করা যাবে না। আরেকটি প্রক্রিয়া ক্লিপবোর্ডের মালিকানা দাবি করেছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:824
+#, c-format
+msgid "Cannot set clipboard data. OpenClipboard() failed: 0x%lx."
+msgstr "ক্লিপবোর্ড ডেটা সেট করা যাবে না। OpenClipboard() ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:876
+#, c-format
+msgid "Cannot get clipboard data. GlobalLock(0x%p) failed: 0x%lx."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। GlobalLock(0x%p) ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:887
+#, c-format
+msgid "Cannot get clipboard data. GlobalSize(0x%p) failed: 0x%lx."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। GlobalSize(0x%p) ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:900
+#, c-format
+msgid "Cannot get clipboard data. Failed to allocate %s bytes to store the data."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। ডেটা সঞ্চয় করার জন্য %s বাইট বরাদ্দ করতে ব্যর্থ হয়েছে৷"
+
+#: gdk/win32/gdkclipdrop-win32.c:932
+#, c-format
+msgid "Cannot get clipboard data. OpenClipboard() timed out."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। OpenClipboard() সময় শেষ হয়েছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:942
+#, c-format
+msgid "Cannot get clipboard data. Clipboard ownership changed."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। ক্লিপবোর্ডের মালিকানা পরিবর্তিত হয়েছে৷"
+
+#: gdk/win32/gdkclipdrop-win32.c:952
+#, c-format
+msgid "Cannot get clipboard data. Clipboard data changed before we could get it."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। ক্লিপবোর্ড ডেটা আমরা পাওয়ার আগেই পরিবর্তিত হয়েছে।"
+
+#: gdk/win32/gdkclipdrop-win32.c:969
+#, c-format
+msgid "Cannot get clipboard data. OpenClipboard() failed: 0x%lx."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। OpenClipboard() ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkclipdrop-win32.c:994
+#, c-format
+msgid "Cannot get clipboard data. No compatible transfer format found."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। কোন সামঞ্জস্যপূর্ণ স্থানান্তর বিন্যাস পাওয়া যায়নি."
+
+#: gdk/win32/gdkclipdrop-win32.c:1004
+#, c-format
+msgid "Cannot get clipboard data. GetClipboardData() failed: 0x%lx."
+msgstr "ক্লিপবোর্ড ডেটা পাওয়া যাচ্ছে না। GetClipboardData() ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkdrop-win32.c:949
+#, c-format
+msgid "Cannot get DnD data. GlobalLock(0x%p) failed: 0x%lx."
+msgstr "DnD ডেটা পাওয়া যাচ্ছে না। GlobalLock(0x%p) ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkdrop-win32.c:958
+#, c-format
+msgid "Cannot get DnD data. GlobalSize(0x%p) failed: 0x%lx."
+msgstr "DnD ডেটা পাওয়া যাচ্ছে না। GlobalSize(0x%p) ব্যর্থ হয়েছে: 0x%lx।"
+
+#: gdk/win32/gdkdrop-win32.c:969
+#, c-format
+msgid "Cannot get DnD data. Failed to allocate %s bytes to store the data."
+msgstr "DnD ডেটা পাওয়া যাচ্ছে না। ডেটা সঞ্চয় করার জন্য %s বাইট বরাদ্দ করতে ব্যর্থ হয়েছে৷"
+
+#: gdk/win32/gdkdrop-win32.c:1037
+#, c-format
+msgid "GDK surface 0x%p is not registered as a drop target"
+msgstr "GDK পৃষ্ঠ 0x%p ড্রপ লক্ষ্য হিসাবে নিবন্ধিত নয়"
+
+#: gdk/win32/gdkdrop-win32.c:1044
+#, c-format
+msgid "Target context record 0x%p has no data object"
+msgstr "টার্গেট প্রসঙ্গ রেকর্ড 0x%p কোনো ডেটা অবজেক্ট নেই"
+
+#: gdk/win32/gdkdrop-win32.c:1082
+#, c-format
+msgid "IDataObject_GetData (0x%x) failed, returning 0x%lx"
+msgstr "IDataObject_GetData (0x%x) ব্যর্থ হয়েছে, 0x%lx ফেরত দিচ্ছে"
+
+#: gdk/win32/gdkdrop-win32.c:1114
+#, c-format
+msgid "Failed to transmute DnD data W32 format 0x%x to %p (%s)"
+msgstr "DnD ডেটা W32 ফর্ম্যাট 0x%x থেকে %p (%s) ট্রান্সমিউট করতে ব্যর্থ হয়েছে"
+
+#: gdk/win32/gdkglcontext-win32-wgl.c:319
+msgid "No GL implementation is available"
+msgstr "কোন GL বাস্তবায়ন উপলব্ধ নেই"
+
+#: gdk/win32/gdkglcontext-win32-wgl.c:396
+#, c-format
+msgid "WGL version %d.%d is too low, need at least %d.%d"
+msgstr "WGL সংস্করণ %d.%d খুবই কম, অন্তত %d.%d প্রয়োজন৷"
+
+#: gdk/win32/gdkglcontext-win32-wgl.c:414
+#, c-format
+msgid "GL implementation cannot share GL contexts"
+msgstr "GL বাস্তবায়ন GL প্রসঙ্গ শেয়ার করতে পারে না"
+
+#: gdk/win32/gdkglcontext-win32-wgl.c:696
+msgid "No available configurations for the given pixel format"
+msgstr "প্রদত্ত পিক্সেল বিন্যাসের জন্য কোন উপলব্ধ কনফিগারেশন নেই"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:63
+msgid "writing a closed stream"
+msgstr "একটি বদ্ধ স্রোত লেখা"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:85
+msgid "g_try_realloc () failed"
+msgstr "g_try_realloc () ব্যর্থ হয়েছে"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:93 gdk/win32/gdkhdataoutputstream-win32.c:231
+msgid "GlobalReAlloc() failed: "
+msgstr "GlobalReAlloc() ব্যর্থ হয়েছে:"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:105
+msgid "Ran out of buffer space (buffer size is fixed)"
+msgstr "বাফার স্পেস ফুরিয়ে গেছে (বাফার সাইজ স্থির)"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:203
+msgid "Can’t transmute a single handle"
+msgstr "একটি একক হ্যান্ডেল স্থানান্তর করতে পারবেন না"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:215
+#, c-format
+msgid "Failed to transmute %zu bytes of data from %s to %u"
+msgstr "%zu বাইট ডেটা %s থেকে %u-এ স্থানান্তর করতে ব্যর্থ হয়েছে৷"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:250
+msgid "GlobalLock() failed: "
+msgstr "GlobalLock() ব্যর্থ হয়েছে:"
+
+#: gdk/win32/gdkhdataoutputstream-win32.c:364
+msgid "GlobalAlloc() failed: "
+msgstr "GlobalAlloc() ব্যর্থ হয়েছে:"
+
+#: gdk/x11/gdkapplaunchcontext-x11.c:299
+#, c-format
+msgid "Starting “%s”"
+msgstr "\"%s\" শুরু হচ্ছে"
+
+#: gdk/x11/gdkapplaunchcontext-x11.c:312
+#, c-format
+msgid "Opening “%s”"
+msgstr "\"%s\" খোলা হচ্ছে"
+
+#: gdk/x11/gdkclipboard-x11.c:477
+msgid "Clipboard manager could not store selection."
+msgstr "ক্লিপবোর্ড ম্যানেজার নির্বাচন সঞ্চয় করতে পারেনি৷"
+
+#: gdk/x11/gdkclipboard-x11.c:657
+msgid "Cannot store clipboard. No clipboard manager is active."
+msgstr "ক্লিপবোর্ড সংরক্ষণ করা যাবে না। কোনো ক্লিপবোর্ড ম্যানেজার সক্রিয় নেই।"
+
+#: gdk/x11/gdkglcontext-glx.c:810
+msgid "No GLX configurations available"
+msgstr "কোন GLX কনফিগারেশন উপলব্ধ নেই"
+
+#: gdk/x11/gdkglcontext-glx.c:883
+msgid "No GLX configuration with required features found"
+msgstr "প্রয়োজনীয় বৈশিষ্ট্য সহ কোন GLX কনফিগারেশন পাওয়া যায়নি"
+
+#: gdk/x11/gdkglcontext-glx.c:957
+msgid "GLX is not supported"
+msgstr "GLX সমর্থিত নয়"
+
+#: gdk/x11/gdkselectioninputstream-x11.c:467
+#, c-format
+msgid "Format %s not supported"
+msgstr "ফর্ম্যাট %s সমর্থিত নয়"
+
+#: gdk/x11/gdktextlistconverter-x11.c:65 gdk/x11/gdktextlistconverter-x11.c:105
+msgid "Not enough space in destination"
+msgstr "গন্তব্যে পর্যাপ্ত জায়গা নেই"
+
+#: gdk/x11/gdktextlistconverter-x11.c:91 gdk/x11/gdktextlistconverter-x11.c:195
+msgid "Need complete input to do conversion"
+msgstr "রূপান্তর করতে সম্পূর্ণ ইনপুট প্রয়োজন"
+
+#: gdk/x11/gdktextlistconverter-x11.c:216 gdk/x11/gdktextlistconverter-x11.c:250
+msgid "Invalid byte sequence in conversion input"
+msgstr "রূপান্তর ইনপুটে অবৈধ বাইট ক্রম"
+
+#: gdk/x11/gdktextlistconverter-x11.c:242
+msgid "Invalid formats in compound text conversion."
+msgstr "রূপান্তর ইনপুটে বাইট ক্রম"
+
+#: gdk/x11/gdktextlistconverter-x11.c:259
+#, c-format
+msgid "Unsupported encoding “%s”"
+msgstr "অসমর্থিত এনকোডিং “%s”"
+
+#: gsk/gl/gskglrenderer.c:132
+#, c-format
+msgid "This GLES %d.%d implementation does not support half-float vertex data"
+msgstr "এই GLES %d.%d বাস্তবায়ন হাফ-ফ্লোট ভার্টেক্স ডেটা সমর্থন করে না"
+
+#: gtk/css/gtkcssdataurl.c:69
+#, c-format
+msgid "Not a data: URL"
+msgstr "একটি ডেটা নয়: URL"
+
+#: gtk/css/gtkcssdataurl.c:82
+#, c-format
+msgid "Malformed data: URL"
+msgstr "বিকৃত তথ্য: URL"
+
+#: gtk/css/gtkcssdataurl.c:140
+#, c-format
+msgid "Could not unescape string"
+msgstr "স্ট্রিং মুক্ত করা যায়নি"
+
+#: gtk/deprecated/gtkappchooserbutton.c:323
+msgid "Other app…"
+msgstr "অন্য অ্যাপ…"
+
+#: gtk/deprecated/gtkappchooserdialog.c:215 gtk/deprecated/gtkappchooserdialog.c:266
+msgid "Select Application"
+msgstr "অ্যাপ্লিকেশন নির্বাচন করুন"
+
+#. Translators: %s is a filename
+#: gtk/deprecated/gtkappchooserdialog.c:222
+#, c-format
+msgid "Opening “%s”."
+msgstr "\"%s\" খোলা হচ্ছে।"
+
+#: gtk/deprecated/gtkappchooserdialog.c:223
+#, c-format
+msgid "No applications found for “%s”"
+msgstr "“%s”-এর জন্য কোনো অ্যাপ্লিকেশন পাওয়া যায়নি"
+
+#. Translators: %s is a file type description
+#: gtk/deprecated/gtkappchooserdialog.c:228
+#, c-format
+msgid "Opening “%s” files."
+msgstr "\"%s\" ফাইল খোলা হচ্ছে।"
+
+#: gtk/deprecated/gtkappchooserdialog.c:230
+#, c-format
+msgid "No applications found for “%s” files"
+msgstr "“%s” ফাইলের জন্য কোনো অ্যাপ্লিকেশন পাওয়া যায়নি"
+
+#: gtk/deprecated/gtkappchooserdialog.c:432
+msgid "Failed to start GNOME Software"
+msgstr "GNOME সফ্টওয়্যার শুরু করতে ব্যর্থ হয়েছে৷"
+
+#: gtk/deprecated/gtkappchooserwidget.c:525
+msgid "Default App"
+msgstr "ডিফল্ট অ্যাপ"
+
+#: gtk/deprecated/gtkappchooserwidget.c:575
+#, c-format
+msgid "No apps found for “%s”."
+msgstr "“%s”-এর জন্য কোনো অ্যাপ পাওয়া যায়নি।"
+
+#: gtk/deprecated/gtkappchooserwidget.c:658
+msgid "Recommended Apps"
+msgstr "প্রস্তাবিত অ্যাপস"
+
+#: gtk/deprecated/gtkappchooserwidget.c:673
+msgid "Related Apps"
+msgstr "সম্পর্কিত অ্যাপস"
+
+#: gtk/deprecated/gtkappchooserwidget.c:687
+msgid "Other Apps"
+msgstr "অন্যান্য অ্যাপস"
+
+#. This label is displayed in a treeview cell displaying an accelerator
+#. * when the cell is clicked to change the acelerator.
+#.
+#: gtk/deprecated/gtkcellrendereraccel.c:436 gtk/deprecated/gtkcellrendereraccel.c:729
+msgid "New accelerator…"
+msgstr "নতুন এক্সিলারেটর…"
+
+#: gtk/deprecated/gtkcolorbutton.c:183 gtk/deprecated/gtkcolorbutton.c:314 gtk/gtkcolordialog.c:411
+msgid "Pick a Color"
+msgstr "একটি রং নাও"
+
+#: gtk/deprecated/gtkcolorbutton.c:505 gtk/gtkcolorchooserwidget.c:313 gtk/gtkcolordialogbutton.c:335
+#, c-format
+msgid "Red %d%%, Green %d%%, Blue %d%%, Alpha %d%%"
+msgstr "লাল %d%%, সবুজ %d%%, নীল %d%%, আলফা %d%%"
+
+#: gtk/deprecated/gtkcolorbutton.c:511 gtk/gtkcolorchooserwidget.c:319 gtk/gtkcolordialogbutton.c:341
+#, c-format
+msgid "Red %d%%, Green %d%%, Blue %d%%"
+msgstr "লাল %d%%, সবুজ %d%%, নীল %d%%"
+
+#: gtk/deprecated/gtkfontbutton.c:396
+msgid "Sans 12"
+msgstr "ছাড়া 12"
+
+#: gtk/deprecated/gtkfontbutton.c:507 gtk/deprecated/gtkfontbutton.c:624 gtk/gtkfontdialog.c:596
+msgid "Pick a Font"
+msgstr "একটি ফন্ট নির্বাচন করুন"
+
+#: gtk/deprecated/gtkfontbutton.c:600 gtk/gtkfontdialogbutton.c:126 gtk/inspector/visual.ui:169
+msgid "Font"
+msgstr "ফন্ট"
+
+#: gtk/deprecated/gtklockbutton.c:294 gtk/ui/gtklockbutton.ui:20
+msgid "Lock"
+msgstr "তালা"
+
+#: gtk/deprecated/gtklockbutton.c:308 gtk/ui/gtklockbutton.ui:26
+msgid "Unlock"
+msgstr "আনলক"
+
+#: gtk/deprecated/gtklockbutton.c:322
+msgid ""
+"Dialog is unlocked.\n"
+"Click to prevent further changes"
+msgstr ""
+"ডায়ালগ আনলক করা আছে।\n"
+"আরও পরিবর্তন প্রতিরোধ করতে ক্লিক করুন"
+
+#: gtk/deprecated/gtklockbutton.c:336
+msgid ""
+"Dialog is locked.\n"
+"Click to make changes"
+msgstr ""
+"ডায়ালগ লক করা আছে।\n"
+"পরিবর্তন করতে ক্লিক করুন"
+
+#: gtk/deprecated/gtklockbutton.c:350
+msgid ""
+"System policy prevents changes.\n"
+"Contact your system administrator"
+msgstr ""
+"সিস্টেম নীতি পরিবর্তন প্রতিরোধ করে।\n"
+"আপনার সিস্টেম অ্যাডমিনিস্ট্রেটরের সাথে যোগাযোগ করুন"
+
+#: gtk/deprecated/gtkshow.c:183
+msgid "Could not show link"
+msgstr "লিংক প্রদর্শন করা যায়নি"
+
+#: gtk/deprecated/gtkvolumebutton.c:236
+msgid "Muted"
+msgstr "নিঃশব্দ"
+
+#: gtk/deprecated/gtkvolumebutton.c:240
+msgid "Full Volume"
+msgstr "সর্বোচ্চ ভলিউম"
+
+#: gtk/gtkaboutdialog.c:963
+msgid "Website"
+msgstr "ওয়েবসাইট"
+
+#: gtk/gtkaboutdialog.c:999 gtk/ui/gtkapplication-quartz.ui:6
+#, c-format
+msgid "About %s"
+msgstr "%s পরিচিতি"
+
+#: gtk/gtkaboutdialog.c:2089
+msgid "Created by"
+msgstr "তৈরি করেছে"
+
+#: gtk/gtkaboutdialog.c:2092
+msgid "Documented by"
+msgstr "নথি লিখেছেন"
+
+#: gtk/gtkaboutdialog.c:2102
+msgid "Translated by"
+msgstr "অনুবাদক"
+
+#: gtk/gtkaboutdialog.c:2107
+msgid "Design by"
+msgstr "দ্বারা অংকিত"
+
+#. Translators: this is the license preamble; the string at the end
+#. * contains the name of the license as link text.
+#.
+#: gtk/gtkaboutdialog.c:2272
+#, c-format
+msgid ""
+"This program comes with absolutely no warranty.\n"
+"See the <a href=\"%s\">%s</a> for details."
+msgstr ""
+"এই প্রোগ্রাম একেবারে কোন ওয়ারেন্টি সঙ্গে আসে.\n"
+"বিস্তারিত জানার জন্য <a href=\"%s\">%s</a> দেখুন৷"
+
+#: gtk/gtkalertdialog.c:668 gtk/print/gtkcustompaperunixdialog.c:322 gtk/gtkmessagedialog.c:166 gtk/ui/gtkassistant.ui:40
+msgid "_Close"
+msgstr "_বন্ধ"
+
+#. Translators: This is the 'reason' given when inhibiting
+#. * suspend or screen locking, and the caller hasn't specified
+#. * a reason.
+#.
+#: gtk/gtkapplication-dbus.c:721
+msgid "Reason not specified"
+msgstr "কারণ উল্লেখ করা হয়নি"
+
+#: gtk/gtkbookmarksmanager.c:53
+#, c-format
+msgid "%s does not exist in the bookmarks list"
+msgstr "বুকমার্ক তালিকায় %s বিদ্যমান নেই"
+
+#: gtk/gtkbookmarksmanager.c:414
+#, c-format
+msgid "%s already exists in the bookmarks list"
+msgstr "বুকমার্ক তালিকায় %s ইতিমধ্যেই বিদ্যমান"
+
+#: gtk/gtkbuilder-menus.c:224
+#, c-format
+msgid "Element <%s> not allowed inside <%s>"
+msgstr "উপাদান <%s> <%s> এর ভিতরে অনুমোদিত নয়"
+
+#: gtk/gtkbuilder-menus.c:230
+#, c-format
+msgid "Element <%s> not allowed at toplevel"
+msgstr "উপাদান <%s> শীর্ষ স্তরে অনুমোদিত নয়"
+
+#: gtk/gtkbuilder-menus.c:319
+#, c-format
+msgid "Text may not appear inside <%s>"
+msgstr "পাঠ্য <%s> এর ভিতরে নাও দেখা যেতে পারে"
+
+#. Translate to calendar:week_start:0 if you want Sunday to be the
+#. * first day of the week to calendar:week_start:1 if you want Monday
+#. * to be the first day of the week, and so on.
+#.
+#: gtk/gtkcalendar.c:659
+msgid "calendar:week_start:0"
+msgstr "ক্যালেন্ডার:week_start:0"
+
+#. Translate to calendar:YM if you want years to be displayed
+#. * before months; otherwise translate to calendar:MY.
+#. * Do *not* translate it to anything else, if it
+#. * it isn't calendar:YM or calendar:MY it will not work.
+#. *
+#. * Note that the ordering described here is logical order, which is
+#. * further influenced by BIDI ordering. Thus, if you have a default
+#. * text direction of RTL and specify "calendar:YM", then the year
+#. * will appear to the right of the month.
+#.
+#: gtk/gtkcalendar.c:810
+msgid "calendar:MY"
+msgstr "ক্যালেন্ডার: আমার"
+
+#: gtk/gtkcolorchooserwidget.c:376 gtk/gtkcoloreditor.c:171
+#, c-format
+msgid "Color: %s"
+msgstr "রং: %s"
+
+#. translators: label for the custom section in the color chooser
+#: gtk/gtkcolorchooserwidget.c:557
+#, fuzzy
+msgid "Custom"
+msgstr "স্বনির্ধারিত আকার"
+
+#: gtk/gtkcolorchooserwidget.c:571
+msgid "Add Color"
+msgstr "রঙ যোগ করুন"
+
+#: gtk/gtkcolorchooserwidget.c:593
+#, c-format
+msgid "Custom color %d: %s"
+msgstr "কাস্টম রঙ %d: %s"
+
+#: gtk/gtkcolorswatch.c:230
+#, fuzzy
+msgid "Customize"
+msgstr "স্বনির্ধারিত আকার"
+
+#. Translate to the default units to use for presenting
+#. * lengths to the user. Translate to default:inch if you
+#. * want inches, otherwise translate to default:mm.
+#. * Do *not* translate it to "predefinito:mm", if it
+#. * it isn't default:mm or default:inch it will not work
+#.
+#: gtk/print/gtkcustompaperunixdialog.c:106
+msgid "default:mm"
+msgstr "ডিফল্ট: মিমি"
+
+#: gtk/print/gtkcustompaperunixdialog.c:291
+msgid "Margins from Printer…"
+msgstr "প্রিন্টার থেকে মার্জিন..."
+
+#. And show the custom paper dialog
+#: gtk/print/gtkcustompaperunixdialog.c:377 gtk/print/gtkprintunixdialog.c:2968
+msgid "Manage Custom Sizes"
+msgstr "স্বনির্ধারিত আকার পরিচালনা"
+
+#: gtk/print/gtkcustompaperunixdialog.c:440 gtk/print/gtkpagesetupunixdialog.c:720
+msgid "inch"
+msgstr "inch"
+
+#: gtk/print/gtkcustompaperunixdialog.c:442 gtk/print/gtkpagesetupunixdialog.c:718
+msgid "mm"
+msgstr "mm"
+
+#: gtk/print/gtkcustompaperunixdialog.c:598
+#, c-format
+msgid "Custom Size %d"
+msgstr "স্বনির্ধারিত আকার %d"
+
+#: gtk/print/gtkcustompaperunixdialog.c:908
+msgid "_Width:"
+msgstr "প্রস্থ: (_W)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:917
+msgid "_Height:"
+msgstr "উচ্চতা: (_H)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:926
+msgid "Paper Size"
+msgstr "কাগজের আকৃতি"
+
+#: gtk/print/gtkcustompaperunixdialog.c:933
+msgid "_Top:"
+msgstr "শীর্ষ: (_T)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:942
+msgid "_Bottom:"
+msgstr "নিম্ন: (_B)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:951
+msgid "_Left:"
+msgstr "বাম: (_L)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:960
+msgid "_Right:"
+msgstr "ডান: (_R)"
+
+#: gtk/print/gtkcustompaperunixdialog.c:993
+msgid "Paper Margins"
+msgstr "কাগজের প্রান্ত"
+
+#: gtk/gtkentry.c:3685
+msgid "Insert Emoji"
+msgstr "ইমোজি ঢোকান"
+
+#: gtk/gtkfilechooserdialog.c:557
+msgid "_Name"
+msgstr "_নাম"
+
+#: gtk/gtkfilechoosererrorstack.c:65
+msgid "A folder cannot be called “.”"
+msgstr "একটি ফোল্ডার \".\" বলা যাবে না।"
+
+#: gtk/gtkfilechoosererrorstack.c:69
+msgid "A file cannot be called “.”"
+msgstr "একটি ফাইল \".\" বলা যাবে না।"
+
+#: gtk/gtkfilechoosererrorstack.c:73
+msgid "A folder cannot be called “..”"
+msgstr "একটি ফোল্ডার \"..\" বলা যাবে না।"
+
+#: gtk/gtkfilechoosererrorstack.c:77
+msgid "A file cannot be called “..”"
+msgstr "একটি ফাইল \"..\" বলা যাবে না।"
+
+#: gtk/gtkfilechoosererrorstack.c:81
+msgid "Folder names cannot contain “/”"
+msgstr "ফোল্ডারের নামগুলিতে \"/\" থাকতে পারে না"
+
+#: gtk/gtkfilechoosererrorstack.c:85
+msgid "File names cannot contain “/”"
+msgstr "ফাইলের নামগুলিতে \"/\" থাকতে পারে না"
+
+#: gtk/gtkfilechoosererrorstack.c:89
+msgid "Folder names should not begin with a space"
+msgstr "ফোল্ডারের নাম স্পেস দিয়ে শুরু করা উচিত নয়"
+
+#: gtk/gtkfilechoosererrorstack.c:93
+msgid "File names should not begin with a space"
+msgstr "ফাইলের নাম স্পেস দিয়ে শুরু করা উচিত নয়"
+
+#: gtk/gtkfilechoosererrorstack.c:97
+msgid "Folder names should not end with a space"
+msgstr "ফোল্ডারের নাম স্পেস দিয়ে শেষ হওয়া উচিত নয়"
+
+#: gtk/gtkfilechoosererrorstack.c:101
+msgid "File names should not end with a space"
+msgstr "ফাইলের নাম স্পেস দিয়ে শেষ হওয়া উচিত নয়"
+
+#: gtk/gtkfilechoosererrorstack.c:105
+msgid "Folder names starting with a “.” are hidden"
+msgstr "ফোল্ডারের নাম \".\" দিয়ে শুরু লুকানো হয়"
+
+#: gtk/gtkfilechoosererrorstack.c:109
+msgid "File names starting with a “.” are hidden"
+msgstr "ফাইলের নাম \".\" দিয়ে শুরু লুকানো হয়"
+
+#: gtk/gtkfilechoosererrorstack.c:113
+msgid "A folder with that name already exists"
+msgstr "এই নামের একটি ফোল্ডার ইতিমধ্যেই বিদ্যমান"
+
+#: gtk/gtkfilechoosererrorstack.c:117
+msgid "A file with that name already exists"
+msgstr "এই নামের একটি ফাইল ইতিমধ্যেই বিদ্যমান"
+
+#: gtk/gtkfilechoosernative.c:520 gtk/gtkfilechoosernative.c:600 gtk/gtkfilechooserwidget.c:1183
+#: gtk/gtkfilechooserwidget.c:4964 gtk/gtkfiledialog.c:843 gtk/gtkmessagedialog.c:170 gtk/gtkmessagedialog.c:179
+#: gtk/gtkmountoperation.c:608 gtk/print/gtkpagesetupunixdialog.c:282 gtk/print/gtkprintbackend.c:638
+#: gtk/print/gtkprintunixdialog.c:682 gtk/print/gtkprintunixdialog.c:839 gtk/gtkwindow.c:6243
+#: gtk/ui/gtkappchooserdialog.ui:48 gtk/ui/gtkassistant.ui:52 gtk/ui/gtkcolorchooserdialog.ui:36
+#: gtk/ui/gtkfontchooserdialog.ui:27
+msgid "_Cancel"
+msgstr "_বাতিল করুন"
+
+#: gtk/gtkfilechoosernative.c:521 gtk/gtkfilechoosernative.c:594 gtk/gtkfiledialog.c:815 gtk/gtkplacessidebar.c:3149
+#: gtk/gtkplacessidebar.c:3234 gtk/gtkplacesview.c:1645
+msgid "_Open"
+msgstr "_খোলা"
+
+#: gtk/gtkfilechoosernative.c:594 gtk/gtkfiledialog.c:820
+msgid "_Save"
+msgstr "_সংরক্ষণ"
+
+#: gtk/gtkfilechoosernativequartz.c:344 gtk/ui/gtkfilechooserwidget.ui:288
+msgid "Select which types of files are shown"
+msgstr "কোন ধরনের ফাইল প্রদর্শন করা হবে নির্বাচন করুন"
+
+#. Translators: the first string is a path and the second string
+#. * is a hostname. Nautilus and the panel contain the same string
+#. * to translate.
+#.
+#: gtk/gtkfilechooserutils.c:364
+#, c-format
+msgid "%1$s on %2$s"
+msgstr "%1$s, %2$s'র উপর"
+
+#: gtk/gtkfilechooserwidget.c:343
+msgid "Type name of new folder"
+msgstr "নতুন ফোল্ডারের নাম লিখুন"
+
+#: gtk/gtkfilechooserwidget.c:725
+msgid "The folder could not be created"
+msgstr "ফোল্ডার তৈরি করা যায়নি"
+
+#: gtk/gtkfilechooserwidget.c:738
+msgid "You need to choose a valid filename."
+msgstr "আপনাকে একটি কার্যকর ফাইলনাম বেছে নিতে হবে।"
+
+#: gtk/gtkfilechooserwidget.c:741
+#, c-format
+msgid "Cannot create a file under %s as it is not a folder"
+msgstr "%s এর অধীনে ফোল্ডার না হওয়ার কারনে একটি ফাইল তৈরি করা যায় না"
+
+#: gtk/gtkfilechooserwidget.c:751
+msgid "Cannot create file as the filename is too long"
+msgstr "ফাইলের নামটি অনেক বড় হওয়ায় ফাইল তৈরি করা যাবে না"
+
+#: gtk/gtkfilechooserwidget.c:752
+msgid "Try using a shorter name."
+msgstr "একটি ছোট নাম ব্যবহার করার চেষ্টা করুন."
+
+#: gtk/gtkfilechooserwidget.c:762
+msgid "You may only select folders"
+msgstr "আপনি শুধুমাত্র ফোল্ডার নির্বাচন করতে পারেন"
+
+#: gtk/gtkfilechooserwidget.c:763
+msgid "The item that you selected is not a folder try using a different item."
+msgstr "আপনার নির্বাচিত আইটেমটি একটি ফোল্ডার নয় একটি ভিন্ন আইটেম ব্যবহার করে দেখুন৷"
+
+#: gtk/gtkfilechooserwidget.c:771
+msgid "Invalid file name"
+msgstr "ফাইলের নাম বৈধ নয়"
+
+#: gtk/gtkfilechooserwidget.c:780
+msgid "The folder contents could not be displayed"
+msgstr "ফোল্ডারের বিষয়বস্তু প্রদর্শন করা যায়নি"
+
+#: gtk/gtkfilechooserwidget.c:788
+msgid "The file could not be deleted"
+msgstr "ফাইল মুছে ফেলা যাবে না"
+
+#: gtk/gtkfilechooserwidget.c:796
+msgid "The file could not be moved to the Trash"
+msgstr "ফাইলটি ট্র্যাশে সরানো যায়নি৷"
+
+#: gtk/gtkfilechooserwidget.c:1181
+#, c-format
+msgid "Are you sure you want to permanently delete “%s”?"
+msgstr "আপনি কি স্থায়ীভাবে \"%s\" মুছে ফেলার বিষয়ে নিশ্চিত?"
+
+#: gtk/gtkfilechooserwidget.c:1182
+msgid "If you delete an item, it will be permanently lost."
+msgstr "আপনি একটি আইটেম মুছে ফেললে, এটি স্থায়ীভাবে হারিয়ে যাবে."
+
+#: gtk/gtkfilechooserwidget.c:1183 gtk/gtkfilechooserwidget.c:1781 gtk/gtklabel.c:5695 gtk/gtktext.c:6147
+#: gtk/gtktextview.c:9018
+msgid "_Delete"
+msgstr "_মুছে ফেলা"
+
+#: gtk/gtkfilechooserwidget.c:1296
+msgid "The file could not be renamed"
+msgstr "ফাইলটির নাম পরিবর্তন করা যায়নি"
+
+#: gtk/gtkfilechooserwidget.c:1472
+msgid "Could not select file"
+msgstr "ফাইল নির্বাচন করা যায়নি"
+
+#: gtk/gtkfilechooserwidget.c:1692 gtk/ui/gtkfilechooserwidget.ui:66
+msgid "Grid View"
+msgstr "গ্রিড ভিউ"
+
+#: gtk/gtkfilechooserwidget.c:1698
+msgid "List View"
+msgstr "তালিকা দেখুন"
+
+#: gtk/gtkfilechooserwidget.c:1761
+msgid "_Visit File"
+msgstr "_ ফাইলে যান"
+
+#: gtk/gtkfilechooserwidget.c:1765
+msgid "_Open With File Manager"
+msgstr "_ফাইল ম্যানেজার দিয়ে খুলুন"
+
+#: gtk/gtkfilechooserwidget.c:1769
+msgid "_Copy Location"
+msgstr "_ফাইল ম্যানেজার দিয়ে খুলুন"
+
+#: gtk/gtkfilechooserwidget.c:1773
+msgid "_Add to Bookmarks"
+msgstr "বুকমার্ক তালিকায় যোগ (_A)"
+
+#: gtk/gtkfilechooserwidget.c:1777 gtk/gtkplacessidebar.c:2312 gtk/gtkplacessidebar.c:3270 gtk/ui/gtkfilechooserwidget.ui:410
+msgid "_Rename"
+msgstr "পুনরায় নামকরণ করুন (_R)"
+
+#: gtk/gtkfilechooserwidget.c:1785
+msgid "_Move to Trash"
+msgstr "আবর্জনা সরান"
+
+#: gtk/gtkfilechooserwidget.c:1794
+msgid "Show _Hidden Files"
+msgstr "লুকানো ফাইল প্রদর্শন (_H)"
+
+#: gtk/gtkfilechooserwidget.c:1798
+msgid "Sort _Folders Before Files"
+msgstr "ফাইলের আগে _ফোল্ডার সাজান"
+
+#: gtk/gtkfilechooserwidget.c:1921 gtk/gtkfilechooserwidget.c:1951 gtk/gtkfilechooserwidget.c:3849
+msgid "Unknown"
+msgstr "অজানা"
+
+#: gtk/gtkfilechooserwidget.c:2006 gtk/gtkplacessidebar.c:1025
+msgid "Home"
+msgstr "বাড়ি"
+
+#. this is the header for the location column in the print dialog
+#: gtk/gtkfilechooserwidget.c:2161 gtk/gtkfilechooserwidget.c:7374 gtk/inspector/css-node-tree.ui:76
+#: gtk/print/ui/gtkprintunixdialog.ui:111
+msgid "Location"
+msgstr "অবস্থান"
+
+#. Label
+#: gtk/gtkfilechooserwidget.c:2268
+msgid "_Name:"
+msgstr "_নাম:"
+
+#: gtk/gtkfilechooserwidget.c:2823 gtk/gtkfilechooserwidget.c:2837
+#, c-format
+msgid "Searching in %s"
+msgstr "%s এ অনুসন্ধান করা হচ্ছে"
+
+#: gtk/gtkfilechooserwidget.c:2843
+msgid "Searching"
+msgstr "অনুসন্ধান করা হচ্ছে"
+
+#: gtk/gtkfilechooserwidget.c:2849
+msgid "Enter location or URL"
+msgstr "অবস্থান বা URL লিখুন"
+
+#: gtk/gtkfilechooserwidget.c:3408 gtk/gtkfilechooserwidget.c:5749 gtk/gtkfilechooserwidget.c:7396
+msgid "Modified"
+msgstr "পরিবর্তিত"
+
+#: gtk/gtkfilechooserwidget.c:3593
+#, c-format
+msgid "Could not read the contents of %s"
+msgstr "%s-এর বিষয়বস্তু পড়া যায়নি"
+
+# FIXME
+#: gtk/gtkfilechooserwidget.c:3597
+msgid "Could not read the contents of the folder"
+msgstr "ফোল্ডারের বিষয়বস্তু পড়া যায়নি"
+
+#. Translators: see g_date_time_format() for details on the format
+#: gtk/gtkfilechooserwidget.c:3744 gtk/gtkfilechooserwidget.c:3787
+msgid "%H:%M"
+msgstr "%H:%M"
+
+#: gtk/gtkfilechooserwidget.c:3746 gtk/gtkfilechooserwidget.c:3789
+msgid "%l:%M %p"
+msgstr "%l:%M %p"
+
+#: gtk/gtkfilechooserwidget.c:3750
+msgid "Yesterday"
+msgstr "গতকাল"
+
+#: gtk/gtkfilechooserwidget.c:3758
+#, c-format
+msgid "%-e %b"
+msgstr "%-e %b"
+
+#: gtk/gtkfilechooserwidget.c:4956 gtk/print/gtkprintunixdialog.c:673
+#, c-format
+msgid "A file named “%s” already exists.  Do you want to replace it?"
+msgstr "“%s” নামের একটি ফাইল ইতিমধ্যেই বিদ্যমান। তুমি কি এটা প্রতিস্থাপন করতে চাও?"
+
+#: gtk/gtkfilechooserwidget.c:4958 gtk/print/gtkprintunixdialog.c:677
+#, c-format
+msgid "The file already exists in “%s”.  Replacing it will overwrite its contents."
+msgstr "ফাইলটি আগে থেকেই “%s”-এ বিদ্যমান। এটি প্রতিস্থাপন করলে এর বিষয়বস্তু ওভাররাইট হবে।"
+
+#: gtk/gtkfilechooserwidget.c:4964 gtk/print/gtkprintunixdialog.c:685
+msgid "_Replace"
+msgstr "প্রতিস্থাপন (_R)"
+
+# FIXME
+#: gtk/gtkfilechooserwidget.c:5119
+msgid "You do not have access to the specified folder."
+msgstr "নির্দিষ্ট ফোল্ডারে আপনার অ্যাক্সেস নেই।"
+
+#: gtk/gtkfilechooserwidget.c:5696
+msgid "Could not send the search request"
+msgstr "অনুসন্ধানের অনুরোধ পাঠানো যায়নি"
+
+#: gtk/gtkfilechooserwidget.c:5977
+msgid "Accessed"
+msgstr "অ্যাক্সেস করা হয়েছে"
+
+#: gtk/gtkfilechooserwidget.c:7352
+msgid "_Size"
+msgstr "_আকার"
+
+#: gtk/gtkfilechooserwidget.c:7356
+msgid "T_ype"
+msgstr "T_type"
+
+#: gtk/gtkfilechooserwidget.c:7360
+msgid "_Time"
+msgstr "_সময়"
+
+#: gtk/gtkfilechooserwidget.c:7366 gtk/gtkplacessidebar.c:2306 gtk/inspector/a11y.ui:43 gtk/inspector/actions.ui:19
+#: gtk/inspector/css-node-tree.ui:22 gtk/inspector/prop-list.ui:24 gtk/ui/gtkfilechooserwidget.ui:385
+#: gtk/print/ui/gtkprintunixdialog.ui:80
+msgid "Name"
+msgstr "নাম"
+
+#: gtk/gtkfilechooserwidget.c:7383 gtk/inspector/resource-list.ui:82 gtk/ui/gtkfontchooserwidget.ui:217
+#: gtk/ui/gtkfontchooserwidget.ui:386
+msgid "Size"
+msgstr "আকার"
+
+#: gtk/gtkfilechooserwidget.c:7389 gtk/inspector/misc-info.ui:57 gtk/inspector/prop-list.ui:35 gtk/inspector/statistics.ui:36
+msgid "Type"
+msgstr "টাইপ"
+
+#: gtk/gtkfiledialog.c:816
+msgid "Pick Files"
+msgstr "ফাইল বাছাই করুন"
+
+#: gtk/gtkfiledialog.c:816
+msgid "Pick a File"
+msgstr "একটি ফাইল বাছাই করুন"
+
+#: gtk/gtkfiledialog.c:821
+msgid "Save a File"
+msgstr "একটি ফাইল সংরক্ষণ"
+
+#: gtk/gtkfiledialog.c:825 gtk/ui/gtkappchooserdialog.ui:53 gtk/ui/gtkcolorchooserdialog.ui:41
+#: gtk/ui/gtkfontchooserdialog.ui:32
+msgid "_Select"
+msgstr "নির্বাচন (_S)"
+
+#: gtk/gtkfiledialog.c:826
+msgid "Select Folders"
+msgstr "ফোল্ডার নির্বাচন করুন"
+
+#: gtk/gtkfiledialog.c:826
+msgid "Select a Folder"
+msgstr "একটি ফোল্ডার নির্বাচন করুন"
+
+#: gtk/gtkfilefilter.c:1032
+msgid "Image"
+msgstr "ছবি"
+
+#: gtk/gtkfilefilter.c:1045
+msgid "Unspecified"
+msgstr "অনির্দিষ্ট"
+
+#: gtk/gtkfontchooserdialog.c:192 gtk/gtkfontchooserdialog.c:195
+msgid "Change Font Features"
+msgstr "ফন্ট বৈশিষ্ট্য পরিবর্তন"
+
+#: gtk/gtkfontchooserwidget.c:2457
+msgid "Default"
+msgstr "ডিফল্ট"
+
+#: gtk/gtkfontchooserwidget.c:2519
+msgid "Ligatures"
+msgstr "লিগাচার"
+
+#: gtk/gtkfontchooserwidget.c:2520
+msgid "Letter Case"
+msgstr "চিঠির মামলা"
+
+#: gtk/gtkfontchooserwidget.c:2521
+msgid "Number Case"
+msgstr "নম্বর মামলা"
+
+#: gtk/gtkfontchooserwidget.c:2522
+msgid "Number Spacing"
+msgstr "সংখ্যা ব্যবধান"
+
+#: gtk/gtkfontchooserwidget.c:2523
+msgid "Fractions"
+msgstr "ভগ্নাংশ"
+
+#: gtk/gtkfontchooserwidget.c:2524
+msgid "Style Variations"
+msgstr "শৈলী বৈচিত্র"
+
+#: gtk/gtkfontchooserwidget.c:2526
+msgid "Character Variations"
+msgstr "চরিত্রের বৈচিত্র"
+
+#: gtk/gtkglarea.c:305
+msgid "OpenGL context creation failed"
+msgstr "OpenGL প্রসঙ্গ তৈরি ব্যর্থ হয়েছে৷"
+
+#: gtk/deprecated/gtkinfobar.c:498 gtk/gtkwindowcontrols.c:357 gtk/gtkwindowhandle.c:250
+msgid "Close"
+msgstr "বন্ধ"
+
+#: gtk/deprecated/gtkinfobar.c:499
+msgid "Close the infobar"
+msgstr "ইনফোবার বন্ধ করুন"
+
+#: gtk/gtklabel.c:5692 gtk/gtktext.c:6135 gtk/gtktextview.c:9006
+#, fuzzy
+msgid "Cu_t"
+msgstr "কাটা (_t)"
+
+#: gtk/gtklabel.c:5693 gtk/gtktext.c:6139 gtk/gtktextview.c:9010
+#, fuzzy
+msgid "_Copy"
+msgstr "অনুলিপি করুন (_C)"
+
+#: gtk/gtklabel.c:5694 gtk/gtktext.c:6143 gtk/gtktextview.c:9014
+#, fuzzy
+msgid "_Paste"
+msgstr "প্রতিলেপন (_P)"
+
+#: gtk/gtklabel.c:5700 gtk/gtktext.c:6156 gtk/gtktextview.c:9039
+#, fuzzy
+msgid "Select _All"
+msgstr "সব নির্বাচন করুন (_A)"
+
+#: gtk/gtklabel.c:5705
+msgid "_Open Link"
+msgstr "লিংক খুলুন (_O)"
+
+#: gtk/gtklabel.c:5709
+msgid "Copy _Link Address"
+msgstr "লিংকের ঠিকানা অনুলিপি করুন (_L)"
+
+#: gtk/gtklabel.c:5753 gtk/gtktext.c:2716 gtk/gtktextview.c:9088
+msgid "Context menu"
+msgstr "কনটেক্সট মেনু"
+
+#: gtk/gtklinkbutton.c:260
+#, fuzzy
+msgid "_Copy URL"
+msgstr "URL অনুলিপি করুন"
+
+#: gtk/gtklinkbutton.c:567
+msgid "Invalid URI"
+msgstr "অকার্যকর URI"
+
+#: gtk/gtkmessagedialog.c:162 gtk/gtkmessagedialog.c:180 gtk/print/gtkprintbackend.c:639 gtk/gtkwindow.c:6244
+#, fuzzy
+msgid "_OK"
+msgstr "ঠিক আছে (_O)"
+
+#: gtk/gtkmessagedialog.c:174
+#, fuzzy
+msgid "_No"
+msgstr "না (_N)"
+
+#: gtk/gtkmessagedialog.c:175
+#, fuzzy
+msgid "_Yes"
+msgstr "হ্যাঁ (_Y)"
+
+#: gtk/gtkmountoperation.c:609
+msgid "Co_nnect"
+msgstr "সংযোগ করুন (_n)"
+
+#: gtk/gtkmountoperation.c:676
+#, fuzzy
+msgid "Connect As"
+msgstr "সংযোগ করুন (_n)"
+
+#: gtk/gtkmountoperation.c:685
+#, fuzzy
+msgid "_Anonymous"
+msgstr "অজ্ঞাতভাবে সংযোগ করুন (_a)"
+
+#: gtk/gtkmountoperation.c:692
+msgid "Registered U_ser"
+msgstr "নিবন্ধিত ব্যবহারকারী"
+
+#: gtk/gtkmountoperation.c:702
+#, fuzzy
+msgid "_Username"
+msgstr "ব্যবহারকারীর নাম: (_U)"
+
+#: gtk/gtkmountoperation.c:707
+#, fuzzy
+msgid "_Domain"
+msgstr "ডোমেইন: (_D)"
+
+#: gtk/gtkmountoperation.c:716
+#, fuzzy
+msgid "Volume type"
+msgstr "ভলিউম বৃদ্ধি"
+
+#: gtk/gtkmountoperation.c:726
+msgid "_Hidden"
+msgstr "_গোপন"
+
+#: gtk/gtkmountoperation.c:729
+msgid "_Windows system"
+msgstr "_উইন্ডোজ সিস্টেম"
+
+#: gtk/gtkmountoperation.c:732
+msgid "_PIM"
+msgstr "_পিআইএম"
+
+#: gtk/gtkmountoperation.c:738
+#, fuzzy
+msgid "_Password"
+msgstr "পাসওয়ার্ড: (_P)"
+
+#: gtk/gtkmountoperation.c:760
+msgid "Forget password _immediately"
+msgstr "পাসওয়ার্ড তৎক্ষণাত মুছে ফেলা হবে (_i)"
+
+#: gtk/gtkmountoperation.c:770
+msgid "Remember password until you _logout"
+msgstr "লগ-আউট না করা অবধি পাসওয়ার্ড সংরক্ষণ করা হবে (_l)"
+
+#: gtk/gtkmountoperation.c:781
+msgid "Remember _forever"
+msgstr "পাসওয়ার্ড স্থায়ীরূপে সংরক্ষণ করা হবে ( _f)"
+
+#: gtk/gtkmountoperation.c:1251
+#, c-format
+msgid "Unknown Application (PID %d)"
+msgstr "অজানা অ্যাপ্লিকেশন (PID %d)"
+
+#. Use GTK_DIALOG_DESTROY_WITH_PARENT here since the parent dialog can be
+#. * indeed be destroyed via the GMountOperation::abort signal... for example,
+#. * this is triggered if the user yanks the device while we are showing
+#. * the dialog...
+#.
+#: gtk/gtkmountoperation.c:1396
+#, c-format
+msgid "Unable to end process"
+msgstr "প্রক্রিয়াটি সমাপ্ত করতে ব্যর্থ"
+
+#: gtk/gtkmountoperation.c:1546
+msgid "_End Process"
+msgstr "প্রক্রিয়া সমাপ্ত (_E)"
+
+#: gtk/gtkmountoperation-stub.c:61
+#, c-format
+msgid "Cannot kill process with PID %d. Operation is not implemented."
+msgstr "PID %d সহ প্রক্রিয়া বন্ধ করা যাচ্ছে না। অপারেশন বাস্তবায়ন করা হয়নি।"
+
+#: gtk/gtkmountoperation-x11.c:1090
+#, c-format
+msgid "Cannot end process with PID %d: %s"
+msgstr "PID %d সহ প্রক্রিয়া বন্ধ করা যাচ্ছে না: %s"
+
+#: gtk/gtknomediafile.c:48
+msgid "GTK could not find a media module. Check your installation."
+msgstr "GTK একটি মিডিয়া মডিউল খুঁজে পায়নি। আপনার ইনস্টলেশন পরীক্ষা করুন."
+
+#: gtk/gtknotebook.c:3211
+#, fuzzy
+msgid "Previous tab"
+msgstr "পূর্ববর্তী (_v)"
+
+#: gtk/gtknotebook.c:3215
+#, fuzzy
+msgid "Next tab"
+msgstr "পরবর্তী (_N)"
+
+#: gtk/gtknotebook.c:4331 gtk/gtknotebook.c:6541
+#, c-format
+msgid "Page %u"
+msgstr "পৃষ্ঠা %u"
+
+#: gtk/print/gtkpagesetup.c:611 gtk/print/gtkpapersize.c:942 gtk/print/gtkpapersize.c:982
+msgid "Not a valid page setup file"
+msgstr "বৈধ পৃষ্ঠা সেটআপ ফাইল নয়"
+
+#: gtk/print/gtkpagesetupunixdialog.c:198 gtk/print/gtkprintunixdialog.c:768
+#, fuzzy
+msgid "Manage Custom Sizes…"
+msgstr "স্বনির্ধারিত আকার পরিচালনা"
+
+#: gtk/print/gtkpagesetupunixdialog.c:283 gtk/ui/gtkassistant.ui:98
+#, fuzzy
+msgid "_Apply"
+msgstr "প্রয়োগ করুন (_A)"
+
+#: gtk/print/gtkpagesetupunixdialog.c:318 gtk/print/gtkpagesetupunixdialog.c:570
+msgid "Any Printer"
+msgstr "যেকোনো মুদ্রণযন্ত্র"
+
+#: gtk/print/gtkpagesetupunixdialog.c:319
+msgid "For portable documents"
+msgstr "পোর্টেবল নথিপত্রের জন্য"
+
+#: gtk/print/gtkpagesetupunixdialog.c:738
+#, c-format
+msgid ""
+"Margins:\n"
+" Left: %s %s\n"
+" Right: %s %s\n"
+" Top: %s %s\n"
+" Bottom: %s %s"
+msgstr ""
+"মার্জিন:\n"
+" বাম: %1$s %2$s\n"
+" ডান: %3$s %4$s\n"
+" শীর্ষ: %5$s %6$s\n"
+" নিম্ন: %7$s %8$s"
+
+#: gtk/print/gtkpagesetupunixdialog.c:784 gtk/print/ui/gtkpagesetupunixdialog.ui:5 gtk/print/ui/gtkprintunixdialog.ui:782
+msgid "Page Setup"
+msgstr "পৃষ্ঠার সেটআপ"
+
+#: gtk/gtkpasswordentry.c:168
+msgid "Hide Text"
+msgstr "টেক্সট লুকান"
+
+#: gtk/gtkpasswordentry.c:173 gtk/gtkpasswordentry.c:624
+msgid "Show Text"
+msgstr "Show Text"
+
+#: gtk/gtkpasswordentry.c:215
+msgid "Caps Lock is on"
+msgstr "Caps Lock সক্রিয়"
+
+#: gtk/gtkpasswordentry.c:700
+msgid "_Show Text"
+msgstr "_পাঠ্য দেখান"
+
+#. translators: %s is the name of a cloud provider for files
+#: gtk/gtkplacessidebar.c:912
+#, fuzzy, c-format
+msgid "Open %s"
+msgstr "'%s' খুলুন"
+
+#: gtk/gtkplacessidebar.c:1003
+#, fuzzy
+msgid "Recent"
+msgstr "সম্প্রতি ব্যবহৃত"
+
+#: gtk/gtkplacessidebar.c:1005
+#, fuzzy
+msgid "Recent files"
+msgstr "সম্প্রতি ব্যবহৃত"
+
+#: gtk/gtkplacessidebar.c:1014
+msgid "Starred"
+msgstr "তারকাচিহ্নিত"
+
+#: gtk/gtkplacessidebar.c:1016
+msgid "Starred files"
+msgstr "তারকাচিহ্নিত ফাইল"
+
+#: gtk/gtkplacessidebar.c:1027
+msgid "Open your personal folder"
+msgstr "আপনার ব্যক্তিগত ফোল্ডার খুলুন"
+
+#: gtk/gtkplacessidebar.c:1040
+msgid "Desktop"
+msgstr "ডেস্কটপ"
+
+# FIXME
+#: gtk/gtkplacessidebar.c:1042
+msgid "Open the contents of your desktop in a folder"
+msgstr "একটি ফোল্ডারে আপনার ডেস্কটপের বিষয়বস্তু খুলুন"
+
+#: gtk/gtkplacessidebar.c:1056
+#, fuzzy
+msgid "Enter Location"
+msgstr "অবস্থান"
+
+#: gtk/gtkplacessidebar.c:1058
+msgid "Manually enter a location"
+msgstr "ম্যানুয়ালি একটি অবস্থান লিখুন"
+
+#: gtk/gtkplacessidebar.c:1068
+msgid "Trash"
+msgstr "আবর্জনা"
+
+#: gtk/gtkplacessidebar.c:1070
+msgid "Open the trash"
+msgstr "ট্র্যাশ খুলুন"
+
+#: gtk/gtkplacessidebar.c:1181 gtk/gtkplacessidebar.c:1209 gtk/gtkplacessidebar.c:1409
+#, c-format
+msgid "Mount and open “%s”"
+msgstr "মাউন্ট এবং \"%s\" খুলুন"
+
+# FIXME
+#: gtk/gtkplacessidebar.c:1304
+#, fuzzy
+msgid "Open the contents of the file system"
+msgstr "ফোল্ডারের বিষয়বস্তু পড়া যায়নি"
+
+#: gtk/gtkplacessidebar.c:1387
+msgid "New bookmark"
+msgstr "নতুন বুকমার্ক"
+
+#: gtk/gtkplacessidebar.c:1389
+#, fuzzy
+msgid "Add a new bookmark"
+msgstr "বুকমার্ক তালিকায় যোগ (_A)"
+
+#: gtk/gtkplacessidebar.c:1454
+#, fuzzy
+msgid "Other Locations"
+msgstr "অন্যান্য অ্যাপ্লিকেশন"
+
+#: gtk/gtkplacessidebar.c:1455
+#, fuzzy
+msgid "Show other locations"
+msgstr "অন্যান্য অ্যাপ্লিকপশন প্রদর্শন"
+
+#: gtk/gtkplacessidebar.c:1964 gtk/gtkplacessidebar.c:2984
+#, c-format
+msgid "Unable to start “%s”"
+msgstr "\"%s\" শুরু করতে অক্ষম"
+
+#. Translators: This means that unlocking an encrypted storage
+#. * device failed. %s is the name of the device.
+#.
+#: gtk/gtkplacessidebar.c:2000
+#, fuzzy, c-format
+msgid "Error unlocking “%s”"
+msgstr "আইকন লোড করতে ত্রুটি: %s"
+
+#: gtk/gtkplacessidebar.c:2002
+#, c-format
+msgid "Unable to access “%s”"
+msgstr "\"%s\" অ্যাক্সেস করতে অক্ষম"
+
+#: gtk/gtkplacessidebar.c:2233
+msgid "This name is already taken"
+msgstr "এই নাম ইতিমধ্যে নেওয়া হয়েছে"
+
+#: gtk/gtkplacessidebar.c:2525
+#, c-format
+msgid "Unable to unmount “%s”"
+msgstr "\"%s\" আনমাউন্ট করতে অক্ষম"
+
+#: gtk/gtkplacessidebar.c:2701
+#, c-format
+msgid "Unable to stop “%s”"
+msgstr "\"%s\" থামাতে অক্ষম"
+
+#: gtk/gtkplacessidebar.c:2730
+#, c-format
+msgid "Unable to eject “%s”"
+msgstr "\"%s\" বের করতে অক্ষম"
+
+#: gtk/gtkplacessidebar.c:2759 gtk/gtkplacessidebar.c:2788
+#, c-format
+msgid "Unable to eject %s"
+msgstr "%s বের করতে অক্ষম"
+
+#: gtk/gtkplacessidebar.c:2936
+#, c-format
+msgid "Unable to poll “%s” for media changes"
+msgstr "মিডিয়া পরিবর্তনের জন্য \"%s\" পোল করতে অক্ষম৷"
+
+#: gtk/gtkplacessidebar.c:3155 gtk/gtkplacessidebar.c:3242 gtk/gtkplacesview.c:1649
+msgid "Open in New _Tab"
+msgstr "নতুন _ট্যাবে খুলুন"
+
+#: gtk/gtkplacessidebar.c:3161 gtk/gtkplacessidebar.c:3251 gtk/gtkplacesview.c:1654
+msgid "Open in New _Window"
+msgstr "নতুন _ট্যাবে খুলুন"
+
+#: gtk/gtkplacessidebar.c:3262
+#, fuzzy
+msgid "_Add Bookmark"
+msgstr "বুকমার্ক তালিকায় যোগ (_A)"
+
+#: gtk/gtkplacessidebar.c:3266
+msgid "_Remove"
+msgstr "অপসারণ (_R)"
+
+#: gtk/gtkplacessidebar.c:3282 gtk/gtkplacesview.c:1679
+msgid "_Mount"
+msgstr "_মাউন্ট"
+
+#: gtk/gtkplacessidebar.c:3291 gtk/gtkplacesview.c:1668
+msgid "_Unmount"
+msgstr "_আনমাউন্ট করুন"
+
+#: gtk/gtkplacessidebar.c:3298
+msgid "_Eject"
+msgstr "_ বের করে দাও"
+
+#: gtk/gtkplacessidebar.c:3308
+msgid "_Detect Media"
+msgstr "_মিডিয়া সনাক্ত করুন"
+
+#: gtk/gtkplacessidebar.c:3317
+msgid "_Start"
+msgstr "_শুরু কর"
+
+#: gtk/gtkplacessidebar.c:3319
+msgid "_Power On"
+msgstr "পাওয়ার অন"
+
+#: gtk/gtkplacessidebar.c:3320
+#, fuzzy
+msgid "_Connect Drive"
+msgstr "সংযোগ করুন (_n)"
+
+#: gtk/gtkplacessidebar.c:3321
+msgid "_Start Multi-disk Device"
+msgstr "_ মাল্টি-ডিস্ক ডিভাইস শুরু করুন"
+
+#: gtk/gtkplacessidebar.c:3322
+#, fuzzy
+msgid "_Unlock Device"
+msgstr "ডিভাইস: (_D)"
+
+#: gtk/gtkplacessidebar.c:3332
+#, fuzzy
+msgid "_Stop"
+msgstr "থামান (_S)"
+
+#: gtk/gtkplacessidebar.c:3334
+msgid "_Safely Remove Drive"
+msgstr "_নিরাপদভাবে ড্রাইভ সরান"
+
+#: gtk/gtkplacessidebar.c:3335
+#, fuzzy
+msgid "_Disconnect Drive"
+msgstr "সংযোগ বিচ্ছিন্ন করুন (_D)"
+
+#: gtk/gtkplacessidebar.c:3336
+msgid "_Stop Multi-disk Device"
+msgstr "_মাল্টি-ডিস্ক ডিভাইস বন্ধ করুন"
+
+#: gtk/gtkplacessidebar.c:3337
+#, fuzzy
+msgid "_Lock Device"
+msgstr "ডিভাইস: (_D)"
+
+#: gtk/gtkplacessidebar.c:3827 gtk/gtkplacesview.c:1089
+msgid "Computer"
+msgstr "কম্পিউটার"
+
+#: gtk/gtkplacesview.c:875
+msgid "Searching for network locations"
+msgstr "নেটওয়ার্ক অবস্থানের জন্য অনুসন্ধান করা হচ্ছে"
+
+#: gtk/gtkplacesview.c:882
+msgid "No network locations found"
+msgstr "কোনো নেটওয়ার্ক অবস্থান খুঁজে পাওয়া যায়নি"
+
+#. if it wasn't cancelled show a dialog
+#: gtk/gtkplacesview.c:1196 gtk/gtkplacesview.c:1293
+#, fuzzy
+msgid "Unable to access location"
+msgstr "প্রক্রিয়াটি সমাপ্ত করতে ব্যর্থ"
+
+#. Restore from Cancel to Connect
+#: gtk/gtkplacesview.c:1214 gtk/ui/gtkplacesview.ui:250
+#, fuzzy
+msgid "Con_nect"
+msgstr "সংযোগ করুন (_n)"
+
+#. if it wasn't cancelled show a dialog
+#: gtk/gtkplacesview.c:1353
+#, fuzzy
+msgid "Unable to unmount volume"
+msgstr "প্রক্রিয়াটি সমাপ্ত করতে ব্যর্থ"
+
+#. Allow to cancel the operation
+#: gtk/gtkplacesview.c:1445
+#, fuzzy
+msgid "Cance_l"
+msgstr "বাতিল (_C)"
+
+#: gtk/gtkplacesview.c:1592
+msgid "AppleTalk"
+msgstr "আপেলটক"
+
+#: gtk/gtkplacesview.c:1598
+msgid "File Transfer Protocol"
+msgstr "এফ টি পি"
+
+#. Translators: do not translate ftp:// and ftps://
+#: gtk/gtkplacesview.c:1600
+msgid "ftp:// or ftps://"
+msgstr "ftp:// অথবা ftps://"
+
+#: gtk/gtkplacesview.c:1606
+#, fuzzy
+msgid "Network File System"
+msgstr "ফাইল সিস্টেম"
+
+#: gtk/gtkplacesview.c:1612
+msgid "Samba"
+msgstr "সাম্বা"
+
+#: gtk/gtkplacesview.c:1618
+msgid "SSH File Transfer Protocol"
+msgstr "SSH ফাইল ট্রান্সফার প্রোটোকল"
+
+#. Translators: do not translate sftp:// and ssh://
+#: gtk/gtkplacesview.c:1620
+msgid "sftp:// or ssh://"
+msgstr "sftp:// অথবা ssh://"
+
+#: gtk/gtkplacesview.c:1626
+msgid "WebDAV"
+msgstr "ওয়েবডিএভি"
+
+#. Translators: do not translate dav:// and davs://
+#: gtk/gtkplacesview.c:1628
+msgid "dav:// or davs://"
+msgstr "dav:// বা davs://"
+
+#: gtk/gtkplacesview.c:1663
+#, fuzzy
+msgid "_Disconnect"
+msgstr "সংযোগ বিচ্ছিন্ন করুন (_D)"
+
+#: gtk/gtkplacesview.c:1674
+#, fuzzy
+msgid "_Connect"
+msgstr "সংযোগ করুন (_n)"
+
+#: gtk/gtkplacesview.c:1894
+msgid "Unable to get remote server location"
+msgstr "দূরবর্তী সার্ভার অবস্থান পেতে অক্ষম"
+
+#: gtk/gtkplacesview.c:2038 gtk/gtkplacesview.c:2047
+#, fuzzy
+msgid "Networks"
+msgstr "নেটওয়ার্ক (_N)"
+
+#: gtk/gtkplacesview.c:2038 gtk/gtkplacesview.c:2047
+msgid "On This Computer"
+msgstr "এই কম্পিউটারে"
+
+#. Translators: respectively, free and total space of the drive. The plural form
+#. * should be based on the free space available.
+#. * i.e. 1 GB / 24 GB available.
+#.
+#: gtk/gtkplacesviewrow.c:135
+#, fuzzy, c-format
+msgid "%s / %s available"
+msgid_plural "%s / %s available"
+msgstr[0] "বিদ্যমান নেই"
+msgstr[1] "বিদ্যমান নেই"
+
+#: gtk/gtkplacesviewrow.c:471
+#, fuzzy
+msgid "Disconnect"
+msgstr "সংযোগ বিচ্ছিন্ন করুন (_D)"
+
+#: gtk/gtkplacesviewrow.c:471 gtk/ui/gtkplacesviewrow.ui:53 gtk/ui/gtksidebarrow.ui:54
+msgid "Unmount"
+msgstr "আনমাউন্ট করুন"
+
+#: gtk/print/gtkprintbackend.c:637
+msgid "Authentication"
+msgstr "প্রমাণীকরণ"
+
+#: gtk/print/gtkprintbackend.c:716
+#, fuzzy
+msgid "_Remember password"
+msgstr "লগ-আউট না করা অবধি পাসওয়ার্ড সংরক্ষণ করা হবে (_l)"
+
+#: gtk/print/gtkprinteroptionwidget.c:702
+#, fuzzy
+msgid "Select a filename"
+msgstr "একটি ফাইল নির্বাচন"
+
+#: gtk/print/gtkprinteroptionwidget.c:919
+msgid "Not available"
+msgstr "বিদ্যমান নেই"
+
+#. translators: this string is the default job title for print
+#. * jobs. %s gets replaced by the application name, %d gets replaced
+#. * by the job number.
+#.
+#: gtk/print/gtkprintoperation.c:252
+#, c-format
+msgid "%s job #%d"
+msgstr "%1$s job #%2$d"
+
+#: gtk/print/gtkprintoperation.c:2250
+#, c-format
+msgid "Preparing %d"
+msgstr "%d প্রস্তুত করা হচ্ছে"
+
+#: gtk/print/gtkprintoperation.c:2252 gtk/print/gtkprintoperation.c:2871
+#, c-format
+msgid "Preparing"
+msgstr "প্রস্তুতি"
+
+#: gtk/print/gtkprintoperation.c:2255
+#, c-format
+msgid "Printing %d"
+msgstr "%d মুদ্রণ করা হচ্ছে"
+
+#: gtk/print/gtkprintoperation.c:2904
+#, c-format
+msgid "Error creating print preview"
+msgstr "মুদ্রণ প্রাকদর্শন তৈরিতে ত্রুটি"
+
+#: gtk/print/gtkprintoperation.c:2907
+#, c-format
+msgid "The most probable reason is that a temporary file could not be created."
+msgstr "সম্ভবত অস্থায়ী ফাইল তৈরি করা যায়নি বলে এমনটি হয়েছে।"
+
+#. window
+#: gtk/print/gtkprintoperation-portal.c:264 gtk/print/gtkprintoperation-portal.c:594 gtk/print/gtkprintoperation-portal.c:663
+#: gtk/print/gtkprintunixdialog.c:3008
+msgid "Print"
+msgstr "মুদ্রণ"
+
+#: gtk/print/gtkprintoperation-unix.c:481 gtk/print/gtkprintoperation-win32.c:1505
+msgid "Application"
+msgstr "অ্যাপ্লিকেশন"
+
+#: gtk/print/gtkprintoperation-win32.c:636
+msgid "Printer offline"
+msgstr "মুদ্রণযন্ত্র অফলাইনে"
+
+#: gtk/print/gtkprintoperation-win32.c:638
+msgid "Out of paper"
+msgstr "কাগজ ফুরিয়ে গেছে"
+
+#. Translators: this is a printer status.
+#: gtk/print/gtkprintoperation-win32.c:640 modules/printbackends/gtkprintbackendcpdb.c:1528
+#: modules/printbackends/gtkprintbackendcups.c:2639
+msgid "Paused"
+msgstr "স্থগিত"
+
+#: gtk/print/gtkprintoperation-win32.c:642
+msgid "Need user intervention"
+msgstr "ব্যবহারকারীর সহায়তা প্রয়োজন"
+
+#: gtk/print/gtkprintoperation-win32.c:749
+msgid "Custom size"
+msgstr "স্বনির্ধারিত আকার"
+
+#: gtk/print/gtkprintoperation-win32.c:1597
+msgid "No printer found"
+msgstr "কোনো মুদ্রণযন্ত্র পাওয়া যায়নি"
+
+#: gtk/print/gtkprintoperation-win32.c:1624
+msgid "Invalid argument to CreateDC"
+msgstr "CreateDC-তে অকার্যকর আর্গুমেন্ট প্রেরিত"
+
+#: gtk/print/gtkprintoperation-win32.c:1660 gtk/print/gtkprintoperation-win32.c:1906
+msgid "Error from StartDoc"
+msgstr "StartDoc থেকে ত্রুটি"
+
+#: gtk/print/gtkprintoperation-win32.c:1761 gtk/print/gtkprintoperation-win32.c:1784 gtk/print/gtkprintoperation-win32.c:1832
+msgid "Not enough free memory"
+msgstr "পর্যাপ্ত মেমরি ফাঁকা নেই"
+
+#: gtk/print/gtkprintoperation-win32.c:1837
+msgid "Invalid argument to PrintDlgEx"
+msgstr "PrintDlgEx-তে অকার্যকর আর্গুমেন্ট প্রেরিত"
+
+#: gtk/print/gtkprintoperation-win32.c:1842
+msgid "Invalid pointer to PrintDlgEx"
+msgstr "PrintDlgEx-তে অকার্যকর পয়েন্টার"
+
+#: gtk/print/gtkprintoperation-win32.c:1847
+msgid "Invalid handle to PrintDlgEx"
+msgstr "PrintDlgEx-তে অকার্যকর পরিচালনা"
+
+#: gtk/print/gtkprintoperation-win32.c:1852
+msgid "Unspecified error"
+msgstr "অনির্ধারিত ত্রুটি"
+
+#: gtk/print/gtkprintunixdialog.c:838
+#, fuzzy
+msgid "Pre_view"
+msgstr "প্রাকদর্শন: (_P)"
+
+#: gtk/print/gtkprintunixdialog.c:840
+#, fuzzy
+msgid "_Print"
+msgstr "মুদ্রণ (_P)"
+
+#: gtk/print/gtkprintunixdialog.c:961
+msgid "Getting printer information failed"
+msgstr "মুদ্রণযন্ত্রের তথ্য পেতে ব্যর্থ"
+
+#: gtk/print/gtkprintunixdialog.c:1885
+#, fuzzy
+msgid "Getting printer information…"
+msgstr "মুদ্রণযন্ত্রের তথ্য গ্রহণ করা হচ্ছে..."
+
+#: gtk/print/gtkprintunixdialog.c:2760 gtk/print/gtkprintunixdialog.c:2773
+msgid "Page Ordering"
+msgstr "পৃষ্ঠার অনুক্রম"
+
+#: gtk/print/gtkprintunixdialog.c:2789
+msgid "Left to right"
+msgstr "বাম থেকে ডানে"
+
+#: gtk/print/gtkprintunixdialog.c:2790
+msgid "Right to left"
+msgstr "ডান থেকে বামে"
+
+#: gtk/print/gtkprintunixdialog.c:2802
+msgid "Top to bottom"
+msgstr "উপর থেকে নীচে"
+
+#: gtk/print/gtkprintunixdialog.c:2803
+msgid "Bottom to top"
+msgstr "নীচে থেকে উপরে"
+
+#: gtk/gtkrecentmanager.c:1023 gtk/gtkrecentmanager.c:1036 gtk/gtkrecentmanager.c:1174 gtk/gtkrecentmanager.c:1184
+#: gtk/gtkrecentmanager.c:1234 gtk/gtkrecentmanager.c:1243
+#, fuzzy, c-format
+msgid "Unable to find an item with URI “%s”"
+msgstr "URI '%s' সহ কোনো আইটেম খুঁজে পেতে অক্ষম"
+
+#: gtk/gtkrecentmanager.c:1258
+#, fuzzy, c-format
+msgid "Unable to move the item with URI “%s” to “%s”"
+msgstr "URI '%s' সহ কোনো আইটেম খুঁজে পেতে অক্ষম"
+
+#: gtk/gtkrecentmanager.c:2323
+#, fuzzy, c-format
+msgid "No registered application with name “%s” for item with URI “%s” found"
+msgstr "'%s' নামের URI '%s' সহ কোন নিবন্ধিত অ্যাপ্লিকপশন পাওয়া যায়নি"
+
+#: gtk/gtksearchentry.c:767
+#, fuzzy
+msgid "Clear Entry"
+msgstr "তালিকা মুছে ফেলুন (_C)"
+
+#: gtk/gtkshortcutssection.c:414
+msgid "_Show All"
+msgstr "সব দেখাও"
+
+#: gtk/gtkshortcutsshortcut.c:143
+msgid "Two finger pinch"
+msgstr "দুই আঙুল চিমটি"
+
+#: gtk/gtkshortcutsshortcut.c:147
+msgid "Two finger stretch"
+msgstr "দুই আঙুল প্রসারিত"
+
+#: gtk/gtkshortcutsshortcut.c:151
+msgid "Rotate clockwise"
+msgstr "ঘড়ির কাঁটার দিকে ঘোরান"
+
+#: gtk/gtkshortcutsshortcut.c:155
+msgid "Rotate counterclockwise"
+msgstr "বামাবর্তে ঘোরাতে"
+
+#: gtk/gtkshortcutsshortcut.c:159
+msgid "Two finger swipe left"
+msgstr "দুই আঙুল বাম দিকে সোয়াইপ করুন"
+
+#: gtk/gtkshortcutsshortcut.c:163
+msgid "Two finger swipe right"
+msgstr "দুই আঙুল ডানদিকে সোয়াইপ করুন"
+
+#: gtk/gtkshortcutsshortcut.c:167
+msgid "Swipe left"
+msgstr "বাম দিকে সোয়াইপ করুন"
+
+#: gtk/gtkshortcutsshortcut.c:171
+msgid "Swipe right"
+msgstr "ডানদিকে সোয়াইপ করুন"
+
+#. Translators: This is placeholder text for the search entry in the shortcuts window
+#: gtk/gtkshortcutswindow.c:879 gtk/gtkshortcutswindow.c:946 gtk/gtkshortcutswindow.c:951
+msgid "Search Shortcuts"
+msgstr "শর্টকাট অনুসন্ধান করুন"
+
+#. Translators: This is the window title for the shortcuts window in normal mode
+#: gtk/gtkshortcutswindow.c:911 gtk/inspector/window.ui:498
+msgid "Shortcuts"
+msgstr "শর্টকাট"
+
+#. Translators: This is the window title for the shortcuts window in search mode
+#: gtk/gtkshortcutswindow.c:916
+#, fuzzy
+msgid "Search Results"
+msgstr "অনুসন্ধান"
+
+#: gtk/gtkshortcutswindow.c:1013 gtk/ui/gtkemojichooser.ui:349 gtk/ui/gtkfilechooserwidget.ui:239
+#, fuzzy
+msgid "No Results Found"
+msgstr "কোনো আইটেম পাওয়া যায়নি"
+
+#: gtk/gtkshortcutswindow.c:1024 gtk/ui/gtkemojichooser.ui:362 gtk/ui/gtkfilechooserwidget.ui:252 gtk/ui/gtkplacesview.ui:218
+msgid "Try a different search"
+msgstr "একটি ভিন্ন অনুসন্ধান চেষ্টা করুন"
+
+#: gtk/gtktext.c:6161 gtk/gtktextview.c:9044
+#, fuzzy
+msgid "Insert _Emoji"
+msgstr "Insert"
+
+#: gtk/gtktextview.c:9026
+#, fuzzy
+msgid "_Undo"
+msgstr "পূর্বাবস্থা (_U)"
+
+#: gtk/gtktextview.c:9030
+#, fuzzy
+msgid "_Redo"
+msgstr "পুনরাবৃত্তি (_R)"
+
+#: gtk/gtkwindow.c:6232
+#, c-format
+msgid "Do you want to use GTK Inspector?"
+msgstr "আপনি কি GTK ইন্সপেক্টর ব্যবহার করতে চান?"
+
+#: gtk/gtkwindow.c:6234
+#, c-format
+msgid ""
+"GTK Inspector is an interactive debugger that lets you explore and modify the internals of any GTK application. Using it "
+"may cause the application to break or crash."
+msgstr ""
+"GTK Inspector হল একটি ইন্টারেক্টিভ ডিবাগার যা আপনাকে যেকোন GTK অ্যাপ্লিকেশনের অভ্যন্তরীণ অন্বেষণ এবং পরিবর্তন করতে দেয়। এটি ব্যবহার "
+"করলে অ্যাপ্লিকেশনটি ভেঙে যেতে পারে বা ক্র্যাশ হতে পারে।"
+
+#: gtk/gtkwindow.c:6239
+msgid "Don’t show this message again"
+msgstr "এই বার্তাটি আবার দেখাবেন না"
+
+#: gtk/gtkwindowcontrols.c:309 gtk/gtkwindowhandle.c:234
+msgid "Minimize"
+msgstr "ছোট করুন"
+
+#: gtk/gtkwindowcontrols.c:311
+msgid "Minimize the window"
+msgstr "জানালা ছোট করুন"
+
+#: gtk/gtkwindowcontrols.c:335 gtk/gtkwindowhandle.c:240
+msgid "Maximize"
+msgstr "সর্বাধিক করুন"
+
+#: gtk/gtkwindowcontrols.c:337
+msgid "Maximize the window"
+msgstr "উইন্ডোটি বড় করুন"
+
+#: gtk/gtkwindowcontrols.c:359
+msgid "Close the window"
+msgstr "Close the window"
+
+#: gtk/gtkwindowhandle.c:227
+msgid "Restore"
+msgstr "পুনরুদ্ধার করুন"
+
+#: gtk/inspector/a11y.ui:17
+msgid "Role"
+msgstr "ভূমিকা"
+
+#: gtk/inspector/a11y.ui:71
+msgid "Description"
+msgstr "বর্ণনা"
+
+#: gtk/inspector/a11y.ui:99 gtk/inspector/misc-info.ui:296 tools/gtk-path-tool-info.c:132
+msgid "Bounds"
+msgstr "সীমানা"
+
+#: gtk/inspector/a11y.ui:125
+msgid "Object Path"
+msgstr "অবজেক্ট পাথ"
+
+#: gtk/inspector/a11y.ui:164
+msgid "Attribute"
+msgstr "বৈশিষ্ট্য"
+
+#: gtk/inspector/a11y.ui:176 gtk/inspector/css-node-tree.ui:70 gtk/inspector/prop-list.ui:57 gtk/inspector/recorder.ui:149
+#: gtk/inspector/recorder.ui:192 gtk/inspector/strv-editor.c:73
+#, fuzzy
+msgid "Value"
+msgstr "মান: (_V)"
+
+#: gtk/inspector/action-editor.c:133
+msgid "Activate"
+msgstr "সক্রিয় করুন"
+
+#: gtk/inspector/action-editor.c:145
+msgid "Set State"
+msgstr "রাজ্য সেট করুন"
+
+#: gtk/inspector/actions.ui:30
+#, fuzzy
+msgid "Enabled"
+msgstr "নিষ্ক্রিয়"
+
+#: gtk/inspector/actions.ui:42
+#, fuzzy
+msgid "Parameter Type"
+msgstr "কাগজের ধরন"
+
+#: gtk/inspector/actions.ui:53 gtk/inspector/css-node-tree.ui:41 gtk/inspector/misc-info.ui:108
+#, fuzzy
+msgid "State"
+msgstr "অবস্থা"
+
+#: gtk/inspector/clipboard.c:211 gtk/inspector/misc-info.ui:245
+msgid "Show"
+msgstr "দেখান"
+
+#: gtk/inspector/clipboard.c:228
+msgid "Hover to load"
+msgstr "লোড করতে হোভার করুন"
+
+#: gtk/inspector/clipboard.ui:30
+msgid "Drag and hold here"
+msgstr "এখানে টেনে ধরে রাখুন"
+
+#: gtk/inspector/clipboard.ui:71 gtk/inspector/window.ui:574
+msgid "Clipboard"
+msgstr "ক্লিপবোর্ড"
+
+#: gtk/inspector/clipboard.ui:107
+msgid "Primary"
+msgstr "প্রাথমিক"
+
+#: gtk/inspector/css-editor.c:128
+msgid "You can type here any CSS rule recognized by GTK."
+msgstr "আপনি এখানে GTK দ্বারা স্বীকৃত যেকোনো CSS নিয়ম টাইপ করতে পারেন।"
+
+#: gtk/inspector/css-editor.c:129
+msgid "You can temporarily disable this custom CSS by clicking on the “Pause” button above."
+msgstr "উপরের \"পজ\" বোতামে ক্লিক করে আপনি সাময়িকভাবে এই কাস্টম CSS অক্ষম করতে পারেন৷"
+
+#: gtk/inspector/css-editor.c:130
+msgid "Changes are applied instantly and globally, for the whole application."
+msgstr "সম্পূর্ণ অ্যাপ্লিকেশনের জন্য পরিবর্তনগুলি তাত্ক্ষণিকভাবে এবং বিশ্বব্যাপী প্রয়োগ করা হয়।"
+
+#: gtk/inspector/css-editor.c:206
+#, c-format
+msgid "Saving CSS failed"
+msgstr "CSS সংরক্ষণ করা ব্যর্থ হয়েছে৷"
+
+#: gtk/inspector/css-editor.ui:30
+msgid "Disable this custom CSS"
+msgstr "এই কাস্টম CSS নিষ্ক্রিয় করুন"
+
+#: gtk/inspector/css-editor.ui:37
+msgid "Save the current CSS"
+msgstr "বর্তমান CSS সংরক্ষণ করুন"
+
+#: gtk/inspector/css-node-tree.ui:28
+msgid "ID"
+msgstr "আইডি"
+
+#: gtk/inspector/css-node-tree.ui:34
+msgid "Style Classes"
+msgstr "শৈলী ক্লাস"
+
+#: gtk/inspector/css-node-tree.ui:64
+#, fuzzy
+msgid "CSS Property"
+msgstr "বৈশিষ্ট্যাবলী (_P)"
+
+#: gtk/inspector/general.c:857
+msgid "IM Context is hardcoded by GTK_IM_MODULE"
+msgstr "IM প্রসঙ্গ GTK_IM_MODULE দ্বারা হার্ডকোড করা হয়েছে৷"
+
+#: gtk/inspector/general.ui:31
+msgid "GTK Version"
+msgstr "GTK সংস্করণ"
+
+#: gtk/inspector/general.ui:57
+msgid "GDK Backend"
+msgstr "GDK ব্যাকএন্ড"
+
+#: gtk/inspector/general.ui:83
+msgid "GSK Renderer"
+msgstr "জিএসকে রেন্ডারার"
+
+#: gtk/inspector/general.ui:109
+msgid "Pango Fontmap"
+msgstr "প্যাঙ্গো ফন্টম্যাপ"
+
+#: gtk/inspector/general.ui:135
+msgid "Media Backend"
+msgstr "মিডিয়া ব্যাকএন্ড"
+
+#: gtk/inspector/general.ui:161
+msgid "Input Method"
+msgstr "ইনপুট পদ্ধতি"
+
+#: gtk/inspector/general.ui:198
+#, fuzzy
+msgid "Application ID"
+msgstr "অ্যাপ্লিকেশন"
+
+#: gtk/inspector/general.ui:224
+msgid "Resource Path"
+msgstr "সম্পদ পথ"
+
+#: gtk/inspector/general.ui:261 gtk/ui/gtkplacesview.ui:67
+msgid "Prefix"
+msgstr "উপসর্গ"
+
+#: gtk/inspector/general.ui:460
+#, fuzzy
+msgid "Display"
+msgstr "Display"
+
+#: gtk/inspector/general.ui:487
+msgid "RGBA Visual"
+msgstr "আরজিবিএ ভিজ্যুয়াল"
+
+#: gtk/inspector/general.ui:513
+msgid "Composited"
+msgstr "সংমিশ্রিত"
+
+#: gtk/inspector/general.ui:559
+msgid "GL Version"
+msgstr "জিএল সংস্করণ"
+
+#: gtk/inspector/general.ui:609
+msgid "GL Vendor"
+msgstr "জিএল বিক্রেতা"
+
+#: gtk/inspector/general.ui:646
+msgid "Vulkan Device"
+msgstr "ভলকান ডিভাইস"
+
+#: gtk/inspector/general.ui:673
+msgid "Vulkan API version"
+msgstr "Vulkan API সংস্করণ"
+
+#: gtk/inspector/general.ui:700
+msgid "Vulkan driver version"
+msgstr "ভলকান এপিআই সংস্করণ"
+
+#: gtk/inspector/menu.c:264
+msgid "Unnamed section"
+msgstr "নামহীন বিভাগ"
+
+#: gtk/inspector/menu.ui:26
+msgid "Label"
+msgstr "লেবেল"
+
+#: gtk/inspector/menu.ui:31 gtk/inspector/shortcuts.ui:23
+#, fuzzy
+msgid "Action"
+msgstr "অবস্থান"
+
+#: gtk/inspector/menu.ui:36
+msgid "Target"
+msgstr "টার্গেট"
+
+#: gtk/inspector/menu.ui:41
+msgid "Icon"
+msgstr "আইকন"
+
+#: gtk/inspector/misc-info.ui:31
+msgid "Address"
+msgstr "ঠিকানা"
+
+#: gtk/inspector/misc-info.ui:82
+msgid "Reference Count"
+msgstr "রেফারেন্স কাউন্ট"
+
+#: gtk/inspector/misc-info.ui:134
+#, fuzzy
+msgid "Direction"
+msgstr "নির্বাচন (_l)"
+
+#: gtk/inspector/misc-info.ui:160
+msgid "Buildable ID"
+msgstr "নির্মাণযোগ্য আইডি"
+
+#: gtk/inspector/misc-info.ui:186
+msgid "Mnemonic Label"
+msgstr "স্মৃতি সংক্রান্ত লেবেল"
+
+#: gtk/inspector/misc-info.ui:211
+msgid "Request Mode"
+msgstr "অনুরোধ মোড"
+
+#: gtk/inspector/misc-info.ui:236
+msgid "Measure map"
+msgstr "মানচিত্র পরিমাপ করুন"
+
+#: gtk/inspector/misc-info.ui:253
+msgid "Expand"
+msgstr "বিস্তৃত করা"
+
+#: gtk/inspector/misc-info.ui:321
+msgid "Baseline"
+msgstr "বেসলাইন"
+
+#: gtk/inspector/misc-info.ui:346
+msgid "Surface"
+msgstr "পৃষ্ঠতল"
+
+#: gtk/inspector/misc-info.ui:365 gtk/inspector/misc-info.ui:400 gtk/inspector/misc-info.ui:435
+#: gtk/inspector/prop-editor.c:1153 gtk/inspector/prop-editor.c:1536 gtk/inspector/window.ui:396
+#, fuzzy
+msgid "Properties"
+msgstr "বৈশিষ্ট্যাবলী (_P)"
+
+#: gtk/inspector/misc-info.ui:381
+msgid "Renderer"
+msgstr "রেন্ডারার"
+
+#: gtk/inspector/misc-info.ui:416
+msgid "Frame Clock"
+msgstr "ফ্রেম ঘড়ি"
+
+#: gtk/inspector/misc-info.ui:451
+msgid "Tick Callback"
+msgstr "কলব্যাকে টিক দিন"
+
+#: gtk/inspector/misc-info.ui:477
+msgid "Frame Count"
+msgstr "ফ্রেম গণনা"
+
+#: gtk/inspector/misc-info.ui:502
+msgid "Frame Rate"
+msgstr "চক্রের হার"
+
+#: gtk/inspector/misc-info.ui:527
+msgid "Scale"
+msgstr "স্কেল"
+
+#: gtk/inspector/misc-info.ui:552
+msgid "Mapped"
+msgstr "ম্যাপ করা হয়েছে"
+
+#: gtk/inspector/misc-info.ui:578
+msgid "Realized"
+msgstr "বুঝতে পারলেন"
+
+#: gtk/inspector/misc-info.ui:604
+msgid "Is Toplevel"
+msgstr "টপলেভেল হয়"
+
+#: gtk/inspector/misc-info.ui:630
+msgid "Child Visible"
+msgstr "শিশু দৃশ্যমান"
+
+#: gtk/inspector/prop-editor.c:702
+#, c-format
+msgid "Pointer: %p"
+msgstr "পয়েন্টার: %p"
+
+#. Translators: %s is a type name, for example
+#. * GtkPropertyExpression with value \"2.5\"
+#.
+#: gtk/inspector/prop-editor.c:827
+#, c-format
+msgid "%s with value \"%s\""
+msgstr "\"%s\" মান সহ %s"
+
+#. Translators: Both %s are type names, for example
+#. * GtkPropertyExpression with type GObject
+#.
+#: gtk/inspector/prop-editor.c:838
+#, c-format
+msgid "%s with type %s"
+msgstr "%s টাইপ %s সহ"
+
+#. Translators: Both %s are type names, for example
+#. * GtkObjectExpression for GtkStringObject 0x23456789
+#.
+#: gtk/inspector/prop-editor.c:851
+#, c-format
+msgid "%s for %s %p"
+msgstr "%s হয় %s %p এর জন্য"
+
+#. Translators: Both %s are type names, for example
+#. * GtkPropertyExpression with value type: gchararray
+#.
+#: gtk/inspector/prop-editor.c:881
+#, c-format
+msgid "%s with value type %s"
+msgstr "মান টাইপ %s সহ %s"
+
+#: gtk/inspector/prop-editor.c:1230
+#, c-format
+msgid "Uneditable property type: %s"
+msgstr "অসম্পাদনযোগ্য সম্পত্তির ধরন: %s"
+
+#: gtk/inspector/prop-editor.c:1425
+msgid "Attribute:"
+msgstr "বৈশিষ্ট্য:"
+
+#: gtk/inspector/prop-editor.c:1428
+msgid "Model"
+msgstr "মডেল: (_M)"
+
+#: gtk/inspector/prop-editor.c:1433
+msgid "Column:"
+msgstr "কলাম:"
+
+#. Translators: %s is a type name, for example
+#. * Action from 0x2345678 (GtkApplicationWindow)
+#.
+#: gtk/inspector/prop-editor.c:1532
+#, c-format
+msgid "Action from: %p (%s)"
+msgstr "এর থেকে কাজ: %p (%s)"
+
+#: gtk/inspector/prop-editor.c:1587
+msgid "Reset"
+msgstr "রিসেট"
+
+#: gtk/inspector/prop-editor.c:1611
+msgid "Source:"
+msgstr "উৎস:"
+
+#: gtk/inspector/prop-list.ui:46
+msgid "Defined At"
+msgstr "সংজ্ঞায়িত এ"
+
+#: gtk/inspector/recorder.c:1922
+#, c-format
+msgid "Saving RenderNode failed"
+msgstr "RenderNode সংরক্ষণ ব্যর্থ হয়েছে"
+
+#: gtk/inspector/recorder.ui:20
+msgid "Record frames"
+msgstr "রেকর্ড ফ্রেম"
+
+#: gtk/inspector/recorder.ui:27
+msgid "Clear recorded frames"
+msgstr "রেকর্ড করা ফ্রেম সাফ করুন"
+
+#: gtk/inspector/recorder.ui:34
+msgid "Add debug nodes"
+msgstr "ডিবাগ নোড যোগ করুন"
+
+#: gtk/inspector/recorder.ui:42
+msgid "Highlight event sequences"
+msgstr "ইভেন্ট সিকোয়েন্স হাইলাইট করুন"
+
+#: gtk/inspector/recorder.ui:51
+msgid "Use a dark background"
+msgstr "একটি অন্ধকার পটভূমি ব্যবহার করুন"
+
+#: gtk/inspector/recorder.ui:59
+#, fuzzy
+msgid "Save selected node"
+msgstr "একটি ফোল্ডার নির্বাচন"
+
+#: gtk/inspector/recorder.ui:67
+msgid "Copy to clipboard"
+msgstr "ক্লিপবোর্ডে কপি করুন"
+
+#: gtk/inspector/recorder.ui:144 gtk/inspector/recorder.ui:187
+#, fuzzy
+msgid "Property"
+msgstr "বৈশিষ্ট্যাবলী (_P)"
+
+#: gtk/inspector/resource-list.ui:59
+#, fuzzy
+msgid "Path"
+msgstr "উপরের পাথ"
+
+#: gtk/inspector/resource-list.ui:71
+msgid "Count"
+msgstr "গণনা"
+
+#: gtk/inspector/resource-list.ui:121
+#, fuzzy
+msgid "Name:"
+msgstr "নাম: (_N)"
+
+#: gtk/inspector/resource-list.ui:143
+msgid "Type:"
+msgstr "প্রকার:"
+
+#: gtk/inspector/resource-list.ui:164
+#, fuzzy
+msgid "Size:"
+msgstr "আকার"
+
+#: gtk/inspector/shortcuts.ui:17
+msgid "Trigger"
+msgstr "ট্রিগার"
+
+#: gtk/inspector/size-groups.c:240
+#, fuzzy
+msgid "Mode"
+msgstr "মোড: (_M)"
+
+#: gtk/inspector/statistics.c:814
+msgid "GLib must be configured with -Dbuildtype=debug"
+msgstr "GLib -Dbuildtype=debug এর সাথে কনফিগার করা আবশ্যক"
+
+#: gtk/inspector/statistics.ui:41
+msgid "Self 1"
+msgstr "স্বয়ং 1"
+
+#: gtk/inspector/statistics.ui:46
+msgid "Cumulative 1"
+msgstr "Cumulative 1"
+
+#: gtk/inspector/statistics.ui:51
+msgid "Self 2"
+msgstr "স্বয়ং 2"
+
+#: gtk/inspector/statistics.ui:56
+msgid "Cumulative 2"
+msgstr "ক্রমবর্ধমান 2"
+
+#: gtk/inspector/statistics.ui:61
+msgid "Self"
+msgstr "স্বয়ং"
+
+#: gtk/inspector/statistics.ui:66
+msgid "Cumulative"
+msgstr "ক্রমবর্ধমান"
+
+#: gtk/inspector/statistics.ui:88
+msgid "Enable statistics with GOBJECT_DEBUG=instance-count"
+msgstr "GOBJECT_DEBUG=ইনস্ট্যান্স-কাউন্ট দিয়ে পরিসংখ্যান সক্ষম করুন"
+
+#: gtk/inspector/strv-editor.c:83
+#, c-format
+msgid "Remove %s"
+msgstr "%s সরান"
+
+#: gtk/inspector/strv-editor.c:115
+#, fuzzy
+msgid "Add"
+msgstr "যোগ করুন (_A)"
+
+#: gtk/inspector/tree-data.ui:10
+msgid "Show data"
+msgstr "ডেটা দেখান"
+
+#: gtk/inspector/type-info.ui:14
+#, fuzzy
+msgid "Hierarchy"
+msgstr "অনুসন্ধান"
+
+#: gtk/inspector/type-info.ui:35
+msgid "Implements"
+msgstr "ইমপ্লিমেন্টস"
+
+#: gtk/inspector/visual.c:637 gtk/inspector/visual.c:656
+msgid "Theme is hardcoded by GTK_THEME"
+msgstr "থিম GTK_THEME দ্বারা হার্ডকোড করা হয়েছে৷"
+
+#: gtk/inspector/visual.c:905
+msgid "Backend does not support window scaling"
+msgstr "ব্যাকএন্ড উইন্ডো স্কেলিং সমর্থন করে না"
+
+#: gtk/inspector/visual.ui:34
+msgid "GTK Theme"
+msgstr "GTK থিম"
+
+#: gtk/inspector/visual.ui:58
+msgid "Dark Variant"
+msgstr "গাঢ় বৈকল্পিক"
+
+#: gtk/inspector/visual.ui:83
+msgid "Cursor Theme"
+msgstr "কার্সার থিম"
+
+#: gtk/inspector/visual.ui:108
+msgid "Cursor Size"
+msgstr "কার্সার সাইজ"
+
+#: gtk/inspector/visual.ui:144
+msgid "Icon Theme"
+msgstr "আইকন থিম"
+
+#: gtk/inspector/visual.ui:194
+#, fuzzy
+msgid "Font Scale"
+msgstr "ফন্ট নির্বাচন"
+
+#: gtk/inspector/visual.ui:239
+msgid "Text Direction"
+msgstr "লেখার দিকবিন্যাস"
+
+#: gtk/inspector/visual.ui:254
+#, fuzzy
+msgid "Left-to-Right"
+msgstr "বাম থেকে ডানে"
+
+#: gtk/inspector/visual.ui:255
+#, fuzzy
+msgid "Right-to-Left"
+msgstr "ডান থেকে বামে"
+
+#: gtk/inspector/visual.ui:273
+#, fuzzy
+msgid "Window Scaling"
+msgstr "উইন্ডো"
+
+#: gtk/inspector/visual.ui:306
+#, fuzzy
+msgid "Animations"
+msgstr "প্রমাণীকরণ"
+
+#: gtk/inspector/visual.ui:331
+msgid "Slowdown"
+msgstr "আস্তে আস্তে"
+
+#: gtk/inspector/visual.ui:385
+msgid "Show Framerate"
+msgstr "আস্তে আস্তে"
+
+#: gtk/inspector/visual.ui:410
+#, fuzzy
+msgid "Show Graphic Updates"
+msgstr "অন্যান্য অ্যাপ্লিকপশন প্রদর্শন"
+
+#: gtk/inspector/visual.ui:435
+msgid "Show Fallback Rendering"
+msgstr "ফলব্যাক রেন্ডারিং দেখান"
+
+#: gtk/inspector/visual.ui:460
+msgid "Show Baselines"
+msgstr "বেসলাইন দেখান"
+
+#: gtk/inspector/visual.ui:488
+msgid "Show Layout Borders"
+msgstr "লেআউট সীমানা দেখান"
+
+#: gtk/inspector/visual.ui:545
+msgid "CSS Padding"
+msgstr "CSS প্যাডিং"
+
+#: gtk/inspector/visual.ui:555
+msgid "CSS Border"
+msgstr "CSS বর্ডার"
+
+#: gtk/inspector/visual.ui:565
+#, fuzzy
+msgid "CSS Margin"
+msgstr "কাগজের প্রান্ত"
+
+#: gtk/inspector/visual.ui:575
+#, fuzzy
+msgid "Widget Margin"
+msgstr "কাগজের প্রান্ত"
+
+#: gtk/inspector/visual.ui:610
+msgid "Show Focus"
+msgstr "ফোকাস দেখান"
+
+#: gtk/inspector/visual.ui:635
+msgid "Show Accessibility warnings"
+msgstr "অ্যাক্সেসিবিলিটি সতর্কতা দেখান"
+
+#: gtk/inspector/visual.ui:667
+msgid "Inspect Inspector"
+msgstr "পরিদর্শক পরিদর্শক"
+
+#: gtk/inspector/window.ui:27
+#, fuzzy
+msgid "Select an Object"
+msgstr "একটি ফাইল নির্বাচন"
+
+#: gtk/inspector/window.ui:42 gtk/inspector/window.ui:107
+#, fuzzy
+msgid "Show Details"
+msgstr "কাজ সংক্রান্ত বিবরণ"
+
+#: gtk/inspector/window.ui:57
+msgid "Show all Objects"
+msgstr "সব অবজেক্ট দেখান"
+
+#: gtk/inspector/window.ui:121
+#, fuzzy
+msgid "Show all Resources"
+msgstr "ব্যক্তিগত রিসোর্স প্রদর্শন করা হবে (_P)"
+
+#: gtk/inspector/window.ui:147
+msgid "Collect Statistics"
+msgstr "পরিসংখ্যান সংগ্রহ করুন"
+
+#: gtk/inspector/window.ui:199
+msgid "Objects"
+msgstr "বস্তু"
+
+#: gtk/inspector/window.ui:231
+#, fuzzy
+msgid "Toggle Sidebar"
+msgstr "উভয়পৃষ্ঠ"
+
+#: gtk/inspector/window.ui:253
+msgid "Refresh action state"
+msgstr "কর্মের অবস্থা রিফ্রেশ করুন"
+
+#: gtk/inspector/window.ui:327
+#, fuzzy
+msgid "Previous object"
+msgstr "পূর্ববর্তী (_v)"
+
+#: gtk/inspector/window.ui:334
+msgid "Child object"
+msgstr "শিশু বস্তু"
+
+#: gtk/inspector/window.ui:341
+#, fuzzy
+msgid "Previous sibling"
+msgstr "পূর্ববর্তী (_v)"
+
+#: gtk/inspector/window.ui:347
+msgid "List Position"
+msgstr "তালিকার অবস্থান"
+
+#: gtk/inspector/window.ui:356
+msgid "Next sibling"
+msgstr "পরের ভাইবোন"
+
+#: gtk/inspector/window.ui:386
+msgid "Miscellaneous"
+msgstr "বিবিধ বৈশিষ্ট্য"
+
+#: gtk/inspector/window.ui:407 gtk/print/ui/gtkprintunixdialog.ui:451
+msgid "Layout"
+msgstr "বহির্বিন্যাস"
+
+#: gtk/inspector/window.ui:418
+msgid "CSS Nodes"
+msgstr "পরের ভাইবোন"
+
+#: gtk/inspector/window.ui:429
+msgid "Size Groups"
+msgstr "আকার গ্রুপ"
+
+#: gtk/inspector/window.ui:438 gtk/inspector/window.ui:447
+msgid "Data"
+msgstr "ডেটা"
+
+#: gtk/inspector/window.ui:457
+#, fuzzy
+msgid "Actions"
+msgstr "অ্যাপ্লিকেশন"
+
+#: gtk/inspector/window.ui:468
+msgid "Menu"
+msgstr "তালিকা"
+
+#: gtk/inspector/window.ui:477
+msgid "Controllers"
+msgstr "কন্ট্রোলার"
+
+#: gtk/inspector/window.ui:487
+msgid "Magnifier"
+msgstr "ম্যাগনিফায়ার"
+
+#: gtk/inspector/window.ui:508
+msgid "Accessibility"
+msgstr "অ্যাক্সেসযোগ্যতা"
+
+#: gtk/inspector/window.ui:532
+msgid "Global"
+msgstr "গ্লোবাল"
+
+#: gtk/inspector/window.ui:545
+#, fuzzy
+msgid "Information"
+msgstr "তথ্য"
+
+#: gtk/inspector/window.ui:554
+#, fuzzy
+msgid "Settings"
+msgstr "%s আরম্ভ করা হচ্ছে"
+
+#: gtk/inspector/window.ui:563
+#, fuzzy
+msgid "Resources"
+msgstr "কাগজের উৎস: (_s)"
+
+#: gtk/inspector/window.ui:584
+#, fuzzy
+msgid "Statistics"
+msgstr "অবস্থা"
+
+#: gtk/inspector/window.ui:595
+msgid "Logging"
+msgstr "লগিং"
+
+#: gtk/inspector/window.ui:610
+#, fuzzy
+msgid "CSS"
+msgstr "CLASS"
+
+# FIXME: Translating in the context of sound recording.
+#: gtk/inspector/window.ui:619
+#, fuzzy
+msgid "Recorder"
+msgstr "রেকর্ড করা হবে (_R)"
+
+#: gtk/ui/gtkaboutdialog.ui:15
+msgid "Pages"
+msgstr "পৃষ্ঠা"
+
+#: gtk/ui/gtkaboutdialog.ui:43
+msgid "Logo"
+msgstr "লোগো"
+
+#: gtk/ui/gtkaboutdialog.ui:68
+#, fuzzy
+msgid "About"
+msgstr "পরিচিতি (_A)"
+
+#: gtk/ui/gtkaboutdialog.ui:129 gtk/ui/gtkaboutdialog.ui:157
+msgid "Credits"
+msgstr "স্বীকৃতি"
+
+#: gtk/ui/gtkaboutdialog.ui:173 gtk/ui/gtkaboutdialog.ui:190
+msgid "License"
+msgstr "লাইসেন্স"
+
+#: gtk/ui/gtkaboutdialog.ui:219
+#, fuzzy
+msgid "System"
+msgstr "সিস্টেম"
+
+#: gtk/ui/gtkaboutdialog.ui:238
+#, fuzzy
+msgid "System Information"
+msgstr "তথ্য"
+
+#: gtk/ui/gtkappchooserdialog.ui:4
+#, fuzzy
+msgid "Select App"
+msgstr "সব নির্বাচন করুন (_A)"
+
+#: gtk/ui/gtkappchooserdialog.ui:63
+msgid "_View All Apps"
+msgstr "_সমস্ত অ্যাপ দেখুন"
+
+#: gtk/ui/gtkappchooserdialog.ui:69
+msgid "_Find New Apps"
+msgstr "_নতুন অ্যাপস খুঁজুন"
+
+#: gtk/ui/gtkappchooserwidget.ui:100
+msgid "No applications found."
+msgstr "কোন অ্যাপ্লিকেশন পাওয়া যায়নি."
+
+#: gtk/ui/gtkapplication-quartz.ui:13
+#, fuzzy
+msgid "Preferences"
+msgstr "পছন্দসমূহ (_P)"
+
+#: gtk/ui/gtkapplication-quartz.ui:19
+#, fuzzy
+msgid "Services"
+msgstr "ডিভাইস: (_D)"
+
+#: gtk/ui/gtkapplication-quartz.ui:25
+msgid "Hide %s"
+msgstr "%s লুকান"
+
+#: gtk/ui/gtkapplication-quartz.ui:30
+msgid "Hide Others"
+msgstr "অন্যদের লুকান"
+
+#: gtk/ui/gtkapplication-quartz.ui:35
+msgid "Show All"
+msgstr "সব দেখাও"
+
+#: gtk/ui/gtkapplication-quartz.ui:42
+#, fuzzy
+msgid "Quit %s"
+msgstr "%s পরিচিতি"
+
+#: gtk/ui/gtkassistant.ui:64
+#, fuzzy
+msgid "_Finish"
+msgstr "সমাপ্ত"
+
+#: gtk/ui/gtkassistant.ui:75
+#, fuzzy
+msgid "_Back"
+msgstr "পূর্ববর্তী (_B)"
+
+#: gtk/ui/gtkassistant.ui:86
+#, fuzzy
+msgid "_Next"
+msgstr "পরবর্তী (_N)"
+
+#: gtk/ui/gtkcolorchooserdialog.ui:4
+#, fuzzy
+msgid "Select a Color"
+msgstr "একটি ফোল্ডার নির্বাচন"
+
+#: gtk/ui/gtkcoloreditor.ui:43 gtk/ui/gtkcoloreditor.ui:53
+msgid "Pick a color from the screen"
+msgstr "পর্দা থেকে একটি রঙ চয়ন করুন"
+
+#: gtk/ui/gtkcoloreditor.ui:66
+msgid "The current color"
+msgstr "বর্তমান রঙ"
+
+#: gtk/ui/gtkcoloreditor.ui:84
+msgid "Hexadecimal color or color name"
+msgstr "হেক্সাডেসিমেল রঙ বা রঙের নাম"
+
+#: gtk/ui/gtkcoloreditor.ui:99
+#, fuzzy
+msgid "Hue"
+msgstr "হিউ: (_H)"
+
+#: gtk/ui/gtkcoloreditor.ui:115
+#, fuzzy
+msgid "Alpha value"
+msgstr "গামার মান (_G)"
+
+#: gtk/ui/gtkcoloreditor.ui:133
+#, fuzzy
+msgid "Saturation and value"
+msgstr "ঘনত্ব: (_S)"
+
+#: gtk/ui/gtkcoloreditor.ui:157
+#, fuzzy
+msgctxt "Color channel"
+msgid "A"
+msgstr "A0"
+
+#: gtk/ui/gtkcoloreditor.ui:193
+msgctxt "Color channel"
+msgid "H"
+msgstr ""
+
+#: gtk/ui/gtkcoloreditor.ui:230
+msgctxt "Color Channel"
+msgid "S"
+msgstr ""
+
+#: gtk/ui/gtkcoloreditor.ui:239
+msgctxt "Color Channel"
+msgid "V"
+msgstr ""
+
+#: gtk/ui/gtkdropdown.ui:25
+msgid "(None)"
+msgstr "(কোনটি না)"
+
+#: gtk/ui/gtkdropdown.ui:78
+msgid "Search…"
+msgstr "অনুসন্ধান..."
+
+#: gtk/ui/gtkemojichooser.ui:69 gtk/ui/gtkemojichooser.ui:239
+msgctxt "emoji category"
+msgid "Smileys & People"
+msgstr "স্মাইলিস এবং মানুষ"
+
+#: gtk/ui/gtkemojichooser.ui:94 gtk/ui/gtkemojichooser.ui:248
+msgctxt "emoji category"
+msgid "Body & Clothing"
+msgstr "শরীর ও পোশাক"
+
+#: gtk/ui/gtkemojichooser.ui:119 gtk/ui/gtkemojichooser.ui:257
+msgctxt "emoji category"
+msgid "Animals & Nature"
+msgstr "প্রাণী ও প্রকৃতি"
+
+#: gtk/ui/gtkemojichooser.ui:133 gtk/ui/gtkemojichooser.ui:266
+msgctxt "emoji category"
+msgid "Food & Drink"
+msgstr "খাদ্য পানীয়"
+
+#: gtk/ui/gtkemojichooser.ui:147 gtk/ui/gtkemojichooser.ui:275
+msgctxt "emoji category"
+msgid "Travel & Places"
+msgstr "ভ্রমণ এবং স্থান"
+
+#: gtk/ui/gtkemojichooser.ui:161 gtk/ui/gtkemojichooser.ui:284
+msgctxt "emoji category"
+msgid "Activities"
+msgstr "কার্যক্রম"
+
+#: gtk/ui/gtkemojichooser.ui:175 gtk/ui/gtkemojichooser.ui:293
+msgctxt "emoji category"
+msgid "Objects"
+msgstr "বস্তু"
+
+#: gtk/ui/gtkemojichooser.ui:189 gtk/ui/gtkemojichooser.ui:302
+msgctxt "emoji category"
+msgid "Symbols"
+msgstr "প্রতীক"
+
+#: gtk/ui/gtkemojichooser.ui:203 gtk/ui/gtkemojichooser.ui:311
+msgctxt "emoji category"
+msgid "Flags"
+msgstr "পতাকা"
+
+#: gtk/ui/gtkemojichooser.ui:230
+#, fuzzy
+msgctxt "emoji category"
+msgid "Recent"
+msgstr "সম্প্রতি ব্যবহৃত"
+
+#: gtk/ui/gtkfilechooserwidget.ui:71
+#, fuzzy
+msgid "Create Folder"
+msgstr "ফোল্ডার তৈরি করুন (_l)"
+
+#: gtk/ui/gtkfilechooserwidget.ui:109
+msgid "Search"
+msgstr "অনুসন্ধান"
+
+#: gtk/ui/gtkfilechooserwidget.ui:191
+msgid "Remote location — only searching the current folder"
+msgstr "দূরবর্তী অবস্থান — শুধুমাত্র বর্তমান ফোল্ডার অনুসন্ধান"
+
+#: gtk/ui/gtkfilechooserwidget.ui:290
+msgid "Filter"
+msgstr "ছাঁকনি"
+
+#: gtk/ui/gtkfilechooserwidget.ui:323
+#, fuzzy
+msgid "Folder Name"
+msgstr "ফোল্ডারের নাম: (_F)"
+
+#: gtk/ui/gtkfilechooserwidget.ui:349
+#, fuzzy
+msgid "_Create"
+msgstr "তৈরি করেছে"
+
+#: gtk/ui/gtkfontchooserdialog.ui:4
+#, fuzzy
+msgid "Select Font"
+msgstr "নির্বাচন (_l)"
+
+#: gtk/ui/gtkfontchooserwidget.ui:64 gtk/ui/gtkfontchooserwidget.ui:67
+msgid "Search font name"
+msgstr "ফন্টের নাম অনুসন্ধান করুন"
+
+#: gtk/ui/gtkfontchooserwidget.ui:74 gtk/ui/gtkfontchooserwidget.ui:77
+msgid "Filters"
+msgstr "ফিল্টার"
+
+#: gtk/ui/gtkfontchooserwidget.ui:89
+msgid "Filter by"
+msgstr "দ্বারা ফিল্টার করুন"
+
+#: gtk/ui/gtkfontchooserwidget.ui:99
+msgid "Monospace"
+msgstr "মনোস্পেস"
+
+#: gtk/ui/gtkfontchooserwidget.ui:105
+msgid "Language"
+msgstr "ভাষা"
+
+#: gtk/ui/gtkfontchooserwidget.ui:198 gtk/ui/gtkfontchooserwidget.ui:200 gtk/ui/gtkfontchooserwidget.ui:353
+#: gtk/ui/gtkfontchooserwidget.ui:357
+#, fuzzy
+msgid "Preview Font"
+msgstr "প্রাকদর্শন: (_P)"
+
+#: gtk/ui/gtkfontchooserwidget.ui:296
+#, fuzzy
+msgid "No Fonts Found"
+msgstr "কোনো আইটেম পাওয়া যায়নি"
+
+#: gtk/ui/gtkfontchooserwidget.ui:337
+#, fuzzy
+msgid "Font Name"
+msgstr "নাম"
+
+#: gtk/ui/gtkfontchooserwidget.ui:382
+msgid "Font Variation Axes"
+msgstr "হরফ প্রকরণ অক্ষ"
+
+#: gtk/ui/gtkfontchooserwidget.ui:430
+msgid "Font Features"
+msgstr "ফন্ট বৈশিষ্ট্য"
+
+#: gtk/ui/gtkmediacontrols.ui:28
+#, fuzzy
+msgctxt "media controls tooltip"
+msgid "Play"
+msgstr "বাজানো হবে (_P)"
+
+#: gtk/ui/gtkmediacontrols.ui:47
+#, fuzzy
+msgctxt "media controls"
+msgid "Position"
+msgstr "অবস্থান"
+
+#: gtk/ui/gtkmediacontrols.ui:65
+#, fuzzy
+msgctxt "media controls"
+msgid "Volume"
+msgstr "ভলিউম"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:30
+msgid "_Format for:"
+msgstr "বিন্যাস করা হবে: (_F)"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:54 gtk/print/ui/gtkprintunixdialog.ui:704
+msgid "_Paper size:"
+msgstr "পৃষ্ঠার আকার: (_P)"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:89
+msgid "_Orientation:"
+msgstr "স্থিতিবিন্যাস: (_O)"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:101 gtk/print/ui/gtkprintunixdialog.ui:744
+msgid "Portrait"
+msgstr "লম্বালম্বি"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:112 gtk/print/ui/gtkprintunixdialog.ui:746
+msgid "Reverse portrait"
+msgstr "বিপরীত লম্বালম্বি"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:124 gtk/print/ui/gtkprintunixdialog.ui:745
+msgid "Landscape"
+msgstr "আড়াআড়ি"
+
+#: gtk/print/ui/gtkpagesetupunixdialog.ui:135 gtk/print/ui/gtkprintunixdialog.ui:747
+msgid "Reverse landscape"
+msgstr "বিপরীত আড়াআড়ি"
+
+#: gtk/ui/gtkplacesview.ui:16
+msgid "Server Addresses"
+msgstr "সার্ভার ঠিকানা"
+
+#: gtk/ui/gtkplacesview.ui:28
+msgid "Server addresses are made up of a protocol prefix and an address. Examples:"
+msgstr "সার্ভার ঠিকানা একটি প্রোটোকল উপসর্গ এবং একটি ঠিকানা গঠিত হয়. উদাহরণ:"
+
+#: gtk/ui/gtkplacesview.ui:54
+msgid "Available Protocols"
+msgstr "উপলব্ধ প্রোটোকল"
+
+#. Translators: Server as any successfully connected network address
+#: gtk/ui/gtkplacesview.ui:106
+#, fuzzy
+msgid "No recent servers found"
+msgstr "কোনো মুদ্রণযন্ত্র পাওয়া যায়নি"
+
+#: gtk/ui/gtkplacesview.ui:129
+msgid "Recent Servers"
+msgstr "সাম্প্রতিক সার্ভার"
+
+#: gtk/ui/gtkplacesview.ui:209
+#, fuzzy
+msgid "No results found"
+msgstr "কোনো আইটেম পাওয়া যায়নি"
+
+#: gtk/ui/gtkplacesview.ui:240
+#, fuzzy
+msgid "Connect to _Server"
+msgstr "ব্যবহারকারী হিসেবে সংযোগ করুন: (_s)"
+
+#: gtk/ui/gtkplacesview.ui:265
+msgid "Enter server address…"
+msgstr "সার্ভার ঠিকানা লিখুন..."
+
+#. this is the header for the printer status column in the print dialog
+#: gtk/print/ui/gtkprintunixdialog.ui:142
+msgid "Status"
+msgstr "অবস্থা"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:196
+msgid "Range"
+msgstr "সুনির্দিষ্ট সীমা"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:214
+msgid "_All Pages"
+msgstr "সকল পৃষ্ঠা (_A)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:227
+msgid "C_urrent Page"
+msgstr "বর্তমান পৃষ্ঠা (_u)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:241
+msgid "Se_lection"
+msgstr "নির্বাচন (_l)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:256
+msgid "Pag_es:"
+msgstr "পৃষ্ঠা: (_e)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:260 gtk/print/ui/gtkprintunixdialog.ui:273
+#, fuzzy
+msgid ""
+"Specify one or more page ranges,\n"
+" e.g. 1–3, 7, 11"
+msgstr ""
+"এক অথবা একাধিক পৃষ্ঠার সীমা উল্লেখ করুন,\n"
+" উদাহরণস্বরূপ. 1-3,7,11"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:299
+msgid "Copies"
+msgstr "অনুলিপি"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:317
+msgid "Copie_s:"
+msgstr "অনুলিপি: (_s)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:340
+msgid "C_ollate"
+msgstr "একত্রিত করুন (_o)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:351
+msgid "_Reverse"
+msgstr "বিপরীত (_R)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:364
+#, fuzzy
+msgid "Page ordering preview"
+msgstr "পৃষ্ঠার অনুক্রম: (_d)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:365
+msgid "A visualization of the effect of the collate and reverse options on the page ordering"
+msgstr "পৃষ্ঠার ক্রমানুসারে কোলেট এবং বিপরীত বিকল্পগুলির প্রভাবের একটি ভিজ্যুয়ালাইজেশন"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:424
+msgid "General"
+msgstr "সাধারণ"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:470
+msgid "T_wo-sided:"
+msgstr "উভয় পার্শ্ব: (_w)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:492
+msgid "Pages per _side:"
+msgstr "প্রতি পার্শ্বে পৃষ্ঠার সংখ্যা: (_s)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:516
+msgid "Page or_dering:"
+msgstr "পৃষ্ঠার অনুক্রম: (_d)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:539
+msgid "_Only print:"
+msgstr "শুধুমাত্র মুদ্রণ করা হবে: (_O)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:555
+msgid "All sheets"
+msgstr "সকল পাতা"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:556
+msgid "Even sheets"
+msgstr "শুধুমাত্র জোড় সংখ্যক পাতায়"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:557
+msgid "Odd sheets"
+msgstr "শুধুমাত্র বেজোড় সংখ্যক পাতায়"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:571
+msgid "Sc_ale:"
+msgstr "আকার পরিবর্তন: (_a)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:587
+msgid "Scale in percent"
+msgstr "শতাংশে স্কেল"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:619
+msgid "Paper"
+msgstr "কাগজ"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:638
+msgid "Paper _type:"
+msgstr "কাগজের ধরন: (_t)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:660
+msgid "Paper _source:"
+msgstr "কাগজের উৎস: (_s)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:682
+msgid "Output t_ray:"
+msgstr "আউটপুট ট্রে: (_r)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:727
+msgid "Or_ientation:"
+msgstr "স্থিতিবিন্যাস: (_i)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:769
+msgid "Page layout preview"
+msgstr "পৃষ্ঠা বিন্যাস পূর্বরূপ"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:805
+msgid "Job Details"
+msgstr "কাজ সংক্রান্ত বিবরণ"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:820
+msgid "Pri_ority:"
+msgstr "অগ্রাধিকার: (_o)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:841
+msgid "_Billing info:"
+msgstr "বিল সংক্রান্ত তথ্য: (_B)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:874
+msgid "Print Document"
+msgstr "নথি মুদ্রণ"
+
+#. this is one of the choices for the print at option in the print dialog
+#: gtk/print/ui/gtkprintunixdialog.ui:887
+msgid "_Now"
+msgstr "এই মুহূর্তে (_N)"
+
+#. this is one of the choices for the print at option in the print dialog. It also serves as the label for an entry that allows the user to enter a time.
+#: gtk/print/ui/gtkprintunixdialog.ui:901
+msgid "A_t:"
+msgstr "চিহ্নিত সময়ে: (_t)"
+
+#. Ability to parse the am/pm format depends on actual locale. You can remove the am/pm values below for your locale if they are not supported.
+#: gtk/print/ui/gtkprintunixdialog.ui:903 gtk/print/ui/gtkprintunixdialog.ui:905 gtk/print/ui/gtkprintunixdialog.ui:921
+#: gtk/print/ui/gtkprintunixdialog.ui:923
+#, fuzzy
+msgid ""
+"Specify the time of print,\n"
+" e.g. 15∶30, 2∶35 pm, 14∶15∶20, 11∶46∶30 am, 4 pm"
+msgstr ""
+"মুদ্রণের সময় সুনির্দিষ্টভাবে উল্লেখ করুন,\n"
+" উদাহরণস্বরূপ ১৫:৩০, ২:৩৫ অপরাহ্ন, ১৪:১৫:২০, ১১:৪৬:৩০ পূর্বাহ্ন, ৪ অপরাহ্ন"
+
+#. this is one of the choices for the print at option in the print dialog. It means that the print job will not be printed until it explicitly gets 'released'.
+#: gtk/print/ui/gtkprintunixdialog.ui:935
+msgid "On _hold"
+msgstr "অপেক্ষারত (_h)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:937 gtk/print/ui/gtkprintunixdialog.ui:938
+msgid "Hold the job until it is explicitly released"
+msgstr "আরম্ভের সুনির্দিষ্ট নির্দেশ না দেয়া পর্যন্ত কাজ স্থগিত রাখা হবে"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:965
+msgid "Add Cover Page"
+msgstr "প্রচ্ছদ পৃষ্ঠা যোগ"
+
+#. this is the label used for the option in the print dialog that controls the front cover page.
+#: gtk/print/ui/gtkprintunixdialog.ui:980
+msgid "Be_fore:"
+msgstr "পূর্বে: (_f)"
+
+#. this is the label used for the option in the print dialog that controls the back cover page.
+#: gtk/print/ui/gtkprintunixdialog.ui:1001
+msgid "_After:"
+msgstr "পরে: (_A)"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:1030
+msgid "Job"
+msgstr "কাজ"
+
+#. This will appear as a tab label in the print dialog.
+#: gtk/print/ui/gtkprintunixdialog.ui:1060
+msgid "Image Quality"
+msgstr "ছবির গুণগত মান"
+
+#. This will appear as a tab label in the print dialog.
+#: gtk/print/ui/gtkprintunixdialog.ui:1089
+msgid "Color"
+msgstr "রং"
+
+#. This will appear as a tab label in the print dialog. It's a typographical term, as in "Binding and finishing"
+#: gtk/print/ui/gtkprintunixdialog.ui:1118
+msgid "Finishing"
+msgstr "শেষ করছে"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:1147
+msgid "Advanced"
+msgstr "উন্নত বৈশিষ্ট্য"
+
+#: gtk/print/ui/gtkprintunixdialog.ui:1163
+msgid "Some of the settings in the dialog conflict"
+msgstr "ডায়ালগের কিছু সেটিংস পরস্পরবিরোধী"
+
+#: modules/media/gtkffmediafile.c:253
+#, fuzzy, c-format
+msgid "Unspecified error decoding media"
+msgstr "অনির্ধারিত ত্রুটি"
+
+#: modules/media/gtkffmediafile.c:286
+#, fuzzy, c-format
+msgid "Cannot find decoder: %s"
+msgstr "প্রদর্শন খোলা যাচ্ছে না: %s"
+
+#: modules/media/gtkffmediafile.c:296 modules/media/gtkffmediafile.c:363
+#, fuzzy
+msgid "Failed to allocate a codec context"
+msgstr "QTIF কনটেক্সট কাঠামো বরাদ্দ করতে ব্যর্থ।"
+
+#: modules/media/gtkffmediafile.c:341
+#, fuzzy, c-format
+msgid "Cannot find encoder: %s"
+msgstr "প্রদর্শন খোলা যাচ্ছে না: %s"
+
+#: modules/media/gtkffmediafile.c:352
+msgid "Cannot add new stream"
+msgstr "নতুন স্ট্রীম যোগ করা যাবে না"
+
+#: modules/media/gtkffmediafile.c:485 modules/media/gtkffmediafile.c:942
+#, fuzzy
+msgid "Failed to allocate an audio frame"
+msgstr "read buffer ফাইলের জন্য %d বাইট বরাদ্দ করতে ব্যর্থ"
+
+#: modules/media/gtkffmediafile.c:650 modules/media/gtkffmediafile.c:898
+#, fuzzy
+msgid "Not enough memory"
+msgstr "পর্যাপ্ত মেমরি ফাঁকা নেই"
+
+#: modules/media/gtkffmediafile.c:821
+#, fuzzy
+msgid "Could not allocate resampler context"
+msgstr "কনটেক্সট বাফারের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#: modules/media/gtkffmediafile.c:868
+#, fuzzy
+msgid "No audio output found"
+msgstr "কোনো আইটেম পাওয়া যায়নি"
+
+#: modules/printbackends/gtkprintbackendcpdb.c:592
+msgid "Print at"
+msgstr "মুদ্রণ করা হবে"
+
+#: modules/printbackends/gtkprintbackendcpdb.c:602
+msgid "Print at time"
+msgstr "চিহ্নিত সময়ে মুদ্রণ করা হবে"
+
+#. Translators: this is a printer status.
+#: modules/printbackends/gtkprintbackendcpdb.c:1525 modules/printbackends/gtkprintbackendcups.c:2636
+msgid "Paused; Rejecting Jobs"
+msgstr "স্থগিত ; কাজ প্রত্যাখ্যান করা হচ্ছে"
+
+#. Translators: this is a printer status.
+#: modules/printbackends/gtkprintbackendcpdb.c:1531 modules/printbackends/gtkprintbackendcups.c:2642
+msgid "Rejecting Jobs"
+msgstr "কাজ প্রত্যাখ্যান করা হচ্ছে"
+
+#: modules/printbackends/gtkprintbackendcups.c:1142 modules/printbackends/gtkprintbackendcups.c:1449
+msgid "Username:"
+msgstr "ব্যবহারকারীর নাম:"
+
+#: modules/printbackends/gtkprintbackendcups.c:1143 modules/printbackends/gtkprintbackendcups.c:1458
+msgid "Password:"
+msgstr "পাসওয়ার্ড:"
+
+#: modules/printbackends/gtkprintbackendcups.c:1181 modules/printbackends/gtkprintbackendcups.c:1471
+#, fuzzy, c-format
+msgid "Authentication is required to print document “%s” on printer %s"
+msgstr "'%s' নথিটি %s মুদ্রণযন্ত্রে মুদ্রণের জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1183
+#, c-format
+msgid "Authentication is required to print a document on %s"
+msgstr "%s-এ কোন নথি মুদ্রণের জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1187
+#, fuzzy, c-format
+msgid "Authentication is required to get attributes of job “%s”"
+msgstr "'%s' কাজের বৈশিষ্ট্য পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1189
+msgid "Authentication is required to get attributes of a job"
+msgstr "কাজের বৈশিষ্ট্য পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1193
+#, c-format
+msgid "Authentication is required to get attributes of printer %s"
+msgstr "'%s' মুদ্রণযন্ত্রের বৈশিষ্ট্য পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1195
+msgid "Authentication is required to get attributes of a printer"
+msgstr "মুদ্রণযন্ত্রের বৈশিষ্ট্য পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1198
+#, c-format
+msgid "Authentication is required to get default printer of %s"
+msgstr "%s-এর পূর্বনির্ধারিত মুদ্রণযন্ত্র পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1201
+#, c-format
+msgid "Authentication is required to get printers from %s"
+msgstr "%s থেকে মুদ্রণযন্ত্র পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1206
+#, c-format
+msgid "Authentication is required to get a file from %s"
+msgstr "%s থেকে ফাইল পাওয়ার জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1208
+#, c-format
+msgid "Authentication is required on %s"
+msgstr "%s-এ প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1443
+msgid "Domain:"
+msgstr "ডোমেইন:"
+
+#: modules/printbackends/gtkprintbackendcups.c:1473
+#, fuzzy, c-format
+msgid "Authentication is required to print document “%s”"
+msgstr "'%s' নথি মুদ্রণে প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1478
+#, c-format
+msgid "Authentication is required to print this document on printer %s"
+msgstr "%s মুদ্রণযন্ত্রে এই নথিটি মুদ্রণের জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:1480
+msgid "Authentication is required to print this document"
+msgstr "এই নথিটি মুদ্রণের জন্য প্রমাণীকরণ আবশ্যক"
+
+#: modules/printbackends/gtkprintbackendcups.c:2568
+#, fuzzy, c-format
+msgid "Printer “%s” is low on toner."
+msgstr "মুদ্রণযন্ত্র '%s'-এ টোনারের মাত্রা কম।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2572
+#, fuzzy, c-format
+msgid "Printer “%s” has no toner left."
+msgstr "'%s' মুদ্রণযন্ত্রে টোনার শেষ হয়ে গেছে।"
+
+#. Translators: "Developer" like on photo development context
+#: modules/printbackends/gtkprintbackendcups.c:2577
+#, fuzzy, c-format
+msgid "Printer “%s” is low on developer."
+msgstr "মুদ্রণযন্ত্র '%s'-এ ডেভেলপার সামগ্রীর মাত্রা কম।"
+
+#. Translators: "Developer" like on photo development context
+#: modules/printbackends/gtkprintbackendcups.c:2582
+#, fuzzy, c-format
+msgid "Printer “%s” is out of developer."
+msgstr "'%s' মুদ্রণযন্ত্রে ডেভেলপার সামগ্রী শেষ হয়ে গেছে।"
+
+#. Translators: "marker" is one color bin of the printer
+#: modules/printbackends/gtkprintbackendcups.c:2587
+#, fuzzy, c-format
+msgid "Printer “%s” is low on at least one marker supply."
+msgstr "মুদ্রণযন্ত্র '%s'-এ অন্তত একটি মার্কার ধারণস্থলের সামগ্রীর মাত্রা কমেছে।"
+
+#. Translators: "marker" is one color bin of the printer
+#: modules/printbackends/gtkprintbackendcups.c:2592
+#, fuzzy, c-format
+msgid "Printer “%s” is out of at least one marker supply."
+msgstr "'%s' মুদ্রণযন্ত্রে অন্তত একটি মার্কার ধারণস্থলের সামগ্রী শেষ হয়ে গেছে।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2596
+#, fuzzy, c-format
+msgid "The cover is open on printer “%s”."
+msgstr "'%s' মুদ্রণযন্ত্রের ঢাকনা খোলা।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2600
+#, fuzzy, c-format
+msgid "The door is open on printer “%s”."
+msgstr "'%s' মুদ্রণযন্ত্রের দরজা খোলা।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2604
+#, fuzzy, c-format
+msgid "Printer “%s” is low on paper."
+msgstr "'%s' মুদ্রণযন্ত্রে কাগজের পরিমাণ হ্রাস পেয়েছে।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2608
+#, fuzzy, c-format
+msgid "Printer “%s” is out of paper."
+msgstr "'%s' মুদ্রণযন্ত্রের কাগজ শেষ হয়ে গেছে।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2612
+#, fuzzy, c-format
+msgid "Printer “%s” is currently offline."
+msgstr "মুদ্রণযন্ত্র '%s' বর্তমানে অফলাইনে রয়েছে।"
+
+#: modules/printbackends/gtkprintbackendcups.c:2616
+#, fuzzy, c-format
+msgid "There is a problem on printer “%s”."
+msgstr "'%s' মুদ্রণযন্ত্রে একটি সমস্যা দেখা দিয়েছে।"
+
+#. Translators: this string connects multiple printer states together.
+#: modules/printbackends/gtkprintbackendcups.c:2683
+msgid "; "
+msgstr ";"
+
+#: modules/printbackends/gtkprintbackendcups.c:5198
+msgid "Printer Default"
+msgstr "মুদ্রণযন্ত্রের পূর্বনির্ধারিত মান"
+
+#. Translators, this string is used to label the job priority option
+#. * in the print dialog
+#.
+#: modules/printbackends/gtkprintbackendcups.c:5672
+msgid "Job Priority"
+msgstr "কাজের অগ্রাধিকার"
+
+#. Translators, this string is used to label the billing info entry
+#. * in the print dialog
+#.
+#: modules/printbackends/gtkprintbackendcups.c:5683
+msgid "Billing Info"
+msgstr "বিল সংক্রান্ত তথ্য"
+
+#. Translators: this format is used to display a custom
+#. * paper size. The two placeholders are replaced with
+#. * the width and height in points. E.g: "Custom
+#. * 230.4x142.9"
+#.
+#: modules/printbackends/gtkprintbackendcups.c:5877
+#, fuzzy, c-format
+msgid "Custom %s×%s"
+msgstr "স্বনির্ধারিত %1$sx%2$s"
+
+#: modules/printbackends/gtkprintbackendfile.c:238
+#, fuzzy
+msgid "output"
+msgstr "output.%s"
+
+#: modules/printbackends/gtkprintbackendfile.c:510
+msgid "Print to File"
+msgstr "ফাইলে মুদ্রণ করুন"
+
+#: modules/printbackends/gtkprintbackendfile.c:649
+msgid "Pages per _sheet:"
+msgstr "প্রতি পাতায় পৃষ্ঠার সংখ্যা: (_s)"
+
+#: modules/printbackends/gtkprintbackendfile.c:709
+msgid "File"
+msgstr "ফাইল"
+
+#: modules/printbackends/gtkprintbackendfile.c:719
+msgid "_Output format"
+msgstr "আউটপুটের ফরম্যাট (_O)"
+
+#. TRANSLATORS: when we're running an old CUPS, and
+#. * it hasn't registered the device with colord
+#: modules/printbackends/gtkprintercups.c:272
+msgid "Color management unavailable"
+msgstr "রঙ ব্যবস্থাপনা অনুপলব্ধ"
+
+#. TRANSLATORS: when there is no color profile available
+#: modules/printbackends/gtkprintercups.c:284
+#, fuzzy
+msgid "No profile available"
+msgstr "বিদ্যমান নেই"
+
+#. TRANSLATORS: when the color profile has no title
+#: modules/printbackends/gtkprintercups.c:295
+#, fuzzy
+msgid "Unspecified profile"
+msgstr "অনির্ধারিত ত্রুটি"
+
+#: tools/encodesymbolic.c:92
+#, fuzzy, c-format
+msgid "Invalid size %s\n"
+msgstr "ফাইলের নাম বৈধ নয়"
+
+#: tools/encodesymbolic.c:104 tools/encodesymbolic.c:113
+#, c-format
+msgid "Can’t load file: %s\n"
+msgstr "ফাইল লোড করা যাচ্ছে না: %s\n"
+
+#: tools/encodesymbolic.c:141 tools/encodesymbolic.c:147
+#, fuzzy, c-format
+msgid "Can’t save file %s: %s\n"
+msgstr "%1$s ফাইল খুলতে ব্যর্থ : %2$s\n"
+
+#: tools/encodesymbolic.c:153
+#, c-format
+msgid "Can’t close stream"
+msgstr "স্ট্রিম বন্ধ করা যাবে না"
+
+#: tools/gtk-builder-tool.c:36
+#, c-format
+msgid ""
+"Usage:\n"
+"  gtk4-builder-tool [COMMAND] [OPTION…] FILE\n"
+"\n"
+"Perform various tasks on GtkBuilder .ui files.\n"
+"\n"
+"Commands:\n"
+"  validate     Validate the file\n"
+"  simplify     Simplify the file\n"
+"  enumerate    List all named objects\n"
+"  preview      Preview the file\n"
+"  render       Take a screenshot of the file\n"
+"  screenshot   Take a screenshot of the file\n"
+"\n"
+msgstr ""
+"ব্যবহার:\n"
+"  gtk4-বিল্ডার-টুল [COMMAND] [বিকল্প...] ফাইল\n"
+"\n"
+"GtkBuilder .ui ফাইলে বিভিন্ন কাজ সম্পাদন করুন।\n"
+"\n"
+"আদেশ:\n"
+"  validate ফাইলটি যাচাই করুন\n"
+"  সরলীকরণ ফাইল সরলীকরণ\n"
+"  সমস্ত নামযুক্ত বস্তুর তালিকা করুন\n"
+"  preview ফাইলের পূর্বরূপ দেখুন\n"
+"  রেন্ডার ফাইলটির একটি স্ক্রিনশট নিন\n"
+"  স্ক্রিনশট ফাইলটির একটি স্ক্রিনশট নিন\n"
+
+#: tools/gtk-builder-tool-enumerate.c:64
+msgid "Print all named objects."
+msgstr "সমস্ত নামযুক্ত বস্তু মুদ্রণ করুন।"
+
+#: tools/gtk-builder-tool-preview.c:128 tools/gtk-builder-tool-screenshot.c:236
+#, fuzzy, c-format
+msgid "No object with ID '%s' found\n"
+msgstr "URI '%s'-এর জন্য কোনো আইটেম পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-preview.c:130
+#, c-format
+msgid "No previewable object found\n"
+msgstr "কোন প্রিভিউ যোগ্য বস্তু পাওয়া যায়নি\n"
+
+#: tools/gtk-builder-tool-preview.c:136
+#, c-format
+msgid "Objects of type %s can't be previewed\n"
+msgstr "%s ধরনের অবজেক্টের পূর্বরূপ দেখা যাবে না\n"
+
+#: tools/gtk-builder-tool-preview.c:187 tools/gtk-builder-tool-screenshot.c:370 tools/gtk-builder-tool-validate.c:268
+#: tools/gtk-rendernode-tool-render.c:204 tools/gtk-rendernode-tool-show.c:109
+#, c-format
+msgid "Could not initialize windowing system\n"
+msgstr "উইন্ডো সিস্টেম আরম্ভ করা যায়নি\n"
+
+#: tools/gtk-builder-tool-preview.c:195
+msgid "Preview the file."
+msgstr "ফাইলের পূর্বরূপ দেখুন।"
+
+#: tools/gtk-builder-tool-preview.c:208 tools/gtk-builder-tool-screenshot.c:391 tools/gtk-builder-tool-simplify.c:2552
+#: tools/gtk-builder-tool-validate.c:287
+#, c-format
+msgid "No .ui file specified\n"
+msgstr "কোন .ui ফাইল নির্দিষ্ট করা নেই\n"
+
+#: tools/gtk-builder-tool-preview.c:214
+#, c-format
+msgid "Can only preview a single .ui file\n"
+msgstr "শুধুমাত্র একটি একক .ui ফাইলের পূর্বরূপ দেখতে পারে\n"
+
+#: tools/gtk-builder-tool-screenshot.c:238
+#, fuzzy, c-format
+msgid "No object found\n"
+msgstr "কোনো আইটেম পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-screenshot.c:244
+#, c-format
+msgid "Objects of type %s can't be screenshot\n"
+msgstr "%s ধরনের অবজেক্টের স্ক্রিনশট করা যাবে না\n"
+
+#: tools/gtk-builder-tool-screenshot.c:298
+#, fuzzy, c-format
+msgid "Failed to take a screenshot\n"
+msgstr "হ্যাশ টেবিল লিখতে ব্যর্থ\n"
+
+#: tools/gtk-builder-tool-screenshot.c:309
+#, c-format
+msgid ""
+"File %s exists.\n"
+"Use --force to overwrite.\n"
+msgstr ""
+"ফাইল %s বিদ্যমান।\n"
+"ওভাররাইট করতে --force ব্যবহার করুন।\n"
+
+#: tools/gtk-builder-tool-screenshot.c:332 tools/gtk-rendernode-tool-render.c:172
+#, c-format
+msgid "Output written to %s.\n"
+msgstr "আউটপুট %s এ লেখা হয়েছে।\n"
+
+#: tools/gtk-builder-tool-screenshot.c:336 tools/gtk-rendernode-tool-render.c:176
+#, fuzzy, c-format
+msgid "Failed to save %s: %s\n"
+msgstr "%1$s ফাইল খুলতে ব্যর্থ : %2$s\n"
+
+#: tools/gtk-builder-tool-screenshot.c:378
+msgid "Render a .ui file to an image."
+msgstr "একটি ছবিতে একটি .ui ফাইল রেন্ডার করুন।"
+
+#: tools/gtk-builder-tool-screenshot.c:397
+#, c-format
+msgid "Can only render a single .ui file to a single output file\n"
+msgstr "শুধুমাত্র একটি একক .ui ফাইল একটি একক আউটপুট ফাইলে রেন্ডার করতে পারে\n"
+
+#: tools/gtk-builder-tool-simplify.c:444
+#, c-format
+msgid "%s:%d: Couldn’t parse value for property '%s': %s\n"
+msgstr "%s:%d: '%s' সম্পত্তির মান পার্স করা যায়নি: %s\n"
+
+#: tools/gtk-builder-tool-simplify.c:658
+#, c-format
+msgid "Property %s not found"
+msgstr "সম্পত্তি %s পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-simplify.c:661
+#, c-format
+msgid "Packing property %s not found"
+msgstr "প্যাকিং সম্পত্তি %s পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-simplify.c:664
+#, c-format
+msgid "Cell property %s not found"
+msgstr "সেল সম্পত্তি %s পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-simplify.c:667
+#, c-format
+msgid "Layout property %s not found"
+msgstr "লেআউট সম্পত্তি %s পাওয়া যায়নি"
+
+#: tools/gtk-builder-tool-simplify.c:1397
+#, c-format
+msgid "%s only accepts three children"
+msgstr "%s শুধুমাত্র তিনটি সন্তান গ্রহণ করে"
+
+#: tools/gtk-builder-tool-simplify.c:2455
+#, c-format
+msgid "Can’t load “%s”: %s\n"
+msgstr "\"%s\" লোড করা যাচ্ছে না: %s\n"
+
+#: tools/gtk-builder-tool-simplify.c:2466 tools/gtk-builder-tool-simplify.c:2472 tools/gtk-builder-tool-simplify.c:2478
+#, c-format
+msgid "Can’t parse “%s”: %s\n"
+msgstr "\"%s\" পার্স করা যাবে না: %s\n"
+
+#: tools/gtk-builder-tool-simplify.c:2504
+#, fuzzy, c-format
+msgid "Failed to read “%s”: %s\n"
+msgstr "%1$s ফাইল খুলতে ব্যর্থ : %2$s\n"
+
+#: tools/gtk-builder-tool-simplify.c:2510
+#, fuzzy, c-format
+msgid "Failed to write “%s”: “%s”\n"
+msgstr "ক্যাশে ফাইল লিখতে ব্যর্থ: %s\n"
+
+#: tools/gtk-builder-tool-simplify.c:2539
+msgid "Simplify the file."
+msgstr "ফাইলটি সরলীকরণ করুন।"
+
+#: tools/gtk-builder-tool-simplify.c:2558
+#, c-format
+msgid "Can only simplify a single .ui file without --replace\n"
+msgstr "--replace ছাড়া শুধুমাত্র একটি একক .ui ফাইলকে সহজ করতে পারে\n"
+
+#: tools/gtk-builder-tool-validate.c:45
+#, fuzzy, c-format
+msgid "Failed to lookup template parent type %s\n"
+msgstr "%1$s ফাইল খুলতে ব্যর্থ : %2$s\n"
+
+#: tools/gtk-builder-tool-validate.c:123
+msgid "Deprecated types:\n"
+msgstr "অবহেলিত প্রকার:\n"
+
+#: tools/gtk-builder-tool-validate.c:167
+#, c-format
+msgid "Failed to create an instance of the template type %s\n"
+msgstr "টেমপ্লেট টাইপ %s এর একটি উদাহরণ তৈরি করতে ব্যর্থ হয়েছে৷\n"
+
+#: tools/gtk-builder-tool-validate.c:276
+msgid "Validate the file."
+msgstr "ফাইলটি যাচাই করুন।"
+
+#. Translators: this message will appear immediately after the
+#. usage string - Usage: COMMAND [OPTION…] <THIS_MESSAGE>
+#: tools/gtk-launch.c:74
+msgid "APPLICATION [URI…] — launch an APPLICATION"
+msgstr "আবেদন [URI...] — একটি আবেদন চালু করুন"
+
+#. Translators: this message will appear after the usage string
+#. and before the list of options.
+#: tools/gtk-launch.c:78
+msgid ""
+"Launch an application (specified by its desktop file name),\n"
+"optionally passing one or more URIs as arguments."
+msgstr ""
+"একটি অ্যাপ্লিকেশন চালু করুন (এর ডেস্কটপ ফাইলের নাম দ্বারা নির্দিষ্ট),\n"
+"ঐচ্ছিকভাবে আর্গুমেন্ট হিসাবে এক বা একাধিক URI পাস করা।"
+
+#: tools/gtk-launch.c:88
+#, fuzzy, c-format
+msgid "Error parsing commandline options: %s\n"
+msgstr "আইকন লোড করতে ত্রুটি: %s"
+
+#: tools/gtk-launch.c:90 tools/gtk-launch.c:111
+#, c-format
+msgid "Try “%s --help” for more information."
+msgstr "আরও তথ্যের জন্য \"%s --help\" ব্যবহার করে দেখুন।"
+
+#. Translators: the %s is the program name. This error message
+#. means the user is calling gtk-launch without any argument.
+#: tools/gtk-launch.c:109
+#, fuzzy, c-format
+msgid "%s: missing application name"
+msgstr "অনলাইনে অ্যাপ্লিকেশন অনুসন্ধান"
+
+#: tools/gtk-launch.c:137
+#, c-format
+msgid "Creating AppInfo from id not supported on non unix operating systems"
+msgstr "আইডি থেকে অ্যাপইনফো তৈরি করা নন ইউনিক্স অপারেটিং সিস্টেমে সমর্থিত নয়"
+
+#. Translators: the first %s is the program name, the second one
+#. is the application name.
+#: tools/gtk-launch.c:145
+#, fuzzy, c-format
+msgid "%s: no such application %s"
+msgstr "অ্যাপ্লিকেশন চালাতে পারেনি"
+
+#. Translators: the first %s is the program name, the second one
+#. is the error message.
+#: tools/gtk-launch.c:163
+#, fuzzy, c-format
+msgid "%s: error launching application: %s\n"
+msgstr "আইকন লোড করতে ত্রুটি: %s"
+
+#: tools/gtk-path-tool.c:35
+#, c-format
+msgid ""
+"Usage:\n"
+"  gtk4-path-tool [COMMAND] [OPTION…] PATH\n"
+"\n"
+"Perform various tasks on paths.\n"
+"\n"
+"Commands:\n"
+"  decompose    Decompose the path\n"
+"  reverse      Reverse the path\n"
+"  restrict     Restrict the path to a segment\n"
+"  show         Display the path in a window\n"
+"  render       Render the path as an image\n"
+"  info         Print information about the path\n"
+"\n"
+msgstr ""
+"ব্যবহার:\n"
+"  gtk4-path-tool [COMMAND] [বিকল্প...] PATH\n"
+"\n"
+"পাথে বিভিন্ন কাজ সঞ্চালন.\n"
+"\n"
+"আদেশ:\n"
+"  পচা পথ পচন\n"
+"  বিপরীত পথ উল্টো\n"
+"  সীমাবদ্ধ একটি অংশে পথ সীমাবদ্ধ করুন\n"
+"  একটি উইন্ডোতে পথ প্রদর্শন করুন\n"
+"  রেন্ডার একটি চিত্র হিসাবে পথ রেন্ডার\n"
+"  তথ্য পথ সম্পর্কে তথ্য মুদ্রণ করুন\n"
+
+#: tools/gtk-path-tool-decompose.c:99
+msgid "Decompose a path."
+msgstr "একটি পথ পচন."
+
+#: tools/gtk-path-tool-decompose.c:112 tools/gtk-path-tool-info.c:113 tools/gtk-path-tool-restrict.c:64
+#: tools/gtk-path-tool-reverse.c:58
+msgid "No paths given."
+msgstr "কোন পথ দেওয়া নেই."
+
+#: tools/gtk-path-tool-decompose.c:140 tools/gtk-path-tool-restrict.c:94 tools/gtk-path-tool-reverse.c:78
+msgid "That didn't work out."
+msgstr "যে কাজ আউট না."
+
+#: tools/gtk-path-tool-info.c:100
+#, fuzzy
+msgid "Print information about a path."
+msgstr "ফাইল সম্পর্কিত তথ্য উদ্ধার করা যায়নি"
+
+#: tools/gtk-path-tool-info.c:121
+msgid "Path is empty."
+msgstr "পথ ফাঁকা।"
+
+#: tools/gtk-path-tool-info.c:127
+msgid "Path is closed"
+msgstr "পথ বন্ধ"
+
+#: tools/gtk-path-tool-info.c:129
+msgid "Path length"
+msgstr "পথের দৈর্ঘ্য"
+
+#: tools/gtk-path-tool-info.c:138
+#, c-format
+msgid "%d contours"
+msgstr "%d কনট্যুর"
+
+#: tools/gtk-path-tool-info.c:140
+#, c-format
+msgid "%d operations"
+msgstr "%d অপারেশন"
+
+#: tools/gtk-path-tool-info.c:144
+#, c-format
+msgid "%d lines"
+msgstr "%d লাইন"
+
+#: tools/gtk-path-tool-info.c:149
+#, c-format
+msgid "%d quadratics"
+msgstr "%d চতুর্ভুজ"
+
+#: tools/gtk-path-tool-info.c:154
+#, c-format
+msgid "%d cubics"
+msgstr "%d ঘন"
+
+#: tools/gtk-path-tool-info.c:159
+#, c-format
+msgid "%d conics"
+msgstr "%d কনিক"
+
+#: tools/gtk-path-tool-render.c:161 tools/gtk-path-tool-show.c:172
+msgid "Could not initialize windowing system"
+msgstr "উইন্ডো সিস্টেম আরম্ভ করা যায়নি"
+
+#: tools/gtk-path-tool-render.c:168
+msgid "Render the path to a png image."
+msgstr "একটি পিএনজি চিত্রের পথটি রেন্ডার করুন।"
+
+#: tools/gtk-path-tool-render.c:173 tools/gtk-path-tool-show.c:183
+msgid "Options related to filling"
+msgstr "ভরাট সম্পর্কিত বিকল্প"
+
+#: tools/gtk-path-tool-render.c:174 tools/gtk-path-tool-show.c:184
+#, fuzzy
+msgid "Show help for fill options"
+msgstr "অন্যান্য অ্যাপ্লিকপশন প্রদর্শন"
+
+#: tools/gtk-path-tool-render.c:181 tools/gtk-path-tool-show.c:191
+msgid "Options related to stroking"
+msgstr "স্ট্রোকিং সম্পর্কিত বিকল্প"
+
+#: tools/gtk-path-tool-render.c:182 tools/gtk-path-tool-show.c:192
+msgid "Show help for stroke options"
+msgstr "স্ট্রোক বিকল্পের জন্য সাহায্য দেখান"
+
+#: tools/gtk-path-tool-render.c:199 tools/gtk-path-tool-show.c:209
+msgid "No path specified"
+msgstr "কোন পথ নির্দিষ্ট করা নেই"
+
+#: tools/gtk-path-tool-render.c:205
+msgid "Can only render a single path"
+msgstr "শুধুমাত্র একটি একক পথ রেন্ডার করতে পারে"
+
+#: tools/gtk-path-tool-render.c:250 tools/gtk-path-tool-show.c:221
+msgid "fill rule"
+msgstr "নিয়ম পূরণ করুন"
+
+#: tools/gtk-path-tool-render.c:255 tools/gtk-path-tool-show.c:226
+msgid "line cap"
+msgstr "লাইন ক্যাপ"
+
+#: tools/gtk-path-tool-render.c:256 tools/gtk-path-tool-show.c:227
+msgid "line join"
+msgstr "লাইন যোগদান"
+
+#: tools/gtk-path-tool-render.c:310
+#, c-format
+msgid "Saving png to '%s' failed"
+msgstr "'%s' এ png সংরক্ষণ করা ব্যর্থ হয়েছে৷"
+
+#: tools/gtk-path-tool-render.c:317
+#, c-format
+msgid "Output written to '%s'."
+msgstr "আউটপুট '%s'-এ লেখা।"
+
+#: tools/gtk-path-tool-restrict.c:51
+msgid "Restrict a path to a segment."
+msgstr "একটি অংশ একটি পথ সীমাবদ্ধ."
+
+#: tools/gtk-path-tool-reverse.c:45
+msgid "Reverse a path."
+msgstr "একটি পথ বিপরীত."
+
+#: tools/gtk-path-tool-show.c:46 tools/gtk-path-tool-show.c:88
+msgid "Path Preview"
+msgstr "পথের পূর্বরূপ"
+
+#: tools/gtk-path-tool-show.c:180
+msgid "Display the path."
+msgstr "পথ প্রদর্শন করুন।"
+
+#: tools/gtk-path-tool-show.c:215
+msgid "Can only show a single path"
+msgstr "একমাত্র পথ দেখাতে পারে"
+
+#: tools/gtk-path-tool-utils.c:58
+#, c-format
+msgid "Failed to read from standard input: %s\n"
+msgstr "স্ট্যান্ডার্ড ইনপুট থেকে পড়তে ব্যর্থ হয়েছে: %s\n"
+
+#: tools/gtk-path-tool-utils.c:64
+#, c-format
+msgid "Error reading from standard input: %s\n"
+msgstr "স্ট্যান্ডার্ড ইনপুট থেকে পড়ার ক্ষেত্রে ত্রুটি: %s\n"
+
+#: tools/gtk-path-tool-utils.c:83
+#, c-format
+msgid "Failed to parse '%s' as path.\n"
+msgstr "পাথ হিসেবে '%s' পার্স করতে ব্যর্থ হয়েছে।\n"
+
+#: tools/gtk-path-tool-utils.c:109
+#, c-format
+msgid "Failed to parse '%s' as %s."
+msgstr "'%s' কে %s হিসাবে পার্স করতে ব্যর্থ হয়েছে৷"
+
+#: tools/gtk-path-tool-utils.c:111
+msgid "Possible values: "
+msgstr "সম্ভাব্য মান:"
+
+#: tools/gtk-path-tool-utils.c:135
+#, c-format
+msgid "Could not parse '%s' as color"
+msgstr "রঙ হিসাবে '%s' পার্স করা যায়নি"
+
+#: tools/gtk-path-tool-utils.c:163
+#, c-format
+msgid "Failed to parse '%s' as number"
+msgstr "সংখ্যা হিসাবে '%s' পার্স করতে ব্যর্থ হয়েছে৷"
+
+#: tools/gtk-rendernode-tool.c:35
+#, c-format
+msgid ""
+"Usage:\n"
+"  gtk4-rendernode-tool [COMMAND] [OPTION…] FILE\n"
+"\n"
+"Perform various tasks on GTK render nodes.\n"
+"\n"
+"Commands:\n"
+"  info         Provide information about the node\n"
+"  show         Show the node\n"
+"  render       Take a screenshot of the node\n"
+"\n"
+msgstr ""
+"ব্যবহার:\n"
+"  gtk4-রেন্ডারনোড-টুল [COMMAND] [বিকল্প...] ফাইল\n"
+"\n"
+"GTK রেন্ডার নোডগুলিতে বিভিন্ন কাজ সম্পাদন করুন।\n"
+"\n"
+"আদেশ:\n"
+"  info নোড সম্পর্কে তথ্য প্রদান করুন\n"
+"  নোড দেখান\n"
+"  রেন্ডার নোডের একটি স্ক্রিনশট নিন\n"
+
+#: tools/gtk-rendernode-tool-info.c:187
+#, c-format
+msgid "Number of nodes: %u\n"
+msgstr "নোডের সংখ্যা: %u\n"
+
+#: tools/gtk-rendernode-tool-info.c:194
+#, c-format
+msgid "Depth: %u\n"
+msgstr "গভীরতা: %u\n"
+
+#: tools/gtk-rendernode-tool-info.c:197
+#, c-format
+msgid "Bounds: %g x %g\n"
+msgstr "সীমানা: %g x %g\n"
+
+#: tools/gtk-rendernode-tool-info.c:198
+#, c-format
+msgid "Origin: %g %g\n"
+msgstr "মূল: %g %g\n"
+
+#: tools/gtk-rendernode-tool-info.c:219
+msgid "Provide information about the render node."
+msgstr "রেন্ডার নোড সম্পর্কে তথ্য প্রদান করুন।"
+
+#: tools/gtk-rendernode-tool-info.c:232 tools/gtk-rendernode-tool-render.c:225 tools/gtk-rendernode-tool-show.c:130
+#, c-format
+msgid "No .node file specified\n"
+msgstr "কোন .node ফাইল নির্দিষ্ট করা নেই\n"
+
+#: tools/gtk-rendernode-tool-info.c:238
+#, c-format
+msgid "Can only accept a single .node file\n"
+msgstr "শুধুমাত্র একটি একক .node ফাইল গ্রহণ করতে পারে\n"
+
+#: tools/gtk-rendernode-tool-render.c:123
+#, c-format
+msgid ""
+"File %s exists.\n"
+"If you want to overwrite, specify the filename.\n"
+msgstr ""
+"ফাইল %s বিদ্যমান।\n"
+"আপনি যদি ওভাররাইট করতে চান, ফাইলের নাম উল্লেখ করুন।\n"
+
+#: tools/gtk-rendernode-tool-render.c:137
+#, c-format
+msgid "Failed to generate SVG: %s\n"
+msgstr "SVG তৈরি করতে ব্যর্থ হয়েছে: %s\n"
+
+#: tools/gtk-rendernode-tool-render.c:212
+msgid "Render a .node file to an image."
+msgstr "একটি ছবিতে একটি .node ফাইল রেন্ডার করুন।"
+
+#: tools/gtk-rendernode-tool-render.c:231
+#, c-format
+msgid "Can only render a single .node file to a single output file\n"
+msgstr "শুধুমাত্র একটি একক .node ফাইল একটি একক আউটপুট ফাইলে রেন্ডার করতে পারে৷\n"
+
+#: tools/gtk-rendernode-tool-show.c:117
+msgid "Show the render node."
+msgstr "রেন্ডার নোড দেখান।"
+
+#: tools/gtk-rendernode-tool-show.c:136
+#, c-format
+msgid "Can only preview a single .node file\n"
+msgstr "শুধুমাত্র একটি একক .node ফাইলের পূর্বরূপ দেখতে পারে৷\n"
+
+#: tools/gtk-rendernode-tool-utils.c:51
+#, c-format
+msgid "Error at %s: %s\n"
+msgstr "%s এ ত্রুটি: %s\n"
+
+#: tools/gtk-rendernode-tool-utils.c:69
+#, c-format
+msgid "Failed to load node file: %s\n"
+msgstr "নোড ফাইল লোড করতে ব্যর্থ হয়েছে: %s\n"
+
+#: tools/updateiconcache.c:1391
+#, c-format
+msgid "Failed to write header\n"
+msgstr "শীর্ষচরণ লিখতে ব্যর্থ\n"
+
+#: tools/updateiconcache.c:1397
+#, c-format
+msgid "Failed to write hash table\n"
+msgstr "হ্যাশ টেবিল লিখতে ব্যর্থ\n"
+
+#: tools/updateiconcache.c:1403
+#, c-format
+msgid "Failed to write folder index\n"
+msgstr "ফোল্ডার ইনডেক্স লিখতে ব্যর্থ\n"
+
+#: tools/updateiconcache.c:1411
+#, c-format
+msgid "Failed to rewrite header\n"
+msgstr "শীর্ষচরণ পুনরায় লিখতে ব্যর্থ\n"
+
+#: tools/updateiconcache.c:1505
+#, c-format
+msgid "Failed to open file %s : %s\n"
+msgstr "%1$s ফাইল খুলতে ব্যর্থ : %2$s\n"
+
+#: tools/updateiconcache.c:1513 tools/updateiconcache.c:1543
+#, c-format
+msgid "Failed to write cache file: %s\n"
+msgstr "ক্যাশে ফাইল লিখতে ব্যর্থ: %s\n"
+
+#: tools/updateiconcache.c:1553
+#, c-format
+msgid "The generated cache was invalid.\n"
+msgstr "নির্মিত ক্যাশে বৈধ নয়।\n"
+
+#: tools/updateiconcache.c:1567
+#, c-format
+msgid "Could not rename %s to %s: %s, removing %s then.\n"
+msgstr "%1$s-এর নাম %2$s-এ পরিবর্তন করা যায়নি: %3$s, %4$s অপসারণ করা হচ্ছে।\n"
+
+#: tools/updateiconcache.c:1581
+#, c-format
+msgid "Could not rename %s to %s: %s\n"
+msgstr "%1$s-এর নাম %2$s-এ পরিবর্তন করা যায়নি: %3$s\n"
+
+#: tools/updateiconcache.c:1591
+#, c-format
+msgid "Could not rename %s back to %s: %s.\n"
+msgstr "%1$s-এর পুনঃনামকরণ %2$s-এ করা যায়নি: %3$s।\n"
+
+#: tools/updateiconcache.c:1614
+#, c-format
+msgid "Cache file created successfully.\n"
+msgstr "ক্যাশে ফাইল সাফলভাবে নির্মিত হয়েছে।\n"
+
+#: tools/updateiconcache.c:1724
+#, c-format
+msgid "File not found: %s\n"
+msgstr "ফাইল পাওয়া যায়নি: %s\n"
+
+#: tools/updateiconcache.c:1730
+#, c-format
+msgid "Not a valid icon cache: %s\n"
+msgstr "বৈধ আইকন ক্যাশে নয়: %s\n"
+
+#: tools/updateiconcache.c:1743
+#, c-format
+msgid "No theme index file.\n"
+msgstr "কোনো থীম ইনডেক্স ফাইল নেই।\n"
+
+#: tools/updateiconcache.c:1747
+#, c-format
+msgid ""
+"No theme index file in “%s”.\n"
+"If you really want to create an icon cache here, use --ignore-theme-index.\n"
+msgstr ""
+"“%s”-এ কোনো থিম ইনডেক্স ফাইল নেই।\n"
+"আপনি যদি সত্যিই এখানে একটি আইকন ক্যাশে তৈরি করতে চান তবে --ignore-theme-index ব্যবহার করুন।\n"
+
+#, c-format
+#~ msgid "Error parsing option --gdk-debug"
+#~ msgstr "--gdk-debug অপশনটি পার্স করতে সমস্যা"
+
+#, c-format
+#~ msgid "Error parsing option --gdk-no-debug"
+#~ msgstr "--gdk-no-debug অপশনটি পার্স করতে সমস্যা"
+
+#~ msgid "Program class as used by the window manager"
+#~ msgstr "উইন্ডো ব্যবস্থাপকের দ্বারা ব্যবহৃত প্রোগ্রাম-ক্লাস"
+
+#~ msgid "Program name as used by the window manager"
+#~ msgstr "উইন্ডো ব্যবস্থাপকের দ্বারা ব্যবহৃত প্রোগ্রামের নাম"
+
+#~ msgid "NAME"
+#~ msgstr "NAME"
+
+#~ msgid "X display to use"
+#~ msgstr "ব্যবহারের উদ্দেশ্যে চিহ্নিত X ডিসপ্লে"
+
+#~ msgid "DISPLAY"
+#~ msgstr "DISPLAY"
+
+#~ msgid "GDK debugging flags to set"
+#~ msgstr "মান নির্ধারণের উদ্দেশ্যে চিহ্নিত GDK ডিবাগিং ফ্ল্যাগ"
+
+#~ msgid "FLAGS"
+#~ msgstr "FLAGS"
+
+#~ msgid "GDK debugging flags to unset"
+#~ msgstr "মান মুছে ফেলার উদ্দেশ্যে চিহ্নিত GDK ডিবাগিং ফ্ল্যাগ"
+
+#~ msgctxt "keyboard label"
+#~ msgid "BackSpace"
+#~ msgstr "BackSpace"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Tab"
+#~ msgstr "Tab"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Return"
+#~ msgstr "Return"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Pause"
+#~ msgstr "Pause"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Scroll_Lock"
+#~ msgstr "Scroll_Lock"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Sys_Req"
+#~ msgstr "Sys_Req"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Escape"
+#~ msgstr "Escape"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Multi_key"
+#~ msgstr "Multi_key"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Left"
+#~ msgstr "Left"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Up"
+#~ msgstr "Up"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Right"
+#~ msgstr "Right"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Down"
+#~ msgstr "Down"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Page_Up"
+#~ msgstr "Page_Up"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Page_Down"
+#~ msgstr "Page_Down"
+
+#~ msgctxt "keyboard label"
+#~ msgid "End"
+#~ msgstr "End"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Begin"
+#~ msgstr "Begin"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Print"
+#~ msgstr "Print"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Space"
+#~ msgstr "KP_Space"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Tab"
+#~ msgstr "KP_Tab"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Enter"
+#~ msgstr "KP_Enter"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Home"
+#~ msgstr "KP_Home"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Left"
+#~ msgstr "KP_Left"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Up"
+#~ msgstr "KP_Up"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Right"
+#~ msgstr "KP_Right"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Down"
+#~ msgstr "KP_Down"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Page_Up"
+#~ msgstr "KP_Page_Up"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Prior"
+#~ msgstr "KP_Prior"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Page_Down"
+#~ msgstr "KP_Page_Down"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Next"
+#~ msgstr "KP_Next"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_End"
+#~ msgstr "KP_End"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Begin"
+#~ msgstr "KP_Begin"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Insert"
+#~ msgstr "KP_Insert"
+
+#~ msgctxt "keyboard label"
+#~ msgid "KP_Delete"
+#~ msgstr "KP_Delete"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Delete"
+#~ msgstr "Delete"
+
+#~ msgctxt "keyboard label"
+#~ msgid "MonBrightnessUp"
+#~ msgstr "MonBrightnessUp"
+
+#~ msgctxt "keyboard label"
+#~ msgid "MonBrightnessDown"
+#~ msgstr "MonBrightnessDown"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioMute"
+#~ msgstr "AudioMute"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioLowerVolume"
+#~ msgstr "AudioLowerVolume"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioRaiseVolume"
+#~ msgstr "AudioRaiseVolume"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioPlay"
+#~ msgstr "AudioPlay"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioStop"
+#~ msgstr "AudioStop"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioNext"
+#~ msgstr "AudioNext"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioPrev"
+#~ msgstr "AudioPrev"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioRecord"
+#~ msgstr "AudioRecord"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioPause"
+#~ msgstr "AudioPause"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioRewind"
+#~ msgstr "AudioRewind"
+
+#~ msgctxt "keyboard label"
+#~ msgid "AudioMedia"
+#~ msgstr "AudioMedia"
+
+#~ msgctxt "keyboard label"
+#~ msgid "ScreenSaver"
+#~ msgstr "ScreenSaver"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Battery"
+#~ msgstr "Battery"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Launch1"
+#~ msgstr "Launch1"
+
+#~| msgctxt "Stock label, navigation"
+#~| msgid "_Forward"
+#~ msgctxt "keyboard label"
+#~ msgid "Forward"
+#~ msgstr "Forward"
+
+#~| msgctxt "Stock label, navigation"
+#~| msgid "_Back"
+#~ msgctxt "keyboard label"
+#~ msgid "Back"
+#~ msgstr "Back"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Sleep"
+#~ msgstr "Sleep"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Hibernate"
+#~ msgstr "Hibernate"
+
+#~ msgctxt "keyboard label"
+#~ msgid "WLAN"
+#~ msgstr "WLAN"
+
+#~ msgctxt "keyboard label"
+#~ msgid "WebCam"
+#~ msgstr "WebCam"
+
+#~ msgctxt "keyboard label"
+#~ msgid "TouchpadToggle"
+#~ msgstr "TouchpadToggle"
+
+#~ msgctxt "keyboard label"
+#~ msgid "WakeUp"
+#~ msgstr "WakeUp"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Suspend"
+#~ msgstr "Suspend"
+
+#~ msgid "Don't batch GDI requests"
+#~ msgstr "GDI অনুরোধ ব্যাচ করা হবে না"
+
+#~ msgid "Don't use the Wintab API for tablet support"
+#~ msgstr "ট্যাবলেট সমর্থনের জন্য Wintab API ব্যবহার করা হবে না"
+
+#~ msgid "Same as --no-wintab"
+#~ msgstr "--no-wintab এর অনুরূপ"
+
+#~ msgid "Do use the Wintab API [default]"
+#~ msgstr "Wintab API ব্যবহার করা হবে [পূর্বনির্ধারিত]"
+
+#~ msgid "Size of the palette in 8 bit mode"
+#~ msgstr "৮-বিট মোডে প্যালেটের আকার"
+
+#~ msgid "COLORS"
+#~ msgstr "COLORS"
+
+#, c-format
+#~ msgid "Opening %d Item"
+#~ msgid_plural "Opening %d Items"
+#~ msgstr[0] "%d-টি বস্তু খোলা হচ্ছে"
+#~ msgstr[1] "%d-টি বস্তু খোলা হচ্ছে"
+
+#, c-format
+#~ msgid "This program comes with ABSOLUTELY NO WARRANTY; for details, visit <a href=\"%s\">%s</a>"
+#~ msgstr "এই প্রোগ্রামের কোন ওয়ারেন্টি নেই; বিস্তারিত জানার জন্য, দেখুন <a href=\"%s\">%s</a>"
+
+#~ msgid "The license of the program"
+#~ msgstr "প্রোগ্রামের লাইসেন্স"
+
+#~ msgid "C_redits"
+#~ msgstr "স্বীকৃতি (_r)"
+
+#~ msgid "_License"
+#~ msgstr "লাইসেন্স (_L)"
+
+#~| msgctxt "keyboard label"
+#~| msgid "Home"
+#~ msgid "Homepage"
+#~ msgstr "প্রধান পাতা"
+
+#~ msgid "Artwork by"
+#~ msgstr "শিল্পী"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Shift"
+#~ msgstr "Shift"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Ctrl"
+#~ msgstr "Ctrl"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Alt"
+#~ msgstr "Alt"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Super"
+#~ msgstr "Super"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Hyper"
+#~ msgstr "Hyper"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Meta"
+#~ msgstr "Meta"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Space"
+#~ msgstr "Space"
+
+#~ msgctxt "keyboard label"
+#~ msgid "Backslash"
+#~ msgstr "Backslash"
+
+#~| msgid "Application"
+#~ msgid "Other application..."
+#~ msgstr "অন্যান্য অ্যাপ্লিকেশন..."
+
+#~ msgid "Failed to look for applications online"
+#~ msgstr "অনলাইন অ্যাপ্লিকেশন দেখতে ব্যর্থ"
+
+#, c-format
+#~| msgid "Could not mount %s"
+#~ msgid "Could not find '%s'"
+#~ msgstr "'%s' অনুসন্ধান করতে পারেনি"
+
+#~| msgid "Could not show link"
+#~ msgid "Could not find application"
+#~ msgstr "অ্যাপ্লিকেশন অনুসন্ধান করতে পারেনি"
+
+#, c-format
+#~ msgid "Select an application to open \"%s\""
+#~ msgstr "\"%s\" খুলতে একটি অ্যাপ্লিকেশনের নাম নির্বাচন করুন"
+
+#, c-format
+#~ msgid "No applications available to open \"%s\""
+#~ msgstr "\"%s\" খোলার জন্য কোন অ্যাপ্লিকেশন নেই"
+
+#, c-format
+#~ msgid "Select an application for \"%s\" files"
+#~ msgstr "\"%s\" ফাইলের জন্য একটি অ্যাপ্লিকেশন নির্বাচন করুন"
+
+#~ msgid "Click \"Show other applications\", for more options, or \"Find applications online\" to install a new application"
+#~ msgstr ""
+#~ "আরও অপশনের জন্য \"অন্যান্য অ্যাপ্লিকেশন প্রদর্শন\" ক্লিক করুন বা একটি নতুন অ্যাপ্লিকেশন ইনস্টল করার জন্য \"অনলাইন অ্যাপ্লিকেশন "
+#~ "অনুসন্ধান\" ক্লিক করুন"
+
+#~| msgid "Forget password _immediately"
+#~ msgid "Forget association"
+#~ msgstr "অ্যাসোসিয়েশন ভুলে যাওয়া"
+
+#, c-format
+#~ msgid "Invalid type function on line %d: '%s'"
+#~ msgstr "%d লাইনে অকার্যকর ধরনের ফাংশন রয়েছে: '%s'"
+
+#, c-format
+#~ msgid "Duplicate object ID '%s' on line %d (previously on line %d)"
+#~ msgstr "%2$d লাইনে '%1$s' অবজেক্টের আইডি পুনঃব্যবহৃত (পূর্বে %3$d লাইনে বিদ্যমান) "
+
+#, c-format
+#~ msgid "Invalid root element: '%s'"
+#~ msgstr "অকার্যকর মূল উপাদান: '%s'"
+
+#, c-format
+#~ msgid "Unhandled tag: '%s'"
+#~ msgstr "অপরিচালিত ট্যাগ: '%s'"
+
+#~ msgctxt "year measurement template"
+#~ msgid "2000"
+#~ msgstr "2000"
+
+#, c-format
+#~ msgctxt "calendar:day:digits"
+#~ msgid "%d"
+#~ msgstr "%d"
+
+#, c-format
+#~ msgctxt "calendar:week:digits"
+#~ msgid "%d"
+#~ msgstr "%d"
+
+#~ msgctxt "calendar year format"
+#~ msgid "%Y"
+#~ msgstr "%Y"
+
+#~ msgctxt "Accelerator"
+#~ msgid "Disabled"
+#~ msgstr "নিষ্ক্রিয়"
+
+#~ msgctxt "Accelerator"
+#~ msgid "Invalid"
+#~ msgstr "অকার্যকর"
+
+#, c-format
+#~ msgctxt "progress bar label"
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
+
+#~ msgid "Received invalid color data\n"
+#~ msgstr "অকার্যকর রঙের উপাত্ত গৃহীত\n"
+
+#~ msgid ""
+#~ "Select the color you want from the outer ring. Select the darkness or lightness of that color using the inner triangle."
+#~ msgstr ""
+#~ "বহিঃস্থ বৃত্ত থেকে আপনি যে রং চান তা নির্বাচন করুন। অভ্যন্তরীণ ত্রিভুজ ব্যবহার করে সেই রঙের অন্ধকারাচ্ছন্নতা বা উজ্জলতা নির্বাচন করুন।"
+
+#~ msgid "Click the eyedropper, then click a color anywhere on your screen to select that color."
+#~ msgstr "আইড্রপারে ক্লিক করুন, এরপর পর্দার যেকোনো পছন্দসই রঙের উপর ক্লিক করে সেটি ব্যবহারের জন্য নির্বাচন করুন।"
+
+#~ msgid "Position on the color wheel."
+#~ msgstr "রঙের চাকার উপর অবস্থান।"
+
+#~ msgid "Intensity of the color."
+#~ msgstr "রঙের তীব্রতা।"
+
+#~ msgid "Brightness of the color."
+#~ msgstr "রঙের উজ্জ্বলতা।"
+
+#~ msgid "_Red:"
+#~ msgstr "লাল: (_R)"
+
+#~ msgid "Amount of red light in the color."
+#~ msgstr "রঙের মধ্যে লাল আলোর পরিমাণ।"
+
+#~ msgid "_Green:"
+#~ msgstr "সবুজ: (_G)"
+
+#~ msgid "Amount of green light in the color."
+#~ msgstr "রঙের মধ্যে সবুজ আলোর পরিমাণ।"
+
+#~ msgid "_Blue:"
+#~ msgstr "নীল: (_B)"
+
+#~ msgid "Amount of blue light in the color."
+#~ msgstr "রঙের মধ্যে নীল আলোর পরিমাণ।"
+
+#~ msgid "Op_acity:"
+#~ msgstr "অস্বচ্ছতা: (_a)"
+
+#~ msgid "Transparency of the color."
+#~ msgstr "রঙের স্বচ্ছতা।"
+
+#~ msgid "Color _name:"
+#~ msgstr "রঙের নাম: (_n)"
+
+#~ msgid "You can enter an HTML-style hexadecimal color value, or simply a color name such as 'orange' in this entry."
+#~ msgstr "এই এন্ট্রিতে আপনি HTML-শৈলীর রঙের হেক্সাডেসিমেল মান, অথবা শুধুমাত্র কোন রঙের নাম যেমন: 'orange' দিতে পারেন।"
+
+#~ msgid "_Palette:"
+#~ msgstr "প্যালেট: (_P)"
+
+#~ msgid "Color Wheel"
+#~ msgstr "রঙের চাকা"
+
+#~ msgid ""
+#~ "The previously-selected color, for comparison to the color you're selecting now. You can drag this color to a palette "
+#~ "entry, or select this color as current by dragging it to the other color swatch alongside."
+#~ msgstr ""
+#~ "বর্তমানে নির্বাচিত রঙের সাথে পূর্ব নির্বাচিত রং তূলনা করুন। এই রঙটি প্যালেটে টেনে আনুন অথবা পার্শ্ববর্তী রং ধারণ ক্ষেত্রে টেনে এনে "
+#~ "বর্তমান নির্বাচন রূপে স্থাপন করুন।"
+
+#~ msgid "The color you've chosen. You can drag this color to a palette entry to save it for use in the future."
+#~ msgstr "নির্বাচিত রং। ভবিষ্যতে ব্যবহারের জন্য সংরক্ষণের উদ্দেশ্যে এই রংটি টেনে এনে একটি প্যালেটে স্থাপন করতে পারেন।"
+
+#~ msgid "The previously-selected color, for comparison to the color you're selecting now."
+#~ msgstr "বর্তমানে নির্বাচিত রঙের সাথে পূর্ব নির্বাচিত রং তূলনা করুন।"
+
+#~ msgid "The color you've chosen."
+#~ msgstr "যে রঙটি আপনি বেছে নিয়েছেন।"
+
+#~ msgid "_Save color here"
+#~ msgstr "চিহ্নিত স্থানে রং সংরক্ষণ করুন (_S)"
+
+#~ msgid ""
+#~ "Click this palette entry to make it the current color. To change this entry, drag a color swatch here or right-click it "
+#~ "and select \"Save color here.\""
+#~ msgstr ""
+#~ "বর্তমানে ব্যবহৃত রং হিসাবে প্রয়োগের উদ্দেশ্যে এই প্যালেটের রঙে ক্লিক করুন। এই রঙটি পরিবর্তন করার জন্য, একটি রং টেনে আনুন অথবা সেটির "
+#~ "উপর ডান-ক্লিক করে  \"এখানে রং সংরক্ষণ করুন\" নির্বাচন করুন।"
+
+#~ msgid "Color Selection"
+#~ msgstr "রং নির্বাচন"
+
+#~ msgid "Input _Methods"
+#~ msgstr "ইনপুট পদ্ধতি (_M)"
+
+#~ msgid "_Insert Unicode Control Character"
+#~ msgstr "ইউনিকোডের কন্ট্রোল অক্ষর সন্নিবেশ (_I)"
+
+#~ msgid "Caps Lock and Num Lock are on"
+#~ msgstr "Caps Lock এবং Num Lock চালু করা"
+
+#~ msgid "Num Lock is on"
+#~ msgstr "Num Lock সক্রিয়"
+
+#~ msgid "Other..."
+#~ msgstr "অন্যান্য..."
+
+#~ msgid "Could not remove bookmark"
+#~ msgstr "বুকমার্ক অপসারণ করা যায়নি"
+
+#~ msgid ""
+#~ "The folder could not be created, as a file with the same name already exists.  Try using a different name for the "
+#~ "folder, or rename the file first."
+#~ msgstr ""
+#~ "একই নামের একটি ফাইল ইতিমধ্যেই বিদ্যমান থাকায়, ফোল্ডার তৈরি করা যায়নি।  ফোল্ডারের জন্য পৃথক নাম ব্যবহার করুন অথবা ফাইলটি পুনরায় "
+#~ "নামকরণ করুন।"
+
+#, c-format
+#~ msgid "Add the folder '%s' to the bookmarks"
+#~ msgstr "'%s' ফোল্ডারটি বুকমার্কে যোগ করুন"
+
+#, c-format
+#~ msgid "Add the current folder to the bookmarks"
+#~ msgstr "বর্তমান ফোল্ডারটি বুকমার্কে যোগ করুন"
+
+#, c-format
+#~ msgid "Add the selected folders to the bookmarks"
+#~ msgstr "নির্বাচিত ফোল্ডারগুলি বুকমার্কে যোগ করুন"
+
+#, c-format
+#~ msgid "Remove the bookmark '%s'"
+#~ msgstr "'%s' বুকমার্ক অপসারণ"
+
+#, c-format
+#~ msgid "Bookmark '%s' cannot be removed"
+#~ msgstr "বুকমার্ক '%s' অপসারণ করা যাচ্ছে না"
+
+#~ msgid "Remove the selected bookmark"
+#~ msgstr "নির্বাচিত বুকমার্ক অপসারণ"
+
+#~ msgid "Rename..."
+#~ msgstr "পুনরায় নামকরণ..."
+
+#~ msgid "Places"
+#~ msgstr "অবস্থান"
+
+#~ msgid "_Places"
+#~ msgstr "অবস্থান (_P)"
+
+#~ msgid "Add the selected folder to the Bookmarks"
+#~ msgstr "নির্বাচিত ফোল্ডারটি বুকমার্কে যোগ করুন"
+
+#~ msgid "Show _Size Column"
+#~ msgstr "আকার শীর্ষক কলাম প্রদর্শন (_S)"
+
+# FIXME
+#~ msgid "_Browse for other folders"
+#~ msgstr "অন্যান্য ফোল্ডার অনুসন্ধানের জন্য ব্রাউজ করুন (_B)"
+
+#~ msgid "Type a file name"
+#~ msgstr "ফাইলের নাম টাইপ করুন"
+
+#~ msgid "_Location:"
+#~ msgstr "অবস্থান: (_L)"
+
+#~ msgid "Save in _folder:"
+#~ msgstr "চিহ্নিত ফোল্ডারে সংরক্ষণ করুন: (_f)"
+
+#~ msgid "Create in _folder:"
+#~ msgstr "চিহ্নিত ফোল্ডারে তৈরি করুন: (_f)"
+
+#~ msgid "Cannot change to folder because it is not local"
+#~ msgstr "স্থানীয় অবস্থানে না হওয়ায় ফোল্ডার পরিবর্তন করা যাচ্ছে না"
+
+#, c-format
+#~ msgid "Shortcut %s does not exist"
+#~ msgstr "%s শর্টকাট বিদ্যমান নেই"
+
+#~ msgid "Could not start the search process"
+#~ msgstr "অনুসন্ধান প্রক্রিয়া আরম্ভ করা যায়নি"
+
+#~ msgid "The program was not able to create a connection to the indexer daemon.  Please make sure it is running."
+#~ msgstr "প্রোগ্রামটি indexer ডিমনের সাথে সংযোগ স্থাপন করতে অসমর্থ। অনুগ্রহ করে নিশ্চিত করুন যে এটি সচল।"
+
+#~ msgid "Search:"
+#~ msgstr "অনুসন্ধান:"
+
+#, c-format
+#~ msgid "Could not mount %s"
+#~ msgstr "%s মাউন্ট করা যায়নি"
+
+#~ msgid "Invalid path"
+#~ msgstr "অকার্যকর পাথ"
+
+#~ msgid "No match"
+#~ msgstr "কোন মিল পাওয়া যায়নি"
+
+#~ msgid "Sole completion"
+#~ msgstr "একটি মিল"
+
+#~ msgid "Complete, but not unique"
+#~ msgstr "সম্পন্ন, কিন্তু একক নয়"
+
+#~ msgid "Completing..."
+#~ msgstr "সম্পন্ন করা হচ্ছে..."
+
+#~ msgid "Only local files may be selected"
+#~ msgstr "সম্ভবত শুধুমাত্র স্থানীয় ফাইলসমূহ নির্বাচিত করা হবে"
+
+#~ msgid "Incomplete hostname; end it with '/'"
+#~ msgstr "অসম্পূর্ণ হোস্ট-নেম; শেষে '/' চিহ্ন থাকা আবশ্যক"
+
+#~ msgid "Path does not exist"
+#~ msgstr "পাথ বিদ্যমান নেই"
+
+#~ msgid "abcdefghijk ABCDEFGHIJK"
+#~ msgstr "abcdefghijk ABCDEFGHIJK"
+
+#~ msgid "_Family:"
+#~ msgstr "পরিবার: (_F)"
+
+#~ msgid "_Style:"
+#~ msgstr "শৈলী: (_S)"
+
+#~ msgid "Si_ze:"
+#~ msgstr "আকার: (_z)"
+
+#, c-format
+#~ msgid ""
+#~ "Could not find the icon '%s'. The '%s' theme\n"
+#~ "was not found either, perhaps you need to install it.\n"
+#~ "You can get a copy from:\n"
+#~ "\t%s"
+#~ msgstr ""
+#~ "'%s' আইকন খুঁজে পাওয়া যায়নি। '%s' থিমটিও\n"
+#~ "পাওয়া যায়নি, সম্ভবত এটি ইনস্টল করা আবশ্যক।\n"
+#~ "নিম্নলিখিত স্থান থেকে এটি পাওয়া যাবে:\n"
+#~ "\t%s"
+
+#, c-format
+#~ msgid "Icon '%s' not present in theme"
+#~ msgstr "থিমের মধ্যে আইকন '%s' অনুপস্থিত"
+
+#~ msgid "Failed to load icon"
+#~ msgstr "আইকন লোড করতে ব্যর্থ"
+
+#~ msgid "Simple"
+#~ msgstr "সাধারণ"
+
+#~ msgctxt "input method menu"
+#~ msgid "None"
+#~ msgstr "কোনটি না"
+
+#, c-format
+#~ msgctxt "input method menu"
+#~ msgid "System (%s)"
+#~ msgstr "সিস্টেম (%s)"
+
+#~ msgid "Load additional GTK+ modules"
+#~ msgstr "অতিরিক্ত GTK+ মডিউল লোড করুন"
+
+#~ msgid "MODULES"
+#~ msgstr "MODULES"
+
+#~ msgid "Make all warnings fatal"
+#~ msgstr "সকল সতর্কবার্তা গুরুতর হিসেবে চিহ্নিত করা হবে"
+
+#~ msgid "GTK+ debugging flags to set"
+#~ msgstr "মান নির্ধারণের উদ্দেশ্যে চিহ্নিত GTK+ ডিবাগিং ফ্ল্যাগ"
+
+#~ msgid "GTK+ debugging flags to unset"
+#~ msgstr "মান মুছে ফেলার উদ্দেশ্যে চিহ্নিত GTK+ ডিবাগিং ফ্ল্যাগ"
+
+#~ msgid "default:LTR"
+#~ msgstr "default:LTR"
+
+#~ msgid "GTK+ Options"
+#~ msgstr "GTK+ অপশন"
+
+#~ msgid "Show GTK+ Options"
+#~ msgstr "GTK+ অপশন প্রদর্শন"
+
+#~ msgid "Terminal Pager"
+#~ msgstr "টার্মিনাল পেজার"
+
+#~ msgid "Top Command"
+#~ msgstr "শীর্ষ কমান্ড"
+
+#~ msgid "Bourne Again Shell"
+#~ msgstr "Bourne Again শেল"
+
+#~ msgid "Bourne Shell"
+#~ msgstr "Bourne শেল"
+
+#~ msgid "Z Shell"
+#~ msgstr "Z শেল"
+
+#, c-format
+#~| msgctxt "calendar:day:digits"
+#~| msgid "%d"
+#~ msgctxt "Number format"
+#~ msgid "%d"
+#~ msgstr "%d"
+
+#~ msgid "Manage Custom Sizes..."
+#~ msgstr "স্বনির্ধারিত আকার পরিচালনা..."
+
+#~ msgid "Down Path"
+#~ msgstr "নীচের পাথ"
+
+#~ msgid "File System Root"
+#~ msgstr "ফাইল সিস্টেম রুট"
+
+#~ msgid "_Save in folder:"
+#~ msgstr "চিহ্নিত ফোল্ডারে সংরক্ষণ: (_S)"
+
+#~ msgctxt "print operation status"
+#~ msgid "Initial state"
+#~ msgstr "প্রারম্ভিক অবস্থা"
+
+#~ msgctxt "print operation status"
+#~ msgid "Preparing to print"
+#~ msgstr "মুদ্রণের জন্য প্রস্তুত করা হচ্ছে"
+
+#~ msgctxt "print operation status"
+#~ msgid "Generating data"
+#~ msgstr "তথ্য একত্রিত করা হচ্ছে"
+
+#~ msgctxt "print operation status"
+#~ msgid "Sending data"
+#~ msgstr "তথ্য প্রেরিত হচ্ছে"
+
+#~ msgctxt "print operation status"
+#~ msgid "Waiting"
+#~ msgstr "অপেক্ষমাণ"
+
+#~ msgctxt "print operation status"
+#~ msgid "Blocking on issue"
+#~ msgstr "কারণবশত অবরুদ্ধ"
+
+#~ msgctxt "print operation status"
+#~ msgid "Printing"
+#~ msgstr "মুদ্রণ করা হচ্ছে"
+
+#~ msgctxt "print operation status"
+#~ msgid "Finished with error"
+#~ msgstr "ত্রুটিসহ কর্ম সমাপ্ত"
+
+#~ msgid "Error launching preview"
+#~ msgstr "প্রাকদর্শন চালুকরণে ত্রুটি"
+
+#~ msgid "Left to right, top to bottom"
+#~ msgstr "বাম থেকে ডানে, উপর থেকে নীচে"
+
+#~ msgid "Left to right, bottom to top"
+#~ msgstr "বাম থেকে ডানে, নীচে থেকে উপরে"
+
+#~ msgid "Right to left, top to bottom"
+#~ msgstr "ডান থেকে বামে, উপর থেকে নীচে"
+
+#~ msgid "Right to left, bottom to top"
+#~ msgstr "ডান থেকে বামে, নীচে থেকে উপরে"
+
+#~ msgid "Top to bottom, left to right"
+#~ msgstr "উপর থেকে নীচে, বাম থেকে ডানে"
+
+#~ msgid "Top to bottom, right to left"
+#~ msgstr "উপর থেকে নীচে, ডান থেকে বামে"
+
+#~ msgid "Bottom to top, left to right"
+#~ msgstr "নীচে থেকে উপরে, বাম থেকে ডানে"
+
+#~ msgid "Bottom to top, right to left"
+#~ msgstr "নীচে থেকে উপরে, ডান থেকে বামে"
+
+#~ msgid "Time of print"
+#~ msgstr "মুদ্রণের সময়কাল"
+
+#, c-format
+#~ msgid "Unable to locate image file in pixmap_path: \"%s\""
+#~ msgstr "pixmap_path-এ ছবির ফাইলের অবস্থান চিহ্নিত করতে অক্ষম: \"%s\""
+
+#, c-format
+#~ msgid "This function is not implemented for widgets of class '%s'"
+#~ msgstr "'%s' ক্লাসের উইজেটের জন্য এই ফাংশন বাস্তবায়িত হয়নি"
+
+#~ msgid "Select which type of documents are shown"
+#~ msgstr "কোন ধরনের নথি প্রদর্শিত হবে তা নির্বাচন করুন"
+
+#~ msgid "Untitled filter"
+#~ msgstr "নামবিহীন পরিশোধক"
+
+#~ msgid "Could not remove item"
+#~ msgstr "আইটেম অপসারণ করা যায়নি"
+
+#~ msgid "Could not clear list"
+#~ msgstr "তালিকা মুছে ফেলা যায়নি"
+
+#~ msgid "_Remove From List"
+#~ msgstr "তালিকা থেকে অপসারণ (_R)"
+
+#, c-format
+#~ msgid "No recently used resource found with URI `%s'"
+#~ msgstr "URI `%s' এর সাথে সম্প্রতি ব্যবহৃত কোনো রিসোর্স পাওয়া যায়নি"
+
+#~ msgid "Unknown item"
+#~ msgstr "অজানা আইটেম"
+
+#, c-format
+#~ msgctxt "recent menu label"
+#~ msgid "_%d. %s"
+#~ msgstr "_%d. %s"
+
+#, c-format
+#~ msgctxt "recent menu label"
+#~ msgid "%d. %s"
+#~ msgstr "%d. %s"
+
+#~ msgctxt "throbbing progress animation widget"
+#~ msgid "Spinner"
+#~ msgstr "স্পীনার"
+
+#~ msgid "Provides visual indication of progress"
+#~ msgstr "অগ্রগতির দৃষ্টিনির্ভর নির্দেশনা প্রদান করা হয়"
+
+#~ msgctxt "Stock label"
+#~ msgid "Warning"
+#~ msgstr "সতর্কীকরণ"
+
+#~ msgctxt "Stock label"
+#~ msgid "Error"
+#~ msgstr "ত্রুটি"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Add"
+#~ msgstr "যোগ করুন (_A)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Bold"
+#~ msgstr "গাঢ় (_B)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_CD-ROM"
+#~ msgstr "_CD-ROM"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Clear"
+#~ msgstr "মুছে ফেলুন (_C)"
+
+#~ msgctxt "Stock label"
+#~ msgid "C_onnect"
+#~ msgstr "সংযোগ করুন (_o)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Convert"
+#~ msgstr "রূপান্তর করুন (_C)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Discard"
+#~ msgstr "বাতিল করুন (_D)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Execute"
+#~ msgstr "সঞ্চালন করুন (_E)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Edit"
+#~ msgstr "সম্পাদনা (_E)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Find"
+#~ msgstr "খুঁজুন (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Find and _Replace"
+#~ msgstr "অনুসন্ধান ও প্রতিস্থাপন (_R)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Floppy"
+#~ msgstr "ফ্লপি (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Fullscreen"
+#~ msgstr "পর্দা জুড়ে প্রদর্শন (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Leave Fullscreen"
+#~ msgstr "পর্দা জুড়ে প্রদর্শন বন্ধ (_L)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Bottom"
+#~ msgstr "নীচে (_B)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_First"
+#~ msgstr "প্রথম (_F)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Last"
+#~ msgstr "সর্বশেষ (_L)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Top"
+#~ msgstr "শীর্ষে (_T)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Down"
+#~ msgstr "নীচে (_D)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Forward"
+#~ msgstr "এগিয়ে চলুন (_F)"
+
+#~ msgctxt "Stock label, navigation"
+#~ msgid "_Up"
+#~ msgstr "উপরে (_U)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Hard Disk"
+#~ msgstr "হার্ড-ডিস্ক (_H)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Help"
+#~ msgstr "সহায়তা (_H)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Home"
+#~ msgstr "হোম (_H)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Increase Indent"
+#~ msgstr "ইনডেন্ট বৃদ্ধি করুন"
+
+#~ msgctxt "Stock label"
+#~ msgid "Decrease Indent"
+#~ msgstr "ইনডেন্ট হ্রাস করুন"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Index"
+#~ msgstr "সূচিপত্র (_I)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Information"
+#~ msgstr "তথ্য (_I)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Italic"
+#~ msgstr "তির্যক (_I)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Jump to"
+#~ msgstr "চিহ্নিত স্থানে যান (_J)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Center"
+#~ msgstr "কেন্দ্র (_C)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Fill"
+#~ msgstr "ভরাট (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Left"
+#~ msgstr "বাম (_L)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Right"
+#~ msgstr "ডান (_R)"
+
+#~ msgctxt "Stock label, media"
+#~ msgid "_Forward"
+#~ msgstr "এগিয়ে চলুন (_F)"
+
+#~ msgctxt "Stock label, media"
+#~ msgid "P_ause"
+#~ msgstr "স্থগিত (_a)"
+
+#~ msgctxt "Stock label, media"
+#~ msgid "R_ewind"
+#~ msgstr "পেছনে যান (_e)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_New"
+#~ msgstr "নতুন (_N)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Landscape"
+#~ msgstr "আড়াআড়ি"
+
+#~ msgctxt "Stock label"
+#~ msgid "Portrait"
+#~ msgstr "লম্বালম্বি"
+
+#~ msgctxt "Stock label"
+#~ msgid "Reverse landscape"
+#~ msgstr "বিপরীত আড়াআড়ি"
+
+#~ msgctxt "Stock label"
+#~ msgid "Reverse portrait"
+#~ msgstr "বিপরীত লম্বালম্বি"
+
+#~ msgctxt "Stock label"
+#~ msgid "Page Set_up"
+#~ msgstr "পৃষ্ঠার সেটআপ (_u)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Quit"
+#~ msgstr "প্রস্থান (_Q)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Refresh"
+#~ msgstr "রিফ্রেশ করুন (_R)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Remove"
+#~ msgstr "অপসারণ (_R)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Revert"
+#~ msgstr "পূর্বাবস্থায় প্রত্যাবর্তন (_R)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Save _As"
+#~ msgstr "নতুনভাবে সংরক্ষণ (_A)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Color"
+#~ msgstr "রং (_C)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Font"
+#~ msgstr "ফন্ট (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Ascending"
+#~ msgstr "আরোহী (_A)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Descending"
+#~ msgstr "অবরোহী (_D)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Spell Check"
+#~ msgstr "বানান-পরীক্ষণ (_S)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Stop"
+#~ msgstr "থামান (_S)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Strikethrough"
+#~ msgstr "মধ্যরেখাঙ্কন (_S)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Undelete"
+#~ msgstr "পুনরুদ্ধার (_U)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Underline"
+#~ msgstr "নিম্নরেখাঙ্কন (_U)"
+
+#~ msgctxt "Stock label"
+#~ msgid "_Normal Size"
+#~ msgstr "স্বাভাবিক আকার (_N)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Best _Fit"
+#~ msgstr "সর্বোত্তম মানানসই (_F)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Zoom _In"
+#~ msgstr "বড় আকারে প্রদর্শন (_I)"
+
+#~ msgctxt "Stock label"
+#~ msgid "Zoom _Out"
+#~ msgstr "ছোট আকারে প্রদর্শন (_O)"
+
+#~ msgctxt "switch"
+#~ msgid "ON"
+#~ msgstr "সচল"
+
+#~ msgctxt "switch"
+#~ msgid "OFF"
+#~ msgstr "বন্ধ"
+
+#~| msgid "inch"
+#~ msgctxt "light switch widget"
+#~ msgid "Switch"
+#~ msgstr "সুইচ"
+
+#~ msgid "Switches between on and off states"
+#~ msgstr "চালু এবং বন্ধের মাঝে সুইচ করে"
+
+#, c-format
+#~ msgid "Unknown error when trying to deserialize %s"
+#~ msgstr "%s ডি-সিরিয়েলাইজ করার সময় অজানা ত্রুটি দেখা দিয়েছে"
+
+#, c-format
+#~ msgid "Both \"id\" and \"name\" were found on the <%s> element"
+#~ msgstr "<%s> উপাদানের মধ্যে \"id\" ও \"name\" উভয়ই উপস্থিত রয়েছে"
+
+#, c-format
+#~ msgid "The attribute \"%s\" was found twice on the <%s> element"
+#~ msgstr "<%s> উপাদানের মধ্যে \"%s\" বৈশিষ্ট্যটি দু'বার উপস্থিত রয়েছে"
+
+#, c-format
+#~ msgid "<%s> element has invalid ID \"%s\""
+#~ msgstr "<%s> এলিমেন্টের অকার্যকর আইডি \"%s\""
+
+#, c-format
+#~ msgid "<%s> element has neither a \"name\" nor an \"id\" attribute"
+#~ msgstr "<%s> উপাদানের মধ্যে \"name\" বা \"id\" কোন বৈশিষ্ট্যই উপস্থিত নেই"
+
+#, c-format
+#~ msgid "Attribute \"%s\" repeated twice on the same <%s> element"
+#~ msgstr "<%2$s>উপাদানে \"%1$s\" বৈশিষ্ট্যটি দু'বার পুনরাবৃত্ত করা হয়েছে"
+
+#, c-format
+#~ msgid "Attribute \"%s\" is invalid on <%s> element in this context"
+#~ msgstr "এই প্রসঙ্গে \"%1$s\" বৈশিষ্ট্যটি <%2$s> উপাদানের জন্য বৈধ নয়"
+
+#, c-format
+#~ msgid "Tag \"%s\" has not been defined."
+#~ msgstr "\"%s\" ট্যাগ ব্যাখ্যা করা হয়নি।"
+
+#~ msgid "Anonymous tag found and tags can not be created."
+#~ msgstr "নামবিহীন ট্যাগ সনাক্ত করা হয়েছে এবং ট্যাগ তৈরি করা যাচ্ছে না।"
+
+#, c-format
+#~ msgid "Tag \"%s\" does not exist in buffer and tags can not be created."
+#~ msgstr "\"%s\" ট্যাগ বাফারে অনুপস্থিত এবং ট্যাগ তৈরি করা যাচ্ছে না।"
+
+#, c-format
+#~ msgid "\"%s\" is not a valid attribute type"
+#~ msgstr "\"%s\" কোন বৈধ ধরনের বৈশিষ্ট্য নয়"
+
+#, c-format
+#~ msgid "\"%s\" is not a valid attribute name"
+#~ msgstr "\"%s\" কোন বৈধ নামের বৈশিষ্ট্য নয়"
+
+#, c-format
+#~ msgid "\"%s\" could not be converted to a value of type \"%s\" for attribute \"%s\""
+#~ msgstr "\"%1$s\"-কে \"%3$s\" বৈশিষ্ট্যের জন্য \"%2$s\" ধরনের মানে পরিবর্তন করা যায়নি"
+
+#, c-format
+#~ msgid "\"%s\" is not a valid value for attribute \"%s\""
+#~ msgstr "\"%1$s\", \"%2$s\" বৈশিষ্ট্যের জন্য কোন বৈধ মান নয়"
+
+#, c-format
+#~ msgid "Tag \"%s\" has invalid priority \"%s\""
+#~ msgstr "\"%1$s\" ট্যাগে অবৈধ অগ্রাধিকারের অনুক্রম \"%2$s\" রয়েছে"
+
+#, c-format
+#~ msgid "Outermost element in text must be <text_view_markup> not <%s>"
+#~ msgstr "টেক্সটের সর্ববহিঃস্থ উপাদান <text_view_markup> হওয়া আবশ্যক, <%s> নয়"
+
+#, c-format
+#~ msgid "A <%s> element has already been specified"
+#~ msgstr "একটি <%s> উপাদান ইতিমধ্যেই উল্লেখিত হয়েছে"
+
+#~ msgid "A <text> element can't occur before a <tags> element"
+#~ msgstr "<text> উপাদান <tags> উপাদানের পূর্বে অবস্থিত হতে পারবে না"
+
+#~ msgid "Serialized data is malformed"
+#~ msgstr "সিরিয়েলাইজ করা তথ্য সঠিকরূপে গঠিত হয়নি"
+
+#~ msgid "Serialized data is malformed. First section isn't GTKTEXTBUFFERCONTENTS-0001"
+#~ msgstr "সিরিয়েলাইজ করা তথ্য সঠিকরূপে গঠিত হয়নি। প্রথম অংশ GTKTEXTBUFFERCONTENTS-0001 নয়"
+
+#~ msgid "LRM _Left-to-right mark"
+#~ msgstr "LRM বাম-থেকে-ডানে চিহ্ন (_L)"
+
+#~ msgid "RLM _Right-to-left mark"
+#~ msgstr "RLM ডান-থেকে-বামে চিহ্ন (_R)"
+
+#~ msgid "LRE Left-to-right _embedding"
+#~ msgstr "LRE বাম-থেকে-ডানে এমবেডিং (_e)"
+
+#~ msgid "RLE Right-to-left e_mbedding"
+#~ msgstr "RLE ডান-থেকে-বামে এমবেডিং (_m)"
+
+#~ msgid "LRO Left-to-right _override"
+#~ msgstr "LRO বাম-থেকে-ডানে ওভার-রাইড (_o)"
+
+#~ msgid "RLO Right-to-left o_verride"
+#~ msgstr "RLO ডান-থেকে-বামে ওভার-রাইড (_v)"
+
+#~ msgid "PDF _Pop directional formatting"
+#~ msgstr "PDF পপ দিকবিন্যাস (_P)"
+
+#~ msgid "ZWS _Zero width space"
+#~ msgstr "ZWS শূণ্য প্রস্থের ফাঁকাস্থান (_Z)"
+
+#~ msgid "ZWJ Zero width _joiner"
+#~ msgstr "ZWJ শূণ্য প্রস্থের সংযোজক (_j)"
+
+#~ msgid "ZWNJ Zero width _non-joiner"
+#~ msgstr "ZWNJ শূণ্য প্রস্থের বিভাজক (_n)"
+
+#, c-format
+#~ msgid "Unexpected start tag '%s' on line %d char %d"
+#~ msgstr "%2$d লাইনের %3$d অক্ষরে অপ্রত্যাশিত প্রারম্ভিক ট্যাগ '%1$s'"
+
+# FIXME
+#, c-format
+#~ msgid "Unexpected character data on line %d char %d"
+#~ msgstr "%1$d লাইনের %2$d অক্ষরে অপ্রত্যাশিত অক্ষরবিশিষ্ট তথ্য"
+
+#~ msgid "Empty"
+#~ msgstr "ফাঁকা"
+
+#~ msgid "Turns volume down or up"
+#~ msgstr "ভলিউম কম বা বেশি করতে ব্যবহৃত"
+
+#~ msgid "Adjusts the volume"
+#~ msgstr "ভলিউম সমন্বয় করতে ব্যবহৃত"
+
+#~ msgid "Volume Down"
+#~ msgstr "ভলিউম কমান"
+
+#~ msgid "Decreases the volume"
+#~ msgstr "ভলিউম কম করতে ব্যবহৃত"
+
+#~ msgid "Increases the volume"
+#~ msgstr "ভলিউম বৃদ্ধি করতে ব্যবহৃত"
+
+#, c-format
+#~ msgctxt "volume percentage"
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
+
+#~ msgctxt "paper size"
+#~ msgid "asme_f"
+#~ msgstr "asme_f"
+
+#~ msgctxt "paper size"
+#~ msgid "A0x2"
+#~ msgstr "A0x2"
+
+#~ msgctxt "paper size"
+#~ msgid "A0x3"
+#~ msgstr "A0x3"
+
+#~ msgctxt "paper size"
+#~ msgid "A1"
+#~ msgstr "A1"
+
+#~ msgctxt "paper size"
+#~ msgid "A10"
+#~ msgstr "A10"
+
+#~ msgctxt "paper size"
+#~ msgid "A1x3"
+#~ msgstr "A1x3"
+
+#~ msgctxt "paper size"
+#~ msgid "A1x4"
+#~ msgstr "A1x4"
+
+#~ msgctxt "paper size"
+#~ msgid "A2"
+#~ msgstr "A2"
+
+#~ msgctxt "paper size"
+#~ msgid "A2x3"
+#~ msgstr "A2x3"
+
+#~ msgctxt "paper size"
+#~ msgid "A2x4"
+#~ msgstr "A2x4"
+
+#~ msgctxt "paper size"
+#~ msgid "A2x5"
+#~ msgstr "A2x5"
+
+#~ msgctxt "paper size"
+#~ msgid "A3"
+#~ msgstr "A3"
+
+#~ msgctxt "paper size"
+#~ msgid "A3 Extra"
+#~ msgstr "A3 এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "A3x3"
+#~ msgstr "A3x3"
+
+#~ msgctxt "paper size"
+#~ msgid "A3x4"
+#~ msgstr "A3x4"
+
+#~ msgctxt "paper size"
+#~ msgid "A3x5"
+#~ msgstr "A3x5"
+
+#~ msgctxt "paper size"
+#~ msgid "A3x6"
+#~ msgstr "A3x6"
+
+#~ msgctxt "paper size"
+#~ msgid "A3x7"
+#~ msgstr "A3x7"
+
+#~ msgctxt "paper size"
+#~ msgid "A4"
+#~ msgstr "A4"
+
+#~ msgctxt "paper size"
+#~ msgid "A4 Extra"
+#~ msgstr "A4 এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "A4 Tab"
+#~ msgstr "A4 ট্যাব"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x3"
+#~ msgstr "A4x3"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x4"
+#~ msgstr "A4x4"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x5"
+#~ msgstr "A4x5"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x6"
+#~ msgstr "A4x6"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x7"
+#~ msgstr "A4x7"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x8"
+#~ msgstr "A4x8"
+
+#~ msgctxt "paper size"
+#~ msgid "A4x9"
+#~ msgstr "A4x9"
+
+#~ msgctxt "paper size"
+#~ msgid "A5"
+#~ msgstr "A5"
+
+#~ msgctxt "paper size"
+#~ msgid "A5 Extra"
+#~ msgstr "A5 এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "A6"
+#~ msgstr "A6"
+
+#~ msgctxt "paper size"
+#~ msgid "A7"
+#~ msgstr "A7"
+
+#~ msgctxt "paper size"
+#~ msgid "A8"
+#~ msgstr "A8"
+
+#~ msgctxt "paper size"
+#~ msgid "A9"
+#~ msgstr "A9"
+
+#~ msgctxt "paper size"
+#~ msgid "B0"
+#~ msgstr "B0"
+
+#~ msgctxt "paper size"
+#~ msgid "B1"
+#~ msgstr "B1"
+
+#~ msgctxt "paper size"
+#~ msgid "B10"
+#~ msgstr "B10"
+
+#~ msgctxt "paper size"
+#~ msgid "B2"
+#~ msgstr "B2"
+
+#~ msgctxt "paper size"
+#~ msgid "B3"
+#~ msgstr "B3"
+
+#~ msgctxt "paper size"
+#~ msgid "B4"
+#~ msgstr "B4"
+
+#~ msgctxt "paper size"
+#~ msgid "B5"
+#~ msgstr "B5"
+
+#~ msgctxt "paper size"
+#~ msgid "B5 Extra"
+#~ msgstr "B5 এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "B6"
+#~ msgstr "B6"
+
+#~ msgctxt "paper size"
+#~ msgid "B6/C4"
+#~ msgstr "B6/C4"
+
+#~ msgctxt "paper size"
+#~ msgid "B7"
+#~ msgstr "B7"
+
+#~ msgctxt "paper size"
+#~ msgid "B8"
+#~ msgstr "B8"
+
+#~ msgctxt "paper size"
+#~ msgid "B9"
+#~ msgstr "B9"
+
+#~ msgctxt "paper size"
+#~ msgid "C0"
+#~ msgstr "C0"
+
+#~ msgctxt "paper size"
+#~ msgid "C1"
+#~ msgstr "C1"
+
+#~ msgctxt "paper size"
+#~ msgid "C10"
+#~ msgstr "C10"
+
+#~ msgctxt "paper size"
+#~ msgid "C2"
+#~ msgstr "C2"
+
+#~ msgctxt "paper size"
+#~ msgid "C3"
+#~ msgstr "C3"
+
+#~ msgctxt "paper size"
+#~ msgid "C4"
+#~ msgstr "C4"
+
+#~ msgctxt "paper size"
+#~ msgid "C5"
+#~ msgstr "C5"
+
+#~ msgctxt "paper size"
+#~ msgid "C6"
+#~ msgstr "C6"
+
+#~ msgctxt "paper size"
+#~ msgid "C6/C5"
+#~ msgstr "C6/C5"
+
+#~ msgctxt "paper size"
+#~ msgid "C7"
+#~ msgstr "C7"
+
+#~ msgctxt "paper size"
+#~ msgid "C7/C6"
+#~ msgstr "C7/C6"
+
+#~ msgctxt "paper size"
+#~ msgid "C8"
+#~ msgstr "C8"
+
+#~ msgctxt "paper size"
+#~ msgid "C9"
+#~ msgstr "C9"
+
+#~ msgctxt "paper size"
+#~ msgid "DL Envelope"
+#~ msgstr "DL খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "RA0"
+#~ msgstr "RA0"
+
+#~ msgctxt "paper size"
+#~ msgid "RA1"
+#~ msgstr "RA1"
+
+#~ msgctxt "paper size"
+#~ msgid "RA2"
+#~ msgstr "RA2"
+
+#~ msgctxt "paper size"
+#~ msgid "SRA0"
+#~ msgstr "SRA0"
+
+#~ msgctxt "paper size"
+#~ msgid "SRA1"
+#~ msgstr "SRA1"
+
+#~ msgctxt "paper size"
+#~ msgid "SRA2"
+#~ msgstr "SRA2"
+
+#~ msgctxt "paper size"
+#~ msgid "JB0"
+#~ msgstr "JB0"
+
+#~ msgctxt "paper size"
+#~ msgid "JB1"
+#~ msgstr "JB1"
+
+#~ msgctxt "paper size"
+#~ msgid "JB10"
+#~ msgstr "JB10"
+
+#~ msgctxt "paper size"
+#~ msgid "JB2"
+#~ msgstr "JB2"
+
+#~ msgctxt "paper size"
+#~ msgid "JB3"
+#~ msgstr "JB3"
+
+#~ msgctxt "paper size"
+#~ msgid "JB4"
+#~ msgstr "JB4"
+
+#~ msgctxt "paper size"
+#~ msgid "JB5"
+#~ msgstr "JB5"
+
+#~ msgctxt "paper size"
+#~ msgid "JB6"
+#~ msgstr "JB6"
+
+#~ msgctxt "paper size"
+#~ msgid "JB7"
+#~ msgstr "JB7"
+
+#~ msgctxt "paper size"
+#~ msgid "JB8"
+#~ msgstr "JB8"
+
+#~ msgctxt "paper size"
+#~ msgid "JB9"
+#~ msgstr "JB9"
+
+#~ msgctxt "paper size"
+#~ msgid "jis exec"
+#~ msgstr "jis এক্সেক"
+
+#~ msgctxt "paper size"
+#~ msgid "Choukei 2 Envelope"
+#~ msgstr "Choukei 2 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Choukei 3 Envelope"
+#~ msgstr "Choukei 3 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Choukei 4 Envelope"
+#~ msgstr "Choukei 4 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "hagaki (postcard)"
+#~ msgstr "হাগাকি (পোস্টকার্ড)"
+
+#~ msgctxt "paper size"
+#~ msgid "kahu Envelope"
+#~ msgstr "kahu খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "kaku2 Envelope"
+#~ msgstr "kaku2 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "oufuku (reply postcard)"
+#~ msgstr "oufuku (প্রত্যুত্তর পোস্টকার্ড)"
+
+#~ msgctxt "paper size"
+#~ msgid "you4 Envelope"
+#~ msgstr "you4 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "10x11"
+#~ msgstr "১০x১১"
+
+#~ msgctxt "paper size"
+#~ msgid "10x13"
+#~ msgstr "১০x১৩"
+
+#~ msgctxt "paper size"
+#~ msgid "10x14"
+#~ msgstr "১০x১৪"
+
+#~ msgctxt "paper size"
+#~ msgid "10x15"
+#~ msgstr "১০x১৫"
+
+#~ msgctxt "paper size"
+#~ msgid "11x12"
+#~ msgstr "১১x১২"
+
+#~ msgctxt "paper size"
+#~ msgid "11x15"
+#~ msgstr "১১x১৫"
+
+#~ msgctxt "paper size"
+#~ msgid "12x19"
+#~ msgstr "১২x১৯"
+
+#~ msgctxt "paper size"
+#~ msgid "5x7"
+#~ msgstr "৫x৭"
+
+#~ msgctxt "paper size"
+#~ msgid "6x9 Envelope"
+#~ msgstr "৬x৯ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "7x9 Envelope"
+#~ msgstr "৭x৯ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "9x11 Envelope"
+#~ msgstr "৯x১১ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "a2 Envelope"
+#~ msgstr "a2 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Arch A"
+#~ msgstr "আর্চ A"
+
+#~ msgctxt "paper size"
+#~ msgid "Arch B"
+#~ msgstr "আর্চ B"
+
+#~ msgctxt "paper size"
+#~ msgid "Arch C"
+#~ msgstr "আর্চ C"
+
+#~ msgctxt "paper size"
+#~ msgid "Arch D"
+#~ msgstr "আর্চ D"
+
+#~ msgctxt "paper size"
+#~ msgid "Arch E"
+#~ msgstr "আর্চ E"
+
+#~ msgctxt "paper size"
+#~ msgid "b-plus"
+#~ msgstr "b-প্লাস"
+
+#~ msgctxt "paper size"
+#~ msgid "c"
+#~ msgstr "c"
+
+#~ msgctxt "paper size"
+#~ msgid "c5 Envelope"
+#~ msgstr "c5 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "d"
+#~ msgstr "d"
+
+#~ msgctxt "paper size"
+#~ msgid "e"
+#~ msgstr "e"
+
+#~ msgctxt "paper size"
+#~ msgid "edp"
+#~ msgstr "edp"
+
+#~ msgctxt "paper size"
+#~ msgid "European edp"
+#~ msgstr "ইউরোপিয়ান edp"
+
+#~ msgctxt "paper size"
+#~ msgid "Executive"
+#~ msgstr "কার্যনির্বাহী"
+
+#~ msgctxt "paper size"
+#~ msgid "f"
+#~ msgstr "f"
+
+#~ msgctxt "paper size"
+#~ msgid "FanFold European"
+#~ msgstr "FanFold ইউরোপিয়ান"
+
+#~ msgctxt "paper size"
+#~ msgid "FanFold US"
+#~ msgstr "FanFold মার্কিন"
+
+#~ msgctxt "paper size"
+#~ msgid "FanFold German Legal"
+#~ msgstr "FanFold জার্মান লিগ্যাল"
+
+#~ msgctxt "paper size"
+#~ msgid "Government Legal"
+#~ msgstr "গভর্নমেন্ট লিগ্যাল"
+
+#~ msgctxt "paper size"
+#~ msgid "Government Letter"
+#~ msgstr "গভর্নমেন্ট লেটার"
+
+#~ msgctxt "paper size"
+#~ msgid "Index 3x5"
+#~ msgstr "ইনডেক্স ৩x৫"
+
+#~ msgctxt "paper size"
+#~ msgid "Index 4x6 (postcard)"
+#~ msgstr "ইনডেক্স ৪x৬ (পোস্টকার্ড)"
+
+#~ msgctxt "paper size"
+#~ msgid "Index 4x6 ext"
+#~ msgstr "ইনডেক্স ৪x৬ ext"
+
+#~ msgctxt "paper size"
+#~ msgid "Index 5x8"
+#~ msgstr "ইনডেক্স ৫x৮"
+
+#~ msgctxt "paper size"
+#~ msgid "Invoice"
+#~ msgstr "চালানপত্র"
+
+#~ msgctxt "paper size"
+#~ msgid "Tabloid"
+#~ msgstr "ট্যাবলয়েড"
+
+#~ msgctxt "paper size"
+#~ msgid "US Legal"
+#~ msgstr "মার্কিন লিগ্যাল"
+
+#~ msgctxt "paper size"
+#~ msgid "US Legal Extra"
+#~ msgstr "মার্কিন লিগ্যাল এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "US Letter"
+#~ msgstr "মার্কিন লেটার"
+
+#~ msgctxt "paper size"
+#~ msgid "US Letter Extra"
+#~ msgstr "মার্কিন লেটার এক্সট্রা"
+
+#~ msgctxt "paper size"
+#~ msgid "Monarch Envelope"
+#~ msgstr "মোনার্ক খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "#10 Envelope"
+#~ msgstr "#১০ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "#11 Envelope"
+#~ msgstr "#১১ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "#12 Envelope"
+#~ msgstr "#১২ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "#14 Envelope"
+#~ msgstr "#১৪ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "#9 Envelope"
+#~ msgstr "#৯ খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Personal Envelope"
+#~ msgstr "ব্যক্তিগত খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Quarto"
+#~ msgstr "কোয়ার্টো"
+
+#~ msgctxt "paper size"
+#~ msgid "Super A"
+#~ msgstr "সুপার A"
+
+#~ msgctxt "paper size"
+#~ msgid "Super B"
+#~ msgstr "সুপার B"
+
+#~ msgctxt "paper size"
+#~ msgid "Wide Format"
+#~ msgstr "প্রসারিত বিন্যাস"
+
+#~ msgctxt "paper size"
+#~ msgid "Dai-pa-kai"
+#~ msgstr "Dai-pa-kai"
+
+#~ msgctxt "paper size"
+#~ msgid "Folio"
+#~ msgstr "ফোলিও"
+
+#~ msgctxt "paper size"
+#~ msgid "Folio sp"
+#~ msgstr "ফোলিও sp"
+
+#~ msgctxt "paper size"
+#~ msgid "Invite Envelope"
+#~ msgstr "নিমন্ত্রণপত্রের খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Italian Envelope"
+#~ msgstr "ইটালিয়ান খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "juuro-ku-kai"
+#~ msgstr "juuro-ku-kai"
+
+#~ msgctxt "paper size"
+#~ msgid "pa-kai"
+#~ msgstr "pa-kai"
+
+#~ msgctxt "paper size"
+#~ msgid "Postfix Envelope"
+#~ msgstr "পোস্ট-ফিক্স খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "Small Photo"
+#~ msgstr "ছোট আকারের ছবি"
+
+#~ msgctxt "paper size"
+#~ msgid "prc1 Envelope"
+#~ msgstr "prc1 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc10 Envelope"
+#~ msgstr "prc10 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc 16k"
+#~ msgstr "prc 16k"
+
+#~ msgctxt "paper size"
+#~ msgid "prc2 Envelope"
+#~ msgstr "prc2 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc3 Envelope"
+#~ msgstr "prc3 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc 32k"
+#~ msgstr "prc 32k"
+
+#~ msgctxt "paper size"
+#~ msgid "prc4 Envelope"
+#~ msgstr "prc4 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc5 Envelope"
+#~ msgstr "prc5 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc6 Envelope"
+#~ msgstr "prc6 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc7 Envelope"
+#~ msgstr "prc7 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc8 Envelope"
+#~ msgstr "prc8 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "prc9 Envelope"
+#~ msgstr "prc9 খাম"
+
+#~ msgctxt "paper size"
+#~ msgid "ROC 16k"
+#~ msgstr "ROC 16k"
+
+#~ msgctxt "paper size"
+#~ msgid "ROC 8k"
+#~ msgstr "ROC 8k"
+
+#, c-format
+#~ msgid "different idatas found for symlinked '%s' and '%s'\n"
+#~ msgstr "সিম-লিংক করা '%1$s' ও '%2$s'-র জন্য ভিন্ন idata পাওয়া গেছে\n"
+
+#~ msgid "Overwrite an existing cache, even if up to date"
+#~ msgstr "সাম্প্রতিক তথ্য ধারণ করলেও, বিদ্যমান ক্যাশে প্রতিস্থাপন করুন"
+
+#~ msgid "Don't check for the existence of index.theme"
+#~ msgstr "index.theme-এর উপস্থিতির জন্য পরীক্ষা করা হবে না"
+
+#~ msgid "Don't include image data in the cache"
+#~ msgstr "ক্যাশেতে ছবির তথ্য অন্তর্ভুক্ত করা হবে না"
+
+#~ msgid "Output a C header file"
+#~ msgstr "একটি C শীর্ষচরণের ফাইল আউটপুট দেয়া হবে"
+
+#~ msgid "Turn off verbose output"
+#~ msgstr "বাগাড়ম্বর আউটপুট বন্ধ করা হবে"
+
+#~ msgid "Validate existing icon cache"
+#~ msgstr "বিদ্যমান আইকন ক্যাশের বৈধতা যাচাই করুন"
+
+#~ msgid "Amharic (EZ+)"
+#~ msgstr "অ্যামহারিক (EZ+)"
+
+#~ msgid "Cedilla"
+#~ msgstr "সেডিল্লা"
+
+#~ msgid "Cyrillic (Transliterated)"
+#~ msgstr "সিরিলিক (ট্রান্সলিটারেটেড)"
+
+#~ msgid "Inuktitut (Transliterated)"
+#~ msgstr "ইনুকটিটুট (ট্রান্সলিটারেটেড)"
+
+#~ msgid "IPA"
+#~ msgstr "IPA"
+
+#~ msgid "Multipress"
+#~ msgstr "মাল্টি-প্রেস"
+
+#~ msgid "Thai-Lao"
+#~ msgstr "থাই-লাও"
+
+# FIXME
+#~ msgid "Tigrigna-Eritrean (EZ+)"
+#~ msgstr "টিগরিগনা-ইরিট্রিয়ান (EZ+)"
+
+#~ msgid "Tigrigna-Ethiopian (EZ+)"
+#~ msgstr "টিগরিগনা-ইথিওপিয়ান (EZ+)"
+
+#~ msgid "Vietnamese (VIQR)"
+#~ msgstr "ভিয়েতনামী (VIQR)"
+
+#~ msgid "Output Tray"
+#~ msgstr "আউটপুট ট্রে"
+
+#~ msgid "Resolution"
+#~ msgstr "রেজল্যুশন"
+
+#~ msgid "GhostScript pre-filtering"
+#~ msgstr "GhostScript পূর্ব-পরিশোধক"
+
+#~ msgid "One Sided"
+#~ msgstr "এককপৃষ্ঠ"
+
+#~ msgid "Long Edge (Standard)"
+#~ msgstr "দীর্ঘ প্রান্ত (আদর্শ)"
+
+#~ msgid "Short Edge (Flip)"
+#~ msgstr "ক্ষুদ্র প্রান্ত (উল্টানো)"
+
+#~ msgid "Auto Select"
+#~ msgstr "স্বয়ংক্রিয় নির্বাচন"
+
+#~ msgid "Embed GhostScript fonts only"
+#~ msgstr "শুধুমাত্র GhostScript ফন্ট এমবেড করা হবে"
+
+#~ msgid "Convert to PS level 1"
+#~ msgstr "PS লেভেল ১-এ রূপান্তর করা হবে"
+
+#~ msgid "Convert to PS level 2"
+#~ msgstr "PS লেভেল ২-এ রূপান্তর করা হবে"
+
+#~ msgid "No pre-filtering"
+#~ msgstr "পূর্ব-পরিশোধক নেই"
+
+#~ msgid "Urgent"
+#~ msgstr "জরুরী"
+
+#~ msgid "High"
+#~ msgstr "উচ্চ"
+
+#~ msgid "Medium"
+#~ msgstr "মাঝারি"
+
+#~ msgid "Low"
+#~ msgstr "নিম্ন"
+
+#~ msgid "Pages per Sheet"
+#~ msgstr "প্রতি পাতায় পৃষ্ঠার সংখ্যা"
+
+#~ msgid "None"
+#~ msgstr "কোনটি না"
+
+#~ msgid "Classified"
+#~ msgstr "শ্রেণীবদ্ধ"
+
+#~ msgid "Confidential"
+#~ msgstr "গোপনীয়"
+
+#~ msgid "Secret"
+#~ msgstr "গোপনীয়"
+
+#~ msgid "Standard"
+#~ msgstr "আদর্শ"
+
+#~ msgid "Top Secret"
+#~ msgstr "অতিমাত্রায় গোপনীয়"
+
+#~ msgid "Unclassified"
+#~ msgstr "শ্রেণীবিহীন"
+
+#~ msgid "Before"
+#~ msgstr "পূর্বে"
+
+#~ msgid "After"
+#~ msgstr "পরে"
+
+#~ msgid "PDF"
+#~ msgstr "PDF"
+
+#~ msgid "Postscript"
+#~ msgstr "Postscript"
+
+#~ msgid "SVG"
+#~ msgstr "SVG"
+
+#~ msgid "Print to LPR"
+#~ msgstr "LPR-এ মুদ্রণ করা হবে"
+
+#~ msgid "Pages Per Sheet"
+#~ msgstr "প্রতি পাতায় পৃষ্ঠার সংখ্যা"
+
+#~ msgid "Command Line"
+#~ msgstr "কমান্ড লাইন"
+
+#~ msgid "printer offline"
+#~ msgstr "মুদ্রণযন্ত্র অফলাইনে রয়েছে"
+
+#~ msgid "ready to print"
+#~ msgstr "মুদ্রণের জন্য প্রস্তুত"
+
+#~ msgid "processing job"
+#~ msgstr "প্রক্রিয়াধীন কাজ"
+
+#~ msgid "paused"
+#~ msgstr "স্থগিত"
+
+#~ msgid "unknown"
+#~ msgstr "অজানা"
+
+#, c-format
+#~ msgid "test-output.%s"
+#~ msgstr "test-output.%s"
+
+#~ msgid "Print to Test Printer"
+#~ msgstr "পরীক্ষামূলক মুদ্রণযন্ত্রে মুদ্রণ করুন"
+
+# FIXME
+#, c-format
+#~ msgid "Could not get information for file '%s': %s"
+#~ msgstr "'%s' ফাইলের জন্য কোন তথ্য পাওয়া যায়নি: %s"
+
+#, c-format
+#~ msgid "Failed to load image '%s': reason not known, probably a corrupt image file"
+#~ msgstr "'%s' ছবি লোড করতে ব্যর্থ: কারণ অজানা, সম্ভবত ছবির ফাইলটি ক্ষতিগ্রস্ত"
+
+#~ msgid "X screen to use"
+#~ msgstr "ব্যবহারের উদ্দেশ্যে চিহ্নিত X পর্দা"
+
+#~ msgid "SCREEN"
+#~ msgstr "SCREEN"
+
+#~ msgid "Make X calls synchronous"
+#~ msgstr "X-এর কল সুসংগত করা হবে"
+
+#~ msgid "Written by"
+#~ msgstr "লেখক"
+
+#~ msgid "Unable to find include file: \"%s\""
+#~ msgstr "include ফাইল খুঁজে পেতে অক্ষম: \"%s\""
+
+#~ msgid "Unable to locate theme engine in module_path: \"%s\","
+#~ msgstr "module_path-এ থীম ইঞ্জিনের অবস্থান চিহ্নিত করতে অক্ষম: \"%s\","
+
+#~ msgid "Gdk debugging flags to set"
+#~ msgstr "মান নির্ধারণের উদ্দেশ্যে চিহ্নিত Gdk ডিবাগিং ফ্ল্যাগ"
+
+#~ msgid "Gdk debugging flags to unset"
+#~ msgstr "মান মুছে ফেলার উদ্দেশ্যে চিহ্নিত Gdk ডিবাগিং ফ্ল্যাগ"
+
+#~ msgid "Image file '%s' contains no data"
+#~ msgstr "'%s' নামক ছবির ফাইলে তথ্য অনুপস্থিত"
+
+#~ msgid "Failed to load animation '%s': reason not known, probably a corrupt animation file"
+#~ msgstr "'%s' অ্যানিমেশন লোড করতে ব্যর্থ: কারণ অজানা, সম্ভবত অ্যানিমেশন ফাইলটি ক্ষতিগ্রস্ত"
+
+#~ msgid "Unable to load image-loading module: %s: %s"
+#~ msgstr "ছবি লোড করতে ব্যবহৃত মডিউল লোড করতে ব্যর্থ: %s: %s"
+
+#~ msgid "Image-loading module %s does not export the proper interface; perhaps it's from a different GTK version?"
+#~ msgstr "ছবি লোড করতে ব্যবহৃত %s নামক মডিউলটি সঠিক ইন্টারফেস এক্সপোর্ট করে না; সম্ভবত এটি ভিন্ন কোন GTK সংস্করণের অংশ?"
+
+#~ msgid "Couldn't recognize the image file format for file '%s'"
+#~ msgstr "'%s' ফাইলের জন্য ছবির ফাইল ফরম্যাট সনাক্ত করা যায়নি"
+
+#~ msgid "Failed to load image '%s': %s"
+#~ msgstr "'%1$s' ছবি লোড করতে ব্যর্থ: %2$s"
+
+#~ msgid "Error writing to image file: %s"
+#~ msgstr "ছবির ফাইলে লিখতে ত্রুটি: %s"
+
+#~ msgid "This build of gdk-pixbuf does not support saving the image format: %s"
+#~ msgstr "gdk-pixbuf'র বর্তমান বিল্ড এই ফরম্যাটের ছবি সংরক্ষণ সমর্থন করে না: %s"
+
+#~ msgid "Insufficient memory to save image to callback"
+#~ msgstr "callback-এ ছবি সংরক্ষণের জন্য পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Failed to open temporary file"
+#~ msgstr "অস্থায়ী ফাইল খুলতে ব্যর্থ"
+
+#~ msgid "Failed to open '%s' for writing: %s"
+#~ msgstr "লেখার জন্য '%1$s' খুলতে ব্যর্থ: %2$s"
+
+#~ msgid "Failed to close '%s' while writing image, all data may not have been saved: %s"
+#~ msgstr "ছবি লেখার সময় '%s' বন্ধ করতে ব্যর্থ, সম্ভবত সব তথ্য সংরক্ষিত হয়নি: %s"
+
+#~ msgid "Insufficient memory to save image into a buffer"
+#~ msgstr "বাফারে ছবি সংরক্ষণের জন্য পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Internal error: Image loader module '%s' failed to complete an operation, but didn't give a reason for the failure"
+#~ msgstr "অভ্যন্তরীণ ত্রুটি: ছবি লোড করতে ব্যবহৃত মডিউল '%s' একটি অপারেশন সম্পন্ন করতে ব্যর্থ, কিন্তু ব্যর্থতার কারণ দর্শানো হয়নি"
+
+#~ msgid "Incremental loading of image type '%s' is not supported"
+#~ msgstr "'%s' প্রকৃতির ছবির ক্রমবর্ধমান লোড করার বৈশিষ্ট্য সমর্থিত নয়"
+
+#~ msgid "Image header corrupt"
+#~ msgstr "ছবির শীর্ষচরণ বিকৃত"
+
+#~ msgid "Image format unknown"
+#~ msgstr "ছবির ফরম্যাট অজানা"
+
+#~ msgid "Image pixel data corrupt"
+#~ msgstr "ছবির পিক্সেল উপাত্ত বিকৃত"
+
+#~ msgid "failed to allocate image buffer of %u byte"
+#~ msgid_plural "failed to allocate image buffer of %u bytes"
+#~ msgstr[0] "%u বাইট মাপের ছবির বাফার বরাদ্দ করতে ব্যর্থ"
+#~ msgstr[1] "%u বাইট মাপের ছবির বাফার বরাদ্দ করতে ব্যর্থ"
+
+#~ msgid "Unexpected icon chunk in animation"
+#~ msgstr "অ্যানিমেশনে অপ্রত্যাশিত আইকনের অংশ"
+
+#~ msgid "Unsupported animation type"
+#~ msgstr "অসমর্থিত অ্যানিমেশনের ধরন"
+
+#~ msgid "Invalid header in animation"
+#~ msgstr "অ্যানিমেশনে অকার্যকর শীর্ষচরণ"
+
+#~ msgid "Malformed chunk in animation"
+#~ msgstr "অ্যানিমেশনের ত্রুটিযুক্ত অংশ"
+
+#~ msgid "The ANI image format"
+#~ msgstr "ANI ফরম্যাটের ছবি"
+
+#~ msgid "BMP image has bogus header data"
+#~ msgstr "BMP ছবিতে ভুয়া শীর্ষচরণ উপাত্ত"
+
+#~ msgid "Not enough memory to load bitmap image"
+#~ msgstr "বিটম্যাপ ছবি লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "BMP image has unsupported header size"
+#~ msgstr "BMP ছবির শীর্ষচরণের আকার অসমর্থিত"
+
+#~ msgid "Topdown BMP images cannot be compressed"
+#~ msgstr "Topdown BMP ছবি সংকোচন করা সম্ভব নয়"
+
+#~ msgid "Premature end-of-file encountered"
+#~ msgstr "অপ্রত্যাশিতভাবে ফাইল সমাপ্তির সম্মুখীন হয়েছে"
+
+#~ msgid "Couldn't allocate memory for saving BMP file"
+#~ msgstr "BMP ফাইল সংরক্ষণের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Couldn't write to BMP file"
+#~ msgstr "BMP ফাইলে লিখা যায়নি"
+
+#~ msgid "The BMP image format"
+#~ msgstr "BMP ফরম্যাটের ছবি"
+
+#~ msgid "Failure reading GIF: %s"
+#~ msgstr "GIF পড়তে ব্যর্থ: %s"
+
+#~ msgid "GIF file was missing some data (perhaps it was truncated somehow?)"
+#~ msgstr "GIF ফাইলের কিছু উপাত্ত অনুপস্থিত (সম্ভবত কোনো কারণে এর কিছু অংশ মুছে ফেলা হয়েছে?)"
+
+#~ msgid "Internal error in the GIF loader (%s)"
+#~ msgstr "GIF লোডারে অভ্যন্তরীণ ত্রুটি (%s)"
+
+#~ msgid "Stack overflow"
+#~ msgstr "স্ট্যাক-ওভারফ্লো"
+
+#~ msgid "GIF image loader cannot understand this image."
+#~ msgstr "GIF ছবি লোডার এই ছবিটি বুঝতে পারছে না।"
+
+#~ msgid "Bad code encountered"
+#~ msgstr "ভুল কোডের সম্মুখীন"
+
+#~ msgid "Circular table entry in GIF file"
+#~ msgstr "GIF ফাইলে বৃত্তাকার টেবিলের প্রবেশ"
+
+#~ msgid "Not enough memory to load GIF file"
+#~ msgstr "GIF ফাইল লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+# FIXME: Composite
+#~ msgid "Not enough memory to composite a frame in GIF file"
+#~ msgstr "GIF ফাইলে কোন ফ্রেম অন্তর্ভুক্ত করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "GIF image is corrupt (incorrect LZW compression)"
+#~ msgstr "GIF ছবিটি ক্ষতিগ্রস্ত (ভুল LZW সংকোচন)"
+
+#~ msgid "File does not appear to be a GIF file"
+#~ msgstr "ফাইলটি GIF ফাইল বলে মনে হচ্ছে না"
+
+#~ msgid "Version %s of the GIF file format is not supported"
+#~ msgstr "GIF ফাইল ফরম্যাটের %s সংস্করণ সমর্থিত নয়"
+
+#~ msgid "GIF image has no global colormap, and a frame inside it has no local colormap."
+#~ msgstr "GIF ছবিতে কোনো গ্লোবাল colormap নেই, এবং এর অন্তর্ভুক্ত ফ্রেমে স্থানীয় কোন colormap নেই।"
+
+#~ msgid "GIF image was truncated or incomplete."
+#~ msgstr "GIF ছবির তথ্য মুছে ফেলা হয়েছে অথবা অসম্পূর্ণ।"
+
+#~ msgid "The GIF image format"
+#~ msgstr "GIF ছবির বিন্যাস"
+
+#~ msgid "Invalid header in icon"
+#~ msgstr "আইকনে অকার্যকর শীর্ষচরণ"
+
+#~ msgid "Not enough memory to load icon"
+#~ msgstr "আইকন লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Icon has zero width"
+#~ msgstr "আইকনের প্রস্থ শূণ্য"
+
+#~ msgid "Icon has zero height"
+#~ msgstr "আইকনের উচ্চতা শূন্য"
+
+#~ msgid "Compressed icons are not supported"
+#~ msgstr "সংকুচিত আইকনের ব্যবহার সমর্থিত নয়"
+
+#~ msgid "Not enough memory to load ICO file"
+#~ msgstr "ICO ফাইল লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Image too large to be saved as ICO"
+#~ msgstr "ICO ফাইল রূপে সংরক্ষণের জন্য ফাইলের আকার অত্যাধিক বড়"
+
+#~ msgid "Cursor hotspot outside image"
+#~ msgstr "কার্সারের হট-স্পট ছবির বাইরে"
+
+#~ msgid "The ICO image format"
+#~ msgstr "ICO ফরম্যাটের ছবি"
+
+#~ msgid "Error reading ICNS image: %s"
+#~ msgstr "ICNS ছবি পড়ার সময় ত্রুটি: %s"
+
+#~ msgid "Could not decode ICNS file"
+#~ msgstr "ICNS ফাইল ডিকোড করা যায়নি"
+
+#~ msgid "The ICNS image format"
+#~ msgstr "ICNS ফরম্যাটের ছবি"
+
+#~ msgid "Couldn't allocate memory for stream"
+#~ msgstr "স্ট্রীমের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Couldn't decode image"
+#~ msgstr "ছবি ডিকোড করা যায়নি"
+
+#~ msgid "Transformed JPEG2000 has zero width or height"
+#~ msgstr "রূপান্তরিত JPEG2000-এর প্রস্থ অথবা উচ্চতার মাপ শূণ্য"
+
+#~ msgid "Image type currently not supported"
+#~ msgstr "এই মূহুর্তে এধরনের ছবি সমর্থিত নয়"
+
+#~ msgid "Couldn't allocate memory for color profile"
+#~ msgstr "রঙের প্রোফাইলের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Insufficient memory to open JPEG 2000 file"
+#~ msgstr "JPEG 2000 ফাইল খোলার মত পর্যাপ্ত মেমরি নেই"
+
+# FIXME
+#~ msgid "Couldn't allocate memory to buffer image data"
+#~ msgstr "ছবির উপাত্ত বাফার করার জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "The JPEG 2000 image format"
+#~ msgstr "JPEG 2000 ফরম্যাটের ছবি"
+
+#~ msgid "Insufficient memory to load image, try exiting some applications to free memory"
+#~ msgstr "ছবি লোড করার মত পর্যাপ্ত মেমরি নেই, মেমরি ফাঁকা করার জন্য কয়েকটি অ্যাপ্লিকেশন বন্ধ করার চেষ্টা করুন"
+
+#~ msgid "Couldn't allocate memory for loading JPEG file"
+#~ msgstr "JPEG ফাইল লোড করার জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Transformed JPEG has zero width or height."
+#~ msgstr "রূপান্তরিত JPEG'র প্রস্থ অথবা উচ্চতার মাপ শূণ্য।"
+
+#~ msgid "JPEG quality must be a value between 0 and 100; value '%s' could not be parsed."
+#~ msgstr "JPEG'র গুণগত মান ০ থেকে ১০০ এর মধ্যে হওয়া আবশ্যক; '%s' মান পার্স করা যায়নি।"
+
+#~ msgid "JPEG quality must be a value between 0 and 100; value '%d' is not allowed."
+#~ msgstr "JPEG'র গুণগত মান ০ থেকে ১০০ এর মধ্যে হওয়া আবশ্যক; '%d' মান গ্রহণযোগ্য নয়।"
+
+#~ msgid "The JPEG image format"
+#~ msgstr "JPEG ফরম্যাটের ছবি"
+
+#~ msgid "Couldn't allocate memory for header"
+#~ msgstr "শীর্ষচরণের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Image has invalid width and/or height"
+#~ msgstr "ছবির প্রস্থ এবং/অথবা উচ্চতার মাপ অকার্যকর"
+
+#~ msgid "Image has unsupported bpp"
+#~ msgstr "ছবিটিতে অসমর্থিত bpp রয়েছে"
+
+#~ msgid "Image has unsupported number of %d-bit planes"
+#~ msgstr "ছবিটিতে %d-বিট প্লেইনের সংখ্যা অসমর্থিত"
+
+#~ msgid "Couldn't create new pixbuf"
+#~ msgstr "নতুন pixbuf তৈরি করা যায়নি"
+
+# FIXME
+#~ msgid "Couldn't allocate memory for line data"
+#~ msgstr "লাইন উপাত্তের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Couldn't allocate memory for paletted data"
+#~ msgstr "প্যালেট করা উপাত্তের জন্য মেমরি বরাদ্দ করা যায়নি"
+
+#~ msgid "Didn't get all lines of PCX image"
+#~ msgstr "PCX ছবির সকল লাইন পাওয়া যায়নি"
+
+#~ msgid "No palette found at end of PCX data"
+#~ msgstr "PCX উপাত্তের শেষে কোনো প্যালেট সনাক্ত করা যায়নি"
+
+#~ msgid "The PCX image format"
+#~ msgstr "PCX ফরম্যাটের ছবি"
+
+#~ msgid "Bits per channel of PNG image is invalid."
+#~ msgstr "PNG ছবির চ্যানেল প্রতি বিটের সংখ্যা অকার্যকর।"
+
+#~ msgid "Transformed PNG has zero width or height."
+#~ msgstr "রূপান্তরিত PNG'র প্রস্থ অথবা উচ্চতার মাপ শূণ্য।"
+
+#~ msgid "Bits per channel of transformed PNG is not 8."
+#~ msgstr "রূপান্তরিত PNG'র চ্যানেল প্রতি বিটের সংখ্যা ৮ নয়।"
+
+# FIXME
+#~ msgid "Transformed PNG not RGB or RGBA."
+#~ msgstr "রূপান্তরিত PNG, RGB অথবা RGBA নয়।"
+
+#~ msgid "Transformed PNG has unsupported number of channels, must be 3 or 4."
+#~ msgstr "রূপান্তরিত PNG-তে অসমর্থিত সংখ্যক চ্যানেল রয়েছে, এই সংখ্যা ৩ অথবা ৪ হওয়া আবশ্যক।"
+
+#~ msgid "Fatal error in PNG image file: %s"
+#~ msgstr "PNG ছবির ফাইলে মারাত্মক ত্রুটি: %s"
+
+#~ msgid "Insufficient memory to load PNG file"
+#~ msgstr "PNG ফাইল লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Insufficient memory to store a %ld by %ld image; try exiting some applications to reduce memory usage"
+#~ msgstr ""
+#~ "%1$ld গুণ %2$ld আকারের ছবি সংরক্ষণের জন্য পর্যাপ্ত মেমরি নেই;  কয়েকটি অ্যাপ্লিকেশন বন্ধ করে মেমরির ব্যবহার হ্রাস করার চেষ্টা করুন"
+
+#~ msgid "Fatal error reading PNG image file"
+#~ msgstr "PNG ছবির ফাইল পড়তে মারাত্মক ত্রুটি"
+
+#~ msgid "Fatal error reading PNG image file: %s"
+#~ msgstr "PNG ছবির ফাইল পড়তে মারাত্মক ত্রুটি: %s"
+
+#~ msgid "Keys for PNG text chunks must have at least 1 and at most 79 characters."
+#~ msgstr "PNG টেক্সট অংশের কী নূন্যতম ১ ও সর্বোচ্চ ৭৯ অক্ষর বিশিষ্ট হওয়া আবশ্যক।"
+
+#~ msgid "Keys for PNG text chunks must be ASCII characters."
+#~ msgstr "PNG টেক্সট অংশের কী ASCII অক্ষরবিশিষ্ট হওয়া আবশ্যক।"
+
+#~ msgid "Color profile has invalid length %d."
+#~ msgstr "রঙের প্রোফাইলে অকার্যকর দৈর্ঘ্য %d রয়েছে।"
+
+#~ msgid "PNG compression level must be a value between 0 and 9; value '%s' could not be parsed."
+#~ msgstr "PNG কম্প্রেশনের মাত্রা ০ ও ৯ এর মধ্যে হওয়া আবশ্যক; '%s' মান পার্স করা যায়নি।"
+
+#~ msgid "PNG compression level must be a value between 0 and 9; value '%d' is not allowed."
+#~ msgstr "PNG কম্প্রেশনের মাত্রা ০ ও ৯ এর মধ্যে হওয়া আবশ্যক; '%d' মান গ্রহণযোগ্য নয়।"
+
+#~ msgid "Value for PNG text chunk %s cannot be converted to ISO-8859-1 encoding."
+#~ msgstr "PNG টেক্সট অংশ %s'র মান ISO-8859-1 এনকোডিং-এ পরিবর্তন করা সম্ভব নয়।"
+
+#~ msgid "The PNG image format"
+#~ msgstr "PNG ফরম্যাটের ছবি"
+
+#~ msgid "PNM loader expected to find an integer, but didn't"
+#~ msgstr "PNM লোডারের দ্বারা পূর্ণসংখ্যার মান পাওয়ার প্রত্যাশা ছিল, কিন্তু পাওয়া যায়নি"
+
+#~ msgid "PNM file has an incorrect initial byte"
+#~ msgstr "PNM ফাইলে একটি ভুল প্রারম্ভিক বাইট রয়েছে"
+
+#~ msgid "PNM file is not in a recognized PNM subformat"
+#~ msgstr "PNM ফাইলটি কোন সনাক্তকৃত PNM সাব-ফরম্যাটে নেই"
+
+#~ msgid "PNM file has an image width of 0"
+#~ msgstr "PNM ফাইলে ০ প্রস্থের ছবি রয়েছে"
+
+#~ msgid "PNM file has an image height of 0"
+#~ msgstr "PNM ফাইলে ০ দৈর্ঘ্যের ছবি রয়েছে"
+
+#~ msgid "Maximum color value in PNM file is 0"
+#~ msgstr "PNM ফাইলে রঙের সর্বোচ্চ মান ০"
+
+#~ msgid "Maximum color value in PNM file is too large"
+#~ msgstr "PNM ফাইলে রঙের সর্বোচ্চ মান অত্যাধিক বড়"
+
+#~ msgid "Raw PNM image type is invalid"
+#~ msgstr "অশোধিত PNM ছবির ধরন অকার্যকর"
+
+#~ msgid "PNM image loader does not support this PNM subformat"
+#~ msgstr "PNM ছবি লোডার এই PNM সাব-ফরম্যাট সমর্থন করে না"
+
+#~ msgid "Raw PNM formats require exactly one whitespace before sample data"
+#~ msgstr "অশোধিত PNM ফরম্যাটে নমুনা তথ্যের পূর্বে শুধুমাত্র একটি শূণ্যস্থান উপস্থিত থাকা আবশ্যক"
+
+#~ msgid "Cannot allocate memory for loading PNM image"
+#~ msgstr "PNM ছবি লোড করার জন্য মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Insufficient memory to load PNM context struct"
+#~ msgstr "PNM কনটেক্সট স্ট্রাক্ট লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Unexpected end of PNM image data"
+#~ msgstr "PNM ছবির তথ্য অপ্রত্যাশিতভাবে সমাপ্ত"
+
+#~ msgid "Insufficient memory to load PNM file"
+#~ msgstr "PNM ফাইল লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "The PNM/PBM/PGM/PPM image format family"
+#~ msgstr "PNM/PBM/PGM/PPM ফরম্যাটের ছবির সংকলন"
+
+#~ msgid "Input file descriptor is NULL."
+#~ msgstr "ইনপুট ফাইল বর্ণনাকারী ফাঁকা।"
+
+#~ msgid "Failed to read QTIF header"
+#~ msgstr "QTIF'র শীর্ষচরণ পড়তে ব্যর্থ"
+
+#~ msgid "QTIF atom size too large (%d bytes)"
+#~ msgstr "QTIF'র অ্যাটমের আকার অত্যাধিক বড় (%d বাইট)"
+
+#~ msgid "File error when reading QTIF atom: %s"
+#~ msgstr "QTIF'র অ্যাটম পড়ার সময় ফাইল ত্রুটি: %s"
+
+#~ msgid "Failed to skip the next %d bytes with seek()."
+#~ msgstr "খোঁজ দ্বারা পরবর্তী %d বাইট উপেক্ষা করতে ব্যর্থ()।"
+
+#~ msgid "Failed to create GdkPixbufLoader object."
+#~ msgstr "GdkPixbufLoader অবজেক্ট তৈরি করতে ব্যর্থ।"
+
+#~ msgid "Failed to find an image data atom."
+#~ msgstr "ছবির তথ্যের অ্যাটম খুঁজে পেতে ব্যর্থ।"
+
+#~ msgid "The QTIF image format"
+#~ msgstr "QTIF ফরম্যাটের ছবি"
+
+#~ msgid "RAS image has bogus header data"
+#~ msgstr "RAS ছবির শীর্ষচরণে ভুয়া তথ্য রয়েছে"
+
+#~ msgid "RAS image has unknown type"
+#~ msgstr "RAS ছবির প্রকৃতি অজানা"
+
+#~ msgid "unsupported RAS image variation"
+#~ msgstr "RAS ছবির পরিবর্তন অসমর্থিত"
+
+#~ msgid "Not enough memory to load RAS image"
+#~ msgstr "RAS ছবি লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "The Sun raster image format"
+#~ msgstr "Sun রেসটার ফরম্যাটের ছবি"
+
+#~ msgid "Cannot allocate memory for IOBuffer struct"
+#~ msgstr "IOBuffer struct'র জন্য মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot allocate memory for IOBuffer data"
+#~ msgstr "IOBuffer তথ্যের জন্য মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot realloc IOBuffer data"
+#~ msgstr "IOBuffer তথ্য পুনরায় বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot allocate temporary IOBuffer data"
+#~ msgstr "অস্থায়ী IOBuffer তথ্য বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot allocate new pixbuf"
+#~ msgstr "নতুন pixbuf বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Image is corrupted or truncated"
+#~ msgstr "ছবি বিকৃত করা হয়েছে বা মুছে ফেলা হয়েছে"
+
+#~ msgid "Cannot allocate colormap structure"
+#~ msgstr "colormap structure বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot allocate colormap entries"
+#~ msgstr "colormap এন্ট্রি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Unexpected bitdepth for colormap entries"
+#~ msgstr "colormap এন্ট্রির জন্য অপ্রত্যাশিত bitdepth"
+
+#~ msgid "Cannot allocate TGA header memory"
+#~ msgstr "TGA শীর্ষচরণ মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "TGA image has invalid dimensions"
+#~ msgstr "TGA ছবিতে অকার্যকর দিকমাত্রা রয়েছে"
+
+#~ msgid "Cannot allocate memory for TGA context struct"
+#~ msgstr "TGA context struct'র জন্য মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Excess data in file"
+#~ msgstr "ফাইলে প্রয়োজনাতিরিক্ত তথ্য"
+
+#~ msgid "The Targa image format"
+#~ msgstr "Targa ফরম্যাটের ছবি"
+
+#~ msgid "Could not get image width (bad TIFF file)"
+#~ msgstr "ছবির প্রস্থ পাওয়া যায়নি (ভুল TIFF ফাইল)"
+
+#~ msgid "Could not get image height (bad TIFF file)"
+#~ msgstr "ছবির উচ্চতা পাওয়া যায়নি (ভুল TIFF ফাইল)"
+
+#~ msgid "Width or height of TIFF image is zero"
+#~ msgstr "TIFF ছবির প্রস্থ অথবা উচ্চতার মাপ শূণ্য"
+
+#~ msgid "Dimensions of TIFF image too large"
+#~ msgstr "TIFF ছবির দিকমাত্রা অত্যাধিক বড়"
+
+#~ msgid "Insufficient memory to open TIFF file"
+#~ msgstr "TIFF ফাইল খোলার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Failed to open TIFF image"
+#~ msgstr "TIFF ছবি খুলতে ব্যর্থ"
+
+#~ msgid "TIFFClose operation failed"
+#~ msgstr "TIFFClose কর্ম সঞ্চালনে ব্যর্থ"
+
+#~ msgid "Failed to load TIFF image"
+#~ msgstr "TIFF ছবি লোড করতে ব্যর্থ"
+
+#~ msgid "Failed to save TIFF image"
+#~ msgstr "TIFF ছবি সংরক্ষণে ব্যর্থ"
+
+#~ msgid "TIFF compression doesn't refer to a valid codec."
+#~ msgstr "TIFF কম্প্রেশন কোন কার্যকর কোডেক উল্লেখ করেনা।"
+
+#~ msgid "Couldn't write to TIFF file"
+#~ msgstr "TIFF ফাইলে লিখা যায়নি"
+
+#~ msgid "The TIFF image format"
+#~ msgstr "TIFF ফরম্যাটের ছবি"
+
+#~ msgid "Image has zero width"
+#~ msgstr "ছবির প্রস্থের মাপ শূণ্য"
+
+#~ msgid "Image has zero height"
+#~ msgstr "ছবির উচ্চতার মাপ শূণ্য"
+
+#~ msgid "Couldn't save the rest"
+#~ msgstr "অবশিষ্ট অংশ সংরক্ষণ করা যায়নি"
+
+#~ msgid "The WBMP image format"
+#~ msgstr "WBMP ফরম্যাটের ছবি"
+
+#~ msgid "Invalid XBM file"
+#~ msgstr "অকার্যকর XBM ফাইল"
+
+#~ msgid "Insufficient memory to load XBM image file"
+#~ msgstr "XBM ছবির ফাইল লোড করার মত পর্যাপ্ত মেমরি নেই"
+
+#~ msgid "Failed to write to temporary file when loading XBM image"
+#~ msgstr "XBM ছবি লোড করার সময় অস্থায়ী ফাইলে লিখতে ব্যর্থ"
+
+#~ msgid "The XBM image format"
+#~ msgstr "XBM ফরম্যাটের ছবি"
+
+#~ msgid "No XPM header found"
+#~ msgstr "XPM শীর্ষচরণ পাওয়া যায়নি"
+
+#~ msgid "Invalid XPM header"
+#~ msgstr "অকার্যকর XPM শীর্ষচরণ"
+
+#~ msgid "XPM file has image width <= 0"
+#~ msgstr "XPM ফাইলের ছবির প্রস্থ <= ০"
+
+#~ msgid "XPM file has image height <= 0"
+#~ msgstr "XPM ফাইলের ছবির উচ্চতা <= ০"
+
+#~ msgid "XPM has invalid number of chars per pixel"
+#~ msgstr "XPM'তে পিক্সেল প্রতি অকার্যকর সংখ্যক char রয়েছে"
+
+#~ msgid "XPM file has invalid number of colors"
+#~ msgstr "XPM ফাইলে অকার্যকর সংখ্যক রং রয়েছে"
+
+#~ msgid "Cannot allocate memory for loading XPM image"
+#~ msgstr "XPM ছবি লোড করার জন্য মেমরি বরাদ্দ করা যাচ্ছে না"
+
+#~ msgid "Cannot read XPM colormap"
+#~ msgstr "XPM colormap পড়া যাচ্ছে না"
+
+#~ msgid "Failed to write to temporary file when loading XPM image"
+#~ msgstr "XPM ছবি লোড করার সময় অস্থায়ী ফাইলে লিখতে ব্যর্থ"
+
+#~ msgid "The XPM image format"
+#~ msgstr "XPM ফরম্যাটের ছবি"
+
+#~ msgid "The EMF image format"
+#~ msgstr "EMF ফরম্যাটের ছবি"
+
+#~ msgid "Could not allocate memory: %s"
+#~ msgstr "মেমরি বরাদ্দ করা যায়নি: %s"
+
+#~ msgid "Could not create stream: %s"
+#~ msgstr "স্ট্রীম তৈরি করা যায়নি: %s"
+
+#~ msgid "Could not seek stream: %s"
+#~ msgstr "স্ট্রীম খোঁজ করা যায়নি: %s"
+
+#~ msgid "Could not read from stream: %s"
+#~ msgstr "স্ট্রীম থেকে পড়া যায়নি: %s"
+
+#~ msgid "Couldn't load metafile"
+#~ msgstr "মেটা-ফাইল লোড করা যায়নি"
+
+#~ msgid "Unsupported image format for GDI+"
+#~ msgstr "GDI+-র জন্য ছবির ফরম্যাট অসমর্থিত"
+
+#~ msgid "Couldn't save"
+#~ msgstr "সংরক্ষণ করা যায়নি"
+
+#~ msgid "The WMF image format"
+#~ msgstr "WMF ফরম্যাটের ছবি"
+
+#~ msgid "\"Deepness\" of the color."
+#~ msgstr "রঙের \"গাঢ়তা\"।"
+
+#~ msgid "Error printing"
+#~ msgstr "মুদ্রণে ত্রুটি"
+
+#~ msgid "Printer '%s' may not be connected."
+#~ msgstr "মুদ্রণযন্ত্র '%s' সম্ভবত সংযুক্ত নয়।"
+
+#~ msgid "Folders"
+#~ msgstr "ফোল্ডার"
+
+#~ msgid "Fol_ders"
+#~ msgstr "ফোল্ডার (_d)"
+
+#~ msgid "Folder unreadable: %s"
+#~ msgstr "ফোল্ডার পাঠযোগ্য নয়: %s"
+
+#~ msgid ""
+#~ "The file \"%s\" resides on another machine (called %s) and may not be available to this program.\n"
+#~ "Are you sure that you want to select it?"
+#~ msgstr ""
+#~ "\"%1$s\" ফাইলটি একটি পৃথক মেশিনে (%2$s নামাঙ্কিত) উপস্থিত এবং সম্ভবত এই প্রোগ্রামের জন্য বিদ্যমান নয়।\n"
+#~ "আপনি কি নিশ্চিত আপনি এটা নির্বাচন করতে চান?"
+
+#~ msgid "_New Folder"
+#~ msgstr "নতুন ফোল্ডার (_N)"
+
+#~ msgid "De_lete File"
+#~ msgstr "ফাইল মুছে ফেলুন (_l)"
+
+#~ msgid "_Rename File"
+#~ msgstr "ফাইলটি পুনরায় নামকরণ করুন (_R)"
+
+#~ msgid "The folder name \"%s\" contains symbols that are not allowed in filenames"
+#~ msgstr "\"%s\" ফোল্ডারের নামে এমন কিছু চিহ্ন ব্যবহৃত হয়েছে যেগুলো ফাইলের নামে গ্রহণযোগ্য নয়"
+
+#~ msgid "New Folder"
+#~ msgstr "নতুন ফোল্ডার"
+
+#~ msgid "The filename \"%s\" contains symbols that are not allowed in filenames"
+#~ msgstr "\"%s\" ফাইলের নামে এমন কিছু চিহ্ন ব্যবহৃত হয়েছে যেগুলো ফাইলের নামে গ্রহণযোগ্য নয়"
+
+#~ msgid "Error deleting file '%s': %s"
+#~ msgstr "'%1$s' ফাইল মুছে ফেলতে ত্রুটি: %2$s"
+
+#~ msgid "Really delete file \"%s\"?"
+#~ msgstr "\"%s\" ফাইলটি সত্যিই মুছে ফেলা হবে?"
+
+#~ msgid "Delete File"
+#~ msgstr "ফাইল মুছে ফেলুন"
+
+#~ msgid "Error renaming file to \"%s\": %s"
+#~ msgstr "ফাইল \"%1$s\"-তে পুনঃনামকরণে ত্রুটি: %2$s"
+
+#~ msgid "Error renaming file \"%s\": %s"
+#~ msgstr "\"%1$s\" ফাইলের পুনঃনামকরণে ত্রুটি: %2$s"
+
+#~ msgid "Error renaming file \"%s\" to \"%s\": %s"
+#~ msgstr "ফাইল \"%1$s\"-কে \"%2$s\"-এ পুনঃনামকরণে ত্রুটি: %3$s"
+
+#~ msgid "Rename File"
+#~ msgstr "ফাইল পুনরায় নামকরণ করুন"
+
+#~ msgid "Rename file \"%s\" to:"
+#~ msgstr "\"%s\" ফাইলটি চিহ্নিত নামে পুনঃনামকরণ করুন:"
+
+#~ msgid "The filename \"%s\" couldn't be converted to UTF-8. (try setting the environment variable G_FILENAME_ENCODING): %s"
+#~ msgstr ""
+#~ "\"%s\" ফাইলের নাম UTF-8 বিন্যাসে রূপান্তর করা যায়নি। (এনভায়রনমেন্ট ভেরিয়েবল G_FILENAME_ENCODING-র মান নির্ধারণ করার চেষ্টা "
+#~ "করুন): %s"
+
+#~ msgid "Invalid UTF-8"
+#~ msgstr "অকার্যকর UTF-8"
+
+#~ msgid "Name too long"
+#~ msgstr "নাম অত্যাধিক লম্বা"
+
+#~ msgid "Couldn't convert filename"
+#~ msgstr "ফাইলের নাম রূপান্তর করা যায়নি"
+
+#~ msgid "Gamma"
+#~ msgstr "গামা"
+
+#~ msgid "Input"
+#~ msgstr "ইনপুট"
+
+#~ msgid "No extended input devices"
+#~ msgstr "অতিরিক্ত ইনপুট ডিভাইস বিদ্যমান নেই"
+
+#~ msgid "Screen"
+#~ msgstr "পর্দা"
+
+#~ msgid "Axes"
+#~ msgstr "অক্ষ"
+
+#~ msgid "Keys"
+#~ msgstr "কী"
+
+#~ msgid "_X:"
+#~ msgstr "X: (_X)"
+
+#~ msgid "_Y:"
+#~ msgstr "Y: (_Y)"
+
+#~ msgid "_Pressure:"
+#~ msgstr "চাপ: (_P)"
+
+# FIXME
+#~ msgid "X _tilt:"
+#~ msgstr "X tilt: (_t)"
+
+# FIXME
+#~ msgid "Y t_ilt:"
+#~ msgstr "Y tilt: (_i)"
+
+#~ msgid "_Wheel:"
+#~ msgstr "চাকা: (_W)"
+
+#~ msgid "none"
+#~ msgstr "কোনটি না"
+
+#~ msgid "(disabled)"
+#~ msgstr "(নিষ্ক্রিয়)"
+
+#~ msgid "(unknown)"
+#~ msgstr "(অজানা)"
+
+#~ msgid "Cl_ear"
+#~ msgstr "পরিস্কার (_e)"
+
+#~ msgid "--- No Tip ---"
+#~ msgstr "--- কোন পরামর্শ নেই ---"
+
+#~ msgid "(Empty)"
+#~ msgstr "(ফাঁকা)"
+
+#, fuzzy
+#~ msgid "<b>_Search:</b>"
+#~ msgstr "অনুসন্ধান: (_S)"
+
+#, fuzzy
+#~ msgid "<b>Recently Used</b>"
+#~ msgstr "সম্প্রতি ব্যবহৃত"

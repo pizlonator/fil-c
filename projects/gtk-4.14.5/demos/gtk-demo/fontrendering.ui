@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window">
+    <property name="default-width">1024</property>
+    <property name="default-height">768</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child type="title">
+          <object class="GtkBox">
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <style>
+              <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkToggleButton" id="text_radio">
+                <property name="label">Text</property>
+                <property name="active">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="grid_radio">
+                <property name="label">Grid</property>
+                <property name="group">text_radio</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="halign">center</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="row-spacing">10</property>
+            <property name="column-spacing">10</property>
+            <child>
+              <object class="GtkLabel" id="text_label">
+                <property name="margin-start">10</property>
+                <property name="label">Text</property>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry">
+                <property name="text">Fonts render</property>
+                <layout>
+                  <property name="column">2</property>
+                </layout>
+                <accessibility>
+                  <relation name="labelled-by">text_label</relation>
+                </accessibility>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="font_label">
+                <property name="margin-start">10</property>
+                <property name="label">Font</property>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkFontDialogButton" id="font_button">
+                <accessibility>
+                  <relation name="labelled-by">font_label</relation>
+                </accessibility>
+                <property name="dialog">
+                  <object class="GtkFontDialog">
+                  </object>
+                </property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="show_pixels">
+                <property name="label">Show _Pixels</property>
+                <property name="use-underline">1</property>
+                <property name="active">1</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="show_outlines">
+                <property name="label">Show _Outline</property>
+                <property name="use-underline">1</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">_Hinting</property>
+                    <property name="use-underline">1</property>
+                    <property name="mnemonic-widget">hinting</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="hinting">
+                    <property name="valign">center</property>
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="yes">None</item>
+                          <item translatable="yes">Slight</item>
+                          <item translatable="yes">Medium</item>
+                          <item translatable="yes">Full</item>
+                        </items>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="antialias">
+                <property name="label">_Antialias</property>
+                <property name="use-underline">1</property>
+                <property name="active">1</property>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="hint_metrics">
+                <property name="label">Hint _Metrics</property>
+                <property name="use-underline">1</property>
+                <layout>
+                  <property name="column">5</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="show_extents">
+                <property name="label">Show _Extents</property>
+                <property name="use-underline">1</property>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="show_grid">
+                <property name="label">Show _Grid</property>
+                <property name="use-underline">1</property>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="up_button">
+                <property name="icon-name">list-add-symbolic</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <accessibility>
+                  <property name="label">Zoom in</property>
+                </accessibility>
+                <style>
+                  <class name="circular"/>
+                </style>
+                <child>
+                  <object class="GtkShortcutController">
+                    <property name="scope">managed</property>
+                    <child>
+                      <object class="GtkShortcut">
+                        <property name="trigger">&lt;Control&gt;plus</property>
+                        <property name="action">activate</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">7</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="down_button">
+                <property name="icon-name">list-remove-symbolic</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <accessibility>
+                  <property name="label">Zoom out</property>
+                </accessibility>
+                <style>
+                  <class name="circular"/>
+                </style>
+                <child>
+                  <object class="GtkShortcutController">
+                    <property name="scope">managed</property>
+                    <child>
+                      <object class="GtkShortcut">
+                        <property name="trigger">&lt;Control&gt;minus</property>
+                        <property name="action">activate</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">7</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="hexpand">1</property>
+                <layout>
+                  <property name="column">8</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator"/>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="propagate-natural-height">1</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <child>
+              <object class="GtkPicture" id="image">
+                <accessibility>
+                  <property name="label">Font rendering example</property>
+                </accessibility>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="can-shrink">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

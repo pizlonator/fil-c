@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+
+  <schema id='org.gtk.gtk4.Settings.EmojiChooser' path='/org/gtk/gtk4/settings/emoji-chooser/'>
+    <key name='recently-used-emoji' type='a((aussasasu)u)'>
+      <default>[]</default>
+      <summary>Recently used Emoji</summary>
+      <description>
+        An array of Emoji definitions to show in the Emoji chooser. Each Emoji is
+        specified as an array of codepoints, name and keywords. The extra
+        integer after this pair is the code of the Fitzpatrick modifier to use in
+        place of a modifier placeholder (0 or 0x1F3FB) in the codepoint array.
+      </description>
+    </key>
+  </schema>
+
+</schemalist>

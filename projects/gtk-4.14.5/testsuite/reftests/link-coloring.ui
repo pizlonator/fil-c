@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="decorated">0</property>
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">A &lt;a href=&quot;http://www.gnome.org&quot;&gt;link&lt;/a&gt; to the &lt;a href=&quot;http://www.gnome.org&quot;&gt;GNOME&lt;/a&gt; website</property>
+            <property name="use_markup">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLinkButton" id="linkbutton1">
+            <property name="label" translatable="yes">A normal link</property>
+            <property name="receives_default">1</property>
+            <property name="has-frame">0</property>
+            <property name="uri">http://gnome.org</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLinkButton" id="linkbutton2">
+            <property name="label" translatable="yes">A visited link</property>
+            <property name="receives_default">1</property>
+            <property name="has-frame">0</property>
+            <property name="uri">http://gnome.org</property>
+            <property name="visited">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

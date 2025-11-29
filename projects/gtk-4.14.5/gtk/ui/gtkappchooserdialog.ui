@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkAppChooserDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Select App</property>
+    <style>
+      <class name="appchooser"/>
+    </style>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">1</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkSearchBar" id="search_bar">
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+                <property name="hexpand">1</property>
+                <property name="max-width-chars">40</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkBox" id="dialog-action_area1">
+            <property name="hexpand">1</property>
+            <property name="halign">2</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="inner_box">
+            <property name="orientation">1</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkLabel" id="label">
+                <property name="halign">3</property>
+                <property name="valign">3</property>
+                <property name="label">label</property>
+                <property name="wrap">1</property>
+                <property name="vexpand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="use-underline">1</property>
+        <property name="label" translatable="yes">_Cancel</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="ok_button">
+        <property name="label" translatable="yes">_Select</property>
+        <property name="use-underline">1</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="cancel">cancel_button</action-widget>
+      <action-widget response="ok" default="true">ok_button</action-widget>
+    </action-widgets>
+  </template>
+  <object class="GtkButton" id="show_more_button">
+    <property name="label" translatable="yes">_View All Apps</property>
+    <property name="use-underline">1</property>
+    <property name="receives-default">1</property>
+    <signal name="clicked" handler="show_more_button_clicked_cb" swapped="no"/>
+  </object>
+  <object class="GtkButton" id="software_button">
+    <property name="label" translatable="yes">_Find New Apps</property>
+    <property name="use-underline">1</property>
+    <property name="receives-default">1</property>
+    <signal name="clicked" handler="software_button_clicked_cb" swapped="no"/>
+  </object>
+  <object class="GtkSizeGroup" id="buttons">
+    <property name="mode">2</property>
+    <widgets>
+      <widget name="cancel_button"/>
+      <widget name="ok_button"/>
+    </widgets>
+  </object>
+</interface>

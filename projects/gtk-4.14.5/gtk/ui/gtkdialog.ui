@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkDialog" parent="GtkWindow">
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="headerbar"/>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">1</property>
+        <style>
+          <class name="dialog-vbox"/>
+        </style>
+        <child>
+          <object class="GtkBox" id="content_area">
+            <property name="orientation">vertical</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="action_box">
+            <style>
+              <class name="dialog-action-box"/>
+            </style>
+            <child>
+              <object class="GtkBox" id="action_area">
+                <property name="hexpand">1</property>
+                <property name="halign">2</property>
+                <style>
+                  <class name="dialog-action-area"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <template class="GtkFileChooserWidget" parent="GtkWidget">
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="orientation">1</property>
+        <child>
+          <object class="GtkBox" id="browse_widgets_box">
+            <property name="orientation">1</property>
+            <property name="vexpand">1</property>
+            <child>
+              <object class="GtkPaned" id="browse_widgets_hpaned">
+                <property name="shrink-end-child">0</property>
+                <property name="shrink-start-child">0</property>
+                <property name="resize-start-child">0</property>
+                <property name="vexpand">1</property>
+                <property name="start-child">
+                  <object class="GtkPlacesSidebar" id="places_sidebar">
+                    <property name="show-other-locations">1</property>
+                    <property name="show-trash">0</property>
+                    <style>
+                      <class name="sidebar"/>
+                    </style>
+                    <signal name="open-location" handler="places_sidebar_open_location_cb" swapped="no"/>
+                    <signal name="show-error-message" handler="places_sidebar_show_error_message_cb" swapped="no"/>
+                    <signal name="show-other-locations-with-flags" handler="places_sidebar_show_other_locations_with_flags_cb" swapped="no"/>
+                  </object>
+                </property>
+                <property name="end-child">
+                  <object class="GtkBox">
+                    <property name="orientation">1</property>
+                    <child>
+                      <object class="GtkRevealer" id="browse_header_revealer">
+                        <property name="hexpand">1</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="name">pathbarbox</property>
+                            <property name="orientation">1</property>
+                            <property name="spacing">12</property>
+                            <style>
+                              <class name="view"/>
+                            </style>
+                            <child>
+                              <object class="GtkStack" id="browse_header_stack">
+                                <property name="transition-type">1</property>
+                                <child>
+                                  <object class="GtkStackPage">
+                                    <property name="name">pathbar</property>
+                                    <property name="child">
+                                      <object class="GtkBox">
+                                        <property name="spacing">6</property>
+                                        <property name="margin-start">6</property>
+                                        <property name="margin-end">6</property>
+                                        <property name="margin-top">6</property>
+                                        <property name="margin-bottom">6</property>
+                                        <child>
+                                          <object class="GtkPathBar" id="browse_path_bar">
+                                            <property name="hexpand">1</property>
+                                            <signal name="path-clicked" handler="path_bar_clicked" after="yes" swapped="no"/>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkButton" id="browse_toggle_view_button">
+                                            <property name="icon-name">view-grid-symbolic</property>
+                                            <property name="action-name">item.toggle-view</property>
+                                            <property name="tooltip-text" translatable="yes">Grid View</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkMenuButton" id="browse_new_folder_button">
+                                            <property name="tooltip-text" translatable="yes">Create Folder</property>
+                                            <property name="popover">new_folder_popover</property>
+                                            <property name="icon-name">folder-new-symbolic</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkStackPage">
+                                    <property name="name">location</property>
+                                    <property name="child">
+                                      <object class="GtkBox" id="location_entry_box">
+                                        <property name="spacing">6</property>
+                                        <property name="margin-start">6</property>
+                                        <property name="margin-end">6</property>
+                                        <property name="margin-top">6</property>
+                                        <property name="margin-bottom">6</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkStackPage">
+                                    <property name="name">search</property>
+                                    <property name="child">
+                                      <object class="GtkCenterBox" id="search_entry_box">
+                                        <property name="margin-start">6</property>
+                                        <property name="margin-end">6</property>
+                                        <property name="margin-top">6</property>
+                                        <property name="margin-bottom">6</property>
+                                        <child type="center">
+                                          <object class="GtkSearchEntry" id="search_entry">
+                                            <property name="width-chars">45</property>
+                                            <property name="hexpand">1</property>
+                                            <property name="halign">3</property>
+                                            <accessibility>
+                                              <property name="label" translatable="1">Search</property>
+                                            </accessibility>
+                                            <signal name="search-changed" handler="search_entry_activate_cb" swapped="yes"/>
+                                            <signal name="stop-search" handler="search_entry_stop_cb" swapped="yes"/>
+                                          </object>
+                                        </child>
+                                        <child type="end">
+                                          <object class="GtkBox">
+                                            <property name="spacing">6</property>
+
+                                            <child>
+                                              <object class="GtkSpinner" id="search_spinner">
+                                                <property name="visible">0</property>
+                                              </object>
+                                            </child>
+
+                                            <child>
+                                              <object class="GtkButton">
+                                                <property name="action-name">item.toggle-view</property>
+                                                <binding name="icon-name">
+                                                  <lookup name="icon-name">browse_toggle_view_button</lookup>
+                                                </binding>
+                                                <binding name="tooltip-text">
+                                                  <lookup name="tooltip-text">browse_toggle_view_button</lookup>
+                                                </binding>
+                                              </object>
+                                            </child>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="list_box">
+                        <property name="spacing">12</property>
+                        <property name="vexpand">1</property>
+                        <child>
+                          <object class="GtkStack" id="browse_files_stack">
+                            <property name="transition-type">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="vexpand">1</property>
+                            <style>
+                              <class name="view"/>
+                            </style>
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">list</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="orientation">1</property>
+                                    <child>
+                                      <object class="GtkScrolledWindow" id="browse_files_swin">
+                                        <property name="hscrollbar-policy">2</property>
+                                        <property name="vexpand">1</property>
+                                        <child>
+                                          <object class="GtkColumnView" id="browse_files_column_view">
+                                            <style>
+                                              <class name="complex"/>
+                                            </style>
+                                            <property name="row-factory">
+                                              <object class="GtkSignalListItemFactory">
+                                                <signal name="bind" handler="column_view_row_bind" swapped="no"/>
+                                              </object>
+                                            </property>
+                                            <signal name="activate" handler="browse_files_view_row_activated_cb" swapped="no"/>
+                                            <signal name="keynav-failed" handler="browse_files_view_keynav_failed_cb"/>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkActionBar" id="remote_warning_bar">
+                                        <property name="visible">0</property>
+                                        <child type="center">
+                                          <object class="GtkLabel">
+                                            <property name="label" translatable="yes">Remote location — only searching the current folder</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">other_locations</property>
+                                <property name="child">
+                                  <object class="GtkPlacesView" id="places_view">
+                                    <signal name="open-location" handler="places_sidebar_open_location_cb" swapped="no"/>
+                                    <signal name="show-error-message" handler="places_sidebar_show_error_message_cb" swapped="no"/>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">empty</property>
+                                <property name="child">
+                                  <object class="GtkGrid">
+                                    <property name="row-spacing">12</property>
+                                    <property name="hexpand">1</property>
+                                    <property name="vexpand">1</property>
+                                    <property name="halign">3</property>
+                                    <property name="valign">3</property>
+                                    <style>
+                                      <class name="dim-label"/>
+                                    </style>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">edit-find-symbolic</property>
+                                        <property name="pixel-size">72</property>
+                                        <style>
+                                          <class name="dim-label"/>
+                                        </style>
+                                        <layout>
+                                          <property name="column">0</property>
+                                          <property name="row">0</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">No Results Found</property>
+                                        <attributes>
+                                          <attribute name="weight" value="bold"></attribute>
+                                          <attribute name="scale" value="1.44"></attribute>
+                                        </attributes>
+                                        <layout>
+                                          <property name="column">0</property>
+                                          <property name="row">1</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">Try a different search</property>
+                                        <style>
+                                          <class name="dim-label"/>
+                                        </style>
+                                        <layout>
+                                          <property name="column">0</property>
+                                          <property name="row">2</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkActionBar" id="extra_and_filters">
+            <property name="visible">0</property>
+            <child>
+              <object class="GtkBox" id="extra_align">
+                <property name="spacing">12</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkBox" id="filter_combo_hbox">
+                <child>
+                  <object class="GtkDropDown" id="filter_combo">
+                    <property name="tooltip-text" translatable="yes">Select which types of files are shown</property>
+                    <accessibility>
+                      <property name="label" translatable="1">Filter</property>
+                    </accessibility>
+                    <property name="focus-on-click">0</property>
+                    <property name="valign">1</property>
+                    <signal name="notify::selected" handler="filter_combo_changed" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup" id="browse_path_bar_size_group">
+    <property name="mode">2</property>
+    <widgets>
+      <widget name="browse_path_bar"/>
+      <widget name="browse_new_folder_button"/>
+    </widgets>
+  </object>
+  <object class="GtkPopover" id="new_folder_popover">
+    <signal name="notify::visible" handler="new_folder_popover_active"/>
+    <child>
+      <object class="GtkGrid">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="column-spacing">6</property>
+        <property name="row-spacing">6</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Folder Name</property>
+            <property name="halign">1</property>
+            <property name="mnemonic-widget">new_folder_name_entry</property>
+            <attributes>
+              <attribute name="weight" value="bold"></attribute>
+            </attributes>
+            <layout>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="new_folder_name_entry">
+            <property name="width-chars">25</property>
+            <property name="activates-default">1</property>
+            <property name="hexpand">1</property>
+            <signal name="changed" handler="new_folder_name_changed"/>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="new_folder_create_button">
+            <property name="sensitive">0</property>
+            <property name="label" translatable="yes">_Create</property>
+            <property name="use-underline">1</property>
+            <signal name="clicked" handler="new_folder_create_clicked"/>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFileChooserErrorStack" id="new_folder_error_stack">
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="rename_file_popover">
+    <signal name="closed" handler="rename_file_end"/>
+    <child>
+      <object class="GtkGrid">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">6</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Name</property>
+            <property name="halign">1</property>
+            <property name="mnemonic-widget">rename_file_name_entry</property>
+            <attributes>
+              <attribute name="weight" value="bold"></attribute>
+            </attributes>
+            <layout>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="rename_file_name_entry">
+            <property name="activates-default">1</property>
+            <property name="hexpand">1</property>
+            <signal name="changed" handler="rename_file_name_changed"/>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="rename_file_rename_button">
+            <property name="sensitive">0</property>
+            <property name="label" translatable="yes">_Rename</property>
+            <property name="use-underline">1</property>
+            <signal name="clicked" handler="rename_file_rename_clicked"/>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFileChooserErrorStack" id="rename_file_error_stack">
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkGridView" id="browse_files_grid_view">
+    <signal name="activate" handler="browse_files_view_row_activated_cb" swapped="no"/>
+    <signal name="keynav-failed" handler="browse_files_view_keynav_failed_cb"/>
+    <binding name="enable-rubberband">
+      <lookup name="enable-rubberband">browse_files_column_view</lookup>
+    </binding>
+    <binding name="model">
+      <lookup name="model">browse_files_column_view</lookup>
+    </binding>
+    <property name="factory">
+      <object class="GtkBuilderListItemFactory">
+        <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkFileChooserCell">
+        <binding name="item">
+          <lookup name="item">GtkListItem</lookup>
+        </binding>
+        <property name="list-item">GtkListItem</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <binding name="tooltip-text">
+              <closure type="gchararray" function="column_view_get_tooltip_text">
+                <lookup name="item">GtkListItem</lookup>
+              </closure>
+            </binding>
+            <child>
+              <object class="GtkFileThumbnail">
+                <property name="icon-size">96</property>
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <binding name="file-info">
+                  <lookup name="item">GtkListItem</lookup>
+                </binding>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="lines">3</property>
+                <property name="wrap">True</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="ellipsize">middle</property>
+                <property name="justify">center</property>
+                <attributes>
+                  <attribute name="insert-hyphens" value="false"></attribute>
+                </attributes>
+                <binding name="label">
+                  <closure type="gchararray" function="column_view_get_file_display_name">
+                    <lookup name="item">GtkListItem</lookup>
+                  </closure>
+                </binding>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+    ]]></property>
+      </object>
+    </property>
+  </object>
+</interface>

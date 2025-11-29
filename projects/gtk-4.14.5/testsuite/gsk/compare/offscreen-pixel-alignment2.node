@@ -1,0 +1,45 @@
+/* generate the outline, and ensure the bounds are set */
+color {
+  bounds: 0 0 15 15;
+  color: black;
+}
+
+/* scale by 1.5 to get into fractional scaling mode */
+transform {
+  transform: scale(1.5);
+  /* Use opacity node to get an offscreen
+     (also makes Cairo not round pixel values wrong) */
+  child: opacity {
+    opacity: 0.4;
+    /* We use a container with overlapping children here
+       to force the offscreen */
+    child: container {
+      /* This color node is not pixel-aligned with
+         the pixel grid - it's at (1.5, 1.5) in pixel coords.
+
+         So the offscreen needs to account for this
+         and ensure to grow larger than the bounds
+         if it wants to keep the pixel grid.
+
+         We use the same color as the background above,
+         so that we don't get comparison artifacts
+         when blending. */
+      color {
+        color: black;
+        bounds: 1 1 8 8;
+      }
+      /* This color node is aligned with the pixel grid -
+         It's at (3, 3) in pixel coords.
+
+         But it's drawn to an offscreen first, so if the
+         offscreen is not pixel-aligned, this boundary
+         will be blurry.
+         ^^^
+         THIS IS WHAT THE WHOLE TEST IS ABOUT! */
+      color {
+        color: red;
+        bounds: 2 2 6 6;
+      }
+    }
+  }
+}

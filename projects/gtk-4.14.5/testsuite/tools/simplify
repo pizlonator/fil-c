@@ -1,0 +1,47 @@
+#! /bin/bash
+
+GTK_BUILDER_TOOL=${GTK_BUILDER_TOOL:-gtk4-builder-tool}
+TEST_DATA_DIR=${G_TEST_SRCDIR:-.}/simplify-data
+TEST_RESULT_DIR=${TEST_RESULT_DIR:-/tmp}/simplify
+
+mkdir -p "$TEST_RESULT_DIR"
+
+shopt -s nullglob
+TESTS=( "$TEST_DATA_DIR"/*.ui )
+
+echo "1..$((2 * ${#TESTS[*]}))"
+
+I=1
+for t in ${TESTS[*]}; do
+  name=$(basename $t .ui)
+  expected="$TEST_DATA_DIR/$name.expected"
+  result="$TEST_RESULT_DIR/$name.out"
+  result2="$TEST_RESULT_DIR/$name.out2"
+  diff="$TEST_RESULT_DIR/$name.diff"
+  ref="$TEST_RESULT_DIR/$name.ref"
+
+  $GTK_BUILDER_TOOL simplify $t 2>/dev/null >$result
+
+  if diff -u "$expected" "$result" > "$diff"; then
+    echo "ok $I $name"
+    rm "$diff"
+  else
+    echo "not ok $I $name"
+    cp "$expected" "$ref"
+  fi
+
+  I=$((I+1))
+
+  cp $t $result2
+  $GTK_BUILDER_TOOL simplify --replace $result2 2>/dev/null
+
+  if diff -u "$expected" "$result2" > "$diff"; then
+    echo "ok $I $name (--replace)"
+    rm "$diff"
+  else
+    echo "not ok $I $name (--replace)"
+    cp "$expected" "$ref"
+  fi
+
+  I=$((I+1))
+done

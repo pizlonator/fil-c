@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow">
+    <property name="decorated">0</property>
+    <property name="resizable">0</property>
+    <property name="default-width">280</property>
+    <property name="default-height">120</property>
+    <style>
+       <class name="nobackground"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="frame"/>
+          <class name="shadow"/>
+          <class name="background"/>
+        </style>
+        <property name="orientation">vertical</property>
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkStackSwitcher">
+            <property name="stack">stack</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="stack">
+            <property name="width-request">120</property>
+            <property name="height-request">120</property>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page1</property>
+                <property name="title">Page 1</property>
+                <property name="child">
+                  <object class="GtkTextView">
+                    <property name="cursor-visible">0</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">page2</property>
+                <property name="title">Page 2</property>
+                <property name="child">
+                  <object class="GtkTextView">
+                    <property name="cursor-visible">0</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="margin-top">3</property>
+            <property name="label">Stack Switcher</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

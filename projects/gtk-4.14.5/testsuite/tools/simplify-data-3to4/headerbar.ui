@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="headerbar1">
+        <property name="visible">True</property>
+        <property name="show-close-button">True</property>
+        <property name="custom-title">box1</property>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">True</property>
+            <property name="label">A!</property>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkBox" id="box1">
+    <property name="visible">True</property>
+  </object>
+</interface>

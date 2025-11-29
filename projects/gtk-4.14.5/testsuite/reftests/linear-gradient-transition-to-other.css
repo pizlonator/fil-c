@@ -1,0 +1,16 @@
+@keyframes anim {
+  100% { background-image: url("green-20x20.png"); }
+}
+
+@keyframes ref {
+  100% { background-image: linear-gradient(to bottom, lime, lime); }
+}
+
+* {
+  background: linear-gradient(to bottom, red, red);
+  animation: anim steps(5,end) 20s;
+}
+
+#reference {
+  animation-name: ref;
+}

@@ -1,0 +1,88 @@
+# see glib-genmarshal(1) for a detailed description of the file format,
+# possible parameter types are:
+#   VOID        indicates   no   return   type,  or  no  extra
+#               parameters. if VOID is used as  the  parameter
+#               list, no additional parameters may be present.
+#   BOOLEAN     for boolean types (gboolean)
+#   CHAR        for signed char types (char)
+#   UCHAR       for unsigned char types (guchar)
+#   INT         for signed integer types (int)
+#   UINT        for unsigned integer types (guint)
+#   LONG        for signed long integer types (glong)
+#   ULONG       for unsigned long integer types (gulong)
+#   ENUM        for enumeration types (int)
+#   FLAGS       for flag enumeration types (guint)
+#   FLOAT       for single-precision float types (float)
+#   DOUBLE      for double-precision float types (double)
+#   STRING      for string types (char *)
+#   BOXED       for boxed (anonymous but reference counted) types (GBoxed*)
+#   POINTER     for anonymous pointer types (gpointer)
+#   OBJECT      for GObject or derived types (GObject*)
+#   NONE        deprecated alias for VOID
+#   BOOL        deprecated alias for BOOLEAN
+
+BOOLEAN:BOOLEAN
+BOOLEAN:BOOLEAN,BOOLEAN,BOOLEAN
+BOOLEAN:BOXED,BOXED
+BOOLEAN:BOXED,DOUBLE,DOUBLE
+BOOLEAN:DOUBLE,DOUBLE
+BOOLEAN:ENUM
+BOOLEAN:ENUM,BOOLEAN
+BOOLEAN:ENUM,BOXED,BOXED,BOXED
+BOOLEAN:ENUM,DOUBLE
+BOOLEAN:ENUM,INT,BOOLEAN,BOOLEAN
+BOOLEAN:FLAGS
+BOOLEAN:INT
+BOOLEAN:INT,INT
+BOOLEAN:INT,INT,BOOLEAN,OBJECT
+BOOLEAN:OBJECT,BOXED
+BOOLEAN:OBJECT,DOUBLE,DOUBLE
+BOOLEAN:OBJECT,ENUM
+BOOLEAN:OBJECT,OBJECT,OBJECT
+BOOLEAN:STRING
+BOOLEAN:UINT,UINT,FLAGS
+BOOLEAN:VOID
+FLAGS:OBJECT,DOUBLE,DOUBLE
+FLAGS:DOUBLE,DOUBLE
+INT:INT
+INT:OBJECT,OBJECT,POINTER
+INT:POINTER
+OBJECT:DOUBLE,DOUBLE
+OBJECT:OBJECT
+OBJECT:VOID
+STRING:STRING
+VOID:BOXED,BOXED
+VOID:BOXED,BOXED,POINTER
+VOID:BOXED,ENUM
+VOID:BOXED,OBJECT
+VOID:BOXED,STRING,INT
+VOID:DOUBLE,DOUBLE
+VOID:DOUBLE,DOUBLE,UINT,BOXED
+VOID:ENUM,DOUBLE
+VOID:ENUM,INT
+VOID:ENUM,INT,BOOLEAN
+VOID:ENUM,INT,BOOLEAN,BOOLEAN
+VOID:INT,DOUBLE,DOUBLE
+VOID:INT,INT,INT
+VOID:OBJECT,BOOLEAN
+VOID:OBJECT,BOXED,BOOLEAN,BOOLEAN
+VOID:OBJECT,BOXED,BOXED
+VOID:OBJECT,FLAGS
+VOID:OBJECT,INT
+VOID:OBJECT,INT,INT
+VOID:OBJECT,INT,OBJECT
+VOID:OBJECT,OBJECT
+VOID:OBJECT,OBJECT,BOOLEAN
+VOID:OBJECT,OBJECT,BOXED,STRING
+VOID:OBJECT,OBJECT,OBJECT
+VOID:OBJECT,POINTER,INT
+VOID:OBJECT,STRING
+VOID:OBJECT,UINT
+VOID:STRING,BOXED
+VOID:STRING,INT,POINTER
+VOID:STRING,STRING
+VOID:STRING,UINT,FLAGS,UINT
+VOID:UINT,STRING
+VOID:UINT,STRING,UINT
+VOID:UINT,UINT
+VOID:UINT,UINT,FLAGS

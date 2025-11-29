@@ -1,0 +1,68 @@
+<interface domain="gtk40">
+  <object class="GtkTextTagTable" id="tags">
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">warning</property>
+        <property name="underline">single</property>
+        <property name="underline-rgba">darkorange</property>
+      </object>
+    </child>
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">error</property>
+        <property name="underline">error</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkTextBuffer" id="text">
+    <property name="tag-table">tags</property>
+    <signal name="changed" handler="text_changed"/>
+  </object>
+  <template class="GtkInspectorCssEditor" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="toolbar"/>
+        </style>
+        <child>
+          <object class="GtkToggleButton" id="disable_button">
+            <property name="tooltip-text" translatable="yes">Disable this custom CSS</property>
+            <property name="icon-name">media-playback-pause-symbolic</property>
+            <signal name="toggled" handler="disable_toggled"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="save_button">
+            <property name="tooltip-text" translatable="yes">Save the current CSS</property>
+            <property name="icon-name">document-save-symbolic</property>
+            <signal name="clicked" handler="save_clicked"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator"/>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkTextView" id="view">
+            <property name="buffer">text</property>
+            <property name="wrap-mode">word</property>
+            <property name="monospace">1</property>
+            <property name="left-margin">6</property>
+            <property name="right-margin">6</property>
+            <property name="top-margin">6</property>
+            <property name="bottom-margin">6</property>
+            <property name="has-tooltip">1</property>
+            <signal name="query-tooltip" handler="query_tooltip_cb"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

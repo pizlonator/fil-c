@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+
+  <schema id='org.gtk.gtk4.Settings.ColorChooser' path='/org/gtk/gtk4/settings/color-chooser/'>
+    <key name='custom-colors' type='a(dddd)'>
+      <default>[]</default>
+      <summary>Custom colors</summary>
+      <description>
+        An array of custom colors to show in the color chooser. Each color is
+        specified as a tuple of four doubles, specifying RGBA values between
+        0 and 1.
+      </description>
+    </key>
+    <key name='selected-color' type='(bdddd)'>
+      <default>(false,1.0,1.0,1.0,1.0)</default>
+      <summary>The selected color</summary>
+      <description>
+         The selected color, described as a tuple whose first member is a
+         boolean that is true if a color was selected, and the remaining
+         four members are four doubles, specifying RGBA values between
+         0 and 1.
+      </description>
+    </key>
+  </schema>
+
+</schemalist>

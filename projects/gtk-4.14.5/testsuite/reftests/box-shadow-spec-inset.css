@@ -1,0 +1,60 @@
+@import "reset-to-defaults.css";
+
+.row1, .row2, .row3 {
+  /*border:5px solid blue;*/
+  border-width: 5px;
+  border-style: solid;
+  border-color: blue;
+  background-color:orange;
+}
+
+.column1 {
+  /* border-radius: 20px; */
+}
+
+.column2 {
+  border-radius: 0;
+}
+
+.row2 {
+  box-shadow:
+    rgba(0,0,0,1)
+    15px 15px
+    inset;
+}
+
+.row3 {
+  box-shadow:
+    rgba(0,0,0,1)
+    15px 15px 0
+    10px /*spread*/
+    inset;
+}
+
+.reference-border {
+  border-width: 5px;
+  border-style: solid;
+  border-color: blue;
+}
+
+.reference-background {
+  background-color: orange;
+}
+
+.reference-shadow {
+  background-color: rgba(0,0,0,1);
+}
+
+/*
+.reference-padding-radius {
+  border-radius: 15px
+}
+
+.reference-radii1 {
+  border-radius: 15px 0 10px;
+}
+
+.reference-radii2 {
+  border-radius: 5px 0 10px;
+}
+*/

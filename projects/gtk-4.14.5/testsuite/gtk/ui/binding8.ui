@@ -1,0 +1,11 @@
+<interface>
+  <object class="GtkLabel" id="bla"/>
+  <object class="GtkDropDown">
+    <property name="expression">
+      <closure type='gchararray' function="strcmp">
+        <constant type="gchararray">File size:</constant>
+        <lookup type="GtkLabel" name="max-width-chars">bla</lookup>
+      </closure>
+    </property>
+  </object>
+</interface>

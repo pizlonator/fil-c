@@ -1,0 +1,22 @@
+/* This test checks that we get sharp clip boundaries
+ * for 2d transforms. Compare with clip-coordinates-3d.node,
+ * which uses a general transform and gets offscreen
+ * rendering with GL_LINEAR.
+ */
+transform {
+  transform: scale(2);
+  child: container {
+    color {
+      bounds: 0 0 50 50;
+      color: transparent;
+    }
+
+    clip {
+      clip: 10 10 30 30;
+      child: color {
+        bounds: 0 0 50 50;
+        color: red;
+      }
+    }
+  }
+}

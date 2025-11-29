@@ -1,0 +1,19 @@
+transform {
+  /* adding the perspective line here turns the matrix from a 2D
+     category into a 3D category. It does not have any visual effect. */
+  transform: perspective(200) scale(2);
+  child: container {
+    color {
+      bounds: 0 0 50 50;
+      color: transparent;
+    }
+
+    clip {
+      clip: 10 10 30 30;
+      child: color {
+        bounds: 0 0 50 50;
+        color: red;
+      }
+    }
+  }
+}

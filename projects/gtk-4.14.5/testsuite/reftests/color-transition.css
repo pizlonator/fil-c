@@ -1,0 +1,18 @@
+@import "reset-to-defaults.css";
+
+@keyframes foo {
+  100% { background-color: blue; }
+}
+
+window {
+  background-color: #7F0080;
+}
+
+GtkBox {
+  background-color: red;
+}
+
+GtkBox GtkBox {
+  background-color: transparent;
+  animation: foo 100s steps(2);
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkTextTagTable" id="texttagtable1">
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">red</property>
+        <property name="foreground-rgba">red</property>
+        <property name="font">Normal</property>
+      </object>
+    </child>
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">blue</property>
+        <property name="foreground-rgba">blue</property>
+        <property name="font">Normal</property>
+      </object>
+    </child>
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">black</property>
+        <property name="foreground-rgba">black</property>
+        <property name="font">Normal</property>
+      </object>
+    </child>
+    <child type="tag">
+      <object class="GtkTextTag">
+        <property name="name">white</property>
+        <property name="foreground-rgba">white</property>
+        <property name="font">Normal</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkTextBuffer" id="textbuffer1">
+    <property name="tag_table">texttagtable1</property>
+    <property name="text" translatable="yes">red or blue or what</property>
+  </object>
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkTextView" id="textview1">
+        <property name="cursor_visible">false</property>
+        <property name="buffer">textbuffer1</property>
+        <signal name="map" handler="reftest:apply_tags_blue" swapped="no"/>
+      </object>
+    </child>
+  </object>
+</interface>

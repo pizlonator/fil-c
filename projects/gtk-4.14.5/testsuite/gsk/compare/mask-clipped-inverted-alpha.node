@@ -1,0 +1,14 @@
+clip {
+  clip: 0 0 40 40;
+  child: mask {
+    mode: inverted-alpha;
+    source: color {
+      bounds: 0 0 100 100;
+      color: rebeccapurple;
+    }
+    mask: color {
+      bounds: 40 40 60 60;
+      color: black;
+    }
+  }
+}
