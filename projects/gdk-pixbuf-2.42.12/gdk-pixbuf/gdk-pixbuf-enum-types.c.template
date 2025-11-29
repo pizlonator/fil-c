@@ -13,9 +13,9 @@
 GType
 @enum_name@_get_type (void)
 {
-    static gsize g_define_type;
+    static gpointer g_define_type;
 
-    if (g_once_init_enter (&g_define_type)) {
+    if (g_once_init_enter_pointer (&g_define_type)) {
         static const G@Type@Value values[] = {
 /*** END value-header ***/
 
@@ -28,9 +28,9 @@ GType
         };
         GType enum_type = g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
 
-        g_once_init_leave (&g_define_type, enum_type);
+        g_once_init_leave_pointer (&g_define_type, enum_type);
     }
-    return g_define_type;
+    return (GType) g_define_type;
 }
 
 /*** END value-tail ***/
