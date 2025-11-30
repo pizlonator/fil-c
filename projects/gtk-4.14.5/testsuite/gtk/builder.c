@@ -529,16 +529,16 @@ test_list_store (void)
   builder = builder_new_from_string (buffer1, -1, NULL);
   store = gtk_builder_get_object (builder, "liststore1");
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 2);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_UINT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_UINT);
   g_object_unref (builder);
 
   builder = builder_new_from_string (buffer2, -1, NULL);
   store = gtk_builder_get_object (builder, "liststore1");
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 3);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, (uintptr_t) G_TYPE_INT);
 
   g_assert_cmpint (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter), ==, TRUE);
   gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
@@ -570,9 +570,9 @@ test_list_store (void)
   builder = builder_new_from_string (buffer3, -1, NULL);
   store = gtk_builder_get_object (builder, "liststore1");
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 3);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, (uintptr_t) G_TYPE_INT);
 
   g_assert_true (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter));
   gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
@@ -706,17 +706,17 @@ test_tree_store (void)
   store = gtk_builder_get_object (builder, "treestore1");
   g_assert_true (GTK_IS_TREE_STORE (store));
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 2);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_UINT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_UINT);
   g_object_unref (builder);
 
   builder = builder_new_from_string (buffer2, -1, NULL);
   store = gtk_builder_get_object (builder, "treestore1");
   g_assert_true (GTK_IS_TREE_STORE (store));
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 3);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, (uintptr_t) G_TYPE_INT);
 
   g_assert_cmpint (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter), ==, TRUE);
   gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
@@ -749,9 +749,9 @@ test_tree_store (void)
   store = gtk_builder_get_object (builder, "treestore1");
   g_assert_true (GTK_IS_TREE_STORE (store));
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 3);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, (uintptr_t) G_TYPE_INT);
 
   g_assert_true (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter));
   gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
@@ -794,9 +794,9 @@ test_tree_store (void)
   store = gtk_builder_get_object (builder, "treestore1");
   g_assert_true (GTK_IS_TREE_STORE (store));
   g_assert_cmpint (gtk_tree_model_get_n_columns (GTK_TREE_MODEL (store)), ==, 3);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, G_TYPE_STRING);
-  g_assert_cmpint (gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 0), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 1), ==, (uintptr_t) G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_tree_model_get_column_type (GTK_TREE_MODEL (store), 2), ==, (uintptr_t) G_TYPE_INT);
 
   g_assert_true (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter));
   gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,

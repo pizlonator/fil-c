@@ -771,11 +771,7 @@ if ld.found()
   ld_is_bfd = run_command(ld, '--version', check: false).stdout().contains('GNU ld')
 endif
 
-if not meson.is_cross_build() and build_machine.cpu_family() == 'x86_64' and build_machine.system() == 'linux' and objcopy.found() and objcopy_supports_add_symbol and objcopy_supports_section_alignment and ld.found() and ld_is_bfd
-  can_use_objcopy_for_resources = true
-else
-  can_use_objcopy_for_resources = false
-endif
+can_use_objcopy_for_resources = false
 
 project_build_root = meson.current_build_dir()
 

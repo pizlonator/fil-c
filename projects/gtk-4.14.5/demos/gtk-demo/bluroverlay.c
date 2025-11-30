@@ -20,6 +20,8 @@
 
 #include "bluroverlay.h"
 
+#include <stdfil.h>
+
 /*
  * This is a cut-down copy of gtkoverlay.c with a custom snapshot
  * function that support a limited form of blur-under.
@@ -428,7 +430,7 @@ blur_overlay_class_init (BlurOverlayClass *klass)
                   NULL,
                   G_TYPE_BOOLEAN, 2,
                   GTK_TYPE_WIDGET,
-                  GDK_TYPE_RECTANGLE | G_SIGNAL_TYPE_STATIC_SCOPE);
+                  zorptr (GDK_TYPE_RECTANGLE, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
   child_data_quark = g_quark_from_static_string ("gtk-overlay-child-data");
 

@@ -268,7 +268,7 @@ check_property (GParamSpec *pspec)
 static void
 test_accessors (gconstpointer data)
 {
-  GType type = GPOINTER_TO_SIZE (data);
+  GType type = (GType) data;
   GObjectClass *klass;
   GParamSpec **pspecs;
   guint i, n_pspecs;
@@ -341,7 +341,7 @@ main (int argc, char **argv)
 
       test_path = g_strdup_printf ("/accessor-apis/%s", g_type_name (all_types[i]));
 
-      g_test_add_data_func (test_path, GSIZE_TO_POINTER (all_types[i]), test_accessors);
+      g_test_add_data_func (test_path, all_types[i], test_accessors);
 
       g_free (test_path);
     }

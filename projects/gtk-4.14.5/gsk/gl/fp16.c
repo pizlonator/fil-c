@@ -168,41 +168,25 @@ void half_to_float (const guint16 *h, float *f, int n) __attribute__((ifunc ("re
 static void * __attribute__ ((no_sanitize_address))
 resolve_float_to_half4 (void)
 {
-  __builtin_cpu_init ();
-  if (__builtin_cpu_supports ("f16c"))
-    return float_to_half4_f16c;
-  else
-    return float_to_half4_c;
+  return float_to_half4_c;
 }
 
 static void * __attribute__ ((no_sanitize_address))
 resolve_half_to_float4 (void)
 {
-  __builtin_cpu_init ();
-  if (__builtin_cpu_supports ("f16c"))
-    return half_to_float4_f16c;
-  else
-    return half_to_float4_c;
+  return half_to_float4_c;
 }
 
 static void * __attribute__ ((no_sanitize_address))
 resolve_float_to_half (void)
 {
-  __builtin_cpu_init ();
-  if (__builtin_cpu_supports ("f16c"))
-    return float_to_half_f16c;
-  else
-    return float_to_half_c;
+  return float_to_half_c;
 }
 
 static void * __attribute__ ((no_sanitize_address))
 resolve_half_to_float (void)
 {
-  __builtin_cpu_init ();
-  if (__builtin_cpu_supports ("f16c"))
-    return half_to_float_f16c;
-  else
-    return half_to_float_c;
+  return half_to_float_c;
 }
 
 #endif

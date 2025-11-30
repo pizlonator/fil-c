@@ -178,7 +178,7 @@ test_constant (void)
   gboolean res;
 
   expr = gtk_constant_expression_new (G_TYPE_INT, 22);
-  g_assert_cmpint (gtk_expression_get_value_type (expr), ==, G_TYPE_INT);
+  g_assert_cmpint ((uintptr_t) gtk_expression_get_value_type (expr), ==, (uintptr_t) G_TYPE_INT);
   g_assert_true (gtk_expression_is_static (expr));
 
   res = gtk_expression_evaluate (expr, NULL, &value);
@@ -207,7 +207,7 @@ test_object (void)
 
   expr = gtk_object_expression_new (obj);
   g_assert_true (!gtk_expression_is_static (expr));
-  g_assert_cmpint (gtk_expression_get_value_type (expr), ==, GTK_TYPE_STRING_FILTER);
+  g_assert_cmpint ((uintptr_t) gtk_expression_get_value_type (expr), ==, (uintptr_t) GTK_TYPE_STRING_FILTER);
 
   res = gtk_expression_evaluate (expr, NULL, &value);
   g_assert_true (res);
@@ -260,7 +260,7 @@ test_nested (void)
   expr = gtk_property_expression_new (GTK_TYPE_STRING_FILTER, filter_expr, "search");
 
   g_assert_true (!gtk_expression_is_static (expr));
-  g_assert_cmpint (gtk_expression_get_value_type (expr), ==, G_TYPE_STRING);
+  g_assert_cmpint ((uintptr_t) gtk_expression_get_value_type (expr), ==, (uintptr_t) G_TYPE_STRING);
 
   res = gtk_expression_evaluate (expr, NULL, &value);
   g_assert_true (res);
