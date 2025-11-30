@@ -318,14 +318,14 @@ G_DEFINE_BOXED_TYPE (GtkExpressionWatch, gtk_expression_watch,
 GType \
 type_name ## _get_type (void) \
 { \
-  static gsize gtk_define_expression_type_id__volatile; \
-  if (g_once_init_enter (&gtk_define_expression_type_id__volatile)) \
+  static gpointer gtk_define_expression_type_id__volatile; \
+  if (g_once_init_enter_pointer (&gtk_define_expression_type_id__volatile)) \
     { \
       GType gtk_define_expression_type_id = \
         gtk_expression_type_register_static (g_intern_static_string (#TypeName), type_info); \
-      g_once_init_leave (&gtk_define_expression_type_id__volatile, gtk_define_expression_type_id); \
+      g_once_init_leave_pointer (&gtk_define_expression_type_id__volatile, gtk_define_expression_type_id); \
     } \
-  return gtk_define_expression_type_id__volatile; \
+  return (GType) gtk_define_expression_type_id__volatile; \
 }
 
 #define GTK_EXPRESSION_SUPER(expr) \
@@ -559,9 +559,9 @@ param_expression_values_cmp (GParamSpec   *pspec,
 GType
 gtk_param_expression_get_type (void)
 {
-  static gsize param_expression_type__volatile;
+  static gpointer param_expression_type__volatile;
 
-  if (g_once_init_enter (&param_expression_type__volatile))
+  if (g_once_init_enter_pointer (&param_expression_type__volatile))
     {
       const GParamSpecTypeInfo pspec_info = {
         sizeof (GtkParamSpecExpression),
@@ -578,10 +578,10 @@ gtk_param_expression_get_type (void)
         g_param_type_register_static (g_intern_static_string ("GtkParamSpecExpression"),
                                       &pspec_info);
 
-      g_once_init_leave (&param_expression_type__volatile, param_expression_type);
+      g_once_init_leave_pointer (&param_expression_type__volatile, param_expression_type);
     }
 
-  return param_expression_type__volatile;
+  return (GType) param_expression_type__volatile;
 }
 
 /**
@@ -667,9 +667,9 @@ gtk_expression_init (GtkExpression *self)
 GType
 gtk_expression_get_type (void)
 {
-  static gsize expression_type__volatile;
+  static gpointer expression_type__volatile;
 
-  if (g_once_init_enter (&expression_type__volatile))
+  if (g_once_init_enter_pointer (&expression_type__volatile))
     {
       static const GTypeFundamentalInfo finfo = {
         (G_TYPE_FLAG_CLASSED |
@@ -713,10 +713,10 @@ gtk_expression_get_type (void)
                                      &event_info, &finfo,
                                      G_TYPE_FLAG_ABSTRACT);
 
-      g_once_init_leave (&expression_type__volatile, expression_type);
+      g_once_init_leave_pointer (&expression_type__volatile, expression_type);
     }
 
-  return expression_type__volatile;
+  return (GType) expression_type__volatile;
 }
 
 static void

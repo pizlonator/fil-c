@@ -639,7 +639,7 @@ gl_software_rendering (GdkSurface *surface)
   GdkGLContext *context;
 
   if (!gdk_display_prepare_gl (display, NULL))
-    return G_TYPE_INVALID;
+    return FALSE;
 
   context = gdk_display_get_gl_context (display);
   gdk_gl_context_make_current (context);

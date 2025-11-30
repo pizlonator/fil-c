@@ -30,6 +30,8 @@
 #include "gtksnapshot.h"
 #include "gtkwidgetprivate.h"
 
+#include <stdfil.h>
+
 /**
  * GtkOverlay
  *
@@ -361,7 +363,7 @@ gtk_overlay_class_init (GtkOverlayClass *klass)
                   _gtk_marshal_BOOLEAN__OBJECT_BOXED,
                   G_TYPE_BOOLEAN, 2,
                   GTK_TYPE_WIDGET,
-                  GDK_TYPE_RECTANGLE | G_SIGNAL_TYPE_STATIC_SCOPE);
+                  zorptr(GDK_TYPE_RECTANGLE, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
   g_signal_set_va_marshaller (signals[GET_CHILD_POSITION],
                               G_TYPE_FROM_CLASS (object_class),
                               _gtk_marshal_BOOLEAN__OBJECT_BOXEDv);

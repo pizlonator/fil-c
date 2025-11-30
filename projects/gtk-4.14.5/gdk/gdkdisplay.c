@@ -52,6 +52,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <stdfil.h>
 
 /**
  * GdkDisplay:
@@ -361,7 +362,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  0, NULL, NULL,
                   NULL,
-		  G_TYPE_NONE, 1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
+		  G_TYPE_NONE, 1, zorptr(G_TYPE_STRING, (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
 }
 
 static void

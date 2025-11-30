@@ -37,6 +37,8 @@
 #include "gtkmain.h"
 #include "gtkprivate.h"
 
+#include <stdfil.h>
+
 /**
  * GtkEmojiChooser:
  *
@@ -1308,7 +1310,7 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
                                         0,
                                         NULL, NULL,
                                         NULL,
-                                        G_TYPE_NONE, 1, G_TYPE_STRING|G_SIGNAL_TYPE_STATIC_SCOPE);
+                                        G_TYPE_NONE, 1, zorptr (G_TYPE_STRING, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gtk/libgtk/ui/gtkemojichooser.ui");
 

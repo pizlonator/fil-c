@@ -28,6 +28,7 @@
 
 #include <graphene-gobject.h>
 #include <math.h>
+#include <stdfil.h>
 
 /**
  * GdkToplevel:
@@ -286,7 +287,7 @@ gdk_toplevel_default_init (GdkToplevelInterface *iface)
                   NULL, NULL,
                   NULL,
                   G_TYPE_NONE, 1,
-                  GDK_TYPE_TOPLEVEL_SIZE | G_SIGNAL_TYPE_STATIC_SCOPE);
+                  zorptr (GDK_TYPE_TOPLEVEL_SIZE, (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
 }
 
 guint

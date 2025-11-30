@@ -1901,18 +1901,18 @@ apply_portal_setting (TranslationEntry *entry,
                       GVariant         *value,
                       GdkDisplay       *display)
 {
-  switch (entry->type)
+  switch ((uintptr_t)entry->type)
     {
-    case G_TYPE_STRING:
+    case (uintptr_t)G_TYPE_STRING:
       entry->fallback.s = g_intern_string (g_variant_get_string (value, NULL));
       break;
-    case G_TYPE_INT:
+    case (uintptr_t)G_TYPE_INT:
       entry->fallback.i = g_variant_get_int32 (value);
       break;
-    case G_TYPE_BOOLEAN:
+    case (uintptr_t)G_TYPE_BOOLEAN:
       entry->fallback.b = g_variant_get_boolean (value);
       break;
-    case G_TYPE_NONE:
+    case (uintptr_t)G_TYPE_NONE:
       if (strcmp (entry->key, "serial") == 0)
         {
           entry->fallback.i = g_variant_get_int32 (value);
@@ -2145,18 +2145,18 @@ set_value_from_entry (GdkDisplay       *display,
 
   if (display_wayland->settings_portal)
     {
-      switch (entry->type)
+      switch ((uintptr_t)entry->type)
         {
-        case G_TYPE_STRING:
+        case (uintptr_t)G_TYPE_STRING:
           g_value_set_string (value, entry->fallback.s);
           break;
-        case G_TYPE_INT:
+        case (uintptr_t)G_TYPE_INT:
           g_value_set_int (value, entry->fallback.i);
           break;
-        case G_TYPE_BOOLEAN:
+        case (uintptr_t)G_TYPE_BOOLEAN:
           g_value_set_boolean (value, entry->fallback.b);
           break;
-        case G_TYPE_NONE:
+        case (uintptr_t)G_TYPE_NONE:
           if (g_str_equal (entry->setting, "gtk-fontconfig-timestamp"))
             g_value_set_uint (value, (guint)entry->fallback.i);
           else if (g_str_equal (entry->setting, "gtk-xft-antialias"))
@@ -2181,9 +2181,9 @@ set_value_from_entry (GdkDisplay       *display,
     }
 
   settings = (GSettings *)g_hash_table_lookup (display_wayland->settings, entry->schema);
-  switch (entry->type)
+  switch ((uintptr_t)entry->type)
     {
-    case G_TYPE_STRING:
+    case (uintptr_t)G_TYPE_STRING:
       if (settings && entry->valid)
         {
           char *s;
@@ -2196,17 +2196,17 @@ set_value_from_entry (GdkDisplay       *display,
           g_value_set_static_string (value, entry->fallback.s);
         }
       break;
-    case G_TYPE_INT:
+    case (uintptr_t)G_TYPE_INT:
       g_value_set_int (value, settings && entry->valid
                               ? g_settings_get_int (settings, entry->key)
                               : entry->fallback.i);
       break;
-    case G_TYPE_BOOLEAN:
+    case (uintptr_t)G_TYPE_BOOLEAN:
       g_value_set_boolean (value, settings && entry->valid
                                   ? g_settings_get_boolean (settings, entry->key)
                                   : entry->fallback.b);
       break;
-    case G_TYPE_NONE:
+    case (uintptr_t)G_TYPE_NONE:
       if (g_str_equal (entry->setting, "gtk-fontconfig-timestamp"))
         g_value_set_uint (value, (guint)entry->fallback.i);
       else if (g_str_equal (entry->setting, "gtk-xft-antialias"))

@@ -178,9 +178,9 @@ gsk_render_node_init (GskRenderNode *self)
 GType
 gsk_render_node_get_type (void)
 {
-  static gsize render_node_type__volatile;
+  static gpointer render_node_type__volatile;
 
-  if (g_once_init_enter (&render_node_type__volatile))
+  if (g_once_init_enter_pointer (&render_node_type__volatile))
     {
       static const GTypeFundamentalInfo finfo = {
         (G_TYPE_FLAG_CLASSED |
@@ -224,10 +224,10 @@ gsk_render_node_get_type (void)
                                      &node_info, &finfo,
                                      G_TYPE_FLAG_ABSTRACT);
 
-      g_once_init_leave (&render_node_type__volatile, render_node_type);
+      g_once_init_leave_pointer (&render_node_type__volatile, render_node_type);
     }
 
-  return render_node_type__volatile;
+  return (GType) render_node_type__volatile;
 }
 
 /*< private >

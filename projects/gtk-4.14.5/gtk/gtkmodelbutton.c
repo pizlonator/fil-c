@@ -196,9 +196,9 @@ G_DEFINE_TYPE_WITH_CODE (GtkModelButton, gtk_model_button, GTK_TYPE_WIDGET,
 GType
 gtk_button_role_get_type (void)
 {
-  static gsize gtk_button_role_type;
+  static gpointer gtk_button_role_type;
 
-  if (g_once_init_enter (&gtk_button_role_type))
+  if (g_once_init_enter_pointer (&gtk_button_role_type))
     {
       static const GEnumValue values[] = {
         { GTK_BUTTON_ROLE_NORMAL, "GTK_BUTTON_ROLE_NORMAL", "normal" },
@@ -211,10 +211,10 @@ gtk_button_role_get_type (void)
 
       type = g_enum_register_static (I_("GtkButtonRole"), values);
 
-      g_once_init_leave (&gtk_button_role_type, type);
+      g_once_init_leave_pointer (&gtk_button_role_type, type);
     }
 
-  return gtk_button_role_type;
+  return (GType) gtk_button_role_type;
 }
 
 enum

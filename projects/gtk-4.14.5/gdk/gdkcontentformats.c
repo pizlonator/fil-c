@@ -728,7 +728,7 @@ gdk_content_formats_builder_to_formats (GdkContentFormatsBuilder *builder)
       gtypes[i--] = G_TYPE_INVALID;
       /* add backwards because most important type is last in the list */
       for (l = builder->gtypes; l; l = l->next)
-        gtypes[i--] = GPOINTER_TO_SIZE (l->data);
+        gtypes[i--] = l->data;
     }
   else
     {

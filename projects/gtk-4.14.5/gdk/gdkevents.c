@@ -201,9 +201,9 @@ gdk_event_init (GdkEvent *self)
 GType
 gdk_event_get_type (void)
 {
-  static gsize event_type__volatile;
+  static gpointer event_type__volatile;
 
-  if (g_once_init_enter (&event_type__volatile))
+  if (g_once_init_enter_pointer (&event_type__volatile))
     {
       static const GTypeFundamentalInfo finfo = {
         (G_TYPE_FLAG_CLASSED |
@@ -247,10 +247,10 @@ gdk_event_get_type (void)
                                      &event_info, &finfo,
                                      G_TYPE_FLAG_ABSTRACT);
 
-      g_once_init_leave (&event_type__volatile, event_type);
+      g_once_init_leave_pointer (&event_type__volatile, event_type);
     }
 
-  return event_type__volatile;
+  return (GType) event_type__volatile;
 }
 
 /*< private >
@@ -365,15 +365,15 @@ static GType gdk_event_types[GDK_EVENT_LAST];
 GType \
 type_name ## _get_type (void) \
 { \
-  static gsize gdk_define_event_type_id__volatile; \
-  if (g_once_init_enter (&gdk_define_event_type_id__volatile)) \
+  static gpointer gdk_define_event_type_id__volatile; \
+  if (g_once_init_enter_pointer (&gdk_define_event_type_id__volatile)) \
     { \
       GType gdk_define_event_type_id = \
         gdk_event_type_register_static (g_intern_static_string (#TypeName), type_info); \
       { _C_ } \
-      g_once_init_leave (&gdk_define_event_type_id__volatile, gdk_define_event_type_id); \
+      g_once_init_leave_pointer (&gdk_define_event_type_id__volatile, gdk_define_event_type_id); \
     } \
-  return gdk_define_event_type_id__volatile; \
+  return (GType) gdk_define_event_type_id__volatile; \
 }
 
 #define GDK_EVENT_SUPER(event) \
