@@ -77,5 +77,6 @@ hash -r
 
 ./build_postlc4_chroot_project_pango.sh
 ./build_postlc4_chroot_project_gdk-pixbuf.sh
+./build_postlc4_chroot_project_gtk4.sh
 hash -r
 
