@@ -372,9 +372,7 @@ static void gtk_window_size_allocate      (GtkWidget         *widget,
                                            int                  baseline);
 static gboolean gtk_window_close_request  (GtkWindow         *window);
 static gboolean gtk_window_handle_focus   (GtkWidget         *widget,
-                                           GdkEvent          *event,
-                                           double             x,
-                                           double             y);
+                                           GdkEvent          *event);
 static gboolean gtk_window_key_pressed    (GtkWidget         *widget,
                                            guint              keyval,
                                            guint              keycode,
@@ -4810,9 +4808,7 @@ gtk_window_has_mnemonic_modifier_pressed (GtkWindow *window)
 
 static gboolean
 gtk_window_handle_focus (GtkWidget *widget,
-                         GdkEvent  *event,
-                         double     x,
-                         double     y)
+                         GdkEvent  *event)
 {
   GtkWindow *window = GTK_WINDOW (widget);
 
