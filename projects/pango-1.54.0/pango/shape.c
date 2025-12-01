@@ -240,7 +240,7 @@ pango_font_get_hb_font_for_context (PangoFont           *font,
 
   hb_font = pango_font_get_hb_font (font);
 
-  if (G_UNLIKELY (g_once_init_enter (&funcs)))
+  if (G_UNLIKELY (g_once_init_enter_pointer (&funcs)))
     {
       hb_font_funcs_t *f = hb_font_funcs_create ();
 
@@ -250,7 +250,7 @@ pango_font_get_hb_font_for_context (PangoFont           *font,
       hb_font_funcs_set_glyph_extents_func (f, pango_hb_font_get_glyph_extents, NULL, NULL);
 
       hb_font_funcs_make_immutable (f);
-      g_once_init_leave (&funcs, f);
+      g_once_init_leave_pointer (&funcs, f);
     }
 
   context->font = font;
