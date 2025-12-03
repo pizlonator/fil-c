@@ -1,0 +1,167 @@
+.\" Process this file with
+.\" groff -man -Tascii patchelf.1
+.\"
+.TH PATCHELF 1 "JULY 2022" PATCHELF "User Manuals"
+.SH NAME
+patchelf - Modify ELF files
+
+.SH SYNOPSIS
+.B patchelf
+.I OPTION
+.B
+.I FILE
+.SM ...
+.B
+
+.SH DESCRIPTION
+
+PatchELF is a simple utility for modifying existing ELF executables
+and libraries.  It can change the dynamic loader ("ELF interpreter")
+of executables and change the RPATH of executables and libraries.
+
+.SH OPTIONS
+
+The single option given operates on each FILE, editing in place.
+
+Any option taking a string argument can also take a file by prefixing the
+argument with the @ symbol. See EXAMPLES
+
+.IP "--page-size SIZE"
+Uses the given page size instead of the default.
+
+.IP "--set-interpreter INTERPRETER"
+Change the dynamic loader ("ELF interpreter") of executable given to
+INTERPRETER.
+
+.IP --print-interpreter
+Prints the ELF interpreter of the executable.
+
+.IP --print-os-abi
+Prints the OS ABI of the executable (EI_OSABI field of an ELF file).
+
+.IP "--set-os-abi ABI"
+Changes the OS ABI of the executable (EI_OSABI field of an ELF file).
+The ABI parameter is pretty flexible. For example, you can specify it
+as a "Linux", "linux", or even "lInUx" - all those names will set EI_OSABI
+field of the ELF header to the value "3", which corresponds to Linux OS ABI.
+The same applies to other ABI names - System V, FreeBSD, Solaris, etc.
+
+.IP --print-soname
+Prints DT_SONAME entry of .dynamic section.
+Raises an error if DT_SONAME doesn't exist.
+
+.IP "--set-soname SONAME"
+Sets DT_SONAME entry of a library to SONAME.
+
+.IP "--set-rpath RUNPATH"
+Change the DT_RUNPATH of the executable or library to RUNPATH.
+
+.IP "--add-rpath RUNPATH"
+Add RUNPATH to the existing DT_RUNPATH of the executable or library.
+
+.IP --remove-rpath
+Removes the DT_RPATH or DT_RUNPATH entry of the executable or library.
+
+.IP --shrink-rpath
+Remove from the DT_RUNPATH or DT_RPATH all directories that do not contain a
+library referenced by DT_NEEDED fields of the executable or library.
+
+For instance, if an executable references one library libfoo.so, has
+an RPATH "/lib:/usr/lib:/foo/lib", and libfoo.so can only be found
+in /foo/lib, then the new RPATH will be "/foo/lib".
+
+.IP "--allowed-rpath-prefixes PREFIXES"
+Combined with the "--shrink-rpath" option, this can be used for
+further rpath tuning. For instance, if an executable has an RPATH
+"/tmp/build-foo/.libs:/foo/lib", it is probably desirable to keep
+the "/foo/lib" reference instead of the "/tmp" entry.
+
+.IP --print-rpath
+Prints the DT_RUNPATH or DT_RPATH for an executable or library.
+
+.IP --force-rpath
+Forces the use of the obsolete DT_RPATH in the file instead of
+DT_RUNPATH. By default DT_RPATH is converted to DT_RUNPATH.
+
+.IP "--add-needed LIBRARY"
+Adds a declared dependency on a dynamic library (DT_NEEDED).
+This option can be given multiple times.
+
+.IP "--replace-needed LIB_ORIG LIB_NEW"
+Replaces a declared dependency on a dynamic library with another one (DT_NEEDED).
+This option can be given multiple times.
+
+.IP "--remove-needed LIBRARY"
+Removes a declared dependency on LIBRARY (DT_NEEDED entry). This
+option can be given multiple times.
+
+.IP --print-needed
+Prints all DT_NEEDED entries of the executable.
+
+.IP "--no-default-lib"
+Marks the object so that the search for dependencies of this object will ignore any
+default library search paths.
+
+.IP "--no-sort"
+Do not sort program headers or section headers.  This is useful when
+debugging patchelf, because it makes it easier to read diffs of the
+output of "readelf -a".
+
+.IP "--add-debug-tag"
+Adds DT_DEBUG tag to the .dynamic section if not yet present in an ELF
+object. A shared library (-shared) by default does not receive DT_DEBUG tag.
+This means that when a shared library has an entry point (so that it
+can be run as an executable), the debugger does not connect to it correctly and
+symbols are not resolved.
+
+.IP "--print-execstack"
+Prints the state of the executable flag of the GNU_STACK program header, if present.
+
+.IP "--clear-execstack"
+Clears the executable flag of the GNU_STACK program header, or adds a new header.
+
+.IP "--set-execstack"
+Sets the executable flag of the GNU_STACK program header, or adds a new header.
+
+.IP "--rename-dynamic-symbols NAME_MAP_FILE"
+Renames dynamic symbols. The name map file should contain lines
+with the old and the new name separated by spaces like this:
+
+old_name new_name
+
+Symbol names do not contain version specifier that are also shown in the output of the nm -D command from binutils. So instead of the name write@GLIBC_2.2.5 it is just write.
+
+.IP "--output FILE"
+Set the output file name.  If not specified, the input will be modified in place.
+
+.IP --debug
+Prints details of the changes made to the input file.
+
+.IP --version
+Shows the version of patchelf.
+
+.SH EXAMPLES
+
+To use the contents on an external file as a parameter:
+
+.RS
+$ patchelf a.out --add-rpath @/tmp/generated-rpath.bin
+.RE
+
+To change the RPATH of a binary. Note that
+.BR $ORIGIN
+is a special symbol used by the loader, so must be quoted.
+
+.RS
+patchelf --set-rpath '$ORIGIN/../lib64' a.out
+.RE
+
+
+.SH AUTHOR
+Eelco Dolstra <e.dolstra@tudelft.nl>
+
+.SH "SEE ALSO"
+.BR elf (5),
+.BR ld.so (8)
+
+
