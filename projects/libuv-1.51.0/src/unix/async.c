@@ -407,7 +407,11 @@ int uv__async_fork(uv_loop_t* loop) {
 
 static void uv__cpu_relax(void) {
 #if defined(__i386__) || defined(__x86_64__)
+#ifdef __FILC__
+  __builtin_ia32_pause();
+#else
   __asm__ __volatile__ ("rep; nop" ::: "memory");  /* a.k.a. PAUSE */
+#endif
 #elif (defined(__arm__) && __ARM_ARCH >= 7) || defined(__aarch64__)
   __asm__ __volatile__ ("yield" ::: "memory");
 #elif (defined(__ppc__) || defined(__ppc64__)) && defined(__APPLE__)
