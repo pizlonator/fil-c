@@ -10688,22 +10688,36 @@ int filc_native_zsys_sigsuspend(filc_thread* my_thread, filc_ptr mask_ptr)
 int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* args)
 {
     switch (option) {
-    case PR_SET_DUMPABLE: {
+    case PR_SET_DUMPABLE:
+    case PR_SET_CHILD_SUBREAPER:
+    case PR_SET_FPEMU:
+    case PR_SET_KEEPCAPS:
+    case PR_SET_SECUREBITS:
+    case PR_SVE_SET_VL:
+    case PR_SET_THP_DISABLE:
+    case PR_SET_TIMING:
+    case PR_SET_TSC: {
         unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
-        return FILC_SYSCALL(my_thread, prctl(PR_SET_DUMPABLE, value));
+        return FILC_SYSCALL(my_thread, prctl(option, value, 0, 0, 0));
     }
 
-    case PR_SET_NO_NEW_PRIVS: {
+    case PR_SET_PDEATHSIG: {
+        unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        FILC_CHECK(
+            !is_unsafe_signal_for_kill(value),
+            NULL,
+            "cannot set signal %lu as PTHREADSIG.", value);
+        return FILC_SYSCALL(my_thread, prctl(PR_SET_PDEATHSIG, value, 0, 0, 0));
+    }
+
+    case PR_SET_NO_NEW_PRIVS:
+    case PR_GET_SPECULATION_CTRL:
+    case PR_SET_SPECULATION_CTRL: {
         unsigned long value1 = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         unsigned long value2 = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         unsigned long value3 = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         unsigned long value4 = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         return FILC_SYSCALL(my_thread, prctl(PR_SET_NO_NEW_PRIVS, value1, value2, value3, value4));
-    }
-
-    case PR_SET_PDEATHSIG: {
-        unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
-        return FILC_SYSCALL(my_thread, prctl(PR_SET_PDEATHSIG, value));
     }
 
     case PR_SET_SECCOMP: {
@@ -10742,7 +10756,7 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
     case PR_SET_NAME: {
         filc_ptr name_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
         char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-        return FILC_SYSCALL(my_thread, prctl(PR_SET_NAME, name));
+        return FILC_SYSCALL(my_thread, prctl(PR_SET_NAME, name, 0, 0, 0));
     }
 
     case PR_GET_NAME: {
@@ -10750,7 +10764,38 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
         /* From TFM: "The buffer should allow space for up to 16 bytes; the returned string will be
            null-terminated." */
         filc_check_write(buf_ptr, 16);
-        return FILC_SYSCALL(my_thread, prctl(PR_GET_NAME, (char*)filc_ptr_ptr(buf_ptr)));
+        return FILC_SYSCALL(my_thread, prctl(PR_GET_NAME, (char*)filc_ptr_ptr(buf_ptr), 0, 0, 0));
+    }
+
+    case PR_GET_DUMPABLE:
+    case PR_GET_NO_NEW_PRIVS:
+    case PR_GET_SECCOMP:
+    case PR_GET_TIMERSLACK:
+    case PR_GET_FP_MODE:
+    case PR_GET_IO_FLUSHER:
+    case PR_GET_KEEPCAPS:
+    case PR_GET_SECUREBITS:
+    case PR_SVE_GET_VL:
+    case PR_GET_TAGGED_ADDR_CTRL:
+    case PR_GET_THP_DISABLE:
+    case PR_GET_TIMING:
+        return FILC_SYSCALL(my_thread, prctl(option, 0, 0, 0, 0));
+
+    case PR_GET_ENDIAN:
+    case PR_SET_ENDIAN:
+    case PR_SET_TAGGED_ADDR_CTRL: /* FIXME: Support this on ARM64. */
+    case PR_SET_UNALIGN:
+    case PR_GET_UNALIGN:
+        filc_set_errno(EINVAL);
+        return -1;
+
+    case PR_GET_FPEXC:
+    case PR_GET_CHILD_SUBREAPER:
+    case PR_GET_FPEMU:
+    case PR_GET_TSC: {
+        filc_ptr result_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        filc_check_write(result_ptr, sizeof(int));
+        return FILC_SYSCALL(my_thread, prctl(option, (int*)filc_ptr_ptr(result_ptr), 0, 0, 0));
     }
 
     default:

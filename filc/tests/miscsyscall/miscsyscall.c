@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <sys/timex.h>
 #include <sys/mman.h>
+#include <sys/prctl.h>
 
 #ifndef SA_RESTORER
 #define SA_RESTORER 0x4000000
@@ -573,9 +574,10 @@ int main(int argc, char** argv)
 
     ZASSERT(secure_getenv("PATH"));
 
+    int result;
 #ifndef __USE_GNU
     struct winsize ws;
-    int result = tcgetwinsize(0, &ws);
+    result = tcgetwinsize(0, &ws);
     ZASSERT(!result || (result == -1 && errno == ENOTTY));
 #endif
 
@@ -589,6 +591,27 @@ int main(int argc, char** argv)
 
     ZASSERT(!posix_madvise(zgc_aligned_alloc(4096, 4096), 4096, POSIX_MADV_NORMAL));
     ZASSERT(!posix_madvise(zgc_aligned_alloc(4096, 4096), 4096, POSIX_MADV_DONTNEED));
+
+    ZASSERT(prctl(PR_GET_DUMPABLE) != -1);
+    ZASSERT(prctl(PR_GET_NO_NEW_PRIVS) != -1);
+    ZASSERT(prctl(PR_GET_SECCOMP) != -1);
+    ZASSERT(prctl(PR_GET_TIMERSLACK) != -1);
+    ZASSERT(prctl(PR_GET_FP_MODE) == -1);
+    ZASSERT(errno == EINVAL);
+    result = prctl(PR_GET_IO_FLUSHER);
+    if (result == -1)
+        ZASSERT(errno == EPERM);
+    else
+        ZASSERT(!result || result == 1);
+    ZASSERT(prctl(PR_GET_KEEPCAPS) != -1);
+    ZASSERT(prctl(PR_GET_SECUREBITS) != -1);
+    result = prctl(PR_SVE_GET_VL);
+    if (result == -1)
+        ZASSERT(errno == EINVAL);
+    ZASSERT(prctl(PR_GET_TAGGED_ADDR_CTRL) == -1);
+    ZASSERT(errno == EINVAL);
+    ZASSERT(prctl(PR_GET_THP_DISABLE) != -1);
+    ZASSERT(prctl(PR_GET_TIMING) != -1);
 
     zprintf("No worries.\n");
     return 0;
