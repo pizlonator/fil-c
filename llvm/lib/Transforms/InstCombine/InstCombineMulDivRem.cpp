@@ -480,30 +480,6 @@ Instruction *InstCombinerImpl::visitMul(BinaryOperator &I) {
       return SelectInst::Create(X, NegC, ConstantInt::getNullValue(Ty));
     }
 
-    // (ashr i32 X, 31) * C --> (X < 0) ? -C : 0
-    const APInt *C;
-    if (match(Op0, m_OneUse(m_AShr(m_Value(X), m_APInt(C)))) &&
-        *C == C->getBitWidth() - 1) {
-      Constant *NegC = ConstantExpr::getNeg(ImmC);
-      Value *IsNeg = Builder.CreateIsNeg(X, "isneg");
-      return SelectInst::Create(IsNeg, NegC, ConstantInt::getNullValue(Ty));
-    }
-  }
-
-  // (lshr X, 31) * Y --> (X < 0) ? Y : 0
-  // TODO: We are not checking one-use because the elimination of the multiply
-  //       is better for analysis?
-  const APInt *C;
-  if (match(&I, m_c_BinOp(m_LShr(m_Value(X), m_APInt(C)), m_Value(Y))) &&
-      *C == C->getBitWidth() - 1) {
-    Value *IsNeg = Builder.CreateIsNeg(X, "isneg");
-    return SelectInst::Create(IsNeg, Y, ConstantInt::getNullValue(Ty));
-  }
-
-  // (and X, 1) * Y --> (trunc X) ? Y : 0
-  if (match(&I, m_c_BinOp(m_OneUse(m_And(m_Value(X), m_One())), m_Value(Y)))) {
-    Value *Tr = Builder.CreateTrunc(X, CmpInst::makeCmpResultType(Ty));
-    return SelectInst::Create(Tr, Y, ConstantInt::getNullValue(Ty));
   }
 
   // ((ashr X, 31) | 1) * X --> abs(X)
@@ -1793,16 +1769,6 @@ Instruction *InstCombinerImpl::visitSDiv(BinaryOperator &I) {
     return BinaryOperator::CreateNSWNeg(
         Builder.CreateSDiv(X, Y, I.getName(), I.isExact()));
 
-  // abs(X) / X --> X > -1 ? 1 : -1
-  // X / abs(X) --> X > -1 ? 1 : -1
-  if (match(&I, m_c_BinOp(
-                    m_OneUse(m_Intrinsic<Intrinsic::abs>(m_Value(X), m_One())),
-                    m_Deferred(X)))) {
-    Value *Cond = Builder.CreateIsNotNeg(X);
-    return SelectInst::Create(Cond, ConstantInt::get(Ty, 1),
-                              ConstantInt::getAllOnesValue(Ty));
-  }
-
   KnownBits KnownDividend = computeKnownBits(Op0, 0, &I);
   if (!I.isExact() &&
       (match(Op1, m_Power2(Op1C)) || match(Op1, m_NegatedPower2(Op1C))) &&
@@ -1839,13 +1805,6 @@ Instruction *InstCombinerImpl::visitSDiv(BinaryOperator &I) {
     }
   }
 
-  // -X / X --> X == INT_MIN ? 1 : -1
-  if (isKnownNegation(Op0, Op1)) {
-    APInt MinVal = APInt::getSignedMinValue(Ty->getScalarSizeInBits());
-    Value *Cond = Builder.CreateICmpEQ(Op0, ConstantInt::get(Ty, MinVal));
-    return SelectInst::Create(Cond, ConstantInt::get(Ty, 1),
-                              ConstantInt::getAllOnesValue(Ty));
-  }
   return nullptr;
 }
 
@@ -2394,44 +2353,6 @@ Instruction *InstCombinerImpl::visitURem(BinaryOperator &I) {
   if (match(Op0, m_One())) {
     Value *Cmp = Builder.CreateICmpNE(Op1, ConstantInt::get(Ty, 1));
     return CastInst::CreateZExtOrBitCast(Cmp, Ty);
-  }
-
-  // Op0 urem C -> Op0 < C ? Op0 : Op0 - C, where C >= signbit.
-  // Op0 must be frozen because we are increasing its number of uses.
-  if (match(Op1, m_Negative())) {
-    Value *F0 = Op0;
-    if (!isGuaranteedNotToBeUndef(Op0))
-      F0 = Builder.CreateFreeze(Op0, Op0->getName() + ".fr");
-    Value *Cmp = Builder.CreateICmpULT(F0, Op1);
-    Value *Sub = Builder.CreateSub(F0, Op1);
-    return SelectInst::Create(Cmp, F0, Sub);
-  }
-
-  // If the divisor is a sext of a boolean, then the divisor must be max
-  // unsigned value (-1). Therefore, the remainder is Op0 unless Op0 is also
-  // max unsigned value. In that case, the remainder is 0:
-  // urem Op0, (sext i1 X) --> (Op0 == -1) ? 0 : Op0
-  Value *X;
-  if (match(Op1, m_SExt(m_Value(X))) && X->getType()->isIntOrIntVectorTy(1)) {
-    Value *FrozenOp0 = Op0;
-    if (!isGuaranteedNotToBeUndef(Op0))
-      FrozenOp0 = Builder.CreateFreeze(Op0, Op0->getName() + ".frozen");
-    Value *Cmp =
-        Builder.CreateICmpEQ(FrozenOp0, ConstantInt::getAllOnesValue(Ty));
-    return SelectInst::Create(Cmp, ConstantInt::getNullValue(Ty), FrozenOp0);
-  }
-
-  // For "(X + 1) % Op1" and if (X u< Op1) => (X + 1) == Op1 ? 0 : X + 1 .
-  if (match(Op0, m_Add(m_Value(X), m_One()))) {
-    Value *Val =
-        simplifyICmpInst(ICmpInst::ICMP_ULT, X, Op1, SQ.getWithInstruction(&I));
-    if (Val && match(Val, m_One())) {
-      Value *FrozenOp0 = Op0;
-      if (!isGuaranteedNotToBeUndef(Op0))
-        FrozenOp0 = Builder.CreateFreeze(Op0, Op0->getName() + ".frozen");
-      Value *Cmp = Builder.CreateICmpEQ(FrozenOp0, Op1);
-      return SelectInst::Create(Cmp, ConstantInt::getNullValue(Ty), FrozenOp0);
-    }
   }
 
   return nullptr;

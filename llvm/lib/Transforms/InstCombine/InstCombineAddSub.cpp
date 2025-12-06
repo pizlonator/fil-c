@@ -2690,19 +2690,6 @@ Instruction *InstCombinerImpl::visitSub(BinaryOperator &I) {
   const APInt *ShAmt;
   Type *Ty = I.getType();
   unsigned BitWidth = Ty->getScalarSizeInBits();
-  if (match(Op1, m_AShr(m_Value(A), m_APInt(ShAmt))) &&
-      Op1->hasNUses(2) && *ShAmt == BitWidth - 1 &&
-      match(Op0, m_OneUse(m_c_Xor(m_Specific(A), m_Specific(Op1))))) {
-    // B = ashr i32 A, 31 ; smear the sign bit
-    // sub (xor A, B), B  ; flip bits if negative and subtract -1 (add 1)
-    // --> (A < 0) ? -A : A
-    Value *IsNeg = Builder.CreateIsNeg(A);
-    // Copy the nsw flags from the sub to the negate.
-    Value *NegA = I.hasNoUnsignedWrap()
-                      ? Constant::getNullValue(A->getType())
-                      : Builder.CreateNeg(A, "", I.hasNoSignedWrap());
-    return SelectInst::Create(IsNeg, NegA, A);
-  }
 
   // If we are subtracting a low-bit masked subset of some value from an add
   // of that same value with no low bits changed, that is clearing some low bits

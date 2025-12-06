@@ -1244,11 +1244,6 @@ Instruction *InstCombinerImpl::visitShl(BinaryOperator &I) {
     if (match(Op0, m_Mul(m_Value(X), m_ImmConstant(C2))))
       return BinaryOperator::CreateMul(X, Builder.CreateShl(C2, C1));
 
-    // shl (zext i1 X), C1 --> select (X, 1 << C1, 0)
-    if (match(Op0, m_ZExt(m_Value(X))) && X->getType()->isIntOrIntVectorTy(1)) {
-      auto *NewC = Builder.CreateShl(ConstantInt::get(Ty, 1), C1);
-      return SelectInst::Create(X, NewC, ConstantInt::getNullValue(Ty));
-    }
   }
 
   if (match(Op0, m_One())) {
@@ -1438,12 +1433,6 @@ Instruction *InstCombinerImpl::visitLShr(BinaryOperator &I) {
 
     if (match(Op0, m_SExt(m_Value(X)))) {
       unsigned SrcTyBitWidth = X->getType()->getScalarSizeInBits();
-      // lshr (sext i1 X to iN), C --> select (X, -1 >> C, 0)
-      if (SrcTyBitWidth == 1) {
-        auto *NewC = ConstantInt::get(
-            Ty, APInt::getLowBitsSet(BitWidth, BitWidth - ShAmtC));
-        return SelectInst::Create(X, NewC, ConstantInt::getNullValue(Ty));
-      }
 
       if ((!Ty->isIntegerTy() || shouldChangeType(Ty, X->getType())) &&
           Op0->hasOneUse()) {
