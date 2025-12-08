@@ -7429,9 +7429,14 @@ class Pizlonator {
       errs() << "Dealing with inline asm call: " << *CI << "\n";
     
     InlineAsm* IA = cast<InlineAsm>(CI->getCalledOperand());
-    if (IA->getAsmString() != "") {
-      Reason = "nontrivial assembly, cannot analyze";
-      return false;
+    for (char c : IA->getAsmString()) {
+      if (c != ' ' &&
+          c != '\t' &&
+          c != '\n' &&
+          c != '\r') {
+        Reason = "nontrivial assembly, cannot analyze";
+        return false;
+      }
     }
     
     // If the inline asm doesn't deal in pointers, then we can just pass it through.
