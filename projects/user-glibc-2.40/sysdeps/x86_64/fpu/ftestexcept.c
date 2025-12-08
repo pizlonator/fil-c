@@ -17,17 +17,11 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <pizlonated_math.h>
 
 int
 fetestexcept (int excepts)
 {
-  int temp;
-  unsigned int mxscr;
-
-  /* Get current exceptions.  */
-  __asm__ ("fnstsw %0\n"
-	   "stmxcsr %1" : "=m" (*&temp), "=m" (*&mxscr));
-
-  return (temp | mxscr) & excepts & FE_ALL_EXCEPT;
+  return zmath_fetestexcept (excepts);
 }
 libm_hidden_def (fetestexcept)

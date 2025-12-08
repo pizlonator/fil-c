@@ -65,6 +65,7 @@ unsigned zmath_getcw(void);
 void zmath_setcw(unsigned cw);
 void zmath_feclearexcept(int excepts);
 int zmath_feenableexcept(int excepts);
+int zmath_fetestexcept(int excepts);
 
 #ifdef __cplusplus
 }

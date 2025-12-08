@@ -562,6 +562,7 @@ addSig "unsigned", "zmath_getcw"
 addSig "void", "zmath_setcw", "unsigned"
 addSig "void", "zmath_feclearexcept", "int"
 addSig "int", "zmath_feenableexcept", "int"
+addSig "int", "zmath_fetestexcept", "int"
 
 addOutSig "void_ptr_ptr", "void", "filc_ptr", "filc_ptr"
 addOutSig "main", "exception/int", "int", "filc_ptr", "filc_ptr"

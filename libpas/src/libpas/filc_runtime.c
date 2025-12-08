@@ -13330,6 +13330,12 @@ int filc_native_zmath_feenableexcept(filc_thread* my_thread, int excepts)
 #endif
 }
 
+int filc_native_zmath_fetestexcept(filc_thread* my_thread, int excepts)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fetestexcept(excepts);
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */
