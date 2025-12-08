@@ -41,14 +41,17 @@
 #ifdef __FILC__
 
 #include <stdfil.h>
+#include <stdlib.h>
 
 extern void ffi_closure_callback (void);
 
 void *
 ffi_closure_alloc (size_t size, void **code)
 {
-  *code = zclosure_new(ffi_closure_callback, NULL);
-  return *code;
+  void* closure = malloc(size);
+  if (!closure) return NULL;
+  *code = zclosure_new(ffi_closure_callback, closure);
+  return closure;
 }
 
 void
