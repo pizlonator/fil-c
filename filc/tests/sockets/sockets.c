@@ -39,13 +39,13 @@ static void init_port(void)
         socklen_t onlen = sizeof(on);
         ZASSERT(!getsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &on, &onlen));
         ZASSERT(on == 1);
-        if (bind(server_fd, (struct sockaddr*)&addr, slen) < 0) {
+        if (bind(server_fd, (struct sockaddr*)&addr, slen) < 0 ||
+            listen(server_fd, 5) < 0) {
             zprintf("bind error: %s\n", strerror(errno));
             ZASSERT(errno == EADDRINUSE);
             close(server_fd);
             continue;
         }
-        ZASSERT(!listen(server_fd, 5));
         break;
     }
 }
