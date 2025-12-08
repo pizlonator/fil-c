@@ -415,6 +415,8 @@ static void open_new_log_file_if_necessary(void)
         open_new_log_file();
 }
 
+static void add_cpu_indicator_globals(void);
+
 void filc_initialize(filc_stack_limit stack_limit)
 {
     bool should_log_to_file = false;
@@ -495,6 +497,8 @@ void filc_initialize(filc_stack_limit stack_limit)
     fugc_initialize_heaps();
 
     filc_object_array_construct(&filc_global_variable_roots);
+    add_cpu_indicator_globals();
+    
     filc_object_array_construct(&filc_global_variable_root_ptrs);
 
     filc_thread* thread = filc_thread_create_with_manual_tracking(NULL);
@@ -7364,6 +7368,66 @@ void filc_resume_unwind(filc_thread* my_thread, const filc_origin *passed_origin
 
     filc_pop_native_frame(my_thread, &native_frame);
     filc_pop_frame(my_thread, frame);
+}
+
+void __cpu_indicator_init(void);
+
+struct __processor_model {
+    unsigned __cpu_vendor;
+    unsigned __cpu_type;
+    unsigned __cpu_subtype;
+    unsigned __cpu_features;
+};
+
+extern struct __processor_model __cpu_model;
+extern unsigned __cpu_features2;
+
+static struct {
+    filc_object object;
+    struct __processor_model payload;
+} cpu_model_global_object;
+
+static struct {
+    filc_object object;
+    unsigned payload;
+    unsigned padding;
+} cpu_features2_global_object;
+
+static void add_cpu_indicator_globals(void)
+{
+    PAS_ASSERT(pas_is_aligned(sizeof(cpu_model_global_object), FILC_WORD_SIZE));
+    pas_zero_memory(&cpu_model_global_object, sizeof(cpu_model_global_object));
+    cpu_model_global_object.object.upper = &cpu_model_global_object + 1;
+    cpu_model_global_object.object.aux = filc_aux_create(FILC_OBJECT_FLAG_GLOBAL, NULL);
+    filc_object_array_push(&filc_global_variable_roots, &cpu_model_global_object.object);
+
+    PAS_ASSERT(pas_is_aligned(sizeof(cpu_features2_global_object), FILC_WORD_SIZE));
+    pas_zero_memory(&cpu_features2_global_object, sizeof(cpu_features2_global_object));
+    cpu_features2_global_object.object.upper = &cpu_features2_global_object + 1;
+    cpu_features2_global_object.object.aux = filc_aux_create(FILC_OBJECT_FLAG_GLOBAL, NULL);
+    filc_object_array_push(&filc_global_variable_roots, &cpu_features2_global_object.object);
+}
+
+void filc_native___cpu_indicator_init(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    __cpu_indicator_init();
+    cpu_model_global_object.payload = __cpu_model;
+    cpu_features2_global_object.payload = __cpu_features2;
+}
+
+filc_ptr pizlonated___cpu_model(filc_thread* my_thread, const filc_origin* passed_origin)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(passed_origin);
+    return filc_ptr_create_with_object_and_manual_tracking(&cpu_model_global_object.object);
+}
+
+filc_ptr pizlonated___cpu_features2(filc_thread* my_thread, const filc_origin* passed_origin)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(passed_origin);
+    return filc_ptr_create_with_object_and_manual_tracking(&cpu_features2_global_object.object);
 }
 
 static bool setjmp_saves_sigmask = false;
