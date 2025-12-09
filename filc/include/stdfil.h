@@ -36,7 +36,7 @@ extern "C" {
 
 /* The convention is that the major version gets multiplied by 10000. So if there was a version
    1.23, then FILC_VERSION would be 10023. */
-#define FILC_VERSION 675u
+#define FILC_VERSION 676u
 
 /* This header defines standard Fil-C APIs that are not part of C or C++ but are intended to be stable
    over time in Fil-C.

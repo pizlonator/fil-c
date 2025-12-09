@@ -113,7 +113,7 @@ First I'll tell you how to download or build Fil-C and then I'll tell you how to
 
 You can download a Fil-C binary release from [https://github.com/pizlonator/fil-c/releases](https://github.com/pizlonator/fil-c/releases).
 
-Then, in the filc-0.675-linux-x86_64 directory, run:
+Then, in the filc-0.676-linux-x86_64 directory, run:
 
     ./setup.sh
 

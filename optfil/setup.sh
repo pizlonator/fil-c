@@ -25,28 +25,23 @@
 
 set -e
 
-VERSION="0.675"
+VERSION="0.676"
 
 echo "================================================================================"
 echo "                         Fil-C /opt/fil Distribution"
 echo "                              Version $VERSION"
 echo "================================================================================"
 echo
-echo "Fil-C is a memory-safe implementation of C and C++ that prevents all memory"
-echo "safety errors through concurrent garbage collection and invisible capabilities."
-echo
-echo "This distribution includes:"
-echo "  - Fil-C compiler version $VERSION (filcc, fil++) and its runtime (libpizlo.so)"
-echo "  - Basic libraries compiled with Fil-C (glibc 2.40, LLVM libc++ 20.1.8)"
-echo "  - Memory safe programs compiled with Fil-C:"
-echo "      bash        binutils    bzip2       coreutils   curl        diff"
-echo "      find        flex        gawk        git         grep        gzip"
-echo "      icu4c       keyutils    kerberos5   less        lz4         libaudit"
-echo "      libevent    libidn2     libpsl      libselinux  libtasn1    libuv"
-echo "      m4          make        mg          nghttp2     openssl     openssh"
-echo "      p11-kit     patch       pam         pcre2       pkgconf     procps-ng"
-echo "      psmisc      sed         sudo        tar         tmux        unistring"
-echo "      wget        xz          zlib        zstd"
+echo "This distribution includes the Fil-C compiler (filcc/fil++) and runtime and"
+echo "these memory safe programs and libraries compiled with Fil-C:"
+echo "    bash        binutils    bzip2       coreutils   curl        diff"
+echo "    find        flex        gawk        git         glibc       grep"
+echo "    gzip        icu4c       keyutils    kerberos5   less        libaudit"
+echo "    libc++      libevent    libidn2     libpsl      libselinux  libtasn1"
+echo "    libuv       lz4         m4          make        mg          nghttp2"
+echo "    openssl     openssh     p11-kit     patch       pam         pcre2"
+echo "    pkgconf     procps-ng   psmisc      sed         sudo        tar"
+echo "    tmux        unistring   wget        xz          zlib        zstd"
 echo
 echo "THIS SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND."
 echo "********************************************************************************"

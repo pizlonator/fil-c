@@ -43,7 +43,7 @@ cd $FILCSRC/optfil
 
 . ../libpas/common.sh
 
-package_name=optfil-0.675-$OS-$ARCH
+package_name=optfil-0.676-$OS-$ARCH
 
 rm -rf $package_name
 mkdir -v $package_name
