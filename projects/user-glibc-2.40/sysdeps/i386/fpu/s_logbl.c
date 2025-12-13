@@ -3,15 +3,12 @@
  */
 
 #include <libm-alias-ldouble.h>
+#include <pizlonated_math.h>
 
 long double
 __logbl (long double x)
 {
-  long double res;
-
-  asm ("fxtract\n"
-       "fstp	%%st" : "=t" (res) : "0" (x));
-  return res;
+  return zmath_logbl (x);
 }
 
 libm_alias_ldouble (__logb, logb)
