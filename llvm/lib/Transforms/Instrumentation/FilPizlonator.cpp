@@ -1551,6 +1551,7 @@ class Pizlonator {
     Constant* C = ConstantDataArray::getString(this->C, Str);
     GlobalVariable* Result = new GlobalVariable(
       M, C->getType(), true, GlobalVariable::PrivateLinkage, C, "filc_string");
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     Strings[Str.str()] = Result;
     return Result;
   }
@@ -1600,6 +1601,7 @@ class Pizlonator {
         ConstantInt::get(Int8Ty, HasSetjmps), ConstantInt::get(Int32Ty, NumStackAuxes) });
     GlobalVariable* Result = new GlobalVariable(
       M, FunctionOriginTy, true, GlobalVariable::PrivateLinkage, C, "filc_function_origin");
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     FunctionOrigins[FOK] = Result;
     return Result;
   }
@@ -1637,6 +1639,7 @@ class Pizlonator {
             ConstantInt::get(Int32Ty, Line), ConstantInt::get(Int32Ty, Col) }) });
     GlobalVariable* Result = new GlobalVariable(
       M, InlineFrameTy, true, GlobalVariable::PrivateLinkage, C, "filc_inline_frame");
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     InlineFrames[IFK] = Result;
     return Result;
   }
@@ -1694,6 +1697,7 @@ class Pizlonator {
       Result = new GlobalVariable(
         M, OriginTy, true, GlobalVariable::PrivateLinkage, C, "filc_origin");
     }
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     Origins[OK] = Result;
     return Result;
   }
@@ -3069,6 +3073,7 @@ class Pizlonator {
         ConstantArray::get(AT, SemanticDICs) });
     GlobalVariable* Result = new GlobalVariable(
       M, ST, true, GlobalVariable::PrivateLinkage, CS, "filc_optimized_access_check_origin");
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     OptimizedAccessCheckOrigins[OACOK] = Result;
     return Result;
   }
@@ -3098,6 +3103,7 @@ class Pizlonator {
     GlobalVariable* AlignmentsG = new GlobalVariable(
       M, AT, true, GlobalVariable::PrivateLinkage, ConstantArray::get(AT, AlignmentConsts),
       "filc_alignments_and_offsets");
+    AlignmentsG->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
 
     size_t SemanticDILength = SemanticDI ? SemanticDI->Locations.size() : 0;
     AT = ArrayType::get(RawPtrTy, SemanticDILength + 1);
@@ -3113,6 +3119,7 @@ class Pizlonator {
     GlobalVariable* Result = new GlobalVariable(
       M, ST, true, GlobalVariable::PrivateLinkage, CS,
       "filc_optimized_alignment_contradiction_origin");
+    Result->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
     OptimizedAlignmentContradictionOrigins[OACOK] = Result;
     return Result;
   }
@@ -5853,6 +5860,7 @@ class Pizlonator {
             ConstantInt::get(IntPtrTy, Offset) });
         GlobalVariable* ExprG = new GlobalVariable(
           M, ConstexprNodeTy, true, GlobalVariable::PrivateLinkage, CS, "filc_constexpr_gep_node");
+        ExprG->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
         return ConstantTarget(ConstantKind::Expr, ExprG);
       }
       default:
@@ -8777,8 +8785,9 @@ class Pizlonator {
           FilterTy = StructType::get(this->C, ArrayRef<Type*>(Int32Ty));
           FilterCS = ConstantStruct::get(FilterTy, ConstantInt::get(Int32Ty, 0));
         }
-        Constant* LowC = new GlobalVariable(
+        GlobalVariable* LowC = new GlobalVariable(
           M, FilterTy, true, GlobalValue::PrivateLinkage, FilterCS, "filc_eh_filter");
+        LowC->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
         TypeOrFilterToAction[C] = -(NumFilters++ + 1);
         LowTypesAndFilters.push_back(LowC);
       }
@@ -8794,8 +8803,10 @@ class Pizlonator {
         TypeTableTy,
         { ConstantInt::get(Int32Ty, NumTypes),
           ConstantArray::get(TypeTableArrayTy, LowTypesAndFilters) });
-      TypeTableC = new GlobalVariable(
+      GlobalVariable* TypeTableG = new GlobalVariable(
         M, TypeTableTy, true, GlobalValue::PrivateLinkage, TypeTableCS, "filc_type_table");
+      TypeTableG->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+      TypeTableC = TypeTableG;
     }
 
     for (LandingPadInst* LPI : LPIs) {
@@ -8819,6 +8830,7 @@ class Pizlonator {
         { TypeTableC, ConstantInt::get(Int32Ty, Actions.size()), ConstantDataArray::get(C, Actions) });
       EHDatas[EHDataKey(LPI)] = new GlobalVariable(
         M, EHDataTy, true, GlobalValue::PrivateLinkage, EHDataCS, "filc_eh_data");
+      EHDatas[EHDataKey(LPI)]->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
       if (verbose)
         errs() << "For " << *LPI << " created eh data: " << *EHDatas[EHDataKey(LPI)] << "\n";
     }
@@ -10123,6 +10135,7 @@ public:
         errs() << "Handling global: " << G->getName() << "\n";
       Function* NewF = Function::Create(PizlonatedGetterTy, G->getLinkage(), G->getAddressSpace(),
                                         "pizlonated_" + G->getName(), &M);
+      NewF->addFnAttr(Attribute::NoUnwind);
       if (GlobalToComdat.count(G))
         NewF->setComdat(GlobalToComdat[G]);
       NewF->setVisibility(G->getVisibility());
@@ -10219,7 +10232,9 @@ public:
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Ctor = cast<Function>(Struct->getOperand(1));
         Function* NewF = Function::Create(
-          CtorDtorTy, GlobalValue::InternalLinkage, 0, "filc_ctor_forwarder", &M);
+          CtorDtorTy, GlobalValue::PrivateLinkage, 0, "filc_ctor_forwarder", &M);
+        NewF->addFnAttr(Attribute::NoUnwind);
+        NewF->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
         PutImplIntoComdat(Ctor, NewF);
         BasicBlock* RootBB = BasicBlock::Create(C, "filc_ctor_forwarder_root", NewF);
         ReturnInst* Return = ReturnInst::Create(C, RootBB);
@@ -10242,7 +10257,9 @@ public:
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Dtor = cast<Function>(Struct->getOperand(1));
         Function* NewF = Function::Create(
-          CtorDtorTy, GlobalValue::InternalLinkage, 0, "filc_dtor_forwarder", &M);
+          CtorDtorTy, GlobalValue::PrivateLinkage, 0, "filc_dtor_forwarder", &M);
+        NewF->addFnAttr(Attribute::NoUnwind);
+        NewF->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
         PutImplIntoComdat(Dtor, NewF);
         BasicBlock* RootBB = BasicBlock::Create(C, "filc_dtor_forwarder_root", NewF);
         ReturnInst* Return = ReturnInst::Create(C, RootBB);
@@ -10291,6 +10308,8 @@ public:
       if (G->isThreadLocal()) {
         Function* SlowF = Function::Create(ThreadLocalEnsureTy, GlobalValue::PrivateLinkage,
                                            G->getAddressSpace(), "pizlonatedGS_" + G->getName(), &M);
+        SlowF->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+        SlowF->addFnAttr(Attribute::NoUnwind);
         PutImplIntoComdat(G, SlowF);
         SlowF->addFnAttr(Attribute::NoInline);
       
@@ -10344,6 +10363,8 @@ public:
 
       Function* SlowF = Function::Create(PizlonatedGetterTy, GlobalValue::PrivateLinkage,
                                          G->getAddressSpace(), "pizlonatedGS_" + G->getName(), &M);
+      SlowF->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+      SlowF->addFnAttr(Attribute::NoUnwind);
       SlowF->addFnAttr(Attribute::NoInline);
       PutImplIntoComdat(G, SlowF);
       
