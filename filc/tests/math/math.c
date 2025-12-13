@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <features.h>
 #include <math.h>
 #include <stdfil.h>
 #include "utils.h"
