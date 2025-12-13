@@ -2,15 +2,12 @@
  * Public domain.
  */
 
+#include <pizlonated_math.h>
 
 long double
 __significandl (long double x)
 {
-  long double res;
-
-  asm ("fxtract\n"
-       "fstp	%%st(1)" : "=t" (res) : "0" (x));
-  return res;
+  return zmath_significandl (x);
 }
 
 weak_alias (__significandl, significandl)

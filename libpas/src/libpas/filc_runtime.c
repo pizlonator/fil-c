@@ -13478,6 +13478,42 @@ long double filc_native_zmath_nearbyintl(filc_thread* my_thread, long double val
     return nearbyintl(value);
 }
 
+long double filc_native_zmath_acosl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return acosl(value);
+}
+
+long double filc_native_zmath_atan2l(filc_thread* my_thread, long double y, long double x)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return atan2l(y, x);
+}
+
+long double filc_native_zmath_atanl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return atanl(value);
+}
+
+long double filc_native_zmath_logbl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return logbl(value);
+}
+
+long double filc_native_zmath_significandl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#if PAS_GLIBC
+    return significandl(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "significandl not implemented.");
+    return 0.;
+#endif
+}
+
 unsigned filc_native_zmath_getcw(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);

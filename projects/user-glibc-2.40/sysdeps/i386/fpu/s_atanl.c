@@ -4,17 +4,12 @@
  */
 
 #include <libm-alias-ldouble.h>
+#include <pizlonated_math.h>
 
 long double
 __atanl (long double x)
 {
-  long double res;
-
-  asm ("fld1\n"
-       "fpatan"
-       : "=t" (res) : "0" (x));
-
-  return res;
+  return zmath_atanl (x);
 }
 
 libm_alias_ldouble (__atan, atan)

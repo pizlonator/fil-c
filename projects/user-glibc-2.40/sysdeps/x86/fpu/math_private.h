@@ -20,13 +20,12 @@
 #define X86_MATH_PRIVATE_H 1
 
 #include_next <math_private.h>
+#include <pizlonated_math.h>
 
 __extern_always_inline long double
 __NTH (__ieee754_atan2l (long double y, long double x))
 {
-  long double ret;
-  __asm__ __volatile__ ("fpatan" : "=t" (ret) : "0" (x), "u" (y) : "st(1)");
-  return ret;
+  return zmath_atan2l (y, x);
 }
 
 #endif
