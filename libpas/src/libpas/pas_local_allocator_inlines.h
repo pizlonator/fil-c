@@ -2030,6 +2030,7 @@ pas_local_allocator_try_allocate_slow_impl(pas_local_allocator* allocator,
     PAS_ASSERT(!pas_debug_heap_is_enabled(config.kind));
     
     pas_local_allocator_commit_if_necessary(allocator, config);
+    PAS_ASSERT(size <= allocator->object_size);
     
     for (;;) {
         pas_fast_path_allocation_result fast_result;
@@ -2141,6 +2142,10 @@ pas_local_allocator_try_allocate(pas_local_allocator* allocator,
     pas_allocation_result result;
 
     PAS_TESTING_ASSERT(!allocator->scavenger_data.is_in_use);
+    size_t allocator_object_size = allocator->object_size;
+    /* If a decommit of the allocator happens, then the allocator's object_size will be come zero.
+       In that case, we will take a slow path further down below to reinitialize the allocator. */
+    PAS_ASSERT(size <= allocator_object_size || !allocator_object_size);
 
     if (verbose) {
         pas_log("Allocator %p (%s) allocating size = %zu, alignment = %zu.\n",
