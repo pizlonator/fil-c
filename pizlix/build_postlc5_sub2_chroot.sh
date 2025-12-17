@@ -78,3 +78,16 @@ cd ../..
 rm -rf pizlonated-libsoup
 hash -r
 
+tar -xf libsecret-0.21.4.tar.xz
+cd libsecret-0.21.4
+# Cannot use the name "build" because there's already a directory by that name in the libsecret
+# distro.
+mkdir -v bld
+cd bld
+meson setup .. --prefix=/usr --buildtype=debugoptimized -D gtk_doc=false -D crypto=gnutls -D vapi=false -D manpage=false
+ninja
+ninja install
+cd ../..
+rm -rf libsecret-0.21.4
+hash -r
+
