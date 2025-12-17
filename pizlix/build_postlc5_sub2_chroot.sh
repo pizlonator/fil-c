@@ -102,4 +102,13 @@ cd ../..
 rm -rf pizlonated-libgudev
 hash -r
 
+tar -xf libseccomp-2.5.5.tar.gz
+cd libseccomp-2.5.5
+./configure --prefix=/usr --disable-static
+make
+make install
+cd ..
+rm -rf libseccomp-2.5.5
+hash -r
+
 
