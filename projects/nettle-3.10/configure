@@ -5008,7 +5008,7 @@ fi
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if LD -Wl,--version-script works" >&5
 printf %s "checking if LD -Wl,--version-script works... " >&6; }
     save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -Wl,--version-script=conftest.map"
+    LDFLAGS="$LDFLAGS --version-script=conftest.map"
     cat > conftest.map <<EOF
 foo
 EOF
@@ -5069,9 +5069,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 printf "%s\n" "$have_ld_version_script" >&6; }
   fi
   if test "$have_ld_version_script" = "yes";then
-	EXTRA_LINKER_FLAGS="-Wl,--version-script=libnettle.map"
+	EXTRA_LINKER_FLAGS="--version-script=libnettle.map"
 
-	EXTRA_HOGWEED_LINKER_FLAGS="-Wl,--version-script=libhogweed.map"
+	EXTRA_HOGWEED_LINKER_FLAGS="--version-script=libhogweed.map"
 
   fi
 
