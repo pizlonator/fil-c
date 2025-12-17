@@ -1,0 +1,325 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "gnutls-serv",
+    "title": "GnuTLS server",
+    "description": "Simple server program to act as an HTTPS or TLS echo service.",
+    "detail": "Server program that listens to incoming TLS connections.",
+    "short-usage": "Usage: gnutls-serv [options]\ngnutls-serv --help for usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "sni-hostname",
+          "description": "Server's hostname for server name extension",
+          "detail": "Server name of type host_name that the server will recognise as its own. If the server receives client hello with different name, it will send a warning-level unrecognized_name alert.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "sni-hostname-fatal",
+          "description": "Send fatal alert on sni-hostname mismatch"
+        },
+        {
+          "long-option": "alpn",
+          "description": "Specify ALPN protocol to be enabled by the server",
+          "detail": "Specify the (textual) ALPN protocol for the server to use.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "alpn-fatal",
+          "description": "Send fatal alert on non-matching ALPN name"
+        },
+        {
+          "long-option": "noticket",
+          "description": "Don't accept session tickets"
+        },
+        {
+          "long-option": "earlydata",
+          "description": "Accept early data"
+        },
+        {
+          "long-option": "maxearlydata",
+          "description": "The maximum early data size to accept",
+          "argument-range": {
+            "min": 1
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "nocookie",
+          "description": "Don't require cookie on DTLS sessions"
+        },
+        {
+          "long-option": "generate",
+          "short-option": "g",
+          "description": "Generate Diffie-Hellman parameters"
+        },
+        {
+          "long-option": "quiet",
+          "short-option": "q",
+          "description": "Suppress some messages"
+        },
+        {
+          "long-option": "nodb",
+          "description": "Do not use a resumption database"
+        },
+        {
+          "long-option": "http",
+          "description": "Act as an HTTP server"
+        },
+        {
+          "long-option": "echo",
+          "description": "Act as an Echo server"
+        },
+        {
+          "long-option": "crlf",
+          "description": "Do not replace CRLF by LF in Echo server mode"
+        },
+        {
+          "long-option": "udp",
+          "short-option": "u",
+          "description": "Use DTLS (datagram TLS) over UDP"
+        },
+        {
+          "long-option": "mtu",
+          "description": "Set MTU for datagram TLS",
+          "argument-range": {
+            "min": 0,
+            "max": 17000
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "srtp-profiles",
+          "description": "Offer SRTP profiles",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "disable-client-cert",
+          "short-option": "a",
+          "description": "Do not request a client certificate",
+          "conflicts": [
+            "require-client-cert"
+          ]
+        },
+        {
+          "long-option": "require-client-cert",
+          "short-option": "r",
+          "description": "Require a client certificate",
+          "detail": "This option before 3.6.0 used to imply --verify-client-cert.\nSince 3.6.0 it will no longer verify the certificate by default."
+        },
+        {
+          "long-option": "verify-client-cert",
+          "description": "If a client certificate is sent then verify it",
+          "detail": "Do not require, but if a client certificate is sent then verify it and close the connection if invalid."
+        },
+        {
+          "long-option": "compress-cert",
+          "description": "Compress certificate",
+          "detail": "This option sets a supported compression method for certificate compression.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "heartbeat",
+          "short-option": "b",
+          "description": "Activate heartbeat support",
+          "detail": "Regularly ping client via heartbeat extension messages"
+        },
+        {
+          "long-option": "x509fmtder",
+          "description": "Use DER format for certificates to read from"
+        },
+        {
+          "long-option": "priority",
+          "description": "Priorities string",
+          "detail": "TLS algorithms and protocols to enable. You can\nuse predefined sets of ciphersuites such as PERFORMANCE,\nNORMAL, SECURE128, SECURE256. The default is NORMAL.\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on allowed keywords",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "dhparams",
+          "description": "DH params file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "x509cafile",
+          "description": "Certificate file or PKCS #11 URL to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "x509crlfile",
+          "description": "CRL file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "pgpkeyfile",
+          "description": "PGP Key file to use",
+          "file-exists": true,
+          "deprecated": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "x509keyfile",
+          "description": "X.509 key file or PKCS #11 URL to use",
+          "detail": "Specify the private key file or URI to use; it must correspond to\nthe certificate specified in --x509certfile. Multiple keys and certificates\ncan be specified with this option and in that case each occurrence of keyfile\nmust be followed by the corresponding x509certfile or vice-versa.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "x509certfile",
+          "description": "X.509 Certificate file or PKCS #11 URL to use",
+          "detail": "Specify the certificate file or URI to use; it must correspond to\nthe key specified in --x509keyfile. Multiple keys and certificates\ncan be specified with this option and in that case each occurrence of keyfile\nmust be followed by the corresponding x509certfile or vice-versa.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "x509dsakeyfile",
+          "description": "Alternative X.509 key file or PKCS #11 URL to use",
+          "deprecated": true,
+          "aliases": "x509keyfile"
+        },
+        {
+          "long-option": "x509dsacertfile",
+          "description": "Alternative X.509 Certificate file or PKCS #11 URL to use",
+          "deprecated": true,
+          "aliases": "x509certfile"
+        },
+        {
+          "long-option": "x509ecckeyfile",
+          "description": "Alternative X.509 key file or PKCS #11 URL to use",
+          "deprecated": true,
+          "aliases": "x509keyfile"
+        },
+        {
+          "long-option": "x509ecccertfile",
+          "description": "Alternative X.509 Certificate file or PKCS #11 URL to use",
+          "deprecated": true,
+          "aliases": "x509certfile"
+        },
+        {
+          "long-option": "rawpkkeyfile",
+          "description": "Private key file (PKCS #8 or PKCS #12) or PKCS #11 URL to use",
+          "detail": "Specify the private key file or URI to use; it must correspond to\nthe raw public-key specified in --rawpkfile. Multiple key pairs\ncan be specified with this option and in that case each occurrence of keyfile\nmust be followed by the corresponding rawpkfile or vice-versa.\n\nIn order to instruct the application to negotiate raw public keys one\nmust enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*\nand CTYPE-SRV-* flags).\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on how to set certificate types.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "rawpkfile",
+          "description": "Raw public-key file to use",
+          "detail": "Specify the raw public-key file to use; it must correspond to\nthe private key specified in --rawpkkeyfile. Multiple key pairs\ncan be specified with this option and in that case each occurrence of keyfile\nmust be followed by the corresponding rawpkfile or vice-versa.\n\nIn order to instruct the application to negotiate raw public keys one\nmust enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*\nand CTYPE-SRV-* flags).\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on how to set certificate types.",
+          "requires": [
+            "rawpkkeyfile"
+          ],
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "srppasswd",
+          "description": "SRP password file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "srppasswdconf",
+          "description": "SRP password configuration file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "pskpasswd",
+          "description": "PSK password file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "pskhint",
+          "description": "PSK identity hint to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "ocsp-response",
+          "description": "The OCSP response to send to client",
+          "detail": "If the client requested an OCSP response, return data from this file to the client.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "ignore-ocsp-response-errors",
+          "description": "Ignore any errors when setting the OCSP response",
+          "detail": "That option instructs gnutls to not attempt to match the provided OCSP responses with the certificates."
+        },
+        {
+          "long-option": "port",
+          "short-option": "p",
+          "description": "The port to connect to",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "list",
+          "short-option": "l",
+          "description": "Print a list of the supported algorithms and modes",
+          "detail": "Print a list of the supported algorithms and modes. If a priority string is given then only the enabled ciphersuites are shown."
+        },
+        {
+          "long-option": "provider",
+          "description": "Specify the PKCS #11 provider library",
+          "detail": "This will override the default options in /etc/gnutls/pkcs11.conf",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "keymatexport",
+          "description": "Label used for exporting keying material",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "keymatexportsize",
+          "description": "Size of the exported keying material",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "recordsize",
+          "description": "The maximum record size to advertise",
+          "argument-range": {
+            "min": 0,
+            "max": 16384
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "httpdata",
+          "description": "The data used as HTTP response",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "timeout",
+          "description": "The timeout period for server",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "attime",
+          "description": "Perform validation at the timestamp instead of the system time",
+          "detail": "timestamp is an instance in time encoded as Unix time or in a human\n readable timestring such as \"29 Feb 2004\", \"2004-02-29\".\nFull documentation available at \n<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>\nor locally via info '(coreutils) date invocation'.",
+          "argument-name": "timestamp",
+          "argument-type": "string"
+        }
+      ]
+    }
+  ]
+}

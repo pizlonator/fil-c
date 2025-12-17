@@ -1,0 +1,61 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "gnutls-cli-debug",
+    "title": "GnuTLS debug client",
+    "description": "Simple client program to check TLS server capabilities.",
+    "detail": "TLS debug client. It sets up multiple TLS connections to \na server and queries its capabilities. It was created to assist in debugging \nGnuTLS, but it might be useful to extract a TLS server's capabilities.\nIt connects to a TLS server, performs tests and print the server's \ncapabilities. If called with the `-V' parameter more checks will be performed.\nCan be used to check for servers with special needs or bugs.",
+    "short-usage": "Usage: gnutls-cli-debug [options] hostname\ngnutls-cli --help for usage instructions.\n",
+    "argument": "[hostname]",
+    "reorder-arguments": true
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verbose",
+          "short-option": "V",
+          "description": "More verbose output"
+        },
+        {
+          "long-option": "port",
+          "short-option": "p",
+          "description": "The port to connect to",
+          "argument-range": {
+            "min": 0,
+            "max": 65536
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "app-proto",
+          "aliases": "starttls-proto"
+        },
+        {
+          "long-option": "starttls-proto",
+          "description": "The application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)",
+          "detail": "Specify the application layer protocol for STARTTLS. If the protocol is supported, gnutls-cli will proceed to the TLS negotiation.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "attime",
+          "description": "Perform validation at the timestamp instead of the system time",
+          "detail": "timestamp is an instance in time encoded as Unix time or in a human\n readable timestring such as \"29 Feb 2004\", \"2004-02-29\".\nFull documentation available at \n<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>\nor locally via info '(coreutils) date invocation'.",
+          "argument-name": "timestamp",
+          "argument-type": "string"
+        }
+      ]
+    }
+  ]
+}

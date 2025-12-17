@@ -1,0 +1,16 @@
+
+
+
+
+@deftypefun {void *} {gnutls_x509_trust_list_get_ptr} (gnutls_x509_trust_list_t @var{tlist})
+@var{tlist}: is a @code{gnutls_x509_trust_list_t}  type.
+
+Get user pointer for tlist. Useful in callback function
+gnutls_x509_trust_list_set_getissuer_function.
+This is the pointer set with @code{gnutls_x509_trust_list_set_ptr()} .
+
+@strong{Returns:} the user given pointer from the tlist structure, or
+@code{NULL}  if it was never set.
+
+@strong{Since:} 3.7.0
+@end deftypefun

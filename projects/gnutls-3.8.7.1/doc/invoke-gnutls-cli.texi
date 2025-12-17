@@ -1,0 +1,558 @@
+@node gnutls-cli Invocation
+@heading Invoking gnutls-cli
+@pindex gnutls-cli
+
+Simple client program to set up a TLS connection to some other computer. 
+It sets up a TLS connection and forwards data from the standard input to the secured socket and vice versa.
+
+@anchor{gnutls-cli usage}
+@subheading gnutls-cli help/usage (@option{-?})
+@cindex gnutls-cli help
+
+The text printed is the same whether selected with the @code{help} option
+(@option{--help}) or the @code{more-help} option (@option{--more-help}).  @code{more-help} will print
+the usage text by passing it through a pager program.
+@code{more-help} is disabled on platforms without a working
+@code{fork(2)} function.  The @code{PAGER} environment variable is
+used to select the program, defaulting to @file{more}.  Both will exit
+with a status code of 0.
+
+@exampleindent 0
+@example
+gnutls-cli - GnuTLS client
+Usage:  gnutls-cli [ -<flag> [<val>] | --<name>[@{=| @}<val>] ]... [hostname]
+
+None:
+
+   -d, --debug=num            Enable debugging
+				- it must be in the range:
+				  0 to 9999
+   -V, --verbose              More verbose output
+       --tofu                 Enable trust on first use authentication
+       --strict-tofu          Fail to connect if a certificate is unknown or a known certificate has changed
+       --dane                 Enable DANE certificate verification (DNSSEC)
+       --local-dns            Use the local DNS server for DNSSEC resolving
+       --ca-verification      Enable CA certificate verification
+				- enabled by default
+				- disabled as '--no-ca-verification'
+       --ocsp                 Enable OCSP certificate verification
+   -r, --resume               Establish a session and resume
+       --earlydata=str        Send early data on resumption from the specified file
+   -e, --rehandshake          Establish a session and rehandshake
+       --sni-hostname=str     Server's hostname for server name indication extension
+       --verify-hostname=str  Server's hostname to use for validation
+   -s, --starttls             Connect, establish a plain session and start TLS
+       --app-proto            an alias for the 'starttls-proto' option
+       --starttls-proto=str   The application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)
+				- prohibits the option 'starttls'
+       --starttls-name=str    The hostname presented to the application protocol for STARTTLS (for smtp, xmpp, lmtp)
+				- prohibits the option 'starttls'
+				- requires the option 'starttls-proto'
+   -u, --udp                  Use DTLS (datagram TLS) over UDP
+       --mtu=num              Set MTU for datagram TLS
+				- it must be in the range:
+				  0 to 17000
+       --crlf                 Send CR LF instead of LF
+       --fastopen             Enable TCP Fast Open
+       --x509fmtder           Use DER format for certificates to read from
+       --print-cert           Print peer's certificate in PEM format
+       --save-cert=str        Save the peer's certificate chain in the specified file in PEM format
+       --save-ocsp=str        Save the peer's OCSP status response in the provided file
+				- prohibits the option 'save-ocsp-multi'
+       --save-ocsp-multi=str  Save all OCSP responses provided by the peer in this file
+				- prohibits the option 'save-ocsp'
+       --save-server-trace=str Save the server-side TLS message trace in the provided file
+       --save-client-trace=str Save the client-side TLS message trace in the provided file
+       --dh-bits=num          The minimum number of bits allowed for DH
+       --priority=str         Priorities string
+       --x509cafile=str       Certificate file or PKCS #11 URL to use
+       --x509crlfile=file     CRL file to use
+				- file must pre-exist
+       --x509keyfile=str      X.509 key file or PKCS #11 URL to use
+       --x509certfile=str     X.509 Certificate file or PKCS #11 URL to use
+				- requires the option 'x509keyfile'
+       --rawpkkeyfile=str     Private key file (PKCS #8 or PKCS #12) or PKCS #11 URL to use
+       --rawpkfile=str        Raw public-key file to use
+				- requires the option 'rawpkkeyfile'
+       --srpusername=str      SRP username to use
+       --srppasswd=str        SRP password to use
+       --pskusername=str      PSK username to use
+       --pskkey=str           PSK key (in hex) to use
+   -p, --port=str             The port or service to connect to
+       --insecure             Don't abort program if server certificate can't be validated
+       --verify-allow-broken  Allow broken algorithms, such as MD5 for certificate verification
+       --benchmark-ciphers    Benchmark individual ciphers
+       --benchmark-tls-kx     Benchmark TLS key exchange methods
+       --benchmark-tls-ciphers  Benchmark TLS ciphers
+   -l, --list                 Print a list of the supported algorithms and modes
+				- prohibits the option 'port'
+       --priority-list        Print a list of the supported priority strings
+       --noticket             Don't allow session tickets
+       --srtp-profiles=str    Offer SRTP profiles
+       --alpn=str             Application layer protocol
+       --compress-cert=str    Compress certificate
+   -b, --heartbeat            Activate heartbeat support
+       --recordsize=num       The maximum record size to advertise
+				- it must be in the range:
+				  0 to 4096
+       --disable-sni          Do not send a Server Name Indication (SNI)
+       --single-key-share     Send a single key share under TLS1.3
+       --post-handshake-auth  Enable post-handshake authentication under TLS1.3
+       --inline-commands      Inline commands of the form ^<cmd>^
+       --inline-commands-prefix=str Change the default delimiter for inline commands
+       --provider=file        Specify the PKCS #11 provider library
+				- file must pre-exist
+       --fips140-mode         Reports the status of the FIPS140-2 mode in gnutls library
+       --list-config          Reports the configuration of the library
+       --logfile=str          Redirect informational messages to a specific file
+       --keymatexport=str     Label used for exporting keying material
+       --keymatexportsize=num Size of the exported keying material
+       --waitresumption       Block waiting for the resumption data under TLS1.3
+       --ca-auto-retrieve     Enable automatic retrieval of missing CA certificates
+       --attime=str           Perform validation at the timestamp instead of the system time
+
+Version, usage and configuration options:
+
+   -v, --version[=arg]        output version information and exit
+   -h, --help                 display extended usage information and exit
+   -!, --more-help            extended usage information passed thru pager
+
+Options are specified by doubled hyphens and their name or by a single
+hyphen and the flag character.
+Operands and options may be intermixed.  They will be reordered.
+
+Simple client program to set up a TLS connection to some other computer. 
+It sets up a TLS connection and forwards data from the standard input to the secured socket and vice versa.
+
+Please send bug reports to:  <bugs@@gnutls.org>
+
+@end example
+@exampleindent 4
+
+@subheading debug option (-d).
+@anchor{gnutls-cli debug}
+
+This is the ``enable debugging'' option.
+This option takes a ArgumentType.NUMBER argument.
+Specifies the debug level.
+@subheading tofu option.
+@anchor{gnutls-cli tofu}
+
+This is the ``enable trust on first use authentication'' option.
+This option will, in addition to certificate authentication, perform authentication
+based on previously seen public keys, a model similar to SSH authentication. Note that when tofu 
+is specified (PKI) and DANE authentication will become advisory to assist the public key acceptance
+process.
+@subheading strict-tofu option.
+@anchor{gnutls-cli strict-tofu}
+
+This is the ``fail to connect if a certificate is unknown or a known certificate has changed'' option.
+This option will perform authentication as with option --tofu; however, no questions shall be asked whatsoever, neither to accept an unknown certificate nor a changed one.
+@subheading dane option.
+@anchor{gnutls-cli dane}
+
+This is the ``enable dane certificate verification (dnssec)'' option.
+This option will, in addition to certificate authentication using 
+the trusted CAs, verify the server certificates using on the DANE information
+available via DNSSEC.
+@subheading local-dns option.
+@anchor{gnutls-cli local-dns}
+
+This is the ``use the local dns server for dnssec resolving'' option.
+This option will use the local DNS server for DNSSEC.
+This is disabled by default due to many servers not allowing DNSSEC.
+@subheading ca-verification option.
+@anchor{gnutls-cli ca-verification}
+
+This is the ``enable ca certificate verification'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+can be disabled with --no-ca-verification.
+@item
+It is enabled by default.
+@end itemize
+
+This option can be used to enable or disable CA certificate verification. It is to be used with the --dane or --tofu options.
+@subheading ocsp option.
+@anchor{gnutls-cli ocsp}
+
+This is the ``enable ocsp certificate verification'' option.
+This option will enable verification of the peer's certificate using ocsp
+@subheading resume option (-r).
+@anchor{gnutls-cli resume}
+
+This is the ``establish a session and resume'' option.
+Connect, establish a session, reconnect and resume.
+@subheading rehandshake option (-e).
+@anchor{gnutls-cli rehandshake}
+
+This is the ``establish a session and rehandshake'' option.
+Connect, establish a session and rehandshake immediately.
+@subheading sni-hostname option.
+@anchor{gnutls-cli sni-hostname}
+
+This is the ``server's hostname for server name indication extension'' option.
+This option takes a ArgumentType.STRING argument.
+Set explicitly the server name used in the TLS server name indication extension. That is useful when testing with servers setup on different DNS name than the intended. If not specified, the provided hostname is used. Even with this option server certificate verification still uses the hostname passed on the main commandline. Use --verify-hostname to change this.
+@subheading verify-hostname option.
+@anchor{gnutls-cli verify-hostname}
+
+This is the ``server's hostname to use for validation'' option.
+This option takes a ArgumentType.STRING argument.
+Set explicitly the server name to be used when validating the server's certificate.
+@subheading starttls option (-s).
+@anchor{gnutls-cli starttls}
+
+This is the ``connect, establish a plain session and start tls'' option.
+The TLS session will be initiated when EOF or a SIGALRM is received.
+@subheading app-proto option.
+@anchor{gnutls-cli app-proto}
+
+This is an alias for the @code{starttls-proto} option,
+@pxref{gnutls-cli starttls-proto, the starttls-proto option documentation}.
+
+@subheading starttls-proto option.
+@anchor{gnutls-cli starttls-proto}
+
+This is the ``the application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)'' option.
+This option takes a ArgumentType.STRING argument.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+starttls.
+@end itemize
+
+Specify the application layer protocol for STARTTLS. If the protocol is supported, gnutls-cli will proceed to the TLS negotiation.
+@subheading starttls-name option.
+@anchor{gnutls-cli starttls-name}
+
+This is the ``the hostname presented to the application protocol for starttls (for smtp, xmpp, lmtp)'' option.
+This option takes a ArgumentType.STRING argument.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+starttls.
+@item
+must appear in combination with the following options:
+starttls-proto.
+@end itemize
+
+Specify the hostname presented to the application protocol for STARTTLS.
+@subheading save-ocsp-multi option.
+@anchor{gnutls-cli save-ocsp-multi}
+
+This is the ``save all ocsp responses provided by the peer in this file'' option.
+This option takes a ArgumentType.STRING argument.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+save-ocsp.
+@end itemize
+
+The file will contain a list of PEM encoded OCSP status responses if any were provided by the peer, starting with the one for the peer's server certificate.
+@subheading dh-bits option.
+@anchor{gnutls-cli dh-bits}
+
+This is the ``the minimum number of bits allowed for dh'' option.
+This option takes a ArgumentType.NUMBER argument.
+This option sets the minimum number of bits allowed for a Diffie-Hellman key exchange. You may want to lower the default value if the peer sends a weak prime and you get an connection error with unacceptable prime.
+@subheading priority option.
+@anchor{gnutls-cli priority}
+
+This is the ``priorities string'' option.
+This option takes a ArgumentType.STRING argument.
+TLS algorithms and protocols to enable. You can
+use predefined sets of ciphersuites such as PERFORMANCE,
+NORMAL, PFS, SECURE128, SECURE256. The default is NORMAL.
+
+Check  the  GnuTLS  manual  on  section  ``Priority strings'' for more
+information on the allowed keywords
+@subheading rawpkkeyfile option.
+@anchor{gnutls-cli rawpkkeyfile}
+
+This is the ``private key file (pkcs #8 or pkcs #12) or pkcs #11 url to use'' option.
+This option takes a ArgumentType.STRING argument.
+In order to instruct the application to negotiate raw public keys one
+must enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*
+and CTYPE-SRV-* flags).
+
+Check  the  GnuTLS  manual  on  section  ``Priority strings'' for more
+information on how to set certificate types.
+@subheading rawpkfile option.
+@anchor{gnutls-cli rawpkfile}
+
+This is the ``raw public-key file to use'' option.
+This option takes a ArgumentType.STRING argument.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must appear in combination with the following options:
+rawpkkeyfile.
+@end itemize
+
+In order to instruct the application to negotiate raw public keys one
+must enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*
+and CTYPE-SRV-* flags).
+
+Check  the  GnuTLS  manual  on  section  ``Priority strings'' for more
+information on how to set certificate types.
+@subheading ranges option.
+@anchor{gnutls-cli ranges}
+
+This is the ``use length-hiding padding to prevent traffic analysis'' option.
+When possible (e.g., when using CBC ciphersuites), use length-hiding padding to prevent traffic analysis.
+
+@strong{NOTE}@strong{: THIS OPTION IS DEPRECATED}
+@subheading benchmark-ciphers option.
+@anchor{gnutls-cli benchmark-ciphers}
+
+This is the ``benchmark individual ciphers'' option.
+By default the benchmarked ciphers will utilize any capabilities of the local CPU to improve performance. To test against the raw software implementation set the environment variable GNUTLS_CPUID_OVERRIDE to 0x1.
+@subheading benchmark-tls-ciphers option.
+@anchor{gnutls-cli benchmark-tls-ciphers}
+
+This is the ``benchmark tls ciphers'' option.
+By default the benchmarked ciphers will utilize any capabilities of the local CPU to improve performance. To test against the raw software implementation set the environment variable GNUTLS_CPUID_OVERRIDE to 0x1.
+@subheading list option (-l).
+@anchor{gnutls-cli list}
+
+This is the ``print a list of the supported algorithms and modes'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+port.
+@end itemize
+
+Print a list of the supported algorithms and modes. If a priority string is given then only the enabled ciphersuites are shown.
+@subheading priority-list option.
+@anchor{gnutls-cli priority-list}
+
+This is the ``print a list of the supported priority strings'' option.
+Print a list of the supported priority strings. The ciphersuites corresponding to each priority string can be examined using -l -p.
+@subheading noticket option.
+@anchor{gnutls-cli noticket}
+
+This is the ``don't allow session tickets'' option.
+Disable the request of receiving of session tickets under TLS1.2 or earlier
+@subheading alpn option.
+@anchor{gnutls-cli alpn}
+
+This is the ``application layer protocol'' option.
+This option takes a ArgumentType.STRING argument.
+This option will set and enable the Application Layer Protocol Negotiation  (ALPN) in the TLS protocol.
+@subheading compress-cert option.
+@anchor{gnutls-cli compress-cert}
+
+This is the ``compress certificate'' option.
+This option takes a ArgumentType.STRING argument.
+This option sets a supported compression method for certificate compression.
+@subheading disable-extensions option.
+@anchor{gnutls-cli disable-extensions}
+
+This is the ``disable all the tls extensions'' option.
+This option disables all TLS extensions. Deprecated option. Use the priority string.
+
+@strong{NOTE}@strong{: THIS OPTION IS DEPRECATED}
+@subheading single-key-share option.
+@anchor{gnutls-cli single-key-share}
+
+This is the ``send a single key share under tls1.3'' option.
+This option switches the default mode of sending multiple
+key shares, to send a single one (the top one).
+@subheading post-handshake-auth option.
+@anchor{gnutls-cli post-handshake-auth}
+
+This is the ``enable post-handshake authentication under tls1.3'' option.
+This option enables post-handshake authentication when under TLS1.3.
+@subheading inline-commands option.
+@anchor{gnutls-cli inline-commands}
+
+This is the ``inline commands of the form ^<cmd>^'' option.
+Enable inline commands of the form ^<cmd>^. The inline commands are expected to be in a line by themselves. The available commands are: resume, rekey1 (local rekey), rekey (rekey on both peers) and renegotiate.
+@subheading inline-commands-prefix option.
+@anchor{gnutls-cli inline-commands-prefix}
+
+This is the ``change the default delimiter for inline commands'' option.
+This option takes a ArgumentType.STRING argument.
+Change the default delimiter (^) used for inline commands. The delimiter is expected to be a single US-ASCII character (octets 0 - 127). This option is only relevant if inline commands are enabled via the inline-commands option
+@subheading provider option.
+@anchor{gnutls-cli provider}
+
+This is the ``specify the pkcs #11 provider library'' option.
+This option takes a ArgumentType.FILE argument.
+This will override the default options in /etc/gnutls/pkcs11.conf
+@subheading logfile option.
+@anchor{gnutls-cli logfile}
+
+This is the ``redirect informational messages to a specific file'' option.
+This option takes a ArgumentType.STRING argument.
+Redirect informational messages to a specific file. The file may be /dev/null also to make the gnutls client quiet to use it in piped server connections where only the server communication may appear on stdout.
+@subheading waitresumption option.
+@anchor{gnutls-cli waitresumption}
+
+This is the ``block waiting for the resumption data under tls1.3'' option.
+This option makes the client to block waiting for the resumption data under TLS1.3. The option has effect only when --resume is provided.
+@subheading ca-auto-retrieve option.
+@anchor{gnutls-cli ca-auto-retrieve}
+
+This is the ``enable automatic retrieval of missing ca certificates'' option.
+This option enables the client to automatically retrieve the missing intermediate CA certificates in the certificate chain, based on the Authority Information Access (AIA) extension.
+@subheading attime option.
+@anchor{gnutls-cli attime}
+
+This is the ``perform validation at the timestamp instead of the system time'' option.
+This option takes a ArgumentType.STRING argument @file{timestamp}.
+timestamp is an instance in time encoded as Unix time or in a human
+ readable timestring such as "29 Feb 2004", "2004-02-29".
+Full documentation available at 
+<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>
+or locally via info '(coreutils) date invocation'.
+@subheading version option (-v).
+@anchor{gnutls-cli version}
+
+This is the ``output version information and exit'' option.
+This option takes a ArgumentType.KEYWORD argument.
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+@subheading help option (-h).
+@anchor{gnutls-cli help}
+
+This is the ``display extended usage information and exit'' option.
+Display usage information and exit.
+@subheading more-help option (-!).
+@anchor{gnutls-cli more-help}
+
+This is the ``extended usage information passed thru pager'' option.
+Pass the extended usage information through a pager.
+@anchor{gnutls-cli exit status}
+@subheading gnutls-cli exit status
+
+One of the following exit values will be returned:
+@table @samp
+@item 0 (EXIT_SUCCESS)
+Successful program execution.
+@item 1 (EXIT_FAILURE)
+The operation failed or the command syntax was not valid.
+@end table
+@anchor{gnutls-cli See Also}
+@subsubheading gnutls-cli See Also
+gnutls-cli-debug(1), gnutls-serv(1)
+@anchor{gnutls-cli Examples}
+@subsubheading gnutls-cli Examples
+@subheading Connecting using PSK authentication
+To connect to a server using PSK authentication, you need to enable the choice of PSK by using a cipher priority parameter such as in the example below. 
+@example
+$ ./gnutls-cli -p 5556 localhost --pskusername psk_identity \
+    --pskkey 88f3824b3e5659f52d00e959bacab954b6540344 \
+    --priority NORMAL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK
+Resolving 'localhost'...
+Connecting to '127.0.0.1:5556'...
+- PSK authentication.
+- Version: TLS1.1
+- Key Exchange: PSK
+- Cipher: AES-128-CBC
+- MAC: SHA1
+- Compression: NULL
+- Handshake was completed
+    
+- Simple Client Mode:
+@end example
+By keeping the --pskusername parameter and removing the --pskkey parameter, it will query only for the password during the handshake.
+
+@subheading Connecting using raw public-key authentication
+To connect to a server using raw public-key authentication, you need to enable the option to negotiate raw public-keys via the priority strings such as in the example below. 
+@example
+$ ./gnutls-cli -p 5556 localhost --priority NORMAL:-CTYPE-CLI-ALL:+CTYPE-CLI-RAWPK \
+    --rawpkkeyfile cli.key.pem \
+    --rawpkfile cli.rawpk.pem
+Processed 1 client raw public key pair...
+Resolving 'localhost'...
+Connecting to '127.0.0.1:5556'...
+- Successfully sent 1 certificate(s) to server.
+- Server has requested a certificate.
+- Certificate type: X.509
+- Got a certificate list of 1 certificates.
+- Certificate[0] info:
+ - skipped
+- Description: (TLS1.3-Raw Public Key-X.509)-(ECDHE-SECP256R1)-(RSA-PSS-RSAE-SHA256)-(AES-256-GCM)
+- Options:
+- Handshake was completed
+    
+- Simple Client Mode:
+@end example
+
+@subheading Connecting to STARTTLS services
+
+You could also use the client to connect to services with starttls capability.
+@example
+$ gnutls-cli --starttls-proto smtp --port 25 localhost
+@end example
+
+@subheading Listing ciphersuites in a priority string
+To list the ciphersuites in a priority string:
+@example
+$ ./gnutls-cli --priority SECURE192 -l
+Cipher suites for SECURE192
+TLS_ECDHE_ECDSA_AES_256_CBC_SHA384         0xc0, 0x24	TLS1.2
+TLS_ECDHE_ECDSA_AES_256_GCM_SHA384         0xc0, 0x2e	TLS1.2
+TLS_ECDHE_RSA_AES_256_GCM_SHA384           0xc0, 0x30	TLS1.2
+TLS_DHE_RSA_AES_256_CBC_SHA256             0x00, 0x6b	TLS1.2
+TLS_DHE_DSS_AES_256_CBC_SHA256             0x00, 0x6a	TLS1.2
+TLS_RSA_AES_256_CBC_SHA256                 0x00, 0x3d	TLS1.2
+
+Certificate types: CTYPE-X.509
+Protocols: VERS-TLS1.2, VERS-TLS1.1, VERS-TLS1.0, VERS-SSL3.0, VERS-DTLS1.0
+Compression: COMP-NULL
+Elliptic curves: CURVE-SECP384R1, CURVE-SECP521R1
+PK-signatures: SIGN-RSA-SHA384, SIGN-ECDSA-SHA384, SIGN-RSA-SHA512, SIGN-ECDSA-SHA512
+@end example
+
+@subheading Connecting using a PKCS #11 token
+To connect to a server using a certificate and a private key present in a PKCS #11 token you 
+need to substitute the PKCS 11 URLs in the x509certfile and x509keyfile parameters.
+
+Those can be found using "p11tool --list-tokens" and then listing all the objects in the
+needed token, and using the appropriate.
+@example
+$ p11tool --list-tokens
+
+Token 0:
+	URL: pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test
+	Label: Test
+	Manufacturer: EnterSafe
+	Model: PKCS15
+	Serial: 1234
+
+$ p11tool --login --list-certs "pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test"
+
+Object 0:
+	URL: pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=cert
+	Type: X.509 Certificate
+	Label: client
+	ID: 2a:97:0d:58:d1:51:3c:23:07:ae:4e:0d:72:26:03:7d:99:06:02:6a
+
+$ MYCERT="pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=cert"
+$ MYKEY="pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=private"
+$ export MYCERT MYKEY
+
+$ gnutls-cli www.example.com --x509keyfile $MYKEY --x509certfile $MYCERT
+@end example
+Notice that the private key only differs from the certificate in the type.

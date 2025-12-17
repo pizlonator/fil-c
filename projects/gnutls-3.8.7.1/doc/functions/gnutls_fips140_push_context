@@ -1,0 +1,23 @@
+
+
+
+
+@deftypefun {int} {gnutls_fips140_push_context} (gnutls_fips140_context_t @var{context})
+@var{context}: a @code{gnutls_fips140_context_t} 
+
+Associate the FIPS  @code{context} to the current thread, diverting the
+currently active context. If a cryptographic operation is ongoing
+in the current thread, e.g., @code{gnutls_aead_cipher_init()}  is called
+but @code{gnutls_aead_cipher_deinit()}  is not yet called, it returns an
+error @code{GNUTLS_E_INVALID_REQUEST} .
+
+The operation state of  @code{context} will be reset to
+@code{GNUTLS_FIPS140_OP_INITIAL} .
+
+This function is no-op if FIPS140 is not compiled in nor enabled
+at run-time.
+
+@strong{Returns:} 0 upon success, a negative error code otherwise
+
+@strong{Since:} 3.7.3
+@end deftypefun

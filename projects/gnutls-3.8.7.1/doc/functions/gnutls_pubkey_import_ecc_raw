@@ -1,0 +1,24 @@
+
+
+
+
+@deftypefun {int} {gnutls_pubkey_import_ecc_raw} (gnutls_pubkey_t @var{key}, gnutls_ecc_curve_t @var{curve}, const gnutls_datum_t * @var{x}, const gnutls_datum_t * @var{y})
+@var{key}: The structure to store the parsed key
+
+@var{curve}: holds the curve
+
+@var{x}: holds the x-coordinate
+
+@var{y}: holds the y-coordinate
+
+This function will convert the given elliptic curve parameters to a
+@code{gnutls_pubkey_t} .  The output will be stored in  @code{key} .
+
+In EdDSA curves the  @code{y} parameter should be @code{NULL}  and the  @code{x} parameter must
+be the value in the native format for the curve.
+
+@strong{Returns:} On success, @code{GNUTLS_E_SUCCESS}  (0) is returned, otherwise a
+negative error value.
+
+@strong{Since:} 3.0
+@end deftypefun

@@ -1,0 +1,294 @@
+@node danetool Invocation
+@subsection Invoking danetool
+@pindex danetool
+
+Tool to generate and check DNS resource records for the DANE protocol.
+
+@anchor{danetool usage}
+@subsubheading danetool help/usage (@option{-?})
+@cindex danetool help
+
+The text printed is the same whether selected with the @code{help} option
+(@option{--help}) or the @code{more-help} option (@option{--more-help}).  @code{more-help} will print
+the usage text by passing it through a pager program.
+@code{more-help} is disabled on platforms without a working
+@code{fork(2)} function.  The @code{PAGER} environment variable is
+used to select the program, defaulting to @file{more}.  Both will exit
+with a status code of 0.
+
+@exampleindent 0
+@example
+danetool - GnuTLS DANE tool
+Usage:  danetool [ -<flag> [<val>] | --<name>[@{=| @}<val>] ]... 
+
+None:
+
+   -d, --debug=num            Enable debugging
+				- it must be in the range:
+				  0 to 9999
+   -V, --verbose              More verbose output
+       --outfile=str          Output file
+       --load-pubkey=str      Loads a public key file
+       --load-certificate=str Loads a certificate file
+       --dlv=str              Sets a DLV file
+       --hash=str             Hash algorithm to use for signing
+       --check=str            Check a host's DANE TLSA entry
+       --check-ee             Check only the end-entity's certificate
+       --check-ca             Check only the CA's certificate
+       --tlsa-rr              Print the DANE RR data on a certificate or public key
+				- requires the option 'host'
+       --host=str             Specify the hostname to be used in the DANE RR
+       --proto=str            The protocol set for DANE data (tcp, udp etc.)
+       --port=str             The port or service to connect to, for DANE data
+       --app-proto            an alias for the 'starttls-proto' option
+       --starttls-proto=str   The application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)
+       --ca                   Whether the provided certificate or public key is a Certificate Authority
+       --x509                 Use the hash of the X.509 certificate, rather than the public key
+       --local                an alias for the 'domain' option
+       --domain               The provided certificate or public key is issued by the local domain
+				- enabled by default
+				- disabled as '--no-domain'
+       --local-dns            Use the local DNS server for DNSSEC resolving
+       --insecure             Do not verify any DNSSEC signature
+       --inder                Use DER format for input certificates and private keys
+       --inraw                an alias for the 'inder' option
+       --print-raw            Print the received DANE data in raw format
+       --quiet                Suppress several informational messages
+
+Version, usage and configuration options:
+
+   -v, --version[=arg]        output version information and exit
+   -h, --help                 display extended usage information and exit
+   -!, --more-help            extended usage information passed thru pager
+
+Options are specified by doubled hyphens and their name or by a single
+hyphen and the flag character.
+
+Tool to generate and check DNS resource records for the DANE protocol.
+
+Please send bug reports to:  <bugs@@gnutls.org>
+
+@end example
+@exampleindent 4
+
+@subsubheading debug option (-d).
+@anchor{danetool debug}
+
+This is the ``enable debugging'' option.
+This option takes a ArgumentType.NUMBER argument.
+Specifies the debug level.
+@subsubheading load-pubkey option.
+@anchor{danetool load-pubkey}
+
+This is the ``loads a public key file'' option.
+This option takes a ArgumentType.STRING argument.
+This can be either a file or a PKCS #11 URL
+@subsubheading load-certificate option.
+@anchor{danetool load-certificate}
+
+This is the ``loads a certificate file'' option.
+This option takes a ArgumentType.STRING argument.
+This can be either a file or a PKCS #11 URL
+@subsubheading dlv option.
+@anchor{danetool dlv}
+
+This is the ``sets a dlv file'' option.
+This option takes a ArgumentType.STRING argument.
+This sets a DLV file to be used for DNSSEC verification.
+@subsubheading hash option.
+@anchor{danetool hash}
+
+This is the ``hash algorithm to use for signing'' option.
+This option takes a ArgumentType.STRING argument.
+Available hash functions are SHA1, RMD160, SHA256, SHA384, SHA512.
+@subsubheading check option.
+@anchor{danetool check}
+
+This is the ``check a host's dane tlsa entry'' option.
+This option takes a ArgumentType.STRING argument.
+Obtains the DANE TLSA entry from the given hostname and prints information. Note that the actual certificate of the host can be provided using --load-certificate, otherwise danetool will connect to the server to obtain it. The exit code on verification success will be zero.
+@subsubheading check-ee option.
+@anchor{danetool check-ee}
+
+This is the ``check only the end-entity's certificate'' option.
+Checks the end-entity's certificate only. Trust anchors or CAs are not considered.
+@subsubheading check-ca option.
+@anchor{danetool check-ca}
+
+This is the ``check only the ca's certificate'' option.
+Checks the trust anchor's and CA's certificate only. End-entities are not considered.
+@subsubheading tlsa-rr option.
+@anchor{danetool tlsa-rr}
+
+This is the ``print the dane rr data on a certificate or public key'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must appear in combination with the following options:
+host.
+@end itemize
+
+This command prints the DANE RR data needed to enable DANE on a DNS server.
+@subsubheading host option.
+@anchor{danetool host}
+
+This is the ``specify the hostname to be used in the dane rr'' option.
+This option takes a ArgumentType.STRING argument @file{Hostname}.
+This command sets the hostname for the DANE RR.
+@subsubheading proto option.
+@anchor{danetool proto}
+
+This is the ``the protocol set for dane data (tcp, udp etc.)'' option.
+This option takes a ArgumentType.STRING argument @file{Protocol}.
+This command specifies the protocol for the service set in the DANE data.
+@subsubheading app-proto option.
+@anchor{danetool app-proto}
+
+This is an alias for the @code{starttls-proto} option,
+@pxref{danetool starttls-proto, the starttls-proto option documentation}.
+
+@subsubheading starttls-proto option.
+@anchor{danetool starttls-proto}
+
+This is the ``the application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)'' option.
+This option takes a ArgumentType.STRING argument.
+When the server's certificate isn't provided danetool will connect to the server to obtain the certificate. In that case it is required to know the protocol to talk with the server prior to initiating the TLS handshake.
+@subsubheading ca option.
+@anchor{danetool ca}
+
+This is the ``whether the provided certificate or public key is a certificate authority'' option.
+Marks the DANE RR as a CA certificate if specified.
+@subsubheading x509 option.
+@anchor{danetool x509}
+
+This is the ``use the hash of the x.509 certificate, rather than the public key'' option.
+This option forces the generated record to contain the hash of the full X.509 certificate. By default only the hash of the public key is used.
+@subsubheading local option.
+@anchor{danetool local}
+
+This is an alias for the @code{domain} option,
+@pxref{danetool domain, the domain option documentation}.
+
+@subsubheading domain option.
+@anchor{danetool domain}
+
+This is the ``the provided certificate or public key is issued by the local domain'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+can be disabled with --no-domain.
+@item
+It is enabled by default.
+@end itemize
+
+DANE distinguishes certificates and public keys offered via the DNSSEC to trusted and local entities. This flag indicates that this is a domain-issued certificate, meaning that there could be no CA involved.
+@subsubheading local-dns option.
+@anchor{danetool local-dns}
+
+This is the ``use the local dns server for dnssec resolving'' option.
+This option will use the local DNS server for DNSSEC.
+This is disabled by default due to many servers not allowing DNSSEC.
+@subsubheading insecure option.
+@anchor{danetool insecure}
+
+This is the ``do not verify any dnssec signature'' option.
+Ignores any DNSSEC signature verification results.
+@subsubheading inder option.
+@anchor{danetool inder}
+
+This is the ``use der format for input certificates and private keys'' option.
+The input files will be assumed to be in DER or RAW format. 
+Unlike options that in PEM input would allow multiple input data (e.g. multiple 
+certificates), when reading in DER format a single data structure is read.
+@subsubheading inraw option.
+@anchor{danetool inraw}
+
+This is an alias for the @code{inder} option,
+@pxref{danetool inder, the inder option documentation}.
+
+@subsubheading print-raw option.
+@anchor{danetool print-raw}
+
+This is the ``print the received dane data in raw format'' option.
+This option will print the received DANE data.
+@subsubheading quiet option.
+@anchor{danetool quiet}
+
+This is the ``suppress several informational messages'' option.
+In that case on the exit code can be used as an indication of verification success
+@subsubheading version option (-v).
+@anchor{danetool version}
+
+This is the ``output version information and exit'' option.
+This option takes a ArgumentType.KEYWORD argument.
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+@subsubheading help option (-h).
+@anchor{danetool help}
+
+This is the ``display extended usage information and exit'' option.
+Display usage information and exit.
+@subsubheading more-help option (-!).
+@anchor{danetool more-help}
+
+This is the ``extended usage information passed thru pager'' option.
+Pass the extended usage information through a pager.
+@anchor{danetool exit status}
+@subsubheading danetool exit status
+
+One of the following exit values will be returned:
+@table @samp
+@item 0 (EXIT_SUCCESS)
+Successful program execution.
+@item 1 (EXIT_FAILURE)
+The operation failed or the command syntax was not valid.
+@end table
+@anchor{danetool See Also}
+@subsubheading danetool See Also
+    certtool (1)
+@anchor{danetool Examples}
+@subsubheading danetool Examples
+@subsubheading DANE TLSA RR generation
+
+To create a DANE TLSA resource record for a certificate (or public key) 
+that was issued locally and may or may not be signed by a CA use the following command.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem
+@end example
+
+To create a DANE TLSA resource record for a CA signed certificate, which will
+be marked as such use the following command.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem \
+  --no-domain
+@end example
+
+The former is useful to add in your DNS entry even if your certificate is signed 
+by a CA. That way even users who do not trust your CA will be able to verify your
+certificate using DANE.
+
+In order to create a record for the CA signer of your certificate use the following.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem \
+  --ca --no-domain
+@end example
+
+To read a server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --port 443
+@end example
+
+To verify an HTTPS server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --port 443 --load-certificate chain.pem
+@end example
+
+To verify an SMTP server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --starttls-proto=smtp --load-certificate chain.pem
+@end example

@@ -1,0 +1,14 @@
+
+
+
+
+@deftypefun {void} {gnutls_handshake_set_read_function} (gnutls_session_t @var{session}, gnutls_handshake_read_func @var{func})
+@var{session}: is @code{gnutls_session_t}  type
+
+@var{func}: is the function to be called
+
+This function will set a callback to be called when a handshake
+message is being sent.
+
+@strong{Since:} 3.7.0
+@end deftypefun

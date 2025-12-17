@@ -1,0 +1,16 @@
+
+
+
+
+@deftypefun {int} {gnutls_aead_cipher_set_key} (gnutls_aead_cipher_hd_t @var{handle}, const gnutls_datum_t * @var{key})
+@var{handle}: is a @code{gnutls_aead_cipher_hd_t}  type.
+
+@var{key}: The key to be used for encryption
+
+This function will set a new key without re-initializing the
+context.
+
+@strong{Returns:} Zero or a negative error code on error.
+
+@strong{Since:} 3.7.5
+@end deftypefun

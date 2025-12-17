@@ -1,0 +1,1602 @@
+/*
+ * Copyright (C) 2010-2012 Free Software Foundation, Inc.
+ * Copyright (C) 2014 Red Hat, Inc.
+ *
+ * Author: Nikos Mavrogiannopoulos
+ *
+ * This file is part of GNUTLS.
+ *
+ * The GNUTLS library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *
+ */
+
+/* Here lie nettle's wrappers for cipher support.
+ */
+
+#include "gnutls_int.h"
+#include "errors.h"
+#include "cipher_int.h"
+#include <nettle/aes.h>
+#include <nettle/camellia.h>
+#include <nettle/arcfour.h>
+#include <nettle/arctwo.h>
+#include <nettle/salsa20.h>
+#include <nettle/des.h>
+#include <nettle/version.h>
+#if ENABLE_GOST
+#ifndef HAVE_NETTLE_GOST28147_SET_KEY
+#include "gost/gost28147.h"
+#else
+#include <nettle/gost28147.h>
+#endif
+#ifndef HAVE_NETTLE_MAGMA_SET_KEY
+#include "gost/magma.h"
+#else
+#include <nettle/magma.h>
+#endif
+#ifndef HAVE_NETTLE_KUZNYECHIK_SET_KEY
+#include "gost/kuznyechik.h"
+#else
+#include <nettle/kuznyechik.h>
+#endif
+#include "gost/acpkm.h"
+#include <nettle/ctr.h>
+#endif
+#include <nettle/nettle-meta.h>
+#include <nettle/cbc.h>
+#include <nettle/gcm.h>
+#include <nettle/ccm.h>
+#include <nettle/chacha.h>
+#include <nettle/chacha-poly1305.h>
+#include <nettle/cfb.h>
+#include <nettle/xts.h>
+#include <nettle/siv-cmac.h>
+#ifdef HAVE_NETTLE_SIV_GCM_ENCRYPT_MESSAGE
+#include <nettle/siv-gcm.h>
+#else
+#include "backport/siv-gcm.h"
+#endif
+#include "fips.h"
+#include <intprops.h>
+
+struct nettle_cipher_ctx;
+
+/* Functions that refer to the nettle library.
+ */
+typedef void (*encrypt_func)(struct nettle_cipher_ctx *, size_t length,
+			     uint8_t *dst, const uint8_t *src);
+typedef void (*decrypt_func)(struct nettle_cipher_ctx *, size_t length,
+			     uint8_t *dst, const uint8_t *src);
+
+typedef void (*aead_encrypt_func)(struct nettle_cipher_ctx *, size_t nonce_size,
+				  const void *nonce, size_t auth_size,
+				  const void *auth, size_t tag_size,
+				  size_t length, uint8_t *dst,
+				  const uint8_t *src);
+typedef int (*aead_decrypt_func)(struct nettle_cipher_ctx *, size_t nonce_size,
+				 const void *nonce, size_t auth_size,
+				 const void *auth, size_t tag_size,
+				 size_t length, uint8_t *dst,
+				 const uint8_t *src);
+
+typedef void (*setiv_func)(void *ctx, size_t length, const uint8_t *);
+typedef void (*gen_setkey_func)(void *ctx, size_t length, const uint8_t *);
+
+struct nettle_cipher_st {
+	gnutls_cipher_algorithm_t algo;
+	unsigned ctx_size;
+	nettle_cipher_func *encrypt_block;
+	nettle_cipher_func *decrypt_block;
+	unsigned block_size;
+	unsigned key_size;
+	unsigned max_iv_size;
+
+	encrypt_func encrypt;
+	decrypt_func decrypt;
+	aead_encrypt_func aead_encrypt;
+	aead_decrypt_func aead_decrypt;
+	nettle_hash_update_func *auth;
+	nettle_hash_digest_func *tag;
+	nettle_set_key_func *set_encrypt_key;
+	nettle_set_key_func *set_decrypt_key;
+	gen_setkey_func gen_set_key; /* for arcfour which has variable key size */
+	setiv_func set_iv;
+};
+
+struct nettle_cipher_ctx {
+	const struct nettle_cipher_st *cipher;
+	void *ctx_ptr; /* always 16-aligned */
+	uint8_t iv[MAX_CIPHER_BLOCK_SIZE];
+	unsigned iv_size;
+
+	bool enc;
+	size_t rekey_counter;
+};
+
+#define AES_GCM_ENCRYPT_MAX_BYTES ((1ULL << 36) - 32)
+static inline int record_aes_gcm_encrypt_size(size_t *counter, size_t size)
+{
+	size_t sum;
+
+	if (!INT_ADD_OK(*counter, size, &sum) ||
+	    sum > AES_GCM_ENCRYPT_MAX_BYTES) {
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+	}
+	*counter = sum;
+
+	return 0;
+}
+
+static void _stream_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			    uint8_t *dst, const uint8_t *src)
+{
+	ctx->cipher->encrypt_block(ctx->ctx_ptr, length, dst, src);
+}
+
+static void _stream_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			    uint8_t *dst, const uint8_t *src)
+{
+	ctx->cipher->decrypt_block(ctx->ctx_ptr, length, dst, src);
+}
+
+static void _cbc_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	cbc_encrypt(ctx->ctx_ptr, ctx->cipher->encrypt_block, ctx->iv_size,
+		    ctx->iv, length, dst, src);
+}
+
+static void _cbc_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	cbc_decrypt(ctx->ctx_ptr, ctx->cipher->decrypt_block, ctx->iv_size,
+		    ctx->iv, length, dst, src);
+}
+
+#if ENABLE_GOST
+struct magma_acpkm_ctx {
+	uint8_t iv[MAGMA_BLOCK_SIZE];
+	struct acpkm_ctx ctx;
+	struct magma_ctx cipher;
+};
+
+struct kuznyechik_acpkm_ctx {
+	uint8_t iv[KUZNYECHIK_BLOCK_SIZE];
+	struct acpkm_ctx ctx;
+	struct kuznyechik_ctx cipher;
+};
+
+static void _cfb_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	cfb_encrypt(ctx->ctx_ptr, ctx->cipher->encrypt_block, ctx->iv_size,
+		    ctx->iv, length, dst, src);
+}
+
+static void _cfb_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	cfb_decrypt(ctx->ctx_ptr, ctx->cipher->encrypt_block, ctx->iv_size,
+		    ctx->iv, length, dst, src);
+}
+
+static void _ctr_acpkm_crypt(struct nettle_cipher_ctx *ctx, size_t length,
+			     uint8_t *dst, const uint8_t *src)
+{
+	/* Use context-specific IV which comes as a first field */
+	ctr_crypt(ctx->ctx_ptr, ctx->cipher->encrypt_block,
+		  ctx->cipher->block_size, ctx->ctx_ptr, length, dst, src);
+}
+
+static void _gost28147_set_key_tc26z(void *ctx, const uint8_t *key)
+{
+	gost28147_set_param(ctx, &gost28147_param_TC26_Z);
+	gost28147_set_key(ctx, key);
+}
+
+static void _gost28147_set_key_cpa(void *ctx, const uint8_t *key)
+{
+	gost28147_set_param(ctx, &gost28147_param_CryptoPro_A);
+	gost28147_set_key(ctx, key);
+}
+
+static void _gost28147_set_key_cpb(void *ctx, const uint8_t *key)
+{
+	gost28147_set_param(ctx, &gost28147_param_CryptoPro_B);
+	gost28147_set_key(ctx, key);
+}
+
+static void _gost28147_set_key_cpc(void *ctx, const uint8_t *key)
+{
+	gost28147_set_param(ctx, &gost28147_param_CryptoPro_C);
+	gost28147_set_key(ctx, key);
+}
+
+static void _gost28147_set_key_cpd(void *ctx, const uint8_t *key)
+{
+	gost28147_set_param(ctx, &gost28147_param_CryptoPro_D);
+	gost28147_set_key(ctx, key);
+}
+
+static void _gost28147_cnt_set_key_tc26z(void *ctx, const uint8_t *key)
+{
+	gost28147_cnt_init(ctx, key, &gost28147_param_TC26_Z);
+}
+
+static void _gost28147_cnt_set_nonce(void *ctx, size_t length,
+				     const uint8_t *nonce)
+{
+	gost28147_cnt_set_iv(ctx, nonce);
+}
+
+static void _gost28147_cnt_crypt(struct nettle_cipher_ctx *ctx, size_t length,
+				 uint8_t *dst, const uint8_t *src)
+{
+	gost28147_cnt_crypt((void *)ctx->ctx_ptr, length, dst, src);
+}
+
+static void _magma_acpkm_crypt(struct magma_acpkm_ctx *ctx, size_t length,
+			       uint8_t *dst, const uint8_t *src)
+{
+	acpkm_crypt(&ctx->ctx, &ctx->cipher,
+		    (nettle_cipher_func *)magma_encrypt,
+		    (nettle_set_key_func *)magma_set_key, length, dst, src);
+}
+
+static void _kuznyechik_acpkm_crypt(struct kuznyechik_acpkm_ctx *ctx,
+				    size_t length, uint8_t *dst,
+				    const uint8_t *src)
+{
+	acpkm_crypt(&ctx->ctx, &ctx->cipher,
+		    (nettle_cipher_func *)kuznyechik_encrypt,
+		    (nettle_set_key_func *)kuznyechik_set_key, length, dst,
+		    src);
+}
+
+static void _magma_ctr_acpkm_set_key(struct magma_acpkm_ctx *ctx,
+				     const uint8_t *key)
+{
+	magma_set_key(&ctx->cipher, key);
+	ctx->ctx.pos = 0;
+	ctx->ctx.N = 1024;
+}
+
+static void _magma_ctr_acpkm_set_iv(struct magma_acpkm_ctx *ctx, size_t length,
+				    const uint8_t *iv)
+{
+	memcpy(ctx->iv, iv, length);
+	memset(ctx->iv + length, 0, MAGMA_BLOCK_SIZE - length);
+}
+
+static void _kuznyechik_ctr_acpkm_set_key(struct kuznyechik_acpkm_ctx *ctx,
+					  const uint8_t *key)
+{
+	kuznyechik_set_key(&ctx->cipher, key);
+	ctx->ctx.pos = 0;
+	ctx->ctx.N = 4096;
+}
+
+static void _kuznyechik_ctr_acpkm_set_iv(struct kuznyechik_acpkm_ctx *ctx,
+					 size_t length, const uint8_t *iv)
+{
+	memcpy(ctx->iv, iv, length);
+	memset(ctx->iv + length, 0, KUZNYECHIK_BLOCK_SIZE - length);
+}
+#endif
+
+static void _ccm_encrypt(struct nettle_cipher_ctx *ctx, size_t nonce_size,
+			 const void *nonce, size_t auth_size, const void *auth,
+			 size_t tag_size, size_t length, uint8_t *dst,
+			 const uint8_t *src)
+{
+	ccm_encrypt_message((void *)ctx->ctx_ptr, ctx->cipher->encrypt_block,
+			    nonce_size, nonce, auth_size, auth, tag_size,
+			    length, dst, src);
+}
+
+static int _ccm_decrypt(struct nettle_cipher_ctx *ctx, size_t nonce_size,
+			const void *nonce, size_t auth_size, const void *auth,
+			size_t tag_size, size_t length, uint8_t *dst,
+			const uint8_t *src)
+{
+	return ccm_decrypt_message((void *)ctx->ctx_ptr,
+				   ctx->cipher->encrypt_block, nonce_size,
+				   nonce, auth_size, auth, tag_size, length,
+				   dst, src);
+}
+
+static void _siv_cmac_aes128_encrypt_message(struct nettle_cipher_ctx *ctx,
+					     size_t nonce_size,
+					     const void *nonce,
+					     size_t auth_size, const void *auth,
+					     size_t tag_size, size_t length,
+					     uint8_t *dst, const uint8_t *src)
+{
+	siv_cmac_aes128_encrypt_message((void *)ctx->ctx_ptr, nonce_size, nonce,
+					auth_size, auth, length, dst, src);
+}
+
+static int _siv_cmac_aes128_decrypt_message(struct nettle_cipher_ctx *ctx,
+					    size_t nonce_size,
+					    const void *nonce, size_t auth_size,
+					    const void *auth, size_t tag_size,
+					    size_t length, uint8_t *dst,
+					    const uint8_t *src)
+{
+	return siv_cmac_aes128_decrypt_message((void *)ctx->ctx_ptr, nonce_size,
+					       nonce, auth_size, auth, length,
+					       dst, src);
+}
+
+static void _siv_cmac_aes256_encrypt_message(struct nettle_cipher_ctx *ctx,
+					     size_t nonce_size,
+					     const void *nonce,
+					     size_t auth_size, const void *auth,
+					     size_t tag_size, size_t length,
+					     uint8_t *dst, const uint8_t *src)
+{
+	siv_cmac_aes256_encrypt_message((void *)ctx->ctx_ptr, nonce_size, nonce,
+					auth_size, auth, length, dst, src);
+}
+
+static int _siv_cmac_aes256_decrypt_message(struct nettle_cipher_ctx *ctx,
+					    size_t nonce_size,
+					    const void *nonce, size_t auth_size,
+					    const void *auth, size_t tag_size,
+					    size_t length, uint8_t *dst,
+					    const uint8_t *src)
+{
+	return siv_cmac_aes256_decrypt_message((void *)ctx->ctx_ptr, nonce_size,
+					       nonce, auth_size, auth, length,
+					       dst, src);
+}
+
+static void _siv_gcm_aes128_encrypt_message(struct nettle_cipher_ctx *ctx,
+					    size_t nonce_size,
+					    const void *nonce, size_t auth_size,
+					    const void *auth, size_t tag_size,
+					    size_t length, uint8_t *dst,
+					    const uint8_t *src)
+{
+	siv_gcm_aes128_encrypt_message((void *)ctx->ctx_ptr, nonce_size, nonce,
+				       auth_size, auth, length, dst, src);
+}
+
+static int _siv_gcm_aes128_decrypt_message(struct nettle_cipher_ctx *ctx,
+					   size_t nonce_size, const void *nonce,
+					   size_t auth_size, const void *auth,
+					   size_t tag_size, size_t length,
+					   uint8_t *dst, const uint8_t *src)
+{
+	return siv_gcm_aes128_decrypt_message((void *)ctx->ctx_ptr, nonce_size,
+					      nonce, auth_size, auth, length,
+					      dst, src);
+}
+
+static void _siv_gcm_aes256_encrypt_message(struct nettle_cipher_ctx *ctx,
+					    size_t nonce_size,
+					    const void *nonce, size_t auth_size,
+					    const void *auth, size_t tag_size,
+					    size_t length, uint8_t *dst,
+					    const uint8_t *src)
+{
+	siv_gcm_aes256_encrypt_message((void *)ctx->ctx_ptr, nonce_size, nonce,
+				       auth_size, auth, length, dst, src);
+}
+
+static int _siv_gcm_aes256_decrypt_message(struct nettle_cipher_ctx *ctx,
+					   size_t nonce_size, const void *nonce,
+					   size_t auth_size, const void *auth,
+					   size_t tag_size, size_t length,
+					   uint8_t *dst, const uint8_t *src)
+{
+	return siv_gcm_aes256_decrypt_message((void *)ctx->ctx_ptr, nonce_size,
+					      nonce, auth_size, auth, length,
+					      dst, src);
+}
+
+static void _chacha_set_nonce(struct chacha_ctx *ctx, size_t length,
+			      const uint8_t *nonce)
+{
+	chacha_set_nonce(ctx, nonce + CHACHA_COUNTER_SIZE);
+	chacha_set_counter(ctx, nonce);
+}
+
+static void _chacha_set_nonce96(struct chacha_ctx *ctx, size_t length,
+				const uint8_t *nonce)
+{
+	chacha_set_nonce96(ctx, nonce + CHACHA_COUNTER32_SIZE);
+	chacha_set_counter32(ctx, nonce);
+}
+
+static void _chacha_poly1305_set_nonce(struct chacha_poly1305_ctx *ctx,
+				       size_t length, const uint8_t *nonce)
+{
+	chacha_poly1305_set_nonce(ctx, nonce);
+}
+
+struct gcm_cast_st {
+	struct gcm_key key;
+	struct gcm_ctx gcm;
+	unsigned long xx[1];
+};
+#define GCM_CTX_GET_KEY(ptr) (&((struct gcm_cast_st *)ptr)->key)
+#define GCM_CTX_GET_CTX(ptr) (&((struct gcm_cast_st *)ptr)->gcm)
+#define GCM_CTX_GET_CIPHER(ptr) ((void *)&((struct gcm_cast_st *)ptr)->xx)
+
+static void _gcm_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	gcm_encrypt(GCM_CTX_GET_CTX(ctx->ctx_ptr),
+		    GCM_CTX_GET_KEY(ctx->ctx_ptr),
+		    GCM_CTX_GET_CIPHER(ctx->ctx_ptr),
+		    ctx->cipher->encrypt_block, length, dst, src);
+}
+
+static void _gcm_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			 uint8_t *dst, const uint8_t *src)
+{
+	gcm_decrypt(GCM_CTX_GET_CTX(ctx->ctx_ptr),
+		    GCM_CTX_GET_KEY(ctx->ctx_ptr),
+		    GCM_CTX_GET_CIPHER(ctx->ctx_ptr),
+		    ctx->cipher->encrypt_block, length, dst, src);
+}
+
+static void _des_set_key(struct des_ctx *ctx, const uint8_t *key)
+{
+	des_set_key(ctx, key);
+}
+
+static void _des3_set_key(struct des3_ctx *ctx, const uint8_t *key)
+{
+	des3_set_key(ctx, key);
+}
+
+static void _cfb8_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			  uint8_t *dst, const uint8_t *src)
+{
+	cfb8_encrypt(ctx->ctx_ptr, ctx->cipher->encrypt_block, ctx->iv_size,
+		     ctx->iv, length, dst, src);
+}
+
+static void _cfb8_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+			  uint8_t *dst, const uint8_t *src)
+{
+	cfb8_decrypt(ctx->ctx_ptr, ctx->cipher->encrypt_block, ctx->iv_size,
+		     ctx->iv, length, dst, src);
+}
+
+static void _xts_aes128_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	xts_aes128_encrypt_message(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+static void _xts_aes128_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	xts_aes128_decrypt_message(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+static void _xts_aes256_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	xts_aes256_encrypt_message(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+static void _xts_aes256_decrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	xts_aes256_decrypt_message(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+#ifdef HAVE_NETTLE_CBC_AES128_ENCRYPT
+
+static void _cbc_aes128_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	assert((length % ctx->cipher->block_size) == 0);
+	cbc_aes128_encrypt(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+static void _cbc_aes192_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	assert((length % ctx->cipher->block_size) == 0);
+	cbc_aes192_encrypt(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+static void _cbc_aes256_encrypt(struct nettle_cipher_ctx *ctx, size_t length,
+				uint8_t *dst, const uint8_t *src)
+{
+	assert((length % ctx->cipher->block_size) == 0);
+	cbc_aes256_encrypt(ctx->ctx_ptr, ctx->iv, length, dst, src);
+}
+
+#endif /* HAVE_NETTLE_CBC_AES128_ENCRYPT */
+
+static const struct nettle_cipher_st builtin_ciphers[] = {
+	{
+		.algo = GNUTLS_CIPHER_AES_128_GCM,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes128_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes128_decrypt,
+
+		.ctx_size = sizeof(struct gcm_aes128_ctx),
+		.encrypt = _gcm_encrypt,
+		.decrypt = _gcm_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)gcm_aes128_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)gcm_aes128_set_key,
+
+		.tag = (nettle_hash_digest_func *)gcm_aes128_digest,
+		.auth = (nettle_hash_update_func *)gcm_aes128_update,
+		.set_iv = (setiv_func)gcm_aes128_set_iv,
+		.max_iv_size = GCM_IV_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_192_GCM,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES192_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes192_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes192_decrypt,
+
+		.ctx_size = sizeof(struct gcm_aes192_ctx),
+		.encrypt = _gcm_encrypt,
+		.decrypt = _gcm_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)gcm_aes192_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)gcm_aes192_set_key,
+
+		.tag = (nettle_hash_digest_func *)gcm_aes192_digest,
+		.auth = (nettle_hash_update_func *)gcm_aes192_update,
+		.set_iv = (setiv_func)gcm_aes192_set_iv,
+		.max_iv_size = GCM_IV_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_GCM,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes256_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes256_decrypt,
+
+		.ctx_size = sizeof(struct gcm_aes256_ctx),
+		.encrypt = _gcm_encrypt,
+		.decrypt = _gcm_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)gcm_aes256_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)gcm_aes256_set_key,
+
+		.tag = (nettle_hash_digest_func *)gcm_aes256_digest,
+		.auth = (nettle_hash_update_func *)gcm_aes256_update,
+		.set_iv = (setiv_func)gcm_aes256_set_iv,
+		.max_iv_size = GCM_IV_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_128_CCM,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes128_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes128_decrypt,
+
+		.ctx_size = sizeof(struct aes128_ctx),
+		.aead_encrypt = _ccm_encrypt,
+		.aead_decrypt = _ccm_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.max_iv_size = CCM_MAX_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_128_CCM_8,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes128_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes128_decrypt,
+
+		.ctx_size = sizeof(struct aes128_ctx),
+		.aead_encrypt = _ccm_encrypt,
+		.aead_decrypt = _ccm_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.max_iv_size = CCM_MAX_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_CCM,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes256_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes256_decrypt,
+
+		.ctx_size = sizeof(struct aes256_ctx),
+		.aead_encrypt = _ccm_encrypt,
+		.aead_decrypt = _ccm_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.max_iv_size = CCM_MAX_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_CCM_8,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes256_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes256_decrypt,
+
+		.ctx_size = sizeof(struct aes256_ctx),
+		.aead_encrypt = _ccm_encrypt,
+		.aead_decrypt = _ccm_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.max_iv_size = CCM_MAX_NONCE_SIZE,
+	},
+	{ .algo = GNUTLS_CIPHER_CAMELLIA_128_GCM,
+	  .block_size = CAMELLIA_BLOCK_SIZE,
+	  .key_size = CAMELLIA128_KEY_SIZE,
+	  .encrypt_block = (nettle_cipher_func *)camellia128_crypt,
+	  .decrypt_block = (nettle_cipher_func *)camellia128_crypt,
+
+	  .ctx_size = sizeof(struct gcm_camellia128_ctx),
+	  .encrypt = _gcm_encrypt,
+	  .decrypt = _gcm_decrypt,
+	  .set_encrypt_key = (nettle_set_key_func *)gcm_camellia128_set_key,
+	  .set_decrypt_key = (nettle_set_key_func *)gcm_camellia128_set_key,
+	  .tag = (nettle_hash_digest_func *)gcm_camellia128_digest,
+	  .auth = (nettle_hash_update_func *)gcm_camellia128_update,
+	  .max_iv_size = GCM_IV_SIZE,
+	  .set_iv = (setiv_func)gcm_camellia128_set_iv },
+	{ .algo = GNUTLS_CIPHER_CAMELLIA_256_GCM,
+	  .block_size = CAMELLIA_BLOCK_SIZE,
+	  .key_size = CAMELLIA256_KEY_SIZE,
+	  .encrypt_block = (nettle_cipher_func *)camellia256_crypt,
+	  .decrypt_block = (nettle_cipher_func *)camellia256_crypt,
+
+	  .ctx_size = sizeof(struct gcm_camellia256_ctx),
+	  .encrypt = _gcm_encrypt,
+	  .decrypt = _gcm_decrypt,
+	  .set_encrypt_key = (nettle_set_key_func *)gcm_camellia256_set_key,
+	  .set_decrypt_key = (nettle_set_key_func *)gcm_camellia256_set_key,
+	  .tag = (nettle_hash_digest_func *)gcm_camellia256_digest,
+	  .auth = (nettle_hash_update_func *)gcm_camellia256_update,
+	  .max_iv_size = GCM_IV_SIZE,
+	  .set_iv = (setiv_func)gcm_camellia256_set_iv },
+	{
+		.algo = GNUTLS_CIPHER_AES_128_CBC,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes128_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes128_decrypt,
+
+		.ctx_size = sizeof(
+			struct CBC_CTX(struct aes128_ctx, AES_BLOCK_SIZE)),
+#ifdef HAVE_NETTLE_CBC_AES128_ENCRYPT
+		.encrypt = _cbc_aes128_encrypt,
+#else
+		.encrypt = _cbc_encrypt,
+#endif
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes128_set_decrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_192_CBC,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES192_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes192_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes192_decrypt,
+
+		.ctx_size = sizeof(
+			struct CBC_CTX(struct aes192_ctx, AES_BLOCK_SIZE)),
+#ifdef HAVE_NETTLE_CBC_AES128_ENCRYPT
+		.encrypt = _cbc_aes192_encrypt,
+#else
+		.encrypt = _cbc_encrypt,
+#endif
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes192_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes192_set_decrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_CBC,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes256_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes256_decrypt,
+
+		.ctx_size = sizeof(
+			struct CBC_CTX(struct aes256_ctx, AES_BLOCK_SIZE)),
+#ifdef HAVE_NETTLE_CBC_AES128_ENCRYPT
+		.encrypt = _cbc_aes256_encrypt,
+#else
+		.encrypt = _cbc_encrypt,
+#endif
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes256_set_decrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CAMELLIA_128_CBC,
+		.block_size = CAMELLIA_BLOCK_SIZE,
+		.key_size = CAMELLIA128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)camellia128_crypt,
+		.decrypt_block = (nettle_cipher_func *)camellia128_crypt,
+
+		.ctx_size = sizeof(struct CBC_CTX(struct camellia128_ctx,
+						  CAMELLIA_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)camellia128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)camellia128_set_decrypt_key,
+		.max_iv_size = CAMELLIA_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CAMELLIA_192_CBC,
+		.block_size = CAMELLIA_BLOCK_SIZE,
+		.key_size = CAMELLIA192_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)camellia192_crypt,
+		.decrypt_block = (nettle_cipher_func *)camellia192_crypt,
+
+		.ctx_size = sizeof(struct CBC_CTX(struct camellia192_ctx,
+						  CAMELLIA_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)camellia192_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)camellia192_set_decrypt_key,
+		.max_iv_size = CAMELLIA_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CAMELLIA_256_CBC,
+		.block_size = CAMELLIA_BLOCK_SIZE,
+		.key_size = CAMELLIA256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)camellia256_crypt,
+		.decrypt_block = (nettle_cipher_func *)camellia256_crypt,
+
+		.ctx_size = sizeof(struct CBC_CTX(struct camellia256_ctx,
+						  CAMELLIA_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)camellia256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)camellia256_set_decrypt_key,
+		.max_iv_size = CAMELLIA_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_RC2_40_CBC,
+		.block_size = ARCTWO_BLOCK_SIZE,
+		.key_size = 5,
+		.encrypt_block = (nettle_cipher_func *)arctwo_encrypt,
+		.decrypt_block = (nettle_cipher_func *)arctwo_decrypt,
+
+		.ctx_size = sizeof(
+			struct CBC_CTX(struct arctwo_ctx, ARCTWO_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)arctwo40_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)arctwo40_set_key,
+		.max_iv_size = ARCTWO_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_DES_CBC,
+		.block_size = DES_BLOCK_SIZE,
+		.key_size = DES_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)des_encrypt,
+		.decrypt_block = (nettle_cipher_func *)des_decrypt,
+
+		.ctx_size =
+			sizeof(struct CBC_CTX(struct des_ctx, DES_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)_des_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)_des_set_key,
+		.max_iv_size = DES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_3DES_CBC,
+		.block_size = DES3_BLOCK_SIZE,
+		.key_size = DES3_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)des3_encrypt,
+		.decrypt_block = (nettle_cipher_func *)des3_decrypt,
+
+		.ctx_size = sizeof(
+			struct CBC_CTX(struct des3_ctx, DES3_BLOCK_SIZE)),
+		.encrypt = _cbc_encrypt,
+		.decrypt = _cbc_decrypt,
+		.set_encrypt_key = (nettle_set_key_func *)_des3_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)_des3_set_key,
+		.max_iv_size = DES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_ARCFOUR_128,
+		.block_size = 1,
+		.key_size = 0,
+		.encrypt_block = (nettle_cipher_func *)arcfour_crypt,
+		.decrypt_block = (nettle_cipher_func *)arcfour_crypt,
+
+		.ctx_size = sizeof(struct arcfour_ctx),
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_encrypt,
+		.gen_set_key = (gen_setkey_func)arcfour_set_key,
+		.set_encrypt_key = (nettle_set_key_func *)arcfour128_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)arcfour128_set_key,
+	},
+	{
+		.algo = GNUTLS_CIPHER_SALSA20_256,
+		.block_size = 1,
+		.key_size = SALSA20_256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)salsa20_crypt,
+		.decrypt_block = (nettle_cipher_func *)salsa20_crypt,
+
+		.ctx_size = sizeof(struct salsa20_ctx),
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_encrypt,
+		.set_encrypt_key = (nettle_set_key_func *)salsa20_256_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)salsa20_256_set_key,
+		.max_iv_size = SALSA20_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_ESTREAM_SALSA20_256,
+		.block_size = 1,
+		.key_size = SALSA20_256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)salsa20r12_crypt,
+		.decrypt_block = (nettle_cipher_func *)salsa20r12_crypt,
+
+		.ctx_size = sizeof(struct salsa20_ctx),
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_encrypt,
+		.set_encrypt_key = (nettle_set_key_func *)salsa20_256_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)salsa20_256_set_key,
+		.max_iv_size = SALSA20_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CHACHA20_32,
+		.block_size = 1,
+		.key_size = CHACHA_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)chacha_crypt32,
+		.decrypt_block = (nettle_cipher_func *)chacha_crypt32,
+
+		.ctx_size = sizeof(struct chacha_ctx),
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_encrypt,
+		.set_encrypt_key = (nettle_set_key_func *)chacha_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)chacha_set_key,
+		.set_iv = (setiv_func)_chacha_set_nonce96,
+		/* we allow setting the initial block counter as part of nonce */
+		.max_iv_size = CHACHA_NONCE96_SIZE + CHACHA_COUNTER32_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CHACHA20_64,
+		.block_size = 1,
+		.key_size = CHACHA_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)chacha_crypt,
+		.decrypt_block = (nettle_cipher_func *)chacha_crypt,
+
+		.ctx_size = sizeof(struct chacha_ctx),
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_encrypt,
+		.set_encrypt_key = (nettle_set_key_func *)chacha_set_key,
+		.set_decrypt_key = (nettle_set_key_func *)chacha_set_key,
+		.set_iv = (setiv_func)_chacha_set_nonce,
+		/* we allow setting the initial block counter as part of nonce */
+		.max_iv_size = CHACHA_NONCE_SIZE + CHACHA_COUNTER_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_CHACHA20_POLY1305,
+		.block_size = CHACHA_POLY1305_BLOCK_SIZE,
+		.key_size = CHACHA_POLY1305_KEY_SIZE,
+
+		.ctx_size = sizeof(struct chacha_poly1305_ctx),
+		.encrypt_block = (nettle_cipher_func *)chacha_poly1305_encrypt,
+		.decrypt_block = (nettle_cipher_func *)chacha_poly1305_decrypt,
+		.encrypt = _stream_encrypt,
+		.decrypt = _stream_decrypt,
+		.auth = (nettle_hash_update_func *)chacha_poly1305_update,
+		.tag = (nettle_hash_digest_func *)chacha_poly1305_digest,
+		.set_encrypt_key =
+			(nettle_set_key_func *)chacha_poly1305_set_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)chacha_poly1305_set_key,
+		.set_iv = (setiv_func)_chacha_poly1305_set_nonce,
+		.max_iv_size = CHACHA_POLY1305_NONCE_SIZE,
+	},
+#if ENABLE_GOST
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_TC26Z_CFB,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+
+		.ctx_size = sizeof(struct CFB_CTX(struct gost28147_ctx,
+						  GOST28147_BLOCK_SIZE)),
+		.encrypt = _cfb_encrypt,
+		.decrypt = _cfb_decrypt,
+		.set_encrypt_key = _gost28147_set_key_tc26z,
+		.set_decrypt_key = _gost28147_set_key_tc26z,
+	},
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_CPA_CFB,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+
+		.ctx_size = sizeof(struct CFB_CTX(struct gost28147_ctx,
+						  GOST28147_BLOCK_SIZE)),
+		.encrypt = _cfb_encrypt,
+		.decrypt = _cfb_decrypt,
+		.set_encrypt_key = _gost28147_set_key_cpa,
+		.set_decrypt_key = _gost28147_set_key_cpa,
+	},
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_CPB_CFB,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+
+		.ctx_size = sizeof(struct CFB_CTX(struct gost28147_ctx,
+						  GOST28147_BLOCK_SIZE)),
+		.encrypt = _cfb_encrypt,
+		.decrypt = _cfb_decrypt,
+		.set_encrypt_key = _gost28147_set_key_cpb,
+		.set_decrypt_key = _gost28147_set_key_cpb,
+	},
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_CPC_CFB,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+
+		.ctx_size = sizeof(struct CFB_CTX(struct gost28147_ctx,
+						  GOST28147_BLOCK_SIZE)),
+		.encrypt = _cfb_encrypt,
+		.decrypt = _cfb_decrypt,
+		.set_encrypt_key = _gost28147_set_key_cpc,
+		.set_decrypt_key = _gost28147_set_key_cpc,
+	},
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_CPD_CFB,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt_for_cfb,
+
+		.ctx_size = sizeof(struct CFB_CTX(struct gost28147_ctx,
+						  GOST28147_BLOCK_SIZE)),
+		.encrypt = _cfb_encrypt,
+		.decrypt = _cfb_decrypt,
+		.set_encrypt_key = _gost28147_set_key_cpd,
+		.set_decrypt_key = _gost28147_set_key_cpd,
+	},
+	{
+		.algo = GNUTLS_CIPHER_GOST28147_TC26Z_CNT,
+		.block_size = GOST28147_BLOCK_SIZE,
+		.key_size = GOST28147_KEY_SIZE,
+		.encrypt_block =
+			(nettle_cipher_func *)gost28147_encrypt, /* unused */
+		.decrypt_block =
+			(nettle_cipher_func *)gost28147_decrypt, /* unused */
+
+		.ctx_size = sizeof(struct gost28147_cnt_ctx),
+		.encrypt = _gost28147_cnt_crypt,
+		.decrypt = _gost28147_cnt_crypt,
+		.set_encrypt_key = _gost28147_cnt_set_key_tc26z,
+		.set_decrypt_key = _gost28147_cnt_set_key_tc26z,
+		.set_iv = (setiv_func)_gost28147_cnt_set_nonce,
+	},
+	{
+		.algo = GNUTLS_CIPHER_MAGMA_CTR_ACPKM,
+		.block_size = MAGMA_BLOCK_SIZE,
+		.key_size = MAGMA_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)_magma_acpkm_crypt,
+		.decrypt_block = (nettle_cipher_func *)_magma_acpkm_crypt,
+
+		.ctx_size = sizeof(struct magma_acpkm_ctx),
+		.encrypt = _ctr_acpkm_crypt,
+		.decrypt = _ctr_acpkm_crypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)_magma_ctr_acpkm_set_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)_magma_ctr_acpkm_set_key,
+		.set_iv = (setiv_func)_magma_ctr_acpkm_set_iv,
+	},
+	{
+		.algo = GNUTLS_CIPHER_KUZNYECHIK_CTR_ACPKM,
+		.block_size = KUZNYECHIK_BLOCK_SIZE,
+		.key_size = KUZNYECHIK_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)_kuznyechik_acpkm_crypt,
+		.decrypt_block = (nettle_cipher_func *)_kuznyechik_acpkm_crypt,
+
+		.ctx_size = sizeof(struct kuznyechik_acpkm_ctx),
+		.encrypt = _ctr_acpkm_crypt,
+		.decrypt = _ctr_acpkm_crypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)_kuznyechik_ctr_acpkm_set_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)_kuznyechik_ctr_acpkm_set_key,
+		.set_iv = (setiv_func)_kuznyechik_ctr_acpkm_set_iv,
+	},
+#endif
+	{
+		.algo = GNUTLS_CIPHER_AES_128_CFB8,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes128_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes128_encrypt,
+
+		.ctx_size = sizeof(
+			struct CFB8_CTX(struct aes128_ctx, AES_BLOCK_SIZE)),
+		.encrypt = _cfb8_encrypt,
+		.decrypt = _cfb8_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_192_CFB8,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES192_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes192_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes192_encrypt,
+
+		.ctx_size = sizeof(
+			struct CFB8_CTX(struct aes192_ctx, AES_BLOCK_SIZE)),
+		.encrypt = _cfb8_encrypt,
+		.decrypt = _cfb8_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes192_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes192_set_encrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_CFB8,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+		.encrypt_block = (nettle_cipher_func *)aes256_encrypt,
+		.decrypt_block = (nettle_cipher_func *)aes256_encrypt,
+
+		.ctx_size = sizeof(
+			struct CFB8_CTX(struct aes256_ctx, AES_BLOCK_SIZE)),
+		.encrypt = _cfb8_encrypt,
+		.decrypt = _cfb8_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_128_XTS,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE * 2,
+
+		.ctx_size = sizeof(struct xts_aes128_key),
+		.encrypt = _xts_aes128_encrypt,
+		.decrypt = _xts_aes128_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)xts_aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)xts_aes128_set_decrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_XTS,
+		.block_size = AES_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE * 2,
+
+		.ctx_size = sizeof(struct xts_aes256_key),
+		.encrypt = _xts_aes256_encrypt,
+		.decrypt = _xts_aes256_decrypt,
+		.set_encrypt_key =
+			(nettle_set_key_func *)xts_aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)xts_aes256_set_decrypt_key,
+		.max_iv_size = AES_BLOCK_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_128_SIV,
+		.block_size = SIV_BLOCK_SIZE,
+		.key_size = SIV_CMAC_AES128_KEY_SIZE,
+
+		.ctx_size = sizeof(struct siv_cmac_aes128_ctx),
+		.aead_encrypt =
+			(aead_encrypt_func)_siv_cmac_aes128_encrypt_message,
+		.aead_decrypt =
+			(aead_decrypt_func)_siv_cmac_aes128_decrypt_message,
+		.set_encrypt_key =
+			(nettle_set_key_func *)siv_cmac_aes128_set_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)siv_cmac_aes128_set_key,
+		.max_iv_size = SIV_DIGEST_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_SIV,
+		.block_size = SIV_BLOCK_SIZE,
+		.key_size = SIV_CMAC_AES256_KEY_SIZE,
+
+		.ctx_size = sizeof(struct siv_cmac_aes256_ctx),
+		.aead_encrypt =
+			(aead_encrypt_func)_siv_cmac_aes256_encrypt_message,
+		.aead_decrypt =
+			(aead_decrypt_func)_siv_cmac_aes256_decrypt_message,
+		.set_encrypt_key =
+			(nettle_set_key_func *)siv_cmac_aes256_set_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)siv_cmac_aes256_set_key,
+		.max_iv_size = SIV_DIGEST_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_128_SIV_GCM,
+		.block_size = SIV_GCM_BLOCK_SIZE,
+		.key_size = AES128_KEY_SIZE,
+
+		.ctx_size = sizeof(struct aes128_ctx),
+		.aead_encrypt =
+			(aead_encrypt_func)_siv_gcm_aes128_encrypt_message,
+		.aead_decrypt =
+			(aead_decrypt_func)_siv_gcm_aes128_decrypt_message,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes128_set_encrypt_key,
+		.max_iv_size = SIV_GCM_NONCE_SIZE,
+	},
+	{
+		.algo = GNUTLS_CIPHER_AES_256_SIV_GCM,
+		.block_size = SIV_GCM_BLOCK_SIZE,
+		.key_size = AES256_KEY_SIZE,
+
+		.ctx_size = sizeof(struct aes256_ctx),
+		.aead_encrypt =
+			(aead_encrypt_func)_siv_gcm_aes256_encrypt_message,
+		.aead_decrypt =
+			(aead_decrypt_func)_siv_gcm_aes256_decrypt_message,
+		.set_encrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.set_decrypt_key =
+			(nettle_set_key_func *)aes256_set_encrypt_key,
+		.max_iv_size = SIV_GCM_NONCE_SIZE,
+	},
+};
+
+static int wrap_nettle_cipher_exists(gnutls_cipher_algorithm_t algo)
+{
+	unsigned i;
+	for (i = 0; i < sizeof(builtin_ciphers) / sizeof(builtin_ciphers[0]);
+	     i++) {
+		if (algo == builtin_ciphers[i].algo) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int wrap_nettle_cipher_init(gnutls_cipher_algorithm_t algo, void **_ctx,
+				   int enc)
+{
+	struct nettle_cipher_ctx *ctx;
+	uintptr_t cur_alignment;
+	int idx = -1;
+	unsigned i;
+	uint8_t *ctx_ptr;
+
+	for (i = 0; i < sizeof(builtin_ciphers) / sizeof(builtin_ciphers[0]);
+	     i++) {
+		if (algo == builtin_ciphers[i].algo) {
+			idx = i;
+			break;
+		}
+	}
+
+	if (idx == -1)
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+	ctx = gnutls_calloc(1,
+			    sizeof(*ctx) + builtin_ciphers[idx].ctx_size + 16);
+	if (ctx == NULL) {
+		gnutls_assert();
+		return GNUTLS_E_MEMORY_ERROR;
+	}
+
+	ctx->enc = enc;
+	ctx_ptr = ((uint8_t *)ctx) + sizeof(*ctx);
+
+	cur_alignment = ((uintptr_t)ctx_ptr) % 16;
+	if (cur_alignment > 0)
+		ctx_ptr += 16 - cur_alignment;
+
+	ctx->ctx_ptr = ctx_ptr;
+	ctx->cipher = &builtin_ciphers[idx];
+
+	*_ctx = ctx;
+
+	return 0;
+}
+
+static int wrap_nettle_cipher_setkey(void *_ctx, const void *key,
+				     size_t keysize)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	if (ctx->cipher->key_size > 0 &&
+	    unlikely(keysize != ctx->cipher->key_size)) {
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+	} else if (ctx->cipher->key_size == 0) {
+		ctx->cipher->gen_set_key(ctx->ctx_ptr, keysize, key);
+		return 0;
+	}
+
+	switch (ctx->cipher->algo) {
+	case GNUTLS_CIPHER_AES_128_XTS:
+		if (_gnutls_fips_mode_enabled() &&
+		    gnutls_memcmp(key, (char *)key + AES128_KEY_SIZE,
+				  AES128_KEY_SIZE) == 0)
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+		break;
+	case GNUTLS_CIPHER_AES_256_XTS:
+		if (_gnutls_fips_mode_enabled() &&
+		    gnutls_memcmp(key, (char *)key + AES256_KEY_SIZE,
+				  AES256_KEY_SIZE) == 0)
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+		break;
+	default:
+		break;
+	}
+
+	if (ctx->enc)
+		ctx->cipher->set_encrypt_key(ctx->ctx_ptr, key);
+	else
+		ctx->cipher->set_decrypt_key(ctx->ctx_ptr, key);
+
+	switch (ctx->cipher->algo) {
+	case GNUTLS_CIPHER_AES_128_GCM:
+	case GNUTLS_CIPHER_AES_192_GCM:
+	case GNUTLS_CIPHER_AES_256_GCM:
+		ctx->rekey_counter = 0;
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+static int wrap_nettle_cipher_setiv(void *_ctx, const void *iv, size_t iv_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+	unsigned max_iv;
+
+	switch (ctx->cipher->algo) {
+	case GNUTLS_CIPHER_AES_128_GCM:
+	case GNUTLS_CIPHER_AES_192_GCM:
+	case GNUTLS_CIPHER_AES_256_GCM:
+		FIPS_RULE(iv_size < GCM_IV_SIZE, GNUTLS_E_INVALID_REQUEST,
+			  "access to short GCM nonce size\n");
+		ctx->rekey_counter = 0;
+		break;
+	case GNUTLS_CIPHER_SALSA20_256:
+	case GNUTLS_CIPHER_ESTREAM_SALSA20_256:
+		if (iv_size != SALSA20_IV_SIZE)
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+		break;
+	default:
+		break;
+	}
+
+	max_iv = ctx->cipher->max_iv_size;
+	if (max_iv == 0)
+		max_iv = MAX_CIPHER_BLOCK_SIZE;
+
+	if (iv_size > max_iv)
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+	if (ctx->cipher->set_iv) {
+		ctx->cipher->set_iv(ctx->ctx_ptr, iv_size, iv);
+	} else {
+		if (iv)
+			memcpy(ctx->iv, iv, iv_size);
+		ctx->iv_size = iv_size;
+	}
+
+	return 0;
+}
+
+static int wrap_nettle_cipher_getiv(void *_ctx, void *iv, size_t iv_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	if (iv_size < ctx->iv_size)
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+	memcpy(iv, ctx->iv, ctx->iv_size);
+
+	return (int)ctx->iv_size;
+}
+
+static int wrap_nettle_cipher_decrypt(void *_ctx, const void *encr,
+				      size_t encr_size, void *plain,
+				      size_t plain_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	if (unlikely(ctx->cipher->decrypt == NULL))
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+	ctx->cipher->decrypt(ctx, encr_size, plain, encr);
+
+	return 0;
+}
+
+static int wrap_nettle_cipher_encrypt(void *_ctx, const void *plain,
+				      size_t plain_size, void *encr,
+				      size_t encr_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+	int ret;
+
+	if (unlikely(ctx->cipher->encrypt == NULL))
+		return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+	switch (ctx->cipher->algo) {
+	case GNUTLS_CIPHER_AES_128_GCM:
+	case GNUTLS_CIPHER_AES_192_GCM:
+	case GNUTLS_CIPHER_AES_256_GCM:
+		ret = record_aes_gcm_encrypt_size(&ctx->rekey_counter,
+						  plain_size);
+		if (ret < 0) {
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+		}
+		break;
+	default:
+		break;
+	}
+
+	ctx->cipher->encrypt(ctx, plain_size, encr, plain);
+
+	return 0;
+}
+
+static int wrap_nettle_cipher_aead_encrypt(void *_ctx, const void *nonce,
+					   size_t nonce_size, const void *auth,
+					   size_t auth_size, size_t tag_size,
+					   const void *plain, size_t plain_size,
+					   void *encr, size_t encr_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	if (ctx->cipher->aead_encrypt == NULL) {
+		/* proper AEAD cipher */
+		unsigned max_iv;
+
+		if (encr_size < plain_size + tag_size)
+			return gnutls_assert_val(GNUTLS_E_SHORT_MEMORY_BUFFER);
+
+		max_iv = ctx->cipher->max_iv_size;
+		if (max_iv == 0)
+			max_iv = MAX_CIPHER_BLOCK_SIZE;
+
+		if (nonce_size > max_iv)
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+		ctx->cipher->set_iv(ctx->ctx_ptr, nonce_size, nonce);
+		ctx->cipher->auth(ctx->ctx_ptr, auth_size, auth);
+
+		ctx->cipher->encrypt(ctx, plain_size, encr, plain);
+
+		ctx->cipher->tag(ctx->ctx_ptr, tag_size,
+				 ((uint8_t *)encr) + plain_size);
+	} else {
+		/* CCM-style cipher */
+
+		switch (ctx->cipher->algo) {
+		case GNUTLS_CIPHER_AES_128_CCM:
+		case GNUTLS_CIPHER_AES_256_CCM:
+			/* SP800-38C A.1 says Tlen must be a multiple of 16
+			 * between 32 and 128.
+			 */
+			switch (tag_size) {
+			case 4:
+			case 6:
+				/* SP800-38C B.2 says Tlen smaller than 64
+				 * should not be used under sufficient
+				 * restriction. We simply allow those for now.
+				 */
+				FALLTHROUGH;
+			case 8:
+			case 10:
+			case 12:
+			case 14:
+			case 16:
+				break;
+			default:
+				if (_gnutls_fips_mode_enabled()) {
+					_gnutls_switch_fips_state(
+						GNUTLS_FIPS140_OP_ERROR);
+					return gnutls_assert_val(
+						GNUTLS_E_INVALID_REQUEST);
+				}
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+
+		ctx->cipher->aead_encrypt(ctx, nonce_size, nonce, auth_size,
+					  auth, tag_size, tag_size + plain_size,
+					  encr, plain);
+	}
+	return 0;
+}
+
+static int wrap_nettle_cipher_aead_decrypt(void *_ctx, const void *nonce,
+					   size_t nonce_size, const void *auth,
+					   size_t auth_size, size_t tag_size,
+					   const void *encr, size_t encr_size,
+					   void *plain, size_t plain_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+	int ret;
+
+	if (unlikely(encr_size < tag_size))
+		return gnutls_assert_val(GNUTLS_E_DECRYPTION_FAILED);
+
+	if (ctx->cipher->aead_decrypt == NULL) {
+		/* proper AEAD cipher */
+		uint8_t tag[MAX_HASH_SIZE];
+		unsigned max_iv;
+
+		max_iv = ctx->cipher->max_iv_size;
+		if (max_iv == 0)
+			max_iv = MAX_CIPHER_BLOCK_SIZE;
+
+		if (nonce_size > max_iv)
+			return gnutls_assert_val(GNUTLS_E_INVALID_REQUEST);
+
+		ctx->cipher->set_iv(ctx->ctx_ptr, nonce_size, nonce);
+		ctx->cipher->auth(ctx->ctx_ptr, auth_size, auth);
+
+		encr_size -= tag_size;
+
+		if (unlikely(plain_size < encr_size))
+			return gnutls_assert_val(GNUTLS_E_SHORT_MEMORY_BUFFER);
+
+		ctx->cipher->decrypt(ctx, encr_size, plain, encr);
+
+		ctx->cipher->tag(ctx->ctx_ptr, tag_size, tag);
+
+		if (gnutls_memcmp(((uint8_t *)encr) + encr_size, tag,
+				  tag_size) != 0)
+			return gnutls_assert_val(GNUTLS_E_DECRYPTION_FAILED);
+	} else {
+		/* CCM-style cipher */
+		encr_size -= tag_size;
+
+		if (unlikely(plain_size < encr_size))
+			return gnutls_assert_val(GNUTLS_E_SHORT_MEMORY_BUFFER);
+
+		switch (ctx->cipher->algo) {
+		case GNUTLS_CIPHER_AES_128_CCM:
+		case GNUTLS_CIPHER_AES_256_CCM:
+			/* SP800-38C A.1 says Tlen must be a multiple of 16
+			 * between 32 and 128.
+			 */
+			switch (tag_size) {
+			case 4:
+			case 6:
+				/* SP800-38C B.2 says Tlen smaller than 64
+				 * should not be used under sufficient
+				 * restriction. We simply allow those for now.
+				 */
+				FALLTHROUGH;
+			case 8:
+			case 10:
+			case 12:
+			case 14:
+			case 16:
+				break;
+			default:
+				if (_gnutls_fips_mode_enabled()) {
+					_gnutls_switch_fips_state(
+						GNUTLS_FIPS140_OP_ERROR);
+					return gnutls_assert_val(
+						GNUTLS_E_INVALID_REQUEST);
+				}
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+
+		ret = ctx->cipher->aead_decrypt(ctx, nonce_size, nonce,
+						auth_size, auth, tag_size,
+						encr_size, plain, encr);
+		if (unlikely(ret == 0))
+			return gnutls_assert_val(GNUTLS_E_DECRYPTION_FAILED);
+	}
+	return 0;
+}
+
+static int wrap_nettle_cipher_auth(void *_ctx, const void *plain,
+				   size_t plain_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	ctx->cipher->auth(ctx->ctx_ptr, plain_size, plain);
+
+	return 0;
+}
+
+static void wrap_nettle_cipher_tag(void *_ctx, void *tag, size_t tag_size)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	ctx->cipher->tag(ctx->ctx_ptr, tag_size, tag);
+}
+
+static void wrap_nettle_cipher_close(void *_ctx)
+{
+	struct nettle_cipher_ctx *ctx = _ctx;
+
+	zeroize_temp_key(ctx->ctx_ptr, ctx->cipher->ctx_size);
+	gnutls_free(ctx);
+}
+
+gnutls_crypto_cipher_st _gnutls_cipher_ops = {
+	.init = wrap_nettle_cipher_init,
+	.exists = wrap_nettle_cipher_exists,
+	.setiv = wrap_nettle_cipher_setiv,
+	.getiv = wrap_nettle_cipher_getiv,
+	.setkey = wrap_nettle_cipher_setkey,
+	.encrypt = wrap_nettle_cipher_encrypt,
+	.decrypt = wrap_nettle_cipher_decrypt,
+	.aead_encrypt = wrap_nettle_cipher_aead_encrypt,
+	.aead_decrypt = wrap_nettle_cipher_aead_decrypt,
+	.deinit = wrap_nettle_cipher_close,
+	.auth = wrap_nettle_cipher_auth,
+	.tag = wrap_nettle_cipher_tag,
+};

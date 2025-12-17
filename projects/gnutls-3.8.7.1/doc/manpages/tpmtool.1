@@ -1,0 +1,223 @@
+.de1 NOP
+.  it 1 an-trap
+.  if \\n[.$] \,\\$*\/
+..
+.ie t \
+.ds B-Font [CB]
+.ds I-Font [CI]
+.ds R-Font [CR]
+.el \
+.ds B-Font B
+.ds I-Font I
+.ds R-Font R
+.TH tpmtool 1 "15 Aug 2024" "3.8.7" "User Commands"
+.SH NAME
+\f\*[B-Font]tpmtool\fP
+\- GnuTLS TPM tool
+.SH SYNOPSIS
+\f\*[B-Font]tpmtool\fP
+.\" Mixture of short (flag) options and long options
+[\f\*[B-Font]\-flags\f[]]
+[\f\*[B-Font]\-flag\f[] [\f\*[I-Font]value\f[]]]
+[\f\*[B-Font]\-\-option-name\f[][[=| ]\f\*[I-Font]value\f[]]]
+.sp \n(Ppu
+.ne 2
+
+All arguments must be options.
+.sp \n(Ppu
+.ne 2
+.SH "DESCRIPTION"
+Program that allows handling cryptographic data from the TPM chip.
+.sp
+.SH "OPTIONS"
+.TP
+.NOP \f\*[B-Font]\-d\f[] \f\*[I-Font]num\f[], \f\*[B-Font]\-\-debug\f[]=\f\*[I-Font]num\f[]
+Enable debugging.
+This option takes an integer number as its argument.
+The value of
+\f\*[I-Font]num\f[]
+is constrained to being:
+.in +4
+.nf
+.na
+in the range 0 through 9999
+.fi
+.in -4
+.sp
+Specifies the debug level.
+.TP
+.NOP \f\*[B-Font]\-\-infile\f[]=\f\*[I-Font]file\f[]
+Input file.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-outfile\f[]=\f\*[I-Font]str\f[]
+Output file.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-generate\-rsa\f[]
+Generate an RSA private-public key pair.
+.sp
+Generates an RSA private\-public key pair in the TPM chip. 
+The key may be stored in file system and protected by a PIN, or stored (registered)
+in the TPM chip flash.
+.TP
+.NOP \f\*[B-Font]\-\-register\f[]
+Any generated key will be registered in the TPM.
+This option must appear in combination with the following options:
+generate-rsa.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-signing\f[]
+Any generated key will be a signing key.
+This option must not appear in combination with any of the following options:
+legacy.
+This option must appear in combination with the following options:
+generate-rsa.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-legacy\f[]
+Any generated key will be a legacy key.
+This option must not appear in combination with any of the following options:
+signing.
+This option must appear in combination with the following options:
+generate-rsa.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-user\f[]
+Any registered key will be a user key.
+This option must not appear in combination with any of the following options:
+system.
+This option must appear in combination with the following options:
+register.
+.sp
+The generated key will be stored in a user specific persistent storage.
+.TP
+.NOP \f\*[B-Font]\-\-system\f[]
+Any registered key will be a system key.
+This option must not appear in combination with any of the following options:
+user.
+This option must appear in combination with the following options:
+register.
+.sp
+The generated key will be stored in system persistent storage.
+.TP
+.NOP \f\*[B-Font]\-\-pubkey\f[]=\f\*[I-Font]url\f[]
+Prints the public key of the provided key.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-list\f[]
+Lists all stored keys in the TPM.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-delete\f[]=\f\*[I-Font]url\f[]
+Delete the key identified by the given URL (UUID).
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-test\-sign\f[]=\f\*[I-Font]url\f[]
+Tests the signature operation of the provided object.
+.sp
+It can be used to test the correct operation of the signature operation.
+This operation will sign and verify the signed data.
+.TP
+.NOP \f\*[B-Font]\-\-sec\-param\f[]=\f\*[I-Font]security parameter\f[]
+Specify the security level [low, legacy, medium, high, ultra].
+.sp
+This is alternative to the bits option. Note however that the
+values allowed by the TPM chip are quantized and given values may be rounded up.
+.TP
+.NOP \f\*[B-Font]\-\-bits\f[]=\f\*[I-Font]num\f[]
+Specify the number of bits for key generate.
+This option takes an integer number as its argument.
+.sp
+.TP
+.NOP \f\*[B-Font]\-\-inder\f[], \f\*[B-Font]\-\-no\-inder\f[]
+Use the DER format for keys.
+The \fIno\-inder\fP form will disable the option.
+.sp
+The input files will be assumed to be in the portable
+DER format of TPM. The default format is a custom format used by various
+TPM tools
+.TP
+.NOP \f\*[B-Font]\-\-outder\f[], \f\*[B-Font]\-\-no\-outder\f[]
+Use DER format for output keys.
+The \fIno\-outder\fP form will disable the option.
+.sp
+The output will be in the TPM portable DER format.
+.TP
+.NOP \f\*[B-Font]\-\-srk\-well\-known\f[]
+SRK has well known password (20 bytes of zeros).
+.sp
+.TP
+.NOP \f\*[B-Font]\-v\f[] \f\*[I-Font]arg\f[], \f\*[B-Font]\-\-version\f[]=\f\*[I-Font]arg\f[]
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+.TP
+.NOP \f\*[B-Font]\-h\f[], \f\*[B-Font]\-\-help\f[]
+Display usage information and exit.
+.TP
+.NOP \f\*[B-Font]\-!\f[], \f\*[B-Font]\-\-more\-help\f[]
+Pass the extended usage information through a pager.
+
+.sp
+.SH EXAMPLES
+To generate a key that is to be stored in file system use:
+.br
+.in +4
+.nf
+$ tpmtool \-\-generate\-rsa \-\-bits 2048 \-\-outfile tpmkey.pem
+.in -4
+.fi
+.sp
+To generate a key that is to be stored in TPM's flash use:
+.br
+.in +4
+.nf
+$ tpmtool \-\-generate\-rsa \-\-bits 2048 \-\-register \-\-user
+.in -4
+.fi
+.sp
+To get the public key of a TPM key use:
+.br
+.in +4
+.nf
+$ tpmtool \-\-pubkey tpmkey:uuid=58ad734b\-bde6\-45c7\-89d8\-756a55ad1891;storage=user \
+          \-\-outfile pubkey.pem
+.in -4
+.fi
+.sp
+or if the key is stored in the file system:
+.br
+.in +4
+.nf
+$ tpmtool \-\-pubkey tpmkey:file=tmpkey.pem \-\-outfile pubkey.pem
+.in -4
+.fi
+.sp
+To list all keys stored in TPM use:
+.br
+.in +4
+.nf
+$ tpmtool \-\-list
+.in -4
+.fi
+.SH "EXIT STATUS"
+One of the following exit values will be returned:
+.TP
+.NOP 0 " (EXIT_SUCCESS)"
+Successful program execution.
+.TP
+.NOP 1 " (EXIT_FAILURE)"
+The operation failed or the command syntax was not valid.
+.PP
+.SH "SEE ALSO"
+p11tool (1), certtool (1)
+.SH "AUTHORS"
+
+.SH "COPYRIGHT"
+Copyright (C) 2020-2023 Free Software Foundation, and others all rights reserved.
+This program is released under the terms of
+the GNU General Public License, version 3 or later
+.
+.SH "BUGS"
+Please send bug reports to: bugs@gnutls.org

@@ -1,0 +1,23 @@
+
+
+
+
+@deftypefun {const char *} {gnutls_ciphersuite_get} (gnutls_session_t @var{session})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+Get the canonical name of negotiated TLS ciphersuite.  The names
+returned by this function match the IANA registry, with one
+exception:
+
+TLS_DHE_DSS_RC4_128_SHA @{ 0x00, 0x66 @}
+
+which is reserved for compatibility.
+
+To get a detailed description of the current ciphersuite, it is
+recommended to use @code{gnutls_session_get_desc()} .
+
+@strong{Returns:} a string that contains the canonical name of a TLS ciphersuite,
+or @code{NULL}  if the handshake is not completed.
+
+@strong{Since:} 3.7.4
+@end deftypefun

@@ -1,0 +1,25 @@
+
+
+
+
+@deftypefun {int} {gnutls_priority_init} (gnutls_priority_t * @var{priority_cache}, const char * @var{priorities}, const char ** @var{err_pos})
+@var{priority_cache}: is a @code{gnutls_priority_t}  type.
+
+@var{priorities}: is a string describing priorities (may be @code{NULL} )
+
+@var{err_pos}: In case of an error this will have the position in the string the error occurred
+
+For applications that do not modify their crypto settings per release, consider
+using @code{gnutls_priority_init2()}  with @code{GNUTLS_PRIORITY_INIT_DEF_APPEND}  flag
+instead. We suggest to use centralized crypto settings handled by the GnuTLS
+library, and applications modifying the default settings to their needs.
+
+This function is identical to @code{gnutls_priority_init2()}  with zero
+flags.
+
+A @code{NULL}   @code{priorities} string indicates the default priorities to be
+used (this is available since GnuTLS 3.3.0).
+
+@strong{Returns:} On syntax error @code{GNUTLS_E_INVALID_REQUEST}  is returned,
+@code{GNUTLS_E_SUCCESS}  on success, or an error code.
+@end deftypefun

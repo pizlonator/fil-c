@@ -1,0 +1,29 @@
+
+
+
+
+@deftypefun {const gnutls_library_config_st *} {gnutls_get_library_config} ( @var{void})
+
+Returns the library configuration as key value pairs.
+Currently defined keys are:
+
+- fips-module-name: the name of the FIPS140 module
+
+- fips-module-version: the version of the FIPS140 module
+
+- libgnutls-soname: the SONAME of the library itself
+
+- libnettle-soname: the library SONAME of linked libnettle
+
+- libhogweed-soname: the library SONAME of linked libhogweed
+
+- libgmp-soname: the library SONAME of linked libgmp
+
+- hardware-features: enabled hardware support features
+
+- tls-features: enabled TLS protocol features
+
+@strong{Returns:} a NUL-terminated @code{gnutls_library_config_st}  array
+
+@strong{Since:} 3.7.3
+@end deftypefun

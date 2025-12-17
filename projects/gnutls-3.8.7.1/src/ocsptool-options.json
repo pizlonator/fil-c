@@ -1,0 +1,161 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "ocsptool",
+    "title": "GnuTLS OCSP tool",
+    "description": "Program to handle OCSP request/responses.",
+    "detail": "ocsptool is a program that can parse and print information about\nOCSP requests/responses, generate requests and verify responses. Unlike\nother GnuTLS applications it outputs DER encoded structures by default\nunless the '--outpem' option is specified.",
+    "short-usage": "ocsptool [options]\nocsptool --help for usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verbose",
+          "short-option": "V",
+          "description": "More verbose output"
+        },
+        {
+          "long-option": "infile",
+          "description": "Input file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "outfile",
+          "description": "Output file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "ask",
+          "description": "Ask an OCSP/HTTP server on a certificate validity",
+          "detail": "Connects to the specified HTTP OCSP server and queries on the validity of the loaded certificate.\nIts argument can be a URL or a plain server name. It can be combined with --load-chain, where it checks\nall certificates in the provided chain, or with --load-cert and\n--load-issuer options. The latter checks the provided certificate\nagainst its specified issuer certificate.",
+          "argument-optional": true,
+          "argument-type": "string",
+          "argument-name": "server name|url"
+        },
+        {
+          "long-option": "verify-response",
+          "short-option": "e",
+          "description": "Verify response",
+          "detail": "Verifies the provided OCSP response against the system trust\nanchors (unless --load-trust is provided). It requires the --load-signer\nor --load-chain options to obtain the signer of the OCSP response."
+        },
+        {
+          "long-option": "request-info",
+          "short-option": "i",
+          "description": "Print information on a OCSP request",
+          "detail": "Display detailed information on the provided OCSP request."
+        },
+        {
+          "long-option": "response-info",
+          "short-option": "j",
+          "description": "Print information on a OCSP response",
+          "detail": "Display detailed information on the provided OCSP response."
+        },
+        {
+          "long-option": "generate-request",
+          "short-option": "q",
+          "description": "Generates an OCSP request"
+        },
+        {
+          "long-option": "nonce",
+          "description": "Use (or not) a nonce to OCSP request",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "load-chain",
+          "description": "Reads a set of certificates forming a chain from file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "load-issuer",
+          "description": "Reads issuer's certificate from file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "load-cert",
+          "description": "Reads the certificate to check from file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "load-trust",
+          "description": "Read OCSP trust anchors from file",
+          "detail": "When verifying an OCSP response read the trust anchors from the\nprovided file. When this is not provided, the system's trust anchors will be\nused.",
+          "file-exists": true,
+          "conflicts": [
+            "load-signer"
+          ],
+          "argument-type": "file"
+        },
+        {
+          "long-option": "load-signer",
+          "description": "Reads the OCSP response signer from file",
+          "file-exists": true,
+          "conflicts": [
+            "load-trust"
+          ],
+          "argument-type": "file"
+        },
+        {
+          "long-option": "inder",
+          "description": "Use DER format for input certificates and private keys",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "outder",
+          "description": "Use DER format for output of responses (this is the default)",
+          "detail": "The output will be in DER encoded format. Unlike other GnuTLS tools, this is the default for this tool"
+        },
+        {
+          "long-option": "outpem",
+          "description": "Use PEM format for output of responses",
+          "detail": "The output will be in PEM format."
+        },
+        {
+          "long-option": "load-request",
+          "short-option": "Q",
+          "description": "Reads the DER encoded OCSP request from file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "load-response",
+          "short-option": "S",
+          "description": "Reads the DER encoded OCSP response from file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "ignore-errors",
+          "description": "Ignore any verification errors"
+        },
+        {
+          "long-option": "verify-allow-broken",
+          "description": "Allow broken algorithms, such as MD5 for verification",
+          "detail": "This can be combined with --verify-response."
+        },
+        {
+          "long-option": "attime",
+          "description": "Perform validation at the timestamp instead of the system time",
+          "detail": "timestamp is an instance in time encoded as Unix time or in a human\n readable timestring such as \"29 Feb 2004\", \"2004-02-29\".\nFull documentation available at \n<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>\nor locally via info '(coreutils) date invocation'.",
+          "argument-name": "timestamp",
+          "argument-type": "string"
+        }
+      ]
+    }
+  ]
+}

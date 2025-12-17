@@ -1,0 +1,99 @@
+@subheading Connecting using PSK authentication
+To connect to a server using PSK authentication, you need to enable the choice of PSK by using a cipher priority parameter such as in the example below. 
+@example
+$ ./gnutls-cli -p 5556 localhost --pskusername psk_identity \
+    --pskkey 88f3824b3e5659f52d00e959bacab954b6540344 \
+    --priority NORMAL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK
+Resolving 'localhost'...
+Connecting to '127.0.0.1:5556'...
+- PSK authentication.
+- Version: TLS1.1
+- Key Exchange: PSK
+- Cipher: AES-128-CBC
+- MAC: SHA1
+- Compression: NULL
+- Handshake was completed
+    
+- Simple Client Mode:
+@end example
+By keeping the --pskusername parameter and removing the --pskkey parameter, it will query only for the password during the handshake.
+
+@subheading Connecting using raw public-key authentication
+To connect to a server using raw public-key authentication, you need to enable the option to negotiate raw public-keys via the priority strings such as in the example below. 
+@example
+$ ./gnutls-cli -p 5556 localhost --priority NORMAL:-CTYPE-CLI-ALL:+CTYPE-CLI-RAWPK \
+    --rawpkkeyfile cli.key.pem \
+    --rawpkfile cli.rawpk.pem
+Processed 1 client raw public key pair...
+Resolving 'localhost'...
+Connecting to '127.0.0.1:5556'...
+- Successfully sent 1 certificate(s) to server.
+- Server has requested a certificate.
+- Certificate type: X.509
+- Got a certificate list of 1 certificates.
+- Certificate[0] info:
+ - skipped
+- Description: (TLS1.3-Raw Public Key-X.509)-(ECDHE-SECP256R1)-(RSA-PSS-RSAE-SHA256)-(AES-256-GCM)
+- Options:
+- Handshake was completed
+    
+- Simple Client Mode:
+@end example
+
+@subheading Connecting to STARTTLS services
+
+You could also use the client to connect to services with starttls capability.
+@example
+$ gnutls-cli --starttls-proto smtp --port 25 localhost
+@end example
+
+@subheading Listing ciphersuites in a priority string
+To list the ciphersuites in a priority string:
+@example
+$ ./gnutls-cli --priority SECURE192 -l
+Cipher suites for SECURE192
+TLS_ECDHE_ECDSA_AES_256_CBC_SHA384         0xc0, 0x24	TLS1.2
+TLS_ECDHE_ECDSA_AES_256_GCM_SHA384         0xc0, 0x2e	TLS1.2
+TLS_ECDHE_RSA_AES_256_GCM_SHA384           0xc0, 0x30	TLS1.2
+TLS_DHE_RSA_AES_256_CBC_SHA256             0x00, 0x6b	TLS1.2
+TLS_DHE_DSS_AES_256_CBC_SHA256             0x00, 0x6a	TLS1.2
+TLS_RSA_AES_256_CBC_SHA256                 0x00, 0x3d	TLS1.2
+
+Certificate types: CTYPE-X.509
+Protocols: VERS-TLS1.2, VERS-TLS1.1, VERS-TLS1.0, VERS-SSL3.0, VERS-DTLS1.0
+Compression: COMP-NULL
+Elliptic curves: CURVE-SECP384R1, CURVE-SECP521R1
+PK-signatures: SIGN-RSA-SHA384, SIGN-ECDSA-SHA384, SIGN-RSA-SHA512, SIGN-ECDSA-SHA512
+@end example
+
+@subheading Connecting using a PKCS #11 token
+To connect to a server using a certificate and a private key present in a PKCS #11 token you 
+need to substitute the PKCS 11 URLs in the x509certfile and x509keyfile parameters.
+
+Those can be found using "p11tool --list-tokens" and then listing all the objects in the
+needed token, and using the appropriate.
+@example
+$ p11tool --list-tokens
+
+Token 0:
+	URL: pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test
+	Label: Test
+	Manufacturer: EnterSafe
+	Model: PKCS15
+	Serial: 1234
+
+$ p11tool --login --list-certs "pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test"
+
+Object 0:
+	URL: pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=cert
+	Type: X.509 Certificate
+	Label: client
+	ID: 2a:97:0d:58:d1:51:3c:23:07:ae:4e:0d:72:26:03:7d:99:06:02:6a
+
+$ MYCERT="pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=cert"
+$ MYKEY="pkcs11:model=PKCS15;manufacturer=MyMan;serial=1234;token=Test;object=client;type=private"
+$ export MYCERT MYKEY
+
+$ gnutls-cli www.example.com --x509keyfile $MYKEY --x509certfile $MYCERT
+@end example
+Notice that the private key only differs from the certificate in the type.

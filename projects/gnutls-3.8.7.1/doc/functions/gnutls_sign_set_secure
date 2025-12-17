@@ -1,0 +1,31 @@
+
+
+
+
+@deftypefun {int} {gnutls_sign_set_secure} (gnutls_sign_algorithm_t @var{sign}, unsigned int @var{secure})
+@var{sign}: the sign algorithm
+
+@var{secure}: whether to mark the sign algorithm secure
+
+Modify the previous system wide setting that marked  @code{sign} as secure
+or insecure.  Calling this function is allowed
+only if allowlisting mode is set in the configuration file,
+and only if the system-wide TLS priority string
+has not been initialized yet.
+The intended usage is to provide applications with a way
+to expressly deviate from the distribution or site defaults
+inherited from the configuration file.
+The modification is composable with further modifications
+performed through the priority string mechanism.
+
+This function is not thread-safe and is intended to be called
+in the main thread at the beginning of the process execution.
+
+Even when  @code{secure} is true,  @code{sign} is not marked as secure for the
+use in certificates.  Use @code{gnutls_sign_set_secure_for_certs()}  to
+mark it secure as well for certificates.
+
+@strong{Returns:} 0 on success or negative error code otherwise.
+
+@strong{Since:} 3.7.3
+@end deftypefun

@@ -1,0 +1,27 @@
+
+
+
+
+@deftypefun {int} {gnutls_privkey_export_dh_raw} (gnutls_privkey_t @var{key}, gnutls_dh_params_t @var{params}, gnutls_datum_t * @var{y}, gnutls_datum_t * @var{x}, unsigned int @var{flags})
+@var{key}: Holds the private key
+
+@var{params}: will hold the Diffie-Hellman parameters (optional), must be initialized
+
+@var{y}: will hold the y (optional)
+
+@var{x}: will hold the x
+
+@var{flags}: flags from @code{gnutls_abstract_export_flags_t} 
+
+This function will export the Diffie-Hellman private key parameter
+found in the given @code{gnutls_privkey_t}  structure. The new parameter
+will be allocated using @code{gnutls_malloc()}  and will be stored in the
+appropriate datum.
+
+To retrieve other parameters common in both public key and private
+key, use @code{gnutls_dh_params_export_raw()} .
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  on success, otherwise a negative error code.
+
+@strong{Since:} 3.8.2
+@end deftypefun

@@ -1,0 +1,19 @@
+
+
+
+
+@deftypefun {int} {gnutls_x509_spki_set_rsa_oaep_params} (gnutls_x509_spki_t @var{spki}, gnutls_digest_algorithm_t @var{dig}, const gnutls_datum_t * @var{label})
+@var{spki}: the SubjectPublicKeyInfo structure
+
+@var{dig}: a digest algorithm of type @code{gnutls_digest_algorithm_t} 
+
+@var{label}: optional label
+
+This function will set the public key parameters for
+an RSA-OAEP algorithm, in the SubjectPublicKeyInfo structure.
+
+@strong{Returns:} zero if the parameters are present or a negative
+value on error.
+
+@strong{Since:} 3.8.4
+@end deftypefun

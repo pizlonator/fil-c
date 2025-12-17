@@ -1,0 +1,27 @@
+
+
+
+
+@deftypefun {ssize_t} {gnutls_record_send_file} (gnutls_session_t @var{session}, int @var{fd}, off_t * @var{offset}, size_t @var{count})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+@var{fd}: file descriptor from which to read data.
+
+@var{offset}: Is relative to file offset, denotes the starting location for
+reading.  after function returns, it point to position following
+last read byte.
+
+@var{count}: is the length of the data in bytes to be read from file and send.
+
+This function sends data from  @code{fd} . If KTLS (kernel TLS) is enabled, it will
+use the @code{sendfile()}  system call to avoid overhead of copying data between user
+space and the kernel. Otherwise, this functionality is merely emulated by
+calling @code{read()}  and @code{gnutls_record_send()} . If this implementation is
+suboptimal, check whether KTLS is enabled using
+@code{gnutls_transport_is_ktls_enabled()} .
+
+If  @code{offset} is NULL then file offset is incremented by number of bytes send,
+otherwise file offset remains unchanged.
+
+@strong{Returns:} The number of bytes sent, or a negative error code.
+@end deftypefun

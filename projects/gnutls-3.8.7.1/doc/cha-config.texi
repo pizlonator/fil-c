@@ -1,0 +1,281 @@
+@node System-wide configuration of the library
+@chapter System-wide configuration of the library
+@cindex System-wide configuration
+
+@acronym{GnuTLS} 3.6.9 introduced a system-wide configuration of the library
+which can be used to disable or mark algorithms and protocols as insecure
+system-wide, overriding the library defaults. The format of this
+configuration file is of an INI file, with the hash ('#') allowed for
+commenting. It intentionally does not allow switching algorithms or protocols
+which were disabled or marked as insecure during compile time to the secure
+set. This is to prevent the feature from being used to attack the system.
+Unknown options or sections in the configuration file are skipped unless
+the environment variable @code{GNUTLS_SYSTEM_PRIORITY_FAIL_ON_INVALID} is
+set to 1, where it would cause the library to exit on unknown options.
+
+The location of the default configuration file is @code{/etc/gnutls/config},
+but its actual location may be overridden during compile time or at run-time
+using the @code{GNUTLS_SYSTEM_PRIORITY_FILE} environment variable. The file
+used can be queried using @funcref{gnutls_get_system_config_file}.
+
+@showfuncdesc{gnutls_get_system_config_file}
+
+@menu
+* Application-specific priority strings::
+* Disabling algorithms and protocols::
+* Querying for disabled algorithms and protocols::
+* Overriding the parameter verification profile::
+* Overriding the default priority string::
+* Enabling/Disabling system/acceleration protocols::
+* Enabling/Disabling RSAES-PKCS1-v1_5::
+@end menu
+
+@node Application-specific priority strings
+@section Application-specific priority strings
+
+It is possible to specify custom cipher priority strings, in addition to the
+default priority strings (@code{NORMAL}, @code{PERFORMANCE}, etc.). These can
+be used either by individual applications, or even as the default option if
+the library is compiled with the configuration option
+@code{--with-default-priority-string}. In the latter case the defined
+priority string will be used for applications using @funcref{gnutls_set_default_priority}
+or @funcref{gnutls_set_default_priority_append}.
+
+The priority strings can be specified in the global section of the
+configuration file, or in the section named @code{[priorities]}.
+The format is '@code{KEYWORD = VALUE}', e.g.,
+
+When used they may be followed by additional options that will be appended to the
+system string (e.g., '@code{@@EXAMPLE-PRIORITY:+SRP}'). '@code{EXAMPLE-PRIORITY=NORMAL:+ARCFOUR-128}'.
+Since version 3.5.1 applications are allowed to specify fallback keywords such as
+@@KEYWORD1,@@KEYWORD2, and the first valid keyword will be used.
+
+The following example configuration defines a priority string called @code{@@SYSTEM}.
+When set, its full settings can be queried using @code{gnutls-cli --priority @@SYSTEM --list}.
+
+@example
+[priorities]
+SYSTEM = NORMAL:-AES-128-CBC:-AES-256-CBC
+@end example
+
+
+@node Disabling algorithms and protocols
+@section Disabling algorithms and protocols
+
+The approach above works well to create consistent system-wide settings
+for cooperative GnuTLS applications. When an application however does not
+use the @funcref{gnutls_set_default_priority} or @funcref{gnutls_set_default_priority_append}
+functions, the method is not sufficient to prevent applications from using
+protocols or algorithms forbidden by a local policy.
+The override method described below enables the deprecation of algorithms and
+protocols system-wide for all applications.
+
+The available options must be set in the @code{[overrides]} section of the
+configuration file and can be
+@itemize
+@item @code{insecure-sig-for-cert}: to mark the signature algorithm as insecure when used in certificates.
+@item @code{insecure-sig}: to mark the signature algorithm as insecure for any use.
+@item @code{insecure-hash}: to mark the hash algorithm as insecure for digital signature use (provides a more generic way to disable digital signatures for broken hash algorithms).
+@item @code{disabled-curve}: to disable the specified elliptic curve.
+@item @code{disabled-version}: to disable the specified TLS versions.
+@item @code{tls-disabled-cipher}: to disable the specified ciphers for use in the TLS or DTLS protocols.
+@item @code{tls-disabled-mac}: to disable the specified MAC algorithms for use in the TLS or DTLS protocols.
+@item @code{tls-disabled-group}: to disable the specified group for use in the TLS or DTLS protocols.
+@item @code{tls-disabled-kx}: to disable the specified key exchange algorithms for use in the TLS or DTLS protocols (applies to TLS1.2 or earlier).
+@end itemize
+
+Each of the options can be repeated multiple times when multiple values need
+to be disabled or enabled.
+
+The valid values for the options above can be found in the 'Protocols', 'Digests'
+'PK-signatures', 'Protocols', 'Ciphers', and 'MACs' fields of the output of @code{gnutls-cli --list}.
+
+Sometimes the system administrator wants to enable only specific
+algorithms, despite the library defaults. GnuTLS provides an
+alternative mode of overriding: allowlisting.
+
+As shown below in the examples, it is hard to use this mode correctly,
+as it requires understanding of how algorithms are used underneath by
+the protocols.  Allowlisting configuration mode is intended to be used
+by the operating system vendors that prefer laying out the library
+defaults exhaustively from scratch instead on depending on gnutls
+presets, such as @code{NORMAL}.  Applications are then expected to
+optionally disable or enable only a subset algorithms on top of the
+vendor-provided configuration.
+
+In the allowlisting mode, all the algorithms are initially marked as
+insecure or disabled, and shall be explicitly turned on by the options
+listed below in the @code{[overrides]} section.  As the allowlisting
+mode is mutually exclusive to the blocklisting mode, the options
+listed above for the blocklisting mode are forbidden in the
+allowlisting mode, and vice versa.
+
+@itemize
+@item @code{secure-sig-for-cert}: to mark the signature algorithm as secure when used in certificates.
+@item @code{secure-sig}: to mark the signature algorithm as secure for any use.
+@item @code{secure-hash}: to mark the hash algorithm as secure for digital signature use (provides a more generic way to enable digital signatures for broken hash algorithms).
+@item @code{enabled-curve}: to enable the specified elliptic curve.
+@item @code{enabled-version}: to enable the specified TLS versions.
+@item @code{tls-enabled-cipher}: to enable the specified ciphers for use in the TLS or DTLS protocols.
+@item @code{tls-enabled-mac}: to enable the specified MAC algorithms for use in the TLS or DTLS protocols.
+@item @code{tls-enabled-group}: to enable the specified group for use in the TLS or DTLS protocols.
+@item @code{tls-enabled-kx}: to enable the specified key exchange algorithms for use in the TLS or DTLS protocols (applies to TLS1.2 or earlier).
+@end itemize
+
+The allowlisting mode can be enabled by adding @code{override-mode =
+allowlist} in the @code{[global]} section.
+
+The following functions allow the applications to modify the setting.
+
+@showfuncE{gnutls_ecc_curve_set_enabled,gnutls_sign_set_secure,gnutls_sign_set_secure_for_certs,gnutls_digest_set_secure,gnutls_protocol_set_enabled}
+
+When the allowlisting mode is in effect, a @code{@@SYSTEM} priority
+string is automatically constructed from the options in the
+@code{[overrides]} section.  For this reason, the above functions
+should be called before the @code{@@SYSTEM} priority is used.
+
+@subsection Examples
+
+The following example marks as insecure all digital signature algorithms
+which depend on SHA384, as well as the RSA-SHA1 signature algorithm.
+
+@example
+[overrides]
+insecure-hash = sha384
+insecure-sig = rsa-sha1
+@end example
+
+The following example marks RSA-SHA256 as insecure for use in certificates
+and disables the TLS1.0 and TLS1.1 protocols.
+
+@example
+[overrides]
+insecure-sig-for-cert = rsa-sha256
+disabled-version = tls1.0
+disabled-version = tls1.1
+@end example
+
+The following example disables the @code{AES-128-CBC} and @code{AES-256-CBC}
+ciphers, the @code{HMAC-SHA1} MAC algorithm and the @code{GROUP-FFDHE8192}
+group for TLS and DTLS protocols.
+
+@example
+[overrides]
+tls-disabled-cipher = aes-128-cbc
+tls-disabled-cipher = aes-256-cbc
+tls-disabled-mac = sha1
+tls-disabled-group = group-ffdhe8192
+@end example
+
+The following example demonstrates the use of the allowlisting
+mode. All the signature algorithms are disabled by default but
+@code{RSA-SHA256}. Note that the hash algorithm @code{SHA256} also
+needs to be explicitly enabled.
+
+@example
+[global]
+override-mode = allowlist
+
+[overrides]
+secure-hash = sha256
+secure-sig = rsa-sha256
+@end example
+
+To enable a TLS ciphersuite in the allowlist mode requires a more
+verbose configuration, explicitly listing algorithm dependencies.  The
+following example enables TLS_AES_128_GCM_SHA256, using the SECP256R1
+curve for signing and key exchange.
+
+@example
+[global]
+override-mode = allowlist
+
+[overrides]
+secure-hash = sha256
+enabled-curve = secp256r1
+secure-sig = ecdsa-secp256r1-sha256
+enabled-version = tls1.3
+tls-enabled-cipher = aes-128-gcm
+tls-enabled-mac = aead
+tls-enabled-group = secp256r1
+@end example
+
+@node Querying for disabled algorithms and protocols
+@section Querying for disabled algorithms and protocols
+
+When necessary applications can query whether a particular algorithm
+or protocol has been marked as insecure or disabled system-wide.
+Digital signatures can be queried using the following algorithms.
+@showfuncB{gnutls_sign_is_secure,gnutls_sign_is_secure2}
+
+Any disabled protocol versions or elliptic curves will not show up in the
+lists provided by the following functions.
+
+@showfuncC{gnutls_protocol_list,gnutls_group_list,gnutls_ecc_curve_list}
+
+It is not possible to query for insecure hash algorithms directly
+(only indirectly through the signature API).
+
+
+@node Overriding the parameter verification profile
+@section Overriding the parameter verification profile
+
+When verifying a certificate or TLS session parameters, GnuTLS uses a set
+of profiles associated with the session to determine whether the parameters
+seen in the session are acceptable. For example, whether the RSA public key
+size as seen on the wire, or the Diffie-Hellman parameters for the session.
+These profiles are normally set using the @code{%PROFILE} priority string
+(see @ref{Priority Strings} and @ref{Selecting cryptographic key sizes}).
+
+It is possible to set the low bar profile that applications cannot override
+using the following.
+
+@example
+[overrides]
+
+# do not allow applications use the LOW or VERY-WEAK profiles.
+min-verification-profile = legacy
+
+@end example
+
+@node Overriding the default priority string
+@section Overriding the default priority string
+
+GnuTLS uses default priority string which is defined at compiled
+time. Usually it is set to @code{NORMAL}. This override allows to set
+the default priority string to something more appropriate for a given
+deployment.
+
+Below example sets a more specific default priority string.
+@example
+[overrides]
+default-priority-string = SECURE128:-VERS-TLS-ALL:+VERS-TLS1.3
+
+@end example
+
+
+@node Enabling/Disabling system/acceleration protocols
+@section Enabling/Disabling system/acceleration protocols
+The following options can overwrite default behavior of protocols system-wide.
+@example
+[global]
+ktls = true
+
+@end example
+@subsection Enabling KTLS
+When GnuTLS is build with -–enable-ktls configuration, KTLS is disabled by default.
+This can be enabled by setting @code{ktls = true} in @code{[global]} section.
+
+
+@node Enabling/Disabling RSAES-PKCS1-v1_5
+@section Enabling/Disabling RSAES-PKCS1-v1_5
+
+This option can be used to enable/disable RSA PKCS1 v1.5 encryption and decryption
+in GnuTLS. The RSAES-PKCS1-v1_5 is enabled by default.
+
+Below example shows how to explicitely disable the RSAES-PKCS1-v1_5.
+@example
+[overrides]
+allow-rsa-pkcs1-encrypt = false
+
+@end example

@@ -1,0 +1,1852 @@
+
+
+@c gnutls_cipher_algorithm_t
+@table @code
+@item GNUTLS_@-CIPHER_@-UNKNOWN
+Value to identify an unknown/unsupported algorithm.
+@item GNUTLS_@-CIPHER_@-NULL
+The NULL (identity) encryption algorithm.
+@item GNUTLS_@-CIPHER_@-ARCFOUR_@-128
+ARCFOUR stream cipher with 128-bit keys.
+@item GNUTLS_@-CIPHER_@-3DES_@-CBC
+3DES in CBC mode.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-CBC
+AES in CBC mode with 128-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-CBC
+AES in CBC mode with 256-bit keys.
+@item GNUTLS_@-CIPHER_@-ARCFOUR_@-40
+ARCFOUR stream cipher with 40-bit keys.
+@item GNUTLS_@-CIPHER_@-CAMELLIA_@-128_@-CBC
+Camellia in CBC mode with 128-bit keys.
+@item GNUTLS_@-CIPHER_@-CAMELLIA_@-256_@-CBC
+Camellia in CBC mode with 256-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-192_@-CBC
+AES in CBC mode with 192-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-GCM
+AES in GCM mode with 128-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-GCM
+AES in GCM mode with 256-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-CAMELLIA_@-192_@-CBC
+Camellia in CBC mode with 192-bit keys.
+@item GNUTLS_@-CIPHER_@-SALSA20_@-256
+Salsa20 with 256-bit keys.
+@item GNUTLS_@-CIPHER_@-ESTREAM_@-SALSA20_@-256
+Estream's Salsa20 variant with 256-bit keys.
+@item GNUTLS_@-CIPHER_@-CAMELLIA_@-128_@-GCM
+CAMELLIA in GCM mode with 128-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-CAMELLIA_@-256_@-GCM
+CAMELLIA in GCM mode with 256-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-RC2_@-40_@-CBC
+RC2 in CBC mode with 40-bit keys.
+@item GNUTLS_@-CIPHER_@-DES_@-CBC
+DES in CBC mode (56-bit keys).
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-CCM
+AES in CCM mode with 128-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-CCM
+AES in CCM mode with 256-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-CCM_@-8
+AES in CCM mode with 64-bit tag and 128-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-CCM_@-8
+AES in CCM mode with 64-bit tag and 256-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-CHACHA20_@-POLY1305
+The Chacha20 cipher with the Poly1305 authenticator (AEAD).
+@item GNUTLS_@-CIPHER_@-GOST28147_@-TC26Z_@-CFB
+GOST 28147-89 (Magma) cipher in CFB mode with TC26 Z S-box.
+@item GNUTLS_@-CIPHER_@-GOST28147_@-CPA_@-CFB
+GOST 28147-89 (Magma) cipher in CFB mode with CryptoPro A S-box.
+@item GNUTLS_@-CIPHER_@-GOST28147_@-CPB_@-CFB
+GOST 28147-89 (Magma) cipher in CFB mode with CryptoPro B S-box.
+@item GNUTLS_@-CIPHER_@-GOST28147_@-CPC_@-CFB
+GOST 28147-89 (Magma) cipher in CFB mode with CryptoPro C S-box.
+@item GNUTLS_@-CIPHER_@-GOST28147_@-CPD_@-CFB
+GOST 28147-89 (Magma) cipher in CFB mode with CryptoPro D S-box.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-CFB8
+AES in CFB8 mode with 128-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-192_@-CFB8
+AES in CFB8 mode with 192-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-CFB8
+AES in CFB8 mode with 256-bit keys.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-XTS
+AES in XTS mode with 128-bit key + 128bit tweak key.
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-XTS
+AES in XTS mode with 256-bit key + 256bit tweak key.
+Note that the XTS ciphers are message oriented.
+The whole message needs to be provided with a single call, because
+cipher-stealing requires to know where the message actually terminates
+in order to be able to compute where the stealing occurs.
+@item GNUTLS_@-CIPHER_@-GOST28147_@-TC26Z_@-CNT
+GOST 28147-89 (Magma) cipher in CNT mode with TC26 Z S-box.
+@item GNUTLS_@-CIPHER_@-CHACHA20_@-64
+Chacha20 cipher with 64-bit nonces and 64-bit block counters.
+@item GNUTLS_@-CIPHER_@-CHACHA20_@-32
+Chacha20 cipher with 96-bit nonces and 32-bit block counters.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-SIV
+AES in SIV mode with 128-bit key.
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-SIV
+AES in SIV mode with 256-bit key.
+Note that the SIV ciphers can only be used with
+the AEAD interface, and the IV plays a role as
+the authentication tag while it is prepended to
+the cipher text.
+@item GNUTLS_@-CIPHER_@-AES_@-192_@-GCM
+AES in GCM mode with 192-bit keys (AEAD).
+@item GNUTLS_@-CIPHER_@-MAGMA_@-CTR_@-ACPKM
+GOST R 34.12-2015 (Magma) cipher in CTR-ACPKM mode.
+@item GNUTLS_@-CIPHER_@-KUZNYECHIK_@-CTR_@-ACPKM
+GOST R 34.12-2015 (Kuznyechik) cipher in CTR-ACPKM mode.
+@item GNUTLS_@-CIPHER_@-AES_@-128_@-SIV_@-GCM
+AES in SIV-GCM mode with 128-bit key.
+@item GNUTLS_@-CIPHER_@-AES_@-256_@-SIV_@-GCM
+AES in SIV-GCM mode with 256-bit key.
+@item GNUTLS_@-CIPHER_@-IDEA_@-PGP_@-CFB
+IDEA in CFB mode (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-3DES_@-PGP_@-CFB
+3DES in CFB mode (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-CAST5_@-PGP_@-CFB
+CAST5 in CFB mode (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-BLOWFISH_@-PGP_@-CFB
+Blowfish in CFB mode (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-SAFER_@-SK128_@-PGP_@-CFB
+Safer-SK in CFB mode with 128-bit keys (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-AES128_@-PGP_@-CFB
+AES in CFB mode with 128-bit keys (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-AES192_@-PGP_@-CFB
+AES in CFB mode with 192-bit keys (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-AES256_@-PGP_@-CFB
+AES in CFB mode with 256-bit keys (placeholder - unsupported).
+@item GNUTLS_@-CIPHER_@-TWOFISH_@-PGP_@-CFB
+Twofish in CFB mode (placeholder - unsupported).
+@end table
+
+@c gnutls_kx_algorithm_t
+@table @code
+@item GNUTLS_@-KX_@-UNKNOWN
+Unknown key-exchange algorithm.
+@item GNUTLS_@-KX_@-RSA
+RSA key-exchange algorithm.
+@item GNUTLS_@-KX_@-DHE_@-DSS
+DHE-DSS key-exchange algorithm.
+@item GNUTLS_@-KX_@-DHE_@-RSA
+DHE-RSA key-exchange algorithm.
+@item GNUTLS_@-KX_@-ANON_@-DH
+Anon-DH key-exchange algorithm.
+@item GNUTLS_@-KX_@-SRP
+SRP key-exchange algorithm.
+@item GNUTLS_@-KX_@-RSA_@-EXPORT
+RSA-EXPORT key-exchange algorithm (defunc).
+@item GNUTLS_@-KX_@-SRP_@-RSA
+SRP-RSA key-exchange algorithm.
+@item GNUTLS_@-KX_@-SRP_@-DSS
+SRP-DSS key-exchange algorithm.
+@item GNUTLS_@-KX_@-PSK
+PSK key-exchange algorithm.
+@item GNUTLS_@-KX_@-DHE_@-PSK
+DHE-PSK key-exchange algorithm.
+@item GNUTLS_@-KX_@-ANON_@-ECDH
+Anon-ECDH key-exchange algorithm.
+@item GNUTLS_@-KX_@-ECDHE_@-RSA
+ECDHE-RSA key-exchange algorithm.
+@item GNUTLS_@-KX_@-ECDHE_@-ECDSA
+ECDHE-ECDSA key-exchange algorithm.
+@item GNUTLS_@-KX_@-ECDHE_@-PSK
+ECDHE-PSK key-exchange algorithm.
+@item GNUTLS_@-KX_@-RSA_@-PSK
+RSA-PSK key-exchange algorithm.
+@item GNUTLS_@-KX_@-VKO_@-GOST_@-12
+VKO GOST R 34.10-2012 key-exchange algorithm.
+@end table
+
+@c gnutls_params_type_t
+@table @code
+@item GNUTLS_@-PARAMS_@-RSA_@-EXPORT
+Session RSA-EXPORT parameters (defunc).
+@item GNUTLS_@-PARAMS_@-DH
+Session Diffie-Hellman parameters.
+@item GNUTLS_@-PARAMS_@-ECDH
+Session Elliptic-Curve Diffie-Hellman parameters.
+@end table
+
+@c gnutls_credentials_type_t
+@table @code
+@item GNUTLS_@-CRD_@-CERTIFICATE
+Certificate credential.
+@item GNUTLS_@-CRD_@-ANON
+Anonymous credential.
+@item GNUTLS_@-CRD_@-SRP
+SRP credential.
+@item GNUTLS_@-CRD_@-PSK
+PSK credential.
+@item GNUTLS_@-CRD_@-IA
+IA credential.
+@end table
+
+@c gnutls_mac_algorithm_t
+@table @code
+@item GNUTLS_@-MAC_@-UNKNOWN
+Unknown MAC algorithm.
+@item GNUTLS_@-MAC_@-NULL
+NULL MAC algorithm (empty output).
+@item GNUTLS_@-MAC_@-MD5
+HMAC-MD5 algorithm.
+@item GNUTLS_@-MAC_@-SHA1
+HMAC-SHA-1 algorithm.
+@item GNUTLS_@-MAC_@-RMD160
+HMAC-RMD160 algorithm.
+@item GNUTLS_@-MAC_@-MD2
+HMAC-MD2 algorithm.
+@item GNUTLS_@-MAC_@-SHA256
+HMAC-SHA-256 algorithm.
+@item GNUTLS_@-MAC_@-SHA384
+HMAC-SHA-384 algorithm.
+@item GNUTLS_@-MAC_@-SHA512
+HMAC-SHA-512 algorithm.
+@item GNUTLS_@-MAC_@-SHA224
+HMAC-SHA-224 algorithm.
+@item GNUTLS_@-MAC_@-SHA3_@-224
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-256
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-384
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-512
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-MD5_@-SHA1
+Combined MD5+SHA1 MAC placeholder.
+@item GNUTLS_@-MAC_@-GOSTR_@-94
+HMAC GOST R 34.11-94 algorithm.
+@item GNUTLS_@-MAC_@-STREEBOG_@-256
+HMAC GOST R 34.11-2001 (Streebog) algorithm, 256 bit.
+@item GNUTLS_@-MAC_@-STREEBOG_@-512
+HMAC GOST R 34.11-2001 (Streebog) algorithm, 512 bit.
+@item GNUTLS_@-MAC_@-AEAD
+MAC implicit through AEAD cipher.
+@item GNUTLS_@-MAC_@-UMAC_@-96
+The UMAC-96 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-UMAC_@-128
+The UMAC-128 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-CMAC_@-128
+The AES-CMAC-128 MAC algorithm.
+@item GNUTLS_@-MAC_@-AES_@-CMAC_@-256
+The AES-CMAC-256 MAC algorithm.
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-128
+The AES-GMAC-128 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-192
+The AES-GMAC-192 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-256
+The AES-GMAC-256 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-GOST28147_@-TC26Z_@-IMIT
+The GOST 28147-89 working in IMIT mode with TC26 Z S-box.
+@item GNUTLS_@-MAC_@-SHAKE_@-128
+The SHAKE128 extendable output function.
+@item GNUTLS_@-MAC_@-SHAKE_@-256
+The SHAKE256 extendable output function.
+@item GNUTLS_@-MAC_@-MAGMA_@-OMAC
+GOST R 34.12-2015 (Magma) in OMAC (CMAC) mode.
+@item GNUTLS_@-MAC_@-KUZNYECHIK_@-OMAC
+GOST R 34.12-2015 (Kuznyechik) in OMAC (CMAC) mode.
+@item GNUTLS_@-MAC_@-PBMAC1
+-- undescribed --
+@end table
+
+@c gnutls_digest_algorithm_t
+@table @code
+@item GNUTLS_@-DIG_@-UNKNOWN
+Unknown hash algorithm.
+@item GNUTLS_@-DIG_@-NULL
+NULL hash algorithm (empty output).
+@item GNUTLS_@-DIG_@-MD5
+MD5 algorithm.
+@item GNUTLS_@-DIG_@-SHA1
+SHA-1 algorithm.
+@item GNUTLS_@-DIG_@-RMD160
+RMD160 algorithm.
+@item GNUTLS_@-DIG_@-MD2
+MD2 algorithm.
+@item GNUTLS_@-DIG_@-SHA256
+SHA-256 algorithm.
+@item GNUTLS_@-DIG_@-SHA384
+SHA-384 algorithm.
+@item GNUTLS_@-DIG_@-SHA512
+SHA-512 algorithm.
+@item GNUTLS_@-DIG_@-SHA224
+SHA-224 algorithm.
+@item GNUTLS_@-DIG_@-SHA3_@-224
+SHA3-224 algorithm.
+@item GNUTLS_@-DIG_@-SHA3_@-256
+SHA3-256 algorithm.
+@item GNUTLS_@-DIG_@-SHA3_@-384
+SHA3-384 algorithm.
+@item GNUTLS_@-DIG_@-SHA3_@-512
+SHA3-512 algorithm.
+@item GNUTLS_@-DIG_@-MD5_@-SHA1
+Combined MD5+SHA1 algorithm.
+@item GNUTLS_@-DIG_@-GOSTR_@-94
+GOST R 34.11-94 algorithm.
+@item GNUTLS_@-DIG_@-STREEBOG_@-256
+GOST R 34.11-2001 (Streebog) algorithm, 256 bit.
+@item GNUTLS_@-DIG_@-STREEBOG_@-512
+GOST R 34.11-2001 (Streebog) algorithm, 512 bit.
+@item GNUTLS_@-DIG_@-SHAKE_@-128
+The SHAKE128 extendable output function.
+@item GNUTLS_@-DIG_@-SHAKE_@-256
+The SHAKE256 extendable output function.
+@end table
+
+@c gnutls_compression_method_t
+@table @code
+@item GNUTLS_@-COMP_@-UNKNOWN
+Unknown compression method.
+@item GNUTLS_@-COMP_@-NULL
+The NULL compression method (no compression).
+@item GNUTLS_@-COMP_@-DEFLATE
+The DEFLATE compression method from zlib.
+@item GNUTLS_@-COMP_@-ZLIB
+Same as @code{GNUTLS_COMP_DEFLATE} .
+@item GNUTLS_@-COMP_@-BROTLI
+Brotli compression method.
+@item GNUTLS_@-COMP_@-ZSTD
+Zstandard compression method.
+@end table
+
+@c gnutls_init_flags_t
+@table @code
+@item GNUTLS_@-SERVER
+Connection end is a server.
+@item GNUTLS_@-CLIENT
+Connection end is a client.
+@item GNUTLS_@-DATAGRAM
+Connection is datagram oriented (DTLS). Since 3.0.0.
+@item GNUTLS_@-NONBLOCK
+Connection should not block. Since 3.0.0.
+@item GNUTLS_@-NO_@-DEFAULT_@-EXTENSIONS
+Do not enable any TLS extensions by default such as session tickets and OCSP certificate status request (since 3.1.2). As TLS 1.2 and later require extensions this option is considered obsolete and should not be used.
+@item GNUTLS_@-NO_@-REPLAY_@-PROTECTION
+Disable any replay protection in DTLS. This must only be used if  replay protection is achieved using other means. Since 3.2.2.
+@item GNUTLS_@-NO_@-SIGNAL
+In systems where SIGPIPE is delivered on send, it will be disabled. That flag has effect in systems which support the MSG_NOSIGNAL sockets flag (since 3.4.2).
+@item GNUTLS_@-ALLOW_@-ID_@-CHANGE
+Allow the peer to replace its certificate, or change its ID during a rehandshake. This change is often used in attacks and thus prohibited by default. Since 3.5.0.
+@item GNUTLS_@-ENABLE_@-FALSE_@-START
+Enable the TLS false start on client side if the negotiated ciphersuites allow it. This will enable sending data prior to the handshake being complete, and may introduce a risk of crypto failure when combined with certain key exchanged; for that GnuTLS may not enable that option in ciphersuites that are known to be not safe for false start. Since 3.5.0.
+@item GNUTLS_@-FORCE_@-CLIENT_@-CERT
+When in client side and only a single cert is specified, send that certificate irrespective of the issuers expected by the server. Since 3.5.0.
+@item GNUTLS_@-NO_@-TICKETS
+Flag to indicate that the session should not use resumption with session tickets.
+@item GNUTLS_@-KEY_@-SHARE_@-TOP
+Generate key share for the first group which is enabled.
+For example x25519. This option is the most performant for client (less CPU spent
+generating keys), but if the server doesn't support the advertised option it may
+result to more roundtrips needed to discover the server's choice.
+@item GNUTLS_@-KEY_@-SHARE_@-TOP2
+Generate key shares for the top-2 different groups which are enabled.
+For example (ECDH + x25519). This is the default.
+@item GNUTLS_@-KEY_@-SHARE_@-TOP3
+Generate key shares for the top-3 different groups which are enabled.
+That is, as each group is associated with a key type (EC, finite field, x25519), generate
+three keys using @code{GNUTLS_PK_DH} , @code{GNUTLS_PK_EC} , @code{GNUTLS_PK_ECDH_X25519}  if all of them are enabled.
+@item GNUTLS_@-POST_@-HANDSHAKE_@-AUTH
+Enable post handshake authentication for server and client. When set and
+a server requests authentication after handshake @code{GNUTLS_E_REAUTH_REQUEST}  will be returned
+by @code{gnutls_record_recv()} . A client should then call @code{gnutls_reauth()}  to re-authenticate.
+@item GNUTLS_@-NO_@-AUTO_@-REKEY
+Disable auto-rekeying under TLS1.3. If this option is not specified
+gnutls will force a rekey after 2^24 records have been sent.
+@item GNUTLS_@-SAFE_@-PADDING_@-CHECK
+Flag to indicate that the TLS 1.3 padding check will be done in a
+safe way which doesn't leak the pad size based on GnuTLS processing time. This is of use to
+applications which hide the length of transferred data via the TLS1.3 padding mechanism and
+are already taking steps to hide the data processing time. This comes at a performance
+penalty.
+@item GNUTLS_@-ENABLE_@-EARLY_@-START
+Under TLS1.3 allow the server to return earlier than the full handshake
+finish; similarly to false start the handshake will be completed once data are received by the
+client, while the server is able to transmit sooner. This is not enabled by default as it could
+break certain existing server assumptions and use-cases. Since 3.6.4.
+@item GNUTLS_@-ENABLE_@-RAWPK
+Allows raw public-keys to be negotiated during the handshake. Since 3.6.6.
+@item GNUTLS_@-AUTO_@-REAUTH
+Enable transparent re-authentication in client side when the server
+requests to. That is, reauthentication is handled within @code{gnutls_record_recv()} , and
+the @code{GNUTLS_E_REHANDSHAKE}  or @code{GNUTLS_E_REAUTH_REQUEST}  are not returned. This must be
+enabled with @code{GNUTLS_POST_HANDSHAKE_AUTH}  for TLS1.3. Enabling this flag requires to restore
+interrupted calls to @code{gnutls_record_recv()}  based on the output of @code{gnutls_record_get_direction()} ,
+since @code{gnutls_record_recv()}  could be interrupted when sending when this flag is enabled.
+Note this flag may not be used if you are using the same session for sending and receiving
+in different threads.
+@item GNUTLS_@-ENABLE_@-EARLY_@-DATA
+Under TLS1.3 allow the server to receive early data sent as part of the initial ClientHello (0-RTT).
+This can also be used to explicitly indicate that the client will send early data.
+This is not enabled by default as early data has weaker security properties than other data. Since 3.6.5.
+@item GNUTLS_@-NO_@-AUTO_@-SEND_@-TICKET
+Under TLS1.3 disable auto-sending of
+session tickets during the handshake.
+@item GNUTLS_@-NO_@-END_@-OF_@-EARLY_@-DATA
+Under TLS1.3 suppress sending EndOfEarlyData message. Since 3.7.2.
+@item GNUTLS_@-NO_@-TICKETS_@-TLS12
+Flag to indicate that the session should not use resumption with session tickets. This flag only has effect if TLS 1.2 is used.
+@item GNUTLS_@-NO_@-STATUS_@-REQUEST
+Prevents client from including the "status_request" TLS extension
+in the client hello, thus disabling the receival of certificate status information. Since 3.8.0.
+@end table
+
+@c gnutls_alert_level_t
+@table @code
+@item GNUTLS_@-AL_@-WARNING
+Alert of warning severity.
+@item GNUTLS_@-AL_@-FATAL
+Alert of fatal severity.
+@end table
+
+@c gnutls_alert_description_t
+@table @code
+@item GNUTLS_@-A_@-CLOSE_@-NOTIFY
+Close notify.
+@item GNUTLS_@-A_@-UNEXPECTED_@-MESSAGE
+Unexpected message.
+@item GNUTLS_@-A_@-BAD_@-RECORD_@-MAC
+Bad record MAC.
+@item GNUTLS_@-A_@-DECRYPTION_@-FAILED
+Decryption failed.
+@item GNUTLS_@-A_@-RECORD_@-OVERFLOW
+Record overflow.
+@item GNUTLS_@-A_@-DECOMPRESSION_@-FAILURE
+Decompression failed.
+@item GNUTLS_@-A_@-HANDSHAKE_@-FAILURE
+Handshake failed.
+@item GNUTLS_@-A_@-SSL3_@-NO_@-CERTIFICATE
+No certificate.
+@item GNUTLS_@-A_@-BAD_@-CERTIFICATE
+Certificate is bad.
+@item GNUTLS_@-A_@-UNSUPPORTED_@-CERTIFICATE
+Certificate is not supported.
+@item GNUTLS_@-A_@-CERTIFICATE_@-REVOKED
+Certificate was revoked.
+@item GNUTLS_@-A_@-CERTIFICATE_@-EXPIRED
+Certificate is expired.
+@item GNUTLS_@-A_@-CERTIFICATE_@-UNKNOWN
+Unknown certificate.
+@item GNUTLS_@-A_@-ILLEGAL_@-PARAMETER
+Illegal parameter.
+@item GNUTLS_@-A_@-UNKNOWN_@-CA
+CA is unknown.
+@item GNUTLS_@-A_@-ACCESS_@-DENIED
+Access was denied.
+@item GNUTLS_@-A_@-DECODE_@-ERROR
+Decode error.
+@item GNUTLS_@-A_@-DECRYPT_@-ERROR
+Decrypt error.
+@item GNUTLS_@-A_@-EXPORT_@-RESTRICTION
+Export restriction.
+@item GNUTLS_@-A_@-PROTOCOL_@-VERSION
+Error in protocol version.
+@item GNUTLS_@-A_@-INSUFFICIENT_@-SECURITY
+Insufficient security.
+@item GNUTLS_@-A_@-INTERNAL_@-ERROR
+Internal error.
+@item GNUTLS_@-A_@-INAPPROPRIATE_@-FALLBACK
+Inappropriate fallback,
+@item GNUTLS_@-A_@-USER_@-CANCELED
+User canceled.
+@item GNUTLS_@-A_@-NO_@-RENEGOTIATION
+No renegotiation is allowed.
+@item GNUTLS_@-A_@-MISSING_@-EXTENSION
+An extension was expected but was not seen
+@item GNUTLS_@-A_@-UNSUPPORTED_@-EXTENSION
+An unsupported extension was
+sent.
+@item GNUTLS_@-A_@-CERTIFICATE_@-UNOBTAINABLE
+Could not retrieve the
+specified certificate.
+@item GNUTLS_@-A_@-UNRECOGNIZED_@-NAME
+The server name sent was not
+recognized.
+@item GNUTLS_@-A_@-UNKNOWN_@-PSK_@-IDENTITY
+The SRP/PSK username is missing
+or not known.
+@item GNUTLS_@-A_@-CERTIFICATE_@-REQUIRED
+Certificate is required.
+@item GNUTLS_@-A_@-NO_@-APPLICATION_@-PROTOCOL
+The ALPN protocol requested is
+not supported by the peer.
+@item GNUTLS_@-A_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_handshake_description_t
+@table @code
+@item GNUTLS_@-HANDSHAKE_@-HELLO_@-REQUEST
+Hello request.
+@item GNUTLS_@-HANDSHAKE_@-CLIENT_@-HELLO
+Client hello.
+@item GNUTLS_@-HANDSHAKE_@-SERVER_@-HELLO
+Server hello.
+@item GNUTLS_@-HANDSHAKE_@-HELLO_@-VERIFY_@-REQUEST
+DTLS Hello verify request.
+@item GNUTLS_@-HANDSHAKE_@-NEW_@-SESSION_@-TICKET
+New session ticket.
+@item GNUTLS_@-HANDSHAKE_@-END_@-OF_@-EARLY_@-DATA
+End of early data.
+@item GNUTLS_@-HANDSHAKE_@-ENCRYPTED_@-EXTENSIONS
+Encrypted extensions message.
+@item GNUTLS_@-HANDSHAKE_@-CERTIFICATE_@-PKT
+Certificate packet.
+@item GNUTLS_@-HANDSHAKE_@-SERVER_@-KEY_@-EXCHANGE
+Server key exchange.
+@item GNUTLS_@-HANDSHAKE_@-CERTIFICATE_@-REQUEST
+Certificate request.
+@item GNUTLS_@-HANDSHAKE_@-SERVER_@-HELLO_@-DONE
+Server hello done.
+@item GNUTLS_@-HANDSHAKE_@-CERTIFICATE_@-VERIFY
+Certificate verify.
+@item GNUTLS_@-HANDSHAKE_@-CLIENT_@-KEY_@-EXCHANGE
+Client key exchange.
+@item GNUTLS_@-HANDSHAKE_@-FINISHED
+Finished.
+@item GNUTLS_@-HANDSHAKE_@-CERTIFICATE_@-STATUS
+Certificate status (OCSP).
+@item GNUTLS_@-HANDSHAKE_@-SUPPLEMENTAL
+Supplemental.
+@item GNUTLS_@-HANDSHAKE_@-KEY_@-UPDATE
+TLS1.3 key update message.
+@item GNUTLS_@-HANDSHAKE_@-COMPRESSED_@-CERTIFICATE_@-PKT
+Compressed certificate packet.
+@item GNUTLS_@-HANDSHAKE_@-CHANGE_@-CIPHER_@-SPEC
+Change Cipher Spec.
+@item GNUTLS_@-HANDSHAKE_@-CLIENT_@-HELLO_@-V2
+SSLv2 Client Hello.
+@item GNUTLS_@-HANDSHAKE_@-HELLO_@-RETRY_@-REQUEST
+Hello retry request.
+@end table
+
+@c gnutls_certificate_status_t
+@table @code
+@item GNUTLS_@-CERT_@-INVALID
+The certificate is not signed by one of the
+known authorities or the signature is invalid (deprecated by the flags 
+@code{GNUTLS_CERT_SIGNATURE_FAILURE}  and @code{GNUTLS_CERT_SIGNER_NOT_FOUND} ).
+@item GNUTLS_@-CERT_@-REVOKED
+Certificate is revoked by its authority.  In X.509 this will be
+set only if CRLs are checked.
+@item GNUTLS_@-CERT_@-SIGNER_@-NOT_@-FOUND
+The certificate's issuer is not known. 
+This is the case if the issuer is not included in the trusted certificate list.
+@item GNUTLS_@-CERT_@-SIGNER_@-NOT_@-CA
+The certificate's signer was not a CA. This
+may happen if this was a version 1 certificate, which is common with
+some CAs, or a version 3 certificate without the basic constrains extension.
+@item GNUTLS_@-CERT_@-INSECURE_@-ALGORITHM
+The certificate was signed using an insecure
+algorithm such as MD2 or MD5. These algorithms have been broken and
+should not be trusted.
+@item GNUTLS_@-CERT_@-NOT_@-ACTIVATED
+The certificate is not yet activated.
+@item GNUTLS_@-CERT_@-EXPIRED
+The certificate has expired.
+@item GNUTLS_@-CERT_@-SIGNATURE_@-FAILURE
+The signature verification failed.
+@item GNUTLS_@-CERT_@-REVOCATION_@-DATA_@-SUPERSEDED
+The revocation data are old and have been superseded.
+@item GNUTLS_@-CERT_@-UNEXPECTED_@-OWNER
+The owner is not the expected one.
+@item GNUTLS_@-CERT_@-REVOCATION_@-DATA_@-ISSUED_@-IN_@-FUTURE
+The revocation data have a future issue date.
+@item GNUTLS_@-CERT_@-SIGNER_@-CONSTRAINTS_@-FAILURE
+The certificate's signer constraints were
+violated.
+@item GNUTLS_@-CERT_@-MISMATCH
+The certificate presented isn't the expected one (TOFU)
+@item GNUTLS_@-CERT_@-PURPOSE_@-MISMATCH
+The certificate or an intermediate does not match the intended purpose (extended key usage).
+@item GNUTLS_@-CERT_@-MISSING_@-OCSP_@-STATUS
+The certificate requires the server to send the certificate status, but no status was received.
+@item GNUTLS_@-CERT_@-INVALID_@-OCSP_@-STATUS
+The received OCSP status response is invalid.
+@item GNUTLS_@-CERT_@-UNKNOWN_@-CRIT_@-EXTENSIONS
+The certificate has extensions marked as critical which are not supported.
+@end table
+
+@c gnutls_certificate_request_t
+@table @code
+@item GNUTLS_@-CERT_@-IGNORE
+Ignore certificate.
+@item GNUTLS_@-CERT_@-REQUEST
+Request certificate.
+@item GNUTLS_@-CERT_@-REQUIRE
+Require certificate.
+@end table
+
+@c gnutls_openpgp_crt_status_t
+@table @code
+@item GNUTLS_@-OPENPGP_@-CERT
+Send entire certificate.
+@item GNUTLS_@-OPENPGP_@-CERT_@-FINGERPRINT
+Send only certificate fingerprint.
+@end table
+
+@c gnutls_close_request_t
+@table @code
+@item GNUTLS_@-SHUT_@-RDWR
+Disallow further receives/sends.
+@item GNUTLS_@-SHUT_@-WR
+Disallow further sends.
+@end table
+
+@c gnutls_protocol_t
+@table @code
+@item GNUTLS_@-SSL3
+SSL version 3.0.
+@item GNUTLS_@-TLS1_@-0
+TLS version 1.0.
+@item GNUTLS_@-TLS1
+Same as @code{GNUTLS_TLS1_0} .
+@item GNUTLS_@-TLS1_@-1
+TLS version 1.1.
+@item GNUTLS_@-TLS1_@-2
+TLS version 1.2.
+@item GNUTLS_@-TLS1_@-3
+TLS version 1.3.
+@item GNUTLS_@-DTLS0_@-9
+DTLS version 0.9 (Cisco AnyConnect / OpenSSL 0.9.8e).
+@item GNUTLS_@-DTLS1_@-0
+DTLS version 1.0.
+@item GNUTLS_@-DTLS1_@-2
+DTLS version 1.2.
+@item GNUTLS_@-DTLS_@-VERSION_@-MIN
+-- undescribed --
+@item GNUTLS_@-DTLS_@-VERSION_@-MAX
+Maps to the highest supported DTLS version.
+@item GNUTLS_@-TLS_@-VERSION_@-MAX
+Maps to the highest supported TLS version.
+@item GNUTLS_@-VERSION_@-UNKNOWN
+Unknown SSL/TLS version.
+@end table
+
+@c gnutls_certificate_type_t
+@table @code
+@item GNUTLS_@-CRT_@-UNKNOWN
+Unknown certificate type.
+@item GNUTLS_@-CRT_@-X509
+X.509 Certificate.
+@item GNUTLS_@-CRT_@-OPENPGP
+OpenPGP certificate.
+@item GNUTLS_@-CRT_@-RAWPK
+Raw public-key (SubjectPublicKeyInfo)
+@item GNUTLS_@-CRT_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_x509_crt_fmt_t
+@table @code
+@item GNUTLS_@-X509_@-FMT_@-DER
+X.509 certificate in DER format (binary).
+@item GNUTLS_@-X509_@-FMT_@-PEM
+X.509 certificate in PEM format (text).
+@end table
+
+@c gnutls_certificate_print_formats_t
+@table @code
+@item GNUTLS_@-CRT_@-PRINT_@-FULL
+Full information about certificate.
+@item GNUTLS_@-CRT_@-PRINT_@-ONELINE
+Information about certificate in one line.
+@item GNUTLS_@-CRT_@-PRINT_@-UNSIGNED_@-FULL
+All info for an unsigned certificate.
+@item GNUTLS_@-CRT_@-PRINT_@-COMPACT
+Information about certificate name in one line, plus identification of the public key.
+@item GNUTLS_@-CRT_@-PRINT_@-FULL_@-NUMBERS
+Full information about certificate and include easy to parse public key parameters.
+@end table
+
+@c gnutls_pk_algorithm_t
+@table @code
+@item GNUTLS_@-PK_@-UNKNOWN
+Unknown public-key algorithm.
+@item GNUTLS_@-PK_@-RSA
+RSA public-key algorithm.
+@item GNUTLS_@-PK_@-DSA
+DSA public-key algorithm.
+@item GNUTLS_@-PK_@-DH
+Diffie-Hellman algorithm. Used to generate parameters.
+@item GNUTLS_@-PK_@-ECDSA
+Elliptic curve algorithm. These parameters are compatible with the ECDSA and ECDH algorithm.
+@item GNUTLS_@-PK_@-ECDH_@-X25519
+Elliptic curve algorithm, restricted to ECDH as per rfc7748.
+@item GNUTLS_@-PK_@-RSA_@-PSS
+RSA public-key algorithm, with PSS padding.
+@item GNUTLS_@-PK_@-EDDSA_@-ED25519
+Edwards curve Digital signature algorithm. Used with SHA512 on signatures.
+@item GNUTLS_@-PK_@-GOST_@-01
+GOST R 34.10-2001 algorithm per rfc5832.
+@item GNUTLS_@-PK_@-GOST_@-12_@-256
+GOST R 34.10-2012 algorithm, 256-bit key per rfc7091.
+@item GNUTLS_@-PK_@-GOST_@-12_@-512
+GOST R 34.10-2012 algorithm, 512-bit key per rfc7091.
+@item GNUTLS_@-PK_@-ECDH_@-X448
+Elliptic curve algorithm, restricted to ECDH as per rfc7748.
+@item GNUTLS_@-PK_@-EDDSA_@-ED448
+Edwards curve Digital signature algorithm. Used with SHAKE256 on signatures.
+@item GNUTLS_@-PK_@-RSA_@-OAEP
+RSA public-key algorithm, with OAEP padding.
+@item GNUTLS_@-PK_@-MAX
+-- undescribed --
+@item GNUTLS_@-PK_@-EXP_@-MIN
+-- undescribed --
+@item GNUTLS_@-PK_@-EXP_@-KYBER768
+-- undescribed --
+@item GNUTLS_@-PK_@-EXP_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_sign_algorithm_t
+@table @code
+@item GNUTLS_@-SIGN_@-UNKNOWN
+Unknown signature algorithm.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA1
+Digital signature algorithm RSA with SHA-1
+@item GNUTLS_@-SIGN_@-RSA_@-SHA
+Same as @code{GNUTLS_SIGN_RSA_SHA1} .
+@item GNUTLS_@-SIGN_@-DSA_@-SHA1
+Digital signature algorithm DSA with SHA-1
+@item GNUTLS_@-SIGN_@-DSA_@-SHA
+Same as @code{GNUTLS_SIGN_DSA_SHA1} .
+@item GNUTLS_@-SIGN_@-RSA_@-MD5
+Digital signature algorithm RSA with MD5.
+@item GNUTLS_@-SIGN_@-RSA_@-MD2
+Digital signature algorithm RSA with MD2.
+@item GNUTLS_@-SIGN_@-RSA_@-RMD160
+Digital signature algorithm RSA with RMD-160.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA256
+Digital signature algorithm RSA with SHA-256.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA384
+Digital signature algorithm RSA with SHA-384.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA512
+Digital signature algorithm RSA with SHA-512.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA224
+Digital signature algorithm RSA with SHA-224.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA224
+Digital signature algorithm DSA with SHA-224
+@item GNUTLS_@-SIGN_@-DSA_@-SHA256
+Digital signature algorithm DSA with SHA-256
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA1
+ECDSA with SHA1.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA224
+Digital signature algorithm ECDSA with SHA-224.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA256
+Digital signature algorithm ECDSA with SHA-256.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA384
+Digital signature algorithm ECDSA with SHA-384.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA512
+Digital signature algorithm ECDSA with SHA-512.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA384
+Digital signature algorithm DSA with SHA-384
+@item GNUTLS_@-SIGN_@-DSA_@-SHA512
+Digital signature algorithm DSA with SHA-512
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA3_@-224
+Digital signature algorithm ECDSA with SHA3-224.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA3_@-256
+Digital signature algorithm ECDSA with SHA3-256.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA3_@-384
+Digital signature algorithm ECDSA with SHA3-384.
+@item GNUTLS_@-SIGN_@-ECDSA_@-SHA3_@-512
+Digital signature algorithm ECDSA with SHA3-512.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA3_@-224
+Digital signature algorithm DSA with SHA3-224.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA3_@-256
+Digital signature algorithm DSA with SHA3-256.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA3_@-384
+Digital signature algorithm DSA with SHA3-384.
+@item GNUTLS_@-SIGN_@-DSA_@-SHA3_@-512
+Digital signature algorithm DSA with SHA3-512.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA3_@-224
+Digital signature algorithm RSA with SHA3-224.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA3_@-256
+Digital signature algorithm RSA with SHA3-256.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA3_@-384
+Digital signature algorithm RSA with SHA3-384.
+@item GNUTLS_@-SIGN_@-RSA_@-SHA3_@-512
+Digital signature algorithm RSA with SHA3-512.
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-SHA256
+Digital signature algorithm RSA with SHA-256, with PSS padding (RSA-PSS certificate).
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-SHA384
+Digital signature algorithm RSA with SHA-384, with PSS padding (RSA-PSS certificate).
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-SHA512
+Digital signature algorithm RSA with SHA-512, with PSS padding (RSA-PSS certificate).
+@item GNUTLS_@-SIGN_@-EDDSA_@-ED25519
+Digital signature algorithm EdDSA with Ed25519 curve.
+@item GNUTLS_@-SIGN_@-RSA_@-RAW
+Digital signature algorithm RSA with DigestInfo formatted data
+@item GNUTLS_@-SIGN_@-ECDSA_@-SECP256R1_@-SHA256
+Digital signature algorithm ECDSA-SECP256R1 with SHA-256 (used in TLS 1.3 but not PKIX).
+@item GNUTLS_@-SIGN_@-ECDSA_@-SECP384R1_@-SHA384
+Digital signature algorithm ECDSA-SECP384R1 with SHA-384 (used in TLS 1.3 but not PKIX).
+@item GNUTLS_@-SIGN_@-ECDSA_@-SECP521R1_@-SHA512
+Digital signature algorithm ECDSA-SECP521R1 with SHA-512 (used in TLS 1.3 but not PKIX).
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-RSAE_@-SHA256
+Digital signature algorithm RSA with SHA-256,
+with PSS padding (RSA PKCS@code{1}  1.5 certificate). This signature is identical
+to @code{GNUTLS_SIGN_RSA_PSS_SHA256} , but they are distinct as the TLS1.3 protocol
+treats them differently.
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-RSAE_@-SHA384
+Digital signature algorithm RSA with SHA-384,
+with PSS padding (RSA PKCS@code{1}  1.5 certificate). This signature is identical
+to @code{GNUTLS_SIGN_RSA_PSS_SHA384} , but they are distinct as the TLS1.3 protocol
+treats them differently.
+@item GNUTLS_@-SIGN_@-RSA_@-PSS_@-RSAE_@-SHA512
+Digital signature algorithm RSA with SHA-512,
+with PSS padding (RSA PKCS@code{1}  1.5 certificate). This signature is identical
+to @code{GNUTLS_SIGN_RSA_PSS_SHA512} , but they are distinct as the TLS1.3 protocol
+treats them differently.
+@item GNUTLS_@-SIGN_@-GOST_@-94
+Digital signature algorithm GOST R 34.10-2001 with GOST R 34.11-94
+@item GNUTLS_@-SIGN_@-GOST_@-256
+Digital signature algorithm GOST R 34.10-2012 with GOST R 34.11-2012 256 bit
+@item GNUTLS_@-SIGN_@-GOST_@-512
+Digital signature algorithm GOST R 34.10-2012 with GOST R 34.11-2012 512 bit
+@item GNUTLS_@-SIGN_@-EDDSA_@-ED448
+Digital signature algorithm EdDSA with Ed448 curve.
+@item GNUTLS_@-SIGN_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_ecc_curve_t
+@table @code
+@item GNUTLS_@-ECC_@-CURVE_@-INVALID
+Cannot be known
+@item GNUTLS_@-ECC_@-CURVE_@-SECP224R1
+the SECP224R1 curve
+@item GNUTLS_@-ECC_@-CURVE_@-SECP256R1
+the SECP256R1 curve
+@item GNUTLS_@-ECC_@-CURVE_@-SECP384R1
+the SECP384R1 curve
+@item GNUTLS_@-ECC_@-CURVE_@-SECP521R1
+the SECP521R1 curve
+@item GNUTLS_@-ECC_@-CURVE_@-SECP192R1
+the SECP192R1 curve
+@item GNUTLS_@-ECC_@-CURVE_@-X25519
+the X25519 curve (ECDH only)
+@item GNUTLS_@-ECC_@-CURVE_@-ED25519
+the Ed25519 curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256CPA
+GOST R 34.10 CryptoPro 256 A curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256CPB
+GOST R 34.10 CryptoPro 256 B curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256CPC
+GOST R 34.10 CryptoPro 256 C curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256CPXA
+GOST R 34.10 CryptoPro 256 XchA curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256CPXB
+GOST R 34.10 CryptoPro 256 XchB curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST512A
+GOST R 34.10 TC26 512 A curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST512B
+GOST R 34.10 TC26 512 B curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST512C
+GOST R 34.10 TC26 512 C curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256A
+GOST R 34.10 TC26 256 A curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256B
+GOST R 34.10 TC26 256 B curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256C
+GOST R 34.10 TC26 256 C curve
+@item GNUTLS_@-ECC_@-CURVE_@-GOST256D
+GOST R 34.10 TC26 256 D curve
+@item GNUTLS_@-ECC_@-CURVE_@-X448
+the X448 curve (ECDH only)
+@item GNUTLS_@-ECC_@-CURVE_@-ED448
+the Ed448 curve
+@item GNUTLS_@-ECC_@-CURVE_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_group_t
+@table @code
+@item GNUTLS_@-GROUP_@-INVALID
+Indicates unknown/invalid group
+@item GNUTLS_@-GROUP_@-SECP192R1
+the SECP192R1 curve group (legacy, only for TLS 1.2 compatibility)
+@item GNUTLS_@-GROUP_@-SECP224R1
+the SECP224R1 curve group (legacy, only for TLS 1.2 compatibility)
+@item GNUTLS_@-GROUP_@-SECP256R1
+the SECP256R1 curve group
+@item GNUTLS_@-GROUP_@-SECP384R1
+the SECP384R1 curve group
+@item GNUTLS_@-GROUP_@-SECP521R1
+the SECP521R1 curve group
+@item GNUTLS_@-GROUP_@-X25519
+the X25519 curve group
+@item GNUTLS_@-GROUP_@-X448
+the X448 curve group
+@item GNUTLS_@-GROUP_@-GC256A
+the GOST R 34.10 TC26 256 A curve group
+@item GNUTLS_@-GROUP_@-GC256B
+the GOST R 34.10 TC26 256 B curve group
+@item GNUTLS_@-GROUP_@-GC256C
+the GOST R 34.10 TC26 256 C curve group
+@item GNUTLS_@-GROUP_@-GC256D
+the GOST R 34.10 TC26 256 D curve group
+@item GNUTLS_@-GROUP_@-GC512A
+the GOST R 34.10 TC26 512 A curve group
+@item GNUTLS_@-GROUP_@-GC512B
+the GOST R 34.10 TC26 512 B curve group
+@item GNUTLS_@-GROUP_@-GC512C
+the GOST R 34.10 TC26 512 C curve group
+@item GNUTLS_@-GROUP_@-FFDHE2048
+the FFDHE2048 group
+@item GNUTLS_@-GROUP_@-FFDHE3072
+the FFDHE3072 group
+@item GNUTLS_@-GROUP_@-FFDHE4096
+the FFDHE4096 group
+@item GNUTLS_@-GROUP_@-FFDHE8192
+the FFDHE8192 group
+@item GNUTLS_@-GROUP_@-FFDHE6144
+the FFDHE6144 group
+@item GNUTLS_@-GROUP_@-MAX
+-- undescribed --
+@item GNUTLS_@-GROUP_@-EXP_@-MIN
+-- undescribed --
+@item GNUTLS_@-GROUP_@-EXP_@-X25519_@-KYBER768
+-- undescribed --
+@item GNUTLS_@-GROUP_@-EXP_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_sec_param_t
+@table @code
+@item GNUTLS_@-SEC_@-PARAM_@-UNKNOWN
+Cannot be known
+@item GNUTLS_@-SEC_@-PARAM_@-INSECURE
+Less than 42 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-EXPORT
+42 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-VERY_@-WEAK
+64 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-WEAK
+72 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-LOW
+80 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-LEGACY
+96 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-MEDIUM
+112 bits of security (used to be @code{GNUTLS_SEC_PARAM_NORMAL} )
+@item GNUTLS_@-SEC_@-PARAM_@-HIGH
+128 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-ULTRA
+192 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-FUTURE
+256 bits of security
+@item GNUTLS_@-SEC_@-PARAM_@-MAX
+-- undescribed --
+@end table
+
+@c gnutls_channel_binding_t
+@table @code
+@item GNUTLS_@-CB_@-TLS_@-UNIQUE
+"tls-unique" (RFC 5929) channel binding
+@item GNUTLS_@-CB_@-TLS_@-SERVER_@-END_@-POINT
+"tls-server-end-point" (RFC 5929) channel binding
+@item GNUTLS_@-CB_@-TLS_@-EXPORTER
+"tls-exporter" (RFC 9266) channel binding
+@end table
+
+@c gnutls_gost_paramset_t
+@table @code
+@item GNUTLS_@-GOST_@-PARAMSET_@-UNKNOWN
+Unknown/default parameter set
+@item GNUTLS_@-GOST_@-PARAMSET_@-TC26_@-Z
+Specified by TC26, see rfc7836
+@item GNUTLS_@-GOST_@-PARAMSET_@-CP_@-A
+CryptoPro-A, see rfc4357
+@item GNUTLS_@-GOST_@-PARAMSET_@-CP_@-B
+CryptoPro-B, see rfc4357
+@item GNUTLS_@-GOST_@-PARAMSET_@-CP_@-C
+CryptoPro-C, see rfc4357
+@item GNUTLS_@-GOST_@-PARAMSET_@-CP_@-D
+CryptoPro-D, see rfc4357
+@end table
+
+@c gnutls_ctype_target_t
+@table @code
+@item GNUTLS_@-CTYPE_@-CLIENT
+for requesting client certificate type values.
+@item GNUTLS_@-CTYPE_@-SERVER
+for requesting server certificate type values.
+@item GNUTLS_@-CTYPE_@-OURS
+for requesting our certificate type values.
+@item GNUTLS_@-CTYPE_@-PEERS
+for requesting the peers' certificate type values.
+@end table
+
+@c gnutls_server_name_type_t
+@table @code
+@item GNUTLS_@-NAME_@-DNS
+Domain Name System name type.
+@end table
+
+@c gnutls_session_flags_t
+@table @code
+@item GNUTLS_@-SFLAGS_@-SAFE_@-RENEGOTIATION
+Safe renegotiation (RFC5746) was used
+@item GNUTLS_@-SFLAGS_@-EXT_@-MASTER_@-SECRET
+The extended master secret (RFC7627) extension was used
+@item GNUTLS_@-SFLAGS_@-ETM
+The encrypt then MAC (RFC7366) extension was used
+@item GNUTLS_@-SFLAGS_@-HB_@-LOCAL_@-SEND
+The heartbeat negotiation allows the local side to send heartbeat messages
+@item GNUTLS_@-SFLAGS_@-HB_@-PEER_@-SEND
+The heartbeat negotiation allows the peer to send heartbeat messages
+@item GNUTLS_@-SFLAGS_@-FALSE_@-START
+False start was used in this client session.
+@item GNUTLS_@-SFLAGS_@-RFC7919
+The RFC7919 Diffie-Hellman parameters were negotiated
+@item GNUTLS_@-SFLAGS_@-SESSION_@-TICKET
+A session ticket has been received by the server.
+@item GNUTLS_@-SFLAGS_@-POST_@-HANDSHAKE_@-AUTH
+Indicates client capability for post-handshake auth; set only on server side.
+@item GNUTLS_@-SFLAGS_@-EARLY_@-START
+The TLS1.3 server session returned early.
+@item GNUTLS_@-SFLAGS_@-EARLY_@-DATA
+The TLS1.3 early data has been received by the server.
+@item GNUTLS_@-SFLAGS_@-CLI_@-REQUESTED_@-OCSP
+Set when the client has requested OCSP staple during handshake.
+@item GNUTLS_@-SFLAGS_@-SERV_@-REQUESTED_@-OCSP
+Set when the server has requested OCSP staple during handshake.
+@end table
+
+@c gnutls_supplemental_data_format_type_t
+@table @code
+@item GNUTLS_@-SUPPLEMENTAL_@-UNKNOWN
+Unknown data format
+@end table
+
+@c gnutls_srtp_profile_t
+@table @code
+@item GNUTLS_@-SRTP_@-AES128_@-CM_@-HMAC_@-SHA1_@-80
+128 bit AES with a 80 bit HMAC-SHA1
+@item GNUTLS_@-SRTP_@-AES128_@-CM_@-HMAC_@-SHA1_@-32
+128 bit AES with a 32 bit HMAC-SHA1
+@item GNUTLS_@-SRTP_@-NULL_@-HMAC_@-SHA1_@-80
+NULL cipher with a 80 bit HMAC-SHA1
+@item GNUTLS_@-SRTP_@-NULL_@-HMAC_@-SHA1_@-32
+NULL cipher with a 32 bit HMAC-SHA1
+@item GNUTLS_@-SRTP_@-AEAD_@-AES_@-128_@-GCM
+128 bit AES with GCM
+@item GNUTLS_@-SRTP_@-AEAD_@-AES_@-256_@-GCM
+256 bit AES with GCM
+@end table
+
+@c gnutls_alpn_flags_t
+@table @code
+@item GNUTLS_@-ALPN_@-MANDATORY
+Require ALPN negotiation. The connection will be
+aborted if no matching ALPN protocol is found.
+@item GNUTLS_@-ALPN_@-SERVER_@-PRECEDENCE
+The choices set by the server
+will take precedence over the client's.
+@end table
+
+@c gnutls_vdata_types_t
+@table @code
+@item GNUTLS_@-DT_@-UNKNOWN
+Unknown data type.
+@item GNUTLS_@-DT_@-DNS_@-HOSTNAME
+The data contain a null-terminated DNS hostname; the hostname will be 
+matched using the RFC6125 rules. If the data contain a textual IP (v4 or v6) address it will
+be marched against the IPAddress Alternative name, unless the verification flag @code{GNUTLS_VERIFY_DO_NOT_ALLOW_IP_MATCHES} 
+is specified.
+@item GNUTLS_@-DT_@-KEY_@-PURPOSE_@-OID
+The data contain a null-terminated key purpose OID. It will be matched
+against the certificate's Extended Key Usage extension.
+@item GNUTLS_@-DT_@-RFC822NAME
+The data contain a null-terminated email address; the email will be
+matched against the RFC822Name Alternative name of the certificate, or the EMAIL DN component if the
+former isn't available. Prior to matching the email address will be converted to ACE
+(ASCII-compatible-encoding).
+@item GNUTLS_@-DT_@-IP_@-ADDRESS
+The data contain a raw IP address (4 or 16 bytes). If will be matched
+against the IPAddress Alternative name; option available since 3.6.0.
+@end table
+
+@c gnutls_certificate_flags
+@table @code
+@item GNUTLS_@-CERTIFICATE_@-SKIP_@-KEY_@-CERT_@-MATCH
+Skip the key and certificate matching check.
+@item GNUTLS_@-CERTIFICATE_@-API_@-V2
+If set the gnutls_certificate_set_*key* functions will return an index of the added key pair instead of zero.
+@item GNUTLS_@-CERTIFICATE_@-SKIP_@-OCSP_@-RESPONSE_@-CHECK
+If set, the gnutls_certificate_set_ocsp_status_request_file
+function, will not check whether the response set matches any of the certificates.
+@item GNUTLS_@-CERTIFICATE_@-VERIFY_@-CRLS
+This will enable CRL verification when added in the certificate structure.
+When used, it requires CAs to be added before CRLs.
+@end table
+
+@c gnutls_random_art_t
+@table @code
+@item GNUTLS_@-RANDOM_@-ART_@-OPENSSH
+OpenSSH-style random art.
+@end table
+
+@c gnutls_psk_key_flags
+@table @code
+@item GNUTLS_@-PSK_@-KEY_@-RAW
+PSK-key in raw format.
+@item GNUTLS_@-PSK_@-KEY_@-HEX
+PSK-key in hex format.
+@item GNUTLS_@-PSK_@-KEY_@-EXT
+PSK-key is external and to be imported.
+@end table
+
+@c gnutls_x509_subject_alt_name_t
+@table @code
+@item GNUTLS_@-SAN_@-DNSNAME
+DNS-name SAN.
+@item GNUTLS_@-SAN_@-RFC822NAME
+E-mail address SAN.
+@item GNUTLS_@-SAN_@-URI
+URI SAN.
+@item GNUTLS_@-SAN_@-IPADDRESS
+IP address SAN.
+@item GNUTLS_@-SAN_@-OTHERNAME
+OtherName SAN.
+@item GNUTLS_@-SAN_@-DN
+DN SAN.
+@item GNUTLS_@-SAN_@-REGISTERED_@-ID
+RegisteredID.
+@item GNUTLS_@-SAN_@-MAX
+-- undescribed --
+@item GNUTLS_@-SAN_@-OTHERNAME_@-XMPP
+Virtual SAN, used by certain functions for convenience.
+@item GNUTLS_@-SAN_@-OTHERNAME_@-KRB5PRINCIPAL
+Virtual SAN, used by certain functions for convenience.
+@item GNUTLS_@-SAN_@-OTHERNAME_@-MSUSERPRINCIPAL
+Virtual SAN, used by certain functions for convenience.
+@end table
+
+@c gnutls_privkey_type_t
+@table @code
+@item GNUTLS_@-PRIVKEY_@-X509
+X.509 private key, @code{gnutls_x509_privkey_t} .
+@item GNUTLS_@-PRIVKEY_@-OPENPGP
+OpenPGP private key, @code{gnutls_openpgp_privkey_t} .
+@item GNUTLS_@-PRIVKEY_@-PKCS11
+PKCS11 private key, @code{gnutls_pkcs11_privkey_t} .
+@item GNUTLS_@-PRIVKEY_@-EXT
+External private key, operating using callbacks.
+@end table
+
+@c gnutls_pin_flag_t
+@table @code
+@item GNUTLS_@-PIN_@-USER
+The PIN for the user.
+@item GNUTLS_@-PIN_@-SO
+The PIN for the security officer (admin).
+@item GNUTLS_@-PIN_@-FINAL_@-TRY
+This is the final try before blocking.
+@item GNUTLS_@-PIN_@-COUNT_@-LOW
+Few tries remain before token blocks.
+@item GNUTLS_@-PIN_@-CONTEXT_@-SPECIFIC
+The PIN is for a specific action and key like signing.
+@item GNUTLS_@-PIN_@-WRONG
+Last given PIN was not correct.
+@end table
+
+@c gnutls_ext_parse_type_t
+@table @code
+@item GNUTLS_@-EXT_@-ANY
+Any extension type (should not be used as it is used only internally).
+@item GNUTLS_@-EXT_@-APPLICATION
+Parsed after  @code{GNUTLS_EXT_MANDATORY} 
+@item GNUTLS_@-EXT_@-TLS
+TLS-internal extensions, parsed after  @code{GNUTLS_EXT_APPLICATION} .
+@item GNUTLS_@-EXT_@-MANDATORY
+Parsed after  @code{GNUTLS_EXT_VERSION_NEG} and even when resuming.
+@item GNUTLS_@-EXT_@-NONE
+Never to be parsed
+@item GNUTLS_@-EXT_@-VERSION_@-NEG
+Extensions to be parsed first for TLS version negotiation.
+@end table
+
+@c gnutls_ext_flags_t
+@table @code
+@item GNUTLS_@-EXT_@-FLAG_@-OVERRIDE_@-INTERNAL
+If specified the extension registered will override the internal; this does not work with extensions existing prior to 3.6.0.
+@item GNUTLS_@-EXT_@-FLAG_@-CLIENT_@-HELLO
+This extension can be present in a client hello
+@item GNUTLS_@-EXT_@-FLAG_@-TLS12_@-SERVER_@-HELLO
+This extension can be present in a TLS1.2 or earlier server hello
+@item GNUTLS_@-EXT_@-FLAG_@-TLS13_@-SERVER_@-HELLO
+This extension can be present in a TLS1.3 server hello
+@item GNUTLS_@-EXT_@-FLAG_@-EE
+This extension can be present in encrypted extensions message
+@item GNUTLS_@-EXT_@-FLAG_@-HRR
+This extension can be present in hello retry request message
+@item GNUTLS_@-EXT_@-FLAG_@-IGNORE_@-CLIENT_@-REQUEST
+When flag is present, this extension will be send even if the client didn't advertise it. An extension of this type is the Cookie TLS1.3 extension.
+@item GNUTLS_@-EXT_@-FLAG_@-TLS
+This extension can be present under TLS; otherwise ignored.
+@item GNUTLS_@-EXT_@-FLAG_@-DTLS
+This extension can be present under DTLS; otherwise ignored.
+@end table
+
+@c gnutls_record_encryption_level_t
+@table @code
+@item GNUTLS_@-ENCRYPTION_@-LEVEL_@-INITIAL
+initial level that doesn't involve any
+encryption
+@item GNUTLS_@-ENCRYPTION_@-LEVEL_@-EARLY
+early traffic secret is installed
+@item GNUTLS_@-ENCRYPTION_@-LEVEL_@-HANDSHAKE
+handshake traffic secret is installed
+@item GNUTLS_@-ENCRYPTION_@-LEVEL_@-APPLICATION
+application traffic secret is installed
+@end table
+
+@c gnutls_fips_mode_t
+@table @code
+@item GNUTLS_@-FIPS140_@-DISABLED
+The FIPS140-2 mode is disabled.
+@item GNUTLS_@-FIPS140_@-STRICT
+The default mode; all forbidden operations will cause an
+operation failure via error code.
+@item GNUTLS_@-FIPS140_@-SELFTESTS
+A transient state during library initialization. That state
+cannot be set or seen by applications.
+@item GNUTLS_@-FIPS140_@-LAX
+The library still uses the FIPS140-2 relevant algorithms but all
+forbidden by FIPS140-2 operations are allowed; this is useful when the
+application is aware of the followed security policy, and needs
+to utilize disallowed operations for other reasons (e.g., compatibility).
+@item GNUTLS_@-FIPS140_@-LOG
+Similarly to @code{GNUTLS_FIPS140_LAX} , it allows forbidden operations; any use of them results
+to a message to the audit callback functions.
+@end table
+
+@c gnutls_fips140_operation_state_t
+@table @code
+@item GNUTLS_@-FIPS140_@-OP_@-INITIAL
+no previous operation has done
+@item GNUTLS_@-FIPS140_@-OP_@-APPROVED
+the previous operation was FIPS approved
+@item GNUTLS_@-FIPS140_@-OP_@-NOT_@-APPROVED
+the previous operation was not FIPS approved
+@item GNUTLS_@-FIPS140_@-OP_@-ERROR
+the previous operation caused an error regardless of FIPS
+@end table
+
+@c gnutls_certificate_import_flags
+@table @code
+@item GNUTLS_@-X509_@-CRT_@-LIST_@-IMPORT_@-FAIL_@-IF_@-EXCEED
+Fail if the
+certificates in the buffer are more than the space allocated for
+certificates. The error code will be @code{GNUTLS_E_SHORT_MEMORY_BUFFER} .
+@item GNUTLS_@-X509_@-CRT_@-LIST_@-FAIL_@-IF_@-UNSORTED
+Fail if the certificates
+in the buffer are not ordered starting from subject to issuer.
+The error code will be @code{GNUTLS_E_CERTIFICATE_LIST_UNSORTED} .
+@item GNUTLS_@-X509_@-CRT_@-LIST_@-SORT
+Sort the certificate chain if unsorted.
+@end table
+
+@c gnutls_x509_crt_flags
+@table @code
+@item GNUTLS_@-X509_@-CRT_@-FLAG_@-IGNORE_@-SANITY
+Ignore any sanity checks at the
+import of the certificate; i.e., ignore checks such as version/field
+matching and strict time field checks. Intended to be used for debugging.
+@end table
+
+@c gnutls_keyid_flags_t
+@table @code
+@item GNUTLS_@-KEYID_@-USE_@-SHA1
+Use SHA1 as the key ID algorithm (default).
+@item GNUTLS_@-KEYID_@-USE_@-SHA256
+Use SHA256 as the key ID algorithm.
+@item GNUTLS_@-KEYID_@-USE_@-SHA512
+Use SHA512 as the key ID algorithm.
+@item GNUTLS_@-KEYID_@-USE_@-BEST_@-KNOWN
+Use the best known algorithm to calculate key ID. Using that option will make your program behavior depend on the version of gnutls linked with. That option has a cap of 64-bytes key IDs.
+@end table
+
+@c gnutls_info_access_what_t
+@table @code
+@item GNUTLS_@-IA_@-ACCESSMETHOD_@-OID
+Get accessMethod OID.
+@item GNUTLS_@-IA_@-ACCESSLOCATION_@-GENERALNAME_@-TYPE
+Get accessLocation name type.
+@item GNUTLS_@-IA_@-URI
+Get accessLocation URI value.
+@item GNUTLS_@-IA_@-UNKNOWN
+-- undescribed --
+@item GNUTLS_@-IA_@-OCSP_@-URI
+get accessLocation URI value for OCSP.
+@item GNUTLS_@-IA_@-CAISSUERS_@-URI
+get accessLocation URI value for caIssuers.
+@end table
+
+@c gnutls_x509_crl_reason_flags_t
+@table @code
+@item GNUTLS_@-CRL_@-REASON_@-UNSPECIFIED
+-- undescribed --
+@item GNUTLS_@-CRL_@-REASON_@-PRIVILEGE_@-WITHDRAWN
+The privileges were withdrawn from the owner.
+@item GNUTLS_@-CRL_@-REASON_@-CERTIFICATE_@-HOLD
+The certificate is on hold.
+@item GNUTLS_@-CRL_@-REASON_@-CESSATION_@-OF_@-OPERATION
+The end-entity is no longer operating.
+@item GNUTLS_@-CRL_@-REASON_@-SUPERSEDED
+There is a newer certificate of the owner.
+@item GNUTLS_@-CRL_@-REASON_@-AFFILIATION_@-CHANGED
+The end-entity affiliation has changed.
+@item GNUTLS_@-CRL_@-REASON_@-CA_@-COMPROMISE
+The CA was compromised.
+@item GNUTLS_@-CRL_@-REASON_@-KEY_@-COMPROMISE
+The certificate's key was compromised.
+@item GNUTLS_@-CRL_@-REASON_@-UNUSED
+The key was never used.
+@item GNUTLS_@-CRL_@-REASON_@-AA_@-COMPROMISE
+AA compromised.
+@end table
+
+@c gnutls_x509_qualifier_t
+@table @code
+@item GNUTLS_@-X509_@-QUALIFIER_@-UNKNOWN
+Unknown qualifier.
+@item GNUTLS_@-X509_@-QUALIFIER_@-URI
+A URL
+@item GNUTLS_@-X509_@-QUALIFIER_@-NOTICE
+-- undescribed --
+@end table
+
+@c gnutls_certificate_verify_flags
+@table @code
+@item GNUTLS_@-VERIFY_@-DISABLE_@-CA_@-SIGN
+If set a signer does not have to be
+a certificate authority. This flag should normally be disabled,
+unless you know what this means.
+@item GNUTLS_@-VERIFY_@-DO_@-NOT_@-ALLOW_@-IP_@-MATCHES
+When verifying a hostname
+prevent textual IP addresses from matching IP addresses in the
+certificate. Treat the input only as a DNS name.
+@item GNUTLS_@-VERIFY_@-DO_@-NOT_@-ALLOW_@-SAME
+If a certificate is not signed by
+anyone trusted but exists in the trusted CA list do not treat it
+as trusted.
+@item GNUTLS_@-VERIFY_@-ALLOW_@-ANY_@-X509_@-V1_@-CA_@-CRT
+Allow CA certificates that
+have version 1 (both root and intermediate). This might be
+dangerous since those haven't the basicConstraints
+extension. 
+@item GNUTLS_@-VERIFY_@-ALLOW_@-SIGN_@-RSA_@-MD2
+Allow certificates to be signed
+using the broken MD2 algorithm.
+@item GNUTLS_@-VERIFY_@-ALLOW_@-SIGN_@-RSA_@-MD5
+Allow certificates to be signed
+using the broken MD5 algorithm.
+@item GNUTLS_@-VERIFY_@-DISABLE_@-TIME_@-CHECKS
+Disable checking of activation
+and expiration validity periods of certificate chains. Don't set
+this unless you understand the security implications.
+@item GNUTLS_@-VERIFY_@-DISABLE_@-TRUSTED_@-TIME_@-CHECKS
+If set a signer in the trusted
+list is never checked for expiration or activation.
+@item GNUTLS_@-VERIFY_@-DO_@-NOT_@-ALLOW_@-X509_@-V1_@-CA_@-CRT
+Do not allow trusted CA
+certificates that have version 1.  This option is to be used
+to deprecate all certificates of version 1.
+@item GNUTLS_@-VERIFY_@-DISABLE_@-CRL_@-CHECKS
+Disable checking for validity
+using certificate revocation lists or the available OCSP data.
+@item GNUTLS_@-VERIFY_@-ALLOW_@-UNSORTED_@-CHAIN
+A certificate chain is tolerated
+if unsorted (the case with many TLS servers out there). This is the
+default since GnuTLS 3.1.4.
+@item GNUTLS_@-VERIFY_@-DO_@-NOT_@-ALLOW_@-UNSORTED_@-CHAIN
+Do not tolerate an unsorted
+certificate chain.
+@item GNUTLS_@-VERIFY_@-DO_@-NOT_@-ALLOW_@-WILDCARDS
+When including a hostname
+check in the verification, do not consider any wildcards.
+@item GNUTLS_@-VERIFY_@-USE_@-TLS1_@-RSA
+This indicates that a (raw) RSA signature is provided
+as in the TLS 1.0 protocol. Not all functions accept this flag.
+@item GNUTLS_@-VERIFY_@-IGNORE_@-UNKNOWN_@-CRIT_@-EXTENSIONS
+This signals the verification
+process, not to fail on unknown critical extensions.
+@item GNUTLS_@-VERIFY_@-ALLOW_@-SIGN_@-WITH_@-SHA1
+Allow certificates to be signed
+using the broken SHA1 hash algorithm.
+@item GNUTLS_@-VERIFY_@-RSA_@-PSS_@-FIXED_@-SALT_@-LENGTH
+Disallow RSA-PSS signatures made
+with mismatching salt length with digest length, as mandated in RFC 8446
+4.2.3.
+@end table
+
+@c gnutls_certificate_verification_profiles_t
+@table @code
+@item GNUTLS_@-PROFILE_@-UNKNOWN
+An invalid/unknown profile.
+@item GNUTLS_@-PROFILE_@-VERY_@-WEAK
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_VERY_WEAK} (64 bits)
+@item GNUTLS_@-PROFILE_@-LOW
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_LOW} (80 bits)
+@item GNUTLS_@-PROFILE_@-LEGACY
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_LEGACY} (96 bits)
+@item GNUTLS_@-PROFILE_@-MEDIUM
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_MEDIUM} (112 bits)
+@item GNUTLS_@-PROFILE_@-HIGH
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_HIGH} (128 bits)
+@item GNUTLS_@-PROFILE_@-ULTRA
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_ULTRA} (192 bits)
+@item GNUTLS_@-PROFILE_@-FUTURE
+A verification profile that
+corresponds to  @code{GNUTLS_SEC_PARAM_FUTURE} (256 bits)
+@item GNUTLS_@-PROFILE_@-SUITEB128
+A verification profile that
+applies the SUITEB128 rules
+@item GNUTLS_@-PROFILE_@-SUITEB192
+A verification profile that
+applies the SUITEB192 rules
+@end table
+
+@c gnutls_pkcs_encrypt_flags_t
+@table @code
+@item GNUTLS_@-PKCS_@-PLAIN
+Unencrypted private key.
+@item GNUTLS_@-PKCS_@-PKCS12_@-3DES
+PKCS-12 3DES.
+@item GNUTLS_@-PKCS_@-PKCS12_@-ARCFOUR
+PKCS-12 ARCFOUR.
+@item GNUTLS_@-PKCS_@-PKCS12_@-RC2_@-40
+PKCS-12 RC2-40.
+@item GNUTLS_@-PKCS_@-PBES2_@-3DES
+PBES2 3DES.
+@item GNUTLS_@-PKCS_@-PBES2_@-AES_@-128
+PBES2 AES-128.
+@item GNUTLS_@-PKCS_@-PBES2_@-AES_@-192
+PBES2 AES-192.
+@item GNUTLS_@-PKCS_@-PBES2_@-AES_@-256
+PBES2 AES-256.
+@item GNUTLS_@-PKCS_@-NULL_@-PASSWORD
+Some schemas distinguish between an empty and a NULL password.
+@item GNUTLS_@-PKCS_@-PBES2_@-DES
+PBES2 single DES.
+@item GNUTLS_@-PKCS_@-PBES1_@-DES_@-MD5
+PBES1 with single DES; for compatibility with openssl only.
+@item GNUTLS_@-PKCS_@-PBES2_@-GOST_@-TC26Z
+PBES2 GOST 28147-89 CFB with TC26-Z S-box.
+@item GNUTLS_@-PKCS_@-PBES2_@-GOST_@-CPA
+PBES2 GOST 28147-89 CFB with CryptoPro-A S-box.
+@item GNUTLS_@-PKCS_@-PBES2_@-GOST_@-CPB
+PBES2 GOST 28147-89 CFB with CryptoPro-B S-box.
+@item GNUTLS_@-PKCS_@-PBES2_@-GOST_@-CPC
+PBES2 GOST 28147-89 CFB with CryptoPro-C S-box.
+@item GNUTLS_@-PKCS_@-PBES2_@-GOST_@-CPD
+PBES2 GOST 28147-89 CFB with CryptoPro-D S-box.
+@item GNUTLS_@-PKCS_@-PBES1_@-DES_@-SHA1
+PBES1 with single DES; for compatibility purposes only.
+@end table
+
+@c gnutls_keygen_types_t
+@table @code
+@item GNUTLS_@-KEYGEN_@-SEED
+Specifies the seed to be used in key generation.
+@item GNUTLS_@-KEYGEN_@-DIGEST
+The size field specifies the hash algorithm to be used in key generation.
+@item GNUTLS_@-KEYGEN_@-SPKI
+data points to a @code{gnutls_x509_spki_t}  structure; it is not used after the key generation call.
+@item GNUTLS_@-KEYGEN_@-DH
+data points to a @code{gnutls_dh_params_t}  structure; it is not used after the key generation call.
+@end table
+
+@c gnutls_pkcs12_bag_type_t
+@table @code
+@item GNUTLS_@-BAG_@-EMPTY
+Empty PKCS-12 bag.
+@item GNUTLS_@-BAG_@-PKCS8_@-ENCRYPTED_@-KEY
+PKCS-12 bag with PKCS-8 encrypted key.
+@item GNUTLS_@-BAG_@-PKCS8_@-KEY
+PKCS-12 bag with PKCS-8 key.
+@item GNUTLS_@-BAG_@-CERTIFICATE
+PKCS-12 bag with certificate.
+@item GNUTLS_@-BAG_@-CRL
+PKCS-12 bag with CRL.
+@item GNUTLS_@-BAG_@-SECRET
+PKCS-12 bag with secret PKCS-9 keys.
+@item GNUTLS_@-BAG_@-ENCRYPTED
+Encrypted PKCS-12 bag.
+@item GNUTLS_@-BAG_@-UNKNOWN
+Unknown PKCS-12 bag.
+@end table
+
+@c gnutls_pkcs11_obj_flags
+@table @code
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-LOGIN
+Force login in the token for the operation (seek+store). 
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-TRUSTED
+object marked as trusted (seek+store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-SENSITIVE
+object is explicitly marked as sensitive -unexportable (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-LOGIN_@-SO
+force login as a security officer in the token for the operation (seek+store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-PRIVATE
+marked as private -requires PIN to access (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-NOT_@-PRIVATE
+marked as not private (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-RETRIEVE_@-ANY
+When retrieving an object, do not set any requirements (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-RETRIEVE_@-TRUSTED
+When retrieving an object, only retrieve the marked as trusted (alias to @code{GNUTLS_PKCS11_OBJ_FLAG_MARK_TRUSTED} ).
+In @code{gnutls_pkcs11_crt_is_known()}  it implies @code{GNUTLS_PKCS11_OBJ_FLAG_RETRIEVE_COMPARE}  if @code{GNUTLS_PKCS11_OBJ_FLAG_COMPARE_KEY}  is not given.
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-DISTRUSTED
+When writing an object, mark it as distrusted (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-RETRIEVE_@-DISTRUSTED
+When retrieving an object, only retrieve the marked as distrusted (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-COMPARE
+When checking an object's presence, fully compare it before returning any result (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-PRESENT_@-IN_@-TRUSTED_@-MODULE
+The object must be present in a marked as trusted module (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-CA
+Mark the object as a CA (seek+store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-KEY_@-WRAP
+Mark the generated key pair as wrapping and unwrapping keys (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-COMPARE_@-KEY
+When checking an object's presence, compare the key before returning any result (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-OVERWRITE_@-TRUSTMOD_@-EXT
+When an issuer is requested, override its extensions with the ones present in the trust module (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-ALWAYS_@-AUTH
+Mark the key pair as requiring authentication (pin entry) before every operation (seek+store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-EXTRACTABLE
+Mark the key pair as being extractable (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-NEVER_@-EXTRACTABLE
+If set, the object was never marked as extractable (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-CRT
+When searching, restrict to certificates only (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-WITH_@-PRIVKEY
+-- undescribed --
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-PUBKEY
+When searching, restrict to public key objects only (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-NO_@-STORE_@-PUBKEY
+When generating a keypair don't store the public key (store).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-PRIVKEY
+When searching, restrict to private key objects only (seek).
+@item GNUTLS_@-PKCS11_@-OBJ_@-FLAG_@-MARK_@-NOT_@-SENSITIVE
+object marked as not sensitive -exportable (store).
+@end table
+
+@c gnutls_pkcs11_url_type_t
+@table @code
+@item GNUTLS_@-PKCS11_@-URL_@-GENERIC
+A generic-purpose URL.
+@item GNUTLS_@-PKCS11_@-URL_@-LIB
+A URL that specifies the library used as well.
+@item GNUTLS_@-PKCS11_@-URL_@-LIB_@-VERSION
+A URL that specifies the library and its version.
+@end table
+
+@c gnutls_pkcs11_obj_info_t
+@table @code
+@item GNUTLS_@-PKCS11_@-OBJ_@-ID_@-HEX
+The object ID in hex. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-LABEL
+The object label. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-TOKEN_@-LABEL
+The token's label. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-TOKEN_@-SERIAL
+The token's serial number. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-TOKEN_@-MANUFACTURER
+The token's manufacturer. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-TOKEN_@-MODEL
+The token's model. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-ID
+The object ID. Raw bytes.
+@item GNUTLS_@-PKCS11_@-OBJ_@-LIBRARY_@-VERSION
+The library's version. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-LIBRARY_@-DESCRIPTION
+The library's description. Null-terminated text.
+@item GNUTLS_@-PKCS11_@-OBJ_@-LIBRARY_@-MANUFACTURER
+The library's manufacturer name. Null-terminated text.
+@end table
+
+@c gnutls_pkcs11_token_info_t
+@table @code
+@item GNUTLS_@-PKCS11_@-TOKEN_@-LABEL
+The token's label (string)
+@item GNUTLS_@-PKCS11_@-TOKEN_@-SERIAL
+The token's serial number (string)
+@item GNUTLS_@-PKCS11_@-TOKEN_@-MANUFACTURER
+The token's manufacturer (string)
+@item GNUTLS_@-PKCS11_@-TOKEN_@-MODEL
+The token's model (string)
+@item GNUTLS_@-PKCS11_@-TOKEN_@-MODNAME
+The token's module name (string - since 3.4.3). This value is
+unavailable for providers which were manually loaded.
+@end table
+
+@c gnutls_pkcs11_obj_type_t
+@table @code
+@item GNUTLS_@-PKCS11_@-OBJ_@-UNKNOWN
+Unknown PKCS11 object.
+@item GNUTLS_@-PKCS11_@-OBJ_@-X509_@-CRT
+X.509 certificate.
+@item GNUTLS_@-PKCS11_@-OBJ_@-PUBKEY
+Public key.
+@item GNUTLS_@-PKCS11_@-OBJ_@-PRIVKEY
+Private key.
+@item GNUTLS_@-PKCS11_@-OBJ_@-SECRET_@-KEY
+Secret key.
+@item GNUTLS_@-PKCS11_@-OBJ_@-DATA
+Data object.
+@item GNUTLS_@-PKCS11_@-OBJ_@-X509_@-CRT_@-EXTENSION
+X.509 certificate extension (supported by p11-kit trust module only).
+@end table
+
+@c gnutls_pubkey_flags_t
+@table @code
+@item GNUTLS_@-PUBKEY_@-DISABLE_@-CALLBACKS
+The following flag disables call to PIN callbacks. Only
+relevant to TPM keys.
+@item GNUTLS_@-PUBKEY_@-GET_@-OPENPGP_@-FINGERPRINT
+request an OPENPGP fingerprint instead of the default.
+@end table
+
+@c gnutls_abstract_export_flags_t
+@table @code
+@item GNUTLS_@-EXPORT_@-FLAG_@-NO_@-LZ
+do not prepend a leading zero to exported values
+@end table
+
+@c gnutls_privkey_flags_t
+@table @code
+@item GNUTLS_@-PRIVKEY_@-IMPORT_@-AUTO_@-RELEASE
+When importing a private key, automatically
+release it when the structure it was imported is released.
+@item GNUTLS_@-PRIVKEY_@-IMPORT_@-COPY
+Copy required values during import.
+@item GNUTLS_@-PRIVKEY_@-DISABLE_@-CALLBACKS
+The following flag disables call to PIN callbacks etc.
+Only relevant to TPM keys.
+@item GNUTLS_@-PRIVKEY_@-SIGN_@-FLAG_@-TLS1_@-RSA
+Make an RSA signature on the hashed data as in the TLS protocol.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-PROVABLE
+When generating a key involving prime numbers, use provable primes; a seed may be required.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-EXPORT_@-COMPAT
+Keys generated or imported as provable require an extended format which cannot be read by previous versions
+of gnutls or other applications. By setting this flag the key will be exported in a backwards compatible way,
+even if the information about the seed used will be lost.
+@item GNUTLS_@-PRIVKEY_@-SIGN_@-FLAG_@-RSA_@-PSS
+Make an RSA signature on the hashed data with the PSS padding.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-REPRODUCIBLE
+Make a signature on the hashed data with reproducible parameters.
+For RSA-PSS, that means to use empty salt instead of random value. To
+verify a signature created using this flag, the corresponding SPKI needs
+to be set on the public key. Use @code{gnutls_pubkey_set_spki()}  for that.
+For ECDSA/DSA, it uses the deterministic construction of random parameter
+according to RFC 6979. Note that this only supports the NIST curves and DSA
+subgroup bits up to 512.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-CA
+The generated private key is going to be used as a CA (relevant for RSA-PSS keys).
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-RSA_@-PSS_@-FIXED_@-SALT_@-LENGTH
+When making an RSA-PSS
+signature, use the salt whose length is equal to the digest length, as
+mandated in RFC 8446 4.2.3.
+@end table
+
+@c gnutls_cipher_flags_t
+@table @code
+@item GNUTLS_@-CIPHER_@-PADDING_@-PKCS7
+Flag to indicate PKCS@code{7}  padding
+@end table
+
+@c gnutls_rnd_level_t
+@table @code
+@item GNUTLS_@-RND_@-NONCE
+Non-predictable random number.  Fatal in parts
+of session if broken, i.e., vulnerable to statistical analysis.
+@item GNUTLS_@-RND_@-RANDOM
+Pseudo-random cryptographic random number.
+Fatal in session if broken. Example use: temporal keys.
+@item GNUTLS_@-RND_@-KEY
+Fatal in many sessions if broken. Example use:
+Long-term keys.
+@end table
+
+@c gnutls_ocsp_print_formats_t
+@table @code
+@item GNUTLS_@-OCSP_@-PRINT_@-FULL
+Full information about OCSP request/response.
+@item GNUTLS_@-OCSP_@-PRINT_@-COMPACT
+More compact information about OCSP request/response.
+@end table
+
+@c gnutls_ocsp_resp_status_t
+@table @code
+@item GNUTLS_@-OCSP_@-RESP_@-SUCCESSFUL
+Response has valid confirmations.
+@item GNUTLS_@-OCSP_@-RESP_@-MALFORMEDREQUEST
+Illegal confirmation request
+@item GNUTLS_@-OCSP_@-RESP_@-INTERNALERROR
+Internal error in issuer
+@item GNUTLS_@-OCSP_@-RESP_@-TRYLATER
+Try again later
+@item GNUTLS_@-OCSP_@-RESP_@-SIGREQUIRED
+Must sign the request
+@item GNUTLS_@-OCSP_@-RESP_@-UNAUTHORIZED
+Request unauthorized
+@end table
+
+@c gnutls_ocsp_cert_status_t
+@table @code
+@item GNUTLS_@-OCSP_@-CERT_@-GOOD
+Positive response to status inquiry.
+@item GNUTLS_@-OCSP_@-CERT_@-REVOKED
+Certificate has been revoked.
+@item GNUTLS_@-OCSP_@-CERT_@-UNKNOWN
+The responder doesn't know about the
+certificate.
+@end table
+
+@c gnutls_x509_crl_reason_t
+@table @code
+@item GNUTLS_@-X509_@-CRLREASON_@-UNSPECIFIED
+Unspecified reason.
+@item GNUTLS_@-X509_@-CRLREASON_@-KEYCOMPROMISE
+Private key compromised.
+@item GNUTLS_@-X509_@-CRLREASON_@-CACOMPROMISE
+CA compromised.
+@item GNUTLS_@-X509_@-CRLREASON_@-AFFILIATIONCHANGED
+Affiliation has changed.
+@item GNUTLS_@-X509_@-CRLREASON_@-SUPERSEDED
+Certificate superseded.
+@item GNUTLS_@-X509_@-CRLREASON_@-CESSATIONOFOPERATION
+Operation has ceased.
+@item GNUTLS_@-X509_@-CRLREASON_@-CERTIFICATEHOLD
+Certificate is on hold.
+@item GNUTLS_@-X509_@-CRLREASON_@-REMOVEFROMCRL
+Will be removed from delta CRL.
+@item GNUTLS_@-X509_@-CRLREASON_@-PRIVILEGEWITHDRAWN
+Privilege withdrawn.
+@item GNUTLS_@-X509_@-CRLREASON_@-AACOMPROMISE
+AA compromised.
+@end table
+
+@c gnutls_ocsp_verify_reason_t
+@table @code
+@item GNUTLS_@-OCSP_@-VERIFY_@-SIGNER_@-NOT_@-FOUND
+Signer cert not found.
+@item GNUTLS_@-OCSP_@-VERIFY_@-SIGNER_@-KEYUSAGE_@-ERROR
+Signer keyusage bits incorrect.
+@item GNUTLS_@-OCSP_@-VERIFY_@-UNTRUSTED_@-SIGNER
+Signer is not trusted.
+@item GNUTLS_@-OCSP_@-VERIFY_@-INSECURE_@-ALGORITHM
+Signature using insecure algorithm.
+@item GNUTLS_@-OCSP_@-VERIFY_@-SIGNATURE_@-FAILURE
+Signature mismatch.
+@item GNUTLS_@-OCSP_@-VERIFY_@-CERT_@-NOT_@-ACTIVATED
+Signer cert is not yet activated.
+@item GNUTLS_@-OCSP_@-VERIFY_@-CERT_@-EXPIRED
+Signer cert has expired.
+@end table
+
+@c gnutls_tpmkey_fmt_t
+@table @code
+@item GNUTLS_@-TPMKEY_@-FMT_@-RAW
+The portable data format.
+@item GNUTLS_@-TPMKEY_@-FMT_@-DER
+An alias for the raw format.
+@item GNUTLS_@-TPMKEY_@-FMT_@-CTK_@-PEM
+A custom data format used by some TPM tools.
+@end table
+
+@c dane_cert_usage_t
+@table @code
+@item DANE_@-CERT_@-USAGE_@-CA
+CA constraint. The certificate/key
+presented must have signed the verified key.
+@item DANE_@-CERT_@-USAGE_@-EE
+The key or the certificate of the end
+entity.
+@item DANE_@-CERT_@-USAGE_@-LOCAL_@-CA
+The remote CA is local and possibly
+untrusted by the verifier.
+@item DANE_@-CERT_@-USAGE_@-LOCAL_@-EE
+The remote end-entity key is local
+and possibly untrusted by the verifier (not signed by a CA).
+@end table
+
+@c dane_cert_type_t
+@table @code
+@item DANE_@-CERT_@-X509
+An X.509 certificate.
+@item DANE_@-CERT_@-PK
+A public key.
+@end table
+
+@c dane_match_type_t
+@table @code
+@item DANE_@-MATCH_@-EXACT
+The full content.
+@item DANE_@-MATCH_@-SHA2_@-256
+A SHA-256 hash of the content.
+@item DANE_@-MATCH_@-SHA2_@-512
+A SHA-512 hash of the content.
+@end table
+
+@c dane_query_status_t
+@table @code
+@item DANE_@-QUERY_@-UNKNOWN
+There was no query.
+@item DANE_@-QUERY_@-DNSSEC_@-VERIFIED
+The query was verified using DNSSEC.
+@item DANE_@-QUERY_@-BOGUS
+The query has wrong DNSSEC signature.
+@item DANE_@-QUERY_@-NO_@-DNSSEC
+The query has no DNSSEC data.
+@end table
+
+@c dane_state_flags_t
+@table @code
+@item DANE_@-F_@-IGNORE_@-LOCAL_@-RESOLVER
+Many systems are not DNSSEC-ready. In that case the local resolver is ignored, and a direct recursive resolve occurs.
+@item DANE_@-F_@-INSECURE
+Ignore any DNSSEC signature verification errors.
+@item DANE_@-F_@-IGNORE_@-DNSSEC
+Do not try to initialize DNSSEC as we will not use it (will then not try to load the DNSSEC root certificate).  Useful if the TLSA data does not come from DNS.
+@end table
+
+@c dane_verify_flags_t
+@table @code
+@item DANE_@-VFLAG_@-FAIL_@-IF_@-NOT_@-CHECKED
+If irrelevant to this certificate DANE entries are received fail instead of succeeding.
+@item DANE_@-VFLAG_@-ONLY_@-CHECK_@-EE_@-USAGE
+The provided certificates will be verified only against any EE field. Combine with @code{DANE_VFLAG_FAIL_IF_NOT_CHECKED}  to fail if EE entries are not present.
+@item DANE_@-VFLAG_@-ONLY_@-CHECK_@-CA_@-USAGE
+The provided certificates will be verified only against any CA field. Combine with @code{DANE_VFLAG_FAIL_IF_NOT_CHECKED}  to fail if CA entries are not present.
+@end table
+
+@c dane_verify_status_t
+@table @code
+@item DANE_@-VERIFY_@-CA_@-CONSTRAINTS_@-VIOLATED
+The CA constraints were violated.
+@item DANE_@-VERIFY_@-CERT_@-DIFFERS
+The certificate obtained via DNS differs.
+@item DANE_@-VERIFY_@-UNKNOWN_@-DANE_@-INFO
+No known DANE data was found in the DNS record.
+@end table
+
+@c gnutls_pkcs7_sign_flags
+@table @code
+@item GNUTLS_@-PKCS7_@-EMBED_@-DATA
+The signed data will be embedded in the structure.
+@item GNUTLS_@-PKCS7_@-INCLUDE_@-TIME
+The signing time will be included in the structure.
+@item GNUTLS_@-PKCS7_@-INCLUDE_@-CERT
+The signer's certificate will be included in the cert list.
+@item GNUTLS_@-PKCS7_@-WRITE_@-SPKI
+Use the signer's key identifier instead of name.
+@end table

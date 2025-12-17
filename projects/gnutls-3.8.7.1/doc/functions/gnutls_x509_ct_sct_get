@@ -1,0 +1,27 @@
+
+
+
+
+@deftypefun {int} {gnutls_x509_ct_sct_get} (const gnutls_x509_ct_scts_t @var{scts}, unsigned @var{idx}, time_t * @var{timestamp}, gnutls_datum_t * @var{logid}, gnutls_sign_algorithm_t * @var{sigalg}, gnutls_datum_t * @var{signature})
+@var{scts}: A list of SCTs
+
+@var{idx}: The index of the target SCT in the list
+
+@var{timestamp}: The timestamp of the SCT
+
+@var{logid}: The LogID field of the SCT; must be freed with @code{gnutls_free()} 
+
+@var{sigalg}: The signature algorithm
+
+@var{signature}: The signature of the SCT; must be freed with @code{gnutls_free()} 
+
+This function will return a specific SCT (Signed Certificate Timestamp)
+stored in the SCT list  @code{scts} .
+
+The datums holding the SCT's LogId and signature will be allocated
+using @code{gnutls_malloc()} .
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  (0) will be returned on success,
+@code{GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE}  if  @code{idx} exceeds the number of SCTs in the list
+or a negative error value.
+@end deftypefun

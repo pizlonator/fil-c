@@ -1,0 +1,70 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "srptool",
+    "title": "GnuTLS SRP tool",
+    "description": "Simple program to create SRP parameters.\n",
+    "detail": "Simple program that emulates the programs in the Stanford SRP (Secure\nRemote Password) libraries using GnuTLS.  It is intended for use in  places\nwhere you don't expect SRP authentication to be the used for system users.\n\nIn  brief,  to use SRP you need to create two files. These are the password\nfile that holds the users and the verifiers associated with  them  and  the\nconfiguration file to hold the group parameters (called tpasswd.conf).",
+    "short-usage": "srptool [options]\nsrptool --help for usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "index",
+          "short-option": "i",
+          "description": "specify the index of the group parameters in tpasswd.conf to use",
+          "argument-type": "number",
+          "argument-default": 3
+        },
+        {
+          "long-option": "username",
+          "short-option": "u",
+          "description": "specify a username",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "passwd",
+          "short-option": "p",
+          "description": "specify a password file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "salt",
+          "short-option": "s",
+          "description": "specify salt size",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verify",
+          "description": "just verify the password",
+          "detail": "Verifies the password provided against the password file."
+        },
+        {
+          "long-option": "passwd-conf",
+          "short-option": "v",
+          "description": "specify a password conf file",
+          "detail": "Specify a filename or a PKCS #11 URL to read the CAs from.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "create-conf",
+          "description": "Generate a password configuration file",
+          "detail": "This generates a password configuration file (tpasswd.conf)\ncontaining the required for TLS parameters.",
+          "argument-type": "string"
+        }
+      ]
+    }
+  ]
+}

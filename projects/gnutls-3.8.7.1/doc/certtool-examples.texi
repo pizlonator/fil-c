@@ -1,0 +1,136 @@
+@subheading Generating private keys
+To create an RSA private key, run:
+@example
+$ certtool --generate-privkey --outfile key.pem --rsa
+@end example
+
+To create a DSA or elliptic curves (ECDSA) private key use the
+above command combined with 'dsa' or 'ecc' options.
+
+@subheading Generating certificate requests
+To create a certificate request (needed when the certificate is  issued  by
+another party), run:
+@example
+certtool --generate-request --load-privkey key.pem \
+   --outfile request.pem
+@end example
+
+If the private key is stored in a smart card you can generate
+a request by specifying the private key object URL.
+@example
+$ ./certtool --generate-request --load-privkey "pkcs11:..." \
+  --load-pubkey "pkcs11:..." --outfile request.pem
+@end example
+
+
+@subheading Generating a self-signed certificate
+To create a self signed certificate, use the command:
+@example
+$ certtool --generate-privkey --outfile ca-key.pem
+$ certtool --generate-self-signed --load-privkey ca-key.pem \
+   --outfile ca-cert.pem
+@end example
+
+Note that a self-signed certificate usually belongs to a certificate
+authority, that signs other certificates.
+
+@subheading Generating a certificate
+To generate a certificate using the previous request, use the command:
+@example
+$ certtool --generate-certificate --load-request request.pem \
+   --outfile cert.pem --load-ca-certificate ca-cert.pem \
+   --load-ca-privkey ca-key.pem
+@end example
+
+To generate a certificate using the private key only, use the command:
+@example
+$ certtool --generate-certificate --load-privkey key.pem \
+   --outfile cert.pem --load-ca-certificate ca-cert.pem \
+   --load-ca-privkey ca-key.pem
+@end example
+
+@subheading Certificate information
+To view the certificate information, use:
+@example
+$ certtool --certificate-info --infile cert.pem
+@end example
+
+@subheading Changing the certificate format
+To convert the certificate from PEM to DER format, use:
+@example
+$ certtool --certificate-info --infile cert.pem --outder --outfile cert.der
+@end example
+
+@subheading PKCS #12 structure generation
+To generate a PKCS #12 structure using the previous key and certificate,
+use the command:
+@example
+$ certtool --load-certificate cert.pem --load-privkey key.pem \
+   --to-p12 --outder --outfile key.p12
+@end example
+
+Some tools (reportedly web browsers) have problems with that file
+because it does not contain the CA certificate for the certificate.
+To work around that problem in the tool, you can use the
+--load-ca-certificate parameter as follows:
+
+@example
+$ certtool --load-ca-certificate ca.pem \
+  --load-certificate cert.pem --load-privkey key.pem \
+  --to-p12 --outder --outfile key.p12
+@end example
+
+@subheading Obtaining Diffie-Hellman parameters
+To obtain the RFC7919 parameters for Diffie-Hellman key exchange, use the command:
+@example
+$ certtool --get-dh-params --outfile dh.pem --sec-param medium
+@end example
+
+@subheading Verifying a certificate
+To verify a certificate in a file against the system's CA trust store
+use the following command:
+@example
+$ certtool --verify --infile cert.pem
+@end example
+
+It is also possible to simulate hostname verification with the following
+options:
+@example
+$ certtool --verify --verify-hostname www.example.com --infile cert.pem
+@end example
+
+
+@subheading Proxy certificate generation
+Proxy certificate can be used to delegate your credential to a
+temporary, typically short-lived, certificate.  To create one from the
+previously created certificate, first create a temporary key and then
+generate a proxy certificate for it, using the commands:
+
+@example
+$ certtool --generate-privkey > proxy-key.pem
+$ certtool --generate-proxy --load-ca-privkey key.pem \
+  --load-privkey proxy-key.pem --load-certificate cert.pem \
+  --outfile proxy-cert.pem
+@end example
+
+@subheading Certificate revocation list generation
+To create an empty Certificate Revocation List (CRL) do:
+
+@example
+$ certtool --generate-crl --load-ca-privkey x509-ca-key.pem \
+           --load-ca-certificate x509-ca.pem
+@end example
+
+To create a CRL that contains some revoked certificates, place the
+certificates in a file and use @code{--load-certificate} as follows:
+
+@example
+$ certtool --generate-crl --load-ca-privkey x509-ca-key.pem \
+  --load-ca-certificate x509-ca.pem --load-certificate revoked-certs.pem
+@end example
+
+To verify a Certificate Revocation List (CRL) do:
+
+@example
+$ certtool --verify-crl --load-ca-certificate x509-ca.pem < crl.pem
+@end example

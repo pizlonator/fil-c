@@ -1,0 +1,30 @@
+
+
+
+
+@deftypefun {int} {gnutls_pkcs11_obj_get_info} (gnutls_pkcs11_obj_t @var{obj}, gnutls_pkcs11_obj_info_t @var{itype}, void * @var{output}, size_t * @var{output_size})
+@var{obj}: should contain a @code{gnutls_pkcs11_obj_t}  type
+
+@var{itype}: Denotes the type of information requested
+
+@var{output}: where output will be stored
+
+@var{output_size}: contains the maximum size of the output buffer and will be
+overwritten with the actual size.
+
+This function will return information about the PKCS11 certificate
+such as the label, id as well as token information where the key is
+stored.
+
+When output is text, a null terminated string is written to  @code{output} and its
+string length is written to  @code{output_size} (without null terminator). If the
+buffer is too small,  @code{output_size} will contain the expected buffer size
+(with null terminator for text) and return @code{GNUTLS_E_SHORT_MEMORY_BUFFER} .
+
+In versions previously to 3.6.0 this function included the null terminator
+to  @code{output_size} . After 3.6.0 the output size doesn't include the terminator character.
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  (0) on success or a negative error code on error.
+
+@strong{Since:} 2.12.0
+@end deftypefun

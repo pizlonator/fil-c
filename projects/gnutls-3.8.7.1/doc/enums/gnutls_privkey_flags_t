@@ -1,0 +1,37 @@
+
+
+@c gnutls_privkey_flags_t
+@table @code
+@item GNUTLS_@-PRIVKEY_@-IMPORT_@-AUTO_@-RELEASE
+When importing a private key, automatically
+release it when the structure it was imported is released.
+@item GNUTLS_@-PRIVKEY_@-IMPORT_@-COPY
+Copy required values during import.
+@item GNUTLS_@-PRIVKEY_@-DISABLE_@-CALLBACKS
+The following flag disables call to PIN callbacks etc.
+Only relevant to TPM keys.
+@item GNUTLS_@-PRIVKEY_@-SIGN_@-FLAG_@-TLS1_@-RSA
+Make an RSA signature on the hashed data as in the TLS protocol.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-PROVABLE
+When generating a key involving prime numbers, use provable primes; a seed may be required.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-EXPORT_@-COMPAT
+Keys generated or imported as provable require an extended format which cannot be read by previous versions
+of gnutls or other applications. By setting this flag the key will be exported in a backwards compatible way,
+even if the information about the seed used will be lost.
+@item GNUTLS_@-PRIVKEY_@-SIGN_@-FLAG_@-RSA_@-PSS
+Make an RSA signature on the hashed data with the PSS padding.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-REPRODUCIBLE
+Make a signature on the hashed data with reproducible parameters.
+For RSA-PSS, that means to use empty salt instead of random value. To
+verify a signature created using this flag, the corresponding SPKI needs
+to be set on the public key. Use @code{gnutls_pubkey_set_spki()}  for that.
+For ECDSA/DSA, it uses the deterministic construction of random parameter
+according to RFC 6979. Note that this only supports the NIST curves and DSA
+subgroup bits up to 512.
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-CA
+The generated private key is going to be used as a CA (relevant for RSA-PSS keys).
+@item GNUTLS_@-PRIVKEY_@-FLAG_@-RSA_@-PSS_@-FIXED_@-SALT_@-LENGTH
+When making an RSA-PSS
+signature, use the salt whose length is equal to the digest length, as
+mandated in RFC 8446 4.2.3.
+@end table

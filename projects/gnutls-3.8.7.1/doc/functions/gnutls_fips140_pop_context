@@ -1,0 +1,20 @@
+
+
+
+
+@deftypefun {int} {gnutls_fips140_pop_context} ( @var{void})
+
+Dissociate the FIPS context currently
+active on the current thread, reverting to the previously active
+context. If a cryptographic operation is ongoing in the current
+thread, e.g., @code{gnutls_aead_cipher_init()}  is called but
+@code{gnutls_aead_cipher_deinit()}  is not yet called, it returns an error
+@code{GNUTLS_E_INVALID_REQUEST} .
+
+This function is no-op if FIPS140 is not compiled in nor enabled
+at run-time.
+
+@strong{Returns:} 0 upon success, a negative error code otherwise
+
+@strong{Since:} 3.7.3
+@end deftypefun

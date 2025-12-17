@@ -1,0 +1,27 @@
+
+
+
+
+@deftypefun {int} {gnutls_ocsp_status_request_enable_client} (gnutls_session_t @var{session}, gnutls_datum_t * @var{responder_id}, size_t @var{responder_id_size}, gnutls_datum_t * @var{extensions})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+@var{responder_id}: ignored, must be @code{NULL} 
+
+@var{responder_id_size}: ignored, must be zero
+
+@var{extensions}: ignored, must be @code{NULL} 
+
+This function is to be used by clients to request OCSP response
+from the server, using the "status_request" TLS extension.  Only
+OCSP status type is supported.
+
+Previous versions of GnuTLS supported setting  @code{responder_id} and
+ @code{extensions} fields, but due to the difficult semantics of the
+parameter usage, and other issues, this support was removed
+since 3.6.0 and these parameters must be set to @code{NULL} .
+
+@strong{Returns:} On success, @code{GNUTLS_E_SUCCESS}  (0) is returned,
+otherwise a negative error code is returned.
+
+@strong{Since:} 3.1.3
+@end deftypefun

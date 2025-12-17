@@ -1,0 +1,203 @@
+@node tpmtool Invocation
+@subsection Invoking tpmtool
+@pindex tpmtool
+
+Program that allows handling cryptographic data from the TPM chip.
+
+@anchor{tpmtool usage}
+@subsubheading tpmtool help/usage (@option{-?})
+@cindex tpmtool help
+
+The text printed is the same whether selected with the @code{help} option
+(@option{--help}) or the @code{more-help} option (@option{--more-help}).  @code{more-help} will print
+the usage text by passing it through a pager program.
+@code{more-help} is disabled on platforms without a working
+@code{fork(2)} function.  The @code{PAGER} environment variable is
+used to select the program, defaulting to @file{more}.  Both will exit
+with a status code of 0.
+
+@exampleindent 0
+@example
+tpmtool - GnuTLS TPM tool
+Usage:  tpmtool [ -<flag> [<val>] | --<name>[@{=| @}<val>] ]... 
+
+None:
+
+   -d, --debug=num            Enable debugging
+				- it must be in the range:
+				  0 to 9999
+       --infile=file          Input file
+				- file must pre-exist
+       --outfile=str          Output file
+       --generate-rsa         Generate an RSA private-public key pair
+       --register             Any generated key will be registered in the TPM
+				- requires the option 'generate-rsa'
+       --signing              Any generated key will be a signing key
+				- prohibits the option 'legacy'
+				- requires the option 'generate-rsa'
+       --legacy               Any generated key will be a legacy key
+				- prohibits the option 'signing'
+				- requires the option 'generate-rsa'
+       --user                 Any registered key will be a user key
+				- prohibits the option 'system'
+				- requires the option 'register'
+       --system               Any registered key will be a system key
+				- prohibits the option 'user'
+				- requires the option 'register'
+       --pubkey=str           Prints the public key of the provided key
+       --list                 Lists all stored keys in the TPM
+       --delete=str           Delete the key identified by the given URL (UUID)
+       --test-sign=str        Tests the signature operation of the provided object
+       --sec-param=str        Specify the security level [low, legacy, medium, high, ultra]
+       --bits=num             Specify the number of bits for key generate
+       --inder                Use the DER format for keys
+       --outder               Use DER format for output keys
+       --srk-well-known       SRK has well known password (20 bytes of zeros)
+
+Version, usage and configuration options:
+
+   -v, --version[=arg]        output version information and exit
+   -h, --help                 display extended usage information and exit
+   -!, --more-help            extended usage information passed thru pager
+
+Options are specified by doubled hyphens and their name or by a single
+hyphen and the flag character.
+
+Program that allows handling cryptographic data from the TPM chip.
+
+Please send bug reports to:  <bugs@@gnutls.org>
+
+@end example
+@exampleindent 4
+
+@subsubheading debug option (-d).
+@anchor{tpmtool debug}
+
+This is the ``enable debugging'' option.
+This option takes a ArgumentType.NUMBER argument.
+Specifies the debug level.
+@subsubheading generate-rsa option.
+@anchor{tpmtool generate-rsa}
+
+This is the ``generate an rsa private-public key pair'' option.
+Generates an RSA private-public key pair in the TPM chip. 
+The key may be stored in file system and protected by a PIN, or stored (registered)
+in the TPM chip flash.
+@subsubheading user option.
+@anchor{tpmtool user}
+
+This is the ``any registered key will be a user key'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+system.
+@item
+must appear in combination with the following options:
+register.
+@end itemize
+
+The generated key will be stored in a user specific persistent storage.
+@subsubheading system option.
+@anchor{tpmtool system}
+
+This is the ``any registered key will be a system key'' option.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+user.
+@item
+must appear in combination with the following options:
+register.
+@end itemize
+
+The generated key will be stored in system persistent storage.
+@subsubheading test-sign option.
+@anchor{tpmtool test-sign}
+
+This is the ``tests the signature operation of the provided object'' option.
+This option takes a ArgumentType.STRING argument @file{url}.
+It can be used to test the correct operation of the signature operation.
+This operation will sign and verify the signed data.
+@subsubheading sec-param option.
+@anchor{tpmtool sec-param}
+
+This is the ``specify the security level [low, legacy, medium, high, ultra]'' option.
+This option takes a ArgumentType.STRING argument @file{Security parameter}.
+This is alternative to the bits option. Note however that the
+values allowed by the TPM chip are quantized and given values may be rounded up.
+@subsubheading inder option.
+@anchor{tpmtool inder}
+
+This is the ``use the der format for keys'' option.
+The input files will be assumed to be in the portable
+DER format of TPM. The default format is a custom format used by various
+TPM tools
+@subsubheading outder option.
+@anchor{tpmtool outder}
+
+This is the ``use der format for output keys'' option.
+The output will be in the TPM portable DER format.
+@subsubheading version option (-v).
+@anchor{tpmtool version}
+
+This is the ``output version information and exit'' option.
+This option takes a ArgumentType.KEYWORD argument.
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+@subsubheading help option (-h).
+@anchor{tpmtool help}
+
+This is the ``display extended usage information and exit'' option.
+Display usage information and exit.
+@subsubheading more-help option (-!).
+@anchor{tpmtool more-help}
+
+This is the ``extended usage information passed thru pager'' option.
+Pass the extended usage information through a pager.
+@anchor{tpmtool exit status}
+@subsubheading tpmtool exit status
+
+One of the following exit values will be returned:
+@table @samp
+@item 0 (EXIT_SUCCESS)
+Successful program execution.
+@item 1 (EXIT_FAILURE)
+The operation failed or the command syntax was not valid.
+@end table
+@anchor{tpmtool See Also}
+@subsubheading tpmtool See Also
+    p11tool (1), certtool (1)
+@anchor{tpmtool Examples}
+@subsubheading tpmtool Examples
+To generate a key that is to be stored in file system use:
+@example
+$ tpmtool --generate-rsa --bits 2048 --outfile tpmkey.pem
+@end example
+
+To generate a key that is to be stored in TPM's flash use:
+@example
+$ tpmtool --generate-rsa --bits 2048 --register --user
+@end example
+
+To get the public key of a TPM key use:
+@example
+$ tpmtool --pubkey tpmkey:uuid=58ad734b-bde6-45c7-89d8-756a55ad1891;storage=user \
+          --outfile pubkey.pem
+@end example
+
+or if the key is stored in the file system:
+@example
+$ tpmtool --pubkey tpmkey:file=tmpkey.pem --outfile pubkey.pem
+@end example
+
+To list all keys stored in TPM use:
+@example
+$ tpmtool --list
+@end example

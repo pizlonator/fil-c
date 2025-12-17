@@ -1,0 +1,167 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "danetool",
+    "title": "GnuTLS DANE tool",
+    "description": "Generate DANE TLSA RR entries.",
+    "detail": "Tool to generate and check DNS resource records for the DANE protocol.",
+    "short-usage": "danetool --[tlsa-rr|check] [options]\ndanetool --help for additional usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verbose",
+          "short-option": "V",
+          "description": "More verbose output"
+        },
+        {
+          "long-option": "outfile",
+          "description": "Output file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-pubkey",
+          "description": "Loads a public key file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-certificate",
+          "description": "Loads a certificate file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "dlv",
+          "description": "Sets a DLV file",
+          "detail": "This sets a DLV file to be used for DNSSEC verification.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "hash",
+          "description": "Hash algorithm to use for signing",
+          "detail": "Available hash functions are SHA1, RMD160, SHA256, SHA384, SHA512.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "check",
+          "description": "Check a host's DANE TLSA entry",
+          "detail": "Obtains the DANE TLSA entry from the given hostname and prints information. Note that the actual certificate of the host can be provided using --load-certificate, otherwise danetool will connect to the server to obtain it. The exit code on verification success will be zero.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "check-ee",
+          "description": "Check only the end-entity's certificate",
+          "detail": "Checks the end-entity's certificate only. Trust anchors or CAs are not considered."
+        },
+        {
+          "long-option": "check-ca",
+          "description": "Check only the CA's certificate",
+          "detail": "Checks the trust anchor's and CA's certificate only. End-entities are not considered."
+        },
+        {
+          "long-option": "tlsa-rr",
+          "description": "Print the DANE RR data on a certificate or public key",
+          "detail": "This command prints the DANE RR data needed to enable DANE on a DNS server.",
+          "requires": [
+            "host"
+          ]
+        },
+        {
+          "long-option": "host",
+          "description": "Specify the hostname to be used in the DANE RR",
+          "detail": "This command sets the hostname for the DANE RR.",
+          "argument-type": "string",
+          "argument-name": "Hostname"
+        },
+        {
+          "long-option": "proto",
+          "description": "The protocol set for DANE data (tcp, udp etc.)",
+          "detail": "This command specifies the protocol for the service set in the DANE data.",
+          "argument-type": "string",
+          "argument-name": "Protocol"
+        },
+        {
+          "long-option": "port",
+          "description": "The port or service to connect to, for DANE data",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "app-proto",
+          "aliases": "starttls-proto"
+        },
+        {
+          "long-option": "starttls-proto",
+          "description": "The application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)",
+          "detail": "When the server's certificate isn't provided danetool will connect to the server to obtain the certificate. In that case it is required to know the protocol to talk with the server prior to initiating the TLS handshake.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "ca",
+          "description": "Whether the provided certificate or public key is a Certificate Authority",
+          "detail": "Marks the DANE RR as a CA certificate if specified."
+        },
+        {
+          "long-option": "x509",
+          "description": "Use the hash of the X.509 certificate, rather than the public key",
+          "detail": "This option forces the generated record to contain the hash of the full X.509 certificate. By default only the hash of the public key is used."
+        },
+        {
+          "long-option": "local",
+          "aliases": "domain"
+        },
+        {
+          "long-option": "domain",
+          "description": "The provided certificate or public key is issued by the local domain",
+          "detail": "DANE distinguishes certificates and public keys offered via the DNSSEC to trusted and local entities. This flag indicates that this is a domain-issued certificate, meaning that there could be no CA involved.",
+          "enabled": true,
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "local-dns",
+          "description": "Use the local DNS server for DNSSEC resolving",
+          "detail": "This option will use the local DNS server for DNSSEC.\nThis is disabled by default due to many servers not allowing DNSSEC.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "insecure",
+          "description": "Do not verify any DNSSEC signature",
+          "detail": "Ignores any DNSSEC signature verification results."
+        },
+        {
+          "long-option": "inder",
+          "description": "Use DER format for input certificates and private keys",
+          "detail": "The input files will be assumed to be in DER or RAW format. \nUnlike options that in PEM input would allow multiple input data (e.g. multiple \ncertificates), when reading in DER format a single data structure is read.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "inraw",
+          "aliases": "inder"
+        },
+        {
+          "long-option": "print-raw",
+          "description": "Print the received DANE data in raw format",
+          "detail": "This option will print the received DANE data.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "quiet",
+          "description": "Suppress several informational messages",
+          "detail": "In that case on the exit code can be used as an indication of verification success"
+        }
+      ]
+    }
+  ]
+}

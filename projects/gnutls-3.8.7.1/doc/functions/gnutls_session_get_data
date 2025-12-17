@@ -1,0 +1,19 @@
+
+
+
+
+@deftypefun {int} {gnutls_session_get_data} (gnutls_session_t @var{session}, void * @var{session_data}, size_t * @var{session_data_size})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+@var{session_data}: is a pointer to space to hold the session.
+
+@var{session_data_size}: is the session_data's size, or it will be set by the function.
+
+Returns all session parameters needed to be stored to support resumption,
+in a pre-allocated buffer.
+
+See @code{gnutls_session_get_data2()}  for more information.
+
+@strong{Returns:} On success, @code{GNUTLS_E_SUCCESS}  (0) is returned, otherwise
+an error code is returned.
+@end deftypefun

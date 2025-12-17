@@ -1,0 +1,21 @@
+
+
+
+
+@deftypefun {int} {gnutls_pcert_import_openpgp_raw} (gnutls_pcert_st * @var{pcert}, const gnutls_datum_t * @var{cert}, gnutls_openpgp_crt_fmt_t @var{format}, gnutls_openpgp_keyid_t @var{keyid}, unsigned int @var{flags})
+@var{pcert}: The pcert structure
+
+@var{cert}: The raw certificate to be imported
+
+@var{format}: The format of the certificate
+
+@var{keyid}: The key ID to use (NULL for the master key)
+
+@var{flags}: zero for now
+
+This function is no-op.
+
+@strong{Returns:} @code{GNUTLS_E_UNIMPLEMENTED_FEATURE} .
+
+@strong{Since:} 3.0
+@end deftypefun

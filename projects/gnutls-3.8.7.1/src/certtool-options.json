@@ -1,0 +1,557 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "certtool",
+    "title": "GnuTLS certificate tool",
+    "description": "Manipulate certificates and private keys.",
+    "detail": "Tool to parse and generate X.509 certificates, requests and private keys.\nIt can be used interactively or non interactively by\nspecifying the template command line option.\n\nThe tool accepts files or supported URIs via the --infile option. In case PIN\nis required for URI access you can provide it using the environment variables GNUTLS_PIN \nand GNUTLS_SO_PIN.\n",
+    "short-usage": "certtool [options]\ncerttool --help for usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verbose",
+          "short-option": "V",
+          "description": "More verbose output"
+        },
+        {
+          "long-option": "infile",
+          "description": "Input file",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "outfile",
+          "description": "Output file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "attime",
+          "description": "Perform validation at the timestamp instead of the system time",
+          "detail": "timestamp is an instance in time encoded as Unix time or in a human\n readable timestring such as \"29 Feb 2004\", \"2004-02-29\".\nFull documentation available at \n<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>\nor locally via info '(coreutils) date invocation'.",
+          "argument-name": "timestamp",
+          "argument-type": "string"
+        }
+      ]
+    },
+    {
+      "ref": "cert-options",
+      "description": "Certificate related options",
+      "options": [
+        {
+          "long-option": "certificate-info",
+          "short-option": "i",
+          "description": "Print information on the given certificate"
+        },
+        {
+          "long-option": "pubkey-info",
+          "description": "Print information on a public key",
+          "detail": "The option combined with --load-request, --load-pubkey, --load-privkey and --load-certificate will extract the public key of the object in question."
+        },
+        {
+          "long-option": "generate-self-signed",
+          "short-option": "s",
+          "description": "Generate a self-signed certificate"
+        },
+        {
+          "long-option": "generate-certificate",
+          "short-option": "c",
+          "description": "Generate a signed certificate"
+        },
+        {
+          "long-option": "generate-proxy",
+          "description": "Generates a proxy certificate"
+        },
+        {
+          "long-option": "update-certificate",
+          "short-option": "u",
+          "description": "Update a signed certificate"
+        },
+        {
+          "long-option": "fingerprint",
+          "description": "Print the fingerprint of the given certificate",
+          "detail": "This is a simple hash of the DER encoding of the certificate. It can be combined with the --hash parameter. However, it is recommended for identification to use the key-id which depends only on the certificate's key."
+        },
+        {
+          "long-option": "key-id",
+          "description": "Print the key ID of the given certificate",
+          "detail": "This is a hash of the public key of the given certificate. It identifies the key uniquely, remains the same on a certificate renewal and depends only on signed fields of the certificate."
+        },
+        {
+          "long-option": "certificate-pubkey",
+          "description": "Print certificate's public key",
+          "detail": "This option is deprecated as a duplicate of --pubkey-info",
+          "deprecated": true
+        },
+        {
+          "long-option": "v1",
+          "description": "Generate an X.509 version 1 certificate (with no extensions)"
+        },
+        {
+          "long-option": "sign-params",
+          "description": "Sign a certificate with a specific signature algorithm",
+          "detail": "This option can be combined with --generate-certificate, to sign the certificate with\na specific signature algorithm variant. The only option supported is 'RSA-PSS', and should be\nspecified when the signer does not have a certificate which is marked for RSA-PSS use only.",
+          "argument-type": "string"
+        }
+      ]
+    },
+    {
+      "ref": "crq-options",
+      "description": "Certificate request related options",
+      "options": [
+        {
+          "long-option": "crq-info",
+          "description": "Print information on the given certificate request"
+        },
+        {
+          "long-option": "generate-request",
+          "short-option": "q",
+          "description": "Generate a PKCS #10 certificate request",
+          "detail": "Will generate a PKCS #10 certificate request. To specify a private key use --load-privkey.",
+          "conflicts": [
+            "infile"
+          ]
+        },
+        {
+          "long-option": "no-crq-extensions",
+          "description": "Do not use extensions in certificate requests"
+        }
+      ]
+    },
+    {
+      "ref": "pkcs12-options",
+      "description": "PKCS#12 file related options",
+      "options": [
+        {
+          "long-option": "p12-info",
+          "description": "Print information on a PKCS #12 structure",
+          "detail": "This option will dump the contents and print the metadata of the provided PKCS #12 structure."
+        },
+        {
+          "long-option": "p12-name",
+          "description": "The PKCS #12 friendly name to use",
+          "detail": "The name to be used for the primary certificate and private key in a PKCS #12 file.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "to-p12",
+          "description": "Generate a PKCS #12 structure",
+          "detail": "It requires a certificate, a private key and possibly a CA certificate to be specified."
+        },
+        {
+          "long-option": "pbmac1",
+          "description": "Use PBMAC1 in a PKCS #12 structure"
+        }
+      ]
+    },
+    {
+      "ref": "key-options",
+      "description": "Private key related options",
+      "options": [
+        {
+          "long-option": "key-info",
+          "short-option": "k",
+          "description": "Print information on a private key"
+        },
+        {
+          "long-option": "p8-info",
+          "description": "Print information on a PKCS #8 structure",
+          "detail": "This option will print information about encrypted PKCS #8 structures. That option does not require the decryption of the structure."
+        },
+        {
+          "long-option": "to-rsa",
+          "description": "Convert an RSA-PSS key to raw RSA format",
+          "detail": "It requires an RSA-PSS key as input and will output a raw RSA\nkey. This command is necessary for compatibility with applications that\ncannot read RSA-PSS keys."
+        },
+        {
+          "long-option": "generate-privkey",
+          "short-option": "p",
+          "description": "Generate a private key",
+          "detail": "When generating RSA-PSS or RSA-OAEP private keys, the --hash option will\nrestrict the allowed hash for the key; For RSA-PSS keys the --salt-size\noption is also acceptable."
+        },
+        {
+          "long-option": "key-type",
+          "description": "Specify the key type to use on key generation",
+          "detail": "This option can be combined with --generate-privkey, to specify\nthe key type to be generated. Valid options are, 'rsa', 'rsa-pss', 'rsa-oaep', 'dsa', 'ecdsa', 'ed25519, 'ed448', 'x25519', and 'x448'.'.\nWhen combined with certificate generation it can be used to specify an\nRSA-PSS certificate when an RSA key is given.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "bits",
+          "description": "Specify the number of bits for key generation",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "curve",
+          "description": "Specify the curve used for EC key generation",
+          "detail": "Supported values are secp192r1, secp224r1, secp256r1, secp384r1 and secp521r1.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "sec-param",
+          "description": "Specify the security level [low, legacy, medium, high, ultra]",
+          "detail": "This is alternative to the bits option.",
+          "argument-type": "string",
+          "argument-name": "Security parameter"
+        },
+        {
+          "long-option": "to-p8",
+          "description": "Convert a given key to a PKCS #8 structure",
+          "detail": "This needs to be combined with --load-privkey."
+        },
+        {
+          "long-option": "pkcs8",
+          "short-option": "8",
+          "description": "Use PKCS #8 format for private keys"
+        },
+        {
+          "long-option": "provable",
+          "description": "Generate a private key or parameters from a seed using a provable method",
+          "detail": "This will use the FIPS PUB186-4 algorithms (i.e., Shawe-Taylor) for provable key generation.\nWhen specified the private keys or parameters will be generated from a seed, and can be\nlater validated with --verify-provable-privkey to be correctly generated from the seed. You may\nspecify --seed or allow GnuTLS to generate one (recommended). This option can be combined with\n--generate-privkey or --generate-dh-params.\n\nThat option applies to RSA and DSA keys. On the DSA keys the PQG parameters\nare generated using the seed, and on RSA the two primes."
+        },
+        {
+          "long-option": "verify-provable-privkey",
+          "description": "Verify a private key generated from a seed using a provable method",
+          "detail": "This will use the FIPS-186-4 algorithms for provable key generation. You may specify --seed or use the seed stored in the private key structure."
+        },
+        {
+          "long-option": "seed",
+          "description": "When generating a private key use the given hex-encoded seed",
+          "detail": "The seed acts as a security parameter for the private key, and\nthus a seed size which corresponds to the security level of the private key\nshould be provided (e.g., 256-bits seed).",
+          "argument-type": "string"
+        }
+      ]
+    },
+    {
+      "ref": "crl-options",
+      "description": "CRL related options",
+      "options": [
+        {
+          "long-option": "crl-info",
+          "short-option": "l",
+          "description": "Print information on the given CRL structure"
+        },
+        {
+          "long-option": "generate-crl",
+          "description": "Generate a CRL",
+          "detail": "This option generates a Certificate Revocation List. When combined with --load-crl it would use the loaded CRL as base for the generated (i.e., all revoked certificates in the base will be copied to the new CRL).\nTo add new certificates to the CRL use --load-certificate."
+        },
+        {
+          "long-option": "verify-crl",
+          "description": "Verify a Certificate Revocation List using a trusted list",
+          "detail": "The trusted certificate list must be loaded with --load-ca-certificate.",
+          "requires": [
+            "load-ca-certificate"
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "cert-verify-options",
+      "description": "Certificate verification related options",
+      "options": [
+        {
+          "long-option": "verify-chain",
+          "short-option": "e",
+          "description": "Verify a PEM encoded certificate chain",
+          "detail": "Verifies the validity of a certificate chain. That is, an ordered set of\ncertificates where each one is the issuer of the previous, and the first is\nthe end-certificate to be validated. In a proper chain the last certificate\nis a self signed one. It can be combined with --verify-purpose or --verify-hostname."
+        },
+        {
+          "long-option": "verify",
+          "description": "Verify a PEM encoded certificate (chain) against a trusted set",
+          "detail": "The trusted certificate list can be loaded with --load-ca-certificate. If no\ncertificate list is provided, then the system's trusted certificate list is used. Note that\nduring verification multiple paths may be explored. On a successful verification\nthe successful path will be the last one. It can be combined with --verify-purpose or --verify-hostname."
+        },
+        {
+          "long-option": "verify-hostname",
+          "description": "Specify a hostname to be used for certificate chain verification",
+          "detail": "This is to be combined with one of the verify certificate options.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "verify-email",
+          "description": "Specify a email to be used for certificate chain verification",
+          "detail": "This is to be combined with one of the verify certificate options.",
+          "conflicts": [
+            "verify-hostname"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "verify-purpose",
+          "description": "Specify a purpose OID to be used for certificate chain verification",
+          "detail": "This object identifier restricts the purpose of the certificates to be verified. Example purposes are 1.3.6.1.5.5.7.3.1 (TLS WWW), 1.3.6.1.5.5.7.3.4 (EMAIL) etc. Note that a CA certificate without a purpose set (extended key usage) is valid for any purpose.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "verify-allow-broken",
+          "description": "Allow broken algorithms, such as MD5 for verification",
+          "detail": "This can be combined with --p7-verify, --verify or --verify-chain."
+        },
+        {
+          "long-option": "verify-profile",
+          "description": "Specify a security level profile to be used for verification",
+          "detail": "This option can be used to specify a certificate verification profile. Certificate\n    verification profiles correspond to the security level. This should be one of\n    'none', 'very weak', 'low', 'legacy', 'medium', 'high', 'ultra',\n    'future'. Note that by default no profile is applied, unless one is set\n    as minimum in the gnutls configuration file.",
+          "argument-type": "string"
+        }
+      ]
+    },
+    {
+      "ref": "pkcs7-options",
+      "description": "PKCS#7 structure options",
+      "options": [
+        {
+          "long-option": "p7-generate",
+          "description": "Generate a PKCS #7 structure",
+          "detail": "This option generates a PKCS #7 certificate container structure. To add certificates in the structure use --load-certificate and --load-crl."
+        },
+        {
+          "long-option": "p7-sign",
+          "description": "Signs using a PKCS #7 structure",
+          "detail": "This option generates a PKCS #7 structure containing a signature for the provided data from infile. The data are stored within the structure. The signer certificate has to be specified using --load-certificate and --load-privkey. The input to --load-certificate can be a list of certificates. In case of a list, the first certificate is used for signing and the other certificates are included in the structure."
+        },
+        {
+          "long-option": "p7-detached-sign",
+          "description": "Signs using a detached PKCS #7 structure",
+          "detail": "This option generates a PKCS #7 structure containing a signature for the provided data from infile. The signer certificate has to be specified using --load-certificate and --load-privkey. The input to --load-certificate can be a list of certificates. In case of a list, the first certificate is used for signing and the other certificates are included in the structure."
+        },
+        {
+          "long-option": "p7-include-cert",
+          "description": "The signer's certificate will be included in the cert list",
+          "detail": "This options works with --p7-sign or --p7-detached-sign and will include or exclude the signer's certificate into the generated signature.",
+          "enabled": true,
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "p7-time",
+          "description": "Will include a timestamp in the PKCS #7 structure",
+          "detail": "This option will include a timestamp in the generated signature",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "p7-show-data",
+          "description": "Will show the embedded data in the PKCS #7 structure",
+          "detail": "This option can be combined with --p7-verify or --p7-info and will display the embedded signed data in the PKCS #7 structure.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "p7-info",
+          "description": "Print information on a PKCS #7 structure"
+        },
+        {
+          "long-option": "p7-verify",
+          "description": "Verify the provided PKCS #7 structure",
+          "detail": "This option verifies the signed PKCS #7 structure. The certificate list to use for verification can be specified with --load-ca-certificate. When no certificate list is provided, then the system's certificate list is used. Alternatively a direct signer can be provided using --load-certificate. A key purpose can be enforced with the --verify-purpose option, and the --load-data option will utilize detached data."
+        },
+        {
+          "long-option": "smime-to-p7",
+          "description": "Convert S/MIME to PKCS #7 structure"
+        }
+      ]
+    },
+    {
+      "ref": "other-options",
+      "description": "Other options",
+      "options": [
+        {
+          "long-option": "generate-dh-params",
+          "description": "Generate PKCS #3 encoded Diffie-Hellman parameters",
+          "detail": "The will generate random parameters to be used with\nDiffie-Hellman key exchange. The output parameters will be in PKCS #3\nformat. Note that it is recommended to use the --get-dh-params option\ninstead.",
+          "deprecated": true
+        },
+        {
+          "long-option": "get-dh-params",
+          "description": "List the included PKCS #3 encoded Diffie-Hellman parameters",
+          "detail": "Returns stored DH parameters in GnuTLS. Those parameters returned\nare defined in RFC7919, and can be considered standard parameters for a TLS\nkey exchange. This option is provided for old applications which require\nDH parameters to be specified; modern GnuTLS applications should not require\nthem."
+        },
+        {
+          "long-option": "dh-info",
+          "description": "Print information PKCS #3 encoded Diffie-Hellman parameters"
+        },
+        {
+          "long-option": "load-privkey",
+          "description": "Loads a private key file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-pubkey",
+          "description": "Loads a public key file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-request",
+          "description": "Loads a certificate request file",
+          "detail": "This option can be used with a file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-certificate",
+          "description": "Loads a certificate file",
+          "detail": "This option can be used with a file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-ca-privkey",
+          "description": "Loads the certificate authority's private key file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-ca-certificate",
+          "description": "Loads the certificate authority's certificate file",
+          "detail": "This can be either a file or a PKCS #11 URL",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-crl",
+          "description": "Loads the provided CRL",
+          "detail": "This option can be used with a file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "load-data",
+          "description": "Loads auxiliary data",
+          "detail": "This option can be used with a file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "password",
+          "description": "Password to use",
+          "detail": "You can use this option to specify the password in the command line instead of reading it from the tty. Note, that the command line arguments are available for view in others in the system. Specifying password as '' is the same as specifying no password.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "null-password",
+          "description": "Enforce a NULL password",
+          "detail": "This option enforces a NULL password. This is different than the empty or no password in schemas like PKCS #8."
+        },
+        {
+          "long-option": "empty-password",
+          "description": "Enforce an empty password",
+          "detail": "This option enforces an empty password. This is different than the NULL or no password in schemas like PKCS #8."
+        },
+        {
+          "long-option": "hex-numbers",
+          "description": "Print big number in an easier format to parse"
+        },
+        {
+          "long-option": "cprint",
+          "description": "In certain operations it prints the information in C-friendly format",
+          "detail": "In certain operations it prints the information in C-friendly format, suitable for including into C programs."
+        },
+        {
+          "long-option": "rsa",
+          "description": "Generate RSA key",
+          "detail": "When combined with --generate-privkey generates an RSA private key.",
+          "deprecated": true
+        },
+        {
+          "long-option": "dsa",
+          "description": "Generate DSA key",
+          "detail": "When combined with --generate-privkey generates a DSA private key.",
+          "deprecated": true
+        },
+        {
+          "long-option": "ecc",
+          "description": "Generate ECC (ECDSA) key",
+          "detail": "When combined with --generate-privkey generates an elliptic curve private key to be used with ECDSA.",
+          "deprecated": true
+        },
+        {
+          "long-option": "ecdsa",
+          "deprecated": true,
+          "aliases": "ecc"
+        },
+        {
+          "long-option": "hash",
+          "description": "Hash algorithm to use for signing",
+          "detail": "Available hash functions are SHA1, RMD160, SHA256, SHA384, SHA512, SHA3-224, SHA3-256, SHA3-384, SHA3-512.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "salt-size",
+          "description": "Specify the RSA-PSS key default salt size",
+          "detail": "Typical keys shouldn't set or restrict this option.",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "label",
+          "description": "Specify the RSA-OAEP label, encoded in hexadecimal",
+          "detail": "Typical keys shouldn't set or restrict this option.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "inder",
+          "description": "Use DER format for input certificates, private keys, and DH parameters ",
+          "detail": "The input files will be assumed to be in DER or RAW format. \nUnlike options that in PEM input would allow multiple input data (e.g. multiple \ncertificates), when reading in DER format a single data structure is read.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "inraw",
+          "aliases": "inder"
+        },
+        {
+          "long-option": "outder",
+          "description": "Use DER format for output certificates, private keys, and DH parameters",
+          "detail": "The output will be in DER or RAW format.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "outraw",
+          "aliases": "outder"
+        },
+        {
+          "long-option": "disable-quick-random",
+          "description": "No effect",
+          "deprecated": true
+        },
+        {
+          "long-option": "template",
+          "description": "Template file to use for non-interactive operation",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "stdout-info",
+          "description": "Print information to stdout instead of stderr"
+        },
+        {
+          "long-option": "ask-pass",
+          "description": "Enable interaction for entering password when in batch mode",
+          "detail": "This option will enable interaction to enter password when in batch mode. That is useful when the template option has been specified."
+        },
+        {
+          "long-option": "pkcs-cipher",
+          "description": "Cipher to use for PKCS #8 and #12 operations",
+          "detail": "Cipher may be one of 3des, 3des-pkcs12, aes-128, aes-192, aes-256, rc2-40, arcfour.",
+          "argument-type": "string",
+          "argument-name": "Cipher"
+        },
+        {
+          "long-option": "provider",
+          "description": "Specify the PKCS #11 provider library",
+          "detail": "This will override the default options in /etc/gnutls/pkcs11.conf",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "text",
+          "description": "Output textual information before PEM-encoded certificates, private keys, etc",
+          "detail": "Output textual information before PEM-encoded data",
+          "enabled": true,
+          "disable-prefix": "no-"
+        }
+      ]
+    }
+  ]
+}

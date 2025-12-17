@@ -1,0 +1,322 @@
+@node ocsptool Invocation
+@subsection Invoking ocsptool
+@pindex ocsptool
+
+@subheading On verification
+Responses are typically signed/issued by designated certificates or
+certificate authorities and thus this tool requires on verification
+the certificate of the issuer or the full certificate chain in order to
+determine the appropriate signing authority. The specified certificate
+of the issuer is assumed trusted.
+
+
+@anchor{ocsptool usage}
+@subsubheading ocsptool help/usage (@option{-?})
+@cindex ocsptool help
+
+The text printed is the same whether selected with the @code{help} option
+(@option{--help}) or the @code{more-help} option (@option{--more-help}).  @code{more-help} will print
+the usage text by passing it through a pager program.
+@code{more-help} is disabled on platforms without a working
+@code{fork(2)} function.  The @code{PAGER} environment variable is
+used to select the program, defaulting to @file{more}.  Both will exit
+with a status code of 0.
+
+@exampleindent 0
+@example
+ocsptool - GnuTLS OCSP tool
+Usage:  ocsptool [ -<flag> [<val>] | --<name>[@{=| @}<val>] ]... 
+
+None:
+
+   -d, --debug=num            Enable debugging
+				- it must be in the range:
+				  0 to 9999
+   -V, --verbose              More verbose output
+       --infile=file          Input file
+				- file must pre-exist
+       --outfile=str          Output file
+       --ask[=str]            Ask an OCSP/HTTP server on a certificate validity
+   -e, --verify-response      Verify response
+   -i, --request-info         Print information on a OCSP request
+   -j, --response-info        Print information on a OCSP response
+   -q, --generate-request     Generates an OCSP request
+       --nonce                Use (or not) a nonce to OCSP request
+       --load-chain=file      Reads a set of certificates forming a chain from file
+				- file must pre-exist
+       --load-issuer=file     Reads issuer's certificate from file
+				- file must pre-exist
+       --load-cert=file       Reads the certificate to check from file
+				- file must pre-exist
+       --load-trust=file      Read OCSP trust anchors from file
+				- prohibits the option 'load-signer'
+				- file must pre-exist
+       --load-signer=file     Reads the OCSP response signer from file
+				- prohibits the option 'load-trust'
+				- file must pre-exist
+       --inder                Use DER format for input certificates and private keys
+       --outder               Use DER format for output of responses (this is the default)
+       --outpem               Use PEM format for output of responses
+   -Q, --load-request=file    Reads the DER encoded OCSP request from file
+				- file must pre-exist
+   -S, --load-response=file   Reads the DER encoded OCSP response from file
+				- file must pre-exist
+       --ignore-errors        Ignore any verification errors
+       --verify-allow-broken  Allow broken algorithms, such as MD5 for verification
+       --attime=str           Perform validation at the timestamp instead of the system time
+
+Version, usage and configuration options:
+
+   -v, --version[=arg]        output version information and exit
+   -h, --help                 display extended usage information and exit
+   -!, --more-help            extended usage information passed thru pager
+
+Options are specified by doubled hyphens and their name or by a single
+hyphen and the flag character.
+
+ocsptool is a program that can parse and print information about
+OCSP requests/responses, generate requests and verify responses. Unlike
+other GnuTLS applications it outputs DER encoded structures by default
+unless the '--outpem' option is specified.
+
+Please send bug reports to:  <bugs@@gnutls.org>
+
+@end example
+@exampleindent 4
+
+@subsubheading debug option (-d).
+@anchor{ocsptool debug}
+
+This is the ``enable debugging'' option.
+This option takes a ArgumentType.NUMBER argument.
+Specifies the debug level.
+@subsubheading ask option.
+@anchor{ocsptool ask}
+
+This is the ``ask an ocsp/http server on a certificate validity'' option.
+This option takes a ArgumentType.STRING argument @file{server name|url}.
+Connects to the specified HTTP OCSP server and queries on the validity of the loaded certificate.
+Its argument can be a URL or a plain server name. It can be combined with --load-chain, where it checks
+all certificates in the provided chain, or with --load-cert and
+--load-issuer options. The latter checks the provided certificate
+against its specified issuer certificate.
+@subsubheading verify-response option (-e).
+@anchor{ocsptool verify-response}
+
+This is the ``verify response'' option.
+Verifies the provided OCSP response against the system trust
+anchors (unless --load-trust is provided). It requires the --load-signer
+or --load-chain options to obtain the signer of the OCSP response.
+@subsubheading request-info option (-i).
+@anchor{ocsptool request-info}
+
+This is the ``print information on a ocsp request'' option.
+Display detailed information on the provided OCSP request.
+@subsubheading response-info option (-j).
+@anchor{ocsptool response-info}
+
+This is the ``print information on a ocsp response'' option.
+Display detailed information on the provided OCSP response.
+@subsubheading load-trust option.
+@anchor{ocsptool load-trust}
+
+This is the ``read ocsp trust anchors from file'' option.
+This option takes a ArgumentType.FILE argument.
+
+@noindent
+This option has some usage constraints.  It:
+@itemize @bullet
+@item
+must not appear in combination with any of the following options:
+load-signer.
+@end itemize
+
+When verifying an OCSP response read the trust anchors from the
+provided file. When this is not provided, the system's trust anchors will be
+used.
+@subsubheading outder option.
+@anchor{ocsptool outder}
+
+This is the ``use der format for output of responses (this is the default)'' option.
+The output will be in DER encoded format. Unlike other GnuTLS tools, this is the default for this tool
+@subsubheading outpem option.
+@anchor{ocsptool outpem}
+
+This is the ``use pem format for output of responses'' option.
+The output will be in PEM format.
+@subsubheading verify-allow-broken option.
+@anchor{ocsptool verify-allow-broken}
+
+This is the ``allow broken algorithms, such as md5 for verification'' option.
+This can be combined with --verify-response.
+@subsubheading attime option.
+@anchor{ocsptool attime}
+
+This is the ``perform validation at the timestamp instead of the system time'' option.
+This option takes a ArgumentType.STRING argument @file{timestamp}.
+timestamp is an instance in time encoded as Unix time or in a human
+ readable timestring such as "29 Feb 2004", "2004-02-29".
+Full documentation available at 
+<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>
+or locally via info '(coreutils) date invocation'.
+@subsubheading version option (-v).
+@anchor{ocsptool version}
+
+This is the ``output version information and exit'' option.
+This option takes a ArgumentType.KEYWORD argument.
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+@subsubheading help option (-h).
+@anchor{ocsptool help}
+
+This is the ``display extended usage information and exit'' option.
+Display usage information and exit.
+@subsubheading more-help option (-!).
+@anchor{ocsptool more-help}
+
+This is the ``extended usage information passed thru pager'' option.
+Pass the extended usage information through a pager.
+@anchor{ocsptool exit status}
+@subsubheading ocsptool exit status
+
+One of the following exit values will be returned:
+@table @samp
+@item 0 (EXIT_SUCCESS)
+Successful program execution.
+@item 1 (EXIT_FAILURE)
+The operation failed or the command syntax was not valid.
+@end table
+@anchor{ocsptool See Also}
+@subsubheading ocsptool See Also
+    certtool (1)
+@anchor{ocsptool Examples}
+@subsubheading ocsptool Examples
+@subsubheading Print information about an OCSP request
+
+To parse an OCSP request and print information about the content, the
+@code{-i} or @code{--request-info} parameter may be used as follows.
+The @code{-Q} parameter specify the name of the file containing the
+OCSP request, and it should contain the OCSP request in binary DER
+format.
+
+@example
+$ ocsptool -i -Q ocsp-request.der
+@end example
+
+The input file may also be sent to standard input like this:
+
+@example
+$ cat ocsp-request.der | ocsptool --request-info
+@end example
+
+@subsubheading Print information about an OCSP response
+
+Similar to parsing OCSP requests, OCSP responses can be parsed using
+the @code{-j} or @code{--response-info} as follows.
+
+@example
+$ ocsptool -j -Q ocsp-response.der
+$ cat ocsp-response.der | ocsptool --response-info
+@end example
+
+@subsubheading Generate an OCSP request
+
+The @code{-q} or @code{--generate-request} parameters are used to
+generate an OCSP request.  By default the OCSP request is written to
+standard output in binary DER format, but can be stored in a file
+using @code{--outfile}.  To generate an OCSP request the issuer of the
+certificate to check needs to be specified with @code{--load-issuer}
+and the certificate to check with @code{--load-cert}.  By default PEM
+format is used for these files, although @code{--inder} can be used to
+specify that the input files are in DER format.
+
+@example
+$ ocsptool -q --load-issuer issuer.pem --load-cert client.pem \
+           --outfile ocsp-request.der
+@end example
+
+When generating OCSP requests, the tool will add an OCSP extension
+containing a nonce.  This behaviour can be disabled by specifying
+@code{--no-nonce}.
+
+@subsubheading Verify signature in OCSP response
+
+To verify the signature in an OCSP response the @code{-e} or
+@code{--verify-response} parameter is used.  The tool will read an
+OCSP response in DER format from standard input, or from the file
+specified by @code{--load-response}.  The OCSP response is verified
+against a set of trust anchors, which are specified using
+@code{--load-trust}.  The trust anchors are concatenated certificates
+in PEM format.  The certificate that signed the OCSP response needs to
+be in the set of trust anchors, or the issuer of the signer
+certificate needs to be in the set of trust anchors and the OCSP
+Extended Key Usage bit has to be asserted in the signer certificate.
+
+@example
+$ ocsptool -e --load-trust issuer.pem \
+           --load-response ocsp-response.der
+@end example
+
+The tool will print status of verification.
+
+@subsubheading Verify signature in OCSP response against given certificate
+
+It is possible to override the normal trust logic if you know that a
+certain certificate is supposed to have signed the OCSP response, and
+you want to use it to check the signature.  This is achieved using
+@code{--load-signer} instead of @code{--load-trust}.  This will load
+one certificate and it will be used to verify the signature in the
+OCSP response.  It will not check the Extended Key Usage bit.
+
+@example
+$ ocsptool -e --load-signer ocsp-signer.pem \
+           --load-response ocsp-response.der
+@end example
+
+This approach is normally only relevant in two situations.  The first
+is when the OCSP response does not contain a copy of the signer
+certificate, so the @code{--load-trust} code would fail.  The second
+is if you want to avoid the indirect mode where the OCSP response
+signer certificate is signed by a trust anchor.
+
+@subsubheading Real-world example
+
+Here is an example of how to generate an OCSP request for a
+certificate and to verify the response.  For illustration we'll use
+the @code{blog.josefsson.org} host, which (as of writing) uses a
+certificate from CACert.  First we'll use @code{gnutls-cli} to get a
+copy of the server certificate chain.  The server is not required to
+send this information, but this particular one is configured to do so.
+
+@example
+$ echo | gnutls-cli -p 443 blog.josefsson.org --save-cert chain.pem
+@end example
+
+The saved certificates normally contain a pointer to where the OCSP
+responder is located, in the Authority Information Access Information
+extension.  For example, from @code{certtool -i < chain.pem} there is
+this information:
+
+@example
+		Authority Information Access Information (not critical):
+			Access Method: 1.3.6.1.5.5.7.48.1 (id-ad-ocsp)
+			Access Location URI: https://ocsp.CAcert.org/
+@end example
+
+This means that ocsptool can discover the servers to contact over HTTP.
+We can now request information on the chain certificates.
+
+@example
+$ ocsptool --ask --load-chain chain.pem
+@end example
+
+The request is sent via HTTP to the OCSP server address found in
+the certificates. It is possible to override the address of the
+OCSP server as well as ask information on a particular certificate
+using --load-cert and --load-issuer.
+
+@example
+$ ocsptool --ask https://ocsp.CAcert.org/ --load-chain chain.pem
+@end example
+

@@ -1,0 +1,13 @@
+
+
+@c gnutls_keygen_types_t
+@table @code
+@item GNUTLS_@-KEYGEN_@-SEED
+Specifies the seed to be used in key generation.
+@item GNUTLS_@-KEYGEN_@-DIGEST
+The size field specifies the hash algorithm to be used in key generation.
+@item GNUTLS_@-KEYGEN_@-SPKI
+data points to a @code{gnutls_x509_spki_t}  structure; it is not used after the key generation call.
+@item GNUTLS_@-KEYGEN_@-DH
+data points to a @code{gnutls_dh_params_t}  structure; it is not used after the key generation call.
+@end table

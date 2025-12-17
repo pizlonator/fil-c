@@ -1,0 +1,39 @@
+@subheading DANE TLSA RR generation
+
+To create a DANE TLSA resource record for a certificate (or public key) 
+that was issued locally and may or may not be signed by a CA use the following command.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem
+@end example
+
+To create a DANE TLSA resource record for a CA signed certificate, which will
+be marked as such use the following command.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem \
+  --no-domain
+@end example
+
+The former is useful to add in your DNS entry even if your certificate is signed 
+by a CA. That way even users who do not trust your CA will be able to verify your
+certificate using DANE.
+
+In order to create a record for the CA signer of your certificate use the following.
+@example
+$ danetool --tlsa-rr --host www.example.com --load-certificate cert.pem \
+  --ca --no-domain
+@end example
+
+To read a server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --port 443
+@end example
+
+To verify an HTTPS server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --port 443 --load-certificate chain.pem
+@end example
+
+To verify an SMTP server's DANE TLSA entry, use:
+@example
+$ danetool --check www.example.com --proto tcp --starttls-proto=smtp --load-certificate chain.pem
+@end example

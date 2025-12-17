@@ -1,0 +1,15 @@
+
+
+
+
+@deftypefun {int} {gnutls_x509_ext_ct_export_scts} (const gnutls_x509_ct_scts_t @var{scts}, gnutls_datum_t * @var{ext})
+@var{scts}: An initialized SCT list
+
+@var{ext}: The DER-encoded extension data; must be freed with @code{gnutls_free()} 
+
+This function will convert the provided list of SCTs to a DER-encoded
+SignedCertificateTimestampList extension (1.3.6.1.4.1.11129.2.4.2).
+The output data in  @code{ext} will be allocated using @code{gnutls_malloc()} .
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  (0) on success or a negative error value.
+@end deftypefun

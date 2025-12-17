@@ -1,0 +1,19 @@
+To create @file{tpasswd.conf} which holds the g and n values for SRP protocol
+(generator and a large prime), run:
+@example
+$ srptool --create-conf /etc/tpasswd.conf
+@end example
+
+This command will create @file{/etc/tpasswd} and will add user 'test' (you
+will also be prompted for a password). Verifiers are stored by default
+in the way libsrp expects.
+@example
+$ srptool --passwd /etc/tpasswd --passwd-conf /etc/tpasswd.conf -u test
+@end example
+
+
+This command will check against a password. If the password matches
+the one in @file{/etc/tpasswd} you will get an ok.
+@example
+$ srptool --passwd /etc/tpasswd --passwd\-conf /etc/tpasswd.conf --verify -u test
+@end example

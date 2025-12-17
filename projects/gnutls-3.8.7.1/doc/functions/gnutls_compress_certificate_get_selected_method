@@ -1,0 +1,16 @@
+
+
+
+
+@deftypefun {gnutls_compression_method_t} {gnutls_compress_certificate_get_selected_method} (gnutls_session_t @var{session})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+This function returns the certificate compression method that has been
+selected to compress the certificate before sending it to the peer.
+The selection is done based on the local list of supported compression
+methods and the peer's requested compression methods.
+
+@strong{Returns:} selected certificate compression method.
+
+Since 3.7.4
+@end deftypefun

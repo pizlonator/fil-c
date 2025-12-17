@@ -1,0 +1,25 @@
+
+
+@c gnutls_x509_crl_reason_flags_t
+@table @code
+@item GNUTLS_@-CRL_@-REASON_@-UNSPECIFIED
+-- undescribed --
+@item GNUTLS_@-CRL_@-REASON_@-PRIVILEGE_@-WITHDRAWN
+The privileges were withdrawn from the owner.
+@item GNUTLS_@-CRL_@-REASON_@-CERTIFICATE_@-HOLD
+The certificate is on hold.
+@item GNUTLS_@-CRL_@-REASON_@-CESSATION_@-OF_@-OPERATION
+The end-entity is no longer operating.
+@item GNUTLS_@-CRL_@-REASON_@-SUPERSEDED
+There is a newer certificate of the owner.
+@item GNUTLS_@-CRL_@-REASON_@-AFFILIATION_@-CHANGED
+The end-entity affiliation has changed.
+@item GNUTLS_@-CRL_@-REASON_@-CA_@-COMPROMISE
+The CA was compromised.
+@item GNUTLS_@-CRL_@-REASON_@-KEY_@-COMPROMISE
+The certificate's key was compromised.
+@item GNUTLS_@-CRL_@-REASON_@-UNUSED
+The key was never used.
+@item GNUTLS_@-CRL_@-REASON_@-AA_@-COMPROMISE
+AA compromised.
+@end table

@@ -1,0 +1,2110 @@
+# Swedish translation of gnutls.
+# Copyright © 2007, 2008, 2009, 2011, 2012, 2017 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnutls package.
+#
+# Daniel Nylander <po@danielnylander.se>, 2006, 2007, 2008, 2009, 2011, 2012.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2017.
+# Kristian Nordin <kristian.po@proton.me>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnutls 3.6.8\n"
+"Report-Msgid-Bugs-To: bug-gnutls@gnu.org\n"
+"POT-Creation-Date: 2024-08-15 18:58+0900\n"
+"PO-Revision-Date: 2023-05-22 23:24+0200\n"
+"Last-Translator: Kristian Nordin <kristian.po@proton.me>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.3.1\n"
+
+# SSL_shutdown() shuts down an active TLS/SSL connection. It sends the ``close notify'' shutdown alert to the peer.
+#: lib/alert.c:39
+msgid "Close notify"
+msgstr "Stängningsnotifiering"
+
+#: lib/alert.c:40
+msgid "Unexpected message"
+msgstr "Oväntat meddelande"
+
+#: lib/alert.c:41
+msgid "Bad record MAC"
+msgstr "Felaktig MAC-post"
+
+#: lib/alert.c:42
+msgid "Decryption failed"
+msgstr "Dekryptering misslyckades"
+
+#: lib/alert.c:43
+msgid "Record overflow"
+msgstr "Överspill i post"
+
+#: lib/alert.c:44
+msgid "Decompression failed"
+msgstr "Dekomprimering misslyckades"
+
+#: lib/alert.c:45
+msgid "Handshake failed"
+msgstr "Handskakning misslyckades"
+
+#: lib/alert.c:46
+msgid "Certificate is bad"
+msgstr "Certifikatet är felaktigt"
+
+#: lib/alert.c:48
+msgid "Certificate is not supported"
+msgstr "Certifikatet stöds inte"
+
+#: lib/alert.c:50
+msgid "Certificate was revoked"
+msgstr "Certifikatet var spärrat"
+
+#: lib/alert.c:51
+msgid "Certificate is expired"
+msgstr "Certifikatet har gått ut"
+
+#: lib/alert.c:52
+msgid "Unknown certificate"
+msgstr "Okänt certifikat"
+
+#: lib/alert.c:53
+msgid "Illegal parameter"
+msgstr "Otillåten parameter"
+
+#: lib/alert.c:54
+msgid "CA is unknown"
+msgstr "Certifikatutfärdare är okänd"
+
+#: lib/alert.c:55
+msgid "Access was denied"
+msgstr "Åtkomst nekades"
+
+#: lib/alert.c:56
+msgid "Decode error"
+msgstr "Avkodningsfel"
+
+#: lib/alert.c:57
+msgid "Decrypt error"
+msgstr "Dekrypteringsfel"
+
+#: lib/alert.c:58
+msgid "Export restriction"
+msgstr "Exportbegränsning"
+
+#: lib/alert.c:59
+msgid "Error in protocol version"
+msgstr "Fel i protokollversion"
+
+#: lib/alert.c:61
+msgid "Insufficient security"
+msgstr "Otillräcklig säkerhet"
+
+#: lib/alert.c:62
+msgid "User canceled"
+msgstr "Användaren avbröt"
+
+#: lib/alert.c:64
+msgid "No certificate (SSL 3.0)"
+msgstr "Inget certifikat (SSL 3.0)"
+
+#: lib/alert.c:65
+msgid "Internal error"
+msgstr "Internt fel"
+
+#: lib/alert.c:67
+msgid "Inappropriate fallback"
+msgstr "Olämplig reserv"
+
+#: lib/alert.c:69
+msgid "No renegotiation is allowed"
+msgstr "Ingen återförhandling tillåts"
+
+#: lib/alert.c:71
+msgid "Could not retrieve the specified certificate"
+msgstr "Kunde inte hämta angivet certifikat"
+
+#: lib/alert.c:73
+msgid "An unsupported extension was sent"
+msgstr "En utökning skickades som inte stöds"
+
+#: lib/alert.c:75
+msgid "The server name sent was not recognized"
+msgstr "Servernamnet som skickades kändes inte igen"
+
+#: lib/alert.c:77
+msgid "The SRP/PSK username is missing or not known"
+msgstr "SRP/PSK-användarnamn saknas eller är inte känt"
+
+#: lib/alert.c:79
+msgid "An extension was expected but was not seen"
+msgstr "En utökning förväntades men syntes inte till"
+
+#: lib/alert.c:81
+msgid "No supported application protocol could be negotiated"
+msgstr "Inget programprotokoll som stöds kunde förhandlas"
+
+#: lib/alert.c:83
+msgid "Certificate is required"
+msgstr "Certifikat krävs"
+
+#: lib/cert-cred.c:1082
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate is trusted. "
+msgstr "Certifikatet avviker. "
+
+#: lib/cert-cred.c:1085
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate is NOT trusted. "
+msgstr "Certifikatet avviker. "
+
+#: lib/cert-cred.c:1090
+#, fuzzy
+#| msgid "Certificate was revoked"
+msgid "The certificate chain is revoked. "
+msgstr "Certifikatet var spärrat"
+
+#: lib/cert-cred.c:1095
+msgid "The certificate doesn't match the local copy (TOFU). "
+msgstr ""
+
+#: lib/cert-cred.c:1100
+msgid "The revocation or OCSP data are old and have been superseded. "
+msgstr ""
+
+#: lib/cert-cred.c:1105
+msgid "The revocation or OCSP data are issued with a future date. "
+msgstr ""
+
+#: lib/cert-cred.c:1109
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate issuer is unknown. "
+msgstr "Certifikatet avviker. "
+
+#: lib/cert-cred.c:1114
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate issuer is not a CA. "
+msgstr "Certifikatet avviker. "
+
+#: lib/cert-cred.c:1120
+#, fuzzy
+#| msgid "The certificate has unsupported attributes."
+msgid "The certificate chain uses insecure algorithm. "
+msgstr "Certifikatet har attribut som inte stöds."
+
+#: lib/cert-cred.c:1125
+#, fuzzy
+#| msgid "The certificate and the given key do not match."
+msgid "The certificate chain violates the signer's constraints. "
+msgstr "Certifikatet och den angivna nyckeln stämmer inte överens."
+
+#: lib/cert-cred.c:1130
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate chain does not match the intended purpose. "
+msgstr "Certifikatet är inte aktiverat än."
+
+#: lib/cert-cred.c:1135
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate chain uses not yet valid certificate. "
+msgstr "Certifikatet är inte aktiverat än."
+
+#: lib/cert-cred.c:1140
+#, fuzzy
+#| msgid "The certificate has unsupported attributes."
+msgid "The certificate chain uses expired certificate. "
+msgstr "Certifikatet har attribut som inte stöds."
+
+#: lib/cert-cred.c:1145
+#, fuzzy
+#| msgid "There was an error in the certificate."
+msgid "The signature in the certificate is invalid. "
+msgstr "Det uppstod ett fel i certifikatet."
+
+#: lib/cert-cred.c:1150
+#, fuzzy
+#| msgid "The OCSP response's signer's certificate is not activated. "
+msgid "The name in the certificate does not match the expected. "
+msgstr "Undertecknarens OCSP-svarscertifikat är inte aktiverat. "
+
+#: lib/cert-cred.c:1155
+msgid ""
+"The certificate requires the server to include an OCSP status in its "
+"response, but the OCSP status is missing. "
+msgstr ""
+
+#: lib/cert-cred.c:1160
+#, fuzzy
+#| msgid "The OCSP response is invalid"
+msgid "The received OCSP status response is invalid. "
+msgstr "OCSP-svaret är ogiltigt"
+
+#: lib/cert-cred.c:1165
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate contains an unknown critical extension. "
+msgstr "Certifikatet är inte aktiverat än."
+
+#: lib/errors.c:41
+msgid "Could not negotiate a supported cipher suite."
+msgstr "Kunde inte förhandla fram en krypteringssvit som stöds."
+
+#: lib/errors.c:43
+msgid "No or insufficient priorities were set."
+msgstr "Inga eller otillräckliga prioriteter angavs."
+
+#: lib/errors.c:45
+msgid "The cipher type is unsupported."
+msgstr "Krypteringstypen stöds inte."
+
+#: lib/errors.c:47
+msgid "The certificate and the given key do not match."
+msgstr "Certifikatet och den angivna nyckeln stämmer inte överens."
+
+#: lib/errors.c:49
+msgid "Could not negotiate a supported compression method."
+msgstr "Kunde inte förhandla fram en stödd komprimeringsmetod."
+
+#: lib/errors.c:51
+msgid "An unknown public key algorithm was encountered."
+msgstr "En okänd öppen nyckel-algoritm påträffades."
+
+#: lib/errors.c:54
+msgid "An algorithm that is not enabled was negotiated."
+msgstr "En algoritm som inte är aktiverad blev förhandlad."
+
+#: lib/errors.c:57
+msgid "A packet with illegal or unsupported version was received."
+msgstr "Ett paket med en version som är otillåten eller utan stöd togs emot."
+
+# Stort?
+#: lib/errors.c:60
+msgid ""
+"The Diffie-Hellman prime sent by the server is not acceptable (not long "
+"enough)."
+msgstr ""
+"Diffie-Hellman-primtalet som skickades av servern är inte acceptabelt (inte "
+"tillräckligt långt)."
+
+#: lib/errors.c:62
+msgid "Error decoding the received TLS packet."
+msgstr "Fel vid avkodning av mottaget TLS-paket."
+
+#: lib/errors.c:64
+msgid "A TLS record packet with invalid length was received."
+msgstr "Ett TLS-journalpaket med ogiltig längd togs emot."
+
+#: lib/errors.c:66
+msgid "The TLS connection was non-properly terminated."
+msgstr "TLS-anslutningen avslutades inte korrekt."
+
+#: lib/errors.c:69
+msgid "The specified session has been invalidated for some reason."
+msgstr "Angiven session har av någon anledning blivit ogiltigförklarad."
+
+#: lib/errors.c:72
+msgid "GnuTLS internal error."
+msgstr "Internt fel i GnuTLS."
+
+#: lib/errors.c:74
+msgid "A connection with inappropriate fallback was attempted."
+msgstr "Försökte ansluta med en olämplig reserv."
+
+#: lib/errors.c:76
+msgid "An illegal TLS extension was received."
+msgstr "En otillåten TLS-utökning togs emot."
+
+#: lib/errors.c:78
+msgid "An required TLS extension was received."
+msgstr "En nödvändig TLS-utökning togs emot."
+
+#: lib/errors.c:80
+msgid "A TLS fatal alert has been received."
+msgstr "Ett ödesdigert TLS-larm togs emot."
+
+#: lib/errors.c:82
+msgid "An unexpected TLS packet was received."
+msgstr "Ett oväntat TLS-paket togs emot."
+
+#: lib/errors.c:84
+msgid "Failed to import the key into store."
+msgstr "Misslyckades importera nyckeln till lagring."
+
+#: lib/errors.c:87
+msgid "An error was encountered at the TLS Finished packet calculation."
+msgstr "Ett fel påträffades vid beräkning av TLS Finished-paketet."
+
+#: lib/errors.c:89 libdane/errors.c:61
+msgid "No certificate was found."
+msgstr "Inget certifikat hittades."
+
+#: lib/errors.c:91
+msgid "Certificate is required."
+msgstr "Certifikatet krävs."
+
+#: lib/errors.c:94
+msgid "The given DSA key is incompatible with the selected TLS protocol."
+msgstr "Angiven DSA-nyckel är inte kompatibel med det valda TLS-protokollet."
+
+#: lib/errors.c:97
+msgid "There is already a crypto algorithm with lower priority."
+msgstr "Det finns redan en krypteringsalgoritm med lägre prioritet."
+
+#: lib/errors.c:100
+msgid "No temporary RSA parameters were found."
+msgstr "Inga temporära RSA-parametrar hittades."
+
+#: lib/errors.c:102
+msgid "No temporary DH parameters were found."
+msgstr "Inga temporära DH-parametrar hittades."
+
+#: lib/errors.c:104
+msgid "An unexpected TLS handshake packet was received."
+msgstr "Ett oväntat TLS-handskakningspaket togs emot."
+
+#: lib/errors.c:106
+msgid "The scanning of a large integer has failed."
+msgstr "Avsökningen av ett stort heltal misslyckades."
+
+#: lib/errors.c:108
+msgid "Could not export a large integer."
+msgstr "Kunde inte exportera ett stort heltal."
+
+#: lib/errors.c:110
+msgid "Decryption has failed."
+msgstr "Dekryptering misslyckades."
+
+#: lib/errors.c:111
+msgid "Encryption has failed."
+msgstr "Kryptering misslyckades."
+
+#: lib/errors.c:112
+msgid "Public key decryption has failed."
+msgstr "Dekryptering med öppen nyckel misslyckades."
+
+#: lib/errors.c:114
+msgid "Public key encryption has failed."
+msgstr "Kryptering med öppen nyckel misslyckades."
+
+#: lib/errors.c:116
+msgid "Public key signing has failed."
+msgstr "Signering med öppen nyckel misslyckades."
+
+#: lib/errors.c:118
+msgid "Public key signature verification has failed."
+msgstr "Validering av öppna nyckelns signatur misslyckades."
+
+#: lib/errors.c:120
+msgid "Decompression of the TLS record packet has failed."
+msgstr "Dekomprimering av TLS-journalpaketet har misslyckats."
+
+#: lib/errors.c:122
+msgid "Compression of the TLS record packet has failed."
+msgstr "Komprimering av TLS-journalpaketet har misslyckats."
+
+#: lib/errors.c:125
+msgid "Internal error in memory allocation."
+msgstr "Internt fel i minnesallokering."
+
+#: lib/errors.c:128
+msgid "An unimplemented or disabled feature has been requested."
+msgstr "En icke implementerad eller inaktiverad funktion begärdes."
+
+#: lib/errors.c:130
+msgid "Insufficient credentials for that request."
+msgstr "Otillräckliga rättigheter för begäran."
+
+#: lib/errors.c:132
+msgid "Error in password/key file."
+msgstr "Fel i lösenords-/nyckelfil."
+
+#: lib/errors.c:133
+msgid "Wrong padding in PKCS1 packet."
+msgstr "Fel utfyllnad i PKCS1-paket."
+
+#: lib/errors.c:135
+msgid "The session or certificate has expired."
+msgstr "Sessionen eller certifikatet har löpt ut."
+
+#: lib/errors.c:137
+msgid "The certificate is not yet activated."
+msgstr "Certifikatet är inte aktiverat än."
+
+#: lib/errors.c:139
+msgid "Hashing has failed."
+msgstr "Hashning misslyckades."
+
+#: lib/errors.c:140
+msgid "Base64 decoding error."
+msgstr "Base64-avkodningsfel."
+
+#: lib/errors.c:142
+msgid "Base64 unexpected header error."
+msgstr "Oväntat fel i Base64-huvud."
+
+#: lib/errors.c:144
+msgid "Base64 encoding error."
+msgstr "Base64-kodningsfel."
+
+#: lib/errors.c:146
+msgid "Parsing error in password/key file."
+msgstr "Tolkningsfel i lösenords-/nyckelfil."
+
+#: lib/errors.c:148
+msgid "The requested data were not available."
+msgstr "Begärda data var inte tillgängliga."
+
+#: lib/errors.c:150
+msgid "There are no embedded data in the structure."
+msgstr "Det finns ingen inbäddad data i strukturen."
+
+#: lib/errors.c:152
+msgid "Error in the pull function."
+msgstr "Fel i inhämtningsfunktionen."
+
+#: lib/errors.c:153
+msgid "Error in the push function."
+msgstr "Fel i utsändningsfunktionen."
+
+#: lib/errors.c:155
+msgid ""
+"The upper limit of record packet sequence numbers has been reached. Wow!"
+msgstr "Den övre gränsen för sekvensnummer för journalpaket har nåtts. Wow!"
+
+#: lib/errors.c:157
+msgid "Error in the certificate."
+msgstr "Fel i certifikatet."
+
+#: lib/errors.c:159
+msgid "Error in the time fields of certificate."
+msgstr "Fel i certifikatets tidsfält."
+
+#: lib/errors.c:161
+msgid "Error in the certificate verification."
+msgstr "Fel i certifikatverifikationen."
+
+#: lib/errors.c:163
+msgid "Error in the CRL verification."
+msgstr "Fel i CRL-verifikationen."
+
+#: lib/errors.c:166
+msgid "Error in the private key verification; seed doesn't match."
+msgstr "Fel i privata nyckelverifikationen: frö matchar inte."
+
+#: lib/errors.c:168
+msgid "Could not authenticate peer."
+msgstr "Kunde inte autentisera motpart."
+
+#: lib/errors.c:169
+msgid "Unknown Subject Alternative name in X.509 certificate."
+msgstr "Okänt alternativt namn för innehavare i X.509-certifikat."
+
+#: lib/errors.c:172
+msgid "CIDR name constraint is malformed in size or structure."
+msgstr "CIDR-namnbegränsning är felaktig i storlek och struktur."
+
+#: lib/errors.c:175
+msgid "Unsupported critical extension in X.509 certificate."
+msgstr "Kritisk utökning som ej stöds i X.509-certifikat."
+
+#: lib/errors.c:177
+msgid "Unsupported extension in X.509 certificate."
+msgstr "Utökning som ej stöds i X.509-certifikat."
+
+#: lib/errors.c:179
+#, fuzzy
+#| msgid "Unsupported extension in X.509 certificate."
+msgid "Duplicate extension in X.509 certificate."
+msgstr "Utökning som ej stöds i X.509-certifikat."
+
+#: lib/errors.c:181
+msgid "Key usage violation in certificate has been detected."
+msgstr "Överträdelse av nyckelanvändning i certifikat har upptäckts."
+
+#: lib/errors.c:183 lib/errors.c:434
+msgid "Function was interrupted."
+msgstr "Funktionen avbröts."
+
+#: lib/errors.c:185
+msgid "TLS Application data were received, while expecting handshake data."
+msgstr "TLS-programdata togs emot när handskakningsdata förväntades."
+
+#: lib/errors.c:187
+msgid "Error in Database backend."
+msgstr "Fel i databasbakänden."
+
+#: lib/errors.c:188
+msgid "The Database entry already exists."
+msgstr "Databasposten existerar redan."
+
+#: lib/errors.c:190
+msgid "The certificate type is not supported."
+msgstr "Certifikattypen stöds inte."
+
+#: lib/errors.c:193
+msgid "The given memory buffer is too short to hold parameters."
+msgstr "Den angivna minnesbufferten är för liten för att lagra parametrar."
+
+#: lib/errors.c:195 libdane/errors.c:56
+msgid "The request is invalid."
+msgstr "Begäran är ogiltig."
+
+#: lib/errors.c:196
+msgid "The cookie was bad."
+msgstr "Kakan var felaktig."
+
+#: lib/errors.c:197
+msgid "An illegal parameter has been received."
+msgstr "En otillåten parameter har tagits emot."
+
+#: lib/errors.c:199
+msgid "An illegal parameter was found."
+msgstr "En otillåten parameter hittades."
+
+#: lib/errors.c:201
+msgid "Error while reading file."
+msgstr "Fel vid läsning av fil."
+
+#: lib/errors.c:202
+msgid "A disallowed SNI server name has been received."
+msgstr "Ett otillåtet SNI-servernamn har tagits emot."
+
+#: lib/errors.c:205
+msgid "ASN1 parser: Element was not found."
+msgstr "ASN1-tolkare: Elementet hittades inte."
+
+#: lib/errors.c:207
+msgid "ASN1 parser: Identifier was not found"
+msgstr "ASN1-tolkare: Identifieraren hittades inte"
+
+#: lib/errors.c:209
+msgid "ASN1 parser: Error in DER parsing."
+msgstr "ASN1-tolkare: Fel i DER-tolkning."
+
+#: lib/errors.c:211
+msgid "ASN1 parser: Value was not found."
+msgstr "ASN1-tolkare: Värdet hittades inte."
+
+#: lib/errors.c:213
+msgid "ASN1 parser: Generic parsing error."
+msgstr "ASN1-tolkare: Allmänt tolkningsfel."
+
+#: lib/errors.c:215
+msgid "ASN1 parser: Value is not valid."
+msgstr "ASN1-tolkare: Värdet är inte giltigt."
+
+#: lib/errors.c:217
+msgid "ASN1 parser: Error in TAG."
+msgstr "ASN1-tolkare: Fel i TAG."
+
+#: lib/errors.c:218
+msgid "ASN1 parser: error in implicit tag"
+msgstr "ASN1-tolkare: fel i implicit tag"
+
+#: lib/errors.c:220
+msgid "ASN1 parser: Error in type 'ANY'."
+msgstr "ASN1-tolkare: Fel i typen \"ANY\"."
+
+#: lib/errors.c:222
+msgid "ASN1 parser: Syntax error."
+msgstr "ASN1-tolkare: Syntaxfel."
+
+#: lib/errors.c:224
+msgid "ASN1 parser: Overflow in DER parsing."
+msgstr "ASN1-tolkare: Överspill i DER-tolkning."
+
+#: lib/errors.c:227
+msgid "Too many empty record packets have been received."
+msgstr "För många tomma journalpaket har tagits emot."
+
+#: lib/errors.c:229
+msgid "Too many handshake packets have been received."
+msgstr "För många handskakningspaket har tagits emot."
+
+#: lib/errors.c:231
+msgid "More than a single object matches the criteria."
+msgstr "Mer än ett objekt matchar kriteriet."
+
+#: lib/errors.c:233
+msgid "The crypto library version is too old."
+msgstr "Versionen av crypto-biblioteket är för gammal."
+
+#: lib/errors.c:236
+msgid "The tasn1 library version is too old."
+msgstr "Versionen av tasn1-biblioteket är för gammal."
+
+#: lib/errors.c:238
+msgid "The OpenPGP User ID is revoked."
+msgstr "OpenPGP-användaridentiteten är spärrad."
+
+#: lib/errors.c:240
+msgid "The OpenPGP key has not a preferred key set."
+msgstr "OpenPGP-nyckeln har inte en föredragen nyckeluppsättning."
+
+#: lib/errors.c:242
+msgid "Error loading the keyring."
+msgstr "Fel vid inläsning av nyckelringen."
+
+#: lib/errors.c:244
+msgid "The initialization of crypto backend has failed."
+msgstr "Initieringen av krypteringsbakände misslyckades."
+
+#: lib/errors.c:246
+msgid "No supported compression algorithms have been found."
+msgstr "Inga komprimeringsalgoritmer som stöds hittades."
+
+#: lib/errors.c:248
+msgid "No supported cipher suites have been found."
+msgstr "Inga krypteringssviter som stöds hittades."
+
+#: lib/errors.c:250
+msgid "Could not get OpenPGP key."
+msgstr "Kunde inte hämta OpenPGP-nyckel."
+
+#: lib/errors.c:252
+msgid "Could not find OpenPGP subkey."
+msgstr "Kunde inte hitta OpenPGP-undernyckel."
+
+#: lib/errors.c:254
+msgid "Safe renegotiation failed."
+msgstr "Säker återförhandling misslyckades."
+
+#: lib/errors.c:256
+msgid "Unsafe renegotiation denied."
+msgstr "Osäker återförhandling nekades."
+
+#: lib/errors.c:259
+msgid "The SRP username supplied is illegal."
+msgstr "Det angivna SRP-användarnamnet är inte tillåtet."
+
+#: lib/errors.c:261
+msgid "The username supplied is unknown."
+msgstr "Det angivna användarnamnet är okänt."
+
+#: lib/errors.c:264
+msgid "The OpenPGP fingerprint is not supported."
+msgstr "OpenPGP-fingeravtrycket stöds inte."
+
+#: lib/errors.c:266
+msgid "The signature algorithm is not supported."
+msgstr "Signaturalgoritmen stöds inte."
+
+#: lib/errors.c:268
+msgid "The certificate has unsupported attributes."
+msgstr "Certifikatet har attribut som inte stöds."
+
+#: lib/errors.c:270
+msgid "The OID is not supported."
+msgstr "OID:n stöds inte."
+
+#: lib/errors.c:272
+msgid "The hash algorithm is unknown."
+msgstr "Hashalgoritmen är okänd."
+
+#: lib/errors.c:274
+msgid "The PKCS structure's content type is unknown."
+msgstr "PKCS-strukturens innehållstyp är okänd."
+
+# Hjälp!
+#: lib/errors.c:276
+msgid "The PKCS structure's bag type is unknown."
+msgstr "PKCS-strukturens väsktyp är okänd."
+
+#: lib/errors.c:278 lib/errors.c:285
+msgid "The given password contains invalid characters."
+msgstr "Det angivna lösenordet innehåller ogiltiga tecken."
+
+#: lib/errors.c:280
+msgid "The given string contains invalid UTF-8 characters."
+msgstr "Den angivna strängen innehåller ogiltiga UTF-8-tecken."
+
+#: lib/errors.c:283
+msgid "The given email string contains non-ASCII characters before '@'."
+msgstr "Den angivna e-poststrängen innehåller icke-ASCII-tecken före \"@\"."
+
+#: lib/errors.c:287
+msgid "The Message Authentication Code verification failed."
+msgstr "Validering av meddelandeautentiseringskoden (MAC) misslyckades."
+
+#: lib/errors.c:289
+msgid "Some constraint limits were reached."
+msgstr "Vissa begränsningar nåddes."
+
+#: lib/errors.c:291
+msgid "Failed to acquire random data."
+msgstr "Misslyckades med att få tag på slumpmässigt data."
+
+#: lib/errors.c:293
+msgid "Verifying TLS/IA phase checksum failed"
+msgstr "Validering av kontrollsumma för TLS/IA-fas misslyckades"
+
+#: lib/errors.c:296
+msgid "The specified algorithm or protocol is unknown."
+msgstr "Angivna algoritmen eller protokollet är okänt."
+
+#: lib/errors.c:299
+msgid "The handshake data size is too large."
+msgstr "Datastorlek för handskakning är för stor."
+
+#: lib/errors.c:302
+msgid "Error opening /dev/crypto"
+msgstr "Fel vid öppning av /dev/crypto"
+
+#: lib/errors.c:305
+msgid "Error interfacing with /dev/crypto"
+msgstr "Fel vid kommunikation med /dev/crypto"
+
+#: lib/errors.c:307
+msgid "Peer has terminated the connection"
+msgstr "Motparten har avslutat anslutningen"
+
+#: lib/errors.c:309
+msgid "Channel binding data not available"
+msgstr "Kanalbindningsdata är inte tillgängligt"
+
+#: lib/errors.c:312
+msgid "TPM error."
+msgstr "TPM-fel."
+
+# Trousers is an open-source TCG Software Stack (TSS).
+#: lib/errors.c:313
+msgid "The TPM library (trousers) cannot be found."
+msgstr "TPM-biblioteket (trousers) kan inte hittas."
+
+#: lib/errors.c:315
+msgid "TPM is not initialized."
+msgstr "TPM är inte initierat."
+
+#: lib/errors.c:316
+msgid "TPM key was not found in persistent storage."
+msgstr "TPM-nyckeln hittades inte i bestående lagring."
+
+#: lib/errors.c:318
+msgid "Cannot initialize a session with the TPM."
+msgstr "Det går inte att initiera en session med TPM."
+
+#: lib/errors.c:320
+msgid "PKCS #11 error."
+msgstr "PKCS #11-fel."
+
+#: lib/errors.c:321
+msgid "PKCS #11 initialization error."
+msgstr "PKCS #11-initieringsfel."
+
+#: lib/errors.c:323
+msgid "Error in parsing."
+msgstr "Fel i tolkning."
+
+#: lib/errors.c:324
+msgid "Error in provided PIN."
+msgstr "Fel i tillhandahållen PIN."
+
+#: lib/errors.c:325
+msgid "Error in provided SRK password for TPM."
+msgstr "Fel i tillhandahållet SRK-lösenord för TPM."
+
+#: lib/errors.c:328
+msgid "Error in provided password for key to be loaded in TPM."
+msgstr "Fel i tillhandahållet lösenord för nyckel som ska läsas in i TPM."
+
+#: lib/errors.c:330
+msgid "PKCS #11 error in slot"
+msgstr "PKCS #11-fel i kortplats"
+
+#: lib/errors.c:331
+msgid "Thread locking error"
+msgstr "Trådlåsningsfel"
+
+#: lib/errors.c:332
+msgid "PKCS #11 error in attribute"
+msgstr "PKCS #11-fel i attribut"
+
+#: lib/errors.c:334
+msgid "PKCS #11 error in device"
+msgstr "PKCS #11-fel i enhet"
+
+#: lib/errors.c:336
+msgid "PKCS #11 error in data"
+msgstr "PKCS #11-fel i data"
+
+#: lib/errors.c:337
+msgid "PKCS #11 unsupported feature"
+msgstr "PKCS #11-funktion stöds inte"
+
+#: lib/errors.c:339
+msgid "PKCS #11 error in key"
+msgstr "PKCS #11-fel i nyckel"
+
+#: lib/errors.c:340
+msgid "PKCS #11 PIN expired"
+msgstr "PKCS #11 PIN-kod utgången"
+
+#: lib/errors.c:341
+msgid "PKCS #11 PIN locked"
+msgstr "PKCS #11 PIN-kod låst"
+
+#: lib/errors.c:342
+msgid "PKCS #11 error in session"
+msgstr "PKCS #11-fel i session"
+
+#: lib/errors.c:344
+msgid "PKCS #11 error in signature"
+msgstr "PKCS #11-fel i signatur"
+
+#: lib/errors.c:346
+msgid "PKCS #11 error in token"
+msgstr "PKCS #11-fel i token"
+
+#: lib/errors.c:347
+msgid "PKCS #11 user error"
+msgstr "PKCS #11-användarfel"
+
+#: lib/errors.c:348
+msgid "The operation timed out"
+msgstr "Åtgärden översteg tidsgränsen"
+
+#: lib/errors.c:349
+msgid "The operation was cancelled due to user error"
+msgstr "Åtgärden avbröts på grund av ett användarfel"
+
+#: lib/errors.c:351
+msgid "No supported ECC curves were found"
+msgstr "Inga ECC-kurvor hittades som stöds"
+
+#: lib/errors.c:353
+msgid "The curve is unsupported"
+msgstr "Kurvan stöds inte"
+
+#: lib/errors.c:355
+msgid "The requested PKCS #11 object is not available"
+msgstr "Begärt PKCS #11-objekt är inte tillgängligt"
+
+#: lib/errors.c:358
+msgid ""
+"The provided X.509 certificate list is not sorted (in subject to issuer "
+"order)"
+msgstr ""
+"Den tillhandahållna X.509-certifikatlistan är inte sorterad (sorterad enligt "
+"utfärdare)"
+
+#: lib/errors.c:360
+msgid "The OCSP response is invalid"
+msgstr "OCSP-svaret är ogiltigt"
+
+#: lib/errors.c:363
+msgid "The OCSP response provided doesn't match the available certificates"
+msgstr "Det givna OCSP-svaret matchar inte de tillgängliga certifikaten"
+
+#: lib/errors.c:365
+msgid "There is no certificate status (OCSP)."
+msgstr "Det finns ingen certifikatsstatus (OCSP)."
+
+#: lib/errors.c:367
+msgid "Error in the system's randomness device."
+msgstr "Fel i systemets slumpmässighetsenhet."
+
+#: lib/errors.c:369
+msgid "No common application protocol could be negotiated."
+msgstr "Inget gemensamt programprotokoll kunde förhandlas."
+
+#: lib/errors.c:371
+msgid "Error while performing self checks."
+msgstr "Fel vid utförande av egenkontroller."
+
+#: lib/errors.c:373
+msgid "There is no self test for this algorithm."
+msgstr "Det finns inget självtest för denna algoritm."
+
+#: lib/errors.c:376
+msgid ""
+"An error has been detected in the library and cannot continue operations."
+msgstr "Ett fel har upptäckts i biblioteket och åtgärder kan inte fortsätta."
+
+#: lib/errors.c:378
+msgid "Error in sockets initialization."
+msgstr "Fel i uttagets initiering."
+
+#: lib/errors.c:380
+msgid "Error in public key generation."
+msgstr "Fel vid publik nyckelgenerering."
+
+#: lib/errors.c:382
+msgid "Invalid TLS extensions length field."
+msgstr "TLS-utökningens längdfält är ogiltiga."
+
+#: lib/errors.c:385
+msgid "Peer's certificate or username has changed during a rehandshake."
+msgstr ""
+"Motpartens certifikat eller användarnamn ändrades under en upprepad "
+"handskakning."
+
+#: lib/errors.c:387
+msgid "The provided string has an embedded null."
+msgstr "Den givna strängen har en inbäddad null."
+
+#: lib/errors.c:389
+msgid "Attempted handshake during false start."
+msgstr "Försök till handskakning under en falsk start."
+
+#: lib/errors.c:391
+msgid "The SNI host name not recognised."
+msgstr "SNI-värdnamnet kändes inte igen."
+
+#: lib/errors.c:393
+msgid "There was an issue converting to or from UTF8."
+msgstr "Det uppstod ett problem vid konvertering till eller från UTF8."
+
+#: lib/errors.c:396
+msgid "Cannot perform this action while handshake is in progress."
+msgstr "Kan inte utföra denna åtgärd medan handskakning pågår."
+
+#: lib/errors.c:398
+msgid "The public key is invalid."
+msgstr "Publika nyckeln är ogiltig."
+
+#: lib/errors.c:400
+msgid "There are no validation parameters present."
+msgstr "Det finns inga valideringsparametrar närvarande."
+
+#: lib/errors.c:402
+msgid "The public key parameters are invalid."
+msgstr "Publika nyckelns parametrar är ogiltiga."
+
+#: lib/errors.c:404
+msgid "The private key is invalid."
+msgstr "Privata nyckeln är ogiltig."
+
+#: lib/errors.c:406
+msgid "The DER time encoding is invalid."
+msgstr "DER-tidskodningen är ogiltig."
+
+#: lib/errors.c:408
+msgid "The signature is incompatible with the public key."
+msgstr "Signaturen är inkompatibel med den publika nyckeln."
+
+#: lib/errors.c:411
+msgid "One of the involved algorithms has insufficient security level."
+msgstr "En av dom inblandade algoritmerna har otillräcklig säkerhetsnivå."
+
+#: lib/errors.c:413
+msgid "No common key share with peer."
+msgstr "Ingen gemensam nyckeldelning med motparten."
+
+#: lib/errors.c:415
+msgid "The early data were rejected."
+msgstr "Den tidiga datan avvisades."
+
+#: lib/errors.c:417
+#, fuzzy
+#| msgid "The signature algorithm is not supported."
+msgid "The encryption algorithm is not supported."
+msgstr "Signaturalgoritmen stöds inte."
+
+#: lib/errors.c:423 libdane/errors.c:41
+msgid "Success."
+msgstr "Lyckades."
+
+#: lib/errors.c:424
+msgid "A TLS warning alert has been received."
+msgstr "En TLS-varning har tagits emot."
+
+#: lib/errors.c:426
+msgid "A heartbeat pong message was received."
+msgstr "Ett hjärtslags-pong-meddelande togs emot."
+
+#: lib/errors.c:428
+msgid "A heartbeat ping message was received."
+msgstr "Ett hjärtslags-ping-meddelande togs emot."
+
+#: lib/errors.c:430
+msgid "Resource temporarily unavailable, try again."
+msgstr "Resursen är temporärt otillgänglig, försök igen."
+
+#: lib/errors.c:432
+msgid "The transmitted packet is too large (EMSGSIZE)."
+msgstr "Överfört paket är för stort (EMSGSIZE)."
+
+#: lib/errors.c:435
+msgid "Rehandshake was requested by the peer."
+msgstr "Upprepad handskakning begärdes av motparten."
+
+#: lib/errors.c:437
+msgid "Re-authentication was requested by the peer."
+msgstr "Ny autentisering begärd av motparten."
+
+#: lib/errors.c:528 libdane/errors.c:92
+msgid "(unknown error code)"
+msgstr "(okänd felkod)"
+
+#: lib/x509/ocsp.c:2544
+msgid "The OCSP response is trusted. "
+msgstr "OCSP-svaret är betrott. "
+
+#: lib/x509/ocsp.c:2549
+msgid "The OCSP response's signer could not be found. "
+msgstr "OCSP-svarens undertecknare kunde inte hittas. "
+
+#: lib/x509/ocsp.c:2553
+msgid "Error in the signer's key usageflags. "
+msgstr "Fel i undertecknarens nyckelanvändningsflaggor. "
+
+#: lib/x509/ocsp.c:2557
+msgid "The OCSP response's signer is not trusted. "
+msgstr "OCSP-svarens undertecknare är inte betrodd. "
+
+#: lib/x509/ocsp.c:2562
+msgid "The OCSP response depends on insecure algorithms. "
+msgstr "OCSP-svaret är beroende av osäkra algoritmer. "
+
+#: lib/x509/ocsp.c:2567
+msgid "The OCSP response's signature cannot be validated. "
+msgstr "OCSP-svarens signatur kunde inte valideras. "
+
+#: lib/x509/ocsp.c:2572
+msgid "The OCSP response's signer's certificate is not activated. "
+msgstr "Undertecknarens OCSP-svarscertifikat är inte aktiverat. "
+
+#: lib/x509/ocsp.c:2577
+msgid "The OCSP response's signer's certificate is expired. "
+msgstr "Undertecknarens OCSP-svarscertifikat har gått ut. "
+
+#: lib/x509/ocsp.c:2581
+msgid "Memory error"
+msgstr "Minnesfel"
+
+#: lib/x509/ocsp_output.c:50 lib/x509/ocsp_output.c:269 lib/x509/output.c:1744
+#: lib/x509/output.c:2269 lib/x509/output.c:2645
+#, c-format
+msgid "\tVersion: %d\n"
+msgstr "\tVersion: %d\n"
+
+#: lib/x509/ocsp_output.c:131 lib/x509/ocsp_output.c:484 lib/x509/output.c:2425
+#: lib/x509/output.c:2796
+msgid "\t\t\tASCII: "
+msgstr "\t\t\tASCII: "
+
+#: lib/x509/ocsp_output.c:136 lib/x509/ocsp_output.c:489 lib/x509/output.c:2430
+#: lib/x509/output.c:2800
+msgid "\t\t\tHexdump: "
+msgstr "\t\t\tHexdump: "
+
+#: lib/x509/ocsp_output.c:180
+msgid "OCSP Request Information:\n"
+msgstr "Information om OCSP-begäran:\n"
+
+#: lib/x509/ocsp_output.c:283
+msgid "\tResponder Key ID: "
+msgstr "\tSvararens nyckel-ID: "
+
+#: lib/x509/ocsp_output.c:294
+#, c-format
+msgid "\tResponder ID: %s\n"
+msgstr "\tSvararens ID: %s\n"
+
+#: lib/x509/ocsp_output.c:314
+#, c-format
+msgid "\tProduced At: %s\n"
+msgstr "\tProducerat: %s\n"
+
+#: lib/x509/ocsp_output.c:403
+#, c-format
+msgid "\t\tRevocation time: %s\n"
+msgstr "\t\tTid för spärrning: %s\n"
+
+#: lib/x509/ocsp_output.c:421
+#, c-format
+msgid "\t\tThis Update: %s\n"
+msgstr "\t\tDenna uppdatering: %s\n"
+
+#: lib/x509/ocsp_output.c:439
+#, c-format
+msgid "\t\tNext Update: %s\n"
+msgstr "\t\tNästa uppdatering: %s\n"
+
+#: lib/x509/ocsp_output.c:506 lib/x509/output.c:1470 lib/x509/output.c:1681
+#: lib/x509/output.c:1803 lib/x509/output.c:1822 lib/x509/output.c:1865
+#: lib/x509/output.c:2097 lib/x509/output.c:2110 lib/x509/output.c:2498
+#: lib/x509/output.c:2623 lib/x509/output.c:2672
+msgid "unknown"
+msgstr "okänd"
+
+#: lib/x509/ocsp_output.c:507 lib/x509/output.c:1869 lib/x509/output.c:2502
+#: lib/x509/output.c:2676
+#, c-format
+msgid "\tSignature Algorithm: %s\n"
+msgstr "\tSignaturalgoritm: %s\n"
+
+#: lib/x509/ocsp_output.c:510 lib/x509/output.c:1877 lib/x509/output.c:2508
+msgid ""
+"warning: signed using a broken signature algorithm that can be forged.\n"
+msgstr "varning: signerad med en trasig signaturalgoritm som kan förfalskas.\n"
+
+#: lib/x509/ocsp_output.c:526 lib/x509/output.c:1903 lib/x509/output.c:2534
+msgid "\tSignature:\n"
+msgstr "\tSignatur:\n"
+
+#: lib/x509/ocsp_output.c:619
+msgid "OCSP Response Information:\n"
+msgstr "Information om OCSP-svar:\n"
+
+#: lib/x509/output.c:55 lib/x509/output.c:91
+#, c-format
+msgid "%s%s: %.*s (contains illegal chars)\n"
+msgstr "%s%s: %.*s (innehåller ogiltiga tecken)\n"
+
+#: lib/x509/output.c:63 lib/x509/output.c:99
+#, c-format
+msgid "%s%s: %.*s (%s)\n"
+msgstr "%s%s: %.*s (%s)\n"
+
+#: lib/x509/output.c:73 lib/x509/output.c:109
+#, c-format
+msgid "%s%s: %.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:126
+msgid "warning: SAN contains an embedded NUL, replacing with '!'\n"
+msgstr "varning: SAN innehåller en inbäddad NUL, ersätter med \"!\"\n"
+
+#: lib/x509/output.c:142
+#, c-format
+msgid "%sURI: %.*s\n"
+msgstr "%sURI: %.*s\n"
+
+#: lib/x509/output.c:159
+#, c-format
+msgid "%sdirectoryName: %.*s\n"
+msgstr "%sdirectoryName: %.*s\n"
+
+#: lib/x509/output.c:164
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%sRegistered ID: %.*s\n"
+msgstr "%s\t\t\totherName OID: %.*s\n"
+
+#: lib/x509/output.c:169
+#, c-format
+msgid "%sXMPP Address: %.*s\n"
+msgstr "%sXMPP-adress: %.*s\n"
+
+#: lib/x509/output.c:174
+#, c-format
+msgid "%sKRB5Principal: %.*s\n"
+msgstr "%sKRB5-huvudsak: %.*s\n"
+
+#: lib/x509/output.c:179
+#, fuzzy, c-format
+#| msgid "%sKRB5Principal: %.*s\n"
+msgid "%sUser Principal Name: %.*s\n"
+msgstr "%sKRB5-huvudsak: %.*s\n"
+
+#: lib/x509/output.c:184
+#, c-format
+msgid "%sUnknown name: "
+msgstr "%sOkänt namn: "
+
+#: lib/x509/output.c:325
+#, c-format
+msgid "\t\t\tPath Length Constraint: %d\n"
+msgstr "\t\t\tBegränsning för sökvägslängd: %d\n"
+
+#: lib/x509/output.c:326
+#, c-format
+msgid "\t\t\tPolicy Language: %s"
+msgstr "\t\t\tPolicyspråk: %s"
+
+#: lib/x509/output.c:334
+msgid ""
+"\t\t\tPolicy:\n"
+"\t\t\t\tASCII: "
+msgstr ""
+"\t\t\tPolicy:\n"
+"\t\t\t\tASCII: "
+
+#: lib/x509/output.c:336
+msgid ""
+"\n"
+"\t\t\t\tHexdump: "
+msgstr ""
+"\n"
+"\t\t\t\tHexdump: "
+
+#: lib/x509/output.c:370
+#, c-format
+msgid "%s\t\t\tPermitted:\n"
+msgstr "%s\t\t\tTillåten:\n"
+
+#: lib/x509/output.c:383
+#, c-format
+msgid "%s\t\t\tExcluded:\n"
+msgstr "%s\t\t\tExkluderad:\n"
+
+#: lib/x509/output.c:421 lib/x509/output.c:424 lib/x509/output.c:427
+#, c-format
+msgid "\t\t\tAccess Method: %s (%s)\n"
+msgstr "\t\t\tÅtkomstmetod: %s (%s)\n"
+
+#: lib/x509/output.c:504
+#, fuzzy, c-format
+#| msgid "\tRevoked certificates (%d):\n"
+msgid "%s\t\t\tSigned Certificate Timestamp %d:\n"
+msgstr "\tSpärrade certifikat (%d):\n"
+
+#: lib/x509/output.c:509
+#, c-format
+msgid "%s\t\t\t\tVersion: %d (unknown SCT version)\n"
+msgstr ""
+
+#: lib/x509/output.c:522
+#, fuzzy, c-format
+#| msgid "\tVersion: %d\n"
+msgid "%s\t\t\t\tVersion: %d\n"
+msgstr "\tVersion: %d\n"
+
+#: lib/x509/output.c:523
+#, fuzzy, c-format
+#| msgid "%s\t\t\tASCII: "
+msgid "%s\t\t\t\tLog ID: "
+msgstr "%s\t\t\tASCII: "
+
+#: lib/x509/output.c:526
+#, fuzzy, c-format
+#| msgid "%s\t\t\tTime stamping.\n"
+msgid "%s\t\t\t\tTime: "
+msgstr "%s\t\t\tTidsstämpling.\n"
+
+#: lib/x509/output.c:529
+#, fuzzy, c-format
+#| msgid "%s\tExtensions:\n"
+msgid "%s\t\t\t\tExtensions: none\n"
+msgstr "%s\tTillägg:\n"
+
+#: lib/x509/output.c:531
+#, fuzzy, c-format
+#| msgid "\tSignature Algorithm: %s\n"
+msgid "%s\t\t\t\tSignature algorithm: %s\n"
+msgstr "\tSignaturalgoritm: %s\n"
+
+#: lib/x509/output.c:533
+#, fuzzy, c-format
+#| msgid "\tSignature:\n"
+msgid "%s\t\t\t\tSignature: "
+msgstr "\tSignatur:\n"
+
+#: lib/x509/output.c:625
+#, c-format
+msgid "%sDigital signature.\n"
+msgstr "%sDigital signatur.\n"
+
+# Klassisk term inom digitala certifikat.
+#: lib/x509/output.c:627
+#, c-format
+msgid "%sNon repudiation.\n"
+msgstr "%sOförnekbarhet.\n"
+
+#: lib/x509/output.c:629
+#, c-format
+msgid "%sKey encipherment.\n"
+msgstr "%sNyckelkryptering.\n"
+
+#: lib/x509/output.c:631
+#, c-format
+msgid "%sData encipherment.\n"
+msgstr "%sDatakryptering.\n"
+
+#: lib/x509/output.c:633
+#, c-format
+msgid "%sKey agreement.\n"
+msgstr "%sNyckelförhandling.\n"
+
+#: lib/x509/output.c:635
+#, c-format
+msgid "%sCertificate signing.\n"
+msgstr "%sCertifikatsignering.\n"
+
+#: lib/x509/output.c:637
+#, c-format
+msgid "%sCRL signing.\n"
+msgstr "%sCRL-signering.\n"
+
+#: lib/x509/output.c:639
+#, c-format
+msgid "%sKey encipher only.\n"
+msgstr "%sEndast nyckelkryptering.\n"
+
+#: lib/x509/output.c:641
+#, c-format
+msgid "%sKey decipher only.\n"
+msgstr "%sEndast nyckeldekryptering.\n"
+
+#: lib/x509/output.c:684
+#, c-format
+msgid "\t\t\tNot Before: %s\n"
+msgstr "\t\t\tInte före: %s\n"
+
+#: lib/x509/output.c:691
+#, c-format
+msgid "\t\t\tNot After: %s\n"
+msgstr "\t\t\tInte efter: %s\n"
+
+#: lib/x509/output.c:768
+#, c-format
+msgid "%s\t\t\tTLS WWW Server.\n"
+msgstr "%s\t\t\tTLS WWW-server.\n"
+
+#: lib/x509/output.c:770
+#, c-format
+msgid "%s\t\t\tTLS WWW Client.\n"
+msgstr "%s\t\t\tTLS WWW-klient.\n"
+
+# Källkodssignering?
+#: lib/x509/output.c:772
+#, c-format
+msgid "%s\t\t\tCode signing.\n"
+msgstr "%s\t\t\tKodsignering.\n"
+
+#: lib/x509/output.c:774
+#, c-format
+msgid "%s\t\t\tEmail protection.\n"
+msgstr "%s\t\t\tE-postskydd.\n"
+
+#: lib/x509/output.c:776
+#, c-format
+msgid "%s\t\t\tTime stamping.\n"
+msgstr "%s\t\t\tTidsstämpling.\n"
+
+#: lib/x509/output.c:778
+#, c-format
+msgid "%s\t\t\tOCSP signing.\n"
+msgstr "%s\t\t\tOCSP-signering.\n"
+
+#: lib/x509/output.c:780
+#, c-format
+msgid "%s\t\t\tIpsec IKE.\n"
+msgstr "%s\t\t\tIpsec IKE.\n"
+
+#: lib/x509/output.c:782
+#, fuzzy, c-format
+#| msgid "%s\t\t\tEmail protection.\n"
+msgid "%s\t\t\tSmart Card Logon.\n"
+msgstr "%s\t\t\tE-postskydd.\n"
+
+#: lib/x509/output.c:784
+#, c-format
+msgid "%s\t\t\tAny purpose.\n"
+msgstr "%s\t\t\tValfritt syfte.\n"
+
+#: lib/x509/output.c:807
+#, c-format
+msgid "%s\t\t\tCertificate Authority (CA): FALSE\n"
+msgstr "%s\t\t\tCertifikatutfärdare (CA): FALSKT\n"
+
+#: lib/x509/output.c:810
+#, c-format
+msgid "%s\t\t\tCertificate Authority (CA): TRUE\n"
+msgstr "%s\t\t\tCertifikatutfärdare (CA): SANT\n"
+
+#: lib/x509/output.c:814
+#, c-format
+msgid "%s\t\t\tPath Length Constraint: %d\n"
+msgstr "%s\t\t\tBegränsning för sökvägslängd: %d\n"
+
+#: lib/x509/output.c:868
+#, c-format
+msgid "%s\t\t\totherName OID: %.*s\n"
+msgstr "%s\t\t\totherName OID: %.*s\n"
+
+#: lib/x509/output.c:870
+#, c-format
+msgid "%s\t\t\totherName DER: "
+msgstr "%s\t\t\totherName DER: "
+
+#: lib/x509/output.c:872
+#, c-format
+msgid ""
+"\n"
+"%s\t\t\totherName ASCII: "
+msgstr ""
+"\n"
+"%s\t\t\totherName ASCII: "
+
+#: lib/x509/output.c:990 lib/x509/output.c:1070 lib/x509/output.c:1373
+#, c-format
+msgid "%s\t\t\tASCII: "
+msgstr "%s\t\t\tASCII: "
+
+#: lib/x509/output.c:994 lib/x509/output.c:1074 lib/x509/output.c:1377
+#, c-format
+msgid "%s\t\t\tHexdump: "
+msgstr "%s\t\t\tHexdump: "
+
+#: lib/x509/output.c:1001
+#, fuzzy, c-format
+#| msgid "%s%s: %.*s\n"
+msgid "%s\t\t\t%.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:1032
+#, c-format
+msgid "%s\t\t\tSignTool: %.*s\n"
+msgstr ""
+
+#: lib/x509/output.c:1041
+#, fuzzy, c-format
+#| msgid "%s%s: %.*s\n"
+msgid "%s\t\t\tCATool: %.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:1050
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%s\t\t\tSignToolCert: %.*s\n"
+msgstr "%s\t\t\totherName OID: %.*s\n"
+
+#: lib/x509/output.c:1059
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%s\t\t\tCAToolCert: %.*s\n"
+msgstr "%s\t\t\totherName OID: %.*s\n"
+
+#: lib/x509/output.c:1127
+#, c-format
+msgid "%s\t\tBasic Constraints (%s):\n"
+msgstr "%s\t\tAllmänna begränsningar (%s):\n"
+
+#: lib/x509/output.c:1128 lib/x509/output.c:1139 lib/x509/output.c:1180
+#: lib/x509/output.c:1216 lib/x509/output.c:1224 lib/x509/output.c:1236
+#: lib/x509/output.c:1249 lib/x509/output.c:1261 lib/x509/output.c:1271
+#: lib/x509/output.c:1281 lib/x509/output.c:1293 lib/x509/output.c:1303
+#: lib/x509/output.c:1312 lib/x509/output.c:1317 lib/x509/output.c:1328
+#: lib/x509/output.c:1338 lib/x509/output.c:1345 lib/x509/output.c:1350
+#: lib/x509/output.c:1358 lib/x509/output.c:1371 lib/x509/output.c:2370
+#: lib/x509/output.c:2393 lib/x509/output.c:2413
+msgid "critical"
+msgstr "kritisk"
+
+#: lib/x509/output.c:1128 lib/x509/output.c:1139 lib/x509/output.c:1181
+#: lib/x509/output.c:1216 lib/x509/output.c:1224 lib/x509/output.c:1236
+#: lib/x509/output.c:1249 lib/x509/output.c:1261 lib/x509/output.c:1271
+#: lib/x509/output.c:1281 lib/x509/output.c:1293 lib/x509/output.c:1303
+#: lib/x509/output.c:1312 lib/x509/output.c:1317 lib/x509/output.c:1328
+#: lib/x509/output.c:1338 lib/x509/output.c:1345 lib/x509/output.c:1350
+#: lib/x509/output.c:1358 lib/x509/output.c:1371 lib/x509/output.c:2371
+#: lib/x509/output.c:2394 lib/x509/output.c:2414
+msgid "not critical"
+msgstr "ej kritisk"
+
+#: lib/x509/output.c:1138
+#, c-format
+msgid "%s\t\tSubject Key Identifier (%s):\n"
+msgstr "%s\t\tInnehavarens nyckelidentifierare (%s):\n"
+
+#: lib/x509/output.c:1223
+#, c-format
+msgid "%s\t\tAuthority Key Identifier (%s):\n"
+msgstr "%s\t\tUtfärdarens nyckelidentifierare (%s):\n"
+
+#: lib/x509/output.c:1235
+#, c-format
+msgid "%s\t\tKey Usage (%s):\n"
+msgstr "%s\t\tNyckelanvändning (%s):\n"
+
+#: lib/x509/output.c:1248
+#, c-format
+msgid "%s\t\tPrivate Key Usage Period (%s):\n"
+msgstr "%s\t\tAnvändningsperiod för privat nyckel (%s):\n"
+
+#: lib/x509/output.c:1260
+#, c-format
+msgid "%s\t\tKey Purpose (%s):\n"
+msgstr "%s\t\tNyckelsyfte (%s):\n"
+
+#: lib/x509/output.c:1270
+#, c-format
+msgid "%s\t\tSubject Alternative Name (%s):\n"
+msgstr "%s\t\tInnehavarens alternativa namn (%s):\n"
+
+#: lib/x509/output.c:1280
+#, c-format
+msgid "%s\t\tIssuer Alternative Name (%s):\n"
+msgstr "%s\t\tUtfärdarens alternativa namn (%s):\n"
+
+#: lib/x509/output.c:1292
+#, c-format
+msgid "%s\t\tCRL Distribution points (%s):\n"
+msgstr "%s\t\tCRL-distributionspunkter (%s):\n"
+
+#: lib/x509/output.c:1302
+#, c-format
+msgid "%s\t\tProxy Certificate Information (%s):\n"
+msgstr "%s\t\tInformation om proxycertifikat (%s):\n"
+
+#: lib/x509/output.c:1310
+#, c-format
+msgid "%s\t\tAuthority Information Access (%s):\n"
+msgstr "%s\t\tUtfärdarens informationsåtkomst (%s):\n"
+
+#: lib/x509/output.c:1316
+#, fuzzy, c-format
+#| msgid "%s\t\tProxy Certificate Information (%s):\n"
+msgid "%s\t\tCT Precertificate SCTs (%s):\n"
+msgstr "%s\t\tInformation om proxycertifikat (%s):\n"
+
+#: lib/x509/output.c:1327
+#, c-format
+msgid "%s\t\tName Constraints (%s):\n"
+msgstr "%s\t\tNamnbegränsningar (%s):\n"
+
+#: lib/x509/output.c:1337
+#, c-format
+msgid "%s\t\tTLS Features (%s):\n"
+msgstr "%s\t\tTLS-funktioner (%s):\n"
+
+#: lib/x509/output.c:1344
+#, fuzzy, c-format
+#| msgid "%s\t\tSubject Key Identifier (%s):\n"
+msgid "%s\t\tSubject Signing Tool(%s):\n"
+msgstr "%s\t\tInnehavarens nyckelidentifierare (%s):\n"
+
+#: lib/x509/output.c:1349
+#, fuzzy, c-format
+#| msgid "%s\t\tIssuer Alternative Name (%s):\n"
+msgid "%s\t\tIssuer Signing Tool(%s):\n"
+msgstr "%s\t\tUtfärdarens alternativa namn (%s):\n"
+
+#: lib/x509/output.c:1357
+#, fuzzy, c-format
+#| msgid "%s\t\tKey Usage (%s):\n"
+msgid "%s\t\tCommon Name (%s):\n"
+msgstr "%s\t\tNyckelanvändning (%s):\n"
+
+#: lib/x509/output.c:1370
+#, c-format
+msgid "%s\t\tUnknown extension %s (%s):\n"
+msgstr "%s\t\tOkänt tillägg %s (%s):\n"
+
+#: lib/x509/output.c:1419
+#, c-format
+msgid "%s\tExtensions:\n"
+msgstr "%s\tTillägg:\n"
+
+#: lib/x509/output.c:1472
+#, c-format
+msgid "\t%sPublic Key Algorithm: %s\n"
+msgstr "\t%sÖppen nyckel-algoritm: %s\n"
+
+#: lib/x509/output.c:1474
+#, c-format
+msgid "\tAlgorithm Security Level: %s (%d bits)\n"
+msgstr "\tSäkerhetsnivå för algoritm: %s (%d bitar)\n"
+
+#: lib/x509/output.c:1479
+msgid "\t\tParameters:\n"
+msgstr "\t\tParametrar:\n"
+
+#: lib/x509/output.c:1497
+#, c-format
+msgid "\t\tModulus (bits %d): "
+msgstr "\t\tModulus (bitar %d): "
+
+#: lib/x509/output.c:1500
+#, c-format
+msgid "\t\tExponent (bits %d): "
+msgstr "\t\tExponent (bitar %d): "
+
+#: lib/x509/output.c:1505
+#, c-format
+msgid "\t\tModulus (bits %d):\n"
+msgstr "\t\tModulus (bitar %d):\n"
+
+#: lib/x509/output.c:1508
+#, c-format
+msgid "\t\tExponent (bits %d):\n"
+msgstr "\t\tExponent (bitar %d):\n"
+
+#: lib/x509/output.c:1533 lib/x509/output.c:1619
+#, c-format
+msgid "\t\tCurve:\t%s\n"
+msgstr "\t\tKurva:\t%s\n"
+
+#: lib/x509/output.c:1536 lib/x509/output.c:1628
+msgid "\t\tX: "
+msgstr "\t\tX: "
+
+#: lib/x509/output.c:1540 lib/x509/output.c:1631
+msgid "\t\tY: "
+msgstr "\t\tY: "
+
+#: lib/x509/output.c:1546 lib/x509/output.c:1635
+msgid "\t\tX:\n"
+msgstr "\t\tX:\n"
+
+#: lib/x509/output.c:1550 lib/x509/output.c:1638
+msgid "\t\tY:\n"
+msgstr "\t\tY:\n"
+
+#: lib/x509/output.c:1569
+#, c-format
+msgid "\t\tPublic key (bits %d): "
+msgstr "\t\tÖppen nyckel (bitar %d): "
+
+#: lib/x509/output.c:1573
+msgid "\t\tP: "
+msgstr "\t\tP: "
+
+#: lib/x509/output.c:1576
+msgid "\t\tQ: "
+msgstr "\t\tQ: "
+
+#: lib/x509/output.c:1579
+msgid "\t\tG: "
+msgstr "\t\tG: "
+
+#: lib/x509/output.c:1583
+#, c-format
+msgid "\t\tPublic key (bits %d):\n"
+msgstr "\t\tÖppen nyckel (bitar %d):\n"
+
+#: lib/x509/output.c:1587
+msgid "\t\tP:\n"
+msgstr "\t\tP:\n"
+
+#: lib/x509/output.c:1590
+msgid "\t\tQ:\n"
+msgstr "\t\tQ:\n"
+
+#: lib/x509/output.c:1593
+msgid "\t\tG:\n"
+msgstr "\t\tG:\n"
+
+#: lib/x509/output.c:1621
+#, c-format
+msgid "\t\tDigest:\t%s\n"
+msgstr "\t\tSammandrag:\t%s\n"
+
+#: lib/x509/output.c:1623
+#, c-format
+msgid "\t\tParamSet: %s\n"
+msgstr "\t\tParamSet: %s\n"
+
+#: lib/x509/output.c:1725 lib/x509/output.c:2613
+msgid "Subject "
+msgstr "Innehavare "
+
+#: lib/x509/output.c:1758
+msgid "\tSerial Number (hex): "
+msgstr "\tSerienummer (hex): "
+
+#: lib/x509/output.c:1771 lib/x509/output.c:2279
+msgid "\tIssuer:\n"
+msgstr "\tUtfärdare:\n"
+
+#: lib/x509/output.c:1776 lib/x509/output.c:2284
+#, c-format
+msgid "\tIssuer: %s\n"
+msgstr "\tUtfärdare: %s\n"
+
+#: lib/x509/output.c:1785
+msgid "\tValidity:\n"
+msgstr "\tGiltighet:\n"
+
+#: lib/x509/output.c:1801 lib/x509/output.c:1803
+#, c-format
+msgid "\t\tNot Before: %s\n"
+msgstr "\t\tInte före: %s\n"
+
+#: lib/x509/output.c:1820 lib/x509/output.c:1822
+#, c-format
+msgid "\t\tNot After: %s\n"
+msgstr "\t\tInte efter: %s\n"
+
+#: lib/x509/output.c:1833 lib/x509/output.c:2655
+msgid "\tSubject:\n"
+msgstr "\tÄmne:\n"
+
+#: lib/x509/output.c:1837 lib/x509/output.c:2659
+#, c-format
+msgid "\tSubject: %s\n"
+msgstr "\tInnehavare: %s\n"
+
+#: lib/x509/output.c:1916
+msgid "\tFingerprint:\n"
+msgstr "\tFingeravtryck:\n"
+
+#: lib/x509/output.c:1925
+msgid "\t\tsha1:"
+msgstr "\t\tsha1:"
+
+#: lib/x509/output.c:1936
+msgid "\t\tsha256:"
+msgstr "\t\tsha256:"
+
+#: lib/x509/output.c:1973
+#, c-format
+msgid ""
+"%sPublic Key ID:\n"
+"%s\tsha1:"
+msgstr ""
+"%sPublikt nyckel-ID:\n"
+"%s\tsha1:"
+
+#: lib/x509/output.c:1979
+#, c-format
+msgid ""
+"%sPublic Key PIN:\n"
+"%s\tpin-sha256:"
+msgstr ""
+"%sPublik nyckel-PIN:\n"
+"%s\tpin-sha256:"
+
+#: lib/x509/output.c:2053
+msgid "no subject,"
+msgstr "inget ämne,"
+
+#: lib/x509/output.c:2069
+msgid "no issuer,"
+msgstr "ingen utfärdare,"
+
+#: lib/x509/output.c:2117
+#, c-format
+msgid "signed using %s (broken!), "
+msgstr "signerat med %s (trasig!), "
+
+#: lib/x509/output.c:2119
+#, c-format
+msgid "signed using %s, "
+msgstr "signerat med %s, "
+
+#: lib/x509/output.c:2247
+msgid "X.509 Certificate Information:\n"
+msgstr "Information om X.509-certifikat:\n"
+
+#: lib/x509/output.c:2251 lib/x509/output.c:2851
+msgid "Other Information:\n"
+msgstr "Övrig information:\n"
+
+#: lib/x509/output.c:2293
+msgid "\tUpdate dates:\n"
+msgstr "\tUppdateringsdatum:\n"
+
+#: lib/x509/output.c:2309
+#, c-format
+msgid "\t\tIssued: %s\n"
+msgstr "\t\tUtfärdat: %s\n"
+
+#: lib/x509/output.c:2328
+#, c-format
+msgid "\t\tNext at: %s\n"
+msgstr "\t\tNästa den: %s\n"
+
+#: lib/x509/output.c:2355
+msgid "\tExtensions:\n"
+msgstr "\tTillägg:\n"
+
+# Nummer? Antal?
+#: lib/x509/output.c:2369
+#, c-format
+msgid "\t\tCRL Number (%s): "
+msgstr "\t\tCRL-nummer (%s): "
+
+#: lib/x509/output.c:2392
+#, c-format
+msgid "\t\tAuthority Key Identifier (%s):\n"
+msgstr "\t\tUtfärdarens nyckelidentifierare (%s):\n"
+
+#: lib/x509/output.c:2411
+#, c-format
+msgid "\t\tUnknown extension %s (%s):\n"
+msgstr "\t\tOkänt tillägg %s (%s):\n"
+
+#: lib/x509/output.c:2447
+#, c-format
+msgid "\tRevoked certificates (%d):\n"
+msgstr "\tSpärrade certifikat (%d):\n"
+
+#: lib/x509/output.c:2449
+msgid "\tNo revoked certificates.\n"
+msgstr "\tInga spärrade certifikat.\n"
+
+#: lib/x509/output.c:2468
+msgid "\t\tSerial Number (hex): "
+msgstr "\t\tSerienummer (hex): "
+
+#: lib/x509/output.c:2482
+#, c-format
+msgid "\t\tRevoked at: %s\n"
+msgstr "\t\tSpärrat den: %s\n"
+
+#: lib/x509/output.c:2564
+msgid "X.509 Certificate Revocation List Information:\n"
+msgstr "Information om spärrlista för X.509-certifikat:\n"
+
+#: lib/x509/output.c:2705
+msgid "\tAttributes:\n"
+msgstr "\tAttribut:\n"
+
+#: lib/x509/output.c:2756
+#, c-format
+msgid "\t\tChallenge password: %s\n"
+msgstr "\t\tMotsvarslösenord: %s\n"
+
+#: lib/x509/output.c:2766
+#, c-format
+msgid "\t\tUnknown attribute %s:\n"
+msgstr "\t\tOkänt attribut %s:\n"
+
+#: lib/x509/output.c:2847
+msgid "PKCS #10 Certificate Request Information:\n"
+msgstr "Information om begäran av PKCS #10-certifikat:\n"
+
+#: lib/x509/output.c:2872
+msgid "Public Key Usage:\n"
+msgstr "Öppen nyckel-användning:\n"
+
+#: lib/x509/output.c:2911
+msgid "Public Key Information:\n"
+msgstr "Öppen nyckel-information:\n"
+
+#: libdane/dane.c:1014
+msgid "Certificate matches. "
+msgstr "Certifikat matchar. "
+
+#: libdane/dane.c:1016
+msgid "Verification failed. "
+msgstr "Verifiering misslyckades. "
+
+#: libdane/dane.c:1020
+msgid "CA constrains were violated. "
+msgstr "Certifkatutfärdarbegränsningar bröts. "
+
+#: libdane/dane.c:1023
+msgid "The certificate differs. "
+msgstr "Certifikatet avviker. "
+
+#: libdane/dane.c:1027
+msgid "There were no DANE information. "
+msgstr "Det fanns ingen DANE-information. "
+
+#: libdane/errors.c:42
+msgid "There was error initializing the DNS query."
+msgstr "Fel vid initiering av DNS-förfrågan."
+
+#: libdane/errors.c:44
+msgid "There was an error while resolving."
+msgstr "Ett fel uppstod vid upplösning."
+
+#: libdane/errors.c:46
+msgid "No DANE data were found."
+msgstr "Ingen DANE-data hittades."
+
+#: libdane/errors.c:47
+msgid "Unknown DANE data were found."
+msgstr "Okänd DANE-data funnen."
+
+#: libdane/errors.c:49
+msgid "No DNSSEC signature was found."
+msgstr "Ingen DNSSEC-signatur hittades."
+
+#: libdane/errors.c:50
+msgid "Received corrupt data."
+msgstr "Korrupt data mottagen."
+
+#: libdane/errors.c:51
+msgid "The DNSSEC signature is invalid."
+msgstr "DNSSEC-signaturen är ogiltig."
+
+#: libdane/errors.c:53
+msgid "There was a memory error."
+msgstr "Ett minnesfel uppstod."
+
+#: libdane/errors.c:54
+msgid "The requested data are not available."
+msgstr "Begärda data var inte tillgängliga."
+
+#: libdane/errors.c:57
+msgid "There was an error in the certificate."
+msgstr "Det uppstod ett fel i certifikatet."
+
+#: libdane/errors.c:59
+msgid "There was an error in the public key."
+msgstr "Det uppstod ett fel i den publika nyckeln."
+
+#: libdane/errors.c:62
+msgid "Error in file."
+msgstr "Fel i fil."
+
+#~ msgid "\tVersion: 1 (default)\n"
+#~ msgstr "\tVersion: 1 (standard)\n"
+
+#~ msgid "Received a TLS/IA Intermediate Phase Finished message"
+#~ msgstr "Tog emot ett TLS/IA Intermediate Phase Finished-meddelande"
+
+#~ msgid "Received a TLS/IA Final Phase Finished message"
+#~ msgstr "Tog emot ett TLS/IA Final Phase Finished-meddelande"
+
+#~ msgid "\t\tKey Usage:\n"
+#~ msgstr "\t\tNyckelanvändning:\n"
+
+#~ msgid "error: get_key_usage: %s\n"
+#~ msgstr "fel: get_key_usage: %s\n"
+
+#~ msgid "\t\t\tDigital signatures.\n"
+#~ msgstr "\t\t\tDigitala signaturer.\n"
+
+#~ msgid "\t\t\tCommunications encipherment.\n"
+#~ msgstr "\t\t\tKommunikationskryptering.\n"
+
+#~ msgid "\t\t\tStorage data encipherment.\n"
+#~ msgstr "\t\t\tKryptering för datalagring.\n"
+
+#~ msgid "\t\t\tAuthentication.\n"
+#~ msgstr "\t\t\tAutentisering.\n"
+
+#~ msgid "\t\t\tCertificate signing.\n"
+#~ msgstr "\t\t\tCertifikatsignering.\n"
+
+#~ msgid "\tID (hex): "
+#~ msgstr "\tIdentitet (hex): "
+
+#~ msgid "\tFingerprint (hex): "
+#~ msgstr "\tFingeravtryck (hex): "
+
+#~ msgid "\tFingerprint's random art:\n"
+#~ msgstr "\tFingeravtryckets slumpmässiga konst:\n"
+
+#~ msgid "\tRevoked: True\n"
+#~ msgstr "\tSpärrat: Sant\n"
+
+#~ msgid "\tRevoked: False\n"
+#~ msgstr "\tSpärrat: Falskt\n"
+
+#~ msgid "\tTime stamps:\n"
+#~ msgstr "\tTidsstämplar:\n"
+
+#~ msgid "\t\tExpiration: Never\n"
+#~ msgstr "\t\tUtgångsdatum: Aldrig\n"
+
+#~ msgid "\t\tExpiration: %s\n"
+#~ msgstr "\t\tUtgångsdatum: %s\n"
+
+#~ msgid "\tPublic Key Algorithm: %s\n"
+#~ msgstr "\tAlgoritm för öppen nyckel: %s\n"
+
+#~ msgid "\tKey Security Level: %s\n"
+#~ msgstr "\tSäkerhetsnivå för nyckel: %s\n"
+
+#~ msgid "\t\tExponent:\n"
+#~ msgstr "\t\tExponent:\n"
+
+#~ msgid "\tName[%d]: %s\n"
+#~ msgstr "\tNamn[%d]: %s\n"
+
+#~ msgid "\tRevoked Name[%d]: %s\n"
+#~ msgstr "\tSpärrat namn[%d]: %s\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "\tSubkey[%d]:\n"
+#~ msgstr ""
+#~ "\n"
+#~ "\tUndernyckel[%d]:\n"
+
+#~ msgid "name[%d]: %s, "
+#~ msgstr "namn[%d]: %s, "
+
+#~ msgid "revoked name[%d]: %s, "
+#~ msgstr "spärrat namn[%d]: %s, "
+
+#~ msgid "created: %s, "
+#~ msgstr "skapat: %s, "
+
+#~ msgid "never expires, "
+#~ msgstr "går aldrig ut, "
+
+#~ msgid "expires: %s, "
+#~ msgstr "går ut: %s, "
+
+#~ msgid "key algorithm %s (%d bits)"
+#~ msgstr "nyckelalgoritm %s (%d bitar)"
+
+#~ msgid "unknown key algorithm (%d)"
+#~ msgstr "okänd nyckelalgoritm (%d)"
+
+#~ msgid "OpenPGP Certificate Information:\n"
+#~ msgstr "Information om OpenPGP-certifikat:\n"
+
+#~ msgid ""
+#~ "warning: distributionPoint contains an embedded NUL, replacing with '!'\n"
+#~ msgstr ""
+#~ "varning: distributionPoint innehåller en inbäddad NUL, ersätter med \"!"
+#~ "\"\n"
+
+#~ msgid ""
+#~ "\tMD5 fingerprint:\n"
+#~ "\t\t"
+#~ msgstr ""
+#~ "\tMD5-fingeravtryck:\n"
+#~ "\t\t"
+
+#~ msgid ""
+#~ "\tSHA-1 fingerprint:\n"
+#~ "\t\t"
+#~ msgstr ""
+#~ "\tSHA-1-fingeravtryck:\n"
+#~ "\t\t"
+
+#~ msgid "\tPublic key's random art:\n"
+#~ msgstr "\tÖppna nyckelns slumpmässiga konst:\n"
+
+#~ msgid "PKCS #11 error in PIN."
+#~ msgstr "PKCS #11-fel i PIN-kod."
+
+#~ msgid "PKCS #11 PIN should be saved."
+#~ msgstr "PKCS #11 PIN-kod bör sparas."
+
+#~ msgid "\tSubject Public Key Algorithm: %s\n"
+#~ msgstr "\tAlgoritm för innehavarens publika nyckel: %s\n"
+
+#~ msgid "The peer did not send any certificate."
+#~ msgstr "Motparten skickade inget certifikat."
+
+#~ msgid "The initialization of GnuTLS-extra has failed."
+#~ msgstr "Initieringen av GnuTLS-extra har misslyckats."
+
+#~ msgid ""
+#~ "The GnuTLS library version does not match the GnuTLS-extra library "
+#~ "version."
+#~ msgstr ""
+#~ "Versionen av GnuTLS-biblioteket stämmer inte överens med versionen av "
+#~ "GnuTLS-extra-biblioteket."
+
+#~ msgid "The initialization of LZO has failed."
+#~ msgstr "Initiering av LZO misslyckades."
+
+#~ msgid ""
+#~ "The handshake data size is too large (DoS?), check "
+#~ "gnutls_handshake_set_max_packet_length()."
+#~ msgstr ""
+#~ "Datastorleken för handskakningen är för stor (DoS?), kontrollera "
+#~ "gnutls_handshake_set_max_packet_length()."
+
+#~ msgid "Inner application negotiation failed"
+#~ msgstr "Förhandling för inre program misslyckades"
+
+#~ msgid "Inner application verification failed"
+#~ msgstr "Validering av inre program misslyckades"
+
+#~ msgid ""
+#~ "The specified GnuPG TrustDB version is not supported. TrustDB v4 is "
+#~ "supported."
+#~ msgstr "Den angivna GnuPG TrustDB-versionen stöds inte. TrustDB v4 stöds."
+
+#~ msgid "\t\t\tPolicy Language: %.*s\n"
+#~ msgstr "\t\t\tPolicyspråk: %.*s\n"

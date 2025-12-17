@@ -1,0 +1,1937 @@
+# Georgian translation for gnutls.
+# Copyright (C) 2023 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnutls package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnutls 3.6.8\n"
+"Report-Msgid-Bugs-To: bug-gnutls@gnu.org\n"
+"POT-Creation-Date: 2024-08-15 18:58+0900\n"
+"PO-Revision-Date: 2023-01-09 22:05+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: lib/alert.c:39
+msgid "Close notify"
+msgstr "გაფრთხილების დახურვა"
+
+#: lib/alert.c:40
+msgid "Unexpected message"
+msgstr "მოულოდნელი შეტყობინება"
+
+#: lib/alert.c:41
+msgid "Bad record MAC"
+msgstr "ჩანაწერის არასწორი MAC"
+
+#: lib/alert.c:42
+msgid "Decryption failed"
+msgstr "გაშიფვრის შეცდომა"
+
+#: lib/alert.c:43
+msgid "Record overflow"
+msgstr "ჩანაწერის გადავსება"
+
+#: lib/alert.c:44
+msgid "Decompression failed"
+msgstr "გაშლის შეცდომა"
+
+#: lib/alert.c:45
+msgid "Handshake failed"
+msgstr "მიმოცვლის შეცდომა"
+
+#: lib/alert.c:46
+msgid "Certificate is bad"
+msgstr "სერტიფიკატი არასწორია"
+
+#: lib/alert.c:48
+msgid "Certificate is not supported"
+msgstr "სერტიფიკატი მხარდაუჭერელია"
+
+#: lib/alert.c:50
+msgid "Certificate was revoked"
+msgstr "სერტიფიკატი გაუქმებულია"
+
+#: lib/alert.c:51
+msgid "Certificate is expired"
+msgstr "სერტიფიკატი ვადაგასულია"
+
+#: lib/alert.c:52
+msgid "Unknown certificate"
+msgstr "უცნობი სერთიფიკატი"
+
+#: lib/alert.c:53
+msgid "Illegal parameter"
+msgstr "დაუშვებელი პარამეტრი"
+
+#: lib/alert.c:54
+msgid "CA is unknown"
+msgstr "CA უცნობია"
+
+#: lib/alert.c:55
+msgid "Access was denied"
+msgstr "წვდომა აკრძალულია"
+
+#: lib/alert.c:56
+msgid "Decode error"
+msgstr "დეკოდერის შეცდომა"
+
+#: lib/alert.c:57
+msgid "Decrypt error"
+msgstr "გაშიფვრის შეცდომა"
+
+#: lib/alert.c:58
+msgid "Export restriction"
+msgstr "გატანის შეზღუდვა"
+
+#: lib/alert.c:59
+msgid "Error in protocol version"
+msgstr "შეცდომა პროტოკოლის ვერსიაში"
+
+#: lib/alert.c:61
+msgid "Insufficient security"
+msgstr "არასაკმარისი უსაფრთხოება"
+
+#: lib/alert.c:62
+msgid "User canceled"
+msgstr "გააუქმა მომხმარებელმა"
+
+#: lib/alert.c:64
+msgid "No certificate (SSL 3.0)"
+msgstr "სერტიფიკატის გარეშე (SSL 3.0)"
+
+#: lib/alert.c:65
+msgid "Internal error"
+msgstr "შიდა შეცდომა"
+
+#: lib/alert.c:67
+msgid "Inappropriate fallback"
+msgstr "შეუსაბამო გადმორთვა"
+
+#: lib/alert.c:69
+msgid "No renegotiation is allowed"
+msgstr "თავიდან მიმოცვლა დაშვებული არაა"
+
+#: lib/alert.c:71
+msgid "Could not retrieve the specified certificate"
+msgstr "მითითებული სერტიფიკატის მიღების შეცდომა"
+
+#: lib/alert.c:73
+msgid "An unsupported extension was sent"
+msgstr "გაგზავნილი გაფართოება მხარდაუჭერელია"
+
+#: lib/alert.c:75
+msgid "The server name sent was not recognized"
+msgstr "გაგზავნილი სერვერის სახელი უცნობია"
+
+#: lib/alert.c:77
+msgid "The SRP/PSK username is missing or not known"
+msgstr "SRK/PSK მომხმარებლის სახელი აკლია ან უცნობია"
+
+#: lib/alert.c:79
+msgid "An extension was expected but was not seen"
+msgstr "მოველოდი გაფართოებას, მაგრამ ვერა ვპოვე რა"
+
+#: lib/alert.c:81
+msgid "No supported application protocol could be negotiated"
+msgstr "მიმოცვლის პროტოკოლები მხარდაჭერილი არაა"
+
+#: lib/alert.c:83
+msgid "Certificate is required"
+msgstr "სერტიფიკატი აუცილებელია"
+
+#: lib/cert-cred.c:1082
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate is trusted. "
+msgstr "სერტიფიკატი განსხვავდება. "
+
+#: lib/cert-cred.c:1085
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate is NOT trusted. "
+msgstr "სერტიფიკატი განსხვავდება. "
+
+#: lib/cert-cred.c:1090
+#, fuzzy
+#| msgid "Certificate was revoked"
+msgid "The certificate chain is revoked. "
+msgstr "სერტიფიკატი გაუქმებულია"
+
+#: lib/cert-cred.c:1095
+msgid "The certificate doesn't match the local copy (TOFU). "
+msgstr ""
+
+#: lib/cert-cred.c:1100
+msgid "The revocation or OCSP data are old and have been superseded. "
+msgstr ""
+
+#: lib/cert-cred.c:1105
+msgid "The revocation or OCSP data are issued with a future date. "
+msgstr ""
+
+#: lib/cert-cred.c:1109
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate issuer is unknown. "
+msgstr "სერტიფიკატი განსხვავდება. "
+
+#: lib/cert-cred.c:1114
+#, fuzzy
+#| msgid "The certificate differs. "
+msgid "The certificate issuer is not a CA. "
+msgstr "სერტიფიკატი განსხვავდება. "
+
+#: lib/cert-cred.c:1120
+#, fuzzy
+#| msgid "The certificate has unsupported attributes."
+msgid "The certificate chain uses insecure algorithm. "
+msgstr "სერტიფიკატის მხარდაუჭერელი ატრიბუტები."
+
+#: lib/cert-cred.c:1125
+#, fuzzy
+#| msgid "The certificate and the given key do not match."
+msgid "The certificate chain violates the signer's constraints. "
+msgstr "სერტიფიკატი და მითითებული გასაღები არ ემთხვევა."
+
+#: lib/cert-cred.c:1130
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate chain does not match the intended purpose. "
+msgstr "სერტიფიკატი ჯერ აქტიური არაა."
+
+#: lib/cert-cred.c:1135
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate chain uses not yet valid certificate. "
+msgstr "სერტიფიკატი ჯერ აქტიური არაა."
+
+#: lib/cert-cred.c:1140
+#, fuzzy
+#| msgid "The certificate has unsupported attributes."
+msgid "The certificate chain uses expired certificate. "
+msgstr "სერტიფიკატის მხარდაუჭერელი ატრიბუტები."
+
+#: lib/cert-cred.c:1145
+#, fuzzy
+#| msgid "There was an error in the certificate."
+msgid "The signature in the certificate is invalid. "
+msgstr "სერტიფიკატის შეცდომა."
+
+#: lib/cert-cred.c:1150
+#, fuzzy
+#| msgid "The OCSP response's signer's certificate is not activated. "
+msgid "The name in the certificate does not match the expected. "
+msgstr "OCSP პასუხის ხელმომწერის სერტიფიკატი გააქტიურებული არაა. "
+
+#: lib/cert-cred.c:1155
+msgid ""
+"The certificate requires the server to include an OCSP status in its "
+"response, but the OCSP status is missing. "
+msgstr ""
+
+#: lib/cert-cred.c:1160
+#, fuzzy
+#| msgid "The OCSP response is invalid"
+msgid "The received OCSP status response is invalid. "
+msgstr "OCSP პასუხი არასწორია"
+
+#: lib/cert-cred.c:1165
+#, fuzzy
+#| msgid "The certificate is not yet activated."
+msgid "The certificate contains an unknown critical extension. "
+msgstr "სერტიფიკატი ჯერ აქტიური არაა."
+
+#: lib/errors.c:41
+msgid "Could not negotiate a supported cipher suite."
+msgstr "ჩემთვის ცნობილი შიფრის წყვილებით მიმოცვლა შეუძლებელია."
+
+#: lib/errors.c:43
+msgid "No or insufficient priorities were set."
+msgstr "პრიორიტეტები დაყენებული ან საკმარისი არაა."
+
+#: lib/errors.c:45
+msgid "The cipher type is unsupported."
+msgstr "დაშიფვრის ტიპი მხარდაუჭერელია."
+
+#: lib/errors.c:47
+msgid "The certificate and the given key do not match."
+msgstr "სერტიფიკატი და მითითებული გასაღები არ ემთხვევა."
+
+#: lib/errors.c:49
+msgid "Could not negotiate a supported compression method."
+msgstr "შეკუმშვის მეთოდის დაყენების შეცდომა."
+
+#: lib/errors.c:51
+msgid "An unknown public key algorithm was encountered."
+msgstr "საჯარო გასაღების ალგორითმი უცნობია."
+
+#: lib/errors.c:54
+msgid "An algorithm that is not enabled was negotiated."
+msgstr "მიმოცვლის ალგორითმი ჩართული არაა."
+
+#: lib/errors.c:57
+msgid "A packet with illegal or unsupported version was received."
+msgstr "მიღებული პაკეტი დაუშვებელი ან დაუშვებელი ვერსიისაა."
+
+#: lib/errors.c:60
+msgid ""
+"The Diffie-Hellman prime sent by the server is not acceptable (not long "
+"enough)."
+msgstr ""
+"დიფი-ჰელმანის პრაიმი, რომელიც სერვერმა გამოაგზავნა, მიუღებელია (ძალიან "
+"მოკლეა)."
+
+#: lib/errors.c:62
+msgid "Error decoding the received TLS packet."
+msgstr "მიღებული TLS პაკეტის გაშიფვრის შეცდომა."
+
+#: lib/errors.c:64
+msgid "A TLS record packet with invalid length was received."
+msgstr "მიღებული TLS პაკეტის სიგრძე არასწორია."
+
+#: lib/errors.c:66
+msgid "The TLS connection was non-properly terminated."
+msgstr "TLS შეერთება არასწორად დასრულდა."
+
+#: lib/errors.c:69
+msgid "The specified session has been invalidated for some reason."
+msgstr "მითითებული სესია რაღაც მიზეზის გამო გაუქმებულია."
+
+#: lib/errors.c:72
+msgid "GnuTLS internal error."
+msgstr "GnuTLS -ის შიდა შეცდომა."
+
+#: lib/errors.c:74
+msgid "A connection with inappropriate fallback was attempted."
+msgstr "ნაცადი მიერთება შეუსაბამო უკუგადადართვითაა."
+
+#: lib/errors.c:76
+msgid "An illegal TLS extension was received."
+msgstr "მიღებული TLS გაფართოება დაუშვებელია."
+
+#: lib/errors.c:78
+msgid "An required TLS extension was received."
+msgstr "აუცილებელი TLS გაფართოება მიღებულია."
+
+#: lib/errors.c:80
+msgid "A TLS fatal alert has been received."
+msgstr "მიღებულია TLS-ის ფატალური განგაში."
+
+#: lib/errors.c:82
+msgid "An unexpected TLS packet was received."
+msgstr "მიღებულია მოულოდნელი TLS პაკეტი."
+
+#: lib/errors.c:84
+msgid "Failed to import the key into store."
+msgstr "გასაღების საცავში შემოტანის შეცდომა."
+
+#: lib/errors.c:87
+msgid "An error was encountered at the TLS Finished packet calculation."
+msgstr "შეცდომა TLS-ის დასრულებული პაკეტის გამოთვლისას."
+
+#: lib/errors.c:89 libdane/errors.c:61
+msgid "No certificate was found."
+msgstr "სერტიფიკატი ვერ ვიპოვე."
+
+#: lib/errors.c:91
+msgid "Certificate is required."
+msgstr "სერტიფიკატი აუცილებელია."
+
+#: lib/errors.c:94
+msgid "The given DSA key is incompatible with the selected TLS protocol."
+msgstr "მითითებული DSA გასაღები შეუთავსებელია არჩეულ TLS პროტოკოლთან."
+
+#: lib/errors.c:97
+msgid "There is already a crypto algorithm with lower priority."
+msgstr "კრიპტო ალგორიმით უფრო ნაკლები პრიორიტეტით უკვე არსებობს."
+
+#: lib/errors.c:100
+msgid "No temporary RSA parameters were found."
+msgstr "დროებითი RSA პარამეტრები ვერ ვიპოვე."
+
+#: lib/errors.c:102
+msgid "No temporary DH parameters were found."
+msgstr "დროებითი DH პარამეტრები ვერ ვიპოვე."
+
+#: lib/errors.c:104
+msgid "An unexpected TLS handshake packet was received."
+msgstr "მიღებულია მოულოდნელი TLS მიმოცვლის პაკეტი."
+
+#: lib/errors.c:106
+msgid "The scanning of a large integer has failed."
+msgstr "დიდი მთელი რიცხვის სკანირების შეცდომა."
+
+#: lib/errors.c:108
+msgid "Could not export a large integer."
+msgstr "დიდი მთელი რიცხვის გატანის შეცდომა."
+
+#: lib/errors.c:110
+msgid "Decryption has failed."
+msgstr "გაშიფვრის შეცდომა."
+
+#: lib/errors.c:111
+msgid "Encryption has failed."
+msgstr "დაშიფვრის შეცდომა."
+
+#: lib/errors.c:112
+msgid "Public key decryption has failed."
+msgstr "საჯარო გასაღების გაშიფვრის შეცდომა."
+
+#: lib/errors.c:114
+msgid "Public key encryption has failed."
+msgstr "საჯარო გასაღების დაშიფვრის შეცდომა."
+
+#: lib/errors.c:116
+msgid "Public key signing has failed."
+msgstr "საჯარო გასაღების ხელმოწერის შეცდომა."
+
+#: lib/errors.c:118
+msgid "Public key signature verification has failed."
+msgstr "საჯარო გასაღების ხელმოწერის შემოწმების შეცდომა."
+
+#: lib/errors.c:120
+msgid "Decompression of the TLS record packet has failed."
+msgstr "TLS ჩანაწერის პაკეტის გაშლის შეცდომა."
+
+#: lib/errors.c:122
+msgid "Compression of the TLS record packet has failed."
+msgstr "TLS ჩანაწერის პაკეტის შეკუმშვის შეცდომა."
+
+#: lib/errors.c:125
+msgid "Internal error in memory allocation."
+msgstr "შიდა შეცდომა მეხსიერების გამოყოფისას."
+
+#: lib/errors.c:128
+msgid "An unimplemented or disabled feature has been requested."
+msgstr "მოთხოვნილი თვისება განუხორციელებელი ან გათიშულია."
+
+#: lib/errors.c:130
+msgid "Insufficient credentials for that request."
+msgstr "მოთხოვნის ავტორიზაციის დეტალები საკმარისი არაა."
+
+#: lib/errors.c:132
+msgid "Error in password/key file."
+msgstr "შეცდომა პაროლის/გასაღების ფაილში."
+
+#: lib/errors.c:133
+msgid "Wrong padding in PKCS1 packet."
+msgstr "PKCS1 პაკეტის არასწორი padding."
+
+#: lib/errors.c:135
+msgid "The session or certificate has expired."
+msgstr "სესიის ან სერტიფიკატის ვადა ამოიწურა."
+
+#: lib/errors.c:137
+msgid "The certificate is not yet activated."
+msgstr "სერტიფიკატი ჯერ აქტიური არაა."
+
+#: lib/errors.c:139
+msgid "Hashing has failed."
+msgstr "ჰეშირების შეცდომა."
+
+#: lib/errors.c:140
+msgid "Base64 decoding error."
+msgstr "Base64 დეკოდერის შეცდომა."
+
+#: lib/errors.c:142
+msgid "Base64 unexpected header error."
+msgstr "Base64 მოულოდნელი თავსართის შეცდომა."
+
+#: lib/errors.c:144
+msgid "Base64 encoding error."
+msgstr "Base64 ენკოდერის შეცდომა."
+
+#: lib/errors.c:146
+msgid "Parsing error in password/key file."
+msgstr "დამუშავების შეცდომა პაროლის/გასაღების ფაილში."
+
+#: lib/errors.c:148
+msgid "The requested data were not available."
+msgstr "მოთხოვნილი მონაცემები მიუწვდომელია."
+
+#: lib/errors.c:150
+msgid "There are no embedded data in the structure."
+msgstr "სტრუქტურაში ჩაშენებული მონაცემები არ არსებობს."
+
+#: lib/errors.c:152
+msgid "Error in the pull function."
+msgstr "შეცდომა მიღების ფუნქციაში."
+
+#: lib/errors.c:153
+msgid "Error in the push function."
+msgstr "შეცდომა გადაცემის ფუნქციაში."
+
+#: lib/errors.c:155
+msgid ""
+"The upper limit of record packet sequence numbers has been reached. Wow!"
+msgstr "მიღწეულია ჩაწერის პაკეტის მიმდევრობის ნომრის ზედა ზღვარი. არ ველოდი!"
+
+#: lib/errors.c:157
+msgid "Error in the certificate."
+msgstr "სერტიფიკატის შეცდომა."
+
+#: lib/errors.c:159
+msgid "Error in the time fields of certificate."
+msgstr "შეცდომა სერტიფიკატის ველებში."
+
+#: lib/errors.c:161
+msgid "Error in the certificate verification."
+msgstr "სერტიფიკატის გადამოწმების შეცდომა."
+
+#: lib/errors.c:163
+msgid "Error in the CRL verification."
+msgstr "შეცდომა CRL-ის გადამოწმებაში."
+
+#: lib/errors.c:166
+msgid "Error in the private key verification; seed doesn't match."
+msgstr "შეცდომა პირადი გასაღების გადამოწმებისას. თესლი არ ემთხვევა."
+
+#: lib/errors.c:168
+msgid "Could not authenticate peer."
+msgstr "პარტნიორის ავთენტიკაციის შეცდომა."
+
+#: lib/errors.c:169
+msgid "Unknown Subject Alternative name in X.509 certificate."
+msgstr "უცნობი თემის ალტერნატიული სახელი X.509 სერტიფიკატში."
+
+#: lib/errors.c:172
+msgid "CIDR name constraint is malformed in size or structure."
+msgstr "CIDR სახელის შეზღუდვის ზომა ან სტრუქტურა არასწორადაა ჩამოყალიბებული."
+
+#: lib/errors.c:175
+msgid "Unsupported critical extension in X.509 certificate."
+msgstr "მხარდაუჭერელი კრიტიკული გაფართოება X.509 სერტიფიკატში."
+
+#: lib/errors.c:177
+msgid "Unsupported extension in X.509 certificate."
+msgstr "მხარდაუჭერელი გაფართოება X.509 სერტიფიკატში."
+
+#: lib/errors.c:179
+#, fuzzy
+#| msgid "Unsupported extension in X.509 certificate."
+msgid "Duplicate extension in X.509 certificate."
+msgstr "მხარდაუჭერელი გაფართოება X.509 სერტიფიკატში."
+
+#: lib/errors.c:181
+msgid "Key usage violation in certificate has been detected."
+msgstr "სერტიფიკატში აღმოჩენილია გასაღების გამოყენების დარღვევა."
+
+#: lib/errors.c:183 lib/errors.c:434
+msgid "Function was interrupted."
+msgstr "ფუნქცია შეწყვეტილია."
+
+#: lib/errors.c:185
+msgid "TLS Application data were received, while expecting handshake data."
+msgstr ""
+"მიღებულია TLS აპლიკაციის მონაცემები მაშინ, როცა მიმოცვლის მონაცემებს "
+"მოველოდი."
+
+#: lib/errors.c:187
+msgid "Error in Database backend."
+msgstr "ბაზს უკანაბოლოს შეცდომა."
+
+#: lib/errors.c:188
+msgid "The Database entry already exists."
+msgstr "ბაზის ჩანაწერი უკვე არსებობს."
+
+#: lib/errors.c:190
+msgid "The certificate type is not supported."
+msgstr "სერტიფიკატის ტიპი მხარდაჭერილი არაა."
+
+#: lib/errors.c:193
+msgid "The given memory buffer is too short to hold parameters."
+msgstr ""
+"მითითებული მეხსიერების ბუფერი პარამეტრების დასატევად მეტისმეტად მოკლეა."
+
+#: lib/errors.c:195 libdane/errors.c:56
+msgid "The request is invalid."
+msgstr "არასწორი მოთხოვნა."
+
+#: lib/errors.c:196
+msgid "The cookie was bad."
+msgstr "ქუქი არასწორია."
+
+#: lib/errors.c:197
+msgid "An illegal parameter has been received."
+msgstr "მიღებულია დაუშვებელი პარამეტრი."
+
+#: lib/errors.c:199
+msgid "An illegal parameter was found."
+msgstr "აღმოჩენილია დაუშვებელი პარამეტრი."
+
+#: lib/errors.c:201
+msgid "Error while reading file."
+msgstr "შეცდომა ფაილის კითხვისას."
+
+#: lib/errors.c:202
+msgid "A disallowed SNI server name has been received."
+msgstr "მიღებულია აკრძალული SNI სერვერის სახელი."
+
+#: lib/errors.c:205
+msgid "ASN1 parser: Element was not found."
+msgstr "ASN1 დამმუშავებელი: ელემენტი ვერ ვიპოვე."
+
+#: lib/errors.c:207
+msgid "ASN1 parser: Identifier was not found"
+msgstr "ASN1 დამმუშავებელი: იდენტიფიკატორი ვერ ვიპოვე"
+
+#: lib/errors.c:209
+msgid "ASN1 parser: Error in DER parsing."
+msgstr "ASN1 დამმუშავებელი: შეცდომა DER-ის დამუშავებისას."
+
+#: lib/errors.c:211
+msgid "ASN1 parser: Value was not found."
+msgstr "ASN1 დამმუშავებელი: მნიშვნელობა ვერ ვიპოვე."
+
+#: lib/errors.c:213
+msgid "ASN1 parser: Generic parsing error."
+msgstr "ASN1 დამმუშავებელი: ზოგადი დამუშავების შეცდომა."
+
+#: lib/errors.c:215
+msgid "ASN1 parser: Value is not valid."
+msgstr "ASN1 დამმუშავებელი: მნიშვნელობა არასწორია."
+
+#: lib/errors.c:217
+msgid "ASN1 parser: Error in TAG."
+msgstr "ASN1 დამმუშავებელი: ჭდის შეცდომა."
+
+#: lib/errors.c:218
+msgid "ASN1 parser: error in implicit tag"
+msgstr "ASN1 დამმუშავებელი: შეცდომა არასწორ ჭდეში"
+
+#: lib/errors.c:220
+msgid "ASN1 parser: Error in type 'ANY'."
+msgstr "ASN1 დამმუშავებელი: შეცდომა ტიპში 'ANY'."
+
+#: lib/errors.c:222
+msgid "ASN1 parser: Syntax error."
+msgstr "ASN1 დამმუშავებელი: სინტაქსის შეცდომა."
+
+#: lib/errors.c:224
+msgid "ASN1 parser: Overflow in DER parsing."
+msgstr "ASN1 დამმუშავებელი: გადავსება DER-ის დამუშავებისას."
+
+#: lib/errors.c:227
+msgid "Too many empty record packets have been received."
+msgstr "მიღებულია ჩანაწერის მეტისმეტად ბევრი ცარიელი პაკეტი."
+
+#: lib/errors.c:229
+msgid "Too many handshake packets have been received."
+msgstr "მიღებულია მეტისმეტად ბევრი მიმოცვლის პაკეტი."
+
+#: lib/errors.c:231
+msgid "More than a single object matches the criteria."
+msgstr "პირობას ერთზე მეტ ობიექტი აკმაყოფილებს."
+
+#: lib/errors.c:233
+msgid "The crypto library version is too old."
+msgstr "ბიბლიოთეკა crypto ძალიან ძველია."
+
+#: lib/errors.c:236
+msgid "The tasn1 library version is too old."
+msgstr "ბიბლიოთეკა tasn1 ძალიან ძველია."
+
+#: lib/errors.c:238
+msgid "The OpenPGP User ID is revoked."
+msgstr "OpenPGP მომხმარებლის ID გაუქმებულია."
+
+#: lib/errors.c:240
+msgid "The OpenPGP key has not a preferred key set."
+msgstr "OpenPGP გასაღებს სასურველი გასაღები დაყენებული არ აქვს."
+
+#: lib/errors.c:242
+msgid "Error loading the keyring."
+msgstr "გასაღებების ბრელოკის ჩატვირთვის შეცდომა."
+
+#: lib/errors.c:244
+msgid "The initialization of crypto backend has failed."
+msgstr "კრიპტოს უკანაბოლოს ინიციალიზაციის შეცდომა."
+
+#: lib/errors.c:246
+msgid "No supported compression algorithms have been found."
+msgstr "მხარდაჭერილი შეკუმშვის ალგორითმები ვერ ვიპოვე."
+
+#: lib/errors.c:248
+msgid "No supported cipher suites have been found."
+msgstr "მხარდაჭერილი დაშიფვრის წყვილები ვერ ვიპოვე."
+
+#: lib/errors.c:250
+msgid "Could not get OpenPGP key."
+msgstr "OpenPGP გასაღების მიღების შეცდომა."
+
+#: lib/errors.c:252
+msgid "Could not find OpenPGP subkey."
+msgstr "OpenPGP ქვეგასაღების პოვნა შეუძლებელია."
+
+#: lib/errors.c:254
+msgid "Safe renegotiation failed."
+msgstr "უსაფრთხო თავიდან მიმოცვლის შეცდომა."
+
+#: lib/errors.c:256
+msgid "Unsafe renegotiation denied."
+msgstr "დაუცველი ხელახალი მიმოცვლა უარყოფილია."
+
+#: lib/errors.c:259
+msgid "The SRP username supplied is illegal."
+msgstr "მითითებული SRP მომხმარებლის სახელი დაუშვებელია."
+
+#: lib/errors.c:261
+msgid "The username supplied is unknown."
+msgstr "მითითებული მომხმარებლის სახელი არასწორია."
+
+#: lib/errors.c:264
+msgid "The OpenPGP fingerprint is not supported."
+msgstr "OpenPGP ანაბეჭდები მხარდაჭერილი არაა."
+
+#: lib/errors.c:266
+msgid "The signature algorithm is not supported."
+msgstr "ხელმოწერის ალგორითმი მხარდაუჭერელია."
+
+#: lib/errors.c:268
+msgid "The certificate has unsupported attributes."
+msgstr "სერტიფიკატის მხარდაუჭერელი ატრიბუტები."
+
+#: lib/errors.c:270
+msgid "The OID is not supported."
+msgstr "OID მხარდაჭერილი არაა."
+
+#: lib/errors.c:272
+msgid "The hash algorithm is unknown."
+msgstr "ჰეშირების ალგორითმი უცნობია."
+
+#: lib/errors.c:274
+msgid "The PKCS structure's content type is unknown."
+msgstr "PKCS სტრუქტურის შემცველობის ტიპი უცნობია."
+
+#: lib/errors.c:276
+msgid "The PKCS structure's bag type is unknown."
+msgstr "PKCS სტრუქტურის ჩანთის ტიპი უცნობია."
+
+#: lib/errors.c:278 lib/errors.c:285
+msgid "The given password contains invalid characters."
+msgstr "მითითებული პაროლი არასწორ სიმბოლოებს შეიცავს."
+
+#: lib/errors.c:280
+msgid "The given string contains invalid UTF-8 characters."
+msgstr "მითითებული სტრიქონი არასწორ UTF-8 სიმბოლოებს შეიცავს."
+
+#: lib/errors.c:283
+msgid "The given email string contains non-ASCII characters before '@'."
+msgstr "მითითებული ელფოსტის სტრიქონი '@'-მდე არა-ASCII სიმბოლოებს შეიცავს."
+
+#: lib/errors.c:287
+msgid "The Message Authentication Code verification failed."
+msgstr "შეტყობინების ავთენტიკაციის კოდის გადამოწმების შეცდომა."
+
+#: lib/errors.c:289
+msgid "Some constraint limits were reached."
+msgstr "მიღწეულია ზოგიერთ შეზღუდვის ლიმიტი."
+
+#: lib/errors.c:291
+msgid "Failed to acquire random data."
+msgstr "შემთხვევით მონაცემების მიღების შეცდომა."
+
+#: lib/errors.c:293
+msgid "Verifying TLS/IA phase checksum failed"
+msgstr "TLS/IA ფაზის საკონტროლო ჯამის გადამოწმების შეცდომა"
+
+#: lib/errors.c:296
+msgid "The specified algorithm or protocol is unknown."
+msgstr "მითითებული ალგორითმი ან პროტოკოლი უცნობია."
+
+#: lib/errors.c:299
+msgid "The handshake data size is too large."
+msgstr "მიმოცვლის მონაცემების ზომა მეტისმეტად დიდია."
+
+#: lib/errors.c:302
+msgid "Error opening /dev/crypto"
+msgstr "/dev/crypto-ის გახსნის შეცდომა"
+
+#: lib/errors.c:305
+msgid "Error interfacing with /dev/crypto"
+msgstr "/dev/crypto-სთან ურთიერთობის შეცდომა"
+
+#: lib/errors.c:307
+msgid "Peer has terminated the connection"
+msgstr "კავშირი გაწყვეტილია პარტნიორის მიერ"
+
+#: lib/errors.c:309
+msgid "Channel binding data not available"
+msgstr "არხზე მიბმის მონაცემები ხელმისაწვდომი არაა"
+
+#: lib/errors.c:312
+msgid "TPM error."
+msgstr "TPM -ის შეცდომა."
+
+#: lib/errors.c:313
+msgid "The TPM library (trousers) cannot be found."
+msgstr "TPM -ის ბიბლიოთეკის (trousers) პოვნა შეუძლებელია."
+
+#: lib/errors.c:315
+msgid "TPM is not initialized."
+msgstr "TPM ინიციალიზებული არაა."
+
+#: lib/errors.c:316
+msgid "TPM key was not found in persistent storage."
+msgstr "მუდმივ საცავში TPM-ის გასაღები ვერ ვიპოვე ."
+
+#: lib/errors.c:318
+msgid "Cannot initialize a session with the TPM."
+msgstr "TPM-ით სესიის ინიციალიზაციის შეცდომა."
+
+#: lib/errors.c:320
+msgid "PKCS #11 error."
+msgstr "PKCS #11 -ის შეცდომა."
+
+#: lib/errors.c:321
+msgid "PKCS #11 initialization error."
+msgstr "PKCS #11 -ის ინიციალიზაციის შეცდომა."
+
+#: lib/errors.c:323
+msgid "Error in parsing."
+msgstr "დამუშავების შეცდომა."
+
+#: lib/errors.c:324
+msgid "Error in provided PIN."
+msgstr "შეყვანილი PIN კოდი არასწორია."
+
+#: lib/errors.c:325
+msgid "Error in provided SRK password for TPM."
+msgstr "შეცდომა TPM-ისთვის მოწოდებულ SRK პაროლში."
+
+#: lib/errors.c:328
+msgid "Error in provided password for key to be loaded in TPM."
+msgstr "შეცდომა TMP-ში ჩასატვირთი გასაღებისთვის შეყვანილ პაროლში."
+
+#: lib/errors.c:330
+msgid "PKCS #11 error in slot"
+msgstr "PKCS #11 შეცდომა სლოტში"
+
+#: lib/errors.c:331
+msgid "Thread locking error"
+msgstr "ნაკადის დაბლოკვის შეცდომა"
+
+#: lib/errors.c:332
+msgid "PKCS #11 error in attribute"
+msgstr "PKCS #11 -ის შეცდომა ატრიბუტში"
+
+#: lib/errors.c:334
+msgid "PKCS #11 error in device"
+msgstr "PKCS #11 -ის შეცდომა მოწყობილობაში"
+
+#: lib/errors.c:336
+msgid "PKCS #11 error in data"
+msgstr "PKCS #11 -ის შეცდომა მონაცემებში"
+
+#: lib/errors.c:337
+msgid "PKCS #11 unsupported feature"
+msgstr "PKCS #11 -ის მხარდაუჭერელი თვისება"
+
+#: lib/errors.c:339
+msgid "PKCS #11 error in key"
+msgstr "PKCS #11 -ის შეცდომა გასაღებში"
+
+#: lib/errors.c:340
+msgid "PKCS #11 PIN expired"
+msgstr "PKCS #11 -ის PIN ვადაგასულია"
+
+#: lib/errors.c:341
+msgid "PKCS #11 PIN locked"
+msgstr "PKCS #11 -ის PIN დაბლოკილია"
+
+#: lib/errors.c:342
+msgid "PKCS #11 error in session"
+msgstr "PKCS #11 -ის შეცდომა სესიაში"
+
+#: lib/errors.c:344
+msgid "PKCS #11 error in signature"
+msgstr "PKCS #11 -ის შეცდომა ხელმოწერაში"
+
+#: lib/errors.c:346
+msgid "PKCS #11 error in token"
+msgstr "PKCS #11 -ის შეცდომა კოდში"
+
+#: lib/errors.c:347
+msgid "PKCS #11 user error"
+msgstr "PKCS #11 -ის მომხმარებლის შეცდომა"
+
+#: lib/errors.c:348
+msgid "The operation timed out"
+msgstr "ოპერაციის ვადა გავიდა"
+
+#: lib/errors.c:349
+msgid "The operation was cancelled due to user error"
+msgstr "ოპერაცია გაუქმდა მომხმარებლის შეცდომის გამო"
+
+#: lib/errors.c:351
+msgid "No supported ECC curves were found"
+msgstr "მხარდაჭერილი ECC მრუდები ვერ ვიპოვე"
+
+#: lib/errors.c:353
+msgid "The curve is unsupported"
+msgstr "მრუდი მხარდაუჭერელია"
+
+#: lib/errors.c:355
+msgid "The requested PKCS #11 object is not available"
+msgstr "მოთხოვნილი PKCS #11 ობიექტი ხელმიუწვდომელია"
+
+#: lib/errors.c:358
+msgid ""
+"The provided X.509 certificate list is not sorted (in subject to issuer "
+"order)"
+msgstr ""
+"მითითებული X.509 სერტიფიკატი დალაგებული არაა (მიმდევრობით თემიდან "
+"გამომცემლამდე)"
+
+#: lib/errors.c:360
+msgid "The OCSP response is invalid"
+msgstr "OCSP პასუხი არასწორია"
+
+#: lib/errors.c:363
+msgid "The OCSP response provided doesn't match the available certificates"
+msgstr "მოწოდებული OCSP პასუხი ხელმისაწვდომ სერტიფიკატებს არ ემთხვევა"
+
+#: lib/errors.c:365
+msgid "There is no certificate status (OCSP)."
+msgstr "სერტიფიკატის სტატუსის გარეშე (OCSP)."
+
+#: lib/errors.c:367
+msgid "Error in the system's randomness device."
+msgstr "შეცდომა სისტემის შემთხვევითობის მოწყობილობაში."
+
+#: lib/errors.c:369
+msgid "No common application protocol could be negotiated."
+msgstr "საერთო აპლიკაციის პროტოკოლის მიმოცვლა შეუძლებელია."
+
+#: lib/errors.c:371
+msgid "Error while performing self checks."
+msgstr "შეცდომა თვითშემოწმების შესრულებისას."
+
+#: lib/errors.c:373
+msgid "There is no self test for this algorithm."
+msgstr "ამ ალგორითმს თვითშემოწმება არ გააჩნია."
+
+#: lib/errors.c:376
+msgid ""
+"An error has been detected in the library and cannot continue operations."
+msgstr "ბიბლიოთეკაში აღმოჩენილია შეცდომა. გაგრძელება შეუძლებელია."
+
+#: lib/errors.c:378
+msgid "Error in sockets initialization."
+msgstr "შეცდომა სოკეტების ინიციალიზაციაში."
+
+#: lib/errors.c:380
+msgid "Error in public key generation."
+msgstr "საჯარო გასაღების გენერაციის შეცდომა."
+
+#: lib/errors.c:382
+msgid "Invalid TLS extensions length field."
+msgstr "TLS გაფართოების სიგრძის ველი არასწორია."
+
+#: lib/errors.c:385
+msgid "Peer's certificate or username has changed during a rehandshake."
+msgstr ""
+"პარტნიორის სერტიფიკატი ან მომხმარებლის სახელი შეიცვალა თავიდან მიმოცვლისას."
+
+#: lib/errors.c:387
+msgid "The provided string has an embedded null."
+msgstr "მითითებულ სტრიქონს ჩაშენებული ნული გააჩნია."
+
+#: lib/errors.c:389
+msgid "Attempted handshake during false start."
+msgstr "მიმოცვლის მცდელობა არაჭეშმარიტი გაშვებისას."
+
+#: lib/errors.c:391
+msgid "The SNI host name not recognised."
+msgstr "SNI ჰოსტის სახელი მხარდაჭერილი არაა."
+
+#: lib/errors.c:393
+msgid "There was an issue converting to or from UTF8."
+msgstr "შეცდომა UTF-8-ში ან მისგან გადაყვანისას."
+
+#: lib/errors.c:396
+msgid "Cannot perform this action while handshake is in progress."
+msgstr "ამ ქმედების ჩატარება მიმოცვლისას შეუძლებელია."
+
+#: lib/errors.c:398
+msgid "The public key is invalid."
+msgstr "საჯარო გასაღები არასწორია."
+
+#: lib/errors.c:400
+msgid "There are no validation parameters present."
+msgstr "გადამოწმების პარამეტრები მითითებული არაა."
+
+#: lib/errors.c:402
+msgid "The public key parameters are invalid."
+msgstr "საჯარო გასაღების პარამეტრები არასწორია."
+
+#: lib/errors.c:404
+msgid "The private key is invalid."
+msgstr "პირადი გასაღები არასწორია."
+
+#: lib/errors.c:406
+msgid "The DER time encoding is invalid."
+msgstr "DER დროის კოდირება არასწორია."
+
+#: lib/errors.c:408
+msgid "The signature is incompatible with the public key."
+msgstr "ხელმოწერა შეუთავსებელია საჯარო გასაღებთან."
+
+#: lib/errors.c:411
+msgid "One of the involved algorithms has insufficient security level."
+msgstr "ერთ-ერთ ალგორითმს არასაკმარისი უსაფრთხოების დონე გააჩნია."
+
+#: lib/errors.c:413
+msgid "No common key share with peer."
+msgstr "პარტნიორთან გაზიარებული გასაღების გარეშე."
+
+#: lib/errors.c:415
+msgid "The early data were rejected."
+msgstr "ადრეული მონაცემები უარყოფილი იყო."
+
+#: lib/errors.c:417
+#, fuzzy
+#| msgid "The signature algorithm is not supported."
+msgid "The encryption algorithm is not supported."
+msgstr "ხელმოწერის ალგორითმი მხარდაუჭერელია."
+
+#: lib/errors.c:423 libdane/errors.c:41
+msgid "Success."
+msgstr "წარმატება."
+
+#: lib/errors.c:424
+msgid "A TLS warning alert has been received."
+msgstr "მიღებულია TLS-ის გაფრთხილების განგაში."
+
+#: lib/errors.c:426
+msgid "A heartbeat pong message was received."
+msgstr "მიღებულია გულისცემის პონგის შეტყობინება."
+
+#: lib/errors.c:428
+msgid "A heartbeat ping message was received."
+msgstr "მიღებულია გულისცემის პინგის შეტყობინება."
+
+#: lib/errors.c:430
+msgid "Resource temporarily unavailable, try again."
+msgstr "რესურსი დროებით მიუწვდომელია. თავიდან სცადეთ."
+
+#: lib/errors.c:432
+msgid "The transmitted packet is too large (EMSGSIZE)."
+msgstr "გადაცემული პაკეტი მეტისმეტად დიდია (EMSGSIZE)."
+
+#: lib/errors.c:435
+msgid "Rehandshake was requested by the peer."
+msgstr "პარტნიორი თავიდან მიმოცვლას მოითხოვს."
+
+#: lib/errors.c:437
+msgid "Re-authentication was requested by the peer."
+msgstr "პარტნიორი თავიდან ავთენტიკაციას მოითხოვს."
+
+#: lib/errors.c:528 libdane/errors.c:92
+msgid "(unknown error code)"
+msgstr "(უცნობი შეცდომის კოდი)"
+
+#: lib/x509/ocsp.c:2544
+msgid "The OCSP response is trusted. "
+msgstr "OCSP პასუხი სანდოა. "
+
+#: lib/x509/ocsp.c:2549
+msgid "The OCSP response's signer could not be found. "
+msgstr "OCSP პასუხის ხელმომწერის პოვნა შეუძლებელია. "
+
+#: lib/x509/ocsp.c:2553
+msgid "Error in the signer's key usageflags. "
+msgstr "შეცდომა ხელმომწერის გასაღების usegeflags-ში. "
+
+#: lib/x509/ocsp.c:2557
+msgid "The OCSP response's signer is not trusted. "
+msgstr "OCSP პასუხის ხელმომწერი სანდო არაა. "
+
+#: lib/x509/ocsp.c:2562
+msgid "The OCSP response depends on insecure algorithms. "
+msgstr "OCSP პასუხი დაუცველ ალგორითმებს ეყრდნობა. "
+
+#: lib/x509/ocsp.c:2567
+msgid "The OCSP response's signature cannot be validated. "
+msgstr "OCSP პასუხის ხელმოწერის გადამოწმება შეუძლებელია. "
+
+#: lib/x509/ocsp.c:2572
+msgid "The OCSP response's signer's certificate is not activated. "
+msgstr "OCSP პასუხის ხელმომწერის სერტიფიკატი გააქტიურებული არაა. "
+
+#: lib/x509/ocsp.c:2577
+msgid "The OCSP response's signer's certificate is expired. "
+msgstr "OCSP პასუხის ხელმომწერის სერტიფიკატი ვადაგასულია. "
+
+#: lib/x509/ocsp.c:2581
+msgid "Memory error"
+msgstr "მეხსიერების შეცდომა"
+
+#: lib/x509/ocsp_output.c:50 lib/x509/ocsp_output.c:269 lib/x509/output.c:1744
+#: lib/x509/output.c:2269 lib/x509/output.c:2645
+#, c-format
+msgid "\tVersion: %d\n"
+msgstr "\tვერსია: %d\n"
+
+#: lib/x509/ocsp_output.c:131 lib/x509/ocsp_output.c:484 lib/x509/output.c:2425
+#: lib/x509/output.c:2796
+msgid "\t\t\tASCII: "
+msgstr "\t\t\tASCII: "
+
+#: lib/x509/ocsp_output.c:136 lib/x509/ocsp_output.c:489 lib/x509/output.c:2430
+#: lib/x509/output.c:2800
+msgid "\t\t\tHexdump: "
+msgstr "\t\t\tHexdump: "
+
+#: lib/x509/ocsp_output.c:180
+msgid "OCSP Request Information:\n"
+msgstr "OCSP ინფორმაციის მოთხოვნა:\n"
+
+#: lib/x509/ocsp_output.c:283
+msgid "\tResponder Key ID: "
+msgstr "\tმოპასუხის გასაღების ID: "
+
+#: lib/x509/ocsp_output.c:294
+#, c-format
+msgid "\tResponder ID: %s\n"
+msgstr "\tმოპასუხის ID: %s\n"
+
+#: lib/x509/ocsp_output.c:314
+#, c-format
+msgid "\tProduced At: %s\n"
+msgstr "\tწარმოების დრო: %s\n"
+
+#: lib/x509/ocsp_output.c:403
+#, c-format
+msgid "\t\tRevocation time: %s\n"
+msgstr "\t\tგაუქმების დრო: %s\n"
+
+#: lib/x509/ocsp_output.c:421
+#, c-format
+msgid "\t\tThis Update: %s\n"
+msgstr "\t\tეს განახლება: %s\n"
+
+#: lib/x509/ocsp_output.c:439
+#, c-format
+msgid "\t\tNext Update: %s\n"
+msgstr "\t\tშემდეგი განახლება: %s\n"
+
+#: lib/x509/ocsp_output.c:506 lib/x509/output.c:1470 lib/x509/output.c:1681
+#: lib/x509/output.c:1803 lib/x509/output.c:1822 lib/x509/output.c:1865
+#: lib/x509/output.c:2097 lib/x509/output.c:2110 lib/x509/output.c:2498
+#: lib/x509/output.c:2623 lib/x509/output.c:2672
+msgid "unknown"
+msgstr "უცნობი"
+
+#: lib/x509/ocsp_output.c:507 lib/x509/output.c:1869 lib/x509/output.c:2502
+#: lib/x509/output.c:2676
+#, c-format
+msgid "\tSignature Algorithm: %s\n"
+msgstr "\tხელმოწერის ალგორითმი: %s\n"
+
+#: lib/x509/ocsp_output.c:510 lib/x509/output.c:1877 lib/x509/output.c:2508
+msgid ""
+"warning: signed using a broken signature algorithm that can be forged.\n"
+msgstr "გაფრთხილება: ხელმოსაწერად გატეხილი ალგორითმი გამოიყენება.\n"
+
+#: lib/x509/ocsp_output.c:526 lib/x509/output.c:1903 lib/x509/output.c:2534
+msgid "\tSignature:\n"
+msgstr "\tხელმოწერა:\n"
+
+#: lib/x509/ocsp_output.c:619
+msgid "OCSP Response Information:\n"
+msgstr "OCSP პასუხის ინფორმაცია:\n"
+
+#: lib/x509/output.c:55 lib/x509/output.c:91
+#, c-format
+msgid "%s%s: %.*s (contains illegal chars)\n"
+msgstr "%s%s: %.*s (შეიცავს დაუშვებელ სიმბოლოებს)\n"
+
+#: lib/x509/output.c:63 lib/x509/output.c:99
+#, c-format
+msgid "%s%s: %.*s (%s)\n"
+msgstr "%s%s: %.*s (%s)\n"
+
+#: lib/x509/output.c:73 lib/x509/output.c:109
+#, c-format
+msgid "%s%s: %.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:126
+msgid "warning: SAN contains an embedded NUL, replacing with '!'\n"
+msgstr "გაფრთხილება: SAN ჩაშენებულ NUL-ს შეიცავს. ჩანაცვლდება '!'-ით\n"
+
+#: lib/x509/output.c:142
+#, c-format
+msgid "%sURI: %.*s\n"
+msgstr "%sURI: %.*s\n"
+
+#: lib/x509/output.c:159
+#, c-format
+msgid "%sdirectoryName: %.*s\n"
+msgstr "%sსაქაღალდისსახელი: %.*s\n"
+
+#: lib/x509/output.c:164
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%sRegistered ID: %.*s\n"
+msgstr "%s\t\t\tსხვასახელის OID: %.*s\n"
+
+#: lib/x509/output.c:169
+#, c-format
+msgid "%sXMPP Address: %.*s\n"
+msgstr "%sXMPP მისამართი: %.*s\n"
+
+#: lib/x509/output.c:174
+#, c-format
+msgid "%sKRB5Principal: %.*s\n"
+msgstr "%sKRB5პრინციპალი: %.*s\n"
+
+#: lib/x509/output.c:179
+#, fuzzy, c-format
+#| msgid "%sKRB5Principal: %.*s\n"
+msgid "%sUser Principal Name: %.*s\n"
+msgstr "%sKRB5პრინციპალი: %.*s\n"
+
+#: lib/x509/output.c:184
+#, c-format
+msgid "%sUnknown name: "
+msgstr "%sუცნობი სახელი: "
+
+#: lib/x509/output.c:325
+#, c-format
+msgid "\t\t\tPath Length Constraint: %d\n"
+msgstr "\t\t\tბილიკის სიგრძის შეზღუდვა: %d\n"
+
+#: lib/x509/output.c:326
+#, c-format
+msgid "\t\t\tPolicy Language: %s"
+msgstr "\t\t\tპოლიტიკის ენა: %s"
+
+#: lib/x509/output.c:334
+msgid ""
+"\t\t\tPolicy:\n"
+"\t\t\t\tASCII: "
+msgstr ""
+"\t\t\tპოლიტიკა:\n"
+"\t\t\t\tASCII: "
+
+#: lib/x509/output.c:336
+msgid ""
+"\n"
+"\t\t\t\tHexdump: "
+msgstr ""
+"\n"
+"\t\t\t\tHexdump: "
+
+#: lib/x509/output.c:370
+#, c-format
+msgid "%s\t\t\tPermitted:\n"
+msgstr "%s\t\t\tდაშვებულია:\n"
+
+#: lib/x509/output.c:383
+#, c-format
+msgid "%s\t\t\tExcluded:\n"
+msgstr "%s\t\t\tგამორიცხულია:\n"
+
+#: lib/x509/output.c:421 lib/x509/output.c:424 lib/x509/output.c:427
+#, c-format
+msgid "\t\t\tAccess Method: %s (%s)\n"
+msgstr "\t\t\tწვდომის მეთოდი: %s (%s)\n"
+
+#: lib/x509/output.c:504
+#, fuzzy, c-format
+#| msgid "\tRevoked certificates (%d):\n"
+msgid "%s\t\t\tSigned Certificate Timestamp %d:\n"
+msgstr "\tგაუქმებული სერტიფიკატები (%d):\n"
+
+#: lib/x509/output.c:509
+#, c-format
+msgid "%s\t\t\t\tVersion: %d (unknown SCT version)\n"
+msgstr ""
+
+#: lib/x509/output.c:522
+#, fuzzy, c-format
+#| msgid "\tVersion: %d\n"
+msgid "%s\t\t\t\tVersion: %d\n"
+msgstr "\tვერსია: %d\n"
+
+#: lib/x509/output.c:523
+#, fuzzy, c-format
+#| msgid "%s\t\t\tASCII: "
+msgid "%s\t\t\t\tLog ID: "
+msgstr "%s\t\t\tASCII: "
+
+#: lib/x509/output.c:526
+#, fuzzy, c-format
+#| msgid "%s\t\t\tTime stamping.\n"
+msgid "%s\t\t\t\tTime: "
+msgstr "%s\t\t\tდროის შტამპები.\n"
+
+#: lib/x509/output.c:529
+#, fuzzy, c-format
+#| msgid "%s\tExtensions:\n"
+msgid "%s\t\t\t\tExtensions: none\n"
+msgstr "%s\tგაფართოებები:\n"
+
+#: lib/x509/output.c:531
+#, fuzzy, c-format
+#| msgid "\tSignature Algorithm: %s\n"
+msgid "%s\t\t\t\tSignature algorithm: %s\n"
+msgstr "\tხელმოწერის ალგორითმი: %s\n"
+
+#: lib/x509/output.c:533
+#, fuzzy, c-format
+#| msgid "\tSignature:\n"
+msgid "%s\t\t\t\tSignature: "
+msgstr "\tხელმოწერა:\n"
+
+#: lib/x509/output.c:625
+#, c-format
+msgid "%sDigital signature.\n"
+msgstr "%sციფრული ხელმოწერა.\n"
+
+#: lib/x509/output.c:627
+#, c-format
+msgid "%sNon repudiation.\n"
+msgstr "%sუარს არ იძახის.\n"
+
+#: lib/x509/output.c:629
+#, c-format
+msgid "%sKey encipherment.\n"
+msgstr "%sგასაღების დაშიფვრადობა.\n"
+
+#: lib/x509/output.c:631
+#, c-format
+msgid "%sData encipherment.\n"
+msgstr "%sმონაცემების დაშიფვრადობა.\n"
+
+#: lib/x509/output.c:633
+#, c-format
+msgid "%sKey agreement.\n"
+msgstr "%sგასაღების თანხმობა\n"
+
+#: lib/x509/output.c:635
+#, c-format
+msgid "%sCertificate signing.\n"
+msgstr "%sსერტიფიკატის ხელმოწერა.\n"
+
+#: lib/x509/output.c:637
+#, c-format
+msgid "%sCRL signing.\n"
+msgstr "%sCRL ხელმოწერა.\n"
+
+#: lib/x509/output.c:639
+#, c-format
+msgid "%sKey encipher only.\n"
+msgstr "%sმხოლოდ გასაღების დაშიფვრადობა.\n"
+
+#: lib/x509/output.c:641
+#, c-format
+msgid "%sKey decipher only.\n"
+msgstr "%sმხოლოდ გასაღების გაშიფვრადობა.\n"
+
+#: lib/x509/output.c:684
+#, c-format
+msgid "\t\t\tNot Before: %s\n"
+msgstr "\t\t\tარა უადრეს: %s\n"
+
+#: lib/x509/output.c:691
+#, c-format
+msgid "\t\t\tNot After: %s\n"
+msgstr "\t\t\tარა უგვიანეს: %s\n"
+
+#: lib/x509/output.c:768
+#, c-format
+msgid "%s\t\t\tTLS WWW Server.\n"
+msgstr "%s\t\t\tTLS WWW სერვერი.\n"
+
+#: lib/x509/output.c:770
+#, c-format
+msgid "%s\t\t\tTLS WWW Client.\n"
+msgstr "%s\t\t\tTLS WWW კლიენტი.\n"
+
+#: lib/x509/output.c:772
+#, c-format
+msgid "%s\t\t\tCode signing.\n"
+msgstr "%s\t\t\tკოდის ხელმოწერა.\n"
+
+#: lib/x509/output.c:774
+#, c-format
+msgid "%s\t\t\tEmail protection.\n"
+msgstr "%s\t\t\tელფოსტის დაცვა.\n"
+
+#: lib/x509/output.c:776
+#, c-format
+msgid "%s\t\t\tTime stamping.\n"
+msgstr "%s\t\t\tდროის შტამპები.\n"
+
+#: lib/x509/output.c:778
+#, c-format
+msgid "%s\t\t\tOCSP signing.\n"
+msgstr "%s\t\t\tOCSP ხელმოწერა.\n"
+
+#: lib/x509/output.c:780
+#, c-format
+msgid "%s\t\t\tIpsec IKE.\n"
+msgstr "%s\t\t\tIpsec IKE.\n"
+
+#: lib/x509/output.c:782
+#, fuzzy, c-format
+#| msgid "%s\t\t\tEmail protection.\n"
+msgid "%s\t\t\tSmart Card Logon.\n"
+msgstr "%s\t\t\tელფოსტის დაცვა.\n"
+
+#: lib/x509/output.c:784
+#, c-format
+msgid "%s\t\t\tAny purpose.\n"
+msgstr "%s\t\t\tნებისმიერი მიზნით.\n"
+
+#: lib/x509/output.c:807
+#, c-format
+msgid "%s\t\t\tCertificate Authority (CA): FALSE\n"
+msgstr "%s\t\t\tსერტიფიკატების ავტორიტეტი (CA): არა\n"
+
+#: lib/x509/output.c:810
+#, c-format
+msgid "%s\t\t\tCertificate Authority (CA): TRUE\n"
+msgstr "%s\t\t\tსერტიფიკატების ავტორიტეტი (CA): დიახ\n"
+
+#: lib/x509/output.c:814
+#, c-format
+msgid "%s\t\t\tPath Length Constraint: %d\n"
+msgstr "%s\t\t\tბილიკის სიგრძის შეზღუდვა: %d\n"
+
+#: lib/x509/output.c:868
+#, c-format
+msgid "%s\t\t\totherName OID: %.*s\n"
+msgstr "%s\t\t\tსხვასახელის OID: %.*s\n"
+
+#: lib/x509/output.c:870
+#, c-format
+msgid "%s\t\t\totherName DER: "
+msgstr "%s\t\t\tსხვასახელის DER: "
+
+#: lib/x509/output.c:872
+#, c-format
+msgid ""
+"\n"
+"%s\t\t\totherName ASCII: "
+msgstr ""
+"\n"
+"%s\t\t\tსხვასახელი ASCII: "
+
+#: lib/x509/output.c:990 lib/x509/output.c:1070 lib/x509/output.c:1373
+#, c-format
+msgid "%s\t\t\tASCII: "
+msgstr "%s\t\t\tASCII: "
+
+#: lib/x509/output.c:994 lib/x509/output.c:1074 lib/x509/output.c:1377
+#, c-format
+msgid "%s\t\t\tHexdump: "
+msgstr "%s\t\t\tHexdump: "
+
+#: lib/x509/output.c:1001
+#, fuzzy, c-format
+#| msgid "%s%s: %.*s\n"
+msgid "%s\t\t\t%.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:1032
+#, c-format
+msgid "%s\t\t\tSignTool: %.*s\n"
+msgstr ""
+
+#: lib/x509/output.c:1041
+#, fuzzy, c-format
+#| msgid "%s%s: %.*s\n"
+msgid "%s\t\t\tCATool: %.*s\n"
+msgstr "%s%s: %.*s\n"
+
+#: lib/x509/output.c:1050
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%s\t\t\tSignToolCert: %.*s\n"
+msgstr "%s\t\t\tსხვასახელის OID: %.*s\n"
+
+#: lib/x509/output.c:1059
+#, fuzzy, c-format
+#| msgid "%s\t\t\totherName OID: %.*s\n"
+msgid "%s\t\t\tCAToolCert: %.*s\n"
+msgstr "%s\t\t\tსხვასახელის OID: %.*s\n"
+
+#: lib/x509/output.c:1127
+#, c-format
+msgid "%s\t\tBasic Constraints (%s):\n"
+msgstr "%s\t\tძირითადი შეზღუდვები (%s):\n"
+
+#: lib/x509/output.c:1128 lib/x509/output.c:1139 lib/x509/output.c:1180
+#: lib/x509/output.c:1216 lib/x509/output.c:1224 lib/x509/output.c:1236
+#: lib/x509/output.c:1249 lib/x509/output.c:1261 lib/x509/output.c:1271
+#: lib/x509/output.c:1281 lib/x509/output.c:1293 lib/x509/output.c:1303
+#: lib/x509/output.c:1312 lib/x509/output.c:1317 lib/x509/output.c:1328
+#: lib/x509/output.c:1338 lib/x509/output.c:1345 lib/x509/output.c:1350
+#: lib/x509/output.c:1358 lib/x509/output.c:1371 lib/x509/output.c:2370
+#: lib/x509/output.c:2393 lib/x509/output.c:2413
+msgid "critical"
+msgstr "კრიტიკული"
+
+#: lib/x509/output.c:1128 lib/x509/output.c:1139 lib/x509/output.c:1181
+#: lib/x509/output.c:1216 lib/x509/output.c:1224 lib/x509/output.c:1236
+#: lib/x509/output.c:1249 lib/x509/output.c:1261 lib/x509/output.c:1271
+#: lib/x509/output.c:1281 lib/x509/output.c:1293 lib/x509/output.c:1303
+#: lib/x509/output.c:1312 lib/x509/output.c:1317 lib/x509/output.c:1328
+#: lib/x509/output.c:1338 lib/x509/output.c:1345 lib/x509/output.c:1350
+#: lib/x509/output.c:1358 lib/x509/output.c:1371 lib/x509/output.c:2371
+#: lib/x509/output.c:2394 lib/x509/output.c:2414
+msgid "not critical"
+msgstr "არაკრიტიკული"
+
+#: lib/x509/output.c:1138
+#, c-format
+msgid "%s\t\tSubject Key Identifier (%s):\n"
+msgstr "%s\t\tთემის გასაღების იდენტიფიკატორი (%s):\n"
+
+#: lib/x509/output.c:1223
+#, c-format
+msgid "%s\t\tAuthority Key Identifier (%s):\n"
+msgstr "%s\t\tავტორიტეტის გასაღების იდენტიფიკატორი (%s):\n"
+
+#: lib/x509/output.c:1235
+#, c-format
+msgid "%s\t\tKey Usage (%s):\n"
+msgstr "%s\t\tგასაღების გამოყენება (%s):\n"
+
+#: lib/x509/output.c:1248
+#, c-format
+msgid "%s\t\tPrivate Key Usage Period (%s):\n"
+msgstr "%s\t\tპირადი გასაღების გამოყენების პერიოდი (%s):\n"
+
+#: lib/x509/output.c:1260
+#, c-format
+msgid "%s\t\tKey Purpose (%s):\n"
+msgstr "%s\t\tგასაღების დანიშნულება (%s):\n"
+
+#: lib/x509/output.c:1270
+#, c-format
+msgid "%s\t\tSubject Alternative Name (%s):\n"
+msgstr "%s\t\tთემის ალტერნატიული სახელი (%s):\n"
+
+#: lib/x509/output.c:1280
+#, c-format
+msgid "%s\t\tIssuer Alternative Name (%s):\n"
+msgstr "%s\t\tგამომცემლის ალტერნატიული სახელი (%s):\n"
+
+#: lib/x509/output.c:1292
+#, c-format
+msgid "%s\t\tCRL Distribution points (%s):\n"
+msgstr "%s\t\tCRL განაწილების წერტილები (%s):\n"
+
+#: lib/x509/output.c:1302
+#, c-format
+msgid "%s\t\tProxy Certificate Information (%s):\n"
+msgstr "%s\t\tპროქსი სერტიფიაკტის ინფორმაცია (%s):\n"
+
+#: lib/x509/output.c:1310
+#, c-format
+msgid "%s\t\tAuthority Information Access (%s):\n"
+msgstr "%s\t\tავტორიტეტის ინფორმაციის წვდომა (%s):\n"
+
+#: lib/x509/output.c:1316
+#, fuzzy, c-format
+#| msgid "%s\t\tProxy Certificate Information (%s):\n"
+msgid "%s\t\tCT Precertificate SCTs (%s):\n"
+msgstr "%s\t\tპროქსი სერტიფიაკტის ინფორმაცია (%s):\n"
+
+#: lib/x509/output.c:1327
+#, c-format
+msgid "%s\t\tName Constraints (%s):\n"
+msgstr "%s\t\tსახელის შეზღუდვები (%s):\n"
+
+#: lib/x509/output.c:1337
+#, c-format
+msgid "%s\t\tTLS Features (%s):\n"
+msgstr "%s\t\tTLS თვისებები (%s):\n"
+
+#: lib/x509/output.c:1344
+#, fuzzy, c-format
+#| msgid "%s\t\tSubject Key Identifier (%s):\n"
+msgid "%s\t\tSubject Signing Tool(%s):\n"
+msgstr "%s\t\tთემის გასაღების იდენტიფიკატორი (%s):\n"
+
+#: lib/x509/output.c:1349
+#, fuzzy, c-format
+#| msgid "%s\t\tIssuer Alternative Name (%s):\n"
+msgid "%s\t\tIssuer Signing Tool(%s):\n"
+msgstr "%s\t\tგამომცემლის ალტერნატიული სახელი (%s):\n"
+
+#: lib/x509/output.c:1357
+#, fuzzy, c-format
+#| msgid "%s\t\tKey Usage (%s):\n"
+msgid "%s\t\tCommon Name (%s):\n"
+msgstr "%s\t\tგასაღების გამოყენება (%s):\n"
+
+#: lib/x509/output.c:1370
+#, c-format
+msgid "%s\t\tUnknown extension %s (%s):\n"
+msgstr "%s\t\tუცნობი გაფართოება %s (%s):\n"
+
+#: lib/x509/output.c:1419
+#, c-format
+msgid "%s\tExtensions:\n"
+msgstr "%s\tგაფართოებები:\n"
+
+#: lib/x509/output.c:1472
+#, c-format
+msgid "\t%sPublic Key Algorithm: %s\n"
+msgstr "\t%sსაჯარო გასაღების ალგორითმი: %s\n"
+
+#: lib/x509/output.c:1474
+#, c-format
+msgid "\tAlgorithm Security Level: %s (%d bits)\n"
+msgstr "\tალგორითმის უსაფრთხოების დონე: %s (%d ბიტი)\n"
+
+#: lib/x509/output.c:1479
+msgid "\t\tParameters:\n"
+msgstr "\t\tპარამეტრები:\n"
+
+#: lib/x509/output.c:1497
+#, c-format
+msgid "\t\tModulus (bits %d): "
+msgstr "\t\tმოდულუსი (ბიტები %d): "
+
+#: lib/x509/output.c:1500
+#, c-format
+msgid "\t\tExponent (bits %d): "
+msgstr "\t\tექსპონენტი (ბიტები %d): "
+
+#: lib/x509/output.c:1505
+#, c-format
+msgid "\t\tModulus (bits %d):\n"
+msgstr "\t\tმოდულუსი (ბიტები %d):\n"
+
+#: lib/x509/output.c:1508
+#, c-format
+msgid "\t\tExponent (bits %d):\n"
+msgstr "\t\tექსპონენტი (ბიტები %d):\n"
+
+#: lib/x509/output.c:1533 lib/x509/output.c:1619
+#, c-format
+msgid "\t\tCurve:\t%s\n"
+msgstr "\t\tმრუდი:\t%s\n"
+
+#: lib/x509/output.c:1536 lib/x509/output.c:1628
+msgid "\t\tX: "
+msgstr "\t\tX: "
+
+#: lib/x509/output.c:1540 lib/x509/output.c:1631
+msgid "\t\tY: "
+msgstr "\t\tY: "
+
+#: lib/x509/output.c:1546 lib/x509/output.c:1635
+msgid "\t\tX:\n"
+msgstr "\t\tX:\n"
+
+#: lib/x509/output.c:1550 lib/x509/output.c:1638
+msgid "\t\tY:\n"
+msgstr "\t\tY:\n"
+
+#: lib/x509/output.c:1569
+#, c-format
+msgid "\t\tPublic key (bits %d): "
+msgstr "\t\tსაჯარო გასაღები (ბიტები %d): "
+
+#: lib/x509/output.c:1573
+msgid "\t\tP: "
+msgstr "\t\tP: "
+
+#: lib/x509/output.c:1576
+msgid "\t\tQ: "
+msgstr "\t\tQ: "
+
+#: lib/x509/output.c:1579
+msgid "\t\tG: "
+msgstr "\t\tG: "
+
+#: lib/x509/output.c:1583
+#, c-format
+msgid "\t\tPublic key (bits %d):\n"
+msgstr "\t\tსაჯარო გასაღები (ბიტები %d):\n"
+
+#: lib/x509/output.c:1587
+msgid "\t\tP:\n"
+msgstr "\t\tP:\n"
+
+#: lib/x509/output.c:1590
+msgid "\t\tQ:\n"
+msgstr "\t\tQ:\n"
+
+#: lib/x509/output.c:1593
+msgid "\t\tG:\n"
+msgstr "\t\tG:\n"
+
+#: lib/x509/output.c:1621
+#, c-format
+msgid "\t\tDigest:\t%s\n"
+msgstr "\t\tდაიჯესტი:\t%s\n"
+
+#: lib/x509/output.c:1623
+#, c-format
+msgid "\t\tParamSet: %s\n"
+msgstr "\t\tპარამეტრებისსეტი: %s\n"
+
+#: lib/x509/output.c:1725 lib/x509/output.c:2613
+msgid "Subject "
+msgstr "თემა "
+
+#: lib/x509/output.c:1758
+msgid "\tSerial Number (hex): "
+msgstr "\tსერიული ნომერი (თექვსმ): "
+
+#: lib/x509/output.c:1771 lib/x509/output.c:2279
+msgid "\tIssuer:\n"
+msgstr "\tგამომცემელი:\n"
+
+#: lib/x509/output.c:1776 lib/x509/output.c:2284
+#, c-format
+msgid "\tIssuer: %s\n"
+msgstr "\tგამომცემელი: %s\n"
+
+#: lib/x509/output.c:1785
+msgid "\tValidity:\n"
+msgstr "\tსისწორე:\n"
+
+#: lib/x509/output.c:1801 lib/x509/output.c:1803
+#, c-format
+msgid "\t\tNot Before: %s\n"
+msgstr "\t\tარ მოქმედებს თარიღამდე: %s\n"
+
+#: lib/x509/output.c:1820 lib/x509/output.c:1822
+#, c-format
+msgid "\t\tNot After: %s\n"
+msgstr "\t\tარ მოქმედებს თარიღის შემდეგ: %s\n"
+
+#: lib/x509/output.c:1833 lib/x509/output.c:2655
+msgid "\tSubject:\n"
+msgstr "\tთემა:\n"
+
+#: lib/x509/output.c:1837 lib/x509/output.c:2659
+#, c-format
+msgid "\tSubject: %s\n"
+msgstr "\tთემა: %s\n"
+
+#: lib/x509/output.c:1916
+msgid "\tFingerprint:\n"
+msgstr "\tანაბეჭდი:\n"
+
+#: lib/x509/output.c:1925
+msgid "\t\tsha1:"
+msgstr "\t\tsha1:"
+
+#: lib/x509/output.c:1936
+msgid "\t\tsha256:"
+msgstr "\t\tsha256:"
+
+#: lib/x509/output.c:1973
+#, c-format
+msgid ""
+"%sPublic Key ID:\n"
+"%s\tsha1:"
+msgstr ""
+"%sსაჯარო გასაღების ID:\n"
+"%s\tsha1:"
+
+#: lib/x509/output.c:1979
+#, c-format
+msgid ""
+"%sPublic Key PIN:\n"
+"%s\tpin-sha256:"
+msgstr ""
+"%sსაჯარო გასაღების PIN:\n"
+"%s\tpin-sha256:"
+
+#: lib/x509/output.c:2053
+msgid "no subject,"
+msgstr "თემის გარეშე,"
+
+#: lib/x509/output.c:2069
+msgid "no issuer,"
+msgstr "გამომცემლის გარეშე,"
+
+#: lib/x509/output.c:2117
+#, c-format
+msgid "signed using %s (broken!), "
+msgstr "ხელმოწერილია %s (გაფუჭებულია!), "
+
+#: lib/x509/output.c:2119
+#, c-format
+msgid "signed using %s, "
+msgstr "ხელმოწერილია %s, "
+
+#: lib/x509/output.c:2247
+msgid "X.509 Certificate Information:\n"
+msgstr "X.509 სერტიფიკატის ინფორმაცია:\n"
+
+#: lib/x509/output.c:2251 lib/x509/output.c:2851
+msgid "Other Information:\n"
+msgstr "სხვა ინფორმაცია:\n"
+
+#: lib/x509/output.c:2293
+msgid "\tUpdate dates:\n"
+msgstr "\tგანახლების თარიღები:\n"
+
+#: lib/x509/output.c:2309
+#, c-format
+msgid "\t\tIssued: %s\n"
+msgstr "\t\tგამოცემის თარიღი: %s\n"
+
+#: lib/x509/output.c:2328
+#, c-format
+msgid "\t\tNext at: %s\n"
+msgstr "\t\tშემდეგი დრო: %s\n"
+
+#: lib/x509/output.c:2355
+msgid "\tExtensions:\n"
+msgstr "\tგაფართოებები:\n"
+
+#: lib/x509/output.c:2369
+#, c-format
+msgid "\t\tCRL Number (%s): "
+msgstr "\t\tCRL რიცხვი (%s): "
+
+#: lib/x509/output.c:2392
+#, c-format
+msgid "\t\tAuthority Key Identifier (%s):\n"
+msgstr "\t\tავტორიტეტის გასაღების იდენტიფიკატორი (%s):\n"
+
+#: lib/x509/output.c:2411
+#, c-format
+msgid "\t\tUnknown extension %s (%s):\n"
+msgstr "\t\tუცნობი გაფართოება %s (%s):\n"
+
+#: lib/x509/output.c:2447
+#, c-format
+msgid "\tRevoked certificates (%d):\n"
+msgstr "\tგაუქმებული სერტიფიკატები (%d):\n"
+
+#: lib/x509/output.c:2449
+msgid "\tNo revoked certificates.\n"
+msgstr "\tგაუქმებული სერტიფიკატების გარეშე.\n"
+
+#: lib/x509/output.c:2468
+msgid "\t\tSerial Number (hex): "
+msgstr "\t\tსერიული ნომერი (თექვს): "
+
+#: lib/x509/output.c:2482
+#, c-format
+msgid "\t\tRevoked at: %s\n"
+msgstr "\t\tგაუქმების დრო: %s\n"
+
+#: lib/x509/output.c:2564
+msgid "X.509 Certificate Revocation List Information:\n"
+msgstr "X.509 სერტიფიკატის გაუქმების სიის ინფორმაცია:\n"
+
+#: lib/x509/output.c:2705
+msgid "\tAttributes:\n"
+msgstr "\tატრიბუტები:\n"
+
+#: lib/x509/output.c:2756
+#, c-format
+msgid "\t\tChallenge password: %s\n"
+msgstr "\t\tგამოწვევის პაროლი: %s\n"
+
+#: lib/x509/output.c:2766
+#, c-format
+msgid "\t\tUnknown attribute %s:\n"
+msgstr "\t\tუცნობი ატრიბუტი %s:\n"
+
+#: lib/x509/output.c:2847
+msgid "PKCS #10 Certificate Request Information:\n"
+msgstr "PKCS #10 სერტიფიკატის მოთხოვნის ინფორმაცია:\n"
+
+#: lib/x509/output.c:2872
+msgid "Public Key Usage:\n"
+msgstr "საჯარო გასაღების გამოყენება:\n"
+
+#: lib/x509/output.c:2911
+msgid "Public Key Information:\n"
+msgstr "საჯარო გასაღების ინფორმაცია:\n"
+
+#: libdane/dane.c:1014
+msgid "Certificate matches. "
+msgstr "სერტიფიკატი ემთხვევა. "
+
+#: libdane/dane.c:1016
+msgid "Verification failed. "
+msgstr "გადამოწმებს შეცდომა. "
+
+#: libdane/dane.c:1020
+msgid "CA constrains were violated. "
+msgstr "CA შეზღუდვები დარღვეულია. "
+
+#: libdane/dane.c:1023
+msgid "The certificate differs. "
+msgstr "სერტიფიკატი განსხვავდება. "
+
+#: libdane/dane.c:1027
+msgid "There were no DANE information. "
+msgstr "DANE ინფორმაციის გარეშე. "
+
+#: libdane/errors.c:42
+msgid "There was error initializing the DNS query."
+msgstr "შეცდომა DNS მოთხოვნის ინიციალიზაციისას."
+
+#: libdane/errors.c:44
+msgid "There was an error while resolving."
+msgstr "შეცდომა ამოხსნისას."
+
+#: libdane/errors.c:46
+msgid "No DANE data were found."
+msgstr "DANE მონაცემები ვერ ვიპოვე."
+
+#: libdane/errors.c:47
+msgid "Unknown DANE data were found."
+msgstr "ნაპოვნია DANE-ის უცნობი მონაცემები."
+
+#: libdane/errors.c:49
+msgid "No DNSSEC signature was found."
+msgstr "DNSSEC ხელმოწერა ვერ ვიპოვე."
+
+#: libdane/errors.c:50
+msgid "Received corrupt data."
+msgstr "მიღებულია დაზიანებული მონაცემები."
+
+#: libdane/errors.c:51
+msgid "The DNSSEC signature is invalid."
+msgstr "DNSSEC ხელმოწერა არასწორია."
+
+#: libdane/errors.c:53
+msgid "There was a memory error."
+msgstr "მეხსიერების შეცდომა."
+
+#: libdane/errors.c:54
+msgid "The requested data are not available."
+msgstr "მოთხოვნილი მონაცემები მიუწვდომელია."
+
+#: libdane/errors.c:57
+msgid "There was an error in the certificate."
+msgstr "სერტიფიკატის შეცდომა."
+
+#: libdane/errors.c:59
+msgid "There was an error in the public key."
+msgstr "საჯარო გასაღების შეცდომა."
+
+#: libdane/errors.c:62
+msgid "Error in file."
+msgstr "შეცდომა ფაილში."
+
+#~ msgid "\tVersion: 1 (default)\n"
+#~ msgstr "\tვერსია: 1 (ნაგულისხმები)\n"

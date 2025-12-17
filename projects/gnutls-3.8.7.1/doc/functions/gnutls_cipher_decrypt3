@@ -1,0 +1,26 @@
+
+
+
+
+@deftypefun {int} {gnutls_cipher_decrypt3} (gnutls_cipher_hd_t @var{handle}, const void * @var{ctext}, size_t @var{ctext_len}, void * @var{ptext}, size_t * @var{ptext_len}, unsigned @var{flags})
+@var{handle}: is a @code{gnutls_cipher_hd_t}  type
+
+@var{ctext}: the data to decrypt
+
+@var{ctext_len}: the length of data to decrypt
+
+@var{ptext}: the decrypted data
+
+@var{ptext_len}: the available length for decrypted data
+
+@var{flags}: flags for padding
+
+This function will decrypt the given data using the algorithm
+specified by the context. If  @code{flags} is specified, padding for the
+decrypted data will be removed accordingly and  @code{ptext_len} will be
+updated.
+
+@strong{Returns:} Zero or a negative error code on error.
+
+@strong{Since:} 3.7.7
+@end deftypefun

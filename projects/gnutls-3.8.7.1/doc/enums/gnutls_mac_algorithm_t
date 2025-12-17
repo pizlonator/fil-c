@@ -1,0 +1,69 @@
+
+
+@c gnutls_mac_algorithm_t
+@table @code
+@item GNUTLS_@-MAC_@-UNKNOWN
+Unknown MAC algorithm.
+@item GNUTLS_@-MAC_@-NULL
+NULL MAC algorithm (empty output).
+@item GNUTLS_@-MAC_@-MD5
+HMAC-MD5 algorithm.
+@item GNUTLS_@-MAC_@-SHA1
+HMAC-SHA-1 algorithm.
+@item GNUTLS_@-MAC_@-RMD160
+HMAC-RMD160 algorithm.
+@item GNUTLS_@-MAC_@-MD2
+HMAC-MD2 algorithm.
+@item GNUTLS_@-MAC_@-SHA256
+HMAC-SHA-256 algorithm.
+@item GNUTLS_@-MAC_@-SHA384
+HMAC-SHA-384 algorithm.
+@item GNUTLS_@-MAC_@-SHA512
+HMAC-SHA-512 algorithm.
+@item GNUTLS_@-MAC_@-SHA224
+HMAC-SHA-224 algorithm.
+@item GNUTLS_@-MAC_@-SHA3_@-224
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-256
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-384
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-SHA3_@-512
+Reserved; unimplemented.
+@item GNUTLS_@-MAC_@-MD5_@-SHA1
+Combined MD5+SHA1 MAC placeholder.
+@item GNUTLS_@-MAC_@-GOSTR_@-94
+HMAC GOST R 34.11-94 algorithm.
+@item GNUTLS_@-MAC_@-STREEBOG_@-256
+HMAC GOST R 34.11-2001 (Streebog) algorithm, 256 bit.
+@item GNUTLS_@-MAC_@-STREEBOG_@-512
+HMAC GOST R 34.11-2001 (Streebog) algorithm, 512 bit.
+@item GNUTLS_@-MAC_@-AEAD
+MAC implicit through AEAD cipher.
+@item GNUTLS_@-MAC_@-UMAC_@-96
+The UMAC-96 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-UMAC_@-128
+The UMAC-128 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-CMAC_@-128
+The AES-CMAC-128 MAC algorithm.
+@item GNUTLS_@-MAC_@-AES_@-CMAC_@-256
+The AES-CMAC-256 MAC algorithm.
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-128
+The AES-GMAC-128 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-192
+The AES-GMAC-192 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-AES_@-GMAC_@-256
+The AES-GMAC-256 MAC algorithm (requires nonce).
+@item GNUTLS_@-MAC_@-GOST28147_@-TC26Z_@-IMIT
+The GOST 28147-89 working in IMIT mode with TC26 Z S-box.
+@item GNUTLS_@-MAC_@-SHAKE_@-128
+The SHAKE128 extendable output function.
+@item GNUTLS_@-MAC_@-SHAKE_@-256
+The SHAKE256 extendable output function.
+@item GNUTLS_@-MAC_@-MAGMA_@-OMAC
+GOST R 34.12-2015 (Magma) in OMAC (CMAC) mode.
+@item GNUTLS_@-MAC_@-KUZNYECHIK_@-OMAC
+GOST R 34.12-2015 (Kuznyechik) in OMAC (CMAC) mode.
+@item GNUTLS_@-MAC_@-PBMAC1
+-- undescribed --
+@end table

@@ -1,0 +1,15 @@
+
+
+
+
+@deftypefun {void} {gnutls_db_set_cache_expiration} (gnutls_session_t @var{session}, int @var{seconds})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+@var{seconds}: is the number of seconds.
+
+Set the expiration time for resumed sessions. The default is 21600
+(6 hours) at the time of writing.
+
+The maximum value that can be set using this function is 604800
+(7 days).
+@end deftypefun

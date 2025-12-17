@@ -1,0 +1,39 @@
+
+
+
+
+@deftypefun {int} {gnutls_certificate_set_ocsp_status_request_file} (gnutls_certificate_credentials_t @var{sc}, const char * @var{response_file}, unsigned @var{idx})
+@var{sc}: is a credentials structure.
+
+@var{response_file}: a filename of the OCSP response
+
+@var{idx}: is a certificate index as returned by @code{gnutls_certificate_set_key()}  and friends
+
+This function loads the provided OCSP response. It will be
+sent to the client if requests an OCSP certificate status for
+the certificate chain specified by  @code{idx} .
+
+@strong{Note:} the ability to set multiple OCSP responses per credential
+structure via the index  @code{idx} was added in version 3.5.6. To keep
+backwards compatibility, it requires using @code{gnutls_certificate_set_flags()} 
+with the @code{GNUTLS_CERTIFICATE_API_V2}  flag to make the set certificate
+functions return an index usable by this function.
+
+This function can be called multiple times since GnuTLS 3.6.3
+when multiple responses which apply to the chain are available.
+If the response provided does not match any certificates present
+in the chain, the code @code{GNUTLS_E_OCSP_MISMATCH_WITH_CERTS}  is returned.
+To revert to the previous behavior set the flag @code{GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK} 
+in the certificate credentials structure. In that case, only the
+end-certificate's OCSP response can be set.
+If the response is already expired at the time of loading the code
+@code{GNUTLS_E_EXPIRED}  is returned.
+
+To revert to the previous behavior of this function which does not return
+any errors, set the flag @code{GNUTLS_CERTIFICATE_SKIP_OCSP_RESPONSE_CHECK} 
+
+@strong{Returns:} On success, @code{GNUTLS_E_SUCCESS}  (0) is returned,
+otherwise a negative error code is returned.
+
+@strong{Since:} 3.1.3
+@end deftypefun

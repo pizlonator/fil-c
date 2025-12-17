@@ -1,0 +1,31 @@
+
+
+
+
+@deftypefun {int} {gnutls_init} (gnutls_session_t * @var{session}, unsigned int @var{flags})
+@var{session}: is a pointer to a @code{gnutls_session_t}  type.
+
+@var{flags}: indicate if this session is to be used for server or client.
+
+This function initializes the provided session. Every session must
+be initialized before use, and after successful initialization and
+use must be deinitialized by calling @code{gnutls_deinit()} .
+
+ @code{flags} can be any combination of flags from @code{gnutls_init_flags_t} .
+
+Note that since version 3.1.2 this function enables some common
+TLS extensions such as session tickets and OCSP certificate status
+request in client side by default. To prevent that use the @code{GNUTLS_NO_DEFAULT_EXTENSIONS} 
+flag.
+
+Note that it is never mandatory to use @code{gnutls_deinit()}  after this
+function fails.  Since gnutls 3.8.0, it is safe to unconditionally
+use @code{gnutls_deinit()}  even after failure regardless of whether the
+memory was initialized prior to @code{gnutls_init()} ; however, clients
+wanting to be portable to older versions of the library should
+either skip deinitialization on failure, or pre-initialize the
+memory passed in to @code{gnutls_init()}  to all zeroes via @code{memset()}  or
+similar.
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  on success, or an error code.
+@end deftypefun

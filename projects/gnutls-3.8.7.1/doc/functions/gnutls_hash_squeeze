@@ -1,0 +1,22 @@
+
+
+
+
+@deftypefun {int} {gnutls_hash_squeeze} (gnutls_hash_hd_t @var{handle}, void * @var{output}, size_t @var{length})
+@var{handle}: a @code{gnutls_hash_hd_t} 
+
+@var{output}: destination to store the output; must be equal to or larger than  @code{length} 
+
+@var{length}: length of  @code{output} 
+
+This function will extract digest output of  @code{length} bytes. The  @code{handle} must
+be initialized with @code{gnutls_hash_init()}  as an extended output function (XOF),
+such as @code{GNUTLS_DIG_SHAKE_128}  or @code{GNUTLS_DIG_SHAKE_256} .
+
+This function can be called multiple times. To reset the state of  @code{handle} ,
+call @code{gnutls_hash_deinit()}  with @code{NULL}  as the digest argument.
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  (0) on success; negative error code otherwise.
+
+@strong{Since:} 3.8.6
+@end deftypefun

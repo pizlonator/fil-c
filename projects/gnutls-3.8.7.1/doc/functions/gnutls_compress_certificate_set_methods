@@ -1,0 +1,36 @@
+
+
+
+
+@deftypefun {int} {gnutls_compress_certificate_set_methods} (gnutls_session_t @var{session}, const gnutls_compression_method_t * @var{methods}, size_t @var{methods_len})
+@var{session}: is a @code{gnutls_session_t}  type.
+
+@var{methods}: is a list of supported compression methods.
+
+@var{methods_len}: number of compression methods in  @code{methods} 
+
+This function sets the supported compression methods for certificate compression
+for the given session. The list of supported compression methods will be used
+for a) requesting the compression of peer's certificate and b) selecting the
+method to compress the local certificate before sending it to the peer.
+The order of compression methods inside the list does matter as the method
+that appears earlier in the list will be preferred before the later ones.
+Note that even if you set the list of supported compression methods, the
+compression might not be used if the peer does not support any of your chosen
+compression methods.
+
+The list of supported compression methods must meet the following criteria:
+Argument  @code{methods} must be an array of valid compression methods of type
+@code{gnutls_compression_method_t} . Argument  @code{methods_len} must contain the number of
+compression methods stored in the  @code{methods} array and must be within range <1, 127>.
+The length constraints are defined by @code{MIN_COMPRESS_CERTIFICATE_METHODS} 
+and @code{MAX_COMPRESS_CERTIFICATE_METHODS}  macros located in the header file
+compress_certificate.h.
+
+If either  @code{methods} or  @code{methods_len} is equal to 0, current list of supported
+compression methods will be unset.
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  on success, otherwise a negative error code.
+
+Since 3.7.4
+@end deftypefun

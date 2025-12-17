@@ -1,0 +1,20 @@
+
+
+
+
+@deftypefun {int} {gnutls_fips140_run_self_tests} ( @var{void})
+
+Manually perform the second round of the FIPS140 self-tests,
+including:
+
+- Known answer tests (KAT) for the selected set of symmetric
+cipher, MAC, public key, KDF, and DRBG
+- Library integrity checks
+
+Upon failure with FIPS140 mode enabled, it makes the library
+unusable.  This function is not thread-safe.
+
+@strong{Returns:} 0 upon success, a negative error code otherwise
+
+@strong{Since:} 3.7.7
+@end deftypefun

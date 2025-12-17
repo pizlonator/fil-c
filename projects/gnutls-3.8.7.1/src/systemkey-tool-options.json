@@ -1,0 +1,48 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "systemkey-tool",
+    "title": "GnuTLS system key tool",
+    "description": "Program to handle system keys.\n",
+    "detail": "Program that allows handling user keys as stored in the system in a uniform way.",
+    "short-usage": "systemkey-tool [options]\nsystemkey-tool --help for usage instructions.\n"
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "outfile",
+          "description": "Output file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "list",
+          "description": "Lists all stored keys"
+        },
+        {
+          "long-option": "delete",
+          "description": "Delete the key identified by the given URL",
+          "argument-type": "string",
+          "argument-name": "url"
+        },
+        {
+          "long-option": "outder",
+          "description": "Use DER format for output keys",
+          "detail": "The output will be in DER format.",
+          "disable-prefix": "no-"
+        }
+      ]
+    }
+  ]
+}

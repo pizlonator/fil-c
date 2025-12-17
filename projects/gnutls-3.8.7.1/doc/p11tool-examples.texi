@@ -1,0 +1,34 @@
+To view all tokens in your system use:
+@example
+$ p11tool --list-tokens
+@end example
+
+To view all objects in a token use:
+@example
+$ p11tool --login --list-all "pkcs11:TOKEN-URL"
+@end example
+
+To store a private key and a certificate in a token run:
+@example
+$ p11tool --login --write "pkcs11:URL" --load-privkey key.pem \
+          --label "Mykey"
+$ p11tool --login --write "pkcs11:URL" --load-certificate cert.pem \
+          --label "Mykey"
+@end example
+Note that some tokens require the same label to be used for the certificate
+and its corresponding private key.
+
+To generate an RSA private key inside the token use:
+@example
+$ p11tool --login --generate-privkey rsa --bits 1024 --label "MyNewKey" \
+          --outfile MyNewKey.pub "pkcs11:TOKEN-URL"
+@end example
+The bits parameter in the above example is explicitly set because some
+tokens only support limited choices in the bit length. The output file is the
+corresponding public key. This key can be used to general a certificate
+request with certtool.
+@example
+certtool --generate-request --load-privkey "pkcs11:KEY-URL" \
+   --load-pubkey MyNewKey.pub --outfile request.pem
+@end example
+

@@ -1,0 +1,3323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>crypto: GnuTLS API Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="GnuTLS API Reference Manual">
+<link rel="up" href="intro.html" title="GnuTLS API Reference Manual">
+<link rel="prev" href="gnutls-openpgp.html" title="openpgp">
+<link rel="next" href="gnutls-pkcs11.html" title="pkcs11">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#gnutls-crypto.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="intro.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="gnutls-openpgp.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="gnutls-pkcs11.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="gnutls-crypto"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="gnutls-crypto.top_of_page"></a>crypto</span></h2>
+<p>crypto</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="gnutls-crypto.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-init" title="gnutls_cipher_init ()">gnutls_cipher_init</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt" title="gnutls_cipher_encrypt ()">gnutls_cipher_encrypt</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt" title="gnutls_cipher_decrypt ()">gnutls_cipher_decrypt</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt2" title="gnutls_cipher_decrypt2 ()">gnutls_cipher_decrypt2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt2" title="gnutls_cipher_encrypt2 ()">gnutls_cipher_encrypt2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt3" title="gnutls_cipher_encrypt3 ()">gnutls_cipher_encrypt3</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt3" title="gnutls_cipher_decrypt3 ()">gnutls_cipher_decrypt3</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-set-iv" title="gnutls_cipher_set_iv ()">gnutls_cipher_set_iv</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-tag" title="gnutls_cipher_tag ()">gnutls_cipher_tag</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-add-auth" title="gnutls_cipher_add_auth ()">gnutls_cipher_add_auth</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-deinit" title="gnutls_cipher_deinit ()">gnutls_cipher_deinit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">unsigned</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-get-block-size" title="gnutls_cipher_get_block_size ()">gnutls_cipher_get_block_size</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-set-key" title="gnutls_aead_cipher_set_key ()">gnutls_aead_cipher_set_key</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-decrypt" title="gnutls_aead_cipher_decrypt ()">gnutls_aead_cipher_decrypt</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-encrypt" title="gnutls_aead_cipher_encrypt ()">gnutls_aead_cipher_encrypt</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-encryptv" title="gnutls_aead_cipher_encryptv ()">gnutls_aead_cipher_encryptv</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-encryptv2" title="gnutls_aead_cipher_encryptv2 ()">gnutls_aead_cipher_encryptv2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-decryptv2" title="gnutls_aead_cipher_decryptv2 ()">gnutls_aead_cipher_decryptv2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-deinit" title="gnutls_aead_cipher_deinit ()">gnutls_aead_cipher_deinit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">size_t</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-mac-get-nonce-size" title="gnutls_mac_get_nonce_size ()">gnutls_mac_get_nonce_size</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-set-nonce" title="gnutls_hmac_set_nonce ()">gnutls_hmac_set_nonce</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac" title="gnutls_hmac ()">gnutls_hmac</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-output" title="gnutls_hmac_output ()">gnutls_hmac_output</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-deinit" title="gnutls_hmac_deinit ()">gnutls_hmac_deinit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">unsigned</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-get-len" title="gnutls_hmac_get_len ()">gnutls_hmac_get_len</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="returnvalue">gnutls_hmac_hd_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hmac-copy" title="gnutls_hmac_copy ()">gnutls_hmac_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-init" title="gnutls_hash_init ()">gnutls_hash_init</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash" title="gnutls_hash ()">gnutls_hash</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-output" title="gnutls_hash_output ()">gnutls_hash_output</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-deinit" title="gnutls_hash_deinit ()">gnutls_hash_deinit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">unsigned</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-get-len" title="gnutls_hash_get_len ()">gnutls_hash_get_len</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="returnvalue">gnutls_hash_hd_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-copy" title="gnutls_hash_copy ()">gnutls_hash_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hash-squeeze" title="gnutls_hash_squeeze ()">gnutls_hash_squeeze</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hkdf-extract" title="gnutls_hkdf_extract ()">gnutls_hkdf_extract</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-hkdf-expand" title="gnutls_hkdf_expand ()">gnutls_hkdf_expand</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-pbkdf2" title="gnutls_pbkdf2 ()">gnutls_pbkdf2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-rnd" title="gnutls_rnd ()">gnutls_rnd</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-rnd-refresh" title="gnutls_rnd_refresh ()">gnutls_rnd_refresh</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-init-func" title="gnutls_cipher_init_func ()">*gnutls_cipher_init_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-setkey-func" title="gnutls_cipher_setkey_func ()">*gnutls_cipher_setkey_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-setiv-func" title="gnutls_cipher_setiv_func ()">*gnutls_cipher_setiv_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-getiv-func" title="gnutls_cipher_getiv_func ()">*gnutls_cipher_getiv_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt-func" title="gnutls_cipher_encrypt_func ()">*gnutls_cipher_encrypt_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt-func" title="gnutls_cipher_decrypt_func ()">*gnutls_cipher_decrypt_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-auth-func" title="gnutls_cipher_auth_func ()">*gnutls_cipher_auth_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-tag-func" title="gnutls_cipher_tag_func ()">*gnutls_cipher_tag_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-aead-encrypt-func" title="gnutls_cipher_aead_encrypt_func ()">*gnutls_cipher_aead_encrypt_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-aead-decrypt-func" title="gnutls_cipher_aead_decrypt_func ()">*gnutls_cipher_aead_decrypt_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-cipher-deinit-func" title="gnutls_cipher_deinit_func ()">*gnutls_cipher_deinit_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-cipher" title="gnutls_crypto_register_cipher ()">gnutls_crypto_register_cipher</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-aead-cipher" title="gnutls_crypto_register_aead_cipher ()">gnutls_crypto_register_aead_cipher</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-init-func" title="gnutls_mac_init_func ()">*gnutls_mac_init_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-setkey-func" title="gnutls_mac_setkey_func ()">*gnutls_mac_setkey_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-setnonce-func" title="gnutls_mac_setnonce_func ()">*gnutls_mac_setnonce_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-hash-func" title="gnutls_mac_hash_func ()">*gnutls_mac_hash_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-output-func" title="gnutls_mac_output_func ()">*gnutls_mac_output_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-deinit-func" title="gnutls_mac_deinit_func ()">*gnutls_mac_deinit_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-fast-func" title="gnutls_mac_fast_func ()">*gnutls_mac_fast_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-mac-copy-func" title="gnutls_mac_copy_func ()">*gnutls_mac_copy_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-mac" title="gnutls_crypto_register_mac ()">gnutls_crypto_register_mac</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-init-func" title="gnutls_digest_init_func ()">*gnutls_digest_init_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-hash-func" title="gnutls_digest_hash_func ()">*gnutls_digest_hash_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-output-func" title="gnutls_digest_output_func ()">*gnutls_digest_output_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-deinit-func" title="gnutls_digest_deinit_func ()">*gnutls_digest_deinit_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-fast-func" title="gnutls_digest_fast_func ()">*gnutls_digest_fast_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="gnutls-crypto.html#gnutls-digest-copy-func" title="gnutls_digest_copy_func ()">*gnutls_digest_copy_func</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-digest" title="gnutls_crypto_register_digest ()">gnutls_crypto_register_digest</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-encode-ber-digest-info" title="gnutls_encode_ber_digest_info ()">gnutls_encode_ber_digest_info</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-decode-ber-digest-info" title="gnutls_decode_ber_digest_info ()">gnutls_decode_ber_digest_info</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-decode-rs-value" title="gnutls_decode_rs_value ()">gnutls_decode_rs_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-encode-rs-value" title="gnutls_encode_rs_value ()">gnutls_encode_rs_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-encode-gost-rs-value" title="gnutls_encode_gost_rs_value ()">gnutls_encode_gost_rs_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="gnutls-crypto.html#gnutls-decode-gost-rs-value" title="gnutls_decode_gost_rs_value ()">gnutls_decode_gost_rs_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="gnutls-crypto.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t">gnutls_cipher_hd_t</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="gnutls-crypto.html#gnutls-cipher-flags-t" title="enum gnutls_cipher_flags_t">gnutls_cipher_flags_t</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t">gnutls_hash_hd_t</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t">gnutls_hmac_hd_t</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="gnutls-crypto.html#gnutls-rnd-level-t" title="enum gnutls_rnd_level_t">gnutls_rnd_level_t</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="gnutls-crypto.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="gnutls-crypto.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="gnutls-cipher-init"></a><h3>gnutls_cipher_init ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_init (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> *handle</code></em>,
+                    <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-cipher-algorithm-t" title="enum gnutls_cipher_algorithm_t"><span class="type">gnutls_cipher_algorithm_t</span></a> cipher</code></em>,
+                    <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *key</code></em>,
+                    <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *iv</code></em>);</pre>
+<p>This function will initialize the <em class="parameter"><code>handle</code></em>
+ context to be usable
+for encryption/decryption of data. This will effectively use the
+current crypto backend in use by gnutls or the cryptographic
+accelerator in use.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-init.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cipher</p></td>
+<td class="parameter_description"><p>the encryption algorithm to use</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>the key to be used for encryption/decryption</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iv</p></td>
+<td class="parameter_description"><p>the IV to use (if not applicable set NULL)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-init.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-encrypt"></a><h3>gnutls_cipher_encrypt ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_encrypt (<em class="parameter"><code>const <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                       <em class="parameter"><code><span class="type">void</span> *text</code></em>,
+                       <em class="parameter"><code><span class="type">size_t</span> textlen</code></em>);</pre>
+<p>This function will encrypt the given data using the algorithm
+specified by the context.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-decrypt"></a><h3>gnutls_cipher_decrypt ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_decrypt (<em class="parameter"><code>const <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                       <em class="parameter"><code><span class="type">void</span> *ciphertext</code></em>,
+                       <em class="parameter"><code><span class="type">size_t</span> ciphertextlen</code></em>);</pre>
+<p>This function will decrypt the given data using the algorithm
+specified by the context.</p>
+<p>Note that in AEAD ciphers, this will not check the tag. You will
+need to compare the tag sent with the value returned from <a class="link" href="gnutls-crypto.html#gnutls-cipher-tag" title="gnutls_cipher_tag ()"><code class="function">gnutls_cipher_tag()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-decrypt2"></a><h3>gnutls_cipher_decrypt2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_decrypt2 (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                        <em class="parameter"><code>const <span class="type">void</span> *ciphertext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> ciphertextlen</code></em>,
+                        <em class="parameter"><code><span class="type">void</span> *text</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> textlen</code></em>);</pre>
+<p>This function will decrypt the given data using the algorithm
+specified by the context. For block ciphers the <em class="parameter"><code>ctext_len</code></em>
+ must be
+a multiple of the block size. For the supported ciphers the plaintext
+data length will equal the ciphertext size.</p>
+<p>Note that in AEAD ciphers, this will not check the tag. You will
+need to compare the tag sent with the value returned from <a class="link" href="gnutls-crypto.html#gnutls-cipher-tag" title="gnutls_cipher_tag ()"><code class="function">gnutls_cipher_tag()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the decrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the available length for decrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt2.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-encrypt2"></a><h3>gnutls_cipher_encrypt2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_encrypt2 (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                        <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> textlen</code></em>,
+                        <em class="parameter"><code><span class="type">void</span> *ciphertext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> ciphertextlen</code></em>);</pre>
+<p>This function will encrypt the given data using the algorithm
+specified by the context. For block ciphers the <em class="parameter"><code>ptext_len</code></em>
+ must be
+a multiple of the block size. For the supported ciphers the encrypted
+data length will equal the plaintext size.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the encrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the available length for encrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt2.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-encrypt3"></a><h3>gnutls_cipher_encrypt3 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_encrypt3 (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                        <em class="parameter"><code>const <span class="type">void</span> *ptext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> ptext_len</code></em>,
+                        <em class="parameter"><code><span class="type">void</span> *ctext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> *ctext_len</code></em>,
+                        <em class="parameter"><code><span class="type">unsigned </span> flags</code></em>);</pre>
+<p>This function will encrypt the given data using the algorithm
+specified by the context. For block ciphers, <em class="parameter"><code>ptext_len</code></em>
+ is
+typically a multiple of the block size. If not, the caller can
+instruct the function to pad the last block according to <em class="parameter"><code>flags</code></em>
+.
+Currently, the only available padding scheme is
+<a class="link" href="gnutls-crypto.html#GNUTLS-CIPHER-PADDING-PKCS7:CAPS"><code class="literal">GNUTLS_CIPHER_PADDING_PKCS7</code></a>.</p>
+<p>If <em class="parameter"><code>ctext</code></em>
+ is not <code class="literal">NULL</code>, it must hold enough space to store
+resulting cipher text. To check the required size, this function
+can be called with <em class="parameter"><code>ctext</code></em>
+ set to <code class="literal">NULL</code>. Then <em class="parameter"><code>ctext_len</code></em>
+ will be
+updated without performing actual encryption.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt3.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the encrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of encrypted data (initially must hold the maximum available size)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags for padding</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-encrypt3.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.7.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-decrypt3"></a><h3>gnutls_cipher_decrypt3 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_decrypt3 (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                        <em class="parameter"><code>const <span class="type">void</span> *ctext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> ctext_len</code></em>,
+                        <em class="parameter"><code><span class="type">void</span> *ptext</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> *ptext_len</code></em>,
+                        <em class="parameter"><code><span class="type">unsigned </span> flags</code></em>);</pre>
+<p>This function will decrypt the given data using the algorithm
+specified by the context. If <em class="parameter"><code>flags</code></em>
+ is specified, padding for the
+decrypted data will be removed accordingly and <em class="parameter"><code>ptext_len</code></em>
+ will be
+updated.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt3.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the decrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the available length for decrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags for padding</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-decrypt3.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.7.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-set-iv"></a><h3>gnutls_cipher_set_iv ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_cipher_set_iv (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                      <em class="parameter"><code><span class="type">void</span> *iv</code></em>,
+                      <em class="parameter"><code><span class="type">size_t</span> ivlen</code></em>);</pre>
+<p>This function will set the IV to be used for the next
+encryption block.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-set-iv.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iv</p></td>
+<td class="parameter_description"><p>the IV to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ivlen</p></td>
+<td class="parameter_description"><p>the length of the IV</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-tag"></a><h3>gnutls_cipher_tag ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_tag (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *tag</code></em>,
+                   <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>);</pre>
+<p>This function operates on authenticated encryption with
+associated data (AEAD) ciphers and will return the
+output tag.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-tag.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag</p></td>
+<td class="parameter_description"><p>will hold the tag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>the length of the tag to return</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-tag.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-add-auth"></a><h3>gnutls_cipher_add_auth ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_cipher_add_auth (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>,
+                        <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                        <em class="parameter"><code><span class="type">size_t</span> text_size</code></em>);</pre>
+<p>This function operates on authenticated encryption with
+associated data (AEAD) ciphers and authenticate the
+input data. This function can only be called once
+and before any encryption operations.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-add-auth.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_size</p></td>
+<td class="parameter_description"><p>the length of the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-add-auth.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-deinit"></a><h3>gnutls_cipher_deinit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_cipher_deinit (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> handle</code></em>);</pre>
+<p>This function will deinitialize all resources occupied by the given
+encryption context.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-deinit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-cipher-hd-t" title="gnutls_cipher_hd_t"><span class="type">gnutls_cipher_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-get-block-size"></a><h3>gnutls_cipher_get_block_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">unsigned</span>
+gnutls_cipher_get_block_size ();</pre>
+<div class="refsect3">
+<a name="gnutls-cipher-get-block-size.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is an encryption algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-cipher-get-block-size.returns"></a><h4>Returns</h4>
+<p> the block size of the encryption algorithm.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-set-key"></a><h3>gnutls_aead_cipher_set_key ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_set_key (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                            <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *key</code></em>);</pre>
+<p>This function will set a new key without re-initializing the
+context.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-set-key.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>The key to be used for encryption</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-set-key.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.7.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-decrypt"></a><h3>gnutls_aead_cipher_decrypt ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_decrypt (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *auth</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> auth_len</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *ctext</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> ctext_len</code></em>,
+                            <em class="parameter"><code><span class="type">void</span> *ptext</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> *ptext_len</code></em>);</pre>
+<p>This function will decrypt the given data using the algorithm
+specified by the context. This function must be provided the complete
+data to be decrypted, including the authentication tag. On several
+AEAD ciphers, the authentication tag is appended to the ciphertext,
+though this is not a general rule. This function will fail if
+the tag verification fails.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-decrypt.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the nonce to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>The length of the nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth</p></td>
+<td class="parameter_description"><p>additional data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_len</p></td>
+<td class="parameter_description"><p>The length of the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>The size of the tag to use (use zero for the default)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the data to decrypt (including the authentication tag)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of data to decrypt (includes tag size)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the decrypted data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of decrypted data (initially must hold the maximum available size)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-decrypt.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on verification failure or other error.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-encrypt"></a><h3>gnutls_aead_cipher_encrypt ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_encrypt (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *auth</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> auth_len</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *ptext</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> ptext_len</code></em>,
+                            <em class="parameter"><code><span class="type">void</span> *ctext</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> *ctext_len</code></em>);</pre>
+<p>This function will encrypt the given data using the algorithm
+specified by the context. The output data will contain the
+authentication tag.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encrypt.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the nonce to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>The length of the nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth</p></td>
+<td class="parameter_description"><p>additional data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_len</p></td>
+<td class="parameter_description"><p>The length of the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>The size of the tag to use (use zero for the default)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>The length of data to encrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the encrypted data including authentication tag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of encrypted data (initially must hold the maximum available size, including space for tag)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encrypt.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-encryptv"></a><h3>gnutls_aead_cipher_encryptv ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_encryptv (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                             <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *auth_iov</code></em>,
+                             <em class="parameter"><code><span class="type">int</span> auth_iovcnt</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *iov</code></em>,
+                             <em class="parameter"><code><span class="type">int</span> iovcnt</code></em>,
+                             <em class="parameter"><code><span class="type">void</span> *ctext</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> *ctext_len</code></em>);</pre>
+<p>This function will encrypt the provided data buffers using the algorithm
+specified by the context. The output data will contain the
+authentication tag.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encryptv.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the nonce to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>The length of the nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iov</p></td>
+<td class="parameter_description"><p>additional data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>auth_iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>The size of the tag to use (use zero for the default)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iov</p></td>
+<td class="parameter_description"><p>the data to be encrypted</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext</p></td>
+<td class="parameter_description"><p>the encrypted data including authentication tag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ctext_len</p></td>
+<td class="parameter_description"><p>the length of encrypted data (initially must hold the maximum available size, including space for tag)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encryptv.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.3</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-encryptv2"></a><h3>gnutls_aead_cipher_encryptv2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_encryptv2 (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                              <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>,
+                              <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *auth_iov</code></em>,
+                              <em class="parameter"><code><span class="type">int</span> auth_iovcnt</code></em>,
+                              <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *iov</code></em>,
+                              <em class="parameter"><code><span class="type">int</span> iovcnt</code></em>,
+                              <em class="parameter"><code><span class="type">void</span> *tag</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> *tag_size</code></em>);</pre>
+<p>This is similar to <a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-encrypt" title="gnutls_aead_cipher_encrypt ()"><code class="function">gnutls_aead_cipher_encrypt()</code></a>, but it performs
+in-place encryption on the provided data buffers.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encryptv2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the nonce to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>The length of the nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iov</p></td>
+<td class="parameter_description"><p>additional data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>auth_iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iov</p></td>
+<td class="parameter_description"><p>the data to be encrypted</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag</p></td>
+<td class="parameter_description"><p>The authentication tag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>The size of the tag to use (use zero for the default)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-encryptv2.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-decryptv2"></a><h3>gnutls_aead_cipher_decryptv2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_aead_cipher_decryptv2 (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>,
+                              <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>,
+                              <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *auth_iov</code></em>,
+                              <em class="parameter"><code><span class="type">int</span> auth_iovcnt</code></em>,
+                              <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#giovec-t" title="giovec_t"><span class="type">giovec_t</span></a> *iov</code></em>,
+                              <em class="parameter"><code><span class="type">int</span> iovcnt</code></em>,
+                              <em class="parameter"><code><span class="type">void</span> *tag</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>);</pre>
+<p>This is similar to <a class="link" href="gnutls-crypto.html#gnutls-aead-cipher-decrypt" title="gnutls_aead_cipher_decrypt ()"><code class="function">gnutls_aead_cipher_decrypt()</code></a>, but it performs
+in-place encryption on the provided data buffers.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-decryptv2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the nonce to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>The length of the nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iov</p></td>
+<td class="parameter_description"><p>additional data to be authenticated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>auth_iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>auth_iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iov</p></td>
+<td class="parameter_description"><p>the data to decrypt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iovcnt</p></td>
+<td class="parameter_description"><p>The number of buffers in <em class="parameter"><code>iov</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag</p></td>
+<td class="parameter_description"><p>The authentication tag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag_size</p></td>
+<td class="parameter_description"><p>The size of the tag to use (use zero for the default)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-decryptv2.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-aead-cipher-deinit"></a><h3>gnutls_aead_cipher_deinit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_aead_cipher_deinit (<em class="parameter"><code><span class="type">gnutls_aead_cipher_hd_t</span> handle</code></em>);</pre>
+<p>This function will deinitialize all resources occupied by the given
+authenticated-encryption context.</p>
+<div class="refsect3">
+<a name="gnutls-aead-cipher-deinit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <span class="type">gnutls_aead_cipher_hd_t</span> type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-get-nonce-size"></a><h3>gnutls_mac_get_nonce_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">size_t</span>
+gnutls_mac_get_nonce_size ();</pre>
+<p>Returns the size of the nonce used by the MAC in TLS.</p>
+<div class="refsect3">
+<a name="gnutls-mac-get-nonce-size.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is an encryption algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-mac-get-nonce-size.returns"></a><h4>Returns</h4>
+<p> length (in bytes) of the given MAC nonce size, or 0.</p>
+</div>
+<p class="since">Since: 3.2.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-set-nonce"></a><h3>gnutls_hmac_set_nonce ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_hmac_set_nonce (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> handle</code></em>,
+                       <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                       <em class="parameter"><code><span class="type">size_t</span> nonce_len</code></em>);</pre>
+<p>This function will set the nonce in the MAC algorithm.</p>
+<div class="refsect3">
+<a name="gnutls-hmac-set-nonce.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce</p></td>
+<td class="parameter_description"><p>the data to set as nonce</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>nonce_len</p></td>
+<td class="parameter_description"><p>the length of data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 3.2.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac"></a><h3>gnutls_hmac ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hmac (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> handle</code></em>,
+             <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+             <em class="parameter"><code><span class="type">size_t</span> textlen</code></em>);</pre>
+<p>This function will hash the given data using the algorithm
+specified by the context.</p>
+<div class="refsect3">
+<a name="gnutls-hmac.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of data to hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hmac.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-output"></a><h3>gnutls_hmac_output ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_hmac_output (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> handle</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+<p>This function will output the current MAC value
+and reset the state of the MAC.</p>
+<div class="refsect3">
+<a name="gnutls-hmac-output.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>is the output value of the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-deinit"></a><h3>gnutls_hmac_deinit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_hmac_deinit (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> handle</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+<p>This function will deinitialize all resources occupied by
+the given hmac context.</p>
+<div class="refsect3">
+<a name="gnutls-hmac-deinit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>is the output value of the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-get-len"></a><h3>gnutls_hmac_get_len ()</h3>
+<pre class="programlisting"><span class="returnvalue">unsigned</span>
+gnutls_hmac_get_len ();</pre>
+<p>This function will return the length of the output data
+of the given hmac algorithm.</p>
+<div class="refsect3">
+<a name="gnutls-hmac-get-len.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>the hmac algorithm to use</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hmac-get-len.returns"></a><h4>Returns</h4>
+<p> The length or zero on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-copy"></a><h3>gnutls_hmac_copy ()</h3>
+<pre class="programlisting"><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="returnvalue">gnutls_hmac_hd_t</span></a>
+gnutls_hmac_copy (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> handle</code></em>);</pre>
+<p>This function will create a copy of MAC context, containing all its current
+state. Copying contexts for MACs registered using
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-mac" title="gnutls_crypto_register_mac ()"><code class="function">gnutls_crypto_register_mac()</code></a> is not supported and will always result in an
+error. In addition to that, some of the MAC implementations do not support
+this operation. Applications should check the return value and provide a
+proper fallback.</p>
+<div class="refsect3">
+<a name="gnutls-hmac-copy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hmac-hd-t" title="gnutls_hmac_hd_t"><span class="type">gnutls_hmac_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hmac-copy.returns"></a><h4>Returns</h4>
+<p> new MAC context or NULL in case of an error.</p>
+</div>
+<p class="since">Since: 3.6.9</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-init"></a><h3>gnutls_hash_init ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hash_init (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> *dig</code></em>,
+                  <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> algorithm</code></em>);</pre>
+<p>This function will initialize an context that can be used to
+produce a Message Digest of data.  This will effectively use the
+current crypto backend in use by gnutls or the cryptographic
+accelerator in use.</p>
+<div class="refsect3">
+<a name="gnutls-hash-init.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>dig</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>the hash algorithm to use</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hash-init.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash"></a><h3>gnutls_hash ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hash (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> handle</code></em>,
+             <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+             <em class="parameter"><code><span class="type">size_t</span> textlen</code></em>);</pre>
+<p>This function will hash the given data using the algorithm
+specified by the context.</p>
+<div class="refsect3">
+<a name="gnutls-hash.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext</p></td>
+<td class="parameter_description"><p>the data to hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ptext_len</p></td>
+<td class="parameter_description"><p>the length of data to hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hash.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-output"></a><h3>gnutls_hash_output ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_hash_output (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> handle</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+<p>This function will output the current hash value and reset the
+state of the hash. If <em class="parameter"><code>digest</code></em>
+ is <code class="literal">NULL</code>, it only resets the state of
+the hash.</p>
+<div class="refsect3">
+<a name="gnutls-hash-output.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>is the output value of the hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-deinit"></a><h3>gnutls_hash_deinit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_hash_deinit (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> handle</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+<p>This function will deinitialize all resources occupied by
+the given hash context.</p>
+<div class="refsect3">
+<a name="gnutls-hash-deinit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>is the output value of the hash</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-get-len"></a><h3>gnutls_hash_get_len ()</h3>
+<pre class="programlisting"><span class="returnvalue">unsigned</span>
+gnutls_hash_get_len ();</pre>
+<p>This function will return the length of the output data
+of the given hash algorithm.</p>
+<div class="refsect3">
+<a name="gnutls-hash-get-len.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>the hash algorithm to use</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hash-get-len.returns"></a><h4>Returns</h4>
+<p> The length or zero on error.</p>
+</div>
+<p class="since">Since: 2.10.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-copy"></a><h3>gnutls_hash_copy ()</h3>
+<pre class="programlisting"><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="returnvalue">gnutls_hash_hd_t</span></a>
+gnutls_hash_copy (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> handle</code></em>);</pre>
+<p>This function will create a copy of Message Digest context, containing all
+its current state. Copying contexts for Message Digests registered using
+<a class="link" href="gnutls-crypto.html#gnutls-crypto-register-digest" title="gnutls_crypto_register_digest ()"><code class="function">gnutls_crypto_register_digest()</code></a> is not supported and will always result in
+an error. In addition to that, some of the Message Digest implementations do
+not support this operation. Applications should check the return value and
+provide a proper fallback.</p>
+<div class="refsect3">
+<a name="gnutls-hash-copy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>is a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> type</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hash-copy.returns"></a><h4>Returns</h4>
+<p> new Message Digest context or NULL in case of an error.</p>
+</div>
+<p class="since">Since: 3.6.9</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-squeeze"></a><h3>gnutls_hash_squeeze ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hash_squeeze (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a> handle</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *output</code></em>,
+                     <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>This function will extract digest output of <em class="parameter"><code>length</code></em>
+ bytes. The <em class="parameter"><code>handle</code></em>
+ must
+be initialized with <a class="link" href="gnutls-crypto.html#gnutls-hash-init" title="gnutls_hash_init ()"><code class="function">gnutls_hash_init()</code></a> as an extended output function (XOF),
+such as <a class="link" href="gnutls-gnutls.html#GNUTLS-DIG-SHAKE-128:CAPS"><code class="literal">GNUTLS_DIG_SHAKE_128</code></a> or <a class="link" href="gnutls-gnutls.html#GNUTLS-DIG-SHAKE-256:CAPS"><code class="literal">GNUTLS_DIG_SHAKE_256</code></a>.</p>
+<p>This function can be called multiple times. To reset the state of <em class="parameter"><code>handle</code></em>
+,
+call <a class="link" href="gnutls-crypto.html#gnutls-hash-deinit" title="gnutls_hash_deinit ()"><code class="function">gnutls_hash_deinit()</code></a> with <code class="literal">NULL</code> as the digest argument.</p>
+<div class="refsect3">
+<a name="gnutls-hash-squeeze.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>handle</p></td>
+<td class="parameter_description"><p>a <a class="link" href="gnutls-crypto.html#gnutls-hash-hd-t" title="gnutls_hash_hd_t"><span class="type">gnutls_hash_hd_t</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>destination to store the output; must be equal to or larger than <em class="parameter"><code>length</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>output</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hash-squeeze.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) on success; negative error code otherwise.</p>
+</div>
+<p class="since">Since: 3.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hkdf-extract"></a><h3>gnutls_hkdf_extract ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hkdf_extract (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> mac</code></em>,
+                     <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *key</code></em>,
+                     <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *salt</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *output</code></em>);</pre>
+<p>This function will derive a fixed-size key using the HKDF-Extract
+function as defined in RFC 5869.</p>
+<div class="refsect3">
+<a name="gnutls-hkdf-extract.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>mac</p></td>
+<td class="parameter_description"><p>the mac algorithm used internally</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>the initial keying material</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>salt</p></td>
+<td class="parameter_description"><p>the optional salt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>the output value of the extract operation</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hkdf-extract.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.13</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hkdf-expand"></a><h3>gnutls_hkdf_expand ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_hkdf_expand (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> mac</code></em>,
+                    <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *key</code></em>,
+                    <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *info</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *output</code></em>,
+                    <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>This function will derive a variable length keying material from
+the pseudorandom key using the HKDF-Expand function as defined in
+RFC 5869.</p>
+<div class="refsect3">
+<a name="gnutls-hkdf-expand.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>mac</p></td>
+<td class="parameter_description"><p>the mac algorithm used internally</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>the pseudorandom key created with HKDF-Extract</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>info</p></td>
+<td class="parameter_description"><p>the optional informational data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>the output value of the expand operation</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>the desired length of the output key</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-hkdf-expand.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.13</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-pbkdf2"></a><h3>gnutls_pbkdf2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_pbkdf2 (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> mac</code></em>,
+               <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *key</code></em>,
+               <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *salt</code></em>,
+               <em class="parameter"><code><span class="type">unsigned </span> iter_count</code></em>,
+               <em class="parameter"><code><span class="type">void</span> *output</code></em>,
+               <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>This function will derive a variable length keying material from
+a password according to PKCS #5 PBKDF2.</p>
+<div class="refsect3">
+<a name="gnutls-pbkdf2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>mac</p></td>
+<td class="parameter_description"><p>the mac algorithm used internally</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>the initial keying material</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>salt</p></td>
+<td class="parameter_description"><p>the salt</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iter_count</p></td>
+<td class="parameter_description"><p>the iteration count</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>the output value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>the desired length of the output key</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-pbkdf2.returns"></a><h4>Returns</h4>
+<p> Zero or a negative error code on error.</p>
+</div>
+<p class="since">Since: 3.6.13</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-rnd"></a><h3>gnutls_rnd ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_rnd (<em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-rnd-level-t" title="enum gnutls_rnd_level_t"><span class="type">gnutls_rnd_level_t</span></a> level</code></em>,
+            <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+            <em class="parameter"><code><span class="type">size_t</span> len</code></em>);</pre>
+<p>This function will generate random data and store it to output
+buffer. The value of <em class="parameter"><code>level</code></em>
+ should be one of <a class="link" href="gnutls-crypto.html#GNUTLS-RND-NONCE:CAPS"><code class="literal">GNUTLS_RND_NONCE</code></a>,
+<a class="link" href="gnutls-crypto.html#GNUTLS-RND-RANDOM:CAPS"><code class="literal">GNUTLS_RND_RANDOM</code></a> and <a class="link" href="gnutls-crypto.html#GNUTLS-RND-KEY:CAPS"><code class="literal">GNUTLS_RND_KEY</code></a>. See the manual and
+<a class="link" href="gnutls-crypto.html#gnutls-rnd-level-t" title="enum gnutls_rnd_level_t"><code class="literal">gnutls_rnd_level_t</code></a> for detailed information.</p>
+<p>This function is thread-safe and also fork-safe.</p>
+<div class="refsect3">
+<a name="gnutls-rnd.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>level</p></td>
+<td class="parameter_description"><p>a security level</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>place to store random bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>The requested size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-rnd.returns"></a><h4>Returns</h4>
+<p> Zero on success, or a negative error code on error.</p>
+</div>
+<p class="since">Since: 2.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-rnd-refresh"></a><h3>gnutls_rnd_refresh ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+gnutls_rnd_refresh (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>This function refreshes the random generator state.
+That is the current precise time, CPU usage, and
+other values are input into its state.</p>
+<p>On a slower rate input from /dev/urandom is mixed too.</p>
+<p class="since">Since: 3.1.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-init-func"></a><h3>gnutls_cipher_init_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_init_func<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-cipher-algorithm-t" title="enum gnutls_cipher_algorithm_t"><span class="type">gnutls_cipher_algorithm_t</span></a> Param1</code></em>,
+                            <em class="parameter"><code><span class="type">void</span> **ctx</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> enc</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-setkey-func"></a><h3>gnutls_cipher_setkey_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_setkey_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                              <em class="parameter"><code>const <span class="type">void</span> *key</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> keysize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-setiv-func"></a><h3>gnutls_cipher_setiv_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_setiv_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                             <em class="parameter"><code>const <span class="type">void</span> *iv</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> ivsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-getiv-func"></a><h3>gnutls_cipher_getiv_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_getiv_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                             <em class="parameter"><code><span class="type">void</span> *iv</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> ivsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-encrypt-func"></a><h3>gnutls_cipher_encrypt_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_encrypt_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                               <em class="parameter"><code>const <span class="type">void</span> *plain</code></em>,
+                               <em class="parameter"><code><span class="type">size_t</span> plainsize</code></em>,
+                               <em class="parameter"><code><span class="type">void</span> *encr</code></em>,
+                               <em class="parameter"><code><span class="type">size_t</span> encrsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-decrypt-func"></a><h3>gnutls_cipher_decrypt_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_decrypt_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                               <em class="parameter"><code>const <span class="type">void</span> *encr</code></em>,
+                               <em class="parameter"><code><span class="type">size_t</span> encrsize</code></em>,
+                               <em class="parameter"><code><span class="type">void</span> *plain</code></em>,
+                               <em class="parameter"><code><span class="type">size_t</span> plainsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-auth-func"></a><h3>gnutls_cipher_auth_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_auth_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> datasize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-tag-func"></a><h3>gnutls_cipher_tag_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_tag_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                           <em class="parameter"><code><span class="type">void</span> *tag</code></em>,
+                           <em class="parameter"><code><span class="type">size_t</span> tagsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-aead-encrypt-func"></a><h3>gnutls_cipher_aead_encrypt_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_aead_encrypt_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> noncesize</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *auth</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> authsize</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *plain</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> plainsize</code></em>,
+                                    <em class="parameter"><code><span class="type">void</span> *encr</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> encrsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-aead-decrypt-func"></a><h3>gnutls_cipher_aead_decrypt_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_aead_decrypt_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> noncesize</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *auth</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> authsize</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> tag_size</code></em>,
+                                    <em class="parameter"><code>const <span class="type">void</span> *encr</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> encrsize</code></em>,
+                                    <em class="parameter"><code><span class="type">void</span> *plain</code></em>,
+                                    <em class="parameter"><code><span class="type">size_t</span> plainsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-deinit-func"></a><h3>gnutls_cipher_deinit_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*gnutls_cipher_deinit_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-crypto-register-cipher"></a><h3>gnutls_crypto_register_cipher ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_crypto_register_cipher (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-cipher-algorithm-t" title="enum gnutls_cipher_algorithm_t"><span class="type">gnutls_cipher_algorithm_t</span></a> algorithm</code></em>,
+                               <em class="parameter"><code><span class="type">int</span> priority</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-init-func" title="gnutls_cipher_init_func ()"><span class="type">gnutls_cipher_init_func</span></a> init</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-setkey-func" title="gnutls_cipher_setkey_func ()"><span class="type">gnutls_cipher_setkey_func</span></a> setkey</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-setiv-func" title="gnutls_cipher_setiv_func ()"><span class="type">gnutls_cipher_setiv_func</span></a> setiv</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt-func" title="gnutls_cipher_encrypt_func ()"><span class="type">gnutls_cipher_encrypt_func</span></a> encrypt</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt-func" title="gnutls_cipher_decrypt_func ()"><span class="type">gnutls_cipher_decrypt_func</span></a> decrypt</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-deinit-func" title="gnutls_cipher_deinit_func ()"><span class="type">gnutls_cipher_deinit_func</span></a> deinit</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">gnutls_crypto_register_cipher</code> is deprecated and should not be used in newly-written code.</p>
+<p>since 3.7.0 it is no longer possible to override cipher implementation</p>
+</div>
+<p>This function will register a cipher algorithm to be used by
+gnutls.  Any algorithm registered will override the included
+algorithms and by convention kernel implemented algorithms have
+priority of 90 and CPU-assisted of 80.  The algorithm with the lowest priority will be
+used by gnutls.</p>
+<p>In the case the registered init or setkey functions return <a class="link" href="gnutls-gnutls.html#GNUTLS-E-NEED-FALLBACK:CAPS" title="GNUTLS_E_NEED_FALLBACK"><code class="literal">GNUTLS_E_NEED_FALLBACK</code></a>,
+GnuTLS will attempt to use the next in priority registered cipher.</p>
+<p>The functions which are marked as non-AEAD they are not required when
+registering a cipher to be used with the new AEAD API introduced in
+GnuTLS 3.4.0. Internally GnuTLS uses the new AEAD API.</p>
+<div class="refsect3">
+<a name="gnutls-crypto-register-cipher.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is the gnutls algorithm identifier</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>priority</p></td>
+<td class="parameter_description"><p>is the priority of the algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>init</p></td>
+<td class="parameter_description"><p>A function which initializes the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setkey</p></td>
+<td class="parameter_description"><p>A function which sets the key of the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setiv</p></td>
+<td class="parameter_description"><p>A function which sets the nonce/IV of the cipher (non-AEAD)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>encrypt</p></td>
+<td class="parameter_description"><p>A function which performs encryption (non-AEAD)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>decrypt</p></td>
+<td class="parameter_description"><p>A function which performs decryption (non-AEAD)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>deinit</p></td>
+<td class="parameter_description"><p>A function which deinitializes the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-crypto-register-cipher.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> on success, otherwise a negative error code.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-crypto-register-aead-cipher"></a><h3>gnutls_crypto_register_aead_cipher ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_crypto_register_aead_cipher (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-cipher-algorithm-t" title="enum gnutls_cipher_algorithm_t"><span class="type">gnutls_cipher_algorithm_t</span></a> algorithm</code></em>,
+                                    <em class="parameter"><code><span class="type">int</span> priority</code></em>,
+                                    <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-init-func" title="gnutls_cipher_init_func ()"><span class="type">gnutls_cipher_init_func</span></a> init</code></em>,
+                                    <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-setkey-func" title="gnutls_cipher_setkey_func ()"><span class="type">gnutls_cipher_setkey_func</span></a> setkey</code></em>,
+                                    <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-aead-encrypt-func" title="gnutls_cipher_aead_encrypt_func ()"><span class="type">gnutls_cipher_aead_encrypt_func</span></a> aead_encrypt</code></em>,
+                                    <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-aead-decrypt-func" title="gnutls_cipher_aead_decrypt_func ()"><span class="type">gnutls_cipher_aead_decrypt_func</span></a> aead_decrypt</code></em>,
+                                    <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-cipher-deinit-func" title="gnutls_cipher_deinit_func ()"><span class="type">gnutls_cipher_deinit_func</span></a> deinit</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">gnutls_crypto_register_aead_cipher</code> is deprecated and should not be used in newly-written code.</p>
+<p>since 3.7.0 it is no longer possible to override cipher implementation</p>
+</div>
+<p>This function will register a cipher algorithm to be used by
+gnutls.  Any algorithm registered will override the included
+algorithms and by convention kernel implemented algorithms have
+priority of 90 and CPU-assisted of 80.  The algorithm with the lowest priority will be
+used by gnutls.</p>
+<p>In the case the registered init or setkey functions return <a class="link" href="gnutls-gnutls.html#GNUTLS-E-NEED-FALLBACK:CAPS" title="GNUTLS_E_NEED_FALLBACK"><code class="literal">GNUTLS_E_NEED_FALLBACK</code></a>,
+GnuTLS will attempt to use the next in priority registered cipher.</p>
+<p>The functions registered will be used with the new AEAD API introduced in
+GnuTLS 3.4.0. Internally GnuTLS uses the new AEAD API.</p>
+<div class="refsect3">
+<a name="gnutls-crypto-register-aead-cipher.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is the gnutls AEAD cipher identifier</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>priority</p></td>
+<td class="parameter_description"><p>is the priority of the algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>init</p></td>
+<td class="parameter_description"><p>A function which initializes the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setkey</p></td>
+<td class="parameter_description"><p>A function which sets the key of the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>aead_encrypt</p></td>
+<td class="parameter_description"><p>Perform the AEAD encryption</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>aead_decrypt</p></td>
+<td class="parameter_description"><p>Perform the AEAD decryption</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>deinit</p></td>
+<td class="parameter_description"><p>A function which deinitializes the cipher</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-crypto-register-aead-cipher.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> on success, otherwise a negative error code.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-init-func"></a><h3>gnutls_mac_init_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_init_func<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> Param1</code></em>,
+                         <em class="parameter"><code><span class="type">void</span> **ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-setkey-func"></a><h3>gnutls_mac_setkey_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_setkey_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                           <em class="parameter"><code>const <span class="type">void</span> *key</code></em>,
+                           <em class="parameter"><code><span class="type">size_t</span> keysize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-setnonce-func"></a><h3>gnutls_mac_setnonce_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_setnonce_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                             <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> noncesize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-hash-func"></a><h3>gnutls_mac_hash_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_hash_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                         <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                         <em class="parameter"><code><span class="type">size_t</span> textsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-output-func"></a><h3>gnutls_mac_output_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_output_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *src_ctx</code></em>,
+                           <em class="parameter"><code><span class="type">void</span> *digest</code></em>,
+                           <em class="parameter"><code><span class="type">size_t</span> digestsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-deinit-func"></a><h3>gnutls_mac_deinit_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*gnutls_mac_deinit_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-fast-func"></a><h3>gnutls_mac_fast_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_mac_fast_func<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> Param1</code></em>,
+                         <em class="parameter"><code>const <span class="type">void</span> *nonce</code></em>,
+                         <em class="parameter"><code><span class="type">size_t</span> nonce_size</code></em>,
+                         <em class="parameter"><code>const <span class="type">void</span> *key</code></em>,
+                         <em class="parameter"><code><span class="type">size_t</span> keysize</code></em>,
+                         <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                         <em class="parameter"><code><span class="type">size_t</span> textsize</code></em>,
+                         <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-mac-copy-func"></a><h3>gnutls_mac_copy_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*gnutls_mac_copy_func<span class="c_punctuation">)</span> (<em class="parameter"><code>const <span class="type">void</span> *ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-crypto-register-mac"></a><h3>gnutls_crypto_register_mac ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_crypto_register_mac (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-mac-algorithm-t" title="enum gnutls_mac_algorithm_t"><span class="type">gnutls_mac_algorithm_t</span></a> mac</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> priority</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-init-func" title="gnutls_mac_init_func ()"><span class="type">gnutls_mac_init_func</span></a> init</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-setkey-func" title="gnutls_mac_setkey_func ()"><span class="type">gnutls_mac_setkey_func</span></a> setkey</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-setnonce-func" title="gnutls_mac_setnonce_func ()"><span class="type">gnutls_mac_setnonce_func</span></a> setnonce</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-hash-func" title="gnutls_mac_hash_func ()"><span class="type">gnutls_mac_hash_func</span></a> hash</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-output-func" title="gnutls_mac_output_func ()"><span class="type">gnutls_mac_output_func</span></a> output</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-deinit-func" title="gnutls_mac_deinit_func ()"><span class="type">gnutls_mac_deinit_func</span></a> deinit</code></em>,
+                            <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-mac-fast-func" title="gnutls_mac_fast_func ()"><span class="type">gnutls_mac_fast_func</span></a> hash_fast</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">gnutls_crypto_register_mac</code> is deprecated and should not be used in newly-written code.</p>
+<p>since 3.7.0 it is no longer possible to override cipher implementation</p>
+</div>
+<p>This function will register a MAC algorithm to be used by gnutls.
+Any algorithm registered will override the included algorithms and
+by convention kernel implemented algorithms have priority of 90
+ and CPU-assisted of 80.
+The algorithm with the lowest priority will be used by gnutls.</p>
+<div class="refsect3">
+<a name="gnutls-crypto-register-mac.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is the gnutls MAC identifier</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>priority</p></td>
+<td class="parameter_description"><p>is the priority of the algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>init</p></td>
+<td class="parameter_description"><p>A function which initializes the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setkey</p></td>
+<td class="parameter_description"><p>A function which sets the key of the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setnonce</p></td>
+<td class="parameter_description"><p>A function which sets the nonce for the mac (may be <code class="literal">NULL</code> for common MAC algorithms)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash</p></td>
+<td class="parameter_description"><p>Perform the hash operation</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>Provide the output of the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>deinit</p></td>
+<td class="parameter_description"><p>A function which deinitializes the MAC</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash_fast</p></td>
+<td class="parameter_description"><p>Perform the MAC operation in one go</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-crypto-register-mac.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> on success, otherwise a negative error code.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-init-func"></a><h3>gnutls_digest_init_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_digest_init_func<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> Param1</code></em>,
+                            <em class="parameter"><code><span class="type">void</span> **ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-hash-func"></a><h3>gnutls_digest_hash_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_digest_hash_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> textsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-output-func"></a><h3>gnutls_digest_output_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_digest_output_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *src_ctx</code></em>,
+                              <em class="parameter"><code><span class="type">void</span> *digest</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> digestsize</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-deinit-func"></a><h3>gnutls_digest_deinit_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*gnutls_digest_deinit_func<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-fast-func"></a><h3>gnutls_digest_fast_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*gnutls_digest_fast_func<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> Param1</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *text</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> textsize</code></em>,
+                            <em class="parameter"><code><span class="type">void</span> *digest</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-digest-copy-func"></a><h3>gnutls_digest_copy_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*gnutls_digest_copy_func<span class="c_punctuation">)</span> (<em class="parameter"><code>const <span class="type">void</span> *ctx</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-crypto-register-digest"></a><h3>gnutls_crypto_register_digest ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_crypto_register_digest (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> digest</code></em>,
+                               <em class="parameter"><code><span class="type">int</span> priority</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-digest-init-func" title="gnutls_digest_init_func ()"><span class="type">gnutls_digest_init_func</span></a> init</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-digest-hash-func" title="gnutls_digest_hash_func ()"><span class="type">gnutls_digest_hash_func</span></a> hash</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-digest-output-func" title="gnutls_digest_output_func ()"><span class="type">gnutls_digest_output_func</span></a> output</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-digest-deinit-func" title="gnutls_digest_deinit_func ()"><span class="type">gnutls_digest_deinit_func</span></a> deinit</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-crypto.html#gnutls-digest-fast-func" title="gnutls_digest_fast_func ()"><span class="type">gnutls_digest_fast_func</span></a> hash_fast</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">gnutls_crypto_register_digest</code> is deprecated and should not be used in newly-written code.</p>
+<p>since 3.7.0 it is no longer possible to override cipher implementation</p>
+</div>
+<p>This function will register a digest algorithm to be used by gnutls.
+Any algorithm registered will override the included algorithms and
+by convention kernel implemented algorithms have priority of 90
+ and CPU-assisted of 80.
+The algorithm with the lowest priority will be used by gnutls.</p>
+<div class="refsect3">
+<a name="gnutls-crypto-register-digest.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>algorithm</p></td>
+<td class="parameter_description"><p>is the gnutls digest identifier</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>priority</p></td>
+<td class="parameter_description"><p>is the priority of the algorithm</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>init</p></td>
+<td class="parameter_description"><p>A function which initializes the digest</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash</p></td>
+<td class="parameter_description"><p>Perform the hash operation</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>Provide the output of the digest</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>deinit</p></td>
+<td class="parameter_description"><p>A function which deinitializes the digest</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash_fast</p></td>
+<td class="parameter_description"><p>Perform the digest operation in one go</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-crypto-register-digest.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> on success, otherwise a negative error code.</p>
+</div>
+<p class="since">Since: 3.4.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-encode-ber-digest-info"></a><h3>gnutls_encode_ber_digest_info ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_encode_ber_digest_info (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> hash</code></em>,
+                               <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *digest</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *output</code></em>);</pre>
+<p>This function will encode the provided digest data, and its
+algorithm into an RSA PKCS#1 1.5 DigestInfo structure.</p>
+<div class="refsect3">
+<a name="gnutls-encode-ber-digest-info.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>info</p></td>
+<td class="parameter_description"><p>an RSA BER encoded DigestInfo structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash</p></td>
+<td class="parameter_description"><p>the hash algorithm that was used to get the digest</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>must contain the digest data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>output</p></td>
+<td class="parameter_description"><p>will contain the allocated DigestInfo BER encoded data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-encode-ber-digest-info.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.5.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-decode-ber-digest-info"></a><h3>gnutls_decode_ber_digest_info ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_decode_ber_digest_info (<em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *info</code></em>,
+                               <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-digest-algorithm-t" title="enum gnutls_digest_algorithm_t"><span class="type">gnutls_digest_algorithm_t</span></a> *hash</code></em>,
+                               <em class="parameter"><code>unsigned <span class="type">char</span> *digest</code></em>,
+                               <em class="parameter"><code>unsigned <span class="type">int</span> *digest_size</code></em>);</pre>
+<p>This function will parse an RSA PKCS#1 1.5 DigestInfo structure
+and report the hash algorithm used as well as the digest data.</p>
+<div class="refsect3">
+<a name="gnutls-decode-ber-digest-info.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>info</p></td>
+<td class="parameter_description"><p>an RSA BER encoded DigestInfo structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hash</p></td>
+<td class="parameter_description"><p>will contain the hash algorithm of the structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest</p></td>
+<td class="parameter_description"><p>will contain the hash output of the structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>digest_size</p></td>
+<td class="parameter_description"><p>will contain the hash size of the structure; initially must hold the maximum size of <em class="parameter"><code>digest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-decode-ber-digest-info.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.5.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-decode-rs-value"></a><h3>gnutls_decode_rs_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_decode_rs_value (<em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *sig_value</code></em>,
+                        <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *r</code></em>,
+                        <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *s</code></em>);</pre>
+<p>This function will decode the provided <em class="parameter"><code>sig_value</code></em>
+, 
+into <em class="parameter"><code>r</code></em>
+ and <em class="parameter"><code>s</code></em>
+ elements. The Dss-Sig-Value is used for DSA and ECDSA
+signatures.</p>
+<p>The output values may be padded with a zero byte to prevent them
+from being interpreted as negative values. The value
+should be deallocated using <a class="link" href="gnutls-gnutls.html#gnutls-free" title="gnutls_free()"><code class="function">gnutls_free()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-decode-rs-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sig_value</p></td>
+<td class="parameter_description"><p>holds a Dss-Sig-Value DER or BER encoded structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>will contain the r value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>s</p></td>
+<td class="parameter_description"><p>will contain the s value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-decode-rs-value.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.6.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-encode-rs-value"></a><h3>gnutls_encode_rs_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_encode_rs_value (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *sig_value</code></em>,
+                        <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *r</code></em>,
+                        <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *s</code></em>);</pre>
+<p>This function will encode the provided r and s values, 
+into a Dss-Sig-Value structure, used for DSA and ECDSA
+signatures.</p>
+<p>The output value should be deallocated using <a class="link" href="gnutls-gnutls.html#gnutls-free" title="gnutls_free()"><code class="function">gnutls_free()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-encode-rs-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sig_value</p></td>
+<td class="parameter_description"><p>will hold a Dss-Sig-Value DER encoded structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>must contain the r value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>s</p></td>
+<td class="parameter_description"><p>must contain the s value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-encode-rs-value.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.6.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-encode-gost-rs-value"></a><h3>gnutls_encode_gost_rs_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_encode_gost_rs_value (<em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *sig_value</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *r</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *s</code></em>);</pre>
+<p>This function will encode the provided r and s values, into binary
+representation according to RFC 4491 section 2.2.2, used for GOST R
+34.10-2001 (and thus also for GOST R 34.10-2012) signatures.</p>
+<p>The output value should be deallocated using <a class="link" href="gnutls-gnutls.html#gnutls-free" title="gnutls_free()"><code class="function">gnutls_free()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-encode-gost-rs-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sig_value</p></td>
+<td class="parameter_description"><p>will hold a GOST signature according to RFC 4491 section 2.2.2</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>must contain the r value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>s</p></td>
+<td class="parameter_description"><p>must contain the s value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-encode-gost-rs-value.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.6.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-decode-gost-rs-value"></a><h3>gnutls_decode_gost_rs_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+gnutls_decode_gost_rs_value (<em class="parameter"><code>const <a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *sig_value</code></em>,
+                             <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *r</code></em>,
+                             <em class="parameter"><code><a class="link" href="gnutls-gnutls.html#gnutls-datum-t" title="gnutls_datum_t"><span class="type">gnutls_datum_t</span></a> *s</code></em>);</pre>
+<p>This function will decode the provided <em class="parameter"><code>sig_value</code></em>
+, into <em class="parameter"><code>r</code></em>
+ and <em class="parameter"><code>s</code></em>
+ elements.
+See RFC 4491 section 2.2.2 for the format of signature value.</p>
+<p>The output values may be padded with a zero byte to prevent them
+from being interpreted as negative values. The value
+should be deallocated using <a class="link" href="gnutls-gnutls.html#gnutls-free" title="gnutls_free()"><code class="function">gnutls_free()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-decode-gost-rs-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sig_value</p></td>
+<td class="parameter_description"><p>will holds a GOST signature according to RFC 4491 section 2.2.2</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>will contain the r value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>s</p></td>
+<td class="parameter_description"><p>will contain the s value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="gnutls-decode-gost-rs-value.returns"></a><h4>Returns</h4>
+<p> On success, <a class="link" href="gnutls-gnutls.html#GNUTLS-E-SUCCESS:CAPS" title="GNUTLS_E_SUCCESS"><code class="literal">GNUTLS_E_SUCCESS</code></a> (0) is returned, otherwise
+an error code is returned.</p>
+</div>
+<p class="since">Since: 3.6.0</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="gnutls-crypto.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="gnutls-cipher-hd-t"></a><h3>gnutls_cipher_hd_t</h3>
+<pre class="programlisting">typedef struct api_cipher_hd_st *gnutls_cipher_hd_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-cipher-flags-t"></a><h3>enum gnutls_cipher_flags_t</h3>
+<p>Enumeration of flags to control block cipher padding, used by
+<a class="link" href="gnutls-crypto.html#gnutls-cipher-encrypt3" title="gnutls_cipher_encrypt3 ()"><code class="function">gnutls_cipher_encrypt3()</code></a> and <a class="link" href="gnutls-crypto.html#gnutls-cipher-decrypt3" title="gnutls_cipher_decrypt3 ()"><code class="function">gnutls_cipher_decrypt3()</code></a>.</p>
+<div class="refsect3">
+<a name="gnutls-cipher-flags-t.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody><tr>
+<td class="enum_member_name"><p><a name="GNUTLS-CIPHER-PADDING-PKCS7:CAPS"></a>GNUTLS_CIPHER_PADDING_PKCS7</p></td>
+<td class="enum_member_description">
+<p>Flag to indicate PKCS#7 padding</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: 3.7.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hash-hd-t"></a><h3>gnutls_hash_hd_t</h3>
+<pre class="programlisting">typedef struct hash_hd_st *gnutls_hash_hd_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-hmac-hd-t"></a><h3>gnutls_hmac_hd_t</h3>
+<pre class="programlisting">typedef struct hmac_hd_st *gnutls_hmac_hd_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gnutls-rnd-level-t"></a><h3>enum gnutls_rnd_level_t</h3>
+<p>Enumeration of random quality levels.</p>
+<div class="refsect3">
+<a name="gnutls-rnd-level-t.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="GNUTLS-RND-NONCE:CAPS"></a>GNUTLS_RND_NONCE</p></td>
+<td class="enum_member_description">
+<p>Non-predictable random number.  Fatal in parts
+of session if broken, i.e., vulnerable to statistical analysis.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GNUTLS-RND-RANDOM:CAPS"></a>GNUTLS_RND_RANDOM</p></td>
+<td class="enum_member_description">
+<p>Pseudo-random cryptographic random number.
+Fatal in session if broken. Example use: temporal keys.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GNUTLS-RND-KEY:CAPS"></a>GNUTLS_RND_KEY</p></td>
+<td class="enum_member_description">
+<p>Fatal in many sessions if broken. Example use:
+Long-term keys.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.34.0</div>
+</body>
+</html>

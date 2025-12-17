@@ -1,0 +1,16 @@
+
+
+
+
+@deftypefun {const char *} {gnutls_ext_get_name2} (gnutls_session_t @var{session}, unsigned int @var{tls_id}, gnutls_ext_parse_type_t @var{parse_point})
+@var{session}: a @code{gnutls_session_t}  opaque pointer
+
+@var{tls_id}: is a TLS extension numeric ID
+
+@var{parse_point}: the parse type of the extension
+
+Convert a TLS extension numeric ID to a printable string.
+
+@strong{Returns:} a pointer to a string that contains the name of the
+specified cipher, or @code{NULL} .
+@end deftypefun

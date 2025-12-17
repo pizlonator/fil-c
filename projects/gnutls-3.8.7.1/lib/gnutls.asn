@@ -1,0 +1,192 @@
+GNUTLS { }
+
+DEFINITIONS EXPLICIT TAGS ::=
+
+BEGIN
+
+-- This file contains parts of PKCS-1 structures and some stuff
+-- required for DSA keys.
+
+RSAPublicKey ::= SEQUENCE {
+        modulus                 INTEGER, -- n
+        publicExponent          INTEGER  -- e 
+}
+
+-- 
+-- Representation of RSA private key with information for the 
+-- CRT algorithm.
+--
+RSAPrivateKey ::= SEQUENCE {
+  version          INTEGER,
+  modulus          INTEGER, -- (Usually large) n
+  publicExponent   INTEGER, -- (Usually small) e
+  privateExponent  INTEGER, -- (Usually large) d
+  prime1           INTEGER, -- (Usually large) p
+  prime2           INTEGER, -- (Usually large) q
+  exponent1        INTEGER, -- (Usually large) d mod (p-1)
+  exponent2        INTEGER, -- (Usually large) d mod (q-1)
+  coefficient      INTEGER, -- (Usually large) (inverse of q) mod p
+  otherPrimeInfos  OtherPrimeInfos OPTIONAL
+}
+
+ProvableSeed ::= SEQUENCE {
+  algorithm OBJECT IDENTIFIER, -- the hash algorithm OID used for FIPS186-4 generation
+  seed OCTET STRING
+}
+
+
+OtherPrimeInfos ::= SEQUENCE SIZE(1..MAX) OF OtherPrimeInfo
+
+OtherPrimeInfo ::= SEQUENCE {
+  prime INTEGER,  -- ri
+  exponent INTEGER, -- di
+  coefficient INTEGER -- ti 
+}
+
+-- for signature calculation
+-- added by nmav
+
+AlgorithmIdentifier ::= SEQUENCE  {
+     algorithm               OBJECT IDENTIFIER,
+     parameters              ANY DEFINED BY algorithm OPTIONAL  
+}
+                                -- contains a value of the type
+                                -- registered for use with the
+                                -- algorithm object identifier value
+
+DigestInfo ::= SEQUENCE {
+     digestAlgorithm DigestAlgorithmIdentifier,
+     digest OCTET STRING
+}
+
+DigestAlgorithmIdentifier ::= AlgorithmIdentifier
+
+DSAPublicKey ::= INTEGER
+
+DSAParameters ::= SEQUENCE {
+        p                   INTEGER,
+        q                   INTEGER,
+        g                   INTEGER
+}
+
+DSASignatureValue ::= SEQUENCE {
+        r                   INTEGER,
+        s                   INTEGER
+}
+
+DSAPrivateKey ::= SEQUENCE {
+  version  INTEGER, -- should be zero
+  p        INTEGER,
+  q        INTEGER,
+  g        INTEGER,
+  Y        INTEGER, -- public
+  priv     INTEGER
+}
+
+-- from PKCS#3
+DHParameter ::= SEQUENCE {
+  prime               INTEGER, -- p
+  base                INTEGER, -- g
+  privateValueLength  INTEGER OPTIONAL 
+}
+
+-- From PKCS #11 3.0
+pkcs-11-ec-Parameters ::= CHOICE {
+  --ecParameters   ECParameters,
+  oId              OBJECT IDENTIFIER,
+  --implicitlyCA   NULL,
+  curveName        PrintableString
+}
+
+-- ECC from RFC5480
+ECParameters ::= CHOICE {
+  namedCurve         OBJECT IDENTIFIER
+}
+
+ECPrivateKey ::= SEQUENCE {
+   Version       INTEGER, -- { ecPrivkeyVer1(1) }
+   privateKey    OCTET STRING,
+   parameters    [0] ECParameters OPTIONAL,
+   publicKey     [1] BIT STRING OPTIONAL
+}
+
+-- Structures used for the PKINIT othername variables
+PrincipalName   ::= SEQUENCE {
+        name-type       [0] INTEGER,
+        name-string     [1] SEQUENCE OF GeneralString
+}
+
+KRB5PrincipalName ::= SEQUENCE {
+	realm                   [0] GeneralString,
+	principalName           [1] PrincipalName
+}
+
+-- from RFC4055
+RSAPSSParameters ::= SEQUENCE {
+	hashAlgorithm		[0] AlgorithmIdentifier OPTIONAL, -- sha1Identifier
+	maskGenAlgorithm	[1] AlgorithmIdentifier OPTIONAL, -- mgf1SHA1Identifier
+	saltLength		[2] INTEGER DEFAULT 20,
+	trailerField		[3] INTEGER DEFAULT 1
+}
+
+-- from RFC4055
+RSAOAEPParameters ::= SEQUENCE {
+	hashAlgorithm		[0] AlgorithmIdentifier OPTIONAL, -- sha1Identifier
+	maskGenAlgorithm	[1] AlgorithmIdentifier OPTIONAL, -- mgf1SHA1Identifier
+	pSourceFunc             [2] AlgorithmIdentifier OPTIONAL  -- pSpecifiedEmptyIdentifier
+}
+
+-- GOST R 34.10
+GOSTParameters ::= SEQUENCE {
+   publicKeyParamSet  OBJECT IDENTIFIER,
+   digestParamSet     OBJECT IDENTIFIER OPTIONAL
+}
+
+GOSTParametersOld ::= SEQUENCE {
+   publicKeyParamSet  OBJECT IDENTIFIER,
+   digestParamSet     OBJECT IDENTIFIER,
+   encryptionParamSet OBJECT IDENTIFIER OPTIONAL
+}
+
+GOSTPrivateKey ::= OCTET STRING
+GOSTPrivateKeyOld ::= INTEGER
+
+-- GOST x509 Extensions
+IssuerSignTool ::= SEQUENCE {
+	signTool	UTF8String, -- (SIZE (1..200))
+	cATool		UTF8String, -- (SIZE (1..200))
+	signToolCert	UTF8String, -- (SIZE (1..100))
+	cAToolCert	UTF8String  -- (SIZE (1..100))
+}
+
+Gost28147-89-EncryptedKey ::= SEQUENCE {
+	encryptedKey		OCTET STRING, -- (SIZE (32))
+	maskKey			[0] IMPLICIT OCTET STRING OPTIONAL,
+	macKey			OCTET STRING -- (SIZE (1..4))
+}
+
+SubjectPublicKeyInfo ::= SEQUENCE {
+	algorithm		AlgorithmIdentifier,
+	subjectPublicKey	BIT STRING
+}
+
+GostR3410-TransportParameters ::= SEQUENCE {
+	encryptionParamSet	OBJECT IDENTIFIER,
+	ephemeralPublicKey	[0] IMPLICIT SubjectPublicKeyInfo OPTIONAL,
+	ukm			OCTET STRING
+}
+
+GostR3410-KeyTransport ::= SEQUENCE {
+	sessionEncryptedKey	Gost28147-89-EncryptedKey,
+	transportParameters	[0] IMPLICIT GostR3410-TransportParameters OPTIONAL
+}
+
+TPMKey ::= SEQUENCE {
+    type            OBJECT IDENTIFIER,
+    emptyAuth       [0] EXPLICIT BOOLEAN OPTIONAL,
+    parent          INTEGER,
+    pubkey          OCTET STRING,
+    privkey         OCTET STRING
+}
+
+END

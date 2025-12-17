@@ -1,0 +1,140 @@
+@node srptool Invocation
+@subsubsection Invoking srptool
+@pindex srptool
+
+Simple program that emulates the programs in the Stanford SRP (Secure
+Remote Password) libraries using GnuTLS.  It is intended for use in  places
+where you don't expect SRP authentication to be the used for system users.
+
+In  brief,  to use SRP you need to create two files. These are the password
+file that holds the users and the verifiers associated with  them  and  the
+configuration file to hold the group parameters (called tpasswd.conf).
+
+@anchor{srptool usage}
+@subsubheading srptool help/usage (@option{-?})
+@cindex srptool help
+
+The text printed is the same whether selected with the @code{help} option
+(@option{--help}) or the @code{more-help} option (@option{--more-help}).  @code{more-help} will print
+the usage text by passing it through a pager program.
+@code{more-help} is disabled on platforms without a working
+@code{fork(2)} function.  The @code{PAGER} environment variable is
+used to select the program, defaulting to @file{more}.  Both will exit
+with a status code of 0.
+
+@exampleindent 0
+@example
+srptool - GnuTLS SRP tool
+Usage:  srptool [ -<flag> [<val>] | --<name>[@{=| @}<val>] ]... 
+
+None:
+
+   -d, --debug=num            Enable debugging
+				- it must be in the range:
+				  0 to 9999
+   -i, --index=num            specify the index of the group parameters in tpasswd.conf to use
+   -u, --username=str         specify a username
+   -p, --passwd=str           specify a password file
+   -s, --salt=num             specify salt size
+       --verify               just verify the password
+   -v, --passwd-conf=str      specify a password conf file
+       --create-conf=str      Generate a password configuration file
+
+Version, usage and configuration options:
+
+   -v, --version[=arg]        output version information and exit
+   -h, --help                 display extended usage information and exit
+   -!, --more-help            extended usage information passed thru pager
+
+Options are specified by doubled hyphens and their name or by a single
+hyphen and the flag character.
+
+Simple program that emulates the programs in the Stanford SRP (Secure
+Remote Password) libraries using GnuTLS.  It is intended for use in  places
+where you don't expect SRP authentication to be the used for system users.
+
+In  brief,  to use SRP you need to create two files. These are the password
+file that holds the users and the verifiers associated with  them  and  the
+configuration file to hold the group parameters (called tpasswd.conf).
+
+Please send bug reports to:  <bugs@@gnutls.org>
+
+@end example
+@exampleindent 4
+
+@subsubheading debug option (-d).
+@anchor{srptool debug}
+
+This is the ``enable debugging'' option.
+This option takes a ArgumentType.NUMBER argument.
+Specifies the debug level.
+@subsubheading verify option.
+@anchor{srptool verify}
+
+This is the ``just verify the password'' option.
+Verifies the password provided against the password file.
+@subsubheading passwd-conf option (-v).
+@anchor{srptool passwd-conf}
+
+This is the ``specify a password conf file'' option.
+This option takes a ArgumentType.STRING argument.
+Specify a filename or a PKCS #11 URL to read the CAs from.
+@subsubheading create-conf option.
+@anchor{srptool create-conf}
+
+This is the ``generate a password configuration file'' option.
+This option takes a ArgumentType.STRING argument.
+This generates a password configuration file (tpasswd.conf)
+containing the required for TLS parameters.
+@subsubheading version option (-v).
+@anchor{srptool version}
+
+This is the ``output version information and exit'' option.
+This option takes a ArgumentType.KEYWORD argument.
+Output version of program and exit.  The default mode is `v', a simple
+version.  The `c' mode will print copyright information and `n' will
+print the full copyright notice.
+@subsubheading help option (-h).
+@anchor{srptool help}
+
+This is the ``display extended usage information and exit'' option.
+Display usage information and exit.
+@subsubheading more-help option (-!).
+@anchor{srptool more-help}
+
+This is the ``extended usage information passed thru pager'' option.
+Pass the extended usage information through a pager.
+@anchor{srptool exit status}
+@subsubheading srptool exit status
+
+One of the following exit values will be returned:
+@table @samp
+@item 0 (EXIT_SUCCESS)
+Successful program execution.
+@item 1 (EXIT_FAILURE)
+The operation failed or the command syntax was not valid.
+@end table
+@anchor{srptool See Also}
+@subsubheading srptool See Also
+    gnutls-cli-debug (1), gnutls-serv (1), srptool (1), psktool (1), certtool (1)
+@anchor{srptool Examples}
+@subsubheading srptool Examples
+To create @file{tpasswd.conf} which holds the g and n values for SRP protocol
+(generator and a large prime), run:
+@example
+$ srptool --create-conf /etc/tpasswd.conf
+@end example
+
+This command will create @file{/etc/tpasswd} and will add user 'test' (you
+will also be prompted for a password). Verifiers are stored by default
+in the way libsrp expects.
+@example
+$ srptool --passwd /etc/tpasswd --passwd-conf /etc/tpasswd.conf -u test
+@end example
+
+
+This command will check against a password. If the password matches
+the one in @file{/etc/tpasswd} you will get an ok.
+@example
+$ srptool --passwd /etc/tpasswd --passwd\-conf /etc/tpasswd.conf --verify -u test
+@end example

@@ -1,0 +1,21 @@
+
+
+
+
+@deftypefun {int} {gnutls_x509_ct_sct_get_version} (gnutls_x509_ct_scts_t @var{scts}, unsigned @var{idx}, unsigned int * @var{version_out})
+@var{scts}: A list of SCTs
+
+@var{idx}: The index of the target SCT in the list
+
+@var{version_out}: The version of the target SCT.
+
+This function obtains the version of the SCT at the given position
+in the SCT list.
+
+The version of that SCT will be placed on  @code{version_out} .
+
+Return : @code{GNUTLS_E_SUCCESS}  (0) is returned on success,
+@code{GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE}  if  @code{idx} exceeds the number of SCTs in the list
+and @code{GNUTLS_E_INVALID_REQUEST}  if the SCT's version is different than 1, as that's currently
+the only defined version.
+@end deftypefun

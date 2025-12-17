@@ -1,0 +1,430 @@
+{
+  "format-version": "0.1.0",
+  "tool": {
+    "name": "gnutls-cli",
+    "title": "GnuTLS client",
+    "description": "Simple client program to set up a TLS connection.",
+    "detail": "Simple client program to set up a TLS connection to some other computer. \nIt sets up a TLS connection and forwards data from the standard input to the secured socket and vice versa.",
+    "short-usage": "Usage: gnutls-cli [options] hostname\ngnutls-cli --help for usage instructions.\n",
+    "argument": "[hostname]",
+    "reorder-arguments": true
+  },
+  "sections": [
+    {
+      "options": [
+        {
+          "long-option": "debug",
+          "short-option": "d",
+          "description": "Enable debugging",
+          "detail": "Specifies the debug level.",
+          "argument-range": {
+            "min": 0,
+            "max": 9999
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "verbose",
+          "short-option": "V",
+          "description": "More verbose output"
+        },
+        {
+          "long-option": "tofu",
+          "description": "Enable trust on first use authentication",
+          "detail": "This option will, in addition to certificate authentication, perform authentication\nbased on previously seen public keys, a model similar to SSH authentication. Note that when tofu \nis specified (PKI) and DANE authentication will become advisory to assist the public key acceptance\nprocess.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "strict-tofu",
+          "description": "Fail to connect if a certificate is unknown or a known certificate has changed",
+          "detail": "This option will perform authentication as with option --tofu; however, no questions shall be asked whatsoever, neither to accept an unknown certificate nor a changed one.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "dane",
+          "description": "Enable DANE certificate verification (DNSSEC)",
+          "detail": "This option will, in addition to certificate authentication using \nthe trusted CAs, verify the server certificates using on the DANE information\navailable via DNSSEC.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "local-dns",
+          "description": "Use the local DNS server for DNSSEC resolving",
+          "detail": "This option will use the local DNS server for DNSSEC.\nThis is disabled by default due to many servers not allowing DNSSEC.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "ca-verification",
+          "description": "Enable CA certificate verification",
+          "detail": "This option can be used to enable or disable CA certificate verification. It is to be used with the --dane or --tofu options.",
+          "enabled": true,
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "ocsp",
+          "description": "Enable OCSP certificate verification",
+          "detail": "This option will enable verification of the peer's certificate using ocsp",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "resume",
+          "short-option": "r",
+          "description": "Establish a session and resume",
+          "detail": "Connect, establish a session, reconnect and resume."
+        },
+        {
+          "long-option": "earlydata",
+          "description": "Send early data on resumption from the specified file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "rehandshake",
+          "short-option": "e",
+          "description": "Establish a session and rehandshake",
+          "detail": "Connect, establish a session and rehandshake immediately."
+        },
+        {
+          "long-option": "sni-hostname",
+          "description": "Server's hostname for server name indication extension",
+          "detail": "Set explicitly the server name used in the TLS server name indication extension. That is useful when testing with servers setup on different DNS name than the intended. If not specified, the provided hostname is used. Even with this option server certificate verification still uses the hostname passed on the main commandline. Use --verify-hostname to change this.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "verify-hostname",
+          "description": "Server's hostname to use for validation",
+          "detail": "Set explicitly the server name to be used when validating the server's certificate.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "starttls",
+          "short-option": "s",
+          "description": "Connect, establish a plain session and start TLS",
+          "detail": "The TLS session will be initiated when EOF or a SIGALRM is received."
+        },
+        {
+          "long-option": "app-proto",
+          "aliases": "starttls-proto"
+        },
+        {
+          "long-option": "starttls-proto",
+          "description": "The application protocol to be used to obtain the server's certificate (https, ftp, smtp, imap, ldap, xmpp, lmtp, pop3, nntp, sieve, postgres)",
+          "detail": "Specify the application layer protocol for STARTTLS. If the protocol is supported, gnutls-cli will proceed to the TLS negotiation.",
+          "conflicts": [
+            "starttls"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "starttls-name",
+          "description": "The hostname presented to the application protocol for STARTTLS (for smtp, xmpp, lmtp)",
+          "detail": "Specify the hostname presented to the application protocol for STARTTLS.",
+          "requires": [
+            "starttls-proto"
+          ],
+          "conflicts": [
+            "starttls"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "udp",
+          "short-option": "u",
+          "description": "Use DTLS (datagram TLS) over UDP"
+        },
+        {
+          "long-option": "mtu",
+          "description": "Set MTU for datagram TLS",
+          "argument-range": {
+            "min": 0,
+            "max": 17000
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "crlf",
+          "description": "Send CR LF instead of LF"
+        },
+        {
+          "long-option": "fastopen",
+          "description": "Enable TCP Fast Open"
+        },
+        {
+          "long-option": "x509fmtder",
+          "description": "Use DER format for certificates to read from"
+        },
+        {
+          "long-option": "print-cert",
+          "description": "Print peer's certificate in PEM format"
+        },
+        {
+          "long-option": "save-cert",
+          "description": "Save the peer's certificate chain in the specified file in PEM format",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "save-ocsp",
+          "description": "Save the peer's OCSP status response in the provided file",
+          "conflicts": [
+            "save-ocsp-multi"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "save-ocsp-multi",
+          "description": "Save all OCSP responses provided by the peer in this file",
+          "detail": "The file will contain a list of PEM encoded OCSP status responses if any were provided by the peer, starting with the one for the peer's server certificate.",
+          "conflicts": [
+            "save-ocsp"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "save-server-trace",
+          "description": "Save the server-side TLS message trace in the provided file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "save-client-trace",
+          "description": "Save the client-side TLS message trace in the provided file",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "dh-bits",
+          "description": "The minimum number of bits allowed for DH",
+          "detail": "This option sets the minimum number of bits allowed for a Diffie-Hellman key exchange. You may want to lower the default value if the peer sends a weak prime and you get an connection error with unacceptable prime.",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "priority",
+          "description": "Priorities string",
+          "detail": "TLS algorithms and protocols to enable. You can\nuse predefined sets of ciphersuites such as PERFORMANCE,\nNORMAL, PFS, SECURE128, SECURE256. The default is NORMAL.\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on the allowed keywords",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "x509cafile",
+          "description": "Certificate file or PKCS #11 URL to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "x509crlfile",
+          "description": "CRL file to use",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "x509keyfile",
+          "description": "X.509 key file or PKCS #11 URL to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "x509certfile",
+          "description": "X.509 Certificate file or PKCS #11 URL to use",
+          "requires": [
+            "x509keyfile"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "rawpkkeyfile",
+          "description": "Private key file (PKCS #8 or PKCS #12) or PKCS #11 URL to use",
+          "detail": "In order to instruct the application to negotiate raw public keys one\nmust enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*\nand CTYPE-SRV-* flags).\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on how to set certificate types.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "rawpkfile",
+          "description": "Raw public-key file to use",
+          "detail": "In order to instruct the application to negotiate raw public keys one\nmust enable the respective certificate types via the priority strings (i.e. CTYPE-CLI-*\nand CTYPE-SRV-* flags).\n\nCheck  the  GnuTLS  manual  on  section  ``Priority strings'' for more\ninformation on how to set certificate types.",
+          "requires": [
+            "rawpkkeyfile"
+          ],
+          "argument-type": "string"
+        },
+        {
+          "long-option": "srpusername",
+          "description": "SRP username to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "srppasswd",
+          "description": "SRP password to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "pskusername",
+          "description": "PSK username to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "pskkey",
+          "description": "PSK key (in hex) to use",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "port",
+          "short-option": "p",
+          "description": "The port or service to connect to",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "insecure",
+          "description": "Don't abort program if server certificate can't be validated"
+        },
+        {
+          "long-option": "verify-allow-broken",
+          "description": "Allow broken algorithms, such as MD5 for certificate verification"
+        },
+        {
+          "long-option": "ranges",
+          "description": "Use length-hiding padding to prevent traffic analysis",
+          "detail": "When possible (e.g., when using CBC ciphersuites), use length-hiding padding to prevent traffic analysis.",
+          "deprecated": true
+        },
+        {
+          "long-option": "benchmark-ciphers",
+          "description": "Benchmark individual ciphers",
+          "detail": "By default the benchmarked ciphers will utilize any capabilities of the local CPU to improve performance. To test against the raw software implementation set the environment variable GNUTLS_CPUID_OVERRIDE to 0x1."
+        },
+        {
+          "long-option": "benchmark-tls-kx",
+          "description": "Benchmark TLS key exchange methods"
+        },
+        {
+          "long-option": "benchmark-tls-ciphers",
+          "description": "Benchmark TLS ciphers",
+          "detail": "By default the benchmarked ciphers will utilize any capabilities of the local CPU to improve performance. To test against the raw software implementation set the environment variable GNUTLS_CPUID_OVERRIDE to 0x1."
+        },
+        {
+          "long-option": "list",
+          "short-option": "l",
+          "description": "Print a list of the supported algorithms and modes",
+          "detail": "Print a list of the supported algorithms and modes. If a priority string is given then only the enabled ciphersuites are shown.",
+          "conflicts": [
+            "port"
+          ]
+        },
+        {
+          "long-option": "priority-list",
+          "description": "Print a list of the supported priority strings",
+          "detail": "Print a list of the supported priority strings. The ciphersuites corresponding to each priority string can be examined using -l -p."
+        },
+        {
+          "long-option": "noticket",
+          "description": "Don't allow session tickets",
+          "detail": "Disable the request of receiving of session tickets under TLS1.2 or earlier"
+        },
+        {
+          "long-option": "srtp-profiles",
+          "description": "Offer SRTP profiles",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "alpn",
+          "description": "Application layer protocol",
+          "detail": "This option will set and enable the Application Layer Protocol Negotiation  (ALPN) in the TLS protocol.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "compress-cert",
+          "description": "Compress certificate",
+          "detail": "This option sets a supported compression method for certificate compression.",
+          "argument-type": "string",
+          "multiple": true
+        },
+        {
+          "long-option": "heartbeat",
+          "short-option": "b",
+          "description": "Activate heartbeat support"
+        },
+        {
+          "long-option": "recordsize",
+          "description": "The maximum record size to advertise",
+          "argument-range": {
+            "min": 0,
+            "max": 4096
+          },
+          "argument-type": "number"
+        },
+        {
+          "long-option": "disable-sni",
+          "description": "Do not send a Server Name Indication (SNI)"
+        },
+        {
+          "long-option": "disable-extensions",
+          "description": "Disable all the TLS extensions",
+          "detail": "This option disables all TLS extensions. Deprecated option. Use the priority string.",
+          "deprecated": true
+        },
+        {
+          "long-option": "single-key-share",
+          "description": "Send a single key share under TLS1.3",
+          "detail": "This option switches the default mode of sending multiple\nkey shares, to send a single one (the top one)."
+        },
+        {
+          "long-option": "post-handshake-auth",
+          "description": "Enable post-handshake authentication under TLS1.3",
+          "detail": "This option enables post-handshake authentication when under TLS1.3."
+        },
+        {
+          "long-option": "inline-commands",
+          "description": "Inline commands of the form ^<cmd>^",
+          "detail": "Enable inline commands of the form ^<cmd>^. The inline commands are expected to be in a line by themselves. The available commands are: resume, rekey1 (local rekey), rekey (rekey on both peers) and renegotiate."
+        },
+        {
+          "long-option": "inline-commands-prefix",
+          "description": "Change the default delimiter for inline commands",
+          "detail": "Change the default delimiter (^) used for inline commands. The delimiter is expected to be a single US-ASCII character (octets 0 - 127). This option is only relevant if inline commands are enabled via the inline-commands option",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "provider",
+          "description": "Specify the PKCS #11 provider library",
+          "detail": "This will override the default options in /etc/gnutls/pkcs11.conf",
+          "file-exists": true,
+          "argument-type": "file"
+        },
+        {
+          "long-option": "fips140-mode",
+          "description": "Reports the status of the FIPS140-2 mode in gnutls library"
+        },
+        {
+          "long-option": "list-config",
+          "description": "Reports the configuration of the library"
+        },
+        {
+          "long-option": "logfile",
+          "description": "Redirect informational messages to a specific file",
+          "detail": "Redirect informational messages to a specific file. The file may be /dev/null also to make the gnutls client quiet to use it in piped server connections where only the server communication may appear on stdout.",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "keymatexport",
+          "description": "Label used for exporting keying material",
+          "argument-type": "string"
+        },
+        {
+          "long-option": "keymatexportsize",
+          "description": "Size of the exported keying material",
+          "argument-type": "number"
+        },
+        {
+          "long-option": "waitresumption",
+          "description": "Block waiting for the resumption data under TLS1.3",
+          "detail": "This option makes the client to block waiting for the resumption data under TLS1.3. The option has effect only when --resume is provided."
+        },
+        {
+          "long-option": "ca-auto-retrieve",
+          "description": "Enable automatic retrieval of missing CA certificates",
+          "detail": "This option enables the client to automatically retrieve the missing intermediate CA certificates in the certificate chain, based on the Authority Information Access (AIA) extension.",
+          "disable-prefix": "no-"
+        },
+        {
+          "long-option": "attime",
+          "description": "Perform validation at the timestamp instead of the system time",
+          "detail": "timestamp is an instance in time encoded as Unix time or in a human\n readable timestring such as \"29 Feb 2004\", \"2004-02-29\".\nFull documentation available at \n<https://www.gnu.org/software/coreutils/manual/html_node/Date-input-formats.html>\nor locally via info '(coreutils) date invocation'.",
+          "argument-name": "timestamp",
+          "argument-type": "string"
+        }
+      ]
+    }
+  ]
+}

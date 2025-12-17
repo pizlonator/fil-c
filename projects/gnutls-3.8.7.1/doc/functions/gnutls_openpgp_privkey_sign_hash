@@ -1,0 +1,15 @@
+
+
+
+
+@deftypefun {int} {gnutls_openpgp_privkey_sign_hash} (gnutls_openpgp_privkey_t @var{key}, const gnutls_datum_t * @var{hash}, gnutls_datum_t * @var{signature})
+@var{key}: Holds the key
+
+@var{hash}: holds the data to be signed
+
+@var{signature}: will contain newly allocated signature
+
+This function is no-op.
+
+@strong{Returns:} @code{GNUTLS_E_UNIMPLEMENTED_FEATURE} .
+@end deftypefun

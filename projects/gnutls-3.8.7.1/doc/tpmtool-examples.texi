@@ -1,0 +1,25 @@
+To generate a key that is to be stored in file system use:
+@example
+$ tpmtool --generate-rsa --bits 2048 --outfile tpmkey.pem
+@end example
+
+To generate a key that is to be stored in TPM's flash use:
+@example
+$ tpmtool --generate-rsa --bits 2048 --register --user
+@end example
+
+To get the public key of a TPM key use:
+@example
+$ tpmtool --pubkey tpmkey:uuid=58ad734b-bde6-45c7-89d8-756a55ad1891;storage=user \
+          --outfile pubkey.pem
+@end example
+
+or if the key is stored in the file system:
+@example
+$ tpmtool --pubkey tpmkey:file=tmpkey.pem --outfile pubkey.pem
+@end example
+
+To list all keys stored in TPM use:
+@example
+$ tpmtool --list
+@end example

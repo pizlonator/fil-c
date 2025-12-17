@@ -1,0 +1,26 @@
+
+
+
+
+@deftypefun {int} {gnutls_psk_format_imported_identity} (const gnutls_datum_t * @var{identity}, const gnutls_datum_t * @var{context}, gnutls_protocol_t @var{version}, gnutls_digest_algorithm_t @var{hash}, gnutls_datum_t * @var{imported_identity})
+@var{identity}: external identity
+
+@var{context}: optional contextual information
+
+@var{version}: protocol version to which the PSK is imported
+
+@var{hash}: hash algorithm used for KDF
+
+@var{imported_identity}: where the imported identity is stored
+
+This formats an external PSK identity  @code{identity} into an imported
+form, described in RFC 9258 as ImportedIdentity.
+
+Upon success, the data field of  @code{imported_identity} is allocated
+using @code{gnutls_malloc()}  and the caller must free the memory after
+use.
+
+@strong{Returns:} @code{GNUTLS_E_SUCCESS}  (0) on success, otherwise a negative error code.
+
+@strong{Since:} 3.8.1
+@end deftypefun

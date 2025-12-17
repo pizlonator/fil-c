@@ -1,0 +1,27 @@
+
+
+
+
+@deftypefun {int} {gnutls_protocol_set_enabled} (gnutls_protocol_t @var{version}, unsigned int @var{enabled})
+@var{version}: is a (gnutls) version number
+
+@var{enabled}: whether to enable the protocol
+
+Control the previous system-wide setting that marked  @code{version} as
+enabled or disabled.  Calling this function is allowed
+only if allowlisting mode is set in the configuration file,
+and only if the system-wide TLS priority string
+has not been initialized yet.
+The intended usage is to provide applications with a way
+to expressly deviate from the distribution or site defaults
+inherited from the configuration file.
+The modification is composable with further modifications
+performed through the priority string mechanism.
+
+This function is not thread-safe and is intended to be called
+in the main thread at the beginning of the process execution.
+
+@strong{Returns:} 0 on success or negative error code otherwise.
+
+@strong{Since:} 3.7.3
+@end deftypefun

@@ -1,0 +1,16 @@
+
+
+
+
+@deftypefun {int} {gnutls_digest_set_secure} (gnutls_digest_algorithm_t @var{dig}, unsigned int @var{secure})
+@var{dig}: is a digest algorithm
+
+@var{secure}: whether to mark the digest algorithm secure
+
+Modify the previous system wide setting that marked  @code{dig} as secure
+or insecure. This only has effect when the algorithm is enabled
+through the allowlisting mode in the configuration file, or when
+the setting is modified with a prior call to this function.
+
+@strong{Since:} 3.7.3
+@end deftypefun

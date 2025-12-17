@@ -1,0 +1,17 @@
+
+
+@c gnutls_ext_parse_type_t
+@table @code
+@item GNUTLS_@-EXT_@-ANY
+Any extension type (should not be used as it is used only internally).
+@item GNUTLS_@-EXT_@-APPLICATION
+Parsed after  @code{GNUTLS_EXT_MANDATORY} 
+@item GNUTLS_@-EXT_@-TLS
+TLS-internal extensions, parsed after  @code{GNUTLS_EXT_APPLICATION} .
+@item GNUTLS_@-EXT_@-MANDATORY
+Parsed after  @code{GNUTLS_EXT_VERSION_NEG} and even when resuming.
+@item GNUTLS_@-EXT_@-NONE
+Never to be parsed
+@item GNUTLS_@-EXT_@-VERSION_@-NEG
+Extensions to be parsed first for TLS version negotiation.
+@end table

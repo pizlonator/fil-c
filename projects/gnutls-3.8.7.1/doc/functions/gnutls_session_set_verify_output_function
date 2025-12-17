@@ -1,0 +1,30 @@
+
+
+
+
+@deftypefun {void} {gnutls_session_set_verify_output_function} (gnutls_session_t @var{session}, gnutls_verify_output_function * @var{func})
+@var{session}: is a @code{gnutls_x509_trust_list_t}  type.
+
+@var{func}: is the callback function
+
+This function sets a callback to be called when the peer's certificate
+chain has to be verified and full path to the trusted root has to be
+printed.
+
+The callback's function prototype is defined in `x509.h':
+int (*callback)(
+gnutls_x509_crt_t cert,
+gnutls_x509_crt_t issuer,
+gnutls_x509_crl_t crl,
+unsigned int verification_output);
+
+If the callback function is provided then gnutls will call it, in the
+certificate verification procedure.
+To verify the certificate chain and print its path uptp the trusted root,
+functions such as @code{gnutls_certificate_verify_peers()} ,
+@code{gnutls_x509_trust_list_verify_crt()} , and @code{gnutls_x509_trust_list_verify_crt2()} 
+can be used. The callback is set in @code{_gnutls_verify_crt_status()}  and
+@code{_gnutls_pkcs11_verify_crt_status()} .
+
+@strong{Since:} 3.7.0
+@end deftypefun

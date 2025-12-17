@@ -1,0 +1,34 @@
+
+
+
+
+@deftypefun {int} {gnutls_x509_trust_list_add_cas} (gnutls_x509_trust_list_t @var{list}, const gnutls_x509_crt_t * @var{clist}, unsigned @var{clist_size}, unsigned int @var{flags})
+@var{list}: The list
+
+@var{clist}: A list of CAs
+
+@var{clist_size}: The length of the CA list
+
+@var{flags}: flags from @code{gnutls_trust_list_flags_t} 
+
+This function will add the given certificate authorities
+to the trusted list. The CAs in  @code{clist} must not be deinitialized
+during the lifetime of  @code{list} .
+
+If the flag @code{GNUTLS_TL_NO_DUPLICATES}  is specified, then
+this function will ensure that no duplicates will be
+present in the final trust list.
+
+If the flag @code{GNUTLS_TL_NO_DUPLICATE_KEY}  is specified, then
+this function will ensure that no certificates with the
+same key are present in the final trust list.
+
+If either @code{GNUTLS_TL_NO_DUPLICATE_KEY}  or @code{GNUTLS_TL_NO_DUPLICATES} 
+are given, @code{gnutls_x509_trust_list_deinit()}  must be called with parameter
+ @code{all} being 1.
+
+@strong{Returns:} The number of added elements is returned; that includes
+duplicate entries.
+
+@strong{Since:} 3.0.0
+@end deftypefun
