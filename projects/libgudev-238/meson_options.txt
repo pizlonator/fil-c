@@ -1,0 +1,15 @@
+option('tests',
+       type: 'feature', value: 'auto',
+       description: 'Build tests (requires umockdev)')
+
+option('introspection',
+       type: 'feature', value: 'auto',
+       description: 'Generate introspection data (requires gobject-introspection)')
+option('vapi',
+       type: 'feature', value: 'auto',
+       description: 'Generate vapi file (requires vapigen)')
+
+option('gtk_doc',
+       type: 'boolean', value: false,
+       description: 'Build reference manual (requires gtk-doc)')
+

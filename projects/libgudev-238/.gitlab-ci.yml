@@ -1,0 +1,66 @@
+image: fedora:latest
+
+variables:
+  LAST_ABI_BREAK: "334f31b3cf0837ffb2298f498686905e8ba14f7b"
+  DNF_CORE_DEPS: >
+    gcc
+    gettext
+    meson
+    ninja-build
+    git
+    gnome-common
+    systemd-devel
+    glib2-devel
+  DNF_TEST_DEPS: >
+    gobject-introspection-devel
+    glibc-langpack-fr
+    vala
+    umockdev-devel
+    libabigail
+  DNF_API_DOC_DEPS: >
+    gtk-doc
+
+stages:
+  - test
+  - document
+  - deploy
+
+build-fedora:
+  stage: test
+  before_script:
+    # Undo delangification present in the Fedora Docker images
+    - rm -f /etc/rpm/macros.image-language-conf
+    - dnf install -y ${DNF_CORE_DEPS} ${DNF_TEST_DEPS}
+    - dnf reinstall -y glib2
+  script:
+    - meson setup -Dtests=enabled build/
+    - ninja -C build/ install
+    - .ci/check-abi ${LAST_ABI_BREAK} $(git rev-parse HEAD)
+    - ninja -C build/ test
+    - .ci/fail_skipped_tests.py build/meson-logs/testlog.junit.xml
+    - ninja -C build/ dist
+
+reference:
+  stage: document
+  before_script:
+    - dnf install -y ${DNF_CORE_DEPS} ${DNF_API_DOC_DEPS}
+  script:
+    - meson setup build/ -Dgtk_doc=true
+    - ninja -C build/ install
+  artifacts:
+    name: libgudev-doc
+    paths:
+      - build/docs/html
+
+pages:
+  stage: deploy
+  dependencies:
+    - reference
+  script:
+    - mkdir -p public/
+    - mv build/docs/html/ public/libgudev/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

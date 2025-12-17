@@ -1,0 +1,55 @@
+libgudev - GObject bindings for libudev
+
+CHANGES WITH 238:
+        * Fix newline stripping
+        * Add g_udev_device_get_current_tags()
+        * Add a number of tests, and devel docs
+        * Fix devhelp not being able to find the docs
+        * Skip locale test with locale isn't available
+
+CHANGES WITH 237:
+        * Fix reading double precision floats from sysfs attributes in
+          locales that use comma as a separator
+        * Fix compilation warning
+        * Fix headers to help with build reproducibility
+        * Clarify licensing information
+
+CHANGES WITH 236:
+        * Fix meson project name to match autotools
+
+CHANGES WITH 235:
+        * Port build system to meson and remove autotools
+        * Fix conversion of sysfs attributes to boolean
+
+CHANGES WITH 234:
+        * Clarify that _get_sysfs_attr() functions are cached
+        * Add functions to get uncached sysfs attributes
+
+CHANGES WITH 233:
+        * Require glib 2.38
+        * Small documentation updates
+        * Remove gnome-common build dependency
+
+CHANGES WITH 232:
+        * Fix crash on plenty of architectures in the test suite
+        * Add g_autoptr automatic clean up for libgudev objects
+
+CHANGES WITH 231:
+        * Fix a bug in the enumerator to ensure that client subsystems
+          are implicitly matched
+        * Require a newer GLib to simplify some code
+
+CHANGES WITH 230:
+
+        * Bump version number so the package will supercede any gudev
+          sub-packages provided via systemd. We intend to drop gudev from
+          systemd-221, but lets be safe and just bump it to 230 now.
+
+CHANGES WITH 219:
+
+        * Initial release of libgudev as separate project.
+
+        * Initial import of libgudev-218 from the systemd repository. No
+          functional changes. It is binary compatible to the old package. Please
+          note that you need to pass --disable-gudev to systemd. Otherwise, this
+          package will conflict with libgudev provided by systemd.
