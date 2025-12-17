@@ -360,7 +360,7 @@ static gint
 compare_by_gtype (gconstpointer a,
 		  gconstpointer b)
 {
-	return G_TYPE_CHECK_INSTANCE_TYPE (a, GPOINTER_TO_SIZE (b)) ? 0 : 1;
+	return G_TYPE_CHECK_INSTANCE_TYPE (a, b) ? 0 : 1;
 }
 
 static void

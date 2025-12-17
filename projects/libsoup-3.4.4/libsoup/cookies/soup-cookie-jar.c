@@ -19,6 +19,7 @@
 #include "soup.h"
 #include "soup-session-feature-private.h"
 #include "soup-uri-utils-private.h"
+#include <stdfil.h>
 
 /**
  * SoupCookieJar:
@@ -189,8 +190,8 @@ soup_cookie_jar_class_init (SoupCookieJarClass *jar_class)
 			      NULL, NULL,
 			      NULL,
 			      G_TYPE_NONE, 2, 
-			      SOUP_TYPE_COOKIE | G_SIGNAL_TYPE_STATIC_SCOPE,
-			      SOUP_TYPE_COOKIE | G_SIGNAL_TYPE_STATIC_SCOPE);
+			      zorptr (SOUP_TYPE_COOKIE, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
+			      zorptr (SOUP_TYPE_COOKIE, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
 	/**
 	 * SoupCookieJar:read-only:

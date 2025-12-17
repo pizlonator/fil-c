@@ -2256,7 +2256,7 @@ soup_message_disables_feature (SoupMessage *msg, gpointer feature)
 
         g_hash_table_iter_init (&iter, priv->disabled_features);
         while (g_hash_table_iter_next (&iter, &key, NULL)) {
-                if (G_TYPE_CHECK_INSTANCE_TYPE (feature, GPOINTER_TO_SIZE (key)))
+                if (G_TYPE_CHECK_INSTANCE_TYPE (feature, key))
                         return TRUE;
         }
         return FALSE;
@@ -2290,7 +2290,7 @@ soup_message_is_feature_disabled (SoupMessage *msg, GType feature_type)
 
         g_hash_table_iter_init (&iter, priv->disabled_features);
         while (g_hash_table_iter_next (&iter, &key, NULL)) {
-                if (g_type_is_a (GPOINTER_TO_SIZE (key), feature_type))
+                if (g_type_is_a (key, feature_type))
                         return TRUE;
         }
         return FALSE;

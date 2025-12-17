@@ -17,6 +17,7 @@
 #include "soup-session-feature-private.h"
 #include "soup-message-private.h"
 #include "soup-uri-utils-private.h"
+#include <stdfil.h>
 
 /**
  * SoupHSTSEnforcer:
@@ -178,8 +179,8 @@ soup_hsts_enforcer_class_init (SoupHSTSEnforcerClass *hsts_enforcer_class)
 			      NULL, NULL,
 			      NULL,
 			      G_TYPE_NONE, 2,
-			      SOUP_TYPE_HSTS_POLICY | G_SIGNAL_TYPE_STATIC_SCOPE,
-			      SOUP_TYPE_HSTS_POLICY | G_SIGNAL_TYPE_STATIC_SCOPE);
+			      zorptr (SOUP_TYPE_HSTS_POLICY, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
+			      zorptr (SOUP_TYPE_HSTS_POLICY, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 }
 
 /**
