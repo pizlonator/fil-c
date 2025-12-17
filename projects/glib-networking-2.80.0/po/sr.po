@@ -1,0 +1,433 @@
+# Serbian translation of glib-networking
+# Courtesy of Prevod.org team (http://prevod.org/) -- 2012–2021.
+# This file is distributed under the same license as the glib-networking package.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2011–20-2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2022-09-12 16:40+0000\n"
+"PO-Revision-Date: 2022-09-29 05:08+0200\n"
+"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Language-Team: Serbian <српски <gnome-sr@googlegroups.org>>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2\n"
+"X-Project-Style: gnome\n"
+"X-Generator: Gtranslator 3.36.0\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Унутрашња грешка решавача посредника."
+
+#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Веза је затворена"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:636
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Не могу да извршим блокирајућу радњу током ТЛС руковања"
+
+#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Истекло време У/И утичнице"
+
+#: tls/base/gtlsconnection-base.c:875
+msgid "Server required TLS certificate"
+msgstr "ТЛС уверење које захтева сервер"
+
+#: tls/base/gtlsconnection-base.c:1454
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Руковање није завршено, ниједан канал још увек не свезује информације"
+
+#: tls/base/gtlsconnection-base.c:1533
+msgid "Peer does not support safe renegotiation"
+msgstr "Парњак не подржава безбедно поновно преговарање"
+
+#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Неприхватљиво ТЛС уверење"
+
+#: tls/base/gtlsconnection-base.c:2153
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Пријемне заставице нису подржане"
+
+#: tls/base/gtlsconnection-base.c:2300
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Отпремне заставице нису подржане"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+#| msgid "Could not import PKCS #11 certificate URI: %s"
+msgid "Failed to import PKCS #12: %s"
+msgstr "Нисам успео да увезем ПКЦС #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Не могу да обрадим ДЕР уверење: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Не могу да обрадим ПЕМ уверење: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Не могу да обрадим приватни ДЕР кључ: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Не могу да обрадим приватни ПЕМ кључ: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Не могу да увезем путању уверења ПКЦС #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Нису обезбеђени подаци уверења"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Не могу да потврдим идентитет парњака неочекиване врсте „%s“"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Не могу да направим ТЛС везу:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:512
+#: tls/openssl/gtlsserverconnection-openssl.c:456
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Не могу да направим ТЛС везу: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Парњак није успео да изврши ТЛС руковање: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "ТЛС веза је неочекивано затворена"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Парњак ТЛС везе није послао уверење"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Парњак је послао кобно ТЛС упозорење: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Уочен је напад уназађивања издања протокола"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Порука је предугачка за ДТЛС везу, највише је дозвољен %u бајт"
+msgstr[1] "Порука је предугачка за ДТЛС везу, највише је дозвољено %u бајта"
+msgstr[2] "Порука је предугачка за ДТЛС везу, највише је дозвољено %u бајтова"
+msgstr[3] "Порука је предугачка за ДТЛС везу, највише је дозвољен један бајт"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Време извршавања радње је истекло"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Грешка у извршавању ТЛС руковања: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Грешка у извршавању ТЛС руковања"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Празни подаци свезивања канала указују на грешку у изради ТЛС библиотеке"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Врста свезивања канала није примењена у ТЛС библиотеци"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Свезивање података канала још није доступно"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Захтевана врста свезивања канала није примењена"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Грешка приликом читања података са ТЛС прикључка"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Грешка приликом уписивања података у ТЛС прикључак"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Порука од %lu бајт је предугачка за ДТЛС везу"
+msgstr[1] "Порука од %lu бајта је предугачка за ДТЛС везу"
+msgstr[2] "Порука од %lu бајтова је предугачка за ДТЛС везу"
+msgstr[3] "Порука од једног бајта је предугачка за ДТЛС везу"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(највише %u бајт)"
+msgstr[1] "(највише %u бајта)"
+msgstr[2] "(највише %u бајтова)"
+msgstr[3] "(највише један бајт)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Грешка у извршавању ТЛС затварања: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Нисам успео да учитам системско складиште уверења: Гну-ТЛС није подешен са "
+"системским уверењем"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Нисам успео да учитам системско складиште уверења: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Нисам успео да попуним списак уверења из %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Уверење нема приватни кључ"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Не могу да поставим списак ТЛС шифрера: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Не могу да подесим МАКС протокол на %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не могу да направим ТЛС контекст: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Неприхватљиво ТЛС сертификационо тело"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Збирка је превелика за РСА кључ"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Безбедно поновно преговарање је онемогућено"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: веза је сломљена"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Захтев је неисправан."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Подаци свезивања канала „tls-unique“ још није доступно"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "„X.509“ уверење није доступно на вези"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Не могу да набавим алгоритам потписа уверења"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Тренутно „X.509“ уверење користи непознат или неподржани алгоритам потписа"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Нисам успео да створим „X.509“ уверење"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "ТЛС веза не подржава функцију ТЛС-Извозника"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Неочекивана грешка приликом извоза података кључевања"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Грешка у извршавању ТЛС затварања"
+
+#: tls/openssl/gtlsdatabase-openssl.c:167
+msgid "Could not get trusted anchors from Keychain"
+msgstr "Не могу да добавим поверљива сидра са ланца кључа"
+
+#: tls/openssl/gtlsdatabase-openssl.c:232
+msgid "Could not get root certificate store"
+msgstr "Не могу да добавим главно складиште сертификата"
+
+#: tls/openssl/gtlsdatabase-openssl.c:239
+msgid "Could not get CA certificate store"
+msgstr "Не могу да добавим складиште сертификата сертификационог тела"
+
+#: tls/openssl/gtlsdatabase-openssl.c:304
+msgid "Could not create CA store"
+msgstr "Не могу да направим складиште издавача уверења"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Постоји проблем са сертификатом: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Постоји проблем са приватним кључем сертификата: %s"
+
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "„X.509“ уверење није доступно на вези"
+
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "„X.509“ уверење није доступно на вези или је непознатог формата: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Парњак је затражио илегално ТЛС поновно руковање"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Нисам успео да учитам датотеку из путање: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Поступак би блокирао"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Сервер није вратио исправно ТЛС уверење"
+
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Грешка приликом читања података са ТЛС прикључка: %s"
+
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Грешка приликом уписивања података у ТЛС прикључак: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Ово је последња прилика да исправно унесете ПИН пре него што карика буде "
+#~ "закључана."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Неколико унешених ПИН-ова је било неисправно, и зато ће карика бити "
+#~ "закључана након будућих неуспеха."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Унешени ПИН је погрешан."
+
+#~ msgid "Module"
+#~ msgstr "Модул"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Указивач ПКЦС#11 модула"
+
+#~ msgid "Slot ID"
+#~ msgstr "ИБ слота"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Одредник ПКЦС#11 слота"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Веза је већ затворена"

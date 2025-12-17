@@ -1,0 +1,252 @@
+# Malay translation for glib-networking.
+# Copyright (C) 2020 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# abuyop <abuyop@gmail.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2020-01-24 15:13+0000\n"
+"PO-Revision-Date: 2020-01-27 03:48+0800\n"
+"Language-Team: Pasukan Terjemahan GNOME Malaysia\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Last-Translator: abuyop <abuyop@gmail.com>\n"
+"X-Generator: Poedit 2.0.6\n"
+
+#: proxy/libproxy/glibproxyresolver.c:159
+msgid "Proxy resolver internal error."
+msgstr "Ralat dalaman pelerai proksi."
+
+#: tls/base/gtlsconnection-base.c:538 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Sambungan tutup"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:612
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Tidak dapat membuat operasi sekatan ketika jabat tangan TLS"
+
+#: tls/base/gtlsconnection-base.c:677 tls/base/gtlsconnection-base.c:1219
+msgid "Socket I/O timed out"
+msgstr "Had masa I/O soket telah tamat"
+
+#: tls/base/gtlsconnection-base.c:845
+msgid "Server required TLS certificate"
+msgstr "Pelayan memerlukan sijil TLS"
+
+#: tls/base/gtlsconnection-base.c:1451
+msgid "Peer does not support safe renegotiation"
+msgstr "Rakan tidak menyokong rundingan-semula selamat"
+
+#: tls/base/gtlsconnection-base.c:1586 tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/openssl/gtlsconnection-openssl.c:184
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Sijil TLS tidak diterima"
+
+#: tls/base/gtlsconnection-base.c:2051
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Bendera terima tidak disokong"
+
+#: tls/base/gtlsconnection-base.c:2203
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Bendera hantar tidak disokong"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:194
+#: tls/openssl/gtlscertificate-openssl.c:170
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Tidak dapat menghurai sijil DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:215
+#: tls/openssl/gtlscertificate-openssl.c:190
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Tidak dapat menghurai sijil PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:238
+#: tls/openssl/gtlscertificate-openssl.c:209
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Tidak dapat menghurai kunci persendirian DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:261
+#: tls/openssl/gtlscertificate-openssl.c:228
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Tidak dapat menghurai kunci persendirian PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:288
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Tidak dapat mengimport URI sijil PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:330
+#: tls/openssl/gtlscertificate-openssl.c:263
+msgid "No certificate data provided"
+msgstr "Tiada data sijil disediakan"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:142
+#: tls/gnutls/gtlsconnection-gnutls.c:160
+#: tls/openssl/gtlsclientconnection-openssl.c:408
+#: tls/openssl/gtlsserverconnection-openssl.c:463
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Tidak dapat mencipta sambungan TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:371
+#: tls/gnutls/gtlsconnection-gnutls.c:382
+#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/openssl/gtlsconnection-openssl.c:151
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Rakan gagal membuat jabat tangan TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:404
+msgid "TLS connection closed unexpectedly"
+msgstr "Sambungan TLS ditutup tanpa jangka"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:176
+msgid "TLS connection peer did not send a certificate"
+msgstr "Rakan sambungan TLS tidak menghantar satu sijil"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Rakan menghantar amaran TLS mati: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+msgid "Protocol version downgrade attack detected"
+msgstr "Serangan nyahtatar versi protokol telah dikesan"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:454
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Mesej terlalu besar untuk sambungan DTLS; maksimum ialah %u bait"
+msgstr[1] "Mesej terlalu besar untuk sambungan DTLS; maksimum ialah %u bait"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:463
+msgid "The operation timed out"
+msgstr "Operasi telah tamat masa"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:795
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Ralat membuat jabat tangan TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:898
+#: tls/openssl/gtlsconnection-openssl.c:252
+#: tls/openssl/gtlsconnection-openssl.c:302
+msgid "Error performing TLS handshake"
+msgstr "Ralat membuat jabat tangan TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:944
+#: tls/gnutls/gtlsconnection-gnutls.c:1004
+#: tls/openssl/gtlsconnection-openssl.c:409
+msgid "Error reading data from TLS socket"
+msgstr "Ralat membaca data dari soket TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1026
+#: tls/gnutls/gtlsconnection-gnutls.c:1090
+#: tls/openssl/gtlsconnection-openssl.c:453
+msgid "Error writing data to TLS socket"
+msgstr "Ralat menulis data ke soket TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1060
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Mesej bersaiz %lu bait adalah terlalu besar untuk sambungan DTLS"
+msgstr[1] "Mesej bersaiz %lu bait adalah terlalu besar untuk sambungan DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1062
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maksimum ialah %u bait)"
+msgstr[1] "(maksimum ialah %u bait)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1109
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Ralat membuat penutupan TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Gagal memuatkan stor kepercayaan sistem: GnuTLS tidak dikonfigur dengan "
+"satu kepercayaan sistem"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Gagal memuatkan stor kepercayaan sistem: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:226
+msgid "Certificate has no private key"
+msgstr "Sijil tidak mempunyai kunci persendirian"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:306
+#: tls/openssl/gtlsclientconnection-openssl.c:357
+#: tls/openssl/gtlsserverconnection-openssl.c:345
+#: tls/openssl/gtlsserverconnection-openssl.c:396
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Tidak dapat mencipta konteks TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:192
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Autoriti sijil TLS tidak diterima"
+
+#: tls/openssl/gtlsconnection-openssl.c:200
+msgid "Digest too big for RSA key"
+msgstr "Cernaan terlalu besar untuk kunci RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:490
+msgid "Error performing TLS close"
+msgstr "Ralat membuat penutupan TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:227
+msgid "Could not create CA store"
+msgstr "Tidak dapat mencipta stor CA"
+
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#, c-format
+msgid "Failed to load file path: %s"
+msgstr "Gagal memuatkan laluan fail: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:245
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Terdapat satu masalah dengan kunci persendirian sijil: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:237
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Terdapat satu masalah dengan sijil: %s"

@@ -1,0 +1,440 @@
+# translation of gtk+-master-po-ru-9735.merged.po to Russian
+# Russian translation of gtk+
+# Copyright (C) 1999-2009, 2010 Free Software Foundation, Inc.
+#
+#
+#
+# Sergey Panov <sipan@mit.edu>, 1999.
+# Valek Filippov <frob@df.ru>, 2000-2002.
+# Dmitry Mastrukov <dmitry@taurussoft.org>, 2002-2004.
+# Sun G11n <gnome_int_l10n@ireland.sun.com>, 2002.
+# Andrew W. Nosenko <awn@bcs.zp.ua>, 2003.
+# Leonid Kanter <leon@asplinux.ru>, 2004-2006.
+# Alexander Sigachov <alexander.sigachov@gmail.com>, 2006.
+# Vasiliy Faronov <qvvx@yandex.ru>, 2007.
+# Anton Shestakov <engored@ya.ru>, 2008.
+# Lebedev Roman <roman@lebedev.com>, 2009.
+# Yuri Kozlov <yuray@komyakino.ru>, 2010.
+# Yuri Myasoedov <omerta13@yandex.ru>, 2012, 2013.
+# Mihail Gurin <mikegurin@yandex.ru>, 2015.
+# Stas Solovey <whats_up@tut.by>, 2015, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtk+.master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-16 00:00+0300\n"
+"Last-Translator: Artur So <arturios2005@mail.ru>\n"
+"Language-Team: Русский <gnome-cyr@gnome.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Внутренняя ошибка распознавателя прокси."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Соединение закрыто"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Невозможно выполнить блокирующую операцию во время квитирования TLS"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Превышено время ожидания ввода-вывода сокета"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Сервер требует сертификат TLS"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr ""
+"Квитирование не завершено, информация о привязке канала пока отсутствует"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Пир не поддерживает безопасное песогласование"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Недопустимый сертификат TLS"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Флаги приема не поддерживаются"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Флаги отправки не поддерживаются"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Не удалось импортировать PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Не удалось обработать сертификат DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Не удалось обработать сертификат PER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Не удалось обработать личный ключ DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Не удалось обработать личный ключ PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Не удалось импортировать сертификат PKCS #11 URI: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Данные сертификата не предоставлены"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Невозможно проверить идентификатор пира неожиданного типа %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Не удалось создать TLS-соединение:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Не удалось создать соединение TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Второй узел не смог осуществить квитирование TLS %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "Соединение TLS неожиданно закрылось"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Узел, с которым производится TLS-соединение, не предоставил сертификат"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Узел отправил фатальное предупреждение TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Обнаружена атака основанная на понижении версии протокола"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Слишком большое сообщение для соединения DTLS; максимум %u байт"
+msgstr[1] "Слишком большое сообщение для соединения DTLS; максимум %u байта"
+msgstr[2] "Слишком большое сообщение для соединения DTLS; максимум %u байтов"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Превышено время ожидания операции"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Ошибка при выполнении квитирования TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Ошибка выполнения квитирования связи TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Пустые данные привязки канала указывают на ошибку в реализации библиотеки TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Тип привязки канала не реализован в библиотеке TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Данные о привязке каналов пока отсутствуют"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Запрашиваемый тип привязки канала не реализован"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Ошибка чтения данных из сокета TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Ошибка записи данных в сокет TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Сообщение размером %lu байт слишком велико для соединения DTLS"
+msgstr[1] "Сообщение размером %lu байта слишком велико для соединения DTLS"
+msgstr[2] "Сообщение размером %lu байтов слишком велико для соединения DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(максимум %u байт)"
+msgstr[1] "(максимум %u байта)"
+msgstr[2] "(максимум %u байтов)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Ошибка закрытия TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Не удалось загрузить хранилище системного доверия: GnuTLS не было настроено "
+"с помощью системного доверия"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Не удалось загрузить хранилище системного доверия: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Система доверия содержит ноль доверенных сертификатов; проверьте "
+"конфигурацию GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Не удалось инициализировать список доверия: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Не удалось разместить учетные данные: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Не удалось заполнить список доверия из %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "У сертификата нет секретного ключа"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Не удалось установить список шифров TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Не удалось установить протокол MAX на %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не удалось создать контекст TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Неприемлемый центр сертификации TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Слишком большой дайджест для ключа RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Безопасное повторное согласование отключено"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Соединение разорвано"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Запрос недействителен."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Данные привязки канала tls-unique недоступны"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "Сертификат X.509 недоступен на соединении"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Невозможно получить алгоритм подписи сертификата"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Текущий сертификат X.509 использует неизвестный или неподдерживаемый "
+"алгоритм подписи"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Не удалось сгенерировать дайджест сертификата X.509"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS-соединение не поддерживает функцию TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Неожиданная ошибка при экспорте данных о ключах"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Ошибка закрытия TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Не удалось получить доверительные настройки для сертификата"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Не удалось получить сертификаты"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Не удалось получить хранилище корневого сертификата"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Не удалось получить хранилище сертификата CA"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Не удалось создать хранилище CA"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Возникла проблема с сертификатом: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Возникла проблема с приватным ключом сертификата: %s"
+
+#~ msgid "Session Reused"
+#~ msgstr "Повторное использование сеанса"
+
+#~ msgid "Indicates whether a session has been reused"
+#~ msgstr "Указывает, был ли сеанс использован повторно"
+
+#~ msgid "Session Reuse Enabled"
+#~ msgstr "Повторное использование сеанса включено"
+
+#~ msgid ""
+#~ "Controls whether session should reuse a previous session or if it should "
+#~ "be stored. In tests, this variable is false by default."
+#~ msgstr ""
+#~ "Управляет, должен ли сеанс повторно использовать предыдущий сеанс или "
+#~ "сохранять его. В тестах эта переменная по умолчанию имеет значение false."
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Не удалось получить доверенные якоря из связки ключей"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "Сертификат X.509 недоступен на соединении"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "Сертификат X.509 недоступен или имеет неизвестный формат: %s"

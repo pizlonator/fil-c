@@ -1,0 +1,461 @@
+# Swedish translation for glib-networking.
+# Copyright © 2011-2024 Free Software Foundation, Inc.
+# This file is distributed under the same license as the glib-networking package.
+# Daniel Nylander <po@danielnylander.se>, 2011.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2014, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024.
+# Luna Jernberg <droidbittin@gmail.com>, 2021, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2024-02-19 17:28+0000\n"
+"PO-Revision-Date: 2024-03-03 20:59+0100\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Internt fel i proxyuppslag."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Anslutningen är stängd"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Kan inte utföra blockerande åtgärd under TLS-handskakning"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
+msgid "Socket I/O timed out"
+msgstr "Tidsgräns för in/ut på uttaget överskreds"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Servern krävde TLS-certifikat"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Handskakningen är inte klar, ingen kanalbindningsinformation ännu"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Motparten stöder inte säker omförhandling"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:850
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Ej acceptabelt TLS-certifikat"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Mottagningsflaggor stöds inte"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Sändflaggor stöds inte"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Misslyckades med att importera PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Kunde inte tolka DER-certifikat: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Kunde inte tolka PEM-certifikat: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Kunde inte tolka privat DER-nyckel: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Kunde inte tolka privat PEM-nyckel: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Kunde inte importera URI för PKCS #11-certifikat: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Inga certifikatdata tillhandahölls"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Kan inte verifiera motpartsidentitet av oväntad typ %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
+msgid "Could not create TLS connection:"
+msgstr "Kunde inte skapa TLS-anslutning:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Kunde inte skapa TLS-anslutning: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Motparten misslyckades med att genomföra TLS-handskakning: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS-anslutningen stängdes oväntat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:482
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS-anslutningens motpart sände inte ett certifikat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:498
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Motparten sände ödesdiger TLS-varning: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Protocol version downgrade attack detected"
+msgstr "Protokollversionsnedgraderingsattack upptäcktes"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:517
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
+msgstr[1] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "The operation timed out"
+msgstr "Åtgärdens tidsgräns överskreds"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:878
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Fel vid genomförande av TLS-handskakning: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:629
+msgid "Error performing TLS handshake"
+msgstr "Fel vid genomförande av TLS-handskakning"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Tomma kanalbindningsdata indikerar ett fel i TLS-bibliotekets implementation"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Kanalbindningstypen är inte implementerad i TLS-biblioteket"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Kanalbindningsdata är ännu inte tillgängliga"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:825
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Begärd kanalbindningstyp är inte implementerad"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:843
+#: tls/openssl/gtlsconnection-openssl.c:939
+msgid "Error reading data from TLS socket"
+msgstr "Fel vid läsning av data från TLS-uttag"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1018
+msgid "Error writing data to TLS socket"
+msgstr "Fel vid skrivning av data till TLS-uttag"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
+msgstr[1] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maximum är %u byte)"
+msgstr[1] "(maximum är %u byte)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Fel vid genomförande av TLS-stängning: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Misslyckades med att allokera användaruppgifter: %s"
+
+# osäker
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Misslyckades med att läsa in systemets trust store: GnuTLS konfigurerades "
+"inte med en system trust"
+
+# osäker
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Misslyckades med att läsa in systemets trust store: %s"
+
+# osäker
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"System trust innehåller noll betrodda certifikat, undersök din GnuTLS-"
+"konfiguration"
+
+# trust list är ett kommando
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Misslyckades med att initiera trust list: %s"
+
+# trust list är ett kommando
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Misslyckades med att fylla trust list från %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Certifikatet har ingen privat nyckel"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Kunde inte ställa in TLS-chifferlista: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Kunde inte ställa MAX-protokoll till %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Kunde inte skapa TLS-kontext: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Ej acceptabel utfärdare av TLS-certifikat"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Sammandrag för stort för RSA-nyckel"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Säker omförhandling är inaktiverad"
+
+#: tls/openssl/gtlsconnection-openssl.c:268
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Anslutningen är trasig"
+
+#: tls/openssl/gtlsconnection-openssl.c:675
+#, c-format
+msgid "The request is invalid."
+msgstr "Begäran är ogiltig."
+
+#: tls/openssl/gtlsconnection-openssl.c:698
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Kanalbindningsdata för tls-unique är inte tillgängliga"
+
+#: tls/openssl/gtlsconnection-openssl.c:721
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509-certifikat är inte tillgängligt på anslutningen"
+
+#: tls/openssl/gtlsconnection-openssl.c:729
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Kunde inte erhålla signaturalgoritm för certifikat"
+
+#: tls/openssl/gtlsconnection-openssl.c:749
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Aktuellt X.509-certifikat använder en signaturalgoritm som är okänd eller "
+"inte stöds"
+
+#: tls/openssl/gtlsconnection-openssl.c:767
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Misslyckades med att generera X.509-certifikatsammandrag"
+
+#: tls/openssl/gtlsconnection-openssl.c:798
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS-anslutningen stöder inte funktionen TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:801
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Oväntat fel vid export av nycklingsdata"
+
+#: tls/openssl/gtlsconnection-openssl.c:1079
+msgid "Error performing TLS close"
+msgstr "Fel vid genomförande av TLS-stängning"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Kunde inte erhålla tillitsinställningar för certifikat"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Kunde inte hämta certifikat"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Kunde inte erhålla rotcertifikatlagring"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Kunde inte erhålla CA-certifikatlagring"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Kunde inte skapa CA-lagring"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Det har uppstått ett problem med certifikatet: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Det har uppstått ett problem med certifikatets privata nyckel: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Kunde inte erhålla förtroendeankare från nyckelringen"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509-certifikat är inte tillgängligt på anslutningen"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509-certifikat är inte tillgängligt eller av okänt format: %s"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Misslyckades med att läsa in sökväg för fil: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Motparten begärde otillåten TLS-återhandskakning"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operationen skulle blockera"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Servern returnerade inte ett giltigt TLS-certifikat"
+
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Fel vid läsning av data från TLS-uttag: %s"
+
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Fel vid skrivning av data till TLS-uttag: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Detta är sista försöket att ange PIN-koden korrekt innan kortet låses."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Flera PIN-kodsförsök har varit felaktiga och kortet kommer att låsas vid "
+#~ "ytterligare felaktiga försök."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Angiven PIN-kod är felaktig."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11-modulpekare"
+
+#~ msgid "Slot ID"
+#~ msgstr "Plats-id"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11-platsidentifierare"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Anslutningen är redan stängd"

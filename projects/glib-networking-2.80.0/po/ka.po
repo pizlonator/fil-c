@@ -1,0 +1,404 @@
+# Georgian translation for glib-networking.
+# Copyright (C) 2023 glib-networking's authors.
+# This file is distributed under the same license as the glib-networking package.
+# Ekaterine Papava <papava.e@gtu.ge>, 2023-2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking.master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-16 12:08+0100\n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.3.2\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "პროქსის გადამწყვეტის შიდა შეცდომა."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "კავშირი დახურულია"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "TLS კავშირის დამყარებისას მბლოკავი ოპერაციის ჩატარება შეუძლებელია"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "სოკეტის I/O ვადა გავიდა"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "სერვერი TLS სერტიფიკატს მოითხოვს"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "დაკავშირება არ დასრულებულა, ჯერ არხის მიბმის ინფორმაცია არ მიგვიღია"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "პარტნიორს შეერთების უსაფრთხოდ თავიდან დაწყების მხარდაჭერა არ გააჩნია"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "მიუღებელი TLS სერთიფიკატი"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "ალმების მიღება მხარდაუჭერელია"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "ალმების გაგზავნა მხარდაუჭერელია"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "PKCS #12-ის შემოტანის შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER სერტიფიკატის დამუშავების შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM სერტიფიკატის დამუშავების შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER პირადი გასაღების დამუშავების შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM პირადი გასაღების დამუშავების შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "PKCS #11 სერტიფიკატის URI-ის შემოტანის შეცდომა: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "სერტიფიკატის მონაცემები მოწოდებული არაა"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "პარტიორის მოულოდნელი ტიპის შემოწმება შეუძლებელია: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "TLS შეერთების შექმნა შეუძლებელია:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS შეერთების შექმნა შეუძლებელია: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "პარტნიორს TLS შეერთების დაწყებa არ შეუძლია: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS შეერთება მოულოდნელად დაიხურა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS შეერთების პარტნიორმა სერტიფიკატი არ გამოაგზავნა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "პარტნიორმა ფატალური TLS გაფრთხილება გამოაგზავნა: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "დაფიქსირდა პროტოკოლის ვერსიის ჩამოწევის შეტევა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] ""
+"შეტყობინება ძალიან დიდია DTLS შეერთებისთვის. მაქსიმალური ზომაა %u ბაიტი"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "ოპერაციის ვადა გავიდა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS შეერთების დაწყების შეცდომა: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "TLS შეერთების დაწყების შეცდომა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"არხის მიბმის ცარიელი მონაცემები TLS ბიბლიოთეკის იმპლემენტაციის შეცდომაზე "
+"მიუთითებს"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "არხის მიბმის ტიპი TLS ბიბლიოთეკაში განხორციელებული არაა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "არხის მიბმის მონაცემები ჯერ კიდევ მიუწვდომელია"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "არხის მიბმის მოთხოვნილი ტიპი განხორციელებული არაა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "TLS სოკეტიდან მონაცემების კითხვის შეცდომა"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "TLS სოკეტში მონაცემების ჩაწერის შეცდომა"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] ""
+"შეტყობინება ძალიან დიდია DTLS შეერთებისთვის. შეტყობინების ზომაა %lu ბაიტი"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(მაქსიმუმ %u ბაიტი)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS-ის დახურვის შეცდომა: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"სისტემური ნდობის საცავის ჩატვირთვის შეცდომა: GnuTLS-ი სისტემური ნდობით არაა "
+"მორგებული"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "სისტემური ნდობის საცავის ჩატვირთვის შეცდომა: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"სისტემური ნდობა ნულოვანი ნდობის მქონე სერტიფიკატებს შეიცავს. გადახედეთ "
+"თქვენს GnuTLS-ის კონფიგურაციას"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "ნდობის სიის ინიციალიზაცია ჩავარდა: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "ავტორიზაციის დეტალების გამოყოფა ჩავარდა: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "%s-დან ნდობის საცავის შევსების შეცდომა: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "სერტიფიკატს პირადი გასაღები არ გააჩნია"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "TLS-ის შიფრაციის სიის დაყენების შეცდომა: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "%d-ის MAX პროტოკოლის დაყენების შეცდომა: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS კონტექსტის შექმნის შეცდომა: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "TLS სერთიფიკატის მიუღებელი გამომცემელი"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "ჰეშ ფუნქცია ძალიან დიდია RSA გასაღებისთვის"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "თავიდან დაცულად შეერთება გამორთულია"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: შეერთება გაფუჭებულია"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "არასწორი მოთხოვნა."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "არხის მიბმის მონაცემების tls-unique მიუწვდომელია"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509 სერტიფიკატი ამ შეერთებისთვის მიუწვდომელია"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "სერტიფიკატის ხელმოწერის ალგორითმის მიღება შეუძლებელია"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"მიმდინარე X.509 სერტიფიკატი არასწორ ან მხარდაუჭერელ ხელმოწერის ალგორითმს "
+"იყენებს"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "X.509 სერტიფიკატის ჰეშის გენერაციის შეცდომა"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS შეერთებას TLS-Exporter თვისება არ გააჩნია"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "მოულოდნელი შეცდომა keyring-ის მონაცემების გატანისას"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "TLS-ის დახურვის შეცდომა"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "სერტიფიკატისთვის ნდობის პარამეტრების მიღება შეუძლებელია"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "სერტიფიკატების მიღება შეუძლებელია"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Root სერტიფიკატების საცავის მიღების შეცდომა"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "CA სერტიფიკატების საცავის მიღების შეცდომა"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "CA საცავის შექმნის შეცდომა"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "პრობლება სერტიფიკატთან: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "პრობლემა სერტიფიკატის პირად გასაღებთან: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Keychain-დან სანდო anchor-ების მიღების შეცდომა"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509 სერტიფიკატი ამ შეერთებისთვის მიუწვდომელია"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509 სერტიფიკატი მიუწვდომელია ან არასწორი ფორმატით: %s"

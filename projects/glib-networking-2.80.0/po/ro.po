@@ -1,0 +1,449 @@
+# Romanian translation for glib-networking.
+# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# Lucian Adrian Grijincu <lucian.grijincu@gmail.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2023-10-07 15:00+0000\n"
+"PO-Revision-Date: 2023-10-09 17:43+0300\n"
+"Last-Translator: Florentina Mușat <florentina [dot] musat [dot] 28 [at] "
+"gmail [dot] com>\n"
+"Language-Team: Romanian Gnome Team <gnomero-list@lists.sourceforge.net>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2);\n"
+"X-Generator: Poedit 3.4\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Eroare internă la rezolvatorul proxy."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Conexiunea este închisă"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Nu se poate efectua operația de blocare în timpul handshake-ului TLS"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "I/O de soclu a depășit limita de timp"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Serverul necesită certificat TLS"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr ""
+"Strângerea de mână nu este terminată, nu există încă informații de legătură "
+"de canal"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Partenerul nu suportă renegociere în siguranță"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Certificat TLS inacceptabil"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Fanioanele de primire nu sunt suportate"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Trimite fanioanele care nu sunt suportate"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Nu s-a putut importa PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nu s-a putut parsa certificatul DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nu s-a putut parsa certificatul PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nu s-a putut parsa cheia privată DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nu s-a putut parsa cheia privată PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Nu s-a putut importa URI-ul certificatului PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Nu s-au furnizat date de certificat"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr ""
+"Nu se poate verifica identitatea partenerului de conexiune de tipul "
+"neașteptat %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Nu s-a putut crea conexiunea TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nu s-a putut crea conexiunea TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr ""
+"Celălalt capăt al conexiunii nu a reușit să efectueze handshake-ul TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "Conexiunea TLS a fost închisă în mod neașteptat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Partenerul conexiunii TLS nu a trimis un certificat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Partenerul a trimis o alertă TLS fatală: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Atac de retrogradare a versiunii protocolului detectat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u octet"
+msgstr[1] "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u octeți"
+msgstr[2] ""
+"Mesajul este prea mare pentru conexiunea DTLS; maxim este %u de octeți"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Operația a depășit limita de timp"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Eroare la executarea handshake-ului TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Eroare la executarea handshake-ului TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Un tip de legare a canalului gol indică o eroare în implementarea "
+"bibliotecii TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Tipul de legare a canalului nu este implementat în biblioteca TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Datele de legare a canalului nu sunt disponibile încă"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Tipul de legătură de canal cerut nu este implementat"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Eroare la citirea datelor de la soclul TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Eroare la scrierea datelor la soclul TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] ""
+"Mesajul de dimensiunea %lu octet este prea mare pentru conexiunea DTLS"
+msgstr[1] ""
+"Mesajul de dimensiunea %lu octeți este prea mare pentru conexiunea DTLS"
+msgstr[2] ""
+"Mesajul de dimensiunea %lu de octeți este prea mare pentru conexiunea DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maxim este %u octet)"
+msgstr[1] "(maxim este %u octeți)"
+msgstr[2] "(maxim este %u de octeți)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Eroare la executarea închiderii TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Nu s-a putut încărca stocarea de încredere a sistemului: GnuTLS nu a fost "
+"configurat cu o încredere de sistem"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Nu s-a putut încărca stocarea de încredere a sistemului: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Nu s-a putut umple lista de încredere de la %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Certificatul nu are nicio cheie privată"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Nu s-a putut stabili lista de cifru TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Nu s-a putut stabili protocolul MAX la %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Nu s-a putut crea contextul TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Autoritate de certificat TLS inacceptabilă"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Extras prea mare pentru cheia RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Renegocierea sigură este dezactivată"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Conexiunea este deteriorată"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Cererea nu este validă."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Datele de legătură de canal tls-unique nu sunt disponibile"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "Certificatul X.509 nu este disponibil pe conexiune"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nu s-a putut obține algoritmul de semnătură de certificat"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Certificatul X.509 curent utilizează un algoritm de semnătură necunoscut sau "
+"nesuportat"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Nu s-a putut genera rezumatul certificatului X.509"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "Conexiunea TLS nu suportă funcționalitatea TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Eroare neașteptată în timpul exportării datelor de tastare"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Eroare la executarea închiderii TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Nu s-au putut obține configurările de încredere pentru certificat"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Nu s-au putut prelua certificatele"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Nu s-a putut obține depozitul rădăcină de certificate"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Nu s-a putut obține depozitul de certificate CA"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Nu s-a putut crea spațiul de stocare CA"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Este o problemă la certificatul: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Este o problemă la cheia privată a certificatului: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Nu s-au putut obține ancore de încredere de la lanțul de chei"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "Certificatul X.509 nu este disponibil pe conexiune"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr ""
+#~ "Certificatul X.509 nu este disponibil sau nu este de format cunoscut: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr ""
+#~ "Celălalt capăt al conexiunii a solicitat ilegal reefectuarea handshake-"
+#~ "ului TLS"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nu s-a putut încărca calea fișierului: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operația ar bloca"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Serverul nu a întors un certificat TLS valid"
+
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Eroare la citirea datelor de la soclul TLS: %s"
+
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Eroare la scrierea datelor la soclul TLS: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Aceasta este ultima șansă de a introduce PIN-ul corect înainte ca jetonul "
+#~ "să fie blocat."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Mai multe încercări de introducere a PIN-ului au fost incorecte, și "
+#~ "jetonul va fi blocat după alte eșecuri."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "PIN-ul introdus nu este corect."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Pointer de modul PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID slot"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identificator de slot PKCS#11"

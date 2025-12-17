@@ -1,0 +1,7 @@
+[Unit]
+Description=GLib proxy auto-configuration service
+
+[Service]
+Type=dbus
+BusName=org.gtk.GLib.PACRunner
+ExecStart=@libexecdir@/glib-pacrunner

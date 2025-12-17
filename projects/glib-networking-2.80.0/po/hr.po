@@ -1,0 +1,430 @@
+# Croatian translation for glib-networking
+# Copyright (c) 2015 Rosetta Contributors and Canonical Ltd 2015
+# This file is distributed under the same license as the glib-networking package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"PO-Revision-Date: 2022-08-17 00:56+0200\n"
+"Last-Translator: gogo <trebelnik2@gmail.com>\n"
+"Language-Team: Croatian <hr@li.org>\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Launchpad-Export-Date: 2017-04-10 14:16+0000\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: proxy/libproxy/glibproxyresolver.c:158
+msgid "Proxy resolver internal error."
+msgstr "Unutrašnja greška proxy razrješitelja."
+
+#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Povezivanje je zatvoreno"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:636
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Ne može se izvesti radnja blokiranja tijekom TLS rukovanja"
+
+#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Istek vremena U/I priključnice"
+
+#: tls/base/gtlsconnection-base.c:875
+msgid "Server required TLS certificate"
+msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
+
+#: tls/base/gtlsconnection-base.c:1454
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Rukovanje nije završeno, nema informacija povezivanja kanala"
+
+#: tls/base/gtlsconnection-base.c:1533
+msgid "Peer does not support safe renegotiation"
+msgstr "Točka ne podržava sigurne pregovore"
+
+#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Neprihvatljiva TLS vjerodajnica"
+
+#: tls/base/gtlsconnection-base.c:2153
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Primanje oznaka nije podržano"
+
+#: tls/base/gtlsconnection-base.c:2300
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Slanje oznaka nije podržano"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Nemoguć uvoz PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nemoguća analiza DER vjerodajnica: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nemoguća analiza PEM vjerodajnica: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nemoguća analiza DER privatnog ključa: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nemoguća analiza PEM privatnog ključa: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Nemoguć uvoz URI-ja PKCS #11 vjerodajnica: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Nema pruženih podataka vjerodajnica"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Nemoguća provjera identiteta čvora neočekivane vrste %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Nemoguće stvaranje TLS povezivanja:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:512
+#: tls/openssl/gtlsserverconnection-openssl.c:456
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nemoguće stvaranje TLS povezivanja: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Čvor je odbio izvesti TLS rukovanje: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS povezivanje je neočekivano zatvoreno"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS čvor povezivanja nije poslao vjerodajnicu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Kobno slanje točke TLS upozorenje: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Vraćena je starija inačica protokola, napad otkriven"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajt"
+msgstr[1] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajta"
+msgstr[2] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajta"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Istek vremena radnje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Greška izvođenja TLS rukovanja: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Greška izvođenja TLS rukovanja"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Prazni podaci povezivanja kanala ukazuju na grešku u implementaciji TLS "
+"biblioteke"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Vrsta povezivanja kanala nije implementirana u TLS biblioteci"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Podaci povezivanja kanala još nisu dostupni"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Zahtjevana vrsta povezivanja kanala nije implementirana"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Greška čitanja podataka iz TLS priključnice"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Greška zapisivanja podataka u TLS priključnicu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
+msgstr[1] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
+msgstr[2] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(najviše je %u bajt)"
+msgstr[1] "(najviše je %u bajta)"
+msgstr[2] "(najviše je %u bajta)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Greška izvođenja TLS zatvaranja: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Neuspjelo učitavanje spremnika povjerenja sustava: GnuTLS nije podešen s "
+"povjerenjem sustava"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Neuspjelo učitavanje spremnika povjerenja sustava: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Neuspjelo popunjavanje popisa povjerenja iz %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Vjerodajnica nema privatni ključ"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Nemoguće postavljanje popisa TLS šifratora: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Nemoguće postavljanje MAX protokola na %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Nemoguće stvaranje TLS sadržaja: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Neprihvatljiva punomoć TLS vjerodajnice"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Sadržaj je prevelik za RSA ključ"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Sigurnosno ponovno pregovaranje je onemogućeno"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Povezivanje je slomljeno"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Zahtjev je nevaljan."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Podaci povezivanja kanala tls-unique još nisu dostupni"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509 vjerodajnica nije dostupna na povezivanju"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nemoguće je nabaviti algoritam potpisa vjerodajnice"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Trenutna X.509 vjerodajnica koristi nepoznat ili nepodržan algoritam potpisa"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Neuspjelo stvaranje sažetka X.509 vjerodajnice"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS povezivanje ne podržava TLS-Exporter značajku"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Neočekivana greška pri izvozu podatka ključa"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Greška izvođenja TLS zatvaranja"
+
+#: tls/openssl/gtlsdatabase-openssl.c:167
+msgid "Could not get trusted anchors from Keychain"
+msgstr "Nemoguće dobivanje pouzdanog sidrišta iz skupa ključeva"
+
+#: tls/openssl/gtlsdatabase-openssl.c:232
+msgid "Could not get root certificate store"
+msgstr "Nemoguća dobivanje spremišta korijenske vjerodajnice"
+
+#: tls/openssl/gtlsdatabase-openssl.c:239
+msgid "Could not get CA certificate store"
+msgstr "Nemoguća dobivanje spremišta CA vjerodajnice"
+
+#: tls/openssl/gtlsdatabase-openssl.c:304
+msgid "Could not create CA store"
+msgstr "Nemoguće stvaranje CA spremišta"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Postoji problem s vjerodajnicom: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Postoji problem s privatnim ključem vjerodajnice: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509 vjerodajnica nije dostupna na povezivanju"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509 vjerodajnica nije dostupna ili je nepoznatog formata: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Čvor zahtjeva ilegalno TLS ponovno rukovanje"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nemoguće učitavanje putanje datoteke: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Radnja će blokirati"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Poslužitelj nije vratio valjanu TLS vjerodajnicu"
+
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Greška čitanja podataka iz TLS priključnice: %s"
+
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Greška zapisivanja podataka u TLS priključnicu: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Ovo je posljednja šansa za upis PIN-a ispravno prije nego što se token "
+#~ "zaključa."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Nekoliko PIN-ova je neispravno, i token će biti zaključan nakon budućih "
+#~ "neuspjeha."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Upisani PIN je neispravan."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 pokazivač modula"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID utora"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 identifikator utora"

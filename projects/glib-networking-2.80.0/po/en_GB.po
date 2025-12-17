@@ -1,0 +1,452 @@
+# British English translation of glib-networking.
+# Copyright (C) 2011 glib-networking'S COPYRIGHT HOLDER
+# This file is distributed under the same licence as the glib-networking package.
+# Bruce Cowan <bruce@bcowan.me.uk>, 2011-2024.
+# Zander Brown <zbrown@gnome.org>, 2019-2021.
+# Andi Chandler <andi@gowling.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2024-02-27 16:41+0000\n"
+"PO-Revision-Date: 2024-02-28 12:08+0000\n"
+"Last-Translator: Bruce Cowan <bruce@bcowan.me.uk>\n"
+"Language-Team: English - United Kingdom <en_GB@li.org>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Proxy resolver internal error."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Connection is closed"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Cannot perform blocking operation during TLS handshake"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
+msgid "Socket I/O timed out"
+msgstr "Socket I/O timed out"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Server required TLS certificate"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Handshake has not finished, no channel binding information yet"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Peer does not support safe renegotiation"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:850
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Unacceptable TLS certificate"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Receive flags are not supported"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Send flags are not supported"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Failed to import PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Could not parse DER certificate: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Could not parse PEM certificate: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Could not parse DER private key: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Could not parse PEM private key: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Could not import PKCS #11 certificate URI: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "No certificate data provided"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Cannot verify peer identity of unexpected type %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
+msgid "Could not create TLS connection:"
+msgstr "Could not create TLS connection:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Could not create TLS connection: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Peer failed to perform TLS handshake: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS connection closed unexpectedly"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:482
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS connection peer did not send a certificate"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:498
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Peer sent fatal TLS alert: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Protocol version downgrade attack detected"
+msgstr "Protocol version downgrade attack detected"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:517
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Message is too large for DTLS connection; maximum is %u byte"
+msgstr[1] "Message is too large for DTLS connection; maximum is %u bytes"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "The operation timed out"
+msgstr "The operation timed out"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:878
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Error performing TLS handshake: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:629
+msgid "Error performing TLS handshake"
+msgstr "Error performing TLS handshake"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Channel binding type is not implemented in the TLS library"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Channel binding data is not yet available"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:825
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Requested channel binding type is not implemented"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:843
+#: tls/openssl/gtlsconnection-openssl.c:939
+msgid "Error reading data from TLS socket"
+msgstr "Error reading data from TLS socket"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1018
+msgid "Error writing data to TLS socket"
+msgstr "Error writing data to TLS socket"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Message of size %lu byte is too large for DTLS connection"
+msgstr[1] "Message of size %lu bytes is too large for DTLS connection"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maximum is %u byte)"
+msgstr[1] "(maximum is %u bytes)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Error performing TLS close: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to allocate credentials: %s"
+msgstr "Failed to allocate credentials: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Failed to load system trust store: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+#| msgid "Failed to populate trust list from %s: %s"
+msgid "Failed to initialize trust list: %s"
+msgstr "Failed to initialise trust list: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Failed to populate trust list from %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Certificate has no private key"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Could not set TLS cipher list: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Could not set MAX protocol to %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Could not create TLS context: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Unacceptable TLS certificate authority"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Digest too big for RSA key"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Secure renegotiation is disabled"
+
+#: tls/openssl/gtlsconnection-openssl.c:268
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: The connection is broken"
+
+#: tls/openssl/gtlsconnection-openssl.c:675
+#, c-format
+msgid "The request is invalid."
+msgstr "The request is invalid."
+
+#: tls/openssl/gtlsconnection-openssl.c:698
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Channel binding data tls-unique is not available"
+
+#: tls/openssl/gtlsconnection-openssl.c:721
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509 Certificate is not available on the connection"
+
+#: tls/openssl/gtlsconnection-openssl.c:729
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Unable to obtain certificate signature algorithm"
+
+#: tls/openssl/gtlsconnection-openssl.c:749
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+
+#: tls/openssl/gtlsconnection-openssl.c:767
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Failed to generate X.509 certificate digest"
+
+#: tls/openssl/gtlsconnection-openssl.c:798
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS Connection does not support TLS-Exporter feature"
+
+#: tls/openssl/gtlsconnection-openssl.c:801
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Unexpected error while exporting keying data"
+
+#: tls/openssl/gtlsconnection-openssl.c:1079
+msgid "Error performing TLS close"
+msgstr "Error performing TLS close"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Could not get trust settings for certificate"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Could not retrieve certificates"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Could not get root certificate store"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Could not get CA certificate store"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Could not create CA store"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "There is a problem with the certificate: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "There is a problem with the certificate private key: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Could not get trusted anchors from Keychain"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509 certificate is not available on the connection"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509 certificate is not available or is of unknown format: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Peer requested illegal TLS rehandshake"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Failed to load file path: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operation would block"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Server did not return a valid TLS certificate"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "The PIN entered is incorrect."
+
+#~ msgid "Module"
+#~ msgstr "Module"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 Module Pointer"
+
+#~ msgid "Slot ID"
+#~ msgstr "Slot ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 Slot Identifier"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Connection is already closed"

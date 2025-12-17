@@ -1,0 +1,146 @@
+include:
+ - remote: 'https://gitlab.freedesktop.org/freedesktop/ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
+
+variables:
+  FDO_UPSTREAM_REPO: GNOME/glib-networking
+
+stages:
+  - prepare
+  - build
+
+.fedora.container.common:
+  variables:
+    FDO_DISTRIBUTION_TAG: '2022-08-05.3'
+    FDO_DISTRIBUTION_VERSION: 'latest'
+
+build.container.fedora@x86_64:
+  extends:
+  - '.fdo.container-build@fedora'
+  - '.fedora.container.common'
+  stage: prepare
+  variables:
+    GIT_STRATEGY: none
+    FDO_EXPIRES_AFTER: 8w
+    FDO_DISTRIBUTION_PACKAGES: >-
+      ca-certificates
+      clang-analyzer
+      gcc
+      gettext
+      git
+      lcov
+      libasan
+      meson
+      pkgconfig(gnutls)
+      pkgconfig(gsettings-desktop-schemas)
+      pkgconfig(libproxy-1.0)
+      pkgconfig(openssl)
+      pkgconfig(p11-kit-1)
+    FDO_DISTRIBUTION_EXEC: >-
+      git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git &&
+      pushd glib &&
+      meson _build --prefix=/usr &&
+      meson install -C _build &&
+      popd &&
+      rm -rf glib
+
+fedora-x86_64:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
+  stage: build
+  variables:
+    # Remove for PKCS11 logs, otherwise generates a lot of noise hitting gitlab's limit
+    PKCS11SPY_PATH: disabled
+  script:
+    - cp .gitlab-ci/lcovrc ~/.lcovrc
+    - meson setup --prefix=$HOME/glib-networking-installed
+        --fatal-meson-warnings
+        -Db_coverage=true
+        -Dgnutls=enabled
+        -Dopenssl=enabled
+        -Denvironment_proxy=enabled
+        -Dlibproxy=enabled
+        -Dgnome_proxy=enabled
+        -Ddebug_logs=true
+        -Dwerror=true
+        _build/
+    - meson compile -C _build/
+    - meson test -v -C _build/ --repeat=10
+    - meson install -C _build/
+    - ninja -C _build/ coverage-html
+  artifacts:
+    reports:
+      junit: _build/meson-logs/testlog.junit.xml
+    paths:
+      - _build/test-results
+      - _build/meson-logs/coveragereport
+    when: always
+  coverage: '/^\s+lines\.+:\s+([\d.]+\%)\s+/'
+
+fedora-x86_64-asan:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
+  tags: [ asan ]
+  stage: build
+  variables:
+    PKCS11SPY_PATH: disabled
+    ASAN_OPTIONS: fast_unwind_on_malloc=0
+  script:
+    - meson -Db_sanitize=address
+            -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Dlibproxy=enabled
+            -Denvironment_proxy=enabled
+            -Dgnome_proxy=enabled
+            -Ddebug_logs=true
+            -Dwerror=true
+            _build/
+    - meson compile -C _build/
+    - meson test --verbose --timeout-multiplier=10 -C _build/
+  artifacts:
+    reports:
+      junit: _build/meson-logs/testlog.junit.xml
+    paths:
+      - _build/test-results
+    when: on_failure
+
+fedora-x86_64-scan-build:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
+  stage: build
+  script:
+    - meson -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Denvironment_proxy=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            -Ddebug_logs=true
+            -Dwerror=true
+            _build/
+    - scan-build meson compile -C _build/
+    - bash -c 'if [[ -n "$(ls -A _build/meson-logs/scanbuild/)" ]]; then echo "Scan build log found, assuming defects exist"; exit 1; fi'
+  artifacts:
+    paths:
+      - _build/meson-logs/scanbuild
+    when: on_failure
+
+vs2017-x64:
+  stage: build
+  except:
+    - tags
+  tags:
+    - win32-ps
+  script:
+    - pip3 install --upgrade --user meson~=0.64.0
+    - mv .gitlab-ci\openssl.wrap subprojects
+    - meson setup --vsenv builddir -Dgnutls=disabled -Dopenssl=enabled -Dlibproxy=disabled -Denvironment_proxy=enabled -Dgnome_proxy=disabled -Ddebug_logs=true -Dopenssl:default_library=static
+    - meson compile -C builddir
+    - meson test -C builddir 'glib-networking:' --timeout-multiplier=10
+  artifacts:
+    reports:
+      junit: builddir\meson-logs\testlog.junit.xml
+    paths:
+      - builddir\test-results
+    when: on_failure

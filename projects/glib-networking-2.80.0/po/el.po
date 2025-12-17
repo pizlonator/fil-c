@@ -1,0 +1,435 @@
+# Greek translation for glib-networking.
+# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# Michael Kotsarinis <mk73628@gmail.com>, 2011.
+# Kostas Papadimas <pkst@gnome.org>, 2012.
+# Dimitris Spingos (Δημήτρης Σπίγγος) <dmtrs32@gmail.com>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2023-10-07 15:00+0000\n"
+"PO-Revision-Date: 2017-09-09 10:31+0200\n"
+"Last-Translator: Efstathios Iosifidis <iosifidis@opensuse.org>\n"
+"Language-Team: team@gnome.gr\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.7\n"
+"X-Project-Style: gnome\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Εσωτερικό σφάλμα επίλυσης διαμεσολαβητή."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Η σύνδεση έκλεισε"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Δεν μπορεί να εκτελεστεί λειτουργία φραγής κατά τη διάρκεια της χειραψίας TLS"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Λήξη χρονικού ορίου επικοινωνίας στο Socket I/O"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Ο διακομιστής απαίτησε πιστοποιητικό TLS"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Η χειραψία δεν έχει ολοκληρωθεί, καμία πληροφορία σύνδεσης καναλιού ακόμη"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Ο ομότιμος δεν υποστηρίζει ασφαλή ανανέωση"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Μη αποδεκτό πιστοποιητικό TLS"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Οι σημαίες λήψης δεν υποστηρίζονται"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Οι σημαίες αποστολής δεν υποστηρίζονται"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Αποτυχία εισαγωγής του PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Αδυναμία ανάλυσης ιδιωτικού κλειδιού DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Αδυναμία ανάλυσης ιδιωτικού κλειδιού PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Αδυναμία εισαγωγής της URI του πιστοποιητικού PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Δεν παρέχονται δεδομένα πιστοποιητικού"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Αδυναμία επαλήθευσης της ταυτότητας ομότιμου απροσδόκητου τύπου %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+#| msgid "Could not create TLS connection: %s"
+msgid "Could not create TLS connection:"
+msgstr "Αδύνατη η δημιουργία σύνδεσης TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Αδύνατη η δημιουργία σύνδεσης TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+#| msgid "Peer failed to perform TLS handshake"
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Ο ομότιμος απέτυχε να εκτελέσει χειραψία TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "Η σύνδεση TLS τερματίστηκε απρόσμενα"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Η ομότιμη σύνδεση TLS δεν έστειλε πιστοποιητικό"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Ο ομότιμος έστειλε ειδοποίηση μοιραίου σφάλματος TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Ανιχνεύθηκε επίθεση μείωσης έκδοσης πρωτοκόλλου"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Το μήνυμα είναι πολύ μεγάλο για τη σύνδεση DTLS, το μέγιστο είναι %u byte"
+msgstr[1] "Το μήνυμα είναι πολύ μεγάλο για τη σύνδεση DTLS, το μέγιστο είναι %u bytes"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Έληξε ο χρόνος της λειτουργίας"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Σφάλμα κατά τη «χειραψία» TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+#| msgid "Error performing TLS handshake: %s"
+msgid "Error performing TLS handshake"
+msgstr "Σφάλμα κατά τη «χειραψία» TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr "Κενά δεδομένα σύνδεσης καναλιού υποδηλώνουν σφάλμα στην υλοποίηση της βιβλιοθήκης TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Ο τύπος σύνδεσης καναλιού δεν είναι υλοποιημένος στη βιβλιοθήκη TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Τα δεδομένα σύνδεσης καναλιού δεν είναι ακόμη διαθέσιμα"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Ο ζητούμενος τύπος σύνδεσης καναλιού δεν είναι υλοποιημένος"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+#| msgid "Error reading data from TLS socket: %s"
+msgid "Error reading data from TLS socket"
+msgstr "Σφάλμα κατά την ανάγνωση δεδομένων από την υποδοχή TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+#| msgid "Error writing data to TLS socket: %s"
+msgid "Error writing data to TLS socket"
+msgstr "Σφάλμα κατά την εγγραφή δεδομένων στην υποδοχή TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Το μήνυμα μεγέθους %lu byte είναι πολύ μεγάλο για τη σύνδεση DTLS"
+msgstr[1] "Το μήνυμα μεγέθους %lu bytes είναι πολύ μεγάλο για τη σύνδεση DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(το μέγιστο είναι %u byte)"
+msgstr[1] "(το μέγιστο είναι %u bytes)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Σφάλμα κατά το κλείσιμο TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr "Απέτυχε να φορτώσει τον χώρο αποθήκευσης εμπιστοσύνης του συστήματος: Το GnuTLS δεν έχει ρυθμιστεί με εμπιστοσύνη "
+"συστήματος"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Αποτυχία φόρτωσης χώρου αποθήκευσης εμπιστοσύνης του συστήματος: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Αποτυχία συμπλήρωσης λίστας εμπιστοσύνης από το %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Το πιστοποιητικό δεν έχει ιδιωτικό κλειδί"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+#| msgid "Could not create TLS connection: %s"
+msgid "Could not set TLS cipher list: %s"
+msgstr "Αδύνατη η ρύθμιση της λίστας κρυπτογράφησης TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, fuzzy, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού PEM: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, fuzzy, c-format
+#| msgid "Could not create TLS connection: %s"
+msgid "Could not create TLS context: %s"
+msgstr "Αδύνατη η δημιουργία σύνδεσης TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, fuzzy, c-format
+#| msgid "Unacceptable TLS certificate"
+msgid "Unacceptable TLS certificate authority"
+msgstr "Μη αποδεκτό πιστοποιητικό TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, fuzzy, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "Η σύνδεση έκλεισε"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr ""
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+#, fuzzy
+#| msgid "Error performing TLS close: %s"
+msgid "Error performing TLS close"
+msgstr "Σφάλμα κατά το κλείσιμο TLS: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+#, fuzzy
+#| msgid "Could not parse DER certificate: %s"
+msgid "Could not get trust settings for certificate"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού DER: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+#, fuzzy
+#| msgid "Could not parse DER certificate: %s"
+msgid "Could not retrieve certificates"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού DER: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+#, fuzzy
+#| msgid "Could not parse DER certificate: %s"
+msgid "Could not get root certificate store"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού DER: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+#, fuzzy
+#| msgid "Could not parse DER certificate: %s"
+msgid "Could not get CA certificate store"
+msgstr "Αδυναμία ανάλυσης πιστοποιητικού DER: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+#, fuzzy
+#| msgid "Could not create TLS connection: %s"
+msgid "Could not create CA store"
+msgstr "Αδύνατη η δημιουργία σύνδεσης TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#~ msgid "Operation would block"
+#~ msgstr "Η λειτουργία θα μπλοκαριστεί"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Ο ομότιμος υπολογιστής απαίτησε παράτυπη «χειραψία» TLS"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Ο διακομιστής δεν επέστρεψε ένα έγκυρο πιστοποιητικό TLS"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Αυτή είναι η τελευταία σας ευκαιρία να πληκτρολογήσετε σωστά το PIN πριν "
+#~ "να κλειδωθεί το διακριτικό."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Αρκετές προσπάθειες PIN ήταν εσφαλμένες, και το διακριτικό θα κλειδωθεί "
+#~ "μετά από περαιτέρω αποτυχίες."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Δεν είναι έγκυρο το PIN που πληκτρολογήσατε."
+
+#~ msgid "Module"
+#~ msgstr "Άρθρωμα"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Δείκτης αρθρώματος PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "Αναγνωριστικό υποδοχής"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Αναγνωριστικό θέσης PKCS#11"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Η σύνδεση έχει ήδη κλείσει"

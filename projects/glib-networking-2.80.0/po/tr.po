@@ -1,0 +1,395 @@
+# Turkish translation for glib-networking.
+# Copyright (C) 2011 the Free Software Foundation, Inc.
+# Copyright (C) 2012-2023 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+#
+# Muhammed Eken <gnome@m-eken.com>, 2011.
+# Ozan Çağlayan <ozancag@gmail.com>, 2013.
+# Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
+# Furkan Tokaç <developmentft@gmail.com>, 2017.
+# Emin Tufan Çetin <etcetin@gmail.com>, 2017-2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2024-03-10 22:58+0000\n"
+"PO-Revision-Date: 2024-03-11 08:00+0300\n"
+"Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
+"Language-Team: Turkish <takim@gnome.org.tr>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.4\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Vekil çözücü iç hatası."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Bağlantı kapalı"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "TLS el sıkışması sırasında engelleme işlemi gerçekleştirilemez"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
+msgid "Socket I/O timed out"
+msgstr "G/Ç yuvası zaman aşımına uğradı"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Sunucu, TLS sertifikası istedi"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "El sıkma tamamlanmadı, henüz kanal bağlama bilgisi yok"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Eş, güvenli yeniden anlaşmayı desteklemiyor"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:850
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Kabul edilemez bir TLS sertifikası"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Bayrak alma desteklenmiyor"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Bayrak gönderme desteklenmiyor"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "PKCS #12 içe aktarılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER sertifikası ayrıştırılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM sertifikası ayrıştırılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER özel anahtarı ayrıştırılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM özel anahtarı ayrıştırılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "PKCS #11 sertifika URIʼsi içe aktarılamadı: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Sertifika verisi sağlanmadı"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Beklenmedik %s türündeki eş kimliği doğrulamadı"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
+msgid "Could not create TLS connection:"
+msgstr "TLS bağlantısı oluşturulamadı:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS bağlantısı oluşturulamadı: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Eş, TLS el sıkışmasını başaramadı: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS bağlantısı beklenmedik biçimde sonlandı"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:482
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS bağlantısı eşi sertifika göndermedi"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:498
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Eş, ölümcül TLS uyarısı gönderdi: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Protocol version downgrade attack detected"
+msgstr "İletişim kuralı sürümünü düşürme saldırısı saptandı"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:517
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "İleti, DTLS bağlantısı için çok büyük; azami %u bayt"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "The operation timed out"
+msgstr "İşlem zaman aşımına uğradı"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:878
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS el sıkışması sırasında hata: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:629
+msgid "Error performing TLS handshake"
+msgstr "TLS el sıkışması sırasında hata"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Boş kanal bağlama türü, TLS kütüphanesi gerçeklemesinde hata belirtisidir"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Kanal bağlama türü TLS kütüphanesinde gerçeklenmedi"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Kanal bağlama verisi henüz kullanılabilir değil"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:825
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "İstenen kanal bağlama türü gerçeklenmedi"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:843
+#: tls/openssl/gtlsconnection-openssl.c:939
+msgid "Error reading data from TLS socket"
+msgstr "TLS yuvasından veri okurken hata"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1018
+msgid "Error writing data to TLS socket"
+msgstr "TLS yuvasına veri yazarken hata"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "%lu bayt ileti boyutu DTLS bağlantısı için çok büyük"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(azami %u bayt)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS kapatma işleminde hata: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Kimlik bilgileri ayırtılamadı: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Sistem güven deposu yüklenemedi: GnuTLS, sistem güveniyle yapılandırılmamış"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Sistem güven deposu yüklenemedi: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Sistem güveni, güvenilir olmayan sertifika içeriyor; GnuTLS yapılandırmasını "
+"inceleyin"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Güven listesi yüklenemedi: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "%s konumundan güven listesi doldurulamadı: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Sertifikanın özel anahtarı yok"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "TLS şifreleyici listesi belirlenemedi: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "MAX iletişim kuralı %d olarak belirlenemedi: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS bağlamı oluşturulamadı: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Kabul edilemez bir TLS sertifika otoritesi"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "RSA anahtarı için çok büyük özet"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Güvenli yeniden el sıkışma devre dışı"
+
+#: tls/openssl/gtlsconnection-openssl.c:268
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Bağlantı kırık"
+
+#: tls/openssl/gtlsconnection-openssl.c:675
+#, c-format
+msgid "The request is invalid."
+msgstr "İstek geçersiz."
+
+#: tls/openssl/gtlsconnection-openssl.c:698
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "tls-unique kanal bağlama türü kullanılabilir değil"
+
+#: tls/openssl/gtlsconnection-openssl.c:721
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509 Sertifikası, bağlantıda kullanılabilir değil"
+
+#: tls/openssl/gtlsconnection-openssl.c:729
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Sertifika imza algoritması edinilemedi"
+
+#: tls/openssl/gtlsconnection-openssl.c:749
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Şu anki X.509 sertifikası bilinmeyen veya desteklenmeyen imza algoritması "
+"kullanıyor"
+
+#: tls/openssl/gtlsconnection-openssl.c:767
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "X.509 sertifika özeti oluşturulamadı"
+
+#: tls/openssl/gtlsconnection-openssl.c:798
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS Bağlantısı, TLS-Exporter özelliğini desteklemiyor"
+
+#: tls/openssl/gtlsconnection-openssl.c:801
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Anahtarlama verisi dışa aktarılırken beklenmedik hata"
+
+#: tls/openssl/gtlsconnection-openssl.c:1079
+msgid "Error performing TLS close"
+msgstr "TLS kapatma işleminde hata"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Sertifika için güven ayarları alınamadı"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Sertifikalar getirilemedi"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Kök sertifika deposu alınamadı"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "CA sertifika deposu alınamadı"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "CA deposu oluşturulamadı"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Sertifikada sorun var: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Sertifika özel anahtarında sorun var: %s"

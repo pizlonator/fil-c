@@ -1,0 +1,436 @@
+# Friulian translation for glib-networking.
+# Copyright (C) 2013 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2022-09-12 16:40+0000\n"
+"PO-Revision-Date: 2022-09-28 07:26+0200\n"
+"Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
+"Language-Team: Friulian <fur@li.org>\n"
+"Language: fur\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Erôr interni dal resolver proxy."
+
+#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "La conession e je sierade"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:636
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr ""
+"Impussibil eseguî la operazion di bloc intant che si eseguìs il handshake TLS"
+
+#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "I/O dal socket scjadût"
+
+#: tls/base/gtlsconnection-base.c:875
+msgid "Server required TLS certificate"
+msgstr "Il server al domande un certificât TLS"
+
+#: tls/base/gtlsconnection-base.c:1454
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr ""
+"Il handshake nol è finît, ancjemò nissune informazion di leam dal canâlt"
+
+#: tls/base/gtlsconnection-base.c:1533
+msgid "Peer does not support safe renegotiation"
+msgstr "Il “peer” nol supuarte la rinegoziazion sigure"
+
+#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Certificât TLS no acetabil"
+
+#: tls/base/gtlsconnection-base.c:2153
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Lis opzions di ricezion no son supuartadis"
+
+#: tls/base/gtlsconnection-base.c:2300
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Lis opzions par inviâ no son supuartadis"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Impussibil impuartâ PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Impussibil analizâ il certificât DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Impussibil analizâ il certificât PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Impussibil analizâ la clâf privade DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Impussibil analizâ la clâf privade PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Impussibil impuartâ il URI dal certificât PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Nissun dât di certificât dât"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr ""
+"Impussibil verificâ la identitât di chel di chê altre bande di gjenar "
+"inspietât %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Impussibil creâ la conession TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:512
+#: tls/openssl/gtlsserverconnection-openssl.c:456
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Impussibil creâ la conession TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Il pâr nol è rivât a eseguî il handshake TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "Sieradure inspietade de conession TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Il pâr di conession TLS nol à inviât un certificât"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Il pâr al à inviât l'avîs TLS fatâl: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Scuviert atac pal passaç a une version inferiôr de version di protocol"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] ""
+"Il messaç al è masse grant pe conession DTLS; il massim al è di %u byte"
+msgstr[1] ""
+"Il messaç al è masse grant pe conession DTLS; il massim al è di %u byte"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "La operazion e je scjadude"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Erôr tal eseguî il handshake TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Erôr tal eseguî il handshake TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"I dâts di associazion dal canâl vueit a indichin un erôr te implementazion "
+"de librarie TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Il gjenar di leam dal canâl nol è implementât te librarie TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "I dâts dal leam dal canâl no son ancjemò disponibii"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Il gjenar dal leam dal canâl domandât nol è implementât"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Erôr tal lei dâts dal socket TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Erôr tal scrivi dâts al socket TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Il messaç di dimension %lu byte al è masse grant pe conession DTLS"
+msgstr[1] "Il messaç di dimension %lu byte al è masse grant pe conession DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(il massim al è %u byte)"
+msgstr[1] "(il massim al è %u bytes)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Erôr tal sierâ TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"No si è rivâts a cjariâ l'archivi di fiducie dal sisteme: GnuTLS nol jere "
+"configurât cuntune fiducie di sisteme"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "No si è rivâts a cjariâ l'archivi di fiducie dal sisteme: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "No si è rivâts a popolâ la liste di fiducie di %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Il certificât nol à une clâf privade"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Nol è stât pussibil stabilî la liste di cifradure TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Impussibil stabilî il protocol MAX a %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Impussibil creâ il contest TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Autoritât dal certificât TLS no acetabil"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Digest masse grant pe clâf RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "La rinegoziazion sigure e je disabilitade"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: La conession e je rote"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "La richieste no je valide."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "I dâts tls-unique dal leam dal canâl no son disponibii"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "Il certificât X.509 nol è disponibil te conession"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Impussibil otignî l'algoritmi di firme dal certificât"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Il certificât X.509 atuâl al dopre un algoritmi di firme no cognossût o no "
+"supuartât"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "No si è rivâts a gjenerâ il digest dal certificât"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "La conession TLS no supuarte la funzionalitât TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Erôr inspietât tal espuartâ i dâts dal puarteclâfs"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Erôr tal sierâ TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:167
+msgid "Could not get trusted anchors from Keychain"
+msgstr "Impussibil otignî ancuris fidadis de Keychain"
+
+#: tls/openssl/gtlsdatabase-openssl.c:232
+msgid "Could not get root certificate store"
+msgstr "Impussibil otignî l'archivi dal certificât di root"
+
+#: tls/openssl/gtlsdatabase-openssl.c:239
+msgid "Could not get CA certificate store"
+msgstr ""
+"Impussibil otignî l'archivi dal certificât de Autoritât di Certificazion CA"
+
+#: tls/openssl/gtlsdatabase-openssl.c:304
+msgid "Could not create CA store"
+msgstr "Impussibil creâ il depuesit di CA"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Si à un probleme cul certificât: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Si à un probleme cun la clâf privade dal certificât: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "Il certificât X.509 nol è disponibil te conession"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr ""
+#~ "Il certificât X.509 nol è disponibil o al è tun formât no cognossût: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Il pâr al à domandât un rehandshake TLS no lecit"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "No si è rivâts a cjariâ il percors dal file: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Le operazion e podarès blocâsi"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Il server nol à tornât un certificât TLS valit"
+
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Erôr tal lei dâts dal socket TLS: %s"
+
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Erôr tal scrivi dâts al socket TLS: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Cheste e je la ultime pussibilitât par inserî il PIN coret prime che al "
+#~ "vegni blocât il token."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "A son stâts fats une vore di tentatîfs par meti il PIN, il token al sarà "
+#~ "blocât dopo altris faliments."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Il PIN dât nol è coret."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Pontadôr modul PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID dal slot"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identificadôr Slot PKCS#11"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "La conession a je za sierade"

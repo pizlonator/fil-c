@@ -1,0 +1,34 @@
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">glib-networking</name>
+  <shortdesc xml:lang="en">Network extensions for GLib</shortdesc>
+  <description xml:lang="en"> glib-networking contains the implementations of certain GLib networking features that cannot be implemented directly in GLib itself because of their dependencies.
+
+Currently it contains GnuTLS- and OpenSSL-based implementations of GTlsBackend, environment variable and libproxy-based implementations of GProxyResolver, and a GNOME GProxyResolver that uses the proxy information from the GSettings schemas in gsettings-desktop-schemas.</description>
+
+  <download-page rdf:resource="http://download.gnome.org/sources/glib-networking" />
+  <bug-database rdf:resource="https://gitlab.gnome.org/GNOME/glib-networking/issues" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#core" />
+  <programming-language>C</programming-language>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Michael Catanzaro</foaf:name>
+      <foaf:mbox rdf:resource="mailto:mcatanzaro@gnome.org" />
+      <gnome:userid>mcatanzaro</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Ignacio Casal Quinteiro</foaf:name>
+      <foaf:mbox rdf:resource="mailto:icq@gnome.org" />
+      <gnome:userid>icq</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+</Project>

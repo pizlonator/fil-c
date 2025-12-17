@@ -1,0 +1,470 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2012, 2013, 2017, 2018, 2019, 2020, 2021, 2022, 2024 Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-24 23:36+0200\n"
+"Last-Translator: Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>\n"
+"Language-Team: Latvian <lata-l10n@googlegroups.com>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 23.08.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 :"
+" 2);\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Starpnieka risinātāja iekšēja kļūda."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Savienojums ir aizvērts"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Nevar veikt bloķējošu darbību TLS izaicinājumrokspiediena laikā"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Ligzdai I/O iestājās noildze"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Serveris pieprasa TLS sertifikātu"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Rokasspiediens nav pabeigts, vēl nav kanālu sasaistes informācija"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Biedrs neatbalsta drošas atkārtotas pārrunas"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Nepieņemams TLS sertifikāts"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Saņemšanas slēdži nav atbalstīti"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Sūtīšanas slēdži nav atbalstīti"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Neizdevās importēt PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nevarēju noparsēt DER sertifikātu — %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nevarēju noparsēt PEM sertifikātu — %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nevarēju noparsēt DER privāto atslēgu — %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nevarēju noparsēt PEM privāto atslēgu — %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Nevarēja importēt PKCS #11 sertifikāta URI — %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Nav norādīti sertifikāta dati"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Nevar pārbaudīt biedra identitāti, kam ir nezināms tips %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Neizdevās izveidot TLS savienojumu:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Neizdevās izveidot TLS savienojumu — %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Dalībniekam neizdevās veikt TLS izaicinājumrokspiedienu: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS savienojums aizvērās negaidīti"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS savienojuma dalībnieks neatsūtīja sertifikātu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Biedrs nosūtīja fatālu TLS brīdinājumu: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Atklāts protokola versijas pazemināšanas uzbrukums"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] ""
+"Ziņojums ir pārāk garš DTLS savienojumam; maksimālais izmērs ir %u baits"
+msgstr[1] ""
+"Ziņojums ir pārāk garš DTLS savienojumam; maksimālais izmērs ir %u baiti"
+msgstr[2] ""
+"Ziņojums ir pārāk garš DTLS savienojumam; maksimālais izmērs ir %u baitu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Darbībai iestājās noildze"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu — %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Tukši kanāla sasaistes dati liecina, ka ir kļūda TLS bibliotēkas "
+"implementācijā"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Kanāla sasaistes tips nav atbalstīts šajā TLS bibliotēkā"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Kanāla sasaistes dati vēl nav pieejami"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Pieprasītais kanāla sasaistes tips nav implementēts"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Kļūda, lasot datus no TLS ligzdas"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Kļūda, rakstot datus TLS ligzdā"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Ziņojums ar izmēru %lu baits ir pārāk garš DTLS savienojumam"
+msgstr[1] "Ziņojums ar izmēru %lu baiti ir pārāk garš DTLS savienojumam"
+msgstr[2] "Ziņojums ar izmēru %lu baiti ir pārāk garš DTLS savienojumam"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maksimums ir %u baits)"
+msgstr[1] "(maksimums ir %u baiti)"
+msgstr[2] "(maksimums ir %u baitu)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Kļūda, veicot TLS aizvēršanu — %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Neizdevās ielādēt sistēmas uzticības krātuvi: GnuTLS nav konfigurēts ar "
+"sistēmas uzticību"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Neizdevās ielādēt sistēmas uzticības krātuvi: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Sistēmas uzticība nesatur nevienu uzticamu sertifikātu; lūdzu, pārbaudiet"
+" savu GnuTLS konfigurāciju"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+#| msgid "Failed to populate trust list from %s: %s"
+msgid "Failed to initialize trust list: %s"
+msgstr "Neizdevās inicializēt uzticības sarakstu: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to allocate credentials: %s"
+msgstr "Neizdevās piešķirt akreditācijas datus: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Neizdevās aizpildīt uzticības sarakstu no %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Sertifikātam nav privātās atslēgas"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Neizdevās iestatīt TLS šifrētāja sarakstu — %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Nevarēja iestatīt MAX protokolu uz %d — %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Neizdevās izveidot TLS kontekstu — %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Nepieņemama TLS sertifikāta autoritāte"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Kopsavilkums ir pārāk garš RSA atslēgai"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Drošās atkārtotās pārrunas ir izslēgtas"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Savienojums ir salauzts"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Pieprasījums ir nederīgs."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Kanāla sasaistes datu tls-unique nav pieejams"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "X.509 sertifikāts nav pieejams uz savienojuma"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nevar saņemt sertifikāta paraksta algoritmu"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Pašreizējais X.509 sertifikāts izmanto nezināmu vai neatbalstītu paraksta "
+"algoritmu"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Neizdevās izveidot X.509 sertifikāta izklāsta"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "TLS savienojums neatbalsta TLS-Exporter iespēju"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Negaidīta kļūda, eksportējot atslēgu datus"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Kļūda, veicot TLS aizvēršanu"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+#| msgid "Could not get root certificate store"
+msgid "Could not get trust settings for certificate"
+msgstr "Nevarēja saņemt uzticības iestatījumus sertifikātam"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+#| msgid "Could not get root certificate store"
+msgid "Could not retrieve certificates"
+msgstr "Nevarēja saņemt sertifikātus"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Nevarēja saņemt saknes sertifikāta krātuvi"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Nevarēja saņemt CA sertifikāta krātuvi"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Neizdevās izveidot CA krātuvi"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Ir problēma ar sertifikātu — %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Ir problēma ar sertifikāta privāto atslēgu — %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Nevarēja saņemt uzticamus enkurus no Keychain"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509 sertifikāts nav pieejams uz savienojuma"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr ""
+#~ "X.509 sertifikāts nav pieejams uz savienojuma vai tam ir nezināms formāts "
+#~ "— %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Dalībnieks pieprasīja neatļautu TLS izaicinājumrokspiedienu"
+
+#~| msgid "Failed to load system trust store: %s"
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Neizdevās ielādēt datņu ceļu: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "Darbība bloķēs"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Serveris neatgrieza derīgu TLS sertifikātu"
+
+#~| msgid "Error reading data from TLS socket"
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "Kļūda, lasot datus no TLS ligzdas — %s"
+
+#~| msgid "Error writing data to TLS socket"
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "Kļūda, rakstot datus TLS ligzdā — %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Šī ir pēdējā iespēja ievadīt pareizu PIN, pirms marķierierīce tiek "
+#~ "noslēgta."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Vairāki ievadītie PIN kodi ir bijuši nepareizi, un marķierierīce tiks "
+#~ "noslēgta pēc turpmākām neveiksmēm."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Ievadītais PIN kods ir nepareizs."
+
+#~ msgid "Module"
+#~ msgstr "Modulis"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 moduļa rādītājs"
+
+#~ msgid "Slot ID"
+#~ msgstr "Ligzdas ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 ligzdas identifikators"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Savienojums jau ir aizvērts"
+

@@ -1,0 +1,436 @@
+# Slovak translation for glib-networking.
+# Copyright (C) 2012 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# Richard Stanislavský <kenny.vv@gmail.com>, 2012.
+# Dušan Kazik <prescott66@gmail.com>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2023-05-05 12:32+0000\n"
+"PO-Revision-Date: 2023-06-14 09:55-0400\n"
+"Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
+"Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
+"X-Generator: Poedit 3.3.1\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Vnútorná chyba sprostredkovateľa."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Pripojenie je ukončené"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr ""
+"Nedá sa vykonať blokovanie operácie počas vzájomného spoznania s použitím TLS"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:358
+msgid "Socket I/O timed out"
+msgstr "Čas vstupno/výstupného soketu vypršal"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Server požaduje certifikát pre TLS"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr ""
+"Vzájomné spoznanie nie je dokončené, zatiaľ bez informácií o previazaní "
+"kanálov"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Partner nepodporuje bezpečné opätovné vyjednávanie"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:835
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Neprijateľný certifikát pre TLS"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Prijímanie značiek nie je podporované"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Odosielanie značiek nie je podporované"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+#| msgid "Could not import PKCS #11 certificate URI: %s"
+msgid "Failed to import PKCS #12: %s"
+msgstr "Zlyhal import certifikátu PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nepodarilo sa analyzovať certifikát v kodovaní DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nepodarilo sa analyzovať certifikát v kodovaní PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nepodarilo sa analyzovať súkromný kľúč v kodovaní DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nepodarilo sa analyzovať súkromný kľúč v kodovaní PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Nepodarilo sa importovať URI certifikátu  PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Nie sú dostupné údaje certifikátu"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "Nedá sa overiť identita partnera neočakávaného typu %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "Nepodarilo sa vytvoriť pripojenie s použitím TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214
+#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nepodarilo sa vytvoriť pripojenie s použitím TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:435
+#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Partner zlyhal pri vzájomnom spoznaní pomocou TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:468
+msgid "TLS connection closed unexpectedly"
+msgstr "Pripojenie pomocou TLS bolo nečakane ukončené"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Partner neposlal certifikát pre pripojenie TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:499
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Partner odoslal závažnú výstrahu TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:509
+msgid "Protocol version downgrade attack detected"
+msgstr "Zistil sa útok pri prechode na staršiu verziu protokolu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:518
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] ""
+"Správa je príliš veľká pre pripojenie s použitím DTLS. Maximum je %u bajtov"
+msgstr[1] ""
+"Správa je príliš veľká pre pripojenie s použitím DTLS. Maximum je %u bajt"
+msgstr[2] ""
+"Správa je príliš veľká pre pripojenie s použitím DTLS. Maximum sú %u bajty"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:527
+msgid "The operation timed out"
+msgstr "Čas operácie vypršal"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:879
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Chyba vzájomného spoznania s použitím TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/openssl/gtlsconnection-openssl.c:614
+msgid "Error performing TLS handshake"
+msgstr "Chyba vzájomného spoznania s použitím TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Prázdne údaje o previazaní kanálov naznačujú chybu v implementácii knižnice "
+"TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Typ previazania kanálov nie je implementovaný v knižnici TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Údaje o previazaní kanálov zatiaľ nie sú dostupné"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Požadovaný typ previazania kanálov nie je implementovaný"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
+msgid "Error reading data from TLS socket"
+msgstr "Chyba pri čítaní údajov zo soketu s použitím TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
+msgid "Error writing data to TLS socket"
+msgstr "Chyba pri zapisovaní údajov do soketu s použitím TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] ""
+"Správa o veľkosti %lu bajtov je príliš veľká pre pripojenie s použitím DTLS"
+msgstr[1] ""
+"Správa o veľkosti %lu bajt je príliš veľká pre pripojenie s použitím DTLS"
+msgstr[2] ""
+"Správa o veľkosti %lu bajty je príliš veľká pre pripojenie s použitím DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maximum je %u bajtov)"
+msgstr[1] "(maximum je %u bajt)"
+msgstr[2] "(maximum sú %u bajty)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Chyba pri uzatváraní spojenia s použitím TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Zlyhalo načítanie systémového dôveryhodného úložiska: GnuTLS nebolo "
+"nakonfigurované so systémovou dôveryhodnosťou"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Zlyhalo načítanie systémového dôveryhodného úložiska: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Zlyhalo naplnenie dôveryhodného zoznamu z %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Certifikát nemá súkromný kľúč"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Nepodarilo sa nastaviť zoznam cifier použitím TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Nepodarilo sa nastaviť protokol MAX na %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Nepodarilo sa vytvoriť kontext s použitím TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Neprijateľná autorita certifikátu pre TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Obsah je príliš veľký pre kľúč RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Zabezpečené opätovné vyjednávanie je zakázané"
+
+#: tls/openssl/gtlsconnection-openssl.c:253
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Pripojenie je poškodené"
+
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Požiadavka nie je platná."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Údaje o previazaní kanálov tls-unique nie sú dostupné"
+
+#: tls/openssl/gtlsconnection-openssl.c:706
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "Certifikát X.509 nie je dostupný v pripojení"
+
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nie je možné prijať podpisový algoritmus certifikátu"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Aktuálny certifikát X.509 používa neznámy alebo nepodporovaný podpisový "
+"algoritmus"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "Zlyhalo generovanie obsahu certifikátu X.509"
+
+#: tls/openssl/gtlsconnection-openssl.c:783
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "Pripojenie TLS nepodporuje funkciu TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:786
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Neočakávaná chyba počas exportu údajov kľúčenky"
+
+#: tls/openssl/gtlsconnection-openssl.c:1064
+msgid "Error performing TLS close"
+msgstr "Chyba pri uzatváraní spojenia s použitím TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:173
+msgid "Could not get trusted anchors from Keychain"
+msgstr "Nepodarilo sa získať dôveryhodné ukotvenia z kľúčenky"
+
+#: tls/openssl/gtlsdatabase-openssl.c:238
+msgid "Could not get root certificate store"
+msgstr "Nepodarilo sa získať úložisko koreňového certifikátu"
+
+#: tls/openssl/gtlsdatabase-openssl.c:245
+msgid "Could not get CA certificate store"
+msgstr "Nepodarilo sa získať úložisko certifikátu CA"
+
+#: tls/openssl/gtlsdatabase-openssl.c:310
+msgid "Could not create CA store"
+msgstr "Nepodarilo sa vytvoriť úložisko CA"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Vyskytol sa problém s certifikátom: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Vyskytol sa problém so súkromným kľúčom certifikátu: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "Certifikát X.509 nie je dostupný v pripojení"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "Certifikát X.509 nie je dostupný, alebo je v neznámom formáte: %s"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Zlyhalo načítanie cesty k súboru: %s"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Partner žiadal nelegálne opätovné vzájomné spoznanie pomocou TLS"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "Server nevrátil platný certifikát pre TLS"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Toto je posledná možnosť na vloženie správneho kódu PIN predtým, ako bude "
+#~ "token uzamknutý."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Niekoľko pokusov zadať kód PIN bolo nesprávnych, po niekoľkých ďalších "
+#~ "nesprávnych pokusoch bude token uzamknutý."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Vložený kód PIN je nesprávny."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Ukazovateľ na modul štandardu PKCS č.11"
+
+#~ msgid "Slot ID"
+#~ msgstr "Identifikátor slotu"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Idntifikátor slotu štandardu PKCS č.11"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operácia by blokovala"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Pripojenie je už ukončené"

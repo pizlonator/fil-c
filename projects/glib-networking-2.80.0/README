@@ -1,0 +1,13 @@
+Network-related giomodules for glib
+
+glib-networking contains the implementations of certain GLib networking features
+that cannot be implemented directly in GLib itself because of their
+dependencies.
+
+Currently it contains GnuTLS and OpenSSL-based implementations of GTlsBackend, 
+a libproxy-based implementation of GProxyResolver, GLibproxyResolver,
+and a GNOME GProxyResolver that uses the proxy information from the GSettings
+schemas in gsettings-desktop-schemas.
+
+File bugs against
+https://gitlab.gnome.org/GNOME/glib-networking/issues/new

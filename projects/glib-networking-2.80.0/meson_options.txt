@@ -1,0 +1,13 @@
+# The OpenSSL backend is provided for systems where licensing considerations
+# prohibit use of certain dependencies of GnuTLS. General-purpose Linux distros
+# should leave it disabled. Please don't second-guess our defaults.
+#
+# The environment variable proxy backend is intended for use if you are building
+# without libproxy.
+option('gnutls', type: 'feature', value: 'enabled', description: 'support for GnuTLS networking configuration')
+option('openssl', type: 'feature', value: 'disabled', description: 'support for OpenSSL networking configuration')
+option('environment_proxy', type: 'feature', value: 'disabled', description: 'support for environment variable proxy configuration')
+option('libproxy', type: 'feature', value: 'enabled', description: 'support for libproxy proxy configuration')
+option('gnome_proxy', type: 'feature', value: 'enabled', description: 'support for GNOME desktop proxy configuration')
+option('installed_tests', type: 'boolean', value: false, description: 'enable installed tests')
+option('debug_logs', type: 'boolean', value: false, description: 'enable debug log messages (slow)')

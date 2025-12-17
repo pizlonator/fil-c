@@ -1,0 +1,206 @@
+# Serbian translation of glib-networking
+# Courtesy of Prevod.org team (http://prevod.org/) -- 2012—2017.
+# This file is distributed under the same license as the glib-networking package.
+# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2011—2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2018-02-16 16:43+0000\n"
+"PO-Revision-Date: 2018-02-21 21:47+0100\n"
+"Last-Translator: Marko M. Kostić <marko.m.kostic@gmail.com>\n"
+"Language-Team: srpski <gnome-sr@googlegroups.org>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Project-Style: gnome\n"
+"X-Generator: Poedit 2.0.6\n"
+
+#: proxy/libproxy/glibproxyresolver.c:159
+msgid "Proxy resolver internal error."
+msgstr "Unutrašnja greška rešavača posrednika."
+
+#: tls/gnutls/gtlscertificate-gnutls.c:182
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Ne mogu da obradim DER uverenje: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:203
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Ne mogu da obradim PEM uverenje: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Ne mogu da obradim privatni DER ključ: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:265
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Ne mogu da obradim privatni PEM ključ: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:304
+msgid "No certificate data provided"
+msgstr "Nisu obezbeđeni podaci uverenja"
+
+#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+msgid "Server required TLS certificate"
+msgstr "TLS uverenje koje zahteva server"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:392
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Ne mogu da napravim TLS vezu: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:697
+msgid "Connection is closed"
+msgstr "Veza je zatvorena"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:772
+#: tls/gnutls/gtlsconnection-gnutls.c:2184
+msgid "Operation would block"
+msgstr "Postupak bi blokirao"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:813
+#: tls/gnutls/gtlsconnection-gnutls.c:1400
+msgid "Socket I/O timed out"
+msgstr "Isteklo vreme U/I utičnice"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:952
+#: tls/gnutls/gtlsconnection-gnutls.c:985
+msgid "Peer failed to perform TLS handshake"
+msgstr "Parnjak nije uspeo da izvrši TLS rukovanje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:970
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Parnjak je zatražio ilegalno TLS ponovno rukovanje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:991
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS veza je neočekivano zatvorena"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1001
+msgid "TLS connection peer did not send a certificate"
+msgstr "Parnjak TLS veze nije poslao uverenje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Parnjak je poslao kobno TLS upozorenje: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Poruka je predugačka za DTLS vezu, najviše je dozvoljen %u bajt"
+msgstr[1] "Poruka je predugačka za DTLS vezu, najviše je dozvoljeno %u bajta"
+msgstr[2] "Poruka je predugačka za DTLS vezu, najviše je dozvoljeno %u bajtova"
+msgstr[3] "Poruka je predugačka za DTLS vezu, najviše je dozvoljen jedan bajt"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
+msgid "The operation timed out"
+msgstr "Vreme izvršavanja radnje je isteklo"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1808
+#: tls/gnutls/gtlsconnection-gnutls.c:1859
+msgid "Error performing TLS handshake"
+msgstr "Greška u izvršavanju TLS rukovanja"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1869
+msgid "Server did not return a valid TLS certificate"
+msgstr "Server nije vratio ispravno TLS uverenje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1946
+msgid "Unacceptable TLS certificate"
+msgstr "Neprihvatljivo TLS uverenje"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2218
+#: tls/gnutls/gtlsconnection-gnutls.c:2310
+msgid "Error reading data from TLS socket"
+msgstr "Greška prilikom čitanja podataka sa TLS priključka"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Prijemne zastavice nisu podržane"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2417
+#: tls/gnutls/gtlsconnection-gnutls.c:2489
+msgid "Error writing data to TLS socket"
+msgstr "Greška prilikom upisivanja podataka u TLS priključak"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Poruka od %lu bajt je predugačka za DTLS vezu"
+msgstr[1] "Poruka od %lu bajta je predugačka za DTLS vezu"
+msgstr[2] "Poruka od %lu bajtova je predugačka za DTLS vezu"
+msgstr[3] "Poruka od jednog bajta je predugačka za DTLS vezu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(najviše %u bajt)"
+msgstr[1] "(najviše %u bajta)"
+msgstr[2] "(najviše %u bajtova)"
+msgstr[3] "(najviše jedan bajt)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Otpremne zastavice nisu podržane"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2623
+msgid "Error performing TLS close"
+msgstr "Greška u izvršavanju TLS zatvaranja"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+msgid "Certificate has no private key"
+msgstr "Uverenje nema privatni ključ"
+
+#: tls/pkcs11/gpkcs11pin.c:111
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr ""
+"Ovo je poslednja prilika da ispravno unesete PIN pre nego što karika bude "
+"zaključana."
+
+#: tls/pkcs11/gpkcs11pin.c:113
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Nekoliko unešenih PIN-ova je bilo neispravno, i zato će karika biti "
+"zaključana nakon budućih neuspeha."
+
+#: tls/pkcs11/gpkcs11pin.c:115
+msgid "The PIN entered is incorrect."
+msgstr "Unešeni PIN je pogrešan."
+
+#: tls/pkcs11/gpkcs11slot.c:447
+msgid "Module"
+msgstr "Modul"
+
+#: tls/pkcs11/gpkcs11slot.c:448
+msgid "PKCS#11 Module Pointer"
+msgstr "Ukazivač PKCS#11 modula"
+
+#: tls/pkcs11/gpkcs11slot.c:455
+msgid "Slot ID"
+msgstr "IB slota"
+
+#: tls/pkcs11/gpkcs11slot.c:456
+msgid "PKCS#11 Slot Identifier"
+msgstr "Odrednik PKCS#11 slota"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Veza je već zatvorena"
