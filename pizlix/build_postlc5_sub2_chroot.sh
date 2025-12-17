@@ -91,3 +91,15 @@ cd ../..
 rm -rf libsecret-0.21.4
 hash -r
 
+tar -xf pizlonated-libgudev.tar.gz
+cd pizlonated-libgudev
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-libgudev
+hash -r
+
+
