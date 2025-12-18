@@ -111,4 +111,13 @@ cd ..
 rm -rf libseccomp-2.5.5
 hash -r
 
-
+tar -xf bubblewrap-0.9.0.tar.xz
+cd bubblewrap-0.9.0
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized
+ninja
+ninja install
+cd ../..
+rm -rf bubblewrap-0.9.0
+hash -r
