@@ -8007,7 +8007,6 @@ static bool is_unsafe_signal_for_handlers(int signum)
     case SIGBUS:
     case SIGSEGV:
     case SIGFPE:
-    case SIGSYS:
         return true;
     default:
         return is_unsafe_signal_for_kill(signum);
