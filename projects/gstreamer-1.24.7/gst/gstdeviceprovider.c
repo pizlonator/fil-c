@@ -84,9 +84,9 @@ static gint private_offset = 0;
 GType
 gst_device_provider_get_type (void)
 {
-  static gsize gst_device_provider_type = 0;
+  static gpointer gst_device_provider_type = 0;
 
-  if (g_once_init_enter (&gst_device_provider_type)) {
+  if (g_once_init_enter_pointer (&gst_device_provider_type)) {
     GType _type;
     static const GTypeInfo element_info = {
       sizeof (GstDeviceProviderClass),
@@ -109,7 +109,7 @@ gst_device_provider_get_type (void)
 
     __gst_deviceproviderclass_factory =
         g_quark_from_static_string ("GST_DEVICEPROVIDERCLASS_FACTORY");
-    g_once_init_leave (&gst_device_provider_type, _type);
+    g_once_init_leave_pointer (&gst_device_provider_type, _type);
   }
   return gst_device_provider_type;
 }

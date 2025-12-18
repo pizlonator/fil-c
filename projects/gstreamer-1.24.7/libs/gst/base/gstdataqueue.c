@@ -626,7 +626,7 @@ flushing:
 static gint
 is_of_type (gconstpointer a, gconstpointer b)
 {
-  return !G_TYPE_CHECK_INSTANCE_TYPE (a, GPOINTER_TO_SIZE (b));
+  return !G_TYPE_CHECK_INSTANCE_TYPE (a, b);
 }
 
 /**

@@ -48,9 +48,9 @@ struct _GstFakeObjectClass
 static GType
 gst_fake_object_get_type (void)
 {
-  static gsize fake_object_type = 0;
+  static gpointer fake_object_type = 0;
 
-  if (g_once_init_enter (&fake_object_type)) {
+  if (g_once_init_enter_pointer (&fake_object_type)) {
     GType type;
     static const GTypeInfo fake_object_info = {
       sizeof (GstFakeObjectClass),
@@ -67,7 +67,7 @@ gst_fake_object_get_type (void)
 
     type = g_type_register_static (GST_TYPE_OBJECT,
         "GstFakeObject", &fake_object_info, 0);
-    g_once_init_leave (&fake_object_type, type);
+    g_once_init_leave_pointer (&fake_object_type, type);
   }
   return fake_object_type;
 }

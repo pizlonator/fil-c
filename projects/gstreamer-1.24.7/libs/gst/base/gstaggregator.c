@@ -112,6 +112,8 @@
 
 #include "gstaggregator.h"
 
+#include <stdfil.h>
+
 GType
 gst_aggregator_start_time_selection_get_type (void)
 {
@@ -3083,9 +3085,9 @@ gst_aggregator_class_init (GstAggregatorClass * klass)
   gst_aggregator_signals[SIGNAL_SAMPLES_SELECTED] =
       g_signal_new ("samples-selected", G_TYPE_FROM_CLASS (klass),
       G_SIGNAL_RUN_FIRST, 0, NULL, NULL, NULL, G_TYPE_NONE, 5,
-      GST_TYPE_SEGMENT | G_SIGNAL_TYPE_STATIC_SCOPE, GST_TYPE_CLOCK_TIME,
+      zorptr (GST_TYPE_SEGMENT , (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), GST_TYPE_CLOCK_TIME,
       GST_TYPE_CLOCK_TIME, GST_TYPE_CLOCK_TIME,
-      GST_TYPE_STRUCTURE | G_SIGNAL_TYPE_STATIC_SCOPE);
+      zorptr (GST_TYPE_STRUCTURE, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
   gst_meta_register_custom_simple ("GstAggregatorMissingDataMeta");
 }
@@ -3157,9 +3159,9 @@ gst_aggregator_init (GstAggregator * self, GstAggregatorClass * klass)
 GType
 gst_aggregator_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type;
     static const GTypeInfo info = {
       sizeof (GstAggregatorClass),
@@ -3179,7 +3181,7 @@ gst_aggregator_get_type (void)
     aggregator_private_offset =
         g_type_add_instance_private (_type, sizeof (GstAggregatorPrivate));
 
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

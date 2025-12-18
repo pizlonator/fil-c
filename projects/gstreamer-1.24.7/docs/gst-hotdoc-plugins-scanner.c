@@ -418,8 +418,8 @@ _add_properties (GString * json, GString * other_types,
       }
     }
 
-    switch (G_VALUE_TYPE (&value)) {
-      case G_TYPE_STRING:
+    switch ((uintptr_t) G_VALUE_TYPE (&value)) {
+      case (uintptr_t) G_TYPE_STRING:
       {
         const char *string_val = g_value_get_string (&value);
         gchar *tmpstr = json_strescape (string_val);
@@ -428,7 +428,7 @@ _add_properties (GString * json, GString * other_types,
         g_free (tmpstr);
         break;
       }
-      case G_TYPE_BOOLEAN:
+      case (uintptr_t) G_TYPE_BOOLEAN:
       {
         gboolean bool_val = g_value_get_boolean (&value);
 
@@ -436,7 +436,7 @@ _add_properties (GString * json, GString * other_types,
             bool_val ? "true" : "false");
         break;
       }
-      case G_TYPE_ULONG:
+      case (uintptr_t) G_TYPE_ULONG:
       {
         GParamSpecULong *pulong = G_PARAM_SPEC_ULONG (spec);
 
@@ -451,7 +451,7 @@ _add_properties (GString * json, GString * other_types,
             g_param_spec_get_name (spec));
         break;
       }
-      case G_TYPE_LONG:
+      case (uintptr_t) G_TYPE_LONG:
       {
         GParamSpecLong *plong = G_PARAM_SPEC_LONG (spec);
 
@@ -466,7 +466,7 @@ _add_properties (GString * json, GString * other_types,
             g_param_spec_get_name (spec));
         break;
       }
-      case G_TYPE_UINT:
+      case (uintptr_t) G_TYPE_UINT:
       {
         GParamSpecUInt *puint = G_PARAM_SPEC_UINT (spec);
 
@@ -477,7 +477,7 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_uint (&value), puint->minimum, puint->maximum);
         break;
       }
-      case G_TYPE_INT:
+      case (uintptr_t) G_TYPE_INT:
       {
         GParamSpecInt *pint = G_PARAM_SPEC_INT (spec);
 
@@ -488,7 +488,7 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_int (&value), pint->minimum, pint->maximum);
         break;
       }
-      case G_TYPE_UINT64:
+      case (uintptr_t) G_TYPE_UINT64:
       {
         GParamSpecUInt64 *puint64 = G_PARAM_SPEC_UINT64 (spec);
 
@@ -499,7 +499,7 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_uint64 (&value), puint64->minimum, puint64->maximum);
         break;
       }
-      case G_TYPE_INT64:
+      case (uintptr_t) G_TYPE_INT64:
       {
         GParamSpecInt64 *pint64 = G_PARAM_SPEC_INT64 (spec);
 
@@ -510,7 +510,7 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_int64 (&value), pint64->minimum, pint64->maximum);
         break;
       }
-      case G_TYPE_FLOAT:
+      case (uintptr_t) G_TYPE_FLOAT:
       {
         GParamSpecFloat *pfloat = G_PARAM_SPEC_FLOAT (spec);
 
@@ -521,7 +521,7 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_float (&value), pfloat->minimum, pfloat->maximum);
         break;
       }
-      case G_TYPE_DOUBLE:
+      case (uintptr_t) G_TYPE_DOUBLE:
       {
         GParamSpecDouble *pdouble = G_PARAM_SPEC_DOUBLE (spec);
 
@@ -532,8 +532,8 @@ _add_properties (GString * json, GString * other_types,
             g_value_get_double (&value), pdouble->minimum, pdouble->maximum);
         break;
       }
-      case G_TYPE_CHAR:
-      case G_TYPE_UCHAR:
+      case (uintptr_t) G_TYPE_CHAR:
+      case (uintptr_t) G_TYPE_UCHAR:
         GST_ERROR_OBJECT (object,
             "property '%s' of type char: consider changing to " "int/string",
             g_param_spec_get_name (spec));

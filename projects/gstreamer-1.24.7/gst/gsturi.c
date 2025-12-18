@@ -123,9 +123,9 @@ _gst_ascii_strcasestr (const gchar * s, const gchar * find)
 GType
 gst_uri_handler_get_type (void)
 {
-  static gsize urihandler_type = 0;
+  static gpointer urihandler_type = 0;
 
-  if (g_once_init_enter (&urihandler_type)) {
+  if (g_once_init_enter_pointer (&urihandler_type)) {
     GType _type;
     static const GTypeInfo urihandler_info = {
       sizeof (GstURIHandlerInterface),
@@ -145,7 +145,7 @@ gst_uri_handler_get_type (void)
 
     GST_DEBUG_CATEGORY_INIT (gst_uri_handler_debug, "GST_URI", GST_DEBUG_BOLD,
         "handling of URIs");
-    g_once_init_leave (&urihandler_type, _type);
+    g_once_init_leave_pointer (&urihandler_type, _type);
   }
   return urihandler_type;
 }

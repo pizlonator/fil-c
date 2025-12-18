@@ -171,9 +171,9 @@ GQuark __gst_elementclass_skip_doc = 0;
 GType
 gst_element_get_type (void)
 {
-  static gsize gst_element_type = 0;
+  static gpointer gst_element_type = 0;
 
-  if (g_once_init_enter (&gst_element_type)) {
+  if (g_once_init_enter_pointer (&gst_element_type)) {
     GType _type;
     static const GTypeInfo element_info = {
       sizeof (GstElementClass),
@@ -195,7 +195,7 @@ gst_element_get_type (void)
         g_quark_from_static_string ("GST_ELEMENTCLASS_FACTORY");
     __gst_elementclass_skip_doc =
         g_quark_from_static_string ("GST_ELEMENTCLASS_SKIP_DOCUMENTATION");
-    g_once_init_leave (&gst_element_type, _type);
+    g_once_init_leave_pointer (&gst_element_type, _type);
   }
   return gst_element_type;
 }

@@ -284,9 +284,9 @@ static void gst_base_src_finalize (GObject * object);
 GType
 gst_base_src_get_type (void)
 {
-  static gsize base_src_type = 0;
+  static gpointer base_src_type = 0;
 
-  if (g_once_init_enter (&base_src_type)) {
+  if (g_once_init_enter_pointer (&base_src_type)) {
     GType _type;
     static const GTypeInfo base_src_info = {
       sizeof (GstBaseSrcClass),
@@ -306,7 +306,7 @@ gst_base_src_get_type (void)
     private_offset =
         g_type_add_instance_private (_type, sizeof (GstBaseSrcPrivate));
 
-    g_once_init_leave (&base_src_type, _type);
+    g_once_init_leave_pointer (&base_src_type, _type);
   }
   return base_src_type;
 }

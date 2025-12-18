@@ -48,7 +48,7 @@ typedef enum
 static GType
 gst_test_enum_get_type (void)
 {
-  static gsize gtype = 0;
+  static gpointer gtype = 0;
   static const GEnumValue values[] = {
     {ENUM_V0, "ENUM_V0", "0"},
     {ENUM_V10, "ENUM_V10", "10"},
@@ -58,9 +58,9 @@ gst_test_enum_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&gtype)) {
+  if (g_once_init_enter_pointer (&gtype)) {
     GType tmp = g_enum_register_static ("GstTestEnum", values);
-    g_once_init_leave (&gtype, tmp);
+    g_once_init_leave_pointer (&gtype, tmp);
   }
 
   return (GType) gtype;
@@ -240,9 +240,9 @@ gst_test_obj_base_init (GstTestObjClass * klass)
 static GType
 gst_test_obj_get_type (void)
 {
-  static gsize test_obj_type = 0;
+  static gpointer test_obj_type = 0;
 
-  if (g_once_init_enter (&test_obj_type)) {
+  if (g_once_init_enter_pointer (&test_obj_type)) {
     GType type;
     static const GTypeInfo info = {
       (guint16) sizeof (GstTestObjClass),
@@ -257,7 +257,7 @@ gst_test_obj_get_type (void)
       NULL                      // value_table
     };
     type = g_type_register_static (GST_TYPE_ELEMENT, "GstTestObj", &info, 0);
-    g_once_init_leave (&test_obj_type, type);
+    g_once_init_leave_pointer (&test_obj_type, type);
   }
   return test_obj_type;
 }

@@ -219,9 +219,9 @@ static GstFlowReturn default_generate_output (GstBaseTransform * trans,
 GType
 gst_base_transform_get_type (void)
 {
-  static gsize base_transform_type = 0;
+  static gpointer base_transform_type = 0;
 
-  if (g_once_init_enter (&base_transform_type)) {
+  if (g_once_init_enter_pointer (&base_transform_type)) {
     GType _type;
     static const GTypeInfo base_transform_info = {
       sizeof (GstBaseTransformClass),
@@ -241,7 +241,7 @@ gst_base_transform_get_type (void)
     private_offset =
         g_type_add_instance_private (_type, sizeof (GstBaseTransformPrivate));
 
-    g_once_init_leave (&base_transform_type, _type);
+    g_once_init_leave_pointer (&base_transform_type, _type);
   }
   return base_transform_type;
 }

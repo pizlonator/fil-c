@@ -43,6 +43,8 @@
 #include "gstfakesink.h"
 #include "gstcoreelementselements.h"
 
+#include <stdfil.h>
+
 static GstStaticPadTemplate sinktemplate = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
@@ -211,7 +213,7 @@ gst_fake_sink_class_init (GstFakeSinkClass * klass)
   gst_fake_sink_signals[SIGNAL_HANDOFF] =
       g_signal_new ("handoff", G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST,
       G_STRUCT_OFFSET (GstFakeSinkClass, handoff), NULL, NULL,
-      NULL, G_TYPE_NONE, 2, GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE,
+      NULL, G_TYPE_NONE, 2, zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
       GST_TYPE_PAD);
 
   /**
@@ -226,7 +228,7 @@ gst_fake_sink_class_init (GstFakeSinkClass * klass)
       g_signal_new ("preroll-handoff", G_TYPE_FROM_CLASS (klass),
       G_SIGNAL_RUN_LAST, G_STRUCT_OFFSET (GstFakeSinkClass, preroll_handoff),
       NULL, NULL, NULL, G_TYPE_NONE, 2,
-      GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE, GST_TYPE_PAD);
+      zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), GST_TYPE_PAD);
 
   gst_element_class_set_static_metadata (gstelement_class,
       "Fake Sink",

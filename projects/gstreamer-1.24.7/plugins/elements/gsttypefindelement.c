@@ -81,6 +81,8 @@
 #include <gst/gstutils.h>
 #include <gst/gsterror.h>
 
+#include <stdfil.h>
+
 GST_DEBUG_CATEGORY_STATIC (gst_type_find_element_debug);
 #define GST_CAT_DEFAULT gst_type_find_element_debug
 
@@ -276,7 +278,7 @@ gst_type_find_element_class_init (GstTypeFindElementClass * typefind_class)
       G_TYPE_FROM_CLASS (typefind_class), G_SIGNAL_RUN_LAST,
       G_STRUCT_OFFSET (GstTypeFindElementClass, have_type), NULL, NULL,
       NULL, G_TYPE_NONE, 2,
-      G_TYPE_UINT, GST_TYPE_CAPS | G_SIGNAL_TYPE_STATIC_SCOPE);
+      G_TYPE_UINT, zorptr (GST_TYPE_CAPS, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
   typefind_class->have_type =
       GST_DEBUG_FUNCPTR (gst_type_find_element_have_type);

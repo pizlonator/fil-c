@@ -252,37 +252,37 @@ gst_direct_control_binding_constructor (GType type, guint n_construct_params,
     self->byte_size = sizeof (g##type);
 
 
-    switch (base) {
-      case G_TYPE_INT:
+    switch ((uintptr_t) base) {
+      case (uintptr_t) G_TYPE_INT:
         SET_CONVERT_FUNCTION (int);
         break;
-      case G_TYPE_UINT:
+      case (uintptr_t) G_TYPE_UINT:
         SET_CONVERT_FUNCTION (uint);
         break;
-      case G_TYPE_LONG:
+      case (uintptr_t) G_TYPE_LONG:
         SET_CONVERT_FUNCTION (long);
         break;
-      case G_TYPE_ULONG:
+      case (uintptr_t) G_TYPE_ULONG:
         SET_CONVERT_FUNCTION (ulong);
         break;
-      case G_TYPE_INT64:
+      case (uintptr_t) G_TYPE_INT64:
         SET_CONVERT_FUNCTION (int64);
         break;
-      case G_TYPE_UINT64:
+      case (uintptr_t) G_TYPE_UINT64:
         SET_CONVERT_FUNCTION (uint64);
         break;
-      case G_TYPE_FLOAT:
+      case (uintptr_t) G_TYPE_FLOAT:
         SET_CONVERT_FUNCTION (float);
         break;
-      case G_TYPE_DOUBLE:
+      case (uintptr_t) G_TYPE_DOUBLE:
         SET_CONVERT_FUNCTION (double);
         break;
-      case G_TYPE_BOOLEAN:
+      case (uintptr_t) G_TYPE_BOOLEAN:
         self->convert_g_value = convert_g_value_to_boolean;
         self->convert_value = convert_value_to_boolean;
         self->byte_size = sizeof (gboolean);
         break;
-      case G_TYPE_ENUM:
+      case (uintptr_t) G_TYPE_ENUM:
         self->convert_g_value = convert_g_value_to_enum;
         self->convert_value = convert_value_to_enum;
         self->byte_size = sizeof (gint);

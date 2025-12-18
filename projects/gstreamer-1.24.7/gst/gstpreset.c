@@ -1322,9 +1322,9 @@ gst_preset_base_init (gpointer g_class)
 GType
 gst_preset_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type;
     const GTypeInfo info = {
       sizeof (GstPresetInterface),
@@ -1338,7 +1338,7 @@ gst_preset_get_type (void)
       NULL                      /* instance_init */
     };
     _type = g_type_register_static (G_TYPE_INTERFACE, "GstPreset", &info, 0);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

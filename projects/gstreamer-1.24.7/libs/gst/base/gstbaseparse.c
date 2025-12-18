@@ -379,9 +379,9 @@ static void gst_base_parse_init (GstBaseParse * parse,
 GType
 gst_base_parse_get_type (void)
 {
-  static gsize base_parse_type = 0;
+  static gpointer base_parse_type = 0;
 
-  if (g_once_init_enter (&base_parse_type)) {
+  if (g_once_init_enter_pointer (&base_parse_type)) {
     static const GTypeInfo base_parse_info = {
       sizeof (GstBaseParseClass),
       (GBaseInitFunc) NULL,
@@ -401,7 +401,7 @@ gst_base_parse_get_type (void)
     base_parse_private_offset =
         g_type_add_instance_private (_type, sizeof (GstBaseParsePrivate));
 
-    g_once_init_leave (&base_parse_type, _type);
+    g_once_init_leave_pointer (&base_parse_type, _type);
   }
   return (GType) base_parse_type;
 }

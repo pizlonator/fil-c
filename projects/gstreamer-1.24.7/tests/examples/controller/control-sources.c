@@ -153,9 +153,9 @@ gst_test_obj_base_init (GstTestObjClass * klass)
 static GType
 gst_test_obj_get_type (void)
 {
-  static gsize TEST_OBJ_type = 0;
+  static gpointer TEST_OBJ_type = 0;
 
-  if (g_once_init_enter (&TEST_OBJ_type)) {
+  if (g_once_init_enter_pointer (&TEST_OBJ_type)) {
     GType type;
     static const GTypeInfo info = {
       (guint16) sizeof (GstTestObjClass),
@@ -170,7 +170,7 @@ gst_test_obj_get_type (void)
       NULL                      // value_table
     };
     type = g_type_register_static (GST_TYPE_ELEMENT, "GstTestObj", &info, 0);
-    g_once_init_leave (&TEST_OBJ_type, type);
+    g_once_init_leave_pointer (&TEST_OBJ_type, type);
   }
   return TEST_OBJ_type;
 }

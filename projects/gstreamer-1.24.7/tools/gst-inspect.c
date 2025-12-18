@@ -510,8 +510,8 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
     }
     g_print ("\n");
 
-    switch (G_VALUE_TYPE (&value)) {
-      case G_TYPE_STRING:
+    switch ((uintptr_t) G_VALUE_TYPE (&value)) {
+      case (uintptr_t) G_TYPE_STRING:
       {
         const char *string_val = g_value_get_string (&value);
 
@@ -525,7 +525,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
               PROP_ATTR_VALUE_COLOR, string_val, RESET_COLOR);
         break;
       }
-      case G_TYPE_BOOLEAN:
+      case (uintptr_t) G_TYPE_BOOLEAN:
       {
         gboolean bool_val = g_value_get_boolean (&value);
 
@@ -534,7 +534,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             PROP_ATTR_VALUE_COLOR, bool_val ? "true" : "false", RESET_COLOR);
         break;
       }
-      case G_TYPE_ULONG:
+      case (uintptr_t) G_TYPE_ULONG:
       {
         GParamSpecULong *pulong = G_PARAM_SPEC_ULONG (param);
 
@@ -550,7 +550,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             g_param_spec_get_name (param));
         break;
       }
-      case G_TYPE_LONG:
+      case (uintptr_t) G_TYPE_LONG:
       {
         GParamSpecLong *plong = G_PARAM_SPEC_LONG (param);
 
@@ -565,7 +565,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             g_param_spec_get_name (param));
         break;
       }
-      case G_TYPE_UINT:
+      case (uintptr_t) G_TYPE_UINT:
       {
         GParamSpecUInt *puint = G_PARAM_SPEC_UINT (param);
 
@@ -577,7 +577,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             g_value_get_uint (&value), RESET_COLOR);
         break;
       }
-      case G_TYPE_INT:
+      case (uintptr_t) G_TYPE_INT:
       {
         GParamSpecInt *pint = G_PARAM_SPEC_INT (param);
 
@@ -588,7 +588,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             g_value_get_int (&value), RESET_COLOR);
         break;
       }
-      case G_TYPE_UINT64:
+      case (uintptr_t) G_TYPE_UINT64:
       {
         GParamSpecUInt64 *puint64 = G_PARAM_SPEC_UINT64 (param);
 
@@ -600,7 +600,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             PROP_ATTR_VALUE_COLOR, g_value_get_uint64 (&value), RESET_COLOR);
         break;
       }
-      case G_TYPE_INT64:
+      case (uintptr_t) G_TYPE_INT64:
       {
         GParamSpecInt64 *pint64 = G_PARAM_SPEC_INT64 (param);
 
@@ -612,7 +612,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             PROP_ATTR_VALUE_COLOR, g_value_get_int64 (&value), RESET_COLOR);
         break;
       }
-      case G_TYPE_FLOAT:
+      case (uintptr_t) G_TYPE_FLOAT:
       {
         GParamSpecFloat *pfloat = G_PARAM_SPEC_FLOAT (param);
 
@@ -624,7 +624,7 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             RESET_COLOR);
         break;
       }
-      case G_TYPE_DOUBLE:
+      case (uintptr_t) G_TYPE_DOUBLE:
       {
         GParamSpecDouble *pdouble = G_PARAM_SPEC_DOUBLE (param);
 
@@ -636,8 +636,8 @@ print_object_properties_info (GObject * obj, GObjectClass * obj_class,
             g_value_get_double (&value), RESET_COLOR);
         break;
       }
-      case G_TYPE_CHAR:
-      case G_TYPE_UCHAR:
+      case (uintptr_t) G_TYPE_CHAR:
+      case (uintptr_t) G_TYPE_UCHAR:
         GST_ERROR ("%s: property '%s' of type char: consider changing to "
             "int/string", G_OBJECT_CLASS_NAME (obj_class),
             g_param_spec_get_name (param));

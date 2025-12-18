@@ -98,15 +98,15 @@ gst_control_point_copy (GstControlPoint * cp)
 GType
 gst_control_point_get_type (void)
 {
-  static gsize type_id = 0;
+  static gpointer type_id = 0;
 
-  if (g_once_init_enter (&type_id)) {
+  if (g_once_init_enter_pointer (&type_id)) {
     GType tmp =
         g_boxed_type_register_static (g_intern_static_string
         ("GstControlPoint"),
         (GBoxedCopyFunc) gst_control_point_copy,
         (GBoxedFreeFunc) gst_control_point_free);
-    g_once_init_leave (&type_id, tmp);
+    g_once_init_leave_pointer (&type_id, tmp);
   }
 
   return type_id;

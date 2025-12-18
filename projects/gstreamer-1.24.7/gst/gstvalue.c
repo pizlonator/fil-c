@@ -162,7 +162,7 @@ struct _GstValueList
 #define FUNDAMENTAL_TYPE_ID_MAX \
     (G_TYPE_FUNDAMENTAL_MAX >> G_TYPE_FUNDAMENTAL_SHIFT)
 #define FUNDAMENTAL_TYPE_ID(type) \
-    ((type) >> G_TYPE_FUNDAMENTAL_SHIFT)
+    ((uintptr_t) (type) >> G_TYPE_FUNDAMENTAL_SHIFT)
 
 #define VALUE_LIST_ARRAY(v) ((GstValueList *) (v)->data[0].v_pointer)
 #define VALUE_LIST_SIZE(v) (VALUE_LIST_ARRAY(v)->len)

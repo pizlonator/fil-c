@@ -410,35 +410,35 @@ gst_control_binding_get_g_value_array (GstControlBinding * binding,
 
     GST_INFO_OBJECT (binding, "missing get_g_value_array implementation, we're "
         "emulating it");
-    switch (base) {
-      case G_TYPE_INT:
+    switch ((uintptr_t) base) {
+      case (uintptr_t) G_TYPE_INT:
         CONVERT_ARRAY (int, INT);
         break;
-      case G_TYPE_UINT:
+      case (uintptr_t) G_TYPE_UINT:
         CONVERT_ARRAY (uint, UINT);
         break;
-      case G_TYPE_LONG:
+      case (uintptr_t) G_TYPE_LONG:
         CONVERT_ARRAY (long, LONG);
         break;
-      case G_TYPE_ULONG:
+      case (uintptr_t) G_TYPE_ULONG:
         CONVERT_ARRAY (ulong, ULONG);
         break;
-      case G_TYPE_INT64:
+      case (uintptr_t) G_TYPE_INT64:
         CONVERT_ARRAY (int64, INT64);
         break;
-      case G_TYPE_UINT64:
+      case (uintptr_t) G_TYPE_UINT64:
         CONVERT_ARRAY (uint64, UINT64);
         break;
-      case G_TYPE_FLOAT:
+      case (uintptr_t) G_TYPE_FLOAT:
         CONVERT_ARRAY (float, FLOAT);
         break;
-      case G_TYPE_DOUBLE:
+      case (uintptr_t) G_TYPE_DOUBLE:
         CONVERT_ARRAY (double, DOUBLE);
         break;
-      case G_TYPE_BOOLEAN:
+      case (uintptr_t) G_TYPE_BOOLEAN:
         CONVERT_ARRAY (boolean, BOOLEAN);
         break;
-      case G_TYPE_ENUM:
+      case (uintptr_t) G_TYPE_ENUM:
       {
         gint *v = g_new (gint, n_values);
         ret = gst_control_binding_get_value_array (binding, timestamp, interval,

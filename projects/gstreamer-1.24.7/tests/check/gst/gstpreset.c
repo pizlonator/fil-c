@@ -114,9 +114,9 @@ gst_preset_test_base_init (GstPresetTestClass * klass)
 static GType
 gst_preset_test_get_type (void)
 {
-  static gsize preset_test_type = 0;
+  static gpointer preset_test_type = 0;
 
-  if (g_once_init_enter (&preset_test_type)) {
+  if (g_once_init_enter_pointer (&preset_test_type)) {
     GType type;
     const GTypeInfo info = {
       sizeof (GstPresetTestClass),
@@ -137,7 +137,7 @@ gst_preset_test_get_type (void)
     };
     type = g_type_register_static (GST_TYPE_ELEMENT, "GstPresetTest", &info, 0);
     g_type_add_interface_static (type, GST_TYPE_PRESET, &preset_interface_info);
-    g_once_init_leave (&preset_test_type, type);
+    g_once_init_leave_pointer (&preset_test_type, type);
   }
   return preset_test_type;
 }

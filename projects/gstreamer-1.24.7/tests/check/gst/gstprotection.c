@@ -96,9 +96,9 @@ gst_protection_test_base_init (GstProtectionTestClass * klass)
 static GType
 gst_protection_test_get_type (void)
 {
-  static gsize protection_test_type = 0;
+  static gpointer protection_test_type = 0;
 
-  if (g_once_init_enter (&protection_test_type)) {
+  if (g_once_init_enter_pointer (&protection_test_type)) {
     GType type;
     const GTypeInfo info = {
       sizeof (GstProtectionTestClass),
@@ -115,7 +115,7 @@ gst_protection_test_get_type (void)
     type =
         g_type_register_static (GST_TYPE_ELEMENT, "GstProtectionTest", &info,
         0);
-    g_once_init_leave (&protection_test_type, type);
+    g_once_init_leave_pointer (&protection_test_type, type);
   }
   return protection_test_type;
 }
