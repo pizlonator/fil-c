@@ -19,13 +19,12 @@
 #include <dlfcn.h>
 #include <ldsodefs.h>
 #include <shlib-compat.h>
-#include <stdfil.h>
+#include <pizlonated_syscalls.h>
 
 int
 __dladdr (const void *address, Dl_info *info)
 {
-  zerror ("dladdr not yet supported.");
-  return 0;
+  return zsys_dladdr (address, info);
 }
 versioned_symbol (libc, __dladdr, dladdr, GLIBC_2_34);
 

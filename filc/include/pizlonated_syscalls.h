@@ -131,6 +131,7 @@ void* zsys_dlopen(const char* filename, int flags); /* FIXME: we should add dlcl
                                                        do that. */
 void* zsys_dlsym(void* handle, const char* symbol);
 void* zsys_dlvsym(void* handle, const char* symbol, const char* version);
+int zsys_dladdr(const void* addr, void* info);
 int zsys_poll(void* pollfds, unsigned long nfds, int timeout);
 int zsys_faccessat(int dirfd, const char* pathname, int mode, int flags);
 int zsys_sigwait(const void* sigmask, int* sig);

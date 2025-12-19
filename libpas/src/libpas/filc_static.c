@@ -60,6 +60,15 @@ filc_ptr filc_native_zsys_dlvsym(filc_thread* my_thread, filc_ptr handle_ptr, fi
     filc_safety_panic(NULL, "cannot do dlvsym in static build.");
 }
 
+int filc_native_zsys_dladdr(filc_thread* my_thread, filc_ptr addr_ptr, filc_ptr info_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(addr_ptr);
+    PAS_UNUSED_PARAM(info_ptr);
+    filc_set_dlerror("dladdr not supported in static build", NULL);
+    return 0;
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */
