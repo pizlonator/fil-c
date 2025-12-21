@@ -1127,12 +1127,12 @@ read_one_tag (GstTagList * list, XmpTag * xmptag,
   tag_type = gst_tag_get_type (tag);
 
   /* add gstreamer tag depending on type */
-  switch (tag_type) {
-    case G_TYPE_STRING:{
+  switch ((uintptr_t) tag_type) {
+    case (uintptr_t) G_TYPE_STRING:{
       gst_tag_list_add (list, merge_mode, tag, v, NULL);
       break;
     }
-    case G_TYPE_DOUBLE:{
+    case (uintptr_t) G_TYPE_DOUBLE:{
       gdouble value = 0;
       gint frac_n, frac_d;
 
@@ -1532,14 +1532,14 @@ string_close_tag (GString * string, const char *tag)
 static char *
 gst_value_serialize_xmp (const GValue * value)
 {
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_STRING:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_STRING:
       return g_markup_escape_text (g_value_get_string (value), -1);
-    case G_TYPE_INT:
+    case (uintptr_t) G_TYPE_INT:
       return g_strdup_printf ("%d", g_value_get_int (value));
-    case G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_UINT:
       return g_strdup_printf ("%u", g_value_get_uint (value));
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       return double_to_fraction_string (g_value_get_double (value));
     default:
       break;

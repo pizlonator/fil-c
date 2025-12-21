@@ -879,8 +879,8 @@ write_exif_ascii_tag_from_taglist (GstExifWriter * writer,
   value = gst_tag_list_get_value_index (taglist, exiftag->gst_tag, 0);
 
   /* do some conversion if needed */
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_STRING:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_STRING:
       str = (gchar *) g_value_get_string (value);
       break;
     default:
@@ -933,8 +933,8 @@ write_exif_undefined_tag_from_taglist (GstExifWriter * writer,
   value = gst_tag_list_get_value_index (taglist, exiftag->gst_tag, 0);
 
   /* do some conversion if needed */
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_STRING:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_STRING:
       data = (guint8 *) g_value_get_string (value);
       size = strlen ((gchar *) data);   /* no need to +1, undefined doesn't require it */
       break;
@@ -978,8 +978,8 @@ write_exif_rational_tag_from_taglist (GstExifWriter * writer,
   value = gst_tag_list_get_value_index (taglist, exiftag->gst_tag, 0);
 
   /* do some conversion if needed */
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_DOUBLE:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_DOUBLE:
       num = g_value_get_double (value);
       gst_exif_writer_write_rational_tag_from_double (writer, exiftag->exif_tag,
           num);
@@ -1013,8 +1013,8 @@ write_exif_signed_rational_tag_from_taglist (GstExifWriter * writer,
   value = gst_tag_list_get_value_index (taglist, exiftag->gst_tag, 0);
 
   /* do some conversion if needed */
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_DOUBLE:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_DOUBLE:
       num = g_value_get_double (value);
       gst_exif_writer_write_signed_rational_tag_from_double (writer,
           exiftag->exif_tag, num);
@@ -1048,11 +1048,11 @@ write_exif_integer_tag_from_taglist (GstExifWriter * writer,
   value = gst_tag_list_get_value_index (taglist, exiftag->gst_tag, 0);
 
   /* do some conversion if needed */
-  switch (G_VALUE_TYPE (value)) {
-    case G_TYPE_INT:
+  switch ((uintptr_t) G_VALUE_TYPE (value)) {
+    case (uintptr_t) G_TYPE_INT:
       num = g_value_get_int (value);
       break;
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       num = (gint) g_value_get_double (value);
       break;
     default:
@@ -1552,8 +1552,8 @@ parse_exif_rational_tag (GstExifReader * exif_reader,
   GST_DEBUG ("Read fraction for tag %s: %d/%d", gst_tag, frac_n, frac_d);
 
   type = gst_tag_get_type (gst_tag);
-  switch (type) {
-    case G_TYPE_DOUBLE:
+  switch ((uintptr_t) type) {
+    case (uintptr_t) G_TYPE_DOUBLE:
       gst_util_fraction_to_double (frac_n, frac_d, &value);
       value *= multiplier;
       GST_DEBUG ("Adding %s tag: %lf", gst_tag, value);

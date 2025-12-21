@@ -775,8 +775,8 @@ id3v2_tag_to_taglist (ID3TagsWorking * work, const gchar * tag_name,
   if (tag_str == NULL)
     return FALSE;
 
-  switch (tag_type) {
-    case G_TYPE_UINT:
+  switch ((uintptr_t) tag_type) {
+    case (uintptr_t) G_TYPE_UINT:
     {
       gint current, total;
 
@@ -808,7 +808,7 @@ id3v2_tag_to_taglist (ID3TagsWorking * work, const gchar * tag_name,
       }
       break;
     }
-    case G_TYPE_UINT64:
+    case (uintptr_t) G_TYPE_UINT64:
     {
       guint64 tmp;
 
@@ -821,7 +821,7 @@ id3v2_tag_to_taglist (ID3TagsWorking * work, const gchar * tag_name,
           GST_TAG_DURATION, tmp * 1000 * 1000, NULL);
       break;
     }
-    case G_TYPE_STRING:{
+    case (uintptr_t) G_TYPE_STRING:{
       const GValue *val;
       guint i, num;
 

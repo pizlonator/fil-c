@@ -206,8 +206,8 @@ gst_vorbis_tag_add (GstTagList * list, const gchar * tag, const gchar * value)
   }
 
   tag_type = gst_tag_get_type (gst_tag);
-  switch (tag_type) {
-    case G_TYPE_UINT:{
+  switch ((uintptr_t) tag_type) {
+    case (uintptr_t) G_TYPE_UINT:{
       guint tmp;
       gchar *check;
       gboolean is_track_number_tag;
@@ -236,7 +236,7 @@ gst_vorbis_tag_add (GstTagList * list, const gchar * tag, const gchar * value)
       }
       break;
     }
-    case G_TYPE_STRING:{
+    case (uintptr_t) G_TYPE_STRING:{
       gchar *valid = NULL;
 
       /* specialcase for language code */
@@ -266,7 +266,7 @@ gst_vorbis_tag_add (GstTagList * list, const gchar * tag, const gchar * value)
       g_free (valid);
       break;
     }
-    case G_TYPE_DOUBLE:{
+    case (uintptr_t) G_TYPE_DOUBLE:{
       gchar *c;
 
       c = g_strdup (value);
@@ -688,8 +688,8 @@ gst_tag_to_vorbis_comments (const GstTagList * list, const gchar * tag)
     GType tag_type = gst_tag_get_type (tag);
     gchar *result = NULL;
 
-    switch (tag_type) {
-      case G_TYPE_UINT:{
+    switch ((uintptr_t) tag_type) {
+      case (uintptr_t) G_TYPE_UINT:{
         guint u;
 
         if (!gst_tag_list_get_uint_index (list, tag, i, &u))
@@ -697,7 +697,7 @@ gst_tag_to_vorbis_comments (const GstTagList * list, const gchar * tag)
         result = g_strdup_printf ("%s=%u", vorbis_tag, u);
         break;
       }
-      case G_TYPE_STRING:{
+      case (uintptr_t) G_TYPE_STRING:{
         const gchar *str = NULL;
 
         if (!gst_tag_list_peek_string_index (list, tag, i, &str))
@@ -720,7 +720,7 @@ gst_tag_to_vorbis_comments (const GstTagList * list, const gchar * tag)
         }
         break;
       }
-      case G_TYPE_DOUBLE:{
+      case (uintptr_t) G_TYPE_DOUBLE:{
         gdouble value;
         gchar buf[G_ASCII_DTOSTR_BUF_SIZE];
 

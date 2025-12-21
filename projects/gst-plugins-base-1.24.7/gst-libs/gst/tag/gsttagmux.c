@@ -90,9 +90,9 @@ static gboolean gst_tag_mux_sink_event (GstPad * pad, GstObject * parent,
 GType
 gst_tag_mux_get_type (void)
 {
-  static gsize tag_mux_type = 0;
+  static gpointer tag_mux_type = 0;
 
-  if (g_once_init_enter (&tag_mux_type)) {
+  if (g_once_init_enter_pointer (&tag_mux_type)) {
     const GInterfaceInfo interface_info = { NULL, NULL, NULL };
     GType _type;
 
@@ -106,7 +106,7 @@ gst_tag_mux_get_type (void)
 
     g_type_add_interface_static (_type, GST_TYPE_TAG_SETTER, &interface_info);
 
-    g_once_init_leave (&tag_mux_type, _type);
+    g_once_init_leave_pointer (&tag_mux_type, _type);
   }
   return tag_mux_type;
 }

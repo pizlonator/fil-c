@@ -53,9 +53,9 @@ typedef struct
 GType
 gst_tag_xmp_writer_get_type (void)
 {
-  static gsize xmp_config_type = 0;
+  static gpointer xmp_config_type = 0;
 
-  if (g_once_init_enter (&xmp_config_type)) {
+  if (g_once_init_enter_pointer (&xmp_config_type)) {
     GType _type;
     static const GTypeInfo xmp_config_info = {
       sizeof (GstTagXmpWriterInterface),        /* class_size */
@@ -74,7 +74,7 @@ gst_tag_xmp_writer_get_type (void)
     tag_xmp_writer_key = g_quark_from_static_string ("GST_TAG_XMP_WRITER");
     g_type_interface_add_prerequisite (_type, GST_TYPE_ELEMENT);
 
-    g_once_init_leave (&xmp_config_type, _type);
+    g_once_init_leave_pointer (&xmp_config_type, _type);
   }
 
   return xmp_config_type;
