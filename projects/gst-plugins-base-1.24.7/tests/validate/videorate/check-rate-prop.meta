@@ -1,0 +1,22 @@
+# Common metadatas to check the videorate element behavior with different
+# framerate specified by previously setting variables with:
+# ```
+# set-global, rate=<test-rate>, decoder=<decoder>
+# ```
+# and then `include, location="check-rate-prop.meta" to setup the test with this
+# file
+
+meta,
+    args = {
+        "videotestsrc pattern=ball animation-mode=frames ! video/x-raw,format=I420,framerate=30/1,width=320,height=240 $(decoder) videorate name=videorate rate=$(rate) ! fakesink sync=true qos=true",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+       "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    }
+
+crank-clock, expected-time=0.0
+crank-clock, repeat=9
+wait, on-clock=true
+check-position, expected-position=300000000
+stop

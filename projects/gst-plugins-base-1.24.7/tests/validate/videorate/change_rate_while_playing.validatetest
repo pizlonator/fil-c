@@ -1,0 +1,40 @@
+meta,
+    args = {
+        # We just want each frame to be different, and we just check their content by 'id'
+        "videotestsrc ! video/x-raw,format=I420,framerate=10/1,width=320,height=240 ! videorate name=videorate ! fakesink sync=true qos=true",
+    },
+    configs = {
+        # Check dataflow on both videorate pads
+        "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+        "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    }
+
+# Crank the 5 first buffers and check position is `5*(1/10fps)) = 0.5s`
+crank-clock, expected-time=0.0
+crank-clock, repeat=5
+check-position, expected-position=0.5
+
+# Ensure next buffer flows for expectations stability
+wait, on-clock=true
+
+checkpoint, text="Setting videorate.rate=0.5"
+set-property, playback-time=0.5, target-element-name=videorate, property-name=rate, property-value=0.5
+crank-clock, repeat=5
+check-position, expected-position=1.0
+
+wait, on-clock=true
+
+checkpoint, text="Setting videorate.rate=0.1"
+set-property, playback-time=1.0, target-element-name=videorate, property-name=rate, property-value=0.1
+crank-clock, repeat=20
+check-position, expected-position=3.0
+
+wait, on-clock=true
+
+checkpoint, text="Setting videorate.rate=2.0"
+set-property, playback-time=2.0, target-element-name=videorate, property-name=rate, property-value=2.0
+crank-clock, repeat=10
+check-position, expected-position=4.0
+
+wait, on-clock=true
+stop

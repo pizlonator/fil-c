@@ -1,0 +1,12 @@
+meta,
+    args = {
+        "videotestsrc num-buffers=20 ! capsfilter caps=\"video/x-raw,format=I420\" ! capssetter name=cs ! compositor name=c ! fakesink sync=true\
+         videotestsrc num-buffers=20 ! capsfilter caps=\"video/x-raw,format=I420\" ! c.",
+    },
+    handles-states=true
+
+play;
+crank-clock, repeat=10;
+set-properties, cs::caps="video/x-raw,format=ARGB64"
+crank-clock, repeat=11;
+play

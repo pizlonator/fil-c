@@ -1,0 +1,21 @@
+--- Description of the generic (no GUI) examples ---
+
+- cube:
+Show how to have a graphic FPS greater than the input video frame rate.
+The source is the videotestsrc rgb.
+
+- cubeyuv:
+Show how to have a graphic FPS greater than the input video frame rate.
+The source is a local video file needed in argument.
+The colorspace conversion is maded by the glupload element.
+
+- doublecube:
+A local video source is displayed into two renderers.
+The first one is a normal 2D screen, the second is a 3D cube.
+We can visually check that the video is displayed at the same speed
+in the two renderers.
+
+- recordgraphic:
+Show how to use the glfilterapp to define the draw callback in a gstreamer client code.
+The scene is recorded into an avi file using mpeg4 encoder.
+The colorspace conversion is made by the gldownload element.

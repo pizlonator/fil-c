@@ -1,0 +1,108 @@
+This is GStreamer gst-plugins-base 1.24.7.
+
+The GStreamer team is thrilled to announce a new major feature release
+of your favourite cross-platform multimedia framework!
+
+As always, this release is again packed with new features, bug fixes and
+other improvements.
+ 
+The 1.24 release series adds new features on top of the 1.22 series and is
+part of the API and ABI-stable 1.x release series.
+
+Full release notes can be found at:
+
+  https://gstreamer.freedesktop.org/releases/1.24/
+
+Binaries for Android, iOS, Mac OS X and Windows will usually be provided
+shortly after the release.
+
+This module will not be very useful by itself and should be used in conjunction
+with other GStreamer modules for a complete multimedia experience.
+
+ - gstreamer: provides the core GStreamer libraries and some generic plugins
+
+ - gst-plugins-base: a basic set of well-supported plugins and additional
+                     media-specific GStreamer helper libraries for audio,
+                     video, rtsp, rtp, tags, OpenGL, etc.
+
+ - gst-plugins-good: a set of well-supported plugins under our preferred
+                     license
+
+ - gst-plugins-ugly: a set of well-supported plugins which might pose
+                     problems for distributors
+
+ - gst-plugins-bad: a set of plugins of varying quality that have not made
+                    their way into one of core/base/good/ugly yet, for one
+                    reason or another. Many of these are are production quality
+                    elements, but may still be missing documentation or unit
+                    tests; others haven't passed the rigorous quality testing
+                    we expect yet.
+
+ - gst-libav: a set of codecs plugins based on the ffmpeg library. This is
+                    where you can find audio and video decoders and encoders
+                    for a wide variety of formats including H.264, AAC, etc.
+
+ - gstreamer-vaapi: hardware-accelerated video decoding and encoding using
+                    VA-API on Linux. Primarily for Intel graphics hardware.
+                    (Deprecated, use the new "va" plugin instead)
+
+ - gst-rtsp-server: library to serve files or streaming pipelines via RTSP
+
+ - gst-editing-services: library an plugins for non-linear editing
+
+ - gst-plugins-rs: an exciting collection of well-maintained plugins written
+                   in the Rust programming language (usable from any language)
+
+==== Download ====
+
+You can find source releases of gstreamer in the download
+directory: https://gstreamer.freedesktop.org/src/gstreamer/
+
+The git repository and details how to clone it can be found at
+https://gitlab.freedesktop.org/gstreamer/gstreamer/
+
+==== Homepage ====
+
+The project's website is https://gstreamer.freedesktop.org/
+
+==== Support and Bugs ====
+
+We track bugs and feature requests in GitLab:
+
+  https://gitlab.freedesktop.org/gstreamer/gstreamer/
+
+Please submit patches via GitLab as well, in form of Merge Requests. See
+
+  https://gstreamer.freedesktop.org/documentation/contribute/
+
+for more details.
+
+For help and support, please head over to our Discourse forum at
+
+  https://discourse.gstreamer.org/
+
+or pop into one of our Matrix chat rooms, see
+
+  https://discourse.gstreamer.org/t/new-gstreamer-matrix-chat-space/675
+
+for more details.
+
+Please do not submit support requests in GitLab, we only use it for
+bug tracking and merge requests review. Use the Discourse forum instead.
+
+==== Developers ====
+
+The GStreamer source code repository can be found on GitLab on freedesktop.org:
+
+  https://gitlab.freedesktop.org/gstreamer/gstreamer/
+
+and can also be cloned from there and this is also where you can submit
+Merge Requests or file issues for bugs or feature requests.
+
+Interested developers of the core library, plugins, and applications should
+join us on Matrix for chat and the Discourse forum for announcements, help
+and discussions.
+
+There is also a gstreamer-devel mailing list, but Discourse is preferred:
+
+  https://lists.freedesktop.org/mailman/listinfo/gstreamer-devel

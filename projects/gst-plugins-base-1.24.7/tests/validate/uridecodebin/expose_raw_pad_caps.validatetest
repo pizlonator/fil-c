@@ -1,0 +1,15 @@
+meta,
+    args = {
+        "uridecodebin uri=testbin://video,num-buffers=1 ! fakesink",
+    },
+    handles-states=true,
+    ignore-eos=true
+
+wait, signal-name="pad-added", target-element-factory-name="uridecodebin", non-blocking=true,
+    check=[
+        check-current-pad-caps, expected-caps=[video/x-raw], target-element-factory-name="uridecodebin", pad="src_0", comparison-mode="intersect",
+    ]
+
+pause
+
+stop

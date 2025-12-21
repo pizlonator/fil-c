@@ -1,0 +1,818 @@
+# Danish translation of gst-plugins-base.
+# Copyright (C) 2020 gst, Mogens Jaeger, Joe Hansen.
+# This file is distributed under the same license as the gst-plugins-base package.
+#
+# Mogens Jaeger <mogens@jaeger.tf>, 2007.
+# Joe Hansen <joedalton2@yahoo.dk>, 2009, 2010, 2011, 2013, 2014, 2015, 2016, 2019, 2020.
+#
+# capture -> optage
+# closed caption -> undertekster (ordet closed caption bruges kun i USA/Canada)
+# gain -> forstærkning
+# shutter -> lukketid
+#
+# Hej Torben, de fleste af dem her er vist afklaringen af hvorvidt det er et
+# udsagnsord eller navneord. Har du været i koden og kigge? Ville godt nok 
+# være ked af at rette alle dem her, for så bare at »opdage« at de var gode nok,
+# Nu har jeg haft src/gst-plugins-base/tags.c åben i en nylig version
+# (gst-blugins-base version 0.10.31), og jeg tror ikke strengene bruges,
+# mens der sker en aktiv handling.
+# I filen ser det således ud:
+#    /* photography tags */
+#    gst_tag_register (GST_TAG_CAPTURING_SHUTTER_SPEED,
+#       GST_TAG_FLAG_META,
+#       GST_TYPE_FRACTION,
+#       _("capturing shutter speed"),
+#       _("Shutter speed used when capturing an image,
+#          in seconds"), NULL);
+# Dette kan du se som en indgang i en tabel over strenge. Den første korte
+# streng er navnet på mærket, den anden er en beskrivelse af samme mærke.
+# Strengene er altså betegnelser/navneord. 
+#
+# brugt kunne erstattes med der blev brugt (men skal så rettes igennem for alle).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gst-plugins-base 1.16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-22 11:52+0000\n"
+"PO-Revision-Date: 2020-03-08 16:38+0100\n"
+"Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
+"Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+msgid "Could not open device for playback in mono mode."
+msgstr "Kunne ikke afspille fra enheden i mono-tilstand."
+
+msgid "Could not open device for playback in stereo mode."
+msgstr "Kunne ikke afspille fra enheden i stereo-tilstand."
+
+#, c-format
+msgid "Could not open device for playback in %d-channel mode."
+msgstr "Kunne ikke afspille fra enheden i %d-kanals-tilstand."
+
+# måske bruges af et andet program.
+msgid ""
+"Could not open audio device for playback. Device is being used by another "
+"application."
+msgstr ""
+"Kunne ikke åbne lydenhed til afspilning. Enhed anvendes af et andet program."
+
+msgid "Could not open audio device for playback."
+msgstr "Kunne ikke åbne lydenhed til afspilning."
+
+msgid "Error outputting to audio device. The device has been disconnected."
+msgstr "Kunne ikke sende til lydenhed. Enheden er blevet frakoblet."
+
+msgid "Could not open device for recording in mono mode."
+msgstr "Kunne ikke optage fra enheden i mono-tilstand."
+
+msgid "Could not open device for recording in stereo mode."
+msgstr "Kunne ikke optage fra enheden i stereo-tilstand."
+
+#, c-format
+msgid "Could not open device for recording in %d-channel mode"
+msgstr "Kunne ikke optage fra enheden i %d-kanals-tilstand."
+
+msgid ""
+"Could not open audio device for recording. Device is being used by another "
+"application."
+msgstr ""
+"Kunne ikke åbne lydenhed til optagelse. Enheden anvendes af et andet program."
+
+msgid "Could not open audio device for recording."
+msgstr "Kunne ikke åbne lydenhed til optagelse."
+
+msgid "Error recording from audio device. The device has been disconnected."
+msgstr "Kunne ikke optage fra lydenhed. Enheden er blevet frakoblet."
+
+msgid "Could not open CD device for reading."
+msgstr "Kunne ikke læse fra cd-enhed."
+
+msgid "Could not seek CD."
+msgstr "Kunne ikke søge på cd."
+
+msgid "Could not read CD."
+msgstr "Kunne ikke læse cd."
+
+msgid "Could not determine type of stream"
+msgstr "Kunne ikke afgøre strømtypen"
+
+msgid "This appears to be a text file"
+msgstr "Denne fremstår som en tekstfil"
+
+#, c-format
+msgid "Missing element '%s' - check your GStreamer installation."
+msgstr "Elementet »%s« mangler - kontroller din GStreamer-installation."
+
+msgid "Could not create \"uridecodebin\" element."
+msgstr "Kunne ikke oprette elementet »uridecodebin«."
+
+#, c-format
+msgid "Both autovideosink and %s elements are missing."
+msgstr "Både autovideosink og %s elementer mangler."
+
+msgid "The autovideosink element is missing."
+msgstr "Elementet autovideosink mangler."
+
+#, c-format
+msgid "Configured videosink %s is not working."
+msgstr "Konfigureret videosink %s virker ikke."
+
+#, c-format
+msgid "Both autovideosink and %s elements are not working."
+msgstr "Både autovideosink og %s elementerne virker ikke."
+
+msgid "The autovideosink element is not working."
+msgstr "Elementet autovideosink virker ikke."
+
+msgid "Custom text sink element is not usable."
+msgstr "Brugertilpasset tekstsinkelement er ikke brugbart."
+
+msgid "No volume control found"
+msgstr "Ingen lydstyrkekontrol fundet"
+
+#, c-format
+msgid "Both autoaudiosink and %s elements are missing."
+msgstr "Både autoaudiosink og %s elementerne mangler."
+
+msgid "The autoaudiosink element is missing."
+msgstr "Elementet autoaudiosink mangler."
+
+#, c-format
+msgid "Configured audiosink %s is not working."
+msgstr "Konfigureret audiosink %s virker ikke."
+
+#, c-format
+msgid "Both autoaudiosink and %s elements are not working."
+msgstr "Både autoaudiosink og  %s elementerne virker ikke."
+
+msgid "The autoaudiosink element is not working."
+msgstr "Elementet autoaudiosink virker ikke."
+
+msgid "Can't play a text file without video or visualizations."
+msgstr "Kan ikke afspille en tekstfil uden video eller visualiseringer."
+
+#, c-format
+msgid "No decoder available for type '%s'."
+msgstr "Ingen dekoder tilgængelig for type »%s«."
+
+msgid "No URI specified to play from."
+msgstr "Ingen angivet URI til afspilning."
+
+#, c-format
+msgid "Invalid URI \"%s\"."
+msgstr "Ugyldig URI »%s«."
+
+msgid "This stream type cannot be played yet."
+msgstr "Denne type lydstrøm kan ikke afspilles endnu."
+
+# har beholdt »er«
+#, c-format
+msgid "No URI handler implemented for \"%s\"."
+msgstr "Ingen URI-håndtering er implementeret for »%s«."
+
+#, fuzzy
+msgid "Source element can't be prepared"
+msgstr "Kildeelement er ugyldigt."
+
+msgid "Source element is invalid."
+msgstr "Kildeelement er ugyldigt."
+
+#, fuzzy
+msgid "Source element has no pads."
+msgstr "Kildeelement er ugyldigt."
+
+#, c-format
+msgid "Error while sending data to \"%s:%d\"."
+msgstr "Der opstod en fejl under data-overførsel til »%s:%d«."
+
+msgid "Can't record audio fast enough"
+msgstr "Kan ikke optage lyd hurtigt nok"
+
+msgid "This CD has no audio tracks"
+msgstr "Denne cd har ingen lydspor"
+
+msgid "failed to draw pattern"
+msgstr "kunne ikke tegne mønster"
+
+msgid "A GL error occurred"
+msgstr "Der opstod en GL-fejl"
+
+msgid "format wasn't negotiated before get function"
+msgstr "format blev ikke forhandlet før get-funktion"
+
+msgid "ID3 tag"
+msgstr "ID3-mærke"
+
+msgid "APE tag"
+msgstr "APE-mærke"
+
+msgid "ICY internet radio"
+msgstr "ICY-internetradio"
+
+msgid "Apple Lossless Audio (ALAC)"
+msgstr "Apple Lossless Audio (ALAC)"
+
+msgid "Free Lossless Audio Codec (FLAC)"
+msgstr "Free Lossless Audio Codec (FLAC)"
+
+msgid "Lossless True Audio (TTA)"
+msgstr "Lossless True Audio (TTA)"
+
+msgid "Windows Media Speech"
+msgstr "Windows Media Speech"
+
+msgid "CYUV Lossless"
+msgstr "CYUV Lossless"
+
+msgid "FFMpeg v1"
+msgstr "FFMpeg v1"
+
+msgid "Lossless MSZH"
+msgstr "Lossless MSZH"
+
+msgid "Run-length encoding"
+msgstr "Kørsels-længde indkodning"
+
+#. subtitle formats with static descriptions
+msgid "Timed Text"
+msgstr "Tidsplanlagt tekst"
+
+#. FIXME: add variant field to typefinder?
+msgid "Subtitle"
+msgstr "Undertekst"
+
+msgid "MPL2 subtitle format"
+msgstr "MPL2-undertekstformat"
+
+msgid "DKS subtitle format"
+msgstr "DKS-undertekstformat"
+
+msgid "QTtext subtitle format"
+msgstr "QTtext-undertekstformat"
+
+msgid "Sami subtitle format"
+msgstr "Sami-undertekstformat"
+
+msgid "TMPlayer subtitle format"
+msgstr "TMPlayer-undertekstformat"
+
+msgid "CEA 608 Closed Caption"
+msgstr "CEA 608-undertekster"
+
+msgid "CEA 708 Closed Caption"
+msgstr "CEA 708-undertekster"
+
+msgid "Kate subtitle format"
+msgstr "Kate-undertekstformat"
+
+msgid "WebVTT subtitle format"
+msgstr "WebVTT-undertekstformat"
+
+msgid "Uncompressed video"
+msgstr "Ukomprimeret video"
+
+msgid "Uncompressed gray"
+msgstr "Ukomprimeret gråtone"
+
+#, c-format
+msgid "Uncompressed packed YUV %s"
+msgstr "Ukomprimeret pakket YUV %s"
+
+#, c-format
+msgid "Uncompressed semi-planar YUV %s"
+msgstr "Ukomprimeret semi-planar YUV %s"
+
+#, c-format
+msgid "Uncompressed planar YUV %s"
+msgstr "Ukomprimeret planar YUV %s"
+
+# (transitive, computer graphics) To encode (an image) efficiently by mapping its pixels to a palette
+# containing only those colours that are actually present in the image.
+#, c-format
+msgid "Uncompressed palettized %d-bit %s"
+msgstr "Ukomprimeret paletoptimeret %d-bit %s"
+
+#, c-format
+msgid "Uncompressed %d-bit %s"
+msgstr "Ukomprimeret %d-bit %s"
+
+#, c-format
+msgid "DivX MPEG-4 Version %d"
+msgstr "DivX MPEG-4 version %d"
+
+msgid "Uncompressed audio"
+msgstr "Ukomprimeret lyd"
+
+#, c-format
+msgid "Raw %d-bit %s audio"
+msgstr "Ufiltreret %d-bit %s-lyd"
+
+msgid "Audio CD source"
+msgstr "Audio cd kilde"
+
+msgid "DVD source"
+msgstr "DVD kilde"
+
+msgid "Real Time Streaming Protocol (RTSP) source"
+msgstr "Real Time Streaming Protocol (RTSP) kilde"
+
+msgid "Microsoft Media Server (MMS) protocol source"
+msgstr "Microsoft Media Server (MMS) protokol kilde"
+
+#. TODO: find out how to add a comment for translators to the source code
+#. * (and tell them to make the first letter uppercase below if they move
+#. * the protocol to the middle or end of the string)
+#, c-format
+msgid "%s protocol source"
+msgstr "%s protokol kilde"
+
+#, c-format
+msgid "%s video RTP depayloader"
+msgstr "%s video RTP-depayloader"
+
+#, c-format
+msgid "%s audio RTP depayloader"
+msgstr "%s lyd RTP-depayloader"
+
+#, c-format
+msgid "%s RTP depayloader"
+msgstr "%s RTP-depayloader"
+
+#, c-format
+msgid "%s demuxer"
+msgstr "%s demuxer"
+
+#, c-format
+msgid "%s decoder"
+msgstr "%s afkoder"
+
+#, c-format
+msgid "%s video RTP payloader"
+msgstr "%s video RTP-payloader"
+
+#, c-format
+msgid "%s audio RTP payloader"
+msgstr "%s lyd RTP-payloader"
+
+#, c-format
+msgid "%s RTP payloader"
+msgstr "%s RTP-payloader"
+
+#, c-format
+msgid "%s muxer"
+msgstr "%s muxer"
+
+#, c-format
+msgid "%s encoder"
+msgstr "%s indkoder"
+
+#, c-format
+msgid "GStreamer element %s"
+msgstr "GStreamer element %s"
+
+msgid "Unknown source element"
+msgstr "Ukendt kildeelement"
+
+# sink ? (afløb, kanal)
+msgid "Unknown sink element"
+msgstr "Ukendt afløbselement"
+
+msgid "Unknown element"
+msgstr "Ukendt element"
+
+msgid "Unknown decoder element"
+msgstr "Ukendt afkodeelement"
+
+msgid "Unknown encoder element"
+msgstr "Ukendt indkodeelement"
+
+#. we should really never get here, but we better still return
+#. * something if we do
+msgid "Plugin or element of unknown type"
+msgstr "Plugin eller element af ukendt type"
+
+msgid "Failed to read tag: not enough data"
+msgstr "Kunne ikke læse mærke: Ikke nok data"
+
+msgid "track ID"
+msgstr "spor-id"
+
+msgid "MusicBrainz track ID"
+msgstr "MusicBrainz spor-id"
+
+msgid "artist ID"
+msgstr "kunstner-id"
+
+msgid "MusicBrainz artist ID"
+msgstr "MusicBrainz kunstner-id"
+
+msgid "album ID"
+msgstr "album-id"
+
+msgid "MusicBrainz album ID"
+msgstr "MusicBrainz album-id"
+
+msgid "album artist ID"
+msgstr "albumkunstner-id"
+
+msgid "MusicBrainz album artist ID"
+msgstr "MusicBrainz albumkunstner-id"
+
+msgid "release group ID"
+msgstr ""
+
+#, fuzzy
+msgid "MusicBrainz release group ID"
+msgstr "MusicBrainz spor-id"
+
+#, fuzzy
+msgid "release track ID"
+msgstr "spor-id"
+
+#, fuzzy
+msgid "MusicBrainz release track ID"
+msgstr "MusicBrainz spor-id"
+
+msgid "track TRM ID"
+msgstr "spor TRM-id"
+
+msgid "MusicBrainz TRM ID"
+msgstr "MusicBrainz TRM-id"
+
+msgid "AcoustID ID"
+msgstr ""
+
+msgid "AcoustID fingerprint (chromaprint)"
+msgstr ""
+
+# nb ikke handling men navneord.
+# "optagelukkertid" / "optagerlukkertid"
+# Mogens: shutter speed = lukkerhastighed
+msgid "capturing shutter speed"
+msgstr "optagerlukkertid"
+
+msgid "Shutter speed used when capturing an image, in seconds"
+msgstr "Lukketidshastighed brugt når et billede optages, i sekunder"
+
+msgid "capturing focal ratio"
+msgstr "brændforhold for optager"
+
+msgid "Focal ratio (f-number) used when capturing the image"
+msgstr "Brændforhold (f-nummer) brugt under optagelse af billedet"
+
+msgid "capturing focal length"
+msgstr "brændvidde for optager"
+
+msgid "Focal length of the lens used capturing the image, in mm"
+msgstr "Brændvidde på linse brugt under optagelse af billedet, i mm"
+
+msgid "capturing 35 mm equivalent focal length"
+msgstr "35 mm-ækvivalent brændvidde for optager"
+
+msgid ""
+"35 mm equivalent focal length of the lens used capturing the image, in mm"
+msgstr ""
+"35 mm-ækvivalent brændvidde på linse brugt under optagelse af billedet, i mm"
+
+msgid "capturing digital zoom ratio"
+msgstr "digitalt zoomforhold for optager"
+
+msgid "Digital zoom ratio used when capturing an image"
+msgstr "Digitalt zoomforhold brugt under optagelse af et billede"
+
+msgid "capturing iso speed"
+msgstr "iso-hastighed for optager"
+
+msgid "The ISO speed used when capturing an image"
+msgstr "ISO-hastigheden brugt under optagelse af et billede"
+
+msgid "capturing exposure program"
+msgstr "belysningsprogram for optagelse"
+
+msgid "The exposure program used when capturing an image"
+msgstr "Belysningsprogrammet brugt under optagelse af et billede"
+
+msgid "capturing exposure mode"
+msgstr "belysningstilstand for optagelse"
+
+msgid "The exposure mode used when capturing an image"
+msgstr "Belysningstilstanden brugt under optagelse af et billede"
+
+msgid "capturing exposure compensation"
+msgstr "belysningskompensation for optagelse"
+
+msgid "The exposure compensation used when capturing an image"
+msgstr "Belysningskompensationen brugt under optagelse af et billede"
+
+# "optagelsestype for optagelse af scene" /
+# "optagelsestype for sceneoptagelse" /
+# "sceneoptagelsestype for optager" /
+# "optageroptagelsestype for scene"
+# De to første rammer vist forlægget mest præcist.
+msgid "capturing scene capture type"
+msgstr "optagelsestype for optagelse af scene"
+
+msgid "The scene capture mode used when capturing an image"
+msgstr "Sceneoptagelsestilstanden brugt da billedet blev optaget"
+
+# "justering af optageforstærkning" /
+# "justering af optagerforstærkning"
+msgid "capturing gain adjustment"
+msgstr "justering af optageforstærkning"
+
+msgid "The overall gain adjustment applied on an image"
+msgstr "Den samlede optageforstærkning brugt på et billede"
+
+msgid "capturing white balance"
+msgstr "hvidbalance for optagelse"
+
+msgid "The white balance mode set when capturing an image"
+msgstr "Hvidbalancetilstanden angivet under optagelse af et billede"
+
+# kontrast for optagelse
+msgid "capturing contrast"
+msgstr "optagekontrast"
+
+# Jeg tror "direction" skal oversættes til "indstilling af"
+# (sml. "director" ~ "instruction" ~ "instruering" ~ "indstilling"
+msgid "The direction of contrast processing applied when capturing an image"
+msgstr "Indstilling af kontrastprocessen brugt under optagelse af et billede"
+
+msgid "capturing saturation"
+msgstr "farvemætning for optagelse"
+
+msgid "The direction of saturation processing applied when capturing an image"
+msgstr ""
+"Indstillingen af farvemætningsprocessen brugt under optagelse af et billede"
+
+msgid "capturing sharpness"
+msgstr "optageskarphed"
+
+msgid "The direction of sharpness processing applied when capturing an image"
+msgstr "Skarphedindstilling brugt under optagelse af et billede"
+
+msgid "capturing flash fired"
+msgstr "optagerblitzen der blev brugt"
+
+msgid "If the flash fired while capturing an image"
+msgstr "Hvorvidt blitzen blev brugt under optagelse af et billede"
+
+msgid "capturing flash mode"
+msgstr "optagererens blitztilstand"
+
+msgid "The selected flash mode while capturing an image"
+msgstr "Den valgte blitztilstand under optagelse af et billede"
+
+msgid "capturing metering mode"
+msgstr "optagerens måletilstand"
+
+msgid ""
+"The metering mode used while determining exposure for capturing an image"
+msgstr "Måletilstanden brugt da optagelsens belysning skulle bestemmes"
+
+msgid "capturing source"
+msgstr "optagekilde"
+
+msgid "The source or type of device used for the capture"
+msgstr "Kilden eller typen af enhed brugt under optagelsen"
+
+msgid "image horizontal ppi"
+msgstr "billedets vandrette billedtæthed (ppi)"
+
+msgid "Media (image/video) intended horizontal pixel density in ppi"
+msgstr "Påtænkt vandret billedtæthed for medie (billede/video) i ppi"
+
+msgid "image vertical ppi"
+msgstr "billedets lodrette billedtæthed (ppi)"
+
+msgid "Media (image/video) intended vertical pixel density in ppi"
+msgstr "Påtænkt lodret billedtæthed for medie (billede/video) i ppi"
+
+# frame kan da ikke være billede her?
+msgid "ID3v2 frame"
+msgstr "ID3v2-ramme"
+
+msgid "unparsed id3v2 tag frame"
+msgstr "ufortolket id3v2-mærkeramme"
+
+msgid "musical-key"
+msgstr "musik-nøgle"
+
+msgid "Initial key in which the sound starts"
+msgstr "Oprindelig nøgle hvor musikken starter"
+
+msgid "Print version information and exit"
+msgstr "Vis versionsinformation og afslut"
+
+msgid ""
+"Don't exit after showing the initial device list, but wait for devices to "
+"added/removed."
+msgstr ""
+"Afslut ikke efter visning af den oprindelige enhedsliste, men vent på at "
+"enheder bliver tilføjet/fjernet."
+
+msgid "Include devices from hidden device providers."
+msgstr ""
+
+#, c-format
+msgid "Volume: %.0f%%"
+msgstr "Lydstyrke: %.0f%%"
+
+msgid "Mute: on"
+msgstr ""
+
+msgid "Mute: off"
+msgstr ""
+
+msgid "Buffering..."
+msgstr "Mellemlagrer ..."
+
+msgid "Clock lost, selecting a new one\n"
+msgstr "Ur tabt, vælger et nyt ur\n"
+
+msgid "Reached end of play list."
+msgstr "Nåede slutningen af afspilningslisten."
+
+msgid "Paused"
+msgstr "På pause"
+
+#, c-format
+msgid "Now playing %s\n"
+msgstr "Afspiller %s\n"
+
+#, c-format
+msgid "About to finish, preparing next title: %s"
+msgstr "Ved at afslutte, forbereder næste titel: %s"
+
+#, c-format
+msgid "Playback rate: %.2f"
+msgstr "Afspilningshastighed: %.2f"
+
+#, c-format
+msgid "Could not change playback rate to %.2f"
+msgstr "Kunne ikke ændre afspilningshastighed til %.2f"
+
+msgid "space"
+msgstr "mellemrum"
+
+msgid "pause/unpause"
+msgstr "pause/start"
+
+msgid "q or ESC"
+msgstr "q eller ESC"
+
+msgid "quit"
+msgstr "afslut"
+
+msgid "> or n"
+msgstr "> eller n"
+
+msgid "play next"
+msgstr "afspil næste"
+
+msgid "< or b"
+msgstr "< eller b"
+
+msgid "play previous"
+msgstr "afspil forrige"
+
+msgid "seek forward"
+msgstr "søg fremad"
+
+msgid "seek backward"
+msgstr "søg baglæns"
+
+msgid "volume up"
+msgstr "lydstyrke op"
+
+msgid "volume down"
+msgstr "lydstyrke ned"
+
+msgid "toggle audio mute on/off"
+msgstr ""
+
+msgid "increase playback rate"
+msgstr "øg afspilningshastighed"
+
+msgid "decrease playback rate"
+msgstr "sænk afspilningshastighed"
+
+msgid "change playback direction"
+msgstr "ændr afspilningsretning"
+
+msgid "enable/disable trick modes"
+msgstr "aktiver/deaktiver trick-tilstande"
+
+#, fuzzy
+msgid "change to previous/next audio track"
+msgstr "ændr lydspor"
+
+#, fuzzy
+msgid "change to previous/next video track"
+msgstr "ændr videospor"
+
+#, fuzzy
+msgid "change to previous/next subtitle track"
+msgstr "ændr undertekstspor"
+
+msgid "seek to beginning"
+msgstr "søg til begyndelsen"
+
+msgid "show keyboard shortcuts"
+msgstr "vis genvejstaster"
+
+msgid "Interactive mode - keyboard controls:"
+msgstr "Interaktiv tilstand - kontrol via tastatur:"
+
+#, c-format
+msgid "Use Windows high-resolution clock, precision: %u ms\n"
+msgstr ""
+
+msgid "Output status information and property notifications"
+msgstr "Vis statusinformation og egenskabspåmindelser"
+
+msgid "Control playback behaviour setting playbin 'flags' property"
+msgstr ""
+"Kontroller afspilningens opførsel ved at angive playbin »flags«-egenskab"
+
+msgid "Video sink to use (default is autovideosink)"
+msgstr "Brug denne videokanal (standard er autovideosink)"
+
+msgid "Audio sink to use (default is autoaudiosink)"
+msgstr "Brud denne lydkanal (standard er autoaudiosink)"
+
+msgid "Enable gapless playback"
+msgstr "Aktiver afspilning uden huller"
+
+msgid "Enable instantaneous uri changes (only with playbin3)"
+msgstr ""
+
+msgid "Shuffle playlist"
+msgstr "Bland afspilningsliste"
+
+msgid "Disable interactive control via the keyboard"
+msgstr "Deaktiver interaktiv kontrol via tastaturet"
+
+msgid "Volume"
+msgstr "Lydstyrke"
+
+msgid "Start position in seconds."
+msgstr ""
+
+msgid "Enable accurate seeking"
+msgstr ""
+
+msgid "Playlist file containing input media files"
+msgstr "Afspilningsfil der indeholder mediefiler"
+
+msgid "Use the experimental instant-rate-change flag when changing rate"
+msgstr ""
+
+msgid "Do not print any output (apart from errors)"
+msgstr "Udskriv ikke noget (undtagen fejl)"
+
+#, fuzzy
+msgid ""
+"Use playbin3 pipeline (default varies depending on 'USE_PLAYBIN' env "
+"variable)"
+msgstr "(standard varierer afhængig af miljøvariablen »USE_PLAYBIN«"
+
+msgid ""
+"Keep showing the last frame on EOS until quit or playlist change command "
+"(gapless is ignored)"
+msgstr ""
+"Bliv ved med at vise den sidste ramme på EOS indtil kommandoen afslut (quit) "
+"eller ændr afspilningsliste (gapless ignoreres)"
+
+msgid "Do not print current position of pipeline"
+msgstr ""
+
+#, c-format
+msgid "Usage: %s FILE1|URI1 [FILE2|URI2] [FILE3|URI3] ..."
+msgstr "Brug: %s FIL1|URI1 [FIL2|URI2] [FIL3|URI3] ..."
+
+msgid "You must provide at least one filename or URI to play."
+msgstr "Du skal angive mindst et filnavn eller en adresse for at afspille."
+
+msgid "Press 'k' to see a list of keyboard shortcuts.\n"
+msgstr "Tryk »k« for at se en liste over genvejstaster.\n"
+
+#~ msgid "Could not create \"uridecodebin3\" element."
+#~ msgstr "Kunne ikke oprette elementet »uridecodebin3«."
+
+#~ msgid "Use playbin3 pipeline"
+#~ msgstr "Brug playbin3-datakanal"
+
+#~ msgid "Could not create \"decodebin3\" element."
+#~ msgstr "Kunne ikke oprette elementet »decodebin3«."
+
+#~ msgid "Could not create \"urisourcebin\" element."
+#~ msgstr "Kunne ikke oprette elementet »urisourcebin«."
+
+#~ msgid "Internal data stream error."
+#~ msgstr "Intern datastrømsfejl."

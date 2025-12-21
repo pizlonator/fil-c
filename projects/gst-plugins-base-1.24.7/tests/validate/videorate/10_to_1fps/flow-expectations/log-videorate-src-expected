@@ -1,0 +1,13 @@
+event stream-start: GstEventStreamStart, flags=(GstStreamFlags)GST_STREAM_FLAG_NONE, group-id=(uint)1;
+event caps: video/x-raw, format=(string)I420, framerate=(fraction)1/1, height=(int)240, interlace-mode=(string)progressive, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, width=(int)320;
+event segment: format=TIME, start=0:00:00.000000000, offset=0:00:00.000000000, stop=none, time=0:00:00.000000000, base=0:00:00.000000000, position=0:00:00.000000000
+buffer: checksum=5074004a070c85d97cc9f58fab273813c95b748c, pts=0:00:00.000000000, dur=0:00:01.000000000, flags=discont
+event flush-start: (no structure)
+event flush-stop: GstEventFlushStop, reset-time=(boolean)true;
+event segment: format=TIME, start=0:00:00.000000000, offset=0:00:00.000000000, stop=0:00:05.000000000, flags=0x01, time=0:00:00.000000000, base=0:00:00.000000000, position=0:00:00.000000000
+buffer: checksum=5074004a070c85d97cc9f58fab273813c95b748c, pts=0:00:00.000000000, dur=0:00:01.000000000, flags=discont
+buffer: checksum=b001027646a88bd2f45818b12ce73b0f04046b06, pts=0:00:01.000000000, dur=0:00:01.000000000
+buffer: checksum=b235367d19b4a8eedcca178a5919dc0bbbaeabca, pts=0:00:02.000000000, dur=0:00:01.000000000
+buffer: checksum=0d65174db0fc96dbeaaa2488d013b8935f363330, pts=0:00:03.000000000, dur=0:00:01.000000000
+buffer: checksum=a01cd9172bd2387002e8f9b3003a9becc2938c16, pts=0:00:04.000000000, dur=0:00:01.000000000
+event eos: (no structure)

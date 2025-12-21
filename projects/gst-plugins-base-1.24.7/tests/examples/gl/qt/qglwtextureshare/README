@@ -1,0 +1,32 @@
+Requires: >= Qt 5.1 for the x11extras module (or else you need to
+get x11extras from gitorious yourself)
+
+This example illustrates how to integrate Gstreamer GL plugin with
+Qt. In particular it uses glupload with fakesink elements to create
+texture with decoded video frame. This texture is shared with
+QGLWidget derived class, which paints a cube with video texture on
+each face.
+
+To compile the example, include and library paths might be adjusted in
+.pro file according to your installation of the gstreamer and
+corresponding development files. Most probably, the adjustments will
+be necessary on Windows.
+
+To run the example simply start executable file after compilation. If
+there is no command line arguments provided, then videotestsrc element
+will be used to generate video. The following pipeline will be created
+in this case:
+
+videotestsrc ! video/x-raw, width=640, height=480, framerate=(fraction)30/1 ! glupload ! fakesink sync=1
+
+It is also possible to provide the video file name as a first command
+line parameter, i.e. ./qglwtextureshare myvideo.ogv . In this case,
+the following pipeline will be executed:
+
+filesrc location=myvideo.ogv ! decodebin2 ! glupload ! fakesink sync=1
+
+I would appreciate any feedback and improvement suggestions for this
+example.
+
+Have fun :-)
+Andrey Nechypurenko (andreynech@gmail.com)

@@ -1,0 +1,12 @@
+event stream-start: GstEventStreamStart, flags=(GstStreamFlags)GST_STREAM_FLAG_NONE, group-id=(uint)1;
+event caps: video/x-raw, format=(string)I420, framerate=(fraction)1/1, height=(int)240, interlace-mode=(string)progressive, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, width=(int)320;
+event segment: format=TIME, start=0:00:00.000000000, offset=0:00:00.000000000, stop=none, time=0:00:00.000000000, base=0:00:00.000000000, position=0:00:00.000000000
+buffer: content-id=0, pts=0:00:00.000000000, dur=0:00:01.000000000, flags=discont
+buffer: content-id=1, pts=0:00:01.000000000, dur=0:00:01.000000000
+event flush-start: (no structure)
+event flush-stop: GstEventFlushStop, reset-time=(boolean)true;
+event segment: format=TIME, start=0:00:00.000000000, offset=0:00:00.000000000, stop=0:00:03.000000000, flags=0x01, time=0:00:00.000000000, base=0:00:00.000000000, position=0:00:00.000000000
+buffer: content-id=0, pts=0:00:00.000000000, dur=0:00:01.000000000, flags=discont
+buffer: content-id=1, pts=0:00:01.000000000, dur=0:00:01.000000000
+buffer: content-id=2, pts=0:00:02.000000000, dur=0:00:01.000000000
+event eos: (no structure)

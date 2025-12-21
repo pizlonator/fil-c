@@ -1,0 +1,24 @@
+meta,
+    args = {
+            "appsrc name=src format=time handle-segment-change=true automatic-eos=false ! \
+                videorate drop-out-of-segment=true name=videorate ! video/x-raw,framerate=1/1 ! $(videosink) name=sink",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+       "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    },
+    handles-states=true
+
+foreach,
+  i=<1.0, 2.0, 3.0, 4.0, 5.0>,
+  actions = {
+    [
+      appsrc-push, target-element-name=src, fill-mode=counter, size=115200, pts="$(i)", duration=1.0,
+        caps=(GstCaps)[video/x-raw,format=I420,framerate=1/1,width=320,height=240],
+        segment=[segment, stop=1.0, format=(GstFormat)time],
+    ],
+  }
+
+play
+
+appsrc-eos, target-element-name=src

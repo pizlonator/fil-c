@@ -1,0 +1,16 @@
+oggvorbisenc : encodes to vorbis inside an ogg stream. This is not the
+               GStreamer way of doing things and should be removed for 
+	       0.9. It is still called "vorbisenc" for backward compatibility
+	       reasons. It also takes integer audio as input.
+vorbisenc :    Encodes to a raw vorbis stream and should be used together
+ 	       with an ogg muxer such as "oggmux" it is called "rawvorbisenc".
+	       It also takes raw float samples as input.
+
+TODO for 0.9:
+
+- remove oggvorbisenc.c and oggvorbisenc.h
+- remove references to oggvorbisenc.[ch] in the Makefile and in vorbis.c
+- remove the element vorbisenc.
+- rename the element rawvorbisenc to vorbisenc.
+
+

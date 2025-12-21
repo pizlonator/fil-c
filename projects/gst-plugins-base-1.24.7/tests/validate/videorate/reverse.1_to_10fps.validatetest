@@ -1,0 +1,14 @@
+set-globals, in_framerate="(GstFraction)1/1", out_framerate="(GstFraction)10/1"
+
+include, location="videorate-test.meta"
+
+play
+seek, start=0.0, stop=1.0, flags=accurate+flush, rate=-1.0
+
+# First buffer is display as fast as possible
+crank-clock, expected-elapsed-time=0.0
+crank-clock, repeat=9, expected-elapsed-time=0.1
+
+# Waiting 1 second on EOS
+crank-clock, expected-elapsed-time=0.1
+stop, on-message=eos

@@ -1,0 +1,21 @@
+# Check that `fakevideodec` works in "encoded video" mode
+meta,
+    handles-states=true,
+    args = {
+         "appsrc name=src format=time  ! fakevideodec name=dec ! videoconvert ! $(videosink)",
+    },
+    configs = {
+       "$(validateflow), pad=dec:sink, buffers-checksum=as-id, ignored-event-types={ tag, stream-start }",
+       "$(validateflow), pad=dec:src, buffers-checksum=as-id, ignored-event-types={ tag, stream-start }",
+    }
+
+foreach,
+  i=[0, 20],
+  actions={
+    [appsrc-push, target-element-name=src, fill-mode=counter, pts="$(i)/20", duration=1.0, size=8,
+        caps=(GstCaps)[video/x-h264,framerate=20/1,width=640,height=480,parsed=true]],
+  }
+
+appsrc-eos, target-element-name=src
+
+play

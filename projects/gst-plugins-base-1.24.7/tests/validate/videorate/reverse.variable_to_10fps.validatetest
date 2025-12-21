@@ -1,0 +1,34 @@
+set-globals, in_framerate=(string)"0/1", out_framerate=(string)"10/1"
+
+meta,
+    handles-states=true,
+    ignore-eos=true,
+    args = {
+         "videotestsrc pattern=ball animation-mode=frames ! video/x-raw,format=I420,framerate=30/1 ! capssetter caps=\"video/x-raw,framerate=$(in_framerate)\" ! videorate name=videorate ! video/x-raw,format=I420,framerate=$(out_framerate) ! fakesink sync=true",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=true",
+       "$(validateflow), pad=videorate:src, buffers-checksum=true",
+    }
+
+
+play
+seek, start=0.0, stop=1.0, flags=accurate+flush, rate=-1.0
+
+# First buffer is display as fast as possible
+crank-clock, expected-elapsed-time=0.0
+crank-clock, repeat=9, expected-elapsed-time=0.1
+
+# Waiting 1 second on EOS
+crank-clock, expected-elapsed-time=0.1
+
+seek, start=1.0, stop=2.0, flags=accurate+flush, rate=-1.0, on-message=eos
+
+# First buffer is display as fast as possible
+crank-clock, expected-elapsed-time=0.0
+crank-clock, repeat=9, expected-elapsed-time=0.1
+
+# Waiting 1 second on EOS
+crank-clock, expected-elapsed-time=0.1
+
+stop, on-message=eos

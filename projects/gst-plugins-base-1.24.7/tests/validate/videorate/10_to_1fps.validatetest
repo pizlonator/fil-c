@@ -1,0 +1,10 @@
+set-globals, in_framerate="(GstFraction)10/1", out_framerate="(GstFraction)1/1"
+
+include, location="videorate-test.meta"
+
+play
+seek, start=0.0, stop=5.0, flags=accurate+flush, rate=1.0
+crank-clock, expected-elapsed-time=0.0
+crank-clock, repeat=4, expected-elapsed-time=1.0
+crank-clock, expected-elapsed-time=1.0
+stop, on-message=eos

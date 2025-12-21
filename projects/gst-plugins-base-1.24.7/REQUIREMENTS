@@ -1,0 +1,99 @@
+GStreamer uses a *large* array of tools and libraries, most of which are
+optional.  We have attempted to make sure that any code that depends on
+optional libraries doesn't get built unless you have those libraries.  If
+you find this not to be the case, please, let us know by filing a bug
+report at http://bugzilla.gnome.org/.
+
+
+Required tools:
+===============
+
+An extra set of tools is required if you wish to build GStreamer out of
+CVS (using autogen.sh):
+
+autoconf 2.52 or better 
+automake 1.5
+gettext 0.11.5
+libtool v1.4 or better
+pkgconfig 0.9.0 or better (http://www.freedesktop.org/software/pkgconfig/)
+
+Required libraries:
+===================
+
+The core GStreamer libraries. See the gstreamer/ module in GStreamer cvs, or
+the version that corresponds to this plugin release.
+
+Package:	GStreamer
+Version:	0.10.11.2
+Recommended:	0.10.latest
+URL:		http://gstreamer.freedesktop.org/
+DebianPackage:	libgstreamer0.10-dev
+Notes:		The required version is updated frequently, so the version
+	listed in this file is often wrong.  If you are compiling from CVS,
+	the required version is often the latest GStreamer CVS.
+
+
+Optional libraries:
+===================
+
+This file lists supporting libraries for which gst-plugins-base contains
+plugins, as well as their minimum version.  You can find the corresponding
+plugins in ext/(library)
+
+Package:	Orc
+Version:	>= 0.4.5
+Recommended:	0.4.latest
+URL:		http://code.entropywave.com/orc
+DebianPackage:	liborc-0.4-dev
+
+Package:	GTK+
+Version:	>= 2.0
+Recommended:	>= 2.2
+URL:		http://www.gtk.org/
+DebianPackage:	libgtk2.0-dev
+Notes:		Required by several examples
+
+Package:	Xlib
+Plugins:	xvimagesink, ximagesink, v4l (v4lsrc), ximagesrc
+DebianPackage:	libx11-dev libxv-dev libxt-dev
+
+Package:	Alsa
+Version:	>= 0.9.1
+Plugins:	alsa (alsasrc, alsasink)
+URL:		http://www.alsa-project.org/
+DebianPackage:	libasound2-dev
+
+Package:	CDParanoia
+Plugins:	cdparanoia
+URL:		http://xiph.org/paranoia/
+DebianPackage:	libcdparanoia0-dev
+
+Package:	libvisual
+Version:	>= 0.2.0
+Recommended:	0.4.0
+Plugins:	libvisual
+URL:		http://localhost.nl/~synap/libvisual-wiki/index.php/Main_Page
+DebianPackage:	libvisual0.4-dev
+
+Package:	Ogg
+Version:	>= 1.0
+Plugins:	ogg (oggdemux, oggmux)
+URL:		http://xiph.org/ogg/
+DebianPackage:	libogg-dev
+
+Package:	Pango
+Plugins:	pango
+DebianPackage:	libpango1.0-dev
+URL:		http://www.pango.org/
+
+Package:	Theora
+Plugins:	theora (theoradec, theoraenc)
+URL:		http://www.theora.org/
+DebianPackage:	libtheora-dev
+
+Package:	Vorbis
+Plugins:	vorbis (vorbisdec, vorbisenc)
+DebianPackage:	libvorbis-dev
+URL:		http://www.vorbis.com/
+
+

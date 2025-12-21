@@ -1,0 +1,93 @@
+option('audioresample_format', type : 'combo',
+       choices : ['int', 'float', 'auto'], value : 'auto')
+option('install_plugins_helper', type: 'string', value: '',
+       description: 'Path of distro helper script to call to install missing plugins')
+option('iso-codes', type : 'feature', value : 'auto',
+       description: 'Use iso-codes in libgsttag (for language names)')
+
+# OpenGL integration library options
+option('gl_api', type : 'array', choices : ['opengl', 'gles2', 'auto'], value : ['auto'],
+       description : 'A comma separated list of opengl APIs to enable building against')
+option('gl_platform', type : 'array',
+       choices : ['glx', 'egl', 'cgl', 'wgl', 'eagl', 'auto'], value : ['auto'],
+       description : 'A comma separated list of opengl platforms to enable building against')
+option('gl_winsys', type : 'array',
+       choices : ['x11', 'wayland', 'win32', 'winrt', 'cocoa', 'dispmanx', 'egl', 'surfaceless', 'viv-fb', 'gbm', 'android', 'auto'], value : ['auto'],
+       description : 'A comma separated list of opengl windows systems to enable building against. Supported values are x11, wayland, win32, winrt, cocoa, dispmanx, egl, viv-fb, gbm, and android')
+option('egl_module_name', type : 'string', value : '',
+       description : 'The file to pass to g_module_open to open the libEGL library (default: libEGL)')
+option('opengl_module_name', type : 'string', value : '',
+       description : 'The file to pass to g_module_open to open the libGL library (default: libGL)')
+option('gles2_module_name', type : 'string', value : '',
+       description : 'The file to pass to g_module_open to open the libGLESv2 library (default: libGLESv2)')
+
+# Feature option for opengl plugin and integration library
+option('gl', type : 'feature', value : 'auto', description : 'OpenGL integration library and OpenGL plugin')
+option('gl-graphene', type : 'feature', value : 'auto', description : 'Use Graphene in OpenGL plugin')
+option('gl-jpeg', type : 'feature', value : 'auto', description : 'Use libjpeg in OpenGL plugin')
+option('gl-png', type : 'feature', value : 'auto', description : 'Use libpng in OpenGL plugin')
+
+# Feature options for plugins with no external deps
+option('adder', type : 'feature', value : 'auto')
+option('app', type : 'feature', value : 'auto')
+option('audioconvert', type : 'feature', value : 'auto')
+option('audiomixer', type : 'feature', value : 'auto')
+option('audiorate', type : 'feature', value : 'auto')
+option('audioresample', type : 'feature', value : 'auto')
+option('audiotestsrc', type : 'feature', value : 'auto')
+option('compositor', type : 'feature', value : 'auto')
+option('debugutils', type : 'feature', value : 'auto')
+option('drm', type : 'feature', value : 'auto')
+option('dsd', type : 'feature', value : 'auto')
+option('encoding', type : 'feature', value : 'auto')
+option('gio', type : 'feature', value : 'auto')
+option('gio-typefinder', type : 'feature', value : 'auto')
+option('overlaycomposition', type : 'feature', value : 'auto')
+option('pbtypes', type : 'feature', value : 'auto')
+option('playback', type : 'feature', value : 'auto')
+option('rawparse', type : 'feature', value : 'auto')
+option('subparse', type : 'feature', value : 'auto')
+option('tcp', type : 'feature', value : 'auto')
+option('typefind', type : 'feature', value : 'auto')
+option('videoconvertscale', type : 'feature', value : 'auto')
+option('videorate', type : 'feature', value : 'auto')
+option('videotestsrc', type : 'feature', value : 'auto')
+option('volume', type : 'feature', value : 'auto')
+
+# Feature options for plugins with external deps
+option('alsa', type : 'feature', value : 'auto', description : 'ALSA audio source/sink plugin')
+option('cdparanoia', type : 'feature', value : 'auto', description : 'cdparanoia plugin')
+option('libvisual', type : 'feature', value : 'auto', description : 'libvisual audio visualization plugin')
+option('ogg', type : 'feature', value : 'auto', description : 'ogg parser, muxer, demuxer plugin')
+option('opus', type : 'feature', value : 'auto', description : 'OPUS audio codec plugin')
+option('pango', type : 'feature', value : 'auto', description : 'Pango text rendering and overlay plugin')
+option('theora', type : 'feature', value : 'auto', description : 'Theora video parser and codec plugin')
+option('tremor', type : 'feature', value : 'auto', description : 'Integer Vorbis decoder plugin for devices without floating point')
+option('vorbis', type : 'feature', value : 'auto', description : 'Vorbis audio parser, tagger, and codec plugin')
+option('x11', type : 'feature', value : 'auto', description : 'X11 ximagesink plugin, and X11 support in libraries, plugins, examples')
+option('xshm', type : 'feature', value : 'auto', description : 'X11 shared memory support for X11 plugins')
+option('xvideo', type : 'feature', value : 'auto', description : 'X11 XVideo xvimagesink plugin')
+option('xi', type : 'feature', value : 'auto', description : 'X11 input extension for touch support in ximagesink')
+
+# Common feature options
+option('examples', type : 'feature', value : 'auto', yield : true)
+option('tests', type : 'feature', value : 'auto', yield : true)
+option('tools', type : 'feature', value : 'auto', yield : true)
+option('introspection', type : 'feature', value : 'auto', yield : true, description : 'Generate gobject-introspection bindings')
+option('nls', type : 'feature', value : 'auto', yield: true, description : 'Enable native language support (translations)')
+option('orc', type : 'feature', value : 'auto', yield : true)
+option('gobject-cast-checks', type : 'feature', value : 'auto', yield : true,
+       description: 'Enable run-time GObject cast checks (auto = enabled for development, disabled for stable releases)')
+option('glib-asserts', type : 'feature', value : 'enabled', yield : true,
+       description: 'Enable GLib assertion (auto = enabled for development, disabled for stable releases)')
+option('glib-checks', type : 'feature', value : 'enabled', yield : true,
+       description: 'Enable GLib checks such as API guards (auto = enabled for development, disabled for stable releases)')
+option('qt5', type : 'feature', value : 'auto', yield : true, description : 'Qt5 QML examples')
+
+# Common options
+option('package-name', type : 'string', yield : true,
+       description : 'package name to use in plugins')
+option('package-origin', type : 'string', value : 'Unknown package origin', yield : true,
+       description : 'package origin URL to use in plugins')
+option('doc', type : 'feature', value : 'auto', yield: true,
+       description: 'Enable documentation.')

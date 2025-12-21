@@ -1,0 +1,88 @@
+#!/bin/bash
+
+#prefix=/usr/local
+
+fail_on_error=true
+#fail_on_error=false
+
+output=tail
+#output=cat
+
+set -e
+
+for lib in allocators app audio fft pbutils riff rtp rtsp sdp tag video ; do
+  #files=$(cd ${prefix}/include/gstreamer-1.0/ && find . -name '*.h')
+  if test $lib = "allocators"; then
+    files="allocators.h gstdmabuf.h"
+  elif test $lib = "app"; then
+    files="app.h gstappsrc.h gstappsink.h"
+  elif test $lib = "audio"; then
+    files="audio.h audio-format.h audio-channels.h audio-info.h \
+           gstaudioringbuffer.h gstaudioclock.h gstaudiofilter.h \
+           gstaudiocdsrc.h gstaudiodecoder.h gstaudioencoder.h \
+           gstaudiobasesink.h gstaudiobasesrc.h gstaudiometa.h \
+           gstaudiosink.h gstaudiosrc.h streamvolume.h gstaudioiec61937.h"
+  elif test $lib = "fft"; then
+    files="fft.h gstfft.h gstffts16.h gstffts32.h gstfftf32.h gstfftf64.h"
+  elif test $lib = "pbutils"; then
+    files="pbutils.h codec-utils.h descriptions.h  encoding-profile.h \
+           encoding-target.h install-plugins.h missing-plugins.h \
+           gstdiscoverer.h"
+  elif test $lib = "riff"; then
+    files="riff.h riff-ids.h riff-media.h riff-read.h"
+  elif test $lib = "rtp"; then
+    files="rtp.h gstrtpbuffer.h gstrtcpbuffer.h gstrtppayloads.h \
+           gstrtphdrext.h gstrtpbaseaudiopayload.h gstrtpbasepayload.h \
+           gstrtpbasedepayload.h"
+  elif test $lib = "rtsp"; then
+    files="rtsp.h gstrtsp.h gstrtsptransport.h gstrtspurl.h \
+           gstrtspmessage.h gstrtspconnection.h gstrtspdefs.h \
+           gstrtspextension.h gstrtsprange.h"
+  elif test $lib = "sdp"; then
+    files="sdp.h gstsdp.h gstsdpmessage.h"
+  elif test $lib = "tag"; then
+    files="tag.h gsttagdemux.h gsttagmux.h xmpwriter.h"
+  elif test $lib = "video"; then
+    files="colorbalance.h colorbalancechannel.h navigation.h video.h \
+           video-event.h video-format.h video-chroma.h video-color.h \
+           video-info.h video-frame.h gstvideosink.h gstvideofilter.h \
+           gstvideometa.h gstvideopool.h videoorientation.h videooverlay.h \
+           gstvideodecoder.h gstvideoencoder.h gstvideoutils.h \
+           video-blend.h video-overlay-composition.h videodirection.h"
+  fi
+
+CFLAGS=`pkg-config --cflags gstreamer-1.0 gstreamer-$lib-1.0`
+CFLAGS="$CFLAGS -DGST_USE_UNSTABLE_API"
+
+for each in $files ; do
+  each="gst/$lib/$each"
+  echo Testing $each...
+  rm -f test.o
+  cat >test.c <<-EOF
+#include <glib.h>
+#include <gst/gst.h>
+#include <$each>
+EOF
+  cc $CFLAGS -Wall -Werror -c test.c -o test.o 2>&1 | tail
+  $fail_on_error && test ! -f test.o && exit 1
+
+  echo Testing $each "(no gst)..."
+  rm -f test.o
+  cat >test.c <<-EOF
+#include <glib.h>
+#include <$each>
+EOF
+  cc $CFLAGS -Wall -Werror -c test.c -o test.o 2>&1 | tail
+  $fail_on_error && test ! -f test.o && exit 1
+
+  echo Testing $each "(no glib)..."
+  rm -f test.o
+  cat >test.c <<-EOF
+#include <$each>
+EOF
+  cc $CFLAGS -Wall -Werror -c test.c -o test.o 2>&1 | tail
+  $fail_on_error && test ! -f test.o && exit 1
+
+done # for each file
+
+done # for each lib

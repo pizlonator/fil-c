@@ -1,0 +1,5 @@
+- test different strides using
+gst-launch -v videotestsrc ! video/x-raw,width=320,height=240,format=UYVY ! videoconvertscale ! video/x-raw,width=328,height=240 ! xvimagesink
+gst-launch -v videotestsrc ! video/x-raw,width=320,height=240,format=UYVY ! videoconvertscale ! video/x-raw,width=324,height=240 ! xvimagesink
+gst-launch -v videotestsrc ! video/x-raw,width=320,height=240,format=UYVY ! videoconvertscale ! video/x-raw,width=322,height=240 ! xvimagesink
+gst-launch -v videotestsrc ! video/x-raw,width=320,height=240,format=UYVY ! videoconvertscale ! video/x-raw,width=321,height=240 ! xvimagesink

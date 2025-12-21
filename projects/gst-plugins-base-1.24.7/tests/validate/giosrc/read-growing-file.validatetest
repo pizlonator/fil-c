@@ -1,0 +1,42 @@
+# Pipeline with 2 branches, the first one write random data into a file in $(growing_file_location).
+# That branch is synchronized on the test clock that we drive in the scenario.
+# The second branch reads it with giosrc and does some tests like waiting for the
+# `done-waiting-signal` signals on the source etc...
+#
+# The whole dataflow is checked and we ensure that the exact same buffer content
+# is read from the giosrc.
+set-globals, growing_file_location="$(logsdir)/$(test_name)-growing.rand"
+meta,
+    seek=false,
+    handles-states=false,
+    args = {
+        "fakesrc num-buffers=30 datarate=30 filltype=pattern-span sizetype=fixed filltype=random format=time ! filesink sync=true location=$(growing_file_location) name=filesink buffer-mode=unbuffered \
+         giosrc name=giosrc is-growing=true location=file://$(growing_file_location) ! fakesink name=growing-file-sink async=false" \
+    },
+    configs = {
+       "$(validateflow), pad=filesink:sink, record-buffers=true, ignored-fields=\"stream-start={stream-id,group-id,stream}\", buffers-checksum=as-id",
+       "$(validateflow), pad=growing-file-sink:sink, record-buffers=true, ignored-fields=\"stream-start={stream-id,group-id,stream}\", buffers-checksum=as-id",
+    }
+
+
+crank-clock, repeat=5
+wait, on-clock=true
+wait, signal-name=waiting-data, target-element-name=giosrc
+
+checkpoint
+
+crank-clock, repeat=5
+wait, on-clock=true
+wait, signal-name=waiting-data, target-element-name=giosrc
+
+wait, signal-name=done-waiting-data, target-element-name=giosrc, non-blocking=true
+crank-clock, repeat=21
+
+checkpoint
+
+wait, signal-name=waiting-data, target-element-name=giosrc
+
+checkpoint
+
+# Make sure EOS is outputted now, the scenario will automatically quit on EOS
+set-properties, giosrc::is_growing=false

@@ -1,0 +1,366 @@
+This document describes some things to know about the Ogg format, as well
+as implementation details in GStreamer.
+
+INTRODUCTION
+============
+
+ogg and the granulepos
+----------------------
+
+An ogg stream contains pages with a serial number and a granulepos.
+The granulepos is a 64 bit signed integer.  It is a value that in some way
+represents a time since the start of the stream.
+The interpretation as such is however both codec-specific and
+stream-specific.
+
+ogg has no notion of time: it only knows about bytes and granulepos values
+on pages.
+
+The granule position is just a number; the only guarantee for a valid ogg
+stream is that within a logical stream, this number never decreases.
+
+While logically a granulepos value can be constructed for every ogg packet,
+the page is marked with only one granulepos value: the granulepos of the
+last packet to end on that page.
+
+theora and the granulepos
+-------------------------
+
+The granulepos in theora is an encoding of the frame number of the last
+key frame ("i frame"), and the number of frames since the last key frame
+("p frame").  The granulepos is constructed as the sum of the first number,
+shifted to the left for granuleshift bits, and the second number:
+granulepos = (pframe << granuleshift) + iframe
+
+(This means that given a framenumber or a timestamp, one cannot generate
+ the one and only granulepos for that page; several granulepos possibilities
+ correspond to this frame number.  You also need the last keyframe, as well
+ as the granuleshift.
+ However, given a granulepos, the theora codec can still map that to a
+ unique timestamp and frame number for that theora stream)
+
+ Note: currently theora stores the "presentation time" as the granulepos;
+       ie. a first data page with one packet contains one video frame and
+       will be marked with 0/0.  Changing that to be 1/0 (so that it
+       represents the number of decodable frames up to that point, like
+       for Vorbis) is being discussed.
+
+vorbis and granulepos
+---------------------
+
+In Vorbis, the granulepos represents the number of samples that can be
+decoded from all packets up to that point.
+
+In GStreamer, the vorbisenc elements produces a stream where:
+- OFFSET is the time corresponding to the granulepos
+  number of bytes produced before
+- OFFSET_END is the granulepos of the produced vorbis buffer
+- TIMESTAMP is the timestamp matching the begin of the buffer
+- DURATION is set to the length in time of the buffer
+
+Ogg media mapping
+-----------------
+
+Ogg defines a mapping for each media type that it embeds.
+
+For Vorbis:
+
+  - 3 header pages, with granulepos 0.
+     - 1 page with 1 packet header identification
+     - N pages with 2 packets comments and codebooks
+  - granulepos is samplenumber of next page
+  - one packet can contain a variable number of samples but one frame
+    that should be handed to the vorbis decoder.
+  
+For Theora
+     
+  - 3 header pages, with granulepos 0.
+     - 1 page with 1 packet header identification
+     - N pages with 2 packets comments and codebooks
+  - granulepos is framenumber of last packet in page, where framenumber
+    is a combination of keyframe number and p frames since keyframe.
+  - one packet contains 1 frame
+  
+
+
+
+DEMUXING
+========
+
+ogg demuxer
+-----------
+
+This ogg demuxer has two modes of operation, which both share a significant
+amount of code. The first mode is the streaming mode which is automatically 
+selected when the demuxer is connected to a non-getrange based element. When 
+connected to a getrange based element the ogg demuxer can do full seeking
+with great efficiency.
+
+1) the streaming mode.
+
+In this mode, the ogg demuxer receives buffers in the _chain() function which
+are then simply submitted to the ogg sync layer. Pages are then processed when
+the sync layer detects them, pads are created for new chains and packets are
+sent to the peer elements of the pads.
+
+In this mode, no seeking is possible. This is the typical case when the
+stream is read from a network source.
+
+In this mode, no setup is done at startup, the pages are just read and decoded.
+A new logical chain is detected when one of the pages has the BOS flag set. At
+this point the existing pads are removed and new pads are created for all the
+logical streams in this new chain.
+  
+
+2) the random access mode.
+
+  In this mode, the ogg file is first scanned to detect the position and length
+of all chains. This scanning is performed using a recursive binary search
+algorithm that is explained below.
+
+    find_chains(start, end)
+    {
+      ret1 = read_next_pages (start);
+      ret2 = read_prev_page (end);
+      
+      if (WAS_HEADER (ret1)) {
+      }
+      else {
+      }
+
+    }
+
+  a) read first and last pages
+
+   start                                                      end
+    V                                                          V 
+    +-----------------------+-------------+--------------------+
+    |  111                  |  222        |  333               |
+   BOS                     BOS           BOS                  EOS
+
+   
+   after reading start, serial 111, BOS, chain[0] = 111
+   after reading end,   serial 333, EOS
+
+   start serialno != end serialno, binary search start, (end-start)/2
+
+   start                    bisect                            end
+    V                         V                                V 
+    +-----------------------+-------------+--------------------+
+    |  111                  |  222        |  333               |
+
+   
+   after reading start, serial 111, BOS, chain[0] = 111
+   after reading end,   serial 222, EOS
+
+   while (
+
+
+
+testcases
+---------
+    
+ a) stream without BOS
+
+    +----------------------------------------------------------+
+       111                                                     |
+                                                              EOS
+
+ b) chained stream, first chain without BOS
+  
+    +-------------------+--------------------------------------+
+       111              | 222                                  |
+                       BOS                                    EOS
+
+
+ c) chained stream
+  
+    +-------------------+--------------------------------------+
+    |  111              | 222                                  |
+   BOS                 BOS                                    EOS
+
+
+ d) chained stream, second without BOS
+
+    +-------------------+--------------------------------------+
+    |  111              | 222                                  |
+   BOS                                                        EOS
+
+What can an ogg demuxer do?
+---------------------------
+
+An ogg demuxer can read pages and get the granulepos from them.
+It can ask the decoder elements to convert a granulepos to time.
+
+An ogg demuxer can also get the granulepos of the first and the last page of a
+stream to get the start and end timestamp of that stream.
+It can also get the length in bytes of the stream
+(when the peer is seekable, that is).
+
+An ogg demuxer is therefore basically able to seek to any byte position and
+timestamp.
+
+When asked to seek to a given granulepos, the ogg demuxer should always convert
+the value to a timestamp using the peer decoder element conversion function. It
+can then binary search the file to eventually end up on the page with the given
+granule pos or a granulepos with the same timestamp.
+
+Seeking in ogg currently
+------------------------
+
+When seeking in an ogg, the decoders can choose to forward the seek event as a
+granulepos or a timestamp to the ogg demuxer.
+
+In the case of a granulepos, the ogg demuxer will seek back to the beginning of
+the stream and skip pages until it finds one with the requested timestamp.
+
+In the case of a timestamp, the ogg demuxer also seeks back to the beginning of
+the stream. For each page it reads, it asks the decoder element to convert the
+granulepos back to a timestamp. The ogg demuxer keeps on skipping pages until
+the page has a timestamp bigger or equal to the requested one.
+
+It is therefore important that the decoder elements in vorbis can convert a
+granulepos into a timestamp or never seek on timestamp on the oggdemuxer.
+
+The default format on the oggdemuxer source pads is currently defined as a the
+granulepos of the packets, it is also the value of the OFFSET field in the
+GstBuffer.
+
+MUXING
+======
+
+Oggmux
+------
+
+The ogg muxer's job is to output complete Ogg pages such that the absolute
+time represented by the valid (ie, not -1) granulepos values on those pages
+never decreases. This has to be true for all logical streams in the group at
+the same time.
+
+To achieve this, encoders are required to pass along the exact time that the
+granulepos represents for each ogg packet that it pushes to the ogg muxer.
+This is ESSENTIAL: without this exact time representation of the granulepos,
+the muxer can not produce valid streams.
+
+The ogg muxer has a packet queue per sink pad.  From this queue a page can
+be flushed when:
+  - total byte size of queued packets exceeds a given value
+  - total time duration of queued packets exceeds a given value
+  - total byte size of queued packets exceeds maximum Ogg page size
+  - eos of the pad
+  - encoder sent a command to flush out an ogg page after this new packet
+    (in 0.8, through a flush event; in 0.10, with a GstOggBuffer)
+  - muxer wants a flush to happen (so it can output pages)
+
+The ogg muxer also has a page queue per sink pad.  This queue collects
+Ogg pages from the corresponding packet queue.  Each page is also marked
+with the timestamp that the granulepos in the header represents.
+
+A page can be flushed from this collection of page queues when:
+- ideally, every page queue has at least one page with a valid granulepos
+  -> choose the page, from all queues, with the lowest timestamp value
+- if not, muxer can wait if the following limits aren't reached:
+  - total byte size of any page queue exceeds a limit
+  - total time duration of any page queue exceeds a limit
+- if this limit is reached, then:
+  - request a page flush from packet queue to page queue for each queue
+    that does not have pages
+  - now take the page from all queues with the lowest timestamp value
+  - make sure all later-coming data is marked as old, either to be still
+    output (but producing an invalid stream, though it can be fixed later)
+    or dropped (which means it's gone forever)
+
+The oggmuxer uses the offset fields to fill in the granulepos in the pages.
+
+GStreamer implementation details
+--------------------------------
+As said before, the basic rule is that the ogg muxer needs an exact time
+representation for each granulepos.  This needs to be provided by the encoder.
+
+Potential problems are:
+ - initial offsets for a raw stream need to be preserved somehow.  Example:
+   if the first audio sample has time 0.5, the granulepos in the vorbis encoder
+   needs to be adjusted to take this into account.
+ - initial offsets may need be on rate boundaries.  Example:
+   if the framerate is 5 fps, and the first video frame has time 0.1 s, the
+   granulepos cannot correctly represent this timestamp.
+   This can be handled out-of-band (initial offset in another muxing format,
+   skeleton track with initial offsets, ...)
+
+Given that the basic rule for muxing is that the muxer needs an exact timestamp
+matching the granulepos, we need some way of communicating this time value
+from encoders to the Ogg muxer.  So we need a mechanism to communicate
+a granulepos and its time representation for each GstBuffer.
+
+(This is an instance of a more generic problem - having a way to attach
+ more fields to a GstBuffer)
+
+Possible ways:
+- setting TIMESTAMP to this value: bad - this value represents the end time
+  of the buffer, and thus conflicts with GStreamer's idea of what TIMESTAMP
+  is.  This would cause problems muxing the encoded stream in other muxing
+  formats, or for streaming.  Note that this is what was done in GStreamer 0.8
+- setting DURATION to GP_TIME - TIMESTAMP: bad - this breaks the concept of
+  duration for this frame.  Take the video example above; each buffer would
+  have a correct timestamp, but always a 0.1 s duration as opposed to the
+  correct 0.2 s duration
+- subclassing GstBuffer: clean, but requires a common header used between
+  ogg muxer and all encoders that can be muxed into ogg.  Also, what if
+  a format can be muxed into more than one container, and they each have
+  their own "extra" info to communicate ?
+- adding key/value pairs to GstBuffer: clean, but requires changes to
+  core.  Also, the overhead of allocating e.g. a GstStructure for *each* buffer
+  may be expensive.
+- "cheating":
+  - abuse OFFSET to store the timestamp matching this granulepos
+  - abuse OFFSET_END to store the granulepos value
+  The drawback here is that before, it made sense to use OFFSET and OFFSET_END
+  to store a byte count.  Given that this is not used for anything critical
+  (you can't store a raw theora or vorbis stream in a file anyway),
+  this is what's being done for now.
+
+In practice
+-----------
+- all encoders of formats that can be muxed into Ogg produce a stream where:
+  - OFFSET is abused to be the timestamp corresponding exactly to the
+    granulepos
+  - OFFSET_END is abused to be the granulepos of the encoded theora buffer
+  - TIMESTAMP is the timestamp matching the begin of the buffer
+  - DURATION is the length in time of the buffer
+
+- initial delays should be handled in the GStreamer encoders by mangling
+  the granulepos of the encoded packet to take the delay into account as
+  best as possible and store that in OFFSET;
+  this then brings TIMESTAMP + DURATION to within less
+  than a frame period of the granulepos's time representation
+  The ogg muxer will then create new ogg packets with this OFFSET as
+  the granulepos.  So in effect, the granulepos produced by the encoders
+  does not get used directly.
+
+TODO
+----
+- decide on a proper mechanism for communicating extra per-buffer fields
+- the ogg muxer sets timestamp and duration on outgoing ogg pages based on
+  timestamp/duration of incoming ogg packets.
+  Note that:
+  - since the ogg muxer *has* to output pages sorted by gp time, representing
+    end time of the page, this means that the buffer's timestamps are not
+    necessarily monotonically increasing
+  - timestamp + duration of buffers don't match up; the duration represents
+    the length of the ogg page *for that stream*.  Hence, for a normal
+    two-stream file, the sum of all durations is twice the length of the
+    muxed file.
+
+TESTING
+-------
+Proper muxing can be tested by generating test files with command lines like:
+- video and audio start from 0:
+gst-launch -v videotestsrc ! theoraenc ! oggmux audiotestsrc ! audioconvert ! vorbisenc ! identity ! oggmux0. oggmux0. ! filesink location=test.ogg
+
+- video starts after audio:
+gst-launch -v videotestsrc timestamp-offset=500000000 ! theoraenc ! oggmux audiotestsrc ! audioconvert ! vorbisenc ! identity ! oggmux0. oggmux0. ! filesink location=test.ogg
+
+- audio starts after video:
+gst-launch -v videotestsrc ! theoraenc ! oggmux audiotestsrc timestamp-offset=500000000 ! audioconvert ! vorbisenc ! identity ! oggmux0. oggmux0. ! filesink location=test.ogg
+
+The resulting files can be verified with oggz-validate for correctness.

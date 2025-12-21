@@ -1,0 +1,23 @@
+meta,
+    args = {
+        "videotestsrc pattern=ball animation-mode=frames ! video/x-raw,format=I420,framerate=1/1,width=320,height=240 ! videorate max-closing-segment-duplication-duration=0 name=videorate ! video/x-raw,framerate=30/1 ! fakesink sync=true qos=true",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+       "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    },
+    handles-states=true,
+    ignore-eos=true
+
+pause
+
+seek, flags=flush+accurate, start=0, stop=2.0
+play
+crank-clock, repeat=31
+wait, message-type=eos
+
+# Second buffer won't be duplicated as we disabled on on EOS
+check-position, expected-position=1.0
+stop
+
+

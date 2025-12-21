@@ -1,0 +1,20 @@
+meta,
+    seek=false,
+    handles-states=true,
+    args = {
+        "audiotestsrc num-buffers=4 ! encodebin name=ebin profile=\"vorbisenc|element-properties,managed=true,name=audioencoder\" ! fakesink",
+    }
+
+pause
+check-properties, audioencoder::managed=true
+
+set-properties, ebin::profile::element-properties=[
+    element-properties-map, map = {
+        [vorbisenc, managed=false],
+        [somethingelse, whatever=false],
+    },
+]
+
+check-properties, audioencoder::managed=false
+
+stop

@@ -1,0 +1,54 @@
+/*
+ * GStreamer
+ * Copyright (C) 2012 Matthew Waters <ystreet00@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ */
+
+/* Original files and function definitions courtesy of cogl 
+ *
+ * Changes:
+ *  - Namespace COGL -> GST_GL
+ *  - remove gl from each function (i.e. glTexImage2D -> TexImage2D)
+ **/
+
+/* The files in this folder are included multiple times with different
+ * definitions for these macros. The macros are given the following arguments:
+ *
+ * GST_GL_EXT_BEGIN:
+ *
+ * @name: a unique symbol name for this feature
+ *
+ * @min_gl_major: the major part of the minimum GL version where these
+ * functions are available in core, or 255 if it isn't available in
+ * any version.
+ * @min_gl_minor: the minor part of the minimum GL version where these
+ * functions are available in core, or 255 if it isn't available in
+ * any version.
+ *
+ * @gles_availability: flags to specify which versions of GLES the
+ * functions are available in. Should be a combination of
+ * GST_GL_API_GLES and GST_GL_API_GLES2.
+ *
+ * @extension_suffixes: A zero-separated list of suffixes in a
+ * string. These are appended to the extension name to get a complete
+ * extension name to try. The suffix is also appended to all of the
+ * function names. The suffix can optionally include a ':' to specify
+ * an alternate suffix for the function names.
+ *
+ * @extension_names: A list of extension names to try. If any of these
+ * extensions match then it will be used.
+ */

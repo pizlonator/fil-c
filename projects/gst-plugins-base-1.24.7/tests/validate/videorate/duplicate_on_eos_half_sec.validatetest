@@ -1,0 +1,25 @@
+meta,
+    args = {
+        "videotestsrc pattern=ball animation-mode=frames ! video/x-raw,format=I420,framerate=1/1,width=320,height=240 ! videorate max-closing-segment-duplication-duration=500000000 name=videorate ! video/x-raw,framerate=30/1 ! fakesink sync=true qos=true",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+       "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    },
+    handles-states=true,
+    ignore-eos=true
+
+pause
+
+seek, flags=flush+accurate, start=0, stop=2.0
+play
+crank-clock, repeat=46
+wait, message-type=eos
+
+# At most 0.5 second can be output after EOS, meaning that after the second
+# buffer (which starts at 1) videorate will duplicate the frame for 0.5 secs
+check-position, expected-position=1.5
+stop
+
+
+

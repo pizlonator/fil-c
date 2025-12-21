@@ -1,0 +1,54 @@
+event stream-start: GstEventStreamStart, flags=(GstStreamFlags)GST_STREAM_FLAG_NONE, group-id=(uint)1;
+event caps: video/x-raw, format=(string)I420, framerate=(fraction)10/1, height=(int)240, interlace-mode=(string)progressive, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, width=(int)320;
+event segment: format=TIME, start=0:00:00.000000000, offset=0:00:00.000000000, stop=none, time=0:00:00.000000000, base=0:00:00.000000000, position=0:00:00.000000000
+buffer: content-id=0, pts=0:00:00.000000000, dur=0:00:00.100000000, flags=discont
+buffer: content-id=1, pts=0:00:00.100000000, dur=0:00:00.100000000
+buffer: content-id=2, pts=0:00:00.200000000, dur=0:00:00.100000000
+buffer: content-id=3, pts=0:00:00.300000000, dur=0:00:00.100000000
+buffer: content-id=4, pts=0:00:00.400000000, dur=0:00:00.100000000
+buffer: content-id=5, pts=0:00:00.500000000, dur=0:00:00.100000000
+buffer: content-id=6, pts=0:00:00.600000000, dur=0:00:00.100000000
+
+CHECKPOINT: Setting videorate.rate=0.5
+
+buffer: content-id=6, pts=0:00:00.700000000, dur=0:00:00.100000000
+buffer: content-id=8, pts=0:00:00.800000000, dur=0:00:00.100000000
+buffer: content-id=8, pts=0:00:00.900000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=8, pts=0:00:01.000000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=9, pts=0:00:01.100000000, dur=0:00:00.100000000
+
+CHECKPOINT: Setting videorate.rate=0.1
+
+buffer: content-id=12, pts=0:00:01.200000000, dur=0:00:00.100000000
+buffer: content-id=12, pts=0:00:01.300000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=12, pts=0:00:01.400000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=12, pts=0:00:01.500000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=12, pts=0:00:01.600000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=12, pts=0:00:01.700000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:01.800000000, dur=0:00:00.100000000
+buffer: content-id=13, pts=0:00:01.900000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.000000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.100000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.200000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.300000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.400000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.500000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.600000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=13, pts=0:00:02.700000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=14, pts=0:00:02.800000000, dur=0:00:00.100000000
+buffer: content-id=14, pts=0:00:02.900000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=14, pts=0:00:03.000000000, dur=0:00:00.100000000, flags=gap
+buffer: content-id=14, pts=0:00:03.100000000, dur=0:00:00.100000000, flags=gap
+
+CHECKPOINT: Setting videorate.rate=2.0
+
+buffer: content-id=32, pts=0:00:03.200000000, dur=0:00:00.100000000
+buffer: content-id=34, pts=0:00:03.300000000, dur=0:00:00.100000000
+buffer: content-id=36, pts=0:00:03.400000000, dur=0:00:00.100000000
+buffer: content-id=38, pts=0:00:03.500000000, dur=0:00:00.100000000
+buffer: content-id=40, pts=0:00:03.600000000, dur=0:00:00.100000000
+buffer: content-id=42, pts=0:00:03.700000000, dur=0:00:00.100000000
+buffer: content-id=44, pts=0:00:03.800000000, dur=0:00:00.100000000
+buffer: content-id=46, pts=0:00:03.900000000, dur=0:00:00.100000000
+buffer: content-id=48, pts=0:00:04.000000000, dur=0:00:00.100000000
+buffer: content-id=50, pts=0:00:04.100000000, dur=0:00:00.100000000

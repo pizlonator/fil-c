@@ -1,0 +1,50 @@
+meta,
+    # Handle EOS ourself
+    ignore-eos=true,
+    args = {
+        # We just want each frame to be different, and we just check their content by 'id'
+        "videotestsrc ! video/x-raw,format=I420,framerate=10/1,width=320,height=240 ! videorate name=videorate ! fakesink sync=true qos=true",
+    },
+    configs = {
+        # Check dataflow on both videorate pads
+        "$(validateflow), pad=videorate:sink, buffers-checksum=as-id, ignored-event-types={ tag }",
+        "$(validateflow), pad=videorate:src, buffers-checksum=as-id, ignored-event-types={ tag }",
+    }
+
+seek, start=0.0, stop=5.0, flags=accurate+flush, rate=-1.0
+
+# Crank the 5 first buffers and check position is `seek.stop - (5*(1/10fps)) = 4.5s`
+crank-clock, expected-time=0.0
+crank-clock, repeat=4, expected-elapsed-time=0.1
+crank-clock, expected-time=0.5
+
+# Ensure next buffer flows for expectations stability
+wait, on-clock=true
+
+# Set videorate.rate = 0.5 and add that info to the expecation files for better readability
+checkpoint, text="Setting videorate.rate=0.5"
+set-property, playback-time=99.0, target-element-name=videorate, property-name=rate, property-value=0.5 # playback-time=99.0 so that the action is executed asap but no on element addition
+
+# Cranking 5 times, and let following buffer through
+crank-clock, repeat=5, expected-elapsed-time=0.1
+wait, on-clock=true
+check-position, expected-position=4.0 # seek.stop - (10*(1/10fps)) = 4.0s
+
+set-vars, rate=(string)0.1
+checkpoint, text="Setting videorate.rate=0.1"
+set-property, playback-time=99.0, target-element-name=videorate, property-name=rate, property-value=0.1
+crank-clock, repeat=20
+wait, on-clock=true
+check-position, expected-position=2.0 # seek.stop - (20*(1/10fps)) = 2.0s
+
+# Now setting rate=2.0
+checkpoint, text="Setting videorate.rate=2.0"
+set-property, playback-time=-1, target-element-name=videorate, property-name=rate, property-value=2.0
+crank-clock, repeat=10
+wait, on-clock=true
+
+# Source is now EOS, videorate is filling up the segment with last buffer
+checkpoint, text="Filling up segment with last buffer"
+crank-clock, repeat=10
+
+stop, on-message=eos

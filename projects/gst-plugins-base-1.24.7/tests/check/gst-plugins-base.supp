@@ -1,0 +1,653 @@
+# A suppression for an old bug in libtheora (fixed in more recent versions,
+# but some of our buildslaves still have this)
+{
+   <Leaky libtheora>
+   Memcheck:Leak
+   fun:realloc
+   fun:oggpackB_write
+   fun:EncodeData
+   obj:/usr/lib/libtheora.so*
+   fun:theora_encode_YUVin
+}
+
+# Suppression for pango on ubuntu edgy/x86 and textoverlay test
+{
+   <pango>
+   Memcheck:Param
+   access(pathname)
+   fun:access
+   fun:pango_config_key_get
+   fun:pango_find_map
+}
+
+{
+   <suppression for a singleton in GIO that can't be cleaned up>
+   Memcheck:Leak
+   fun:realloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:g_type_create_instance
+   fun:g_object_constructor
+   fun:g_object_newv
+   fun:g_object_new_valist
+   fun:g_object_new
+   fun:get_default_vfs
+   fun:g_once_impl
+   fun:g_vfs_get_default
+}
+
+{
+   <suppression for a singleton in GIO that can't be cleaned up>
+   Memcheck:Leak
+   fun:malloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:g_type_create_instance
+   fun:g_object_constructor
+   fun:g_object_newv
+   fun:g_object_new_valist
+   fun:g_object_new
+   fun:get_default_vfs
+   fun:g_once_impl
+   fun:g_vfs_get_default
+}
+
+{
+   <ALSA unitialised access>
+   Memcheck:Cond
+   obj:/usr/lib/libasound.so.*
+   fun:snd_pcm_hw_params_set_buffer_time_near
+}
+
+{
+   <ALSA uninitialized access>
+   Memcheck:Cond
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_pcm_hw_params_set_buffer_time_near
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsa_device_property_probe_get_values
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:calloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_hook_load
+   obj:*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsa_device_property_probe_get_values
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsa_device_property_probe_get_values
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsa_device_property_probe_get_values
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsa_device_property_probe_get_values
+}
+
+{
+   <One time init in ALSA>
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_hctl_open
+   fun:snd_mixer_attach
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_proplist_sets
+   fun:pa_context_new_with_proplist
+   fun:pa_context_new
+   obj:/usr/lib/alsa-lib/libasound_module_pcm_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_pcm_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_hook_load
+   obj:/usr/lib/alsa-lib/libasound_module_ctl_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_proplist_sets
+   fun:pa_context_new_with_proplist
+   fun:pa_context_new
+   obj:/usr/lib/alsa-lib/libasound_module_ctl_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_ctl_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_ctl_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_ctl_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:snd_config_hook_load
+   obj:/usr/lib/alsa-lib/libasound_module_pcm_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_pcm_pulse.so
+}
+
+{
+   <Pulseaudio ALSA plugin initialisation>
+   Memcheck:Leak
+   fun:calloc
+   fun:pa_xmalloc0
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   obj:/usr/lib/libpulse.so.*
+   fun:pa_mainloop_dispatch
+   obj:/usr/lib/alsa-lib/libasound_module_pcm_pulse.so
+}
+
+{
+   <One time ALSA init>
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   obj:/usr/lib/libasound.so.*
+   fun:gst_alsasrc_open
+}
+
+{
+   <Fontconfig init>
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:FcConfigParseAndLoad
+}
+
+{
+   <Fontconfig init>
+   Memcheck:Leak
+   fun:realloc
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   fun:FcDefaultSubstitute
+}
+
+{
+   <Fontconfig init>
+   Memcheck:Leak
+   fun:realloc
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   fun:FcConfigSubstituteWithPat
+}
+
+{
+   <Fontconfig init>
+   Memcheck:Leak
+   fun:realloc
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
+   fun:FcFontRenderPrepare
+}
+# ALSA leaks which are fixed by calling snd_config_update_free_global
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/libasound.so.2.0.0
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:gst_alsa_get_device_list
+   fun:gst_alsa_device_property_probe_get_values
+   fun:gst_property_probe_get_values
+   fun:gst_property_probe_probe_and_get_values
+   fun:gst_property_probe_probe_and_get_values_name
+   fun:test_device_property_probe
+   fun:srunner_run_all
+   fun:gst_check_run_suite
+   fun:main
+}
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/libasound.so.2.0.0
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:gst_alsa_get_device_list
+   fun:gst_alsa_device_property_probe_get_values
+   fun:gst_property_probe_get_values
+   fun:gst_property_probe_probe_and_get_values
+   fun:gst_property_probe_probe_and_get_values_name
+   fun:test_device_property_probe
+   fun:srunner_run_all
+   fun:gst_check_run_suite
+   fun:main
+}
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_close_worker
+   fun:_dl_close
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlclose
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:gst_alsa_get_device_list
+   fun:gst_alsa_device_property_probe_get_values
+   fun:gst_property_probe_get_values
+   fun:gst_property_probe_probe_and_get_values
+   fun:gst_property_probe_probe_and_get_values_name
+   fun:test_device_property_probe
+   fun:srunner_run_all
+   fun:gst_check_run_suite
+}
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/libasound.so.2.0.0
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_hctl_open
+   fun:snd_mixer_attach
+   fun:gst_alsa_mixer_open
+   fun:gst_alsa_mixer_new
+   fun:gst_alsa_mixer_element_change_state
+   fun:gst_element_change_state
+   fun:gst_element_set_state_func
+   fun:test_alsa_mixer_track
+   fun:srunner_run_all
+   fun:gst_check_run_suite
+   fun:main
+}
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/libasound.so.2.0.0
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_hctl_open
+   fun:snd_mixer_attach
+   fun:gst_alsa_mixer_open
+   fun:gst_alsa_mixer_new
+   fun:gst_alsa_mixer_element_change_state
+   fun:gst_element_change_state
+   fun:gst_element_set_state_func
+   fun:test_alsa_mixer_track
+   fun:srunner_run_all
+   fun:gst_check_run_suite
+   fun:main
+}
+{
+   <ALSA cached config data>
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_close_worker
+   fun:_dl_close
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlclose
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_config_searcha_hooks
+   fun:snd_config_searchva_hooks
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_config_search_definition
+   obj:/usr/lib/libasound.so.2.0.0
+   fun:snd_hctl_open
+   fun:snd_mixer_attach
+   fun:gst_alsa_mixer_open
+   fun:gst_alsa_mixer_new
+   fun:gst_alsa_mixer_element_change_state
+   fun:gst_element_change_state
+   fun:gst_element_set_state_func
+   fun:test_alsa_mixer_track
+}
+{
+   <a one time alloc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:g_type_create_instance
+   ...
+   fun:g_object_newv
+   fun:g_object_new
+   fun:gst_gl_memory_egl_init_once
+   fun:g_type_create_instance
+}
+{
+   <a one time alloc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:g_type_create_instance
+   ...
+   fun:g_object_newv
+   fun:g_object_new
+   fun:gst_gl_memory_pbo_init_once
+   fun:gst_gl_display_init
+   fun:g_type_create_instance
+}
+{
+   <a one time alloc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:g_type_create_instance
+   ...
+   fun:g_object_newv
+   fun:g_object_new
+   fun:gst_gl_buffer_init_once
+   fun:gst_gl_display_init
+}
+{
+   <dodgy one, seems like a xcb bug>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:xcb_wait_for_reply
+}
+{
+   <one off init alloc in ld-2.22.so>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+}
+{
+   <a one time alloc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XextCreateExtension
+   ...
+   fun:glXChooseFBConfig
+   fun:gst_gl_context_glx_choose_format
+}
+{
+   <a one time alloc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:call_xinitthreads
+   fun:states_suite
+}
+{
+   <gst_install_plugins_* can instantiate bash, which leaks>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:xmalloc
+   fun:set_default_locale
+   fun:main
+}
+{
+   <getaddrinfo can leak when resolving addresses, see https://lists.debian.org/debian-glibc/2016/03/msg00243.html>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__libc_alloc_buffer_allocate
+   ...
+   fun:__res_vinit
+   ...
+   fun:context_get.part.*
+   ...
+   fun:gaih_inet.constprop.*
+   fun:getaddrinfo
+   ...
+}
+{
+   <uninitialized values in nvidia driver>
+   Memcheck:Cond
+   obj:*libnvidia-glcore.so.*
+}
+{
+   <Intentional leak in GL test>
+   Memcheck:Leak
+   fun:calloc
+   obj:*/libGLX_nvidia.so*
+   ...
+   fun:_test_query_start_free_gl
+}
+{
+   <Leak in X on the CI which doesn't exist with newer version (on F39 for example)>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:glXGetFBConfigs
+   fun:gst_gl_context_glx_dump_all_fb_configs
+   fun:gst_gl_context_glx_choose_format
+   fun:gst_gl_context_create_thread
+   fun:g_thread_proxy
+   fun:start_thread
+   fun:clone
+}
+
+
+# FIXME: how does this even happen ? reproduce with make elements/textoverlay.valgrind
+{
+   <We do not care about leaks where pango is the first object in the stacktrace>
+   Memcheck:Leak
+   ...
+   obj:*/libpango*.so*
+}
+
+{
+  <valgrind gets confused at orc_int64 widening in orc backup code>
+  Memcheck:Cond
+  fun:_backup_audio_orc_int_bias
+  ...
+}
+
+{
+  <valgrind gets confused with value initialized in unconditional scope>
+  Memcheck:Cond
+  fun:_backup_volume_orc_process_controlled_int16_1ch
+  ...
+}

@@ -1,0 +1,64 @@
+The RTP libraries
+---------------------
+
+  RTP Buffers
+  -----------
+  The real time protocol as described in RFC 3550 requires the use of special
+  packets containing an additional RTP header of at least 12 bytes. GStreamer
+  provides some helper functions for creating and parsing these RTP headers.
+  The result is a normal #GstBuffer with an additional RTP header.
+ 
+  RTP buffers are usually created with gst_rtp_buffer_new_allocate() or
+  gst_rtp_buffer_new_allocate_len(). These functions create buffers with a
+  preallocated space of memory. It will also ensure that enough memory
+  is allocated for the RTP header. The first function is used when the payload
+  size is known. gst_rtp_buffer_new_allocate_len() should be used when the size
+  of the whole RTP buffer (RTP header + payload) is known.
+ 
+  When receiving RTP buffers from a network, gst_rtp_buffer_new_take_data()
+  should be used when the user would like to parse that RTP packet. (TODO Ask
+  Wim what the real purpose of this function is as it seems to simply create a
+  duplicate GstBuffer with the same data as the previous one). The
+  function will create a new RTP buffer with the given data as the whole RTP
+  packet. Alternatively, gst_rtp_buffer_new_copy_data() can be used if the user
+  wishes to make a copy of the data before using it in the new RTP buffer.
+ 
+  It is now possible to use all the gst_rtp_buffer_get_*() or
+  gst_rtp_buffer_set_*() functions to read or write the different parts of the
+  RTP header such as the payload type, the sequence number or the RTP
+  timestamp. The use can also retrieve a pointer to the actual RTP payload data
+  using the gst_rtp_buffer_get_payload() function.
+
+  RTP Base Payloader Class (GstBaseRTPPayload)
+  --------------------------------------------
+
+  All RTP payloader elements (audio or video) should derive from this class.
+
+  RTP Base Audio Payloader Class (GstBaseRTPAudioPayload)
+  -------------------------------------------------------
+
+  This base class can be tested through it's children classes. Here is an
+  example using the iLBC payloader (frame based).
+
+  For 20ms mode :
+
+  GST_DEBUG="basertpaudiopayload:5" gst-launch-1.0 fakesrc sizetype=2
+  sizemax=114 datarate=1900 ! audio/x-iLBC, mode=20 !  rtpilbcpay
+  max-ptime="40000000" ! fakesink
+
+  For 30ms mode :
+
+  GST_DEBUG="basertpaudiopayload:5" gst-launch-1.0 fakesrc sizetype=2
+  sizemax=150 datarate=1662 ! audio/x-iLBC, mode=30 !  rtpilbcpay
+  max-ptime="60000000" ! fakesink
+
+  Here is an example using the uLaw payloader (sample based).
+
+  GST_DEBUG="basertpaudiopayload:5" gst-launch-1.0 fakesrc sizetype=2
+  sizemax=150 datarate=8000 ! audio/x-mulaw ! rtppcmupay max-ptime="6000000" !
+  fakesink
+
+  RTP Base Depayloader Class (GstBaseRTPDepayload)
+  ------------------------------------------------
+
+  All RTP depayloader elements (audio or video) should derive from this class.

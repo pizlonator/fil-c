@@ -1,0 +1,17 @@
+# Common metadatas to check the videorate element behavior with different
+# framerate specified by previously setting variables with:
+# ```
+# set-global, in_framerate=<videorate skinkpad framerate>, out_framerate=<videorate srcpad framerate>
+# ```
+# and then `include, location="videorate-test.meta" to setup the test with this
+# file
+meta,
+    handles-states=true,
+    ignore-eos=true,
+    args = {
+         "videotestsrc pattern=ball animation-mode=frames ! video/x-raw,format=I420,framerate=$(in_framerate) ! videorate name=videorate ! video/x-raw,format=I420,framerate=$(out_framerate) ! fakesink sync=true",
+    },
+    configs = {
+       "$(validateflow), pad=videorate:sink, buffers-checksum=true",
+       "$(validateflow), pad=videorate:src, buffers-checksum=true",
+    }

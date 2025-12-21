@@ -1,0 +1,783 @@
+# Translation of gst-plugins-base to French
+# Copyright (C) 2003-2011 GStreamer core team
+# This file is distributed under the same license as the gst-plugins-base package.
+#
+# Nicolas Velin <nicolas@velin.fr>, 2008.
+# Claude Paroz <claude@2xlibre.net>, 2008-2011.
+# Stéphane Aulery <lkppo@free.fr>, 2015-2022.
+# Christian Wiatr <w9204-fs@yahoo.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gst-plugins-base 1.21.90\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-13 19:10+0000\n"
+"PO-Revision-Date: 2023-06-04 12:44+0200\n"
+"Last-Translator: Christian Wiatr <w9204-fs@yahoo.com>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+"X-Generator: Poedit 2.4.2\n"
+
+msgid "Could not open device for playback in mono mode."
+msgstr "Impossible d’utiliser le périphérique pour la lecture en mode mono."
+
+msgid "Could not open device for playback in stereo mode."
+msgstr "Impossible d’utiliser le périphérique pour la lecture en mode stéréo."
+
+#, c-format
+msgid "Could not open device for playback in %d-channel mode."
+msgstr ""
+"Impossible d’utiliser le périphérique pour la lecture en mode %d voie(s)."
+
+msgid ""
+"Could not open audio device for playback. Device is being used by another "
+"application."
+msgstr ""
+"Impossible d’utiliser le périphérique audio pour la lecture. Celui-ci est "
+"occupé par une autre application."
+
+msgid "Could not open audio device for playback."
+msgstr "Impossible d’utiliser le périphérique audio pour la lecture."
+
+msgid "Error outputting to audio device. The device has been disconnected."
+msgstr ""
+"Erreur de sortie vers le périphérique audio. Le périphérique a été "
+"déconnecté."
+
+msgid "Could not open device for recording in mono mode."
+msgstr ""
+"Impossible d’utiliser le périphérique pour l’enregistrement en mode mono."
+
+msgid "Could not open device for recording in stereo mode."
+msgstr ""
+"Impossible d’utiliser le périphérique pour l’enregistrement en mode stéréo."
+
+#, c-format
+msgid "Could not open device for recording in %d-channel mode"
+msgstr ""
+"Impossible d’utiliser le périphérique pour l'enregistrement en mode %d "
+"voie(s)"
+
+msgid ""
+"Could not open audio device for recording. Device is being used by another "
+"application."
+msgstr ""
+"Impossible d’utiliser le périphérique audio pour l’enregistrement. Celui-ci "
+"est occupé par une autre application."
+
+msgid "Could not open audio device for recording."
+msgstr "Impossible d’utiliser le périphérique audio pour l’enregistrement."
+
+msgid "Error recording from audio device. The device has been disconnected."
+msgstr ""
+"Erreur d’enregistrement de puis le périphèrique audio. Le périphèrique a été "
+"déconnecté."
+
+msgid "Could not open CD device for reading."
+msgstr "Impossible d’utiliser le lecteur CD pour la lecture."
+
+msgid "Could not seek CD."
+msgstr "Impossible de rechercher sur le CD."
+
+msgid "Could not read CD."
+msgstr "Impossible de lire le CD."
+
+msgid "Could not determine type of stream"
+msgstr "Impossible de déterminer le type de flux"
+
+msgid "This appears to be a text file"
+msgstr "Ce fichier semble être un fichier texte"
+
+#, c-format
+msgid "Missing element '%s' - check your GStreamer installation."
+msgstr "Élément « %s » manquant — Vérifiez votre installation de GStreamer."
+
+msgid "Could not create \"uridecodebin\" element."
+msgstr "Impossible de créer un élément « uridecodebin »."
+
+#, c-format
+msgid "Both autovideosink and %s elements are missing."
+msgstr "Les éléments autovideosink et %s sont tous deux manquants."
+
+msgid "The autovideosink element is missing."
+msgstr "L'élément autovideosink est manquant."
+
+#, c-format
+msgid "Configured videosink %s is not working."
+msgstr "L’élément videosink %s configuré ne fonctionne pas."
+
+#, c-format
+msgid "Both autovideosink and %s elements are not working."
+msgstr "Les éléments autovideosink et %s ne fonctionnent pas."
+
+msgid "The autovideosink element is not working."
+msgstr "L’élément autovideosink ne fonctionne pas."
+
+msgid "Custom text sink element is not usable."
+msgstr "L’élément récepteur de texte personnalisé n’est pas utilisable."
+
+msgid "No volume control found"
+msgstr "Aucun contrôle de volume trouvé"
+
+#, c-format
+msgid "Both autoaudiosink and %s elements are missing."
+msgstr "Les éléments autoaudiosink et %s sont tous deux manquants."
+
+msgid "The autoaudiosink element is missing."
+msgstr "L'élément autoaudiosink est manquant."
+
+#, c-format
+msgid "Configured audiosink %s is not working."
+msgstr "L’élément autoaudiosink %s configuré ne fonctionne pas."
+
+#, c-format
+msgid "Both autoaudiosink and %s elements are not working."
+msgstr "Les éléments autoaudiosink et %s ne fonctionnent pas."
+
+msgid "The autoaudiosink element is not working."
+msgstr "L’élément autoaudiosink ne fonctionne pas."
+
+msgid "Can't play a text file without video or visualizations."
+msgstr "Impossible de lire un fichier texte sans vidéo ou aperçus."
+
+#, c-format
+msgid "No decoder available for type '%s'."
+msgstr "Aucun décodeur n’est disponible pour le type « %s »."
+
+msgid "No URI specified to play from."
+msgstr "Aucun URI source indiquée pour la lecture."
+
+#, c-format
+msgid "Invalid URI \"%s\"."
+msgstr "URI « %s » non valide."
+
+msgid "This stream type cannot be played yet."
+msgstr "Ce type de flux ne peut pas encore être lu."
+
+#, c-format
+msgid "No URI handler implemented for \"%s\"."
+msgstr "Aucun gestionnaire d’URI implémenté pour « %s »."
+
+msgid "Source element is invalid."
+msgstr "Élément source non valide."
+
+msgid "Source element has no pads."
+msgstr "Élément source sans connecteurs."
+
+#, c-format
+msgid "Error while sending data to \"%s:%d\"."
+msgstr "Erreur lors de l’envoi de données vers « %s:%d »."
+
+msgid "Can't record audio fast enough"
+msgstr "Impossible d’enregistrer assez rapidement les données audio"
+
+msgid "This CD has no audio tracks"
+msgstr "Ce CD ne contient aucune piste audio"
+
+msgid "failed to draw pattern"
+msgstr "Echec dans le tracé du motif"
+
+msgid "A GL error occurred"
+msgstr "Erreur de rendu GL"
+
+msgid "format wasn't negotiated before get function"
+msgstr "le format n'a pas été négocié avant l'appel de fonction"
+
+msgid "ID3 tag"
+msgstr "Étiquette ID3"
+
+msgid "APE tag"
+msgstr "Étiquette APE"
+
+msgid "ICY internet radio"
+msgstr "Radio Internet ICY"
+
+msgid "Apple Lossless Audio (ALAC)"
+msgstr "ALAC (Apple Lossless Audio)"
+
+msgid "Free Lossless Audio Codec (FLAC)"
+msgstr "FLAC (Free Lossless Audio Codec)"
+
+msgid "Lossless True Audio (TTA)"
+msgstr "TTA (Lossless True Audio)"
+
+msgid "Windows Media Speech"
+msgstr "Windows Media Speech"
+
+msgid "CYUV Lossless"
+msgstr "CYUV sans perte"
+
+msgid "FFMpeg v1"
+msgstr "FFMpeg v1"
+
+msgid "Lossless MSZH"
+msgstr "MSZH sans perte"
+
+# http://fr.wikipedia.org/wiki/Run-length_encoding
+msgid "Run-length encoding"
+msgstr "Codage RLE par plages"
+
+#. subtitle formats with static descriptions
+msgid "Timed Text"
+msgstr "Timed Text"
+
+#. FIXME: add variant field to typefinder?
+msgid "Subtitle"
+msgstr "Sous-titre"
+
+msgid "MPL2 subtitle format"
+msgstr "Format de sous-titres MPL2"
+
+msgid "DKS subtitle format"
+msgstr "Format de sous-titres DKS"
+
+msgid "QTtext subtitle format"
+msgstr "Format de sous-titres QTtext"
+
+msgid "Sami subtitle format"
+msgstr "Format de sous-titres Sami"
+
+msgid "TMPlayer subtitle format"
+msgstr "Format de sous-titres TMPlayer"
+
+msgid "CEA 608 Closed Caption"
+msgstr "Sous-titres CEA 608"
+
+msgid "CEA 708 Closed Caption"
+msgstr "Sous-titres CEA 708"
+
+msgid "Kate subtitle format"
+msgstr "Format de sous-titres Kate"
+
+msgid "WebVTT subtitle format"
+msgstr "Format de sous-titres WebVTT"
+
+msgid "Uncompressed video"
+msgstr "Video non compressée"
+
+msgid "Uncompressed gray"
+msgstr "Niveaux de gris non compressés"
+
+#, c-format
+msgid "Uncompressed packed YUV %s"
+msgstr "YUV empaqueté %s non compressé"
+
+#, c-format
+msgid "Uncompressed semi-planar YUV %s"
+msgstr "YUV semi-planaire %s non compressé"
+
+#, c-format
+msgid "Uncompressed planar YUV %s"
+msgstr "YUV planaire %s non compressé"
+
+#, c-format
+msgid "Uncompressed palettized %d-bit %s"
+msgstr "%2$s %1$d bits en palette non compressé"
+
+#, c-format
+msgid "Uncompressed %d-bit %s"
+msgstr "%2$s %1$d bits non compressé"
+
+#, c-format
+msgid "DivX MPEG-4 Version %d"
+msgstr "MPEG-4 DivX version %d"
+
+msgid "Uncompressed audio"
+msgstr "Audio non compressé"
+
+#, c-format
+msgid "Raw %d-bit %s audio"
+msgstr "Audio brut %2$s %1$d bits"
+
+msgid "Audio CD source"
+msgstr "Source CD audio"
+
+msgid "DVD source"
+msgstr "Source DVD"
+
+msgid "Real Time Streaming Protocol (RTSP) source"
+msgstr "Source RTSP (Real Time Streaming Protocol)"
+
+msgid "Microsoft Media Server (MMS) protocol source"
+msgstr "Source protocole MMS (Microsoft Media Server)"
+
+#. TODO: find out how to add a comment for translators to the source code
+#. * (and tell them to make the first letter uppercase below if they move
+#. * the protocol to the middle or end of the string)
+#, c-format
+msgid "%s protocol source"
+msgstr "Source protocole %s"
+
+#, c-format
+msgid "%s video RTP depayloader"
+msgstr "Depayloader RTP vidéo %s"
+
+#, c-format
+msgid "%s audio RTP depayloader"
+msgstr "Depayloader RTP audio %s"
+
+#, c-format
+msgid "%s RTP depayloader"
+msgstr "Depayloader RTP %s"
+
+#, c-format
+msgid "%s demuxer"
+msgstr "Démultiplexeur %s"
+
+#, c-format
+msgid "%s decoder"
+msgstr "Décodeur %s"
+
+#, c-format
+msgid "%s video RTP payloader"
+msgstr "Payloader RTP vidéo %s"
+
+#, c-format
+msgid "%s audio RTP payloader"
+msgstr "Payloader RTP audio %s"
+
+#, c-format
+msgid "%s RTP payloader"
+msgstr "Payloader RTP %s"
+
+#, c-format
+msgid "%s muxer"
+msgstr "Multiplexeur %s"
+
+#, c-format
+msgid "%s encoder"
+msgstr "Encodeur %s"
+
+#, c-format
+msgid "GStreamer element %s"
+msgstr "Élément GStreamer %s"
+
+msgid "Unknown source element"
+msgstr "Élément source inconnu"
+
+msgid "Unknown sink element"
+msgstr "Élément d’entrée inconnu"
+
+msgid "Unknown element"
+msgstr "Élément inconnu"
+
+msgid "Unknown decoder element"
+msgstr "Élément décodeur inconnu"
+
+msgid "Unknown encoder element"
+msgstr "Élément codeur inconnu"
+
+#. we should really never get here, but we better still return
+#. * something if we do
+msgid "Plugin or element of unknown type"
+msgstr "Greffon ou élément de type inconnu"
+
+msgid "Failed to read tag: not enough data"
+msgstr "Échec de lecture de l’étiquette : données insuffisantes"
+
+msgid "track ID"
+msgstr "identifiant de piste"
+
+msgid "MusicBrainz track ID"
+msgstr "identifiant de piste MusicBrainz"
+
+msgid "artist ID"
+msgstr "identifiant d’artiste"
+
+msgid "MusicBrainz artist ID"
+msgstr "identifiant d’artiste MusicBrainz"
+
+msgid "album ID"
+msgstr "identifiant d’album"
+
+msgid "MusicBrainz album ID"
+msgstr "identifiant d’album MusicBrainz"
+
+msgid "album artist ID"
+msgstr "identifiant d’artiste de l’album"
+
+msgid "MusicBrainz album artist ID"
+msgstr "identifiant d’artiste de l’album MusicBrainz"
+
+msgid "release group ID"
+msgstr "relâcher l'identifiant de groupe"
+
+msgid "MusicBrainz release group ID"
+msgstr "identifiant de groupe de publication MusicBrainz"
+
+msgid "release track ID"
+msgstr "identifiant de piste publié"
+
+msgid "MusicBrainz release track ID"
+msgstr "identifiant de piste publié MusicBrainz"
+
+msgid "track TRM ID"
+msgstr "identifiant TRM de piste"
+
+msgid "MusicBrainz TRM ID"
+msgstr "identifiant TRM MusicBrainz"
+
+msgid "AcoustID ID"
+msgstr "identifiant AcoustID"
+
+msgid "AcoustID fingerprint (chromaprint)"
+msgstr "empreinte AcoustID (chromaprint)"
+
+msgid "capturing shutter speed"
+msgstr "vitesse d’obturation de la capture"
+
+msgid "Shutter speed used when capturing an image, in seconds"
+msgstr "Vitesse d’obturation utilisée lors de la capture de l’image (en s)"
+
+# http://www.blog-couleur.com/?Qu-est-ce-que-l-ouverture-en
+msgid "capturing focal ratio"
+msgstr "focal de capture"
+
+msgid "Focal ratio (f-number) used when capturing the image"
+msgstr "Focal (nombre décimal) utilisée lors de la capture de l’image"
+
+msgid "capturing focal length"
+msgstr "distance focale de la capture"
+
+msgid "Focal length of the lens used capturing the image, in mm"
+msgstr ""
+"Distance focale de l’optique utilisée pour la capture de l’image (en mm)"
+
+msgid "capturing 35 mm equivalent focal length"
+msgstr "distance focale de la capture équivalente à 35 mm"
+
+msgid ""
+"35 mm equivalent focal length of the lens used capturing the image, in mm"
+msgstr ""
+"Distance focale de l’optique équivalente à 35 mm, utilisée pour la capture "
+"de l’image (en mm)"
+
+msgid "capturing digital zoom ratio"
+msgstr "valeur du zoom numérique de la capture"
+
+msgid "Digital zoom ratio used when capturing an image"
+msgstr "Valeur du zoom numérique utilisé lors de la capture de l’image"
+
+msgid "capturing iso speed"
+msgstr "sensibilité ISO de la capture"
+
+msgid "The ISO speed used when capturing an image"
+msgstr "La sensibilité ISO utilisée lors de la capture de l’image"
+
+msgid "capturing exposure program"
+msgstr "programme d’exposition de la capture"
+
+msgid "The exposure program used when capturing an image"
+msgstr "Le programme d’exposition utilisé lors de la capture de l’image"
+
+msgid "capturing exposure mode"
+msgstr "mode d’exposition de la capture"
+
+msgid "The exposure mode used when capturing an image"
+msgstr "Le mode d'exposition utilisé lors de la capture de l’image"
+
+msgid "capturing exposure compensation"
+msgstr "compensation d’exposition de la capture"
+
+msgid "The exposure compensation used when capturing an image"
+msgstr "La compensation d'exposition utilisée lors de la capture de l’image"
+
+msgid "capturing scene capture type"
+msgstr "type de mode scène de la capture"
+
+msgid "The scene capture mode used when capturing an image"
+msgstr "Le mode scène utilisé lors de la capture de l’image"
+
+msgid "capturing gain adjustment"
+msgstr "ajustement du gain de la capture"
+
+msgid "The overall gain adjustment applied on an image"
+msgstr "L'ajustement général du gain appliqué à une image"
+
+msgid "capturing white balance"
+msgstr "balance des blancs de la capture"
+
+msgid "The white balance mode set when capturing an image"
+msgstr "Le mode de balance des blancs défini lors de la capture d’une image"
+
+msgid "capturing contrast"
+msgstr "contraste de la capture"
+
+msgid "The direction of contrast processing applied when capturing an image"
+msgstr ""
+"La direction du traitement de contraste appliqué lors de la capture d’une "
+"image"
+
+msgid "capturing saturation"
+msgstr "saturation de la capture"
+
+msgid "The direction of saturation processing applied when capturing an image"
+msgstr ""
+"La direction du traitement de saturation appliqué lors de la capture d’une "
+"image"
+
+msgid "capturing sharpness"
+msgstr "netteté de la capture"
+
+msgid "The direction of sharpness processing applied when capturing an image"
+msgstr ""
+"La direction du traitement de netteté appliqué lors de la capture d’une image"
+
+msgid "capturing flash fired"
+msgstr "flash utilisé pour la capture"
+
+msgid "If the flash fired while capturing an image"
+msgstr "Indique si le flash a été utilisé pour capturer une image"
+
+msgid "capturing flash mode"
+msgstr "mode de flash de la capture"
+
+msgid "The selected flash mode while capturing an image"
+msgstr "Le mode de flash sélectionné lors de la capture d’une image"
+
+msgid "capturing metering mode"
+msgstr "mode de mesure de la capture"
+
+msgid ""
+"The metering mode used while determining exposure for capturing an image"
+msgstr ""
+"Le mode de mesure utilisé lors de l’évaluation de l’exposition pour la "
+"capture d’une image"
+
+msgid "capturing source"
+msgstr "source de capture"
+
+msgid "The source or type of device used for the capture"
+msgstr "La source ou le type d’appareil utilisé pour la capture"
+
+msgid "image horizontal ppi"
+msgstr "ppp horizontal de l'image"
+
+msgid "Media (image/video) intended horizontal pixel density in ppi"
+msgstr ""
+"Densité de pixels horizontale annoncée par le média (image/vidéo), en points "
+"par pouce"
+
+msgid "image vertical ppi"
+msgstr "ppp vertical de l'image"
+
+msgid "Media (image/video) intended vertical pixel density in ppi"
+msgstr ""
+"Densité de pixels verticale annoncée par le média (image/vidéo), en points "
+"par pouce"
+
+msgid "ID3v2 frame"
+msgstr "Trame ID3v2"
+
+msgid "unparsed id3v2 tag frame"
+msgstr "balise de trame id3v2 non analysée"
+
+msgid "musical-key"
+msgstr "Clef-musicale"
+
+msgid "Initial key in which the sound starts"
+msgstr "Clef initiale dans laquelle démarre le son"
+
+msgid "Print version information and exit"
+msgstr "Affiche la version et quitte"
+
+msgid ""
+"Don't exit after showing the initial device list, but wait for devices to "
+"added/removed."
+msgstr ""
+"Ne pas quitter après l’affichage de la liste initiale des périphèriques, "
+"mais attendre l’ajout ou la suppression de périphèriques."
+
+msgid "Include devices from hidden device providers."
+msgstr "Inclure les périphériques des fournisseurs cachés."
+
+#, c-format
+msgid "Volume: %.0f%%"
+msgstr "Volume : %.0f%%"
+
+msgid "Mute: on"
+msgstr "Sourdine : on"
+
+msgid "Mute: off"
+msgstr "Sourdine : off"
+
+msgid "Buffering..."
+msgstr "Mise en cache…"
+
+msgid "Clock lost, selecting a new one\n"
+msgstr "Horloge perdue, sélection d’une nouvelle\n"
+
+msgid "Reached end of play list."
+msgstr "Liste de lecture terminée."
+
+msgid "Paused"
+msgstr "En pause"
+
+#, c-format
+msgid "Now playing %s\n"
+msgstr "Lecture en cours de %s\n"
+
+#, c-format
+msgid "About to finish, preparing next title: %s"
+msgstr "Fin de piste, préparation du titre suivant : %s"
+
+#, c-format
+msgid "Playback rate: %.2f"
+msgstr "Vitesse de lecture : %.2f"
+
+#, c-format
+msgid "Could not change playback rate to %.2f"
+msgstr "Impossible de modifier la vitesse de lecture à %.2f"
+
+msgid "space"
+msgstr "espace"
+
+msgid "pause/unpause"
+msgstr "pause / lecture"
+
+msgid "q or ESC"
+msgstr "q ou ECHAP"
+
+msgid "quit"
+msgstr "quitter"
+
+msgid "> or n"
+msgstr "> ou n"
+
+msgid "play next"
+msgstr "lire la suivante"
+
+msgid "< or b"
+msgstr "< ou b"
+
+msgid "play previous"
+msgstr "lire la précédente"
+
+msgid "seek forward"
+msgstr "chercher en avant"
+
+msgid "seek backward"
+msgstr "chercher en arrière"
+
+msgid "volume up"
+msgstr "augmenter le volume"
+
+msgid "volume down"
+msgstr "baisser le volume"
+
+msgid "toggle audio mute on/off"
+msgstr "basculer la sourdine on/off"
+
+msgid "increase playback rate"
+msgstr "augmenter la vitesse de lecture"
+
+msgid "decrease playback rate"
+msgstr "diminuer la vitesse de lecture"
+
+msgid "change playback direction"
+msgstr "modifier le sens de lecture"
+
+msgid "enable/disable trick modes"
+msgstr "activer / désactiver les astuces"
+
+msgid "change to previous/next audio track"
+msgstr "changer de piste audio précédente/suivante"
+
+msgid "change to previous/next video track"
+msgstr "changer de piste vidéo précédente/suivante"
+
+msgid "change to previous/next subtitle track"
+msgstr "changer de sous-titre de piste précédent/suivant"
+
+msgid "seek to beginning"
+msgstr "chercher depuis le début"
+
+msgid "show keyboard shortcuts"
+msgstr "afficher les raccourcis clavier"
+
+msgid "Interactive mode - keyboard controls:"
+msgstr "Mode interactif — commandes clavier :"
+
+#, c-format
+msgid "Use Windows high-resolution clock, precision: %u ms\n"
+msgstr "Utiliser l'horloge haute précision de Windows : précision à %u ms\n"
+
+msgid "Output status information and property notifications"
+msgstr "Afficher des informations sur l’état et les notifications de propriété"
+
+msgid "Control playback behaviour setting playbin 'flags' property"
+msgstr ""
+"Contrôler le comportement de lecture en modifiant la propriété du "
+"« drapeau » playbin"
+
+msgid "Video sink to use (default is autovideosink)"
+msgstr "Récepteur vidéo à utiliser (autovideosink par défaut)"
+
+msgid "Audio sink to use (default is autoaudiosink)"
+msgstr "Récepteur audio à utiliser (autoaudiosink par défaut)"
+
+msgid "Enable gapless playback"
+msgstr "Activer la lecture sans blanc"
+
+msgid "Enable instantaneous uri changes (only with playbin3)"
+msgstr ""
+"Autoriser les modifications instantanées d'URI (uniquement avec playbin3)"
+
+msgid "Shuffle playlist"
+msgstr "Mélanger les morceaux"
+
+msgid "Disable interactive control via the keyboard"
+msgstr "Désactiver les commandes interactives au clavier"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Start position in seconds."
+msgstr "Position de départ en secondes."
+
+msgid "Playlist file containing input media files"
+msgstr "Fichier de lecture contenant des fichiers de media d’entrée"
+
+msgid "Use the experimental instant-rate-change flag when changing rate"
+msgstr ""
+"Utiliser l'indicateur de changement de débit instantané expérimental lors du "
+"changement de débit"
+
+msgid "Do not print any output (apart from errors)"
+msgstr "Ne pas afficher de message en sortie (sauf les erreurs)"
+
+msgid ""
+"Use playbin3 pipeline (default varies depending on 'USE_PLAYBIN' env "
+"variable)"
+msgstr ""
+"Utiliser le pipeline playbin3 (la valeur par défaut dépend de la variable "
+"d'environnement « USE_PLAYBIN »)"
+
+msgid ""
+"Keep showing the last frame on EOS until quit or playlist change command "
+"(gapless is ignored)"
+msgstr ""
+"Continuer à afficher la dernière trame après la fin de lecture jusqu'à la "
+"fin de programme ou une nouvelle commande de lecture (la lecture sans blanc "
+"est ignorée)"
+
+#, c-format
+msgid "Usage: %s FILE1|URI1 [FILE2|URI2] [FILE3|URI3] ..."
+msgstr "Usage : %s FICHIER1|URI1 [FICHIER2|URI2] [FICHIER3|URI3] …"
+
+msgid "You must provide at least one filename or URI to play."
+msgstr "Vous devez fournir au moins un nom de fichier ou une URI à lire."
+
+msgid "Press 'k' to see a list of keyboard shortcuts.\n"
+msgstr "Pressez k pour voir la liste des raccourcis clavier.\n"
+
+#~ msgid "Could not create \"uridecodebin3\" element."
+#~ msgstr "Impossible de créer un élément « uridecodebin3 »."
+
+#~ msgid "Use playbin3 pipeline"
+#~ msgstr "Utiliser un pipeline playbin3"
