@@ -126,7 +126,7 @@ gst_param_spec_fraction_get_type (void)
   static GType gst_faction_type = 0;
 
   /* register GST_TYPE_PARAM_FRACTION */
-  if (g_once_init_enter (&gst_faction_type)) {
+  if (g_once_init_enter_pointer (&gst_faction_type)) {
     GType type;
     static GParamSpecTypeInfo pspec_info = {
       sizeof (GstParamSpecFraction),    /* instance_size     */
@@ -140,7 +140,7 @@ gst_param_spec_fraction_get_type (void)
     };
     pspec_info.value_type = gst_fraction_get_type ();
     type = g_param_type_register_static ("GstParamFraction", &pspec_info);
-    g_once_init_leave (&gst_faction_type, type);
+    g_once_init_leave_pointer (&gst_faction_type, type);
   }
 
   return gst_faction_type;
@@ -307,7 +307,7 @@ gst_param_spec_array_get_type (void)
   static GType gst_array_type = 0;
 
   /* register GST_TYPE_PARAM_FRACTION */
-  if (g_once_init_enter (&gst_array_type)) {
+  if (g_once_init_enter_pointer (&gst_array_type)) {
     GType type;
     static GParamSpecTypeInfo pspec_info = {
       sizeof (GstParamSpecArray),       /* instance_size     */
@@ -321,7 +321,7 @@ gst_param_spec_array_get_type (void)
     };
     pspec_info.value_type = gst_value_array_get_type ();
     type = g_param_type_register_static ("GstParamArray", &pspec_info);
-    g_once_init_leave (&gst_array_type, type);
+    g_once_init_leave_pointer (&gst_array_type, type);
   }
 
   return gst_array_type;
