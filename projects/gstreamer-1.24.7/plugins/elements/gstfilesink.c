@@ -87,7 +87,7 @@ gst_file_sink_file_mode_get_type (void)
 {
   static GType file_mode_type = 0;
 
-  if (g_once_init_enter (&file_mode_type)) {
+  if (g_once_init_enter_pointer (&file_mode_type)) {
     static const GEnumValue file_mode[] = {
       {GST_FILE_SINK_FILE_MODE_TRUNC, "Truncate file (mode wb)", "truncate"},
       {GST_FILE_SINK_FILE_MODE_APPEND, "Append file (mode ab)", "output"},
@@ -99,7 +99,7 @@ gst_file_sink_file_mode_get_type (void)
     GType new_file_mode_type =
         g_enum_register_static ("GstFileSinkFileMode", file_mode);
 
-    g_once_init_leave (&file_mode_type, new_file_mode_type);
+    g_once_init_leave_pointer (&file_mode_type, new_file_mode_type);
   }
   return file_mode_type;
 }

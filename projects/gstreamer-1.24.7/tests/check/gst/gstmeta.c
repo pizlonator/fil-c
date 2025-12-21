@@ -138,9 +138,9 @@ gst_meta_test_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { "timing", NULL };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstMetaTestAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -164,12 +164,12 @@ gst_meta_test_get_info (void)
 {
   static const GstMetaInfo *meta_test_info = NULL;
 
-  if (g_once_init_enter ((GstMetaInfo **) & meta_test_info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & meta_test_info)) {
     const GstMetaInfo *mi = gst_meta_register (GST_META_TEST_API_TYPE,
         "GstMetaTest",
         sizeof (GstMetaTest),
         test_init_func, test_free_func, test_transform_func);
-    g_once_init_leave ((GstMetaInfo **) & meta_test_info, (GstMetaInfo *) mi);
+    g_once_init_leave_pointer ((GstMetaInfo **) & meta_test_info, (GstMetaInfo *) mi);
   }
   return meta_test_info;
 }
@@ -196,9 +196,9 @@ gst_meta_foo_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { NULL };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstMetaFooAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -208,12 +208,12 @@ gst_meta_foo_get_info (void)
 {
   static const GstMetaInfo *meta_foo_info = NULL;
 
-  if (g_once_init_enter ((GstMetaInfo **) & meta_foo_info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & meta_foo_info)) {
     const GstMetaInfo *mi = gst_meta_register (GST_META_FOO_API_TYPE,
         "GstMetaFoo",
         sizeof (GstMetaFoo),
         foo_init_func, foo_free_func, foo_transform_func);
-    g_once_init_leave ((GstMetaInfo **) & meta_foo_info, (GstMetaInfo *) mi);
+    g_once_init_leave_pointer ((GstMetaInfo **) & meta_foo_info, (GstMetaInfo *) mi);
   }
   return meta_foo_info;
 }

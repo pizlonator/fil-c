@@ -477,7 +477,7 @@ gst_meta_register (GType api, const gchar * impl, gsize size,
  * {
  *   static const GstMetaInfo *meta_info = NULL;
  *
- *   if (g_once_init_enter ((GstMetaInfo **) & meta_info)) {
+ *   if (g_once_init_enter_pointer ((GstMetaInfo **) & meta_info)) {
  *     GstMetaInfo *info = gst_meta_info_new (
  *       gst_my_meta_api_get_type (),
  *         "GstMyMeta",
@@ -490,7 +490,7 @@ gst_meta_register (GType api, const gchar * impl, gsize size,
  *     info->serialize_func = my_meta_serialize;
  *     info->deserialize_func = my_meta_deserialize;
  *     meta = gst_meta_info_register (info);
- *     g_once_init_leave ((GstMetaInfo **) & meta_info, (GstMetaInfo *) meta);
+ *     g_once_init_leave_pointer ((GstMetaInfo **) & meta_info, (GstMetaInfo *) meta);
  *   }
  *
  *   return meta_info;

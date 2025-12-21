@@ -8096,7 +8096,7 @@ GType gst_ ## type ## _get_type (void)                          \
 {                                                               \
   static GType gst_ ## type ## _type = 0;              \
                                                                 \
-  if (g_once_init_enter (&gst_ ## type ## _type)) {             \
+  if (g_once_init_enter_pointer (&gst_ ## type ## _type)) {     \
     GType _type;                                                \
     _info.class_size = csize;                                   \
     _finfo.type_flags = flags;                                  \
@@ -8105,7 +8105,7 @@ GType gst_ ## type ## _get_type (void)                          \
         g_type_fundamental_next (),                             \
         name, &_info, &_finfo, 0);                              \
     _gst_ ## type ## _type = _type;                             \
-    g_once_init_leave(&gst_ ## type ## _type, _type);           \
+    g_once_init_leave_pointer(&gst_ ## type ## _type, _type);   \
   }                                                             \
                                                                 \
   return gst_ ## type ## _type;                                 \

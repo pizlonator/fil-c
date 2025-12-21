@@ -169,14 +169,14 @@ static GMutex _dwfl_mutex;
 static Dwfl *
 get_global_dwfl (void)
 {
-  if (g_once_init_enter (&_global_dwfl)) {
+  if (g_once_init_enter_pointer (&_global_dwfl)) {
     static Dwfl_Callbacks callbacks = {
       .find_elf = dwfl_linux_proc_find_elf,
       .find_debuginfo = dwfl_standard_find_debuginfo,
     };
     Dwfl *_dwfl = dwfl_begin (&callbacks);
     g_mutex_init (&_dwfl_mutex);
-    g_once_init_leave (&_global_dwfl, _dwfl);
+    g_once_init_leave_pointer (&_global_dwfl, _dwfl);
   }
 
   return _global_dwfl;

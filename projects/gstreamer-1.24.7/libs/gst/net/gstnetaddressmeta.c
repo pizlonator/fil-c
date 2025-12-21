@@ -75,9 +75,9 @@ gst_net_address_meta_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { "origin", NULL };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstNetAddressMetaAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -87,13 +87,13 @@ gst_net_address_meta_get_info (void)
 {
   static const GstMetaInfo *meta_info = NULL;
 
-  if (g_once_init_enter ((GstMetaInfo **) & meta_info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & meta_info)) {
     const GstMetaInfo *mi = gst_meta_register (GST_NET_ADDRESS_META_API_TYPE,
         "GstNetAddressMeta",
         sizeof (GstNetAddressMeta),
         net_address_meta_init,
         net_address_meta_free, net_address_meta_transform);
-    g_once_init_leave ((GstMetaInfo **) & meta_info, (GstMetaInfo *) mi);
+    g_once_init_leave_pointer ((GstMetaInfo **) & meta_info, (GstMetaInfo *) mi);
   }
   return meta_info;
 }
