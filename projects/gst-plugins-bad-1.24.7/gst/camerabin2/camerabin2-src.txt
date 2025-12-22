@@ -1,0 +1,73 @@
+=== Camerabin2 Source Requirements (draft) ===
+
+This small document contains a collection of notes on different requirements
+of a camerabin2 source element.
+
+
+-- General --
+It is recommended that camerabin2 source elements inherit from basecamerasrc
+from gst-plugins-bad.
+
+
+-- Pads --
+Camerabin2 sources must have 3 static pads named 'vfsrc', 'imgsrc' and
+'vidsrc'.
+
+From an external point of view, all 3 pads work independently and camerabin2
+makes no assumptions about relations about them (caps they can produce, or if
+the same buffer is pushed to 2 different pads).
+
+'vfsrc' is the pad where the viewfinder buffers should be pushed, it will
+be feeding a video sink. This is the same scenario as a 'regular' source
+feeding a video sink. Buffers should be continuously pushed on this pad.
+
+'imgsrc' is the pad where image capture buffers are pushed. Timestamps aren't
+really important here as the images are going to be encoded and saved
+separately from each other. For each capture in image mode, one buffer should
+be pushed on this pad.
+
+'vidsrc' is the pad where video capture buffers are pushed. Once capture is
+started, buffers should start being pushed on this pad until the capture is
+stopped.
+-> TODO - define how segments/timestamps should work here
+-> TODO - How to make audio and video sync properly
+
+
+-- Capture --
+The sources should have a 'mode' property that informs the source of the
+current capturing mode. The available options are image or video.
+
+There are 2 signals that should be implemented, start-capture and
+stop-capture, they take no arguments.
+
+On image mode, start-capture tells the source to push an image capture
+buffer on its imgsrc pad. For video mode, start-capture tells the source
+to start pushing buffers on the vidsrc pad, it should only stop
+pushing when a stop-capture signal is received. In either case, it is
+recommended that the viewfinder pad keeps pushing buffers so the user
+has a smooth experience.
+
+Note that basecamerasrc already has the mode property and start/stop-capture
+signals. It has functions that should be overridden by its child classes to
+implement the handling of these actions.
+
+
+-- Previews --
+Camerabin2 sources must have a post-previews boolean property that the user
+can select if we wants or not preview images.
+
+Previews are posted on the bus as custom 'preview-image' messages. This message
+must have a 'buffer' field that contains a GstBuffer, the preview.
+
+Additionally, there should be a preview-caps property that is used to inform the
+camera source what is the expected format of the preview image.
+
+A preview image should be posted for each capture.
+
+
+-- Negotiation --
+Capture caps selection on camerabin2 works just like gstreamer's default
+caps negotiation. Camerabin2 puts capsfilters downstream from each of the
+camera source pads. The camera source can simply get_caps on the peer of
+each of its pads to know what are the allowed caps for that pad.
+

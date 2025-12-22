@@ -1,0 +1,7 @@
+meta,
+    args = {
+        "videotestsrc num-buffers=5 ! video/x-raw,framerate=25/1,width=320,height=240 ! vtenc_h264 name=enc allow-frame-reordering=true ! fakesink",
+    },
+    configs = {
+       "$(validateflow), pad=enc:src, record-buffers=true",
+    }

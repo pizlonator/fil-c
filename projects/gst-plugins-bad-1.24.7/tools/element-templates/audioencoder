@@ -1,0 +1,190 @@
+/* vim: set filetype=c: */
+% ClassName
+GstAudioEncoder
+% TYPE_CLASS_NAME
+GST_TYPE_AUDIO_ENCODER
+% pads
+srcpad-simple
+sinkpad-audio
+% pkg-config
+gstreamer-audio-1.0
+% includes
+#include <gst/audio/gstaudioencoder.h>
+% prototypes
+static gboolean gst_replace_start (GstAudioEncoder * encoder);
+static gboolean gst_replace_stop (GstAudioEncoder * encoder);
+static gboolean gst_replace_set_format (GstAudioEncoder * encoder,
+    GstAudioInfo * info);
+static GstFlowReturn gst_replace_handle_frame (GstAudioEncoder * encoder,
+    GstBuffer * buffer);
+static void gst_replace_flush (GstAudioEncoder * encoder);
+static GstFlowReturn gst_replace_pre_push (GstAudioEncoder * encoder,
+    GstBuffer ** buffer);
+static gboolean gst_replace_sink_event (GstAudioEncoder * encoder,
+    GstEvent * event);
+static gboolean gst_replace_src_event (GstAudioEncoder * encoder, GstEvent * event);
+static GstCaps *gst_replace_getcaps (GstAudioEncoder * encoder, GstCaps * filter);
+static gboolean gst_replace_open (GstAudioEncoder * encoder);
+static gboolean gst_replace_close (GstAudioEncoder * encoder);
+static gboolean gst_replace_negotiate (GstAudioEncoder * encoder);
+static gboolean gst_replace_decide_allocation (GstAudioEncoder * encoder,
+    GstQuery * query);
+static gboolean gst_replace_propose_allocation (GstAudioEncoder * encoder,
+    GstQuery * query);
+% declare-class
+  GstAudioEncoderClass *audio_encoder_class = GST_AUDIO_ENCODER_CLASS (klass);
+% set-methods
+  audio_encoder_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  audio_encoder_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  audio_encoder_class->set_format = GST_DEBUG_FUNCPTR (gst_replace_set_format);
+  audio_encoder_class->handle_frame = GST_DEBUG_FUNCPTR (gst_replace_handle_frame);
+  audio_encoder_class->flush = GST_DEBUG_FUNCPTR (gst_replace_flush);
+  audio_encoder_class->pre_push = GST_DEBUG_FUNCPTR (gst_replace_pre_push);
+  audio_encoder_class->sink_event = GST_DEBUG_FUNCPTR (gst_replace_sink_event);
+  audio_encoder_class->src_event = GST_DEBUG_FUNCPTR (gst_replace_src_event);
+  audio_encoder_class->getcaps = GST_DEBUG_FUNCPTR (gst_replace_getcaps);
+  audio_encoder_class->open = GST_DEBUG_FUNCPTR (gst_replace_open);
+  audio_encoder_class->close = GST_DEBUG_FUNCPTR (gst_replace_close);
+  audio_encoder_class->negotiate = GST_DEBUG_FUNCPTR (gst_replace_negotiate);
+  audio_encoder_class->decide_allocation = GST_DEBUG_FUNCPTR (gst_replace_decide_allocation);
+  audio_encoder_class->propose_allocation = GST_DEBUG_FUNCPTR (gst_replace_propose_allocation);
+% methods
+static gboolean
+gst_replace_start (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_set_format (GstAudioEncoder * encoder, GstAudioInfo * info)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "set_format");
+
+  return TRUE;
+}
+
+static GstFlowReturn
+gst_replace_handle_frame (GstAudioEncoder * encoder, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "handle_frame");
+
+  return GST_FLOW_OK;
+}
+
+static void
+gst_replace_flush (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "flush");
+
+}
+
+static GstFlowReturn
+gst_replace_pre_push (GstAudioEncoder * encoder, GstBuffer ** buffer)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "pre_push");
+
+  return GST_FLOW_OK;
+}
+
+static gboolean
+gst_replace_sink_event (GstAudioEncoder * encoder, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "sink_event");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_src_event (GstAudioEncoder * encoder, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "src_event");
+
+  return TRUE;
+}
+
+static GstCaps *
+gst_replace_getcaps (GstAudioEncoder * encoder, GstCaps * filter)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "getcaps");
+
+  return NULL;
+}
+
+static gboolean
+gst_replace_open (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "open");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_close (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "close");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_negotiate (GstAudioEncoder * encoder)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "negotiate");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_decide_allocation (GstAudioEncoder * encoder, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "decide_allocation");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_propose_allocation (GstAudioEncoder * encoder, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (encoder);
+
+  GST_DEBUG_OBJECT (replace, "propose_allocation");
+
+  return TRUE;
+}
+% end

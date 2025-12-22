@@ -1,0 +1,32 @@
+geotr_sources = [
+  'plugin.c',
+  'gstgeometrictransform.c',
+  'gstcirclegeometrictransform.c',
+  'geometricmath.c',
+  'gstcircle.c',
+  'gstdiffuse.c',
+  'gstkaleidoscope.c',
+  'gstmarble.c',
+  'gstpinch.c',
+  'gstrotate.c',
+  'gstsphere.c',
+  'gsttwirl.c',
+  'gstwaterripple.c',
+  'gststretch.c',
+  'gstbulge.c',
+  'gsttunnel.c',
+  'gstsquare.c',
+  'gstmirror.c',
+  'gstfisheye.c',
+  'gstperspective.c',
+]
+
+gstgeometrictransform = library('gstgeometrictransform',
+  geotr_sources,
+  c_args : gst_plugins_bad_args,
+  include_directories : [configinc],
+  dependencies : [gstbase_dep, gstvideo_dep, libm],
+  install : true,
+  install_dir : plugins_install_dir,
+)
+plugins += [gstgeometrictransform]

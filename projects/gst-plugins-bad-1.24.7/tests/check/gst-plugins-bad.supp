@@ -1,0 +1,96 @@
+{
+   <suppression for libneon-25.5dfsg5 on tpm's edgy/x86>
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:sendto
+   fun:getaddrinfo
+   fun:ne_addr_resolve
+   fun:ne_begin_request
+}
+
+{
+   <Soundtouch valgrind warning>
+   Memcheck:Cond
+   fun:_ZN10soundtouch9TDStretch8setTempoEf
+   fun:_ZN10soundtouch9TDStretch13setParametersEjjjj
+   fun:_ZN10soundtouch9TDStretchC1Ev
+   fun:_ZN10soundtouch9TDStretch11newInstanceEv
+   fun:_ZN10soundtouch10SoundTouchC1Ev
+}
+
+{
+   <Soundtouch valgrind warning>
+   Memcheck:Cond
+   fun:_ZN10soundtouch9TDStretch8setTempoEf
+   fun:_ZN10soundtouch9TDStretch13setParametersEjjjj
+   fun:_ZN10soundtouch9TDStretchC1Ev
+   fun:_ZN10soundtouch9TDStretch11newInstanceEv
+   fun:_ZN10soundtouch10SoundTouchC1Ev
+}
+
+{
+   <the LADSPA sine plugin produces this on every exit() it seems >
+   Memcheck:Free
+   fun:_ZdaPv
+   obj:/usr/lib/ladspa/sine.so
+}
+
+# FIXED: https://gitlab.gnome.org/GNOME/gssdp/-/issues/10
+{
+   gssdp_leak_1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_strdup
+   fun:gssdp_client_set_property
+   fun:object_set_property
+   fun:g_object_constructor
+   fun:gupnp_context_constructor
+   fun:g_object_new_with_custom_constructor
+   fun:g_object_new_internal
+   fun:g_object_new_valist
+   fun:g_initable_new_valist
+   fun:g_initable_new
+   fun:network_device_create_context
+   fun:create_context
+   fun:receive_netlink_message
+}
+{
+   gssdp_leak_2
+   Memcheck:Leak
+   match-leak-kinds: definite,indirect
+   fun:g_type_create_instance
+   fun:g_object_new_internal
+   fun:g_object_new_valist
+   fun:g_initable_new_valist
+   fun:g_initable_new
+   fun:g_inet_address_mask_new
+   fun:get_host_ip
+   fun:init_network_info
+   fun:gssdp_client_initable_init
+   fun:gupnp_context_initable_init
+   fun:g_initable_new_valist
+   fun:g_initable_new
+   fun:network_device_create_context
+   fun:create_context
+   fun:receive_netlink_message
+}
+{
+   gssdp_leak_3
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:g_type_create_instance
+   fun:g_object_new_internal
+   fun:g_object_new_valist
+   fun:g_object_new
+   fun:get_host_ip
+   fun:init_network_info
+   fun:gssdp_client_initable_init
+   fun:gupnp_context_initable_init
+   fun:g_initable_new_valist
+   fun:g_initable_new
+   fun:network_device_create_context
+   fun:create_context
+   fun:receive_netlink_message
+}

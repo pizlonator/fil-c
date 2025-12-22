@@ -1,0 +1,24 @@
+[GStreamer Encoding Target]
+name=dvd
+category=device
+description=Encoding target suitable for DVDs
+
+[profile-dvd]
+name=dvd
+type=container
+description[c]=This is an encoding profile usable for DVDs
+format=video/mpeg, mpegversion=(int)2, systemstream=(boolean)true
+
+[streamprofile-dvd-0]
+parent=dvd
+type=video
+format=video/mpeg, mpegversion=(int)2, systemstream=(boolean)false
+presence=0
+pass=0
+variableframerate=false
+
+[streamprofile-dvd-1]
+parent=dvd
+type=audio
+format=audio/mpeg, mpegversion=(int)1, layer=(int)2
+presence=0

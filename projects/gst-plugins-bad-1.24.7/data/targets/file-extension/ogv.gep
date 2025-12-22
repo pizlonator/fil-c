@@ -1,0 +1,25 @@
+[GStreamer Encoding Target]
+name=ogv;ogg
+category=file-extension
+description=Default target for files with a .ogg and friends extension
+
+[profile-default]
+name=default
+description=Default target for files with a .ogg and friends extension
+type=container
+format=application/ogg
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/x-vorbis;audio/x-opus
+
+[streamprofile-default-1]
+parent=default
+type=video
+format=video/x-theora
+
+[streamprofile-default-2]
+parent=default
+type=video
+format=video/x-vp8

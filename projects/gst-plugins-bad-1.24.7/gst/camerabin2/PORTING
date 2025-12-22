@@ -1,0 +1,39 @@
+This document lists the differenced between camerabin and camerabin2 from
+the API point of view and should be used to help on porting applications
+from camerabin to camerabin2.
+
+* Setting the location for the captures:
+camerabin requires that the path of the file to save the captures is set before
+each capture. Camerabin2 allows the application to use a multifilesink-like
+approach, the application can set a file with a '%d' marker, this marker
+will be automatically replaced by a number and be autoincremented after each
+capture.
+The property is now called 'location' instead of 'filename'
+
+* Capture signals
+The signals were renamed from capture-start/stop to start/stop-capture as
+this is the usual naming on actions.
+Additionally, stop-capture is now async, the user should check 'idle' property
+to be sure that it can shut camerabin2.
+
+* image-done
+In camerabin, image-done is a signal, in camerabin2, it is a bus message
+
+* video recording encoder/muxer
+In camerabin, video/audio encoder/muxer are selected by passing GstElements to
+camerabin properties. In camerabin2, a GstEncodingProfile is passed as a 
+property and encodebin manages to instantiate the elements for the format.
+
+* Previews
+new "post-previews" property for enabling/disabling preview image posting
+set location=NULL to skip writing image to file but to receive the preview,
+useful for scenarios that wants the image in memory.
+
+* Configuring resolution and framerate
+Camerabin2 has new GstCaps type properties for configuring capture and
+viewfinder formats:
+  video-capture-caps
+  image-capture-caps
+  audio-capture-caps
+  viewfinder-caps
+

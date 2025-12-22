@@ -1,0 +1,9 @@
+meta,
+    args = {
+        "videotestsrc num-buffers=1 ! video/x-raw,width=1920,height=1080,format=I420 ! videoscale  ! x264enc tune=zerolatency ! h264timestamper ! video/x-h264,width=50,height=50 ! fakesink name=sink",
+    },
+    configs = {
+        "$(validateflow), pad=sink:sink, buffers-checksum=as-id, caps-properties={width, height}, ignored-event-types={tag}",
+    }
+
+

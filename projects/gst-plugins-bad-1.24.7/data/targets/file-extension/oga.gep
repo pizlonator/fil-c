@@ -1,0 +1,15 @@
+[GStreamer Encoding Target]
+name=oga
+category=file-extension
+description=Default target for files with a .ogg and friends extension
+
+[profile-default]
+name=default
+description=Default target for files with a .ogg and friends extension
+type=container
+format=audio/ogg
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/x-vorbis;audio/x-opus

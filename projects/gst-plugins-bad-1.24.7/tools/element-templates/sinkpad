@@ -1,0 +1,312 @@
+/* vim: set filetype=c: */
+
+% instance-members
+  GstPad *sinkpad;
+% prototypes
+
+static GstCaps* gst_replace_sink_getcaps (GstPad *pad);
+static gboolean gst_replace_sink_setcaps (GstPad *pad, GstCaps *caps);
+static gboolean gst_replace_sink_acceptcaps (GstPad *pad, GstCaps *caps);
+static void gst_replace_sink_fixatecaps (GstPad *pad, GstCaps *caps);
+static gboolean gst_replace_sink_activate (GstPad *pad);
+static gboolean gst_replace_sink_activatepush (GstPad *pad, gboolean active);
+static gboolean gst_replace_sink_activatepull (GstPad *pad, gboolean active);
+static GstPadLinkReturn gst_replace_sink_link (GstPad *pad, GstPad *peer);
+static void gst_replace_sink_unlink (GstPad *pad);
+static GstFlowReturn gst_replace_sink_chain (GstPad *pad, GstBuffer *buffer);
+static GstFlowReturn gst_replace_sink_chainlist (GstPad *pad, GstBufferList *bufferlist);
+static gboolean gst_replace_sink_event (GstPad *pad, GstEvent *event);
+static gboolean gst_replace_sink_query (GstPad *pad, GstQuery *query);
+static GstFlowReturn gst_replace_sink_bufferalloc (GstPad *pad, guint64 offset, guint size,
+    GstCaps *caps, GstBuffer **buf);
+static GstIterator * gst_replace_sink_iterintlink (GstPad *pad);
+
+% pad-template
+static GstStaticPadTemplate gst_replace_sink_template =
+GST_STATIC_PAD_TEMPLATE ("sink",
+    GST_PAD_SINK,
+    GST_PAD_ALWAYS,
+    GST_STATIC_CAPS ("application/unknown")
+    );
+
+% base-init
+  gst_element_class_add_static_pad_template (element_class,
+      &gst_replace_sink_template);
+% instance-init
+
+  replace->sinkpad = gst_pad_new_from_static_template (&gst_replace_sink_template
+      ,     
+            "sink");
+  gst_pad_set_getcaps_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_getcaps));
+  gst_pad_set_setcaps_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_setcaps));
+  gst_pad_set_acceptcaps_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_acceptcaps));
+  gst_pad_set_fixatecaps_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_fixatecaps));
+  gst_pad_set_activate_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_activate));
+  gst_pad_set_activatepush_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_activatepush));
+  gst_pad_set_activatepull_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_activatepull));
+  gst_pad_set_link_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_link));
+  gst_pad_set_unlink_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_unlink));
+  gst_pad_set_chain_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_chain));
+  gst_pad_set_chain_list_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_chainlist));
+  gst_pad_set_event_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_event));
+  gst_pad_set_query_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_query));
+  gst_pad_set_bufferalloc_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_bufferalloc));
+  gst_pad_set_iterate_internal_links_function (replace->sinkpad,
+            GST_DEBUG_FUNCPTR(gst_replace_sink_iterintlink));
+  gst_element_add_pad (GST_ELEMENT(replace), replace->sinkpad);
+
+
+% methods
+
+static GstCaps*
+gst_replace_sink_getcaps (GstPad *pad)
+{
+  GstReplace *replace;
+  GstCaps *caps;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "getcaps");
+
+  caps = gst_caps_copy (gst_pad_get_pad_template_caps (pad));
+
+  gst_object_unref (replace);
+  return caps;
+}
+
+static gboolean
+gst_replace_sink_setcaps (GstPad *pad, GstCaps *caps)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "setcaps");
+
+
+  gst_object_unref (replace);
+  return TRUE;
+}
+
+static gboolean
+gst_replace_sink_acceptcaps (GstPad *pad, GstCaps *caps)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "acceptcaps");
+
+
+  gst_object_unref (replace);
+  return TRUE;
+}
+
+static void
+gst_replace_sink_fixatecaps (GstPad *pad, GstCaps *caps)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "fixatecaps");
+
+
+  gst_object_unref (replace);
+}
+
+static gboolean
+gst_replace_sink_activate (GstPad *pad)
+{
+  GstReplace *replace;
+  gboolean ret;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "activate");
+
+  if (gst_pad_check_pull_range (pad)) {
+    GST_DEBUG_OBJECT (pad, "activating pull");
+    ret = gst_pad_activate_pull (pad, TRUE);
+  } else {
+    GST_DEBUG_OBJECT (pad, "activating push");
+    ret = gst_pad_activate_push (pad, TRUE);
+  }
+
+  gst_object_unref (replace);
+  return ret;
+}
+
+static gboolean
+gst_replace_sink_activatepush (GstPad *pad, gboolean active)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "activatepush");
+
+
+  gst_object_unref (replace);
+  return TRUE;
+}
+
+static gboolean
+gst_replace_sink_activatepull (GstPad *pad, gboolean active)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "activatepull");
+
+
+  gst_object_unref (replace);
+  return TRUE;
+}
+
+static GstPadLinkReturn
+gst_replace_sink_link (GstPad *pad, GstPad *peer)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "link");
+
+
+  gst_object_unref (replace);
+  return GST_PAD_LINK_OK;
+}
+
+static void
+gst_replace_sink_unlink (GstPad *pad)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "unlink");
+
+
+  gst_object_unref (replace);
+}
+
+static GstFlowReturn
+gst_replace_sink_chain (GstPad *pad, GstBuffer *buffer)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "chain");
+
+
+  gst_object_unref (replace);
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_sink_chainlist (GstPad *pad, GstBufferList *bufferlist)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "chainlist");
+
+
+  gst_object_unref (replace);
+  return GST_FLOW_OK;
+}
+
+static gboolean
+gst_replace_sink_event (GstPad *pad, GstEvent *event)
+{
+  gboolean res;
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "event");
+
+  switch (GST_EVENT_TYPE (event)) {
+    default:
+      res = gst_pad_event_default (pad, event);
+      break;
+  }
+
+  gst_object_unref (replace);
+  return res;
+}
+
+static gboolean
+gst_replace_sink_query (GstPad *pad, GstQuery *query)
+{
+  gboolean res;
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "query");
+
+  switch (GST_QUERY_TYPE(query)) {
+    default:
+      res = gst_pad_query_default (pad, query);
+      break;
+  }
+
+  gst_object_unref (replace);
+  return res;
+}
+
+static GstFlowReturn
+gst_replace_sink_bufferalloc (GstPad *pad, guint64 offset, guint size,
+    GstCaps *caps, GstBuffer **buf)
+{
+  GstReplace *replace;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "bufferalloc");
+
+
+  *buf = gst_buffer_new_and_alloc (size);
+  gst_buffer_set_caps (*buf, caps);
+
+  gst_object_unref (replace);
+  return GST_FLOW_OK;
+}
+
+static GstIterator *
+gst_replace_sink_iterintlink (GstPad *pad)
+{
+  GstReplace *replace;
+  GstIterator *iter;
+
+  replace = GST_REPLACE (gst_pad_get_parent (pad));
+
+  GST_DEBUG_OBJECT(replace, "iterintlink");
+
+  iter = gst_pad_iterate_internal_links_default (pad);
+
+  gst_object_unref (replace);
+  return iter;
+}
+
+% end
+

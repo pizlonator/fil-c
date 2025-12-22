@@ -1,0 +1,27 @@
+When porting a plugin start with 0.8 CVS head, not the old code in this module. There are many bugfixes which have gone into 0.8 which you want to keep.
+
+List of ported plugins (update when you commit a ported plugin):
+libmms      (alima)
+wavpack     (alima)
+musepack    (alima)
+ivorbis     (alima)
+gsmdec      (alima)
+sdl         (alima)
+speed       (fcarvalho)
+gsmenc      (fcarvalho)
+faac        (fcarvalho)
+wavenc      (fcarvalho)
+effectv     (wim)
+mad	    (wim)
+videofilter (wim)
+aalib	    (wim)
+libcaca	    (zeeshan)
+law	    (wim)
+shout2      (zaheer) - not fully tested
+esdsink     (arwed)
+
+osssink is partially done in the threaded branch (wim)
+
+- Remember that some plugins are already ported and now in the gst-plugins-base module.
+
+When you have ported a plugin remember to copy the relevant parts from configure.ac.orig into configure.ac and re-enable it in the Makefile.am files.

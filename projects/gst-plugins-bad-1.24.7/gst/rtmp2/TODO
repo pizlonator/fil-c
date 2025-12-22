@@ -1,0 +1,63 @@
+- rtmp2sink: Should look into reconnecting and resuming stream without
+  deleting and recreating stream, which drops clients.
+
+- Move AMF parser/serializer to GstRtmpMeta?
+- Move AMF nodes to GstMiniObject?
+
+- First video frame that comes from Wowza seems to be out-of-order; librtmp
+  does not have this problem
+
+- Refactor connection, pull out the ad-hoc read and write handling and put it
+  with the chunk layer into GBuffered{In,Out}putStream subclasses
+
+- Refactor elements and pull out the common connection+mainloop handling code
+  into a context object
+
+- Change the location properties into something with less boilerplate?
+
+  Perhaps a GstStructure-based prop, custom GValue transforms or GstValue
+  (de)serializing
+
+- Use glib-mkenums to generate GEnumClasses
+
+- Post-connect onStatus handling (needed for src EOS and async errors?)
+
+- Better mux/demux, at the cost of losing compatibility with flvmux/demux.
+
+  Something like (a/x = application/x-rtmp-messages):
+
+    rtmp2src ! a/x ! rtmp2demux ! a/x,type=video ! rtmp2videodecode ! h264parse
+                                ! a/x,type=audio ! rtmp2audiodecode ! aacparse
+
+      x264enc ! rtmp2videoencode ! a/x,type=video ! rtmp2mux ! a/x ! rtmp2sink
+    fdkaacenc ! rtmp2audioencode ! a/x,type=audio !
+
+  And also, in case no muxing is required:
+
+      x264enc ! rtmp2videoencode ! a/x,type=video ! rtmp2sink
+    fdkaacenc ! rtmp2audioencode ! a/x,type=video ! rtmp2sink
+
+  Proper GstBuffer timestamps need proper timestamp wraparound handling
+
+- Better client element, which generalizes the existing sink/src to allow
+  multiple streams over one connection
+  - Request src pad to play a stream
+  - Request sink pad to publish a stream (base it on GstAggregator?)
+  - rtmp2sink/src just specialize the client element with a static pad
+
+- Server implementation
+
+- Support more protocols
+  - rtmpe (App-layer encryption)
+  - rtmpt (HTTP tunneling)
+  - rtmpte (HTTP tunneling + App-layer encryption)
+  - rtmpts (HTTPS tunneling)
+  - rtmfp (UDP)
+
+Needed testing:
+
+- AMF parsing
+
+- connection closure by peer
+
+- connection timeouts

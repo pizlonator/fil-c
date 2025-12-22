@@ -1,0 +1,38 @@
+/* GStreamer
+ * Copyright (C) 2023 Seungha Yang <seungha@centricular.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ */
+
+Texture2D shaderTexture : register(t0, space0);
+SamplerState samplerState : register(s0, space0);
+
+struct PS_INPUT
+{
+  float4 Position : SV_POSITION;
+  float2 Texture : TEXCOORD;
+};
+
+float4 PSMain_sample_premul (PS_INPUT input): SV_TARGET
+{
+  float4 sample = shaderTexture.Sample (samplerState, input.Texture);
+  float4 premul_sample;
+  premul_sample.r = saturate (sample.r * sample.a);
+  premul_sample.g = saturate (sample.g * sample.a);
+  premul_sample.b = saturate (sample.b * sample.a);
+  premul_sample.a = sample.a;
+  return premul_sample;
+}

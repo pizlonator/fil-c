@@ -1,0 +1,21 @@
+[GStreamer Encoding Target]
+name=avi
+category=file-extension
+description=Default target for files with a .avi extension
+
+[profile-default]
+name=default
+type=container
+description=Default profile for files with a .avi extension.
+format=video/x-msvideo
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/mpeg, mpegversion=(int)1, mpegaudioversion=(int)1, layer=(int)3
+
+[streamprofile-default-1]
+parent=default
+type=video
+format=video/mpeg, mpegversion=(int)4
+

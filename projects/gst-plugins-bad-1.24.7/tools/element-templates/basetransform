@@ -1,0 +1,319 @@
+/* vim: set filetype=c: */
+% ClassName
+GstBaseTransform
+% TYPE_CLASS_NAME
+GST_TYPE_BASE_TRANSFORM
+% pads
+srcpad-simple
+sinkpad-simple
+% pkg-config
+gstreamer-base-1.0
+% includes
+#include <gst/base/gstbasetransform.h>
+% prototypes
+static GstCaps *gst_replace_transform_caps (GstBaseTransform * trans,
+    GstPadDirection direction, GstCaps * caps, GstCaps * filter);
+static GstCaps *gst_replace_fixate_caps (GstBaseTransform * trans,
+    GstPadDirection direction, GstCaps * caps, GstCaps * othercaps);
+static gboolean gst_replace_accept_caps (GstBaseTransform * trans,
+    GstPadDirection direction, GstCaps * caps);
+static gboolean gst_replace_set_caps (GstBaseTransform * trans,
+    GstCaps * incaps, GstCaps * outcaps);
+static gboolean gst_replace_query (GstBaseTransform * trans,
+    GstPadDirection direction, GstQuery * query);
+static gboolean gst_replace_decide_allocation (GstBaseTransform * trans,
+    GstQuery * query);
+static gboolean gst_replace_filter_meta (GstBaseTransform * trans,
+    GstQuery * query, GType api, const GstStructure * params);
+static gboolean gst_replace_propose_allocation (GstBaseTransform * trans,
+    GstQuery * decide_query, GstQuery * query);
+static gboolean gst_replace_transform_size (GstBaseTransform * trans,
+    GstPadDirection direction, GstCaps * caps, gsize size, GstCaps * othercaps,
+    gsize * othersize);
+static gboolean gst_replace_get_unit_size (GstBaseTransform * trans,
+    GstCaps * caps, gsize * size);
+static gboolean gst_replace_start (GstBaseTransform * trans);
+static gboolean gst_replace_stop (GstBaseTransform * trans);
+static gboolean gst_replace_sink_event (GstBaseTransform * trans,
+    GstEvent * event);
+static gboolean gst_replace_src_event (GstBaseTransform * trans,
+    GstEvent * event);
+static GstFlowReturn gst_replace_prepare_output_buffer (GstBaseTransform *
+    trans, GstBuffer * input, GstBuffer ** outbuf);
+static gboolean gst_replace_copy_metadata (GstBaseTransform * trans,
+    GstBuffer * input, GstBuffer * outbuf);
+static gboolean gst_replace_transform_meta (GstBaseTransform * trans,
+    GstBuffer * outbuf, GstMeta * meta, GstBuffer * inbuf);
+static void gst_replace_before_transform (GstBaseTransform * trans,
+    GstBuffer * buffer);
+static GstFlowReturn gst_replace_transform (GstBaseTransform * trans,
+    GstBuffer * inbuf, GstBuffer * outbuf);
+static GstFlowReturn gst_replace_transform_ip (GstBaseTransform * trans,
+    GstBuffer * buf);
+% declare-class
+  GstBaseTransformClass *base_transform_class = GST_BASE_TRANSFORM_CLASS (klass);
+% set-methods
+  base_transform_class->transform_caps = GST_DEBUG_FUNCPTR (gst_replace_transform_caps);
+  base_transform_class->fixate_caps = GST_DEBUG_FUNCPTR (gst_replace_fixate_caps);
+  base_transform_class->accept_caps = GST_DEBUG_FUNCPTR (gst_replace_accept_caps);
+  base_transform_class->set_caps = GST_DEBUG_FUNCPTR (gst_replace_set_caps);
+  base_transform_class->query = GST_DEBUG_FUNCPTR (gst_replace_query);
+  base_transform_class->decide_allocation = GST_DEBUG_FUNCPTR (gst_replace_decide_allocation);
+  base_transform_class->filter_meta = GST_DEBUG_FUNCPTR (gst_replace_filter_meta);
+  base_transform_class->propose_allocation = GST_DEBUG_FUNCPTR (gst_replace_propose_allocation);
+  base_transform_class->transform_size = GST_DEBUG_FUNCPTR (gst_replace_transform_size);
+  base_transform_class->get_unit_size = GST_DEBUG_FUNCPTR (gst_replace_get_unit_size);
+  base_transform_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  base_transform_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  base_transform_class->sink_event = GST_DEBUG_FUNCPTR (gst_replace_sink_event);
+  base_transform_class->src_event = GST_DEBUG_FUNCPTR (gst_replace_src_event);
+  base_transform_class->prepare_output_buffer = GST_DEBUG_FUNCPTR (gst_replace_prepare_output_buffer);
+  base_transform_class->copy_metadata = GST_DEBUG_FUNCPTR (gst_replace_copy_metadata);
+  base_transform_class->transform_meta = GST_DEBUG_FUNCPTR (gst_replace_transform_meta);
+  base_transform_class->before_transform = GST_DEBUG_FUNCPTR (gst_replace_before_transform);
+  base_transform_class->transform = GST_DEBUG_FUNCPTR (gst_replace_transform);
+  base_transform_class->transform_ip = GST_DEBUG_FUNCPTR (gst_replace_transform_ip);
+% methods
+static GstCaps *
+gst_replace_transform_caps (GstBaseTransform * trans, GstPadDirection direction,
+    GstCaps * caps, GstCaps * filter)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+  GstCaps *othercaps;
+
+  GST_DEBUG_OBJECT (replace, "transform_caps");
+
+  othercaps = gst_caps_copy (caps);
+
+  /* Copy other caps and modify as appropriate */
+  /* This works for the simplest cases, where the transform modifies one
+   * or more fields in the caps structure.  It does not work correctly
+   * if passthrough caps are preferred. */
+  if (direction == GST_PAD_SRC) {
+    /* transform caps going upstream */
+  } else {
+    /* transform caps going downstream */
+  }
+
+  if (filter) {
+    GstCaps *intersect;
+
+    intersect = gst_caps_intersect (othercaps, filter);
+    gst_caps_unref (othercaps);
+
+    return intersect;
+  } else {
+    return othercaps;
+  }
+}
+
+static GstCaps *
+gst_replace_fixate_caps (GstBaseTransform * trans, GstPadDirection direction,
+    GstCaps * caps, GstCaps * othercaps)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "fixate_caps");
+
+  return NULL;
+}
+
+static gboolean
+gst_replace_accept_caps (GstBaseTransform * trans, GstPadDirection direction,
+    GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "accept_caps");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_set_caps (GstBaseTransform * trans, GstCaps * incaps,
+    GstCaps * outcaps)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "set_caps");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_query (GstBaseTransform * trans, GstPadDirection direction,
+    GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "query");
+
+  return TRUE;
+}
+
+/* decide allocation query for output buffers */
+static gboolean
+gst_replace_decide_allocation (GstBaseTransform * trans, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "decide_allocation");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_filter_meta (GstBaseTransform * trans, GstQuery * query, GType api,
+    const GstStructure * params)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "filter_meta");
+
+  return TRUE;
+}
+
+/* propose allocation query parameters for input buffers */
+static gboolean
+gst_replace_propose_allocation (GstBaseTransform * trans,
+    GstQuery * decide_query, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "propose_allocation");
+
+  return TRUE;
+}
+
+/* transform size */
+static gboolean
+gst_replace_transform_size (GstBaseTransform * trans, GstPadDirection direction,
+    GstCaps * caps, gsize size, GstCaps * othercaps, gsize * othersize)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform_size");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_get_unit_size (GstBaseTransform * trans, GstCaps * caps,
+    gsize * size)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "get_unit_size");
+
+  return TRUE;
+}
+
+/* states */
+static gboolean
+gst_replace_start (GstBaseTransform * trans)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstBaseTransform * trans)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+/* sink and src pad event handlers */
+static gboolean
+gst_replace_sink_event (GstBaseTransform * trans, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "sink_event");
+
+  return GST_BASE_TRANSFORM_CLASS (gst_replace_parent_class)->sink_event (
+      trans, event);
+}
+
+static gboolean
+gst_replace_src_event (GstBaseTransform * trans, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "src_event");
+
+  return GST_BASE_TRANSFORM_CLASS (gst_replace_parent_class)->src_event (
+      trans, event);
+}
+
+static GstFlowReturn
+gst_replace_prepare_output_buffer (GstBaseTransform * trans, GstBuffer * input,
+    GstBuffer ** outbuf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "prepare_output_buffer");
+
+  return GST_FLOW_OK;
+}
+
+/* metadata */
+static gboolean
+gst_replace_copy_metadata (GstBaseTransform * trans, GstBuffer * input,
+    GstBuffer * outbuf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "copy_metadata");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_transform_meta (GstBaseTransform * trans, GstBuffer * outbuf,
+    GstMeta * meta, GstBuffer * inbuf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform_meta");
+
+  return TRUE;
+}
+
+static void
+gst_replace_before_transform (GstBaseTransform * trans, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "before_transform");
+
+}
+
+/* transform */
+static GstFlowReturn
+gst_replace_transform (GstBaseTransform * trans, GstBuffer * inbuf,
+    GstBuffer * outbuf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_transform_ip (GstBaseTransform * trans, GstBuffer * buf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform_ip");
+
+  return GST_FLOW_OK;
+}
+% end

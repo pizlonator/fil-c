@@ -1,0 +1,194 @@
+/* vim: set filetype=c: */
+% ClassName
+GstVideoDecoder
+% TYPE_CLASS_NAME
+GST_TYPE_VIDEO_DECODER
+% pads
+sinkpad-simple
+srcpad-template-video
+% pkg-config
+gstreamer-video-1.0
+% includes
+#include <gst/video/video.h>
+#include <gst/video/gstvideodecoder.h>
+% prototypes
+static gboolean gst_replace_open (GstVideoDecoder * decoder);
+static gboolean gst_replace_close (GstVideoDecoder * decoder);
+static gboolean gst_replace_start (GstVideoDecoder * decoder);
+static gboolean gst_replace_stop (GstVideoDecoder * decoder);
+static GstFlowReturn gst_replace_parse (GstVideoDecoder * decoder,
+    GstVideoCodecFrame * frame, GstAdapter * adapter, gboolean at_eos);
+static gboolean gst_replace_set_format (GstVideoDecoder * decoder,
+    GstVideoCodecState * state);
+static gboolean gst_replace_reset (GstVideoDecoder * decoder, gboolean hard);
+static GstFlowReturn gst_replace_finish (GstVideoDecoder * decoder);
+static GstFlowReturn gst_replace_handle_frame (GstVideoDecoder * decoder,
+    GstVideoCodecFrame * frame);
+static gboolean gst_replace_sink_event (GstVideoDecoder * decoder,
+    GstEvent * event);
+static gboolean gst_replace_src_event (GstVideoDecoder * decoder,
+    GstEvent * event);
+static gboolean gst_replace_negotiate (GstVideoDecoder * decoder);
+static gboolean gst_replace_decide_allocation (GstVideoDecoder * decoder,
+    GstQuery * query);
+static gboolean gst_replace_propose_allocation (GstVideoDecoder * decoder,
+    GstQuery * query);
+% declare-class
+  GstVideoDecoderClass *video_decoder_class = GST_VIDEO_DECODER_CLASS (klass);
+% set-methods
+  video_decoder_class->open = GST_DEBUG_FUNCPTR (gst_replace_open);
+  video_decoder_class->close = GST_DEBUG_FUNCPTR (gst_replace_close);
+  video_decoder_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  video_decoder_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  video_decoder_class->parse = GST_DEBUG_FUNCPTR (gst_replace_parse);
+  video_decoder_class->set_format = GST_DEBUG_FUNCPTR (gst_replace_set_format);
+  video_decoder_class->reset = GST_DEBUG_FUNCPTR (gst_replace_reset);
+  video_decoder_class->finish = GST_DEBUG_FUNCPTR (gst_replace_finish);
+  video_decoder_class->handle_frame = GST_DEBUG_FUNCPTR (gst_replace_handle_frame);
+  video_decoder_class->sink_event = GST_DEBUG_FUNCPTR (gst_replace_sink_event);
+  video_decoder_class->src_event = GST_DEBUG_FUNCPTR (gst_replace_src_event);
+  video_decoder_class->negotiate = GST_DEBUG_FUNCPTR (gst_replace_negotiate);
+  video_decoder_class->decide_allocation = GST_DEBUG_FUNCPTR (gst_replace_decide_allocation);
+  video_decoder_class->propose_allocation = GST_DEBUG_FUNCPTR (gst_replace_propose_allocation);
+% methods
+static gboolean
+gst_replace_open (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "open");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_close (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "close");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_start (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+static GstFlowReturn
+gst_replace_parse (GstVideoDecoder * decoder, GstVideoCodecFrame * frame,
+    GstAdapter * adapter, gboolean at_eos)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "parse");
+
+  return GST_FLOW_OK;
+}
+
+static gboolean
+gst_replace_set_format (GstVideoDecoder * decoder, GstVideoCodecState * state)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "set_format");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_reset (GstVideoDecoder * decoder, gboolean hard)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "reset");
+
+  return TRUE;
+}
+
+static GstFlowReturn
+gst_replace_finish (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "finish");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_handle_frame (GstVideoDecoder * decoder, GstVideoCodecFrame * frame)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "handle_frame");
+
+  return GST_FLOW_OK;
+}
+
+static gboolean
+gst_replace_sink_event (GstVideoDecoder * decoder, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "sink_event");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_src_event (GstVideoDecoder * decoder, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "src_event");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_negotiate (GstVideoDecoder * decoder)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "negotiate");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_decide_allocation (GstVideoDecoder * decoder, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "decide_allocation");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_propose_allocation (GstVideoDecoder * decoder, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (decoder);
+
+  GST_DEBUG_OBJECT (replace, "propose_allocation");
+
+  return TRUE;
+}
+% end

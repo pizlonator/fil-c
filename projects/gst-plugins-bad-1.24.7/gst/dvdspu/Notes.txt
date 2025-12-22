@@ -1,0 +1,324 @@
+
+          DVD subtitles
+         ---------------
+
+
+  0. Introduction
+  1. Basics
+  2. The data structure
+  3. Reading the control header
+  4. Decoding the graphics
+  5. What I do not know yet / What I need
+  6. Thanks
+  7. Changes
+
+
+
+
+
+The latest version of this document can be found here:
+http://www.via.ecp.fr/~sam/doc/dvd/
+
+
+
+
+
+0. Introduction
+
+  One of the last things we missed in DVD decoding under my system was the
+decoding of subtitles. I found no information on the web or Usenet about them,
+apart from a few words on them being run-length encoded in the DVD FAQ.
+
+  So we decided to reverse-engineer their format (it's completely legal in
+France, since we did it on interoperability purposes), and managed to get
+almost all of it.
+
+
+
+
+
+1. Basics
+
+  DVD subtitles are hidden in private PS packets (0x000001ba), just like AC3
+streams are.
+
+  Within the PS packet, there are PES packets, and like AC3, the header for the
+ones containing subtitles have a 0x000001bd header.
+  As for AC3, where there's an ID like (0x80 + x), there's a subtitle ID equal
+to (0x20 + x), where x is the subtitle ID. Thus there seems to be only
+16 possible different subtitles on a DVD (my Taxi Driver copy has 16).
+
+  I'll suppose you know how to extract AC3 from a DVD, and jump to the
+interesting part of this documentation. Anyway you're unlikely to have
+understood what I said without already being familiar with MPEG2.
+
+
+
+
+
+2. The data structure
+
+A subtitle packet, after its parts have been collected and appended, looks
+like this :
+
+   +----------------------------------------------------------+    
+   |                                                          |
+   |   0    2                                         size    |
+   |   +----+------------------------+-----------------+      |
+   |   |size|       data packet      |     control     |      |
+   |   +----+------------------------+-----------------+      |
+   |                                                          |
+   |                     a subtitle packet                    |
+   |                                                          |
+   +----------------------------------------------------------+    
+
+size is a 2 bytes word, and data packet and control may have any size.
+
+
+Here is the structure of the data packet :
+
+   +----------------------------------------------------------+    
+   |                                                          |
+   |   2    4                                        S0+2     |
+   |   +----+------------------------------------------+      |
+   |   | S0 |                  data                    |      |
+   |   +----+------------------------------------------+      |
+   |                                                          |
+   |                      the data packet                     |
+   |                                                          |
+   +----------------------------------------------------------+    
+
+S0, the data packet size, is a 2 bytes word.
+
+
+Finally, here's the structure of the control packet :
+
+   +----------------------------------------------------------+    
+   |                                                          |
+   | S0+2  S0+4                                 S1       size |
+   |   +----+---------+---------+--+---------+--+---------+   |
+   |   | S1 |ctrl seq |ctrl seq |..|ctrl seq |ff| end seq |   |
+   |   +----+---------+---------+--+---------+--+---------+   |
+   |                                                          |
+   |                     the control packet                   |
+   |                                                          |
+   +----------------------------------------------------------+    
+
+To summarize :
+
+ - S1, at offset S0+2, the position of the end sequence
+ - several control sequences
+ - the 'ff' byte
+ - the end sequence
+
+
+
+
+
+3. Reading the control header
+
+The first thing to read is the control sequences. There are several
+types of them, and each type is determined by its first byte. As far
+as I know, each type has a fixed length.
+
+ * type 0x01 : '01' - 1 byte
+  it seems to be an empty control sequence.
+
+ * type 0x03 : '03wxyz' - 3 bytes
+  this one has the palette information ; it basically says 'encoded color 0
+ is the with color of the palette, encoded color 1 is the xth color, aso.
+
+ * type 0x04 : '04wxyz' - 3 bytes
+  I *think* this is the alpha channel information ; I only saw values of 0 or f
+ for those nibbles, so I can't really be sure, but it seems plausible.
+
+ * type 0x05 : '05xxxXXXyyyYYY' - 7 bytes
+  the coordinates of the subtitle on the screen :
+   xxx is the first column of the subtitle
+   XXX is the last column of the subtitle
+   yyy is the first line of the subtitle
+   YYY is the last line of the subtitle
+  thus the subtitle's size is (XXX-xxx+1) x (YYY-yyy+1)
+
+ * type 0x06 : '06xxxxyyyy' - 5 bytes
+  xxxx is the position of the first graphic line, and yyyy is the position of
+ the second one (the graphics are interlaced, so it helps a lot :p)
+
+The end sequence has this structure:
+
+ xxxx yyyy 02 ff (ff)
+
+ it ends with 'ff' or 'ffff', to make the whole packet have an even length.
+
+FIXME: I absolutely don't know what xxxx is. I suppose it may be some date
+information since I found it nowhere else, but I can't be sure.
+
+ yyyy is equal to S1 (see picture).
+
+
+Example of a control header :
+----
+0A 0C 01 03 02 31 04 0F F0 05 00 02 CF 00 22 3E 06 00 06 04 E9 FF 00 93 0A 0C 02 FF
+----
+Let's decode it. First of all, S1 = 0x0a0c.
+
+The control sequences are :
+ 01
+   Nothing to say about this one
+ 03 02 31
+   Color 0 is 0, color 1 is 2, color 2 is 3, and color 3 is 1.
+ 04 0F F0
+   Colors 0 and 3 are transparent, and colors 2 and 3 are opaque (not sure of this one)
+ 05 00 02 CF 00 22 3E
+   The first column is 0x000, the last one is 0x2cf, the first line is 0x002, and
+   the last line is 0x23e. Thus the subtitle's size is 0x2d0 x 0x23d.
+ 06 00 06 04 E9
+   The first encoded image starts at offset 0x006, and the second one starts at 0x04e9.
+
+And the end sequence is :
+  00 93 0A 0C 02 FF
+   Which means... well, not many things now. We can at least verify that S1 (0x0a0c) is
+   there.
+
+
+
+
+
+4. Decoding the graphics
+
+   The graphics are rather easy to decode (at least, when you know how to do it - it
+  took us one whole week to figure out what the encoding was :p).
+
+   The picture is interlaced, for instance for a 40 lines picture :
+
+  line 0  ---------------#----------
+  line 2  ------#-------------------
+   ...
+  line 38 ------------#-------------
+  line 1  ------------------#-------
+  line 3  --------#-----------------
+   ...
+  line 39 -------------#------------
+
+   When decoding you should get:
+
+  line 0  ---------------#----------
+  line 1  ------------------#-------
+  line 2  ------#-------------------
+  line 3  --------#-----------------
+   ...
+  line 38 ------------#-------------
+  line 39 -------------#------------
+
+   Computers with weak processors could choose only to decode even lines
+  in order to gain some time, for instance.
+
+
+   The encoding is run-length encoded, with the following alphabet:
+
+   0xf
+   0xe
+   0xd
+   0xc
+   0xb
+   0xa
+   0x9
+   0x8
+   0x7
+   0x6
+   0x5
+   0x4
+   0x3-
+   0x2-
+   0x1-
+   0x0f-
+   0x0e-
+   0x0d-
+   0x0c-
+   0x0b-
+   0x0a-
+   0x09-
+   0x08-
+   0x07-
+   0x06-
+   0x05-
+   0x04-
+   0x03--
+   0x02--
+   0x01--
+   0x0000
+
+   '-' stands for any other nibble. Once a sequence X of this alphabet has
+  been read, the pixels can be displayed : (X >> 2) is the number of pixels
+  to display, and (X & 0x3) is the color of the pixel.
+
+   For instance, 0x23 means "8 pixels of color 3".
+
+   "0000" has a special meaning : it's a carriage return. The decoder should
+  do a carriage return when reaching the end of the line, or when encountering
+  this "0000" sequence. When doing a carriage return, the parser should be
+  reset to the next even position (it cannot be nibble-aligned at the start
+  of a line).
+
+   After a carriage return, the parser should read a line on the other
+  interlaced picture, and swap like this after each carriage return.
+
+   Perhaps I don't explain this very well, so you'd better have a look at
+  the enclosed source.
+
+
+
+
+
+5. What I do not know yet / What I need
+
+I don't know what's in the end sequence yet.
+
+Also, I don't know exactly when to display subtitles, and when to remove them.
+
+I don't know if there are other types of control sequences (in my programs I consider
+0xff as a control sequence type, as well as 0x02. I don't know if it's correct or not,
+so please comment on this).
+
+I don't know what the "official" color palette is.
+
+I don't know how to handle transparency information.
+
+I don't know if this document is generic enough.
+
+So what I need is you :
+
+ - if you can, patch this document or my programs to fix strange behaviour with your subtitles.
+
+ - send me your subtitles (there's a program to extract them enclosed) ; the first 10 KB
+  of subtitles in a VOB should be enough, but it would be cool if you sent me one subtitle
+  file per language.
+
+
+
+
+
+6. Thanks
+
+ Thanks to Michel Lespinasse <walken@via.ecp.fr> for his great help on understanding
+the RLE stuff, and for all the ideas he had.
+
+ Thanks to mass (David Waite) and taaz (David I. Lehn) from irc at
+openprojects.net for sending me their subtitles.
+
+
+
+
+
+7. Changes
+
+ 20000116: added the 'changes' section.
+ 20000116: added David Waite's and David I. Lehn's name.
+ 20000116: changed "x0" and "x1" to "S0" and "S1" to make it less confusing.
+
+
+
+
+-- 
+Paris, January 16th 2000
+Samuel Hocevar <sam@via.ecp.fr>

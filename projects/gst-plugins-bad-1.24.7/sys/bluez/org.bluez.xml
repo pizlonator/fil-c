@@ -1,0 +1,53 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+
+<node>
+<interface name="org.bluez.MediaTransport1">
+    <method name="Acquire">
+        <annotation name="org.gtk.GDBus.C.UnixFD" value="true" />
+        <arg name="fd" type="h" direction="out"/>
+        <arg name="mtu_r" type="q" direction="out"/>
+        <arg name="mtu_w" type="q" direction="out"/>
+    </method>
+    <method name="TryAcquire">
+        <annotation name="org.gtk.GDBus.C.UnixFD" value="true" />
+        <arg name="fd" type="h" direction="out"/>
+        <arg name="mtu_r" type="q" direction="out"/>
+        <arg name="mtu_w" type="q" direction="out"/>
+    </method>
+    <method name="Release"></method>
+    <property name="Device" type="o" access="read"></property>
+    <property name="UUID" type="s" access="read"></property>
+    <property name="Codec" type="y" access="read"></property>
+    <property name="Configuration" type="ay" access="read">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true" />
+    </property>
+    <property name="State" type="s" access="read"></property>
+    <property name="Delay" type="q" access="read"></property>
+    <property name="Volume" type="q" access="readwrite"></property>
+</interface>
+
+<interface name="org.bluez.MediaPlayer1">
+  <method name="Play"/>
+  <method name="Pause"/>
+  <method name="Stop"/>
+  <method name="Next"/>
+  <method name="Previous"/>
+  <method name="FastForward"/>
+  <method name="Rewind"/>
+  <property name="Name" type="s" access="read"/>
+  <property name="Type" type="s" access="read"/>
+  <property name="Subtype" type="s" access="read"/>
+  <property name="Position" type="u" access="read"/>
+  <property name="Status" type="s" access="read"/>
+  <property name="Equalizer" type="s" access="readwrite"/>
+  <property name="Repeat" type="s" access="readwrite"/>
+  <property name="Shuffle" type="s" access="readwrite"/>
+  <property name="Scan" type="s" access="readwrite"/>
+  <property name="Track" type="a{sv}" access="read"/>
+  <property name="Device" type="o" access="read"/>
+  <property name="Browsable" type="b" access="read"/>
+  <property name="Searchable" type="b" access="read"/>
+  <property name="Playlist" type="o" access="read"/>
+</interface>
+</node>

@@ -1,0 +1,24 @@
+[GStreamer Encoding Target]
+name=youtube;yt
+category=online-service
+description=Recommended encoding settings for YouTube
+
+[profile-default]
+name=default
+type=container
+description=Youtube recommended profile with automatic audio setting
+format=video/quicktime
+preset=Profile YouTube
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/mpeg,mpegversion=4,base-profile=lc
+restriction=audio/x-raw,channels=6,rate={48000,96000};audio/x-raw,channels=2,rate={48000,96000}
+
+[streamprofile-default-1]
+parent=default
+type=video
+format=video/x-h264,profile=high
+preset=Profile YouTube
+pass=0

@@ -1,0 +1,276 @@
+/* vim: set filetype=c: */
+% ClassName
+GstBaseSrc
+% TYPE_CLASS_NAME
+GST_TYPE_BASE_SRC
+% pads
+srcpad-simple
+% pkg-config
+gstreamer-base-1.0
+% includes
+#include <gst/base/gstbasesrc.h>
+% prototypes
+static GstCaps *gst_replace_get_caps (GstBaseSrc * src, GstCaps * filter);
+static gboolean gst_replace_negotiate (GstBaseSrc * src);
+static GstCaps *gst_replace_fixate (GstBaseSrc * src, GstCaps * caps);
+static gboolean gst_replace_set_caps (GstBaseSrc * src, GstCaps * caps);
+static gboolean gst_replace_decide_allocation (GstBaseSrc * src,
+    GstQuery * query);
+static gboolean gst_replace_start (GstBaseSrc * src);
+static gboolean gst_replace_stop (GstBaseSrc * src);
+static void gst_replace_get_times (GstBaseSrc * src, GstBuffer * buffer,
+    GstClockTime * start, GstClockTime * end);
+static gboolean gst_replace_get_size (GstBaseSrc * src, guint64 * size);
+static gboolean gst_replace_is_seekable (GstBaseSrc * src);
+static gboolean gst_replace_prepare_seek_segment (GstBaseSrc * src,
+    GstEvent * seek, GstSegment * segment);
+static gboolean gst_replace_do_seek (GstBaseSrc * src, GstSegment * segment);
+static gboolean gst_replace_unlock (GstBaseSrc * src);
+static gboolean gst_replace_unlock_stop (GstBaseSrc * src);
+static gboolean gst_replace_query (GstBaseSrc * src, GstQuery * query);
+static gboolean gst_replace_event (GstBaseSrc * src, GstEvent * event);
+static GstFlowReturn gst_replace_create (GstBaseSrc * src, guint64 offset,
+    guint size, GstBuffer ** buf);
+static GstFlowReturn gst_replace_alloc (GstBaseSrc * src, guint64 offset,
+    guint size, GstBuffer ** buf);
+static GstFlowReturn gst_replace_fill (GstBaseSrc * src, guint64 offset,
+    guint size, GstBuffer * buf);
+% declare-class
+  GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS (klass);
+% set-methods
+  base_src_class->get_caps = GST_DEBUG_FUNCPTR (gst_replace_get_caps);
+  base_src_class->negotiate = GST_DEBUG_FUNCPTR (gst_replace_negotiate);
+  base_src_class->fixate = GST_DEBUG_FUNCPTR (gst_replace_fixate);
+  base_src_class->set_caps = GST_DEBUG_FUNCPTR (gst_replace_set_caps);
+  base_src_class->decide_allocation = GST_DEBUG_FUNCPTR (gst_replace_decide_allocation);
+  base_src_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  base_src_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  base_src_class->get_times = GST_DEBUG_FUNCPTR (gst_replace_get_times);
+  base_src_class->get_size = GST_DEBUG_FUNCPTR (gst_replace_get_size);
+  base_src_class->is_seekable = GST_DEBUG_FUNCPTR (gst_replace_is_seekable);
+  base_src_class->prepare_seek_segment = GST_DEBUG_FUNCPTR (gst_replace_prepare_seek_segment);
+  base_src_class->do_seek = GST_DEBUG_FUNCPTR (gst_replace_do_seek);
+  base_src_class->unlock = GST_DEBUG_FUNCPTR (gst_replace_unlock);
+  base_src_class->unlock_stop = GST_DEBUG_FUNCPTR (gst_replace_unlock_stop);
+  base_src_class->query = GST_DEBUG_FUNCPTR (gst_replace_query);
+  base_src_class->event = GST_DEBUG_FUNCPTR (gst_replace_event);
+  base_src_class->create = GST_DEBUG_FUNCPTR (gst_replace_create);
+  base_src_class->alloc = GST_DEBUG_FUNCPTR (gst_replace_alloc);
+  base_src_class->fill = GST_DEBUG_FUNCPTR (gst_replace_fill);
+% methods
+/* get caps from subclass */
+static GstCaps *
+gst_replace_get_caps (GstBaseSrc * src, GstCaps * filter)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "get_caps");
+
+  return NULL;
+}
+
+/* decide on caps */
+static gboolean
+gst_replace_negotiate (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "negotiate");
+
+  return TRUE;
+}
+
+/* called if, in negotiation, caps need fixating */
+static GstCaps *
+gst_replace_fixate (GstBaseSrc * src, GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "fixate");
+
+  return NULL;
+}
+
+/* notify the subclass of new caps */
+static gboolean
+gst_replace_set_caps (GstBaseSrc * src, GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "set_caps");
+
+  return TRUE;
+}
+
+/* setup allocation query */
+static gboolean
+gst_replace_decide_allocation (GstBaseSrc * src, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "decide_allocation");
+
+  return TRUE;
+}
+
+/* start and stop processing, ideal for opening/closing the resource */
+static gboolean
+gst_replace_start (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+/* given a buffer, return start and stop time when it should be pushed
+ * out. The base class will sync on the clock using these times. */
+static void
+gst_replace_get_times (GstBaseSrc * src, GstBuffer * buffer,
+    GstClockTime * start, GstClockTime * end)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "get_times");
+
+}
+
+/* get the total size of the resource in bytes */
+static gboolean
+gst_replace_get_size (GstBaseSrc * src, guint64 * size)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "get_size");
+
+  return TRUE;
+}
+
+/* check if the resource is seekable */
+static gboolean
+gst_replace_is_seekable (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "is_seekable");
+
+  return TRUE;
+}
+
+/* Prepare the segment on which to perform do_seek(), converting to the
+ * current basesrc format. */
+static gboolean
+gst_replace_prepare_seek_segment (GstBaseSrc * src, GstEvent * seek,
+    GstSegment * segment)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "prepare_seek_segment");
+
+  return TRUE;
+}
+
+/* notify subclasses of a seek */
+static gboolean
+gst_replace_do_seek (GstBaseSrc * src, GstSegment * segment)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "do_seek");
+
+  return TRUE;
+}
+
+/* unlock any pending access to the resource. subclasses should unlock
+ * any function ASAP. */
+static gboolean
+gst_replace_unlock (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "unlock");
+
+  return TRUE;
+}
+
+/* Clear any pending unlock request, as we succeeded in unlocking */
+static gboolean
+gst_replace_unlock_stop (GstBaseSrc * src)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "unlock_stop");
+
+  return TRUE;
+}
+
+/* notify subclasses of a query */
+static gboolean
+gst_replace_query (GstBaseSrc * src, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "query");
+
+  return TRUE;
+}
+
+/* notify subclasses of an event */
+static gboolean
+gst_replace_event (GstBaseSrc * src, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "event");
+
+  return TRUE;
+}
+
+/* ask the subclass to create a buffer with offset and size, the default
+ * implementation will call alloc and fill. */
+static GstFlowReturn
+gst_replace_create (GstBaseSrc * src, guint64 offset, guint size,
+    GstBuffer ** buf)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "create");
+
+  return GST_FLOW_OK;
+}
+
+/* ask the subclass to allocate an output buffer. The default implementation
+ * will use the negotiated allocator. */
+static GstFlowReturn
+gst_replace_alloc (GstBaseSrc * src, guint64 offset, guint size,
+    GstBuffer ** buf)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "alloc");
+
+  return GST_FLOW_OK;
+}
+
+/* ask the subclass to fill the buffer with data from offset and size */
+static GstFlowReturn
+gst_replace_fill (GstBaseSrc * src, guint64 offset, guint size, GstBuffer * buf)
+{
+  GstReplace *replace = GST_REPLACE (src);
+
+  GST_DEBUG_OBJECT (replace, "fill");
+
+  return GST_FLOW_OK;
+}
+% end

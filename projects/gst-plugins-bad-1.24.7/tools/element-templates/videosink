@@ -1,0 +1,30 @@
+/* vim: set filetype=c: */
+% ClassName
+GstVideoSink
+% TYPE_CLASS_NAME
+GST_TYPE_VIDEO_SINK
+% pads
+sinkpad-template-video
+% pkg-config
+gstreamer-video-1.0
+% includes
+#include <gst/video/video.h>
+#include <gst/video/gstvideosink.h>
+% prototypes
+static GstFlowReturn gst_replace_show_frame (GstVideoSink * video_sink,
+    GstBuffer * buf);
+% declare-class
+  GstVideoSinkClass *video_sink_class = GST_VIDEO_SINK_CLASS (klass);
+% set-methods
+  video_sink_class->show_frame = GST_DEBUG_FUNCPTR (gst_replace_show_frame);
+% methods
+static GstFlowReturn
+gst_replace_show_frame (GstVideoSink * sink, GstBuffer * buf)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "show_frame");
+
+  return GST_FLOW_OK;
+}
+% end

@@ -1,0 +1,8 @@
+meta,
+    args = {
+        "videotestsrc pattern=ball animation-mode=frames num-buffers=90 ! video/x-raw,framerate=30/1,width=320,height=240 ! cvtracker name=tracker object-initial-x=135 object-initial-y=95 object-initial-width=50 object-initial-height=50 algorithm=1 ! videoconvert ! $(videosink) sync=true",
+    },
+    configs = {
+       "$(validateflow), pad=tracker:src, record-buffers=true",
+    }
+crank-clock, repeat=91

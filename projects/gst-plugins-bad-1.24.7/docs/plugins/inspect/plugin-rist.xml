@@ -1,0 +1,85 @@
+<plugin>
+  <name>rist</name>
+  <description>Source and Sink for RIST TR-06-1 streaming specification</description>
+  <filename>../../gst/rist/.libs/libgstrist.so</filename>
+  <basename>libgstrist.so</basename>
+  <version>1.15.2.1</version>
+  <license>LGPL</license>
+  <source>gst-plugins-bad</source>
+  <package>GStreamer Bad Plug-ins git</package>
+  <origin>Unknown package origin</origin>
+  <elements>
+    <element>
+      <name>ristrtxreceive</name>
+      <longname>RIST Retransmission receiver</longname>
+      <class>Codec</class>
+      <description>Receive retransmitted RIST packets according to VSF TR-06-1</description>
+      <author>Nicolas Dufresne &lt;nicolas.dufresne@collabora.com&gt;</author>
+      <pads>
+        <caps>
+          <name>sink</name>
+          <direction>sink</direction>
+          <presence>always</presence>
+          <details>application/x-rtp</details>
+        </caps>
+        <caps>
+          <name>src</name>
+          <direction>source</direction>
+          <presence>always</presence>
+          <details>application/x-rtp</details>
+        </caps>
+      </pads>
+    </element>
+    <element>
+      <name>ristrtxsend</name>
+      <longname>RIST Retransmission Sender</longname>
+      <class>Codec</class>
+      <description>Retransmit RTP packets when needed, according to VSF TR-06-1</description>
+      <author>Nicolas Dufresne &lt;nicolas.dufresne@collabora.com&gt;</author>
+      <pads>
+        <caps>
+          <name>sink</name>
+          <direction>sink</direction>
+          <presence>always</presence>
+          <details>application/x-rtp, clock-rate=(int)[ 1, 2147483647 ]</details>
+        </caps>
+        <caps>
+          <name>src</name>
+          <direction>source</direction>
+          <presence>always</presence>
+          <details>application/x-rtp</details>
+        </caps>
+      </pads>
+    </element>
+    <element>
+      <name>ristsink</name>
+      <longname>RIST Sink</longname>
+      <class>Source/Network</class>
+      <description>Sink that implements RIST TR-06-1 streaming specification</description>
+      <author>Nicolas Dufresne &lt;nicolas.dufresne@collabora.com</author>
+      <pads>
+        <caps>
+          <name>sink</name>
+          <direction>sink</direction>
+          <presence>always</presence>
+          <details>application/x-rtp</details>
+        </caps>
+      </pads>
+    </element>
+    <element>
+      <name>ristsrc</name>
+      <longname>RIST Source</longname>
+      <class>Source/Network</class>
+      <description>Source that implements RIST TR-06-1 streaming specification</description>
+      <author>Nicolas Dufresne &lt;nicolas.dufresne@collabora.com</author>
+      <pads>
+        <caps>
+          <name>src</name>
+          <direction>source</direction>
+          <presence>always</presence>
+          <details>application/x-rtp</details>
+        </caps>
+      </pads>
+    </element>
+  </elements>
+</plugin>

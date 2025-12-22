@@ -1,0 +1,21 @@
+/* vim: set filetype=c: */
+
+% instance-members
+% prototypes
+% pad-template
+/* FIXME add/remove the formats that you want to support */
+static GstStaticPadTemplate gst_replace_sink_template =
+GST_STATIC_PAD_TEMPLATE ("sink",
+    GST_PAD_SINK,
+    GST_PAD_ALWAYS,
+    GST_STATIC_CAPS ("audio/x-raw,format=S16LE,rate=[1,max],"
+      "channels=[1,max],layout=interleaved")
+    );
+
+% base-init
+  gst_element_class_add_static_pad_template (GST_ELEMENT_CLASS(klass),
+      &gst_replace_sink_template);
+% instance-init
+% methods
+% end
+

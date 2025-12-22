@@ -1,0 +1,355 @@
+#!/bin/sh
+
+
+prefix=gst
+templatedir=element-templates
+
+while [ "$1" ] ; do
+  case $1 in
+    --help)
+      cat <<-EOF
+Usage: $(basename "$0") [OPTIONS] PROJECT_NAME
+Create an autotools project based on GStreamer from a template.
+Options:
+  --help             Print this information
+  --prefix PREFIX    Use PREFIX instead of "gst"
+Example: '$(basename "$0") my_project' will create the project gst-my-project.
+EOF
+      exit 0
+      ;;
+    --prefix)
+      shift
+      prefix=$1
+      ;;
+    -*)
+      echo Unknown option: $1
+      exit 1
+      ;;
+    *)
+      if [ "$name" = "" ]; then
+        name=$1
+      else
+        echo Ignored: $1
+      fi
+  esac
+  shift
+done
+
+if [ "$name" = "" ] ; then
+  echo "Usage: $(basename "$0") [OPTIONS] PROJECT_NAME"
+  exit 1
+fi
+
+
+PREFIX=$(echo $prefix | sed -e 's/\(.*\)/\U\1/')
+NAME=$(echo $name | sed -e 's/\(.*\)/\U\1/')
+Prefix=$(echo $prefix | sed -e 's/_\(.\)/\U\1/g' -e 's/^\(.\)/\U\1/')
+Name=$(echo $name | sed -e 's/_\(.\)/\U\1/g' -e 's/^\(.\)/\U\1/')
+
+if [ "$prefix" != "gst" ] ; then
+  cmdline_prefix="--prefix $prefix"
+else
+  cmdline_prefix=""
+fi
+
+GST_IS_REPLACE=${PREFIX}_IS_${NAME}
+GST_REPLACE=${PREFIX}_${NAME}
+GST_TYPE_REPLACE=${PREFIX}_TYPE_${NAME}
+GstReplace=${Prefix}${Name}
+gst_replace=${prefix}_${name}
+gst__replace=${prefix}-${name}
+gstreplace=${prefix}$(echo $name | sed -e 's/_//g')
+replace=$(echo $name | sed -e 's/_//g')
+
+if [ "$REAL_NAME" = "" ] ; then
+  REAL_NAME=FIXME
+fi
+if [ "$EMAIL_ADDRESS" = "" ] ; then
+  EMAIL_ADDRESS=fixme@example.com
+fi
+
+
+
+basedir=`pwd`/$gst__replace
+
+rm -rf $basedir
+mkdir $basedir
+
+cat >$basedir/AUTHORS <<EOF
+$REAL_NAME <$EMAIL_ADDRESS>
+EOF
+
+cat >$basedir/COPYING <<EOF
+Put your license here.
+EOF
+
+cat >$basedir/ChangeLog <<EOF
+Put your changelog here.
+EOF
+
+cat >$basedir/NEWS <<EOF
+News about your project.
+EOF
+
+cat >$basedir/README <<EOF
+README for your project.
+
+NOTE:
+plugins can be installed locally by using "\$HOME" as prefix:
+
+  $ meson --prefix="\$HOME" build/
+  $ ninja -C build/ install
+
+However be advised that the automatic scan of plugins in the user home
+directory won't work under gst-build devenv.
+EOF
+
+cat >$basedir/meson.build <<EOF
+project('${gst__replace}', 'c',
+  version : '0.1.0',
+  default_options : [ 'warning_level=1',
+                      'buildtype=debugoptimized' ])
+
+core_conf = configuration_data()
+core_conf.set('PACKAGE', '"@0@"'.format(meson.project_name()))
+core_conf.set('VERSION', '"@0@"'.format(meson.project_version()))
+
+configure_file(output : 'config.h', configuration : core_conf)
+
+configinc = include_directories('.')
+
+common_args = ['-DHAVE_CONFIG_H']
+
+gst_req = '>= 1.0.0'
+
+# Check for the required version of GStreamer core (and gst-plugins-base)
+#
+# If you need libraries from gst-plugins-base here, also add:
+# for libgstaudio-1.0: gstreamer-audio-1.0
+# for libgstvideo-1.0: gstreamer-video-1.0
+# for libgsttag-1.0: gstreamer-tag-1.0
+# for libgstpbutils-1.0: gstreamer-pbutils-1.0
+# for libgstfft-1.0: gstreamer-fft-1.0
+# for libgstinterfaces-1.0: gstreamer-interfaces-1.0
+# for libgstrtp-1.0: gstreamer-rtp-1.0
+# for libgstrtsp-1.0: gstreamer-rtsp-1.0
+# etc.
+gst_dep = dependency('gstreamer-1.0', version : gst_req,
+  fallback : ['gstreamer', 'gst_dep'])
+gst_base_dep = dependency('gstreamer-base-1.0', version : gst_req,
+  fallback : ['gstreamer', 'gst_base_dep'])
+
+# Set the directory where plugins should be installed.
+#
+# If the prefix is the user home directory, adjust the plugin installation
+# path so that GStreamer can find it. Requires meson >= 0.53.0
+fs = import('fs')
+if fs.is_samepath(get_option('prefix'), '~')
+  plugins_install_dir = '@0@/.local/share/gstreamer-1.0/plugins'.format(get_option('prefix'))
+else
+  plugins_install_dir = '@0@/gstreamer-1.0'.format(get_option('libdir'))
+endif
+
+plugin_deps = [gst_dep, gst_base_dep]
+tool_deps = [gst_dep]
+
+subdir('plugins')
+subdir('tools')
+EOF
+
+
+mkdir -p $basedir/plugins
+
+cat >$basedir/plugins/meson.build <<EOF
+lib_args = common_args + []
+
+# sources used to compile this plug-in
+plugin_sources = [
+  '${gstreplace}plugin.c',
+  '${gstreplace}.c',
+  '${gstreplace}.h'
+]
+
+shlib = shared_library('${gstreplace}',
+  plugin_sources,
+  c_args : lib_args,
+  include_directories: [configinc],
+  dependencies : plugin_deps,
+  gnu_symbol_visibility : 'hidden',
+  install : true,
+  install_dir : plugins_install_dir,
+)
+
+# Make this library usable as a Meson subproject.
+gst_${replace}_dep = declare_dependency(
+  include_directories: include_directories('.'),
+  link_with : shlib)
+
+pkg_mod = import('pkgconfig')
+pkg_mod.generate(
+  name : '${gst__replace}',
+  filebase : '${gst__replace}',
+  description : 'Meson sample project.',
+  subdirs : 'src',
+  libraries : shlib,
+  version : '"@0@"'.format(meson.project_version()),
+)
+EOF
+
+
+generate()
+{
+cat <<EOF
+/*
+ * GStreamer
+ * Copyright (C) $(date +%Y) $REAL_NAME <$EMAIL_ADDRESS>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Alternatively, the contents of this file may be used under the
+ * GNU Lesser General Public License Version 2.1 (the "LGPL"), in
+ * which case the following provisions apply instead of the ones
+ * mentioned above:
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <gst/gst.h>
+#include "gstreplace.h"
+
+static gboolean
+plugin_init (GstPlugin * plugin)
+{
+  gst_element_register (plugin, "replace", GST_RANK_NONE,
+      GST_TYPE_REPLACE);
+
+  return TRUE;
+}
+
+GST_PLUGIN_DEFINE (
+    GST_VERSION_MAJOR,
+    GST_VERSION_MINOR,
+    replace,
+    "FIXME Template plugin",
+    plugin_init,
+    VERSION,
+    "LGPL", /* FIXME */
+    "GStreamer",
+    "http://gstreamer.net/"
+)
+EOF
+}
+
+
+generate | sed \
+  -e "s/GST_BASE_REPLACE/$GST_BASE_REPLACE/g" \
+  -e "s/GST_TYPE_BASE_REPLACE/$GST_TYPE_BASE_REPLACE/g" \
+  -e "s/GstBaseReplace/$GstBaseReplace/g" \
+  -e "s/GST_IS_REPLACE/$GST_IS_REPLACE/g" \
+  -e "s/GST_REPLACE/$GST_REPLACE/g" \
+  -e "s/GST_TYPE_REPLACE/$GST_TYPE_REPLACE/g" \
+  -e "s/GstReplace/$GstReplace/g" \
+  -e "s/gst_replace/$gst_replace/g" \
+  -e "s/gstreplace/$gstreplace/g" \
+  -e "s/replace/$replace/g" >$basedir/plugins/${gstreplace}plugin.c
+
+gst-indent $basedir/plugins/${gstreplace}plugin.c || echo "Warning: could not run gst-indent on the generated code." 1>&2
+rm -f $basedir/plugins/${gstreplace}plugin.c~
+
+cat >$basedir/plugins/${gstreplace}.c <<EOF
+/* This file should be replaced by element source generated by
+ * gst-element-maker, or by your own source code.  To generate suitable
+ * element source using gst-element-maker, run:
+ *
+ *   gst-element-maker $cmdline_prefix $replace BASE_CLASS
+ *
+ * Where BASE_CLASS is replaced by one of the base class templates,
+ * such as basesrc, basetransform, audiofilter, videofilter2, etc.
+ * Then copy the resulting $gstreplace.c file over this file, and
+ * $gstreplace.h over $gstreplace.h.
+ */
+/* The rest of this file is shim code to allow the project to compile */
+EOF
+
+cat >$basedir/plugins/${gstreplace}.h <<EOF
+/* This file should be replaced by element header generated by
+ * gst-element-maker, or by your own source code.  To generate suitable
+ * element header using gst-element-maker, run:
+ *
+ *   gst-element-maker $cmdline_prefix $replace BASE_CLASS
+ *
+ * Where BASE_CLASS is replaced by one of the base class templates,
+ * such as basesrc, basetransform, audiofilter, videofilter2, etc.
+ * Then copy the resulting $gstreplace.h file over this file, and
+ * $gstreplace.c over $gstreplace.c.
+ */
+/* The rest of this file is shim code to allow the project to compile */
+#define ${GST_TYPE_REPLACE} G_TYPE_NONE
+EOF
+
+
+mkdir -p $basedir/tools
+
+cat >$basedir/tools/meson.build <<EOF
+exe_args = common_args + []
+
+# sources used to compile this program
+tool_sources = [
+  '${gstreplace}.c',
+]
+
+executable('${gstreplace}',
+  tool_sources,
+  install: true,
+  c_args : exe_args,
+  include_directories: [configinc],
+  dependencies : tool_deps,
+)
+EOF
+
+cat >$basedir/tools/${gstreplace}.c <<EOF
+/* This file should be replaced by application source generated by
+ * gst-app-maker, or by your own source code.  To generate suitable
+ * app source using gst-app-maker, run:
+ *
+ *   gst-app-maker $cmdline_prefix $replace
+ *
+ * Then copy the resulting $gstreplace.c file over this file.
+ */
+/* The rest of this file is shim code to allow the project to compile */
+#include <stdio.h>
+int main (void) { printf ("FIXME\n"); return 0; }
+EOF

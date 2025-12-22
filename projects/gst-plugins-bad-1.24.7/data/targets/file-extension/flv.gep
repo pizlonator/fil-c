@@ -1,0 +1,32 @@
+[GStreamer Encoding Target]
+name=flv
+category=file-extension
+description=Default target for files with a .flv extension
+
+[profile-default]
+name=default
+type=container
+description=Default profile for files with a .flv extension.
+format=video/x-flv
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/mpeg,mpegversion=4
+
+[streamprofile-default-1]
+parent=default
+type=audio
+format=audio/mpeg, mpegversion=(int)1, mpegaudioversion=(int)1, layer=(int)3
+
+[streamprofile-default-2]
+parent=default
+type=video
+format=video/x-h264
+preset=Profile YouTube
+pass=0
+
+[streamprofile-default-3]
+parent=default
+type=video
+format=video/x-h264

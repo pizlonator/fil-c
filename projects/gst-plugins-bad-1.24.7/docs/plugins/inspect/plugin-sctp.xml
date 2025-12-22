@@ -1,0 +1,55 @@
+<plugin>
+  <name>sctp</name>
+  <description>SCTP encoder/decoder plugin</description>
+  <filename>../../ext/sctp/.libs/libgstsctp.so</filename>
+  <basename>libgstsctp.so</basename>
+  <version>1.17.0.1</version>
+  <license>BSD</license>
+  <source>gst-plugins-bad</source>
+  <package>GStreamer Bad Plug-ins git</package>
+  <origin>Unknown package origin</origin>
+  <elements>
+    <element>
+      <name>sctpdec</name>
+      <longname>SCTP Decoder</longname>
+      <class>Decoder/Network/SCTP</class>
+      <description>Decodes packets with SCTP</description>
+      <author>George Kiagiadakis &lt;george.kiagiadakis@collabora.com&gt;</author>
+      <pads>
+        <caps>
+          <name>sink</name>
+          <direction>sink</direction>
+          <presence>always</presence>
+          <details>application/x-sctp</details>
+        </caps>
+        <caps>
+          <name>src_%u</name>
+          <direction>source</direction>
+          <presence>sometimes</presence>
+          <details>ANY</details>
+        </caps>
+      </pads>
+    </element>
+    <element>
+      <name>sctpenc</name>
+      <longname>SCTP Encoder</longname>
+      <class>Encoder/Network/SCTP</class>
+      <description>Encodes packets with SCTP</description>
+      <author>George Kiagiadakis &lt;george.kiagiadakis@collabora.com&gt;</author>
+      <pads>
+        <caps>
+          <name>sink_%u</name>
+          <direction>sink</direction>
+          <presence>request</presence>
+          <details>ANY</details>
+        </caps>
+        <caps>
+          <name>src</name>
+          <direction>source</direction>
+          <presence>always</presence>
+          <details>application/x-sctp</details>
+        </caps>
+      </pads>
+    </element>
+  </elements>
+</plugin>

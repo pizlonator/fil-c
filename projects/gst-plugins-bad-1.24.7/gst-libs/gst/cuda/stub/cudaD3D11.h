@@ -1,0 +1,14 @@
+#pragma once
+
+#include <glib.h>
+
+G_BEGIN_DECLS
+
+typedef enum
+{
+  CU_D3D11_DEVICE_LIST_ALL = 0x01,
+  CU_D3D11_DEVICE_LIST_CURRENT_FRAME = 0x02,
+  CU_D3D11_DEVICE_LIST_NEXT_FRAME = 0x03,
+} CUd3d11DeviceList;
+
+G_END_DECLS

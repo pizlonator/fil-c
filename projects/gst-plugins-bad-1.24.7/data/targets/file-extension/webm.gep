@@ -1,0 +1,21 @@
+[GStreamer Encoding Target]
+name=webm
+category=file-extension
+description=Default target for files with a .webm extension
+
+[profile-default]
+name=default
+description=Default profile for files with a .webm extension. Audio stream can be either vorbis (default) or opus depending on what is available on the system. Video stream will be either in vp8 (default) or vp9.
+type=container
+format=video/webm
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/x-vorbis;audio/x-opus
+
+[streamprofile-default-1]
+parent=default
+type=video
+format=video/x-vp8;video/x-vp9
+pass=0

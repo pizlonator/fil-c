@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ $# -ge 1 ]; then
+  DEVICE_OPT="device=$1"
+else
+  DEVICE_OPT=""
+fi
+
+gst-launch-1.0 rsndvdbin name=dvd "$DEVICE_OPT" \
+   dvdspu name=spu ! deinterlace ! xvimagesink force-aspect-ratio=false \
+   dvd. ! queue max-size-buffers=3 max-size-bytes=0 ! spu.video \
+   dvd. ! spu.subpicture \
+   dvd. ! audioconvert ! autoaudiosink

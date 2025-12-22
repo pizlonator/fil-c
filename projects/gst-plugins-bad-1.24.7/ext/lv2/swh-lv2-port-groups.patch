@@ -1,0 +1,502 @@
+diff -ur swh-lv2-1.0.15/plugins/dj_eq-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/dj_eq-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/dj_eq-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/dj_eq-swh.lv2/plugin.xml	2009-07-03 16:55:25.000000000 -0400
+@@ -140,6 +140,9 @@
+       *(plugin_data->latency) = 3; //XXX is this right?
+     ]]></callback>
+ 
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
++
+     <port label="lo" dir="input" type="control" hint="default_0">
+       <name>Lo gain (dB)</name>
+       <p>Controls the gain of the low (100Hz) peak/dip band</p>
+@@ -158,18 +161,18 @@
+       <range min="-70" max="+6"/>
+     </port>
+ 
+-    <port label="left_input" dir="input" type="audio">
++    <port label="left_input" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Input L</name>
+     </port>
+-    <port label="right_input" dir="input" type="audio">
++    <port label="right_input" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Input R</name>
+     </port>
+ 
+-    <port label="left_output" dir="output" type="audio">
++    <port label="left_output" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Output L</name>
+     </port>
+ 
+-    <port label="right_output" dir="output" type="audio">
++    <port label="right_output" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Output R</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/gverb-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/gverb-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/gverb-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/gverb-swh.lv2/plugin.xml	2009-06-14 22:05:18.000000000 -0400
+@@ -119,16 +119,20 @@
+       <p>The level of the classic reverb tail reflections.</p>
+       <range min="-70" max="0"/>
+     </port>
++    
++    <group label="in" type="MonoGroup"/>
+ 
+-    <port label="input" dir="input" type="audio">
++    <port label="input" dir="input" type="audio" group="in" role="centerChannel">
+       <name>Input</name>
+     </port>
++    
++    <group label="out" type="StereoGroup" source="in"/>
+ 
+-    <port label="outl" dir="output" type="audio">
++    <port label="outl" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Left output</name>
+     </port>
+ 
+-    <port label="outr" dir="output" type="audio">
++    <port label="outr" dir="output" type="audio" group="out" role="rightChannel">
+       <name>Right output</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/karaoke-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/karaoke-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/karaoke-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/karaoke-swh.lv2/plugin.xml	2009-07-03 16:55:05.000000000 -0400
+@@ -33,19 +33,22 @@
+       <range min="-70" max="0"/>
+     </port>
+ 
+-    <port label="lin" dir="input" type="audio">
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
++
++    <port label="lin" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Left in</name>
+     </port>
+ 
+-    <port label="rin" dir="input" type="audio">
++    <port label="rin" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Right in</name>
+     </port>
+ 
+-    <port label="lout" dir="output" type="audio">
++    <port label="lout" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Left out</name>
+     </port>
+ 
+-    <port label="rout" dir="output" type="audio">
++    <port label="rout" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Right out</name>
+     </port>
+   </plugin>
+diff -ur swh-lv2-1.0.15/plugins/lcr_delay-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/lcr_delay-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/lcr_delay-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/lcr_delay-swh.lv2/plugin.xml	2009-07-03 16:56:09.000000000 -0400
+@@ -197,20 +197,23 @@
+       <p>The ammounts of the input and effect mixed to produce the output.</p>
+       <range min="0" max="1"/>
+     </port>
++    
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
+ 
+-    <port label="in_l" dir="input" type="audio">
++    <port label="in_l" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>L input</name>
+     </port>
+ 
+-    <port label="in_r" dir="input" type="audio">
++    <port label="in_r" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>R input</name>
+     </port>
+ 
+-    <port label="out_l" dir="output" type="audio">
++    <port label="out_l" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>L output</name>
+     </port>
+ 
+-    <port label="out_r" dir="output" type="audio">
++    <port label="out_r" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>R output</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/matrix_ms_st-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/matrix_ms_st-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/matrix_ms_st-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/matrix_ms_st-swh.lv2/plugin.xml	2009-06-14 22:05:13.000000000 -0400
+@@ -27,17 +27,21 @@
+       <range min="0" max="2" />
+     </port>
+ 
+-    <port label="mid" dir="input" type="audio">
++    <group label="in" type="MidSideGroup"/>
++
++    <port label="mid" dir="input" type="audio" group="in" role="centerChannel">
+       <name>Mid</name>
+     </port>
+-    <port label="side" dir="input" type="audio">
++    <port label="side" dir="input" type="audio" group="in" role="sideChannel">
+       <name>Side</name>
+     </port>
++    
++    <group label="out" type="StereoGroup" source="in"/>
+ 
+-    <port label="left" dir="output" type="audio">
++    <port label="left" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Left</name>
+     </port>
+-    <port label="right" dir="output" type="audio">
++    <port label="right" dir="output" type="audio" group="out" role="rightChannel">
+       <name>Right</name>
+     </port>
+   </plugin>
+diff -ur swh-lv2-1.0.15/plugins/matrix_spatialiser-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/matrix_spatialiser-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/matrix_spatialiser-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/matrix_spatialiser-swh.lv2/plugin.xml	2009-07-03 16:56:24.000000000 -0400
+@@ -142,10 +142,13 @@
+ 	plugin_data->current_s_gain = current_s_gain;
+     ]]></callback>
+ 
+-    <port label="i_left" dir="input" type="audio">
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
++
++    <port label="i_left" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Input L</name>
+     </port>
+-    <port label="i_right" dir="input" type="audio">
++    <port label="i_right" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Input R</name>
+     </port>
+     <port label="width" dir="input" type="control" hint="integer,default_0">
+@@ -158,10 +161,12 @@
+        ]]></p>
+      </port>
+ 
+-    <port label="o_left" dir="output" type="audio">
++
++
++    <port label="o_left" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Output L</name>
+     </port>
+-    <port label="o_right" dir="output" type="audio">
++    <port label="o_right" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Output R</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/matrix_st_ms-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/matrix_st_ms-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/matrix_st_ms-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/matrix_st_ms-swh.lv2/plugin.xml	2009-06-14 22:05:10.000000000 -0400
+@@ -21,17 +21,21 @@
+       }
+     ]]></callback>
+ 
+-    <port label="left" dir="input" type="audio">
++    <group label="in" type="StereoGroup"/>
++    
++    <group label="out" type="MidSideGroup" source="in"/>
++
++    <port label="left" dir="input" type="audio" group="in" role="leftChannel">
+       <name>Left</name>
+     </port>
+-    <port label="right" dir="input" type="audio">
++    <port label="right" dir="input" type="audio" group="in" role="rightChannel">
+       <name>Right</name>
+     </port>
+ 
+-    <port label="mid" dir="output" type="audio">
++    <port label="mid" dir="output" type="audio" group="out" role="centerChannel">
+       <name>Mid</name>
+     </port>
+-    <port label="side" dir="output" type="audio">
++    <port label="side" dir="output" type="audio" group="out" role="sideChannel">
+       <name>Side</name>
+     </port>
+   </plugin>
+diff -ur swh-lv2-1.0.15/plugins/plate-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/plate-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/plate-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/plate-swh.lv2/plugin.xml	2009-06-14 22:05:16.000000000 -0400
+@@ -109,15 +109,19 @@
+       <range min="0" max="1"/>
+     </port>
+ 
+-    <port label="input" dir="input" type="audio">
++    <group label="in" type="MonoGroup"/>
++    
++    <group label="out" type="StereoGroup" source="in"/>
++
++    <port label="input" dir="input" type="audio" group="in" role="centerChannel">
+       <name>Input</name>
+     </port>
+ 
+-    <port label="outputl" dir="output" type="audio">
++    <port label="outputl" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Left output</name>
+     </port>
+ 
+-    <port label="outputr" dir="output" type="audio">
++    <port label="outputr" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Right output</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/sc3-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/sc3-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/sc3-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/sc3-swh.lv2/plugin.xml	2009-07-03 16:56:34.000000000 -0400
+@@ -137,23 +137,28 @@
+       <range min="0" max="1"/>
+     </port>
+ 
+-    <port label="sidechain" dir="input" type="audio">
++    <group label="sidechain" type="MonoGroup" sidechain-of="main_in"/>
++
++    <port label="sidechain" dir="input" type="audio" group="sidechain" role="centerChannel">
+       <name>Sidechain</name>
+     </port>
++    
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
+ 
+-    <port label="left_in" dir="input" type="audio">
++    <port label="left_in" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Left input</name>
+     </port>
+ 
+-    <port label="right_in" dir="input" type="audio">
++    <port label="right_in" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Right input</name>
+     </port>
+ 
+-    <port label="left_out" dir="output" type="audio">
++    <port label="left_out" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Left output</name>
+     </port>
+ 
+-    <port label="right_out" dir="output" type="audio">
++    <port label="right_out" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Right output</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/sc4-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/sc4-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/sc4-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/sc4-swh.lv2/plugin.xml	2009-07-03 16:54:48.000000000 -0400
+@@ -168,19 +168,22 @@
+       <range min="-24" max="0"/>
+     </port>
+ 
+-    <port label="left_in" dir="input" type="audio">
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
++
++    <port label="left_in" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Left input</name>
+     </port>
+ 
+-    <port label="right_in" dir="input" type="audio">
++    <port label="right_in" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Right input</name>
+     </port>
+ 
+-    <port label="left_out" dir="output" type="audio">
++    <port label="left_out" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Left output</name>
+     </port>
+ 
+-    <port label="right_out" dir="output" type="audio">
++    <port label="right_out" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Right output</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/se4-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/se4-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/se4-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/se4-swh.lv2/plugin.xml	2009-07-03 16:55:59.000000000 -0400
+@@ -164,20 +164,23 @@
+       <p>The degree of gain expansion applied to the input signal, in decibels.</p>
+       <range min="0" max="+24"/>
+     </port>
++    
++    <group label="main_in" type="StereoGroup"/>
++    <group label="main_out" type="StereoGroup"/>
+ 
+-    <port label="left_in" dir="input" type="audio">
++    <port label="left_in" dir="input" type="audio" group="main_in" role="leftChannel">
+       <name>Left input</name>
+     </port>
+ 
+-    <port label="right_in" dir="input" type="audio">
++    <port label="right_in" dir="input" type="audio" group="main_in" role="rightChannel">
+       <name>Right input</name>
+     </port>
+ 
+-    <port label="left_out" dir="output" type="audio">
++    <port label="left_out" dir="output" type="audio" group="main_out" role="leftChannel">
+       <name>Left output</name>
+     </port>
+ 
+-    <port label="right_out" dir="output" type="audio">
++    <port label="right_out" dir="output" type="audio" group="main_out" role="rightChannel">
+       <name>Right output</name>
+     </port>
+ 
+Only in swh-lv2-port-groups/plugins/single_para-swh.lv2: .plugin.xml.swp
+diff -ur swh-lv2-1.0.15/plugins/split-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/split-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/split-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/split-swh.lv2/plugin.xml	2009-06-14 22:05:51.000000000 -0400
+@@ -23,17 +23,21 @@
+ 			}
+ 		</callback>
+ 
+-		<port label="input" dir="input" type="audio">
++        <group label="in" type="MonoGroup"/>
++        
++        <group label="out" type="StereoGroup" source="in"/>
++
++		<port label="input" dir="input" type="audio" group="in" role="centerChannel">
+ 			<name>Input</name>
+ 			<range min="-1" max="+1"/>
+ 		</port>
+ 
+-		<port label="out2" dir="output" type="audio">
++		<port label="out2" dir="output" type="audio" group="out" role="leftChannel">
+ 			<name>Output 1</name>
+ 			<range min="-1" max="+1"/>
+ 		</port>
+ 
+-		<port label="out1" dir="output" type="audio">
++		<port label="out1" dir="output" type="audio" group="out" role="rightChannel">
+ 			<name>Output 2</name>
+ 			<range min="-1" max="+1"/>
+ 		</port>
+diff -ur swh-lv2-1.0.15/plugins/surround_encoder-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/surround_encoder-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/surround_encoder-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/surround_encoder-swh.lv2/plugin.xml	2009-06-14 22:05:23.000000000 -0400
+@@ -111,33 +111,37 @@
+       plugin_data->buffer_pos = buffer_pos;
+     ]]></callback>
+ 
+-    <port label="l" dir="input" type="audio">
++    <port label="l" dir="input" type="audio" group="in" role="leftChannel">
+       <name>L</name>
+       <p>Left channel input. Can be treated as per normal stereo recoding, except that the speaker should be at -22.5$^\circ$, rather than the normal stereo -30$^\circ$.</p>
+     </port>
+ 
+-    <port label="r" dir="input" type="audio">
++    <group label="in" type="FourPointZeroGroup"/>
++
++    <port label="r" dir="input" type="audio" group="in" role="rightChannel">
+       <name>R</name>
+       <p>Right channel input. As per left channel.</p>
+     </port>
+ 
+-    <port label="c" dir="input" type="audio">
++    <port label="c" dir="input" type="audio" group="in" role="centerChannel">
+       <name>C</name>
+       <p>Center channel input. Will be directly in front of the listener, stereo and mono compatible.</p>
+     </port>
+ 
+-    <port label="s" dir="input" type="audio">
++    <port label="s" dir="input" type="audio" group="in" role="surroundChannel">
+       <name>S</name>
+       <p>Surround channel. Should sound from the rear speakers, may also leak into the left and right. Has slight delay and bandwidth reduction (cut below 100 Hz, and above 7 KHz) for leakage and noise reduction and enhanced psychoacoustic effects.</p>
+ 
+       <p>Not mono compatible.</p>
+     </port>
++    
++    <group label="out" type="StereoGroup" encoded-type="FourPointZeroGroup" source="in"/>
+ 
+-    <port label="lt" dir="output" type="audio">
++    <port label="lt" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Lt</name>
+     </port>
+ 
+-    <port label="rt" dir="output" type="audio">
++    <port label="rt" dir="output" type="audio" group="out" role="rightChannel">
+       <name>Rt</name>
+     </port>
+ 
+diff -ur swh-lv2-1.0.15/plugins/xfade-swh.lv2/plugin.xml swh-lv2-port-groups/plugins/xfade-swh.lv2/plugin.xml
+--- swh-lv2-1.0.15/plugins/xfade-swh.lv2/plugin.xml	2008-01-09 16:02:08.000000000 -0500
++++ swh-lv2-port-groups/plugins/xfade-swh.lv2/plugin.xml	2009-06-14 22:02:49.000000000 -0400
+@@ -34,24 +34,30 @@
+       <range min="-1" max="1"/>
+     </port>
+ 
+-    <port label="inputLA" dir="input" type="audio">
++    <group label="in1" type="StereoGroup"/>
++
++    <group label="in2" type="StereoGroup"/>
++
++    <port label="inputLA" dir="input" type="audio" group="in1" role="leftChannel">
+       <name>Input A left</name>
+     </port>
+-    <port label="inputRA" dir="input" type="audio">
++    <port label="inputRA" dir="input" type="audio" group="in1" role="rightChannel">
+       <name>Input A right</name>
+     </port>
+ 
+-    <port label="inputLB" dir="input" type="audio">
++    <port label="inputLB" dir="input" type="audio" group="in2" role="leftChannel">
+       <name>Input B left</name>
+     </port>
+-    <port label="inputRB" dir="input" type="audio">
++    <port label="inputRB" dir="input" type="audio" group="in2" role="rightChannel">
+       <name>Input B right</name>
+     </port>
++    
++    <group label="out" type="StereoGroup"/>
+ 
+-    <port label="outputL" dir="output" type="audio">
++    <port label="outputL" dir="output" type="audio" group="out" role="leftChannel">
+       <name>Output left</name>
+     </port>
+-    <port label="outputR" dir="output" type="audio">
++    <port label="outputR" dir="output" type="audio" group="out" role="rightChannel">
+       <name>Output right</name>
+     </port>
+   </plugin>
+Only in swh-lv2-port-groups: swh-lv2-port-groups.patch
+diff -ur swh-lv2-1.0.15/xslt/turtle.xsl swh-lv2-port-groups/xslt/turtle.xsl
+--- swh-lv2-1.0.15/xslt/turtle.xsl	2008-01-09 16:02:07.000000000 -0500
++++ swh-lv2-port-groups/xslt/turtle.xsl	2009-06-16 23:33:26.000000000 -0400
+@@ -6,8 +6,20 @@
+ @prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+ @prefix doap: &lt;http://usefulinc.com/ns/doap#&gt; .
+ @prefix swhext: &lt;http://plugin.org.uk/extensions#&gt; .
++@prefix pg: &lt;http://lv2plug.in/ns/dev/port-groups#&gt; .
+ <xsl:for-each select="ladspa/plugin">
+-swh:<xsl:value-of select="@label"/> a :Plugin ;
++  <xsl:variable name="pluglabel" select="@label"/>
++  <xsl:for-each select="group">
++    <xsl:variable name="grouplabel" select="@label"/>
++    <xsl:variable name="groupuri">
++      <xsl:value-of select="$pluglabel"/>-<xsl:value-of select="$grouplabel"/>
++    </xsl:variable>
++swh:<xsl:value-of select="$groupuri"/> a pg:Group ;
++   a pg:<xsl:value-of select="@type"/> ;
++   :symbol "<xsl:value-of select="$grouplabel"/>"<xsl:if test="@source"> ;
++   pg:source swh:<xsl:value-of select="$pluglabel"/>-<xsl:value-of select="@source"/></xsl:if> .
++  </xsl:for-each>
++swh:<xsl:value-of select="$pluglabel"/> a :Plugin ;
+ <xsl:call-template name="csl2type">
+      <xsl:with-param name="in" select="@class"/>
+    </xsl:call-template>
+@@ -22,7 +34,8 @@
+ <!--   <xsl:if test="p">swhext:documentation """<xsl:value-of select="p"/>""" ;
+   </xsl:if>-->
+   <xsl:for-each select="/ladspa/global/meta">
+-    <xsl:if test="@name = 'properties' and @value = 'HARD_RT_CAPABLE'">:pluginProperty :hardRtCapable ;
++      <xsl:if test="@name = 'properties' and @value = 'HARD_RT_CAPABLE'">
++   :pluginProperty :hardRtCapable ;
+     </xsl:if>
+   </xsl:for-each>
+   <xsl:for-each select="port">
+@@ -64,6 +77,9 @@
+      :portProperty :sampleRate ;</xsl:if>
+      <xsl:if test="contains(@hint, 'toggled')">
+      :portProperty :toggled ;</xsl:if>
++     <xsl:if test="@group">
++     pg:inGroup swh:<xsl:value-of select="$pluglabel"/>-<xsl:value-of select="@group"/> ;
++     pg:role pg:<xsl:value-of select="@role"/> ;</xsl:if>
+ <!--     <xsl:if test="p">
+      swhext:documentation """<xsl:value-of select="p"/>""" ;</xsl:if>-->
+    ] ;

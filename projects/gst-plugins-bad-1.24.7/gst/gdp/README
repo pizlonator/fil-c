@@ -1,0 +1,22 @@
+Sample pipelines:
+- replacing tcpserversink protocol=gdp with gdppay ! tcpserversink:
+  - raw audio:
+    - server:
+      gst-launch-1.0 -v audiotestsrc ! gdppay version=0.2 ! tcpserversink
+    - client:
+      gst-launch-1.0 -v tcpclientsrc protocol=gdp ! alsasink sync=FALSE
+
+  - vorbis packets:
+    - server:
+      gst-launch-1.0 -v audiotestsrc ! audioconvert ! vorbisenc ! gdppay version=0.2 ! tcpserversink
+    - client:
+      gst-launch-1.0 -v tcpclientsrc protocol=gdp ! vorbisdec ! audioconvert ! alsasink sync=FALSE
+
+  - ogg packets:
+    - server:
+      gst-launch-1.0 -v audiotestsrc ! audioconvert ! vorbisenc ! oggmux ! gdppay version=0.2 ! tcpserversink
+    - client:
+      gst-launch-1.0 -v tcpclientsrc protocol=gdp ! oggdemux ! vorbisdec ! audioconvert ! alsasink sync=FALSE
+
+  In all the client pipelines, tcpclientsrc protocol=gdp can be replaced with
+  tcpclientsrc ! gdpdepay

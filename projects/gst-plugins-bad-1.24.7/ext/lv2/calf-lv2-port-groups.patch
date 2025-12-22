@@ -1,0 +1,71 @@
+diff --git a/src/makerdf.cpp b/src/makerdf.cpp
+index 430fb91..ee82152 100644
+--- a/src/makerdf.cpp
++++ b/src/makerdf.cpp
+@@ -168,16 +168,16 @@ static void add_port(string &ports, const char *symbol, const char *name, const
+         ss << ind << "lv2ev:supportsTimestamp <lv2ev:TimeStamp> ;\n";
+     }
+     if (!strcmp(symbol, "in_l")) 
+-        ss << ind << "pg:membership [ pg:group <#stereoIn>; pg:role pg:leftChannel ] ;" << endl;
++        ss << ind << "pg:inGroup <#stereoIn> ; pg:role pg:leftChannel ;" << endl;
+     else
+     if (!strcmp(symbol, "in_r")) 
+-        ss << ind << "pg:membership [ pg:group <#stereoIn>; pg:role pg:rightChannel ] ;" << endl;
++        ss << ind << "pg:inGroup <#stereoIn> ; pg:role pg:rightChannel ;" << endl;
+     else
+     if (!strcmp(symbol, "out_l")) 
+-        ss << ind << "pg:membership [ pg:group <#stereoOut>; pg:role pg:leftChannel ] ;" << endl;
++        ss << ind << "pg:inGroup <#stereoOut> ; pg:role pg:leftChannel ;" << endl;
+     else
+     if (!strcmp(symbol, "out_r")) 
+-        ss << ind << "pg:membership [ pg:group <#stereoOut>; pg:role pg:rightChannel ] ;" << endl;
++        ss << ind << "pg:inGroup <#stereoOut> ; pg:role pg:rightChannel ;" << endl;
+     ss << "    ]";
+     ports += ss.str();
+ }
+@@ -469,7 +469,7 @@ void make_ttl(string path_prefix)
+         "@prefix lv2midi: <http://lv2plug.in/ns/ext/midi#> .\n"
+         "@prefix lv2ctx: <http://lv2plug.in/ns/dev/contexts#> .\n"
+         "@prefix strport: <http://lv2plug.in/ns/dev/string-port#> .\n"
+-        "@prefix pg: <http://ll-plugins.nongnu.org/lv2/ext/portgroups#> .\n"
++        "@prefix pg: <http://lv2plug.in/ns/dev/port-groups#> .\n"
+         "@prefix ue: <http://lv2plug.in/ns/extensions/units#> .\n"
+         "@prefix epp: <http://lv2plug.in/ns/dev/extportinfo#> .\n"
+         "@prefix kf: <http://foltman.com/ns/> .\n"
+@@ -538,7 +538,17 @@ void make_ttl(string path_prefix)
+                 ttl += gui_uri + " uiext:portNotification [\n    uiext:plugin " + uri + " ;\n    uiext:portIndex " + i2s(j) + "\n] .\n\n";
+         }
+ #endif
+-        
++
++        if (pi->get_input_count() == 2)
++            ttl += "<#stereoIn> a pg:StereoGroup ;\n    lv2:symbol \"in\";\n    lv2:name \"Input\" .\n\n";
++
++        if (pi->get_output_count() == 2) {
++            ttl += "<#stereoOut> a pg:StereoGroup ;\n    lv2:symbol \"out\" ;\n    lv2:name \"Output\"";
++            if (pi->get_input_count() == 2)
++                ttl += " ;\n    pg:source <#stereoIn>";
++            ttl += " .\n\n";
++        }
++
+         ttl += uri + " a lv2:Plugin ;\n";
+         
+         if (classes.count(lpi.plugin_type))
+@@ -583,12 +593,13 @@ void make_ttl(string path_prefix)
+         
+         string ports = "";
+         int pn = 0;
+-        const char *in_names[] = { "in_l", "in_r" };
+-        const char *out_names[] = { "out_l", "out_r" };
++        const char *in_syms[] = { "in_l", "in_r" };
++        const char *out_syms[] = { "out_l", "out_r" };
++        const char *names[] = { "Left", "Right" };
+         for (int i = 0; i < pi->get_input_count(); i++)
+-            add_port(ports, in_names[i], in_names[i], "Input", pn++);
++            add_port(ports, in_syms[i], names[i], "Input", pn++);
+         for (int i = 0; i < pi->get_output_count(); i++)
+-            add_port(ports, out_names[i], out_names[i], "Output", pn++);
++            add_port(ports, out_syms[i], names[i], "Output", pn++);
+         for (int i = 0; i < pi->get_param_count(); i++)
+             add_ctl_port(ports, *pi->get_param_props(i), pn++, pi, i);
+         if (pi->get_midi()) {

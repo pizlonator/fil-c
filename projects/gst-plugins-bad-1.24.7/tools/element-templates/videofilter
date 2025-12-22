@@ -1,0 +1,85 @@
+/* vim: set filetype=c: */
+% ClassName
+GstVideoFilter
+% TYPE_CLASS_NAME
+GST_TYPE_VIDEO_FILTER
+% pads
+srcpad-template-video
+sinkpad-template-video
+% pkg-config
+gstreamer-video-1.0
+% includes
+#include <gst/video/video.h>
+#include <gst/video/gstvideofilter.h>
+% prototypes
+static gboolean gst_replace_start (GstBaseTransform * trans);
+static gboolean gst_replace_stop (GstBaseTransform * trans);
+static gboolean gst_replace_set_info (GstVideoFilter * filter, GstCaps * incaps,
+    GstVideoInfo * in_info, GstCaps * outcaps, GstVideoInfo * out_info);
+static GstFlowReturn gst_replace_transform_frame (GstVideoFilter * filter,
+    GstVideoFrame * inframe, GstVideoFrame * outframe);
+static GstFlowReturn gst_replace_transform_frame_ip (GstVideoFilter * filter,
+    GstVideoFrame * frame);
+% declare-class
+  GstBaseTransformClass *base_transform_class = GST_BASE_TRANSFORM_CLASS (klass);
+  GstVideoFilterClass *video_filter_class = GST_VIDEO_FILTER_CLASS (klass);
+% set-methods
+  base_transform_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  base_transform_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  video_filter_class->set_info = GST_DEBUG_FUNCPTR (gst_replace_set_info);
+  video_filter_class->transform_frame = GST_DEBUG_FUNCPTR (gst_replace_transform_frame);
+  video_filter_class->transform_frame_ip = GST_DEBUG_FUNCPTR (gst_replace_transform_frame_ip);
+% methods
+static gboolean
+gst_replace_start (GstBaseTransform * trans)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstBaseTransform * trans)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_set_info (GstVideoFilter * filter, GstCaps * incaps,
+    GstVideoInfo * in_info, GstCaps * outcaps, GstVideoInfo * out_info)
+{
+  GstReplace *replace = GST_REPLACE (filter);
+
+  GST_DEBUG_OBJECT (replace, "set_info");
+
+  return TRUE;
+}
+
+/* transform */
+static GstFlowReturn
+gst_replace_transform_frame (GstVideoFilter * filter, GstVideoFrame * inframe,
+    GstVideoFrame * outframe)
+{
+  GstReplace *replace = GST_REPLACE (filter);
+
+  GST_DEBUG_OBJECT (replace, "transform_frame");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_transform_frame_ip (GstVideoFilter * filter, GstVideoFrame * frame)
+{
+  GstReplace *replace = GST_REPLACE (filter);
+
+  GST_DEBUG_OBJECT (replace, "transform_frame_ip");
+
+  return GST_FLOW_OK;
+}
+% end

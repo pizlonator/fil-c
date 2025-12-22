@@ -1,0 +1,135 @@
+tsdemux/tsparse TODO
+--------------------
+
+* Performance
+  * Bufferlist : Creating/Destroying very small buffers is too
+  costly. Switch to pre-/re-allocating outgoing buffers in which we
+  copy the data. 
+  * Adapter : Use gst_adapter_peek()/_flush() instead of constantly
+  creating buffers.
+
+* Latency
+  * Calculate the actual latency instead of returning a fixed
+  value. The latency (for live streams) is the difference between the
+  currently inputted buffer timestamp (can be stored in the
+  packetizer) and the buffer we're pushing out.
+  This value should be reported/updated (leave a bit of extra margin
+  in addition to the calculated value).
+
+* mpegtsparser
+  * SERIOUS room for improvement performance-wise (see callgrind),
+  mostly related to performance issues mentioned above.
+
+* Random-access seeking
+  * Do minimal parsing of video headers to detect keyframes and use
+  that to compute the keyframe intervals. Use that interval to offset
+  the seek position in order to maximize the chance of pushing out the
+  requested frames. 
+
+
+Synchronization, Scheduling and Timestamping
+--------------------------------------------
+
+  A mpeg-ts demuxer can be used in a variety of situations:
+  * lives streaming over DVB, UDP, RTP,..
+  * play-as-you-download like HTTP Live Streaming or UPNP/DLNA
+  * random-access local playback, file, Bluray, ...
+
+  Those use-cases can be categorized in 3 different categories:
+  * Push-based scheduling with live sources [0]
+  * Push-based scheduling with non-live sources
+  * Pull-based scheduling with fast random-access
+
+  Due to the nature of timing within the mpeg-ts format, we need to
+pay extra attention to the outgoing NEWSEGMENT event and buffer
+timestamps in order to guarantee proper playback and synchronization
+of the stream.
+
+  In the following, 'timestamps' correspond to GStreamer
+  buffer/segment values. The mpeg-ts PCR/DTS/PTS values are indicated
+  with their actual name.
+
+ 1) Live push-based scheduling
+
+  The NEWSEGMENT event will be in time format and is forwarded as is,
+  and the values are cached locally.
+
+  Since the clock is running when the upstream buffers are captured,
+  the outgoing buffer timestamps need to correspond to the incoming
+  buffer timestamp values.
+
+    => mpegtspacketizer keeps track of PCR and input timestamp and
+       extrapolates a clock skew using the EPTLA algorithm.
+
+    => The outgoing buffers will be timestamped with their PTS values
+       (overflow corrected) corrected by that calculated clock skew.
+
+  A latency is introduced between the time the buffer containing the
+  first bit of a Access Unit is received in the demuxer and the moment
+  the demuxer pushed out the buffer corresponding to that Access Unit.
+
+    => That latency needs to be reported.
+
+  According to the ISO/IEC 13818-1:2007 specifications, D.0.1 Timing
+  mode, the "coded audio and video that represent sound and pictures
+  that are to be presented simultaneously may be separated in time
+  within the coded bit stream by ==>as much as one second<=="
+
+    => The algorithm to calculate the latency should take that into
+       account. 
+
+
+ 2) Non-live push-based scheduling
+
+  If the upstream NEWSEGMENT is in time format, the NEWSEGMENT event
+  is forwarded as is, and the values are cached locally.
+
+  If upstream does provide a NEWSEGMENT in another format, we need to
+  compute one by taking the default values:
+    start : 0
+    stop  : GST_CLOCK_TIME_NONE
+    time  : 0
+
+  Since no prerolling is happening downstream and the incoming buffers
+  do not have capture timestamps, we need to ensure the first buffer
+  we push out corresponds to the base segment start running time.
+
+    => The packetizer keeps track of PCR locations and offsets in
+       addition to the clock skew (in the case of upstream buffers
+       being timestamped, which is the case for HLS).
+
+    => The demuxer indicates to the packetizer when he sees the
+       'beginning' of the program (i.e. the first valid PAT/PMT
+       combination). The packetizer will then use that location as
+       "timestamp 0", or "reference position/PCR".
+
+    => The lowest DTS is passed to the packetizer to be converted to
+       timestamp. That value is computed in the same way as live
+       streams if upstream buffers have timestamps, or will be
+       subtracted from the reference PCR.
+
+    => The outgoing buffers will be timestamped with their PTS values
+       (overflow corrected) adjusted by the packetizer.
+
+  Latency is reported just as with the live use-case.
+
+
+ 3) Random access pull-mode
+
+  We do not get a NEWSEGMENT event from upstream, we therefore need to
+  compute the outgoing values.
+
+    => The outgoing values for the newsegment are calculated like for
+       the non-live push-based mode when upstream doesn't provide
+       timestamp'ed buffers.
+
+    => The outgoing buffer timestamps are timestamped with their PTS
+       values (overflow corrected) adjusted by the packetizer.
+
+
+
+[0] When talking about live sources, we mean this in the GStreamer
+definition of live sources, which is to say sources where if we miss
+the capture, we will miss the data to be captured. Sources which do
+internal buffering (like TCP connections or file descriptors) are
+*NOT* live sources.

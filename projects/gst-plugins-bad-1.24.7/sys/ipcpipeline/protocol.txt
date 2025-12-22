@@ -1,0 +1,92 @@
+This documents the protocol used to pass data over fds between ipcpipelinesrc
+and ipcpipelinesink.
+
+The protocol is used in both directions. However, some combinations do
+not make sense (eg, a buffer going from ipcpipelinesrc to ipcpipelinesink).
+
+The protocol consists of an arbitrary number of variable sized chunks
+with a type. Each chunk has a request ID which can be used to match a
+request with its reply (ack / query result).
+
+Each chunk consists of:
+ - a type (byte):
+    1: ack
+    2: query result
+    3: buffer
+    4: event
+    5: sink message event
+    6: query
+    7: state change
+    8: state lost
+    9: message
+   10: error/warning/info message
+ - a request ID, 4 bytes, little endian
+ - the payload size, 4 bytes, little endian
+ - N bytes payload
+
+Depending on the type, the payload can contain:
+
+ - 1: ack
+    result: 4 bytes, little endian
+      interpreted as GstFlowReturn for buffers, boolean for events and
+      GstStateChangeReturn for state changes
+ - 2: query result
+    result boolean: 1 byte
+    query type: 4 bytes, little endian
+    returned query string representation, NUL terminated
+ - 3: buffer:
+    pts: 8 bytes, little endian
+    dts: 8 bytes, little endian
+    duration: 8 bytes, little endian
+    offset: 8 bytes, little endian
+    offset end: 8 bytes, little endian
+    flags: 8 bytes, little endian
+    buffer size: 4 bytes, little endian
+    data: contents of the buffer data, size specified in "buffer size"
+    number of GstMeta: 4 bytes, little endian
+      For each GstMeta:
+        bytes: 4 bytes, little endian
+          this is the number of bytes before the string representation
+          at the end of this block, including the 4 bytes of itself
+        flags: 4 bytes, little endian
+        length of the GstMetaInfo::api name: 4 bytes, little endian
+        GstMetaInfo::api name: string, NUL terminated
+        GstMetaInfo::size: 8 bytes, little endian
+        length of the string representation: 4 bytes, little endian
+        string representation, NUL terminated
+ - 4: event
+    event type: 4 bytes, little endian
+    sequence number: 4 bytes, little endian
+    direction: 1 byte
+      whether the event is going upstream (1) or downstream (0)
+    string representation, NUL terminated
+ - 5: sink message event
+    message type: 4 bytes, little endian
+    event sequence number: 4 bytes, little endian
+    message sequence number: 4 bytes, little endian
+    length: 4 bytes, little endian
+    event structure name: length bytes, NUL terminated
+    message structure string representation: remaining bytes, NUL terminated
+ - 6: query
+    query type: 4 bytes, little endian
+    direction: 1 byte
+      whether the query is going upstream (1) or downstream (0)
+    string representation, NUL terminated
+ - 7: state change
+    GstStateChange: 4 bytes, little endian
+ - 8: state lost
+    no payload
+ - 9: message
+    message type: 4 bytes, little endian
+    string representation, NUL terminated
+ - 10: error/warning/info message
+    message type (2 = error, 1 = warning, 0 = info): 1 byte
+    error domain string length: 4 bytes, little endian
+    string representation of the error domain, NUL terminated
+    error code: 4 bytes, little endian
+    length: 4 bytes, little endian
+      if zero: no error message
+      if non zero: As many bytes as this length: the error message, NUL terminated
+    length: 4 bytes, little endian
+      if zero: no extra message
+      if non zero: As many bytes as this length: the error extra debug message, NUL terminated

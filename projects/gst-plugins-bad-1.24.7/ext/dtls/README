@@ -1,0 +1,154 @@
+INTRODUCTION
+============
+This document is an attempt to describe the basics of the DTLS element.
+It hasn't been written by the author(s) and so, besides being incomplete,
+*IT MIGHT ALSO BE INCORRECT*. So take it with a pinch of salt.
+
+As always, if in doubt ask on the GStreamer Matrix room:
+https://matrix.to/#/#gstreamer:gstreamer.org.
+
+THE INTERNALS
+=============
+This plugin provides two main elements (dtlssrtpdec and dtlssrtpenc) and a few
+minor elements necessary to implement them. The two elements dtlssrtpdec and
+dtlssrtpenc are the only ones you are supposed to include in, respectively, the
+RX and TX pipelines of your DTLS-enabled application. This means you're not
+supposed to directly include those minor elements in your pipelines.
+
+dtlssrtpenc
+-----------
+This element is to be included in the TX pipeline and will initiate the DTLS
+handshake if configured to be the client. Its main configuration parameters are:
+
+  - connection-id: a string that must match the connection-id in dtlssrtpdec;
+  - is-client: a boolean that indicates whether this is going to be the client
+							 or the server during the DTLS handshake.
+
+Internally this element comprises the standard srtpenc element, the dtlsenc
+element and a funnel to connect both these elements to one single output.
+The srtpenc can be used to encrypt SRTP/SRTCP packets while the dtlsenc can be
+used to encrypt generic data, e.g. for non-SRTP applications.
+
+NB With the current implementation the TX pipeline containing the dtlssrtpenc
+	 must be created *AFTER* the RX pipeline.
+
+dtlssrtpdec
+-----------
+It is to be included in the RX pipeline. Its main configuration parameters are:
+
+  - connection-id: a string that must match the connection-id in dtlssrtpenc;
+	- pem: a string that can be used to provide your own certificate *AND* private
+				 key in PEM format. The private key is required to carry out the
+				 handshake so do not forget it or the DTLS negotiation will fail;
+  - peer_pem: a read only parameter that can be used to retrieve the
+							certificate sent from the other party in PEM format once the
+							handshake is completed.
+
+Internally this element comprises a dtlssrtpdemux, a standard srtpdec element
+and the dtlsdec element. The dtlssrtpdemux element switches SRT(C)P packets to
+the srtpdec element and DTLS packets to the dtlsdec element and discards any
+other unknown packet. So, similarly for the dtlssrtpenc case, DTLS-SRTP
+applications would exercise the srtpdec element and any other non-SRTP
+application would exercise the dtlsdec element.
+
+NB With the current implementation the RX pipeline containing the dtlssrtpdec
+	 must be created *BEFORE* the TX pipeline.
+
+EXAMPLE PIPELINE
+================
+The following is an example usage of the DTLS plugin. It is a python script that
+creates two endpoints that exchange encrypted audio using DTLS to exchange the
+encryption keys.
+
+NB In theory we would show an example gst-launch command. However that would not
+	 be enough because you need two pairs of TX/RX pipelines for a proper
+	 handshake and you can't use gst-launch two start 4 different pipelines.
+	 This why there is a python script in here.
+
+```
+#!/usr/bin/env python3
+
+# create two endpoints, each with tx and rx pipelines using the DTLS
+# elements and let audio flowing for a while to give time for a packet capture
+
+import time
+from gi.repository import Gst, GObject, GLib
+GObject.threads_init()
+Gst.init(None)
+
+
+def _start_pipeline(pipeline):
+    pipeline.set_state(Gst.State.PLAYING)
+    pipeline.get_state(Gst.CLOCK_TIME_NONE)
+
+
+def _sleep_while_iterating_gloop(secs):
+    """ block for secs seconds but iterate the gloop while you do """
+    for _ in range(10 * secs):
+        gloop = GLib.MainLoop()
+        gloop_context = gloop.get_context()
+        gloop_context.iteration(may_block=False)
+        time.sleep(0.1)
+
+def dtls_tx_pipeline_description(name, is_client, port):
+    return ' ! '.join([
+        'audiotestsrc is-live=true',
+        'audio/x-raw, rate=8000, format=S16LE, channels=1',
+        'opusenc frame-size=10',
+        'rtpopuspay pt=103',
+        '.rtp_sink_0 dtlssrtpenc connection-id={name} is-client={client} .src',
+        'udpsink port={port}'
+    ]).format(name=name, client=is_client, port=port)
+
+
+def dtls_rx_pipeline_description(name, port):
+    return ' ! '.join([
+        'udpsrc port={port}',
+        '.sink dtlssrtpdec connection-id={name} .rtp_src',
+        'queue',
+        'fakesink async=false'
+    ]).format(name=name, port=port)
+
+
+class Endpoint:
+    def __init__(self, name, is_client, tx_port, rx_port):
+        self.name = name
+        tx_pipeline_description = dtls_tx_pipeline_description(
+            name, is_client, tx_port
+        )
+        rx_pipeline_description = dtls_rx_pipeline_description(name, rx_port)
+        print(rx_pipeline_description)
+        print(tx_pipeline_description)
+
+        self.rx_pipeline = Gst.parse_launch(rx_pipeline_description)
+        self.tx_pipeline = Gst.parse_launch(tx_pipeline_description)
+
+    def start(self):
+				# Start RX first, otherwise it fails due to the current implementation
+        self.start_rx_pipeline()
+        self.start_tx_pipeline()
+
+    def start_rx_pipeline(self):
+        _start_pipeline(self.rx_pipeline)
+
+    def start_tx_pipeline(self):
+        _start_pipeline(self.tx_pipeline)
+
+    def stop(self):
+        def stop_pipeline(p):
+            p.set_state(Gst.State.NULL)
+            p.get_state(Gst.CLOCK_TIME_NONE)
+        stop_pipeline(self.tx_pipeline)
+        stop_pipeline(self.rx_pipeline)
+
+blue = Endpoint("blue", is_client=True, tx_port=23000, rx_port=23002)
+red = Endpoint("red", is_client=False, tx_port=23002, rx_port=23000)
+
+red.start()
+blue.start()
+
+_sleep_while_iterating_gloop(3)
+
+red.stop()
+blue.stop()
+```

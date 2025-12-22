@@ -1,0 +1,33 @@
+[GStreamer Encoding Target]
+name=ts
+category=file-extension
+description=Default target for files with a .ts extension
+
+[profile-default]
+name=default
+type=container
+description=Default profile for files with a .ts extension. Suitable for streaming.
+format=video/mpegts,systemstream=true,packetsize=188
+
+[streamprofile-default-0]
+parent=default
+type=audio
+format=audio/mpeg,mpegversion=4,base-profile=lc,rate={48000,96000},channels=2;audio/mpeg,mpegversion=4,base-profile=lc,rate={48000,96000}
+restriction=audio/x-raw,channels=6,channel-mask=0x3f;audio/x-raw,channels=2
+
+[streamprofile-default-1]
+parent=default
+type=video
+format=video/x-h264
+preset=Profile YouTube
+pass=0
+
+[streamprofile-default-2]
+parent=default
+type=audio
+format=audio/mpeg,mpegversion=4
+
+[streamprofile-default-3]
+parent=default
+type=video
+format=video/x-h264

@@ -1,0 +1,108 @@
+A basclass for audiovisualizers. Takes care of re-fitting the audio-rate to
+video-rate. It receives audio-data at the sampling-rate. It needs to render
+video-frames at frame-rate. The rendering needs n audio samples (depends on
+subclass). The baseclass takes care of that.
+
+Some effects could be enhanced by running geometrictransform/effecttc elements
+afterwards.
+
+= Feedback =
+* put 'Audio' to klass as well ?
+
+= API =
+
+* we have a couple of drawing helpers in gstdrawhelpers.h
+  (would be nice if we could use cairo) 
+  draw_point (x,y,color);
+  draw_line (x1,x2,y1,y2,color);
+* some more we could add:
+  draw_hline (x1,x2,y,color);
+  draw_vline (x,y1,y2,color);
+  draw_rect (x1,x2,y1,y2,color);
+  draw_box (x1,x2,y1,y2,color); // filled
+* shading effects
+  - would be nice to use a generic 3x3 matrix operation, we don't run inplace
+    anyway
+  - this way we could also blur the background
+  - we need to handle visualizer that don't draw with alpha:
+    - add API to set can_mix and if so enable shaders
+    - ev. do mixing ourself (needs extra buffer)
+
+= Elements to port =
+gst-plugins-ugly/gst/synaestesia -> synaescope
+gst-plugins-bad/gst/smoothwave -> wavescope
+gst-plugins-good/gst/monoscope -> blend into what we have in wavescope
+- it keeps an array of the values we just showed last[width]
+- each audio-buffer is 2*width
+- it uses convolution to finde the best match in current[2*width] compared to 
+  last[width]
+- then it shows current[match ... match+width] and copies it into last
+
+gst-plugins-base/ext/libvisual - done
+
+= Elements to add =
+spectrascope - done
+spacescope - stereo wavescope
+- left->x, right->y - done
+- polar mapping
+wavescope
+- we could have a bouncing line as a base, like a quix:
+  - two dots moving on a linear path and getting a new random dx,dy when hitting
+    a border
+  - the abs(dx/dy) - speed of movement - could be scaled by the sound level
+  - we would need to rotate, stretch and clip the waveform drawing to fit the
+    line
+  - we could scratch the rotate part and just stretch/squeeze x and shift/clip y
+
+xxxscope
+- have a matrix of source and drawing-functions
+  - sources: audio, spectrum, audio-low, audio-mid, audio-hi
+  - drawing: waves (style, color), space (style,color)
+- have the usual shade and move operations
+- have a way to draw each operator in one or more color-channels
+- we could calculate the sound-level (like in level element) and modulate
+  colors/movements
+  - for filtered low/mid/hi audio we could use different peak-falloffs
+
+= TODO =
+- element maker template
+- test for baseclass
+
+- actors
+  - we use the wave, filtered waves, balance and fft so far
+  - we could have narrow filters over harmonic frequencies
+  - we could use loudness like determined in level-meter
+
+- we probably want a VisBin like the gnome video effects
+- this way we can specify pipeline fragments
+- VisBin can use a videomixer to switch effects based on time or song
+- VisBin can e.g. control a text-overlay to render the title into the 
+  visualisation for a while
+
+= Test it =
+
+GST_DEBUG="*:2,*scope*:4"
+
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-inspect scopes
+
+== 0.10 ==
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch audiotestsrc ! audioconvert ! wavescope ! colorspace ! ximagesink
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! wavescope ! colorspace ! ximagesink
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! wavescope style=lines shade-amount=0x00080402 ! edgetv ! vertigotv ! ximagesink
+
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! spacescope style=lines shade-amount=0x00080402 ! ximagesink
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! spacescope style=lines shade-amount=0x00080402 ! vertigotv ! ximagesink
+
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! spectrascope ! colorspace ! ximagesink
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! audioconvert ! spectrascope shader=fade-and-move-up shade-amount=0x00040302 ! colorspace ! ximagesink
+
+GST_PLUGIN_PATH=$GST_PLUGIN_PATH:$PWD gst-launch filesrc location=$HOME/Music/1.mp3 ! decodebin2 ! tee name=t ! queue ! audioconvert ! synaesthesia ! ximagesink t. ! queue ! synaescope shade-amount=0x00040404 ! colorspace ! ximagesink
+
+== 0.11/1.0 ==
+gst-launch-1.0 audiotestsrc ! audioconvert ! wavescope ! videoconvert ! ximagesink
+
+gst-launch-1.0 filesrc location=$HOME/Music/1.mp3 ! decodebin ! audioconvert ! spectrascope ! videoconvert ! ximagesink
+
+gst-launch-1.0 filesrc location=$HOME/Music/1.mp3 ! decodebin ! tee name=t ! queue ! audioconvert ! wavescope style=color-lines shade-amount=0x00080402 ! alpha alpha=0.5 ! videomixer name=m background=black ! videoconvert ! vertigotv ! ximagesink t. ! queue ! audioconvert ! spacescope style=color-lines shade-amount=0x00080402 ! alpha alpha=0.5 ! m. t. ! queue ! autoaudiosink
+
+

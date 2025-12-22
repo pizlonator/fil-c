@@ -1,0 +1,9 @@
+event stream-start: GstEventStreamStart, flags=(GstStreamFlags)GST_STREAM_FLAG_NONE, group-id=(uint)1;
+event caps: video/x-h264, alignment=(string)au, chroma-site=(string)jpeg, codec_data=(buffer)014d000dffe1000d274d000dab60a0fd350601060201000428ee3c80, colorimetry=(string)bt601, framerate=(fraction)25/1, height=(int)240, interlace-mode=(string)progressive, level=(string)1.3, multiview-flags=(GstVideoMultiviewFlagsSet)0:ffffffff:/right-view-first/left-flipped/left-flopped/right-flipped/right-flopped/half-aspect/mixed-mono, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, profile=(string)main, stream-format=(string)avc, width=(int)320;
+event segment: format=TIME, start=1000:00:00.000000000, offset=0:00:00.000000000, stop=none, time=0:00:00.000000000, base=0:00:00.000000000, position=1000:00:00.000000000
+buffer: dts=999:59:59.960000000, pts=1000:00:00.000000000, dur=0:00:00.040000000, flags=discont marker tag-memory, meta=GstCoreMediaMeta
+buffer: dts=1000:00:00.000000000, pts=1000:00:00.080000000, dur=0:00:00.040000000, flags=marker delta-unit tag-memory, meta=GstCoreMediaMeta
+buffer: dts=1000:00:00.040000000, pts=1000:00:00.040000000, dur=0:00:00.040000000, flags=marker delta-unit tag-memory, meta=GstCoreMediaMeta
+buffer: dts=1000:00:00.080000000, pts=1000:00:00.160000000, dur=0:00:00.040000000, flags=marker delta-unit tag-memory, meta=GstCoreMediaMeta
+buffer: dts=1000:00:00.120000000, pts=1000:00:00.120000000, dur=0:00:00.040000000, flags=marker delta-unit tag-memory, meta=GstCoreMediaMeta
+event eos: (no structure)

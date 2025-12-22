@@ -1,0 +1,23 @@
+
+videoparse
+==========
+
+The videoparse element is used to parse a file containing raw image
+data.
+
+
+Creating example data
+=====================
+
+gst-launch-1.0 videotestsrc num_buffers=300 ! \
+  video/x-raw,format=\(string\)I420,width=320,height=240 ! \
+  filesink location=raw
+
+
+Reading example data
+====================
+
+gst-launch-1.0 filesrc location=raw ! \
+  videoparse format=I420 width=320 height=240 framerate=30/1 ! \
+  xvimagesink
+

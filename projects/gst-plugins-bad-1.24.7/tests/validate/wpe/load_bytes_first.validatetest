@@ -1,0 +1,13 @@
+meta,
+    args = {
+        "wpesrc name=wpesrc ! queue ! video/x-raw,width=480,height=270 ! fakesink name=sink",
+    }
+
+check-last-sample, checksum=e16c8ac11b4ad92e26abab2743d609f4c3ac2e37, playback-time=0.1
+emit-signal,
+    signal-name="load-bytes",
+    target-element-name="wpesrc",
+    params=< "<h1>test<h1>", >
+
+check-last-sample, checksum=8c0eb7a26cf0cb4cb3095a2a6f2d28c97be15874, playback-time=1.0
+stop;

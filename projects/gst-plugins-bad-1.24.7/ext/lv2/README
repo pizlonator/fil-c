@@ -1,0 +1,71 @@
+Gst-LV2 Quickstart
+
+Dependencies:
+
+Lilv 0.6.6 <http://drobilla.net/software/lilv/>
+
+
+Features:
+
+The plugin wrapper support the following plugin features:
+http://lv2plug.in/ns/lv2core
+http://lv2plug.in/ns/ext/event
+http://lv2plug.in/ns/ext/port-groups
+
+and these host features:
+http://lv2plug.in/ns/ext/log
+http://lv2plug.in/ns/ext/urid
+
+Example Pipeline:
+
+Requires swh-lv2 <http://plugin.org.uk/releases/>
+
+gst-launch-1.0 -v filesrc location=/usr/share/sounds/login.wav ! wavparse ! audioconvert ! plugin-org-uk-swh-plugins-djFlanger ! audioconvert ! autoaudiosink
+(A longer wav will be a better example)
+
+gst-launch-1.0 plugin-org-uk-swh-plugins-analogueOsc num-buffers=100 wave=1 ! wavenc ! filesink location="/tmp/lv2.wav"
+
+Requires calf <http://calf.sourceforge.net/>
+
+GST_DEBUG="*:2,lv2:5"
+gst-launch-1.0 calf-sourceforge-net-plugins-Monosynth event-in="C-3" ! autoaudiosink
+gst-launch-1.0 calf-sourceforge-net-plugins-Monosynth event-in="C-3" name=ms ! autoaudiosink ms. ! fakesink
+gst-launch-1.0 calf-sourceforge-net-plugins-Organ event-in="C-3" name=s ! interleave name=i ! autoaudiosink s. ! i.
+
+
+TODO
+* make filters gap-aware
+* report latency
+  lilv_plugin_has_latency(), lilv_plugin_get_latency_port_index()
+* support more host features
+  GST_DEBUG="lv2:4" GST_DEBUG_FILE=/tmp/gst.log gst-inspect lv2
+  grep -o "needs host feature: .*$" /tmp/gst.log  | sort | uniq -c | sort -n
+* make source elements useful
+  Most source elements use Atom port where they accept midi events. Since it is
+  full fledged midi, we should only ever use channel-0 and instead use multiple
+  instances
+  1) We could expose those as "audio/x-midi-event" sink pads, but then those are
+     not sources anymore.
+  2) We could expose those as properties using a new type like GST_FOURCC. If we
+     ignore "System Exclusive" messages, all other midi messages are 1-3 bytes.
+     We stuff the bytes right to left. E.g: the lowest byte is the status byte
+  3) We could use the GstBtNote enum + the toneconversion classes
+  https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+  Open questions:
+  - with one property, we can't handle polyphony
+  - we can't query lv2 plugins for their polyphony :/
+
+  If lv2 gets a polyphony extension it would be a single non-negative integer:
+    0: unbound,  1 monophonic,  > 1  N-polyphonic
+  I've checked a few synths and they all have an upper limit. Still the way
+  voices work in trackers is not the same as they work in synths - e.g. in a
+  tracker one can play a note twice
+
+  Or we just play them monophonic and try to implement a polychildbin. The bin
+  takes a GstElement to be used as a voice. For each new voice it would create a
+  new instance and it uses a built-in mixer. Downside is that all properties
+  would be per voice.
+
+* example sources:
+  http://svn.drobilla.net/lad/trunk/lilv/utils/lv2info.c
+  http://svn.drobilla.net/lad/trunk/jalv/src/jalv.c

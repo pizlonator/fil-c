@@ -1,0 +1,145 @@
+/* vim: set filetype=c: */
+% ClassName
+GstBaseParse
+% TYPE_CLASS_NAME
+GST_TYPE_BASE_PARSE
+% pads
+srcpad-simple
+sinkpad-simple
+% pkg-config
+gstreamer-base-1.0
+% includes
+#include <gst/base/gstbaseparse.h>
+% prototypes
+static gboolean gst_replace_start (GstBaseParse * parse);
+static gboolean gst_replace_stop (GstBaseParse * parse);
+static gboolean gst_replace_set_sink_caps (GstBaseParse * parse,
+    GstCaps * caps);
+static GstFlowReturn gst_replace_handle_frame (GstBaseParse * parse,
+    GstBaseParseFrame * frame, gint * skipsize);
+static GstFlowReturn gst_replace_pre_push_frame (GstBaseParse * parse,
+    GstBaseParseFrame * frame);
+static gboolean gst_replace_convert (GstBaseParse * parse, GstFormat src_format,
+    gint64 src_value, GstFormat dest_format, gint64 * dest_value);
+static gboolean gst_replace_sink_event (GstBaseParse * parse, GstEvent * event);
+static gboolean gst_replace_src_event (GstBaseParse * parse, GstEvent * event);
+static GstCaps *gst_replace_get_sink_caps (GstBaseParse * parse,
+    GstCaps * filter);
+static GstFlowReturn gst_replace_detect (GstBaseParse * parse,
+    GstBuffer * buffer);
+% declare-class
+  GstBaseParseClass *base_parse_class = GST_BASE_PARSE_CLASS (klass);
+% set-methods
+  base_parse_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  base_parse_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  base_parse_class->set_sink_caps = GST_DEBUG_FUNCPTR (gst_replace_set_sink_caps);
+  base_parse_class->handle_frame = GST_DEBUG_FUNCPTR (gst_replace_handle_frame);
+  base_parse_class->pre_push_frame = GST_DEBUG_FUNCPTR (gst_replace_pre_push_frame);
+  base_parse_class->convert = GST_DEBUG_FUNCPTR (gst_replace_convert);
+  base_parse_class->sink_event = GST_DEBUG_FUNCPTR (gst_replace_sink_event);
+  base_parse_class->src_event = GST_DEBUG_FUNCPTR (gst_replace_src_event);
+  base_parse_class->get_sink_caps = GST_DEBUG_FUNCPTR (gst_replace_get_sink_caps);
+  base_parse_class->detect = GST_DEBUG_FUNCPTR (gst_replace_detect);
+% methods
+static gboolean
+gst_replace_start (GstBaseParse * parse)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstBaseParse * parse)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_set_sink_caps (GstBaseParse * parse, GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "set_sink_caps");
+
+  return TRUE;
+}
+
+static GstFlowReturn
+gst_replace_handle_frame (GstBaseParse * parse, GstBaseParseFrame * frame,
+    gint * skipsize)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "handle_frame");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_pre_push_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "pre_push_frame");
+
+  return GST_FLOW_OK;
+}
+
+static gboolean
+gst_replace_convert (GstBaseParse * parse, GstFormat src_format,
+    gint64 src_value, GstFormat dest_format, gint64 * dest_value)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "convert");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_sink_event (GstBaseParse * parse, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "sink_event");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_src_event (GstBaseParse * parse, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "src_event");
+
+  return TRUE;
+}
+
+static GstCaps *
+gst_replace_get_sink_caps (GstBaseParse * parse, GstCaps * filter)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "get_sink_caps");
+
+  return NULL;
+}
+
+static GstFlowReturn
+gst_replace_detect (GstBaseParse * parse, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (parse);
+
+  GST_DEBUG_OBJECT (replace, "detect");
+
+  return GST_FLOW_OK;
+}
+% end

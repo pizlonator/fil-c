@@ -1,0 +1,10 @@
+Check about GST_PAD_PARENT vs gst_pad_get_parent - do we need a reference - is there any danger of losing the parent in the middle or not:
+<thaytan> one uses GST_PAD_PARENT in situations where you can be sure the parent exists and will exist for the entire time you need it
+<thaytan> and gst_pad_get_parent when you need a ref because the pad might get unparented while you're using it
+
+Ask about individual segment handling on separate sink pads. Is it possible that the separate NEWSEGMENT events on the text and video pad have different start and/or stop values, as to require some code complexity present?
+
+- parse incoming buffers into complete packets (first buffer of a packet should
+  have a timestamp set), and get rid of the gstmpegtsdemux hack
+
+- implement blitting/overlay for at least I420

@@ -1,0 +1,59 @@
+/* vim: set filetype=c: */
+% ClassName
+GstAudioFilter
+% TYPE_CLASS_NAME
+GST_TYPE_AUDIO_FILTER
+% pads
+srcpad-audio
+sinkpad-audio
+% pkg-config
+gstreamer-audio-1.0
+% includes
+#include <gst/audio/gstaudiofilter.h>
+% prototypes
+static gboolean gst_replace_setup (GstAudioFilter * filter,
+    const GstAudioInfo * info);
+static GstFlowReturn gst_replace_transform (GstBaseTransform * trans,
+    GstBuffer * inbuf, GstBuffer * outbuf);
+static GstFlowReturn gst_replace_transform_ip (GstBaseTransform * trans,
+    GstBuffer * buf);
+% declare-class
+  GstBaseTransformClass *base_transform_class = GST_BASE_TRANSFORM_CLASS (klass);
+  GstAudioFilterClass *audio_filter_class = GST_AUDIO_FILTER_CLASS (klass);
+% set-methods
+  audio_filter_class->setup = GST_DEBUG_FUNCPTR (gst_replace_setup);
+  base_transform_class->transform = GST_DEBUG_FUNCPTR (gst_replace_transform);
+  base_transform_class->transform_ip = GST_DEBUG_FUNCPTR (gst_replace_transform_ip);
+% methods
+static gboolean
+gst_replace_setup (GstAudioFilter * filter, const GstAudioInfo * info)
+{
+  GstReplace *replace = GST_REPLACE (filter);
+
+  GST_DEBUG_OBJECT (replace, "setup");
+
+  return TRUE;
+}
+
+/* transform */
+static GstFlowReturn
+gst_replace_transform (GstBaseTransform * trans, GstBuffer * inbuf,
+    GstBuffer * outbuf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_transform_ip (GstBaseTransform * trans, GstBuffer * buf)
+{
+  GstReplace *replace = GST_REPLACE (trans);
+
+  GST_DEBUG_OBJECT (replace, "transform_ip");
+
+  return GST_FLOW_OK;
+}
+% end

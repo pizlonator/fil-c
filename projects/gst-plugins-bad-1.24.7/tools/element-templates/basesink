@@ -1,0 +1,257 @@
+/* vim: set filetype=c: */
+% ClassName
+GstBaseSink
+% TYPE_CLASS_NAME
+GST_TYPE_BASE_SINK
+% pads
+sinkpad-simple
+% pkg-config
+gstreamer-base-1.0
+% includes
+#include <gst/base/gstbasesink.h>
+% prototypes
+static GstCaps *gst_replace_get_caps (GstBaseSink * sink, GstCaps * filter);
+static gboolean gst_replace_set_caps (GstBaseSink * sink, GstCaps * caps);
+static GstCaps *gst_replace_fixate (GstBaseSink * sink, GstCaps * caps);
+static gboolean gst_replace_activate_pull (GstBaseSink * sink, gboolean active);
+static void gst_replace_get_times (GstBaseSink * sink, GstBuffer * buffer,
+    GstClockTime * start, GstClockTime * end);
+static gboolean gst_replace_propose_allocation (GstBaseSink * sink,
+    GstQuery * query);
+static gboolean gst_replace_start (GstBaseSink * sink);
+static gboolean gst_replace_stop (GstBaseSink * sink);
+static gboolean gst_replace_unlock (GstBaseSink * sink);
+static gboolean gst_replace_unlock_stop (GstBaseSink * sink);
+static gboolean gst_replace_query (GstBaseSink * sink, GstQuery * query);
+static gboolean gst_replace_event (GstBaseSink * sink, GstEvent * event);
+static GstFlowReturn gst_replace_wait_event (GstBaseSink * sink,
+    GstEvent * event);
+static GstFlowReturn gst_replace_prepare (GstBaseSink * sink,
+    GstBuffer * buffer);
+static GstFlowReturn gst_replace_prepare_list (GstBaseSink * sink,
+    GstBufferList * buffer_list);
+static GstFlowReturn gst_replace_preroll (GstBaseSink * sink,
+    GstBuffer * buffer);
+static GstFlowReturn gst_replace_render (GstBaseSink * sink,
+    GstBuffer * buffer);
+static GstFlowReturn gst_replace_render_list (GstBaseSink * sink,
+    GstBufferList * buffer_list);
+% declare-class
+  GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS (klass);
+% set-methods
+  base_sink_class->get_caps = GST_DEBUG_FUNCPTR (gst_replace_get_caps);
+  base_sink_class->set_caps = GST_DEBUG_FUNCPTR (gst_replace_set_caps);
+  base_sink_class->fixate = GST_DEBUG_FUNCPTR (gst_replace_fixate);
+  base_sink_class->activate_pull = GST_DEBUG_FUNCPTR (gst_replace_activate_pull);
+  base_sink_class->get_times = GST_DEBUG_FUNCPTR (gst_replace_get_times);
+  base_sink_class->propose_allocation = GST_DEBUG_FUNCPTR (gst_replace_propose_allocation);
+  base_sink_class->start = GST_DEBUG_FUNCPTR (gst_replace_start);
+  base_sink_class->stop = GST_DEBUG_FUNCPTR (gst_replace_stop);
+  base_sink_class->unlock = GST_DEBUG_FUNCPTR (gst_replace_unlock);
+  base_sink_class->unlock_stop = GST_DEBUG_FUNCPTR (gst_replace_unlock_stop);
+  base_sink_class->query = GST_DEBUG_FUNCPTR (gst_replace_query);
+  base_sink_class->event = GST_DEBUG_FUNCPTR (gst_replace_event);
+  base_sink_class->wait_event = GST_DEBUG_FUNCPTR (gst_replace_wait_event);
+  base_sink_class->prepare = GST_DEBUG_FUNCPTR (gst_replace_prepare);
+  base_sink_class->prepare_list = GST_DEBUG_FUNCPTR (gst_replace_prepare_list);
+  base_sink_class->preroll = GST_DEBUG_FUNCPTR (gst_replace_preroll);
+  base_sink_class->render = GST_DEBUG_FUNCPTR (gst_replace_render);
+  base_sink_class->render_list = GST_DEBUG_FUNCPTR (gst_replace_render_list);
+% methods
+static GstCaps *
+gst_replace_get_caps (GstBaseSink * sink, GstCaps * filter)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "get_caps");
+
+  return NULL;
+}
+
+/* notify subclass of new caps */
+static gboolean
+gst_replace_set_caps (GstBaseSink * sink, GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "set_caps");
+
+  return TRUE;
+}
+
+/* fixate sink caps during pull-mode negotiation */
+static GstCaps *
+gst_replace_fixate (GstBaseSink * sink, GstCaps * caps)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "fixate");
+
+  return NULL;
+}
+
+/* start or stop a pulling thread */
+static gboolean
+gst_replace_activate_pull (GstBaseSink * sink, gboolean active)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "activate_pull");
+
+  return TRUE;
+}
+
+/* get the start and end times for syncing on this buffer */
+static void
+gst_replace_get_times (GstBaseSink * sink, GstBuffer * buffer,
+    GstClockTime * start, GstClockTime * end)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "get_times");
+
+}
+
+/* propose allocation parameters for upstream */
+static gboolean
+gst_replace_propose_allocation (GstBaseSink * sink, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "propose_allocation");
+
+  return TRUE;
+}
+
+/* start and stop processing, ideal for opening/closing the resource */
+static gboolean
+gst_replace_start (GstBaseSink * sink)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "start");
+
+  return TRUE;
+}
+
+static gboolean
+gst_replace_stop (GstBaseSink * sink)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "stop");
+
+  return TRUE;
+}
+
+/* unlock any pending access to the resource. subclasses should unlock
+ * any function ASAP. */
+static gboolean
+gst_replace_unlock (GstBaseSink * sink)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "unlock");
+
+  return TRUE;
+}
+
+/* Clear a previously indicated unlock request not that unlocking is
+ * complete. Sub-classes should clear any command queue or indicator they
+ * set during unlock */
+static gboolean
+gst_replace_unlock_stop (GstBaseSink * sink)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "unlock_stop");
+
+  return TRUE;
+}
+
+/* notify subclass of query */
+static gboolean
+gst_replace_query (GstBaseSink * sink, GstQuery * query)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "query");
+
+  return TRUE;
+}
+
+/* notify subclass of event */
+static gboolean
+gst_replace_event (GstBaseSink * sink, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "event");
+
+  return TRUE;
+}
+
+/* wait for eos or gap, subclasses should chain up to parent first */
+static GstFlowReturn
+gst_replace_wait_event (GstBaseSink * sink, GstEvent * event)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "wait_event");
+
+  return GST_FLOW_OK;
+}
+
+/* notify subclass of buffer or list before doing sync */
+static GstFlowReturn
+gst_replace_prepare (GstBaseSink * sink, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "prepare");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_prepare_list (GstBaseSink * sink, GstBufferList * buffer_list)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "prepare_list");
+
+  return GST_FLOW_OK;
+}
+
+/* notify subclass of preroll buffer or real buffer */
+static GstFlowReturn
+gst_replace_preroll (GstBaseSink * sink, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "preroll");
+
+  return GST_FLOW_OK;
+}
+
+static GstFlowReturn
+gst_replace_render (GstBaseSink * sink, GstBuffer * buffer)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "render");
+
+  return GST_FLOW_OK;
+}
+
+/* Render a BufferList */
+static GstFlowReturn
+gst_replace_render_list (GstBaseSink * sink, GstBufferList * buffer_list)
+{
+  GstReplace *replace = GST_REPLACE (sink);
+
+  GST_DEBUG_OBJECT (replace, "render_list");
+
+  return GST_FLOW_OK;
+}
+% end
