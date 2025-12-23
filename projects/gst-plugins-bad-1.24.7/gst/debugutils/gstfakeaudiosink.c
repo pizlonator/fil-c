@@ -43,6 +43,8 @@
 
 #include <gst/audio/audio.h>
 
+#include <stdfil.h>
+
 typedef enum
 {
   FAKE_SINK_STATE_ERROR_NONE = 0,
@@ -282,7 +284,7 @@ gst_fake_audio_sink_class_init (GstFakeAudioSinkClass * klass)
   gst_fake_audio_sink_signals[SIGNAL_HANDOFF] =
       g_signal_new ("handoff", G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST,
       G_STRUCT_OFFSET (GstFakeAudioSinkClass, handoff), NULL, NULL,
-      NULL, G_TYPE_NONE, 2, GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE,
+      NULL, G_TYPE_NONE, 2, zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
       GST_TYPE_PAD);
 
   /**
@@ -299,7 +301,7 @@ gst_fake_audio_sink_class_init (GstFakeAudioSinkClass * klass)
       g_signal_new ("preroll-handoff", G_TYPE_FROM_CLASS (klass),
       G_SIGNAL_RUN_LAST, G_STRUCT_OFFSET (GstFakeAudioSinkClass,
           preroll_handoff), NULL, NULL, NULL, G_TYPE_NONE, 2,
-      GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE, GST_TYPE_PAD);
+      zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), GST_TYPE_PAD);
 
   g_object_class_install_property (object_class, PROP_STATE_ERROR,
       g_param_spec_enum ("state-error", "State Error",

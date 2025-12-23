@@ -39,7 +39,7 @@ GST_DEBUG_CATEGORY_STATIC (gst_decklink_debug);
 GType
 gst_decklink_mode_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue modes[] = {
     {GST_DECKLINK_MODE_AUTO, "Automatic detection", "auto"},
 
@@ -130,9 +130,9 @@ gst_decklink_mode_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkModes", modes);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -141,7 +141,7 @@ gst_decklink_mode_get_type (void)
 GType
 gst_decklink_connection_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue connections[] = {
     {GST_DECKLINK_CONNECTION_AUTO, "Auto", "auto"},
     {GST_DECKLINK_CONNECTION_SDI, "SDI", "sdi"},
@@ -153,9 +153,9 @@ gst_decklink_connection_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkConnection", connections);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -164,7 +164,7 @@ gst_decklink_connection_get_type (void)
 GType
 gst_decklink_video_format_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue types[] = {
     {GST_DECKLINK_VIDEO_FORMAT_AUTO, "Auto", "auto"},
     {GST_DECKLINK_VIDEO_FORMAT_8BIT_YUV, "bmdFormat8BitYUV", "8bit-yuv"},
@@ -181,9 +181,9 @@ gst_decklink_video_format_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkVideoFormat", types);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -205,7 +205,7 @@ gst_decklink_video_format_get_type (void)
 GType
 gst_decklink_profile_id_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue types[] = {
     {GST_DECKLINK_PROFILE_ID_DEFAULT, "Default, don't change profile",
         "default"},
@@ -222,9 +222,9 @@ gst_decklink_profile_id_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkProfileId", types);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -243,7 +243,7 @@ gst_decklink_profile_id_get_type (void)
 GType
 gst_decklink_mapping_format_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue mappingformats[] = {
     {GST_DECKLINK_MAPPING_FORMAT_DEFAULT, "Default, don't change mapping format",
       "default"},
@@ -252,9 +252,9 @@ gst_decklink_mapping_format_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkMappingFormat", mappingformats);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -263,7 +263,7 @@ gst_decklink_mapping_format_get_type (void)
 GType
 gst_decklink_timecode_format_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue timecodeformats[] = {
     {GST_DECKLINK_TIMECODE_FORMAT_RP188VITC1, "bmdTimecodeRP188VITC1",
         "rp188vitc1"},
@@ -278,10 +278,10 @@ gst_decklink_timecode_format_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp =
         g_enum_register_static ("GstDecklinkTimecodeFormat", timecodeformats);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -290,7 +290,7 @@ gst_decklink_timecode_format_get_type (void)
 GType
 gst_decklink_keyer_mode_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue keyermodes[] = {
     {GST_DECKLINK_KEYER_MODE_OFF, "Off", "off"},
     {GST_DECKLINK_KEYER_MODE_INTERNAL, "Internal", "internal"},
@@ -298,9 +298,9 @@ gst_decklink_keyer_mode_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstDecklinkKeyerMode", keyermodes);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -309,7 +309,7 @@ gst_decklink_keyer_mode_get_type (void)
 GType
 gst_decklink_audio_connection_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue connections[] = {
     {GST_DECKLINK_AUDIO_CONNECTION_AUTO, "Automatic", "auto"},
     {GST_DECKLINK_AUDIO_CONNECTION_EMBEDDED, "SDI/HDMI embedded audio",
@@ -323,10 +323,10 @@ gst_decklink_audio_connection_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp =
         g_enum_register_static ("GstDecklinkAudioConnection", connections);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -335,7 +335,7 @@ gst_decklink_audio_connection_get_type (void)
 GType
 gst_decklink_audio_channels_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue connections[] = {
     {GST_DECKLINK_AUDIO_CHANNELS_2, "2 Channels", "2"},
     {GST_DECKLINK_AUDIO_CHANNELS_8, "8 Channels", "8"},
@@ -344,10 +344,10 @@ gst_decklink_audio_channels_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp =
         g_enum_register_static ("GstDecklinkAudioChannels", connections);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;

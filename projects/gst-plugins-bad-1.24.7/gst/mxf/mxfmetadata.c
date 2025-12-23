@@ -6544,8 +6544,8 @@ mxf_descriptive_metadata_new (guint8 scheme, guint32 type,
 GType
 mxf_descriptive_metadata_framework_get_type (void)
 {
-  static gsize type = 0;
-  if (g_once_init_enter (&type)) {
+  static gpointer type = 0;
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = 0;
     static const GTypeInfo info = {
       sizeof (MXFDescriptiveMetadataFrameworkInterface),
@@ -6563,7 +6563,7 @@ mxf_descriptive_metadata_framework_get_type (void)
 
     g_type_interface_add_prerequisite (_type, MXF_TYPE_DESCRIPTIVE_METADATA);
 
-    g_once_init_leave (&type, (gsize) _type);
+    g_once_init_leave_pointer (&type, _type);
   }
 
   return (GType) type;

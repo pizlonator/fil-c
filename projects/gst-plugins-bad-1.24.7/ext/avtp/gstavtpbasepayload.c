@@ -61,7 +61,7 @@ gst_avtp_base_payload_get_type (void)
 {
   static GType avtpbasepayload_type = 0;
 
-  if (g_once_init_enter ((gsize *) & avtpbasepayload_type)) {
+  if (g_once_init_enter_pointer ((gpointer *) & avtpbasepayload_type)) {
     static const GTypeInfo avtpbasepayload_info = {
       sizeof (GstAvtpBasePayloadClass),
       NULL,
@@ -78,7 +78,7 @@ gst_avtp_base_payload_get_type (void)
     _type = g_type_register_static (GST_TYPE_ELEMENT, "GstAvtpBasePayload",
         &avtpbasepayload_info, G_TYPE_FLAG_ABSTRACT);
 
-    g_once_init_leave ((gsize *) & avtpbasepayload_type, _type);
+    g_once_init_leave_pointer ((gpointer *) & avtpbasepayload_type, _type);
   }
   return avtpbasepayload_type;
 }

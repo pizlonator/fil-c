@@ -456,7 +456,7 @@ typedef struct
 
   guint64 size;
   guint32 flags;
-  guint64 api;
+  gpointer api;
   char *str;
 } MetaBuildInfo;
 

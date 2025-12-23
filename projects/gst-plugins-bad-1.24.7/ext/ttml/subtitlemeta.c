@@ -1,3 +1,4 @@
+
 /* GStreamer
  * Copyright (C) <2015> British Broadcasting Corporation
  *   Author: Chris Bass <dash@rd.bbc.co.uk>
@@ -35,9 +36,9 @@ gst_subtitle_meta_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { "memory", NULL };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstSubtitleMetaAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -65,12 +66,12 @@ gst_subtitle_meta_get_info (void)
 {
   static const GstMetaInfo *subtitle_meta_info = NULL;
 
-  if (g_once_init_enter (&subtitle_meta_info)) {
+  if (g_once_init_enter_pointer (&subtitle_meta_info)) {
     const GstMetaInfo *meta =
         gst_meta_register (GST_SUBTITLE_META_API_TYPE, "GstSubtitleMeta",
         sizeof (GstSubtitleMeta), gst_subtitle_meta_init,
         gst_subtitle_meta_free, (GstMetaTransformFunction) NULL);
-    g_once_init_leave (&subtitle_meta_info, meta);
+    g_once_init_leave_pointer (&subtitle_meta_info, meta);
   }
   return subtitle_meta_info;
 }

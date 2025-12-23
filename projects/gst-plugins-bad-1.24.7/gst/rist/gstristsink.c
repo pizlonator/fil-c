@@ -169,7 +169,7 @@ struct _GstRistSink
 static GType
 gst_rist_bonding_method_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {GST_RIST_BONDING_METHOD_BROADCAST,
         "GST_RIST_BONDING_METHOD_BROADCAST", "broadcast"},
@@ -178,9 +178,9 @@ gst_rist_bonding_method_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstRistBondingMethodType", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;

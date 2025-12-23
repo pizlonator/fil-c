@@ -664,7 +664,7 @@ get_agent_by_pem (const gchar * pem)
   GstDtlsAgent *agent;
 
   if (!pem) {
-    if (g_once_init_enter (&generated_cert_agent)) {
+    if (g_once_init_enter_pointer (&generated_cert_agent)) {
       GstDtlsAgent *new_agent;
       GObject *certificate;
 
@@ -675,7 +675,7 @@ get_agent_by_pem (const gchar * pem)
 
       GST_DEBUG_OBJECT (generated_cert_agent,
           "no agent with generated cert found, creating new");
-      g_once_init_leave (&generated_cert_agent, new_agent);
+      g_once_init_leave_pointer (&generated_cert_agent, new_agent);
     } else {
       GST_DEBUG_OBJECT (generated_cert_agent,
           "using agent with generated cert");

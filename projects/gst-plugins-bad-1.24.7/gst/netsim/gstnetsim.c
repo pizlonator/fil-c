@@ -38,8 +38,8 @@ GST_DEBUG_CATEGORY (netsim_debug);
 static GType
 distribution_get_type (void)
 {
-  static gsize static_g_define_type_id = 0;
-  if (g_once_init_enter (&static_g_define_type_id)) {
+  static gpointer static_g_define_type_id = 0;
+  if (g_once_init_enter_pointer (&static_g_define_type_id)) {
     static const GEnumValue values[] = {
       {DISTRIBUTION_UNIFORM, "uniform", "uniform"},
       {DISTRIBUTION_NORMAL, "normal", "normal"},
@@ -48,7 +48,7 @@ distribution_get_type (void)
     };
     GType g_define_type_id =
         g_enum_register_static ("GstNetSimDistribution", values);
-    g_once_init_leave (&static_g_define_type_id, g_define_type_id);
+    g_once_init_leave_pointer (&static_g_define_type_id, g_define_type_id);
   }
   return static_g_define_type_id;
 }

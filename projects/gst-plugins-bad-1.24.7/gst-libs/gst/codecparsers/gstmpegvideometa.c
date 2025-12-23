@@ -98,12 +98,12 @@ gst_mpeg_video_meta_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { "memory", NULL };      /* don't know what to set here */
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstMpegVideoMetaAPI", tags);
     GST_DEBUG_CATEGORY_INIT (mpegv_meta_debug, "mpegvideometa", 0,
         "MPEG-1/2 video GstMeta");
 
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -113,13 +113,13 @@ gst_mpeg_video_meta_get_info (void)
 {
   static const GstMetaInfo *mpeg_video_meta_info = NULL;
 
-  if (g_once_init_enter ((GstMetaInfo **) & mpeg_video_meta_info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & mpeg_video_meta_info)) {
     const GstMetaInfo *meta = gst_meta_register (GST_MPEG_VIDEO_META_API_TYPE,
         "GstMpegVideoMeta", sizeof (GstMpegVideoMeta),
         (GstMetaInitFunction) gst_mpeg_video_meta_init,
         (GstMetaFreeFunction) gst_mpeg_video_meta_free,
         (GstMetaTransformFunction) gst_mpeg_video_meta_transform);
-    g_once_init_leave ((GstMetaInfo **) & mpeg_video_meta_info,
+    g_once_init_leave_pointer ((GstMetaInfo **) & mpeg_video_meta_info,
         (GstMetaInfo *) meta);
   }
 

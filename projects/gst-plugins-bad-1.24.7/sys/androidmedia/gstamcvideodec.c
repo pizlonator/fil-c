@@ -263,9 +263,9 @@ static GstVideoDecoderClass *parent_class = NULL;
 GType
 gst_amc_video_dec_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type;
     static const GTypeInfo info = {
       sizeof (GstAmcVideoDecClass),
@@ -286,7 +286,7 @@ gst_amc_video_dec_get_type (void)
     GST_DEBUG_CATEGORY_INIT (gst_amc_video_dec_debug_category, "amcvideodec", 0,
         "Android MediaCodec video decoder");
 
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

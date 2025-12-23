@@ -67,7 +67,7 @@ enum
 GType
 gst_lcms_intent_get_type (void)
 {
-  static gsize intent_type = 0;
+  static gpointer intent_type = 0;
   static const GEnumValue intent[] = {
     {GST_LCMS_INTENT_PERCEPTUAL, "Perceptual",
         "perceptual"},
@@ -80,9 +80,9 @@ gst_lcms_intent_get_type (void)
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&intent_type)) {
+  if (g_once_init_enter_pointer (&intent_type)) {
     GType tmp = g_enum_register_static ("GstLcmsIntent", intent);
-    g_once_init_leave (&intent_type, tmp);
+    g_once_init_leave_pointer (&intent_type, tmp);
   }
   return (GType) intent_type;
 }
@@ -90,7 +90,7 @@ gst_lcms_intent_get_type (void)
 static GType
 gst_lcms_lookup_method_get_type (void)
 {
-  static gsize lookup_method_type = 0;
+  static gpointer lookup_method_type = 0;
   static const GEnumValue lookup_method[] = {
     {GST_LCMS_LOOKUP_METHOD_UNCACHED,
           "Uncached, calculate every pixel on the fly (very slow playback)",
@@ -104,9 +104,9 @@ gst_lcms_lookup_method_get_type (void)
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&lookup_method_type)) {
+  if (g_once_init_enter_pointer (&lookup_method_type)) {
     GType tmp = g_enum_register_static ("GstLcmsLookupMethod", lookup_method);
-    g_once_init_leave (&lookup_method_type, tmp);
+    g_once_init_leave_pointer (&lookup_method_type, tmp);
   }
   return (GType) lookup_method_type;
 }

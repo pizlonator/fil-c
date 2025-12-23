@@ -55,7 +55,7 @@ gst_aes_cipher_get_type (void)
 {
   static GType aes_cipher_type = 0;
 
-  if (g_once_init_enter (&aes_cipher_type)) {
+  if (g_once_init_enter_pointer (&aes_cipher_type)) {
     static GEnumValue aes_cipher_types[] = {
       {GST_AES_CIPHER_128_CBC, "AES 128 bit cipher key using CBC method",
           "aes-128-cbc"},
@@ -68,7 +68,7 @@ gst_aes_cipher_get_type (void)
     GType temp = g_enum_register_static ("GstAesCipher",
         aes_cipher_types);
 
-    g_once_init_leave (&aes_cipher_type, temp);
+    g_once_init_leave_pointer (&aes_cipher_type, temp);
   }
 
   return aes_cipher_type;

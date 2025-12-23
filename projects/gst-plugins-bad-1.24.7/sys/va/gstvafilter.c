@@ -1933,7 +1933,7 @@ gst_va_filter_has_video_format (GstVaFilter * self, GstVideoFormat format,
 GType
 gst_va_scale_method_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
   static const GEnumValue values[] = {
     {VA_FILTER_SCALING_DEFAULT, "Default scaling method", "default"},
     {VA_FILTER_SCALING_FAST, "Fast scaling method", "fast"},
@@ -1941,9 +1941,9 @@ gst_va_scale_method_get_type (void)
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     const GType _type = g_enum_register_static ("GstVaScaleMethod", values);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

@@ -51,7 +51,7 @@ gst_clock_select_clock_id_get_type (void)
 {
   static GType clock_id_type = 0;
 
-  if (g_once_init_enter (&clock_id_type)) {
+  if (g_once_init_enter_pointer ((gpointer *) &clock_id_type)) {
     GType type;
     static const GEnumValue clock_id_types[] = {
       {GST_CLOCK_SELECT_CLOCK_ID_DEFAULT,
@@ -65,7 +65,7 @@ gst_clock_select_clock_id_get_type (void)
     };
 
     type = g_enum_register_static ("GstClockSelectClockId", clock_id_types);
-    g_once_init_leave (&clock_id_type, type);
+    g_once_init_leave_pointer ((gpointer *) &clock_id_type, type);
   }
 
   return clock_id_type;

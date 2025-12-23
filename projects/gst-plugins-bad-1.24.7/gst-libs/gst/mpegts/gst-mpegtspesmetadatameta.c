@@ -68,10 +68,10 @@ gst_mpegts_pes_metadata_meta_api_get_type (void)
   static GType type;
   static const gchar *tags[] = { NULL };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type =
         gst_meta_api_type_register ("GstMpegtsPESMetadataMetaAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -81,14 +81,14 @@ gst_mpegts_pes_metadata_meta_get_info (void)
 {
   static const GstMetaInfo *mpegts_pes_metadata_meta_info = NULL;
 
-  if (g_once_init_enter ((GstMetaInfo **) & mpegts_pes_metadata_meta_info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & mpegts_pes_metadata_meta_info)) {
     const GstMetaInfo *meta =
         gst_meta_register (GST_MPEGTS_PES_METADATA_META_API_TYPE,
         "GstMpegtsPESMetadataMeta", sizeof (GstMpegtsPESMetadataMeta),
         (GstMetaInitFunction) gst_mpegts_pes_metadata_meta_init,
         (GstMetaFreeFunction) gst_mpegts_pes_metadata_meta_free,
         (GstMetaTransformFunction) gst_mpegts_pes_metadata_meta_transform);
-    g_once_init_leave ((GstMetaInfo **) & mpegts_pes_metadata_meta_info,
+    g_once_init_leave_pointer ((GstMetaInfo **) & mpegts_pes_metadata_meta_info,
         (GstMetaInfo *) meta);
   }
 

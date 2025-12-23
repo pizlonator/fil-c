@@ -1438,7 +1438,7 @@ gst_player_set_subtitle_video_offset (GstPlayer * self, gint64 offset)
 GType
 gst_player_color_balance_type_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAYER_COLOR_BALANCE_HUE), "GST_PLAYER_COLOR_BALANCE_HUE",
         "hue"},
@@ -1451,9 +1451,9 @@ gst_player_color_balance_type_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayerColorBalanceType", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -1480,7 +1480,7 @@ gst_player_color_balance_type_get_name (GstPlayerColorBalanceType type)
 GType
 gst_player_state_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAYER_STATE_STOPPED), "GST_PLAYER_STATE_STOPPED", "stopped"},
     {C_ENUM (GST_PLAYER_STATE_BUFFERING), "GST_PLAYER_STATE_BUFFERING",
@@ -1490,9 +1490,9 @@ gst_player_state_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayerState", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -1527,15 +1527,15 @@ gst_player_state_get_name (GstPlayerState state)
 GType
 gst_player_error_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAYER_ERROR_FAILED), "GST_PLAYER_ERROR_FAILED", "failed"},
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayerError", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;

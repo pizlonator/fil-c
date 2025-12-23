@@ -43,6 +43,8 @@
 
 #include <gst/video/video.h>
 
+#include <stdfil.h>
+
 #define C_FLAGS(v) ((guint) v)
 
 GType
@@ -58,13 +60,13 @@ gst_fake_video_sink_allocation_meta_flags_get_type (void)
   };
   static GType id = 0;
 
-  if (g_once_init_enter ((gsize *) & id)) {
+  if (g_once_init_enter_pointer ((gpointer *) & id)) {
     GType _id;
 
     _id =
         g_flags_register_static ("GstFakeVideoSinkAllocationMetaFlags", values);
 
-    g_once_init_leave ((gsize *) & id, _id);
+    g_once_init_leave_pointer ((gpointer *) & id, _id);
   }
 
   return id;
@@ -341,7 +343,7 @@ gst_fake_video_sink_class_init (GstFakeVideoSinkClass * klass)
   gst_fake_video_sink_signals[SIGNAL_HANDOFF] =
       g_signal_new ("handoff", G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST,
       G_STRUCT_OFFSET (GstFakeVideoSinkClass, handoff), NULL, NULL,
-      NULL, G_TYPE_NONE, 2, GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE,
+      NULL, G_TYPE_NONE, 2, zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
       GST_TYPE_PAD);
 
   /**
@@ -358,7 +360,7 @@ gst_fake_video_sink_class_init (GstFakeVideoSinkClass * klass)
       g_signal_new ("preroll-handoff", G_TYPE_FROM_CLASS (klass),
       G_SIGNAL_RUN_LAST, G_STRUCT_OFFSET (GstFakeVideoSinkClass,
           preroll_handoff), NULL, NULL, NULL, G_TYPE_NONE, 2,
-      GST_TYPE_BUFFER | G_SIGNAL_TYPE_STATIC_SCOPE, GST_TYPE_PAD);
+      zorptr (GST_TYPE_BUFFER, (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), GST_TYPE_PAD);
 
   g_object_class_install_property (object_class, PROP_STATE_ERROR,
       g_param_spec_enum ("state-error", "State Error",

@@ -97,9 +97,9 @@ static gint private_offset = 0;
 GType
 gst_codec_timestamper_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type;
     static const GTypeInfo info = {
       sizeof (GstCodecTimestamperClass),
@@ -119,7 +119,7 @@ gst_codec_timestamper_get_type (void)
     private_offset = g_type_add_instance_private (_type,
         sizeof (GstCodecTimestamperPrivate));
 
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

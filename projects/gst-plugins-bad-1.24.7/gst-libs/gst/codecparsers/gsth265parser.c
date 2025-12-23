@@ -77,14 +77,14 @@
 static GstDebugCategory *
 gst_h265_debug_category_get (void)
 {
-  static gsize cat_gonce = 0;
+  static gpointer cat_gonce = 0;
 
-  if (g_once_init_enter (&cat_gonce)) {
+  if (g_once_init_enter_pointer (&cat_gonce)) {
     GstDebugCategory *cat = NULL;
 
     GST_DEBUG_CATEGORY_INIT (cat, "codecparsers_h265", 0, "h265 parse library");
 
-    g_once_init_leave (&cat_gonce, (gsize) cat);
+    g_once_init_leave_pointer (&cat_gonce, cat);
   }
 
   return (GstDebugCategory *) cat_gonce;

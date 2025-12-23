@@ -245,7 +245,7 @@ enum
 GType
 gst_h264_decoder_compliance_get_type (void)
 {
-  static gsize h264_decoder_compliance_type = 0;
+  static gpointer h264_decoder_compliance_type = 0;
   static const GEnumValue compliances[] = {
     {GST_H264_DECODER_COMPLIANCE_AUTO, "GST_H264_DECODER_COMPLIANCE_AUTO",
         "auto"},
@@ -259,11 +259,11 @@ gst_h264_decoder_compliance_get_type (void)
   };
 
 
-  if (g_once_init_enter (&h264_decoder_compliance_type)) {
+  if (g_once_init_enter_pointer (&h264_decoder_compliance_type)) {
     GType _type;
 
     _type = g_enum_register_static ("GstH264DecoderCompliance", compliances);
-    g_once_init_leave (&h264_decoder_compliance_type, _type);
+    g_once_init_leave_pointer (&h264_decoder_compliance_type, _type);
   }
 
   return (GType) h264_decoder_compliance_type;

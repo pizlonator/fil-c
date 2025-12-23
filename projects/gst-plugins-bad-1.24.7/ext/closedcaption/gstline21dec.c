@@ -89,12 +89,12 @@ gst_line_21_decoder_mode_get_type (void)
   };
   static volatile GType id = 0;
 
-  if (g_once_init_enter ((gsize *) & id)) {
+  if (g_once_init_enter_pointer ((gpointer *) & id)) {
     GType _id;
 
     _id = g_enum_register_static ("GstLine21DecoderMode", values);
 
-    g_once_init_leave ((gsize *) & id, _id);
+    g_once_init_leave_pointer ((gpointer *) & id, _id);
   }
 
   return id;

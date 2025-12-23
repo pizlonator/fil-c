@@ -204,12 +204,12 @@ gst_wasapi_device_role_get_type (void)
   };
   static GType id = 0;
 
-  if (g_once_init_enter ((gsize *) & id)) {
+  if (g_once_init_enter_pointer ((gpointer *) & id)) {
     GType _id;
 
     _id = g_enum_register_static ("GstWasapiDeviceRole", values);
 
-    g_once_init_leave ((gsize *) & id, _id);
+    g_once_init_leave_pointer ((gpointer *) & id, _id);
   }
 
   return id;

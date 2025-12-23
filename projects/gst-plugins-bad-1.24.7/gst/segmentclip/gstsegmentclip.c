@@ -56,9 +56,9 @@ static GstElementClass *parent_class;
 GType
 gst_segment_clip_get_type (void)
 {
-  static gsize segment_clip_type = 0;
+  static gpointer segment_clip_type = 0;
 
-  if (g_once_init_enter (&segment_clip_type)) {
+  if (g_once_init_enter_pointer (&segment_clip_type)) {
     GType _type;
 
     _type = g_type_register_static_simple (GST_TYPE_ELEMENT,
@@ -66,7 +66,7 @@ gst_segment_clip_get_type (void)
         (GClassInitFunc) gst_segment_clip_class_init, sizeof (GstSegmentClip),
         (GInstanceInitFunc) gst_segment_clip_init, G_TYPE_FLAG_ABSTRACT);
 
-    g_once_init_leave (&segment_clip_type, _type);
+    g_once_init_leave_pointer (&segment_clip_type, _type);
   }
   return segment_clip_type;
 }

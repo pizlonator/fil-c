@@ -71,16 +71,16 @@ gst_avtp_aaf_timestamp_mode_get_type (void)
     {GST_AVTP_AAF_TIMESTAMP_MODE_SPARSE, "Sparse timestamping mode", "sparse"},
     {0, NULL, NULL},
   };
-  static gsize id = 0;
+  static gpointer id = 0;
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType new_type;
 
     new_type =
         g_enum_register_static ("GstAvtpAafTimestampMode",
         timestamp_mode_types);
 
-    g_once_init_leave (&id, (gsize) new_type);
+    g_once_init_leave_pointer (&id, new_type);
   }
 
   return (GType) id;

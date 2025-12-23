@@ -106,9 +106,9 @@ gst_wasapi2_src_loopback_mode_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&loopback_type)) {
+  if (g_once_init_enter_pointer (&loopback_type)) {
     GType gtype = g_enum_register_static ("GstWasapi2SrcLoopbackMode", types);
-    g_once_init_leave (&loopback_type, gtype);
+    g_once_init_leave_pointer (&loopback_type, gtype);
   }
 
   return loopback_type;

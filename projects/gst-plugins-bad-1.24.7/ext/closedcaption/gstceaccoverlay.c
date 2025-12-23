@@ -175,7 +175,7 @@ gst_cea_cc_overlay_get_type (void)
 {
   static GType type = 0;
 
-  if (g_once_init_enter ((gsize *) & type)) {
+  if (g_once_init_enter_pointer ((gpointer *) & type)) {
     static const GTypeInfo info = {
       sizeof (GstCeaCcOverlayClass),
       (GBaseInitFunc) gst_base_cea_cc_overlay_base_init,
@@ -188,7 +188,7 @@ gst_cea_cc_overlay_get_type (void)
       (GInstanceInitFunc) gst_base_cea_cc_overlay_init,
     };
 
-    g_once_init_leave ((gsize *) & type,
+    g_once_init_leave_pointer ((gpointer *) & type,
         g_type_register_static (GST_TYPE_ELEMENT, "GstCeaCcOverlay", &info, 0));
   }
 

@@ -291,12 +291,12 @@ gst_analytics_relation_meta_api_get_type (void)
     GST_META_TAG_VIDEO_STR,
     NULL
   };
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType newType =
         gst_meta_api_type_register ("GstAnalyticsRelationMetaAPI", tags);
     GST_DEBUG_CATEGORY_INIT (an_relation_meta_debug, "anrelmeta",
         GST_DEBUG_FG_BLACK, "Content analysis meta relations meta");
-    g_once_init_leave (&type, newType);
+    g_once_init_leave_pointer (&type, newType);
   }
   return type;
 }
@@ -464,7 +464,7 @@ const GstMetaInfo *
 gst_analytics_relation_meta_get_info (void)
 {
   static const GstMetaInfo *info = NULL;
-  if (g_once_init_enter ((GstMetaInfo **) & info)) {
+  if (g_once_init_enter_pointer ((GstMetaInfo **) & info)) {
     GstMetaInfo *meta = gst_meta_info_new (GST_ANALYTICS_RELATION_META_API_TYPE,
         "GstAnalyticsRelationMeta",
         sizeof (GstAnalyticsRelationMeta));
@@ -473,7 +473,7 @@ gst_analytics_relation_meta_get_info (void)
     meta->transform_func = gst_analytics_relation_meta_transform;
     meta->clear_func = gst_analytics_relation_meta_clear;
     meta = (GstMetaInfo *) gst_meta_info_register (meta);
-    g_once_init_leave ((GstMetaInfo **) & info, (GstMetaInfo *) meta);
+    g_once_init_leave_pointer ((GstMetaInfo **) & info, (GstMetaInfo *) meta);
   }
   return info;
 }

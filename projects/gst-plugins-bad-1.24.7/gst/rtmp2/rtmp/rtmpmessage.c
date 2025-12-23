@@ -151,11 +151,11 @@ gst_rtmp_meta_api_get_type (void)
     NULL
   };
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer ((gpointer *) &type)) {
     GType _type = gst_meta_api_type_register ("GstRtmpMetaAPI", tags);
     GST_DEBUG_CATEGORY_INIT (gst_rtmp_message_debug_category,
         "rtmpmessage", 0, "debug category for rtmp messages");
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer ((gpointer *) &type, _type);
   }
   return type;
 }
@@ -205,11 +205,11 @@ gst_rtmp_meta_get_info (void)
 {
   static const GstMetaInfo *rtmp_meta_info = NULL;
 
-  if (g_once_init_enter (&rtmp_meta_info)) {
+  if (g_once_init_enter_pointer (&rtmp_meta_info)) {
     const GstMetaInfo *meta = gst_meta_register (GST_RTMP_META_API_TYPE,
         "GstRtmpMeta", sizeof (GstRtmpMeta), gst_rtmp_meta_init, NULL,
         gst_rtmp_meta_transform);
-    g_once_init_leave (&rtmp_meta_info, meta);
+    g_once_init_leave_pointer (&rtmp_meta_info, meta);
   }
   return rtmp_meta_info;
 }

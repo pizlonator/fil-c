@@ -346,9 +346,9 @@ rsn_dec_change_state (GstElement * element, GstStateChange transition)
 GType
 rsn_dec_get_type (void)
 {
-  static gsize type = 0;
+  static gpointer type = 0;
 
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type;
     static const GTypeInfo type_info = {
       sizeof (RsnDecClass),
@@ -364,7 +364,7 @@ rsn_dec_get_type (void)
 
     _type = g_type_register_static (GST_TYPE_BIN,
         "RsnDec", &type_info, G_TYPE_FLAG_ABSTRACT);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }

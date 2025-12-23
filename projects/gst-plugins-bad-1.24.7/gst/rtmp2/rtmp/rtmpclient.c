@@ -66,16 +66,16 @@ static const gchar *scheme_strings[] = {
 GType
 gst_rtmp_scheme_get_type (void)
 {
-  static gsize scheme_type = 0;
+  static gpointer scheme_type = 0;
   static const GEnumValue scheme[] = {
     {GST_RTMP_SCHEME_RTMP, "GST_RTMP_SCHEME_RTMP", "rtmp"},
     {GST_RTMP_SCHEME_RTMPS, "GST_RTMP_SCHEME_RTMPS", "rtmps"},
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&scheme_type)) {
+  if (g_once_init_enter_pointer (&scheme_type)) {
     GType tmp = g_enum_register_static ("GstRtmpScheme", scheme);
-    g_once_init_leave (&scheme_type, tmp);
+    g_once_init_leave_pointer (&scheme_type, tmp);
   }
 
   return (GType) scheme_type;
@@ -142,7 +142,7 @@ gst_rtmp_scheme_get_default_port (GstRtmpScheme scheme)
 GType
 gst_rtmp_authmod_get_type (void)
 {
-  static gsize authmod_type = 0;
+  static gpointer authmod_type = 0;
   static const GEnumValue authmod[] = {
     {GST_RTMP_AUTHMOD_NONE, "GST_RTMP_AUTHMOD_NONE", "none"},
     {GST_RTMP_AUTHMOD_AUTO, "GST_RTMP_AUTHMOD_AUTO", "auto"},
@@ -150,9 +150,9 @@ gst_rtmp_authmod_get_type (void)
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&authmod_type)) {
+  if (g_once_init_enter_pointer (&authmod_type)) {
     GType tmp = g_enum_register_static ("GstRtmpAuthmod", authmod);
-    g_once_init_leave (&authmod_type, tmp);
+    g_once_init_leave_pointer (&authmod_type, tmp);
   }
 
   return (GType) authmod_type;
@@ -169,7 +169,7 @@ gst_rtmp_authmod_get_nick (GstRtmpAuthmod value)
 GType
 gst_rtmp_stop_commands_get_type (void)
 {
-  static gsize stop_commands_type = 0;
+  static gpointer stop_commands_type = 0;
   static const GFlagsValue stop_commands[] = {
     {GST_RTMP_STOP_COMMANDS_NONE, "No command", "none"},
     {GST_RTMP_STOP_COMMANDS_FCUNPUBLISH, "FCUnpublish", "fcunpublish"},
@@ -178,9 +178,9 @@ gst_rtmp_stop_commands_get_type (void)
     {0, NULL, NULL},
   };
 
-  if (g_once_init_enter (&stop_commands_type)) {
+  if (g_once_init_enter_pointer (&stop_commands_type)) {
     GType tmp = g_flags_register_static ("GstRtmpStopCommands", stop_commands);
-    g_once_init_leave (&stop_commands_type, tmp);
+    g_once_init_leave_pointer (&stop_commands_type, tmp);
   }
 
   return (GType) stop_commands_type;
@@ -365,11 +365,11 @@ gst_rtmp_client_connect_async (const GstRtmpLocation * location,
 
   init_debug ();
 
-  if (g_once_init_enter (&auth_regex)) {
+  if (g_once_init_enter_pointer (&auth_regex)) {
     GRegex *re = g_regex_new ("\\[ *AccessManager.Reject *\\] *: *"
         "\\[ *authmod=(?<authmod>.*?) *\\] *: *"
         "(?<query>\\?.*)\\Z", G_REGEX_DOTALL, 0, NULL);
-    g_once_init_leave (&auth_regex, re);
+    g_once_init_leave_pointer (&auth_regex, re);
   }
 
   task = g_task_new (NULL, cancellable, callback, user_data);

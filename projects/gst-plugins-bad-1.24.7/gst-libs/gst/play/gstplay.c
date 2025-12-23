@@ -4155,7 +4155,7 @@ gst_play_set_subtitle_video_offset (GstPlay * self, gint64 offset)
 GType
 gst_play_color_balance_type_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAY_COLOR_BALANCE_HUE), "GST_PLAY_COLOR_BALANCE_HUE",
         "hue"},
@@ -4168,9 +4168,9 @@ gst_play_color_balance_type_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayColorBalanceType", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -4198,7 +4198,7 @@ gst_play_color_balance_type_get_name (GstPlayColorBalanceType type)
 GType
 gst_play_state_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAY_STATE_STOPPED), "GST_PLAY_STATE_STOPPED", "stopped"},
     {C_ENUM (GST_PLAY_STATE_BUFFERING), "GST_PLAY_STATE_BUFFERING",
@@ -4208,9 +4208,9 @@ gst_play_state_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayState", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -4219,7 +4219,7 @@ gst_play_state_get_type (void)
 GType
 gst_play_message_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAY_MESSAGE_URI_LOADED), "GST_PLAY_MESSAGE_URI_LOADED",
         "uri-loaded"},
@@ -4250,9 +4250,9 @@ gst_play_message_get_type (void)
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayMessage", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;
@@ -4307,15 +4307,15 @@ gst_play_message_get_name (GstPlayMessage message_type)
 GType
 gst_play_error_get_type (void)
 {
-  static gsize id = 0;
+  static gpointer id = 0;
   static const GEnumValue values[] = {
     {C_ENUM (GST_PLAY_ERROR_FAILED), "GST_PLAY_ERROR_FAILED", "failed"},
     {0, NULL, NULL}
   };
 
-  if (g_once_init_enter (&id)) {
+  if (g_once_init_enter_pointer (&id)) {
     GType tmp = g_enum_register_static ("GstPlayError", values);
-    g_once_init_leave (&id, tmp);
+    g_once_init_leave_pointer (&id, tmp);
   }
 
   return (GType) id;

@@ -44,12 +44,12 @@ gst_opensles_recording_preset_get_type (void)
   };
   static GType id = 0;
 
-  if (g_once_init_enter ((gsize *) & id)) {
+  if (g_once_init_enter_pointer ((gpointer *) & id)) {
     GType _id;
 
     _id = g_enum_register_static ("GstOpenSLESRecordingPreset", values);
 
-    g_once_init_leave ((gsize *) & id, _id);
+    g_once_init_leave_pointer ((gpointer *) & id, _id);
   }
 
   return id;
@@ -102,12 +102,12 @@ gst_opensles_stream_type_get_type (void)
   };
   static GType id = 0;
 
-  if (g_once_init_enter ((gsize *) & id)) {
+  if (g_once_init_enter_pointer ((gpointer *) & id)) {
     GType _id;
 
     _id = g_enum_register_static ("GstOpenSLESStreamType", values);
 
-    g_once_init_leave ((gsize *) & id, _id);
+    g_once_init_leave_pointer ((gpointer *) & id, _id);
   }
 
   return id;

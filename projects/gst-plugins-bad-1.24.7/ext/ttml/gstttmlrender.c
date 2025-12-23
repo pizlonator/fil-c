@@ -204,7 +204,7 @@ gst_ttml_render_get_type (void)
 {
   static GType type = 0;
 
-  if (g_once_init_enter ((gsize *) & type)) {
+  if (g_once_init_enter_pointer ((gpointer *) & type)) {
     static const GTypeInfo info = {
       sizeof (GstTtmlRenderClass),
       (GBaseInitFunc) gst_ttml_render_base_init,
@@ -217,7 +217,7 @@ gst_ttml_render_get_type (void)
       (GInstanceInitFunc) gst_ttml_render_init,
     };
 
-    g_once_init_leave ((gsize *) & type,
+    g_once_init_leave_pointer ((gpointer *) & type,
         g_type_register_static (GST_TYPE_ELEMENT, "GstTtmlRender", &info, 0));
   }
 

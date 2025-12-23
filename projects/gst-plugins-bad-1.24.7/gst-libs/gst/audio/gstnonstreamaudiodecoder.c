@@ -339,9 +339,9 @@ gst_nonstream_audio_decoder_subsong_mode_get_type (void)
 GType
 gst_nonstream_audio_decoder_get_type (void)
 {
-  static gsize nonstream_audio_decoder_type = 0;
+  static gpointer nonstream_audio_decoder_type = 0;
 
-  if (g_once_init_enter (&nonstream_audio_decoder_type)) {
+  if (g_once_init_enter_pointer (&nonstream_audio_decoder_type)) {
     GType type_;
     static const GTypeInfo nonstream_audio_decoder_info = {
       sizeof (GstNonstreamAudioDecoderClass),
@@ -359,7 +359,7 @@ gst_nonstream_audio_decoder_get_type (void)
     type_ = g_type_register_static (GST_TYPE_ELEMENT,
         "GstNonstreamAudioDecoder",
         &nonstream_audio_decoder_info, G_TYPE_FLAG_ABSTRACT);
-    g_once_init_leave (&nonstream_audio_decoder_type, type_);
+    g_once_init_leave_pointer (&nonstream_audio_decoder_type, type_);
   }
 
   return nonstream_audio_decoder_type;

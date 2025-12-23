@@ -56,7 +56,7 @@ gst_avtp_base_depayload_get_type (void)
 {
   static GType avtpbasedepayload_type = 0;
 
-  if (g_once_init_enter ((gsize *) & avtpbasedepayload_type)) {
+  if (g_once_init_enter_pointer ((gpointer *) & avtpbasedepayload_type)) {
     static const GTypeInfo avtpbasedepayload_info = {
       sizeof (GstAvtpBaseDepayloadClass),
       NULL,
@@ -73,7 +73,7 @@ gst_avtp_base_depayload_get_type (void)
     _type = g_type_register_static (GST_TYPE_ELEMENT, "GstAvtpBaseDepayload",
         &avtpbasedepayload_info, G_TYPE_FLAG_ABSTRACT);
 
-    g_once_init_leave ((gsize *) & avtpbasedepayload_type, _type);
+    g_once_init_leave_pointer ((gpointer *) & avtpbasedepayload_type, _type);
   }
   return avtpbasedepayload_type;
 }

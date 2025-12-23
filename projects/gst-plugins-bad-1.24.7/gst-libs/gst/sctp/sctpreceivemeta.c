@@ -38,9 +38,9 @@ gst_sctp_receive_meta_api_get_type (void)
 {
   static const gchar *tags[] = { NULL };
   static GType type;
-  if (g_once_init_enter (&type)) {
+  if (g_once_init_enter_pointer (&type)) {
     GType _type = gst_meta_api_type_register ("GstSctpReceiveMetaAPI", tags);
-    g_once_init_leave (&type, _type);
+    g_once_init_leave_pointer (&type, _type);
   }
   return type;
 }
@@ -50,14 +50,14 @@ gst_sctp_receive_meta_get_info (void)
 {
   static const GstMetaInfo *gst_sctp_receive_meta_info = NULL;
 
-  if (g_once_init_enter (&gst_sctp_receive_meta_info)) {
+  if (g_once_init_enter_pointer (&gst_sctp_receive_meta_info)) {
     const GstMetaInfo *meta = gst_meta_register (GST_SCTP_RECEIVE_META_API_TYPE,
         "GstSctpReceiveMeta",
         sizeof (GstSctpReceiveMeta),
         gst_sctp_receive_meta_init,
         (GstMetaFreeFunction) NULL,
         gst_sctp_receive_meta_transform);
-    g_once_init_leave (&gst_sctp_receive_meta_info, meta);
+    g_once_init_leave_pointer (&gst_sctp_receive_meta_info, meta);
   }
   return gst_sctp_receive_meta_info;
 }

@@ -44,14 +44,14 @@
 static GstDebugCategory *
 gst_vp8_debug_category_get (void)
 {
-  static gsize cat_gonce = 0;
+  static gpointer cat_gonce = 0;
 
-  if (g_once_init_enter (&cat_gonce)) {
+  if (g_once_init_enter_pointer (&cat_gonce)) {
     GstDebugCategory *cat = NULL;
 
     GST_DEBUG_CATEGORY_INIT (cat, "codecparsers_vp8", 0, "vp8 parser library");
 
-    g_once_init_leave (&cat_gonce, (gsize) cat);
+    g_once_init_leave_pointer (&cat_gonce, cat);
   }
 
   return (GstDebugCategory *) cat_gonce;
