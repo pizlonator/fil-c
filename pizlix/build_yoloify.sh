@@ -26,8 +26,8 @@ do
     fi
 done
 
-patchelf --set-rpath /yolo/lib/perl5/5.40/core_perl/CORE:/yolo/lib /mnt/lfs/yolo/bin/perl
-patchelf --set-rpath /yolo/lib/perl5/5.40/core_perl/CORE:/yolo/lib /mnt/lfs/yolo/bin/perl5.40.0
+patchelf --set-rpath /yolo/lib/perl5/5.40/core_perl/CORE:/yolo/lib $LFS/yolo/bin/perl
+patchelf --set-rpath /yolo/lib/perl5/5.40/core_perl/CORE:/yolo/lib $LFS/yolo/bin/perl5.40.0
 
 sed -i '/\/usr\/bin\/perl/s//\/yolo\/bin\/perl/' \
     $LFS/yolo/bin/makeinfo \

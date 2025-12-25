@@ -34,7 +34,7 @@ su $FILCOWNER ./build_prelc_sub0_filc.sh
 mkdir -v $LFS/sources
 chmod -v a+wt $LFS/sources
 
-echo "prelc-part" > /mnt/lfs/sources/lfsbuildstate
+echo "prelc-part" > $LFS/sources/lfsbuildstate
 
 ./build_copy_stuff.sh
 cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
@@ -56,7 +56,7 @@ su lfs ./build_prelc_sub1_lfsuser_trampoline.sh
 ./build_chown_from_lfs_to_root.sh
 ./build_mount.sh
 ./build_chroot.sh /sources/build_prelc_sub2_chroot_part1.sh
-echo "prelc" > /mnt/lfs/sources/lfsbuildstate
+echo "prelc" > $LFS/sources/lfsbuildstate
 
 ./build_unmount.sh
 cd $LFS

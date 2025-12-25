@@ -17,13 +17,13 @@ test -d $LFS
 export FILCSRC=..
 test -d $FILCSRC/projects
 
-test -e /mnt/lfs/sources/lfsbuildstate
-lfsbuildstate=`cat /mnt/lfs/sources/lfsbuildstate`
+test -e $LFS/sources/lfsbuildstate
+lfsbuildstate=`cat $LFS/sources/lfsbuildstate`
 test "x$lfsbuildstate" = "xpostlc"
 
 SRCDIR=$PWD
 
-echo "postlc2-part" > /mnt/lfs/sources/lfsbuildstate
+echo "postlc2-part" > $LFS/sources/lfsbuildstate
 
 FILCOWNER=`stat -c %U $FILCSRC`
 id -u $FILCOWNER
@@ -48,7 +48,7 @@ cp -v build_postlc2_chroot_project_libidn2.sh $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc2_sub2_chroot.sh
 
-echo "postlc2" > /mnt/lfs/sources/lfsbuildstate
+echo "postlc2" > $LFS/sources/lfsbuildstate
 
 ./build_unmount.sh
 

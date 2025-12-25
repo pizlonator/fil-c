@@ -20,13 +20,13 @@ test -d $FILCSRC/clang
 test -d $FILCSRC/filc
 test -d $FILCSRC/projects
 
-test -e /mnt/lfs/sources/lfsbuildstate
-lfsbuildstate=`cat /mnt/lfs/sources/lfsbuildstate`
+test -e $LFS/sources/lfsbuildstate
+lfsbuildstate=`cat $LFS/sources/lfsbuildstate`
 test "x$lfsbuildstate" = "xlc"
 
 SRCDIR=$PWD
 
-echo "postlc-part" > /mnt/lfs/sources/lfsbuildstate
+echo "postlc-part" > $LFS/sources/lfsbuildstate
 
 FILCOWNER=`stat -c %U $FILCSRC`
 id -u $FILCOWNER
@@ -42,7 +42,7 @@ cp -rv $FILCSRC/projects/emacs-lisp $LFS/sources
 
 ./build_mount.sh
 ./build_chroot.sh /sources/build_postlc_sub2_chroot_part1.sh
-echo "postlc" > /mnt/lfs/sources/lfsbuildstate
+echo "postlc" > $LFS/sources/lfsbuildstate
 
 ./build_unmount.sh
 cd $LFS

@@ -14,6 +14,9 @@ test -d $FILCSRC/llvm
 test -d $FILCSRC/clang
 test -d $FILCSRC/filc
 
+export LFS=/mnt/lfs
+test -d $LFS
+
 # FIXME: It would be super cool to avoid building yolo glibc an extra time here. We do that only
 # because I don't feel like fucking with the libpas build right now.
 
@@ -64,9 +67,9 @@ rm -rf pizfix
 rm -rf pizfix/os-include
 mkdir -p pizfix/os-include
 pushd pizfix/os-include
-ln -s /mnt/lfs/yolo/kernel-include/linux .
-ln -s /mnt/lfs/yolo/kernel-include/asm .
-ln -s /mnt/lfs/yolo/kernel-include/asm-generic .
+ln -s $LFS/yolo/kernel-include/linux .
+ln -s $LFS/yolo/kernel-include/asm .
+ln -s $LFS/yolo/kernel-include/asm-generic .
 popd
 
 ./build_yolo_glibc.sh

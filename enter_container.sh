@@ -74,7 +74,7 @@ done
 
 shift $((OPTIND - 1))
 
-if [ -z "$@" ]; then
+if [ $# -eq 0 ]; then
     CMD=("/bin/bash")
 else
     CMD=("$@")
