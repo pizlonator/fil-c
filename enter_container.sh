@@ -28,10 +28,11 @@ set -e
 # Parse command-line options
 FORCE_NEW=false
 ROOTFUL=false
+PIZLIX=false
 
 print_help() {
     cat <<EOF
-Usage: $0 [-f] [-r] [-h] command...
+Usage: $0 [-f] [-r] [-p] [-h] command...
 
 Enter the Fil-C development container for this checkout.
 
@@ -41,6 +42,7 @@ will attach to it. Otherwise, it will create a new container instance.
 Options:
   -f    Force creation of a new container instance (don't attach to existing)
   -r    Use rootful mode (requires sudo, for /opt/fil development)
+  -p    Use container suitable for building Pizlix
   -h    Show this help message
 
 Rootful mode (-r):
@@ -53,13 +55,16 @@ EOF
     exit 0
 }
 
-while getopts "frh" opt; do
+while getopts "fprh" opt; do
     case $opt in
         f)
             FORCE_NEW=true
             ;;
         r)
             ROOTFUL=true
+            ;;
+        p)
+            PIZLIX=true
             ;;
         h)
             print_help
@@ -84,6 +89,11 @@ fi
 if [ "$ROOTFUL" = true ] && [ $EUID -ne 0 ]; then
     echo "Error: Rootful mode (-r) requires running with sudo"
     echo "Run: sudo $0 -r"
+    exit 1
+fi
+
+if [ "$ROOTFUL" = true ] && [ "$PIZLIX" = true ]; then
+    echo "Error: Cannot use rootful mode (-r) and pizlix mode (-p) at the same time"
     exit 1
 fi
 
@@ -115,22 +125,27 @@ fi
 CHECKOUT_HASH=$(echo -n "${SCRIPT_DIR}" | sha256sum | cut -c1-8)
 IMAGE_NAME="fil-c-dev"
 
+# For display purposes only
+HOST_UID=$(id -u)
+
 # Set image tag and container label based on mode
 if [ "$ROOTFUL" = true ]; then
     IMAGE_TAG="${CHECKOUT_HASH}-rootful-uid${FILE_OWNER_UID}"
     CONTAINER_LABEL="fil-c-checkout-rootful=${CHECKOUT_HASH}"
-    PODMAN_CMD="podman"  # Already running as root via sudo
+    WORKDIR="/fil-c"
+elif [ "$PIZLIX" = true ]; then
+    IMAGE_TAG="${CHECKOUT_HASH}-pizlix"
+    CONTAINER_LABEL="fil-c-checkout-pizlix=${CHECKOUT_HASH}"
+    WORKDIR="/fil-c/pizlix"
 else
     IMAGE_TAG="${CHECKOUT_HASH}"
     CONTAINER_LABEL="fil-c-checkout=${CHECKOUT_HASH}"
-    PODMAN_CMD="podman"  # Rootless
-    # For display purposes only
-    HOST_UID=$(id -u)
+    WORKDIR="/fil-c"
 fi
 
 # If not forcing a new container, check if one is already running
 if [ "$FORCE_NEW" = false ]; then
-    CONTAINERS=$($PODMAN_CMD ps --filter "label=${CONTAINER_LABEL}" --format "{{.ID}}")
+    CONTAINERS=$(podman ps --filter "label=${CONTAINER_LABEL}" --format "{{.ID}}")
 
     if [ -n "$CONTAINERS" ]; then
         # Count how many containers we found
@@ -146,7 +161,7 @@ if [ "$FORCE_NEW" = false ]; then
             CONTAINER_ID=$(echo "$CONTAINERS" | head -n 1)
         fi
 
-        exec $PODMAN_CMD exec -it "$CONTAINER_ID" /bin/bash
+        exec podman exec -it "$CONTAINER_ID" /bin/bash
     fi
 fi
 
@@ -239,7 +254,7 @@ RUN apt-get install -y \
     python3 python3-pip python3-setuptools \
     wget rsync file less sudo \
     libncurses-dev libssl-dev zlib1g-dev \
-    xz-utils bzip2 gzip gdb lldb mg
+    xz-utils bzip2 gzip gdb lldb mg screen tmux
 
 RUN pip install meson
 
@@ -265,8 +280,16 @@ RUN groupadd -g ${FILE_OWNER_GID} builder 2>/dev/null || true && \
 DOCKERFILE_END
 fi
 
+if [ "$PIZLIX" = true ]; then
+    cat >> "${DOCKERFILE_PATH}" <<'DOCKERFILE_END'
+RUN groupadd lfs && \
+    useradd -s /bin/bash -g lfs -m -k /dev/null lfs && \
+    mkdir /mnt/lfs
+DOCKERFILE_END
+fi
+
 # Write the common Dockerfile footer
-cat >> "${DOCKERFILE_PATH}" <<'DOCKERFILE_END'
+cat >> "${DOCKERFILE_PATH}" <<DOCKERFILE_END
 
 # Set up reasonable shell environment
 ENV LANG=C.UTF-8
@@ -286,20 +309,20 @@ RUN mkdir -p /opt/fil
 RUN mkdir -p /var/coredumps /var/filc/panics
 RUN chmod 1777 /var/coredumps /var/filc/panics
 
-# Set `sh` to `bash`
+# Set sh to bash
 RUN ln -fs /bin/bash /bin/sh
 
 # Set the working directory to the project source directory
-WORKDIR /fil-c
+WORKDIR ${WORKDIR}
 
 # Start an interactive Bash shell by default when the container runs
 CMD ["/bin/bash"]
 DOCKERFILE_END
 
 # Build the image if it doesn't exist
-if ! $PODMAN_CMD image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
+if ! podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
     echo "Building ${IMAGE_NAME}:${IMAGE_TAG} container image..."
-    $PODMAN_CMD build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}:${IMAGE_TAG}" "${SCRIPT_DIR}"
+    podman build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}:${IMAGE_TAG}" "${SCRIPT_DIR}"
     echo "Image built successfully!"
 fi
 
@@ -322,12 +345,12 @@ if [ "$ROOTFUL" = true ]; then
     fi
     echo ""
 
-    exec $PODMAN_CMD run --rm -it \
+    exec podman run --rm -it \
         --hostname "fil-c-${CHECKOUT_HASH}" \
         --label "${CONTAINER_LABEL}" \
         --ulimit core=-1 \
         ${VOLUME_ARGS} \
-        --workdir /fil-c \
+        --workdir $WORKDIR \
         "${IMAGE_NAME}:${IMAGE_TAG}" \
         "${CMD[@]}"
 else
@@ -335,16 +358,20 @@ else
     echo "Entering Fil-C development container (rootless mode)..."
     echo "  - Running as root in container (maps to UID ${HOST_UID} on host)"
     echo "  - Files created will be owned by you automatically"
-    echo "  - Working directory: /fil-c (maps to ${SCRIPT_DIR})"
+    if [ "$PIZLIX" = true ]; then
+        echo "  - Working directory: /fil-c/pizlix (maps to ${SCRIPT_DIR}/pizlix)"
+    else
+        echo "  - Working directory: /fil-c (maps to ${SCRIPT_DIR})"
+    fi
     echo ""
 
-    exec $PODMAN_CMD run --rm -it \
+    exec podman run --rm -it \
         --hostname "fil-c-${CHECKOUT_HASH}" \
         --label "${CONTAINER_LABEL}" \
         --privileged \
         --ulimit core=-1 \
         --volume "${SCRIPT_DIR}:/fil-c:rw" \
-        --workdir /fil-c \
+        --workdir $WORKDIR \
         "${IMAGE_NAME}:${IMAGE_TAG}" \
         "${CMD[@]}"
 fi

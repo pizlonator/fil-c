@@ -27,25 +27,30 @@ set -e
 
 # Parse command-line options
 ROOTFUL=false
+PIZLIX=false
 
 print_help() {
     cat <<EOF
-Usage: $0 [-r] [-h]
+Usage: $0 [-r] [-p' [-h]
 
 Delete the container image for this checkout, forcing a rebuild on next run.
 
 Options:
   -r    Reset rootful mode image (requires sudo)
+  -p    Reset pizlix image
   -h    Show this help message
 
 EOF
     exit 0
 }
 
-while getopts "rh" opt; do
+while getopts "rph" opt; do
     case $opt in
         r)
             ROOTFUL=true
+            ;;
+        p)
+            PIZLIX=true
             ;;
         h)
             print_help
@@ -65,6 +70,11 @@ if [ "$ROOTFUL" = true ] && [ $EUID -ne 0 ]; then
     exit 1
 fi
 
+if [ "$ROOTFUL" = true ] && [ "$PIZLIX" = true ]; then
+    echo "Error: Cannot use rootful mode (-r) and pizlix mode (-p) at the same time"
+    exit 1
+fi
+
 # Get the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -76,18 +86,19 @@ IMAGE_NAME="fil-c-dev"
 if [ "$ROOTFUL" = true ]; then
     FILE_OWNER_UID=$(stat -c %u "${SCRIPT_DIR}")
     IMAGE_TAG="${CHECKOUT_HASH}-rootful-uid${FILE_OWNER_UID}"
-    PODMAN_CMD="podman"  # Already running as root via sudo
     DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
+elif [ "$PIZLIX" = true ]; then
+    IMAGE_TAG="${CHECKOUT_HASH}-pizlix"
+    CONTAINER_LABEL="fil-c-checkout-pizlix=${CHECKOUT_HASH}"
 else
     IMAGE_TAG="${CHECKOUT_HASH}"
-    PODMAN_CMD="podman"  # Rootless
     DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
 fi
 
 # Check if the image exists
-if $PODMAN_CMD image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
+if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
     echo "Removing ${IMAGE_NAME}:${IMAGE_TAG} container image..."
-    $PODMAN_CMD rmi "${IMAGE_NAME}:${IMAGE_TAG}"
+    podman rmi "${IMAGE_NAME}:${IMAGE_TAG}"
     echo "Image removed successfully!"
 
     # Clean up generated Dockerfile if it exists
