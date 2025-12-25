@@ -31,7 +31,7 @@ ROOTFUL=false
 
 print_help() {
     cat <<EOF
-Usage: $0 [-f] [-r] [-h]
+Usage: $0 [-f] [-r] [-h] command...
 
 Enter the Fil-C development container for this checkout.
 
@@ -71,6 +71,14 @@ while getopts "frh" opt; do
             ;;
     esac
 done
+
+shift $((OPTIND - 1))
+
+if [ -z "$@" ]; then
+    CMD=("/bin/bash")
+else
+    CMD=("$@")
+fi
 
 # Check if rootful mode requires sudo
 if [ "$ROOTFUL" = true ] && [ $EUID -ne 0 ]; then
@@ -278,6 +286,9 @@ RUN mkdir -p /opt/fil
 RUN mkdir -p /var/coredumps /var/filc/panics
 RUN chmod 1777 /var/coredumps /var/filc/panics
 
+# Set `sh` to `bash`
+RUN ln -fs /bin/bash /bin/sh
+
 # Set the working directory to the project source directory
 WORKDIR /fil-c
 
@@ -318,7 +329,7 @@ if [ "$ROOTFUL" = true ]; then
         ${VOLUME_ARGS} \
         --workdir /fil-c \
         "${IMAGE_NAME}:${IMAGE_TAG}" \
-        /bin/bash
+        "${CMD[@]}"
 else
     # Rootless mode: standard setup
     echo "Entering Fil-C development container (rootless mode)..."
@@ -335,5 +346,5 @@ else
         --volume "${SCRIPT_DIR}:/fil-c:rw" \
         --workdir /fil-c \
         "${IMAGE_NAME}:${IMAGE_TAG}" \
-        /bin/bash
+        "${CMD[@]}"
 fi
