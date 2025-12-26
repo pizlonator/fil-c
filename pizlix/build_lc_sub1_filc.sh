@@ -5,14 +5,14 @@ set -x
 
 ulimit -c unlimited
 
-test $EUID -ne 0
-
 test "x$FILCSRC" != "x"
 test -d $FILCSRC
 test -d $FILCSRC/libpas
 test -d $FILCSRC/llvm
 test -d $FILCSRC/clang
 test -d $FILCSRC/filc
+
+test $EUID -eq `stat -c %u $FILCSRC`
 
 export LFS=/mnt/lfs
 test -d $LFS

@@ -10,14 +10,9 @@ id -u lfs
 
 SRCDIR=$PWD
 
-./version-check.sh
-
 export LFS=/mnt/lfs
 
 test -d $LFS
-export LFSDEV=`findmnt -nr -o SOURCE $LFS`
-
-test "x$LFSDEV" != x
 
 export FILCSRC=..
 test -d $FILCSRC
