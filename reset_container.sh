@@ -51,6 +51,7 @@ while getopts "rph" opt; do
             ;;
         p)
             PIZLIX=true
+            ROOTFUL=true
             ;;
         h)
             print_help
@@ -65,13 +66,13 @@ done
 
 # Check if rootful mode requires sudo
 if [ "$ROOTFUL" = true ] && [ $EUID -ne 0 ]; then
-    echo "Error: Rootful mode (-r) requires running with sudo"
-    echo "Run: sudo $0 -r"
-    exit 1
-fi
-
-if [ "$ROOTFUL" = true ] && [ "$PIZLIX" = true ]; then
-    echo "Error: Cannot use rootful mode (-r) and pizlix mode (-p) at the same time"
+    if [ "$PIZLIX" = true ]; then
+        echo "Error: Pizlix mode (-p) requires running with sudo"
+        echo "Run: sudo $0 -p"
+    else
+        echo "Error: Rootful mode (-r) requires running with sudo"
+        echo "Run: sudo $0 -r"
+    fi
     exit 1
 fi
 
@@ -85,15 +86,16 @@ IMAGE_NAME="fil-c-dev"
 # Compute image tag based on mode (same logic as enter_container.sh)
 if [ "$ROOTFUL" = true ]; then
     FILE_OWNER_UID=$(stat -c %u "${SCRIPT_DIR}")
-    IMAGE_TAG="${CHECKOUT_HASH}-rootful-uid${FILE_OWNER_UID}"
-    DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
-elif [ "$PIZLIX" = true ]; then
-    IMAGE_TAG="${CHECKOUT_HASH}-pizlix"
-    CONTAINER_LABEL="fil-c-checkout-pizlix=${CHECKOUT_HASH}"
+    if [ "$PIZLIX" = true ]; then
+        IMAGE_TAG="${CHECKOUT_HASH}-pizlix-uid${FILE_OWNER_UID}"
+    else
+        IMAGE_TAG="${CHECKOUT_HASH}-rootful-uid${FILE_OWNER_UID}"
+    fi
 else
     IMAGE_TAG="${CHECKOUT_HASH}"
-    DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
 fi
+
+DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
 
 # Check if the image exists
 if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
