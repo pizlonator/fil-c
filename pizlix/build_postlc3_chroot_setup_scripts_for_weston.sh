@@ -21,5 +21,7 @@ ln -s ../init.d/seatd /etc/rc.d/rc4.d/S80seatd
 ln -s ../init.d/seatd /etc/rc.d/rc5.d/S80seatd
 ln -s ../init.d/seatd /etc/rc.d/rc6.d/K20seatd
 
-mkdir -v /etc/weston
-cp -v etc/weston.ini /etc/weston
+mkdir -pv /etc/xdg/weston
+cp -v etc/weston.ini /etc/xdg/weston
+
+cp -v etc/project2030.jpg /usr/share/weston/

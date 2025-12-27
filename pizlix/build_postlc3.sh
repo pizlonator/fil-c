@@ -45,6 +45,7 @@ cp -v build_postlc3_chroot_project_seatd.sh $LFS/sources
 cp -v build_postlc3_chroot_project_libdrm.sh $LFS/sources
 cp -v build_postlc3_chroot_setup_scripts_for_weston.sh $LFS/sources
 cp -v etc/weston.ini $LFS/sources/etc
+cp -v etc/project2030.jpg $LFS/sources/etc
 cp -v etc/profile $LFS/sources/etc
 cp -v etc/profile-xdg-runtime-dir.sh $LFS/sources/etc
 cp -v etc/seatd $LFS/sources/etc
