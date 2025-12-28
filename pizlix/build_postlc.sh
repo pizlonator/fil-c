@@ -34,7 +34,6 @@ su $FILCOWNER ./build_postlc_sub1_filc.sh
 
 ./build_unmount.sh
 ./build_copy_stuff.sh
-cp -v etc/grub.cfg $LFS/sources/etc
 
 cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 

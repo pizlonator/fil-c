@@ -64,8 +64,8 @@ parted disk.img <<EOF
 mklabel gpt
 mkpart bios_boot 1MiB 2MiB
 set 1 bios_grub on
-mkpart dummy 2MiB 3MiB
-mkpart swap 3MiB 30GiB
+mkpart grub 2MiB 20MiB
+mkpart swap 20MiB 30GiB
 mkpart root 30GiB 100%
 EOF
 
@@ -82,22 +82,28 @@ test -e ${LOOP}p4
 umount image-mount || echo whatever
 rm -rf image-mount
 mkdir image-mount
+umount grub-mount || echo whatever
+rm -rf grub-mount
+mkdir grub-mount
 
 mkfs.ext4 -L root ${LOOP}p4
+mkfs.ext4 -L root ${LOOP}p2
 mkswap -L swap ${LOOP}p3
 
 mount ${LOOP}p4 image-mount
 defer "umount image-mount"
+mount ${LOOP}p2 grub-mount
+defer "umount grub-mount"
 
 if test "$TARBALL" != "--"
 then
     tar -xf $TARBALL -C image-mount
 fi
 
-mkdir -p image-mount/boot/grub
-cp etc/grub.cfg image-mount/boot/grub/grub.cfg
+mkdir -p grub-mount/boot/grub
+cp etc/grub.cfg grub-mount/boot/grub/grub.cfg
 
-grub-install --target=i386-pc --boot-directory=image-mount/boot --modules="part_gpt ext2" $LOOP
+grub-install --target=i386-pc --boot-directory=grub-mount/boot --modules="part_gpt ext2" $LOOP
 
 cat > disk.vmdk <<EOF
 # Disk DescriptorFile

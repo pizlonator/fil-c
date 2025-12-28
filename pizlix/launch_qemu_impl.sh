@@ -28,9 +28,12 @@ set -x
 
 ulimit -c unlimited
 
+NCPU=`nproc`
+NGIG=$(awk '/MemTotal/ {printf "%.0f\n", $2/1024/1024/2}' /proc/meminfo)
+
 qemu-system-x86_64 -drive file=disk.img,format=raw \
-                   -m 32G \
-                   -smp 32 \
+                   -m ${NGIG}G \
+                   -smp $NCPU \
                    -net nic -net user,hostfwd=tcp::2222-:22 \
                    -device virtio-vga,xres=1024,yres=768 \
                    -display gtk,zoom-to-fit=off \
