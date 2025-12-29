@@ -1,0 +1,93 @@
+# This file describes the expected reviewers for a PR based on the changed
+# files. Unlike what the name of the file suggests they don't own the code, but
+# merely have a good understanding of that area of the codebase and therefore
+# are usually suited as a reviewer.
+
+# Lines in this file match changed paths via Go-Style regular expressions:
+# https://pkg.go.dev/regexp/syntax
+
+# Mind the alphabetical order
+
+# avcodec
+# =======
+libavcodec/.*aac.* @lynne
+libavcodec/.*ac3.* @lynne
+libavcodec/.*atrac9.* @lynne
+libavcodec/.*bitpacked.* @lynne
+libavcodec/.*d3d12va.* @jianhuaw
+libavcodec/.*dirac.* @lynne
+libavcodec/.*ffv1.* @lynne @michaelni
+libavcodec/golomb.* @michaelni
+libavcodec/.*h266.* @frankplow @NuoMi @jianhuaw
+libavcodec/h26x/.* @frankplow @NuoMi @jianhuaw
+libavcodec/.*jpegxl.* @lynne
+libavcodec/.*jxl.* @lynne
+libavcodec/.*opus.* @lynne
+libavcodec/.*prores.* @lynne
+libavcodec/rangecoder.* @michaelni
+libavcodec/ratecontrol.* @michaelni
+libavcodec/.*siren.* @lynne
+libavcodec/.*vc2.* @lynne
+libavcodec/.*vvc.* @frankplow @NuoMi @jianhuaw
+
+libavcodec/aarch64/.* @lynne @mstorsjo
+libavcodec/arm/.* @mstorsjo
+libavcodec/ppc/.* @sean_mcg
+libavcodec/x86/.* @lynne
+
+# avfilter
+# =======
+libavfilter/aarch64/.* @mstorsjo
+libavfilter/af_whisper.* @vpalmisano
+libavfilter/vf_yadif.* @michaelni
+libavfilter/vsrc_mandelbrot.* @michaelni
+
+# avformat
+# =======
+libavformat/iamf.* @jamrial
+
+# avutil
+# ======
+libavutil/.*crc.* @lynne @michaelni
+libavutil/.*d3d12va.* @jianhuaw
+libavutil/eval.* @michaelni
+libavutil/iamf.* @jamrial
+libavutil/integer.* @michaelni
+libavutil/lfg.* @michaelni
+libavutil/lls.* @michaelni
+libavutil/md5.* @michaelni
+libavutil/mathematics.* @michaelni
+libavutil/mem.* @michaelni
+libavutil/qsort.* @michaelni
+libavutil/random_seed.* @michaelni
+libavutil/rational.* @michaelni
+libavutil/sfc.* @michaelni
+libavutil/softfloat.* @michaelni
+libavutil/tree.* @michaelni
+libavutil/tx.* @lynne
+
+libavutil/aarch64/.* @lynne @mstorsjo
+libavutil/arm/.* @mstorsjo
+libavutil/ppc/.* @sean_mcg
+libavutil/x86/.* @lynne
+
+# swresample
+# =======
+libswresample/aarch64/.* @mstorsjo
+libswresample/arm/.* @mstorsjo
+libswresample/.* @michaelni
+
+# swscale
+# =======
+libswscale/aarch64/.* @mstorsjo
+libswscale/arm/.* @mstorsjo
+libswscale/ppc/.* @sean_mcg
+
+# doc
+# ===
+doc/.* @GyanD
+
+# Frameworks
+# ==========
+.*d3d12va.* @jianhuaw
+.*vulkan.* @lynne

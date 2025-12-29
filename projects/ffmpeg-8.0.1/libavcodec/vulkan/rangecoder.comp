@@ -1,0 +1,241 @@
+/*
+ * FFv1 codec
+ *
+ * Copyright (c) 2024 Lynne <dev@lynne.ee>
+ *
+ * This file is part of FFmpeg.
+ *
+ * FFmpeg is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * FFmpeg is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with FFmpeg; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+struct RangeCoder {
+    uint64_t bytestream_start;
+    uint64_t bytestream;
+    uint64_t bytestream_end;
+
+    int low;
+    int range;
+    uint16_t outstanding_count;
+    uint8_t outstanding_byte;
+};
+
+#ifdef FULL_RENORM
+/* Full renorm version that can handle outstanding_byte == 0xFF */
+void renorm_encoder(inout RangeCoder c)
+{
+    int bs_cnt = 0;
+    u8buf bytestream = u8buf(c.bytestream);
+
+    if (c.outstanding_byte == 0xFF) {
+        c.outstanding_byte = uint8_t(c.low >> 8);
+    } else if (c.low <= 0xFF00) {
+        bytestream[bs_cnt++].v = c.outstanding_byte;
+        uint16_t cnt = c.outstanding_count;
+        for (; cnt > 0; cnt--)
+            bytestream[bs_cnt++].v = uint8_t(0xFF);
+        c.outstanding_count = uint16_t(0);
+        c.outstanding_byte = uint8_t(c.low >> 8);
+    } else if (c.low >= 0x10000) {
+        bytestream[bs_cnt++].v = c.outstanding_byte + uint8_t(1);
+        uint16_t cnt = c.outstanding_count;
+        for (; cnt > 0; cnt--)
+            bytestream[bs_cnt++].v = uint8_t(0x00);
+        c.outstanding_count = uint16_t(0);
+        c.outstanding_byte = uint8_t(bitfieldExtract(c.low, 8, 8));
+    } else {
+        c.outstanding_count++;
+    }
+
+    c.bytestream += bs_cnt;
+    c.range <<= 8;
+    c.low = bitfieldInsert(0, c.low, 8, 8);
+}
+
+#else
+
+/* Cannot deal with outstanding_byte == -1 in the name of speed */
+void renorm_encoder(inout RangeCoder c)
+{
+    uint16_t oc = c.outstanding_count + uint16_t(1);
+    int low = c.low;
+
+    c.range <<= 8;
+    c.low = bitfieldInsert(0, low, 8, 8);
+
+    if (low > 0xFF00 && low < 0x10000) {
+        c.outstanding_count = oc;
+        return;
+    }
+
+    u8buf bs = u8buf(c.bytestream);
+    uint8_t outstanding_byte = c.outstanding_byte;
+
+    c.bytestream        = uint64_t(bs) + oc;
+    c.outstanding_count = uint16_t(0);
+    c.outstanding_byte  = uint8_t(low >> 8);
+
+    uint8_t obs = uint8_t(low > 0xFF00);
+    uint8_t fill = obs - uint8_t(1); /* unsigned underflow */
+
+    bs[0].v = outstanding_byte + obs;
+    for (int i = 1; i < oc; i++)
+        bs[i].v = fill;
+}
+#endif
+
+void put_rac_internal(inout RangeCoder c, const int range1, bool bit)
+{
+#ifdef DEBUG
+    if (range1 >= c.range)
+        debugPrintfEXT("Error: range1 >= c.range");
+    if (range1 <= 0)
+        debugPrintfEXT("Error: range1 <= 0");
+#endif
+
+    int ranged = c.range - range1;
+    c.low += bit ? ranged : 0;
+    c.range = bit ? range1 : ranged;
+
+    if (expectEXT(c.range < 0x100, false))
+        renorm_encoder(c);
+}
+
+void put_rac_direct(inout RangeCoder c, inout uint8_t state, bool bit)
+{
+    put_rac_internal(c, (c.range * state) >> 8, bit);
+    state = zero_one_state[(uint(bit) << 8) + state];
+}
+
+void put_rac(inout RangeCoder c, uint64_t state, bool bit)
+{
+    put_rac_direct(c, u8buf(state).v, bit);
+}
+
+/* Equiprobable bit */
+void put_rac_equi(inout RangeCoder c, bool bit)
+{
+    put_rac_internal(c, c.range >> 1, bit);
+}
+
+void put_rac_terminate(inout RangeCoder c)
+{
+    int range1 = (c.range * 129) >> 8;
+
+#ifdef DEBUG
+    if (range1 >= c.range)
+        debugPrintfEXT("Error: range1 >= c.range");
+    if (range1 <= 0)
+        debugPrintfEXT("Error: range1 <= 0");
+#endif
+
+    c.range -= range1;
+    if (expectEXT(c.range < 0x100, false))
+        renorm_encoder(c);
+}
+
+/* Return the number of bytes written. */
+uint32_t rac_terminate(inout RangeCoder c)
+{
+    put_rac_terminate(c);
+    c.range = uint16_t(0xFF);
+    c.low  += 0xFF;
+    renorm_encoder(c);
+    c.range = uint16_t(0xFF);
+    renorm_encoder(c);
+
+#ifdef DEBUG
+    if (c.low != 0)
+        debugPrintfEXT("Error: c.low != 0");
+    if (c.range < 0x100)
+        debugPrintfEXT("Error: range < 0x100");
+#endif
+
+    return uint32_t(uint64_t(c.bytestream) - uint64_t(c.bytestream_start));
+}
+
+void rac_init(out RangeCoder r, u8buf data, uint buf_size)
+{
+    r.bytestream_start = uint64_t(data);
+    r.bytestream = uint64_t(data);
+    r.bytestream_end = uint64_t(data) + buf_size;
+    r.low = 0;
+    r.range = 0xFF00;
+    r.outstanding_count = uint16_t(0);
+    r.outstanding_byte = uint8_t(0xFF);
+}
+
+/* Decoder */
+uint overread = 0;
+bool corrupt = false;
+
+void rac_init_dec(out RangeCoder r, u8buf data, uint buf_size)
+{
+    overread = 0;
+    corrupt = false;
+
+    /* Skip priming bytes */
+    rac_init(r, OFFBUF(u8buf, data, 2), buf_size - 2);
+
+    u8vec2 prime = u8vec2buf(data).v;
+    /* Switch endianness of the priming bytes */
+    r.low = pack16(prime.yx);
+
+    if (r.low >= 0xFF00) {
+        r.low = 0xFF00;
+        r.bytestream_end = uint64_t(data) + 2;
+    }
+}
+
+void refill(inout RangeCoder c)
+{
+    c.range <<= 8;
+    c.low   <<= 8;
+    if (expectEXT(c.bytestream < c.bytestream_end, false)) {
+        c.low |= u8buf(c.bytestream).v;
+        c.bytestream++;
+    } else {
+        overread++;
+    }
+}
+
+bool get_rac_internal(inout RangeCoder c, const int range1)
+{
+    int ranged = c.range - range1;
+    bool bit = c.low >= ranged;
+    c.low -= bit ? ranged : 0;
+    c.range = (bit ? 0 : ranged) + (bit ? range1 : 0);
+
+    if (expectEXT(c.range < 0x100, false))
+        refill(c);
+
+    return bit;
+}
+
+bool get_rac_direct(inout RangeCoder c, inout uint8_t state)
+{
+    bool bit = get_rac_internal(c, c.range * state >> 8);
+    state = zero_one_state[state + (bit ? 256 : 0)];
+    return bit;
+}
+
+bool get_rac(inout RangeCoder c, uint64_t state)
+{
+    return get_rac_direct(c, u8buf(state).v);
+}
+
+bool get_rac_equi(inout RangeCoder c)
+{
+    return get_rac_internal(c, c.range >> 1);
+}

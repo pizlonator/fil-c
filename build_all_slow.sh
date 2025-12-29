@@ -63,6 +63,7 @@ test ! -d projects/pizfix
 ./build_lua.sh
 ./build_simdutf.sh
 ./build_quickjs.sh
+./build_ffmpeg.sh
 
 # Disable these because:
 # - We only need them for test coverage.
