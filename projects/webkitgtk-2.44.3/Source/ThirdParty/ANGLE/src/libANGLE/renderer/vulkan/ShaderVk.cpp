@@ -1,0 +1,143 @@
+//
+// Copyright 2016 The ANGLE Project Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+//
+// ShaderVk.cpp:
+//    Implements the class methods for ShaderVk.
+//
+
+#include "libANGLE/renderer/vulkan/ShaderVk.h"
+
+#include "common/debug.h"
+#include "libANGLE/Context.h"
+#include "libANGLE/Display.h"
+#include "libANGLE/renderer/vulkan/ContextVk.h"
+
+namespace rx
+{
+ShaderVk::ShaderVk(const gl::ShaderState &state) : ShaderImpl(state) {}
+
+ShaderVk::~ShaderVk() {}
+
+std::shared_ptr<ShaderTranslateTask> ShaderVk::compile(const gl::Context *context,
+                                                       ShCompileOptions *options)
+{
+    ContextVk *contextVk = vk::GetImpl(context);
+
+    if (context->isWebGL())
+    {
+        // Only WebGL requires initialization of local variables, others don't.
+        // Extra initialization in spirv shader may affect performance.
+        options->initializeUninitializedLocals = true;
+
+        // WebGL shaders may contain OOB array accesses which in turn cause undefined behavior,
+        // which may result in security issues. See https://crbug.com/1189110.
+        options->clampIndirectArrayBounds = true;
+
+        if (mState.getShaderType() != gl::ShaderType::Compute)
+        {
+            options->initOutputVariables = true;
+        }
+    }
+
+    if (contextVk->getFeatures().retainSPIRVDebugInfo.enabled)
+    {
+        options->outputDebugInfo = true;
+    }
+
+    // robustBufferAccess on Vulkan doesn't support bound check on shader local variables
+    // but the GL_EXT_robustness does support.
+    // Enable the flag clampIndirectArrayBounds to ensure out of bounds local variable writes in
+    // shaders are protected when the context has GL_EXT_robustness enabled
+    if (contextVk->getShareGroup()->hasAnyContextWithRobustness())
+    {
+        options->clampIndirectArrayBounds = true;
+    }
+
+    if (contextVk->getFeatures().clampPointSize.enabled)
+    {
+        options->clampPointSize = true;
+    }
+
+    if (contextVk->getFeatures().emulateAdvancedBlendEquations.enabled)
+    {
+        options->addAdvancedBlendEquationsEmulation = true;
+    }
+
+    if (contextVk->emulateSeamfulCubeMapSampling())
+    {
+        options->emulateSeamfulCubeMapSampling = true;
+    }
+
+    if (!contextVk->getFeatures().enablePrecisionQualifiers.enabled)
+    {
+        options->ignorePrecisionQualifiers = true;
+    }
+
+    if (contextVk->getFeatures().forceFragmentShaderPrecisionHighpToMediump.enabled)
+    {
+        options->forceShaderPrecisionHighpToMediump = true;
+    }
+
+    // Let compiler use specialized constant for pre-rotation.
+    if (!contextVk->getFeatures().preferDriverUniformOverSpecConst.enabled)
+    {
+        options->useSpecializationConstant = true;
+    }
+
+    if (contextVk->getFeatures().clampFragDepth.enabled)
+    {
+        options->clampFragDepth = true;
+    }
+
+    if (!contextVk->getFeatures().supportsDepthClipControl.enabled)
+    {
+        options->addVulkanDepthCorrection = true;
+    }
+
+    if (contextVk->getFeatures().supportsTransformFeedbackExtension.enabled)
+    {
+        options->addVulkanXfbExtensionSupportCode = true;
+    }
+    else if (mState.getShaderType() == gl::ShaderType::Vertex &&
+             contextVk->getFeatures().emulateTransformFeedback.enabled)
+    {
+        options->addVulkanXfbEmulationSupportCode = true;
+    }
+
+    if (contextVk->getFeatures().roundOutputAfterDithering.enabled)
+    {
+        options->roundOutputAfterDithering = true;
+    }
+
+    if (contextVk->getFeatures().appendAliasedMemoryDecorations.enabled)
+    {
+        options->aliasedUnlessRestrict = true;
+    }
+
+    if (contextVk->getFeatures().explicitlyCastMediumpFloatTo16Bit.enabled)
+    {
+        options->castMediumpFloatTo16Bit = true;
+    }
+
+    if (contextVk->getExtensions().shaderPixelLocalStorageANGLE)
+    {
+        options->pls = contextVk->getNativePixelLocalStorageOptions();
+    }
+
+    if (contextVk->getFeatures().avoidOpSelectWithMismatchingRelaxedPrecision.enabled)
+    {
+        options->avoidOpSelectWithMismatchingRelaxedPrecision = true;
+    }
+
+    // The Vulkan backend needs no post-processing of the translated shader.
+    return std::shared_ptr<ShaderTranslateTask>(new ShaderTranslateTask);
+}
+
+std::string ShaderVk::getDebugInfo() const
+{
+    return mState.getCompiledState()->compiledBinary.empty() ? "" : "<binary blob>";
+}
+
+}  // namespace rx

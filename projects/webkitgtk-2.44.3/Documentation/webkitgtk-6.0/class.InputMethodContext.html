@@ -1,0 +1,1114 @@
+<!--
+SPDX-FileCopyrightText: The WebKit GTK and WPE teams
+
+SPDX-License-Identifier: BSD, LGPL-2.1
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WebKit.InputMethodContext</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta property="og:title" content="WebKit.InputMethodContext"/>
+  <meta property="og:description" content="Reference for WebKit.InputMethodContext"/>
+  <meta name="twitter:title" content="WebKit.InputMethodContext"/>
+  <meta name="twitter:description" content="Reference for WebKit.InputMethodContext"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="gtk4-urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">WebKit</a></h3>
+        <p>API Version: 6.0</p>
+        
+        <p>Library Version: 2.44.3</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.InputMethodContext.html#description">InputMethodContext</a>
+  </div>
+</div>
+
+
+  
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.InputMethodContext.filter_key_event.html">filter_key_event</a>
+  
+    <a class="method" href="method.InputMethodContext.get_input_hints.html">get_input_hints</a>
+  
+    <a class="method" href="method.InputMethodContext.get_input_purpose.html">get_input_purpose</a>
+  
+    <a class="method" href="method.InputMethodContext.get_preedit.html">get_preedit</a>
+  
+    <a class="method" href="method.InputMethodContext.notify_cursor_area.html">notify_cursor_area</a>
+  
+    <a class="method" href="method.InputMethodContext.notify_focus_in.html">notify_focus_in</a>
+  
+    <a class="method" href="method.InputMethodContext.notify_focus_out.html">notify_focus_out</a>
+  
+    <a class="method" href="method.InputMethodContext.notify_surrounding.html">notify_surrounding</a>
+  
+    <a class="method" href="method.InputMethodContext.reset.html">reset</a>
+  
+    <a class="method" href="method.InputMethodContext.set_enable_preedit.html">set_enable_preedit</a>
+  
+    <a class="method" href="method.InputMethodContext.set_input_hints.html">set_input_hints</a>
+  
+    <a class="method" href="method.InputMethodContext.set_input_purpose.html">set_input_purpose</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.InputMethodContext.input-hints.html">input-hints</a>
+  
+    <a class="property" href="property.InputMethodContext.input-purpose.html">input-purpose</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.InputMethodContext.committed.html">committed</a>
+  
+    <a class="signal" href="signal.InputMethodContext.delete-surrounding.html">delete-surrounding</a>
+  
+    <a class="signal" href="signal.InputMethodContext.preedit-changed.html">preedit-changed</a>
+  
+    <a class="signal" href="signal.InputMethodContext.preedit-finished.html">preedit-finished</a>
+  
+    <a class="signal" href="signal.InputMethodContext.preedit-started.html">preedit-started</a>
+  
+  </div>
+</div>
+
+
+
+  
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.InputMethodContext.committed.html">committed</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.delete_surrounding.html">delete_surrounding</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.filter_key_event.html">filter_key_event</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.get_preedit.html">get_preedit</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.notify_cursor_area.html">notify_cursor_area</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.notify_focus_in.html">notify_focus_in</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.notify_focus_out.html">notify_focus_out</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.notify_surrounding.html">notify_surrounding</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.preedit_changed.html">preedit_changed</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.preedit_finished.html">preedit_finished</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.preedit_started.html">preedit_started</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.reset.html">reset</a>
+  
+    <a class="method" href="vfunc.InputMethodContext.set_enable_preedit.html">set_enable_preedit</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2023.4</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">WebKit</a><span class="sep" role="presentation"></span>InputMethodContext</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p><span class="emblem available">since: 2.28</span></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/main/Source/WebKit/UIProcess/API/glib/WebKitInputMethodContext.cpp#L32">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class WebKit.InputMethodContext : GObject.Object
+{
+  priv: WebKitInputMethodContextPrivate*
+}</pre></code>
+
+        <div class="docblock">
+          <p>Base class for input method&nbsp;contexts.</p>
+<p>WebKitInputMethodContext defines the interface to implement WebKit input methods.
+The input methods are used by WebKit, when editable content is focused, to map from
+key events to Unicode character&nbsp;strings.</p>
+<p>An input method may consume multiple key events in sequence and finally
+output the composed result. This is called preediting, and an input method
+may provide feedback about this process by displaying the intermediate
+composition states as preedit&nbsp;text.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          <p>Available since: 2.28</p>
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for WebKit.InputMethodContext">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.42.4 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="226pt" height="116pt"
+ viewBox="0.00 0.00 226.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="WebKitInputMethodContext">
+<path fill="none" stroke="black" d="M206,-36C206,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 206,0 206,0 212,0 218,-6 218,-12 218,-12 218,-24 218,-24 218,-30 212,-36 206,-36"/>
+<text text-anchor="middle" x="109" y="-14.3" font-family="Times,serif" font-size="14.00">WebKitInputMethodContext</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M134,-108C134,-108 84,-108 84,-108 78,-108 72,-102 72,-96 72,-96 72,-84 72,-84 72,-78 78,-72 84,-72 84,-72 134,-72 134,-72 140,-72 146,-78 146,-84 146,-84 146,-96 146,-96 146,-102 140,-108 134,-108"/>
+<text text-anchor="middle" x="109" y="-86.3" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M109,-71.7C109,-60.85 109,-46.92 109,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.filter_key_event.html">webkit_input_method_context_filter_key_event</a></h6>
+          <div class="docblock">
+            <p>Allow <code>key_event</code> to be handled by the input&nbsp;method.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.get_input_hints.html">webkit_input_method_context_get_input_hints</a></h6>
+          <div class="docblock">
+            <p>Get the value of the <code>WebKitInputMethodContext:input-hints</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.get_input_purpose.html">webkit_input_method_context_get_input_purpose</a></h6>
+          <div class="docblock">
+            <p>Get the value of the <code>WebKitInputMethodContext:input-purpose</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.get_preedit.html">webkit_input_method_context_get_preedit</a></h6>
+          <div class="docblock">
+            <p>Get the pre-edit string and a list of&nbsp;WebKitInputMethodUnderline.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.notify_cursor_area.html">webkit_input_method_context_notify_cursor_area</a></h6>
+          <div class="docblock">
+            <p>Notify <code>context</code> that cursor area changed in input&nbsp;associated.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.notify_focus_in.html">webkit_input_method_context_notify_focus_in</a></h6>
+          <div class="docblock">
+            <p>Notify <code>context</code> that input associated has gained&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.notify_focus_out.html">webkit_input_method_context_notify_focus_out</a></h6>
+          <div class="docblock">
+            <p>Notify <code>context</code> that input associated has lost&nbsp;focus.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.notify_surrounding.html">webkit_input_method_context_notify_surrounding</a></h6>
+          <div class="docblock">
+            <p>Notify <code>context</code> that the context surrounding the cursor has&nbsp;changed.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.reset.html">webkit_input_method_context_reset</a></h6>
+          <div class="docblock">
+            <p>Reset the <code>context</code>.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.set_enable_preedit.html">webkit_input_method_context_set_enable_preedit</a></h6>
+          <div class="docblock">
+            <p>Set whether <code>context</code> should enable preedit to display&nbsp;feedback.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.set_input_hints.html">webkit_input_method_context_set_input_hints</a></h6>
+          <div class="docblock">
+            <p>Set the value of the <code>WebKitInputMethodContext:input-hints</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.InputMethodContext.set_input_purpose.html">webkit_input_method_context_set_input_purpose</a></h6>
+          <div class="docblock">
+            <p>Set the value of the <code>WebKitInputMethodContext:input-purpose</code> property.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.InputMethodContext.input-hints.html">WebKit.InputMethodContext:input-hints</a></h6>
+          <div class="docblock">
+            <p>The <code>WebKitInputHints</code> of the input associated with this&nbsp;context.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.InputMethodContext.input-purpose.html">WebKit.InputMethodContext:input-purpose</a></h6>
+          <div class="docblock">
+            <p>The <code>WebKitInputPurpose</code> of the input associated with this&nbsp;context.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.InputMethodContext.committed.html">WebKit.InputMethodContext::committed</a></h6>
+          <div class="docblock">
+            <p>Emitted when a complete input sequence has been entered by the user.
+This can be a single character immediately after a key press or the
+final result of&nbsp;preediting.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.InputMethodContext.delete-surrounding.html">WebKit.InputMethodContext::delete-surrounding</a></h6>
+          <div class="docblock">
+            <p>Emitted when the input method wants to delete the context surrounding the cursor.
+If <code>offset</code> is a negative value, it means a position before the&nbsp;cursor.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.InputMethodContext.preedit-changed.html">WebKit.InputMethodContext::preedit-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted whenever the preedit sequence currently being entered has changed.
+It is also emitted at the end of a preedit sequence, in which case
+<code>webkit_input_method_context_get_preedit()</code> returns the empty&nbsp;string.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.InputMethodContext.preedit-finished.html">WebKit.InputMethodContext::preedit-finished</a></h6>
+          <div class="docblock">
+            <p>Emitted when a preediting sequence has been completed or&nbsp;canceled.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.InputMethodContext.preedit-started.html">WebKit.InputMethodContext::preedit-started</a></h6>
+          <div class="docblock">
+            <p>Emitted when a new preediting sequence&nbsp;starts.</p>
+          </div>
+          <div class="docblock">
+            <p><span class="emblem available">since: 2.28</span></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct WebKitInputMethodContextClass {
+  GObjectClass parent_class;
+  void (* preedit_started) (
+    WebKitInputMethodContext* context
+  );
+  void (* preedit_changed) (
+    WebKitInputMethodContext* context
+  );
+  void (* preedit_finished) (
+    WebKitInputMethodContext* context
+  );
+  void (* committed) (
+    WebKitInputMethodContext* context,
+    const char* text
+  );
+  void (* delete_surrounding) (
+    WebKitInputMethodContext* context,
+    int offset,
+    guint n_chars
+  );
+  void (* set_enable_preedit) (
+    WebKitInputMethodContext* context,
+    gboolean enabled
+  );
+  void (* get_preedit) (
+    WebKitInputMethodContext* context,
+    gchar** text,
+    GList** underlines,
+    guint* cursor_offset
+  );
+  gboolean (* filter_key_event) (
+    WebKitInputMethodContext* context,
+    GdkEvent* key_event
+  );
+  void (* notify_focus_in) (
+    WebKitInputMethodContext* context
+  );
+  void (* notify_focus_out) (
+    WebKitInputMethodContext* context
+  );
+  void (* notify_cursor_area) (
+    WebKitInputMethodContext* context,
+    int x,
+    int y,
+    int width,
+    int height
+  );
+  void (* notify_surrounding) (
+    WebKitInputMethodContext* context,
+    const gchar* text,
+    guint length,
+    guint cursor_index,
+    guint selection_index
+  );
+  void (* reset) (
+    WebKitInputMethodContext* context
+  );
+  void (* _webkit_reserved0) (
+void
+  );
+  void (* _webkit_reserved1) (
+void
+  );
+  void (* _webkit_reserved2) (
+void
+  );
+  void (* _webkit_reserved3) (
+void
+  );
+  void (* _webkit_reserved4) (
+void
+  );
+  void (* _webkit_reserved5) (
+void
+  );
+  void (* _webkit_reserved6) (
+void
+  );
+  void (* _webkit_reserved7) (
+void
+  );
+  void (* _webkit_reserved8) (
+void
+  );
+  void (* _webkit_reserved9) (
+void
+  );
+  void (* _webkit_reserved10) (
+void
+  );
+  void (* _webkit_reserved11) (
+void
+  );
+  void (* _webkit_reserved12) (
+void
+  );
+  void (* _webkit_reserved13) (
+void
+  );
+  void (* _webkit_reserved14) (
+void
+  );
+  void (* _webkit_reserved15) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GObjectClass</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>preedit_started: void (* preedit_started) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>preedit_changed: void (* preedit_changed) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>preedit_finished: void (* preedit_finished) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>committed: void (* committed) (
+    WebKitInputMethodContext* context,
+    const char* text
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>delete_surrounding: void (* delete_surrounding) (
+    WebKitInputMethodContext* context,
+    int offset,
+    guint n_chars
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>set_enable_preedit: void (* set_enable_preedit) (
+    WebKitInputMethodContext* context,
+    gboolean enabled
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_set_enable_preedit()</code> to
+  control the use of the preedit&nbsp;string.</p></dd>
+        
+          <dt><code>get_preedit: void (* get_preedit) (
+    WebKitInputMethodContext* context,
+    gchar** text,
+    GList** underlines,
+    guint* cursor_offset
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_get_preedit()</code> to
+  retrieve the text currently being preedited for display at the cursor
+  position. Any input method which composes complex characters or any
+  other compositions from multiple sequential key presses should override
+  this method to provide&nbsp;feedback.</p></dd>
+        
+          <dt><code>filter_key_event: gboolean (* filter_key_event) (
+    WebKitInputMethodContext* context,
+    GdkEvent* key_event
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_filter_key_event()</code> on every
+  key press or release event. Every non-trivial input method needs to
+  override this in order to implement the mapping from key events to text.
+  A return value of <code>TRUE</code> indicates to the caller that the event was
+  consumed by the input method. In that case, the <code>WebKitInputMethodContext::committed</code>
+  signal should be emitted upon completion of a key sequence to pass the
+  resulting text back to the editable element. Alternatively, <code>FALSE</code> may be
+  returned to indicate that the event wasn’t handled by the input&nbsp;method.</p></dd>
+        
+          <dt><code>notify_focus_in: void (* notify_focus_in) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_notify_focus_in()</code> when
+  an editable element of the <code>WebKitWebView</code> has gained&nbsp;focus.</p></dd>
+        
+          <dt><code>notify_focus_out: void (* notify_focus_out) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_notify_focus_out()</code> when
+  an editable element of the <code>WebKitWebView</code> has lost&nbsp;focus.</p></dd>
+        
+          <dt><code>notify_cursor_area: void (* notify_cursor_area) (
+    WebKitInputMethodContext* context,
+    int x,
+    int y,
+    int width,
+    int height
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_notify_cursor_area()</code>
+  to inform the input method of the current cursor location relative to
+  the client&nbsp;window.</p></dd>
+        
+          <dt><code>notify_surrounding: void (* notify_surrounding) (
+    WebKitInputMethodContext* context,
+    const gchar* text,
+    guint length,
+    guint cursor_index,
+    guint selection_index
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_notify_surrounding()</code> to
+  update the context surrounding the cursor. The provided text should not include
+  the preedit&nbsp;string.</p></dd>
+        
+          <dt><code>reset: void (* reset) (
+    WebKitInputMethodContext* context
+  )</code></dt>
+          <dd><p>Called via <code>webkit_input_method_context_reset()</code> to signal a change that
+  requires a reset. An input method that implements preediting
+  should override this method to clear the preedit state on&nbsp;reset.</p></dd>
+        
+          <dt><code>_webkit_reserved0: void (* _webkit_reserved0) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved1: void (* _webkit_reserved1) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved2: void (* _webkit_reserved2) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved3: void (* _webkit_reserved3) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved4: void (* _webkit_reserved4) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved5: void (* _webkit_reserved5) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved6: void (* _webkit_reserved6) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved7: void (* _webkit_reserved7) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved8: void (* _webkit_reserved8) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved9: void (* _webkit_reserved9) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved10: void (* _webkit_reserved10) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved11: void (* _webkit_reserved11) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved12: void (* _webkit_reserved12) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved13: void (* _webkit_reserved13) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved14: void (* _webkit_reserved14) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_webkit_reserved15: void (* _webkit_reserved15) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-committed"><a href="vfunc.InputMethodContext.committed.html">WebKit.InputMethodContextClass.committed</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-delete_surrounding"><a href="vfunc.InputMethodContext.delete_surrounding.html">WebKit.InputMethodContextClass.delete_surrounding</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-filter_key_event"><a href="vfunc.InputMethodContext.filter_key_event.html">WebKit.InputMethodContextClass.filter_key_event</a></h6>
+        <div class="docblock">
+          <p>Allow <code>key_event</code> to be handled by the input&nbsp;method.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-get_preedit"><a href="vfunc.InputMethodContext.get_preedit.html">WebKit.InputMethodContextClass.get_preedit</a></h6>
+        <div class="docblock">
+          <p>Get the pre-edit string and a list of&nbsp;WebKitInputMethodUnderline.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-notify_cursor_area"><a href="vfunc.InputMethodContext.notify_cursor_area.html">WebKit.InputMethodContextClass.notify_cursor_area</a></h6>
+        <div class="docblock">
+          <p>Notify <code>context</code> that cursor area changed in input&nbsp;associated.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-notify_focus_in"><a href="vfunc.InputMethodContext.notify_focus_in.html">WebKit.InputMethodContextClass.notify_focus_in</a></h6>
+        <div class="docblock">
+          <p>Notify <code>context</code> that input associated has gained&nbsp;focus.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-notify_focus_out"><a href="vfunc.InputMethodContext.notify_focus_out.html">WebKit.InputMethodContextClass.notify_focus_out</a></h6>
+        <div class="docblock">
+          <p>Notify <code>context</code> that input associated has lost&nbsp;focus.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-notify_surrounding"><a href="vfunc.InputMethodContext.notify_surrounding.html">WebKit.InputMethodContextClass.notify_surrounding</a></h6>
+        <div class="docblock">
+          <p>Notify <code>context</code> that the context surrounding the cursor has&nbsp;changed.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_changed"><a href="vfunc.InputMethodContext.preedit_changed.html">WebKit.InputMethodContextClass.preedit_changed</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_finished"><a href="vfunc.InputMethodContext.preedit_finished.html">WebKit.InputMethodContextClass.preedit_finished</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preedit_started"><a href="vfunc.InputMethodContext.preedit_started.html">WebKit.InputMethodContextClass.preedit_started</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-reset"><a href="vfunc.InputMethodContext.reset.html">WebKit.InputMethodContextClass.reset</a></h6>
+        <div class="docblock">
+          <p>Reset the <code>context</code>.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-set_enable_preedit"><a href="vfunc.InputMethodContext.set_enable_preedit.html">WebKit.InputMethodContextClass.set_enable_preedit</a></h6>
+        <div class="docblock">
+          <p>Set whether <code>context</code> should enable preedit to display&nbsp;feedback.</p>
+        </div>
+        <div class="docblock">
+          <p><span class="emblem available">since: 2.28</span></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+
+      
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

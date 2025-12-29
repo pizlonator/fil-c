@@ -1,0 +1,533 @@
+<!--
+SPDX-FileCopyrightText: The WebKit GTK and WPE teams
+
+SPDX-License-Identifier: BSD, LGPL-2.1
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WebKit.WebView.call_async_javascript_function</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta priority="og:title" content="WebKit.WebView.call_async_javascript_function"/>
+  <meta priority="og:description" content="Reference for WebKit.WebView.call_async_javascript_function"/>
+  <meta name="twitter:title" content="WebKit.WebView.call_async_javascript_function"/>
+  <meta name="twitter:description" content="Reference for WebKit.WebView.call_async_javascript_function"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="gtk4-urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">WebKit</a></h3>
+        <p>API Version: 6.0</p>
+        
+        <p>Library Version: 2.44.3</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.WebView.html">WebView</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method current" href="method.WebView.call_async_javascript_function.html">call_async_javascript_function</a>
+  
+    <a class="method" href="method.WebView.call_async_javascript_function_finish.html">call_async_javascript_function_finish</a>
+  
+    <a class="method" href="method.WebView.can_execute_editing_command.html">can_execute_editing_command</a>
+  
+    <a class="method" href="method.WebView.can_execute_editing_command_finish.html">can_execute_editing_command_finish</a>
+  
+    <a class="method" href="method.WebView.can_go_back.html">can_go_back</a>
+  
+    <a class="method" href="method.WebView.can_go_forward.html">can_go_forward</a>
+  
+    <a class="method" href="method.WebView.can_show_mime_type.html">can_show_mime_type</a>
+  
+    <a class="method" href="method.WebView.download_uri.html">download_uri</a>
+  
+    <a class="method" href="method.WebView.evaluate_javascript.html">evaluate_javascript</a>
+  
+    <a class="method" href="method.WebView.evaluate_javascript_finish.html">evaluate_javascript_finish</a>
+  
+    <a class="method" href="method.WebView.execute_editing_command.html">execute_editing_command</a>
+  
+    <a class="method" href="method.WebView.execute_editing_command_with_argument.html">execute_editing_command_with_argument</a>
+  
+    <a class="method" href="method.WebView.get_automation_presentation_type.html">get_automation_presentation_type</a>
+  
+    <a class="method" href="method.WebView.get_back_forward_list.html">get_back_forward_list</a>
+  
+    <a class="method" href="method.WebView.get_background_color.html">get_background_color</a>
+  
+    <a class="method" href="method.WebView.get_camera_capture_state.html">get_camera_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_context.html">get_context</a>
+  
+    <a class="method" href="method.WebView.get_custom_charset.html">get_custom_charset</a>
+  
+    <a class="method" href="method.WebView.get_default_content_security_policy.html">get_default_content_security_policy</a>
+  
+    <a class="method" href="method.WebView.get_display_capture_state.html">get_display_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_editor_state.html">get_editor_state</a>
+  
+    <a class="method" href="method.WebView.get_estimated_load_progress.html">get_estimated_load_progress</a>
+  
+    <a class="method" href="method.WebView.get_favicon.html">get_favicon</a>
+  
+    <a class="method" href="method.WebView.get_find_controller.html">get_find_controller</a>
+  
+    <a class="method" href="method.WebView.get_input_method_context.html">get_input_method_context</a>
+  
+    <a class="method" href="method.WebView.get_inspector.html">get_inspector</a>
+  
+    <a class="method" href="method.WebView.get_is_muted.html">get_is_muted</a>
+  
+    <a class="method" href="method.WebView.get_is_web_process_responsive.html">get_is_web_process_responsive</a>
+  
+    <a class="method" href="method.WebView.get_main_resource.html">get_main_resource</a>
+  
+    <a class="method" href="method.WebView.get_microphone_capture_state.html">get_microphone_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_network_session.html">get_network_session</a>
+  
+    <a class="method" href="method.WebView.get_page_id.html">get_page_id</a>
+  
+    <a class="method" href="method.WebView.get_session_state.html">get_session_state</a>
+  
+    <a class="method" href="method.WebView.get_settings.html">get_settings</a>
+  
+    <a class="method" href="method.WebView.get_snapshot.html">get_snapshot</a>
+  
+    <a class="method" href="method.WebView.get_snapshot_finish.html">get_snapshot_finish</a>
+  
+    <a class="method" href="method.WebView.get_title.html">get_title</a>
+  
+    <a class="method" href="method.WebView.get_tls_info.html">get_tls_info</a>
+  
+    <a class="method" href="method.WebView.get_uri.html">get_uri</a>
+  
+    <a class="method" href="method.WebView.get_user_content_manager.html">get_user_content_manager</a>
+  
+    <a class="method" href="method.WebView.get_web_extension_mode.html">get_web_extension_mode</a>
+  
+    <a class="method" href="method.WebView.get_website_policies.html">get_website_policies</a>
+  
+    <a class="method" href="method.WebView.get_window_properties.html">get_window_properties</a>
+  
+    <a class="method" href="method.WebView.get_zoom_level.html">get_zoom_level</a>
+  
+    <a class="method" href="method.WebView.go_back.html">go_back</a>
+  
+    <a class="method" href="method.WebView.go_forward.html">go_forward</a>
+  
+    <a class="method" href="method.WebView.go_to_back_forward_list_item.html">go_to_back_forward_list_item</a>
+  
+    <a class="method" href="method.WebView.is_controlled_by_automation.html">is_controlled_by_automation</a>
+  
+    <a class="method" href="method.WebView.is_editable.html">is_editable</a>
+  
+    <a class="method" href="method.WebView.is_loading.html">is_loading</a>
+  
+    <a class="method" href="method.WebView.is_playing_audio.html">is_playing_audio</a>
+  
+    <a class="method" href="method.WebView.load_alternate_html.html">load_alternate_html</a>
+  
+    <a class="method" href="method.WebView.load_bytes.html">load_bytes</a>
+  
+    <a class="method" href="method.WebView.load_html.html">load_html</a>
+  
+    <a class="method" href="method.WebView.load_plain_text.html">load_plain_text</a>
+  
+    <a class="method" href="method.WebView.load_request.html">load_request</a>
+  
+    <a class="method" href="method.WebView.load_uri.html">load_uri</a>
+  
+    <a class="method" href="method.WebView.reload.html">reload</a>
+  
+    <a class="method" href="method.WebView.reload_bypass_cache.html">reload_bypass_cache</a>
+  
+    <a class="method" href="method.WebView.restore_session_state.html">restore_session_state</a>
+  
+    <a class="method" href="method.WebView.save.html">save</a>
+  
+    <a class="method" href="method.WebView.save_finish.html">save_finish</a>
+  
+    <a class="method" href="method.WebView.save_to_file.html">save_to_file</a>
+  
+    <a class="method" href="method.WebView.save_to_file_finish.html">save_to_file_finish</a>
+  
+    <a class="method" href="method.WebView.send_message_to_page.html">send_message_to_page</a>
+  
+    <a class="method" href="method.WebView.send_message_to_page_finish.html">send_message_to_page_finish</a>
+  
+    <a class="method" href="method.WebView.set_background_color.html">set_background_color</a>
+  
+    <a class="method" href="method.WebView.set_camera_capture_state.html">set_camera_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_cors_allowlist.html">set_cors_allowlist</a>
+  
+    <a class="method" href="method.WebView.set_custom_charset.html">set_custom_charset</a>
+  
+    <a class="method" href="method.WebView.set_display_capture_state.html">set_display_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_editable.html">set_editable</a>
+  
+    <a class="method" href="method.WebView.set_input_method_context.html">set_input_method_context</a>
+  
+    <a class="method" href="method.WebView.set_is_muted.html">set_is_muted</a>
+  
+    <a class="method" href="method.WebView.set_microphone_capture_state.html">set_microphone_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_settings.html">set_settings</a>
+  
+    <a class="method" href="method.WebView.set_zoom_level.html">set_zoom_level</a>
+  
+    <a class="method" href="method.WebView.stop_loading.html">stop_loading</a>
+  
+    <a class="method" href="method.WebView.terminate_web_process.html">terminate_web_process</a>
+  
+    <a class="method" href="method.WebView.try_close.html">try_close</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2023.4</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">WebKit</a><span class="sep"></span><a href="class.WebView.html">WebView</a><span class="sep"></span>call_async_javascript_function</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p><span class="emblem available">since: 2.40</span></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/main/WebKitBuild/GTK/Release/WebKitGTK/DerivedSources/webkit/WebKitWebView.h#L519">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">webkit_web_view_call_async_javascript_function</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">WebKitWebView</span><span class="o">*</span><span class="w"> </span><span class="n">web_view</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">body</span><span class="p">,</span>
+<span class="w">  </span><span class="n">gssize</span><span class="w"> </span><span class="n">length</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GVariant</span><span class="o">*</span><span class="w"> </span><span class="n">arguments</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">world_name</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">source_uri</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GCancellable</span><span class="o">*</span><span class="w"> </span><span class="n">cancellable</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GAsyncReadyCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">,</span>
+<span class="w">  </span><span class="n">gpointer</span><span class="w"> </span><span class="n">user_data</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/main/Source/WebKit/UIProcess/API/glib/WebKitWebView.cpp#L4281">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Asynchronously call <code>body</code> with <code>arguments</code> in the script world with name <code>world_name</code> of the main frame current context in <code>web_view</code>.
+The <code>arguments</code> values must be one of the following types, or contain only the following GVariant types: number, string and dictionary.
+The result of the operation can be a Promise that will be properly passed to the callback.
+If <code>world_name</code> is <code>NULL</code>, the default world is used. Any value that is not <code>NULL</code> is a distin ct world.
+The <code>source_uri</code> will be shown in exceptions and doesn&#8217;t affect the behavior of the script.
+When not provided, the document <span class="caps">URL</span> is&nbsp;used.</p>
+<p>Note that if <code>WebKitSettings:enable-javascript</code> is <code>FALSE</code>, this method will do nothing.
+If you want to use this method but still prevent web content from executing its own
+JavaScript, then use <code>WebKitSettings:enable-javascript-markup</code>.</p>
+<p>When the operation is finished, <code>callback</code> will be called. You can then call
+<code>webkit_web_view_call_async_javascript_function_finish()</code> to get the result of the&nbsp;operation.</p>
+<p>This is an example that shows how to pass arguments to a <span class="caps">JS</span> function that returns a Promise
+that resolves with the passed&nbsp;argument:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">web_view_javascript_finished</span><span class="w"> </span><span class="p">(</span><span class="n">GObject</span><span class="w">      </span><span class="o">*</span><span class="n">object</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">GAsyncResult</span><span class="w"> </span><span class="o">*</span><span class="n">result</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">gpointer</span><span class="w">      </span><span class="n">user_data</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">JSCValue</span><span class="w">               </span><span class="o">*</span><span class="n">value</span><span class="p">;</span>
+<span class="w">    </span><span class="n">GError</span><span class="w">                 </span><span class="o">*</span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">webkit_web_view_call_async_javascript_function_finish</span><span class="w"> </span><span class="p">(</span><span class="n">WEBKIT_WEB_VIEW</span><span class="w"> </span><span class="p">(</span><span class="n">object</span><span class="p">),</span><span class="w"> </span><span class="n">result</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g_warning</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Error running javascript: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">message</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g_error_free</span><span class="w"> </span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">jsc_value_is_number</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">gint32</span><span class="w">        </span><span class="n">int_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">jsc_value_to_string</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="w">        </span><span class="n">JSCException</span><span class="w"> </span><span class="o">*</span><span class="n">exception</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">jsc_context_get_exception</span><span class="w"> </span><span class="p">(</span><span class="n">jsc_value_get_context</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+<span class="w">            </span><span class="n">g_warning</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Error running javascript: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">jsc_exception_get_message</span><span class="w"> </span><span class="p">(</span><span class="n">exception</span><span class="p">));</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">g_print</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Script result: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">int_value</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g_free</span><span class="w"> </span><span class="p">(</span><span class="n">str_value</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g_warning</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Error running javascript: unexpected return value&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">g_object_unref</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">web_view_evaluate_promise</span><span class="w"> </span><span class="p">(</span><span class="n">WebKitWebView</span><span class="w"> </span><span class="o">*</span><span class="n">web_view</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">GVariantDict</span><span class="w"> </span><span class="n">dict</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g_variant_dict_init</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">dict</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g_variant_dict_insert</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">dict</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;count&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;u&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
+<span class="w">    </span><span class="n">GVariant</span><span class="w"> </span><span class="o">*</span><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g_variant_dict_end</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">dict</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">gchar</span><span class="w"> </span><span class="o">*</span><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;return new Promise((resolve) =&gt; { resolve(count); });&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">webkit_web_view_call_async_javascript_function</span><span class="w"> </span><span class="p">(</span><span class="n">web_view</span><span class="p">,</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">arguments</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">web_view_javascript_finished</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+      </div>
+
+      <div class="docblock">
+        
+        <p>Available since: 2.40</p>
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>body</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>const char*</code></p>
+            <p>The function&nbsp;body.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            <tr><td>The value is a NUL terminated UTF-8 string.</td></tr>
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>length</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gssize</code></p>
+            <p>Length of <code>body</code>, or -1 if <code>body</code> is a nul-terminated&nbsp;string.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>arguments</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-link="struct.Variant.html" data-namespace="GLib" class="external"><code>GVariant</code></a></p>
+            <p>A <code>GVariant</code> with format <code>a{sv}</code> storing the function arguments, or <code>NULL</code>.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>world_name</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>const char*</code></p>
+            <p>The name of a <code>WebKitScriptWorld</code> or <code>NULL</code> to use the&nbsp;default.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            <tr><td>The value is a NUL terminated UTF-8 string.</td></tr>
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>source_uri</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>const char*</code></p>
+            <p>The source <span class="caps">URI</span>.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            <tr><td>The value is a NUL terminated UTF-8 string.</td></tr>
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>cancellable</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-link="class.Cancellable.html" data-namespace="Gio" class="external"><code>GCancellable</code></a></p>
+            <p>A <code>GCancellable</code> or <code>NULL</code> to&nbsp;ignore.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>callback</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="javascript:void(0)" data-link="callback.AsyncReadyCallback.html" data-namespace="Gio" class="external"><code>GAsyncReadyCallback</code></a></p>
+            <p>A <code>GAsyncReadyCallback</code> to call when the script&nbsp;finished.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>user_data</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>gpointer</code></p>
+            <p>The data to pass to callback&nbsp;function.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!--
+SPDX-FileCopyrightText: The WebKit GTK and WPE teams
+
+SPDX-License-Identifier: BSD, LGPL-2.1
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WebKit.WebView.set_custom_charset</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta priority="og:title" content="WebKit.WebView.set_custom_charset"/>
+  <meta priority="og:description" content="Reference for WebKit.WebView.set_custom_charset"/>
+  <meta name="twitter:title" content="WebKit.WebView.set_custom_charset"/>
+  <meta name="twitter:description" content="Reference for WebKit.WebView.set_custom_charset"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="gtk4-urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">WebKit</a></h3>
+        <p>API Version: 6.0</p>
+        
+        <p>Library Version: 2.44.3</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.WebView.html">WebView</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.WebView.call_async_javascript_function.html">call_async_javascript_function</a>
+  
+    <a class="method" href="method.WebView.call_async_javascript_function_finish.html">call_async_javascript_function_finish</a>
+  
+    <a class="method" href="method.WebView.can_execute_editing_command.html">can_execute_editing_command</a>
+  
+    <a class="method" href="method.WebView.can_execute_editing_command_finish.html">can_execute_editing_command_finish</a>
+  
+    <a class="method" href="method.WebView.can_go_back.html">can_go_back</a>
+  
+    <a class="method" href="method.WebView.can_go_forward.html">can_go_forward</a>
+  
+    <a class="method" href="method.WebView.can_show_mime_type.html">can_show_mime_type</a>
+  
+    <a class="method" href="method.WebView.download_uri.html">download_uri</a>
+  
+    <a class="method" href="method.WebView.evaluate_javascript.html">evaluate_javascript</a>
+  
+    <a class="method" href="method.WebView.evaluate_javascript_finish.html">evaluate_javascript_finish</a>
+  
+    <a class="method" href="method.WebView.execute_editing_command.html">execute_editing_command</a>
+  
+    <a class="method" href="method.WebView.execute_editing_command_with_argument.html">execute_editing_command_with_argument</a>
+  
+    <a class="method" href="method.WebView.get_automation_presentation_type.html">get_automation_presentation_type</a>
+  
+    <a class="method" href="method.WebView.get_back_forward_list.html">get_back_forward_list</a>
+  
+    <a class="method" href="method.WebView.get_background_color.html">get_background_color</a>
+  
+    <a class="method" href="method.WebView.get_camera_capture_state.html">get_camera_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_context.html">get_context</a>
+  
+    <a class="method" href="method.WebView.get_custom_charset.html">get_custom_charset</a>
+  
+    <a class="method" href="method.WebView.get_default_content_security_policy.html">get_default_content_security_policy</a>
+  
+    <a class="method" href="method.WebView.get_display_capture_state.html">get_display_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_editor_state.html">get_editor_state</a>
+  
+    <a class="method" href="method.WebView.get_estimated_load_progress.html">get_estimated_load_progress</a>
+  
+    <a class="method" href="method.WebView.get_favicon.html">get_favicon</a>
+  
+    <a class="method" href="method.WebView.get_find_controller.html">get_find_controller</a>
+  
+    <a class="method" href="method.WebView.get_input_method_context.html">get_input_method_context</a>
+  
+    <a class="method" href="method.WebView.get_inspector.html">get_inspector</a>
+  
+    <a class="method" href="method.WebView.get_is_muted.html">get_is_muted</a>
+  
+    <a class="method" href="method.WebView.get_is_web_process_responsive.html">get_is_web_process_responsive</a>
+  
+    <a class="method" href="method.WebView.get_main_resource.html">get_main_resource</a>
+  
+    <a class="method" href="method.WebView.get_microphone_capture_state.html">get_microphone_capture_state</a>
+  
+    <a class="method" href="method.WebView.get_network_session.html">get_network_session</a>
+  
+    <a class="method" href="method.WebView.get_page_id.html">get_page_id</a>
+  
+    <a class="method" href="method.WebView.get_session_state.html">get_session_state</a>
+  
+    <a class="method" href="method.WebView.get_settings.html">get_settings</a>
+  
+    <a class="method" href="method.WebView.get_snapshot.html">get_snapshot</a>
+  
+    <a class="method" href="method.WebView.get_snapshot_finish.html">get_snapshot_finish</a>
+  
+    <a class="method" href="method.WebView.get_title.html">get_title</a>
+  
+    <a class="method" href="method.WebView.get_tls_info.html">get_tls_info</a>
+  
+    <a class="method" href="method.WebView.get_uri.html">get_uri</a>
+  
+    <a class="method" href="method.WebView.get_user_content_manager.html">get_user_content_manager</a>
+  
+    <a class="method" href="method.WebView.get_web_extension_mode.html">get_web_extension_mode</a>
+  
+    <a class="method" href="method.WebView.get_website_policies.html">get_website_policies</a>
+  
+    <a class="method" href="method.WebView.get_window_properties.html">get_window_properties</a>
+  
+    <a class="method" href="method.WebView.get_zoom_level.html">get_zoom_level</a>
+  
+    <a class="method" href="method.WebView.go_back.html">go_back</a>
+  
+    <a class="method" href="method.WebView.go_forward.html">go_forward</a>
+  
+    <a class="method" href="method.WebView.go_to_back_forward_list_item.html">go_to_back_forward_list_item</a>
+  
+    <a class="method" href="method.WebView.is_controlled_by_automation.html">is_controlled_by_automation</a>
+  
+    <a class="method" href="method.WebView.is_editable.html">is_editable</a>
+  
+    <a class="method" href="method.WebView.is_loading.html">is_loading</a>
+  
+    <a class="method" href="method.WebView.is_playing_audio.html">is_playing_audio</a>
+  
+    <a class="method" href="method.WebView.load_alternate_html.html">load_alternate_html</a>
+  
+    <a class="method" href="method.WebView.load_bytes.html">load_bytes</a>
+  
+    <a class="method" href="method.WebView.load_html.html">load_html</a>
+  
+    <a class="method" href="method.WebView.load_plain_text.html">load_plain_text</a>
+  
+    <a class="method" href="method.WebView.load_request.html">load_request</a>
+  
+    <a class="method" href="method.WebView.load_uri.html">load_uri</a>
+  
+    <a class="method" href="method.WebView.reload.html">reload</a>
+  
+    <a class="method" href="method.WebView.reload_bypass_cache.html">reload_bypass_cache</a>
+  
+    <a class="method" href="method.WebView.restore_session_state.html">restore_session_state</a>
+  
+    <a class="method" href="method.WebView.save.html">save</a>
+  
+    <a class="method" href="method.WebView.save_finish.html">save_finish</a>
+  
+    <a class="method" href="method.WebView.save_to_file.html">save_to_file</a>
+  
+    <a class="method" href="method.WebView.save_to_file_finish.html">save_to_file_finish</a>
+  
+    <a class="method" href="method.WebView.send_message_to_page.html">send_message_to_page</a>
+  
+    <a class="method" href="method.WebView.send_message_to_page_finish.html">send_message_to_page_finish</a>
+  
+    <a class="method" href="method.WebView.set_background_color.html">set_background_color</a>
+  
+    <a class="method" href="method.WebView.set_camera_capture_state.html">set_camera_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_cors_allowlist.html">set_cors_allowlist</a>
+  
+    <a class="method current" href="method.WebView.set_custom_charset.html">set_custom_charset</a>
+  
+    <a class="method" href="method.WebView.set_display_capture_state.html">set_display_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_editable.html">set_editable</a>
+  
+    <a class="method" href="method.WebView.set_input_method_context.html">set_input_method_context</a>
+  
+    <a class="method" href="method.WebView.set_is_muted.html">set_is_muted</a>
+  
+    <a class="method" href="method.WebView.set_microphone_capture_state.html">set_microphone_capture_state</a>
+  
+    <a class="method" href="method.WebView.set_settings.html">set_settings</a>
+  
+    <a class="method" href="method.WebView.set_zoom_level.html">set_zoom_level</a>
+  
+    <a class="method" href="method.WebView.stop_loading.html">stop_loading</a>
+  
+    <a class="method" href="method.WebView.terminate_web_process.html">terminate_web_process</a>
+  
+    <a class="method" href="method.WebView.try_close.html">try_close</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2023.4</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">WebKit</a><span class="sep"></span><a href="class.WebView.html">WebView</a><span class="sep"></span>set_custom_charset</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/main/WebKitBuild/GTK/Release/WebKitGTK/DerivedSources/webkit/WebKitWebView.h#L459">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">webkit_web_view_set_custom_charset</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">WebKitWebView</span><span class="o">*</span><span class="w"> </span><span class="n">web_view</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">gchar</span><span class="o">*</span><span class="w"> </span><span class="n">charset</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/main/Source/WebKit/UIProcess/API/glib/WebKitWebView.cpp#L3748">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Sets the current custom character encoding override of <code>web_view</code>.</p>
+<p>The custom character encoding will override any text encoding detected via <span class="caps">HTTP</span> headers or
+<span class="caps">META</span> tags. Calling this method will stop any current load operation and reload the
+current page. Setting the custom character encoding to <code>NULL</code> removes the character
+encoding&nbsp;override.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>charset</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>const gchar*</code></p>
+            <p>A character encoding name or <code>NULL</code>.</p>
+            <table>
+            
+            <tr><td>The argument can be <code>NULL</code>.</td></tr>
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            <tr><td>The value is a NUL terminated UTF-8 string.</td></tr>
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

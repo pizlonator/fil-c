@@ -1,0 +1,127 @@
+# Copyright (C) 2022 Apple Inc. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1.  Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+enum class WebKit::ListType : uint8_t {
+    None,
+    OrderedList,
+    UnorderedList
+}
+
+enum class WebKit::TextAlignment : uint8_t {
+    Natural,
+    Left,
+    Right,
+    Center,
+    Justified,
+}
+
+[OptionSet] enum class WebKit::TypingAttribute : uint8_t {
+    Bold,
+    Italics,
+    Underline,
+    StrikeThrough
+}
+
+struct WebKit::EditorState {
+    WebKit::EditorStateIdentifier identifier;
+    bool shouldIgnoreSelectionChanges;
+    bool selectionIsNone;
+    bool selectionIsRange;
+    bool selectionIsRangeInsideImageOverlay;
+    bool selectionIsRangeInAutoFilledAndViewableField;
+    bool isContentEditable;
+    bool isContentRichlyEditable;
+    bool isInPasswordField;
+    bool isInPlugin;
+    bool hasComposition;
+    bool triggeredByAccessibilitySelectionChange;
+#if PLATFORM(MAC)
+    bool canEnableAutomaticSpellingCorrection;
+#endif
+    std::optional<WebKit::EditorState::PostLayoutData> postLayoutData;
+    std::optional<WebKit::EditorState::VisualData> visualData;
+};
+
+[Nested] struct WebKit::EditorState::PostLayoutData {
+    OptionSet<WebKit::TypingAttribute> typingAttributes;
+#if PLATFORM(COCOA)
+    uint64_t selectedTextLength;
+    WebKit::TextAlignment textAlignment;
+    WebCore::Color textColor;
+    WebKit::ListType enclosingListType;
+    WebCore::WritingDirection baseWritingDirection;
+    bool editableRootIsTransparentOrFullyClipped;
+#endif
+#if PLATFORM(IOS_FAMILY)
+    String markedText;
+    String wordAtSelection;
+    char32_t characterAfterSelection;
+    char32_t characterBeforeSelection;
+    char32_t twoCharacterBeforeSelection;
+#endif
+#if PLATFORM(IOS_FAMILY) && USE(DICTATION_ALTERNATIVES)
+    Vector<WebCore::DictationContext> dictationContextsForSelection;
+#endif
+#if PLATFORM(IOS_FAMILY)
+    bool isReplaceAllowed;
+    bool hasContent;
+    bool isStableStateUpdate;
+    bool insideFixedPosition;
+    bool hasPlainText;
+    WebCore::Color caretColor;
+    bool hasCaretColorAuto;
+    bool atStartOfSentence;
+    bool selectionStartIsAtParagraphBoundary;
+    bool selectionEndIsAtParagraphBoundary;
+    bool hasGrammarDocumentMarkers;
+    std::optional<WebCore::ElementContext> selectedEditableImage;
+#endif
+#if PLATFORM(MAC)
+    WebCore::IntRect selectionBoundingRect;
+    uint64_t candidateRequestStartPosition;
+    String paragraphContextForCandidateRequest;
+    String stringForCandidateRequest;
+#endif
+#if PLATFORM(GTK) || PLATFORM(WPE)
+    String surroundingContext;
+    uint64_t surroundingContextCursorPosition;
+    uint64_t surroundingContextSelectionPosition;
+#endif
+    std::optional<WebCore::FontAttributes> fontAttributes;
+    bool canCut;
+    bool canCopy;
+    bool canPaste;
+};
+
+[Nested] struct WebKit::EditorState::VisualData {
+#if PLATFORM(IOS_FAMILY) || PLATFORM(GTK) || PLATFORM(WPE)
+    WebCore::IntRect caretRectAtStart;
+#endif
+#if PLATFORM(IOS_FAMILY)
+    WebCore::IntRect selectionClipRect;
+    WebCore::IntRect caretRectAtEnd;
+    Vector<WebCore::SelectionGeometry> selectionGeometries;
+    Vector<WebCore::SelectionGeometry> markedTextRects;
+    WebCore::IntRect markedTextCaretRectAtStart;
+    WebCore::IntRect markedTextCaretRectAtEnd;
+#endif
+};

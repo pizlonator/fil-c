@@ -1,0 +1,415 @@
+/*
+ * Copyright (C) 2006-2023 Apple Inc. All rights reserved.
+ * Copyright (C) 2006 Michael Emmel mike.emmel@gmail.com
+ * Copyright (C) 2007 Holger Hans Peter Freyther
+ * Copyright (C) 2007 Pioneer Research Center USA, Inc.
+ * Copyright (C) 2010, 2011 Brent Fulgham <bfulgham@webkit.org>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; see the file COPYING.LIB.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ *
+ */
+
+#pragma once
+
+#include "SharedBuffer.h"
+#include "ShouldLocalizeAxisNames.h"
+#include "TextFlags.h"
+#include <wtf/Forward.h>
+#include <wtf/RetainPtr.h>
+#include <wtf/Vector.h>
+
+#if PLATFORM(WIN)
+#include "COMPtr.h"
+#include "FontMemoryResource.h"
+#include "SharedGDIObject.h"
+#endif
+
+#if USE(CAIRO)
+#include "RefPtrCairo.h"
+#endif
+
+#if USE(FREETYPE)
+#include "FcUniquePtr.h"
+#include "RefPtrFontconfig.h"
+#include <memory>
+
+#if ENABLE(MATHML) && USE(HARFBUZZ)
+#include "HbUniquePtr.h"
+#endif
+#endif
+
+#if USE(APPKIT)
+OBJC_CLASS NSFont;
+#endif
+
+#if USE(CORE_TEXT)
+#include <pal/spi/cf/CoreTextSPI.h>
+typedef const struct __CTFont* CTFontRef;
+#endif
+
+#if USE(CG)
+#include <CoreGraphics/CoreGraphics.h>
+#endif
+
+#if PLATFORM(WIN)
+#include <wtf/win/GDIObject.h>
+typedef struct HFONT__* HFONT;
+interface IDWriteFont;
+interface IDWriteFontFace;
+#endif
+
+namespace WebCore {
+
+class FontDescription;
+struct FontCustomPlatformData;
+struct FontSizeAdjust;
+
+struct FontPlatformDataAttributes {
+    FontPlatformDataAttributes(float size, FontOrientation orientation, FontWidthVariant widthVariant, TextRenderingMode textRenderingMode, bool syntheticBold, bool syntheticOblique)
+        : m_size(size)
+        , m_orientation(orientation)
+        , m_widthVariant(widthVariant)
+        , m_textRenderingMode(textRenderingMode)
+        , m_syntheticBold(syntheticBold)
+        , m_syntheticOblique(syntheticOblique)
+        { }
+
+#if USE(CORE_TEXT)
+    FontPlatformDataAttributes(float size, FontOrientation orientation, FontWidthVariant widthVariant, TextRenderingMode textRenderingMode, bool syntheticBold, bool syntheticOblique, RetainPtr<CFDictionaryRef> attributes, CTFontDescriptorOptions options, RetainPtr<CFStringRef> url, RetainPtr<CFStringRef> psName)
+        : m_size(size)
+        , m_orientation(orientation)
+        , m_widthVariant(widthVariant)
+        , m_textRenderingMode(textRenderingMode)
+        , m_syntheticBold(syntheticBold)
+        , m_syntheticOblique(syntheticOblique)
+        , m_attributes(attributes)
+        , m_options(options)
+        , m_url(url)
+        , m_psName(psName)
+        { }
+#endif
+
+#if USE(WIN)
+    FontPlatformDataAttributes(float size, FontOrientation orientation, FontWidthVariant widthVariant, TextRenderingMode textRenderingMode, bool syntheticBold, bool syntheticOblique, LOGFONT font)
+        : m_size(size)
+        , m_orientation(orientation)
+        , m_widthVariant(widthVariant)
+        , m_textRenderingMode(textRenderingMode)
+        , m_syntheticBold(syntheticBold)
+        , m_syntheticOblique(syntheticOblique)
+        , m_font(font)
+        { }
+#endif
+
+    float m_size { 0 };
+
+    FontOrientation m_orientation { FontOrientation::Horizontal };
+    FontWidthVariant m_widthVariant { FontWidthVariant::RegularWidth };
+    TextRenderingMode m_textRenderingMode { TextRenderingMode::AutoTextRendering };
+
+    bool m_syntheticBold { false };
+    bool m_syntheticOblique { false };
+
+#if PLATFORM(WIN)
+    LOGFONT m_font;
+#elif USE(CORE_TEXT)
+    RetainPtr<CFDictionaryRef> m_attributes;
+    CTFontDescriptorOptions m_options;
+    RetainPtr<CFStringRef> m_url;
+    RetainPtr<CFStringRef> m_psName;
+#endif
+};
+
+#if USE(CORE_TEXT)
+struct FontPlatformSerializedCreationData {
+    Vector<uint8_t> fontFaceData;
+    RetainPtr<CFDictionaryRef> attributes;
+    String itemInCollection;
+};
+
+struct FontPlatformSerializedData {
+    CTFontDescriptorOptions options { 0 }; // <rdar://121670125>
+    RetainPtr<CFStringRef> referenceURL;
+    RetainPtr<CFStringRef> postScriptName;
+    RetainPtr<CFDictionaryRef> attributes;
+};
+#endif
+
+// This class is conceptually immutable. Once created, no instances should ever change (in an observable way).
+class FontPlatformData {
+    WTF_MAKE_FAST_ALLOCATED;
+public:
+    struct CreationData;
+    struct FontVariationAxis {
+        FontVariationAxis(const String& name, const String& tag, float defaultValue, float minimumValue, float maximumValue)
+            : m_name(name)
+            , m_tag(tag)
+            , m_defaultValue(defaultValue)
+            , m_minimumValue(minimumValue)
+            , m_maximumValue(maximumValue)
+        {
+        }
+
+        const String& name() const { return m_name; }
+        const String& tag() const { return m_tag; }
+        float defaultValue() const { return m_defaultValue; }
+        float minimumValue() const { return m_minimumValue; }
+        float maximumValue() const { return m_maximumValue; }
+
+    private:
+        const String m_name;
+        const String m_tag;
+        float m_defaultValue;
+        float m_minimumValue;
+        float m_maximumValue;
+    };
+
+    FontPlatformData(WTF::HashTableDeletedValueType);
+    FontPlatformData();
+
+    FontPlatformData(float size, bool syntheticBold, bool syntheticOblique, FontOrientation = FontOrientation::Horizontal, FontWidthVariant = FontWidthVariant::RegularWidth, TextRenderingMode = TextRenderingMode::AutoTextRendering, const FontCustomPlatformData* = nullptr);
+
+#if USE(CORE_TEXT)
+    WEBCORE_EXPORT FontPlatformData(RetainPtr<CTFontRef>&&, float size, bool syntheticBold = false, bool syntheticOblique = false, FontOrientation = FontOrientation::Horizontal, FontWidthVariant = FontWidthVariant::RegularWidth, TextRenderingMode = TextRenderingMode::AutoTextRendering, const FontCustomPlatformData* = nullptr);
+#endif
+
+#if PLATFORM(WIN)
+    WEBCORE_EXPORT FontPlatformData(GDIObject<HFONT>, float size, bool syntheticBold, bool syntheticOblique, const FontCustomPlatformData* = nullptr);
+    FontPlatformData(GDIObject<HFONT>, cairo_font_face_t*, float size, bool bold, bool italic, const FontCustomPlatformData* = nullptr);
+#endif
+
+#if USE(FREETYPE)
+    FontPlatformData(cairo_font_face_t*, RefPtr<FcPattern>&&, float size, bool fixedWidth, bool syntheticBold, bool syntheticOblique, FontOrientation, const FontCustomPlatformData* = nullptr);
+#endif
+
+    using Attributes = FontPlatformDataAttributes;
+
+    WEBCORE_EXPORT static FontPlatformData create(const Attributes&, const FontCustomPlatformData*);
+
+    WEBCORE_EXPORT FontPlatformData(const FontPlatformData&);
+    WEBCORE_EXPORT FontPlatformData& operator=(const FontPlatformData&);
+    WEBCORE_EXPORT ~FontPlatformData();
+
+    static FontPlatformData cloneWithOrientation(const FontPlatformData&, FontOrientation);
+    static FontPlatformData cloneWithSyntheticOblique(const FontPlatformData&, bool);
+
+    static FontPlatformData cloneWithSize(const FontPlatformData&, float);
+    void updateSizeWithFontSizeAdjust(const FontSizeAdjust&, float);
+
+#if PLATFORM(WIN)
+    HFONT hfont() const { return m_font ? m_font->get() : 0; }
+#endif
+
+#if USE(CORE_TEXT)
+    using PlatformDataVariant = std::variant<FontPlatformSerializedData, FontPlatformSerializedCreationData>;
+    WEBCORE_EXPORT static std::optional<FontPlatformData> tryMakeFontPlatformData(float size, WebCore::FontOrientation&&, WebCore::FontWidthVariant&&, WebCore::TextRenderingMode&&, bool syntheticBold, bool syntheticOblique, FontPlatformData::PlatformDataVariant&& platformSerializationData);
+    WEBCORE_EXPORT FontPlatformData(float size, WebCore::FontOrientation&&, WebCore::FontWidthVariant&&, WebCore::TextRenderingMode&&, bool syntheticBold, bool syntheticOblique, RetainPtr<CTFontRef>&&, RefPtr<FontCustomPlatformData>&&);
+
+    WEBCORE_EXPORT PlatformDataVariant platformSerializationData() const;
+
+    WEBCORE_EXPORT CTFontRef registeredFont() const; // Returns nullptr iff the font is not registered, such as web fonts (otherwise returns font()).
+    static RetainPtr<CFTypeRef> objectForEqualityCheck(CTFontRef);
+    RetainPtr<CFTypeRef> objectForEqualityCheck() const;
+    bool hasCustomTracking() const { return isSystemFont(); }
+
+    CTFontRef font() const { return m_font.get(); }
+    CTFontRef ctFont() const;
+#endif
+
+#if PLATFORM(WIN) || PLATFORM(COCOA)
+    bool isSystemFont() const { return m_isSystemFont; }
+#endif
+
+    bool hasVariations() const { return m_hasVariations; }
+
+    bool isFixedPitch() const;
+    float size() const { return m_size; }
+    bool syntheticBold() const { return m_syntheticBold; }
+    bool syntheticOblique() const { return m_syntheticOblique; }
+    bool isColorBitmapFont() const { return m_isColorBitmapFont; }
+    FontOrientation orientation() const { return m_orientation; }
+    FontWidthVariant widthVariant() const { return m_widthVariant; }
+    TextRenderingMode textRenderingMode() const { return m_textRenderingMode; }
+    bool isForTextCombine() const { return widthVariant() != FontWidthVariant::RegularWidth; } // Keep in sync with callers of FontDescription::setWidthVariant().
+
+    String familyName() const;
+    Vector<FontVariationAxis> variationAxes(ShouldLocalizeAxisNames) const;
+
+#if USE(CAIRO)
+    cairo_scaled_font_t* scaledFont() const { return m_scaledFont.get(); }
+#endif
+
+#if USE(FREETYPE)
+#if ENABLE(MATHML) && USE(HARFBUZZ)
+    HbUniquePtr<hb_font_t> createOpenTypeMathHarfBuzzFont() const;
+#endif
+    bool hasCompatibleCharmap() const;
+    FcPattern* fcPattern() const;
+    bool isFixedWidth() const { return m_fixedWidth; }
+#endif
+
+    unsigned hash() const;
+
+    bool operator==(const FontPlatformData& other) const
+    {
+        return platformIsEqual(other)
+            && m_isHashTableDeletedValue == other.m_isHashTableDeletedValue
+            && m_size == other.m_size
+            && m_syntheticBold == other.m_syntheticBold
+            && m_syntheticOblique == other.m_syntheticOblique
+            && m_isColorBitmapFont == other.m_isColorBitmapFont
+            && m_orientation == other.m_orientation
+            && m_widthVariant == other.m_widthVariant
+            && m_textRenderingMode == other.m_textRenderingMode;
+    }
+
+    bool isHashTableDeletedValue() const
+    {
+        return m_isHashTableDeletedValue;
+    }
+
+    bool isEmoji() const
+    {
+#if PLATFORM(IOS_FAMILY)
+        return m_isEmoji;
+#else
+        return false;
+#endif
+    }
+
+    RefPtr<SharedBuffer> openTypeTable(uint32_t table) const;
+    RefPtr<SharedBuffer> platformOpenTypeTable(uint32_t table) const;
+
+    String description() const;
+
+    struct CreationData {
+        Ref<SharedBuffer> fontFaceData;
+        String itemInCollection;
+#if PLATFORM(WIN)
+        Ref<FontMemoryResource> m_fontResource;
+#endif
+    };
+
+    WEBCORE_EXPORT const CreationData* creationData() const;
+    const FontCustomPlatformData* customPlatformData() const
+    {
+        return m_customPlatformData.get();
+    }
+
+    WEBCORE_EXPORT Attributes attributes() const;
+
+private:
+    bool platformIsEqual(const FontPlatformData&) const;
+    //  updateSize to be implemented by each platform since it needs to re-instantiate the platform font object.
+    void updateSize(float);
+
+#if PLATFORM(COCOA)
+    CGFloat ctFontSize() const;
+#endif
+
+#if PLATFORM(WIN)
+    void platformDataInit(HFONT, float size, WCHAR* faceName);
+#endif
+
+#if USE(FREETYPE)
+    void buildScaledFont(cairo_font_face_t*);
+#endif
+
+#if PLATFORM(WIN)
+    RefPtr<SharedGDIObject<HFONT>> m_font; // FIXME: Delete this in favor of m_ctFont or m_dwFont or m_scaledFont.
+#elif USE(CORE_TEXT)
+    // FIXME: Get rid of one of these. These two fonts are subtly different, and it is not obvious which one to use where.
+    RetainPtr<CTFontRef> m_font;
+    mutable RetainPtr<CTFontRef> m_ctFont;
+#endif
+
+#if USE(CAIRO)
+    RefPtr<cairo_scaled_font_t> m_scaledFont;
+#endif
+
+#if USE(FREETYPE)
+    RefPtr<FcPattern> m_pattern;
+#endif
+
+    float m_size { 0 };
+
+    FontOrientation m_orientation { FontOrientation::Horizontal };
+    FontWidthVariant m_widthVariant { FontWidthVariant::RegularWidth };
+    TextRenderingMode m_textRenderingMode { TextRenderingMode::AutoTextRendering };
+
+    // This is conceptually const, but we can't make it actually const,
+    // because FontPlatformData is used as a key in a HashMap.
+    RefPtr<const FontCustomPlatformData> m_customPlatformData;
+
+    bool m_syntheticBold { false };
+    bool m_syntheticOblique { false };
+    bool m_isColorBitmapFont { false };
+    bool m_isHashTableDeletedValue { false };
+    bool m_isSystemFont { false };
+    bool m_hasVariations { false };
+    // The values above are common to all ports
+
+#if PLATFORM(IOS_FAMILY)
+    bool m_isEmoji { false };
+#endif
+
+#if USE(FREETYPE)
+    bool m_fixedWidth { false };
+#endif
+
+    // Adding any non-derived information to FontPlatformData needs a parallel change in WebCoreArgumentCodersCocoa.cpp.
+};
+
+#if USE(CORE_TEXT)
+bool isSystemFont(CTFontRef);
+WEBCORE_EXPORT RetainPtr<CTFontRef> createCTFont(CFDictionaryRef attributes, float size, CTFontDescriptorOptions, CFStringRef referenceURL, CFStringRef desiredPostScriptName);
+#endif
+
+#if USE(CG)
+
+class ScopedTextMatrix {
+public:
+    ScopedTextMatrix(CGAffineTransform newMatrix, CGContextRef context)
+        : m_context(context)
+        , m_textMatrix(CGContextGetTextMatrix(context))
+    {
+        CGContextSetTextMatrix(m_context, newMatrix);
+    }
+
+    ~ScopedTextMatrix()
+    {
+        CGContextSetTextMatrix(m_context, m_textMatrix);
+    }
+
+    CGAffineTransform savedMatrix() const
+    {
+        return m_textMatrix;
+    }
+
+private:
+    CGContextRef m_context;
+    CGAffineTransform m_textMatrix;
+};
+
+#endif
+
+#if PLATFORM(WIN)
+// This is a scaling factor for Windows GDI fonts. We do this for
+// subpixel precision when rendering using Uniscribe.
+constexpr int cWindowsFontScaleFactor = 32;
+#endif
+
+} // namespace WebCore

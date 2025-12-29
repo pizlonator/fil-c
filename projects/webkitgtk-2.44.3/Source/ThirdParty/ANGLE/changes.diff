@@ -1,0 +1,1138 @@
+diff --git a/src/common/utilities.cpp b/src/common/utilities.cpp
+index 34826b47554d0d89e8b9619d46828177b2c1b873..2e03a110de26a7cb888d8e9a5997deaf3745c12c 100644
+--- a/src/common/utilities.cpp
++++ b/src/common/utilities.cpp
+@@ -6,6 +6,12 @@
+ 
+ // utilities.cpp: Conversion functions and other utility routines.
+ 
++// Older clang versions have a false positive on this warning here.
++// TODO(dino): Is this still necessary?
++#if defined(__clang__)
++#    pragma clang diagnostic ignored "-Wglobal-constructors"
++#endif
++
+ #include "common/utilities.h"
+ #include "GLES3/gl3.h"
+ #include "common/mathutil.h"
+diff --git a/src/compiler/fuzz/translator_fuzzer.cpp b/src/compiler/fuzz/translator_fuzzer.cpp
+index bfca63f6b9a7562e8ceea36a9a31793d0720e030..06b9ef5d3101e1a0ab86b4b36ae407e71b43ddea 100644
+--- a/src/compiler/fuzz/translator_fuzzer.cpp
++++ b/src/compiler/fuzz/translator_fuzzer.cpp
+@@ -139,6 +139,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+         static_cast<uint32_t>(ShFragmentSynchronizationType::InvalidEnum));
+ 
+     std::vector<uint32_t> validOutputs;
++#ifndef ANGLE_TRANSLATOR_FUZZER_METAL_ONLY
+     validOutputs.push_back(SH_ESSL_OUTPUT);
+     validOutputs.push_back(SH_GLSL_COMPATIBILITY_OUTPUT);
+     validOutputs.push_back(SH_GLSL_130_OUTPUT);
+@@ -155,6 +156,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+     validOutputs.push_back(SH_HLSL_3_0_OUTPUT);
+     validOutputs.push_back(SH_HLSL_4_1_OUTPUT);
+     validOutputs.push_back(SH_HLSL_4_0_FL9_3_OUTPUT);
++#endif
++#ifdef ANGLE_ENABLE_METAL
++    validOutputs.push_back(SH_MSL_METAL_OUTPUT);
++#endif
+     bool found = false;
+     for (auto valid : validOutputs)
+     {
+@@ -186,6 +191,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+ 
+         if (translator == nullptr)
+         {
++            sh::Finalize();
+             return 0;
+         }
+ 
+@@ -219,6 +225,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+ 
+         if (!translator->Init(resources))
+         {
++            sh::Finalize();
+             return 0;
+         }
+ 
+@@ -230,5 +237,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+     const char *shaderStrings[] = {reinterpret_cast<const char *>(data)};
+     translator->compile(shaderStrings, 1, options);
+ 
++    sh::Finalize();
+     return 0;
+ }
+diff --git a/src/compiler/preprocessor/preprocessor_tab_autogen.cpp b/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
+index a7607c9e529ce7a57bdc6c3c82134b144eb67130..c9ec1adec020589bd4fcfe226721042a8f2c6cf5 100644
+--- a/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
++++ b/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
+@@ -1,5 +1,8 @@
+ /* A Bison parser, made by GNU Bison 3.8.2.  */
+ 
++/* Apple Note: For the avoidance of doubt, Apple elects to distribute this file under the terms of
++ * the BSD license. */
++
+ /* Bison implementation for Yacc-like parsers in C
+ 
+    Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+diff --git a/src/compiler/translator/Compiler.cpp b/src/compiler/translator/Compiler.cpp
+index eddc5e724e8e949aff0624c6caf9aadec7c14647..f937a034d050a76602fcedc3ad6badbe007e0fa1 100644
+--- a/src/compiler/translator/Compiler.cpp
++++ b/src/compiler/translator/Compiler.cpp
+@@ -1247,7 +1247,7 @@ bool TCompiler::checkAndSimplifyAST(TIntermBlock *root,
+ 
+ bool TCompiler::resizeClipAndCullDistanceBuiltins(TIntermBlock *root)
+ {
+-    auto resizeVariable = [=](const ImmutableString &name, uint32_t size, uint32_t maxSize) {
++    auto resizeVariable = [this, root](const ImmutableString &name, uint32_t size, uint32_t maxSize) {
+         // Skip if the variable is not used or implicitly has the maximum size
+         if (size == 0 || size == maxSize)
+             return true;
+diff --git a/src/compiler/translator/glslang_tab_autogen.cpp b/src/compiler/translator/glslang_tab_autogen.cpp
+index 233b571b7985ba9d33b245f495725851a12be569..6bd263e0b1ec4137e5b8bb1a6269ce07cc8a6b32 100644
+--- a/src/compiler/translator/glslang_tab_autogen.cpp
++++ b/src/compiler/translator/glslang_tab_autogen.cpp
+@@ -1,5 +1,8 @@
+ /* A Bison parser, made by GNU Bison 3.8.2.  */
+ 
++/* Apple Note: For the avoidance of doubt, Apple elects to distribute this file under the terms of
++ * the BSD license. */
++
+ /* Bison implementation for Yacc-like parsers in C
+ 
+    Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+diff --git a/src/compiler/translator/glslang_tab_autogen.h b/src/compiler/translator/glslang_tab_autogen.h
+index d5a48edd40f382359db76acf1a1ce75b6a6dc6d5..907c62e0bb659292b3912707904981863429478a 100644
+--- a/src/compiler/translator/glslang_tab_autogen.h
++++ b/src/compiler/translator/glslang_tab_autogen.h
+@@ -1,5 +1,8 @@
+ /* A Bison parser, made by GNU Bison 3.8.2.  */
+ 
++/* Apple Note: For the avoidance of doubt, Apple elects to distribute this file under the terms of
++ * the BSD license. */
++
+ /* Bison interface for Yacc-like parsers in C
+ 
+    Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+diff --git a/src/libANGLE/State.cpp b/src/libANGLE/State.cpp
+index 6b0adeba62891567ab4ea4258749c32e632b9f9b..a7a7bf03015fd2fad754255ef6b0ff660807e58a 100644
+--- a/src/libANGLE/State.cpp
++++ b/src/libANGLE/State.cpp
+@@ -6,6 +6,9 @@
+ 
+ // State.cpp: Implements the State class, encapsulating raw GL state.
+ 
++// Older clang versions have a false positive on this warning here.
++#pragma clang diagnostic ignored "-Wglobal-constructors"
++
+ #include "libANGLE/State.h"
+ 
+ #include <string.h>
+diff --git a/src/libANGLE/Surface.cpp b/src/libANGLE/Surface.cpp
+index 7eb6230f44174bfa567920d0f2b3674edcfb0eab..5a04150f51007cbe32960877a377a51051944014 100644
+--- a/src/libANGLE/Surface.cpp
++++ b/src/libANGLE/Surface.cpp
+@@ -554,7 +554,10 @@ Error Surface::bindTexImage(gl::Context *context, gl::Texture *texture, EGLint b
+ {
+     ASSERT(!mTexture);
+     ANGLE_TRY(mImplementation->bindTexImage(context, texture, buffer));
+-
++    if (auto *previousSurface = texture->getBoundSurface())
++    {
++        ANGLE_TRY(previousSurface->releaseTexImage(context, buffer));
++    }
+     if (texture->bindTexImageFromSurface(context, this) == angle::Result::Stop)
+     {
+         return Error(EGL_BAD_SURFACE);
+diff --git a/src/libANGLE/Texture.cpp b/src/libANGLE/Texture.cpp
+index 26fc812fd0b0983b7b4ada75aa28a2be9e23dcc8..7bdd84055673623a6a6052b0e05d617301333be4 100644
+--- a/src/libANGLE/Texture.cpp
++++ b/src/libANGLE/Texture.cpp
+@@ -1888,12 +1888,7 @@ angle::Result Texture::generateMipmap(Context *context)
+ angle::Result Texture::bindTexImageFromSurface(Context *context, egl::Surface *surface)
+ {
+     ASSERT(surface);
+-
+-    if (mBoundSurface)
+-    {
+-        ANGLE_TRY(releaseTexImageFromSurface(context));
+-    }
+-
++    ASSERT(!mBoundSurface);
+     mBoundSurface = surface;
+ 
+     // Set the image info to the size and format of the surface
+diff --git a/src/libANGLE/features.h b/src/libANGLE/features.h
+index a6fe076c72d043dba3fc347bf020ebf8ec895f51..add46e99c91d19bbd790d2de0d8768b8953d633e 100644
+--- a/src/libANGLE/features.h
++++ b/src/libANGLE/features.h
+@@ -44,4 +44,11 @@
+ #    define ANGLE_PROGRAM_LINK_VALIDATE_UNIFORM_PRECISION 1
+ #endif
+ 
++// Lose context on Metal command queue error
++// ENABLED check Metal command buffer status on completion for error and lose context on error.
++// DISABLED Metal backed contexts are never lost.
++#if !defined(ANGLE_METAL_LOSE_CONTEXT_ON_ERROR)
++#    define ANGLE_METAL_LOSE_CONTEXT_ON_ERROR ANGLE_ENABLED
++#endif
++
+ #endif  // LIBANGLE_FEATURES_H_
+diff --git a/src/libANGLE/formatutils.cpp b/src/libANGLE/formatutils.cpp
+index 5de0e3cd46989f2cdb31a63b0b4a230c5fa2d874..5f88309ab2d299890a7e34ac848865448380d7bf 100644
+--- a/src/libANGLE/formatutils.cpp
++++ b/src/libANGLE/formatutils.cpp
+@@ -592,7 +592,8 @@ static GLenum EquivalentBlitInternalFormat(GLenum internalformat)
+     // sized, even if there is a swizzle (for example, blitting from a
+     // multisampled RGBA8 renderbuffer to a BGRA8 texture). This could
+     // be expanded and/or autogenerated if that is found necessary.
+-    if (internalformat == GL_BGRA8_EXT || internalformat == GL_BGRA8_SRGB_ANGLEX)
++    if (internalformat == GL_SRGB8_ALPHA8_EXT || internalformat == GL_BGRA8_EXT ||
++        internalformat == GL_BGRA8_SRGB_ANGLEX)
+     {
+         return GL_RGBA8;
+     }
+diff --git a/src/libANGLE/renderer/metal/BufferMtl.mm b/src/libANGLE/renderer/metal/BufferMtl.mm
+index 08b431099786e24e6b27a6539812e520c92436bb..3902781af7459dc8a880bd44f957df36fcbd8c78 100644
+--- a/src/libANGLE/renderer/metal/BufferMtl.mm
++++ b/src/libANGLE/renderer/metal/BufferMtl.mm
+@@ -390,7 +390,7 @@ ConversionBufferMtl *BufferMtl::getUniformConversionBuffer(ContextMtl *context,
+         {
+             if (buffer.offset.second <= offset.second &&
+                 (offset.second - buffer.offset.second) % buffer.uniformBufferBlockSize == 0)
+-                return &buffer;
++                return static_cast<ConversionBufferMtl *>(&buffer);
+         }
+     }
+ 
+diff --git a/src/libANGLE/renderer/metal/ContextMtl.mm b/src/libANGLE/renderer/metal/ContextMtl.mm
+index 92f6dd08372b0a606455ea6cc6113a53e6091dc8..8cc18a48bd0519922db0d17915be44b5384b852b 100644
+--- a/src/libANGLE/renderer/metal/ContextMtl.mm
++++ b/src/libANGLE/renderer/metal/ContextMtl.mm
+@@ -1067,6 +1067,13 @@ angle::Result ContextMtl::multiDrawElementsInstancedBaseVertexBaseInstance(
+ // Device loss
+ gl::GraphicsResetStatus ContextMtl::getResetStatus()
+ {
++#if ANGLE_METAL_LOSE_CONTEXT_ON_ERROR == ANGLE_ENABLED
++    if (cmdQueue().isDeviceLost())
++    {
++        return gl::GraphicsResetStatus::UnknownContextReset;
++    }
++#endif
++
+     return gl::GraphicsResetStatus::NoError;
+ }
+ 
+@@ -2477,8 +2484,22 @@ angle::Result ContextMtl::setupDraw(const gl::Context *context,
+             return angle::Result::Continue;
+         }
+         // Setup with flushed state should either produce a working encoder or fail with an error
+-        // result.
+-        ASSERT(mRenderEncoder.valid());
++        // result. if that's not the case, something's gone seriously wrong. Try to
++        // recover from the error by bailing out of the draw call, and finishing the command buffer.
++        // This will result in an unfinished / corrupted draw, but will avoid a browser/GPU process
++        // crash.
++        if (ANGLE_UNLIKELY(!mRenderEncoder.valid() || !mRenderEncoder.hasPipelineState()))
++        {
++            // Completely flush the command buffer, waiting synchronously.
++            flushCommandBuffer(mtl::WaitUntilFinished);
++            // Invalidate all state
++            invalidateState(context);
++            // Return fail, and drop the draw call. This is
++            // a worst case scenario. If in a debug roots situation,
++            // we should try to catch the call stack.
++            ERR() << "Draw call is unusable - please report a bug on bugs.webkit.org";
++            return angle::Result::Stop;
++        }
+     }
+     return angle::Result::Continue;
+ }
+diff --git a/src/libANGLE/renderer/metal/DisplayMtl.mm b/src/libANGLE/renderer/metal/DisplayMtl.mm
+index d5d1e693c0bc8a789f1c92b8f6fd0f2541a72d27..79ca8622c401e74b9a6f49537709789c9839f25c 100644
+--- a/src/libANGLE/renderer/metal/DisplayMtl.mm
++++ b/src/libANGLE/renderer/metal/DisplayMtl.mm
+@@ -184,12 +184,22 @@ void DisplayMtl::terminate()
+ 
+ bool DisplayMtl::testDeviceLost()
+ {
++#if ANGLE_METAL_LOSE_CONTEXT_ON_ERROR == ANGLE_ENABLED
++    return mCmdQueue.isDeviceLost();
++#else
+      return false;
++#endif
+ }
+ 
+ egl::Error DisplayMtl::restoreLostDevice(const egl::Display *display)
+ {
++#if ANGLE_METAL_LOSE_CONTEXT_ON_ERROR == ANGLE_ENABLED
++    // A Metal device cannot be restored, the entire context would have to be
++    // re-created along with any other EGL objects that reference it.
++    return egl::EglBadDisplay();
++#else
+     return egl::NoError();
++#endif
+ }
+ 
+ std::string DisplayMtl::getRendererDescription()
+@@ -1444,8 +1454,7 @@ bool DisplayMtl::supportsMetal2_2() const
+ bool DisplayMtl::supports32BitFloatFiltering() const
+ {
+ #if (defined(__MAC_11_0) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_11_0) || \
+-    (defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0) || \
+-    (defined(__TVOS_14_0) && __TV_OS_VERSION_MIN_REQUIRED >= __TVOS_14_0)
++    (defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_14_0)
+     if (@available(ios 14.0, macOS 11.0, *))
+     {
+         return [mMetalDevice supports32BitFloatFiltering];
+diff --git a/src/libANGLE/renderer/metal/FrameBufferMtl.mm b/src/libANGLE/renderer/metal/FrameBufferMtl.mm
+index 5f3f10a86f707290bcad9f823dec0a9126425fde..860f798cf68bb4fad87bee1ea9cd507d95767fd1 100644
+--- a/src/libANGLE/renderer/metal/FrameBufferMtl.mm
++++ b/src/libANGLE/renderer/metal/FrameBufferMtl.mm
+@@ -1574,8 +1574,13 @@ angle::Result FramebufferMtl::readPixelsToPBO(const gl::Context *context,
+ 
+     ContextMtl *contextMtl = mtl::GetImpl(context);
+ 
+-    ANGLE_MTL_CHECK(contextMtl, packPixelsParams.offset <= std::numeric_limits<uint32_t>::max(),
++    if constexpr (sizeof(packPixelsParams.offset) > sizeof(uint32_t))
++    {
++        ANGLE_MTL_CHECK(contextMtl,
++                        static_cast<std::make_unsigned_t<decltype(packPixelsParams.offset)>>(
++                            packPixelsParams.offset) <= std::numeric_limits<uint32_t>::max(),
+                         GL_INVALID_OPERATION);
++    }
+     uint32_t offset = static_cast<uint32_t>(packPixelsParams.offset);
+ 
+     BufferMtl *packBufferMtl = mtl::GetImpl(packPixelsParams.packBuffer);
+diff --git a/src/libANGLE/renderer/metal/ProgramExecutableMtl.mm b/src/libANGLE/renderer/metal/ProgramExecutableMtl.mm
+index 6720310023e4ced1ee11024795b8520ff0630988..f39af499839e84efe1906b1725901b0dfd835f22 100644
+--- a/src/libANGLE/renderer/metal/ProgramExecutableMtl.mm
++++ b/src/libANGLE/renderer/metal/ProgramExecutableMtl.mm
+@@ -897,7 +897,7 @@ angle::Result ProgramExecutableMtl::setupDraw(const gl::Context *glContext,
+ {
+     ContextMtl *context = mtl::GetImpl(glContext);
+ 
+-    if (pipelineDescChanged)
++    if (pipelineDescChanged || !cmdEncoder->hasPipelineState())
+     {
+         id<MTLFunction> vertexShader = nil;
+         ANGLE_TRY(
+diff --git a/src/libANGLE/renderer/metal/VertexArrayMtl.mm b/src/libANGLE/renderer/metal/VertexArrayMtl.mm
+index b0726b984f41119e930897b043a7da70a446a12a..d1877ade8fb10211d437c2d0dba8ea27c48bf497 100644
+--- a/src/libANGLE/renderer/metal/VertexArrayMtl.mm
++++ b/src/libANGLE/renderer/metal/VertexArrayMtl.mm
+@@ -1065,16 +1065,23 @@ angle::Result VertexArrayMtl::convertVertexBufferGPU(const gl::Context *glContex
+     ANGLE_TRY(conversion->data.allocate(contextMtl, numVertices * targetStride, nullptr, &newBuffer,
+                                         &newBufferOffset));
+ 
+-    ANGLE_CHECK_GL_MATH(contextMtl, binding.getOffset() <= std::numeric_limits<uint32_t>::max());
++    GLintptr bindingOffset = binding.getOffset();
++
++    if constexpr (sizeof(bindingOffset) > sizeof(uint32_t))
++        ANGLE_CHECK_GL_MATH(contextMtl, static_cast<std::make_unsigned_t<decltype(bindingOffset)>>(
++                                            bindingOffset) <= std::numeric_limits<uint32_t>::max());
+     ANGLE_CHECK_GL_MATH(contextMtl, newBufferOffset <= std::numeric_limits<uint32_t>::max());
+     ANGLE_CHECK_GL_MATH(contextMtl, numVertices <= std::numeric_limits<uint32_t>::max());
+ 
+     mtl::VertexFormatConvertParams params;
+     VertexConversionBufferMtl *vertexConversion =
+         static_cast<VertexConversionBufferMtl *>(conversion);
++    if constexpr (sizeof(vertexConversion->offset) > sizeof(uint32_t))
++        ANGLE_CHECK_GL_MATH(contextMtl,
++                            vertexConversion->offset <= std::numeric_limits<uint32_t>::max());
+     params.srcBuffer            = srcBuffer->getCurrentBuffer();
+-    params.srcBufferStartOffset = static_cast<uint32_t>(
+-        MIN(static_cast<GLintptr>(vertexConversion->offset), binding.getOffset()));
++    params.srcBufferStartOffset = std::min(static_cast<uint32_t>(vertexConversion->offset),
++                                           static_cast<uint32_t>(bindingOffset));
+     params.srcStride            = binding.getStride();
+     params.srcDefaultAlphaData  = convertedFormat.defaultAlpha;
+ 
+diff --git a/src/libANGLE/renderer/metal/mtl_command_buffer.h b/src/libANGLE/renderer/metal/mtl_command_buffer.h
+index 8d7bc2667e4a20f1de7a513badb68e4da7fe3537..753f1b9a178c2d9c9b20307b2a837a00263f78e7 100644
+--- a/src/libANGLE/renderer/metal/mtl_command_buffer.h
++++ b/src/libANGLE/renderer/metal/mtl_command_buffer.h
+@@ -101,6 +101,8 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
+     bool isTimeElapsedEntryComplete(uint64_t id);
+     double getTimeElapsedEntryInSeconds(uint64_t id);
+ 
++    bool isDeviceLost() const { return mIsDeviceLost; }
++
+   private:
+     void onCommandBufferCompleted(id<MTLCommandBuffer> buf,
+                                   uint64_t serial,
+@@ -143,6 +145,8 @@ class CommandQueue final : public WrappedObject<id<MTLCommandQueue>>, angle::Non
+     void recordCommandBufferTimeElapsed(std::lock_guard<std::mutex> &lg,
+                                         uint64_t id,
+                                         double seconds);
++
++    std::atomic_bool mIsDeviceLost = false;
+ };
+ 
+ class CommandBuffer final : public WrappedObject<id<MTLCommandBuffer>>, angle::NonCopyable
+@@ -569,6 +573,7 @@ class RenderCommandEncoder final : public CommandEncoder
+ 
+     const RenderPassDesc &renderPassDesc() const { return mRenderPassDesc; }
+     bool hasDrawCalls() const { return mHasDrawCalls; }
++    bool hasPipelineState() const { return mPipelineStateSet; }
+ 
+     uint64_t getSerial() const { return mSerial; }
+ 
+diff --git a/src/libANGLE/renderer/metal/mtl_command_buffer.mm b/src/libANGLE/renderer/metal/mtl_command_buffer.mm
+index 6207372fc309e2da60e269792aa1aa7a8d73d6b3..d182803b8ff855f4674d635209bd67b59f74e14d 100644
+--- a/src/libANGLE/renderer/metal/mtl_command_buffer.mm
++++ b/src/libANGLE/renderer/metal/mtl_command_buffer.mm
+@@ -373,12 +373,20 @@ inline void SetVisibilityResultModeCmd(id<MTLRenderCommandEncoder> encoder,
+     [encoder setVisibilityResultMode:mode offset:offset];
+ }
+ 
++#if (defined(__MAC_13_0) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_13_0) || \
++    (defined(__IPHONE_16_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_16_0)
++#    define ANGLE_MTL_USE_RESOURCE_USAGE_DEPRECATED 1
++#endif
++
+ inline void UseResourceCmd(id<MTLRenderCommandEncoder> encoder, IntermediateCommandStream *stream)
+ {
+     id<MTLResource> resource = stream->fetch<id<MTLResource>>();
+     MTLResourceUsage usage   = stream->fetch<MTLResourceUsage>();
+     mtl::RenderStages stages = stream->fetch<mtl::RenderStages>();
+     ANGLE_UNUSED_VARIABLE(stages);
++#if ANGLE_MTL_USE_RESOURCE_USAGE_DEPRECATED
++    [encoder useResource:resource usage:usage stages:stages];
++#else
+ #if defined(__IPHONE_13_0) || defined(__MAC_10_15)
+     if (ANGLE_APPLE_AVAILABLE_XCI(10.15, 13.1, 13.0))
+     {
+@@ -391,6 +399,7 @@ inline void UseResourceCmd(id<MTLRenderCommandEncoder> encoder, IntermediateComm
+         [encoder useResource:resource usage:usage];
+         ANGLE_APPLE_ALLOW_DEPRECATED_END
+     }
++#endif
+     [resource ANGLE_MTL_RELEASE];
+ }
+ 
+@@ -634,6 +643,20 @@ void CommandQueue::onCommandBufferCompleted(id<MTLCommandBuffer> buf,
+ 
+     ANGLE_MTL_LOG("Completed MTLCommandBuffer %llu:%p", serial, buf);
+ 
++    MTLCommandBufferStatus status = buf.status;
++    if (status != MTLCommandBufferStatusCompleted)
++    {
++        NSError *error = buf.error;
++        // MTLCommandBufferErrorNotPermitted is non-fatal, all other errors
++        // result in device lost.
++        // TODO(djg): Should this also check error.domain for MTLCommandBufferErrorDomain?
++        mIsDeviceLost  = !error || error.code != MTLCommandBufferErrorNotPermitted;
++        if (mIsDeviceLost)
++        {
++            return;
++        }
++    }
++
+     if (timeElapsedEntry != 0)
+     {
+         // Record this command buffer's elapsed time.
+diff --git a/src/libANGLE/renderer/metal/mtl_render_utils.mm b/src/libANGLE/renderer/metal/mtl_render_utils.mm
+index 9e5487d393a0a2bd64106fc70e7b3f73626e2490..fec9fc3f884dfe7c87527ea19cca37c527d51e5a 100644
+--- a/src/libANGLE/renderer/metal/mtl_render_utils.mm
++++ b/src/libANGLE/renderer/metal/mtl_render_utils.mm
+@@ -607,7 +607,8 @@ void DispatchCompute(ContextMtl *contextMtl,
+                      id<MTLComputePipelineState> pipelineState,
+                      size_t numThreads)
+ {
+-    NSUInteger w = std::min<NSUInteger>(pipelineState.threadExecutionWidth, numThreads);
++    ASSERT(numThreads != 0);
++    NSUInteger w = std::clamp<NSUInteger>(numThreads, 1u, pipelineState.threadExecutionWidth);
+     MTLSize threadsPerThreadgroup = MTLSizeMake(w, 1, 1);
+ 
+     if (contextMtl->getDisplay()->getFeatures().hasNonUniformDispatch.enabled)
+diff --git a/src/libANGLE/renderer/metal/mtl_resource_spi.h b/src/libANGLE/renderer/metal/mtl_resource_spi.h
+index 3eaa9a64e79af26faa786102ece3f0bdea84d090..7ecb6db9d993df8985fcb6f701dfe7ca75857cae 100644
+--- a/src/libANGLE/renderer/metal/mtl_resource_spi.h
++++ b/src/libANGLE/renderer/metal/mtl_resource_spi.h
+@@ -1,9 +1,63 @@
+-//
+-// Copyright 2021 The ANGLE Project Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
++/*
++ * Copyright (C) 2021 Apple Inc. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
++ * THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
+ //
+ // mtl_resource_spi.h:
+-//    Used to set Metal resource ownership identity with SPI.
+-//    Purposefully empty header file. Actual implementation will be hosted in WebKit.
++//    Used to set Metal resource ownership identity with SPI
+ //
++
++#ifndef LIBANGLE_RENDERER_METAL_RESOURCE_SPI_H_
++#define LIBANGLE_RENDERER_METAL_RESOURCE_SPI_H_
++
++#import "common/apple/apple_platform.h"
++
++#if ANGLE_USE_METAL_OWNERSHIP_IDENTITY
++
++#    import <Metal/MTLResource_Private.h>
++#    import <Metal/Metal.h>
++#    import <mach/mach_types.h>
++
++namespace rx
++{
++namespace mtl
++{
++inline void setOwnerWithIdentity(id<MTLResource> resource, task_id_token_t identityToken)
++{
++    if (identityToken != TASK_ID_TOKEN_NULL)
++    {
++        kern_return_t kr = [(id<MTLResourceSPI>)resource setOwnerWithIdentity:identityToken];
++        if (ANGLE_UNLIKELY(kr != KERN_SUCCESS))
++        {
++            ERR() << "setOwnerWithIdentity failed with: %s (%x)" << mach_error_string(kr) << kr;
++            ASSERT(false);
++        }
++    }
++    return;
++}
++}  // namespace mtl
++}  // namespace rx
++#endif
++
++#endif /* LIBANGLE_RENDERER_METAL_RESOURCE_SPI_H_ */
+diff --git a/src/libANGLE/renderer/metal/mtl_resources.mm b/src/libANGLE/renderer/metal/mtl_resources.mm
+index 1a16ccf79c85d0c88e6251ec52207ae06a7084f0..a52ca7218803a9265f69977a782dea26b03a9cbd 100644
+--- a/src/libANGLE/renderer/metal/mtl_resources.mm
++++ b/src/libANGLE/renderer/metal/mtl_resources.mm
+@@ -78,12 +78,10 @@ MTLResourceOptions resourceOptionsForStorageMode(MTLStorageMode storageMode)
+             return MTLResourceStorageModePrivate;
+         case MTLStorageModeMemoryless:
+             return MTLResourceStorageModeMemoryless;
+-#if TARGET_OS_SIMULATOR
+         default:
+             // TODO(http://anglebug.com/8012): Remove me once hacked SDKs are fixed.
+             UNREACHABLE();
+             return MTLResourceStorageModeShared;
+-#endif
+     }
+ }
+ 
+diff --git a/src/libANGLE/renderer/metal/mtl_state_cache.mm b/src/libANGLE/renderer/metal/mtl_state_cache.mm
+index 8534c5c32fbc218da6c00ed95804026ccab508ef..7b2e9926b29407d7870b0da20a6591d0982146e7 100644
+--- a/src/libANGLE/renderer/metal/mtl_state_cache.mm
++++ b/src/libANGLE/renderer/metal/mtl_state_cache.mm
+@@ -21,9 +21,16 @@
+ 
+ #define ANGLE_OBJC_CP_PROPERTY(DST, SRC, PROPERTY) \
+     (DST).PROPERTY = static_cast<__typeof__((DST).PROPERTY)>(ToObjC((SRC).PROPERTY))
++#define ANGLE_OBJC_CP_PROPERTY2(DST, SRC, PROPERTY, DST_PROPERTY) \
++    (DST).DST_PROPERTY = static_cast<__typeof__((DST).DST_PROPERTY)>(ToObjC((SRC).PROPERTY))
+ 
+ #define ANGLE_PROP_EQ(LHS, RHS, PROP) ((LHS).PROP == (RHS).PROP)
+ 
++#if (defined(__MAC_13_0) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_13_0) || \
++    (defined(__IPHONE_16_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_16_0)
++#    define ANGLE_MTL_RENDER_PIPELINE_DESC_RASTER_SAMPLE_COUNT_AVAILABLE 1
++#endif
++
+ namespace rx
+ {
+ namespace mtl
+diff --git a/src/libANGLE/renderer/metal/mtl_utils.mm b/src/libANGLE/renderer/metal/mtl_utils.mm
+index 14bc3a52fbcf1043f71aa3b8d946f3c73207813f..cfd4d658c7ab9eec30930b90abfb69303f1ec9db 100644
+--- a/src/libANGLE/renderer/metal/mtl_utils.mm
++++ b/src/libANGLE/renderer/metal/mtl_utils.mm
+@@ -1555,6 +1555,24 @@ bool SupportsAppleGPUFamily(id<MTLDevice> device, uint8_t appleFamily)
+ #endif      // TARGET_OS_IOS || TARGET_OS_TV
+ }
+ 
++#if (defined(__MAC_13_0) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_13_0) ||        \
++    (defined(__IPHONE_16_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_16_0) || \
++    (defined(__TVOS_16_0) && __TV_OS_VERSION_MIN_REQUIRED >= __TVOS_16_0)
++#    define ANGLE_MTL_FEATURE_SET_DEPRECATED 1
++#    define ANGLE_MTL_GPU_FAMILY_MAC1_DEPRECATED 1
++#endif
++
++#if ANGLE_MTL_GPU_FAMILY_MAC1_DEPRECATED
++#    define ANGLE_MTL_GPU_FAMILY_MAC1 MTLGPUFamilyMac2
++#    define ANGLE_MTL_GPU_FAMILY_MAC2 MTLGPUFamilyMac2
++#elif TARGET_OS_MACCATALYST
++#    define ANGLE_MTL_GPU_FAMILY_MAC1 MTLGPUFamilyMacCatalyst1
++#    define ANGLE_MTL_GPU_FAMILY_MAC2 MTLGPUFamilyMacCatalyst2
++#else  // !ANGLE_MTL_GPU_FAMILY_MAC1_DEPRECATED && !TARGET_OS_MACCATALYST
++#    define ANGLE_MTL_GPU_FAMILY_MAC1 MTLGPUFamilyMac1
++#    define ANGLE_MTL_GPU_FAMILY_MAC2 MTLGPUFamilyMac2
++#endif
++
+ bool SupportsMacGPUFamily(id<MTLDevice> device, uint8_t macFamily)
+ {
+ #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
+@@ -1569,10 +1587,10 @@ bool SupportsMacGPUFamily(id<MTLDevice> device, uint8_t macFamily)
+ #        if TARGET_OS_MACCATALYST
+             ANGLE_APPLE_ALLOW_DEPRECATED_BEGIN
+             case 1:
+-                family = MTLGPUFamilyMacCatalyst1;
++                family = ANGLE_MTL_GPU_FAMILY_MAC1;
+                 break;
+             case 2:
+-                family = MTLGPUFamilyMacCatalyst2;
++                family = ANGLE_MTL_GPU_FAMILY_MAC2;
+                 break;
+                 ANGLE_APPLE_ALLOW_DEPRECATED_END
+ #        else   // TARGET_OS_MACCATALYST
+@@ -1595,7 +1613,7 @@ bool SupportsMacGPUFamily(id<MTLDevice> device, uint8_t macFamily)
+ 
+     // If device doesn't support [MTLDevice supportsFamily:], then use
+     // [MTLDevice supportsFeatureSet:].
+-#    if TARGET_OS_MACCATALYST
++#    if TARGET_OS_MACCATALYST || ANGLE_MTL_FEATURE_SET_DEPRECATED
+     UNREACHABLE();
+     return false;
+ #    else
+diff --git a/src/libANGLE/renderer/metal/shaders/create_mtl_internal_shaders.py b/src/libANGLE/renderer/metal/shaders/create_mtl_internal_shaders.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..23e8295bcc16412d3aef3fc8e85748fa4ad77a70
+--- /dev/null
++++ b/src/libANGLE/renderer/metal/shaders/create_mtl_internal_shaders.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/python3
++# Copyright 2021 The ANGLE Project Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++#
++# create_mtl_internal_shaders.py:
++#   Script to compile a metalLib into NSData, for including the compilded
++#       library in the ANGLE dylib.
++
++import os
++import sys
++import json
++from datetime import datetime
++
++sys.path.append('../..')
++
++template_header_boilerplate = """// GENERATED FILE - DO NOT EDIT.
++// Generated by {script_name}
++//
++// Copyright {copyright_year} The ANGLE Project Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++//
++"""
++
++
++# Convert content of a file to byte array and store in a header file.
++# variable_name: name of C++ variable that will hold the file content as byte array.
++# filename: the file whose content will be converted to C++ byte array.
++# dest_src_file: destination header file that will contain the byte array.
++def append_file_as_byte_array_string(variable_name, filename, dest_src_file):
++    string = '// Generated from {0}:\n'.format(filename)
++    string += 'constexpr uint8_t {0}[]={{\n'.format(variable_name)
++    bytes_ = open(filename, "rb").read()
++    for byte in bytes_:
++        string += '0x{:02x}'.format(byte) + ", "
++    string += "\n};\n"
++    with open(dest_src_file, "a") as out_file:
++        out_file.write(string)
++
++
++def main():
++    input_file = sys.argv[1]
++    output_file = sys.argv[2]
++    os.chdir(sys.path[0])
++
++    boilerplate_code = template_header_boilerplate.format(
++        script_name=os.path.basename(sys.argv[0]), copyright_year=datetime.today().year)
++
++    # -------- Compile shaders -----------
++    # boiler plate code
++    os.system("echo \"{0}\" > \"{1}\"".format(boilerplate_code, output_file))
++    os.system(
++        'echo "// Compiled binary for Metal default shaders.\n\n" >>  \"{0}\"'.format(output_file))
++    os.system('echo "#include <TargetConditionals.h>\n\n" >>  \"{0}\"'.format(output_file))
++
++    os.system('echo "// clang-format off" >> \"{0}\"'.format(output_file))
++
++    append_file_as_byte_array_string('gDefaultMetallib', input_file, output_file)
++
++    os.system('echo "// clang-format on" >> \"{0}\"'.format(output_file))
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/src/tests/gl_tests/PbufferTest.cpp b/src/tests/gl_tests/PbufferTest.cpp
+index 9a27958be88702ce603c763e90a7c286c2b5fd14..224995925df61dc38bc196fa37cbbce90f988d8a 100644
+--- a/src/tests/gl_tests/PbufferTest.cpp
++++ b/src/tests/gl_tests/PbufferTest.cpp
+@@ -62,6 +62,23 @@ class PbufferTest : public ANGLETest<>
+                            &surfaceType);
+         mSupportsPbuffers = (surfaceType & EGL_PBUFFER_BIT) != 0;
+ 
++        mPbuffer = createTestPbufferSurface();
++        if (mSupportsPbuffers)
++        {
++            ASSERT_NE(mPbuffer, EGL_NO_SURFACE);
++            ASSERT_EGL_SUCCESS();
++        }
++        else
++        {
++            ASSERT_EQ(mPbuffer, EGL_NO_SURFACE);
++            ASSERT_EGL_ERROR(EGL_BAD_MATCH);
++        }
++        ASSERT_GL_NO_ERROR();
++    }
++
++    EGLSurface createTestPbufferSurface()
++    {
++        EGLWindow *window        = getEGLWindow();
+         EGLint bindToTextureRGBA = 0;
+         eglGetConfigAttrib(window->getDisplay(), window->getConfig(), EGL_BIND_TO_TEXTURE_RGBA,
+                            &bindToTextureRGBA);
+@@ -75,20 +92,8 @@ class PbufferTest : public ANGLETest<>
+             EGL_NONE,           EGL_NONE,
+         };
+ 
+-        mPbuffer =
+-            eglCreatePbufferSurface(window->getDisplay(), window->getConfig(), pBufferAttributes);
+-        if (mSupportsPbuffers)
+-        {
+-            ASSERT_NE(mPbuffer, EGL_NO_SURFACE);
+-            ASSERT_EGL_SUCCESS();
+-        }
+-        else
+-        {
+-            ASSERT_EQ(mPbuffer, EGL_NO_SURFACE);
+-            ASSERT_EGL_ERROR(EGL_BAD_MATCH);
+-        }
+-
+-        ASSERT_GL_NO_ERROR();
++        return eglCreatePbufferSurface(window->getDisplay(), window->getConfig(),
++                                       pBufferAttributes);
+     }
+ 
+     void testTearDown() override
+@@ -102,9 +107,14 @@ class PbufferTest : public ANGLETest<>
+     {
+         if (mPbuffer)
+         {
+-            EGLWindow *window = getEGLWindow();
+-            eglDestroySurface(window->getDisplay(), mPbuffer);
++            destroyTestPbufferSurface(mPbuffer);
++        }
+     }
++
++    void destroyTestPbufferSurface(EGLSurface pbuffer)
++    {
++        EGLWindow *window = getEGLWindow();
++        eglDestroySurface(window->getDisplay(), pbuffer);
+     }
+ 
+     void recreatePbufferInSrgbColorspace()
+@@ -232,6 +242,338 @@ TEST_P(PbufferTest, BindTexImage)
+     glDeleteTextures(1, &texture);
+ }
+ 
++// Test various EGL level cases for eglBindTexImage.
++TEST_P(PbufferTest, BindTexImageAlreadyBound)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++    // If buffer is already bound to a texture then an EGL_BAD_ACCESS error is returned.
++    EXPECT_FALSE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_ERROR(EGL_BAD_ACCESS);
++
++    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::magenta);
++
++    destroyPbuffer();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage overwriting previous bind works.
++TEST_P(PbufferTest, BindTexImageOverwrite)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested: setup a binding that will be overwritten.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::magenta);
++
++    EGLSurface otherPbuffer = createTestPbufferSurface();
++    ASSERT_NE(otherPbuffer, EGL_NO_SURFACE);
++    // This is being tested: replace the previous binding.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::yellow);
++
++    destroyTestPbufferSurface(otherPbuffer);
++    destroyPbuffer();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage overwriting previous bind works and does not crash on releaseTexImage.
++TEST_P(PbufferTest, BindTexImageOverwriteNoCrashOnReleaseTexImage)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    EXPECT_GL_NO_ERROR();
++
++    EGLSurface otherPbuffer = createTestPbufferSurface();
++    ASSERT_NE(otherPbuffer, EGL_NO_SURFACE);
++
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++    EXPECT_TRUE(eglReleaseTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++    EXPECT_TRUE(eglReleaseTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));  // No-op.
++    ASSERT_EGL_SUCCESS();
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++    EXPECT_TRUE(eglReleaseTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    destroyTestPbufferSurface(otherPbuffer);
++    destroyPbuffer();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage pbuffer is unbound when the texture is destroyed.
++TEST_P(PbufferTest, BindTexImageReleaseViaTextureDestroy)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    // Bind to a texture that will be destroyed.
++    {
++        GLTexture texture;
++        glBindTexture(GL_TEXTURE_2D, texture);
++        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++        GLFramebuffer fbo;
++        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++        EXPECT_GL_NO_ERROR();
++
++        // This is being tested: setup a binding that will be overwritten.
++        EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++        ASSERT_EGL_SUCCESS();
++
++        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++        ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++        EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++        glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
++        glClear(GL_COLOR_BUFFER_BIT);
++        ASSERT_GL_NO_ERROR();
++    }
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::magenta);
++
++    destroyPbuffer();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage pbuffer is unbound when eglReleaseTexImage is called.
++TEST_P(PbufferTest, BindTexImagePbufferReleaseWhileBoundToFBOColorBuffer)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested: setup a binding to a pbuffer that will be unbound.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    // This is being tested: unbind the pbuffer, detect it via framebuffer status.
++    EXPECT_TRUE(eglReleaseTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT, status);
++
++    destroyPbuffer();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage pbuffer is bound when the pbuffer is destroyed.
++TEST_P(PbufferTest, BindTexImagePbufferDestroyWhileBound)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested: setup a binding to a pbuffer that will be destroyed.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    // This is being tested: destroy the pbuffer, but the underlying binding still works.
++    destroyPbuffer();
++    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::magenta);
++
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
++// Test that eglBindTexImage overwrite releases the previous pbuffer if the previous is orphaned.
++TEST_P(PbufferTest, BindTexImageOverwriteReleasesOrphanedPbuffer)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    GLFramebuffer fbo;
++    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
++    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
++    EXPECT_GL_NO_ERROR();
++
++    // This is being tested: setup a binding to a pbuffer that will be destroyed.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER));
++    ASSERT_EGL_SUCCESS();
++
++    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    ANGLE_SKIP_TEST_IF(status == GL_FRAMEBUFFER_UNSUPPORTED);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    // Write magenta. This shouldn't be read below.
++    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    // This is being tested: destroy the pbuffer, but the underlying binding still works.
++    destroyPbuffer();
++    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
++    EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, status);
++
++    EGLSurface otherPbuffer = createTestPbufferSurface();
++    // This is being tested: bind a new pbuffer. The one orphaned above will now be really
++    // deallocated and we hope some sort of assert fires if something goes wrong.
++    EXPECT_TRUE(eglBindTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER));
++
++    // Write yellow.
++    glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
++    glClear(GL_COLOR_BUFFER_BIT);
++    ASSERT_GL_NO_ERROR();
++
++    EXPECT_PIXEL_COLOR_EQ(static_cast<GLint>(mPbufferSize) / 2,
++                          static_cast<GLint>(mPbufferSize) / 2, GLColor::yellow);
++
++    destroyTestPbufferSurface(otherPbuffer);
++    ASSERT_EGL_SUCCESS();
++    ASSERT_GL_NO_ERROR();
++}
++
+ // Verify that binding a pbuffer works after using a texture normally.
+ TEST_P(PbufferTest, BindTexImageAfterTexImage)
+ {
+@@ -610,6 +952,49 @@ TEST_P(PbufferTest, UseAsFramebufferColorThenDestroy)
+     ASSERT_GL_NO_ERROR();
+ }
+ 
++TEST_P(PbufferTest, UseAsFramebufferColorThenDeferredDestroy)
++{
++    // Test skipped because Pbuffers are not supported or Pbuffer does not support binding to RGBA
++    // textures.
++    ANGLE_SKIP_TEST_IF(!mSupportsPbuffers || !mSupportsBindTexImage);
++    EGLWindow *window = getEGLWindow();
++    window->makeCurrent();
++
++    // Create a texture and bind the Pbuffer to it
++    GLTexture texture;
++    glBindTexture(GL_TEXTURE_2D, texture);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++    EXPECT_GL_NO_ERROR();
++
++    EGLSurface otherPbuffer = createTestPbufferSurface();
++    ASSERT_EGL_SUCCESS();
++    ASSERT_NE(otherPbuffer, EGL_NO_SURFACE);
++
++    eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_SUCCESS();
++    eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_ERROR(EGL_BAD_ACCESS);
++    eglBindTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_SUCCESS();
++    eglReleaseTexImage(window->getDisplay(), otherPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_SUCCESS();
++    eglBindTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_SUCCESS();
++    eglReleaseTexImage(window->getDisplay(), mPbuffer, EGL_BACK_BUFFER);
++    ASSERT_EGL_SUCCESS();
++
++    destroyPbuffer();
++    destroyTestPbufferSurface(otherPbuffer);
++    ASSERT_EGL_SUCCESS();
++
++    // Finish work
++    glFinish();
++    ASSERT_GL_NO_ERROR();
++}
++
+ // Test that passing colorspace attributes do not generate EGL validation errors
+ // when EGL_ANGLE_colorspace_attribute_passthrough extension is supported.
+ TEST_P(PbufferColorspaceTest, CreateSurfaceWithColorspace)

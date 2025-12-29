@@ -1,0 +1,160 @@
+/*
+ * Copyright (C) 2022-2024 Apple Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#if ENABLE(WK_WEB_EXTENSIONS)
+
+messages -> WebExtensionContext {
+    // Action APIs
+    ActionGetTitle(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<String> title, std::optional<String> error);
+    ActionSetTitle(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, String title) -> (std::optional<String> error);
+    ActionSetIcon(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, String iconDictionaryJSON) -> (std::optional<String> error);
+    ActionGetPopup(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<String> popupPath, std::optional<String> error);
+    ActionSetPopup(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, String popupPath) -> (std::optional<String> error);
+    ActionOpenPopup(WebKit::WebPageProxyIdentifier identifier, std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<String> error);
+    ActionGetBadgeText(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<String> text, std::optional<String> error);
+    ActionSetBadgeText(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, String text) -> (std::optional<String> error);
+    ActionGetEnabled(std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<bool> enabled, std::optional<String> error);
+    ActionSetEnabled(std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, bool enabled) -> (std::optional<String> error);
+
+    // Alarms APIs
+    AlarmsCreate(String name, Seconds initialInterval, Seconds repeatInterval);
+    AlarmsGet(String name) -> (std::optional<WebKit::WebExtensionAlarmParameters> alarmInfo);
+    AlarmsClear(String name) -> ();
+    AlarmsGetAll() -> (Vector<WebKit::WebExtensionAlarmParameters> alarms);
+    AlarmsClearAll() -> ();
+
+    // Commands
+    CommandsGetAll() -> (Vector<WebKit::WebExtensionCommandParameters> commands);
+
+    // Cookies
+    CookiesGet(std::optional<PAL::SessionID> sessionID, String name, URL url) -> (std::optional<WebKit::WebExtensionCookieParameters> cookie, WebKit::WebExtensionContext::ErrorString error);
+    CookiesGetAll(std::optional<PAL::SessionID> sessionID, URL url, struct WebKit::WebExtensionCookieFilterParameters filterParameters) -> (Vector<WebKit::WebExtensionCookieParameters> cookies, WebKit::WebExtensionContext::ErrorString error);
+    CookiesSet(std::optional<PAL::SessionID> sessionID, struct WebKit::WebExtensionCookieParameters cookie) -> (std::optional<WebKit::WebExtensionCookieParameters> cookie, WebKit::WebExtensionContext::ErrorString error);
+    CookiesRemove(std::optional<PAL::SessionID> sessionID, String name, URL url) -> (std::optional<WebKit::WebExtensionCookieParameters> cookie, WebKit::WebExtensionContext::ErrorString error);
+    CookiesGetAllCookieStores() -> (HashMap<PAL::SessionID, Vector<WebKit::WebExtensionTabIdentifier>> cookieStores, WebKit::WebExtensionContext::ErrorString error);
+
+    // DeclarativeNetRequest
+    DeclarativeNetRequestGetEnabledRulesets() -> (Vector<String> rulesetIdentifiers);
+    DeclarativeNetRequestUpdateEnabledRulesets(Vector<String> rulesetIdentifiersToEnable, Vector<String> rulesetIdentifiersToDisable) -> (std::optional<String> error);
+    DeclarativeNetRequestDisplayActionCountAsBadgeText(bool result) -> (std::optional<String> error);
+    DeclarativeNetRequestIncrementActionCount(WebKit::WebExtensionTabIdentifier tabIdentifier, double increment) -> (std::optional<String> error);
+    DeclarativeNetRequestGetMatchedRules(std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, std::optional<WallTime> minTimeStamp) -> (std::optional<Vector<WebKit::WebExtensionMatchedRuleParameters>> matchedRules, std::optional<String> error);
+    DeclarativeNetRequestGetDynamicRules() -> (std::optional<String> rulesJSON, std::optional<String> error);
+    DeclarativeNetRequestUpdateDynamicRules(std::optional<String> rulesToAddJSON, std::optional<Vector<double>> ruleIdsToRemove) -> (std::optional<String> error);
+    DeclarativeNetRequestGetSessionRules() -> (std::optional<String> rulesJSON, std::optional<String> error);
+    DeclarativeNetRequestUpdateSessionRules(std::optional<String> rulesToAddJSON, std::optional<Vector<double>> ruleIdsToRemove) -> (std::optional<String> error);
+
+    // Event APIs
+    AddListener(WebKit::WebPageProxyIdentifier identifier, WebKit::WebExtensionEventListenerType type, WebKit::WebExtensionContentWorldType contentWorldType);
+    RemoveListener(WebKit::WebPageProxyIdentifier identifier, WebKit::WebExtensionEventListenerType type, WebKit::WebExtensionContentWorldType contentWorldType, size_t removedCount);
+
+    // Extensions APIs
+    ExtensionIsAllowedIncognitoAccess() -> (bool result);
+
+    // Menus APIs
+    MenusCreate(struct WebKit::WebExtensionMenuItemParameters parameters) -> (std::optional<String> error);
+    MenusUpdate(String identifier, struct WebKit::WebExtensionMenuItemParameters parameters) -> (std::optional<String> error);
+    MenusRemove(String identifier) -> (std::optional<String> error);
+    MenusRemoveAll() -> (std::optional<String> error);
+
+    // Permissions APIs
+    PermissionsGetAll() -> (Vector<String> permissions, Vector<String> origins);
+    PermissionsContains(HashSet<String> permissions, HashSet<String> origins) -> (bool containsPermissions);
+    PermissionsRequest(HashSet<String> permissions, HashSet<String> origins) -> (bool success);
+    PermissionsRemove(HashSet<String> permissions, HashSet<String> origins) -> (bool success);
+
+    // Port APIs
+    PortPostMessage(WebKit::WebExtensionContentWorldType targetContentWorldType, WebKit::WebExtensionPortChannelIdentifier channelIdentifier, String messageJSON);
+    PortDisconnect(WebKit::WebExtensionContentWorldType sourceContentWorldType, WebKit::WebExtensionContentWorldType targetContentWorldType, WebKit::WebExtensionPortChannelIdentifier channelIdentifier);
+
+    // Runtime APIs
+    RuntimeGetBackgroundPage() -> (std::optional<WebCore::PageIdentifier> pageIdentifier, std::optional<String> error);
+    RuntimeOpenOptionsPage() -> (std::optional<String> error);
+    RuntimeReload();
+    RuntimeSendMessage(String extensionID, String messageJSON, struct WebKit::WebExtensionMessageSenderParameters senderParameters) -> (std::optional<String> replyJSON, std::optional<String> error);
+    RuntimeConnect(String extensionID, WebKit::WebExtensionPortChannelIdentifier channelIdentifier, String name, struct WebKit::WebExtensionMessageSenderParameters senderParameters) -> (std::optional<String> error);
+    RuntimeSendNativeMessage(String applicationID, String messageJSON) -> (std::optional<String> replyJSON, std::optional<String> error);
+    RuntimeConnectNative(String applicationID, WebKit::WebExtensionPortChannelIdentifier channelIdentifier) -> (std::optional<String> error);
+
+    // Scripting APIs
+    ScriptingExecuteScript(WebKit::WebExtensionScriptInjectionParameters parameters) -> (std::optional<Vector<WebKit::WebExtensionScriptInjectionResultParameters>> results, WebKit::WebExtensionDynamicScripts::Error error);
+    ScriptingInsertCSS(WebKit::WebExtensionScriptInjectionParameters parameters) -> (WebKit::WebExtensionDynamicScripts::Error error);
+    ScriptingRemoveCSS(WebKit::WebExtensionScriptInjectionParameters parameters) -> (WebKit::WebExtensionDynamicScripts::Error error);
+    ScriptingRegisterContentScripts(Vector<WebKit::WebExtensionRegisteredScriptParameters> scripts) -> (WebKit::WebExtensionDynamicScripts::Error error);
+    ScriptingUpdateRegisteredScripts(Vector<WebKit::WebExtensionRegisteredScriptParameters> scripts) -> (WebKit::WebExtensionDynamicScripts::Error error);
+    ScriptingGetRegisteredScripts(Vector<String> scriptIDs) -> (Vector<WebKit::WebExtensionRegisteredScriptParameters> scripts);
+    ScriptingUnregisterContentScripts(Vector<String> scriptIDs) -> (WebKit::WebExtensionDynamicScripts::Error error);
+
+    // Storage APIs
+    StorageGet(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType, Vector<String> keys) -> (std::optional<String> dataJSON, WebKit::WebExtensionContext::ErrorString error);
+    StorageGetBytesInUse(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType, Vector<String> keys) -> (std::optional<size_t> size, WebKit::WebExtensionContext::ErrorString error);
+    StorageSet(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType, String dataJSON) -> (WebKit::WebExtensionContext::ErrorString error);
+    StorageRemove(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType, Vector<String> keys) -> (WebKit::WebExtensionContext::ErrorString error);
+    StorageClear(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType) -> (WebKit::WebExtensionContext::ErrorString error);
+    StorageSetAccessLevel(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionStorageType storageType, WebKit::WebExtensionStorageAccessLevel accessLevel) -> (WebKit::WebExtensionContext::ErrorString error);
+
+    // Tabs APIs
+    TabsCreate(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionTabParameters creationParameters) -> (std::optional<WebKit::WebExtensionTabParameters> tabParameters, WebKit::WebExtensionTab::Error error);
+    TabsUpdate(WebKit::WebExtensionTabIdentifier tabIdentifier, WebKit::WebExtensionTabParameters updateParameters) -> (std::optional<WebKit::WebExtensionTabParameters> tabParameters, WebKit::WebExtensionTab::Error error);
+    TabsDuplicate(WebKit::WebExtensionTabIdentifier tabIdentifier, WebKit::WebExtensionTabParameters creationParameters) -> (std::optional<WebKit::WebExtensionTabParameters> tabParameters, WebKit::WebExtensionTab::Error error);
+    TabsGet(WebKit::WebExtensionTabIdentifier tabIdentifier) -> (std::optional<WebKit::WebExtensionTabParameters> tabParameters, WebKit::WebExtensionTab::Error error);
+    TabsGetCurrent(WebKit::WebPageProxyIdentifier webPageProxyIdentifier) -> (std::optional<WebKit::WebExtensionTabParameters> tabParameters, WebKit::WebExtensionTab::Error error);
+    TabsQuery(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionTabQueryParameters queryParameters) -> (Vector<WebKit::WebExtensionTabParameters> tabs, WebKit::WebExtensionWindow::Error error);
+    TabsReload(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, WebKit::WebExtensionContext::ReloadFromOrigin reloadFromOrigin) -> (WebKit::WebExtensionWindow::Error error);
+    TabsGoBack(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (WebKit::WebExtensionTab::Error error);
+    TabsGoForward(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (WebKit::WebExtensionTab::Error error);
+    TabsDetectLanguage(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<String> language, WebKit::WebExtensionTab::Error error);
+    TabsToggleReaderMode(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (WebKit::WebExtensionTab::Error error);
+    TabsCaptureVisibleTab(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionWindowIdentifier> windowIdentifier, WebKit::WebExtensionTab::ImageFormat imageFormat, uint8_t imageQuality) -> (std::optional<URL> imageDataURL, WebKit::WebExtensionTab::Error error);
+    TabsSendMessage(WebKit::WebExtensionTabIdentifier tabIdentifier, String messageJSON, std::optional<WebKit::WebExtensionFrameIdentifier> targetFrameIdentifier, struct WebKit::WebExtensionMessageSenderParameters senderParameters) -> (std::optional<String> replyJSON, WebKit::WebExtensionTab::Error error);
+    TabsConnect(WebKit::WebExtensionTabIdentifier tabIdentifier, WebKit::WebExtensionPortChannelIdentifier channelIdentifier, String name, std::optional<WebKit::WebExtensionFrameIdentifier> targetFrameIdentifier, struct WebKit::WebExtensionMessageSenderParameters senderParameters) -> (WebKit::WebExtensionTab::Error error);
+    TabsGetZoom(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier) -> (std::optional<double> zoomFactor, WebKit::WebExtensionTab::Error error);
+    TabsSetZoom(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, double zoomFactor) -> (WebKit::WebExtensionTab::Error error);
+    TabsRemove(Vector<WebKit::WebExtensionTabIdentifier> tabIdentifiers) -> (WebKit::WebExtensionWindow::Error error);
+    TabsExecuteScript(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, WebKit::WebExtensionScriptInjectionParameters parameters) -> (std::optional<Vector<WebKit::WebExtensionScriptInjectionResultParameters>> results, WebKit::WebExtensionTab::Error error);
+    TabsInsertCSS(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, WebKit::WebExtensionScriptInjectionParameters parameters) -> (WebKit::WebExtensionTab::Error error);
+    TabsRemoveCSS(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, std::optional<WebKit::WebExtensionTabIdentifier> tabIdentifier, WebKit::WebExtensionScriptInjectionParameters parameters) -> (WebKit::WebExtensionTab::Error error);
+
+    // Test APIs
+    TestResult(bool result, String message, String sourceURL, unsigned lineNumber);
+    TestEqual(bool result, String expected, String actual, String message, String sourceURL, unsigned lineNumber);
+    TestMessage(String message, String sourceURL, unsigned lineNumber);
+    TestYielded(String message, String sourceURL, unsigned lineNumber);
+    TestFinished(bool result, String message, String sourceURL, unsigned lineNumber);
+
+    // WebNavigation APIs
+    WebNavigationGetAllFrames(WebKit::WebExtensionTabIdentifier tabIdentifier) -> (std::optional<Vector<WebKit::WebExtensionFrameParameters>> allFrameParameters, std::optional<String> error)
+    WebNavigationGetFrame(WebKit::WebExtensionTabIdentifier tabIdentifier, WebKit::WebExtensionFrameIdentifier frameIdentifier) -> (std::optional<WebKit::WebExtensionFrameParameters> frameParameters, std::optional<String> error)
+
+    // Windows APIs
+    WindowsCreate(WebKit::WebExtensionWindowParameters creationParameters) -> (std::optional<WebKit::WebExtensionWindowParameters> windowParameters, WebKit::WebExtensionWindow::Error error);
+    WindowsGet(WebKit::WebPageProxyIdentifier webPageProxyIdentifier, WebKit::WebExtensionWindowIdentifier windowIdentifier, OptionSet<WebKit::WebExtensionWindow::TypeFilter> filter, WebKit::WebExtensionWindow::PopulateTabs populate) -> (std::optional<WebKit::WebExtensionWindowParameters> windowParameters, WebKit::WebExtensionWindow::Error error);
+    WindowsGetLastFocused(OptionSet<WebKit::WebExtensionWindow::TypeFilter> filter, WebKit::WebExtensionWindow::PopulateTabs populate) -> (std::optional<WebKit::WebExtensionWindowParameters> windowParameters, WebKit::WebExtensionWindow::Error error);
+    WindowsGetAll(OptionSet<WebKit::WebExtensionWindow::TypeFilter> filter, WebKit::WebExtensionWindow::PopulateTabs populate) -> (Vector<WebKit::WebExtensionWindowParameters> windows, WebKit::WebExtensionWindow::Error error);
+    WindowsUpdate(WebKit::WebExtensionWindowIdentifier windowIdentifier, WebKit::WebExtensionWindowParameters updateParameters) -> (std::optional<WebKit::WebExtensionWindowParameters> windowParameters, WebKit::WebExtensionWindow::Error error);
+    WindowsRemove(WebKit::WebExtensionWindowIdentifier windowIdentifier) -> (WebKit::WebExtensionWindow::Error error);
+}
+
+#endif // ENABLE(WK_WEB_EXTENSIONS)

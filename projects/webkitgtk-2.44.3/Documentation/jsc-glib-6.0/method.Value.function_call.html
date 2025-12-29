@@ -1,0 +1,328 @@
+<!--
+SPDX-FileCopyrightText: The WebKit GTK and WPE teams
+
+SPDX-License-Identifier: BSD, LGPL-2.1
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>JavaScriptCore.Value.function_call</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta priority="og:title" content="JavaScriptCore.Value.function_call"/>
+  <meta priority="og:description" content="Reference for JavaScriptCore.Value.function_call"/>
+  <meta name="twitter:title" content="JavaScriptCore.Value.function_call"/>
+  <meta name="twitter:description" content="Reference for JavaScriptCore.Value.function_call"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">JavaScriptCore</a></h3>
+        <p>API Version: 6.0</p>
+        
+        <p>Library Version: 2.44.3</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.Value.html">Value</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Value.array_buffer_get_data.html">array_buffer_get_data</a>
+  
+    <a class="method" href="method.Value.array_buffer_get_size.html">array_buffer_get_size</a>
+  
+    <a class="method" href="method.Value.constructor_call.html">constructor_call</a>
+  
+    <a class="method" href="method.Value.constructor_callv.html">constructor_callv</a>
+  
+    <a class="method current" href="method.Value.function_call.html">function_call</a>
+  
+    <a class="method" href="method.Value.function_callv.html">function_callv</a>
+  
+    <a class="method" href="method.Value.get_context.html">get_context</a>
+  
+    <a class="method" href="method.Value.is_array.html">is_array</a>
+  
+    <a class="method" href="method.Value.is_array_buffer.html">is_array_buffer</a>
+  
+    <a class="method" href="method.Value.is_boolean.html">is_boolean</a>
+  
+    <a class="method" href="method.Value.is_constructor.html">is_constructor</a>
+  
+    <a class="method" href="method.Value.is_function.html">is_function</a>
+  
+    <a class="method" href="method.Value.is_null.html">is_null</a>
+  
+    <a class="method" href="method.Value.is_number.html">is_number</a>
+  
+    <a class="method" href="method.Value.is_object.html">is_object</a>
+  
+    <a class="method" href="method.Value.is_string.html">is_string</a>
+  
+    <a class="method" href="method.Value.is_typed_array.html">is_typed_array</a>
+  
+    <a class="method" href="method.Value.is_undefined.html">is_undefined</a>
+  
+    <a class="method" href="method.Value.new_typed_array_with_buffer.html">new_typed_array_with_buffer</a>
+  
+    <a class="method" href="method.Value.object_define_property_accessor.html">object_define_property_accessor</a>
+  
+    <a class="method" href="method.Value.object_define_property_data.html">object_define_property_data</a>
+  
+    <a class="method" href="method.Value.object_delete_property.html">object_delete_property</a>
+  
+    <a class="method" href="method.Value.object_enumerate_properties.html">object_enumerate_properties</a>
+  
+    <a class="method" href="method.Value.object_get_property.html">object_get_property</a>
+  
+    <a class="method" href="method.Value.object_get_property_at_index.html">object_get_property_at_index</a>
+  
+    <a class="method" href="method.Value.object_has_property.html">object_has_property</a>
+  
+    <a class="method" href="method.Value.object_invoke_method.html">object_invoke_method</a>
+  
+    <a class="method" href="method.Value.object_invoke_methodv.html">object_invoke_methodv</a>
+  
+    <a class="method" href="method.Value.object_is_instance_of.html">object_is_instance_of</a>
+  
+    <a class="method" href="method.Value.object_set_property.html">object_set_property</a>
+  
+    <a class="method" href="method.Value.object_set_property_at_index.html">object_set_property_at_index</a>
+  
+    <a class="method" href="method.Value.to_boolean.html">to_boolean</a>
+  
+    <a class="method" href="method.Value.to_double.html">to_double</a>
+  
+    <a class="method" href="method.Value.to_int32.html">to_int32</a>
+  
+    <a class="method" href="method.Value.to_json.html">to_json</a>
+  
+    <a class="method" href="method.Value.to_string.html">to_string</a>
+  
+    <a class="method" href="method.Value.to_string_as_bytes.html">to_string_as_bytes</a>
+  
+    <a class="method" href="method.Value.typed_array_get_buffer.html">typed_array_get_buffer</a>
+  
+    <a class="method" href="method.Value.typed_array_get_data.html">typed_array_get_data</a>
+  
+    <a class="method" href="method.Value.typed_array_get_length.html">typed_array_get_length</a>
+  
+    <a class="method" href="method.Value.typed_array_get_offset.html">typed_array_get_offset</a>
+  
+    <a class="method" href="method.Value.typed_array_get_size.html">typed_array_get_size</a>
+  
+    <a class="method" href="method.Value.typed_array_get_type.html">typed_array_get_type</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2023.4</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">JavaScriptCore</a><span class="sep"></span><a href="class.Value.html">Value</a><span class="sep"></span>function_call</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/WebKitBuild/GTK/Release/JavaScriptCoreGLib/DerivedSources/jsc/JSCValue.h#L230">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">JSCValue</span><span class="o">*</span>
+<span class="n">jsc_value_function_call</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">JSCValue</span><span class="o">*</span><span class="w"> </span><span class="n">value</span><span class="p">,</span>
+<span class="w">  </span><span class="n">GType</span><span class="w"> </span><span class="n">first_parameter_type</span><span class="p">,</span>
+<span class="w">  </span><span class="p">...</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/WebKit/WebKit/tree/Source/JavaScriptCore/API/glib/JSCValue.cpp#L1298">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Call function referenced by <code>value</code>, passing the given parameters. If <code>first_parameter_type</code>
+is <code>G_TYPE_NONE</code> no parameters will be passed to the&nbsp;function.</p>
+<p>This function always returns a <code>JSCValue</code>, in case of void functions a <code>JSCValue</code> referencing
+<function>undefined</function> is&nbsp;returned.</p>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        <p>This method is not directly available to language bindings.</p>
+        
+        <p>The implementation of this method is provided by <a href="method.Value.function_callv.html"><code>jsc_value_function_callv()</code></a> in language bindings</p>
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+          <dt class="arg-name"><code>first_parameter_type</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>GType</code></p>
+            <p><code>GType</code> of first parameter, or <code>G_TYPE_NONE</code>.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>...</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code></code></p>
+            <p>Value of the first parameter, followed optionally by more type/value pairs, followed by <code>G_TYPE_NONE</code>.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="class.Value.html"><code>JSCValue</code></a></p>
+            <p>A <code>JSCValue</code> with the return value of the&nbsp;function.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>
