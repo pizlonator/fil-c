@@ -191,6 +191,17 @@ hash -r
 ./build_postlc3_chroot_project_graphite.sh
 ./build_postlc3_chroot_project_libdrm.sh
 ./build_postlc3_chroot_project_seatd.sh
+hash -r
+
+tar -xf lcms2-2.16.tar.gz
+cd lcms2-2.16
+./configure --prefix=/usr --disable-static
+make
+make install
+cd ..
+rm -rf lcms2-2.16
+hash -r
+
 ./build_postlc3_chroot_project_weston.sh
 hash -r
 

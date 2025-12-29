@@ -54,6 +54,7 @@ cp -v build_postlc3_chroot_project_freetype.sh $LFS/sources
 cp -v build_postlc3_chroot_project_graphite.sh $LFS/sources
 cp -v build_postlc3_chroot_project_fontconfig.sh $LFS/sources
 cp -v build_postlc3_chroot_project_harfbuzz.sh $LFS/sources
+cp -v lcms2-2.16.tar.gz $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc3_sub2_chroot.sh
 

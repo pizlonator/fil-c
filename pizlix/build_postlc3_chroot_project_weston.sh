@@ -22,7 +22,6 @@ meson setup \
       -D pipewire=false \
       -D image-jpeg=true \
       -D image-webp=true \
-      -D color-management-lcms=false \
       -D backend-drm-screencast-vaapi=false \
       -D systemd=false \
       -D simple-clients=damage,im,shm \

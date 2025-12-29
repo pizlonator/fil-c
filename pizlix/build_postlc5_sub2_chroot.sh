@@ -101,3 +101,13 @@ ninja install
 cd ../..
 rm -rf bubblewrap-0.9.0
 hash -r
+
+tar -xf unifdef-2.12.tar.gz
+cd unifdef-2.12
+make
+make prefix=/usr install
+cd ..
+rm -rf unifdef-2.12
+hash -r
+
+
