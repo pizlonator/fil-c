@@ -345,7 +345,7 @@ public:
 };
 
 #if !ASSERT_ENABLED
-static_assert(sizeof(UnlinkedFunctionExecutable) <= 96, "UnlinkedFunctionExecutable needs to be small");
+static_assert(sizeof(UnlinkedFunctionExecutable) <= 104, "UnlinkedFunctionExecutable needs to be small");
 #endif
 
 } // namespace JSC

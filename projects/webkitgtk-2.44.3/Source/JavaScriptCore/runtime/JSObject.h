@@ -1421,16 +1421,8 @@ inline void JSObject::setButterfly(VM& vm, Butterfly* butterfly)
     m_butterfly.set(vm, this, butterfly);
 }
 
-inline void JSObject::nukeStructureAndSetButterfly(VM& vm, StructureID oldStructureID, Butterfly* butterfly)
+inline void JSObject::nukeStructureAndSetButterfly(VM& vm, StructureID, Butterfly* butterfly)
 {
-    if (isX86() || vm.heap.mutatorShouldBeFenced()) {
-        setStructureIDDirectly(oldStructureID.nuke());
-        WTF::storeStoreFence();
-        m_butterfly.set(vm, this, butterfly);
-        WTF::storeStoreFence();
-        return;
-    }
-
     m_butterfly.set(vm, this, butterfly);
 }
 
@@ -1590,7 +1582,7 @@ ALWAYS_INLINE bool JSObject::getPropertySlot(JSGlobalObject* globalObject, Prope
         Structure* structure = object->structureID().decode();
 #if USE(JSVALUE64)
         if (checkNullStructure && UNLIKELY(!structure))
-            CRASH_WITH_INFO(object->type(), object->structureID().bits());
+            CRASH_WITH_INFO(object->type(), bitwise_cast<uintptr_t>(object->structureID().decode()));
 #endif
         if (object->getOwnNonIndexPropertySlot(vm, structure, propertyName, slot))
             return true;

@@ -748,25 +748,8 @@ macro writeBarrierOnGlobalLexicalEnvironment(size, get, valueFieldName)
         end)
 end
 
-macro structureIDToStructureWithScratch(structureIDThenStructure, scratch)
-    if STRUCTURE_ID_WITH_SHIFT
-        lshiftp (constexpr StructureID::encodeShiftAmount), structureIDThenStructure
-    elsif ADDRESS64
-        andq (constexpr StructureID::structureIDMask), structureIDThenStructure
-        if X86_64_WIN or C_LOOP_WIN
-            leap JSCConfig + constexpr JSC::offsetOfJSCConfigStartOfStructureHeap, scratch
-            loadp [scratch], scratch
-        else
-            leap _g_config, scratch
-            loadp JSCConfigOffset + constexpr JSC::offsetOfJSCConfigStartOfStructureHeap[scratch], scratch
-        end
-        addp scratch, structureIDThenStructure
-    end
-end
-
 macro loadStructureWithScratch(cell, structure, scratch)
-    loadi JSCell::m_structureID[cell], structure
-    structureIDToStructureWithScratch(structure, scratch)
+    loadp JSCell::m_structureID[cell], structure
 end
 
 # Entrypoints into the interpreter.
@@ -946,10 +929,10 @@ llintOpWithMetadata(op_to_this, OpToThis, macro (size, get, dispatch, metadata, 
     loadq [cfr, t0, 8], t0
     btqnz t0, notCellMask, .opToThisSlow
     bbneq JSCell::m_type[t0], FinalObjectType, .opToThisSlow
-    loadi JSCell::m_structureID[t0], t1
+    loadp JSCell::m_structureID[t0], t1
     metadata(t2, t3)
-    loadi OpToThis::Metadata::m_cachedStructureID[t2], t2
-    bineq t1, t2, .opToThisSlow
+    loadp OpToThis::Metadata::m_cachedStructureID[t2], t2
+    bpneq t1, t2, .opToThisSlow
     dispatch()
 
 .opToThisSlow:
@@ -1683,9 +1666,9 @@ llintOpWithMetadata(op_try_get_by_id, OpTryGetById, macro (size, get, dispatch, 
     metadata(t2, t0)
     get(m_base, t0)
     loadConstantOrVariableCell(size, t0, t3, .opTryGetByIdSlow)
-    loadi JSCell::m_structureID[t3], t1
-    loadi OpTryGetById::Metadata::m_structureID[t2], t0
-    bineq t0, t1, .opTryGetByIdSlow
+    loadp JSCell::m_structureID[t3], t1
+    loadp OpTryGetById::Metadata::m_structureID[t2], t0
+    bpneq t0, t1, .opTryGetByIdSlow
     loadi OpTryGetById::Metadata::m_offset[t2], t1
     loadPropertyAtVariableOffset(t1, t3, t0)
     valueProfile(size, OpTryGetById, m_valueProfile, t0, t2)
@@ -1700,9 +1683,9 @@ llintOpWithMetadata(op_get_by_id_direct, OpGetByIdDirect, macro (size, get, disp
     metadata(t2, t0)
     get(m_base, t0)
     loadConstantOrVariableCell(size, t0, t3, .opGetByIdDirectSlow)
-    loadi JSCell::m_structureID[t3], t1
-    loadi OpGetByIdDirect::Metadata::m_structureID[t2], t0
-    bineq t0, t1, .opGetByIdDirectSlow
+    loadp JSCell::m_structureID[t3], t1
+    loadp OpGetByIdDirect::Metadata::m_structureID[t2], t0
+    bpneq t0, t1, .opGetByIdDirectSlow
     loadi OpGetByIdDirect::Metadata::m_offset[t2], t1
     loadPropertyAtVariableOffset(t1, t3, t0)
     valueProfile(size, OpGetByIdDirect, m_valueProfile, t0, t2)
@@ -1720,9 +1703,9 @@ macro performGetByIDHelper(opcodeStruct, modeMetadataName, valueProfileName, slo
 
 .opGetByIdDefault:
     bbneq t1, constexpr GetByIdMode::Default, .opGetByIdProtoLoad
-    loadi JSCell::m_structureID[t3], t1
-    loadi %opcodeStruct%::Metadata::%modeMetadataName%.defaultMode.structureID[t2], t0
-    bineq t0, t1, slowLabel
+    loadp JSCell::m_structureID[t3], t1
+    loadp %opcodeStruct%::Metadata::%modeMetadataName%.defaultMode.structureID[t2], t0
+    bpneq t0, t1, slowLabel
     loadis %opcodeStruct%::Metadata::%modeMetadataName%.defaultMode.cachedOffset[t2], t1
     loadPropertyAtVariableOffset(t1, t3, t0)
     valueProfile(size, opcodeStruct, valueProfileName, t0, t2)
@@ -1730,9 +1713,9 @@ macro performGetByIDHelper(opcodeStruct, modeMetadataName, valueProfileName, slo
 
 .opGetByIdProtoLoad:
     bbneq t1, constexpr GetByIdMode::ProtoLoad, .opGetByIdArrayLength
-    loadi JSCell::m_structureID[t3], t1
-    loadi %opcodeStruct%::Metadata::%modeMetadataName%.protoLoadMode.structureID[t2], t3
-    bineq t3, t1, slowLabel
+    loadp JSCell::m_structureID[t3], t1
+    loadp %opcodeStruct%::Metadata::%modeMetadataName%.protoLoadMode.structureID[t2], t3
+    bpneq t3, t1, slowLabel
     loadis %opcodeStruct%::Metadata::%modeMetadataName%.protoLoadMode.cachedOffset[t2], t1
     loadp %opcodeStruct%::Metadata::%modeMetadataName%.protoLoadMode.cachedSlot[t2], t3
     loadPropertyAtVariableOffset(t1, t3, t0)
@@ -1753,9 +1736,9 @@ macro performGetByIDHelper(opcodeStruct, modeMetadataName, valueProfileName, slo
     return(t0)
 
 .opGetByIdUnset:
-    loadi JSCell::m_structureID[t3], t1
-    loadi %opcodeStruct%::Metadata::%modeMetadataName%.unsetMode.structureID[t2], t0
-    bineq t0, t1, slowLabel
+    loadp JSCell::m_structureID[t3], t1
+    loadp %opcodeStruct%::Metadata::%modeMetadataName%.unsetMode.structureID[t2], t0
+    bpneq t0, t1, slowLabel
     valueProfile(size, opcodeStruct, valueProfileName, ValueUndefined, t2)
     return(ValueUndefined)
 
@@ -1808,16 +1791,16 @@ llintOpWithMetadata(op_put_by_id, OpPutById, macro (size, get, dispatch, metadat
     get(m_base, t3)
     loadConstantOrVariableCell(size, t3, t0, .opPutByIdSlow)
     metadata(t5, t2)
-    loadi OpPutById::Metadata::m_oldStructureID[t5], t2
-    bineq t2, JSCell::m_structureID[t0], .opPutByIdSlow
+    loadp OpPutById::Metadata::m_oldStructureID[t5], t2
+    bpneq t2, JSCell::m_structureID[t0], .opPutByIdSlow
 
     # At this point, we have:
     # t0 -> object base
     # t2 -> current structure ID
     # t5 -> metadata
 
-    loadi OpPutById::Metadata::m_newStructureID[t5], t1
-    btiz t1, .opPutByIdNotTransition
+    loadp OpPutById::Metadata::m_newStructureID[t5], t1
+    btpz t1, .opPutByIdNotTransition
 
     # This is the transition case. t1 holds the new structureID. t2 holds the old structure ID.
     # If we have a chain, we need to check it. t0 is the base. We may clobber t1 to use it as
@@ -1825,30 +1808,27 @@ llintOpWithMetadata(op_put_by_id, OpPutById, macro (size, get, dispatch, metadat
     loadp OpPutById::Metadata::m_structureChain[t5], t3
     btpz t3, .opPutByIdTransitionDirect
 
-    structureIDToStructureWithScratch(t2, t1)
-
     loadp StructureChain::m_vector[t3], t3
     assert(macro (ok) btpnz t3, ok end)
 
     loadq Structure::m_prototype[t2], t2
     bqeq t2, ValueNull, .opPutByIdTransitionChainDone
 .opPutByIdTransitionChainLoop:
-    loadi JSCell::m_structureID[t2], t2
-    bineq t2, [t3], .opPutByIdSlow
-    addp 4, t3
-    structureIDToStructureWithScratch(t2, t1)
+    loadp JSCell::m_structureID[t2], t2
+    bpneq t2, [t3], .opPutByIdSlow
+    addp sizeof StructureID, t3
     loadq Structure::m_prototype[t2], t2
     bqneq t2, ValueNull, .opPutByIdTransitionChainLoop
 
 .opPutByIdTransitionChainDone:
     # Reload the new structure, since we clobbered it above.
-    loadi OpPutById::Metadata::m_newStructureID[t5], t1
+    loadp OpPutById::Metadata::m_newStructureID[t5], t1
     # Reload base into t0
     get(m_base, t3)
     loadConstantOrVariable(size, t3, t0)
 
 .opPutByIdTransitionDirect:
-    storei t1, JSCell::m_structureID[t0]
+    storep t1, JSCell::m_structureID[t0]
     writeBarrierOnOperandWithReload(size, get, m_base, macro ()
         # Reload metadata into t5
         metadata(t5, t1)
@@ -1977,9 +1957,9 @@ llintOpWithMetadata(op_get_private_name, OpGetPrivateName, macro (size, get, dis
 
     get(m_base, t0)
     loadConstantOrVariableCell(size, t0, t3, .opGetPrivateNameSlow)
-    loadi JSCell::m_structureID[t3], t1
-    loadi OpGetPrivateName::Metadata::m_structureID[t2], t0
-    bineq t0, t1, .opGetPrivateNameSlow
+    loadp JSCell::m_structureID[t3], t1
+    loadp OpGetPrivateName::Metadata::m_structureID[t2], t0
+    bpneq t0, t1, .opGetPrivateNameSlow
 
     loadi OpGetPrivateName::Metadata::m_offset[t2], t1
     loadPropertyAtVariableOffset(t1, t3, t0)
@@ -1997,8 +1977,8 @@ llintOpWithMetadata(op_put_private_name, OpPutPrivateName, macro (size, get, dis
     get(m_property, t3)
     loadConstantOrVariableCell(size, t3, t1, .opPutPrivateNameSlow)
     metadata(t5, t2)
-    loadi OpPutPrivateName::Metadata::m_oldStructureID[t5], t2
-    bineq t2, JSCell::m_structureID[t0], .opPutPrivateNameSlow
+    loadp OpPutPrivateName::Metadata::m_oldStructureID[t5], t2
+    bpneq t2, JSCell::m_structureID[t0], .opPutPrivateNameSlow
 
     loadp OpPutPrivateName::Metadata::m_property[t5], t3
     bpneq t3, t1, .opPutPrivateNameSlow
@@ -2008,10 +1988,10 @@ llintOpWithMetadata(op_put_private_name, OpPutPrivateName, macro (size, get, dis
     # t2 -> current structure ID
     # t5 -> metadata
 
-    loadi OpPutPrivateName::Metadata::m_newStructureID[t5], t1
-    btiz t1, .opPutNotTransition
+    loadp OpPutPrivateName::Metadata::m_newStructureID[t5], t1
+    btpz t1, .opPutNotTransition
 
-    storei t1, JSCell::m_structureID[t0]
+    storep t1, JSCell::m_structureID[t0]
     writeBarrierOnOperandWithReload(size, get, m_base, macro ()
         # Reload metadata into t5
         metadata(t5, t1)
@@ -2040,14 +2020,14 @@ llintOpWithMetadata(op_set_private_brand, OpSetPrivateBrand, macro (size, get, d
     get(m_brand, t3)
     loadConstantOrVariableCell(size, t3, t1, .opSetPrivateBrandSlow)
     metadata(t5, t2)
-    loadi OpSetPrivateBrand::Metadata::m_oldStructureID[t5], t2
-    bineq t2, JSCell::m_structureID[t0], .opSetPrivateBrandSlow
+    loadp OpSetPrivateBrand::Metadata::m_oldStructureID[t5], t2
+    bpneq t2, JSCell::m_structureID[t0], .opSetPrivateBrandSlow
 
     loadp OpSetPrivateBrand::Metadata::m_brand[t5], t3
     bpneq t3, t1, .opSetPrivateBrandSlow
 
-    loadi OpSetPrivateBrand::Metadata::m_newStructureID[t5], t1
-    storei t1, JSCell::m_structureID[t0]
+    loadp OpSetPrivateBrand::Metadata::m_newStructureID[t5], t1
+    storep t1, JSCell::m_structureID[t0]
     writeBarrierOnOperand(size, get, m_base)
     dispatch()
 
@@ -2066,8 +2046,8 @@ llintOpWithMetadata(op_check_private_brand, OpCheckPrivateBrand, macro (size, ge
     loadp OpCheckPrivateBrand::Metadata::m_brand[t5], t3
     bqneq t3, t1, .opCheckPrivateBrandSlow
 
-    loadi OpCheckPrivateBrand::Metadata::m_structureID[t5], t2
-    bineq t2, JSCell::m_structureID[t0], .opCheckPrivateBrandSlow
+    loadp OpCheckPrivateBrand::Metadata::m_structureID[t5], t2
+    bpneq t2, JSCell::m_structureID[t0], .opCheckPrivateBrandSlow
     dispatch()
 
 .opCheckPrivateBrandSlow:
@@ -2512,8 +2492,8 @@ macro arrayProfileForCall(opcodeStruct, getu)
     negp t3
     loadq ThisArgumentOffset[cfr, t3, 8], t0
     btqnz t0, notCellMask, .done
-    loadi JSCell::m_structureID[t0], t3
-    storei t3, %opcodeStruct%::Metadata::m_arrayProfile.m_lastSeenStructureID[t5]
+    loadp JSCell::m_structureID[t0], t3
+    storep t3, %opcodeStruct%::Metadata::m_arrayProfile.m_lastSeenStructureID[t5]
 .done:
 end
 
@@ -3217,11 +3197,11 @@ llintOpWithMetadata(op_profile_type, OpProfileType, macro (size, get, dispatch, 
     storep t3, TypeProfilerLog::LogEntry::location[t2]
 
     btqz t0, notCellMask, .opProfileTypeIsCell
-    storei 0, TypeProfilerLog::LogEntry::structureID[t2]
+    storep 0, TypeProfilerLog::LogEntry::structureID[t2]
     jmp .opProfileTypeSkipIsCell
 .opProfileTypeIsCell:
-    loadi JSCell::m_structureID[t0], t3
-    storei t3, TypeProfilerLog::LogEntry::structureID[t2]
+    loadp JSCell::m_structureID[t0], t3
+    storep t3, TypeProfilerLog::LogEntry::structureID[t2]
 .opProfileTypeSkipIsCell:
     
     # Increment the current log entry.
@@ -3295,8 +3275,8 @@ llintOpWithMetadata(op_iterator_open, OpIteratorOpen, macro (size, get, dispatch
     metadata(t5, t0)
     get(m_iterable, t0)
     btqnz t0, notCellMask, .done
-    loadi JSCell::m_structureID[t0], t3
-    storei t3, OpIteratorOpen::Metadata::m_arrayProfile.m_lastSeenStructureID[t5]
+    loadp JSCell::m_structureID[t0], t3
+    storep t3, OpIteratorOpen::Metadata::m_arrayProfile.m_lastSeenStructureID[t5]
     .done:
     callHelper(op_iterator_open, OpIteratorOpen, dispatchAfterRegularCall, m_iteratorValueProfile, m_iterator, prepareForRegularCall, invokeForRegularCall, prepareForSlowRegularCall, size, gotoGetByIdCheckpoint, metadata, getCallee, getArgumentIncludingThisStart, getArgumentIncludingThisCount)
 
@@ -3436,8 +3416,8 @@ llintOp(op_enumerator_next, OpEnumeratorNext, macro (size, get, dispatch)
     loadConstantOrVariableCell(size, t1, t0, .nextSlowPath)
 
     loadVariable(get, m_enumerator, t1)
-    loadi JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
-    bineq t2, JSCell::m_structureID[t0], .nextSlowPath
+    loadp JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
+    bpneq t2, JSCell::m_structureID[t0], .nextSlowPath
 
     loadVariable(get, m_index, t2)
     addq 1, t2
@@ -3473,8 +3453,8 @@ llintOpWithMetadata(op_enumerator_get_by_val, OpEnumeratorGetByVal, macro (size,
     loadConstantOrVariableCell(size, t1, t0, .getSlowPath)
 
     loadVariable(get, m_enumerator, t1)
-    loadi JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
-    bineq t2, JSCell::m_structureID[t0], .getSlowPath
+    loadp JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
+    bpneq t2, JSCell::m_structureID[t0], .getSlowPath
 
     loadVariable(get, m_index, t2)
     loadi JSPropertyNameEnumerator::m_cachedInlineCapacity[t1], t1
@@ -3516,10 +3496,9 @@ llintOpWithMetadata(op_enumerator_put_by_val, OpEnumeratorPutByVal, macro (size,
     loadConstantOrVariableCell(size, t1, t0, .putSlowPath)
 
     loadVariable(get, m_enumerator, t1)
-    loadi JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
-    bineq t2, JSCell::m_structureID[t0], .putSlowPath
+    loadp JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
+    bpneq t2, JSCell::m_structureID[t0], .putSlowPath
 
-    structureIDToStructureWithScratch(t2, t3)
     btinz Structure::m_bitField[t2], (constexpr Structure::s_isWatchingReplacementBits), .putSlowPath
 
     get(m_value, t2)
@@ -3563,8 +3542,8 @@ macro hasPropertyImpl(opcodeStruct, size, get, dispatch, metadata, return, slowP
     loadConstantOrVariableCell(size, t1, t0, .callSlowPath)
 
     loadVariable(get, m_enumerator, t1)
-    loadi JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
-    bineq t2, JSCell::m_structureID[t0], .callSlowPath
+    loadp JSPropertyNameEnumerator::m_cachedStructureID[t1], t2
+    bpneq t2, JSCell::m_structureID[t0], .callSlowPath
 
     move ValueTrue, t2
     return(t2)

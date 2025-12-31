@@ -36,7 +36,7 @@ namespace JSC {
 
 const ASCIILiteral SymbolCoercionError { "Cannot convert a symbol to a string"_s };
 
-static_assert(sizeof(JSCell) == sizeof(uint64_t), "jscell is eight bytes");
+static_assert(sizeof(JSCell) == 16, "jscell is sixteen bytes");
 STATIC_ASSERT_IS_TRIVIALLY_DESTRUCTIBLE(JSCell);
 
 void JSCell::destroy(JSCell* cell)

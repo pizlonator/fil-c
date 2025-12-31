@@ -2371,8 +2371,6 @@ bool AbstractInterpreter<AbstractStateType>::executeEffects(unsigned clobberLimi
                 // And we check the indexing mode of the structure. If the indexing mode is CoW, the butterfly is
                 // definitely JSImmutableButterfly.
                 StructureID structureIDEarly = array->structureID();
-                if (structureIDEarly.isNuked())
-                    return false;
 
                 if (node->arrayMode().arrayClass() == Array::OriginalCopyOnWriteArray) {
 

@@ -254,7 +254,7 @@ private:
     OptionSet<ArrayProfileFlag> m_arrayProfileFlags;
     ArrayModes m_observedArrayModes { 0 };
 };
-static_assert(sizeof(ArrayProfile) == 12);
+static_assert(sizeof(ArrayProfile) == 16);
 
 class UnlinkedArrayProfile {
 public:

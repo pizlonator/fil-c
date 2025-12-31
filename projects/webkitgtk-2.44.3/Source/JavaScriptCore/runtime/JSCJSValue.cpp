@@ -313,7 +313,7 @@ void JSValue::dumpInContextAssumingStructure(
             out.print(" (", inContext(*structure, context), ")");
         }
 #if USE(JSVALUE64)
-        out.print(", StructureID: ", asCell()->structureID().bits());
+        out.print(", StructureID: ", RawPointer(asCell()->structureID().decode()));
 #endif
     } else if (isTrue())
         out.print("True");

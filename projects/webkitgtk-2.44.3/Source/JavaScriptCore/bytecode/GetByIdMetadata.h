@@ -39,20 +39,20 @@ struct GetByIdModeMetadataDefault {
     PropertyOffset cachedOffset;
     unsigned padding1;
 };
-static_assert(sizeof(GetByIdModeMetadataDefault) == 12);
+static_assert(sizeof(GetByIdModeMetadataDefault) == 16);
 
 struct GetByIdModeMetadataUnset {
     StructureID structureID;
     unsigned padding1;
     unsigned padding2;
 };
-static_assert(sizeof(GetByIdModeMetadataUnset) == 12);
+static_assert(sizeof(GetByIdModeMetadataUnset) == 16);
 
 struct GetByIdModeMetadataArrayLength {
     static ptrdiff_t offsetOfArrayProfile() { return OBJECT_OFFSETOF(GetByIdModeMetadataArrayLength, arrayProfile); }
     ArrayProfile arrayProfile;
 };
-static_assert(sizeof(GetByIdModeMetadataArrayLength) == 12);
+static_assert(sizeof(GetByIdModeMetadataArrayLength) == 16);
 
 struct GetByIdModeMetadataProtoLoad {
     StructureID structureID;
@@ -60,7 +60,7 @@ struct GetByIdModeMetadataProtoLoad {
     JSObject* cachedSlot;
 };
 #if CPU(LITTLE_ENDIAN) && CPU(ADDRESS64)
-static_assert(sizeof(GetByIdModeMetadataProtoLoad) == 16);
+static_assert(sizeof(GetByIdModeMetadataProtoLoad) == 24);
 #endif
 
 // In 64bit Little endian architecture, this union shares ProtoLoad's JSObject* cachedSlot with "hitCountForLLIntCaching" and "mode".
@@ -82,8 +82,8 @@ union GetByIdModeMetadata {
     void setProtoLoadMode(Structure*, PropertyOffset, JSObject*);
 
     struct {
-        uint32_t padding1;
-        uint32_t padding2;
+        uint64_t padding1;
+        uint64_t padding2;
         uint32_t padding3;
         uint16_t padding4;
         GetByIdMode mode;
@@ -95,7 +95,7 @@ union GetByIdModeMetadata {
     GetByIdModeMetadataArrayLength arrayLengthMode;
     GetByIdModeMetadataProtoLoad protoLoadMode;
 };
-static_assert(sizeof(GetByIdModeMetadata) == 16);
+static_assert(sizeof(GetByIdModeMetadata) == 24);
 #else
 struct GetByIdModeMetadata {
     GetByIdModeMetadata()
