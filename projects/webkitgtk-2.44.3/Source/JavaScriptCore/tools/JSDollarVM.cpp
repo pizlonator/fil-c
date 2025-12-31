@@ -3731,7 +3731,7 @@ JSC_DEFINE_HOST_FUNCTION(functionGetStructureTransitionList, (JSGlobalObject* gl
 
     for (size_t i = 0; i < structures.size(); ++i) {
         auto* structure = structures[structures.size() - i - 1];
-        result->push(globalObject, JSValue(structure->id().bits()));
+        result->push(globalObject, JSValue(structure->id().hash()));
         RETURN_IF_EXCEPTION(scope, { });
         result->push(globalObject, JSValue(structure->transitionOffset()));
         RETURN_IF_EXCEPTION(scope, { });

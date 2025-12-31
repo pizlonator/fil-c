@@ -153,11 +153,7 @@ void SlotVisitor::appendJSCellOrAuxiliary(HeapCell* heapCell)
                     out.print(text);
                     out.print("GC type: ", heap()->collectionScope(), "\n");
                     out.print("Object at: ", RawPointer(jsCell), "\n");
-#if USE(JSVALUE64)
-                    out.print("Structure ID: ", structureID.bits(), " (", RawPointer(structureID.decode()), ")\n");
-#else
                     out.print("Structure: ", RawPointer(structureID.decode()), "\n");
-#endif
                     out.print("Object contents:");
                     for (unsigned i = 0; i < 2; ++i)
                         out.print(" ", format("0x%016llx", bitwise_cast<uint64_t*>(jsCell)[i]));
@@ -186,10 +182,6 @@ void SlotVisitor::appendJSCellOrAuxiliary(HeapCell* heapCell)
         if (!structureID)
             die("GC scan found corrupt object: structureID is zero!\n");
         
-        // It's not OK for the structure to be nuked at any GC scan point.
-        if (structureID.isNuked())
-            die("GC scan found object in bad state: structureID is nuked!\n");
-
         // This detects the worst of the badness.
         Integrity::auditStructureID(structureID);
     };

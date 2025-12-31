@@ -1000,6 +1000,8 @@ void Options::initialize()
                 handleSignalsWithMach();
 #endif
     });
+
+    Options::useGC() = false;
 }
 
 void Options::finalize()

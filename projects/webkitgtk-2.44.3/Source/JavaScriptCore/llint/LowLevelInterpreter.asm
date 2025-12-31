@@ -1325,8 +1325,8 @@ end
 macro arrayProfile(offset, cellAndIndexingType, metadata, scratch)
     const cell = cellAndIndexingType
     const indexingType = cellAndIndexingType 
-    loadi JSCell::m_structureID[cell], scratch
-    storei scratch, offset + ArrayProfile::m_lastSeenStructureID[metadata]
+    loadp JSCell::m_structureID[cell], scratch
+    storep scratch, offset + ArrayProfile::m_lastSeenStructureID[metadata]
     loadb JSCell::m_indexingTypeAndMisc[cell], indexingType
 end
 

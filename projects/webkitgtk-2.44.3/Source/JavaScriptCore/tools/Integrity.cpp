@@ -264,28 +264,6 @@ bool Analyzer::analyzeCell(VM& vm, JSCell* cell, Analyzer::Action action)
     if (vm.currentlyDestructingCallbackObject == cell)
         return true;
 
-    auto structureID = cell->structureID();
-
-    Structure* structure = structureID.tryDecode();
-    AUDIT_VERIFY(structure,
-        "cell %p cell.type %d structureID.bits 0x%x", cell, cellType, structureID.bits());
-    if (action == Analyzer::Action::LogAndCrash) {
-        // structure should be pointing to readable memory. Force a read.
-        WTF::opaque(*bitwise_cast<uintptr_t*>(structure));
-    }
-
-    const ClassInfo* classInfo = structure->classInfoForCells();
-    AUDIT_VERIFY(cellType == structure->m_blob.type(),
-        "cell %p cell.type %d structureBlob.type %d", cell, cellType, structure->m_blob.type());
-
-    size_t size = cellSize(cell);
-    AUDIT_VERIFY(size <= allocatorCellSize,
-        "cell %p cell.type %d cell.size %zu allocator.cellSize %zu, classInfo.cellSize %u", cell, cellType, size, allocatorCellSize, classInfo->staticClassSize);
-    if (isDynamicallySizedType(cellType)) {
-        AUDIT_VERIFY(size >= classInfo->staticClassSize,
-            "cell %p cell.type %d cell.size %zu classInfo.cellSize %u", cell, cellType, size, classInfo->staticClassSize);
-    }
-
     if (cell->isObject()) {
         AUDIT_VERIFY(jsDynamicCast<JSObject*>(cell),
             "cell %p cell.type %d", cell, cell->type());

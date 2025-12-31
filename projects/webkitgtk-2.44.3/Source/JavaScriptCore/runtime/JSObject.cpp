@@ -368,8 +368,6 @@ ALWAYS_INLINE Structure* JSObject::visitButterflyImpl(Visitor& visitor)
     // https://pdfs.semanticscholar.org/343f/7182cde7669ca2a7de3dc01127927f384ef7.pdf
     
     StructureID structureID = this->structureID();
-    if (structureID.isNuked())
-        return nullptr;
     structure = structureID.decode();
     maxOffset = structure->maxOffset();
     IndexingType indexingMode;

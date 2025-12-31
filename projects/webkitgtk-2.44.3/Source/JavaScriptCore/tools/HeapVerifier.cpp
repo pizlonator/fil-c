@@ -234,8 +234,7 @@ bool HeapVerifier::validateJSCell(VM* expectedVM, JSCell* cell, CellProfile* pro
         Structure* structure = structureID.decode();
         if (!structure) {
             printHeaderAndCell();
-            uint32_t structureIDAsUint32 = structureID.bits();
-            dataLog(" with structureID ", structureIDAsUint32, " maps to a NULL Structure pointer\n");
+            dataLog(" with structure ", RawPointer(structure), " maps to a NULL Structure pointer\n");
             return false;
         }
 

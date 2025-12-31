@@ -133,25 +133,25 @@ public:
 
     ALWAYS_INLINE static uint32_t primaryHash(StructureID structureID, UniquedStringImpl* uid)
     {
-        uint32_t sid = bitwise_cast<uint32_t>(structureID);
+        uint32_t sid = structureID.hash();
         return ((sid >> structureIDHashShift1) ^ (sid >> structureIDHashShift2)) + uid->hash();
     }
 
     ALWAYS_INLINE static uint32_t secondaryHash(StructureID structureID, UniquedStringImpl* uid)
     {
-        uint32_t key = bitwise_cast<uint32_t>(structureID) + static_cast<uint32_t>(bitwise_cast<uintptr_t>(uid));
+        uint32_t key = structureID.hash() + static_cast<uint32_t>(bitwise_cast<uintptr_t>(uid));
         return key + (key >> structureIDHashShift3);
     }
 
     ALWAYS_INLINE static uint32_t storeCachePrimaryHash(StructureID structureID, UniquedStringImpl* uid)
     {
-        uint32_t sid = bitwise_cast<uint32_t>(structureID);
+        uint32_t sid = structureID.hash();
         return ((sid >> structureIDHashShift1) ^ (sid >> structureIDHashShift4)) + uid->hash();
     }
 
     ALWAYS_INLINE static uint32_t storeCacheSecondaryHash(StructureID structureID, UniquedStringImpl* uid)
     {
-        uint32_t key = bitwise_cast<uint32_t>(structureID) + static_cast<uint32_t>(bitwise_cast<uintptr_t>(uid));
+        uint32_t key = structureID.hash() + static_cast<uint32_t>(bitwise_cast<uintptr_t>(uid));
         return key + (key >> structureIDHashShift5);
     }
 

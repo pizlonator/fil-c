@@ -952,9 +952,6 @@ Structure* Structure::flattenDictionaryStructure(VM& vm, JSObject* object)
 
     GCSafeConcurrentJSLocker locker(m_lock, vm);
 
-    object->setStructureIDDirectly(id().nuke());
-    WTF::storeStoreFence();
-
     if (isUncacheableDictionary()) {
         size_t propertyCount = table->size();
 
@@ -1001,9 +998,6 @@ Structure* Structure::flattenDictionaryStructure(VM& vm, JSObject* object)
         else
             object->shiftButterflyAfterFlattening(locker, vm, this, afterOutOfLineCapacity);
     }
-    
-    WTF::storeStoreFence();
-    object->setStructureIDDirectly(id());
 
     // We need to do a writebarrier here because the GC thread might be scanning the butterfly while
     // we are shuffling properties around. See: https://bugs.webkit.org/show_bug.cgi?id=166989
@@ -1412,9 +1406,7 @@ Ref<StructureShape> Structure::toStructureShape(JSValue value, bool& sawPolyProt
 
 void Structure::dump(PrintStream& out) const
 {
-    auto* structureID = reinterpret_cast<void*>(id().bits());
-    out.print(RawPointer(this), ":[", RawPointer(structureID),
-        "/", (uint32_t)(reinterpret_cast<uintptr_t>(structureID)), ", ",
+    out.print(RawPointer(this), ":[",
         classInfoForCells()->className, ", (", inlineSize(), "/", inlineCapacity(), ", ",
         outOfLineSize(), "/", outOfLineCapacity(), "){");
 

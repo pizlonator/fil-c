@@ -60,7 +60,6 @@ constexpr uintptr_t structureHeapAddressSize = 4 * GB;
 
 class StructureID {
 public:
-    static constexpr uint32_t nukedStructureIDBit = 1;
 
 #if ENABLE(STRUCTURE_ID_WITH_SHIFT)
     // ENABLE(STRUCTURE_ID_WITH_SHIFT) is used when our virtual memory space is limited (specifically, less than or equal to 36 bit) while pointer is 64 bit.
@@ -76,27 +75,22 @@ public:
     StructureID(StructureID const&) = default;
     StructureID& operator=(StructureID const&) = default;
 
-    StructureID nuke() const { return StructureID(m_bits | nukedStructureIDBit); }
-    bool isNuked() const { return m_bits & nukedStructureIDBit; }
-    StructureID decontaminate() const { return StructureID(m_bits & ~nukedStructureIDBit); }
-
     inline Structure* decode() const;
-    inline Structure* tryDecode() const;
     static StructureID encode(const Structure*);
 
     explicit operator bool() const { return !!m_bits; }
     friend bool operator==(const StructureID&, const StructureID&) = default;
-    constexpr uint32_t bits() const { return m_bits; }
 
-    StructureID(WTF::HashTableDeletedValueType) : m_bits(nukedStructureIDBit) { }
+    StructureID(WTF::HashTableDeletedValueType) : m_bits(bitwise_cast<Structure*>(static_cast<uintptr_t>(1))) { }
     bool isHashTableDeletedValue() const { return *this == StructureID(WTF::HashTableDeletedValue); }
 
-private:
-    explicit StructureID(uint32_t bits) : m_bits(bits) { }
+    uint32_t hash() const { return static_cast<uint32_t>(bitwise_cast<uintptr_t>(m_bits)); }
 
-    uint32_t m_bits { 0 };
+private:
+    explicit StructureID(Structure* bits) : m_bits(bits) { }
+
+    Structure* m_bits { nullptr };
 };
-static_assert(sizeof(StructureID) == sizeof(uint32_t));
 
 #if ENABLE(STRUCTURE_ID_WITH_SHIFT)
 
@@ -104,15 +98,6 @@ ALWAYS_INLINE Structure* StructureID::decode() const
 {
     ASSERT(decontaminate());
     return reinterpret_cast<Structure*>(static_cast<uintptr_t>(decontaminate().m_bits) << encodeShiftAmount);
-}
-
-ALWAYS_INLINE Structure* StructureID::tryDecode() const
-{
-    // Take care to only use the bits from m_bits in the structure's address reservation.
-    uintptr_t address = static_cast<uintptr_t>(decontaminate().m_bits) << encodeShiftAmount;
-    if (address < MarkedBlock::blockSize)
-        return nullptr;
-    return reinterpret_cast<Structure*>(address);
 }
 
 ALWAYS_INLINE StructureID StructureID::encode(const Structure* structure)
@@ -128,26 +113,12 @@ ALWAYS_INLINE StructureID StructureID::encode(const Structure* structure)
 ALWAYS_INLINE Structure* StructureID::decode() const
 {
     // Take care to only use the bits from m_bits in the structure's address reservation.
-    ASSERT(decontaminate());
-    return reinterpret_cast<Structure*>((static_cast<uintptr_t>(decontaminate().m_bits) & structureIDMask) + startOfStructureHeap());
-}
-
-ALWAYS_INLINE Structure* StructureID::tryDecode() const
-{
-    // Take care to only use the bits from m_bits in the structure's address reservation.
-    uintptr_t offset = static_cast<uintptr_t>(decontaminate().m_bits);
-    if (offset < MarkedBlock::blockSize || offset >= g_jscConfig.sizeOfStructureHeap)
-        return nullptr;
-    return reinterpret_cast<Structure*>((offset & structureIDMask) + startOfStructureHeap());
+    return m_bits;
 }
 
 ALWAYS_INLINE StructureID StructureID::encode(const Structure* structure)
 {
-    ASSERT(structure);
-    ASSERT(g_jscConfig.startOfStructureHeap <= reinterpret_cast<uintptr_t>(structure) && reinterpret_cast<uintptr_t>(structure) < startOfStructureHeap() + structureHeapAddressSize);
-    auto result = StructureID(reinterpret_cast<uintptr_t>(structure) & structureIDMask);
-    ASSERT(result.decode() == structure);
-    return result;
+    return StructureID(const_cast<Structure*>(structure));
 }
 
 #else // CPU(ADDRESS64)
@@ -163,16 +134,10 @@ ALWAYS_INLINE Structure* StructureID::tryDecode() const
     return reinterpret_cast<Structure*>(decontaminate().m_bits);
 }
 
-ALWAYS_INLINE StructureID StructureID::encode(const Structure* structure)
-{
-    ASSERT(structure);
-    return StructureID(reinterpret_cast<uint32_t>(structure));
-}
-
 #endif
 
 struct StructureIDHash {
-    static unsigned hash(const StructureID& key) { return key.bits(); }
+    static unsigned hash(const StructureID& key) { return key.hash(); }
     static bool equal(const StructureID& a, const StructureID& b) { return a == b; }
     static constexpr bool safeToCompareToEmptyOrDeleted = true;
 };

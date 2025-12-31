@@ -68,7 +68,7 @@ public:
 
     ALWAYS_INLINE static uint32_t hash(StructureID structureID, UniquedStringImpl* impl)
     {
-        return bitwise_cast<uint32_t>(structureID) + impl->hash();
+        return structureID.hash() + impl->hash();
     }
 
     ALWAYS_INLINE std::optional<bool> get(Structure* structure, PropertyName propName)

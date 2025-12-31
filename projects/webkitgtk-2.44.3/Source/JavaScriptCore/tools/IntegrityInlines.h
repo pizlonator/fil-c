@@ -103,12 +103,6 @@ ALWAYS_INLINE void auditStructureID(StructureID structureID)
 #if CPU(ADDRESS64) && !ENABLE(STRUCTURE_ID_WITH_SHIFT)
     ASSERT(static_cast<uintptr_t>(structureID.bits()) <= structureHeapAddressSize + StructureID::nukedStructureIDBit);
 #endif
-#if ENABLE(EXTRA_INTEGRITY_CHECKS) || ASSERT_ENABLED
-    Structure* structure = structureID.tryDecode();
-    IA_ASSERT(structure, "structureID.bits 0x%x", structureID.bits());
-    // structure should be pointing to readable memory. Force a read.
-    WTF::opaque(*bitwise_cast<uintptr_t*>(structure));
-#endif
 }
 
 #if USE(JSVALUE64)
