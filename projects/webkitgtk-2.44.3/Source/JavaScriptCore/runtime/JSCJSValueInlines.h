@@ -255,13 +255,13 @@ inline JSValue::JSValue(double d)
 
 inline EncodedJSValue JSValue::encode(JSValue value)
 {
-    return value.u.asInt64;
+    return value.u.encodedAsPtr;
 }
 
 inline JSValue JSValue::decode(EncodedJSValue encodedJSValue)
 {
     JSValue v;
-    v.u.asInt64 = encodedJSValue;
+    v.u.encodedAsPtr = encodedJSValue;
     return v;
 }
 

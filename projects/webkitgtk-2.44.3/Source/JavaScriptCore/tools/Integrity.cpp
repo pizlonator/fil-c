@@ -284,7 +284,7 @@ bool Analyzer::analyzeCell(JSCell* cell, Analyzer::Action action)
     if (!cell)
         return cell;
 
-    JSValue value = JSValue::decode(static_cast<EncodedJSValue>(bitwise_cast<uintptr_t>(cell)));
+    JSValue value = JSValue(cell);
     AUDIT_VERIFY(value.isCell(), "Invalid cell address: cell %p", cell);
 
     VM& vm = cell->vm();

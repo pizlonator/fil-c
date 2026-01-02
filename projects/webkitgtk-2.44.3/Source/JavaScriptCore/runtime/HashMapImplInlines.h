@@ -68,8 +68,9 @@ ALWAYS_INLINE JSValue normalizeMapKey(JSValue key)
     return key;
 }
 
-ALWAYS_INLINE uint32_t wangsInt64Hash(uint64_t key)
+ALWAYS_INLINE uint32_t wangsInt64Hash(EncodedJSValue encodedKey)
 {
+    uint64_t key = bitwise_cast<uint64_t>(encodedKey);
     key += ~(key << 32);
     key ^= (key >> 22);
     key += ~(key << 13);
@@ -133,7 +134,7 @@ ALWAYS_INLINE std::optional<uint32_t> concurrentJSMapHash(JSValue key)
     if (key.isHeapBigInt())
         return key.asHeapBigInt()->concurrentHash();
 
-    uint64_t rawValue = JSValue::encode(key);
+    EncodedJSValue rawValue = JSValue::encode(key);
     return wangsInt64Hash(rawValue);
 }
 

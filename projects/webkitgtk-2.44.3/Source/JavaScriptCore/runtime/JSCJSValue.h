@@ -86,7 +86,7 @@ enum PreferredPrimitiveType : uint8_t { NoPreference, PreferNumber, PreferString
 
 struct CallData;
 
-typedef int64_t EncodedJSValue;
+typedef void* EncodedJSValue;
 
 inline void updateEncodedJSValueConcurrent(EncodedJSValue&, EncodedJSValue);
 inline void clearEncodedJSValueConcurrent(EncodedJSValue&);
@@ -97,6 +97,7 @@ union EncodedValueDescriptor {
     double asDouble;
 #elif USE(JSVALUE64)
     JSCell* ptr;
+    void* encodedAsPtr;
 #endif
         
 #if CPU(BIG_ENDIAN)
@@ -546,7 +547,7 @@ private:
     EncodedValueDescriptor u;
 };
 
-typedef IntHash<EncodedJSValue> EncodedJSValueHash;
+typedef PtrHash<EncodedJSValue> EncodedJSValueHash;
 
 #if USE(JSVALUE32_64)
 struct EncodedJSValueHashTraits : HashTraits<EncodedJSValue> {

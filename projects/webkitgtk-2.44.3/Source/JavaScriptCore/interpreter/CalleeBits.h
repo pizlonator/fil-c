@@ -82,19 +82,19 @@ public:
 #elif USE(JSVALUE64)
     static EncodedJSValue encodeNullCallee()
     {
-        return reinterpret_cast<EncodedJSValue>(nullptr);
+        return static_cast<EncodedJSValue>(nullptr);
     }
 
     static EncodedJSValue encodeJSCallee(const JSCell* cell)
     {
         if (!cell)
             return encodeNullCallee();
-        return reinterpret_cast<EncodedJSValue>(cell);
+        return static_cast<EncodedJSValue>(const_cast<JSCell*>(cell));
     }
 
     static EncodedJSValue encodeBoxedNativeCallee(void* boxedCallee)
     {
-        return reinterpret_cast<EncodedJSValue>(boxedCallee);
+        return static_cast<EncodedJSValue>(boxedCallee);
     }
 #else
 #error "Unsupported configuration"

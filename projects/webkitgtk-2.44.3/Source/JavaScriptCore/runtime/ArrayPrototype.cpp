@@ -1135,7 +1135,7 @@ ALWAYS_INLINE JSValue fastIndexOf(JSGlobalObject* globalObject, VM& vm, JSArray*
 
         if (direction == IndexOfDirection::Forward) {
             if (searchElement.isObject()) {
-                auto* result = bitwise_cast<const WriteBarrier<Unknown>*>(WTF::find64(bitwise_cast<const uint64_t*>(data + index), JSValue::encode(searchElement), length - index));
+                auto* result = reinterpret_cast<const WriteBarrier<Unknown>*>(WTF::genericFind64<JSValue>(reinterpret_cast<const JSValue*>(data + index), searchElement, length - index));
                 if (result)
                     return jsNumber(result - data);
                 return jsNumber(-1);
@@ -1604,7 +1604,7 @@ JSC_DEFINE_HOST_FUNCTION(arrayProtoPrivateFuncFromFast, (JSGlobalObject* globalO
         }
     } else if (sourceType == ArrayWithInt32) {
         auto* buffer = butterfly->contiguous().data();
-        if (UNLIKELY(WTF::find64(bitwise_cast<const uint64_t*>(buffer), JSValue::encode(JSValue()), resultSize)))
+        if (UNLIKELY(WTF::genericFind64<JSValue>(reinterpret_cast<JSValue*>(buffer), JSValue(), resultSize)))
             resultType = ArrayWithContiguous;
     } else if (sourceType == ArrayWithUndecided && resultSize)
         resultType = ArrayWithContiguous;
