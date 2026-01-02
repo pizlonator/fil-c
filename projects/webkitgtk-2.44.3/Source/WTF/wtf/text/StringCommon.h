@@ -653,6 +653,16 @@ ALWAYS_INLINE const uint64_t* find64(const uint64_t* pointer, uint64_t character
 }
 #endif
 
+template <typename T>
+ALWAYS_INLINE const T* genericFind64(const T* pointer, T character, size_t length)
+{
+    for (size_t index = 0; index < length; ++index) {
+        if (pointer[index] == character)
+            return pointer + index;
+    }
+    return nullptr;
+}
+
 #if CPU(ARM64)
 WTF_EXPORT_PRIVATE const float* findFloatAlignedImpl(const float* pointer, float target, size_t length);
 
