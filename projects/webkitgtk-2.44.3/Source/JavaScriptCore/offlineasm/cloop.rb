@@ -172,6 +172,8 @@ class Immediate
         when :uint32;  "uint32_t(#{valueStr})"
         when :uint64;  "uint64_t(#{valueStr})"
         when :uintptr; "uintptr_t(#{valueStr})"
+        when :voidPtr; "(void*)(#{valueStr})"
+        when :int8Ptr; "(int8_t*)(#{valueStr})"
         else
             raise "Not implemented immediate of type: #{type}" 
         end
@@ -225,6 +227,9 @@ class Address
     end
     def intptrMemRef
         "*CAST<intptr_t*>(#{pointerExpr})"
+    end
+    def ptrMemRef
+        "*CAST<void**>(#{pointerExpr})"
     end
     def uint8MemRef
         "*CAST<uint8_t*>(#{pointerExpr})"
@@ -297,6 +302,9 @@ class BaseIndex
     end
     def intptrMemRef
         "*CAST<intptr_t*>(#{pointerExpr})"
+    end
+    def ptrMemRef
+        "*CAST<void**>(#{pointerExpr})"
     end
     def uint8MemRef
         "*CAST<uint8_t*>(#{pointerExpr})"
@@ -594,27 +602,37 @@ end
 
 class Instruction
     def lowerC_LOOP
+        if operands.size == 3
+            op1 = operands[0]
+            op2 = operands[1]
+            dst = operands[2]
+        elsif operands.size == 2
+            op1 = operands[1]
+            op2 = operands[0]
+            dst = operands[1]
+        else
+            op1 = operands[0]
+            op2 = operands[0]
+            dst = operands[0]
+        end
+
         case opcode
         when "addi"
             cloopEmitOperation(operands, :int32, "+")
         when "addq"
             cloopEmitOperation(operands, :int64, "+")
         when "addp"
-            cloopEmitOperation(operands, :intptr, "+")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = #{op1.clValue(:int8Ptr)} + #{op2.clValue(:intptr)};"
         when "andi"
             cloopEmitOperation(operands, :int32, "&")
         when "andq"
             cloopEmitOperation(operands, :int64, "&")
         when "andp"
-            cloopEmitOperation(operands, :intptr, "&")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = zmkptr(#{op1.clValue(:int8Ptr)}, #{op1.clValue(:intptr)} & #{op2.clValue(:intptr)});"
         when "ori"
             cloopEmitOperation(operands, :int32, "|")
         when "orq"
             cloopEmitOperation(operands, :int64, "|")
-        when "orp"
-            cloopEmitOperation(operands, :intptr, "|")
         when "orh"
             cloopEmitOperation(operands, :int16, "|")
 
@@ -622,51 +640,38 @@ class Instruction
             cloopEmitOperation(operands, :int32, "^")
         when "xorq"
             cloopEmitOperation(operands, :int64, "^")
-        when "xorp"
-            cloopEmitOperation(operands, :intptr, "^")
-
         when "lshifti"
             cloopEmitShiftOperation(operands, :int32, "<<")
         when "lshiftq"
             cloopEmitShiftOperation(operands, :int64, "<<")
         when "lshiftp"
-            cloopEmitShiftOperation(operands, :intptr, "<<")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = zmkptr(#{op1.clValue(:int8Ptr)}, #{op1.clValue(:intptr)} << #{op2.clValue(:intptr)});"
         when "rshifti"
             cloopEmitShiftOperation(operands, :int32, ">>")
         when "rshiftq"
             cloopEmitShiftOperation(operands, :int64, ">>")
-        when "rshiftp"
-            cloopEmitShiftOperation(operands, :intptr, ">>")
-
         when "urshifti"
             cloopEmitShiftOperation(operands, :uint32, ">>")
         when "urshiftq"
             cloopEmitShiftOperation(operands, :uint64, ">>")
-        when "urshiftp"
-            cloopEmitShiftOperation(operands, :uintptr, ">>")
-
         when "muli"
             cloopEmitOperation(operands, :int32, "*")
         when "mulq"
             cloopEmitOperation(operands, :int64, "*")
         when "mulp"
-            cloopEmitOperation(operands, :intptr, "*")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = zmkptr(#{op1.clValue(:int8Ptr)}, #{op1.clValue(:intptr)} * #{op2.clValue(:intptr)});"
         when "subi"
             cloopEmitOperation(operands, :int32, "-")
         when "subq"
             cloopEmitOperation(operands, :int64, "-")
         when "subp"
-            cloopEmitOperation(operands, :intptr, "-")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = #{op1.clValue(:int8Ptr)} - #{op2.clValue(:intptr)};"
         when "negi"
             cloopEmitUnaryOperation(operands, :int32, "-")
         when "negq"
             cloopEmitUnaryOperation(operands, :int64, "-")
         when "negp"
-            cloopEmitUnaryOperation(operands, :intptr, "-")
-
+            $asm.putc "#{dst.clLValue(:ptrMemRef)} = zmkptr(#{op1.clValue(:int8Ptr)}, -#{op1.clValue(:intptr)});"
         when "noti"
             cloopEmitUnaryOperation(operands, :int32, "~")
 
@@ -679,13 +684,13 @@ class Instruction
         when "loadq"
             $asm.putc "#{operands[1].clLValue(:int64)} = #{operands[0].int64MemRef};"
         when "loadp"
-            $asm.putc "#{operands[1].clLValue} = #{operands[0].intptrMemRef};"
+          $asm.putc "#{operands[1].clLValue(:ptrMemRef)} = #{operands[0].ptrMemRef};"
         when "storei"
             $asm.putc "#{operands[1].int32MemRef} = #{operands[0].clValue(:int32)};"
         when "storeq"
             $asm.putc "#{operands[1].int64MemRef} = #{operands[0].clValue(:int64)};"
         when "storep"
-            $asm.putc "#{operands[1].intptrMemRef} = #{operands[0].clValue(:intptr)};"
+            $asm.putc "#{operands[1].ptrMemRef} = #{operands[0].clValue(:voidPtr)};"
         when "loadb"
             $asm.putc "#{operands[1].clLValue(:intptr)} = #{operands[0].uint8MemRef};"
         when "loadbsi"
