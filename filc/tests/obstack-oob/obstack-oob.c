@@ -1,10 +1,11 @@
 #define _GNU_SOURCE
 #include <features.h>
 
+#include <stdlib.h>
+
 #ifdef __USE_GNU
 
 #include <stdfil.h>
-#include <stdlib.h>
 #include <obstack.h>
 #include <stddef.h>
 
@@ -24,5 +25,11 @@ int main()
 
     return 0;
 }
-
+#else
+int main()
+{
+    char* p1 = malloc(1);
+    p1[10000] = 'f';
+    return 0;
+}
 #endif // __USE_GNU
