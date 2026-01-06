@@ -92,25 +92,11 @@ _obstack_begin_worker (struct obstack *h,
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
-  if (size == 0)
-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
-    {
-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-         Use the values for range checking, because if range checking is off,
-         the extra bytes won't be missed terribly, but if range checking is on
-         and we used a larger request, a whole extra 4096 bytes would be
-         allocated.
 
-         These number are irrelevant to the new GNU malloc.  I suspect it is
-         less sensitive to the size of the request.  */
-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-                    + 4 + DEFAULT_ROUNDING - 1)
-                   & ~(DEFAULT_ROUNDING - 1));
-      size = 4096 - extra;
-    }
-
-  h->chunk_size = size;
   h->alignment_mask = alignment - 1;
+
+  size = sizeof (struct _obstack_chunk) + h->alignment_mask;
+  h->chunk_size = size;
 
   chunk = h->chunk = call_chunkfun (h, h->chunk_size);
   if (!chunk)
@@ -166,19 +152,19 @@ _obstack_newchunk (struct obstack *h, _OBSTACK_SIZE_T length)
   char *object_base;
 
   /* Compute size for new chunk.  */
-  size_t sum1 = obj_size + length;
-  size_t sum2 = sum1 + h->alignment_mask;
-  size_t new_size = sum2 + (obj_size >> 3) + 100;
-  if (new_size < sum2)
-    new_size = sum2;
-  if (new_size < h->chunk_size)
-    new_size = h->chunk_size;
+  size_t new_size;
+  if (obj_size)
+    new_size = 2 * (obj_size + length);
+  else
+    new_size = length;
+  new_size += sizeof (struct _obstack_chunk) + h->alignment_mask;
 
   /* Allocate and initialize the new chunk.  */
-  if (obj_size <= sum1 && sum1 <= sum2)
+  if (new_size >= length && new_size >= obj_size)
     new_chunk = call_chunkfun (h, new_size);
   if (!new_chunk)
     (*obstack_alloc_failed_handler)();
+
   h->chunk = new_chunk;
   new_chunk->prev = old_chunk;
   new_chunk->limit = h->chunk_limit = (char *) new_chunk + new_size;

@@ -356,8 +356,7 @@ __extension__								\
 __extension__								\
 ({ struct obstack *__o = (OBSTACK);					\
    int __len = (length);						\
-   if (__o->chunk_limit - __o->next_free < __len)			\
-     _obstack_newchunk (__o, __len);					\
+   _obstack_newchunk (__o, __len);					\
    obstack_blank_fast (__o, __len);					\
    (void) 0; })
 
@@ -467,8 +466,7 @@ __extension__								\
 
 # define obstack_blank(h,length)					\
 ( (h)->temp.tempint = (length),						\
-  (((h)->chunk_limit - (h)->next_free < (h)->temp.tempint)		\
-   ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
+  _obstack_newchunk ((h), (h)->temp.tempint),		\
   obstack_blank_fast (h, (h)->temp.tempint))
 
 # define obstack_alloc(h,length)					\

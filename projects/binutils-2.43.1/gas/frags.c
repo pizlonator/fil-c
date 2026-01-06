@@ -72,8 +72,8 @@ frag_alloc_check (const struct obstack *ob)
    Call this routine from everywhere else, so that all the weird alignment
    hackery can be done in just one place.  */
 
-fragS *
-frag_alloc (struct obstack *ob)
+static fragS *
+frag_alloc_impl (struct obstack *ob, size_t size)
 {
   fragS *ptr;
   int oalign;
@@ -81,62 +81,24 @@ frag_alloc (struct obstack *ob)
   (void) obstack_alloc (ob, 0);
   oalign = obstack_alignment_mask (ob);
   obstack_alignment_mask (ob) = 0;
-  ptr = (fragS *) obstack_alloc (ob, SIZEOF_STRUCT_FRAG);
+
+  obstack_blank (ob, SIZEOF_STRUCT_FRAG + size);
+  ptr = (fragS *)obstack_base (ob);
+  ob->next_free -= size;
+  obstack_finish (ob);
+
   obstack_alignment_mask (ob) = oalign;
   memset (ptr, 0, SIZEOF_STRUCT_FRAG);
   totalfrags++;
   return ptr;
 }
-
-/* Try to augment current frag by nchars chars.
-   If there is no room, close off the current frag with a ".fill 0"
-   and begin a new frag.  Then loop until the new frag has at least
-   nchars chars available.  Does not set up any fields in frag_now.  */
 
-void
-frag_grow (size_t nchars)
+fragS *
+frag_alloc (struct obstack *ob)
 {
-  if (obstack_room (&frchain_now->frch_obstack) < nchars)
-    {
-      size_t oldc;
-      size_t newc;
-
-      /* Try to allocate a bit more than needed right now.  But don't do
-         this if we would waste too much memory.  Especially necessary
-         for extremely big (like 2GB initialized) frags.  */
-      if (nchars < 0x10000)
-        newc = 2 * nchars;
-      else
-        newc = nchars + 0x10000;
-      newc += SIZEOF_STRUCT_FRAG;
-
-      /* Check for possible overflow.  */
-      if (newc < nchars)
-	as_fatal (ngettext ("can't extend frag %lu char",
-			    "can't extend frag %lu chars",
-			    (unsigned long) nchars),
-		  (unsigned long) nchars);
-
-      /* Force to allocate at least NEWC bytes, but not less than the
-         default.  */
-      oldc = obstack_chunk_size (&frchain_now->frch_obstack);
-      if (newc > oldc)
-	obstack_chunk_size (&frchain_now->frch_obstack) = newc;
-
-      while (obstack_room (&frchain_now->frch_obstack) < nchars)
-        {
-          /* Not enough room in this frag.  Close it and start a new one.
-             This must be done in a loop because the created frag may not
-             be big enough if the current obstack chunk is used.  */
-          frag_wane (frag_now);
-          frag_new (0);
-        }
-
-      /* Restore the old chunk size.  */
-      obstack_chunk_size (&frchain_now->frch_obstack) = oldc;
-    }
+  return frag_alloc_impl(ob, 100);
 }
-
+
 /* Call this to close off a completed frag, and start up a new (empty)
    frag, in the same subsegment as the old frag.
    [frchain_now remains the same but frag_now is updated.]
@@ -154,10 +116,8 @@ frag_grow (size_t nchars)
    Make a new frag, initialising some components. Link new frag at end
    of frchain_now.  */
 
-void
-frag_new (size_t old_frags_var_max_size
-	  /* Number of chars (already allocated on obstack frags) in
-	     variable_length part of frag.  */)
+static void 
+frag_new_impl (size_t old_frags_var_max_size, size_t new_frag_size)
 {
   fragS *former_last_fragP;
   frchainS *frchP;
@@ -180,7 +140,7 @@ frag_new (size_t old_frags_var_max_size
   former_last_fragP = frchP->frch_last;
   gas_assert (former_last_fragP != 0);
   gas_assert (former_last_fragP == frag_now);
-  frag_now = frag_alloc (&frchP->frch_obstack);
+  frag_now = frag_alloc_impl (&frchP->frch_obstack, new_frag_size);
 
   frag_now->fr_file = as_where (&frag_now->fr_line);
 
@@ -202,6 +162,57 @@ frag_new (size_t old_frags_var_max_size
 
   frag_now->fr_next = NULL;
 }
+
+void
+frag_new (size_t old_frags_var_max_size
+	  /* Number of chars (already allocated on obstack frags) in
+	     variable_length part of frag.  */)
+{
+  frag_new_impl(old_frags_var_max_size, 100);
+}
+
+/* Try to augment current frag by nchars chars.
+   If there is no room, close off the current frag with a ".fill 0"
+   and begin a new frag.  Then loop until the new frag has at least
+   nchars chars available.  Does not set up any fields in frag_now.  */
+
+void
+frag_grow (size_t nchars)
+{
+  if (obstack_room (&frchain_now->frch_obstack) < nchars)
+    {
+      size_t newc;
+
+      /* Try to allocate a bit more than needed right now.  But don't do
+         this if we would waste too much memory.  Especially necessary
+         for extremely big (like 2GB initialized) frags.  */
+      if (nchars < 0x10000)
+        newc = 2 * nchars;
+      else
+        newc = nchars + 0x10000;
+      newc += SIZEOF_STRUCT_FRAG;
+
+      /* Check for possible overflow.  */
+      if (newc < nchars)
+	as_fatal (ngettext ("can't extend frag %lu char",
+			    "can't extend frag %lu chars",
+			    (unsigned long) nchars),
+		  (unsigned long) nchars);
+
+      /* Force to allocate at least NEWC bytes, but not less than the
+         default.  */
+
+      while (obstack_room (&frchain_now->frch_obstack) < nchars)
+        {
+          /* Not enough room in this frag.  Close it and start a new one.
+             This must be done in a loop because the created frag may not
+             be big enough if the current obstack chunk is used.  */
+          frag_wane (frag_now);
+          frag_new_impl (0, nchars);
+        }
+    }
+}
+
 
 /* Start a new frag unless we have n more chars of room in the current frag.
    Close off the old frag with a .fill 0.

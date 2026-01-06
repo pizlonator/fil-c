@@ -142,27 +142,12 @@ _obstack_begin (struct obstack *h,
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
-  if (size == 0)
-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
-    {
-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-	 Use the values for range checking, because if range checking is off,
-	 the extra bytes won't be missed terribly, but if range checking is on
-	 and we used a larger request, a whole extra 4096 bytes would be
-	 allocated.
-
-	 These number are irrelevant to the new GNU malloc.  I suspect it is
-	 less sensitive to the size of the request.  */
-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-		    + 4 + DEFAULT_ROUNDING - 1)
-		   & ~(DEFAULT_ROUNDING - 1));
-      size = 4096 - extra;
-    }
 
   h->chunkfun.plain = chunkfun;
   h->freefun.plain = freefun;
-  h->chunk_size = size;
   h->alignment_mask = alignment - 1;
+  size = sizeof (struct _obstack_chunk) + h->alignment_mask;
+  h->chunk_size = size;
   h->use_extra_arg = 0;
 
   chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size);
@@ -189,28 +174,13 @@ _obstack_begin_1 (struct obstack *h, int size, int alignment,
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
-  if (size == 0)
-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
-    {
-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-	 Use the values for range checking, because if range checking is off,
-	 the extra bytes won't be missed terribly, but if range checking is on
-	 and we used a larger request, a whole extra 4096 bytes would be
-	 allocated.
-
-	 These number are irrelevant to the new GNU malloc.  I suspect it is
-	 less sensitive to the size of the request.  */
-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-		    + 4 + DEFAULT_ROUNDING - 1)
-		   & ~(DEFAULT_ROUNDING - 1));
-      size = 4096 - extra;
-    }
 
   h->chunkfun.extra = (struct _obstack_chunk * (*)(void *,long)) chunkfun;
   h->freefun.extra = (void (*) (void *, struct _obstack_chunk *)) freefun;
 
-  h->chunk_size = size;
   h->alignment_mask = alignment - 1;
+  size = sizeof (struct _obstack_chunk) + h->alignment_mask;
+  h->chunk_size = size;
   h->extra_arg = arg;
   h->use_extra_arg = 1;
 
@@ -246,9 +216,11 @@ _obstack_newchunk (struct obstack *h, int length)
   char *object_base;
 
   /* Compute size for new chunk.  */
-  new_size = (obj_size + length) + (obj_size >> 3) + h->alignment_mask + 100;
-  if (new_size < h->chunk_size)
-    new_size = h->chunk_size;
+  if (obj_size)
+    new_size = 2 * (obj_size + length);
+  else
+    new_size = length;
+  new_size += sizeof (struct _obstack_chunk) + h->alignment_mask;
 
   /* Allocate and initialize the new chunk.  */
   new_chunk = CALL_CHUNKFUN (h, new_size);
