@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2026 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,7 +27,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9018"
+BASE_BENCHMARK_NAME = "PizBench9019"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -476,6 +476,13 @@ $benchmarks << Benchmark.new(
     "-d < benchmarkData/libcrypto.3.dylib.br > benchmarkOutput/libcrypto.3.dylib",
     [
         "diff -q benchmarkOutput/libcrypto.3.dylib benchmarkData/libcrypto.3.dylib"
+    ])
+
+$benchmarks << Benchmark.new(
+    "bin/bison",
+    "--no-lines --warnings=none --output=benchmarkOutput/bison-output.c benchmarkData/bison-grammar.y",
+    [
+      "diff -q benchmarkOutput/bison-output.c benchmarkData/bison-output.c"
     ])
 
 $plugins.each {
