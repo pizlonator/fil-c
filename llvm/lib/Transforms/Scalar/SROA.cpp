@@ -1105,8 +1105,10 @@ private:
                         << AllocSize << " byte alloca:\n"
                         << "    alloca: " << AS.AI << "\n"
                         << "       use: " << I << "\n");
-      if (Size && I.getModule()->getDataLayout().isFilC())
+      if (Size && I.getModule()->getDataLayout().isFilC()) {
+        errs() << "aborting in insertUse, size nonzero\n";
         return PI.setAborted(&I);
+      }
       return markAsDead(I);
     }
 
@@ -1127,8 +1129,10 @@ private:
                         << "    alloca: " << AS.AI << "\n"
                         << "       use: " << I << "\n");
       EndOffset = AllocSize;
-      if (I.getModule()->getDataLayout().isFilC())
+      if (I.getModule()->getDataLayout().isFilC()) {
+        errs() << "aborting in insertUse, size greater than alloc size - begin offset\n";
         PI.setAborted(&I);
+      }
     }
 
     AS.Slices.push_back(Slice(BeginOffset, EndOffset, U, IsSplittable));
@@ -1207,8 +1211,10 @@ private:
                         << AllocSize << " byte alloca:\n"
                         << "    alloca: " << AS.AI << "\n"
                         << "       use: " << SI << "\n");
-      if (SI.getModule()->getDataLayout().isFilC())
+      if (SI.getModule()->getDataLayout().isFilC()) {
+        errs() << "Aborting in visitStoreInst, size above allocsize, or offset oob\n";
         return PI.setAborted(&SI);
+      }
       return markAsDead(SI);
     }
 
@@ -1223,8 +1229,10 @@ private:
     if ((Length && Length->getValue() == 0) ||
         (IsOffsetKnown && Offset.uge(AllocSize))) {
       // Zero-length mem transfer intrinsics can be ignored entirely.
-      if (Length && II.getModule()->getDataLayout().isFilC())
+      if (Length && II.getModule()->getDataLayout().isFilC()) {
+        errs() << "Aborting in visitmemsetinst, length nonzero\n";
         return PI.setAborted(&II);
+      }
       return markAsDead(II);
     }
 
@@ -1261,8 +1269,10 @@ private:
           MemTransferSliceMap.find(&II);
       if (MTPI != MemTransferSliceMap.end())
         AS.Slices[MTPI->second].kill();
-      if (II.getModule()->getDataLayout().isFilC())
+      if (II.getModule()->getDataLayout().isFilC()) {
+        errs() << "aborting in visitmemtransfeterinst, offset oob\n";
         return PI.setAborted(&II);
+      }
       return markAsDead(II);
     }
 
@@ -1445,8 +1455,10 @@ private:
     // FIXME: This should instead be escaped in the event we're instrumenting
     // for address sanitization.
     if (Offset.uge(AllocSize)) {
-      if (I.getModule()->getDataLayout().isFilC())
+      if (I.getModule()->getDataLayout().isFilC()) {
+        errs() << "aborting in phi, offset oob\n";
         return PI.setAborted(&I);
+      }
       AS.DeadOperands.push_back(U);
       return;
     }
@@ -2029,13 +2041,25 @@ static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy) {
 
     // We can convert integers to integral pointers, but not to non-integral
     // pointers.
-    if (OldTy->isIntegerTy())
+    if (OldTy->isIntegerTy()) {
+      if (DL.isFilC()) {
+        // HACK: Fil-C "nonintegral" AS 0 pointers are integral for the purposes of this.
+        if (NewTy->isPointerTy() && !NewTy->getPointerAddressSpace())
+          return true;
+      }
       return !DL.isNonIntegralPointerType(NewTy);
+    }
 
     // We can convert integral pointers to integers, but non-integral pointers
     // need to remain pointers.
-    if (!DL.isNonIntegralPointerType(OldTy))
-      return NewTy->isIntegerTy();
+    if (NewTy->isIntegerTy()) {
+      if (DL.isFilC()) {
+        // HACK: Fil-C "nonintegral" AS 0 pointers are integral for the purposes of this.
+        if (OldTy->isPointerTy() && !OldTy->getPointerAddressSpace())
+          return true;
+      }
+      return !DL.isNonIntegralPointerType(OldTy);
+    }
 
     return false;
   }
