@@ -31,6 +31,11 @@ ulimit -c unlimited
 NCPU=`nproc`
 NGIG=$(awk '/MemTotal/ {printf "%.0f\n", $2/1024/1024/2}' /proc/meminfo)
 
+if test -e launch_qemu_overrides.sh
+then
+    . launch_qemu_overrides.sh
+fi
+
 qemu-system-x86_64 -drive file=disk.img,format=raw \
                    -m ${NGIG}G \
                    -smp $NCPU \
