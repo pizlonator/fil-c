@@ -140,9 +140,14 @@ inline ToType bitwise_cast(FromType from)
     static_assert(__is_trivially_copyable(ToType), "bitwise_cast of non-trivially-copyable type!");
     static_assert(__is_trivially_copyable(FromType), "bitwise_cast of non-trivially-copyable type!");
 #endif
-    typename std::remove_const<ToType>::type to { };
-    std::memcpy(static_cast<void*>(&to), static_cast<void*>(&from), sizeof(to));
-    return to;
+    union U {
+        FromType from;
+        ToType to;
+        U(FromType from)
+            : from(from) {}
+    };
+    U u(from);
+    return u.to;
 }
 
 template<typename ToType, typename FromType>
