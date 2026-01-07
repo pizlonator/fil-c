@@ -44,7 +44,6 @@ namespace JSC {
 namespace LLInt {
 
 Opcode g_opcodeMap[numOpcodeIDs + numWasmOpcodeIDs] = { };
-Opcode g_opcodeMapWide16[numOpcodeIDs + numWasmOpcodeIDs] = { };
 Opcode g_opcodeMapWide32[numOpcodeIDs + numWasmOpcodeIDs] = { };
 
 #if !ENABLE(C_LOOP)
@@ -89,7 +88,6 @@ static void neuterOpcodeMaps()
 #endif
     for (unsigned i = 0; i < numOpcodeIDs + numWasmOpcodeIDs; ++i) {
         SET_CRASH_TARGET(g_opcodeMap[i]);
-        SET_CRASH_TARGET(g_opcodeMapWide16[i]);
         SET_CRASH_TARGET(g_opcodeMapWide32[i]);
     }
 #undef SET_CRASH_TARGET
@@ -106,10 +104,10 @@ void initialize()
     if (UNLIKELY(g_jscConfig.vmEntryDisallowed))
         neuterOpcodeMaps();
     else {
-        llint_entry(&g_opcodeMap, &g_opcodeMapWide16, &g_opcodeMapWide32);
+        llint_entry(&g_opcodeMap, nullptr, &g_opcodeMapWide32);
     
 #if ENABLE(WEBASSEMBLY)
-        wasm_entry(&g_opcodeMap[numOpcodeIDs], &g_opcodeMapWide16[numOpcodeIDs], &g_opcodeMapWide32[numOpcodeIDs]);
+        wasm_entry(&g_opcodeMap[numOpcodeIDs], nullptr, &g_opcodeMapWide32[numOpcodeIDs]);
 #endif // ENABLE(WEBASSEMBLY)
     }
 

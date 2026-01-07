@@ -348,12 +348,6 @@ macro nextInstruction()
     jmp [t1, t0, PtrSize], BytecodePtrTag, AddressDiversified
 end
 
-macro nextInstructionWide16()
-    loadb OpcodeIDNarrowSize[PB, PC, 1], t0
-    leap _g_opcodeMapWide16, t1
-    jmp [t1, t0, PtrSize], BytecodePtrTag, AddressDiversified
-end
-
 macro nextInstructionWide32()
     loadb OpcodeIDNarrowSize[PB, PC, 1], t0
     leap _g_opcodeMapWide32, t1
@@ -476,15 +470,16 @@ _%label%:
 # size, CLoop::execute gets higher stack height requirement. This makes CLoop::execute takes 160KB stack
 # per call, causes stack overflow error easily. For now, we disable wide16 optimization for Windows CLoop.
 # https://bugs.webkit.org/show_bug.cgi?id=198283
-if not C_LOOP_WIN
-_%label%_wide16:
-    prologue()
-    fn(wide16)
-    if ASSERT_ENABLED
-        break
-        break
-    end
-end
+# FIXME #2: Disable wide16 optimization for Fil-C
+# if not C_LOOP_WIN
+# _%label%_wide16:
+#     prologue()
+#     fn(wide16)
+#     if ASSERT_ENABLED
+#         break
+#         break
+#     end
+# end
 
 _%label%_wide32:
     prologue()
@@ -1991,7 +1986,7 @@ end)
 end // not (C_LOOP or C_LOOP_WIN)
 
 _llint_op_wide16:
-    nextInstructionWide16()
+    crash()
 
 _llint_op_wide32:
     nextInstructionWide32()

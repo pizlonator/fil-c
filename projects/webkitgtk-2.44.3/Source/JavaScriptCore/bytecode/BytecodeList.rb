@@ -1465,13 +1465,6 @@ op :llint_cloop_did_return_from_js_15
 op :llint_cloop_did_return_from_js_16
 op :llint_cloop_did_return_from_js_17
 op :llint_cloop_did_return_from_js_18
-op :llint_cloop_did_return_from_js_19
-op :llint_cloop_did_return_from_js_20
-op :llint_cloop_did_return_from_js_21
-op :llint_cloop_did_return_from_js_22
-op :llint_cloop_did_return_from_js_23
-op :llint_cloop_did_return_from_js_24
-op :llint_cloop_did_return_from_js_25
 
 end_section :CLoopReturnHelpers
 

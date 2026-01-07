@@ -44,7 +44,6 @@ typedef void (*LLIntCode)();
 namespace LLInt {
 
 extern "C" JS_EXPORT_PRIVATE JSC::Opcode g_opcodeMap[numOpcodeIDs + numWasmOpcodeIDs];
-extern "C" JS_EXPORT_PRIVATE JSC::Opcode g_opcodeMapWide16[numOpcodeIDs + numWasmOpcodeIDs];
 extern "C" JS_EXPORT_PRIVATE JSC::Opcode g_opcodeMapWide32[numOpcodeIDs + numWasmOpcodeIDs];
 
 class Data {
@@ -91,7 +90,8 @@ inline JSC::Opcode* opcodeMap()
 
 inline JSC::Opcode* opcodeMapWide16()
 {
-    return g_opcodeMapWide16;
+    UNREACHABLE_FOR_PLATFORM();
+    return nullptr;
 }
 
 inline JSC::Opcode* opcodeMapWide32()
@@ -111,7 +111,8 @@ inline JSC::Opcode getOpcode(OpcodeID id)
 inline JSC::Opcode getOpcodeWide16(OpcodeID id)
 {
 #if ENABLE(COMPUTED_GOTO_OPCODES)
-    return g_opcodeMapWide16[id];
+    UNUSED_PARAM(id);
+    return nullptr;
 #else
     UNUSED_PARAM(id);
     RELEASE_ASSERT_NOT_REACHED();
@@ -137,7 +138,9 @@ inline const JSC::Opcode* getOpcodeAddress(OpcodeID id)
 
 inline const JSC::Opcode* getOpcodeWide16Address(OpcodeID id)
 {
-    return &g_opcodeMapWide16[id];
+    UNREACHABLE_FOR_PLATFORM();
+    UNUSED_PARAM(id);
+    return nullptr;
 }
 
 inline const JSC::Opcode* getOpcodeWide32Address(OpcodeID id)
@@ -269,7 +272,9 @@ inline JSC::Opcode getOpcode(WasmOpcodeID id)
 inline JSC::Opcode getOpcodeWide16(WasmOpcodeID id)
 {
 #if ENABLE(COMPUTED_GOTO_OPCODES)
-    return g_opcodeMapWide16[numOpcodeIDs + id];
+    UNUSED_PARAM(id);
+    UNREACHABLE_FOR_PLATFORM();
+    return nullptr;
 #else
     UNUSED_PARAM(id);
     RELEASE_ASSERT_NOT_REACHED();
@@ -294,7 +299,9 @@ inline const JSC::Opcode* getOpcodeAddress(WasmOpcodeID id)
 
 inline const JSC::Opcode* getOpcodeWide16Address(WasmOpcodeID id)
 {
-    return &g_opcodeMapWide16[numOpcodeIDs + id];
+    UNREACHABLE_FOR_PLATFORM();
+    UNUSED_PARAM(id);
+    return nullptr;
 }
 
 inline const JSC::Opcode* getOpcodeWide32Address(WasmOpcodeID id)
