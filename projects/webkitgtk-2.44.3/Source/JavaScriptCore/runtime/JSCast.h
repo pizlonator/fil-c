@@ -236,7 +236,7 @@ template<typename Target, typename From>
 bool inherits(From* from)
 {
     using Dispatcher = InheritsTraits<Target>;
-    return Dispatcher::template inherits(from);
+    return Dispatcher::inherits(from);
 }
 
 } // namespace JSCastingHelpers
@@ -245,7 +245,7 @@ template<typename To, typename From>
 To jsDynamicCast(From* from)
 {
     using Dispatcher = JSCastingHelpers::InheritsTraits<typename std::remove_cv<typename std::remove_pointer<To>::type>::type>;
-    if (LIKELY(Dispatcher::template inherits(from)))
+    if (LIKELY(Dispatcher::inherits(from)))
         return static_cast<To>(from);
     return nullptr;
 }
