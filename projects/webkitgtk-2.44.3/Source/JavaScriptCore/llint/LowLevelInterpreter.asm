@@ -927,19 +927,19 @@ macro copyCalleeSavesToEntryFrameCalleeSavesBuffer(entryFrame)
             storepaird csfr4, csfr5, 112[entryFrame]
             storepaird csfr6, csfr7, 128[entryFrame]
         elsif X86_64
-            storeq csr0, [entryFrame]
-            storeq csr1, 8[entryFrame]
-            storeq csr2, 16[entryFrame]
-            storeq csr3, 24[entryFrame]
-            storeq csr4, 32[entryFrame]
+            storep csr0, [entryFrame]
+            storep csr1, 8[entryFrame]
+            storep csr2, 16[entryFrame]
+            storep csr3, 24[entryFrame]
+            storep csr4, 32[entryFrame]
         elsif X86_64_WIN
-            storeq csr0, [entryFrame]
-            storeq csr1, 8[entryFrame]
-            storeq csr2, 16[entryFrame]
-            storeq csr3, 24[entryFrame]
-            storeq csr4, 32[entryFrame]
-            storeq csr5, 40[entryFrame]
-            storeq csr6, 48[entryFrame]
+            storep csr0, [entryFrame]
+            storep csr1, 8[entryFrame]
+            storep csr2, 16[entryFrame]
+            storep csr3, 24[entryFrame]
+            storep csr4, 32[entryFrame]
+            storep csr5, 40[entryFrame]
+            storep csr6, 48[entryFrame]
         elsif ARMv7
             storep csr0, [entryFrame]
             storep csr1, 4[entryFrame]
@@ -1000,19 +1000,19 @@ macro restoreCalleeSavesFromVMEntryFrameCalleeSavesBuffer(vm, temp)
             loadpaird 112[temp], csfr4, csfr5
             loadpaird 128[temp], csfr6, csfr7
         elsif X86_64
-            loadq [temp], csr0
-            loadq 8[temp], csr1
-            loadq 16[temp], csr2
-            loadq 24[temp], csr3
-            loadq 32[temp], csr4
+            loadp [temp], csr0
+            loadp 8[temp], csr1
+            loadp 16[temp], csr2
+            loadp 24[temp], csr3
+            loadp 32[temp], csr4
         elsif X86_64_WIN
-            loadq [temp], csr0
-            loadq 8[temp], csr1
-            loadq 16[temp], csr2
-            loadq 24[temp], csr3
-            loadq 32[temp], csr4
-            loadq 40[temp], csr5
-            loadq 48[temp], csr6
+            loadp [temp], csr0
+            loadp 8[temp], csr1
+            loadp 16[temp], csr2
+            loadp 24[temp], csr3
+            loadp 32[temp], csr4
+            loadp 40[temp], csr5
+            loadp 48[temp], csr6
         elsif ARMv7
             loadp [temp], csr0
             loadp 4[temp], csr1
@@ -1485,9 +1485,9 @@ end
 macro getVMFromCallFrame(vm, scratch)
 if WEBASSEMBLY
         if JSVALUE64
-            loadq Callee[cfr], vm
+            loadp Callee[cfr], vm
             move vm, scratch
-            andq (constexpr JSValue::NativeCalleeMask), scratch
+            andp (constexpr JSValue::NativeCalleeMask), scratch
             bqeq scratch, (constexpr JSValue::NativeCalleeTag), .isWasmCallee
         else
             loadi Callee + TagOffset[cfr], scratch
@@ -1645,9 +1645,9 @@ macro functionInitialization(profileArgSkip)
     addp t2, t3 # pointer to end of ValueProfile array in the value profile array.
 .argumentProfileLoop:
     if JSVALUE64
-        loadq ThisArgumentOffset - 8 + profileArgSkip * 8[cfr, t0], t2
+        loadp ThisArgumentOffset - 8 + profileArgSkip * 8[cfr, t0], t2
         subp sizeof ArgumentValueProfile, t3
-        storeq t2, profileArgSkip * sizeof ArgumentValueProfile + ValueProfile::m_buckets[t3]
+        storep t2, profileArgSkip * sizeof ArgumentValueProfile + ValueProfile::m_buckets[t3]
     else
         subp sizeof ArgumentValueProfile, t3
         loadi ThisArgumentOffset + TagOffset - 8 + profileArgSkip * 8[cfr, t0], t1
