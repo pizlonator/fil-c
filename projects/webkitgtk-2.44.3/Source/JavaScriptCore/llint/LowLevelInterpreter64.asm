@@ -682,70 +682,27 @@ macro loadConstantOrVariableCell(size, index, value, slow)
 end
 
 macro writeBarrierOnCellWithReload(cell, reloadAfterSlowPath)
-    skipIfIsRememberedOrInEden(
-        cell,
-        macro()
-            push PB, PC
-            move cell, a1 # cell can be a0
-            move cfr, a0
-            cCall2Void(_llint_write_barrier_slow)
-            pop PC, PB
-            reloadAfterSlowPath()
-        end)
 end
 
 macro writeBarrierOnCellAndValueWithReload(cell, value, reloadAfterSlowPath)
-    btqnz value, notCellMask, .writeBarrierDone
-    btqz value, .writeBarrierDone
-    writeBarrierOnCellWithReload(cell, reloadAfterSlowPath)
-.writeBarrierDone:
 end
 
 macro writeBarrierOnOperandWithReload(size, get, cellFieldName, reloadAfterSlowPath)
-    get(cellFieldName, t1)
-    loadConstantOrVariableCell(size, t1, t2, .writeBarrierDone)
-    writeBarrierOnCellWithReload(t2, reloadAfterSlowPath)
-.writeBarrierDone:
 end
 
 macro writeBarrierOnOperand(size, get, cellFieldName)
-    writeBarrierOnOperandWithReload(size, get, cellFieldName, macro () end)
 end
 
 macro writeBarrierOnOperands(size, get, cellFieldName, valueFieldName)
-    get(valueFieldName, t1)
-    loadConstantOrVariableCell(size, t1, t0, .writeBarrierDone)
-    btpz t0, .writeBarrierDone
-
-    writeBarrierOnOperand(size, get, cellFieldName)
-.writeBarrierDone:
 end
 
 macro writeBarrierOnGlobal(size, get, valueFieldName, loadMacro)
-    get(valueFieldName, t1)
-    loadConstantOrVariableCell(size, t1, t0, .writeBarrierDone)
-    btpz t0, .writeBarrierDone
-
-    loadMacro(t3)
-    writeBarrierOnCellWithReload(t3, macro() end)
-.writeBarrierDone:
 end
 
 macro writeBarrierOnGlobalObject(size, get, valueFieldName)
-    writeBarrierOnGlobal(size, get, valueFieldName,
-        macro(registerToStoreGlobal)
-            loadp CodeBlock[cfr], registerToStoreGlobal
-            loadp CodeBlock::m_globalObject[registerToStoreGlobal], registerToStoreGlobal
-        end)
 end
 
 macro writeBarrierOnGlobalLexicalEnvironment(size, get, valueFieldName)
-    writeBarrierOnGlobal(size, get, valueFieldName,
-        macro(registerToStoreGlobal)
-            loadp CodeBlock[cfr], registerToStoreGlobal
-            loadp CodeBlock::m_globalObject[registerToStoreGlobal], registerToStoreGlobal
-            loadp JSGlobalObject::m_globalLexicalEnvironment[registerToStoreGlobal], registerToStoreGlobal
-        end)
 end
 
 macro loadStructureWithScratch(cell, structure, scratch)

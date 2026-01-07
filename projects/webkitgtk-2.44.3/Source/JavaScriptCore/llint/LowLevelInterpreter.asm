@@ -1438,10 +1438,6 @@ macro getByValTypedArray(base, index, finishIntGetByVal, finishDoubleGetByVal, s
 end
 
 macro skipIfIsRememberedOrInEden(cell, slowPath)
-    memfence
-    bba JSCell::m_cellState[cell], BlackThreshold, .done
-    slowPath()
-.done:
 end
 
 macro notifyWrite(set, slow)
