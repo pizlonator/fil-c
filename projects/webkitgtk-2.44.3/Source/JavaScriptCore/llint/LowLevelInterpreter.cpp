@@ -148,71 +148,69 @@ class CallLinkInfo;
 
 class CLoopRegister {
 public:
-    ALWAYS_INLINE intptr_t i() const { return m_u.asInt; };
-    ALWAYS_INLINE uintptr_t u() const { return m_u.asInt; }
-    ALWAYS_INLINE int32_t i32() const { return m_u.asInt; }
-    ALWAYS_INLINE uint32_t u32() const { return m_u.asInt; }
-    ALWAYS_INLINE int8_t i8() const { return m_u.asInt; }
-    ALWAYS_INLINE uint8_t u8() const { return m_u.asInt; }
+    ALWAYS_INLINE intptr_t i() const { return asInt(); };
+    ALWAYS_INLINE uintptr_t u() const { return asInt(); }
+    ALWAYS_INLINE int32_t i32() const { return asInt(); }
+    ALWAYS_INLINE uint32_t u32() const { return asInt(); }
+    ALWAYS_INLINE int8_t i8() const { return asInt(); }
+    ALWAYS_INLINE uint8_t u8() const { return asInt(); }
 
-    ALWAYS_INLINE intptr_t* ip() const { return bitwise_cast<intptr_t*>(m_u.asPtr); }
-    ALWAYS_INLINE int8_t* i8p() const { return bitwise_cast<int8_t*>(m_u.asPtr); }
-    ALWAYS_INLINE void* vp() const { return bitwise_cast<void*>(m_u.asPtr); }
-    ALWAYS_INLINE const void* cvp() const { return bitwise_cast<const void*>(m_u.asPtr); }
-    ALWAYS_INLINE CallFrame* callFrame() const { return bitwise_cast<CallFrame*>(m_u.asPtr); }
-    ALWAYS_INLINE const void* instruction() const { return bitwise_cast<const void*>(m_u.asPtr); }
-    ALWAYS_INLINE VM* vm() const { return bitwise_cast<VM*>(m_u.asPtr); }
-    ALWAYS_INLINE JSCell* cell() const { return bitwise_cast<JSCell*>(m_u.asPtr); }
-    ALWAYS_INLINE ProtoCallFrame* protoCallFrame() const { return bitwise_cast<ProtoCallFrame*>(m_u.asPtr); }
-    ALWAYS_INLINE NativeFunction nativeFunc() const { return bitwise_cast<NativeFunction>(m_u.asPtr); }
+    ALWAYS_INLINE intptr_t* ip() const { return bitwise_cast<intptr_t*>(asPtr); }
+    ALWAYS_INLINE int8_t* i8p() const { return bitwise_cast<int8_t*>(asPtr); }
+    ALWAYS_INLINE void* vp() const { return bitwise_cast<void*>(asPtr); }
+    ALWAYS_INLINE const void* cvp() const { return bitwise_cast<const void*>(asPtr); }
+    ALWAYS_INLINE CallFrame* callFrame() const { return bitwise_cast<CallFrame*>(asPtr); }
+    ALWAYS_INLINE const void* instruction() const { return bitwise_cast<const void*>(asPtr); }
+    ALWAYS_INLINE VM* vm() const { return bitwise_cast<VM*>(asPtr); }
+    ALWAYS_INLINE JSCell* cell() const { return bitwise_cast<JSCell*>(asPtr); }
+    ALWAYS_INLINE ProtoCallFrame* protoCallFrame() const { return bitwise_cast<ProtoCallFrame*>(asPtr); }
+    ALWAYS_INLINE NativeFunction nativeFunc() const { return bitwise_cast<NativeFunction>(asPtr); }
 #if USE(JSVALUE64)
-    ALWAYS_INLINE int64_t i64() const { return m_u.asInt; }
-    ALWAYS_INLINE uint64_t u64() const { return m_u.asInt; }
-    ALWAYS_INLINE EncodedJSValue encodedJSValue() const { return bitwise_cast<EncodedJSValue>(m_u.asPtr); }
+    ALWAYS_INLINE int64_t i64() const { return asInt(); }
+    ALWAYS_INLINE uint64_t u64() const { return asInt(); }
+    ALWAYS_INLINE EncodedJSValue encodedJSValue() const { return bitwise_cast<EncodedJSValue>(asPtr); }
 #endif
-    ALWAYS_INLINE Opcode opcode() const { return bitwise_cast<Opcode>(m_u.asInt); }
+    ALWAYS_INLINE Opcode opcode() const { return bitwise_cast<Opcode>(asInt()); }
 
-    operator CallFrame*() { return bitwise_cast<CallFrame*>(m_u.asPtr); }
-    operator const JSInstruction*() { return bitwise_cast<const JSInstruction*>(m_u.asPtr); }
-    operator JSCell*() { return bitwise_cast<JSCell*>(m_u.asPtr); }
-    operator ProtoCallFrame*() { return bitwise_cast<ProtoCallFrame*>(m_u.asPtr); }
-    operator Register*() { return bitwise_cast<Register*>(m_u.asPtr); }
-    operator VM*() { return bitwise_cast<VM*>(m_u.asPtr); }
-    operator CallLinkInfo*() { return bitwise_cast<CallLinkInfo*>(m_u.asPtr); }
+    operator CallFrame*() { return bitwise_cast<CallFrame*>(asPtr); }
+    operator const JSInstruction*() { return bitwise_cast<const JSInstruction*>(asPtr); }
+    operator JSCell*() { return bitwise_cast<JSCell*>(asPtr); }
+    operator ProtoCallFrame*() { return bitwise_cast<ProtoCallFrame*>(asPtr); }
+    operator Register*() { return bitwise_cast<Register*>(asPtr); }
+    operator VM*() { return bitwise_cast<VM*>(asPtr); }
+    operator CallLinkInfo*() { return bitwise_cast<CallLinkInfo*>(asPtr); }
 
     template<typename T, typename = std::enable_if_t<sizeof(T) == sizeof(uintptr_t)>>
     ALWAYS_INLINE void operator=(T value) {
         if constexpr (std::is_pointer_v<T>)
         {
-            m_u.asPtr = bitwise_cast<void*>(value);
+            asPtr = bitwise_cast<void*>(value);
         }
         else
         {
-            m_u.asInt = bitwise_cast<uintptr_t>(value);
+            assignAsInt(bitwise_cast<uintptr_t>(value));
         }
     }
 
 #if USE(JSVALUE64)
-    ALWAYS_INLINE void operator=(int32_t value) { m_u.asInt = static_cast<intptr_t>(value); }
-    ALWAYS_INLINE void operator=(uint32_t value) { m_u.asInt = static_cast<uintptr_t>(value); }
+    ALWAYS_INLINE void operator=(int32_t value) { assignAsInt(static_cast<intptr_t>(value)); }
+    ALWAYS_INLINE void operator=(uint32_t value) { assignAsInt(static_cast<uintptr_t>(value)); }
 #endif
-    ALWAYS_INLINE void operator=(int16_t value) { m_u.asInt = static_cast<intptr_t>(value); }
-    ALWAYS_INLINE void operator=(uint16_t value) { m_u.asInt = static_cast<uintptr_t>(value); }
-    ALWAYS_INLINE void operator=(int8_t value) { m_u.asInt = static_cast<intptr_t>(value); }
-    ALWAYS_INLINE void operator=(uint8_t value) { m_u.asInt = static_cast<uintptr_t>(value); }
-    ALWAYS_INLINE void operator=(bool value) { m_u.asInt = static_cast<uintptr_t>(value); }
+    ALWAYS_INLINE void operator=(int16_t value) { assignAsInt(static_cast<intptr_t>(value)); }
+    ALWAYS_INLINE void operator=(uint16_t value) { assignAsInt(static_cast<uintptr_t>(value)); }
+    ALWAYS_INLINE void operator=(int8_t value) { assignAsInt(static_cast<intptr_t>(value)); }
+    ALWAYS_INLINE void operator=(uint8_t value) { assignAsInt(static_cast<uintptr_t>(value)); }
+    ALWAYS_INLINE void operator=(bool value) { assignAsInt(static_cast<uintptr_t>(value)); }
 
 #if USE(JSVALUE64)
-    ALWAYS_INLINE double bitsAsDouble() const { return bitwise_cast<double>(m_u.asInt); }
-    ALWAYS_INLINE int64_t bitsAsInt64() const { return bitwise_cast<int64_t>(m_u.asInt); }
+    ALWAYS_INLINE double bitsAsDouble() const { return bitwise_cast<double>(asInt()); }
+    ALWAYS_INLINE int64_t bitsAsInt64() const { return bitwise_cast<int64_t>(asInt()); }
 #endif
 
 private:
-    union
-    {
-        uintptr_t asInt { static_cast<uintptr_t>(0xbadbeef0baddbeef) };
-        void* asPtr;
-    } m_u;
+    ALWAYS_INLINE uintptr_t asInt() const { return bitwise_cast<uintptr_t>(asPtr); }
+    ALWAYS_INLINE void assignAsInt(uintptr_t intValue) { asPtr = bitwise_cast<void*>(intValue); }
+    void* asPtr { bitwise_cast<void*>(0xbadbeef0baddbeef) };
 };
 
 class CLoopDoubleRegister {
