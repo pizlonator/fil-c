@@ -42,7 +42,6 @@ set -x
 ./build_elfutils.sh
 ./build_check.sh
 ./build_diffutils.sh
-./build_bison.sh
 ./build_libpipeline.sh
 ./build_texinfo.sh
 ./build_libcap.sh
