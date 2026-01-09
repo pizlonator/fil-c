@@ -5483,7 +5483,7 @@ ALWAYS_INLINE void rewriteOp(BytecodeGenerator& generator, TupleType& instTuple)
 
     // 4. nop out the remaining bytes
     while (generator.m_writer.position() < end)
-        OpNop::emit<OpcodeSize::Narrow>(&generator);
+        OpNop::emit<OpcodeSize::Wide32>(&generator);
 }
 
 void ForInContext::finalize(BytecodeGenerator& generator, UnlinkedCodeBlockGenerator* codeBlock, unsigned bodyBytecodeEndOffset)
@@ -5540,7 +5540,7 @@ void ForInContext::finalize(BytecodeGenerator& generator, UnlinkedCodeBlockGener
 
         // 4. nop out the remaining bytes
         while (generator.m_writer.position() < end)
-            OpNop::emit<OpcodeSize::Narrow>(&generator);
+            OpNop::emit<OpcodeSize::Wide32>(&generator);
     }
 
     for (const auto& hasOwnPropertyTuple : m_hasOwnPropertyJumpInsts) {
@@ -5559,7 +5559,7 @@ void ForInContext::finalize(BytecodeGenerator& generator, UnlinkedCodeBlockGener
         OpJmp::emit(&generator, BoundLabel(static_cast<int>(newBranchTarget) - static_cast<int>(branchInstIndex)));
 
         while (generator.m_writer.position() < end)
-            OpNop::emit<OpcodeSize::Narrow>(&generator);
+            OpNop::emit<OpcodeSize::Wide32>(&generator);
     }
 
     generator.m_writer.seek(generator.m_writer.size());

@@ -1407,28 +1407,10 @@ op :fuzzer_return_early_from_loop_hint
 op :loop_osr_entry_gate
 op :llint_get_host_call_return_value
 op :llint_handle_uncaught_exception
-op :op_call_return_location
-op :op_call_ignore_result_return_location
-op :op_construct_return_location
-op :op_call_varargs_return_location
-op :op_construct_varargs_return_location
-op :op_get_by_id_return_location
-op :op_get_by_val_return_location
-op :op_put_by_id_return_location
-op :op_put_by_val_return_location
-op :op_iterator_open_return_location
-op :op_iterator_next_return_location
 op :op_call_direct_eval_slow_return_location
 op :wasm_function_prologue
 op :wasm_function_prologue_simd
 
-op :js_trampoline_op_call
-op :js_trampoline_op_call_ignore_result
-op :js_trampoline_op_construct
-op :js_trampoline_op_call_varargs
-op :js_trampoline_op_construct_varargs
-op :js_trampoline_op_iterator_next
-op :js_trampoline_op_iterator_open
 op :js_trampoline_op_call_direct_eval_slow
 op :js_trampoline_llint_function_for_call_arity_check_untag
 op :js_trampoline_llint_function_for_call_arity_check_tag
@@ -1458,13 +1440,6 @@ op :llint_cloop_did_return_from_js_8
 op :llint_cloop_did_return_from_js_9
 op :llint_cloop_did_return_from_js_10
 op :llint_cloop_did_return_from_js_11
-op :llint_cloop_did_return_from_js_12
-op :llint_cloop_did_return_from_js_13
-op :llint_cloop_did_return_from_js_14
-op :llint_cloop_did_return_from_js_15
-op :llint_cloop_did_return_from_js_16
-op :llint_cloop_did_return_from_js_17
-op :llint_cloop_did_return_from_js_18
 
 end_section :CLoopReturnHelpers
 
@@ -1900,3 +1875,4 @@ op :extern_convert_any,
     }
 
 end_section :Wasm
+

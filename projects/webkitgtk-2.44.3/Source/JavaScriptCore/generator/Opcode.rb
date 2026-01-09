@@ -220,14 +220,14 @@ EOF
     static void emitWithSmallestSizeRequirement(BytecodeGenerator* gen#{typed_args})
     {
         #{@metadata.create_emitter_local}
-        if (static_cast<unsigned>(__size) <= static_cast<unsigned>(OpcodeSize::Narrow)) {
-            if (emit<OpcodeSize::Narrow, BytecodeGenerator, NoAssert, true>(gen#{untyped_args}#{metadata_arg}))
-                return;
-        }
-        if (static_cast<unsigned>(__size) <= static_cast<unsigned>(OpcodeSize::Wide16)) {
-            if (emit<OpcodeSize::Wide16, BytecodeGenerator, NoAssert, true>(gen#{untyped_args}#{metadata_arg}))
-                return;
-        }
+        //if (static_cast<unsigned>(__size) <= static_cast<unsigned>(OpcodeSize::Narrow)) {
+        //    if (emit<OpcodeSize::Narrow, BytecodeGenerator, NoAssert, true>(gen#{untyped_args}#{metadata_arg}))
+        //        return;
+        //}
+        //if (static_cast<unsigned>(__size) <= static_cast<unsigned>(OpcodeSize::Wide16)) {
+        //    if (emit<OpcodeSize::Wide16, BytecodeGenerator, NoAssert, true>(gen#{untyped_args}#{metadata_arg}))
+        //        return;
+        //}
         emit<OpcodeSize::Wide32, BytecodeGenerator, Assert, true>(gen#{untyped_args}#{metadata_arg});
     }
 

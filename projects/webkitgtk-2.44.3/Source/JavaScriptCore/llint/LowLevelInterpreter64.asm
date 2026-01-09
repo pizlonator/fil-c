@@ -831,6 +831,9 @@ end
 # Instruction implementations
 
 _llint_op_enter:
+    crash()
+
+_llint_op_enter_wide32:
     traceExecution()
     checkStackPointerAlignment(t2, 0xdead00e1)
     loadp CodeBlock[cfr], t2                // t2<CodeBlock> = cfr.CodeBlock
@@ -850,9 +853,8 @@ _llint_op_enter:
     callSlowPath(_slow_path_enter)
 
     checkTraps(macro()
-        dispatchOp(narrow, op_enter)
+        dispatchOp(wide32, op_enter)
     end)
-
 
 llintOpWithProfile(op_get_argument, OpGetArgument, macro (size, get, dispatch, return)
     get(m_index, t2)
