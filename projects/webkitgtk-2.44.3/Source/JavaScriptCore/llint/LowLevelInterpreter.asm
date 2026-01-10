@@ -497,17 +497,22 @@ macro op(l, fn)
 end
 
 macro llintOp(opcodeName, opcodeStruct, fn)
-    commonOp(llint_%opcodeName%, traceExecution, macro(size)
-        macro getImpl(fieldName, dst)
-            get(size, opcodeStruct, fieldName, dst)
-        end
 
-        macro dispatchImpl()
-            dispatchOp(size, opcodeName)
-        end
+_llint_%opcodeName%:
+    # Under fil-c, we don't emit 8-bit normal ops, just a few helpers like op_catch/op_wide32/etc
+    break
 
-        fn(size, getImpl, dispatchImpl)
-    end)
+_llint_%opcodeName%_wide32:
+    macro getImpl(fieldName, dst)
+        get(wide32, opcodeStruct, fieldName, dst)
+    end
+
+    macro dispatchImpl()
+        dispatchOp(wide32, opcodeName)
+    end
+
+    fn(wide32, getImpl, dispatchImpl)
+
 end
 
 macro llintOpWithReturn(opcodeName, opcodeStruct, fn)
@@ -2001,7 +2006,6 @@ end
 
 noWide(llint_op_wide16)
 noWide(llint_op_wide32)
-noWide(llint_op_enter)
 
 op(llint_program_prologue, macro ()
     prologue(_llint_entry_osr, _llint_trace_prologue)

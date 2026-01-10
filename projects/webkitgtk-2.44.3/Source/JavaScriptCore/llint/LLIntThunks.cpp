@@ -757,55 +757,9 @@ MacroAssemblerCodeRef<JSEntryPtrTag> checkpointOSRExitFromInlinedCallTrampolineT
     return codeRef;
 }
 
-MacroAssemblerCodeRef<JSEntryPtrTag> returnLocationThunk(OpcodeID opcodeID, OpcodeSize size)
+MacroAssemblerCodeRef<JSEntryPtrTag> returnLocationThunk(OpcodeID , OpcodeSize )
 {
-#define LLINT_RETURN_LOCATION(name) \
-    case name##_return_location: { \
-        switch (size) { \
-        case OpcodeSize::Narrow: { \
-            static LazyNeverDestroyed<MacroAssemblerCodeRef<JSEntryPtrTag>> codeRef; \
-            static std::once_flag onceKey; \
-            std::call_once(onceKey, [&] { \
-                codeRef.construct(generateThunkWithJumpToLLIntReturnPoint<JSEntryPtrTag>(LLInt::getCodeFunctionPtr<OperationPtrTag>(name##_return_location),  #name "_return_location thunk")); \
-            }); \
-            return codeRef; \
-        } \
-        case OpcodeSize::Wide16: { \
-            static LazyNeverDestroyed<MacroAssemblerCodeRef<JSEntryPtrTag>> codeRef; \
-            static std::once_flag onceKey; \
-            std::call_once(onceKey, [&] { \
-                codeRef.construct(generateThunkWithJumpToLLIntReturnPoint<JSEntryPtrTag>(LLInt::getWide16CodeFunctionPtr<OperationPtrTag>(name##_return_location),  #name "_return_location16 thunk")); \
-            }); \
-            return codeRef; \
-        } \
-        case OpcodeSize::Wide32: { \
-            static LazyNeverDestroyed<MacroAssemblerCodeRef<JSEntryPtrTag>> codeRef; \
-            static std::once_flag onceKey; \
-            std::call_once(onceKey, [&] { \
-                codeRef.construct(generateThunkWithJumpToLLIntReturnPoint<JSEntryPtrTag>(LLInt::getWide32CodeFunctionPtr<OperationPtrTag>(name##_return_location), #name "_return_location32 thunk")); \
-            }); \
-            return codeRef; \
-        } \
-        } \
-        return { }; \
-    }
-
-    switch (opcodeID) {
-    LLINT_RETURN_LOCATION(op_call)
-    LLINT_RETURN_LOCATION(op_call_ignore_result)
-    LLINT_RETURN_LOCATION(op_iterator_open)
-    LLINT_RETURN_LOCATION(op_iterator_next)
-    LLINT_RETURN_LOCATION(op_construct)
-    LLINT_RETURN_LOCATION(op_call_varargs)
-    LLINT_RETURN_LOCATION(op_construct_varargs)
-    LLINT_RETURN_LOCATION(op_get_by_id)
-    LLINT_RETURN_LOCATION(op_get_by_val)
-    LLINT_RETURN_LOCATION(op_put_by_id)
-    LLINT_RETURN_LOCATION(op_put_by_val)
-    default:
-        RELEASE_ASSERT_NOT_REACHED();
-        return { };
-    }
+    UNREACHABLE_FOR_PLATFORM();
 }
 
 #endif
