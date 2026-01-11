@@ -45,6 +45,10 @@ ALWAYS_INLINE void gcSafeMemcpy(T* dst, T* src, size_t bytes)
     static_assert(sizeof(T) == sizeof(JSValue));
     RELEASE_ASSERT(bytes % 8 == 0);
 
+#ifdef __FILC__
+    zmemmove(dst, src, bytes);
+#else
+    
 #if USE(JSVALUE64)
 
     auto slowPathForwardMemcpy = [&] {
@@ -140,6 +144,7 @@ ALWAYS_INLINE void gcSafeMemcpy(T* dst, T* src, size_t bytes)
 #else
     memcpy(dst, src, bytes);
 #endif // USE(JSVALUE64)
+#endif // defined(__FILC__)
 }
 
 template <typename T>
@@ -147,6 +152,9 @@ ALWAYS_INLINE void gcSafeMemmove(T* dst, T* src, size_t bytes)
 {
     static_assert(sizeof(T) == sizeof(JSValue));
     RELEASE_ASSERT(bytes % 8 == 0);
+#ifdef __FILC__
+    zmemmove(dst, src, bytes);
+#else
 #if USE(JSVALUE64)
     if (bitwise_cast<uintptr_t>(src) >= bitwise_cast<uintptr_t>(dst)) {
         // This is written to do a forwards loop, so calling it is ok.
@@ -243,6 +251,7 @@ ALWAYS_INLINE void gcSafeMemmove(T* dst, T* src, size_t bytes)
 #else
     memmove(dst, src, bytes);
 #endif // USE(JSVALUE64)
+#endif // defined(__FILC__)
 }
 
 template <typename T>
@@ -250,6 +259,9 @@ ALWAYS_INLINE void gcSafeZeroMemory(T* dst, size_t bytes)
 {
     static_assert(sizeof(T) == sizeof(JSValue));
     RELEASE_ASSERT(bytes % 8 == 0);
+#ifdef __FILC__
+    zmemset(dst, 0, bytes);
+#else
 #if USE(JSVALUE64)
 #if COMPILER(GCC_COMPATIBLE) && (CPU(X86_64) || CPU(ARM64))
 #if CPU(X86_64)
@@ -300,6 +312,7 @@ ALWAYS_INLINE void gcSafeZeroMemory(T* dst, size_t bytes)
 #else
     memset(reinterpret_cast<char*>(dst), 0, bytes);
 #endif // USE(JSVALUE64)
+#endif // defined(__FILC__)
 }
 
 } // namespace JSC
