@@ -254,7 +254,7 @@ private:
 
     bool isUsingSingleSlot() const
     {
-        return m_data & UsingSingleSlotFlag;
+        return bitwise_cast<uintptr_t>(m_data) & UsingSingleSlotFlag;
     }
 
     TransitionMap* map() const
@@ -267,13 +267,13 @@ private:
     {
         ASSERT(isUsingSingleSlot());
         // This implicitly clears the flag that indicates we're using a single transition
-        m_data = bitwise_cast<intptr_t>(map);
+        m_data = map;
         ASSERT(!isUsingSingleSlot());
     }
 
     void setSingleTransition(VM&, JSCell* owner, Structure*);
 
-    intptr_t m_data { UsingSingleSlotFlag };
+    void* m_data { bitwise_cast<void*>(UsingSingleSlotFlag) };
 };
 
 } // namespace JSC

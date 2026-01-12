@@ -798,9 +798,9 @@ ALWAYS_INLINE Structure* Structure::addPropertyTransitionToExistingStructureConc
 
 inline Structure* StructureTransitionTable::trySingleTransition() const
 {
-    uintptr_t pointer = m_data;
-    if (pointer & UsingSingleSlotFlag)
-        return bitwise_cast<Structure*>(pointer & ~UsingSingleSlotFlag);
+    void* pointer = m_data;
+    if (bitwise_cast<uintptr_t>(pointer) & UsingSingleSlotFlag)
+        return bitwise_cast<Structure*>(zmkptr(pointer, bitwise_cast<uintptr_t>(pointer) & ~UsingSingleSlotFlag));
     return nullptr;
 }
 
@@ -817,7 +817,7 @@ inline void StructureTransitionTable::finalizeUnconditionally(VM& vm, Collection
 {
     if (auto* transition = trySingleTransition()) {
         if (!vm.heap.isMarked(transition))
-            m_data = UsingSingleSlotFlag;
+            m_data = bitwise_cast<void*>(UsingSingleSlotFlag);
     }
 }
 

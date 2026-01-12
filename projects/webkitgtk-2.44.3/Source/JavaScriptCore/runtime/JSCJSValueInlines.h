@@ -401,13 +401,13 @@ inline double JSValue::asDouble() const
 ALWAYS_INLINE JSCell* JSValue::asCell() const
 {
     ASSERT(isCell());
-    return reinterpret_cast<JSCell*>(u.asBits.payload);
+    return reinterpret_cast<JSCell*>(u.ptr);
 }
 
 ALWAYS_INLINE JSBigInt* JSValue::asHeapBigInt() const
 {
     ASSERT(isHeapBigInt());
-    return reinterpret_cast<JSBigInt*>(u.asBits.payload);
+    return reinterpret_cast<JSBigInt*>(u.ptr);
 }
 
 ALWAYS_INLINE JSValue::JSValue(EncodeAsDoubleTag, double d)
@@ -460,12 +460,12 @@ inline JSValue::JSValue(HashTableDeletedValueTag)
 
 inline JSValue::JSValue(JSCell* ptr)
 {
-    u.asInt64 = reinterpret_cast<uintptr_t>(ptr);
+    u.ptr = ptr;
 }
 
 inline JSValue::JSValue(const JSCell* ptr)
 {
-    u.asInt64 = reinterpret_cast<uintptr_t>(const_cast<JSCell*>(ptr));
+    u.ptr = const_cast<JSCell*>(ptr);
 }
 
 inline JSValue::operator bool() const
