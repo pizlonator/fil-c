@@ -1766,8 +1766,13 @@ void filc_origin_dump_self(const filc_origin* origin, pas_stream* stream)
 {
     Dl_info dl_info;
     if (dladdr(origin, &dl_info)) {
-        if (dl_info.dli_fname)
-            pas_stream_printf(stream, "%s:", dl_info.dli_fname);
+        if (dl_info.dli_fname) {
+            const char* dso_name = dl_info.dli_fname;
+            const char* last_slash = strrchr(dso_name, '/');
+            if (last_slash && last_slash[1])
+                dso_name = last_slash + 1;
+            pas_stream_printf(stream, "(%s) ", dso_name);
+        }
     }
     if (origin) {
         PAS_ASSERT(origin->origin_node);

@@ -205,19 +205,21 @@ namespace {
 struct FunctionOriginKey {
   FunctionOriginKey() = default;
 
-  FunctionOriginKey(Function* OldF, bool CanCatch)
-    : OldF(OldF), CanCatch(CanCatch) {
+  FunctionOriginKey(Function* OldF, DIScope* Scope, bool CanCatch)
+    : OldF(OldF), Scope(Scope), CanCatch(CanCatch) {
   }
 
   Function* OldF { nullptr };
+  DIScope* Scope { nullptr };
   bool CanCatch { false };
 
   bool operator==(const FunctionOriginKey& Other) const {
-    return OldF == Other.OldF && CanCatch == Other.CanCatch;
+    return OldF == Other.OldF && Scope == Other.Scope && CanCatch == Other.CanCatch;
   }
 
   size_t hash() const {
-    return std::hash<Function*>()(OldF) + static_cast<size_t>(CanCatch);
+    return std::hash<Function*>()(OldF) + std::hash<DIScope*>()(Scope)
+      + static_cast<size_t>(CanCatch);
   }
 };
 
@@ -289,22 +291,22 @@ struct OriginKey {
 struct InlineFrameKey {
   InlineFrameKey() = default;
 
-  InlineFrameKey(Function* OldF, DISubprogram* Subprogram, DILocation* InlinedAt, bool CanCatch)
-    : OldF(OldF), Subprogram(Subprogram), InlinedAt(InlinedAt), CanCatch(CanCatch) {
+  InlineFrameKey(Function* OldF, DILocalScope* Scope, DILocation* InlinedAt, bool CanCatch)
+    : OldF(OldF), Scope(Scope), InlinedAt(InlinedAt), CanCatch(CanCatch) {
   }
 
   Function* OldF { nullptr };
-  DISubprogram* Subprogram { nullptr };
+  DILocalScope* Scope { nullptr };
   DILocation* InlinedAt { nullptr };
   bool CanCatch { false };
 
   bool operator==(const InlineFrameKey& Other) const {
-    return OldF == Other.OldF && Subprogram == Other.Subprogram && InlinedAt == Other.InlinedAt
+    return OldF == Other.OldF && Scope == Other.Scope && InlinedAt == Other.InlinedAt
       && CanCatch == Other.CanCatch;
   }
 
   size_t hash() const {
-    return std::hash<Function*>()(OldF) + std::hash<DISubprogram*>()(Subprogram)
+    return std::hash<Function*>()(OldF) + std::hash<DILocalScope*>()(Scope)
       + std::hash<DILocation*>()(InlinedAt) + static_cast<size_t>(CanCatch);
   }
 };
@@ -1556,14 +1558,19 @@ class Pizlonator {
     return Result;
   }
 
-  std::string getFunctionName(Function *F) {
-    std::string FunctionName;
-    if (char* DemangledName = itaniumDemangle(F->getName())) {
-      FunctionName = DemangledName;
+  std::string demangle(StringRef Name) {
+    std::string Result;
+    if (char* DemangledName = itaniumDemangle(Name)) {
+      Result = DemangledName;
       free(DemangledName);
+      return Result;
     } else
-      FunctionName = F->getName();
-    return FunctionName;
+      Result = Name;
+    return Result;
+  }
+
+  std::string getFunctionName(Function *F) {
+    return demangle(F->getName());
   }
 
   // What does "CanCatch" mean in this context? CanCatch=true means we're at an origin that is either:
@@ -1571,10 +1578,10 @@ class Pizlonator {
   // - an InvokeInst.
   //
   // Lots of origins don't meet this definition!
-  Constant* getFunctionOrigin(bool CanCatch) {
+  Constant* getFunctionOrigin(DIScope* Scope, bool CanCatch) {
     assert(OldF);
     
-    FunctionOriginKey FOK(OldF, CanCatch);
+    FunctionOriginKey FOK(OldF, Scope, CanCatch);
     auto iter = FunctionOrigins.find(FOK);
     if (iter != FunctionOrigins.end())
       return iter->second;
@@ -1589,13 +1596,19 @@ class Pizlonator {
 
     assert(FrameSize < UINT_MAX);
     assert(NumStackAuxes < UINT_MAX);
+
+    std::string Filename;
+    if (Scope)
+      Filename = Scope->getFilename();
+    if (Filename.empty() && OldF->getSubprogram())
+      Filename = OldF->getSubprogram()->getFilename();
     
     Constant* C = ConstantStruct::get(
       FunctionOriginTy,
       { ConstantStruct::get(
           OriginNodeTy,
           { getString(getFunctionName(OldF)),
-            OldF->getSubprogram() ? getString(OldF->getSubprogram()->getFilename()) : RawNull,
+            Filename.size() ? getString(Filename) : RawNull,
             ConstantInt::get(Int32Ty, FrameSize) }),
         Personality, ConstantInt::get(Int8Ty, CanThrow), ConstantInt::get(Int8Ty, CanCatch),
         ConstantInt::get(Int8Ty, HasSetjmps), ConstantInt::get(Int32Ty, NumStackAuxes) });
@@ -1614,11 +1627,11 @@ class Pizlonator {
     return GlobalToGetter[EHDatas[LPI]];
   }
 
-  Constant* getInlineFrame(DISubprogram* Subprogram, DILocation* InlinedAt, bool CanCatch) {
+  Constant* getInlineFrame(DILocalScope* Scope, DILocation* InlinedAt, bool CanCatch) {
     assert(OldF);
     assert(InlinedAt);
 
-    InlineFrameKey IFK(OldF, Subprogram, InlinedAt, CanCatch);
+    InlineFrameKey IFK(OldF, Scope, InlinedAt, CanCatch);
     auto iter = InlineFrames.find(IFK);
     if (iter != InlineFrames.end())
       return iter->second;
@@ -1626,16 +1639,24 @@ class Pizlonator {
     unsigned Line = InlinedAt->getLine();
     unsigned Col = InlinedAt->getColumn();
 
+    std::string FunctionName;
+    if (Scope->getSubprogram()) {
+      FunctionName = Scope->getSubprogram()->getLinkageName();
+      if (FunctionName.size())
+        FunctionName = demangle(FunctionName);
+    }
+    if (FunctionName.empty())
+      FunctionName = Scope->getName();
+
     Constant* C = ConstantStruct::get(
       InlineFrameTy,
       { ConstantStruct::get(
           OriginNodeTy,
-          { getString(Subprogram->getName()), getString(Subprogram->getFilename()),
+          { getString(FunctionName), getString(Scope->getFilename()),
             ConstantInt::get(Int32Ty, UINT_MAX) }),
         ConstantStruct::get(
           OriginTy,
-          { getOriginNode(InlinedAt->getScope()->getSubprogram(), InlinedAt->getInlinedAt(),
-                          CanCatch),
+          { getOriginNode(InlinedAt->getScope(), InlinedAt->getInlinedAt(), CanCatch),
             ConstantInt::get(Int32Ty, Line), ConstantInt::get(Int32Ty, Col) }) });
     GlobalVariable* Result = new GlobalVariable(
       M, InlineFrameTy, true, GlobalVariable::PrivateLinkage, C, "filc_inline_frame");
@@ -1644,11 +1665,11 @@ class Pizlonator {
     return Result;
   }
 
-  Constant* getOriginNode(DISubprogram* Subprogram, DILocation* InlinedAt, bool CanCatch) {
-    assert(Subprogram);
+  Constant* getOriginNode(DILocalScope* Scope, DILocation* InlinedAt, bool CanCatch) {
+    assert(Scope);
     if (InlinedAt)
-      return getInlineFrame(Subprogram, InlinedAt, CanCatch);
-    return getFunctionOrigin(CanCatch);
+      return getInlineFrame(Scope, InlinedAt, CanCatch);
+    return getFunctionOrigin(Scope, CanCatch);
   }
 
   // See the definition of CanCatch, above.
@@ -1678,9 +1699,9 @@ class Pizlonator {
     if (Loc) {
       Line = Loc.getLine();
       Col = Loc.getCol();
-      OriginNode = getOriginNode(Loc->getScope()->getSubprogram(), Loc->getInlinedAt(), CanCatch);
+      OriginNode = getOriginNode(Loc->getScope(), Loc->getInlinedAt(), CanCatch);
     } else
-      OriginNode = getFunctionOrigin(CanCatch);
+      OriginNode = getFunctionOrigin(nullptr, CanCatch);
 
     GlobalVariable* Result;
     if (CanCatch && OldF->hasPersonalityFn()) {
