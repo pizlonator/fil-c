@@ -49,14 +49,14 @@ void LazyProperty<OwnerType, ElementType>::initLater(const Func&)
     // variable. The "theFunc" variable is guaranteed to be native-aligned, i.e. at least a
     // multiple of 4.
     static constexpr FuncType theFunc = &callFunc<Func>;
-    m_pointer = lazyTag | bitwise_cast<uintptr_t>(&theFunc);
+    m_pointer = zmkptr((void*)&theFunc, lazyTag | bitwise_cast<uintptr_t>(&theFunc));
 }
 
 template<typename OwnerType, typename ElementType>
 void LazyProperty<OwnerType, ElementType>::setMayBeNull(VM& vm, const OwnerType* owner, ElementType* value)
 {
-    m_pointer = bitwise_cast<uintptr_t>(value);
-    RELEASE_ASSERT(!(m_pointer & lazyTag));
+    m_pointer = bitwise_cast<void*>(value);
+    RELEASE_ASSERT(!(bitwise_cast<uintptr_t>(m_pointer) & lazyTag));
     vm.writeBarrier(owner, value);
 }
 
@@ -71,38 +71,39 @@ template<typename OwnerType, typename ElementType>
 template<typename Visitor>
 void LazyProperty<OwnerType, ElementType>::visit(Visitor& visitor)
 {
-    if (m_pointer && !(m_pointer & lazyTag))
+    if (m_pointer && !(bitwise_cast<uintptr_t>(m_pointer) & lazyTag))
         visitor.appendUnbarriered(bitwise_cast<ElementType*>(m_pointer));
 }
 
 template<typename OwnerType, typename ElementType>
 void LazyProperty<OwnerType, ElementType>::dump(PrintStream& out) const
 {
-    if (!m_pointer) {
+    uintptr_t pointer = bitwise_cast<uintptr_t>(m_pointer);
+    if (!pointer) {
         out.print("<null>");
         return;
     }
-    if (m_pointer & lazyTag) {
-        out.print("Lazy:", RawHex(m_pointer & ~lazyTag));
-        if (m_pointer & initializingTag)
+    if (pointer & lazyTag) {
+        out.print("Lazy:", RawHex(pointer & ~lazyTag));
+        if (pointer & initializingTag)
             out.print("(Initializing)");
         return;
     }
-    out.print(RawHex(m_pointer));
+    out.print(RawHex(pointer));
 }
 
 template<typename OwnerType, typename ElementType>
 template<typename Func>
 ElementType* LazyProperty<OwnerType, ElementType>::callFunc(const Initializer& initializer)
 {
-    if (initializer.property.m_pointer & initializingTag)
+    if (bitwise_cast<uintptr_t>(initializer.property.m_pointer) & initializingTag)
         return nullptr;
 
     DeferTerminationForAWhile deferTerminationForAWhile { initializer.vm };
-    initializer.property.m_pointer |= initializingTag;
+    initializer.property.m_pointer = zmkptr(initializer.property.m_pointer, bitwise_cast<uintptr_t>(initializer.property.m_pointer) | initializingTag);
     callStatelessLambda<void, Func>(initializer);
-    RELEASE_ASSERT(!(initializer.property.m_pointer & lazyTag));
-    RELEASE_ASSERT(!(initializer.property.m_pointer & initializingTag));
+    RELEASE_ASSERT(!(bitwise_cast<uintptr_t>(initializer.property.m_pointer) & lazyTag));
+    RELEASE_ASSERT(!(bitwise_cast<uintptr_t>(initializer.property.m_pointer) & initializingTag));
     return bitwise_cast<ElementType*>(initializer.property.m_pointer);
 }
 

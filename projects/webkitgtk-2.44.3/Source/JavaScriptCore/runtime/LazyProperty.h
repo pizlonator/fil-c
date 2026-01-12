@@ -82,19 +82,19 @@ public:
     
     ElementType* getConcurrently() const
     {
-        uintptr_t pointer = m_pointer;
-        if (pointer & lazyTag)
+        void* pointer = m_pointer;
+        if (bitwise_cast<uintptr_t>(pointer) & lazyTag)
             return nullptr;
         return bitwise_cast<ElementType*>(pointer);
     }
 
-    bool isInitialized() const { return !(m_pointer & lazyTag); }
+    bool isInitialized() const { return !(bitwise_cast<uintptr_t>(m_pointer) & lazyTag); }
 
     ElementType* getInitializedOnMainThread(const OwnerType* owner) const
     {
-        if (UNLIKELY(m_pointer & lazyTag)) {
+        if (UNLIKELY(bitwise_cast<uintptr_t>(m_pointer) & lazyTag)) {
             ASSERT(!isCompilationThread());
-            FuncType func = *bitwise_cast<FuncType*>(m_pointer & ~(lazyTag | initializingTag));
+            FuncType func = *bitwise_cast<FuncType*>(zmkptr(m_pointer, bitwise_cast<uintptr_t>(m_pointer) & ~(lazyTag | initializingTag)));
             return func(Initializer(const_cast<OwnerType*>(owner), *const_cast<LazyProperty*>(this)));
         }
         return bitwise_cast<ElementType*>(m_pointer);
@@ -114,7 +114,7 @@ private:
     static const uintptr_t lazyTag = 1;
     static const uintptr_t initializingTag = 2;
     
-    uintptr_t m_pointer { 0 };
+    void* m_pointer { nullptr };
 };
 
 // It's valid to bitcast any LazyProperty to LazyCellProperty if you're just going to call get()
