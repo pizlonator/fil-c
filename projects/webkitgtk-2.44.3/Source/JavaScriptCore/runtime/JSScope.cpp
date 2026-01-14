@@ -70,7 +70,7 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
                 ASSERT(!entry.isNull());
                 if (entry.isReadOnly() && getOrPut == Put) {
                     // We know the property will be at this lexical environment scope, but we don't know how to cache it.
-                    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, 0);
+                    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, nullptr);
                     return true;
                 }
 
@@ -114,7 +114,7 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
             ASSERT(!entry.isNull());
             if (getOrPut == Put && entry.isReadOnly() && !isInitialization(initializationMode)) {
                 // We know the property will be at global lexical environment, but we don't know how to cache it.
-                op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, 0);
+                op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, nullptr);
                 return true;
             }
 
@@ -129,7 +129,7 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
             ResolveType resolveType = initializationMode == InitializationMode::ConstInitialization ? GlobalLexicalVar : makeType(GlobalLexicalVar, needsVarInjectionChecks);
             op = ResolveOp(
                 resolveType, depth, nullptr, nullptr, entry.watchpointSet(),
-                reinterpret_cast<uintptr_t>(globalLexicalEnvironment->variableAt(entry.scopeOffset()).slot()));
+                globalLexicalEnvironment->variableAt(entry.scopeOffset()).slot());
             return true;
         }
 
@@ -147,13 +147,13 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
                 ASSERT(!entry.isNull());
                 if (getOrPut == Put && entry.isReadOnly()) {
                     // We know the property will be at global scope, but we don't know how to cache it.
-                    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, 0);
+                    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, nullptr);
                     return true;
                 }
 
                 op = ResolveOp(
                     makeType(GlobalVar, needsVarInjectionChecks), depth, nullptr, nullptr, entry.watchpointSet(),
-                    reinterpret_cast<uintptr_t>(globalObject->variableAt(entry.scopeOffset()).slot()));
+                    globalObject->variableAt(entry.scopeOffset()).slot());
                 return true;
             }
         }
@@ -162,7 +162,7 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
         bool hasOwnProperty = globalObject->getOwnPropertySlot(globalObject, globalObject, ident, slot);
         slot.disallowVMEntry.reset();
         if (!hasOwnProperty) {
-            op = ResolveOp(makeType(UnresolvedProperty, needsVarInjectionChecks), 0, nullptr, nullptr, nullptr, 0);
+            op = ResolveOp(makeType(UnresolvedProperty, needsVarInjectionChecks), 0, nullptr, nullptr, nullptr, nullptr);
             return true;
         }
 
@@ -172,7 +172,7 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
             || (structure->hasReadOnlyOrGetterSetterPropertiesExcludingProto() && getOrPut == Put)) {
             // We know the property will be at global scope, but we don't know how to cache it.
             ASSERT(!scope->next());
-            op = ResolveOp(makeType(GlobalProperty, needsVarInjectionChecks), 0, nullptr, nullptr, nullptr, 0);
+            op = ResolveOp(makeType(GlobalProperty, needsVarInjectionChecks), 0, nullptr, nullptr, nullptr, nullptr);
             return true;
         }
 
@@ -186,13 +186,13 @@ static inline bool abstractAccess(JSGlobalObject* globalObject, JSScope* scope, 
             // 2) Have the invalidation happen at run-time. All we have to do is leave the code
             //    uncached. The only downside is slightly more work when this does execute.
             // We go with option (2) here because it seems less evil.
-            op = ResolveOp(makeType(GlobalProperty, needsVarInjectionChecks), depth, nullptr, nullptr, nullptr, 0);
+            op = ResolveOp(makeType(GlobalProperty, needsVarInjectionChecks), depth, nullptr, nullptr, nullptr, nullptr);
         } else
             op = ResolveOp(makeType(GlobalProperty, needsVarInjectionChecks), depth, structure, nullptr, nullptr, slot.cachedOffset());
         return true;
     }
 
-    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, 0);
+    op = ResolveOp(Dynamic, 0, nullptr, nullptr, nullptr, nullptr);
     return true;
 }
 
@@ -305,7 +305,7 @@ JSObject* JSScope::resolve(JSGlobalObject* globalObject, JSScope* scope, const I
 
 ResolveOp JSScope::abstractResolve(JSGlobalObject* globalObject, size_t depthOffset, JSScope* scope, const Identifier& ident, GetOrPut getOrPut, ResolveType unlinkedType, InitializationMode initializationMode)
 {
-    ResolveOp op(Dynamic, 0, nullptr, nullptr, nullptr, 0);
+    ResolveOp op(Dynamic, 0, nullptr, nullptr, nullptr, nullptr);
     if (unlinkedType == Dynamic)
         return op;
 

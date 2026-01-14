@@ -570,7 +570,7 @@ bool CodeBlock::finishCreation(VM& vm, ScriptExecutable* ownerExecutable, Unlink
                 metadata.m_watchpointSet = op.watchpointSet;
             else if (op.structure)
                 metadata.m_structure.set(vm, this, op.structure);
-            metadata.m_operand = op.operand;
+            *bitwise_cast<void**>(&metadata.m_operand) = op.operand;
             break;
         }
 
@@ -609,7 +609,7 @@ bool CodeBlock::finishCreation(VM& vm, ScriptExecutable* ownerExecutable, Unlink
                     op.watchpointSet->invalidate(vm, PutToScopeFireDetail(this, ident));
             } else if (op.structure)
                 metadata.m_structure.set(vm, this, op.structure);
-            metadata.m_operand = op.operand;
+            *bitwise_cast<void**>(&metadata.m_operand) = op.operand;
             break;
         }
 

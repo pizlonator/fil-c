@@ -98,7 +98,7 @@ JSFunction* JSFunction::create(VM& vm, JSGlobalObject* globalObject, unsigned le
 
 JSFunction::JSFunction(VM& vm, NativeExecutable* executable, JSGlobalObject* globalObject, Structure* structure)
     : Base(vm, globalObject, structure)
-    , m_executableOrRareData(bitwise_cast<uintptr_t>(executable))
+    , m_executableOrRareData(executable)
 {
     assertTypeInfoFlagInvariants();
     ASSERT(structure->globalObject() == globalObject);
@@ -135,10 +135,10 @@ void JSFunction::finishCreation(VM& vm, NativeExecutable*, unsigned length, cons
 
 FunctionRareData* JSFunction::allocateRareData(VM& vm)
 {
-    uintptr_t executableOrRareData = m_executableOrRareData;
-    ASSERT(!(executableOrRareData & rareDataTag));
+    void* executableOrRareData = m_executableOrRareData;
+    ASSERT(!(bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag));
     FunctionRareData* rareData = FunctionRareData::create(vm, bitwise_cast<ExecutableBase*>(executableOrRareData));
-    executableOrRareData = bitwise_cast<uintptr_t>(rareData) | rareDataTag;
+    executableOrRareData = zmkptr(rareData, bitwise_cast<uintptr_t>(rareData) | rareDataTag);
 
     // A DFG compilation thread may be trying to read the rare data
     // We want to ensure that it sees it properly allocated
@@ -176,14 +176,14 @@ JSObject* JSFunction::prototypeForConstruction(VM& vm, JSGlobalObject* globalObj
 
 FunctionRareData* JSFunction::allocateAndInitializeRareData(JSGlobalObject* globalObject, size_t inlineCapacity)
 {
-    uintptr_t executableOrRareData = m_executableOrRareData;
-    ASSERT(!(executableOrRareData & rareDataTag));
+    void* executableOrRareData = m_executableOrRareData;
+    ASSERT(!(bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag));
     ASSERT(canUseAllocationProfiles());
     VM& vm = globalObject->vm();
     JSObject* prototype = prototypeForConstruction(vm, globalObject);
     FunctionRareData* rareData = FunctionRareData::create(vm, bitwise_cast<ExecutableBase*>(executableOrRareData));
     rareData->initializeObjectAllocationProfile(vm, this->globalObject(), prototype, inlineCapacity, this);
-    executableOrRareData = bitwise_cast<uintptr_t>(rareData) | rareDataTag;
+    executableOrRareData = zmkptr(rareData, bitwise_cast<uintptr_t>(rareData) | rareDataTag);
 
     // A DFG compilation thread may be trying to read the rare data
     // We want to ensure that it sees it properly allocated
@@ -197,12 +197,12 @@ FunctionRareData* JSFunction::allocateAndInitializeRareData(JSGlobalObject* glob
 
 FunctionRareData* JSFunction::initializeRareData(JSGlobalObject* globalObject, size_t inlineCapacity)
 {
-    uintptr_t executableOrRareData = m_executableOrRareData;
-    ASSERT(executableOrRareData & rareDataTag);
+    void* executableOrRareData = m_executableOrRareData;
+    ASSERT(bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag);
     ASSERT(canUseAllocationProfiles());
     VM& vm = globalObject->vm();
     JSObject* prototype = prototypeForConstruction(vm, globalObject);
-    FunctionRareData* rareData = bitwise_cast<FunctionRareData*>(executableOrRareData & ~rareDataTag);
+    FunctionRareData* rareData = bitwise_cast<FunctionRareData*>(zmkptr(executableOrRareData, bitwise_cast<uintptr_t>(executableOrRareData) & ~rareDataTag));
     rareData->initializeObjectAllocationProfile(vm, this->globalObject(), prototype, inlineCapacity, this);
     return rareData;
 }
@@ -296,7 +296,7 @@ void JSFunction::visitChildrenImpl(JSCell* cell, Visitor& visitor)
     ASSERT_GC_OBJECT_INHERITS(thisObject, info());
     Base::visitChildren(thisObject, visitor);
 
-    visitor.appendUnbarriered(bitwise_cast<JSCell*>(bitwise_cast<uintptr_t>(thisObject->m_executableOrRareData) & ~rareDataTag));
+    visitor.appendUnbarriered(bitwise_cast<JSCell*>(zmkptr(thisObject->m_executableOrRareData, bitwise_cast<uintptr_t>(thisObject->m_executableOrRareData) & ~rareDataTag)));
 }
 
 DEFINE_VISIT_CHILDREN(JSFunction);

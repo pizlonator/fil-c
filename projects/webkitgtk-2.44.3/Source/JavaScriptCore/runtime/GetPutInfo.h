@@ -197,7 +197,7 @@ ALWAYS_INLINE bool needsVarInjectionChecks(ResolveType type)
 }
 
 struct ResolveOp {
-    ResolveOp(ResolveType type, size_t depth, Structure* structure, JSLexicalEnvironment* lexicalEnvironment, WatchpointSet* watchpointSet, uintptr_t operand, UniquedStringImpl* importedName = nullptr)
+    ResolveOp(ResolveType type, size_t depth, Structure* structure, JSLexicalEnvironment* lexicalEnvironment, WatchpointSet* watchpointSet, void* operand, UniquedStringImpl* importedName = nullptr)
         : type(type)
         , depth(depth)
         , structure(structure)
@@ -208,12 +208,23 @@ struct ResolveOp {
     {
     }
 
+    ResolveOp(ResolveType type, size_t depth, Structure* structure, JSLexicalEnvironment* lexicalEnvironment, WatchpointSet* watchpointSet, uintptr_t operand, UniquedStringImpl* importedName = nullptr)
+        : type(type)
+        , depth(depth)
+        , structure(structure)
+        , lexicalEnvironment(lexicalEnvironment)
+        , watchpointSet(watchpointSet)
+        , operand(bitwise_cast<void*>(operand))
+        , importedName(importedName)
+    {
+    }
+
     ResolveType type;
     size_t depth;
     Structure* structure;
     JSLexicalEnvironment* lexicalEnvironment;
     WatchpointSet* watchpointSet;
-    uintptr_t operand;
+    void* operand;
     RefPtr<UniquedStringImpl> importedName;
 };
 

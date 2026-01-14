@@ -98,9 +98,9 @@ public:
 
     ExecutableBase* executable() const
     {
-        uintptr_t executableOrRareData = m_executableOrRareData;
-        if (executableOrRareData & rareDataTag)
-            return bitwise_cast<FunctionRareData*>(executableOrRareData & ~rareDataTag)->executable();
+        void* executableOrRareData = m_executableOrRareData;
+        if (bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag)
+            return bitwise_cast<FunctionRareData*>(zmkptr(executableOrRareData, bitwise_cast<uintptr_t>(executableOrRareData) & ~rareDataTag))->executable();
         return bitwise_cast<ExecutableBase*>(executableOrRareData);
     }
 
@@ -129,19 +129,19 @@ public:
 
     FunctionRareData* ensureRareData(VM& vm)
     {
-        uintptr_t executableOrRareData = m_executableOrRareData;
-        if (UNLIKELY(!(executableOrRareData & rareDataTag)))
+        void* executableOrRareData = m_executableOrRareData;
+        if (UNLIKELY(!(bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag)))
             return allocateRareData(vm);
-        return bitwise_cast<FunctionRareData*>(executableOrRareData & ~rareDataTag);
+        return bitwise_cast<FunctionRareData*>(zmkptr(executableOrRareData, bitwise_cast<uintptr_t>(executableOrRareData) & ~rareDataTag));
     }
 
     FunctionRareData* ensureRareDataAndObjectAllocationProfile(JSGlobalObject*, unsigned inlineCapacity);
 
     FunctionRareData* rareData() const
     {
-        uintptr_t executableOrRareData = m_executableOrRareData;
-        if (executableOrRareData & rareDataTag)
-            return bitwise_cast<FunctionRareData*>(executableOrRareData & ~rareDataTag);
+        void* executableOrRareData = m_executableOrRareData;
+        if (bitwise_cast<uintptr_t>(executableOrRareData) & rareDataTag)
+            return bitwise_cast<FunctionRareData*>(zmkptr(executableOrRareData, bitwise_cast<uintptr_t>(executableOrRareData) & ~rareDataTag));
         return nullptr;
     }
 
@@ -230,7 +230,7 @@ private:
 
     friend class LLIntOffsetsExtractor;
 
-    uintptr_t m_executableOrRareData;
+    void* m_executableOrRareData;
 };
 
 class JSStrictFunction final : public JSFunction {
