@@ -437,7 +437,7 @@ public:
 #if ENABLE(RESOURCE_USAGE)
     // Use this API to report the subset of extra memory that lives outside this process.
     JS_EXPORT_PRIVATE void reportExternalMemoryVisited(size_t);
-    size_t externalMemorySize() { return m_externalMemorySize; }
+    size_t externalMemorySize() { return 0; }
 #endif
 
     // Use this API to report non-GC memory if you can't use the better API above.
