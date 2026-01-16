@@ -54,6 +54,7 @@ DOMGCOutputConstraint::~DOMGCOutputConstraint()
 template<typename Visitor>
 void DOMGCOutputConstraint::executeImplImpl(Visitor& visitor)
 {
+    /*
     Heap& heap = m_vm.heap;
     
     if (heap.mutatorExecutionVersion() == m_lastExecutionVersion)
@@ -72,6 +73,7 @@ void DOMGCOutputConstraint::executeImplImpl(Visitor& visitor)
             RefPtr<SharedTask<void(Visitor&)>> task = subspace.template forEachMarkedCellInParallel<Visitor>(func);
             visitor.addParallelConstraintTask(task);
         });
+    */
 }
         
 void DOMGCOutputConstraint::executeImpl(AbstractSlotVisitor& visitor) { executeImplImpl(visitor); }

@@ -39,9 +39,9 @@ if (ENABLE_TOOLS)
     add_subdirectory(Tools)
 endif ()
 
-if (DEVELOPER_MODE)
-    add_subdirectory(PerformanceTests)
-endif ()
+#if (DEVELOPER_MODE)
+#    add_subdirectory(PerformanceTests)
+#endif ()
 
 # -----------------------------------------------------------------------------
 # Print the features list last, for maximum visibility.

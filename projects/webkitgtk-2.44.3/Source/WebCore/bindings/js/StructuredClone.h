@@ -29,7 +29,7 @@
 namespace JSC {
 class CallFrame;
 class JSGlobalObject;
-using EncodedJSValue = int64_t;
+using EncodedJSValue = void*;
 }
 
 namespace WebCore {
