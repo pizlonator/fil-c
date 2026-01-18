@@ -644,7 +644,7 @@ TESTS = gpg-error-config-test.sh
 #
 socklibs = @GPG_ERROR_CONFIG_LIBS_PRIVATE@
 @HAVE_LD_VERSION_SCRIPT_FALSE@libgpg_error_vers_opt = 
-@HAVE_LD_VERSION_SCRIPT_TRUE@libgpg_error_vers_opt = -Wl,--version-script=$(srcdir)/gpg-error.vers
+@HAVE_LD_VERSION_SCRIPT_TRUE@libgpg_error_vers_opt = -Wc,--version-script=$(srcdir)/gpg-error.vers
 libgpg_error_la_LDFLAGS = \
   -no-undefined $(export_symbols) $(libgpg_error_vers_opt) \
   $(extra_ltoptions) -version-info \
