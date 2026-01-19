@@ -467,7 +467,7 @@ lib_LTLIBRARIES = libgcrypt.la
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
 AM_CCASFLAGS = $(NOEXECSTACK_FLAGS)
 @HAVE_LD_VERSION_SCRIPT_FALSE@libgcrypt_version_script_cmd = 
-@HAVE_LD_VERSION_SCRIPT_TRUE@libgcrypt_version_script_cmd = -Wl,--version-script=$(srcdir)/libgcrypt.vers
+@HAVE_LD_VERSION_SCRIPT_TRUE@libgcrypt_version_script_cmd = -Wc,--version-script=$(srcdir)/libgcrypt.vers
 libgcrypt_la_CFLAGS = $(GPG_ERROR_CFLAGS) @DEF_HMAC_BINARY_CHECK@
 libgcrypt_la_SOURCES = \
         gcrypt-int.h g10lib.h visibility.c visibility.h types.h \
