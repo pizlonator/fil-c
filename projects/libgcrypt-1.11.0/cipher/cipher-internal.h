@@ -762,7 +762,7 @@ ocb_get_l (gcry_cipher_hd_t c, u64 n)
 {
   unsigned long ntz;
 
-#if ((defined(__i386__) || defined(__x86_64__)) && __GNUC__ >= 4)
+#if ((defined(__i386__) || defined(__x86_64__)) && __GNUC__ >= 4) && !defined(ASM_DISABLED)
   /* Assumes that N != 0. */
   asm ("rep;bsfl %k[low], %k[ntz]\n\t"
         : [ntz] "=r" (ntz)

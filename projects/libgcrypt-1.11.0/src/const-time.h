@@ -91,7 +91,7 @@ unsigned int _gcry_ct_memequal (const void *b1, const void *b2, size_t len);
      ct_##name##_gen_mask (unsigned long op_enable) \
      { \
        type mask = -(type)op_enable; \
-       asm volatile ("\n" : "+r" (mask) :: "memory"); \
+       asm volatile ("" : "+r" (mask) :: "memory"); \
        return mask; \
      }
 #else
@@ -115,7 +115,7 @@ DEFINE_CT_TYPE_GEN_MASK(ulong, unsigned long)
      ct_##name##_gen_inv_mask (unsigned long op_enable) \
      { \
        type mask = (type)op_enable - (type)1; \
-       asm volatile ("\n" : "+r" (mask) :: "memory"); \
+       asm volatile ("" : "+r" (mask) :: "memory"); \
        return mask; \
      }
 #else
