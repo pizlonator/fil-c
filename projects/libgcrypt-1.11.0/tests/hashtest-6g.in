@@ -1,0 +1,7 @@
+#!/bin/sh
+
+algos="SHA1 SHA256 SHA512 SHA3-512 SM3 BLAKE2S_256 BLAKE2B_512 CRC32 CRC24RFC2440"
+
+test "@RUN_LARGE_DATA_TESTS@" = yes || exit 77
+echo "      now running 6 GiB tests for $algos - this can take long"
+exec ./hashtest@EXEEXT@ --hugeblock --gigs 6 $algos
