@@ -119,3 +119,12 @@ cd ..
 rm -rf pizlonated-libgpg-error
 hash -r
 
+tar -xf pizlonated-libgcrypt.tar.gz
+cd pizlonated-libgcrypt
+./configure --prefix=/usr --disable-asm
+make
+make install
+cd ..
+rm -rf pizlonated-libgcrypt
+hash -r
+
