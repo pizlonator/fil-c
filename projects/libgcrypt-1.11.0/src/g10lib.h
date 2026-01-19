@@ -380,7 +380,7 @@ void __gcry_burn_stack (unsigned int bytes);
 #ifdef HAVE_GCC_ASM_VOLATILE_MEMORY
 #define fast_wipememory2_inline(_ptr,_set,_len) do { \
 	      memset((_ptr), (_set), (_len)); \
-	      asm volatile ("\n" :: "r" (_ptr) : "memory"); \
+	      asm volatile ("" :: "r" (_ptr) : "memory"); \
 	    } while(0)
 #else
 #define fast_wipememory2_inline(_ptr,_set,_len) \

@@ -273,7 +273,7 @@ keccak_absorb_lane32bi(u32 *lane, u32 x0, u32 x1)
 /* Construct generic 64-bit implementation. */
 #ifdef USE_64BIT
 
-#if __GNUC__ >= 4 && defined(__x86_64__)
+#if __GNUC__ >= 4 && defined(__x86_64__) && !defined(ASM_DISABLED)
 
 static inline void absorb_lanes64_8(u64 *dst, const byte *in)
 {
