@@ -394,40 +394,39 @@ JSValueRef jscContextGValueToJSValue(JSCContext* context, const GValue* value, J
     JSC::JSGlobalObject* globalObject = toJS(priv->jsContext.get());
     JSC::JSLockHolder locker(globalObject);
 
-    switch (g_type_fundamental(G_VALUE_TYPE(value))) {
-    case G_TYPE_BOOLEAN:
+    GType type = g_type_fundamental(G_VALUE_TYPE(value));
+
+    if (type == G_TYPE_BOOLEAN)
         return JSValueMakeBoolean(priv->jsContext.get(), g_value_get_boolean(value));
-    case G_TYPE_CHAR:
-    case G_TYPE_INT:
+    if (type == G_TYPE_CHAR || type == G_TYPE_INT)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_int);
-    case G_TYPE_ENUM:
+    if (type == G_TYPE_ENUM)
         return JSValueMakeNumber(priv->jsContext.get(), g_value_get_enum(value));
-    case G_TYPE_FLAGS:
+    if (type == G_TYPE_FLAGS)
         return JSValueMakeNumber(priv->jsContext.get(), g_value_get_flags(value));
-    case G_TYPE_UCHAR:
-    case G_TYPE_UINT:
+    if (type == G_TYPE_UCHAR || type == G_TYPE_UINT)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_uint);
-    case G_TYPE_FLOAT:
+    if (type == G_TYPE_FLOAT)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_float);
-    case G_TYPE_DOUBLE:
+    if (type == G_TYPE_DOUBLE)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_double);
-    case G_TYPE_LONG:
+    if (type == G_TYPE_LONG)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_long);
-    case G_TYPE_ULONG:
+    if (type == G_TYPE_ULONG)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_ulong);
-    case G_TYPE_INT64:
+    if (type == G_TYPE_INT64)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_int64);
-    case G_TYPE_UINT64:
+    if (type == G_TYPE_UINT64)
         return JSValueMakeNumber(priv->jsContext.get(), value->data[0].v_uint64);
-    case G_TYPE_STRING:
+    if (type == G_TYPE_STRING)
+    {
         if (const char* stringValue = g_value_get_string(value)) {
             JSRetainPtr<JSStringRef> jsString(Adopt, JSStringCreateWithUTF8CString(stringValue));
             return JSValueMakeString(priv->jsContext.get(), jsString.get());
         }
         return JSValueMakeNull(priv->jsContext.get());
-    case G_TYPE_POINTER:
-    case G_TYPE_OBJECT:
-    case G_TYPE_BOXED:
+    }
+    if (type == G_TYPE_POINTER || type == G_TYPE_OBJECT || type == G_TYPE_BOXED) {
         if (auto* ptr = value->data[0].v_pointer) {
             if (auto* jsWrapper = jscContextGetJSWrapper(context, ptr))
                 return toRef(jsWrapper);
@@ -451,13 +450,6 @@ JSValueRef jscContextGValueToJSValue(JSCContext* context, const GValue* value, J
             }
         } else
             return JSValueMakeNull(priv->jsContext.get());
-
-        break;
-    case G_TYPE_PARAM:
-    case G_TYPE_INTERFACE:
-    case G_TYPE_VARIANT:
-    default:
-        break;
     }
 
     *exception = toRef(JSC::createTypeError(globalObject, makeString("unsupported type "_s, g_type_name(G_VALUE_TYPE(value)))));
@@ -478,20 +470,15 @@ void jscContextJSValueToGValue(JSCContext* context, JSValueRef jsValue, GType ty
 
     g_value_init(value, type);
     auto fundamentalType = g_type_fundamental(G_VALUE_TYPE(value));
-    switch (fundamentalType) {
-    case G_TYPE_INT:
+    if (fundamentalType == G_TYPE_INT)
         g_value_set_int(value, JSC::toInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_FLOAT:
+    else if (fundamentalType == G_TYPE_FLOAT)
         g_value_set_float(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_DOUBLE:
+    else if (fundamentalType == G_TYPE_DOUBLE)
         g_value_set_double(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_BOOLEAN:
+    else if (fundamentalType == G_TYPE_BOOLEAN)
         g_value_set_boolean(value, JSValueToBoolean(priv->jsContext.get(), jsValue));
-        break;
-    case G_TYPE_STRING:
+    else if (fundamentalType == G_TYPE_STRING) {
         if (!JSValueIsNull(priv->jsContext.get(), jsValue)) {
             JSRetainPtr<JSStringRef> jsString(Adopt, JSValueToStringCopy(priv->jsContext.get(), jsValue, exception));
             if (*exception)
@@ -502,19 +489,13 @@ void jscContextJSValueToGValue(JSCContext* context, JSValueRef jsValue, GType ty
             g_value_take_string(value, string);
         } else
             g_value_set_string(value, nullptr);
-        break;
-    case G_TYPE_CHAR:
+    } else if (fundamentalType == G_TYPE_CHAR)
         g_value_set_schar(value, JSC::toInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_UCHAR:
+    else if (fundamentalType == G_TYPE_UCHAR)
         g_value_set_uchar(value, JSC::toUInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_UINT:
+    else if (fundamentalType == G_TYPE_UINT)
         g_value_set_uint(value, JSC::toUInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_POINTER:
-    case G_TYPE_OBJECT:
-    case G_TYPE_BOXED: {
+    else if (fundamentalType == G_TYPE_POINTER || fundamentalType == G_TYPE_OBJECT || fundamentalType == G_TYPE_BOXED) {
         gpointer wrappedObject = jscContextJSValueToWrappedObject(context, jsValue);
 
         if (!wrappedObject) {
@@ -556,33 +537,20 @@ void jscContextJSValueToGValue(JSCContext* context, JSValueRef jsValue, GType ty
             g_value_set_object(value, wrappedObject);
         else
             *exception = toRef(JSC::createTypeError(globalObject, "wrapped object is not a GObject"_s));
-        break;
-    }
-    case G_TYPE_LONG:
+    } else if (fundamentalType == G_TYPE_LONG)
         g_value_set_long(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_ULONG:
+    else if (fundamentalType == G_TYPE_ULONG)
         g_value_set_ulong(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_INT64:
+    else if (fundamentalType == G_TYPE_INT64)
         g_value_set_int64(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_UINT64:
+    else if (fundamentalType == G_TYPE_UINT64)
         g_value_set_uint64(value, JSValueToNumber(priv->jsContext.get(), jsValue, exception));
-        break;
-    case G_TYPE_ENUM:
+    else if (fundamentalType == G_TYPE_ENUM)
         g_value_set_enum(value, JSC::toInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_FLAGS:
+    else if (fundamentalType == G_TYPE_FLAGS)
         g_value_set_flags(value, JSC::toInt32(JSValueToNumber(priv->jsContext.get(), jsValue, exception)));
-        break;
-    case G_TYPE_PARAM:
-    case G_TYPE_INTERFACE:
-    case G_TYPE_VARIANT:
-    default:
+    else
         *exception = toRef(JSC::createTypeError(globalObject, makeString("unsupported type "_s, g_type_name(G_VALUE_TYPE(value)))));
-        break;
-    }
 }
 
 void jscContextGarbageCollect(JSCContext* context, bool sanitizeStack)

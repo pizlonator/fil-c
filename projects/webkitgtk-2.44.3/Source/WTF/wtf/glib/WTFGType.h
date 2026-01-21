@@ -97,12 +97,12 @@ static void type_name##_init(TypeName* self, gpointer) \
 \
 GType type_name##_get_type(void) \
 { \
-    static gsize static_g_define_type_id = 0; \
-    if (g_once_init_enter(&static_g_define_type_id)) { \
+    static gpointer static_g_define_type_id = 0; \
+    if (g_once_init_enter_pointer(&static_g_define_type_id)) { \
         GType g_define_type_id = type_name##_get_type_once(); \
-        g_once_init_leave(&static_g_define_type_id, g_define_type_id); \
+        g_once_init_leave_pointer(&static_g_define_type_id, g_define_type_id); \
     } \
-    return static_g_define_type_id; \
+    return (GType)static_g_define_type_id; \
 } /* Closes type_name##_get_type(). */ \
 \
 NEVER_INLINE static GType type_name##_get_type_once(void) \
