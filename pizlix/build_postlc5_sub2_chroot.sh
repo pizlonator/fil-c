@@ -110,4 +110,12 @@ cd ..
 rm -rf unifdef-2.12
 hash -r
 
+tar -xf pizlonated-libgpg-error.tar.gz
+cd pizlonated-libgpg-error
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-libgpg-error
+hash -r
 
