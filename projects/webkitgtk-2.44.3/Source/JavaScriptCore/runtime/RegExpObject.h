@@ -25,6 +25,8 @@
 #include "ThrowScope.h"
 #include "TypeError.h"
 
+#include <stdfil.h>
+
 namespace JSC {
     
 class RegExpObject final : public JSNonFinalObject {
@@ -61,14 +63,14 @@ public:
 
     void setRegExp(VM& vm, RegExp* regExp)
     {
-        uintptr_t result = (m_regExpAndFlags & flagsMask) | bitwise_cast<uintptr_t>(regExp);
+        void* result = zmkptr(regExp, (bitwise_cast<uintptr_t>(m_regExpAndFlags) & flagsMask) | bitwise_cast<uintptr_t>(regExp));
         m_regExpAndFlags = result;
         vm.writeBarrier(this, regExp);
     }
 
     RegExp* regExp() const
     {
-        return bitwise_cast<RegExp*>(m_regExpAndFlags & regExpMask);
+        return bitwise_cast<RegExp*>(zandptr(m_regExpAndFlags, regExpMask));
     }
 
     bool setLastIndex(JSGlobalObject* globalObject, size_t lastIndex)
@@ -129,7 +131,7 @@ public:
         return sizeof(RegExpObject);
     }
 
-    bool areLegacyFeaturesEnabled() const { return !(m_regExpAndFlags & legacyFeaturesDisabledFlag); }
+    bool areLegacyFeaturesEnabled() const { return !(bitwise_cast<uintptr_t>(m_regExpAndFlags) & legacyFeaturesDisabledFlag); }
 
 private:
     JS_EXPORT_PRIVATE RegExpObject(VM&, Structure*, RegExp*, bool areLegacyFeaturesEnabled);
@@ -141,12 +143,12 @@ private:
 
     bool lastIndexIsWritable() const
     {
-        return !(m_regExpAndFlags & lastIndexIsNotWritableFlag);
+        return !(bitwise_cast<uintptr_t>(m_regExpAndFlags) & lastIndexIsNotWritableFlag);
     }
 
     void setLastIndexIsNotWritable()
     {
-        m_regExpAndFlags = (m_regExpAndFlags | lastIndexIsNotWritableFlag);
+        m_regExpAndFlags = zorptr(m_regExpAndFlags, lastIndexIsNotWritableFlag);
     }
 
     JS_EXPORT_PRIVATE static bool deleteProperty(JSCell*, JSGlobalObject*, PropertyName, DeletePropertySlot&);
@@ -155,7 +157,7 @@ private:
 
     MatchResult matchInline(JSGlobalObject*, JSString*);
 
-    uintptr_t m_regExpAndFlags { 0 };
+    void* m_regExpAndFlags { 0 };
     WriteBarrier<Unknown> m_lastIndex;
 };
 
