@@ -1375,7 +1375,7 @@ request_header_is_valid (const char *name)
 {
         static GHashTable *invalid_request_headers = NULL;
 
-        if (g_once_init_enter (&invalid_request_headers)) {
+        if (g_once_init_enter_pointer (&invalid_request_headers)) {
                 GHashTable *headers;
 
                 headers= g_hash_table_new (soup_str_case_hash, soup_str_case_equal);
@@ -1385,7 +1385,7 @@ request_header_is_valid (const char *name)
                 g_hash_table_add (headers, "Transfer-Encoding");
                 g_hash_table_add (headers, "Upgrade");
 
-                g_once_init_leave (&invalid_request_headers, headers);
+                g_once_init_leave_pointer (&invalid_request_headers, headers);
         }
 
         return !g_hash_table_contains (invalid_request_headers, name);
