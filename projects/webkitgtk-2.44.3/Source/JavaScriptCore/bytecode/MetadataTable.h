@@ -32,6 +32,8 @@
 #include <wtf/RefCounted.h>
 #include <wtf/TZoneMalloc.h>
 
+#include <stdfil.h>
+
 namespace JSC {
 
 class CodeBlock;
@@ -53,8 +55,8 @@ public:
     {
         auto opcodeID = Metadata::opcodeID;
         ASSERT(opcodeID < NUMBER_OF_BYTECODE_WITH_METADATA);
-        uintptr_t ptr = bitwise_cast<uintptr_t>(getWithoutAligning(opcodeID));
-        ptr = roundUpToMultipleOf(alignof(Metadata), ptr);
+        void* ptr = getWithoutAligning(opcodeID);
+        ptr = zmkptr(ptr, roundUpToMultipleOf(alignof(Metadata), bitwise_cast<uintptr_t>(ptr)));
         return bitwise_cast<Metadata*>(ptr);
     }
 
