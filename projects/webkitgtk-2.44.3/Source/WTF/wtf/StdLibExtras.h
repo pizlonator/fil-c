@@ -44,6 +44,14 @@ static inline void* zmkptr(void*, unsigned long address)
 {
     return (void*)address;
 }
+static inline void* zorptr(void* ptr, unsigned long bits)
+{
+    return (void*)((unsigned long)ptr | bits);
+}
+static inline void* zandptr(void* ptr, unsigned long bits)
+{
+    return (void*)((unsigned long)ptr & bits);
+}
 #endif
 
 // Use this macro to declare and define a debug-only global variable that may have a

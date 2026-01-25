@@ -25,8 +25,6 @@
 #include "ThrowScope.h"
 #include "TypeError.h"
 
-#include <stdfil.h>
-
 namespace JSC {
     
 class RegExpObject final : public JSNonFinalObject {

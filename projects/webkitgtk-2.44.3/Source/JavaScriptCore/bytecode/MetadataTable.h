@@ -31,8 +31,7 @@
 #include "ValueProfile.h"
 #include <wtf/RefCounted.h>
 #include <wtf/TZoneMalloc.h>
-
-#include <stdfil.h>
+#include <wtf/StdLibExtras.h>
 
 namespace JSC {
 
