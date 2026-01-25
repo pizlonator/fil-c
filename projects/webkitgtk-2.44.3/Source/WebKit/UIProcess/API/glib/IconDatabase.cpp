@@ -610,6 +610,9 @@ void IconDatabase::setIconForPageURL(const String& iconURL, const uint8_t* iconD
 {
     ASSERT(isMainRunLoop());
 
+    if (pageURL.isNull())
+        zprintf("pageURL is null!\n");
+
     // If database write is not allowed load the icon to cache it in memory only.
     if (m_allowDatabaseWrite == AllowDatabaseWrite::No || allowDatabaseWrite == AllowDatabaseWrite::No) {
         bool result = true;
@@ -640,6 +643,8 @@ void IconDatabase::setIconForPageURL(const String& iconURL, const uint8_t* iconD
 
     Vector<uint8_t> data { iconData, iconDataSize };
     m_workQueue->dispatch([this, protectedThis = Ref { *this }, iconURL = iconURL.isolatedCopy(), iconData = WTFMove(data), pageURL = pageURL.isolatedCopy(), completionHandler = WTFMove(completionHandler)]() mutable {
+        if (pageURL.isNull())
+            zprintf("(in lambda) pageURL is null!\n");
         bool result = false;
         if (m_db.isOpen()) {
             SQLiteTransaction transaction(m_db);

@@ -675,7 +675,6 @@ public:
 
     void appendPossiblyAccessedStringFromConcurrentThreads(String&& string)
     {
-        UNREACHABLE_FOR_PLATFORM();
         UNUSED_PARAM(string);
     }
 
