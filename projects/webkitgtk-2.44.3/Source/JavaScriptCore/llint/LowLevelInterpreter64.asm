@@ -471,12 +471,16 @@ macro restoreStateAfterCCall()
     subp PB, PC
 end
 
-macro callSlowPath(slowPath)
+macro callSlowPathWithoutExceptionCheck(slowPath)
     prepareStateForCCall()
     move cfr, a0
     move PC, a1
     cCall2(slowPath)
     restoreStateAfterCCall()
+end
+
+macro callSlowPath(slowPath)
+    callSlowPathWithoutExceptionCheck(slowPath)
     branchIfException(_llint_throw_from_slow_path_trampoline)
 end
 
@@ -2688,7 +2692,7 @@ op(llint_throw_from_slow_path_trampoline, macro ()
     getVMFromCallFrame(t1, t2)
     copyCalleeSavesToVMEntryFrameCalleeSavesBuffer(t1, t2)
 
-    callSlowPath(_llint_slow_path_handle_exception)
+    callSlowPathWithoutExceptionCheck(_llint_slow_path_handle_exception)
 
     # When throwing from the interpreter (i.e. throwing from LLIntSlowPaths), so
     # the throw target is not necessarily interpreted code, we come to here.
