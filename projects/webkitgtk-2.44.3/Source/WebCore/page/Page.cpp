@@ -4625,7 +4625,6 @@ void Page::opportunisticallyRunIdleCallbacks()
 
 void Page::willChangeLocationInCompletelyLoadedSubframe()
 {
-    commonVM().heap.scheduleOpportunisticFullCollection();
 }
 
 void Page::performOpportunisticallyScheduledTasks(MonotonicTime deadline)

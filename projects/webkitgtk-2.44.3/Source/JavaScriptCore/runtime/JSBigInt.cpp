@@ -1225,29 +1225,6 @@ inline JSBigInt::Digit JSBigInt::digitPow(Digit base, Digit exponent)
 inline JSBigInt::Digit JSBigInt::digitDiv(Digit high, Digit low, Digit divisor, Digit& remainder)
 {
     ASSERT(high < divisor);
-#if CPU(X86_64) && COMPILER(GCC_COMPATIBLE)
-    Digit quotient;
-    Digit rem;
-    __asm__("divq  %[divisor]"
-        // Outputs: {quotient} will be in rax, {rem} in rdx.
-        : "=a"(quotient), "=d"(rem)
-        // Inputs: put {high} into rdx, {low} into rax, and {divisor} into
-        // any register or stack slot.
-        : "d"(high), "a"(low), [divisor] "rm"(divisor));
-    remainder = rem;
-    return quotient;
-#elif CPU(X86) && COMPILER(GCC_COMPATIBLE)
-    Digit quotient;
-    Digit rem;
-    __asm__("divl  %[divisor]"
-        // Outputs: {quotient} will be in eax, {rem} in edx.
-        : "=a"(quotient), "=d"(rem)
-        // Inputs: put {high} into edx, {low} into eax, and {divisor} into
-        // any register or stack slot.
-        : "d"(high), "a"(low), [divisor] "rm"(divisor));
-    remainder = rem;
-    return quotient;
-#else
     static constexpr Digit halfDigitBase = 1ull << halfDigitBits;
     // Adapted from Warren, Hacker's Delight, p. 152.
     unsigned s = clz(divisor);
@@ -1297,7 +1274,6 @@ inline JSBigInt::Digit JSBigInt::digitDiv(Digit high, Digit low, Digit divisor, 
 
     remainder = (un21 * halfDigitBase + un0 - q0 * divisor) >> s;
     return q1 * halfDigitBase + q0;
-#endif
 }
 
 // Multiplies {source} with {factor} and adds {summand} to the result.

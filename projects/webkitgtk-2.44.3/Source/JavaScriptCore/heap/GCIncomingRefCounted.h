@@ -42,7 +42,7 @@ template<typename T>
 class GCIncomingRefCounted : public DeferrableRefCounted<T> {
 public:
     GCIncomingRefCounted()
-        : m_encodedPointer(0)
+        : m_encodedPointer(nullptr)
     {
     }
     
@@ -87,14 +87,14 @@ public:
 private:
     static uintptr_t singletonFlag() { return 1; }
     
-    bool hasVectorOfCells() const { return !(m_encodedPointer & singletonFlag()); }
+    bool hasVectorOfCells() const { return !(bitwise_cast<uintptr_t>(m_encodedPointer) & singletonFlag()); }
     bool hasAnyIncoming() const { return !!m_encodedPointer; }
     bool hasSingleton() const { return hasAnyIncoming() && !hasVectorOfCells(); }
     
     JSCell* singleton() const
     {
         ASSERT(hasSingleton());
-        return bitwise_cast<JSCell*>(m_encodedPointer & ~singletonFlag());
+        return bitwise_cast<JSCell*>(zandptr(m_encodedPointer, ~singletonFlag()));
     }
     
     Vector<JSCell*>* vectorOfCells() const
@@ -107,7 +107,7 @@ private:
     // Singleton flag not set: this is a pointer to a vector of cells.
     // FIXME: This should be a void*. And it should be tracking weak pointers. And if it's a vector
     // of weak pointers, then it should also store the GC epoch of the last time it pruned.
-    uintptr_t m_encodedPointer;
+    void* m_encodedPointer;
 };
 
 } // namespace JSC

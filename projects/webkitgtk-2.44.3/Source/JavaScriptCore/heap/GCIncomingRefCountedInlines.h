@@ -34,7 +34,7 @@ template<typename T>
 bool GCIncomingRefCounted<T>::addIncomingReference(JSCell* cell)
 {
     if (!hasAnyIncoming()) {
-        m_encodedPointer = bitwise_cast<uintptr_t>(cell) | singletonFlag();
+        m_encodedPointer = zorptr(cell, singletonFlag());
         this->setIsDeferred(true);
         ASSERT(hasSingleton());
         return true;
@@ -46,7 +46,7 @@ bool GCIncomingRefCounted<T>::addIncomingReference(JSCell* cell)
         Vector<JSCell*>* vector = new Vector<JSCell*>();
         vector->append(singleton());
         vector->append(cell);
-        m_encodedPointer = bitwise_cast<uintptr_t>(vector);
+        m_encodedPointer = vector;
         ASSERT(hasVectorOfCells());
         return false;
     }
@@ -83,7 +83,7 @@ bool GCIncomingRefCounted<T>::filterIncomingReferences(FilterFunctionType&& filt
         
         if (verbose)
             dataLog("   Removing singleton.\n");
-        m_encodedPointer = 0;
+        m_encodedPointer = nullptr;
         ASSERT(!hasAnyIncoming());
         this->setIsDeferred(false);
         return true;
@@ -108,7 +108,7 @@ bool GCIncomingRefCounted<T>::filterIncomingReferences(FilterFunctionType&& filt
         if (verbose)
             dataLog("   Removing.\n");
         delete vectorOfCells();
-        m_encodedPointer = 0;
+        m_encodedPointer = nullptr;
         ASSERT(!hasAnyIncoming());
         this->setIsDeferred(false);
         return true;
@@ -118,7 +118,7 @@ bool GCIncomingRefCounted<T>::filterIncomingReferences(FilterFunctionType&& filt
         dataLog("   Shrinking to singleton.\n");
     JSCell* singleton = vectorOfCells()->at(0);
     delete vectorOfCells();
-    m_encodedPointer = bitwise_cast<uintptr_t>(singleton) | singletonFlag();
+    m_encodedPointer = zorptr(singleton, singletonFlag());
     ASSERT(hasSingleton());
     return false;
 }
