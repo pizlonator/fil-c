@@ -2251,19 +2251,6 @@ void CodeGenFunction::EmitAggregateCopy(LValue Dest, LValue Src, QualType Ty,
     }
   }
 
-  size_t SizeInt = SIZE_MAX;
-  if (llvm::ConstantInt* SizeValInt = dyn_cast<llvm::ConstantInt>(SizeVal)) {
-    if (SizeValInt->getBitWidth() <= 64)
-      SizeInt = SizeValInt->getZExtValue();
-  }
-  if (SizeInt >= 8) {
-    Builder.CreateCall(
-      CGM.CreateRuntimeFunction(
-        llvm::FunctionType::get(VoidTy, { Int8PtrTy, Int8PtrTy, SizeTy }, false), "zmemmove_union"),
-      { DestPtr.getBasePointer(), SrcPtr.getBasePointer(), SizeVal });
-    return;
-  }
-
   auto Inst = Builder.CreateMemCpy(DestPtr, SrcPtr, SizeVal, isVolatile);
 
   // Determine the metadata to describe the position of any padding in this

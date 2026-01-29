@@ -1698,7 +1698,7 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
                                         UsePointerValue);
   }
 
-  if (D.hasAttr<AnnotateAttr>() && HaveInsertPoint())
+  if (HaveInsertPoint())
     EmitVarAnnotations(&D, address.emitRawPointer(*this));
 
   // Make sure we call @llvm.lifetime.end.
@@ -2810,8 +2810,7 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
     }
   }
 
-  if (D.hasAttr<AnnotateAttr>())
-    EmitVarAnnotations(&D, DeclPtr.emitRawPointer(*this));
+  EmitVarAnnotations(&D, DeclPtr.emitRawPointer(*this));
 
   // We can only check return value nullability if all arguments to the
   // function satisfy their nullability preconditions. This makes it necessary

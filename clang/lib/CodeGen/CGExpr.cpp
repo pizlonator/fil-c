@@ -87,8 +87,9 @@ enum VariableTypeDescriptorKind : uint16_t {
 RawAddress
 CodeGenFunction::CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits Align,
                                              const Twine &Name,
-                                             llvm::Value *ArraySize) {
-  auto Alloca = CreateTempAlloca(Ty, Name, ArraySize);
+                                             llvm::Value *ArraySize,
+                                             bool HasUnion) {
+  auto Alloca = CreateTempAlloca(Ty, Name, ArraySize, HasUnion);
   Alloca->setAlignment(Align.getAsAlign());
   return RawAddress(Alloca, Ty, Align, KnownNonNull);
 }
@@ -98,8 +99,9 @@ CodeGenFunction::CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits Align,
 RawAddress CodeGenFunction::CreateTempAlloca(llvm::Type *Ty, CharUnits Align,
                                              const Twine &Name,
                                              llvm::Value *ArraySize,
-                                             RawAddress *AllocaAddr) {
-  auto Alloca = CreateTempAllocaWithoutCast(Ty, Align, Name, ArraySize);
+                                             RawAddress *AllocaAddr,
+                                             bool HasUnion) {
+  auto Alloca = CreateTempAllocaWithoutCast(Ty, Align, Name, ArraySize, HasUnion);
   if (AllocaAddr)
     *AllocaAddr = Alloca;
   llvm::Value *V = Alloca.getPointer();
@@ -128,7 +130,8 @@ RawAddress CodeGenFunction::CreateTempAlloca(llvm::Type *Ty, CharUnits Align,
 /// insertion point of the builder.
 llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
                                                     const Twine &Name,
-                                                    llvm::Value *ArraySize) {
+                                                    llvm::Value *ArraySize,
+                                                    bool HasUnion) {
   llvm::AllocaInst *Alloca;
   if (ArraySize)
     Alloca = Builder.CreateAlloca(Ty, ArraySize, Name);
@@ -136,6 +139,12 @@ llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
     Alloca =
         new llvm::AllocaInst(Ty, CGM.getDataLayout().getAllocaAddrSpace(),
                              ArraySize, Name, AllocaInsertPt->getIterator());
+  if (HasUnion && (ArraySize || CGM.getDataLayout().getTypeAllocSize(Ty) >= 8)) {
+    Builder.CreateCall(
+      CGM.CreateRuntimeFunction(
+        llvm::FunctionType::get(VoidTy, { Int8PtrTy }, false), "zhas_union"),
+      { Alloca });
+  }
   if (Allocas) {
     Allocas->Add(Alloca);
   }
@@ -155,7 +164,7 @@ RawAddress CodeGenFunction::CreateDefaultAlignTempAlloca(llvm::Type *Ty,
 
 RawAddress CodeGenFunction::CreateIRTemp(QualType Ty, const Twine &Name) {
   CharUnits Align = getContext().getTypeAlignInChars(Ty);
-  return CreateTempAlloca(ConvertType(Ty), Align, Name);
+  return CreateTempAlloca(ConvertType(Ty), Align, Name, nullptr, nullptr, Ty.hasUnion());
 }
 
 RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, const Twine &Name,
@@ -168,7 +177,7 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
                                           const Twine &Name,
                                           RawAddress *Alloca) {
   RawAddress Result = CreateTempAlloca(ConvertTypeForMem(Ty), Align, Name,
-                                       /*ArraySize=*/nullptr, Alloca);
+                                       /*ArraySize=*/nullptr, Alloca, Ty.hasUnion());
 
   if (Ty->isConstantMatrixType()) {
     auto *ArrayTy = cast<llvm::ArrayType>(Result.getElementType());
@@ -184,7 +193,7 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,
                                                      CharUnits Align,
                                                      const Twine &Name) {
-  return CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name);
+  return CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name, nullptr, Ty.hasUnion());
 }
 
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,

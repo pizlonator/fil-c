@@ -81,6 +81,12 @@ void zmemmove_union(void* dst, void* src, __SIZE_TYPE__ count);
    You shouldn't ever have to call this directly */
 void zmemmove_builtin(void* dst, void* src, __SIZE_TYPE__ count);
 
+/* This annotates the passed-in pointer as being a union, resulting in the optimizer being more
+   careful about how to compile aggregate assignments.
+
+   It's a no-op other than it blocks certain optimizations that could result in loss of capability. */
+void zhas_union(void* ptr);
+
 /* Dumps the pas heap status. */
 void zdump_pas_status(void);
 

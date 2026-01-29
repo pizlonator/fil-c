@@ -1464,6 +1464,7 @@ class Pizlonator {
   Constant* CurrentMarkingState;
 
   std::unordered_map<AllocaInst*, PointerKind> AllocaKinds;
+  std::unordered_set<AllocaInst*> AlwaysLive;
 
   std::unordered_set<CombinedDI> CombinedDIs;
   std::unordered_map<std::pair<const CombinedDI*, const CombinedDI*>,
@@ -2730,6 +2731,19 @@ class Pizlonator {
         for (BasicBlock* PBB : predecessors(BB)) {
           for (Value* LV : Live)
             Changed |= LiveAtTail[PBB].insert(LV).second;
+        }
+      }
+    }
+
+    // Make sure that AlwaysLive allocas are always live. This is very hacky, but is obviously
+    // correct.
+    for (BasicBlock* BB : Blocks) {
+      for (Instruction& I : *BB) {
+        if (AllocaInst* AI = dyn_cast<AllocaInst>(&I)) {
+          if (AlwaysLive.count(AI)) {
+            for (auto& Pair : LiveAtTail)
+              Pair.second.insert(&I);
+          }
         }
       }
     }
@@ -4060,6 +4074,11 @@ class Pizlonator {
     return AI->getPointerOperand();
   }
 
+  bool isHasUnionFT(FunctionType* FT) {
+    return FT->getNumParams() == 1 && !FT->isVarArg() &&
+      FT->getReturnType() == VoidTy && FT->getParamType(0) == RawPtrTy;
+  }
+
   bool isMemmoveFT(FunctionType* FT) {
     return FT->getNumParams() == 3 &&
       !FT->isVarArg() &&
@@ -4133,6 +4152,7 @@ class Pizlonator {
     return F->willReturn() ||
       F->getName() == "zmemmove_union" ||
       F->getName() == "zmemmove_builtin" ||
+      F->getName() == "zhas_union" ||
       F->getName() == "zgc_alloc" ||
       F->getName() == "malloc" ||
       F->getName() == "zgc_aligned_alloc" ||
@@ -6882,6 +6902,30 @@ class Pizlonator {
       "", I)->setDebugLoc(I->getDebugLoc());
   }
 
+  void initializeNonescapingAlloca(const LocalAllocaData& LAD, Instruction* Before) {
+    if (LAD.Explicit) {
+      FrameEntry FE;
+      assert(FrameIndexMap.count(ValuePtr(LAD.OrigAI, 0)));
+      FE = FrameIndexMap[ValuePtr(LAD.OrigAI, 0)];
+      assert(FE.FEK == FrameEntryKind::ExplicitStackAux);
+      assert(FE.Index != SIZE_MAX);
+      assert(!(LAD.Size % WordSize));
+      (new StoreInst(ConstantInt::get(IntPtrTy, LAD.Size / WordSize), LAD.AuxAlloca, Before))
+        ->setDebugLoc(Before->getDebugLoc());
+      recordLowerAtIndex(LAD.AuxAlloca, FE.Index, Before);
+    }
+    CallInst::Create(
+      RealMemset,
+      { LAD.Payload, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
+        ConstantInt::getFalse(Int1Ty) },
+      "", Before)->setDebugLoc(Before->getDebugLoc());
+    CallInst::Create(
+      RealMemset,
+      { LAD.Aux, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
+        ConstantInt::getFalse(Int1Ty) },
+      "", Before)->setDebugLoc(Before->getDebugLoc());
+  }
+
   bool earlyLowerInstruction(Instruction* I) {
     if (verbose)
       errs() << "Early lowering: " << *I << "\n";
@@ -6934,24 +6978,8 @@ class Pizlonator {
           II->getFunctionType(), II->getCalledOperand(),
           { ConstantInt::get(IntPtrTy, LAD.Size), LAD.AuxAlloca },
           "", II)->setDebugLoc(II->getDebugLoc());
-        if (II->getIntrinsicID() == Intrinsic::lifetime_start) {
-          if (LAD.Explicit) {
-            assert(!(LAD.Size % WordSize));
-            (new StoreInst(ConstantInt::get(IntPtrTy, LAD.Size / WordSize), LAD.AuxAlloca, II))
-              ->setDebugLoc(II->getDebugLoc());
-            recordLowerAtIndex(LAD.AuxAlloca, FE.Index, II);
-          }
-          CallInst::Create(
-            RealMemset,
-            { LAD.Payload, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
-              ConstantInt::getFalse(Int1Ty) },
-            "", II)->setDebugLoc(II->getDebugLoc());
-          CallInst::Create(
-            RealMemset,
-            { LAD.Aux, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
-              ConstantInt::getFalse(Int1Ty) },
-            "", II)->setDebugLoc(II->getDebugLoc());
-        }
+        if (II->getIntrinsicID() == Intrinsic::lifetime_start)
+          initializeNonescapingAlloca(LAD, II);
         II->eraseFromParent();
         return true;
       }
@@ -7380,6 +7408,12 @@ class Pizlonator {
         if ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
             && isMemmoveFT(FT)) {
           lowerMemmoveCall(CI);
+          Erasify();
+          return true;
+        }
+
+        if (F->getName() == "zhas_union"
+            && isHasUnionFT(FT)) {
           Erasify();
           return true;
         }
@@ -9136,12 +9170,12 @@ class Pizlonator {
                 }
               }
             }
-            // We are only going to optimize static allocas that have a lifetime start and a lifetime
-            // end intrinsic!
-            if (HasLifetimeStart && HasLifetimeEnd) {
+            if (HasLifetimeStart == HasLifetimeEnd) {
               if (verbose)
                 errs() << "Going to try to see if " << AI->getName() << " is nonescaping.\n";
               AllocaKinds[AI] = PointerKind::LocalNaked;
+              if (!HasLifetimeStart)
+                AlwaysLive.insert(AI);
               Allocas.insert(AI);
               continue;
             }
@@ -9169,8 +9203,10 @@ class Pizlonator {
         LS = LifetimeState::Zombie;
       else
         LS = LifetimeState::Undetermined;
-      for (AllocaInst* AI : Allocas)
-        LifetimeAtTail[&BB][AI] = LS;
+      for (AllocaInst* AI : Allocas) {
+        if (!AlwaysLive.count(AI))
+          LifetimeAtTail[&BB][AI] = LS;
+      }
     }
     
     auto ExecuteLifetime = [&] (std::unordered_map<AllocaInst*, LifetimeState>& Lifetime,
@@ -9270,7 +9306,8 @@ class Pizlonator {
           PtrAndRandom PAR = underlyingPtr(V);
           AllocaInst* AI = dyn_cast<AllocaInst>(PAR.P);
           if (AI && Allocas.count(AI)) {
-            if (AllocaKinds[AI] != PointerKind::Escaping && Lifetime[AI] != LifetimeState::Live) {
+            if (AllocaKinds[AI] != PointerKind::Escaping &&
+                Lifetime[AI] != LifetimeState::Live && !AlwaysLive.count(AI)) {
               if (verbose)
                 errs() << "Escaping " << AI->getName() << " because it's used and not live.\n";
               AllocaKinds[AI] = PointerKind::Escaping;
@@ -9284,6 +9321,14 @@ class Pizlonator {
         
         if (isa<GetElementPtrInst>(I))
           continue;
+
+        if (CallBase* CI = dyn_cast<CallBase>(I)) {
+          if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+            FunctionType* FT = CI->getFunctionType();
+            if (F->getName() == "zhas_union" && isHasUnionFT(FT))
+              continue;
+          }
+        }
 
         if (isInlineableMemmoveCall(I)) {
           MemmovesToReconsider.push_back(cast<CallBase>(I));
@@ -10696,7 +10741,7 @@ public:
           if (LAD.Explicit) {
             LAD.Aux = GetElementPtrInst::Create(
               RawPtrTy, LAD.AuxAlloca, { ConstantInt::get(IntPtrTy, 1) }, "filc_aux_lowers",
-              AI);
+              AllocaInsertionPoint);
             LAD.Aux->setDebugLoc(AI->getDebugLoc());
           } else
             LAD.Aux = LAD.AuxAlloca;
@@ -10756,6 +10801,16 @@ public:
         for (size_t FrameIndex = FrameSize; FrameIndex--;)
           recordLowerAtIndex(RawNull, FrameIndex, InsertionPoint);
 
+        for (AllocaInst* AI : LocalAllocas) {
+          if (!AlwaysLive.count(AI))
+            continue;
+          PointerKind PK = pointerKindDirect(AI);
+          assert(PK != PointerKind::Escaping);
+          assert(PK == PointerKind::LocalExplicit || PK == PointerKind::LocalNaked);
+          LocalAllocaData LAD = LocalAllocaDatas[AI];
+          initializeNonescapingAlloca(LAD, InsertionPoint);
+        }
+        
         auto PopFrame = [&] (Instruction* Return) {
           new StoreInst(
             new LoadInst(

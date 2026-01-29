@@ -2680,11 +2680,19 @@ llvm::Value *CodeGenFunction::EmitAnnotationCall(llvm::Function *AnnotationFn,
 }
 
 void CodeGenFunction::EmitVarAnnotations(const VarDecl *D, llvm::Value *V) {
-  assert(D->hasAttr<AnnotateAttr>() && "no annotate attribute");
-  for (const auto *I : D->specific_attrs<AnnotateAttr>())
-    EmitAnnotationCall(CGM.getIntrinsic(llvm::Intrinsic::var_annotation,
-                                        {V->getType(), CGM.ConstGlobalsPtrTy}),
-                       V, I->getAnnotation(), D->getLocation(), I);
+  if (D->hasAttr<AnnotateAttr>()) {
+    for (const auto *I : D->specific_attrs<AnnotateAttr>())
+      EmitAnnotationCall(CGM.getIntrinsic(llvm::Intrinsic::var_annotation,
+                                          {V->getType(), CGM.ConstGlobalsPtrTy}),
+                         V, I->getAnnotation(), D->getLocation(), I);
+  }
+  TypeInfoChars TypeInfo = getContext().getTypeInfoInChars(D->getType());
+  if (D->getType().hasUnion() && (TypeInfo.Width.isZero() || TypeInfo.Width.getQuantity() >= 8)) {
+    Builder.CreateCall(
+      CGM.CreateRuntimeFunction(
+        llvm::FunctionType::get(VoidTy, { Int8PtrTy }, false), "zhas_union"),
+      { V });
+  }
 }
 
 Address CodeGenFunction::EmitFieldAnnotations(const FieldDecl *D,
