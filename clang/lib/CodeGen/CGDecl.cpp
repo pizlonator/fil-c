@@ -1583,6 +1583,8 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
       // builds.
       address = CreateTempAlloca(allocaTy, allocaAlignment, D.getName(),
                                  /*ArraySize=*/nullptr, &AllocaAddr);
+      if (auto *AI = dyn_cast<llvm::AllocaInst>(AllocaAddr.getPointer()))
+        EmitZhasUnionIfNeeded(Ty, AI);
 
       // Don't emit lifetime markers for MSVC catch parameters. The lifetime of
       // the catch parameter starts in the catchpad instruction, and we can't

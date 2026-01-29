@@ -2885,6 +2885,11 @@ public:
   RawAddress CreateMemTempWithoutCast(QualType T, CharUnits Align,
                                       const Twine &Name = "tmp");
 
+  /// EmitZhasUnionIfNeeded - If the type contains a union, emit a call to
+  /// the zhas_union pseudo-intrinsic on the alloca. This prevents SROA from
+  /// decomposing the alloca while FilPizlonator treats it as a no-op.
+  void EmitZhasUnionIfNeeded(QualType Ty, llvm::AllocaInst *AI);
+
   /// CreateAggTemp - Create a temporary memory object for the given
   /// aggregate type.
   AggValueSlot CreateAggTemp(QualType T, const Twine &Name = "tmp",

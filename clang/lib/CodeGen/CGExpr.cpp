@@ -155,7 +155,10 @@ RawAddress CodeGenFunction::CreateDefaultAlignTempAlloca(llvm::Type *Ty,
 
 RawAddress CodeGenFunction::CreateIRTemp(QualType Ty, const Twine &Name) {
   CharUnits Align = getContext().getTypeAlignInChars(Ty);
-  return CreateTempAlloca(ConvertType(Ty), Align, Name);
+  auto Result = CreateTempAlloca(ConvertType(Ty), Align, Name);
+  if (auto *AI = dyn_cast<llvm::AllocaInst>(Result.getPointer()))
+    EmitZhasUnionIfNeeded(Ty, AI);
+  return Result;
 }
 
 RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, const Twine &Name,
@@ -167,8 +170,13 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, const Twine &Name,
 RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
                                           const Twine &Name,
                                           RawAddress *Alloca) {
+  RawAddress AllocaAddr = RawAddress::invalid();
   RawAddress Result = CreateTempAlloca(ConvertTypeForMem(Ty), Align, Name,
-                                       /*ArraySize=*/nullptr, Alloca);
+                                       /*ArraySize=*/nullptr, &AllocaAddr);
+  if (auto *AI = dyn_cast<llvm::AllocaInst>(AllocaAddr.getPointer()))
+    EmitZhasUnionIfNeeded(Ty, AI);
+  if (Alloca)
+    *Alloca = AllocaAddr;
 
   if (Ty->isConstantMatrixType()) {
     auto *ArrayTy = cast<llvm::ArrayType>(Result.getElementType());
@@ -184,13 +192,28 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,
                                                      CharUnits Align,
                                                      const Twine &Name) {
-  return CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name);
+  auto Result = CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name);
+  if (auto *AI = dyn_cast<llvm::AllocaInst>(Result.getPointer()))
+    EmitZhasUnionIfNeeded(Ty, AI);
+  return Result;
 }
 
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,
                                                      const Twine &Name) {
   return CreateMemTempWithoutCast(Ty, getContext().getTypeAlignInChars(Ty),
                                   Name);
+}
+
+void CodeGenFunction::EmitZhasUnionIfNeeded(QualType Ty,
+                                             llvm::AllocaInst *AI) {
+  if (!Ty.hasUnion())
+    return;
+  llvm::IRBuilderBase::InsertPointGuard IPG(Builder);
+  Builder.SetInsertPoint(AI->getNextNode());
+  Builder.CreateCall(
+    CGM.CreateRuntimeFunction(
+      llvm::FunctionType::get(VoidTy, { Int8PtrTy }, false), "zhas_union"),
+    { AI });
 }
 
 /// EvaluateExprAsBool - Perform the usual unary conversions on the specified

@@ -835,6 +835,7 @@ RedeclarableResult ASTDeclReader::VisitRecordDeclImpl(RecordDecl *RD) {
       RecordDeclBits.getNextBit());
   RD->setHasNonTrivialToPrimitiveDestructCUnion(RecordDeclBits.getNextBit());
   RD->setHasNonTrivialToPrimitiveCopyCUnion(RecordDeclBits.getNextBit());
+  RD->setHasUnion(RecordDeclBits.getNextBit());
   RD->setHasUninitializedExplicitInitFields(RecordDeclBits.getNextBit());
   RD->setParamDestroyedInCallee(RecordDeclBits.getNextBit());
   RD->setArgPassingRestrictions(

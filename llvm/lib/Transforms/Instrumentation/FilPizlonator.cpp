@@ -4131,6 +4131,7 @@ class Pizlonator {
 
   bool functionWillReturn(Function* F) {
     return F->willReturn() ||
+      F->getName() == "zhas_union" ||
       F->getName() == "zmemmove_union" ||
       F->getName() == "zmemmove_builtin" ||
       F->getName() == "zgc_alloc" ||
@@ -7377,6 +7378,15 @@ class Pizlonator {
           return true;
         }
 
+        if (F->getName() == "zhas_union" &&
+            FT->getNumParams() == 1 &&
+            !FT->isVarArg() &&
+            FT->getReturnType() == VoidTy &&
+            FT->getParamType(0) == RawPtrTy) {
+          Erasify();
+          return true;
+        }
+
         if ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
             && isMemmoveFT(FT)) {
           lowerMemmoveCall(CI);
@@ -9299,6 +9309,13 @@ class Pizlonator {
           mergeKind(cast<CallBase>(I)->getArgOperand(0), PointerKind::LocalExplicit);
           mergeKind(cast<CallBase>(I)->getArgOperand(1), PointerKind::LocalExplicit);
           continue;
+        }
+
+        if (CallBase* CI = dyn_cast<CallBase>(I)) {
+          if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+            if (F->getName() == "zhas_union")
+              continue;
+          }
         }
 
         if (LoadInst* LI = dyn_cast<LoadInst>(I)) {
