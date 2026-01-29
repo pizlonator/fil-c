@@ -2334,6 +2334,14 @@ void JSGlobalObject::haveABadTime(VM& vm)
     // bad time, and convert all affected objects to SlowPutArrayStorage.
 
     fireWatchpointAndMakeAllArrayStructuresSlowPut(vm); // Step 1 above.
+
+#ifdef __FILC__
+    // FIXME: In Fil-C, we do not have a way to iterate JS objects.
+    //
+    // It's not inconceivable that we could make an FUGC API for iterating objects. It just doesn't exist rn.
+    if ((true))
+        return;
+#endif
     
     Vector<JSObject*> foundObjects;
     ObjectsWithBrokenIndexingFinder<BadTimeFinderMode::SingleGlobal> finder(foundObjects, this);
