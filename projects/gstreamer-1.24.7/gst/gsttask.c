@@ -314,7 +314,7 @@ gst_task_configure_name (GstTask * task)
     GST_DEBUG_OBJECT (task, "Could not create thread name for '%s'", name);
   } else {
     GST_DEBUG_OBJECT (task, "Setting thread name to '%s'", thread_name);
-    if (prctl (PR_SET_NAME, (unsigned long int) thread_name, 0, 0, 0))
+    if (prctl (PR_SET_NAME, thread_name, 0, 0, 0))
       GST_DEBUG_OBJECT (task, "Failed to set thread name");
   }
   GST_OBJECT_UNLOCK (task);
