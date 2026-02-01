@@ -3756,6 +3756,18 @@ void filc_free_with_checks(filc_ptr ptr)
     free_with_checks(ptr);
 }
 
+void filc_log_allocate(filc_thread* my_thread, const filc_origin* origin, size_t size,
+                       size_t alignment)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    pas_log("Allocating %zu bytes ", size);
+    if (alignment > 1)
+        pas_log("(%zu alignment) ", alignment);
+    pas_log("at ");
+    filc_origin_dump_self(origin, pas_log_stream);
+    pas_log("\n");
+}
+
 void filc_native_zgc_free(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);

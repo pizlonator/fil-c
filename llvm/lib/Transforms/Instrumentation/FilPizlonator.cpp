@@ -1406,6 +1406,7 @@ class Pizlonator {
   FunctionCallee AllocateWithAlignment;
   FunctionCallee LocalAllocatorAllocate;
   FunctionCallee FreeWithChecks;
+  FunctionCallee LogAllocate;
   FunctionCallee OptimizedAlignmentContradiction;
   FunctionCallee OptimizedAccessCheckFail;
   FunctionCallee OptimizedStackAlignmentContradiction;
@@ -2540,6 +2541,11 @@ class Pizlonator {
   }
 
   Value* allocateObject(Value* Size, Value* Alignment, Instruction* InsertBefore) {
+    if (logAllocations) {
+      CallInst::Create(
+        LogAllocate, { MyThread, getOrigin(InsertBefore->getDebugLoc()), Size, Alignment },
+        "", InsertBefore);
+    }
     Instruction* Result;
     ConstantInt* AlignmentInt = dyn_cast<ConstantInt>(Alignment);
     if (AlignmentInt && AlignmentInt->getZExtValue() <= GCMinAlign) {
@@ -9302,6 +9308,14 @@ class Pizlonator {
           continue;
         }
         
+        if (CallBase* CI = dyn_cast<CallBase>(I)) {
+          if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+            FunctionType* FT = CI->getFunctionType();
+            if (F->getName() == "zhas_union" && isHasUnionFT(FT))
+              continue;
+          }
+        }
+
         for (Value* V : I->operands()) {
           PtrAndRandom PAR = underlyingPtr(V);
           AllocaInst* AI = dyn_cast<AllocaInst>(PAR.P);
@@ -9321,14 +9335,6 @@ class Pizlonator {
         
         if (isa<GetElementPtrInst>(I))
           continue;
-
-        if (CallBase* CI = dyn_cast<CallBase>(I)) {
-          if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
-            FunctionType* FT = CI->getFunctionType();
-            if (F->getName() == "zhas_union" && isHasUnionFT(FT))
-              continue;
-          }
-        }
 
         if (isInlineableMemmoveCall(I)) {
           MemmovesToReconsider.push_back(cast<CallBase>(I));
@@ -10086,6 +10092,8 @@ public:
       "verse_local_allocator_allocate", RawPtrTy, RawPtrTy);
     FreeWithChecks = M.getOrInsertFunction(
       "filc_free_with_checks", VoidTy, FlightPtrTy);
+    LogAllocate = M.getOrInsertFunction(
+      "filc_log_allocate", VoidTy, RawPtrTy, RawPtrTy, IntPtrTy, IntPtrTy);
     CheckFunctionCallFail = M.getOrInsertFunction(
       "filc_check_function_call_fail", VoidTy, FlightPtrTy);
     CheckClosureFail = M.getOrInsertFunction(

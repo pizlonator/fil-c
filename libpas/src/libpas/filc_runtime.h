@@ -3762,6 +3762,9 @@ PAS_API void filc_free(filc_object* object);
 /* Equivalent to zgc_free in that it does all of the checks. */
 void filc_free_with_checks(filc_ptr ptr);
 
+void filc_log_allocate(filc_thread* my_thread, const filc_origin* origin, size_t size,
+                       size_t alignment);
+
 PAS_API void filc_unmap(void* ptr, size_t size);
 
 filc_object* filc_allocate_thread_local(
