@@ -991,11 +991,11 @@ enchant_provider_get_type_once (void)
 GType
 enchant_provider_get_type (void)
 {
-	static volatile gsize enchant_provider_type_id__once = 0;
-	if (g_once_init_enter (&enchant_provider_type_id__once)) {
+	static volatile GType enchant_provider_type_id__once = 0;
+	if (g_once_init_enter_pointer (&enchant_provider_type_id__once)) {
 		GType enchant_provider_type_id;
 		enchant_provider_type_id = enchant_provider_get_type_once ();
-		g_once_init_leave (&enchant_provider_type_id__once, enchant_provider_type_id);
+		g_once_init_leave_pointer (&enchant_provider_type_id__once, enchant_provider_type_id);
 	}
 	return enchant_provider_type_id__once;
 }

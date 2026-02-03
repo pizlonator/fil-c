@@ -962,11 +962,11 @@ enchant_session_get_type_once (void)
 GType
 enchant_session_get_type (void)
 {
-	static volatile gsize enchant_session_type_id__once = 0;
-	if (g_once_init_enter (&enchant_session_type_id__once)) {
+	static volatile GType enchant_session_type_id__once = 0;
+	if (g_once_init_enter_pointer (&enchant_session_type_id__once)) {
 		GType enchant_session_type_id;
 		enchant_session_type_id = enchant_session_get_type_once ();
-		g_once_init_leave (&enchant_session_type_id__once, enchant_session_type_id);
+		g_once_init_leave_pointer (&enchant_session_type_id__once, enchant_session_type_id);
 	}
 	return enchant_session_type_id__once;
 }

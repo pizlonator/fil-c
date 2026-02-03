@@ -2151,11 +2151,11 @@ enchant_pwl_get_type_once (void)
 GType
 enchant_pwl_get_type (void)
 {
-	static volatile gsize enchant_pwl_type_id__once = 0;
-	if (g_once_init_enter (&enchant_pwl_type_id__once)) {
+	static volatile GType enchant_pwl_type_id__once = 0;
+	if (g_once_init_enter_pointer (&enchant_pwl_type_id__once)) {
 		GType enchant_pwl_type_id;
 		enchant_pwl_type_id = enchant_pwl_get_type_once ();
-		g_once_init_leave (&enchant_pwl_type_id__once, enchant_pwl_type_id);
+		g_once_init_leave_pointer (&enchant_pwl_type_id__once, enchant_pwl_type_id);
 	}
 	return enchant_pwl_type_id__once;
 }

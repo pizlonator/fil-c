@@ -520,7 +520,7 @@ lib_LTLIBRARIES = libenchant-@ENCHANT_MAJOR_VERSION@.la
 BUILT_SOURCES = dummy.vala
 libenchant_@ENCHANT_MAJOR_VERSION@_la_CPPFLAGS = $(AM_CPPFLAGS) -D_ENCHANT_BUILD=1 -DENCHANT_VERSION_STRING=\"@ENCHANT_MAJOR_VERSION@.@ENCHANT_MINOR_VERSION@.@ENCHANT_MICRO_VERSION@\" -DENCHANT_MAJOR_VERSION=\"@ENCHANT_MAJOR_VERSION@\"
 libenchant_@ENCHANT_MAJOR_VERSION@_la_LIBADD = $(top_builddir)/libgnu/libgnu.la $(GLIB_LIBS) $(LTLIBOBJS)
-libenchant_@ENCHANT_MAJOR_VERSION@_la_LDFLAGS = -no-undefined -export-symbols-regex '^enchant_.*' -version-info $(VERSION_INFO)
+libenchant_@ENCHANT_MAJOR_VERSION@_la_LDFLAGS = -no-undefined -export-symbols-regex '^pizlonated_enchant_.*' -version-info $(VERSION_INFO)
 libenchant_@ENCHANT_MAJOR_VERSION@_la_SOURCES = \
 	enchant.h enchant-provider.h pwl.h \
 	api.vala \

@@ -492,11 +492,11 @@ enchant_composite_dict_get_type_once (void)
 GType
 enchant_composite_dict_get_type (void)
 {
-	static volatile gsize enchant_composite_dict_type_id__once = 0;
-	if (g_once_init_enter (&enchant_composite_dict_type_id__once)) {
+	static volatile GType enchant_composite_dict_type_id__once = 0;
+	if (g_once_init_enter_pointer (&enchant_composite_dict_type_id__once)) {
 		GType enchant_composite_dict_type_id;
 		enchant_composite_dict_type_id = enchant_composite_dict_get_type_once ();
-		g_once_init_leave (&enchant_composite_dict_type_id__once, enchant_composite_dict_type_id);
+		g_once_init_leave_pointer (&enchant_composite_dict_type_id__once, enchant_composite_dict_type_id);
 	}
 	return enchant_composite_dict_type_id__once;
 }

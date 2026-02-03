@@ -1744,11 +1744,11 @@ enchant_dict_get_type_once (void)
 GType
 enchant_dict_get_type (void)
 {
-	static volatile gsize enchant_dict_type_id__once = 0;
-	if (g_once_init_enter (&enchant_dict_type_id__once)) {
+	static volatile GType enchant_dict_type_id__once = 0;
+	if (g_once_init_enter_pointer (&enchant_dict_type_id__once)) {
 		GType enchant_dict_type_id;
 		enchant_dict_type_id = enchant_dict_get_type_once ();
-		g_once_init_leave (&enchant_dict_type_id__once, enchant_dict_type_id);
+		g_once_init_leave_pointer (&enchant_dict_type_id__once, enchant_dict_type_id);
 	}
 	return enchant_dict_type_id__once;
 }
