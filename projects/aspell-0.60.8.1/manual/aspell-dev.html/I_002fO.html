@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: I/O</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: I/O">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Config-Class.html#Config-Class" rel="next" title="Config Class">
+<link href="Smart-Pointers.html#Smart-Pointers" rel="prev" title="Smart Pointers">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="I_002fO"></a>
+<div class="header">
+<p>
+Next: <a href="Config-Class.html#Config-Class" accesskey="n" rel="next">Config Class</a>, Previous: <a href="Smart-Pointers.html#Smart-Pointers" accesskey="p" rel="prev">Smart Pointers</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="I_002fO-1"></a>
+<h2 class="chapter">9 I/O</h2>
+
+<p>Aspell does not use C++ I/O classes and functions in any way since
+they do not provide a way to get at the underlying file number and can
+often be slower than the highly tuned C I/O functions found in the
+standard C library.  However, some lightweight wrapper classes are
+provided so that standard C I/O can be used in a more C++ like way.
+</p>
+<a name="IStream_002fOStream"></a>
+<h3 class="section">9.1 IStream/OStream</h3>
+
+<p>These two base classes mimic some of the functionally of the C++
+functionally of the corresponding classes.  They are defined in
+<samp>istream.hpp</samp> and <samp>ostream.hpp</samp> respectively.  They are
+however based on standard C I/O and are not proper C++ streams.
+</p>
+<a name="FStream"></a>
+<h3 class="section">9.2 FStream</h3>
+
+<p>Defined in <samp>fstream.hpp</samp>.
+</p>
+
+<a name="Standard-Streams"></a>
+<h3 class="section">9.3 Standard Streams</h3>
+
+<p><code>CIN</code>/<code>COUT</code>/<code>CERR</code>.  Defined in <samp>iostream.hpp</samp>.
+</p>
+
+
+
+</body>
+</html>

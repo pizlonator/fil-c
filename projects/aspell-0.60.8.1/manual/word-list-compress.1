@@ -1,0 +1,97 @@
+.TH WORD\-LIST\-COMPRESS 1 "2005-09-05" "GNU" "Aspell Abbreviated User's Manual"
+.SH NAME
+word\-list\-compress \- word list compressor/decompressor for GNU Aspell
+.SH SYNOPSIS
+.B word-list-compress
+\fBc\fR[\fBompress\fR] | \fBd\fR[\fBecompress\fR]
+.SH DESCRIPTION
+.B word-list-compress
+compresses or decompresses sorted word lists for use with the GNU Aspell
+spell checker.
+.SH COMMANDS
+.TP
+\fB\-c\fR, \fBc\fR, \fBcompress\fR
+compress the plain text word list read from standard input.
+.TP
+\fB\-d\fR, \fBd\fR, \fBdecompress\fR
+decompress the compressed word list read from standard input.
+.SH EXAMPLES
+Here are a few examples of how you can use
+.I word\-list\-compress
+.TP
+word\-list\-compress \fBd\fR <wordlist.cwl >wordlist.txt
+Decompress file wordlist.cwl to text file wordlist.txt
+.TP
+word\-list\-compress \fBc\fR <wordlist.wl >wordlist.cwl 2>errors.txt
+Compress wordlist.wl to wordlist.cwl and send any error messages to a
+text file named errors.txt
+.TP
+LC_COLLATE=C sort \-u <wordlist.txt \fB|\fR word\-list\-compress c >wordlist.cwl
+Sort a word list, then pipe it to
+.I word\-list\-compress
+to create a compressed binary wordlist.cwl file.
+.TP
+word\-list\-compress d <words.cwl \fB|\fR aspell create master ./words.rws
+Decompress a wordlist, then pipe it to
+.I aspell(1)
+to create a spelling list.  Please check the
+.I aspell(1)
+info manual for proper usage and options.
+.SH TIPS
+.I Word\-list\-compress
+is best used with sorted word list type files.  It is not a general
+purpose compression program since the resulting files may actually
+increase in size.
+.PP
+.I Word\-list\-compress
+accepts up to 255 text characters in the range of {0x21...0xFF}.  If your
+word list requires a larger character set for certain languages or
+longer length for multi\-word, scientific, medical, technical or other
+use, then it is recommended that you compress your word list using
+.I prezip\-bin(1)
+.
+.SH DIAGNOSTICS
+.I Word\-list\-compress
+normally exits with a return code of 0.  If it encounters an error,
+a message is sent to standard error output (stderr), and
+.I word\-list\-compress
+exits with a non-zero return value.  Error messages are listed below:
+.TP
+\fB(display help/usage message)\fR
+Unknown command given on the command line so
+.I word\-list\-compress
+displays a usage message to standard error output.
+.TP
+\fBCorrupt Input\fR
+This is only for the decompression command \fBd\fR.  The input file is
+of an unknown format or the input file/stream is corrupted.  You may
+have some valid output, but
+.I word\-list\-compress
+could not complete the process.  If the input file is a compressed
+wordlist but you have no output file, then it may be a newer
+.I prezip\-bin(1)
+version of compressed file, if so, try decompressing the file with
+.I prezip\-bin(1)
+instead.
+.TP
+\fBOutput Data Error\fR
+The output is full, write protected, or has an error and can no longer
+be written to.
+.SH SEE ALSO
+.PP
+.BR aspell (1),
+.BR aspell\-import (1),
+.BR prezip\-bin (1),
+.BR run\-with\-aspell (1)
+.PP
+Aspell is fully documented in its Texinfo manual.  See the
+.RB "`\|" aspell "\|'"
+entry in
+.B info
+for more complete documentation.
+.SH REPORTING BUGS
+For help, see the Aspell homepage at <http://aspell.net> and send bug
+reports/comments to the Aspell user list at the above address.
+.SH AUTHOR
+This manual page was written by Aaron Lehmann <aaronl@vitelus.com>,
+Brian Nelson <pyro@debian.org> and Jose Da Silva <digital@joescat.com>.

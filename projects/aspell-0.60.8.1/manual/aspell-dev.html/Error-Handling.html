@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Error Handling</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Error Handling">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Source-Code-Layout.html#Source-Code-Layout" rel="next" title="Source Code Layout">
+<link href="Templates.html#Templates" rel="prev" title="Templates">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Error-Handling"></a>
+<div class="header">
+<p>
+Next: <a href="Source-Code-Layout.html#Source-Code-Layout" accesskey="n" rel="next">Source Code Layout</a>, Previous: <a href="Templates.html#Templates" accesskey="p" rel="prev">Templates</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Error-Handling-1"></a>
+<h2 class="chapter">5 Error Handling</h2>
+
+<p>Exceptions are not used in Aspell as I find them more trouble than
+they are worth.  Instead an alternate method of error handling is used
+which is based around the PosibErr class.  PosibErr is a special Error
+handling device that will make sure that an error is properly handled.
+It is defined in <code>posib_err.hpp</code>.  PosibErr is expected to be
+used as the return type of the function. It will automatically be
+converted to the &quot;normal&quot; return type however if the normal returned
+type is accessed and there is an &quot;unhandled&quot; error condition it will
+abort. It will also abort if the object is destroyed with an
+&quot;unhandled&quot; error condition.  This includes ignoring the return type
+of a function returning an error condition.  An error condition is
+handled by simply checking for the presence of an error, calling
+ignore, or taking ownership of the error.
+</p>
+<p>The PosibErr class is used extensively throughout Aspell.  Please
+refer to the Aspell source for examples of using PosibErr until better
+documentation is written.
+</p>
+
+
+
+</body>
+</html>

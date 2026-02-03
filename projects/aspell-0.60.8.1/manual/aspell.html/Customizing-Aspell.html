@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Customizing Aspell</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Customizing Aspell">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Specifying-Options.html#Specifying-Options" rel="next" title="Specifying Options">
+<link href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications" rel="prev" title="Using Aspell with other Applications">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Customizing-Aspell"></a>
+<div class="header">
+<p>
+Next: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="n" rel="next">Working With Dictionaries</a>, Previous: <a href="Basic-Usage.html#Basic-Usage" accesskey="p" rel="prev">Basic Usage</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Customizing-Aspell-1"></a>
+<h2 class="chapter">4 Customizing Aspell</h2>
+
+<p>The behavior of Aspell can be changed by any number of options which
+can be specified at either the command line, the environment variable
+<code>ASPELL_CONF</code>, a personal configuration file, or a global
+configuration file.  Options specified on the command line override
+options specified by the environment variable.  Options specified by
+the environment variable override options specified by either of the
+configuration files.  Finally options specified by the personal
+configuration file override options specified in the global
+configuration file.  Options specified in the environment variable
+<code>ASPELL_CONF</code>, a personal configuration file, or a global
+configuration file will take effect no matter how Aspell is used which
+includes being used by other applications.
+</p>
+<p>Aspell has three basic types of options: <em>boolean</em>, <em>value</em>,
+and <em>list</em>.
+</p>
+<p><em>Boolean</em> options are either enabled or disabled, <em>value</em>
+options take a specific value, and <em>list</em> options can either have
+entries added or removed from the list.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Specifying-Options.html#Specifying-Options" accesskey="1">Specifying Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="The-Options.html#The-Options" accesskey="2">The Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Dumping-Configuration-Values.html#Dumping-Configuration-Values" accesskey="3">Dumping Configuration Values</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-Various-Options.html#Notes-on-Various-Options" accesskey="4">Notes on Various Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Working With Affix Info in Word Lists</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Working With Affix Info in Word Lists">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="up" title="Working With Dictionaries">
+<link href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries" rel="next" title="Format of the Personal and Replacement Dictionaries">
+<link href="Creating-an-Individual-Word-List.html#Creating-an-Individual-Word-List" rel="prev" title="Creating an Individual Word List">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Working-With-Affix-Info-in-Word-Lists"></a>
+<div class="header">
+<p>
+Next: <a href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries" accesskey="n" rel="next">Format of the Personal and Replacement Dictionaries</a>, Previous: <a href="Creating-an-Individual-Word-List.html#Creating-an-Individual-Word-List" accesskey="p" rel="prev">Creating an Individual Word List</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Working-With-Affix-Info-in-Word-Lists-1"></a>
+<h3 class="section">5.6 Working With Affix Info in Word Lists</h3>
+
+<a name="The-Munch-Command"></a>
+<h4 class="subsection">5.6.1 The Munch Command</h4>
+
+<p>The <code>munch</code> command takes a list of words from standard input
+and outputs a list of possible root words and affixes.  The root may,
+however, be invalid as it does not check them against the existing
+dictionary.  For example the command:
+</p><div class="example">
+<pre class="example">echo brother | aspell -l en munch
+</pre><pre class="example">produces
+</pre><pre class="example">brother broth/R brothe/R
+</pre></div>
+
+<a name="The-Expand-Command"></a>
+<h4 class="subsection">5.6.2 The Expand Command</h4>
+
+<p>The <code>expand</code> command is the reverse of <code>munch</code>, it
+expands affix flags to produce a list of words.  For example:
+</p><div class="example">
+<pre class="example">echo both/R | aspell -l en expand
+</pre><pre class="example">produces
+</pre><pre class="example">both bother
+</pre></div>
+
+<p>The formal usage is:
+</p><div class="example">
+<pre class="example">aspell expand [<var>level</var>] [<var>limit</var>]
+</pre></div>
+<p>Where <var>level</var> is the expansion level.  Valid values are between 1
+and 3.  Level 1 is the default if not otherwise specified.  Level 2
+causes the original root/affix to be included, for example:
+</p><div class="example">
+<pre class="example">both/R both bother
+</pre></div>
+<p>Level 3 causes multiple lines to be printed, one for each generated
+word, with the original root/affix combination followed by the word it
+creates:
+</p><div class="example">
+<pre class="example">both/R both
+both/R bother
+</pre></div>
+<p>Levels larger than 3 may also be supported, but should not be used as
+they may eventually be removed.
+</p>
+<p>If a <var>limit</var> parameter is given then only expansions which affect
+the first <var>limit</var> letters will be expanded.  If a base word is not
+completely expanded for a given affix flag that flag will be left on
+the word.  Note that prefixes are always expanded.
+</p>
+<a name="The-Munch_002dlist-Command"></a>
+<h4 class="subsection">5.6.3 The Munch-list Command</h4>
+
+<p>The <code>munch-list</code> command will reduce the size of word list via
+affix compression.  It will reduce a list of words to a minimal (or
+close to it) set of roots and affixes that will match the same list of
+words.  The list of words is read from standard input and the result,
+the &ldquo;munched&rdquo; list, is written to standard out.  It&rsquo;s usage is:
+</p>
+<div class="example">
+<pre class="example">aspell munch-list [keep] [single|multi] [simple] &lt; <var>infile</var> &gt; <var>outfile</var>
+</pre></div>
+
+<p>where <samp>simple</samp>, <samp>single</samp>, <samp>multi</samp>, and
+<samp>keep</samp> are literal values.
+</p>
+<p>The default algorithm used should give near optimum results.  In some
+cases the set of words returned is, provably, the minimum number
+possible.  In the typical case the number of words returned is within
+1% of the optimum number.
+</p>
+<p>By default Aspell will remove redundant affix flags.  The <samp>keep</samp>
+flag will avoid removing them, which can be useful if you want to
+include all possible expansions for each base word.
+</p>
+<p>When cross products are involved it may be beneficial to list a base
+word more than once.  Unfortunately, the current version of Aspell can
+not correctly handle multiple base words in a dictionary.  Therefore,
+the current default behavior is to only include the one with the most
+expansions.  All of them can be included via the <samp>multi</samp> flag.
+Once Aspell is able to handle multiple base words the default will be
+to include them all.  The <samp>single</samp> flag can be used to only
+include one of them.
+</p>
+<p>The <samp>simple</samp> flag will select an alternate faster algorithm.
+This algorithm is very similar to the <code>munch</code> command
+distributed with MySpell (the Open Office spell checker), however, it
+doesn&rsquo;t give nearly as good results.  It does okay for the English
+word list but not for some other languages such as German; the normal
+algorithm reduced a list of 312,002 German words to 79,420 base words
+while the simple algorithm only reduced it to 115,927 words.  This
+algorithm may disappear in a future version of Aspell.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries" accesskey="n" rel="next">Format of the Personal and Replacement Dictionaries</a>, Previous: <a href="Creating-an-Individual-Word-List.html#Creating-an-Individual-Word-List" accesskey="p" rel="prev">Creating an Individual Word List</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+# HTML mode description file
+
+MODE html
+
+ASPELL >=0.60
+
+MAGIC /0:256:^[ \t]*<[Hh][Tt][Mm][Ll]([ \t]*(<[^>]*>|[^<>]*))*>/htm/html
+MAGIC /0:256:^[ \t]*<[h][Tt][Mm][Ll]([ \t]*(<[^>]*>|[^<>]*))*>/HTM/HTML
+
+DESCRIPTION mode for checking HTML documents
+
+FILTER url
+FILTER html

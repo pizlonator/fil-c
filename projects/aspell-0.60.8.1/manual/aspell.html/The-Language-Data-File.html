@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: The Language Data File</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: The Language Data File">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" rel="up" title="Adding Support For Other Languages">
+<link href="Compiling-the-Word-List.html#Compiling-the-Word-List" rel="next" title="Compiling the Word List">
+<link href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" rel="prev" title="Adding Support For Other Languages">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="The-Language-Data-File"></a>
+<div class="header">
+<p>
+Next: <a href="Compiling-the-Word-List.html#Compiling-the-Word-List" accesskey="n" rel="next">Compiling the Word List</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="The-Language-Data-File-1"></a>
+<h3 class="section">7.1 The Language Data File</h3>
+
+<p>The basic format of the language data file is the same as it is for the
+Aspell configuration file.  It is named <samp><var>lang</var>.dat</samp> and is
+located in the architecture independent data dir for Aspell (option
+<samp>data-dir</samp>) which is usually <samp><var>prefix</var>/share/aspell</samp>.
+Use &lsquo;<samp>aspell config</samp>&rsquo; to find out where it is in your
+installation.  By convention the language name should be the two letter
+ISO 639 language code if it exists, if not use the three letter code.
+</p>
+<p>The language data file has several mandatory fields, and several
+optional ones.  All fields are case sensitive and should be in all
+lower case.
+</p>
+<p>The two mandatory fields are <samp>name</samp> and <samp>charset</samp>.
+</p>
+<p><samp>name</samp> is the name of the language and should be the same as the
+file name (without the <samp>.dat</samp>).
+</p>
+<p><samp>charset</samp> is the 8-bit character set Aspell will expect the
+word lists to be formatted in.  If possible choose from one of the
+standard ones provided with Aspell.  These are &lsquo;<samp>iso-8859-*</samp>&rsquo;,
+&lsquo;<samp>koi8-*</samp>&rsquo;, or &lsquo;<samp>viscii</samp>&rsquo;.  If your language does not require
+any non-ascii characters choose &lsquo;<samp>iso-8859-1</samp>&rsquo;.  If one of these
+standard character sets is not suitable for your language then you can
+create a new one.  See <a href="Creating-A-New-Character-Set.html#Creating-A-New-Character-Set">Creating A New Character Set</a>.
+</p>
+<p>The optional fields are as follows:
+</p>
+<dl compact="compact">
+<dd>
+<a name="data_002dencoding"></a></dd>
+<dt><samp>data-encoding</samp></dt>
+<dd>
+<p>The encoding the language data files are expected to be in as well as
+the default encoding to use when saving the personal dictionaries.  It
+can be either &lsquo;<samp>utf-8</samp>&rsquo; or any of the 8-bit encoding that Aspell
+supports.  If not set, then it defaults to <samp>charset</samp>.
+</p>
+</dd>
+<dt><samp>special</samp></dt>
+<dd>
+<p>Non-letter characters that can appear in your language such as the
+&lsquo;<samp>'</samp>&rsquo; and &lsquo;<samp>-</samp>&rsquo;. The format for the value is a list separated by
+spaces.  Each item of the list has the following format.
+</p>
+<div class="example">
+<pre class="example">&lt;char&gt; &lt;begin&gt;&lt;middle&gt;&lt;end&gt;
+</pre></div>
+
+<p><var>char</var> is the non-letter character in question.
+<var>begin</var>, <var>middle</var>, <var>end</var> are either a
+&lsquo;<samp>-</samp>&rsquo; or a &lsquo;<samp>*</samp>&rsquo;.  A star for <var>begin</var> means that the
+character can begin a word, a &lsquo;<samp>-</samp>&rsquo; means it can&rsquo;t.  The same is
+true for <var>middle</var> and <var>end</var>. For example, the entry
+for the &lsquo;<samp>'</samp>&rsquo; in English is:
+</p>
+<div class="example">
+<pre class="example">' -*-
+</pre></div>
+
+<p>To include more than one middle character just list them one after
+another on the same line.  For example, to make both the &lsquo;<samp>'</samp>&rsquo;
+and the &lsquo;<samp>-</samp>&rsquo; a middle character, use the following line in the
+language data file:
+</p>
+<div class="example">
+<pre class="example">special ' -*- - -*-
+</pre></div>
+
+<p>However, please be aware that adding special characters can have
+unintended consequences due to limitations of Aspell.  For example if
+the &lsquo;<samp>-</samp>&rsquo; was accepted as a middle character, then <em>every</em>
+word with a &lsquo;<samp>-</samp>&rsquo; in it would be flagged as a spelling error unless
+that exact word is in the dictionary, even if both parts are in the
+dictionary.  Also, having a &lsquo;<samp>.</samp>&rsquo; as an end character will cause
+the &lsquo;<samp>.</samp>&rsquo; to be part of any misspelled words.  Which can get very
+annoying if you misspell a word at the end of a sentence.
+</p>
+</dd>
+<dt><samp>soundslike</samp></dt>
+<dd>
+<p>The name of the soundslike data for the language.  The data is
+expected to be in the file <samp><var>name</var>_phonet.dat</samp>.
+</p>
+<p>If <var>name</var> is &lsquo;<samp>simpile</samp>&rsquo; then a very simple soundslike is
+used.  This is not as powerful as full phonetic soundslike but it
+can be computed a lot faster.  (see <a href="The-Simple-Soundslike.html#The-Simple-Soundslike">The Simple Soundslike</a>)
+</p>
+<p>If the soundslike name is &lsquo;<samp>none</samp>&rsquo;, or this option is not specified,
+then no soundslike will be used.  The effective soundslike is the word
+converted to all lowercase and possibly with accents stripped
+depending on the <samp>store-as</samp> option.  For languages with
+phonetic spelling the difference will not be very noticeable.
+However, for languages with non-phonetic spelling there will be a
+noticeable difference.  The difference you notice will depend on the
+quality of the soundslike data file.  If you do not notice much of a
+difference for a language with non-phonetic spelling that is a good
+indication that the soundslike data is not rough enough&mdash;or the words
+you are trying are not that badly misspelled.
+</p>
+</dd>
+<dt><samp>invisible-soundslike</samp></dt>
+<dd>
+<p>Avoid storing the soundslike information with the word.  Instead it is
+computed as needed.  This option defaults to true if the soundslike is
+&lsquo;<samp>none</samp>&rsquo; or &lsquo;<samp>simpile</samp>&rsquo;, and false when a phonetic soundslike is
+used.
+</p>
+</dd>
+<dt><samp>repl-table</samp></dt>
+<dd>
+<p>See <a href="Replacement-Tables.html#Replacement-Tables">Replacement Tables</a>.
+</p>
+</dd>
+<dt><samp>keyboard</samp></dt>
+<dd>
+<p>The base name of the keyboard definition file to use.  For more
+information see <a href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis">Notes on Typo-Analysis</a>.
+</p>
+</dd>
+<dt><samp>sug-split-char</samp></dt>
+<dd>
+<p>A list of characters which specifies which characters to insert between
+two words when a word is split.  This is a list option.
+</p>
+</dd>
+<dt><samp>affix</samp></dt>
+<dt><samp>affix-compress</samp></dt>
+<dt><samp>partially-expand</samp></dt>
+<dd>
+<p>See <a href="Affix-Compression.html#Affix-Compression">Affix Compression</a>.
+</p>
+</dd>
+<dt><samp>store-as</samp></dt>
+<dd>
+<p>How the words are indexed in the dictionary.  If &quot;stripped&quot; then the
+word is indexed in a lower case and de-accented form.  If &quot;lower&quot;, then
+the word is indexed in a lower case form but with accent info still
+intact.  This just controls how the word is indexed, not how it is
+stored.  The default is &quot;stripped&quot; unless affix compression is used.
+</p>
+
+
+
+
+
+</dd>
+<dt><samp>norm-required</samp></dt>
+<dd>
+<p>Should be set to true if your language makes use of private use
+characters or when Normalization Form C is not the same as
+full composition.
+</p>
+</dd>
+<dt><samp>normalize</samp></dt>
+<dt><samp>norm-form</samp></dt>
+</dl>
+
+<p>Additional options includes options to control how run-together words
+are handled the same way as they are in the normal configuration
+files.  for more information, please <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words">Controlling the Behavior of Compound Words</a>.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Compiling-the-Word-List.html#Compiling-the-Word-List" accesskey="n" rel="next">Compiling the Word List</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

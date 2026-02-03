@@ -1,0 +1,97 @@
+# SGML filter option file
+
+LIB-FILE markdown-filter
+
+#This Filter is usable with the following version(s) of Aspell
+ASPELL >=0.60
+
+DESCRIPTION filter for Markdown/CommonMark documents
+
+STATIC filter
+
+OPTION skip-ref-labels
+TYPE bool
+DESCRIPTION skip link labels in link reference definitions
+DEFAULT true
+ENDOPTION
+
+OPTION multiline-tags
+TYPE bool
+DESCRIPTION support tags that span multiple lines outside of HTML blocks
+DEFAULT true
+ENDOPTION
+
+OPTION raw-start-tags
+TYPE list
+DESCRIPTION  HTML tags that start an HTML block that allows blank lines
+DEFAULT script
+DEFAULT pre
+DEFAULT style
+ENDOPTION
+
+OPTION block-start-tags
+TYPE list
+DESCRIPTION  HTML tags that start an HTML block that ends with a blank line
+DEFAULT address
+DEFAULT article
+DEFAULT aside
+DEFAULT base
+DEFAULT basefont
+DEFAULT blockquote
+DEFAULT body
+DEFAULT caption
+DEFAULT center
+DEFAULT col
+DEFAULT colgroup
+DEFAULT dd
+DEFAULT details
+DEFAULT dialog
+DEFAULT dir
+DEFAULT div
+DEFAULT dl
+DEFAULT dt
+DEFAULT fieldset
+DEFAULT figcaption
+DEFAULT figure
+DEFAULT footer
+DEFAULT form
+DEFAULT frame
+DEFAULT frameset
+DEFAULT h1
+DEFAULT h2
+DEFAULT h3
+DEFAULT h4
+DEFAULT h5
+DEFAULT h6
+DEFAULT head
+DEFAULT header
+DEFAULT hr
+DEFAULT html
+DEFAULT iframe
+DEFAULT legend
+DEFAULT li
+DEFAULT link
+DEFAULT main
+DEFAULT menu
+DEFAULT menuitem
+DEFAULT nav
+DEFAULT noframes
+DEFAULT ol
+DEFAULT optgroup
+DEFAULT option
+DEFAULT p
+DEFAULT param
+DEFAULT section
+DEFAULT source
+DEFAULT summary
+DEFAULT table
+DEFAULT tbody
+DEFAULT td
+DEFAULT tfoot
+DEFAULT th
+DEFAULT thead
+DEFAULT title
+DEFAULT tr
+DEFAULT track
+DEFAULT ul
+ENDOPTION

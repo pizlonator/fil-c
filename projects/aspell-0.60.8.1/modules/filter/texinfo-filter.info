@@ -1,0 +1,52 @@
+# TeX filter option file
+
+#This Filter is usable with the following version(s) of Aspell
+ASPELL >=0.60
+
+#This line will be printed when typing `Aspell help TeX'
+DESCRIPTION filter for dealing with Texinfo documents
+
+STATIC filter
+
+OPTION ignore
+TYPE list
+DESCRIPTION Texinfo commands to ignore the parameters of
+DEFAULT setfilename
+DEFAULT syncodeindex
+DEFAULT documentencoding
+DEFAULT vskip
+DEFAULT code
+DEFAULT kbd
+DEFAULT key
+DEFAULT samp
+DEFAULT verb
+DEFAULT var
+DEFAULT env
+DEFAULT file
+DEFAULT command
+DEFAULT option
+DEFAULT url
+DEFAULT uref
+DEFAULT email
+DEFAULT verbatiminclude
+DEFAULT xref
+DEFAULT ref
+DEFAULT pxref
+DEFAULT inforef
+DEFAULT c
+ENDOPTION
+
+OPTION ignore-env
+TYPE list
+DESCRIPTION Texinfo environments to ignore
+DEFAULT example
+DEFAULT smallexample
+DEFAULT verbatim
+DEFAULT lisp
+DEFAULT smalllisp
+DEFAULT small
+DEFAULT display
+DEFAULT snalldisplay
+DEFAULT format
+DEFAULT smallformat
+ENDOPTION

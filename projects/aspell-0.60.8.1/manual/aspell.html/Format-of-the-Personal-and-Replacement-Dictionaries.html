@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Format of the Personal and Replacement Dictionaries</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Format of the Personal and Replacement Dictionaries">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="up" title="Working With Dictionaries">
+<link href="Using-Multi-Dictionaries.html#Using-Multi-Dictionaries" rel="next" title="Using Multi Dictionaries">
+<link href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists" rel="prev" title="Working With Affix Info in Word Lists">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Format-of-the-Personal-and-Replacement-Dictionaries"></a>
+<div class="header">
+<p>
+Next: <a href="Using-Multi-Dictionaries.html#Using-Multi-Dictionaries" accesskey="n" rel="next">Using Multi Dictionaries</a>, Previous: <a href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists" accesskey="p" rel="prev">Working With Affix Info in Word Lists</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Format-of-the-Personal-and-Replacement-Dictionaries-1"></a>
+<h3 class="section">5.7 Format of the Personal and Replacement Dictionaries</h3>
+
+<a name="Format-of-the-Personal-Dictionary"></a><a name="Format-of-the-Personal-Dictionary-1"></a>
+<h4 class="subsection">5.7.1 Format of the Personal Dictionary</h4>
+                                   
+<p>The personal dictionary generally has a filename of the form:
+</p>
+<div class="example">
+<pre class="example">.aspell.<var>lang</var>.pws
+</pre></div>
+
+<p>And the file itself contains two parts.  The first part is a
+header line of the form:
+</p>
+<div class="example">
+<pre class="example">personal_ws-1.1 <var>lang</var> <var>num</var> <i>[</i><var>encoding</var><i>]</i>
+</pre></div>
+
+<p>where <var>num</var> is the number of words in the list.  This number is
+only used as a hint, and thus does not have to be accurate.  When
+creating a new dictionary it is perfectly acceptable for <var>num</var> to
+be 0.  The <var>encoding</var> is optional and specifies the encoding of
+the word list.  If it is left out the encoding is expected to be in
+the default encoding for the language as specified by the
+<samp>data-encoding</samp> option.  See <a href="The-Language-Data-File.html#data_002dencoding">data-encoding</a>.
+</p>
+<p>The second part of simply a word list with one word per line.
+</p>
+<a name="Format-of-the-Personal-Replacement-Dictionary"></a>
+<h4 class="subsection">5.7.2 Format of the Personal Replacement Dictionary</h4>
+
+<p>The personal replacement dictionary generally has a filename of the form:
+</p>
+<div class="example">
+<pre class="example">.aspell.<var>lang</var>.prepl
+</pre></div>
+
+<p>And the file itself contains two parts.  The first part is a
+header line of the form:
+</p>
+<div class="example">
+<pre class="example">personal_repl-1.1 <var>lang</var> <var>num</var> <i>[</i><var>encoding</var><i>]</i>
+</pre></div>
+
+<p>where <var>num</var> is currently unused and thus always 0.  As with the
+personal dictionary the <var>encoding</var> is optional.
+</p>
+<p>The second part simply a list of replacements with one replacement
+per line with each replacement pair has the following format:
+</p>
+<div class="example">
+<pre class="example"><var>misspelled_word</var> <var>correction</var>
+</pre></div>
+
+
+
+
+</body>
+</html>

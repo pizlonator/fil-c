@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Filter Modes</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Filter Modes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Data-Structures.html#Data-Structures" rel="next" title="Data Structures">
+<link href="Filter-Interface.html#Filter-Interface" rel="prev" title="Filter Interface">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Filter-Modes"></a>
+<div class="header">
+<p>
+Next: <a href="Data-Structures.html#Data-Structures" accesskey="n" rel="next">Data Structures</a>, Previous: <a href="Filter-Interface.html#Filter-Interface" accesskey="p" rel="prev">Filter Interface</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Filter-Modes-1"></a>
+<h2 class="chapter">12 Filter Modes</h2>
+
+<p>Filter modes are the preferred way to specify combinations of
+filters which are used regularly and thus abbreviate Aspell&rsquo;s
+command line arguments.
+</p>
+<p>A new filter mode is specified by a file named like the filter
+new mode and prefixed by <samp>.amf</samp> (Aspell Mode File). If such a file
+is accessible by the path set via filter-path option Aspell
+will try to load the contained mode specification.
+</p>
+<a name="Aspell-Mode-File"></a>
+<h3 class="section">12.1 Aspell Mode File</h3>
+<p>The first key in the made file has be the <code>mode</code> key.
+It is checked against the mode name part of the .amf file.
+If the <code>mode</code> key is missing mode file will be rejected.
+</p>
+<p>The same holds for the <code>aspell</code> key which specifies the
+version(s) of Aspell which is(are) required by the filter.
+</p>
+<p>If these two keys are followed by at least one <code>magic</code> key
+Aspell will be able to select the entire mode from extension and
+if required from contents of the file to spell implicitly.
+</p>
+<p>The last key of the required keys is the <code>des[c[ription]]</code>
+key. It gives a short description of the filter mode which will
+displayed when type <code>aspell help</code>.
+</p>
+<p>The rest of the file consists of the keys <code>filter</code> and
+<code>option</code> to load filters are set various options.
+</p>
+<a name="Version-Line"></a>
+<h4 class="subsection">12.1.1 Version Line</h4>
+
+<p>Each version line must start with <code>aspell</code> and be followed by a
+version, optionally prefixed by a relational operator. The relation
+operator can be one of &lsquo;&lt;&rsquo;, &lsquo;&lt;=&rsquo;, &lsquo;=&rsquo;, &lsquo;&gt;=&rsquo; or &rsquo;&gt;&rsquo; for allowing Aspell
+version with version number being lower, lower or equal, equal to,
+greater or equal or greater than required version number,
+respectfully. If the relation operator is omitted &lsquo;=&rsquo; is assumed.
+</p>
+<a name="Magic-Line"></a>
+<h4 class="subsection">12.1.2 Magic Line</h4>
+
+<p>The magic line contains a description which requirements files
+have to fulfill in order to implicitly activate the entire mode
+at least one such line is required.  Each magic line has the following
+format:
+</p><div class="example">
+<pre class="example">MAGIC /&lt;magic key&gt;/&lt;fileextension&gt;[/&lt;fileextension&gt;]
+</pre></div>
+
+<p>The magic key consist of three &lsquo;:&rsquo; separated fields.
+The first two are byte counts the last is a regular expression.
+The first byte count indicates the first byte the regular expression
+will be applied to the second byte count indicates the number of
+bytes to test against the regular expression.
+</p>
+<p>If mode selection should only occurred on basis of the listed file
+extensions the magic key should consist of the &ldquo;&lt;noregex&gt;&rdquo; special
+string.
+</p>
+<p>At least one &lt;fileextension&gt; is required per MAGIC line.
+&lt;fileextension&gt; may not be empty and should not contain a leading &lsquo;.&rsquo;
+as this is assumed implicitly.
+</p>
+<p>Multiple MAGIC lines are allowed. Modes may be extended limited by additional
+&lt;label&gt;.amf files located in &ndash;filter-path
+Thus file extensions may be prefixed by &lsquo;+&rsquo; or &lsquo;-&rsquo; to indicate that
+the entire extension has to be added ore removed from this &lt;magic key&gt;
+if neither is specified than a &lsquo;+&rsquo; is assumed implicitly.
+</p>
+<a name="Description-Line"></a>
+<h4 class="subsection">12.1.3 Description Line</h4>
+
+<p>The required description line will be printed when typing
+<code>aspell help</code>.  Keep it as short as possible.  Possible
+abbreviations are <code>des</code> and <code>desc</code>.
+</p>
+<a name="Filter-and-Option-Lines"></a>
+<h4 class="subsection">12.1.4 Filter and Option Lines</h4>
+
+<p>The <code>filter</code> and <code>option</code> keys load filters and set filter
+options.
+</p>
+<p>The value of the <code>filter</code> key is equal to the value of Aspell&rsquo;s
+<code>[add|rem]-filter</code> option. 
+</p>
+<p>Each <code>option</code> line has the following format:
+</p>
+<div class="example">
+<pre class="example">  OPTION &lt;option&gt; [&lt;value&gt;]
+</pre></div>
+
+<p>The format of the &lt;option&gt; and &lt;value&gt; is the same format as 
+found in the Aspell configuration file.
+</p>
+
+
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Data-Structures.html#Data-Structures" accesskey="n" rel="next">Data Structures</a>, Previous: <a href="Filter-Interface.html#Filter-Interface" accesskey="p" rel="prev">Filter Interface</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

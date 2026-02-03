@@ -1,0 +1,1512 @@
+# Serbian translation of aspell
+# Copyright (C) 2004 Free Software Foundation, Inc.
+# This file is distributed under the same license as the aspell package.
+# Danilo Segan <dsegan@gmx.net>, 2004.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2011–2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: aspell-0.60.8-pre2\n"
+"Report-Msgid-Bugs-To: kevina@gnu.org\n"
+"POT-Creation-Date: 2023-12-19 17:56-0500\n"
+"PO-Revision-Date: 2020-03-31 13:52+0200\n"
+"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Language-Team: Serbian <(nothing)>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: common/info.cpp:232
+msgid "a number between 0 and 1"
+msgstr "број између 0 и 1"
+
+#: common/info.cpp:569
+msgid "in the form \"<name> <value>\""
+msgstr "у облику „<назив> <вредност>“"
+
+#: common/config.cpp:74
+msgid "string"
+msgstr "ниска"
+
+#: common/config.cpp:74
+msgid "integer"
+msgstr "цео број"
+
+#: common/config.cpp:74
+msgid "boolean"
+msgstr "логичка вредност"
+
+#: common/config.cpp:74
+msgid "list"
+msgstr "списак"
+
+#. TRANSLATORS: "true" and "false" are literal
+#. * values and should not be translated.
+#: common/config.cpp:988
+msgid "either \"true\" or \"false\""
+msgstr "било „true“ или „false“"
+
+#: common/config.cpp:1007
+msgid "a positive integer"
+msgstr "позитиван цео број"
+
+#: common/config.cpp:1135
+msgid "# default: "
+msgstr "# основно: "
+
+#: common/config.cpp:1198
+#, c-format
+msgid ""
+"\n"
+"#######################################################################\n"
+"#\n"
+"# Filter: %s\n"
+"#   %s\n"
+"#\n"
+"# configured as follows:\n"
+"\n"
+msgstr ""
+"\n"
+"#######################################################################\n"
+"#\n"
+"# Филтер: %s\n"
+"#   %s\n"
+"#\n"
+"# је подешен као што следи:\n"
+"\n"
+
+#: common/config.cpp:1296
+msgid "ASPELL_CONF env var"
+msgstr "ASPELL_CONF променљива окружења"
+
+#. TRANSLATORS: The remaining strings in config.cpp should be kept
+#. under 50 characters, begin with a lower case character and not
+#. include any trailing punctuation marks.
+#: common/config.cpp:1380
+msgid "main configuration file"
+msgstr "главна датотека подешавања"
+
+#: common/config.cpp:1382
+msgid "location of main configuration file"
+msgstr "путања главне датотеке подешавања"
+
+#: common/config.cpp:1385
+msgid "location of language data files"
+msgstr "путања датотека за језике"
+
+#: common/config.cpp:1387
+msgid "create dictionary aliases"
+msgstr "ствара алијасе речника"
+
+#: common/config.cpp:1389
+msgid "location of the main word list"
+msgstr "путања главног списка речи"
+
+#: common/config.cpp:1391
+msgid "encoding to expect data to be in"
+msgstr "очекивано кодирање података"
+
+#: common/config.cpp:1393
+msgid "add or removes a filter"
+msgstr "додаје или уклања филтер"
+
+#: common/config.cpp:1395
+msgid "path(s) aspell looks for filters"
+msgstr "путање у којима аспел тражи филтере"
+
+#: common/config.cpp:1399
+msgid "filter mode"
+msgstr "режим филтера"
+
+#: common/config.cpp:1401
+msgid "extra dictionaries to use"
+msgstr "додатни речници за употребу"
+
+#: common/config.cpp:1403
+msgid "files with list of extra words to accept"
+msgstr "датотеке са списком додатних речи за прихватање"
+
+#: common/config.cpp:1405
+msgid "location for personal files"
+msgstr "путања личних датотека"
+
+#: common/config.cpp:1407
+msgid "ignore words <= n chars"
+msgstr "занемарује речи са <= n знакова"
+
+#. TRANSLATORS: It is OK if this is longer than 50 chars
+#: common/config.cpp:1410
+msgid "ignore accents when checking words -- CURRENTLY IGNORED"
+msgstr "занемарује акценте при провери речи — ТРЕНУТНО ЗАНЕМАРЕНО"
+
+#: common/config.cpp:1412
+msgid "ignore case when checking words"
+msgstr "занемарује величину слова при провери речи"
+
+#: common/config.cpp:1414
+msgid "ignore commands to store replacement pairs"
+msgstr "занемарује наредбе за смештај парова за замену"
+
+#: common/config.cpp:1416 common/config.cpp:1483
+msgid "extra information for the word list"
+msgstr "додатни подаци за списак речи"
+
+#: common/config.cpp:1418
+msgid "keyboard definition to use for typo analysis"
+msgstr "дефиниција тастатуре коришћене за анализу"
+
+#: common/config.cpp:1420
+msgid "language code"
+msgstr "код језика"
+
+#: common/config.cpp:1422
+msgid "deprecated, use lang instead"
+msgstr "превазиђено, користите lang"
+
+#: common/config.cpp:1424
+msgid "location of local language data files"
+msgstr "путања датотека података локалног језика"
+
+#: common/config.cpp:1426
+msgid "base name of the main dictionary to use"
+msgstr "основни назив главног речника за употребу"
+
+#: common/config.cpp:1430
+msgid "set module name"
+msgstr "поставља назив модула"
+
+#: common/config.cpp:1432
+msgid "search order for modules"
+msgstr "редослед тражења модула"
+
+#: common/config.cpp:1434
+msgid "enable Unicode normalization"
+msgstr "укључује сређивање Уникода"
+
+#: common/config.cpp:1436
+msgid "Unicode normalization required for current lang"
+msgstr "сређивање Уникода потребно за текући језик"
+
+#. TRANSLATORS: the values after the ':' are literal
+#. values and should not be translated.
+#: common/config.cpp:1440
+msgid "Unicode normalization form: none, nfd, nfc, comp"
+msgstr "облик сређивања Уникода: none, nfd, nfc, comp"
+
+#: common/config.cpp:1442
+msgid "avoid lossy conversions when normalization"
+msgstr "избегава претварања са губицима при сређивању"
+
+#: common/config.cpp:1444
+msgid "personal configuration file"
+msgstr "лична датотека подешавања"
+
+#: common/config.cpp:1447
+msgid "personal dictionary file name"
+msgstr "назив датотеке личног речника"
+
+#: common/config.cpp:1450
+msgid "prefix directory"
+msgstr "директоријум префикса"
+
+#: common/config.cpp:1452
+msgid "replacements list file name"
+msgstr "назив датотеке списка размена"
+
+#: common/config.cpp:1455
+msgid "consider run-together words legal"
+msgstr "сматра спојене речи исправним"
+
+# bug: s/maxium/maximum/
+#: common/config.cpp:1457
+msgid "maximum number that can be strung together"
+msgstr "највећи бројеви који се могу припојити"
+
+#: common/config.cpp:1459
+msgid "minimal length of interior words"
+msgstr "најмања дужина унутрашњих речи"
+
+#: common/config.cpp:1461
+msgid "consider camel case words legal"
+msgstr "сматра речи са великим почетним словом исправним"
+
+#: common/config.cpp:1463
+msgid "save replacement pairs on save all"
+msgstr "чува парове за размену при чувању свега"
+
+# као у математици „управна“, тако овде „извршна“ (датотека)
+#: common/config.cpp:1465
+msgid "set the prefix based on executable location"
+msgstr "поставља префикс на основу положаја извршне"
+
+#: common/config.cpp:1467
+msgid "size of the word list"
+msgstr "величина списка речи"
+
+#: common/config.cpp:1469
+msgid "no longer used"
+msgstr "више се не користи"
+
+#: common/config.cpp:1471
+msgid "suggestion mode"
+msgstr "режим предлагања"
+
+#. TRANSLATORS: "sug-mode" is a literal value and should not be
+#. translated.
+#: common/config.cpp:1475
+msgid "use typo analysis, override sug-mode default"
+msgstr "проналази грешке у куцању, обилази основни режим предлога"
+
+#: common/config.cpp:1477
+msgid "use replacement tables, override sug-mode default"
+msgstr "користи таблице замена, обилази основни режим предлога"
+
+#: common/config.cpp:1479
+msgid "characters to insert when a word is split"
+msgstr "знаци који се умећу када се реч подели"
+
+#: common/config.cpp:1481
+msgid "use personal, replacement & session dictionaries"
+msgstr "користи личне, за замену и сесионе речнике"
+
+#: common/config.cpp:1485
+msgid "search path for word list information files"
+msgstr "путања тражења датотека података спискова речи"
+
+#: common/config.cpp:1487
+msgid "enable warnings"
+msgstr "укључује упозорења"
+
+#. TRANSLATORS: It is OK if this is longer than 50 chars
+#: common/config.cpp:1497
+msgid "indicator for affix flags in word lists -- CURRENTLY IGNORED"
+msgstr "указивач на ознаке додатка у списковима речи — ТРЕНУТНО ЗАНЕМАРЕНО"
+
+#: common/config.cpp:1499
+msgid "use affix compression when creating dictionaries"
+msgstr "користи сажимање додатка при прављењу речника"
+
+#: common/config.cpp:1501
+msgid "remove invalid affix flags"
+msgstr "уклања неисправне ознаке додатка"
+
+#: common/config.cpp:1503
+msgid "attempts to clean words so that they are valid"
+msgstr "покушава да прочисти речи тако да буду исправне"
+
+#: common/config.cpp:1505
+msgid "compute soundslike on demand rather than storing"
+msgstr "извршава звучикао на захтев радије него да чува"
+
+#: common/config.cpp:1507
+msgid "partially expand affixes for better suggestions"
+msgstr "делимично шири додатке за боље предлоге"
+
+#: common/config.cpp:1509
+msgid "skip invalid words"
+msgstr "прескаче неисправне речи"
+
+#: common/config.cpp:1511
+msgid "check if affix flags are valid"
+msgstr "проверава да ли су ознаке додатка исправне"
+
+#: common/config.cpp:1513
+msgid "check if words are valid"
+msgstr "проверава да ли су речи исправне"
+
+#: common/config.cpp:1520
+msgid "create a backup file by appending \".bak\""
+msgstr "прави резервни примерак додавањем „.bak“"
+
+#: common/config.cpp:1522
+msgid "use byte offsets instead of character offsets"
+msgstr "користи померај бајта уместо помераја знака"
+
+# bug: original not shorter than 50
+#: common/config.cpp:1524
+msgid "create missing root/affix combinations"
+msgstr "прави недостајуће комбинације корен/додатак"
+
+#: common/config.cpp:1526
+msgid "keymapping for check mode: \"aspell\" or \"ispell\""
+msgstr "распоред тастера при провери, aspell или ispell"
+
+#: common/config.cpp:1528
+msgid "reverse the order of the suggest list"
+msgstr "обрће редослед списка предлога"
+
+#: common/config.cpp:1530
+msgid "suggest possible replacements"
+msgstr "предлаже могуће замене"
+
+#: common/config.cpp:1532
+msgid "time load time and suggest time in pipe mode"
+msgstr "мери време учитавања и време предлога у цевкама"
+
+#: common/convert.cpp:303 common/convert.cpp:497
+#, c-format
+msgid "This could also mean that the file \"%s\" could not be opened for reading or does not exist."
+msgstr "Ово такође значи да датотека „%s“ не може бити отворена за читање или да не постоји."
+
+#: common/convert.cpp:590 common/convert.cpp:702 common/convert.cpp:748
+#, c-format
+msgid "The Unicode code point U+%04X is unsupported."
+msgstr "Тачка Уникод кода „U+%04X“ није подржана."
+
+#: common/convert.cpp:887
+#, c-format
+msgid "Invalid UTF-8 sequence at position %ld."
+msgstr "Неисправан УТФ-8 низ на положају %ld."
+
+#: common/errors.cpp:27
+msgid "Operation Not Supported: %what:1"
+msgstr "Радња није подржана: %what:1"
+
+#: common/errors.cpp:43
+msgid "The method \"%what:1\" is unimplemented in \"%where:2\"."
+msgstr "Начин „%what:1“ није примењен у „%where:2“."
+
+#: common/errors.cpp:51
+#, c-format
+msgid "%file:1:"
+msgstr "%file:1:"
+
+#: common/errors.cpp:59
+#, c-format
+msgid "The file \"%file:1\" can not be opened"
+msgstr "Датотека „%file:1“ не може бити отворена"
+
+#: common/errors.cpp:67
+#, c-format
+msgid "The file \"%file:1\" can not be opened for reading."
+msgstr "Датотека „%file:1“ не може бити отворена за читање."
+
+#: common/errors.cpp:75
+#, c-format
+msgid "The file \"%file:1\" can not be opened for writing."
+msgstr "Датотека „%file:1“ не може бити отворена за упис."
+
+#: common/errors.cpp:83
+#, c-format
+msgid "The file name \"%file:1\" is invalid."
+msgstr "Назив датотеке „%file:1“ је неисправан."
+
+#: common/errors.cpp:91
+#, c-format
+msgid "The file \"%file:1\" is not in the proper format."
+msgstr "Датотека „%file:1“ није у одговарајућем облику."
+
+#: common/errors.cpp:107
+#, c-format
+msgid "The directory \"%dir:1\" can not be opened for reading."
+msgstr "Директоријум „%dir:1“ не може бити отворен за читање."
+
+#: common/errors.cpp:123
+msgid "The key \"%key:1\" is unknown."
+msgstr "Кључ „%key:1“ је непознат."
+
+#: common/errors.cpp:131
+msgid "The value for option \"%key:1\" can not be changed."
+msgstr "Вредност за опцију „%key:1“ се не може изменити."
+
+#: common/errors.cpp:139
+msgid "The key \"%key:1\" is not %accepted:2 and is thus invalid."
+msgstr "Кључ „key:1“ није %accepted:2 и зато је неисправан."
+
+#: common/errors.cpp:147
+msgid "The value \"%value:2\" is not %accepted:3 and is thus invalid for the key \"%key:1\"."
+msgstr "Вредност „%value:2“ није %accepted:3 и зато је неисправна за кључ „%key:1“."
+
+#: common/errors.cpp:163
+msgid "The key \"%key:1\" is not a string."
+msgstr "Кључ „%key:1“ није ниска."
+
+#: common/errors.cpp:171
+msgid "The key \"%key:1\" is not an integer."
+msgstr "Кључ „%key:1“ није цео број."
+
+#: common/errors.cpp:179
+msgid "The key \"%key:1\" is not a boolean."
+msgstr "Кључ „%key:1“ није логичка вредност."
+
+#: common/errors.cpp:187
+msgid "The key \"%key:1\" is not a list."
+msgstr "Кључ „%key:1“ није списак."
+
+#: common/errors.cpp:195
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"reset-\"."
+msgstr "Кључ „%key:1“ не узима параметре ако му се дода „reset-“."
+
+#: common/errors.cpp:203
+msgid "The key \"%key:1\" does not take any parameters when prefixed by an \"enable-\"."
+msgstr "Кључ „%key:1“ не узима параметре ако му се дода „enable-“."
+
+#: common/errors.cpp:211
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"dont-\" or \"disable-\"."
+msgstr "Кључ „%key:1“ не узима параметре ако му се дода „dont-“ или „disable-“."
+
+#: common/errors.cpp:219
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"clear-\"."
+msgstr "Кључ „%key:1“ не узима параметре ако му се дода „clear-“."
+
+#: common/errors.cpp:235
+#, c-format
+msgid "The language \"%lang:1\" is not known."
+msgstr "Језик „%lang:1“ није познат."
+
+#: common/errors.cpp:243
+#, c-format
+msgid "The soundslike \"%sl:2\" is not known."
+msgstr "Звучикао „%sl:2“ није познат."
+
+#: common/errors.cpp:251
+#, c-format
+msgid "The language \"%lang:1\" is not supported."
+msgstr "Језик „%lang:1“ није подржан."
+
+#: common/errors.cpp:259
+#, c-format
+msgid "No word lists can be found for the language \"%lang:1\"."
+msgstr "Не могу се наћи спискови речи за језик „%lang:1“."
+
+#: common/errors.cpp:267
+#, c-format
+msgid "Expected language \"%lang:1\" but got \"%prev:2\"."
+msgstr "Очекивах језик „%lang:1“ али примих „%prev:2“."
+
+#: common/errors.cpp:283
+#, c-format
+msgid "Affix '%aff:1' is corrupt."
+msgstr "Додатак „%aff:1“ је оштећен."
+
+#: common/errors.cpp:291
+#, c-format
+msgid "The condition \"%cond:1\" is invalid."
+msgstr "Услов „%cond:1“ је неисправан."
+
+#: common/errors.cpp:299
+#, c-format
+msgid "The condition \"%cond:1\" does not guarantee that \"%strip:2\" can always be stripped."
+msgstr "Услов „%cond:1“ не осигурава да „%strip:2“ може увек бити сужен."
+
+#: common/errors.cpp:307
+#, c-format
+msgid "The file \"%file:1\" is not in the proper format. Expected the file to be in \"%exp:2\" not \"%got:3\"."
+msgstr "Датотека „%file:1“ није у одговарајућем облику. Очекивах да датотека буде у „%exp:2“ а не „%got:3“."
+
+#: common/errors.cpp:323
+#, c-format
+msgid "The encoding \"%encod:1\" is not known."
+msgstr "Кодирање „%encod:1“ није познато."
+
+#: common/errors.cpp:331
+#, c-format
+msgid "The encoding \"%encod:1\" is not supported."
+msgstr "Кодирање „%encod:1“ није подржано."
+
+#: common/errors.cpp:339
+#, c-format
+msgid "The conversion from \"%encod:1\" to \"%encod2:2\" is not supported."
+msgstr "Претварање из „%encod:1“ у „%encod2:2“ није подржано."
+
+#: common/errors.cpp:379
+#, c-format
+msgid "The string \"%str:1\" is invalid."
+msgstr "Ниска „%str:1“ је неисправна."
+
+#: common/errors.cpp:387
+msgid "The word \"%word:1\" is invalid."
+msgstr "Реч „%word:1“ је неисправна."
+
+#: common/errors.cpp:395
+msgid "The affix flag '%aff:1' is invalid for word \"%word:2\"."
+msgstr "Ознака додатка „%aff:1“ је неисправна за реч „%word:2“."
+
+#: common/errors.cpp:403
+msgid "The affix flag '%aff:1' can not be applied to word \"%word:2\"."
+msgstr "Ознака додатка „%aff:1“ не може бити примењена на реч „%word:2“."
+
+#: common/errors.cpp:451
+msgid "not a version number"
+msgstr "није број издања"
+
+#: common/errors.cpp:467
+msgid "dlopen returned \"%return:1\"."
+msgstr "длопен је вратио „%return:3“."
+
+#: common/errors.cpp:475
+#, c-format
+msgid "The file \"%filter:1\" does not contain any filters."
+msgstr "Датотека „%filter:1“ не садржи ниједан филтер."
+
+#: common/errors.cpp:483
+#, c-format
+msgid "The filter \"%filter:1\" does not exist."
+msgstr "Филтер „%file:1“ не постоји."
+
+#: common/errors.cpp:491 common/errors.cpp:587
+msgid "Confused by version control."
+msgstr "Збуњен сам контролом издања."
+
+#: common/errors.cpp:499
+msgid "Aspell version does not match filter's requirement."
+msgstr "Издање Аспела се не поклапа са захтевом филтера."
+
+#: common/errors.cpp:507
+msgid "Filter option already exists."
+msgstr "Опција филтера већ постоји."
+
+#: common/errors.cpp:515
+msgid "Use option modifiers only within named option."
+msgstr "Користи измењиваче опције једино уз именовану опцију."
+
+#: common/errors.cpp:523
+msgid "Option modifier unknown."
+msgstr "Измењивач опције није познат."
+
+#: common/errors.cpp:531
+msgid "Error setting filter description."
+msgstr "Грешка при постављању описа филтера."
+
+#: common/errors.cpp:547
+msgid "Empty option specifier."
+msgstr "Празан одредник опције."
+
+#: common/errors.cpp:555
+#, c-format
+msgid "Option \"%option:1\" possibly specified prior to filter."
+msgstr "Опција „%option:1“ по могућству наведена пре филтера."
+
+#: common/errors.cpp:563
+msgid "Unknown mode description key \"%key:1\"."
+msgstr "Непознат кључ описа режима „%key:1“."
+
+#: common/errors.cpp:571
+#, c-format
+msgid "Expecting \"%modekey:1\" key."
+msgstr "Очекујем „%modekey:1“ кључ."
+
+#: common/errors.cpp:579
+msgid "Version specifier missing key: \"aspell\"."
+msgstr "Недостаје кључ одредника издања: „aspell“."
+
+#: common/errors.cpp:595
+msgid "Aspell version does not match mode's requirement."
+msgstr "Издање Аспела се не поклапа са захтевом режима."
+
+#: common/errors.cpp:603
+msgid "Missing magic mode expression."
+msgstr "Недостаје израз магичног режима."
+
+#: common/errors.cpp:611
+#, c-format
+msgid "Empty extension at char %char:1."
+msgstr "Празно проширење на знаку %char:1."
+
+#: common/errors.cpp:619
+#, c-format
+msgid "\"%mode:1\" error"
+msgstr "„%mode:1“ грешка"
+
+#: common/errors.cpp:627
+#, c-format
+msgid "Unknown mode: \"%mode:1\"."
+msgstr "Непознат режим: „%mode:1“."
+
+# bug: s/extend/extending/
+#: common/errors.cpp:635
+#, c-format
+msgid "\"%mode:1\" error while extend Aspell modes. (out of memory?)"
+msgstr "„%mode:1“ грешка при ширењу режима Аспела. (понестало меморије?)"
+
+#: common/errors.cpp:651
+#, c-format
+msgid "\"%mode:1\": no start for magic search given for magic \"%magic:2\"."
+msgstr "„%mode:1“: није дат почетак магичне претраге за магију „%magic:2“."
+
+#: common/errors.cpp:659
+#, c-format
+msgid "\"%mode:1\": no range for magic search given for magic \"%magic:2\"."
+msgstr "„%mode:1“: није дат опсег магичне претраге за магију „%magic:2“."
+
+#: common/errors.cpp:667
+#, c-format
+msgid "\"%mode:1\": no magic expression available for magic \"%magic:2\"."
+msgstr "„%mode:1“: није доступан магични израз за магију „%magic:2“."
+
+#: common/errors.cpp:675
+msgid "\"%mode:1\": Magic \"%magic:2\": bad regular expression after location specifier; regexp reports: \"%regerr:3\"."
+msgstr "„%mode:1“: Магија „%magic:2“: лош регуларан израз након одредника места; регизр извештај: „%regerr:3“."
+
+#: common/errors.cpp:691
+#, c-format
+msgid "\"%expression:1\" is not a valid regular expression."
+msgstr "„%expression:1“ није исправан регуларни израз."
+
+#: common/posib_err.cpp:114
+msgid "Unhandled Error: "
+msgstr "Необрађена грешка: "
+
+#: prog/aspell.cpp:99
+#, c-format
+msgid "Error: %s\n"
+msgstr "Грешка: %s\n"
+
+#: prog/aspell.cpp:104
+msgid "Error: "
+msgstr "Грешка: "
+
+#: prog/aspell.cpp:205
+msgid "enter Email mode."
+msgstr "улази у режим е-поште"
+
+#: prog/aspell.cpp:206
+msgid "enter HTML mode."
+msgstr "улази у ХТМЛ режим"
+
+#: prog/aspell.cpp:207
+msgid "enter TeX mode."
+msgstr "улази у ТеКс режим"
+
+#: prog/aspell.cpp:208
+msgid "enter Nroff mode."
+msgstr "улази у Бриск режим"
+
+#: prog/aspell.cpp:209
+msgid "enter Markdown mode."
+msgstr "улази у режим означавања."
+
+#: prog/aspell.cpp:315
+#, c-format
+msgid "Invalid Option: %s"
+msgstr "Неисправна опција: %s"
+
+#: prog/aspell.cpp:322
+#, fuzzy, c-format
+#| msgid " does not take any parameters."
+msgid "'%s' does not take any parameters."
+msgstr " не прихвата никакве параметре."
+
+#: prog/aspell.cpp:335 prog/aspell.cpp:395
+#, c-format
+msgid "You must specify a parameter for \"%s\"."
+msgstr "Морате навести параметар за „%s“."
+
+#: prog/aspell.cpp:384
+msgid "You must specify an action"
+msgstr "Морате навести радњу"
+
+#: prog/aspell.cpp:392 prog/aspell.cpp:455 prog/aspell.cpp:477
+#, c-format
+msgid "Unknown Action: %s"
+msgstr "Непозната радња: %s"
+
+#: prog/aspell.cpp:398
+#, c-format
+msgid "Error: You must specify at least %d parameters for \"%s\".\n"
+msgstr "Грешка: Морате навести барем %d параметра за „%s“.\n"
+
+#: prog/aspell.cpp:640
+msgid "Invalid Input"
+msgstr "Неисправан улаз"
+
+#: prog/aspell.cpp:713
+#, c-format
+msgid "WARNING: Unable to enter Nroff mode: %s\n"
+msgstr "УПОЗОРЕЊЕ: Не могу да уђем у Бриск режим: %s\n"
+
+#: prog/aspell.cpp:734
+msgid "Time to load word list: "
+msgstr "Време за учитавање списка речи: "
+
+#: prog/aspell.cpp:934
+#, c-format
+msgid "Suggestion Time: %f\n"
+msgstr "Време за предлог: %f\n"
+
+#: prog/aspell.cpp:977
+msgid "You must specify a file name."
+msgstr "Морате навести назив датотеке."
+
+#: prog/aspell.cpp:980
+msgid "Only one file name may be specified."
+msgstr "Само један назив датотеке може бити наведен."
+
+#: prog/aspell.cpp:990
+#, c-format
+msgid "Could not open the file \"%s\" for reading"
+msgstr "Не могу да отворим датотеку „%s“ ради читања"
+
+#: prog/aspell.cpp:1003
+#, c-format
+msgid "Invalid keymapping: %s"
+msgstr "Неисправна мапа тастера: %s"
+
+#: prog/aspell.cpp:1018
+#, c-format
+msgid "\"%s\" is not a regular file"
+msgstr "„%s“ није обична датотека"
+
+#: prog/aspell.cpp:1029
+#, c-format
+msgid "Could not open the file \"%s\" for writing. File not saved."
+msgstr "Не могу да отворим датотеку „%s“ ради уписа. Датотека није сачувана."
+
+#: prog/aspell.cpp:1042
+msgid "Ignore"
+msgstr "Занемари"
+
+#: prog/aspell.cpp:1043
+msgid "Ignore all"
+msgstr "Занемари све"
+
+#: prog/aspell.cpp:1044
+msgid "Replace"
+msgstr "Замени"
+
+#: prog/aspell.cpp:1045
+msgid "Replace all"
+msgstr "Замени све"
+
+#: prog/aspell.cpp:1046
+msgid "Add"
+msgstr "Додај"
+
+# Да ли је ово у вези малих слова?
+#: prog/aspell.cpp:1047
+msgid "Add Lower"
+msgstr "Додај мала"
+
+#: prog/aspell.cpp:1048
+msgid "Abort"
+msgstr "Одустани"
+
+#: prog/aspell.cpp:1049
+msgid "Exit"
+msgstr "Изађи"
+
+#: prog/aspell.cpp:1125
+msgid "Are you sure you want to abort (y/n)? "
+msgstr "Да ли сте сигурни да желите да одустанете (y/n)?"
+
+#. TRANSLATORS: The user may input any of these characters to say "yes".
+#. MUST ONLY CONSIST OF ASCII CHARACTERS.
+#: prog/aspell.cpp:1129
+msgid "Yy"
+msgstr "Yy"
+
+# Уз, са?
+#: prog/aspell.cpp:1157
+msgid "With: "
+msgstr "Са: "
+
+#: prog/aspell.cpp:1174
+msgid "Sorry that is an invalid choice!"
+msgstr "Нажалост, то је неисправан избор!"
+
+#: prog/aspell.cpp:1545
+msgid "Can't merge a master word list yet. Sorry."
+msgstr "Још увек не могу да стопим главни списак речи. Жао ми је."
+
+#: prog/aspell.cpp:1569
+msgid "Sorry \"create/merge personal\" is currently unimplemented.\n"
+msgstr "Нажалост „create/merge personal“ није досад направљено.\n"
+
+#: prog/aspell.cpp:1578 prog/aspell.cpp:1634
+#, c-format
+msgid "Sorry I won't overwrite \"%s\""
+msgstr "Нажалост, нећу преснимити „%s“"
+
+#: prog/aspell.cpp:1625
+msgid "Sorry \"create/merge repl\" is currently unimplemented.\n"
+msgstr "Нажалост „create/merge repl“ није досад направљено.\n"
+
+#: prog/aspell.cpp:1897
+#, c-format
+msgid "\"%s\" is not a valid flag for the \"munch-list\" command."
+msgstr "„%s“ није исправна ознака за „munch-list“ наредбу."
+
+#. TRANSLATORS: These should all be formated to fit in 80 column or
+#. less
+#: prog/aspell.cpp:2829
+msgid "Usage: aspell [options] <command>"
+msgstr "Употреба: aspell [опције] <наредба>"
+
+#: prog/aspell.cpp:2830
+msgid "<command> is one of:"
+msgstr "<наредба> може бити једна од следећих:"
+
+#: prog/aspell.cpp:2831
+msgid "  -?|usage         display a brief usage message"
+msgstr "  -?|usage             приказује кратку поруку коришћења"
+
+#: prog/aspell.cpp:2832
+msgid "  help             display a detailed help message"
+msgstr "  help                 приказује опширну поруку помоћи"
+
+#: prog/aspell.cpp:2833
+msgid "  -c|check <file>  spellchecks a file"
+msgstr "  -c|check <датотека>  проверава датотеку"
+
+#: prog/aspell.cpp:2834
+msgid "  -a|pipe          \"ispell -a\" compatibility mode"
+msgstr "  -a|pipe              „ispell -a“ режим сагласности"
+
+#: prog/aspell.cpp:2835
+msgid "  [dump] config    dumps the current configuration to stdout"
+msgstr "  [dump] config        избацује текуће подешавање у стандардни излаз"
+
+#: prog/aspell.cpp:2836
+msgid "  config <key>     prints the current value of an option"
+msgstr "  config <key>         исписује тренутну вредност опције"
+
+#: prog/aspell.cpp:2837
+msgid "  [dump] dicts | filters | modes"
+msgstr "  [dump] dicts | filters | modes"
+
+#: prog/aspell.cpp:2838
+msgid "    lists available dictionaries / filters / filter modes"
+msgstr "          наводи доступне речнике / филтере / режиме филтера"
+
+#: prog/aspell.cpp:2839
+msgid "[options] is any of the following:"
+msgstr "[опције] могу бити неке од следећих: "
+
+#: prog/aspell.cpp:2852
+msgid "  list             produce a list of misspelled words from standard input"
+msgstr "  list                 прави списак лоше написаних речи са сандардног улаза"
+
+#: prog/aspell.cpp:2855
+msgid "  soundslike       returns the sounds like equivalent for each word entered"
+msgstr "  soundslike           враћа звучни еквивалент за сваку унету реч"
+
+#: prog/aspell.cpp:2856
+msgid "  munch            generate possible root words and affixes"
+msgstr "  munch                ствара могуће корене речи и додатке"
+
+#: prog/aspell.cpp:2857
+msgid "  expand [1-4]     expands affix flags"
+msgstr "  expand [1-4]         проширује ознаке додатка"
+
+#: prog/aspell.cpp:2858
+msgid "  clean [strict]   cleans a word list so that every line is a valid word"
+msgstr "  clean [strict]       чисти списак речи тако да је сваки ред исправна реч"
+
+#: prog/aspell.cpp:2859
+msgid "  filter           filters input as if it was being spellchecked"
+msgstr "  filter           филтрира унос као да се проверава правопис"
+
+#: prog/aspell.cpp:2860
+msgid "  -v|version       prints a version line"
+msgstr "  -v|version           исписује издање"
+
+#: prog/aspell.cpp:2861
+msgid "  munch-list [simple] [single|multi] [keep]"
+msgstr "  munch-list [simple] [single|multi] [keep]"
+
+#: prog/aspell.cpp:2862
+msgid "    reduce the size of a word list via affix compression"
+msgstr "          умањује величину списка речи путем сажимања додатка"
+
+#: prog/aspell.cpp:2863
+msgid "  conv <from> <to> [<norm-form>]"
+msgstr "  conv <из> <у> [<облик-правила>]"
+
+#: prog/aspell.cpp:2864
+msgid "    converts from one encoding to another"
+msgstr "          претвара из једног кодирања у друго"
+
+#: prog/aspell.cpp:2865
+msgid "  norm (<norm-map> | <from> <norm-map> <to>) [<norm-form>]"
+msgstr "  norm (<мапа-правила> | <из> <мапа-правила> <у>) [<облик-правила>]"
+
+#: prog/aspell.cpp:2866
+msgid "    perform Unicode normalization"
+msgstr "          врши сређивање Уникода"
+
+#: prog/aspell.cpp:2869
+msgid "  dump|create|merge master|personal|repl [<name>]"
+msgstr "  dump|create|merge master|personal|repl [<назив>]"
+
+#: prog/aspell.cpp:2870
+msgid "    dumps, creates or merges a master, personal, or replacement dictionary."
+msgstr "          избацује, ствара или стапа главни, лични, или речник замене."
+
+#. TRANSLATORS: "none", "internal" and "strict" are literal values
+#. and should not be translated.
+#: prog/aspell.cpp:2874
+msgid "  <norm-form>      normalization form to use, either none, internal, or strict"
+msgstr "  <облик-правила>        облик сређивања за коришћење, „none“, „internal“, или „strict“"
+
+#: prog/aspell.cpp:2884
+#, fuzzy, c-format
+#| msgid ""
+#| "\n"
+#| "Aspell %s.  Copyright 2000-2019 by Kevin Atkinson.\n"
+#| "\n"
+msgid ""
+"\n"
+"Aspell %s.  Copyright 2000-2023 by Kevin Atkinson.\n"
+"\n"
+msgstr ""
+"\n"
+"Аспел %s.  Ауторска права 2000-2019 Кевин Аткинсон.\n"
+"\n"
+
+#: prog/aspell.cpp:2918
+msgid ""
+"Available Dictionaries:\n"
+"    Dictionaries can be selected directly via the \"-d\" or \"master\"\n"
+"    option.  They can also be selected indirectly via the \"lang\",\n"
+"    \"variety\", and \"size\" options.\n"
+msgstr ""
+"Доступни речници:\n"
+"    Речници могу бити изабрани посредно путем „-d“ или „master“ опције.\n"
+"    Могу такође бити изабрани непосредно путем „lang“, „variety“, и „size“ опција.\n"
+
+#: prog/aspell.cpp:2939
+msgid ""
+"Available Filters (and associated options):\n"
+"    Filters can be added or removed via the \"filter\" option.\n"
+msgstr ""
+"Доступни филтери (и придружене опције):\n"
+"    Филтери могу да се додају или уклоне путем „filter“ опције.\n"
+
+#: prog/aspell.cpp:2946
+#, c-format
+msgid ""
+"\n"
+"  %s filter: %s\n"
+msgstr ""
+"\n"
+"  филтер „%s“: %s\n"
+
+#. TRANSLATORS: This should be formated to fit in 80 column or less
+#: prog/aspell.cpp:2963
+msgid ""
+"Available Filter Modes:\n"
+"    Filter Modes are reconfigured combinations of filters optimized for\n"
+"    files of a specific type. A mode is selected via the \"mode\" option.\n"
+"    This will happen implicitly if Aspell is able to identify the file\n"
+"    type from the extension, and possibility the contents, of the file.\n"
+msgstr ""
+"Доступни режими филтера:\n"
+"    Режими филтера су поново подешене комбинације филтера који су\n"
+"    прилагођени за датотеке одређене врсте. Режим се бира преко опције\n"
+"    „mode“. Ово се дешава посредно ако Аспел успе да открије врсту\n"
+"    датотеке из проширења, и по могућству из контекста, датотеке.\n"
+
+#: prog/check_funs.cpp:287
+msgid "Error: Stdin not a terminal."
+msgstr "Грешка: Стандардни улаз није терминал."
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:774
+msgid "Enter"
+msgstr "Унеси"
+
+#: prog/check_funs.cpp:776
+msgid "Accept Changes"
+msgstr "Прихвати измене"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:779
+msgid "Backspace"
+msgstr "Брисање уназад"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:781
+msgid "Control-H"
+msgstr "Ctrl-H"
+
+#: prog/check_funs.cpp:782
+msgid "Delete the previous character"
+msgstr "Брише претходни знак"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:785
+msgid "Left"
+msgstr "Лево"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:787
+msgid "Control-B"
+msgstr "Ctrl-B"
+
+#: prog/check_funs.cpp:788
+msgid "Move Back one space"
+msgstr "Помера једно место уназад"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:791
+msgid "Right"
+msgstr "Десно"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:793
+msgid "Control-F"
+msgstr "Ctrl-F"
+
+#: prog/check_funs.cpp:794
+msgid "Move Forward one space"
+msgstr "Помера једно место унапред"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:797
+msgid "Home"
+msgstr "Почетна"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:799
+msgid "Control-A"
+msgstr "Ctrl-A"
+
+#: prog/check_funs.cpp:800
+msgid "Move to the beginning of the line"
+msgstr "Помера на почетак реда"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:803
+msgid "End"
+msgstr "Крај"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:805
+msgid "Control-E"
+msgstr "Ctrl-E"
+
+#: prog/check_funs.cpp:806
+msgid "Move to the end of the line"
+msgstr "Помера на крај реда"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:809
+msgid "Delete"
+msgstr "Обриши"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:811
+msgid "Control-D"
+msgstr "Ctrl-D"
+
+#: prog/check_funs.cpp:812
+msgid "Delete the next character"
+msgstr "Брише следећи знак"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:816
+msgid "Control-K"
+msgstr "Ctrl-K"
+
+#: prog/check_funs.cpp:817
+msgid "Kill all characters to the EOL"
+msgstr "Убија све знакове до краја реда"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:821
+msgid "Control-C"
+msgstr "Ctrl-C"
+
+#: prog/check_funs.cpp:822
+msgid "Abort This Operation"
+msgstr "Прекини ову операцију"
+
+#: modules/speller/default/language.cpp:103
+msgid "This is probably because: "
+msgstr "Ово је вероватно зато што: "
+
+#: modules/speller/default/language.cpp:110
+msgid "The required field \"name\" is missing."
+msgstr "Недостаје обавезно поље „name“."
+
+#: modules/speller/default/language.cpp:524
+msgid "Empty string."
+msgstr "Ниска је празна."
+
+# bug: string composition is bad, I've translated "beginning" as "at the beginning", and "middle" as "in the middle"
+#: modules/speller/default/language.cpp:533
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear at the beginning of a word."
+msgstr "Знак „%s“ (U+%02X) се не може јављати на почетку речи."
+
+#: modules/speller/default/language.cpp:535
+#: modules/speller/default/language.cpp:544
+#, c-format
+msgid "The character '%s' (U+%02X) must be followed by an alphabetic character."
+msgstr "После знака „%s“ (U+%02X) мора да се налази азбучни знак."
+
+#: modules/speller/default/language.cpp:537
+msgid "Does not contain any alphabetic characters."
+msgstr "Не садржи ниједан азбучни знак."
+
+# bug: string composition is bad, I've translated "beginning" as "at the beginning", and "middle" as "in the middle"
+#: modules/speller/default/language.cpp:542
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear in the middle of a word."
+msgstr "Знак „%s“ (U+%02X) се не може јављати на средини речи."
+
+#: modules/speller/default/language.cpp:549
+msgid "The character '\\r' (U+0D) may not appear at the end of a word. This probably means means that the file is using MS-DOS EOL instead of Unix EOL."
+msgstr "Знак „\\r“ (U+0D) се не може јављати на крају речи. Ово вероватно значи да датотека користи МС-ДОС ЕОЛ уместо Уникс ЕОЛ."
+
+# bug: string composition is bad, I've translated "beginning" as "at the beginning", and "middle" as "in the middle"
+#: modules/speller/default/language.cpp:552
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear at the end of a word."
+msgstr "Знак „%s“ (U+%02X) се не може јављати на крају речи."
+
+#: modules/speller/default/language.cpp:584
+#, c-format
+msgid "Warning: Removing invalid affix '%s' from word %s.\n"
+msgstr "Упозорење: Уклањам неисправан додатак „%s“ из речи %s.\n"
+
+#: modules/speller/default/language.cpp:585
+#, c-format
+msgid "Warning: Removing inapplicable affix '%s' from word %s.\n"
+msgstr "Упозорење: Уклањам непримењив додатак „%s“ из речи %s.\n"
+
+#: modules/speller/default/language.cpp:726
+#, c-format
+msgid "Warning: %s Skipping string.\n"
+msgstr "Упозорење: %s прескачем ниску.\n"
+
+#: modules/speller/default/language.cpp:780
+msgid "The total length is larger than 240 characters."
+msgstr "Укупна дужина премашује 240 знакова."
+
+#: modules/speller/default/language.cpp:784
+#, c-format
+msgid "Warning: %s Skipping word.\n"
+msgstr "Упозорење: %s прескачем реч.\n"
+
+#: modules/speller/default/affix.cpp:426
+msgid "Possibly incorrect count."
+msgstr "Вероватно неисправан бројач."
+
+#: modules/speller/default/readonly_ws.cpp:362
+msgid "Incompatible hash function."
+msgstr "Несагласна хеш функција."
+
+#: modules/speller/default/readonly_ws.cpp:440
+msgid "Wrong endian order."
+msgstr "Лош редослед бајтова."
+
+#: modules/speller/default/readonly_ws.cpp:463
+msgid "Wrong soundslike."
+msgstr "Лоше звучикао."
+
+#: modules/speller/default/readonly_ws.cpp:469
+msgid "Wrong soundslike version."
+msgstr "Лоше издање звучикао."
+
+#: modules/speller/default/readonly_ws.cpp:936
+msgid "Affix flags found in word but no affix file given."
+msgstr "Пронађена је ознака додатка али није дата датотека додатка."
+
+#: modules/speller/default/readonly_ws.cpp:974
+msgid "The total word length, with soundslike data, is larger than 240 characters."
+msgstr "Укупна дужина речи, са подацима звучикао, премашује 240 знакова."
+
+#: modules/speller/default/multi_ws.cpp:58
+msgid "There must be at least one \"add\" line."
+msgstr "Мора да постоји барем један „add“ ред."
+
+#: modules/speller/default/suggest.cpp:1730
+msgid "one of ultra, fast, normal, slow, or bad-spellers"
+msgstr "један од ultra, fast, normal, slow, или bad-spellers"
+
+#: modules/speller/default/data.cpp:406
+msgid "is not one of the allowed types"
+msgstr "није једна од дозвољених врста"
+
+#: modules/speller/default/speller_impl.cpp:334
+msgid "The personal word list is unavailable."
+msgstr "Лични списак речи није доступан."
+
+#: modules/speller/default/speller_impl.cpp:341
+msgid "The session word list is unavailable."
+msgstr "Сесиони списак речи није доступан."
+
+#: modules/speller/default/speller_impl.cpp:348
+msgid "The main word list is unavailable."
+msgstr "Главни списак речи није доступан."
+
+#: modules/filter/tex.cpp:255 modules/filter/tex.cpp:262
+msgid "a string of 'o','O','p',or 'P'"
+msgstr "ниска „o“, „O“, „p“, или „P“"
+
+#. TRANSLATORS: Like the strings in config.cpp, all strings in *-filter.opt
+#. should be under 50 characters, begin with a lower case character and 
+#. not include any trailing punctuation marks.
+#: modules/filter/context-filter.info:7
+msgid "experimental filter for hiding delimited contexts"
+msgstr "пробни филтер за сакривање ограничених контекста"
+
+#: modules/filter/context-filter.info:13
+msgid "context delimiters (separated by spaces)"
+msgstr "граничници контекста (одвојени размацима)"
+
+#: modules/filter/context-filter.info:21
+msgid "swaps visible and invisible text"
+msgstr "размени видљиви и невидљиви текст"
+
+#: modules/filter/email-filter.info:7
+msgid "filter for skipping quoted text in email messages"
+msgstr "филтер за прескакање цитата у порукама е-поште"
+
+#: modules/filter/email-filter.info:13
+msgid "email quote characters"
+msgstr "знаци наводника е-поште"
+
+#: modules/filter/email-filter.info:21
+msgid "num chars that can appear before the quote char"
+msgstr "број дозвољених знакова испред знака наводника"
+
+#: modules/filter/html-filter.info:9
+msgid "filter for dealing with HTML documents"
+msgstr "филтер за поступање са ХТМЛ документима"
+
+#: modules/filter/html-filter.info:15
+msgid "HTML attributes to always check"
+msgstr "које ХТМЛ атрибуте увек проверавати"
+
+#: modules/filter/html-filter.info:21
+msgid "HTML tags to always skip the contents of"
+msgstr "којих ХТМЛ ознака увек прескакати садржај"
+
+#: modules/filter/markdown-filter.info:8
+msgid "filter for Markdown/CommonMark documents"
+msgstr "филтер за документа Обележавања/Опште ознаке"
+
+#: modules/filter/markdown-filter.info:14
+msgid "skip link labels in link reference definitions"
+msgstr "прескаче натписе везе у одредницама упуте везе"
+
+#: modules/filter/markdown-filter.info:20
+msgid "support tags that span multiple lines outside of HTML blocks"
+msgstr "подржава ознаке које прелазе преко више редова ван ХТМЛ блокова"
+
+#: modules/filter/markdown-filter.info:26
+msgid "HTML tags that start an HTML block that allows blank lines"
+msgstr "ХТМЛ ознаке које покрећу ХТМЛ блок који омогућава празне редове"
+
+#: modules/filter/markdown-filter.info:34
+msgid "HTML tags that start an HTML block that ends with a blank line"
+msgstr "ХТМЛ ознаке које покрећу ХТМЛ блок који се завршава празним редом"
+
+#: modules/filter/nroff-filter.info:7
+msgid "filter for dealing with Nroff documents"
+msgstr "филтер за поступање са Бриск документима"
+
+#: modules/filter/sgml-filter.info:9
+msgid "filter for dealing with generic SGML/XML documents"
+msgstr "филтер за поступање са општим СГМЛ/ХМЛ документима"
+
+#: modules/filter/sgml-filter.info:15
+msgid "SGML attributes to always check"
+msgstr "које СГМЛ атрибуте увек проверавати"
+
+#: modules/filter/sgml-filter.info:20
+msgid "SGML tags to always skip the contents of"
+msgstr "којих СГМЛ ознака увек прескакати садржај"
+
+#: modules/filter/tex-filter.info:7
+msgid "filter for dealing with TeX/LaTeX documents"
+msgstr "филтер за поступање са ТеКс/ЛаТеКс документима"
+
+#: modules/filter/tex-filter.info:15
+msgid "check TeX comments"
+msgstr "проверава ТеКс примедбе"
+
+#: modules/filter/tex-filter.info:21
+msgid "TeX commands"
+msgstr "ТеКс наредбе"
+
+#: modules/filter/texinfo-filter.info:7
+msgid "filter for dealing with Texinfo documents"
+msgstr "филтер за поступање са Тексинфо документима"
+
+#: modules/filter/texinfo-filter.info:13
+msgid "Texinfo commands to ignore the parameters of"
+msgstr "којих ТеКсинфо наредби занемарити параметре"
+
+#: modules/filter/texinfo-filter.info:41
+msgid "Texinfo environments to ignore"
+msgstr "која ТеКсинфо окружења занемарити"
+
+#: modules/filter/url-filter.info:7
+msgid "filter to skip URL like constructs"
+msgstr "филтер за прескакање творбе сличне адреси"
+
+#: modules/filter/modes/ccpp.amf:8
+msgid "mode for checking C++ comments and string literals"
+msgstr "режим за проверу Ц++ примедби и дословности ниске"
+
+#: modules/filter/modes/comment.amf:5
+msgid "mode to check any lines starting with a #"
+msgstr "режим за проверу свих редова који почињу са #"
+
+#: modules/filter/modes/email.amf:5
+msgid "mode for skipping quoted text in email messages"
+msgstr "режим за прескакање цитата у порукама е-поште"
+
+#: modules/filter/modes/html.amf:10
+msgid "mode for checking HTML documents"
+msgstr "режим за проверу ХТМЛ докумената"
+
+#: modules/filter/modes/markdown.amf:9
+msgid "mode for checking Markdown/CommonMark documents"
+msgstr "режим за проверавање докумената Обележавања/Опште ознаке"
+
+#: modules/filter/modes/none.amf:5
+msgid "mode to disable all filters"
+msgstr "режим за искључивање свих филтера"
+
+#: modules/filter/modes/nroff.amf:7
+msgid "mode for checking Nroff documents"
+msgstr "режим за проверу Бриск докумената"
+
+#: modules/filter/modes/perl.amf:8
+msgid "mode for checking Perl comments and string literals"
+msgstr "режим за проверу Перл примедби и дословности ниске"
+
+#: modules/filter/modes/sgml.amf:8
+msgid "mode for checking generic SGML/XML documents"
+msgstr "режим за проверу општих СГМЛ/ХМЛ докумената"
+
+#: modules/filter/modes/tex.amf:7
+msgid "mode for checking TeX/LaTeX documents"
+msgstr "режим за проверу ТеКс/ЛаТеКс докумената"
+
+#: modules/filter/modes/texinfo.amf:7
+msgid "mode for checking Texinfo documents"
+msgstr "режим за проверу Тексинфо докумената"
+
+#: modules/filter/modes/url.amf:5
+msgid "mode to skip URL like constructs (default mode)"
+msgstr "режим за прескакање творбе сличне адреси (основни режим)"
+
+#~ msgid "edit distance to use, override sug-mode default"
+#~ msgstr "уређује размак за употребу, обилази основни режим предлога"
+
+#~ msgid "Sorry \"filter\" is currently unimplemented.\n"
+#~ msgstr "Нажалост „filter“ није досад направљен.\n"
+
+#~ msgid "configured as follows"
+#~ msgstr "подешено као"
+
+#~ msgid "path(es) aspell looks for options descriptions"
+#~ msgstr "путање у којима aspell тражи описе опција"
+
+#~ msgid "strip accents from word lists"
+#~ msgstr "избаци акценте из спискова речи"
+
+#~ msgid "indicator for additional flags in word lists"
+#~ msgstr "указивач на додатне ознаке у списковима речи"
+
+#~ msgid "encode soundslike infomation when creating dicts"
+#~ msgstr "кодирај податке о звучи-као при прављењу речника"
+
+#~ msgid "%where:1: \"%filter:2\":"
+#~ msgstr "%where:1: \"%filter:2\":"
+
+#~ msgid "%where:1: Filter \"%filter:2\" could not be found in filter paths."
+#~ msgstr "%where:1: Филтер „%filter:2“ се не може наћи у путањи филтера."
+
+#~ msgid "%where:1: %filter:2: can't find option description."
+#~ msgstr "%where:1: %filter:2: не могу наћи опис опције."
+
+#~ msgid "%where:1: \"%filter:2\" Line %line:3 confused by version control"
+#~ msgstr "%where:1: \"%filter:2\" Ред %line:3 измешан због праћења верзија"
+
+#~ msgid "%action:1: invalid regular expression."
+#~ msgstr "%action:1: неисправан регуларни израз."
+
+#~ msgid "enter Html/Sgml mode."
+#~ msgstr "уђи у ХТМЛ/СГМЛ режим."
+
+#~ msgid ""
+#~ "\n"
+#~ "Aspell %s alpha.  Copyright 2000-2004 by Kevin Atkinson.\n"
+#~ "\n"
+#~ "Usage: aspell [options] <command>\n"
+#~ "\n"
+#~ "<command> is one of:\n"
+#~ "  -?|help [<expr>] display this help message\n"
+#~ "                    and help for filters matching <expr> if installed\n"
+#~ "  -c|check <file>  to check a file\n"
+#~ "  -a|pipe          \"ispell -a\" compatibility mode\n"
+#~ "  -l|list          produce a list of misspelled words from standard input\n"
+#~ "  [dump] config [-e <expr>]  dumps the current configuration to stdout\n"
+#~ "  config [+e <expr>] <key>   prints the current value of an option\n"
+#~ "  soundslike       returns the sounds like equivalent for each word entered\n"
+#~ "  munch            generate possible root words and affixes\n"
+#~ "  expand [1-4]     expands affix flags\n"
+#~ "  filter           passes standard input through filters\n"
+#~ "  -v|version       prints a version line\n"
+#~ "  dump|create|merge master|personal|repl [word list]\n"
+#~ "    dumps, creates or merges a master, personal, or replacement word list.\n"
+#~ "\n"
+#~ "  <expr>           regular expression matching filtername(s) or \"all\"\n"
+#~ "\n"
+#~ "[options] is any of the following:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Aspell %s алфа.  Сва права задржана 2000-2004 Кевин Аткинсон.\n"
+#~ "\n"
+#~ "Употреба: aspell [ОПЦИЈЕ] <НАРЕДБА>\n"
+#~ "\n"
+#~ "<НАРЕДБА> је једна од:\n"
+#~ "  -?|help [<ИЗРЗ>] прикажи ову поруку помоћи\n"
+#~ "                    и помоћ за филтере који се поклапају са <ИЗРЗ>\n"
+#~ "  -c|check <ДАТОТЕКА>  за проверу датотеке\n"
+#~ "  -a|pipe          понашање сагласно са „ispell -a“\n"
+#~ "  -l|list          образуј списак погрешних речи на стандардном улазу\n"
+#~ "  [dump] config [-e <ИЗРЗ>]  исписује текућа подешавања на стандардни излаз\n"
+#~ "  config [+e <ИЗРЗ>] <КЉУЧ>  исписује текућу вредност опције\n"
+#~ "  soundslike       враћа еквивалент који звучи-као за сваку унету реч\n"
+#~ "  munch            образуј могуће корене речи и афиксе\n"
+#~ "  expand [1-4]     рашири ознаке афикса\n"
+#~ "  filter           пропушта сав стандардни улаз кроз филтере\n"
+#~ "  -v|version       исписује ред са верзијом\n"
+#~ "  dump|create|merge master|personal|repl [СПИСАК РЕЧИ]\n"
+#~ "    избацује, прави, спаја главни, лични или списак замена.\n"
+#~ "\n"
+#~ "  <ИЗРЗ>           регуларни израз са којим се поклапају имена филтера или „all“\n"
+#~ "\n"
+#~ "[OPCIJE] могу бити неке од следећих:\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  %s filter: %s\n"
+#~ "    NOTE: in ambiguous case prefix following options by \"filter-\"\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  Филтер %s: %s\n"
+#~ "    Пажња: у неједнозначном случају, додајте испред следећих опција „filter-“\n"
+
+#~ msgid "beginning"
+#~ msgstr "на почетку"
+
+#~ msgid "middle"
+#~ msgstr "у средини"
+
+#~ msgid "Filter for eliminating email quote characters"
+#~ msgstr "Филтер за уклањање знакова за цитирање е-поште"
+
+#~ msgid "Filters for encoding, filtering and decoding sgml characters"
+#~ msgstr "Филтер за кодирање, филтрирање и декодирање СГМЛ знакова"
+
+#~ msgid "multi character coded letters (<char>:<rep>[:<rep>[...]])"
+#~ msgstr "слова записана као више знакова (<знак>:<пред>[:<пред>[...]])"
+
+#~ msgid "characters used to encode hyphenation locations"
+#~ msgstr "знаци којима се записују положаји прелома"
+
+#~ msgid "Filter for hiding urls/paths and similar from Aspell"
+#~ msgstr "Филтер за сакривање адреса, путања и сличног од Aspell-а"

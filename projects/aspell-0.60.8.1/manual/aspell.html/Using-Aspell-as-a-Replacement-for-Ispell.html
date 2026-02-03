@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Using Aspell as a Replacement for Ispell</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Using Aspell as a Replacement for Ispell">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Basic-Usage.html#Basic-Usage" rel="up" title="Basic Usage">
+<link href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications" rel="next" title="Using Aspell with other Applications">
+<link href="Spellchecking-Individual-Files.html#Spellchecking-Individual-Files" rel="prev" title="Spellchecking Individual Files">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Using-Aspell-as-a-Replacement-for-Ispell"></a>
+<div class="header">
+<p>
+Next: <a href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications" accesskey="n" rel="next">Using Aspell with other Applications</a>, Previous: <a href="Spellchecking-Individual-Files.html#Spellchecking-Individual-Files" accesskey="p" rel="prev">Spellchecking Individual Files</a>, Up: <a href="Basic-Usage.html#Basic-Usage" accesskey="u" rel="up">Basic Usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Using-Aspell-as-a-Replacement-for-Ispell-1"></a>
+<h3 class="section">3.2 Using Aspell as a Replacement for Ispell</h3>
+
+<p>As of GNU Aspell 0.60.1 Aspell should be able to completely replace
+Ispell for most applications.  The Ispell compatibility script should
+work for most applications which expect Ispell.  However there are
+some differences which you should be aware of.
+</p>
+<a name="As-a-Drop-In-Replacement"></a>
+<h4 class="subsection">3.2.1 As a Drop In Replacement</h4>
+
+<p>Aspell can be used as a drop in replacement for Ispell for programs
+that use Ispell through a pipe such as Emacs and LyX.  It can also be
+used with programs that simply call the <code>ispell</code> command and
+expect the original file to be overwritten with the corrected version.
+</p>
+<p>If you do not have Ispell installed on your system and have installed
+the Ispell compatibility script then you should not need to do anything
+as most applications that expect Ispell will work as expected
+with Aspell via the Ispell compatibility script.
+</p>
+<p>Otherwise, the recommended way to use Aspell as a replacement for
+Ispell is to change the <code>ispell</code> command from within the
+program being used.  If the program uses <code>ispell</code> in pipe mode
+simply change &lsquo;<samp>ispell</samp>&rsquo; to &lsquo;<samp>aspell</samp>&rsquo;.  If the program
+calls the <code>ispell</code> command to check the file, then change
+&lsquo;<samp>ispell</samp>&rsquo; to &lsquo;<samp>aspell check</samp>&rsquo;.
+</p>
+<p>If that is impossible then the <code>run-with-aspell</code> script can be
+used.  This script modifies the path so that programs see the Ispell
+compatibility script instead of the actual true <code>ispell</code>
+command.  The format of the script is:
+</p>
+<div class="example">
+<pre class="example">run-with-aspell <var>command</var>
+</pre></div>
+
+<p>where <var>command</var> is the name of the program with any optional
+arguments.
+</p>
+<p>The old method of mapping Ispell to Aspell is discouraged because it
+can create compatibility problems with programs that actually require
+Ispell such as Ispell&rsquo;s own scripts.
+</p>
+<a name="Differences-From-Ispell"></a><a name="Differences-From-Ispell-1"></a>
+<h4 class="subsection">3.2.2 Differences From Ispell</h4>
+
+<p>Nevertheless, Aspell is not Ispell, nor is it meant to completely
+emulate the behavior of Ispell.  The <code>aspell</code> command is not
+identical to the <code>ispell</code> command when not used in &ldquo;pipe&rdquo;
+mode.  If an application expects the <code>ispell</code> command, then
+the Ispell compatibility script should be used instead.
+</p>
+<a name="Functionality-of-the-Ispell-Compatibility-Script"></a>
+<h4 class="subsubsection">3.2.2.1 Functionality of the Ispell Compatibility Script</h4>
+
+<p>The Ispell compatibility script provides the following Ispell
+functionally.
+</p>
+<ul>
+<li> The ability to check a file when called without any mode parameters.
+
+</li><li> The pipe or -a mode.
+
+</li><li> The list or -l mode.
+
+</li><li> The version or -v mode.  A single line is returned which, while not
+being identical to the line Ispell returns, is sufficient to fool most
+programs.
+
+</li><li> The munch or -c mode.
+
+</li><li> The expand or -e mode.
+
+</li><li> The ability to dump the affix file when called with &rsquo;-D&rsquo;.  However the
+format of the affix file is different.  Furthermore, not all languages
+have an affix file.
+
+</li></ul>
+
+<p>However the Ispell script is currently unable to emulate
+the &rsquo;-A&rsquo; pipe mode.  This is different from the normal pipe mode in
+that the special <code>&amp;Include_File&amp;</code> command is recognized.
+</p>
+<a name="Recognized-Options"></a>
+<h4 class="subsubsection">3.2.2.2 Recognized Options</h4>
+
+<p>Aspell, and thus the Ispell compatibility script, recognizes most of
+the options that Ispell uses except for the &rsquo;-S&rsquo;, &rsquo;-w&rsquo; and &rsquo;-T&rsquo;
+options.  The Aspell command will simply ignore these options if it
+sees them.
+</p>
+<a name="Check-Mode-Compatibility"></a>
+<h4 class="subsubsection">3.2.2.3 Check Mode Compatibility</h4>
+
+<p>The interface used by Aspell when checking individual files is
+slightly different than Ispell&rsquo;s.  In particular the default
+keymappings are not the same as the ones Ispell uses.  However Aspell
+supports using the Ispell keymappings via the <samp>keymapping</samp>
+option.  To use the Ispell keymappings set the <samp>kepmapping</samp>
+option to <code>ispell</code>.  This can be done on the command line by
+using the command:
+</p>
+<div class="example">
+<pre class="example">aspell check --keymapping=ispell &hellip;
+</pre></div>
+<p>or, when the Ispell compatible script is used:
+</p><div class="example">
+<pre class="example">ispell --keymapping=ispell &hellip;
+</pre></div>
+
+<p>The Ispell keymapping can always be used when the Ispell compatibly
+script is called by uncommenting the indicated line in the
+<code>ispell</code> script.
+</p>
+<a name="Pipe-Mode-Compatibility"></a>
+<h4 class="subsubsection">3.2.2.4 Pipe Mode Compatibility</h4>
+
+<p>The Aspell pipe mode should be identical to the Ispell pipe mode except
+if the line starts with a &rsquo;$$&rsquo; as that will trigger special Aspell
+only commands or if the line starts with a &rsquo;~&rsquo; which is ignored by Aspell.
+</p>
+<a name="Other-Differences"></a>
+<h4 class="subsubsection">3.2.2.5 Other Differences</h4>
+
+<p>The compiled dictionary format is completely different than Ispell&rsquo;s.
+Furthermore the format of the language data files&rsquo; are different than
+Ispell&rsquo;s affix file.  However, all known Ispell dictionaries were
+converted to Aspell format, except for Albanian (sq) as I was unable
+to find the source word list.
+</p>
+<p>The naming and format of the personal dictionary is also different.
+However, Ispell personal dictionaries can be imported using the
+<code>aspell-import</code> script.  See <a href="Using-aspell_002dimport.html#Using-aspell_002dimport">Using aspell-import</a>.  The
+Ispell personal dictionary is simply a list of words while the Aspell
+one is a list of words with a header line.  Thus it is also fairly
+easy to convert between the two.  See <a href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-Dictionary">Format of the Personal Dictionary</a>.
+</p>
+<a name="Missing-Functionally"></a>
+<h4 class="subsubsection">3.2.2.6 Missing Functionally</h4>
+
+<p>The only major area where Ispell is superior to Aspell is in the
+handling of multi character letters such as old ASCII encoding of
+accented characters.
+</p>
+<p>However, Aspell can handle UTF-8 documents far better than Ispell
+can.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications" accesskey="n" rel="next">Using Aspell with other Applications</a>, Previous: <a href="Spellchecking-Individual-Files.html#Spellchecking-Individual-Files" accesskey="p" rel="prev">Spellchecking Individual Files</a>, Up: <a href="Basic-Usage.html#Basic-Usage" accesskey="u" rel="up">Basic Usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

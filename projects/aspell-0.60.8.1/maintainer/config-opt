@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mkdir -p build
+cd build
+../configure --enable-maintainer-mode --disable-shared --disable-pspell-compatibility \
+  --enable-w-all-error \
+  --prefix="`pwd`/../inst" CFLAGS='-g -O' CXXFLAGS='-g -O' "$@"
+
+
+

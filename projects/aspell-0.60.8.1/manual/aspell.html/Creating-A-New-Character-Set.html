@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Creating A New Character Set</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Creating A New Character Set">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" rel="up" title="Adding Support For Other Languages">
+<link href="Creating-An-Official-Dictionary-Package.html#Creating-An-Official-Dictionary-Package" rel="next" title="Creating An Official Dictionary Package">
+<link href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words" rel="prev" title="Controlling the Behavior of Compound Words">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Creating-A-New-Character-Set"></a>
+<div class="header">
+<p>
+Next: <a href="Creating-An-Official-Dictionary-Package.html#Creating-An-Official-Dictionary-Package" accesskey="n" rel="next">Creating An Official Dictionary Package</a>, Previous: <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words" accesskey="p" rel="prev">Controlling the Behavior of Compound Words</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Creating-A-New-Character-Set-1"></a>
+<h3 class="section">7.8 Creating A New Character Set</h3>
+
+<p>If there is not a standard character set for your language then you
+can invent one.  The new charset will only be used by Aspell
+internally.  If the option <samp>data-encoding</samp> is set to
+&lsquo;<samp>utf-8</samp>&rsquo;, and your current locale character type is always set to
+&lsquo;<samp>utf-8</samp>&rsquo;, then you can use UTF-8 for everything and not
+worry yourself that an 8-bit character set is being used internally.
+If your language has no more than 210 distinct symbols, including
+different capitalizations and accents, then Aspell can support it.
+</p>
+<p>The first thing to do is to download the Aspell lang package 
+(see <a href="Creating-An-Official-Dictionary-Package.html#Creating-An-Official-Dictionary-Package">Creating An Official Dictionary Package</a>)
+and check if one of the provided charsets in this package will suite
+your needs.  Non-standard character sets are provided for many scripts
+and languages.  If not, then see the included <samp>README</samp> file for
+instructions on creating a new one.  Version 0.1, and 0.2 of
+mkchardata <em>will not</em> work as the format of the character data
+file has changed.
+</p>
+
+
+
+</body>
+</html>

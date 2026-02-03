@@ -1,0 +1,26 @@
+# SGML filter option file
+
+LIB-FILE sgml-filter
+
+#This Filter is usable with the following version(s) of Aspell
+ASPELL >=0.51
+
+#This line will be printed when typing `Aspell help SGML'
+DESCRIPTION filter for dealing with HTML documents
+
+STATIC filter
+
+OPTION check
+TYPE list
+DESCRIPTION   HTML attributes to always check
+DEFAULT alt
+ENDOPTION
+
+OPTION skip
+TYPE list
+DESCRIPTION  HTML tags to always skip the contents of
+DEFAULT script
+DEFAULT style
+ENDOPTION
+
+STATIC decoder

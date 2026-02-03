@@ -1,0 +1,412 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Filter Interface</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Filter Interface">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Filter-Modes.html#Filter-Modes" rel="next" title="Filter Modes">
+<link href="Config-Class.html#Config-Class" rel="prev" title="Config Class">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Filter-Interface"></a>
+<div class="header">
+<p>
+Next: <a href="Filter-Modes.html#Filter-Modes" accesskey="n" rel="next">Filter Modes</a>, Previous: <a href="Config-Class.html#Config-Class" accesskey="p" rel="prev">Config Class</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Filter-Interface-1"></a>
+<h2 class="chapter">11 Filter Interface</h2>
+
+<a name="Overview"></a>
+<h3 class="section">11.1 Overview</h3>
+<a name="Filter-Overview"></a>
+<p>In Aspell there are 5 types of filters:
+</p><ol>
+<li> <em>Decoders</em> which take input in some standard format such as
+iso8859-1 or UTF-8 and convert it into a string of <code>FilterChars</code>.
+</li><li> <em>Decoding filters</em> which manipulate a string of
+<code>FilterChars</code> by decoding the text is some way such as converting
+an SGML character into its Unicode value.
+</li><li> <em>True filters</em> which manipulate a string of <code>FilterChars</code> to
+make it more suitable for spell checking.  These filters generally
+blank out text which should not be spell checked
+</li><li> <em>Encoding filters</em> which manipulate a string of
+<code>FilterChars</code> by encoding the text in some way such as converting
+certain Unicode characters to SGML characters.
+</li><li> <em>Encoders</em> which take a string of <code>FilterChars</code> and convert
+into a standard format such as iso8859-1 or UTF-8
+</li></ol>
+
+<p>Which types of filters are used depends on the situation
+</p><ol>
+<li> When <em>decoding words</em> for spell checking:
+<ul>
+<li> The <em>decoder</em> to convert from a standard format
+</li><li> The <em>decoding filter</em> to perform high level decoding if necessary
+</li><li> The <em>encoder</em> to convert into an internal format used by the
+speller module
+</li></ul>
+
+</li><li> When <em>checking a document</em>
+<ul>
+<li> The <em>decoder</em> to convert from a standard format
+</li><li> The <em>decoding filter</em> to perform high level decoding if necessary
+</li><li> A <em>true filter</em> to filter out parts of the document which should
+not be spell checked
+</li><li> The <em>encoder</em> to convert into an internal format used by the
+speller module
+</li></ul>
+
+</li><li> When <em>encoding words</em> such as those returned for suggestions:
+<ul>
+<li> The <em>decoder</em> to convert from the internal format used by the
+speller module
+</li><li> The <em>encoding filter</em> to perform high level encodings if
+necessary
+</li><li> The <em>encoder</em> to convert into a standard format
+</li></ul>
+</li></ol>
+
+
+<p>A <code>FilterChar</code> is a struct defined in
+<samp>common/filter_char.hpp</samp> which contains two members, a character,
+and a width.  Its purpose is to keep track of the width of the
+character in the original format.  This is important because when a
+misspelled word is found the exact location of the word needs to be
+returned to the application so that it can highlight it for the user.
+For example if the filters translated this:
+</p><pre class="verbatim">Mr. foo said &amp;quot;I hate my namme&amp;quot;.
+</pre>
+<p>to this
+</p><pre class="verbatim">Mr. foo said &quot;I hate my namme&quot;.
+</pre>
+<p>without keeping track of the original width of the characters the application
+ will likely highlight 
+<code>e my </code>
+ as the misspelling because the spell checker will return 25 as the offset
+ instead of 30.
+ However with keeping track of the width using <code>FilterChar</code> the
+ spell checker 
+ will know that the real position is 30 since the quote is really 6 characters
+ wide.
+ In particular the text will be annotated something like the following:
+</p><pre class="verbatim">1111111111111611111111111111161
+Mr. foo said &quot;I hate my namme&quot;.
+</pre>
+<p>The standard <em>encoder</em> and <em>decoder</em> filters are defined in
+<samp>common/convert.cpp</samp>.  There should generally not be any need to
+deal with them so they will not be discussed here.  The other three
+filters, the <em>encoding filter</em>, the <em>true filter</em>, and the
+<em>decoding filter</em>, are all defined the exact same way; they are
+inherited from the <code>IndividualFilter</code> class.
+</p>
+<a name="Adding-a-New-Filter"></a>
+<h3 class="section">11.2 Adding a New Filter</h3>
+
+<p>A new filter basically is added by placing the corresponding loadable
+object inside a directory reachable by Aspell via <samp>filter-path</samp>
+list.  Further it is necessary that the corresponding filter
+description file is located in one of the directories listed by the
+<samp>option-path</samp> list.
+</p>
+<p>The name of the loadable object has to conform to the following
+convention <samp>lib<i>filtername</i>-filter.so</samp> where
+<code><i>filtername</i></code> stands for the name of the filter which is
+passed to Aspell by the <samp>add-filter</samp> option.  The same applies
+to the filter description file which has to conform to the following
+naming scheme: <samp><i>filtername</i>-filter.opt</samp>.
+</p>
+<p>To add a new loadable filter object create a new file.
+</p>
+<p>Basically the file should be a C++ file and end in <samp>.cpp</samp>.  The
+file should contain a new filter class inherited from
+<code>IndividualFilter</code> and a constructor function called
+<samp>new_<i>filtertype</i></samp> (see <a href="#Constructor-Function">Constructor Function</a>) returning a
+new filter object.  Further it is necessary to manually generate the
+filter description file.  Finally the resulting object has to be
+turned into a loadable filter object using libtool.
+</p>
+<p>Alternatively a new filter may extend the functionality of an existing
+filter. In this case the new filter has to be derived form the 
+corresponding valid filter class instead of the <code>IndividualFilter</code>
+class.
+</p>
+<a name="IndividualFilter-class"></a>
+<h3 class="section">11.3 IndividualFilter class</h3>
+
+<p>All filters are required to inherit from the <code>IndividualFilter</code>
+class found in <samp>indiv_filter.hpp</samp>.  See that file for more
+details and the other filter modules for examples of how it is used.
+</p>
+<a name="Constructor-Function-1"></a>
+<h3 class="section">11.4 Constructor Function</h3>
+<a name="Constructor-Function"></a>
+<p>After the class is created a function must be created which will
+return a new filter allocated with <code>new</code>.  The function must have
+the following prototype:
+</p><div class="example">
+<pre class="example">C_EXPORT IndividualFilter * new_aspell_<var>filtername</var>_<var>filtertype</var>
+</pre></div>
+
+<p>Filters are defined in groups where each group contains an
+<em>encoding filter</em>, a <em>true filter</em>, and a <em>decoding
+filter</em> (see <a href="#Filter-Overview">Filter Overview</a>).  Only one of them is required to
+be defined, however they all need a separate constructor function.
+</p>
+<a name="Filter-Description-File-1"></a>
+<h3 class="section">11.5 Filter Description File</h3>
+<a name="Filter-Description-File"></a>
+<p>This file contains the description of a filter which is loaded by
+Aspell immediately when the <samp>add-filter</samp> option is invoked.  If
+this file is missing Aspell will complain about it.  It consists of
+lines containing comments which must be started by a <kbd>#</kbd>
+character and lines containing key value pairs describing the filter.
+Each file at least has to contain the following two lines in the given
+order.
+</p> 
+<div class="example">
+<pre class="example">ASPELL &gt;=0.60
+DESCRIPTION this is short filter description
+</pre></div>
+
+<p>The first non blank, non comment line has to contain the keyword
+<code>ASPELL</code> followed by the version of Aspell which the filter is
+usable with.  To denote multiple Aspell versions the version number may
+be prefixed by &lsquo;<kbd>&lt;</kbd>&rsquo;, &lsquo;<kbd>&lt;=</kbd>&rsquo;, &lsquo;<kbd>=</kbd>&rsquo;, &lsquo;<kbd>&gt;=</kbd>&rsquo; or &lsquo;<kbd>&gt;</kbd>.
+If the range prefix is omitted &lsquo;<kbd>=</kbd>&rsquo; is assumed.  The
+<code>DESCRIPTION</code> of the filter should be under 50, begin in lower
+case, and note include any trailing punctuation characters.
+The keyword <code>DESCRIPTION</code> may be abbreviated by <code>DESC</code>.
+</p>
+<p>For each filter feature (see <a href="#Filter-Overview">Filter Overview</a>) provided by the
+corresponding loadable object, the option file has to contain the
+following line:
+</p><div class="example">
+<pre class="example">STATIC <code><i>filtertype</i></code>
+</pre></div>
+<p><code><i>filtertype</i></code> stands for one of <code>decoder</code>, <code>filter</code>
+or <code>encoder</code> denoting the entire filter type.  This line allows
+to statically (see <a href="#Link-Filters-Static">Link Filters Static</a>) link the filter into
+Aspell if requested by the user or by the system Aspell is built for.
+</p>
+<div class="example">
+<pre class="example">OPTION newoption
+DESCRIPTION this is a short description of newoption
+TYPE bool
+DEFAULT false
+ENDOPTION
+</pre></div>
+
+<p>An option is added by a line containing the keyword <code>OPTION</code>
+followed by the name of the option.  If this name is not prefixed by
+the name of the filter Aspell will implicitly do that.  For the
+<code>DESCRIPTION</code> of a filter option the same holds as for the filter
+description.  The <code>TYPE</code> of the option may be one of <code>bool</code>,
+<code>int</code>, <code>string</code> or <code>list</code>.  If the <code>TYPE</code> is
+omitted <code>bool</code> is assumed.  The default value(s) for an option is
+specified via <code>DEFAULT</code> (short <code>DEF</code>) followed by the
+desired <code>TYPE</code> dependent default value.  The table <a href="#Filter-Default-Values">Filter Default Values</a> shows the possible values for each <code>TYPE</code>.
+</p>
+<a name="Filter-Default-Values"></a><table>
+<tr><td><b>Type</b></td><td><b>Default</b></td><td><b>Available</b></td></tr>
+<tr><td>bool</td><td>true</td><td>true false</td></tr>
+<tr><td>int</td><td>0</td><td>any number value</td></tr>
+<tr><td>string</td><td></td><td>any printable string</td></tr>
+<tr><td>list</td><td></td><td>any comma separated list of strings</td></tr>
+</table>
+
+<p>Table 1. Shows the default values Aspell assumes if option
+<samp>description</samp> lacks a <code>DEFAULT</code> or <code>DEF</code> line.
+</p>
+<p>The <code>ENDOPTION</code> line may be omitted as it is assumed implicitly
+if a line containing <code>OPTION</code>, <code>STATIC</code>.
+</p>
+<blockquote>
+<p><strong>Note</strong> The keywords in a filter description file are case
+insensitive.  The above examples use the all uppercase for better
+distinguishing them from values and comments.  Further a filter
+description may contain blank lines to enhance their readability.
+</p></blockquote>
+
+<blockquote>
+<p><strong>Note</strong> An option of <code>list</code> type may contain multiple
+consecutive lines for default values starting with <code>DEFAULT</code> or
+<code>DEF</code>, to specify numerous default values.
+</p></blockquote>
+
+
+<a name="Retrieve-Options-by-a-Filter"></a>
+<h3 class="section">11.6 Retrieve Options by a Filter</h3>
+
+<p>An option always has to be retrieved by a filter using its full
+qualified name as the following example shows.
+</p> 
+
+<div class="example">
+<pre class="example">config-&gt;retrieve_bool(&quot;filter-<i>filtername</i>-newoption&quot;); 
+</pre></div>
+
+<p>The prefix <code>filter-</code> allows user to relate option uniquely to the
+specific filter when <code><i>filtername</i>-newoption</code> ambiguous an
+existing option of Aspell.  The <code><i>filtername</i></code> stands for the
+name of the filter the option belongs to and <code>-<i>newoption</i></code> is
+the name of the option as specified in the corresponding <samp>.opt</samp>
+file (see <a href="#Filter-Description-File">Filter Description File</a>
+</p>
+
+<a name="Compiling-and-Linking"></a>
+<h3 class="section">11.7 Compiling and Linking</h3>
+
+<p>See a good book on Unix programming on how to turn the filter source
+into a loadable object.
+</p>
+
+<a name="Programmer_0027s-Interface-1"></a>
+<h3 class="section">11.8 Programmer&rsquo;s Interface</h3>
+<a name="Programmer_0027s-Interface"></a>
+
+<a name="Recommended-Standard-Aspell"></a><p>A more convenient way
+recommended, if filter is added to Aspell standard distribution to
+build a new filter is provided by Aspell&rsquo;s programmers interface for
+filter.  It is provided by the <samp>loadable-filter-API.hpp</samp> file.
+Including this file gives access to a collection of macros hiding
+nasty details about runtime construction of a filter and about filter
+debugging.  Table <a href="#Interface-Macros">Interface Macros</a> shows the macros provided by
+the interface.  For details upon the entire macros see
+<samp>loadable-filter-API.hpp</samp>.  An example on how to use these macros
+can be found at <samp>examples/loadable/ccpp-context.hpp</samp> and
+<samp>examples/loadable/ccpp-context.cpp</samp>.
+</p>
+<table>
+<tr><td width="25%"><b>Macro</b></td><td width="6%"><b>Type</b></td><td width="34%"><b>Description</b></td><td width="34%"><b>Notes</b></td></tr>
+<tr><td width="25%">ACTIVATE_ENCODER</td><td width="6%">M</td><td width="34%">makes the entire encoding
+filter callable by Aspell</td><td width="34%">do not call inside class declaration;
+these macros define new_&lt;filtertype&gt; function;</td></tr>
+<tr><td width="25%">ACTIVATE_DECODER</td><td width="6%">M</td><td width="34%">makes the entire decoding
+filter callable by Aspell</td><td width="34%"><em>as above</em></td></tr>
+<tr><td width="25%">ACTIVATE_FILTER</td><td width="6%">M</td><td width="34%">makes the entire filter
+callable by Aspell</td><td width="34%"><em>as above</em></td></tr>
+<tr><td width="25%">FDEBUGOPEN</td><td width="6%">D</td><td width="34%">Initialises the macros for debugging a
+filter and opens the debug file stream</td><td width="34%">These macros are only
+active if the <code>FILTER_PROGRESS_CONTROL</code> macro is defined and
+denotes the name of the file debug messages should be sent to.
+
+<p>If debugging should go to Aspell standard debugging output (right now
+stderr) use empty string constant as filename
+</p></td></tr>
+<tr><td width="25%">FDEBUGNOTOPEN</td><td width="6%">D</td><td width="34%">Same as &ldquo;FDEBUGOPEN&rdquo; but
+only if debug file stream was not opened yet</td><td width="34%"><em>as above</em></td></tr>
+<tr><td width="25%">FDEBUGCLOSE</td><td width="6%">D</td><td width="34%">closes the debugging device opened by &ldquo;FDEBUGOPEN&rdquo; and reverts it to &ldquo;stderr&rdquo;;</td><td width="34%"><em>as above</em></td></tr>
+<tr><td width="25%">FDEBUG</td><td width="6%">D</td><td width="34%">prints the filename and the line
+number it occurs</td><td width="34%"><em>as above</em></td></tr>
+<tr><td width="25%">FDEBUGPRINTF</td><td width="6%">D</td><td width="34%">special printf for debugging</td><td width="34%"><em>as above</em></td></tr>
+</table>
+
+<p>Table 2. Shows the macros provided by <samp>loadable-filter-API.hpp</samp>
+(<strong>M</strong> mandatory, <strong>D</strong> debugging) <a name="Interface-Macros"></a></p>
+
+<a name="Adding-a-filter-to-Aspell-standard-distribution"></a>
+<h3 class="section">11.9 Adding a filter to Aspell standard distribution</h3>
+<a name="Link-Filters-Static"></a>
+<p>Any filter which one day should be added to Aspell has to be built
+using the developer interface, described in <a href="#Programmer_0027s-Interface">Programmer's Interface</a>.  To add the filter the following steps have to be
+performed:
+</p>
+<ol>
+<li> Decide whether the filter should be kept loadable if possible, or
+always be statically linked to Aspell.
+
+</li><li> <a name="Place-Sources"></a>Place the filter sources inside the entire
+directory of Aspell source tree.  Right now use
+<code><i>$top_srcdir</i>/modules/filter</code>.
+ 
+</li><li> Modify the <samp>Makefile.am</samp> file on the topmost directory of the
+Aspell distribution.  Follow the instructions given by the
+<code>#Filter Modules</code> section.
+ 
+</li><li> Run <samp>autoconf</samp>, <samp>automake</samp>, &hellip;
+
+</li><li> Reconfigure sources.
+ 
+</li><li> <a name="Build-Sources"></a>Clear away any remains of a previous build and
+rebuild sources.
+ 
+</li><li> <a name="Reinstall-Aspell"></a>Reinstall Aspell.
+ 
+</li><li> <a name="Test-Filter-Installed"></a>Test if filter has been added properly
+otherwise return to steps 2&ndash;7
+ 
+</li><li> Reconfigure sources with <samp>enable-static</samp> flag and repeat steps
+2&ndash;7
+until your filter builds and runs properly in case of static linkage.
+ 
+</li><li> Add your source files to cvs, and commit all your changes.  Or in case
+you are not allowed to commit to cvs submit a patch (see <a href="How-to-Submit-a-Patch.html#How-to-Submit-a-Patch">How to Submit a Patch</a>) containing your changes.
+
+</li></ol>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Filter-Modes.html#Filter-Modes" accesskey="n" rel="next">Filter Modes</a>, Previous: <a href="Config-Class.html#Config-Class" accesskey="p" rel="prev">Config Class</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

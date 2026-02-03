@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Aspell Suggestion Strategy</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Aspell Suggestion Strategy">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Implementation-Notes.html#Implementation-Notes" rel="up" title="Implementation Notes">
+<link href="Notes-on-8_002dbit-Characters.html#Notes-on-8_002dbit-Characters" rel="next" title="Notes on 8-bit Characters">
+<link href="Implementation-Notes.html#Implementation-Notes" rel="prev" title="Implementation Notes">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Aspell-Suggestion-Strategy"></a>
+<div class="header">
+<p>
+Next: <a href="Notes-on-8_002dbit-Characters.html#Notes-on-8_002dbit-Characters" accesskey="n" rel="next">Notes on 8-bit Characters</a>, Up: <a href="Implementation-Notes.html#Implementation-Notes" accesskey="u" rel="up">Implementation Notes</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Aspell-Suggestion-Strategy-1"></a>
+<h3 class="appendixsec">A.1 Aspell Suggestion Strategy</h3>
+
+<p>The magic behind my spell checker comes from merging Lawrence Philips
+excellent metaphone algorithm and Ispell&rsquo;s near miss strategy which is
+inserting a space or hyphen, interchanging two adjacent letters,
+changing one letter, deleting a letter, or adding a letter.
+</p>
+<p>The process goes something like this.
+</p>
+<ol>
+<li> Convert the misspelled word to its soundslike equivalent (its
+metaphone for English words).
+
+</li><li> Find all words that have a soundslike within one or two edit distances
+from the original word&rsquo;s soundslike.  The edit distance is the total
+number of deletions, insertions, exchanges, or adjacent swaps needed
+to make one string equivalent to the other.  When set to only look for
+soundslikes within one edit distance it tries all possible soundslike
+combinations and checks if each one is in the dictionary.  When set to
+find all soundslike within two edit distances it scans through the
+entire dictionary and quickly scores each soundslike.  The scoring is
+quick because it will give up if the two soundslikes are more than two
+edit distances apart.
+
+</li><li> Find misspelled words that have a correctly spelled replacement by the
+same criteria of step number 2 and 3.  That is the misspelled word in
+the word pair (such as &ldquo;teh -&gt; the&rdquo;) would appear in the suggestions
+list as if it was a correct spelling.
+
+</li><li> Score the result list and return the words with the lowest score.  The
+score is roughly the weighed average of the weighed edit distance of
+the word to the misspelled word and the soundslike equivalent of the
+two words.  The weighted edit distance is like the edit distance
+except that the various edits have weights attached to them.
+
+</li><li> Replace the misspelled words that have correctly spelled replacements
+with their replacements and remove any duplicates that might arise
+because of this.
+</li></ol>
+
+<p>Please note that the soundslike equivalent is a rough approximation of
+how the words sounds.  It is not the phoneme of the word by any means.
+For more details about exactly how each step is performed please see
+the file <samp>suggest.cc</samp>.  For more information on the metaphone
+algorithm please see the data file <samp>english_phonet.dat</samp>.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Notes-on-8_002dbit-Characters.html#Notes-on-8_002dbit-Characters" accesskey="n" rel="next">Notes on 8-bit Characters</a>, Up: <a href="Implementation-Notes.html#Implementation-Notes" accesskey="u" rel="up">Implementation Notes</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use autodie qw(:all);
+
+my $parms;
+my @tests;
+
+if (@ARGV != 1) {
+    die("usage $0 <aspell-binary>\n");
+}
+
+my $ASPELL=$ARGV[0];
+
+sub sys($) {
+    #print "@_\n";
+    system "@_";
+}
+
+my $passed = 0;
+my $failed = 0;
+my $skipped = 0;
+
+while (<STDIN>) {
+    next if /^\s+$/;
+    #print ">>$_";
+    if (/^-/) {
+        chomp;
+        $parms = $_;
+        next;
+    }
+    chomp;
+    my $desc = $_;
+    my $in = '';
+    my $out = '';
+    $_ = <STDIN>;
+    my $skip = 0;
+    if (/^\! (.+)/) {
+        die "Unknown directive: $1" unless $1 eq 'SKIP';
+        $skip = 1;
+        $_ = <STDIN>;
+    }
+    if (/^-/) {
+        my $sep = $_;
+        while (<STDIN>) {
+            #print ">$sep>$_";
+            last if $_ eq $sep;
+            $in .= $_;
+        }
+        while (<STDIN>) {
+            last if $_ eq $sep;
+            $out .= $_;
+        }
+    } else {
+        $in = $_;
+        $out = <STDIN>;
+    }
+    #print "$parms\n";
+    #print ">>>IN>>>\n";
+    #print $in;
+    #print ">>>OUT>>>\n";
+    #print $out;
+    #print "^^^^^^^^^\n";
+
+    if ($skip) {
+        $skipped++;
+        next;
+    }
+
+    open F, ">tmp/test-data.in";
+    print F $in;
+    open F, ">tmp/test-data.expect";
+    print F $out;
+    eval {
+        sys "$ASPELL filter --mode=none $parms < tmp/test-data.in > tmp/test-data.out";
+        sys "diff -u -Z tmp/test-data.expect tmp/test-data.out";
+    };
+    if ($@) {
+        $failed++;
+        print STDERR "FAILED: $desc: $@\n";
+    } else {
+        $passed++;
+        #print STDERR "passed: $desc\n";
+    }
+}
+
+if ($failed > 0) {
+    printf("FAILED %d/%d tests (%d skipped)\n", $failed, $failed + $passed, $skipped);
+    exit 1;
+} else {
+    printf("all ok (%d skipped)\n", $skipped);
+    exit 0;
+}

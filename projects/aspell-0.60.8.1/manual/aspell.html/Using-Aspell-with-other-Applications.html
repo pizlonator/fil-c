@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Using Aspell with other Applications</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Using Aspell with other Applications">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Basic-Usage.html#Basic-Usage" rel="up" title="Basic Usage">
+<link href="Customizing-Aspell.html#Customizing-Aspell" rel="next" title="Customizing Aspell">
+<link href="Using-Aspell-as-a-Replacement-for-Ispell.html#Using-Aspell-as-a-Replacement-for-Ispell" rel="prev" title="Using Aspell as a Replacement for Ispell">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Using-Aspell-with-other-Applications"></a>
+<div class="header">
+<p>
+Previous: <a href="Using-Aspell-as-a-Replacement-for-Ispell.html#Using-Aspell-as-a-Replacement-for-Ispell" accesskey="p" rel="prev">Using Aspell as a Replacement for Ispell</a>, Up: <a href="Basic-Usage.html#Basic-Usage" accesskey="u" rel="up">Basic Usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Using-Aspell-with-other-Applications-1"></a>
+<h3 class="section">3.3 Using Aspell with other Applications</h3>
+
+<a name="With-Enchant-Based-Applications"></a>
+<h4 class="subsection">3.3.1 With Enchant Based Applications</h4>
+
+<p>Enchant is a generic spell checking library with multiple
+backends used by many applications that provide spell checker
+functionality.  Enchant is used by AbiWord; LyX; and via gspell and
+GtkSpell, a number of Gtk and GNOME applications.
+</p>
+<p>By default enchant is configured to prefer Hunspell over Aspell but
+this can easily be changed on a per-language basis.  If you wish to
+use Aspell for a specific dictionary say, American English, make sure
+that the Aspell backend is installed (on Debian and Ubuntu based
+system it is included as part of the base package) then create the
+file <samp>~/.config/enchant/enchant.ordering</samp> that contains the
+single line:
+</p>
+<div class="example">
+<pre class="example">en_US:aspell
+</pre></div>
+
+<p>To test it.  Restart the enchant based application and then compare
+the suggestion list with an application that used Aspell or by using
+the &lsquo;<samp>aspell check</samp>&rsquo; or &lsquo;<samp>aspell pipe</samp>&rsquo; commands.
+</p>
+<p>You can also prefer Aspell in general over Hunspell by instead using:
+</p>
+<div class="example">
+<pre class="example">*:aspell,hunspell
+</pre></div>
+
+<p>Then if an Aspell dictionary is available Enchant should use it.
+</p>
+
+<a name="With-Emacs-and-XEmacs"></a>
+<h4 class="subsection">3.3.2 With Emacs and XEmacs</h4>
+
+<p>Newer versions of Emacs should prefer <code>aspell</code> over both
+<code>ispell</code> and <code>hunspell</code>, if you find this is not the
+case, then adding the line:
+</p>
+<pre class="verbatim">(setq-default ispell-program-name &quot;aspell&quot;)
+</pre>
+<p>to the end of your <samp>.emacs</samp> file should convince Emacs to use
+Aspell.
+</p>
+
+
+
+
+
+
+
+
+<a name="With-VIM"></a>
+<h4 class="subsection">3.3.3 With VIM</h4>
+
+
+<p>To use Aspell in VIM you simply need to add the following line to your
+<samp>.vimrc</samp> file:
+</p>
+<pre class="verbatim">map ^T :w!&lt;CR&gt;:!aspell check %&lt;CR&gt;:e! %&lt;CR&gt;
+</pre>
+<p>I use <kbd>Ctrl-T</kbd> since that&rsquo;s the way you spell check in
+<code>pico</code>.  In order to add a control character to your
+<code>.vimrc</code> you must type <kbd>Ctrl-v</kbd> first.  In this case
+<kbd>Ctrl-v Ctrl-t</kbd>.
+</p>
+<p>A more useful way to use Aspell, IMHO, is in combination with Newsbody
+(<a href="http://www.image.dk/~byrial/newsbody/">http://www.image.dk/~byrial/newsbody/</a>) which is how I use it
+since VIM is my editor for my mailer and my news reader.
+</p><pre class="verbatim">map ^T\\1\\2&lt;CR&gt;:e! %&lt;CR&gt;
+map \\1 :w!&lt;CR&gt;
+map \\2 :!newsbody -qs -n % -p aspell check \\%f&lt;CR&gt;
+</pre>
+<a name="With-Pine"></a>
+<h4 class="subsection">3.3.4 With Pine</h4>
+
+<p>To use Aspell in Pine simply change the option <samp>speller</samp> to
+</p>
+<div class="example">
+<pre class="example">aspell --mode=email check
+</pre></div>
+
+<p>To change the <samp>speller</samp> option go to the main menu.  Type
+<kbd>S</kbd> for <em>setup</em>, <kbd>C</kbd> for <em>config</em>, then <kbd>W</kbd> for
+<em>where is</em>.  Type in <kbd>speller</kbd> as the word to find.  The
+speller option should be highlighted now.  Hit enter, type in the
+above line, and hit enter again.  Then type <kbd>E</kbd> for <em>exit
+setup</em> and <kbd>Y</kbd> to save the change.
+</p>
+<p>If you have a strong desire to check other people&rsquo;s comments change
+<samp>speller</samp> to
+</p>
+<div class="example">
+<pre class="example">aspell check
+</pre></div>
+
+<p>instead which will avoid switching Aspell into email mode.
+</p>
+<hr>
+<div class="header">
+<p>
+Previous: <a href="Using-Aspell-as-a-Replacement-for-Ispell.html#Using-Aspell-as-a-Replacement-for-Ispell" accesskey="p" rel="prev">Using Aspell as a Replacement for Ispell</a>, Up: <a href="Basic-Usage.html#Basic-Usage" accesskey="u" rel="up">Basic Usage</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

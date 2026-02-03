@@ -1,0 +1,16 @@
+MODE perl
+
+ASPELL >=0.60.1
+
+MAGIC /0:256:^[ \t]*\#!((\/\w*)+)\/perl/pl/pm
+MAGIC /<noregex>/pl/pm
+
+DESCRIPTION mode for checking Perl comments and string literals
+
+FILTER url
+FILTER context
+OPTION clear-context-delimiters 
+OPTION add-context-delimiters " "
+OPTION add-context-delimiters \# \0
+OPTION disable-context-visible-first
+

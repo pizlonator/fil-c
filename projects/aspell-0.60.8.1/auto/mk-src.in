@@ -1,0 +1,1120 @@
+#
+# mk-src.in -- Input file for the Perl program to automatically
+#	       generate interface code.
+#
+# This file is part of The New Aspell
+# Copyright (C) 2001-2005 by Kevin Atkinson under the GNU LGPL
+# license version 2.0 or 2.1.  You should have received a copy of the
+# LGPL license along with this library if you did not you can find it
+# at http://www.gnu.org/.
+
+=head1 mk-src.in
+
+The format of mk-src.in is as follows:
+
+  The following characters are literals: { } / '\ ' \n = >
+
+  <items>
+  <items> := (<item>\n)+
+  <items> := <category>:\ <name> {\n<details>\n} | <<tab>><details>
+  <details> := <options>\n /\n <items>
+  <options> := (<option>\n)*
+  <option> := <key> [=> <value>]
+
+  <<tab>> means everything should be indented by one tab
+
+See MkSrc::Info for a description of the categories and options
+
+=cut
+
+
+group: type id
+{
+/
+union: type id
+	treat as object
+	/
+	unsigned int: num
+		default => 0
+	array 4 char: str
+	cxx constructor:
+		/
+		string: str
+}
+methods: destructible
+	/
+	destructor
+
+#	int: ref count
+#		default => 0
+#
+#	method: ref count
+#		desc => Returns a pointer to an int which may be used
+#			for reference counting. It will default to 0.
+#			This integer is not used by the actual library
+#			but may be used my some of the front ends.
+#		c only
+#		c impl => return &ths->ref_count;
+#		/
+#		int pointer
+
+methods: copyable
+	/
+	destructible methods
+
+#	type id: type id
+#
+#	method: type id
+#		desc => Two objects of the same pointer type may be
+#			assigned to each other only if their type ids
+#			are the same.
+#		cxx impl => return type_id_.num
+#		/
+#		unsigned int
+#
+#	int: copyable
+#		default => 2
+#
+#	method: copyable
+#		desc => Returns 0 if this object can not be copied,
+#			1 if it may be copied, 2 if it should be
+#			copied.  Used by some of the front ends to
+#			determine if a deep or shallow copy should be
+#			made.
+#		cxx impl => return copyable_
+#		/
+#		int
+
+	method: clone
+		const
+		/
+		$
+
+	method: assign
+		/
+		void
+		const $: other
+
+methods: can have error
+	/
+	cxx member: err
+		headers => copy ptr, error
+		what => CopyPtr<Error> err_
+
+	method: error number
+		const
+		c only
+		c impl => return ths->err_ == 0 ? 0 : 1;
+		/
+		unsigned int
+
+	method: error message
+		const
+		c only
+		c impl => return ths->err_ ? ths->err_->mesg : "";
+		/
+		string
+
+	method: error
+		const
+		c only
+		c impl => return ths->err_;
+		/
+		const error
+
+methods: mutable container
+	c impl headers => posib err
+	/
+	public: mutable container
+	method: add
+		/
+		bool
+		string: to_add
+
+	method: remove
+		/
+		bool
+		string: to_rem
+
+	method: clear
+		/
+		void
+
+	method: to mutable container
+		c only
+		c impl => return ths;
+		/
+		mutable container
+
+group: mutable container
+{
+/
+class: mutable container
+	/
+	mutable container methods
+}
+methods: list
+
+	strip => 1
+	/
+	method: empty
+		const
+		/
+		bool
+
+	method: size
+		const
+		/
+		unsigned int
+
+	method: elements
+		const
+		/
+		$ enumeration
+
+methods: enumeration
+
+	strip => 1
+
+	/
+	method: at end
+		const
+		/
+		bool
+
+	method: next
+		/
+		const $
+
+group: key info
+{
+/
+enum: key info type
+	prefix => key info
+	/
+	string
+	int
+	bool
+	list
+
+struct: key info
+	desc => The Key Info object is used for holding information
+		about a valid key.
+	/
+	string: name
+		desc => The name of the key.
+	key info type: type
+		desc => The key type.
+	string: def
+		desc => The default value of the key.
+	string: desc
+		desc => A brief description of the key or NULL if internal value.
+	int: flags
+	int: other data
+}
+group: config
+{
+no native
+/
+class: key info enumeration
+	/
+	enumeration methods
+	copyable methods
+
+class: config
+	c impl headers => error
+	/
+	constructor
+
+	copyable methods
+
+	can have error methods
+
+	method: set extra
+		desc => Sets extra keys which this config class should
+			accept. begin and end are expected to point to
+			the beginning and ending of an array of Aspell
+			Key Info.
+		/
+		void
+		const key info: begin
+		const key info: end
+
+	method: keyinfo
+		posib err
+		desc => Returns the KeyInfo object for the
+			corresponding key or returns NULL and sets
+			error_num to PERROR_UNKNOWN_KEY if the key is
+			not valid. The pointer returned is valid for
+			the lifetime of the object.
+		/
+		const key info
+		string: key
+
+	method: possible elements
+		desc => Returns a newly allocated enumeration of all
+			the possible objects this config class uses.
+		/
+		key info enumeration
+		int: include extra
+
+	method: get default
+		posib err
+		desc => Returns the default value for given key which
+			may involve substituting variables, thus it is
+			not the same as keyinfo(key)->def returns NULL
+			and sets error_num to PERROR_UNKNOWN_KEY if
+			the key is not valid. Uses the temporary
+			string.
+		/
+		string obj
+		string: key
+
+	method: elements
+		desc => Returns a newly allocated enumeration of all
+			the key/value pairs. This DOES not include ones
+			which are set to their default values.
+		/
+		string pair enumeration
+
+	method: replace
+		posib err
+		desc => Inserts an item, if the item already exists it
+			will be replaced. Returns TRUE if it succeeded
+			or FALSE on error. If the key is not valid it
+			sets error_num to PERROR_UNKNOWN_KEY, if the
+			value is not valid it will set error_num to
+			PERROR_BAD_VALUE, if the value can not be
+			changed it sets error_num to
+			PERROR_CANT_CHANGE_VALUE, and if the value is
+			a list and you are trying to set its directory,
+			it sets error_num to PERROR_LIST_SET
+		/
+		void
+		string: key
+		string: value
+
+	method: remove
+		posib err
+		desc => Remove a key and returns TRUE if it exists
+			otherwise return FALSE. This effectively sets
+			the key to its default value. Calling replace
+			with a value of "<default>" will also call
+			remove. If the key does not exist then it sets
+			error_num to 0 or PERROR_NOT, if the key is
+			not valid then it sets error_num to
+			PERROR_UNKNOWN_KEY, if the value can not be
+			changed then it sets error_num to
+			PERROR_CANT_CHANGE_VALUE
+		/
+		void
+		string: key
+
+	method: have
+		const
+		/
+		bool
+		string: key
+
+	method: retrieve
+		posib err
+		desc => Returns NULL on error.
+		/
+		string obj
+		string: key
+
+	method: retrieve list
+		posib err
+		/
+		void
+		string: key
+		mutable container: lst
+
+	method: retrieve bool
+		posib err
+		desc => In "ths" Aspell configuration, search for a
+			character string matching "key" string.
+			If "key" is found then return 1 else return 0.
+			If error encountered, then return -1.
+		/
+		bool
+		string: key
+
+	method: retrieve int
+		posib err
+		desc => In "ths" Aspell configuration, search for an
+			integer value matching "key" string.
+			Return -1 on error.
+		/
+		unsigned int
+		string: key
+
+#	method: read_in_settings
+#		posib err
+#		/
+#		bool
+
+#	method: settings_read_in
+#		/
+#		bool
+}
+group: version
+{
+/
+func: version string
+	desc => Returns a version string, which may include additional
+		information on how Aspell was compiled.
+	/
+	string
+}
+group: error
+{
+/
+struct: error
+	/
+	string: mesg
+	const error info: err
+	method: is a
+		const
+		/
+		bool
+		const error info: e
+
+struct: error info
+	/
+	const error info: isa
+	string: mesg
+	unsigned int: num parms
+	array 3 string: parms
+}
+group: can have error
+{
+/
+class: can have error
+	c impl headers => error
+	/
+	cxx constructor:
+		cxx impl => : err_(e) {}
+		/
+		error: e
+	can have error methods
+		prefix =>
+	destructible methods
+}
+group: errors
+{
+/
+errors:
+	/
+	other
+	operation not supported
+		mesg => Operation Not Supported: %what
+		parms => what
+		/
+		cant copy
+		unimplemented method
+			mesg => The method "%what" is unimplemented in "%where".
+			parms => where
+	file
+		mesg => %file:
+		parms => file
+		/
+		cant open file
+			mesg => The file "%file" can not be opened
+			/
+			cant read file
+				mesg => The file "%file" can not be opened for reading.
+			cant write file
+				mesg => The file "%file" can not be opened for writing.
+		invalid name
+			mesg => The file name "%file" is invalid.
+		bad file format
+			mesg => The file "%file" is not in the proper format.
+	dir
+		parms => dir
+		/
+		cant read dir
+			mesg => The directory "%dir" can not be opened for reading.
+
+	config
+		parms => key
+		/
+		unknown key
+			mesg => The key "%key" is unknown.
+		cant change value
+			mesg => The value for option "%key" can not be changed.
+		bad key
+			mesg => The key "%key" is not %accepted and is thus invalid.
+			parms => accepted
+		bad value
+			mesg => The value "%value" is not %accepted and is thus invalid for the key "%key".
+			parms => value, accepted
+		duplicate
+		key not string
+			mesg => The key "%key" is not a string.
+		key not int
+			mesg => The key "%key" is not an integer.
+		key not bool
+			mesg => The key "%key" is not a boolean.
+		key not list
+			mesg => The key "%key" is not a list.
+		no_value_reset
+			mesg => The key "%key" does not take any parameters when prefixed by a "reset-".
+		no_value_enable
+			mesg => The key "%key" does not take any parameters when prefixed by an "enable-".
+		no_value_disable
+			mesg => The key "%key" does not take any parameters when prefixed by a "dont-" or "disable-".
+		no_value_clear
+			mesg => The key "%key" does not take any parameters when prefixed by a "clear-".
+
+	language related
+		parms => lang
+		/
+		unknown language
+			mesg => The language "%lang" is not known.
+		unknown soundslike
+			mesg => The soundslike "%sl" is not known.
+			parms => sl
+		language not supported
+			mesg => The language "%lang" is not supported.
+		no wordlist for lang
+			mesg => No word lists can be found for the language "%lang".
+		mismatched language
+			mesg => Expected language "%lang" but got "%prev".
+			parms => prev
+	affix
+		/
+		corrupt affix
+			mesg => Affix '%aff' is corrupt.
+			parms => aff
+		invalid cond
+			mesg => The condition "%cond" is invalid.
+			parms => cond
+		invalid cond strip
+			mesg => The condition "%cond" does not guarantee that "%strip" can always be stripped.
+			parms => cond, strip
+		incorrect encoding
+			mesg => The file "%file" is not in the proper format. Expected the file to be in "%exp" not "%got".
+			parms => file, exp, got
+	encoding
+		parms => encod
+		/
+		unknown encoding
+			mesg => The encoding "%encod" is not known.
+		encoding not supported
+			mesg => The encoding "%encod" is not supported.
+		conversion not supported
+			mesg => The conversion from "%encod" to "%encod2" is not supported.
+			parms => encod2
+	pipe
+		/
+		cant create pipe
+		process died
+	bad input
+		/
+		invalid string
+			mesg => The string "%str" is invalid.
+			parms => str
+		invalid word
+			mesg => The word "%word" is invalid.
+			parms => word
+		invalid affix
+			mesg => The affix flag '%aff' is invalid for word "%word".
+			parms => aff, word
+		inapplicable affix
+			mesg => The affix flag '%aff' can not be applied to word "%word".
+			parms => aff, word
+		unknown unichar
+			mesg =>
+		word list flags
+			/
+			invalid flag
+			conflicting flags
+	version control
+		/
+		bad version string
+			mesg => not a version number
+	filter
+		/
+		cant dlopen file
+			mesg => dlopen returned "%return".
+			parms => return
+		empty filter
+			mesg => The file "%filter" does not contain any filters.
+			parms => filter
+		no such filter
+			mesg => The filter "%filter" does not exist.
+			parms => filter
+		confusing version
+			mesg => Confused by version control.
+		bad version
+			mesg => Aspell version does not match filter's requirement.
+		identical option
+			mesg => Filter option already exists.
+		options only
+			mesg => Use option modifiers only within named option.
+		invalid option modifier
+			mesg => Option modifier unknown.
+		cant describe filter
+			mesg => Error setting filter description.
+	filter mode file
+		/
+		mode option name
+			mesg => Empty option specifier.
+		no filter to option
+			mesg => Option "%option" possibly specified prior to filter.
+			parms => option
+		bad mode key
+			mesg => Unknown mode description key "%key".
+			parms => key
+		expect mode key
+			mesg => Expecting "%modekey" key.
+			parms => modekey
+		mode version requirement
+			mesg => Version specifier missing key: "aspell".
+		confusing mode version
+			mesg => Confused by version control.
+		bad mode version
+			mesg => Aspell version does not match mode's requirement.
+		missing magic expression
+			mesg => Missing magic mode expression.
+		empty file ext
+			mesg => Empty extension at char %char.
+			parms => char
+	filter mode expand
+		mesg => "%mode" error
+		parms => mode
+		/
+		unknown mode
+			mesg => Unknown mode: "%mode".
+		mode extend expand
+			mesg => "%mode" error while extend Aspell modes. (out of memory?)
+	filter mode magic
+		mesg = "%mode": bad magic "%magic"
+		parms => mode, magic
+		/
+		file magic pos
+			mesg => "%mode": no start for magic search given for magic "%magic".
+		file magic range
+			mesg => "%mode": no range for magic search given for magic "%magic".
+		missing magic
+			mesg => "%mode": no magic expression available for magic "%magic".
+		bad magic
+			mesg => "%mode": Magic "%magic": bad regular expression after location specifier; regexp reports: "%regerr".
+			parms => regerr
+
+	expression
+		/
+		invalid expression
+			mesg => "%expression" is not a valid regular expression.
+			parms => expression
+
+}
+group: speller
+{
+no native
+/
+class: speller
+	c impl headers => error
+	/
+	# FIXME: make a "methods" of the next two contractors
+	#      which will probably involve modifying mk-src.pl
+
+	constructor: new aspell speller
+		returns alt type
+		c impl =>
+			PosibErr<Speller *> ret = new_speller(config);
+			if (ret.has_err()) \{
+			  return new CanHaveError(ret.release_err());
+			\} else \{
+			  return ret;
+			\}
+		/
+		can have error
+		config: config
+
+	constructor: to aspell speller
+		c impl => return static_cast<Speller *>(obj);
+		/
+		can have error: obj
+
+	destructible methods
+
+	can have error methods
+
+	method: config
+		/
+		config
+
+	method: check
+
+		posib err
+		desc => Returns 0 if it is not in the dictionary,
+			1 if it is, or -1 on error.
+		on conv error => return 0;
+		/
+		bool
+		encoded string: word
+
+	method: add to personal
+
+		posib err
+		desc => Add this word to your own personal word list.
+		/
+		void
+		encoded string: word
+
+	method: add to session
+
+		posib err
+		desc => Add this word to the current spelling session.
+		/
+		void
+		encoded string: word
+
+	method: personal word list
+
+		posib err
+		desc => This is your own personal word list file plus
+			any extra words added during this session to
+			your own personal word list.
+		/
+		const word list
+
+	method: session word list
+
+		posib err
+		desc => This is a list of words added to this session
+			that are not in the main word list or in your
+			own personal list but are considered valid for
+			this spelling session.
+		/
+		const word list
+
+	method: main word list
+
+		posib err
+		desc => This is the main list of words used during this
+			spelling session.
+		/
+		const word list
+
+	method: save all word lists
+
+		posib err
+		/
+		void
+
+	method: clear session
+
+		posib err
+		/
+		void
+
+	method: suggest
+
+		posib err
+		desc => Return NULL on error.
+			The word list returned by suggest is only
+			valid until the next call to suggest.
+		on conv error =>
+			word = NULL; word_size = 0;
+		/
+		const word list
+		encoded string: word
+
+	method: store replacement
+
+		posib err
+		/
+		bool
+		encoded string: mis
+		encoded string: cor
+
+}
+
+group: filter
+{
+no native
+/
+class: filter
+	c impl headers => error
+	/
+	destructible methods
+
+	can have error methods
+
+	# FIXME: make a "methods" of the next two contractors
+
+#	constructor: new aspell filter
+#		returns alt type
+#		c impl =>
+#			PosibErr<Filter *> ret = new_filter(config);
+#			if (ret.has_err()) \{
+#			  return new CanHaveError(ret.release_err());
+#			\} else \{
+#			  return ret;
+#			\}
+#		/
+#		can have error
+#		config: config
+
+	constructor: to aspell filter
+		c impl => return static_cast<Filter *>(obj);
+		/
+		can have error: obj
+
+#	method: setup
+#
+#		posib err
+#		/
+#		void
+#		speller: speller
+#		config: config
+#
+#	method: reset
+#
+#		/
+#		void
+#
+#	method: process
+#
+#		/
+#		void
+#		char pointer: str
+#		int: size
+#
+#	method: config
+#
+#		/
+#		config
+}
+
+group: document checker
+{
+no native
+/
+struct: token
+	/
+	unsigned int: offset
+	unsigned int: len
+
+class: document checker
+	c impl headers => error
+	/
+	destructible methods
+
+	can have error methods
+
+	# FIXME: make a "methods" of the next two contractors
+
+	constructor: new aspell document checker
+		returns alt type
+		c impl =>
+			PosibErr<DocumentChecker *> ret = new_document_checker(speller);
+			if (ret.has_err()) \{
+			  return new CanHaveError(ret.release_err());
+			\} else \{
+			  return ret;
+			\}
+		desc => Creates a new document checker.
+			The speller class is expected to last until
+			this class is destroyed.
+			If config is given it will be used to override
+			any relevant options set by this speller class.
+			The config class is not once this function is done.
+			If filter is given then it will take ownership of
+			the filter class and use it to do the filtering.
+			You are expected to free the checker when done.
+		/
+		can have error
+		speller: speller
+
+	constructor: to aspell document checker
+		c impl => return static_cast<DocumentChecker *>(obj);
+		/
+		can have error: obj
+
+	method: reset
+
+		desc => Reset the internal state of the filter.
+			Should be called whenever a new document is
+			being filtered.
+		/
+		void
+
+	method: process
+		desc => Process a string.
+			The document is expected to be passed in one or more
+			lines at a time.  Splitting the document on
+			white space characters instead of new lines is
+			permissible but some filters which are line based
+			may give incorrect results.  Furthermore, between
+			calls to reset, each string should be passed
+			in exactly once and in the order they appeared
+			in the document.  Passing in strings out of
+			order, skipping strings or passing them in
+			more than once may lead to undefined results.
+		no conv
+		/
+		void
+		encoded string: str
+
+	method: next misspelling
+
+		desc => Returns the next misspelled word in the
+			processed string.  If there are no more
+			misspelled words, then token.word will be
+			NULL and token.size will be 0
+		cc extra =>
+			\#define aspell_document_checker_next_misspelling_w(type, ths) \\
+			    aspell_document_checker_next_misspelling_adj(ths, sizeof(type))
+		/
+		token object
+
+	method: next misspelling adj
+		desc => internal: do not use
+		c impl =>
+			Token res = ths->next_misspelling();
+			res.offset /= type_width;
+			res.len /= type_width;
+			return res;
+		/
+		token object
+		int: type_width
+
+	method: filter
+
+		desc => Returns the underlying filter class.
+		/
+		filter
+}
+
+group: word list
+{
+/
+class: word list
+	c impl headers => string enumeration
+	/
+	cxx member: from internal
+		what => class Convert * from_internal_
+		default => 0
+
+	method: empty
+		const
+		/
+		bool
+
+	method: size
+		const
+		/
+		unsigned int
+
+	method: elements
+		const
+		c impl =>
+			StringEnumeration * els = ths->elements();
+			els->from_internal_ = ths->from_internal_;
+			return els;
+		/
+		string enumeration
+}
+group: string enumeration
+{
+/
+class: string enumeration
+	c impl headers => convert
+	/
+	copyable methods
+	method: at end
+		const
+		/
+		bool
+
+	method: next
+		c impl =>
+			const char * s = ths->next();
+			if (s == 0 || ths->from_internal_ == 0) \{
+			  return s;
+			\} else \{
+			  ths->temp_str.clear();
+			  ths->from_internal_->convert(s,-1,ths->temp_str);
+			  ths->from_internal_->append_null(ths->temp_str);
+			  return ths->temp_str.data();
+			\}
+		cc extra =>
+			\#define aspell_string_enumeration_next_w(type, ths) \\
+			    aspell_cast_(const type *, aspell_string_enumeration_next_wide(ths, sizeof(type)))
+		/
+		const string
+
+	method: next wide
+		c impl =>
+			const char * s = ths->next();
+			if (s == 0) {
+			  return s;
+			} else if (ths->from_internal_ == 0) \{
+			  assert(type_width == 1);
+			  return s;
+			\} else \{
+			  assert(type_width == ths->from_internal_->out_type_width());
+			  ths->temp_str.clear();
+			  ths->from_internal_->convert(s,-1,ths->temp_str);
+			  ths->from_internal_->append_null(ths->temp_str);
+			  return ths->temp_str.data();
+			\}
+		/
+		const void pointer
+		int: type_width
+}
+group: info
+{
+/
+struct: module info
+	/
+	string: name
+	double: order num
+	string: lib dir
+	string list: dict dirs
+	string list: dict exts
+
+struct: dict info
+	/
+	string: name
+		desc => The Name to identify this dictionary by.
+	string: code
+		desc => The language code to identify this dictionary.
+			A two letter UPPER-CASE ISO 639 language code
+			and an optional two letter ISO 3166 country
+			code after a dash or underscore.
+	string: jargon
+		desc => Any extra information to distinguish this
+			variety of dictionary from other dictionaries
+			which may have the same language and size.
+	int: size
+	string: size str
+		desc => A two char digit code describing the size of
+			the dictionary: 10=tiny, 20=really small,
+			30=small, 40=med-small, 50=med, 60=med-large,
+			70=large, 80=huge, 90=insane.  Please check
+			the README in aspell-lang-20??????.tar.bz2 or
+			see SCOWL (http://wordlist.sourceforge.net)
+			for an example of how these sizes are used.
+	module info: module
+
+class: module info list
+	/
+	constructor: get aspell module info list
+		/
+		config: config
+
+	list methods
+
+class: dict info list
+	/
+	constructor: get aspell dict info list
+		/
+		config: config
+
+	list methods
+
+class: module info enumeration
+	/
+	enumeration methods
+	copyable methods
+
+class: dict info enumeration
+	/
+	enumeration methods
+	copyable methods
+}
+
+group: string list
+{
+/
+class: string list
+	/
+	constructor
+
+	list methods
+
+	mutable container methods
+
+	copyable methods
+}
+
+group: string map
+{
+/
+class: string map
+	/
+	constructor
+
+	mutable container methods
+
+	copyable methods
+
+	list methods: string pair
+
+	method: insert
+		desc => Insert a new element.
+			Will NOT overwrite an existing entry.
+			Returns FALSE if the element already exists.
+		/
+		bool
+		string: key
+		string: value
+
+	method: replace
+		desc => Insert a new element.
+			Will overwrite an existing entry.
+			Always returns TRUE.
+		/
+		bool
+		string: key
+		string: value
+
+	method: lookup
+		const
+		desc => Looks up an element and returns the value.
+			Returns NULL if the element does not exist.
+			Returns an empty string if the element exists
+			but has a NULL value.
+		/
+		string
+		string: key
+}
+
+group: string pair
+{
+/
+struct: string pair
+	treat as object
+	/
+	string: first
+		default => ""
+	string: second
+		default => ""
+}
+group: string pair enumeration
+{
+/
+class: string pair enumeration
+	/
+	enumeration methods
+	copyable methods
+}
+group: cache
+{
+/
+func: reset cache
+	desc => Reset the global cache(s) so that cache queries will
+		create a new object. If existing objects are still in
+		use they are not deleted. If which is NULL then all
+		caches will be reset. Current caches are "encode",
+		"decode", "dictionary", "language", and "keyboard".
+	/
+	bool
+	string: which
+}
+

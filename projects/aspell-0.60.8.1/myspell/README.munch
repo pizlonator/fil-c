@@ -1,0 +1,13 @@
+Munch will take a word list and output an affix compressed version of
+the list to stdout.  Is syntax is 
+
+munch <word list file> <affix file>
+
+The input word list for munch MUST start with a number indicating the
+number of words in the list.  A good way to find it is 'wc -l'.
+
+To use the list to create an Aspell dictionary you need to remove the
+first line in the output which is the number of words in the output
+list.
+
+I hope to eventually integrate this program with the rest of Aspell.

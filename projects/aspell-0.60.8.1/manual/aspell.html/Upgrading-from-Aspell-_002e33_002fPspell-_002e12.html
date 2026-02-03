@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Upgrading from Aspell .33/Pspell .12</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Upgrading from Aspell .33/Pspell .12">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" rel="next" title="Upgrading from a Pre-0.50 snapshot">
+<link href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" rel="prev" title="Upgrading from Aspell 0.50">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Upgrading-from-Aspell-_002e33_002fPspell-_002e12"></a>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" accesskey="n" rel="next">Upgrading from a Pre-0.50 snapshot</a>, Previous: <a href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" accesskey="p" rel="prev">Upgrading from Aspell 0.50</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Upgrading-from-Aspell-_002e33_002fPspell-_002e12-1"></a>
+<h3 class="appendixsec">B.8 Upgrading from Aspell .33/Pspell .12</h3>
+
+<p>Aspell has undergone an extremely large number of changes since the
+previous Aspell/Pspell release.  For one thing Pspell has been merged
+with Aspell so there in no longer two separate libraries you have to
+worry about.
+</p>
+<p>Because of the massive changes between Aspell/Pspell and Aspell 0.50
+you may want to clean out the old files before installing the the new
+Aspell.  To do so do a &lsquo;<samp>make uninstall</samp>&rsquo; in the original Aspell
+and Pspell source directories.
+</p>
+<p>The way dictionaries are handled has also changed.  This includes a
+change in the naming conventions of both language names and
+dictionaries.  Due to the language name change, your old personal
+dictionaries will not be recognized.  However, you can import the old
+dictionaries by running the <code>aspell-import</code> script.  This also
+means that dictionaries designed to work with older versions of Aspell
+are not likely to function correctly.  Fortunately new dictionary
+packages are available for most languages.  You can find them off of
+the Aspell home page at <a href="http://aspell.net">http://aspell.net</a>.
+</p>
+<p>The Pspell ABI is now part of Aspell except that the name of
+everything has changed due to the renaming of Pspell to Aspell.  In
+particular please note the following name changes:
+</p>
+<div class="example">
+<pre class="example">pspell -&gt; aspell
+manager -&gt; speller
+emulation -&gt; enumeration
+master_word_list -&gt; main_word_list
+</pre></div>
+
+<p>Please also note that the name of the <samp>language-tag</samp> option has
+changed to <samp>lang</samp>.  However, for backward compatibility the
+<samp>language-tag</samp> option will still work.
+</p>
+<p>However, you should also be able to build applications that require
+Pspell with the new Aspell as a backward compatibility header file is
+provided.
+</p>
+<p>Due to a change in the way dictionaries are handled, scanning for
+<samp>.pwli</samp> files in order to find out which dictionaries are
+available will no longer work.  This means that programs that relied
+on this technique may have problems finding dictionaries.
+Fortunately, GNU Aspell now provided a uniform way to list all
+installed dictionaries via the c API.  See the file
+<samp>list-dicts.c</samp> in the <samp>examples/</samp> directory for an example
+of how to do this.  Unfortunately there isn&rsquo;t any simple way to find
+out which dictionaries are installed which will work with both the old
+Aspell/Pspell and the new GNU Aspell.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" accesskey="n" rel="next">Upgrading from a Pre-0.50 snapshot</a>, Previous: <a href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" accesskey="p" rel="prev">Upgrading from Aspell 0.50</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

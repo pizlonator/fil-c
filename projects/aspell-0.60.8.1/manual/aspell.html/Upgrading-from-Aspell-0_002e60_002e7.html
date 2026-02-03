@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Upgrading from Aspell 0.60.7</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Upgrading from Aspell 0.60.7">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" rel="next" title="Upgrading from Aspell 0.50">
+<link href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System" rel="prev" title="Using 32-Bit Dictionaries on a 64-Bit System">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Upgrading-from-Aspell-0_002e60_002e7"></a>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" accesskey="n" rel="next">Upgrading from Aspell 0.50</a>, Previous: <a href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System" accesskey="p" rel="prev">Using 32-Bit Dictionaries on a 64-Bit System</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Upgrading-from-Aspell-0_002e60_002e7-1"></a>
+<h3 class="appendixsec">B.6 Upgrading from Aspell 0.60.7</h3>
+
+<p>To prevent a potentially unbounded buffer over-read, Aspell no longer
+supports null-terminated UCS-2 and UCS-4 encoded strings with the
+original C API.  Null-terminated 8-bit or UTF-8 encoded strings are
+still supported, as are UCS-2 and UCS-4 encoded strings when the
+length is passed in.
+</p>
+<p>As of Aspell 0.60.8 a function from the original API that expects an
+encoded string as a parameter will return meaningless results (or an
+error code) if string is null terminated and the encoding is set to
+<code>ucs-2</code> or <code>ucs-4</code>.  In addition, a single:
+</p><div class="example">
+<pre class="example">ERROR: aspell_speller_check: Null-terminated wide-character strings unsupported when used this way.
+</pre></div>
+<p>will be printed to standard error the first time one of those
+functions is called.
+</p>
+<p>Application that use null-terminated UCS-2/4 strings should either (1)
+use the interface intended for working with wide-characters
+(see <a href="Through-the-C-API.html#Through-the-C-API">Through the C API</a>); or (2) define
+<code>ASPELL_ENCODE_SETTING_SECURE</code> before including <code>aspell.h</code>.
+In the latter case is is important that the application explicitly
+sets the encoding to a known value.  Defining
+<code>ASPELL_ENCODE_SETTING_SECURE</code> and not setting the encoding
+explicitly or allowing user of the application to set the encoding
+could result in an unbounded buffer over-read.
+</p>
+<p>If it is necessary to preserve binary compatibility with older
+versions of Aspell, the easiest thing would be to determine the length
+of the UCS-2/4 string&mdash;in bytes&mdash;and pass that in.  Due to an
+implementation detail, existing API functions can be made to work with
+null-terminated UCS-2/4 strings safely by passing in either <code>-2</code>
+or <code>-4</code> (corresponding to the width of the character type) as the
+size.  Doing so, however, will cause a buffer over-read for unpatched
+version of Aspell.  To avoid this it will be necessary to parse the
+version string to determine the correct value to use.  However, no
+official support will be provided for the latter method.
+</p>
+<p>If the application can not be recompiled, then Aspell can be configured
+to preserve the old behavior by passing
+<samp>--enable-sloppy-null-term-strings</samp> to <code>configure</code>.  When Aspell
+is compiled this way the version string will include the string
+&lsquo;<samp> SLOPPY</samp>&rsquo;.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50" accesskey="n" rel="next">Upgrading from Aspell 0.50</a>, Previous: <a href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System" accesskey="p" rel="prev">Using 32-Bit Dictionaries on a 64-Bit System</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+
+cat <<EOF > scripts/pspell-config
+#!/bin/sh
+
+# This script is provided for backward compatibility with programs
+# that use pspell.  Do not use as it will eventually go away.
+
+case \$1 in
+--version | version)
+  echo $1
+  ;;
+--datadir | datadir)
+  echo "$2"
+  ;;
+--pkgdatadir | pkgdatadir)
+  echo "$3"
+  ;;
+*)
+  echo "usage: pspell-config version|datadir|pkgdatadir"
+  ;;
+esac
+EOF
+
+chmod +x scripts/pspell-config
+

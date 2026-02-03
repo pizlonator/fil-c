@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Notes on the Different Suggestion Modes</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Notes on the Different Suggestion Modes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Notes-on-Various-Options.html#Notes-on-Various-Options" rel="up" title="Notes on Various Options">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="next" title="Working With Dictionaries">
+<link href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis" rel="prev" title="Notes on Typo-Analysis">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Notes-on-the-Different-Suggestion-Modes"></a>
+<div class="header">
+<p>
+Previous: <a href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis" accesskey="p" rel="prev">Notes on Typo-Analysis</a>, Up: <a href="Notes-on-Various-Options.html#Notes-on-Various-Options" accesskey="u" rel="up">Notes on Various Options</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Notes-on-the-Different-Suggestion-Modes-1"></a>
+<h4 class="subsection">4.4.4 Notes on the Different Suggestion Modes</h4>
+
+<p>In order to understand what these suggestion modes do, a basic
+understanding of how Aspell works is required.  For that, see
+<a href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy">Aspell Suggestion Strategy</a>.
+</p>
+<p>To get a better idea of which mode you should chose here are some
+results based on a small test kernel (see
+<a href="http://aspell.net/test/cur">http://aspell.net/test/cur</a>) of misspelled/correct word pairs
+for GNU Aspell 0.60.8:
+</p>
+<table>
+<thead><tr><th>Mode</th><th>Score</th><th>First</th><th>1-10</th><th>Any</th><th>Time</th></tr></thead>
+<tr><td>ultra</td><td>70.4</td><td>53 %</td><td>74 %</td><td>75 %</td><td>0.49</td></tr>
+<tr><td>fast</td><td>81.0</td><td>58 %</td><td>86 %</td><td>89 %</td><td>0.88</td></tr>
+<tr><td>normal</td><td>82.6</td><td>59 %</td><td>88 %</td><td>91 %</td><td>1.00</td></tr>
+<tr><td>slow</td><td>84.2</td><td>59 %</td><td>90 %</td><td>94 %</td><td>4.76</td></tr>
+<tr><td>bad-spellers</td><td>82.3</td><td>55 %</td><td>86 %</td><td>98 %</td><td>7.46</td></tr>
+</table>
+
+<p>The <em>Score</em> is a weighted average which gives more emphases to
+words found earlier in the suggestion list.  <em>First</em>,
+<em>1-10</em>, and <em>Any</em> are the percentage of times the correct
+word is found in the first, first 10, or anywhere in the suggestion
+list. <em>Time</em> is the normalized cpu-time.
+</p>
+<p>The suggestion modes are as follows when soundslikes are used and
+affix compression is not:
+</p>
+<dl compact="compact">
+<dt><b>ultra</b></dt>
+<dd><p>This mode will use the fastest available method to come up with decent
+suggestions for common misspellings.  This currently means that it
+will look for words that are within one edit distance or have the same
+soundslike.  A replacement table will also be used if one is
+available.
+</p>
+</dd>
+<dt><b>fast</b></dt>
+<dd><p>This mode will use the fastest available method to come up with decent
+suggestions for not so common misspellings.  This currently means it
+will also look for soundslikes within one edit distance when compared
+to the <code>ultra</code> mode.
+</p>
+</dd>
+<dt><b>normal</b></dt>
+<dd><p>This is the default mode and will use what ever method is necessary to
+return good suggestions, in most cases, and in a reasonable amount of
+time.  This currently means it will looks for soundslikes within two
+edit distance apart.
+</p>
+</dd>
+<dt><b>slow</b></dt>
+<dd><p>Like <samp>normal</samp> except that &ldquo;reasonable amount of time&rdquo; is not
+a consideration.  In most cases it will return the same results as
+<samp>normal</samp>.  The biggest difference is that it will try an ngram
+scan if the normal methods of finding a suggestion fail.  
+</p>
+</dd>
+<dt><b>bad-spellers</b></dt>
+<dd><p>This method is like <samp>slow</samp> but is tailored more for the bad
+speller, where as the other modes are tailored more
+to strike a good balance between typos and true misspellings.  This
+mode never performs typo-analysis and returns a <em>huge</em> number of
+words for the really bad spellers who can&rsquo;t seem to get the spelling
+anything close to what it should be.  If the misspelled word looks
+anything like the correct spelling it is bound to be found
+<em>somewhere</em> on the list of 100 or more suggestions.
+</p></dd>
+</dl>
+
+<p>When there is no soundslike or affix compression is used then the
+modes have slightly different meanings but, with the exception of
+<code>bad-spellers</code>, lower modes are faster and higher modes give
+better suggestions. Some modes may give identical results depending
+on the language configuration.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis" accesskey="p" rel="prev">Notes on Typo-Analysis</a>, Up: <a href="Notes-on-Various-Options.html#Notes-on-Various-Options" accesskey="u" rel="up">Notes on Various Options</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

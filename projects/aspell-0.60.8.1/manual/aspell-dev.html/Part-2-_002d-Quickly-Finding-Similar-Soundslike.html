@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Part 2 - Quickly Finding Similar Soundslike</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Part 2 - Quickly Finding Similar Soundslike">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="How-It-All-Works.html#How-It-All-Works" rel="up" title="How It All Works">
+<link href="Part-3.html#Part-3" rel="next" title="Part 3">
+<link href="Part-1-_002d-Compiled-Dictionary-Format.html#Part-1-_002d-Compiled-Dictionary-Format" rel="prev" title="Part 1 - Compiled Dictionary Format">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Part-2-_002d-Quickly-Finding-Similar-Soundslike"></a>
+<div class="header">
+<p>
+Next: <a href="Part-3.html#Part-3" accesskey="n" rel="next">Part 3</a>, Previous: <a href="Part-1-_002d-Compiled-Dictionary-Format.html#Part-1-_002d-Compiled-Dictionary-Format" accesskey="p" rel="prev">Part 1 - Compiled Dictionary Format</a>, Up: <a href="How-It-All-Works.html#How-It-All-Works" accesskey="u" rel="up">How It All Works</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Part-2-_002d-Quickly-Finding-Similar-Soundslike-1"></a>
+<h3 class="section">15.2 Part 2 - Quickly Finding Similar Soundslike</h3>
+
+<p>In order for Aspell to find suggestions for a misspelled word Aspell 1)
+creates a list of candidate words, 2) scores them, and 3) returns the most
+likely candidates.  One of the ways Aspell finds candidate words is to look
+for all words with a soundslike which is of a small edit distance from the
+soundslike of the original word.  The edit distance is the total number of
+deletions, insertions, exchanges, or adjacent swaps needed to make one
+string equivalent to the other. The exact distance chosen is either 1 or 2
+depending on a number of factors.  In this part I will focus on how Aspell
+find all such soundslike efficiently and how the jump tables play a key
+role.
+</p>
+<p>This section will focus on how Aspell finds all such soundslike
+efficiently and how the jump tables play a key role.
+</p>
+<p>The naive way to scan the list for all possible soundslike is to
+compute the edit-distance of every soundslike in the dictionary and
+then keep the ones within the threshold.  This is exactly what Aspell
+did prior to 0.60. before a faster method was created.  When a fast
+enough edit distance function is used this method turns out not to be
+unbearably slow, at least for English, but for other languages, with
+large word lists and no soundslike, this can be slow due to the number
+of items that need to be scanned.
+</p>
+<p>Aspell uses a special edit distance function which gives up if the
+distance is larger than the threshold, thus making it very fast.  The
+basic algorithm is as follows:
+</p>
+<div class="example">
+<pre class="example">limit_edit_distance(A,B,limit) = ed(A,B,0)
+  where ed(A,B,d) = d                              if A &amp; B is empty.
+                  = infinity                       if d &gt; limit
+                  = ed(A[2..],B[2..], d)           if A[1] == B[1]
+                  = min ( ed(A[2..],B[2..], d+1),
+                          ed(A,     B[2..], d+1),
+                          ed(A[2..],B,      d+1) ) otherwise
+</pre></div>
+
+<p>However the algorithm used also allows for swaps and is not recursive.
+Specialized versions are provided for an edit distance of one and two.
+The running time is asymptotically bounded above by <code>(3^l)*n</code>
+where <code>l</code> is the limit and <code>n</code> is the maximum of
+<code>strlen(A),strlen(B)</code>.  Based on informal tests, the <code>n</code>
+does not really matter and the running time is more like <code>(3^l)</code>.
+</p>
+<p>For complete details on this algorithm see the files
+<samp>leditdist.hpp</samp> and <samp>leditdist.cpp</samp> in the source
+distribution under <samp>modules/speller/default</samp>.
+</p>
+<p>So, by exploiting the properties of <code>limit_edit_distance</code> it is
+possible to avoid having to look at many of the soundslikes in the
+dictionary.  <code>Limit_edit_distance</code> is efficient because in many
+cases, it does not have to look at the entire word before it can
+determine that it isn&rsquo;t within the given threshold, and then by having
+it return the last position looked at, <em>p</em>, it is possible to
+avoid having to look at similar soundslike which are not within the
+threshold.  That is, if two soundslike are the same up to the position
+<code>p</code>, then neither of them are within the given threshold.
+</p>
+<p>Aspell 0.60 exploits this property by using jump tables.  Each entry
+in the jump table contains two fields: the first <code>N</code> letters of a
+soundslike, and an offset.  The entries are sorted in lexicographic
+order based on the raw byte value.  Aspell maintains two jump tables.
+</p>
+<p>The first table contains the first 2 letters of a soundslike and the
+offset points into the second jump table.
+</p>
+<p>The second table contains the first 3 letters of a soundslike where
+the offset points to the location of the soundslike in the data block.
+The soundslike in the datablock are sorted so that a linear scan can
+be used to find all soundslike with the same prefix.  If the
+<code>limit_edit_distance</code> stops before reaching the end of a
+<em>&quot;soundslike&quot;</em> in one of the jump tables then it is possible to
+skip all the soundslike in the data block with the same prefix.
+</p>
+<p>Thus, the scan for all <em>soundslike</em> within a given edit distance
+goes something like this:
+</p>
+<ol>
+<li> Compare the entry in the first jump table using
+<code>limit_edit_distance</code>.  If the <code>limit_edit_distance</code> scanned
+passed the end of the word, then go to the first entry in the second
+jump table with the same prefix, otherwise go to the next entry in the
+first jump table and repeat.
+
+</li><li> Compare the entry in the second jump table.  If the
+<code>limit_edit_distance</code>  passed the end of the word, then go to the
+first <em>soundslike</em> in the data block with this prefix, otherwise
+if the first two letters of the next entry are the same as the current
+one go to it and repeat.  If the first two letters are not the same
+then go to the next entry in the first jump table and repeat step 1.
+
+</li><li> Compare the <em>soundslike</em> in the data block.  If the edit
+distance is within the target distance, then add the word to the
+candidate list, otherwise don&rsquo;t.  Let <code>N</code> be the position where
+<code>limit_edit_distance</code> stopped, (starting at 0).  If <code>N</code> is
+less than 6, then skip over any soundslike that have the same first
+<code>N + 1</code> letters.  If after skipping over any similar
+<em>soundslike</em> the next <em>soundslike</em> does not have the same
+first three letters, then go to the next entry in the second jump table
+and repeat step 2, otherwise repeat this step with the next
+<em>soundslike</em>.
+
+</li></ol>
+
+<p>The part of skipping over <em>soundslike</em> with the first <code>N + 1</code>
+letters in step 3 were added in Aspell 0.60.3.  The function
+responsible for most of this is found in function
+<code>ReadOnlyDict::SoundslikeElements::next</code> which is found in file
+<samp>readonly_ws.cpp</samp>.
+</p>
+<p>The next part will describe how Aspell deals with <em>soundslike</em>
+lookup when affix compression is involved.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Part-3.html#Part-3" accesskey="n" rel="next">Part 3</a>, Previous: <a href="Part-1-_002d-Compiled-Dictionary-Format.html#Part-1-_002d-Compiled-Dictionary-Format" accesskey="p" rel="prev">Part 1 - Compiled Dictionary Format</a>, Up: <a href="How-It-All-Works.html#How-It-All-Works" accesskey="u" rel="up">How It All Works</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

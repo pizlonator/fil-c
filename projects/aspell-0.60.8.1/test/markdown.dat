@@ -1,0 +1,479 @@
+--add-filter=markdown
+
+Multiple inlines
+begin <tag> `code` <another>`code`<not a tag> end
+begin <tag>        <another>       not a tag  end
+
+Fenced code block
+---
+begin
+```
+ABC
+
+DEF
+```
+end
+---
+begin
+
+
+
+
+
+end
+---
+
+Indented code
+---
+begin
+
+    ABC
+
+    DEF
+
+end
+---
+begin
+
+
+
+
+
+end
+---
+
+Simple blockquote
+> quoted text
+  quoted text
+
+Multiline blockquote
+---
+> line a
+> line b
+---
+  line a
+  line b
+---
+
+
+Fenced code inside blockquote
+---
+> begin
+> ```
+> ABC
+>
+> DEF
+> ```
+> end
+---
+  begin
+
+
+
+
+
+  end
+---
+
+Indented code inside blockquote
+---
+> begin
+>
+>     ABC
+>
+>     DEF
+>
+> end
+---
+  begin
+
+
+
+
+
+  end
+---
+
+Indented text handling after block quote
+---
+> begin
+      Not code
+      Still not code
+
+      Code
+
+      More Code
+---
+  begin
+      Not code
+      Still not code
+
+
+
+
+---
+
+Fenced code inside list
+---
+1. Item one
+2. Item two with code
+   ```
+   ABC
+
+   DEF
+   ```
+3. Item three
+---
+1. Item one
+2. Item two with code
+
+
+
+
+
+3. Item three
+---
+
+Indented code inside list
+---
+1. Item one
+2. Item two with code
+
+       ABC
+
+       DEF
+3. Item three
+---
+1. Item one
+2. Item two with code
+
+
+
+
+3. Item three
+---
+
+Indented text handling after list item
+---
+1. Item one
+2. Item two
+        Not code
+        Still not code
+
+        Code
+3. Item three
+---
+1. Item one
+2. Item two
+        Not code
+        Still not code
+
+
+3. Item three
+---
+
+Inline code (1)
+begin `ABC DEF` end
+begin           end
+
+Inline code (2)
+begin ``ABC`DEF`` end
+begin             end
+
+Inline code (3)
+begin `ABC\` end
+begin        end
+
+Not inline code
+begin \` end
+begin \` end
+
+Multiline inline code (1)
+---
+begin `ABC
+DEF` end
+---
+begin
+     end
+---
+
+Multiline inline code (2)
+---
+begin ``ABC
+`DEF`
+`` end
+---
+begin
+
+   end
+---
+
+Multiline inline code (3)
+---
+begin `maybe code
+
+not code
+---
+begin
+
+not code
+---
+
+Link url (1)
+[a link](#link)
+[a link](     )
+
+Link url (2)
+begin [a link](#link) end
+begin [a link](     ) end
+
+Not a link url (1)
+[a link\](#link)
+[a link\](#link)
+
+Not a link url (2)
+[a link] (#link)
+[a link] (#link)
+
+Link url with newlines before and after link and label
+---
+begin [a link](
+  #target
+  "label"
+) end
+---
+begin [a link](
+
+  "label"
+) end
+---
+
+Link url with spaces
+[a link](<url with spaces>)
+[a link](                 )
+
+Link url with spaces and label
+[a link](<url with spaces> (the label))
+[a link](                  (the label))
+
+Link url with label using double quotes
+begin [a link](#link "label") end
+begin [a link](      "label") end
+
+Link url with label using single quotes
+begin [a link](#link 'label') end
+begin [a link](      'label') end
+
+Link url with label using paren quotes
+begin [a link](#link (label)) end
+begin [a link](      (label)) end
+
+Link with reference (1)
+[a link][ref]
+[a link][   ]
+
+Link with reference (2)
+begin [a link][ref] end
+begin [a link][   ] end
+
+Link definition
+[ref]: #target
+[   ]:
+
+Link definition with label
+[ref]: #taret "label"
+[   ]:        "label"
+
+Link defination: multiline
+---
+[ref]:
+  #target
+   "label"
+done
+---
+[   ]:
+
+   "label"
+done
+---
+
+
+Not a tag
+a < b
+a   b
+
+Invalid tag (1)
+<a href:wrong>
+ a href:wrong
+
+Invalid tag (2)
+begin <a href:wrong> end
+begin  a href:wrong  end
+
+Valid html (1)
+<a href="link">label</a>
+<a href="link">label</a>
+
+Valid html (2)
+begin <a href="link">label</a> end
+begin <a href="link">label</a> end
+
+Multiline valid html (1)
+---
+<a
+  href="link">label</a>
+---
+<a
+  href="link">label</a>
+---
+
+Multiline valid html (2)
+---
+begin <a
+  href="link">label</a>
+end
+---
+begin <a
+  href="link">label</a>
+end
+---
+
+Multiline valid html (3)
+---
+begin <a
+href="link">label</a> end
+---
+begin <a
+href="link">label</a> end
+---
+
+Multiline invalid
+---
+begin <atag !!!
+>text</atag> end
+---
+begin  atag !!!
+ text</atag> end
+---
+
+
+HTML block case 1
+---
+<script>
+I can be multiline.
+
+<not a tag> `I am NOT code`
+</script>
+And now I am no longer in the block:
+<not a tag> `I am NOT code`
+---
+<script>
+I can be multiline.
+
+<not a tag> `I am NOT code`
+</script>
+And now I am no longer in the block:
+ not a tag
+---
+
+HTML block case 1 uppercase tags
+---
+<SCRIPT>
+I can be multiline.
+
+<not a tag> `I am NOT code`
+</SCRIPT>
+And now I am no longer in the block:
+<not a tag> `I am NOT code`
+---
+<SCRIPT>
+I can be multiline.
+
+<not a tag> `I am NOT code`
+</SCRIPT>
+And now I am no longer in the block:
+ not a tag
+---
+
+HTML comment
+<!-- `I am not code` -->
+<!-- `I am not code` -->
+
+HTML block case 6
+---
+<h1>`NOT code`</h1>
+`still not code`
+
+`code`
+end
+---
+<h1>`NOT code`</h1>
+`still not code`
+
+
+end
+---
+
+HTML block case 6 uppercase tags
+---
+<H1>`NOT code`</H1>
+`still not code`
+
+`code`
+end
+---
+<H1>`NOT code`</H1>
+`still not code`
+
+
+end
+---
+
+HTML block case 6 multiline starting tag
+---
+<h1
+>A Heading `and not code`
+</h1>
+
+`code`
+end
+---
+<h1
+>A Heading `and not code`
+</h1>
+
+
+end
+---
+
+HTML block case 7
+---
+<sometag>
+`not code`
+
+`code`
+
+</sometag>
+---
+<sometag>
+`not code`
+
+
+
+</sometag>
+---
+
+HTML block invalid case 7
+---
+<sometag> `code?`
+
+`code`
+
+</sometag>
+---
+<sometag>
+
+
+
+</sometag>
+---

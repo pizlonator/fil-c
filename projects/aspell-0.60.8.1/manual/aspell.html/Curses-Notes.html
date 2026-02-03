@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Curses Notes</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Curses Notes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="Loadable-Filter-Notes.html#Loadable-Filter-Notes" rel="next" title="Loadable Filter Notes">
+<link href="HTML-Manuals-and-_0022make-clean_0022.html#HTML-Manuals-and-_0022make-clean_0022" rel="prev" title="HTML Manuals and &quot;make clean&quot;">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Curses-Notes"></a>
+<div class="header">
+<p>
+Next: <a href="Loadable-Filter-Notes.html#Loadable-Filter-Notes" accesskey="n" rel="next">Loadable Filter Notes</a>, Previous: <a href="HTML-Manuals-and-_0022make-clean_0022.html#HTML-Manuals-and-_0022make-clean_0022" accesskey="p" rel="prev">HTML Manuals and &quot;make clean&quot;</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Curses-Notes-1"></a>
+<h3 class="appendixsec">B.3 Curses Notes</h3>
+
+<p>If you are having problems compiling <samp>check_funs.cpp</samp> then the
+most likely reason is due to incompatibilities with the curses
+implementation on your system.  You should first try disabling the
+&ldquo;wide&rdquo; curses library with the <samp>--disable-wide-curses</samp>
+configure option.  By doing so you will lose support for properly
+displaying UTF-8 characters but you may still be able to get the full
+screen interface.  If this fails then you can disable curses support
+altogether with the <samp>--disable-curses</samp> configure option.  By
+doing this you will lose the nice full screen interface but hopefully
+you will be able to at least get Aspell to compile correctly.
+</p>
+<p>If the curses library is installed in a non-standard location then you
+can specify the library and include directory with
+<samp>--enable-curses=<var>lib</var></samp> and
+<samp>--enable-curses-include=<var>dir</var></samp>.
+</p>
+<p><samp><var>lib</var></samp> can either be the complete path of the library&mdash;for
+example
+</p><div class="example">
+<pre class="example">/usr/local/curses/libcurses.a
+</pre></div>
+<p>or the name of the library (for example
+<samp>ncurses</samp>) or a combined location and library in the form
+<samp>-L<var>libdir</var> -l<var>lib</var></samp> (for example
+<samp>-L/usr/local/ncurses/lib -lncurses</samp>).
+</p>
+<p><var>dir</var> is the location of the curses header files (for example
+<samp>/usr/local/ncurses/include</samp>).
+</p>
+<a name="Unicode-Support"></a>
+<h4 class="appendixsubsec">B.3.1 Unicode Support</h4>
+
+<p>In order for Aspell to correctly spell check UTF-8 documents in full
+screen mode the &ldquo;wide&rdquo; version of the curses library must be
+installed.  This is different from the normal version of curses
+library, and is normally named <samp>libcursesw</samp> (with a &lsquo;<samp>w</samp>&rsquo; at
+the end) or <samp>libncursesw</samp>.  UTF-8 documents will not display
+correctly without the right curses version installed.
+</p>
+<p>In addition your system must also support the <code>mblen</code> function.
+Although this function was defined in the ISO C89 standard (ANSI
+X3.159-1989), not all systems have it.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Loadable-Filter-Notes.html#Loadable-Filter-Notes" accesskey="n" rel="next">Loadable Filter Notes</a>, Previous: <a href="HTML-Manuals-and-_0022make-clean_0022.html#HTML-Manuals-and-_0022make-clean_0022" accesskey="p" rel="prev">HTML Manuals and &quot;make clean&quot;</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

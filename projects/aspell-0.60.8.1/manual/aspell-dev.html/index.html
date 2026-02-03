@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Top</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Top">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="#Top" rel="start" title="Top">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="../dir/index.html" rel="up" title="(dir)">
+<link href="Style-Guidelines.html#Style-Guidelines" rel="next" title="Style Guidelines">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<h1 class="settitle" align="center">Aspell Developer&rsquo;s Manual</h1>
+
+
+
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Style-Guidelines-1" href="Style-Guidelines.html#Style-Guidelines">1 Style Guidelines</a></li>
+  <li><a name="toc-How-to-Submit-a-Patch-1" href="How-to-Submit-a-Patch.html#How-to-Submit-a-Patch">2 How to Submit a Patch</a></li>
+  <li><a name="toc-C_002b_002b-Standard-Library-1" href="C_002b_002b-Standard-Library.html#C_002b_002b-Standard-Library">3 C++ Standard Library</a></li>
+  <li><a name="toc-Templates-1" href="Templates.html#Templates">4 Templates</a></li>
+  <li><a name="toc-Error-Handling-1" href="Error-Handling.html#Error-Handling">5 Error Handling</a></li>
+  <li><a name="toc-Source-Code-Layout-1" href="Source-Code-Layout.html#Source-Code-Layout">6 Source Code Layout</a></li>
+  <li><a name="toc-Strings-1" href="Strings.html#Strings">7 Strings</a>
+  <ul class="no-bullet">
+    <li><a name="toc-String" href="Strings.html#String">7.1 String</a></li>
+    <li><a name="toc-ParmString" href="Strings.html#ParmString">7.2 ParmString</a></li>
+    <li><a name="toc-CharVector" href="Strings.html#CharVector">7.3 CharVector</a></li>
+  </ul></li>
+  <li><a name="toc-Smart-Pointers-1" href="Smart-Pointers.html#Smart-Pointers">8 Smart Pointers</a>
+  <ul class="no-bullet">
+    <li><a name="toc-CopyPtr" href="Smart-Pointers.html#CopyPtr">8.1 CopyPtr</a></li>
+    <li><a name="toc-ClonePtr" href="Smart-Pointers.html#ClonePtr">8.2 ClonePtr</a></li>
+    <li><a name="toc-StackPtr" href="Smart-Pointers.html#StackPtr">8.3 StackPtr</a></li>
+    <li><a name="toc-GenericCopyPtr" href="Smart-Pointers.html#GenericCopyPtr">8.4 GenericCopyPtr</a></li>
+  </ul></li>
+  <li><a name="toc-I_002fO-1" href="I_002fO.html#I_002fO">9 I/O</a>
+  <ul class="no-bullet">
+    <li><a name="toc-IStream_002fOStream" href="I_002fO.html#IStream_002fOStream">9.1 IStream/OStream</a></li>
+    <li><a name="toc-FStream" href="I_002fO.html#FStream">9.2 FStream</a></li>
+    <li><a name="toc-Standard-Streams" href="I_002fO.html#Standard-Streams">9.3 Standard Streams</a></li>
+  </ul></li>
+  <li><a name="toc-Config-Class-1" href="Config-Class.html#Config-Class">10 Config Class</a></li>
+  <li><a name="toc-Filter-Interface-1" href="Filter-Interface.html#Filter-Interface">11 Filter Interface</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Overview" href="Filter-Interface.html#Overview">11.1 Overview</a></li>
+    <li><a name="toc-Adding-a-New-Filter" href="Filter-Interface.html#Adding-a-New-Filter">11.2 Adding a New Filter</a></li>
+    <li><a name="toc-IndividualFilter-class" href="Filter-Interface.html#IndividualFilter-class">11.3 IndividualFilter class</a></li>
+    <li><a name="toc-Constructor-Function-1" href="Filter-Interface.html#Constructor-Function-1">11.4 Constructor Function</a></li>
+    <li><a name="toc-Filter-Description-File-1" href="Filter-Interface.html#Filter-Description-File-1">11.5 Filter Description File</a></li>
+    <li><a name="toc-Retrieve-Options-by-a-Filter" href="Filter-Interface.html#Retrieve-Options-by-a-Filter">11.6 Retrieve Options by a Filter</a></li>
+    <li><a name="toc-Compiling-and-Linking" href="Filter-Interface.html#Compiling-and-Linking">11.7 Compiling and Linking</a></li>
+    <li><a name="toc-Programmer_0027s-Interface-1" href="Filter-Interface.html#Programmer_0027s-Interface-1">11.8 Programmer&rsquo;s Interface</a></li>
+    <li><a name="toc-Adding-a-filter-to-Aspell-standard-distribution" href="Filter-Interface.html#Adding-a-filter-to-Aspell-standard-distribution">11.9 Adding a filter to Aspell standard distribution</a></li>
+  </ul></li>
+  <li><a name="toc-Filter-Modes-1" href="Filter-Modes.html#Filter-Modes">12 Filter Modes</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Aspell-Mode-File" href="Filter-Modes.html#Aspell-Mode-File">12.1 Aspell Mode File</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Version-Line" href="Filter-Modes.html#Version-Line">12.1.1 Version Line</a></li>
+      <li><a name="toc-Magic-Line" href="Filter-Modes.html#Magic-Line">12.1.2 Magic Line</a></li>
+      <li><a name="toc-Description-Line" href="Filter-Modes.html#Description-Line">12.1.3 Description Line</a></li>
+      <li><a name="toc-Filter-and-Option-Lines" href="Filter-Modes.html#Filter-and-Option-Lines">12.1.4 Filter and Option Lines</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Data-Structures-1" href="Data-Structures.html#Data-Structures">13 Data Structures</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Vector" href="Data-Structures.html#Vector">13.1 Vector</a></li>
+    <li><a name="toc-BasicList" href="Data-Structures.html#BasicList">13.2 BasicList</a></li>
+    <li><a name="toc-StringMap" href="Data-Structures.html#StringMap">13.3 StringMap</a></li>
+    <li><a name="toc-Hash-Tables" href="Data-Structures.html#Hash-Tables">13.4 Hash Tables</a></li>
+    <li><a name="toc-BlockSList" href="Data-Structures.html#BlockSList">13.5 BlockSList</a></li>
+  </ul></li>
+  <li><a name="toc-Mk_002dSrc-Script-1" href="Mk_002dSrc-Script.html#Mk_002dSrc-Script">14 Mk-Src Script</a>
+  <ul class="no-bullet">
+    <li><a name="toc-mk_002dsrc_002ein" href="Mk_002dSrc-Script.html#mk_002dsrc_002ein">14.1 mk-src.in</a></li>
+    <li><a name="toc-MkSrc_003a_003aInfo" href="Mk_002dSrc-Script.html#MkSrc_003a_003aInfo">14.2 MkSrc::Info</a></li>
+    <li><a name="toc-MkSrc_003a_003aUtil" href="Mk_002dSrc-Script.html#MkSrc_003a_003aUtil">14.3 MkSrc::Util</a></li>
+    <li><a name="toc-MkSrc_003a_003aRead" href="Mk_002dSrc-Script.html#MkSrc_003a_003aRead">14.4 MkSrc::Read</a></li>
+    <li><a name="toc-MKSrc_003a_003aCreate" href="Mk_002dSrc-Script.html#MKSrc_003a_003aCreate">14.5 MKSrc::Create</a></li>
+    <li><a name="toc-Code-Generation-Modes" href="Mk_002dSrc-Script.html#Code-Generation-Modes">14.6 Code Generation Modes</a></li>
+    <li><a name="toc-MkSrc_003a_003aCcHelper" href="Mk_002dSrc-Script.html#MkSrc_003a_003aCcHelper">14.7 MkSrc::CcHelper</a></li>
+  </ul></li>
+  <li><a name="toc-How-It-All-Works-1" href="How-It-All-Works.html#How-It-All-Works">15 How It All Works</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Part-1-_002d-The-Compiled-Dictionary-Format" href="Part-1-_002d-Compiled-Dictionary-Format.html#Part-1-_002d-Compiled-Dictionary-Format">15.1 Part 1 - The Compiled Dictionary Format</a></li>
+    <li><a name="toc-Part-2-_002d-Quickly-Finding-Similar-Soundslike-1" href="Part-2-_002d-Quickly-Finding-Similar-Soundslike.html#Part-2-_002d-Quickly-Finding-Similar-Soundslike">15.2 Part 2 - Quickly Finding Similar Soundslike</a></li>
+    <li><a name="toc-Part-3-1" href="Part-3.html#Part-3">15.3 Part 3</a></li>
+  </ul></li>
+  <li><a name="toc-Copying-1" href="Copying.html#Copying">Appendix A Copying</a>
+  <ul class="no-bullet">
+    <li><a name="toc-GNU-Free-Documentation-License-1" href="GNU-Free-Documentation-License.html#GNU-Free-Documentation-License">A.1 GNU Free Documentation License</a>
+    <ul class="no-bullet">
+      <li><a name="toc-ADDENDUM_003a-How-to-use-this-License-for-your-documents" href="GNU-Free-Documentation-License.html#ADDENDUM_003a-How-to-use-this-License-for-your-documents">A.1.1 ADDENDUM: How to use this License for your documents</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+<a name="Top"></a>
+<div class="header">
+<p>
+Next: <a href="Style-Guidelines.html#Style-Guidelines" accesskey="n" rel="next">Style Guidelines</a>, Previous: <a href="../dir/index.html" accesskey="p" rel="prev">(dir)</a>, Up: <a href="../dir/index.html" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Notes"></a>
+<h1 class="top">Notes</h1>
+<p>This manual is designed for those who wish to develop Aspell.  It is
+currently very sketchy.  However, it should improve over time.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Style-Guidelines.html#Style-Guidelines" accesskey="1">Style Guidelines</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="How-to-Submit-a-Patch.html#How-to-Submit-a-Patch" accesskey="2">How to Submit a Patch</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="C_002b_002b-Standard-Library.html#C_002b_002b-Standard-Library" accesskey="3">C++ Standard Library</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Templates.html#Templates" accesskey="4">Templates</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Error-Handling.html#Error-Handling" accesskey="5">Error Handling</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Source-Code-Layout.html#Source-Code-Layout" accesskey="6">Source Code Layout</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Strings.html#Strings" accesskey="7">Strings</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Smart-Pointers.html#Smart-Pointers" accesskey="8">Smart Pointers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="I_002fO.html#I_002fO" accesskey="9">I/O</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Config-Class.html#Config-Class">Config Class</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Filter-Interface.html#Filter-Interface">Filter Interface</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Filter-Modes.html#Filter-Modes">Filter Modes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Data-Structures.html#Data-Structures">Data Structures</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Mk_002dSrc-Script.html#Mk_002dSrc-Script">Mk-Src Script</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="How-It-All-Works.html#How-It-All-Works">How It All Works</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Copying.html#Copying">Copying</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Style-Guidelines.html#Style-Guidelines" accesskey="n" rel="next">Style Guidelines</a>, Previous: <a href="../dir/index.html" accesskey="p" rel="prev">(dir)</a>, Up: <a href="../dir/index.html" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

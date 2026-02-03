@@ -1,0 +1,460 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Top</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Top">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="#Top" rel="start" title="Top">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="../dir/index.html" rel="up" title="(dir)">
+<link href="Introduction.html#Introduction" rel="next" title="Introduction">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<h1 class="settitle" align="center">GNU Aspell 0.60.8.1</h1>
+
+
+
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Introduction-1" href="Introduction.html#Introduction">1 Introduction</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Comparison-to-other-spell-checker-engines" href="Introduction.html#Comparison-to-other-spell-checker-engines">1.1 Comparison to other spell checker engines</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Comparison-to-Ispell" href="Introduction.html#Comparison-to-Ispell">1.1.1 Comparison to Ispell</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Features-that-only-Aspell-has" href="Introduction.html#Features-that-only-Aspell-has">1.1.1.1 Features that only Aspell has</a></li>
+        <li><a name="toc-Things-that_002c-currently_002c-only-Ispell-has" href="Introduction.html#Things-that_002c-currently_002c-only-Ispell-has">1.1.1.2 Things that, currently, only Ispell has</a></li>
+      </ul></li>
+      <li><a name="toc-Comparison-to-Hunspell" href="Introduction.html#Comparison-to-Hunspell">1.1.2 Comparison to Hunspell</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Support-1" href="Support.html#Support">2 Support</a></li>
+  <li><a name="toc-Basic-Usage-1" href="Basic-Usage.html#Basic-Usage">3 Basic Usage</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Spellchecking-Individual-Files-1" href="Spellchecking-Individual-Files.html#Spellchecking-Individual-Files">3.1 Spellchecking Individual Files</a></li>
+    <li><a name="toc-Using-Aspell-as-a-Replacement-for-Ispell-1" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Using-Aspell-as-a-Replacement-for-Ispell">3.2 Using Aspell as a Replacement for Ispell</a>
+    <ul class="no-bullet">
+      <li><a name="toc-As-a-Drop-In-Replacement" href="Using-Aspell-as-a-Replacement-for-Ispell.html#As-a-Drop-In-Replacement">3.2.1 As a Drop In Replacement</a></li>
+      <li><a name="toc-Differences-From-Ispell-1" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Differences-From-Ispell-1">3.2.2 Differences From Ispell</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Functionality-of-the-Ispell-Compatibility-Script" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Functionality-of-the-Ispell-Compatibility-Script">3.2.2.1 Functionality of the Ispell Compatibility Script</a></li>
+        <li><a name="toc-Recognized-Options" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Recognized-Options">3.2.2.2 Recognized Options</a></li>
+        <li><a name="toc-Check-Mode-Compatibility" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Check-Mode-Compatibility">3.2.2.3 Check Mode Compatibility</a></li>
+        <li><a name="toc-Pipe-Mode-Compatibility" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Pipe-Mode-Compatibility">3.2.2.4 Pipe Mode Compatibility</a></li>
+        <li><a name="toc-Other-Differences" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Other-Differences">3.2.2.5 Other Differences</a></li>
+        <li><a name="toc-Missing-Functionally" href="Using-Aspell-as-a-Replacement-for-Ispell.html#Missing-Functionally">3.2.2.6 Missing Functionally</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a name="toc-Using-Aspell-with-other-Applications-1" href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications">3.3 Using Aspell with other Applications</a>
+    <ul class="no-bullet">
+      <li><a name="toc-With-Enchant-Based-Applications" href="Using-Aspell-with-other-Applications.html#With-Enchant-Based-Applications">3.3.1 With Enchant Based Applications</a></li>
+      <li><a name="toc-With-Emacs-and-XEmacs" href="Using-Aspell-with-other-Applications.html#With-Emacs-and-XEmacs">3.3.2 With Emacs and XEmacs</a></li>
+      <li><a name="toc-With-VIM" href="Using-Aspell-with-other-Applications.html#With-VIM">3.3.3 With VIM</a></li>
+      <li><a name="toc-With-Pine" href="Using-Aspell-with-other-Applications.html#With-Pine">3.3.4 With Pine</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Customizing-Aspell-1" href="Customizing-Aspell.html#Customizing-Aspell">4 Customizing Aspell</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Specifying-Options-1" href="Specifying-Options.html#Specifying-Options">4.1 Specifying Options</a>
+    <ul class="no-bullet">
+      <li><a name="toc-At-the-Command-Line" href="Specifying-Options.html#At-the-Command-Line">4.1.1 At the Command Line</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Value-options" href="Specifying-Options.html#Value-options">4.1.1.1 Value options</a></li>
+        <li><a name="toc-Boolean-options" href="Specifying-Options.html#Boolean-options">4.1.1.2 Boolean options</a></li>
+        <li><a name="toc-List-options" href="Specifying-Options.html#List-options">4.1.1.3 List options</a></li>
+      </ul></li>
+      <li><a name="toc-Via-a-Configuration-File" href="Specifying-Options.html#Via-a-Configuration-File">4.1.2 Via a Configuration File</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Value-options-1" href="Specifying-Options.html#Value-options-1">4.1.2.1 Value options</a></li>
+        <li><a name="toc-Boolean-options-1" href="Specifying-Options.html#Boolean-options-1">4.1.2.2 Boolean options</a></li>
+        <li><a name="toc-List-options-1" href="Specifying-Options.html#List-options-1">4.1.2.3 List options</a></li>
+      </ul></li>
+      <li><a name="toc-Via-an-Environment-Variable" href="Specifying-Options.html#Via-an-Environment-Variable">4.1.3 Via an Environment Variable</a></li>
+    </ul></li>
+    <li><a name="toc-The-Options-1" href="The-Options.html#The-Options">4.2 The Options</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Dictionary-Options" href="The-Options.html#Dictionary-Options">4.2.1 Dictionary Options</a></li>
+      <li><a name="toc-Encoding-Options" href="The-Options.html#Encoding-Options">4.2.2 Encoding Options</a></li>
+      <li><a name="toc-Checker-Options" href="The-Options.html#Checker-Options">4.2.3 Checker Options</a></li>
+      <li><a name="toc-Filter-Options-1" href="The-Options.html#Filter-Options-1">4.2.4 Filter Options</a>
+      <ul class="no-bullet">
+        <li><a name="toc-None-filter-mode" href="The-Options.html#None-filter-mode">4.2.4.1 None filter mode</a></li>
+        <li><a name="toc-URL-filter" href="The-Options.html#URL-filter">4.2.4.2 URL filter</a></li>
+        <li><a name="toc-Email-filter" href="The-Options.html#Email-filter">4.2.4.3 Email filter</a></li>
+        <li><a name="toc-Markdown-Filter" href="The-Options.html#Markdown-Filter">4.2.4.4 Markdown Filter</a></li>
+        <li><a name="toc-SGML-filter" href="The-Options.html#SGML-filter">4.2.4.5 SGML filter</a></li>
+        <li><a name="toc-HTML-filter" href="The-Options.html#HTML-filter">4.2.4.6 HTML filter</a></li>
+        <li><a name="toc-TeX_002fLaTeX-Filter" href="The-Options.html#TeX_002fLaTeX-Filter">4.2.4.7 TeX/LaTeX Filter</a></li>
+        <li><a name="toc-Texinfo-Filter" href="The-Options.html#Texinfo-Filter">4.2.4.8 Texinfo Filter</a></li>
+        <li><a name="toc-Nroff-Filter" href="The-Options.html#Nroff-Filter">4.2.4.9 Nroff Filter</a></li>
+        <li><a name="toc-Context-Filter" href="The-Options.html#Context-Filter">4.2.4.10 Context Filter</a></li>
+        <li><a name="toc-Ccpp-Filter-Mode" href="The-Options.html#Ccpp-Filter-Mode">4.2.4.11 Ccpp Filter Mode</a></li>
+      </ul></li>
+      <li><a name="toc-Compound-Word-Options" href="The-Options.html#Compound-Word-Options">4.2.5 Compound Word Options</a></li>
+      <li><a name="toc-Miscellaneous-Options" href="The-Options.html#Miscellaneous-Options">4.2.6 Miscellaneous Options</a></li>
+      <li><a name="toc-Aspell-Utility-Options" href="The-Options.html#Aspell-Utility-Options">4.2.7 Aspell Utility Options</a></li>
+    </ul></li>
+    <li><a name="toc-Dumping-Configuration-Values-1" href="Dumping-Configuration-Values.html#Dumping-Configuration-Values">4.3 Dumping Configuration Values</a></li>
+    <li><a name="toc-Notes-on-Various-Options-1" href="Notes-on-Various-Options.html#Notes-on-Various-Options">4.4 Notes on Various Options</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Notes-on-Various-Filters-and-Filter-Modes-1" href="Notes-on-Various-Filters-and-Filter-Modes.html#Notes-on-Various-Filters-and-Filter-Modes">4.4.1 Notes on Various Filters and Filter Modes</a></li>
+      <li><a name="toc-Notes-on-the-Prefix-Option-1" href="Notes-on-the-Prefix-Option.html#Notes-on-the-Prefix-Option">4.4.2 Notes on the Prefix Option</a></li>
+      <li><a name="toc-Notes-on-Typo_002dAnalysis-and-the-Keyboard-Definition-File" href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis">4.4.3 Notes on Typo-Analysis and the Keyboard Definition File</a></li>
+      <li><a name="toc-Notes-on-the-Different-Suggestion-Modes-1" href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes">4.4.4 Notes on the Different Suggestion Modes</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Working-With-Dictionaries-1" href="Working-With-Dictionaries.html#Working-With-Dictionaries">5 Working With Dictionaries</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Using-aspell_002dimport-1" href="Using-aspell_002dimport.html#Using-aspell_002dimport">5.1 Using <code>aspell-import</code></a></li>
+    <li><a name="toc-How-Aspell-Selects-an-Appropriate-Dictionary-1" href="How-Aspell-Selects-an-Appropriate-Dictionary.html#How-Aspell-Selects-an-Appropriate-Dictionary">5.2 How Aspell Selects an Appropriate Dictionary</a></li>
+    <li><a name="toc-Listing-Available-Dictionaries-1" href="Listing-Available-Dictionaries.html#Listing-Available-Dictionaries">5.3 Listing Available Dictionaries</a></li>
+    <li><a name="toc-Dumping-the-Contents-of-the-Word-List-1" href="Dumping-the-Contents-of-the-Word-List.html#Dumping-the-Contents-of-the-Word-List">5.4 Dumping the Contents of the Word List</a></li>
+    <li><a name="toc-Creating-an-Individual-Word-List-1" href="Creating-an-Individual-Word-List.html#Creating-an-Individual-Word-List">5.5 Creating an Individual Word List</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Format-of-the-Replacement-Word-List" href="Creating-an-Individual-Word-List.html#Format-of-the-Replacement-Word-List">5.5.1 Format of the Replacement Word List</a></li>
+    </ul></li>
+    <li><a name="toc-Working-With-Affix-Info-in-Word-Lists-1" href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists">5.6 Working With Affix Info in Word Lists</a>
+    <ul class="no-bullet">
+      <li><a name="toc-The-Munch-Command" href="Working-With-Affix-Info-in-Word-Lists.html#The-Munch-Command">5.6.1 The Munch Command</a></li>
+      <li><a name="toc-The-Expand-Command" href="Working-With-Affix-Info-in-Word-Lists.html#The-Expand-Command">5.6.2 The Expand Command</a></li>
+      <li><a name="toc-The-Munch_002dlist-Command" href="Working-With-Affix-Info-in-Word-Lists.html#The-Munch_002dlist-Command">5.6.3 The Munch-list Command</a></li>
+    </ul></li>
+    <li><a name="toc-Format-of-the-Personal-and-Replacement-Dictionaries-1" href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries">5.7 Format of the Personal and Replacement Dictionaries</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Format-of-the-Personal-Dictionary-1" href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-Dictionary-1">5.7.1 Format of the Personal Dictionary</a></li>
+      <li><a name="toc-Format-of-the-Personal-Replacement-Dictionary" href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-Replacement-Dictionary">5.7.2 Format of the Personal Replacement Dictionary</a></li>
+    </ul></li>
+    <li><a name="toc-Using-Multi-Dictionaries-1" href="Using-Multi-Dictionaries.html#Using-Multi-Dictionaries">5.8 Using Multi Dictionaries</a></li>
+    <li><a name="toc-Dictionary-Naming-1" href="Dictionary-Naming.html#Dictionary-Naming">5.9 Dictionary Naming</a></li>
+    <li><a name="toc-AWLI-files-1" href="AWLI-files.html#AWLI-files">5.10 AWLI files</a></li>
+  </ul></li>
+  <li><a name="toc-Writing-programs-to-use-Aspell-1" href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell">6 Writing programs to use Aspell</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Through-the-C-API-1" href="Through-the-C-API.html#Through-the-C-API">6.1 Through the C API</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Usage" href="Through-the-C-API.html#Usage">6.1.1 Usage</a></li>
+      <li><a name="toc-API-Reference" href="Through-the-C-API.html#API-Reference">6.1.2 API Reference</a></li>
+      <li><a name="toc-Examples" href="Through-the-C-API.html#Examples">6.1.3 Examples</a></li>
+      <li><a name="toc-Notes-About-Thread-Safety" href="Through-the-C-API.html#Notes-About-Thread-Safety">6.1.4 Notes About Thread Safety</a></li>
+    </ul></li>
+    <li><a name="toc-Through-A-Pipe-1" href="Through-A-Pipe.html#Through-A-Pipe">6.2 Through A Pipe</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Format-of-the-Data-Stream" href="Through-A-Pipe.html#Format-of-the-Data-Stream">6.2.1 Format of the Data Stream</a></li>
+    </ul></li>
+    <li><a name="toc-Notes-on-Storing-Replacement-Pairs-1" href="Notes-on-Storing-Replacement-Pairs.html#Notes-on-Storing-Replacement-Pairs">6.3 Notes on Storing Replacement Pairs</a></li>
+  </ul></li>
+  <li><a name="toc-Adding-Support-For-Other-Languages-1" href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages">7 Adding Support For Other Languages</a>
+  <ul class="no-bullet">
+    <li><a name="toc-The-Language-Data-File-1" href="The-Language-Data-File.html#The-Language-Data-File">7.1 The Language Data File</a></li>
+    <li><a name="toc-Compiling-the-Word-List-1" href="Compiling-the-Word-List.html#Compiling-the-Word-List">7.2 Compiling the Word List</a></li>
+    <li><a name="toc-Phonetic-Code-1" href="Phonetic-Code.html#Phonetic-Code">7.3 Phonetic Code</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Syntax-of-the-transformation-array" href="Phonetic-Code.html#Syntax-of-the-transformation-array">7.3.1 Syntax of the transformation array</a></li>
+      <li><a name="toc-How-do-I-start-finally_003f" href="Phonetic-Code.html#How-do-I-start-finally_003f">7.3.2 How do I start finally?</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Things-that-come-in-handy" href="Phonetic-Code.html#Things-that-come-in-handy">7.3.2.1 Things that come in handy</a></li>
+        <li><a name="toc-What-the-phonetic-code-should-do" href="Phonetic-Code.html#What-the-phonetic-code-should-do">7.3.2.2 What the phonetic code should do</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a name="toc-The-Simple-Soundslike-1" href="The-Simple-Soundslike.html#The-Simple-Soundslike">7.4 The Simple Soundslike</a></li>
+    <li><a name="toc-Replacement-Tables-1" href="Replacement-Tables.html#Replacement-Tables">7.5 Replacement Tables</a></li>
+    <li><a name="toc-Affix-Compression-1" href="Affix-Compression.html#Affix-Compression">7.6 Affix Compression</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Format-of-the-Affix-File" href="Affix-Compression.html#Format-of-the-Affix-File">7.6.1 Format of the Affix File</a></li>
+      <li><a name="toc-When-Compared-With-Ispell" href="Affix-Compression.html#When-Compared-With-Ispell">7.6.2 When Compared With Ispell</a></li>
+      <li><a name="toc-Specifying-Affix-Flags" href="Affix-Compression.html#Specifying-Affix-Flags">7.6.3 Specifying Affix Flags</a></li>
+    </ul></li>
+    <li><a name="toc-Controlling-the-Behavior-of-Compound-Words-1" href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words">7.7 Controlling the Behavior of Compound Words</a></li>
+    <li><a name="toc-Creating-A-New-Character-Set-1" href="Creating-A-New-Character-Set.html#Creating-A-New-Character-Set">7.8 Creating A New Character Set</a></li>
+    <li><a name="toc-Creating-An-Official-Dictionary-Package-1" href="Creating-An-Official-Dictionary-Package.html#Creating-An-Official-Dictionary-Package">7.9 Creating An Official Dictionary Package</a></li>
+  </ul></li>
+  <li><a name="toc-Implementation-Notes-1" href="Implementation-Notes.html#Implementation-Notes">Appendix A Implementation Notes</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Aspell-Suggestion-Strategy-1" href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy">A.1 Aspell Suggestion Strategy</a></li>
+    <li><a name="toc-Notes-on-8_002dbit-Characters-1" href="Notes-on-8_002dbit-Characters.html#Notes-on-8_002dbit-Characters">A.2 Notes on 8-bit Characters</a></li>
+  </ul></li>
+  <li><a name="toc-Installing-1" href="Installing.html#Installing">Appendix B Installing</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Generic-Install-Instructions-1" href="Generic-Install-Instructions.html#Generic-Install-Instructions">B.1 Generic Install Instructions</a></li>
+    <li><a name="toc-HTML-Manuals-and-make-clean" href="HTML-Manuals-and-_0022make-clean_0022.html#HTML-Manuals-and-_0022make-clean_0022">B.2 HTML Manuals and <code>make clean</code></a></li>
+    <li><a name="toc-Curses-Notes-1" href="Curses-Notes.html#Curses-Notes">B.3 Curses Notes</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Unicode-Support" href="Curses-Notes.html#Unicode-Support">B.3.1 Unicode Support</a></li>
+    </ul></li>
+    <li><a name="toc-Loadable-Filter-Notes-1" href="Loadable-Filter-Notes.html#Loadable-Filter-Notes">B.4 Loadable Filter Notes</a></li>
+    <li><a name="toc-Using-32_002dBit-Dictionaries-on-a-64_002dBit-System-1" href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System">B.5 Using 32-Bit Dictionaries on a 64-Bit System</a></li>
+    <li><a name="toc-Upgrading-from-Aspell-0_002e60_002e7-1" href="Upgrading-from-Aspell-0_002e60_002e7.html#Upgrading-from-Aspell-0_002e60_002e7">B.6 Upgrading from Aspell 0.60.7</a></li>
+    <li><a name="toc-Upgrading-from-Aspell-0_002e50-1" href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50">B.7 Upgrading from Aspell 0.50</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Binary-Compatibility-1" href="Upgrading-from-Aspell-0_002e50.html#Binary-Compatibility-1">B.7.1 Binary Compatibility</a></li>
+    </ul></li>
+    <li><a name="toc-Upgrading-from-Aspell-_002e33_002fPspell-_002e12-1" href="Upgrading-from-Aspell-_002e33_002fPspell-_002e12.html#Upgrading-from-Aspell-_002e33_002fPspell-_002e12">B.8 Upgrading from Aspell .33/Pspell .12</a></li>
+    <li><a name="toc-Upgrading-from-a-Pre_002d0_002e50-snapshot-1" href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot">B.9 Upgrading from a Pre-0.50 snapshot</a></li>
+    <li><a name="toc-WIN32-Notes-1" href="WIN32-Notes.html#WIN32-Notes">B.10 WIN32 Notes</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Getting-the-WIN32-version" href="WIN32-Notes.html#Getting-the-WIN32-version">B.10.1 Getting the WIN32 version</a></li>
+      <li><a name="toc-Building-the-WIN32-version" href="WIN32-Notes.html#Building-the-WIN32-version">B.10.2 Building the WIN32 version</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Building-Aspell-using-Cygwin" href="WIN32-Notes.html#Building-Aspell-using-Cygwin">B.10.2.1 Building Aspell using Cygwin</a></li>
+        <li><a name="toc-Building-Aspell-using-MinGW" href="WIN32-Notes.html#Building-Aspell-using-MinGW">B.10.2.2 Building Aspell using MinGW</a></li>
+        <li><a name="toc-Building-Aspell-without-using-Cygwin-or-MSYS" href="WIN32-Notes.html#Building-Aspell-without-using-Cygwin-or-MSYS">B.10.2.3 Building Aspell without using Cygwin or MSYS</a></li>
+      </ul></li>
+      <li><a name="toc-_0028PD_0029Curses" href="WIN32-Notes.html#g_t_0028PD_0029Curses">B.10.3 (PD)Curses</a></li>
+      <li><a name="toc-Directories" href="WIN32-Notes.html#Directories">B.10.4 Directories</a></li>
+      <li><a name="toc-Installer" href="WIN32-Notes.html#Installer">B.10.5 Installer</a></li>
+      <li><a name="toc-WIN32-consoles" href="WIN32-Notes.html#WIN32-consoles">B.10.6 WIN32 consoles</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-ChangeLog-1" href="ChangeLog.html#ChangeLog">Appendix C ChangeLog</a></li>
+  <li><a name="toc-Authors-1" href="Authors.html#Authors">Appendix D Authors</a></li>
+  <li><a name="toc-Copying-1" href="Copying.html#Copying">Appendix E Copying</a>
+  <ul class="no-bullet">
+    <li><a name="toc-GNU-Free-Documentation-License-1" href="GNU-Free-Documentation-License.html#GNU-Free-Documentation-License">E.1 GNU Free Documentation License</a>
+    <ul class="no-bullet">
+      <li><a name="toc-ADDENDUM_003a-How-to-use-this-License-for-your-documents" href="GNU-Free-Documentation-License.html#ADDENDUM_003a-How-to-use-this-License-for-your-documents">E.1.1 ADDENDUM: How to use this License for your documents</a></li>
+    </ul></li>
+    <li><a name="toc-GNU-Lesser-General-Public-License-1" href="GNU-Lesser-General-Public-License.html#GNU-Lesser-General-Public-License">E.2 GNU Lesser General Public License</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Preamble" href="GNU-Lesser-General-Public-License.html#Preamble">E.2.1 Preamble</a></li>
+      <li><a name="toc-How-to-Apply-These-Terms-to-Your-New-Libraries" href="GNU-Lesser-General-Public-License.html#How-to-Apply-These-Terms-to-Your-New-Libraries">E.2.2 How to Apply These Terms to Your New Libraries</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+<a name="Top"></a>
+<div class="header">
+<p>
+Next: <a href="Introduction.html#Introduction" accesskey="n" rel="next">Introduction</a>, Up: <a href="../dir/index.html" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="GNU-Aspell-0_002e60_002e8_002e1"></a>
+<h1 class="top">GNU Aspell 0.60.8.1</h1>
+<p>This is the user&rsquo;s manual for Aspell
+</p>
+<p>GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Introduction.html#Introduction" accesskey="1">Introduction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Support.html#Support" accesskey="2">Support</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Basic-Usage.html#Basic-Usage" accesskey="3">Basic Usage</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Customizing-Aspell.html#Customizing-Aspell" accesskey="4">Customizing Aspell</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="5">Working With Dictionaries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell" accesskey="6">Writing programs to use Aspell</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="7">Adding Support For Other Languages</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Implementation-Notes.html#Implementation-Notes" accesskey="8">Implementation Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Installing.html#Installing" accesskey="9">Installing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="ChangeLog.html#ChangeLog">ChangeLog</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Authors.html#Authors">Authors</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Copying.html#Copying">Copying</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+</pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment"> &mdash; The Detailed Node Listing &mdash;
+
+Basic Usage
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Spellchecking-Individual-Files.html#Spellchecking-Individual-Files">Spellchecking Individual Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Using-Aspell-as-a-Replacement-for-Ispell.html#Using-Aspell-as-a-Replacement-for-Ispell">Using Aspell as a Replacement for Ispell</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Using-Aspell-with-other-Applications.html#Using-Aspell-with-other-Applications">Using Aspell with other Applications</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Customizing Aspell
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Specifying-Options.html#Specifying-Options">Specifying Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="The-Options.html#The-Options">The Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Dumping-Configuration-Values.html#Dumping-Configuration-Values">Dumping Configuration Values</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-Various-Options.html#Notes-on-Various-Options">Notes on Various Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Notes on Various Options
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Notes-on-Various-Filters-and-Filter-Modes.html#Notes-on-Various-Filters-and-Filter-Modes">Notes on Various Filters and Filter Modes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-the-Prefix-Option.html#Notes-on-the-Prefix-Option">Notes on the Prefix Option</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis">Notes on Typo-Analysis</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes">Notes on the Different Suggestion Modes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Working With Dictionaries
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Using-aspell_002dimport.html#Using-aspell_002dimport">Using aspell-import</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="How-Aspell-Selects-an-Appropriate-Dictionary.html#How-Aspell-Selects-an-Appropriate-Dictionary">How Aspell Selects an Appropriate Dictionary</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Listing-Available-Dictionaries.html#Listing-Available-Dictionaries">Listing Available Dictionaries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Dumping-the-Contents-of-the-Word-List.html#Dumping-the-Contents-of-the-Word-List">Dumping the Contents of the Word List</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Creating-an-Individual-Word-List.html#Creating-an-Individual-Word-List">Creating an Individual Word List</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists">Working With Affix Info in Word Lists</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries">Format of the Personal and Replacement Dictionaries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Using-Multi-Dictionaries.html#Using-Multi-Dictionaries">Using Multi Dictionaries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Dictionary-Naming.html#Dictionary-Naming">Dictionary Naming</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="AWLI-files.html#AWLI-files">AWLI files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Writing programs to use Aspell
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Through-the-C-API.html#Through-the-C-API">Through the C API</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Through-A-Pipe.html#Through-A-Pipe">Through A Pipe</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-Storing-Replacement-Pairs.html#Notes-on-Storing-Replacement-Pairs">Notes on Storing Replacement Pairs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Adding Support For Other Languages
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="The-Language-Data-File.html#The-Language-Data-File">The Language Data File</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Compiling-the-Word-List.html#Compiling-the-Word-List">Compiling the Word List</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Phonetic-Code.html#Phonetic-Code">Phonetic Code</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="The-Simple-Soundslike.html#The-Simple-Soundslike">The Simple Soundslike</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Replacement-Tables.html#Replacement-Tables">Replacement Tables</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Affix-Compression.html#Affix-Compression">Affix Compression</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words">Controlling the Behavior of Compound Words</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Creating-A-New-Character-Set.html#Creating-A-New-Character-Set">Creating A New Character Set</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Creating-An-Official-Dictionary-Package.html#Creating-An-Official-Dictionary-Package">Creating An Official Dictionary Package</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Implementation Notes
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy">Aspell Suggestion Strategy</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Notes-on-8_002dbit-Characters.html#Notes-on-8_002dbit-Characters">Notes on 8-bit Characters</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Installing
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Generic-Install-Instructions.html#Generic-Install-Instructions">Generic Install Instructions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="HTML-Manuals-and-_0022make-clean_0022.html#HTML-Manuals-and-_0022make-clean_0022">HTML Manuals and &quot;make clean&quot;</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Curses-Notes.html#Curses-Notes">Curses Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Loadable-Filter-Notes.html#Loadable-Filter-Notes">Loadable Filter Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System">Using 32-Bit Dictionaries on a 64-Bit System</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Upgrading-from-Aspell-0_002e60_002e7.html#Upgrading-from-Aspell-0_002e60_002e7">Upgrading from Aspell 0.60.7</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Upgrading-from-Aspell-0_002e50.html#Upgrading-from-Aspell-0_002e50">Upgrading from Aspell 0.50</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Upgrading-from-Aspell-_002e33_002fPspell-_002e12.html#Upgrading-from-Aspell-_002e33_002fPspell-_002e12">Upgrading from Aspell .33/Pspell .12</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot">Upgrading from a Pre-0.50 snapshot</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="WIN32-Notes.html#WIN32-Notes">WIN32 Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Copying
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="GNU-Free-Documentation-License.html#GNU-Free-Documentation-License">GNU Free Documentation License</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="GNU-Lesser-General-Public-License.html#GNU-Lesser-General-Public-License">GNU Lesser General Public License</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+</pre></th></tr></table>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Introduction.html#Introduction" accesskey="n" rel="next">Introduction</a>, Up: <a href="../dir/index.html" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+#!/bin/sh
+
+# Copyright (c) 2004
+# Kevin Atkinson
+#
+# Permission to use, copy, modify, distribute and sell this software
+# and its documentation for any purpose is hereby granted without
+# fee, provided that the above copyright notice appear in all copies  
+# and that both that copyright notice and this permission notice 
+# appear in supporting documentation.  Kevin Atkinson makes no
+# representations about the suitability of this software for any
+# purpose.  It is provided "as is" without express or implied
+# warranty.
+
+cmd=`basename "$0"`
+
+warn () 
+{
+  if test -z "$quiet"; then echo "$cmd: $1" >&2 ; fi
+}
+
+error () 
+{
+  echo "$cmd: $1" >&2
+  errors=t
+}
+
+zip2 ()
+{
+  case $1 in
+  d) 
+    prezip-bin -d "$cmd: $2"
+    ;;
+  z)
+    if test "$sort"
+    then
+      LC_COLLATE=C sort -u | prezip-bin -z "$cmd: $2"
+    else
+      prezip-bin -z "$cmd: $2"
+    fi
+    ;;
+  esac
+  if test $? -eq 0
+  then
+    return 0
+  else
+    errors=t
+    return 1
+  fi
+}
+
+zip ()
+{
+  if test -e "$3" -a ! "$force"
+  then
+    error "Output file $3 already exists."
+    return 1
+  fi
+  zip2 $1 "$2: " < "$2" > "$3"
+  if test $? -eq 0
+  then
+    if test -z "$keep"; then rm "$2"; fi
+    return 0
+  else
+    rm "$3"
+    return 1
+  fi
+}
+
+case $cmd in
+prezip)   mode=z ;;
+preunzip) mode=d ;; 
+precat)   mode=d; stdout=t ;;
+*)        mode=h ;;
+esac
+
+num=0
+for p
+do
+  case $p in
+  --*)
+    parm=`expr "x$p" : '...\(.*\)'`
+    case $parm in
+    decompress ) mode=d ;;
+    compress   ) mode=z ;;
+    keep       ) keep=t ;;
+    force      ) force=t ;;
+    stdout     ) stdout=t ;;
+    sort       ) sort=t ;;
+    nocwl      ) nocwl=t ;;
+    license    ) mode=L ;;
+    version    ) mode=V ;;
+    help       ) mode=h ;;
+    quiet      ) quiet=t ;;
+    *          ) error "invalid option -- $parm";;
+    esac
+    ;;
+  -* ) 
+    p=`expr "x$p" : '..\(.*\)'`
+    while test "$p"
+    do
+      parm=`expr "$p" : '\(.\)'`
+      p=`expr "$p" : '.\(.*\)'`
+      case $parm in
+      d ) mode=d ;;
+      z ) mode=z ;;
+      k ) keep=t ;;
+      f ) force=t ;;
+      c ) stdout=t ;;
+      s ) sort=t ;;
+      S ) nocwl=t ;;
+      L ) mode=L ;;
+      V ) mode=V ;;
+      h ) mode=h ;;
+      q ) quiet=t ;;
+      * ) error "invalid option -- $parm";;
+      esac
+    done
+    ;;
+  * )
+    num=`expr $num + 1`
+    ;;
+  esac
+done
+
+if test "$errors" 
+then
+  mode=h
+fi
+
+case $mode in
+h ) 
+  prezip-bin -V
+  cat <<EOF
+
+  usage $0 [-dzhLV] [-cfksSq] [file ...]
+
+   -h --help        display help
+   -d --decompress  force decompression
+   -z --compress    force compression
+   -L --license     display software license
+   -V --version     display version
+
+   -c --stdout      decompress to standard output
+   -f --force       force
+   -k --keep        keep input files
+   -s --sort        sort and remove duplicates before compressing
+   -S --nocwl       do not rename .wl suffix to .cwl (use .wl.pz instead)
+   -q --quiet       suppress all warnings
+
+  If invoked as "prezip" the default action is to compress.
+             as "preunzip" the default action is to decompress.
+             as "precat" the default action is to decompress to stdout.
+
+  If no file names are given then prezip will compress or decompress
+  from the standard input to the standard output.  Short flags can be
+  combined so that "-c -s" is the same as "-cs".
+
+  Prezip is _not_ a general purpose compressor.  It should only be
+  used on sorted word lists or other similar text files.  It will
+  likely _increase_ the size of binary data.
+
+EOF
+  ;;
+L )
+  prezip-bin -V
+  cat <<EOF
+
+  Copyright (c) 2004
+  Kevin Atkinson
+
+  Permission to use, copy, modify, distribute and sell this software
+  and its documentation for any purpose is hereby granted without
+  fee, provided that the above copyright notice appear in all copies  
+  and that both that copyright notice and this permission notice 
+  appear in supporting documentation.  Kevin Atkinson makes no
+  representations about the suitability of this software for any
+  purpose.  It is provided "as is" without express or implied
+  warranty.
+
+EOF
+  ;;
+V ) 
+  prezip-bin -V
+  ;;
+d | z )
+if test $num -gt 0
+then
+  for f
+  do
+    case $f in
+    -* ) ;;
+    * )
+      if test \( -f "$f" -a ! -L "$f" \) \
+              -o \( \( "$stdout" -o "$force" \) -a -L "$f" \)
+      then
+        if test "$stdout"
+        then
+          zip2 $mode "$f: " < "$f"
+        else
+          case $mode in
+          d )
+            dir=`dirname "$f"`
+            file=`basename "$f"`
+            base=`basename "$f" .pz`
+            base2=`basename "$f" .cwl`
+            if test "$file" != "$base"
+            then
+              out="$dir/$base"
+              zip d "$f" "$out"
+            elif test "$file" != "$base2"
+            then
+              out="$dir/$base2.wl"
+              zip d "$f" "$out"
+            elif test "$force"
+            then 
+              out="$f.out"
+              warn "can't guess original name - using \"$out\""
+              zip d "$f" "$out"
+            else
+              warn "$f does not end in .pz or .cwl - ignored"
+            fi
+            ;;
+          z )
+            dir=`dirname "$f"`
+            file=`basename "$f"`
+            base=`basename "$f" .wl`
+            if test "$nocwl" -o "$file" = "$base"
+            then
+              zip z "$f" "$f.pz"
+            else
+              zip z "$f" "$dir/$base.cwl"
+            fi
+            ;;
+          esac
+        fi
+      elif test -e "$f"
+      then
+        warn "$f is not a regular file - ignored"
+      else
+        error "$f: No such file"
+      fi
+      ;;
+    esac
+  done
+else
+  case $mode in
+  d ) zip2 d ;;
+  z ) zip2 z ;;
+  esac
+fi
+;;
+esac
+
+if test "$errors" 
+then
+  exit 1
+else
+  exit 0
+fi

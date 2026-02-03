@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Creating an Individual Word List</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Creating an Individual Word List">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="up" title="Working With Dictionaries">
+<link href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists" rel="next" title="Working With Affix Info in Word Lists">
+<link href="Dumping-the-Contents-of-the-Word-List.html#Dumping-the-Contents-of-the-Word-List" rel="prev" title="Dumping the Contents of the Word List">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Creating-an-Individual-Word-List"></a>
+<div class="header">
+<p>
+Next: <a href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists" accesskey="n" rel="next">Working With Affix Info in Word Lists</a>, Previous: <a href="Dumping-the-Contents-of-the-Word-List.html#Dumping-the-Contents-of-the-Word-List" accesskey="p" rel="prev">Dumping the Contents of the Word List</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Creating-an-Individual-Word-List-1"></a>
+<h3 class="section">5.5 Creating an Individual Word List</h3>
+
+<p>To create an individual main word list from a list of words use the
+command
+</p>
+<div class="example">
+<pre class="example">aspell --lang=<var>lang</var> create master ./<var>base</var> &lt; <var>wordlist</var>
+</pre></div>
+
+<p>where <var>base</var> is the name of the word list and
+<var>wordlist</var> is the list of words separated by white space.
+The name of the word list will automatically be converted to all
+lowercase.  The <code>./</code> is important because without it Aspell will
+create the word list in the normal word list directory.  If you are
+trying to create a word list in a language other than English check
+the Aspell <samp>data-dir</samp> (usually <samp>/usr/share/aspell</samp>, use
+<code>aspell dump config</code> to find out what it is on your system) to
+see if a language data file exists for your language.  If not you will
+need to create one.  For more information on using Aspell with other
+languages <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages">Adding Support For Other Languages</a>.
+</p>
+<p>This will create the file <samp><var>base</var></samp> in the current directory.
+To use the new word list copy the file to the normal word list
+directory (use <code>aspell config</code> to find out what it is) and use
+the option <samp>--master=<var>base</var></samp>.
+</p>
+<p>During the creating of the dictionary you may get a number of warnings
+or errors about invalid words or affixes.  By default Aspell will skip
+any invalid words and remove invalid affixes.  If you rather that Aspell
+simply accepts all words given then the option
+<samp>--dont-validate-words</samp> can be specified.  To avoid checking if
+affixes are valid use the option <samp>--dont-validate-affixes</samp>.
+However, rather than disable checking, it is preferable to clean the
+input word list.  This can be done by using the command
+</p>
+<div class="example">
+<pre class="example">aspell --local-data-dir=./ --lang=<var>lang</var> clean &lt; <var>wordlist</var> &gt; <var>result</var>
+</pre></div>
+
+<p>which will clean the word list and output the results to <var>result</var>.
+By default it will remove invalid characters from the beginning and end
+of a word before resorting to skipping the word.  If you rather it just
+skip the words than add the keyword strict:
+</p>
+<div class="example">
+<pre class="example">aspell --local-data-dir=./ --lang=<var>lang</var> clean strict &lt; <var>wordlist</var> &gt; <var>result</var>
+</pre></div>
+
+<p>The option <samp>--clean-words</samp> can be be added when creating a
+dictionary if you want Aspell to remove invalid characters from the
+beginning and end of a word like the &quot;clean&quot; command does. In addition
+the options <samp>--dont-skip-invalid-words</samp> and
+<samp>--dont-clean-affixes</samp> can be specified to turn the warnings into
+errors.
+</p>
+<p>The compiled dictionaries are platform dependent.  They depend on the
+endian order and (unless compiled with the
+<samp>--enable-32-bit-hash-fun</samp> option) the size of the
+<code>size_t</code> type as it used in the hash function; this 
+type is generally different on 32 and 64-bit systems.  When a
+dictionary is loaded the endian order and compatibility of the hash
+function is checked.  Please do not distribute the compiled
+dictionaries unless you are only distributing them for a particular
+platform such as you would a binary.
+</p>
+<p>Aspell is now also able to use special <code>multi</code> dictionaries.  for
+more information <a href="How-Aspell-Selects-an-Appropriate-Dictionary.html#How-Aspell-Selects-an-Appropriate-Dictionary">How Aspell Selects an Appropriate Dictionary</a>.
+</p>
+<p>A personal and replacement word list can be created in a similar fashion.
+</p>
+
+<a name="Format-of-the-Replacement-Word-List"></a>
+<h4 class="subsection">5.5.1 Format of the Replacement Word List</h4>
+
+<p>The replacement word list has each replacement pair on its own line in
+the following format
+</p>
+<div class="example">
+<pre class="example"><i>misspelled_word</i> <i>correction</i>
+</pre></div>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Working-With-Affix-Info-in-Word-Lists.html#Working-With-Affix-Info-in-Word-Lists" accesskey="n" rel="next">Working With Affix Info in Word Lists</a>, Previous: <a href="Dumping-the-Contents-of-the-Word-List.html#Dumping-the-Contents-of-the-Word-List" accesskey="p" rel="prev">Dumping the Contents of the Word List</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

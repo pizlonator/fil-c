@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Smart Pointers</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Smart Pointers">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="I_002fO.html#I_002fO" rel="next" title="I/O">
+<link href="Strings.html#Strings" rel="prev" title="Strings">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Smart-Pointers"></a>
+<div class="header">
+<p>
+Next: <a href="I_002fO.html#I_002fO" accesskey="n" rel="next">I/O</a>, Previous: <a href="Strings.html#Strings" accesskey="p" rel="prev">Strings</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Smart-Pointers-1"></a>
+<h2 class="chapter">8 Smart Pointers</h2>
+
+<p>Smart pointers are used extensively in Aspell to
+simplify memory management tasks and to avoid memory leaks. 
+</p>
+<a name="CopyPtr"></a>
+<h3 class="section">8.1 CopyPtr</h3>
+
+<p>The <code>CopyPtr</code> class makes a deep copy of an object whenever it is
+copied.  The <code>CopyPtr</code> class is defined in <samp>copy_ptr.hpp</samp>.
+This header should be included wherever <code>CopyPtr</code> is used.  The
+complete definition of the object <code>CopyPtr</code> is pointing to does
+not need to be defined at this point.  The implementation is defined
+in <samp>copy_ptr-t.hpp</samp>.  The implementation header file should be
+included at a point in your code where the class <code>CopyPtr</code> is
+pointing to is completely defined.
+</p>
+<a name="ClonePtr"></a>
+<h3 class="section">8.2 ClonePtr</h3>
+
+<p><code>ClonePtr</code> is like copy pointer except the <code>clone()</code> method
+is used instead of the copy constructor to make copies of an object.
+If is defined in <samp>clone_ptr.hpp</samp> and implemented in
+<samp>clone_ptr-t.hpp</samp>.
+</p>
+<a name="StackPtr"></a>
+<h3 class="section">8.3 StackPtr</h3>
+
+<p>A <code>StackPtr</code> is designed to be used whenever the only pointer to
+a new object allocated with <code>new</code> is on the stack.  It is
+similar to the standard C++ <code>auto_ptr</code> but the semantics are a
+bit different.  It is defined in <samp>stack_ptr.hpp</samp> &mdash; unlike
+<code>CopyPtr</code> or <code>ClonePtr</code> it is defined and implemented in
+this header file.
+</p>
+<a name="GenericCopyPtr"></a>
+<h3 class="section">8.4 GenericCopyPtr</h3>
+
+<p>A generalized version of <code>CopyPtr</code> and <code>ClonePtr</code> which the
+two are based on.  It is defined in <samp>generic_copy_ptr.hpp</samp> and
+implemented in <samp>generic_copy_ptr-t.hpp</samp>.
+</p>
+
+
+
+</body>
+</html>

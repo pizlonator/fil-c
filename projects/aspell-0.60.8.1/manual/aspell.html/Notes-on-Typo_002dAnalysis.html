@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Notes on Typo-Analysis</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Notes on Typo-Analysis">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Notes-on-Various-Options.html#Notes-on-Various-Options" rel="up" title="Notes on Various Options">
+<link href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes" rel="next" title="Notes on the Different Suggestion Modes">
+<link href="Notes-on-the-Prefix-Option.html#Notes-on-the-Prefix-Option" rel="prev" title="Notes on the Prefix Option">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Notes-on-Typo_002dAnalysis"></a>
+<div class="header">
+<p>
+Next: <a href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes" accesskey="n" rel="next">Notes on the Different Suggestion Modes</a>, Previous: <a href="Notes-on-the-Prefix-Option.html#Notes-on-the-Prefix-Option" accesskey="p" rel="prev">Notes on the Prefix Option</a>, Up: <a href="Notes-on-Various-Options.html#Notes-on-Various-Options" accesskey="u" rel="up">Notes on Various Options</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Notes-on-Typo_002dAnalysis-and-the-Keyboard-Definition-File"></a>
+<h4 class="subsection">4.4.3 Notes on Typo-Analysis and the Keyboard Definition File</h4>
+
+<p>Aspell .33 and better will, in general, give a higher priority to
+certain misspellings which are likely to be due to typos such as
+<code>teh</code> instead of <code>the</code> or <code>hapoy</code> instead of
+<code>happy</code>.  However in order to do this well Aspell needs to know the
+layout of the keyboard via the keyboard definition file.  The keyboard
+definition file simply identifies the keys on the keyboard and which of
+them are right next to each other.  It has an extension of <samp>.kbd</samp>
+and all non-ASCII characters are expected to be in UTF-8.
+</p>
+<p>To identify a key use:
+</p>
+<div class="example">
+<pre class="example">key <var>base</var> <var>other</var> &hellip;
+</pre></div>
+
+<p>where <var>base</var> is the base character that the key types, and
+<var>other</var> are other keys that the key can produce.  For example
+</p>
+<div class="example">
+<pre class="example">key a A á Á
+</pre></div>
+
+<p>It generally is only necessary to list keys which type more than one
+distinct letter as Aspell can derive the rest from the language data
+file.  For example, it is not necessary to include the previously
+mentioned key.
+</p>
+<p>To identify two keys as being right next to each other simply list the
+type keys right after each other.  For example the line:
+</p>
+<div class="example">
+<pre class="example">as
+</pre></div>
+
+<p>will indicate that &lsquo;<samp>a</samp>&rsquo; and &lsquo;<samp>s</samp>&rsquo; are right next to each other.
+If &lsquo;<samp>as</samp>&rsquo; is listed as an entry it is not necessary to list &lsquo;<samp>sa</samp>&rsquo;
+as an entry as that will be done automatically.  Also by <em>right
+next to each other</em> I mean two keys that are close enough together that
+it is easy to type one instead of the other.
+</p>
+<p>The default for this option is normally <samp>standard</samp>.  However
+the default can be changed via the language data file.  The normal
+default, <samp>standard</samp>, should work well for most QWERTY like
+keyboard layouts.  It may need minor adjusting for foreign keyboards.
+A value of <samp>dvorak</samp> can be used for a Dvorak layout and
+<samp>none</samp> can be used to avoid using an explicit keyboard layout
+and only use the information derived from the language data file.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes" accesskey="n" rel="next">Notes on the Different Suggestion Modes</a>, Previous: <a href="Notes-on-the-Prefix-Option.html#Notes-on-the-Prefix-Option" accesskey="p" rel="prev">Notes on the Prefix Option</a>, Up: <a href="Notes-on-Various-Options.html#Notes-on-Various-Options" accesskey="u" rel="up">Notes on Various Options</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

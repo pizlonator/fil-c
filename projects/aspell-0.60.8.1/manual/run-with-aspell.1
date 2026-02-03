@@ -1,0 +1,39 @@
+.TH RUN-WITH-ASPELL 1 "2004-03-03" "GNU" "Aspell Abbreviated User's Manual"
+.SH NAME
+run\-with\-aspell \- script to help use GNU Aspell as an ispell
+replacement
+.SH SYNOPSIS
+.B run\-with\-aspell
+.I "<command>"
+.SH "DESCRIPTION"
+The recommended way to use 
+.B Aspell
+as a replacement for
+.B Ispell
+is to change the 
+.B Ispell
+command from within the program being used.  If that is not possible,
+the
+.B run-with-aspell
+script may be used instead.
+.SH OPTIONS
+.TP
+.B <command>
+is the name of the program with any optional arguments.
+.PP
+The old method of mapping ispell to Aspell is discouraged because it can
+create compatibility problems with programs that actually require ispell
+such as ispell's own scripts.
+.SH SEE ALSO
+.BR aspell (1),
+.BR aspell\-import (1),
+.BR word\-list\-compress (1)
+.PP
+Aspell is fully documented in its Texinfo manual.  See the
+.RB "`\|" aspell "\|'"
+entry in
+.B info
+for more complete documentation.
+.SH AUTHOR
+This manual page was written by Sudhakar Chandrasekharan
+<thaths@netscape.com> and Brian Nelson <pyro@debian.org>.

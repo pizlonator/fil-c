@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Phonetic Code</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Phonetic Code">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" rel="up" title="Adding Support For Other Languages">
+<link href="The-Simple-Soundslike.html#The-Simple-Soundslike" rel="next" title="The Simple Soundslike">
+<link href="Compiling-the-Word-List.html#Compiling-the-Word-List" rel="prev" title="Compiling the Word List">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Phonetic-Code"></a>
+<div class="header">
+<p>
+Next: <a href="The-Simple-Soundslike.html#The-Simple-Soundslike" accesskey="n" rel="next">The Simple Soundslike</a>, Previous: <a href="Compiling-the-Word-List.html#Compiling-the-Word-List" accesskey="p" rel="prev">Compiling the Word List</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Phonetic-Code-1"></a>
+<h3 class="section">7.3 Phonetic Code</h3>
+
+
+<p>Aspell is in fact the spell checker that comes up with the best
+suggestions if it finds an unknown word.  One reason is that it does
+not just compare the word with other words in the dictionary (like
+Ispell does) but also uses phonetic comparisons with other words.
+</p>
+<p>The new table driven phonetic code is very flexible and setting up
+phonetic transformation rules for other languages is not difficult but
+there can be a number of stumbling blocks &mdash; that&rsquo;s why I wrote this
+section.
+</p>
+<p>The main phonetic code is free of any language specific code and
+should be powerful enough to allow setting up rules for any language.
+Anything which is language specific is kept in a plain text file and
+can easily be edited.  So it&rsquo;s even possible to write phonetic
+transformation rules if you don&rsquo;t have any programming skills.  All
+you need to know is how words of the language are written and how they
+are pronounced.
+</p>
+<a name="Syntax-of-the-transformation-array"></a>
+<h4 class="subsection">7.3.1 Syntax of the transformation array</h4>
+
+<p>In the translation array there are two strings on each line; the first
+one is the search string (or switch name) and the second one is the
+replacement string (or switch parameter).  The line
+</p>
+<div class="example">
+<pre class="example">version   <var>version</var>
+</pre></div>
+
+<p>is also required to appear somewhere in the translation array.  The
+version string can be anything but it should be changed whenever a new
+version of the translation array is released.  This is important
+because it will keep Aspell from using a compiled dictionary with the
+wrong set of rules.  For example, if when coming up with suggestion
+for <code>hallo</code>, Aspell will use the new rules to come up with the
+soundslike say <code>H*L*</code>, but if &lsquo;<samp>hello</samp>&rsquo; is stored in the
+dictionary using the old rules as <code>HL</code> instead of <code>H*L*</code>
+Aspell will never be able to come up with &lsquo;<samp>hello</samp>&rsquo;.  So to solve
+this problem Aspell checks if the version strings match and aborts
+with an error if they don&rsquo;t.  Thus it is important to update it
+whenever a new version of the translation array is released.  This is
+only a problem with the main word list as the personal word lists are
+now stored as simple word lists with a single header line (i.e. no
+soundslike data).
+</p>
+<p>Each non switch line represents one replacement (transformation) rule.
+Words beginning with the same letter must be grouped together; the
+order inside this group does not depend on alphabetical issues but it
+gives priorities; the higher the rule the higher the priority.  That&rsquo;s
+why the first rule that matches is applied.  In the following example:
+</p>
+<div class="example">
+<pre class="example">GH   _
+G    K
+</pre></div>
+
+<p>&lsquo;<samp>GH -&gt; _</samp>&rsquo; has higher priority than &lsquo;<samp>G -&gt; K</samp>&rsquo;
+</p>
+<p>&lsquo;<samp>_</samp>&rsquo; represents the empty string &ldquo;&rdquo;.  If &lsquo;<samp>GH -&gt; _</samp>&rsquo; came
+after &lsquo;<samp>G -&gt; K</samp>&rsquo;, the second rule would never match because the
+algorithm would stop searching for more rules after the first match.
+The above rules transform any &lsquo;<samp>GH</samp>&rsquo; to an empty string (delete
+them) and transforms any other &lsquo;<samp>G</samp>&rsquo; to &lsquo;<samp>K</samp>&rsquo;.
+</p>
+<p>At the end of the first string of a line (the search string) there may
+optionally stand a number of characters in brackets.  One (only one!)
+of these characters must fit.  It&rsquo;s comparable with the &lsquo;<samp>[ ]</samp>&rsquo;
+brackets in regular expressions.  The rule &lsquo;<samp>DG(EIY) -&gt; J</samp>&rsquo; for
+example would match any &lsquo;<samp>DGE</samp>&rsquo;, &lsquo;<samp>DGI</samp>&rsquo; and
+&lsquo;<samp>DGY</samp>&rsquo; and replace them with &lsquo;<samp>J</samp>&rsquo;.  This way you can
+reduce several rules to one.
+</p>
+<p>Before the search string, one or more dashes &lsquo;<samp>-</samp>&rsquo; may be placed.
+Those search strings will be matched totally but only the beginning of
+the string will be replaced.  Furthermore, for these rules no follow-up
+rule will be searched (what this is will be explained later).  The
+rule &lsquo;<samp>TCH-- </samp>&rsquo;-&gt; _ will match any word containing
+&lsquo;<samp>TCH</samp>&rsquo; (like &lsquo;<samp>match</samp>&rsquo;) but will only replace the first
+character &lsquo;<samp>T</samp>&rsquo; with an empty string.  The number of dashes
+determines how many characters from the end will not be replaced.
+After the replacement, the search for transformation rules continues
+with the not replaced &lsquo;<samp>CH</samp>&rsquo;!
+</p>
+<p>If a &lsquo;<samp>&lt;</samp>&rsquo; is appended to the search string, the search for
+replacement rules will continue with the replacement string and not with
+the next character of the word.  The rule &lsquo;<samp>PH&lt; -&gt; F</samp>&rsquo; for example
+would replace &lsquo;<samp>PH</samp>&rsquo; with &lsquo;<samp>F</samp>&rsquo; and then again start to search for
+a replacement rule for &lsquo;<samp>F&hellip;</samp>&rsquo;.  If there would also be rules
+like &lsquo;<samp>FO </samp>&rsquo;-&gt; &lsquo;<samp>O</samp>&rsquo; and &lsquo;<samp>F -&gt; _</samp>&rsquo; then words like
+&lsquo;<samp>PHOXYZ</samp>&rsquo; would be transformed to &lsquo;<samp>OXYZ</samp>&rsquo; and any occurrences of
+&lsquo;<samp>PH</samp>&rsquo; that are not followed by an &lsquo;<samp>O</samp>&rsquo; will be deleted like
+&lsquo;<samp>PHIXYZ -&gt; IXYZ</samp>&rsquo;.  The second replacement however is not applied if
+the priority of this rule is lower than the priority of the first rule.
+</p>
+<p>Priorities are added to a rule by putting a number between 0 and 9 at
+the end of the search string, for example &lsquo;<samp>ING6 -&gt; N</samp>&rsquo;.
+The higher the number the higher is the priority.
+</p>
+<p>Priorities are especially important for the previously mentioned
+follow-up rules.  Follow-up rules are searched beginning from the last
+string of the first search string.  This is a bit complicated but I
+hope this example will make it clearer:
+</p>
+<div class="example">
+<pre class="example">CHS      X
+CH       G
+
+HAU--1   H
+
+SCH      SH
+</pre></div>
+
+<p>In this example &lsquo;<samp>CHS</samp>&rsquo; in the word &lsquo;<samp>FUCHS</samp>&rsquo; would be
+transformed to &lsquo;<samp>X</samp>&rsquo;.  If we take the word &lsquo;<samp>DURCHSCHNITT</samp>&rsquo; then
+things look a bit different.  Here &lsquo;<samp>CH</samp>&rsquo; belongs together and
+&lsquo;<samp>SCH</samp>&rsquo; belongs together and both are spoken separately.  The
+algorithm however first finds the string &lsquo;<samp>CHS</samp>&rsquo; which may not be
+transformed like in the previous word &lsquo;<samp>FUCHS</samp>&rsquo;.  At this point the
+algorithm can find a follow-up rule.  It takes the last character of
+the first matching rule (&lsquo;<samp>CHS</samp>&rsquo;) which is &lsquo;<samp>S</samp>&rsquo; and looks for
+the next match, beginning from this character.  What it finds is
+clear: It finds &lsquo;<samp>SCH -&gt; SH</samp>&rsquo;, which has the same priority
+(no priority means standard priority, which is 5).  If the priority is
+the same or higher the follow-up rule will be applied.  Let&rsquo;s take a
+look at the word &lsquo;<samp>SCHAUKEL</samp>&rsquo;.  In this word &lsquo;<samp>SCH</samp>&rsquo; belongs
+together and may not be taken apart.  After the algorithm has found
+&lsquo;<samp>SCH </samp>&rsquo;-&gt; &lsquo;<samp>SH</samp>&rsquo; it searches for a follow-up rule for
+&lsquo;<samp>H+</samp>&rsquo;&lsquo;<samp>AUKEL</samp>&rsquo;.  It finds &lsquo;<samp>HAU--1 -&gt; H</samp>&rsquo;, but does not
+apply it because its priority is lower than the one of the first rule.
+You see that this is a very powerful feature but it also can easily
+lead to mistakes.  If you really don&rsquo;t need this feature you can turn
+it off by putting the line:
+</p>
+<div class="example">
+<pre class="example">followup      0
+</pre></div>
+
+<p>at the beginning of the phonetic table file.  As mentioned, for rules
+containing a &lsquo;<samp>-</samp>&rsquo; no follow-up rules are searched but giving such
+rules a priority is not totally senseless because they can be
+follow-up rules and in that case the priority makes sense again.
+Follow-up rules of follow-up rules are not searched because this is in
+fact not needed very often.
+</p>
+<p>The control character &lsquo;<samp>^</samp>&rsquo; says that the search string only
+matches at the beginning of words so that the rule &lsquo;<samp>RH -&gt; R</samp>&rsquo; will
+only apply to words like &lsquo;<samp>RHESUS</samp>&rsquo; but not &lsquo;<samp>PERHAPS</samp>&rsquo;.  You
+can append another &lsquo;<samp>^</samp>&rsquo; to the search string.  In that case the
+algorithm treats the rest of the word totally separately from the
+first matched string at the beginning.  This is useful for prefixes
+whose pronunciation does not depend on the rest of the word and vice
+versa like &lsquo;<samp>OVER^^</samp>&rsquo; in English for example.
+</p>
+<p>The same way as &lsquo;<samp>^</samp>&rsquo; works does &lsquo;<samp>$</samp>&rsquo; only apply to words
+that end with the search string.  &lsquo;<samp>GN$ -&gt; N</samp>&rsquo; only
+matches on words like &lsquo;<samp>SIGN</samp>&rsquo; but not &lsquo;<samp>SIGNUM</samp>&rsquo;.  If
+you use &lsquo;<samp>^</samp>&rsquo; and &lsquo;<samp>$</samp>&rsquo; together, both of them must fit
+&lsquo;<samp>ENOUGH^$ -&gt; NF</samp>&rsquo; will only match the word
+&lsquo;<samp>ENOUGH</samp>&rsquo; and nothing else.
+</p>
+<p>Of course you can combine all of the mentioned control characters but
+they must occur in this order: &lsquo;<samp>&lt; - priority ^ $</samp>&rsquo;.  All
+characters must be written in CAPITAL letters.
+</p>
+<p>If absolutely no rule can be found &mdash; might happen if you use strange
+characters for which you don&rsquo;t have any replacement rule &mdash; the next
+character will simply be skipped and the search for replacement rules
+will continue with the rest of the word.
+</p>
+<p>If you want double letters to be reduced to one you must set up a rule
+like &lsquo;<samp>LL- -&gt; L</samp>&rsquo;.  If double letters in the resulting phonetic
+word should be allowed, you must place the line:
+</p>
+<div class="example">
+<pre class="example">collapse_result     0
+</pre></div>
+
+<p>at the beginning of your transformation table file; otherwise set the
+value to &lsquo;1&rsquo;.  The English rules for example strip all vowels from
+words and so the word &quot;GOGO&quot; would be transformed to &quot;K&quot; and not to
+&quot;KK&quot; (as desired) if <code>collapse_result</code> is set to 1.  That&rsquo;s why
+the English rules have <code>collapse_result</code> set to <code>0</code>.
+</p>
+<p>By default, all accents are removed from a word before it is matched to
+the soundslike rules.  If you do not want this then add the line
+</p>
+<div class="example">
+<pre class="example">remove_accents      0
+</pre></div>
+
+<p>at the beginning of your file.  The exact definition of an accent is
+language dependent and is controlled via the character set file.  If you
+set remove_accents to &rsquo;0&rsquo; then you should also set &quot;store-as&quot; to &quot;lower&quot;
+in the language data file (not the phonetic transformation file)
+otherwise Aspell will have problems when both the accented and the
+de-accented version of a word appearing in the dictionary; it will
+consider one of them as incorrectly spelled.
+</p>
+<a name="How-do-I-start-finally_003f"></a>
+<h4 class="subsection">7.3.2 How do I start finally?</h4>
+
+<p>Before you start to write an array of transformation rules, you should
+be aware that you have to do some work to make sure that things you do
+will result in correct transformation rules.
+</p>
+<a name="Things-that-come-in-handy"></a>
+<h4 class="subsubsection">7.3.2.1 Things that come in handy</h4>
+
+<p>First of all, you need to have a large word list of the language you
+want to make phonetics for.  It should contain about as many words as
+the dictionary of the spell checker.  If you don&rsquo;t have such a list,
+you will probably find an Ispell dictionary at
+<a href="http://fmg-www.cs.ucla.edu/geoff/ispell-dictionaries.html">http://fmg-www.cs.ucla.edu/geoff/ispell-dictionaries.html</a> which
+will help you.  You can then make affix expansion via &lsquo;<samp>ispell
+-e</samp>&rsquo; and then pipe it through &lsquo;<samp>tr &quot; &quot; &quot;\n&quot;</samp>&rsquo; to put one word on
+each line.  After that you eventually have to convert special
+characters like &lsquo;<samp>é</samp>&rsquo; from Ispell&rsquo;s internal representation to
+latin1 encoding.  &lsquo;<samp>sed s/e'/é/g</samp>&rsquo; for example would replace
+all &lsquo;<samp>e'</samp>&rsquo; with &lsquo;<samp>é</samp>&rsquo;.
+</p>
+<p>The second is that you know how to use regular expressions and know
+how to use <code>grep</code>.  You should for example know that:
+</p>
+<div class="example">
+<pre class="example">grep ^[^aeiou]qu[io] wordlist | less
+</pre></div>
+
+<p>will show you all words that begin with any character but &lsquo;<samp>a</samp>&rsquo;,
+&lsquo;<samp>e</samp>&rsquo;, &lsquo;<samp>i</samp>&rsquo;, &lsquo;<samp>o</samp>&rsquo; or &lsquo;<samp>u</samp>&rsquo; and then continue with
+&lsquo;<samp>qui</samp>&rsquo; or &lsquo;<samp>quo</samp>&rsquo;.  This stuff is important for example to
+find out if a phonetic replacement rule you want to set up is valid
+for all words which match the expression you want to replace.  Taking
+a look at the regex(7) man page is a good idea.
+</p>
+<a name="What-the-phonetic-code-should-do"></a>
+<h4 class="subsubsection">7.3.2.2 What the phonetic code should do</h4>
+
+<p>Normal text comparison works well as long as the typer misspells a
+word because he pressed one key he didn&rsquo;t really want to press.  In
+these cases, mostly one character differs from the original word.
+</p>
+<p>In cases where the writer didn&rsquo;t know about the correct spelling of
+the word, the word may have several characters that differ from the
+original word but usually the word would still sound like the
+original.  Someone might think that &lsquo;tough&rsquo; is spelled &lsquo;taff&rsquo;.  No
+spell checker without phonetic code will come to the idea that this
+might be &lsquo;tough&rsquo;, but a spell checker who knows that &lsquo;taff&rsquo; would be
+pronounced like &lsquo;tough&rsquo; will make good suggestions to the user.  Another
+example could be &lsquo;funetik&rsquo; and &lsquo;phonetic&rsquo;.
+</p>
+<p>From these examples you can see that the phonetic transformation should
+not be too fussy and too precise.  If you implement a whole phonetic
+dictionary as you can find it in books this will not be very useful
+because then there could still be many characters differing from the
+misspelled and the desired word.  What you should do if you implement
+the phonetic transformation table is to reduce the number of used
+letters to the only really necessary ones.
+</p>
+<p>Characters that sound similar should be reduced to one.  In the English
+language for example &lsquo;Z&rsquo; sounds like &lsquo;S&rsquo; and that&rsquo;s why the
+transformation rule &lsquo;<samp>Z -&gt; S</samp>&rsquo; is present in the
+replacement table.  &ldquo;PH is spoken like &ldquo;F and so we have a
+&lsquo;<samp>PH -&gt; F</samp>&rsquo; rule.
+</p>
+<p>If you take a closer look you will even see that vowels sound very
+similar in the English language: &lsquo;contradiction&rsquo;, &lsquo;cuntradiction&rsquo;,
+&lsquo;cantradiction&rsquo; or &lsquo;centradiction&rsquo; in fact sound nearly the same,
+don&rsquo;t they? Therefore the English phonetic replacement rules not only
+reduce all vowels to one but even remove them all (removing is done by
+just setting up no rule for those letters).  The phonetic code of
+&ldquo;contradiction&rdquo; is &ldquo;KNTRTKXN&rdquo; and if you try to read this
+letter-monster loud you will hear that it still sound a bit like
+&lsquo;contradiction&rsquo;.  You also see that &ldquo;D&rdquo; is transformed to &ldquo;T&rdquo;
+because they nearly sound the same.
+</p>
+<p>If you think you have found a regularity you should <em>always</em> take
+your word list and <code>grep</code> for the corresponding regular
+expression you want to make a transformation rule for.  An example: If
+you come to the idea that all English words ending on &lsquo;ough&rsquo; sound
+like &lsquo;AF&rsquo; at the end because you think of &lsquo;enough&rsquo; and &lsquo;tough&rsquo;.  If
+you then <code>grep</code> for the corresponding regular expression by
+&lsquo;<samp>grep -i ough$ wordlist</samp>&rsquo; you will see that the rule you wanted
+to set up is not correct because the rule doesn&rsquo;t fit to words like
+&lsquo;although&rsquo; or &lsquo;bough&rsquo;.  So you have to define your rule more precisely
+or you have to set up exceptions if the number of words that differ
+from the desired rule is not too big.
+</p>
+<p>Don&rsquo;t forget about follow-up rules which can help in many cases but
+which also can lead to confusion and unwanted side effects.  It&rsquo;s also
+important to write exceptions in front of the more general rules
+(&lsquo;<samp>GH</samp>&rsquo; before &lsquo;<samp>G</samp>&rsquo; etc.).
+</p>
+<p>If you think you have set up a number of rules that may produce some
+good results try them out! If you run Aspell as &lsquo;<samp>aspell
+--lang=<var>your_language</var> pipe</samp>&rsquo; you get a prompt at which you can type
+in words.  If you just type words Aspell checks them and eventually
+makes suggestions if they are misspelled.  If you type in <code>$$Sw
+<var>word</var></code> you will see the phonetic transformation and you can test
+out if your work does what you want.
+</p>
+<p>Another good way to check that changes you make to your rules don&rsquo;t
+have any bad side effects is to create another list from your word
+list which contains not only the word of the word list but also the
+corresponding phonetic version of this word on the same line.  If you
+do this once before the change and once after the change you can make
+a diff (see &lsquo;<samp>man diff</samp>&rsquo;) to see what <em>really</em> changed.  To
+do this use the command &lsquo;<samp>aspell --lang=<var>your_language</var>
+soundslike</samp>&rsquo;.  In this mode Aspell will output the the original word
+and then its soundslike separated by a tab character for each word you
+give it.  If you are interested in seeing how the algorithm works you
+can download a set of useful programs from
+<a href="http://members.xoom.com/maccy/spell/phonet-utils.tar.gz">http://members.xoom.com/maccy/spell/phonet-utils.tar.gz</a>.  This
+includes a program that produces a list as mentioned above and another
+program which illustrates how the algorithm works.  It uses the same
+transformation table as Aspell and so it helps a lot during the
+process of creating a phonetic transformation table for Aspell.
+</p>
+<p>During your work you should write down your basic ideas so that other
+people are able to understand what you did (and you still know about
+it after a few weeks).  The English table has a huge documentation
+appended as an example.
+</p>
+<p>Now you can start experimenting with all the things you just read and
+perhaps set up a nice phonetic transformation table for your language
+to help Aspell to come up with the best correction suggestions ever
+seen also for your language.  Take a look at the Aspell homepage to
+see if there is already a transformation table for your language.  If
+there is one you might also take a look at it to see if it could be
+improved.
+</p>
+<p>If you think that this section helped you or if you think that this is
+just a waste of time you can send any feedback to
+<a href="mailto:bjoern.jacke@gmx.de">bjoern.jacke@gmx.de</a>.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="The-Simple-Soundslike.html#The-Simple-Soundslike" accesskey="n" rel="next">The Simple Soundslike</a>, Previous: <a href="Compiling-the-Word-List.html#Compiling-the-Word-List" accesskey="p" rel="prev">Compiling the Word List</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the developer's manual for Aspell.
+
+Copyright © 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Aspell Developer&rsquo;s Manual: Source Code Layout</title>
+
+<meta name="description" content="Aspell spell checker developer&rsquo;s manual.">
+<meta name="keywords" content="Aspell Developer&rsquo;s Manual: Source Code Layout">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Strings.html#Strings" rel="next" title="Strings">
+<link href="Error-Handling.html#Error-Handling" rel="prev" title="Error Handling">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Source-Code-Layout"></a>
+<div class="header">
+<p>
+Next: <a href="Strings.html#Strings" accesskey="n" rel="next">Strings</a>, Previous: <a href="Error-Handling.html#Error-Handling" accesskey="p" rel="prev">Error Handling</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Source-Code-Layout-1"></a>
+<h2 class="chapter">6 Source Code Layout</h2>
+
+<dl compact="compact">
+<dt><samp>common/</samp></dt>
+<dd><p>Common code used by all parts of Aspell.
+</p>
+</dd>
+<dt><samp>lib/</samp></dt>
+<dd><p>Library code used only by the actual Aspell library.
+</p>
+</dd>
+<dt><samp>data/</samp></dt>
+<dd><p>Data files used by Aspell.
+</p>
+</dd>
+<dt><samp>modules/</samp></dt>
+<dd><p>Aspell modules which are eventually meant to be pluggable.
+</p>
+<dl compact="compact">
+<dt><samp>speller/</samp></dt>
+<dd><dl compact="compact">
+<dt><samp>default/</samp></dt>
+<dd><p>Main speller Module.
+  </p></dd>
+</dl>
+
+</dd>
+<dt><samp>filter/</samp></dt>
+<dt><samp>tokenizer/</samp></dt>
+</dl>
+
+</dd>
+<dt><samp>auto/</samp></dt>
+<dd><p>Scripts and data files to automatically generate code used by Aspell.
+</p>
+</dd>
+<dt><samp>interface/</samp></dt>
+<dd><p>Header files and such that external programs should use when in order
+to use the Aspell library.
+</p><dl compact="compact">
+<dt><samp>cc/</samp></dt>
+<dd><p>The external C interface that programs should be using when they wish
+to use Aspell.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>prog/</samp></dt>
+<dd><p>Actual programs based on the Aspell library. The main Aspell utility
+is included here.
+</p>
+</dd>
+<dt><samp>scripts/</samp></dt>
+<dd><p>Miscellaneous scripts used by Aspell.
+</p>
+</dd>
+<dt><samp>manual/</samp></dt>
+<dt><samp>examples/</samp></dt>
+<dd><p>Example programs demonstrating the use of the Aspell library.
+</p></dd>
+</dl>
+
+
+
+
+
+</body>
+</html>

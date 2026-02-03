@@ -1,0 +1,297 @@
+@section mk-src.in
+
+NOTE: This section may not always be up to date since it is manually
+converted from the pod source.
+
+The format of @file{mk-src.in} is as follows:
+
+@verbatim
+    The following characters are literals: { } / '\ ' \n = >
+
+    <items>
+    <items> := (<item>\n)+
+    <items> := <category>:\ <name> {\n<details>\n} | <<tab>><details>
+    <details> := <options>\n /\n <items>
+    <options> := (<option>\n)*
+    <option> := <key> [=> <value>]
+
+    <<tab>> means everything should be indented by one tab
+@end verbatim
+
+    See MkSrc::Info for a description of the categories and options
+
+@section MkSrc::Info
+
+  @code{%info}
+
+    The info array contains information on how to process the info in
+    @file{mk-src.pl}. It has the following layout
+
+@verbatim
+    <category> => options => []
+                  groups => [] # if undef than anything is accepted
+                  creates_type => "" # the object will create a new type
+                                     # as specified
+                  proc => <impl type> => sub {}
+@end verbatim
+    where <impl type> is one of:
+@verbatim
+    cc: for "aspell.h" header file
+    cxx: for C++ interface implemented on top of cc interface
+    native: for creation of header files used internally by aspell
+    impl: for defination of functions declared in cc interface.
+          the definations use the native hedaer files
+    native_impl: for implementations of stuff declared in the native
+                  header files
+@end verbatim
+    each proc sub should take the following argv
+@verbatim
+    $data: a subtree of $master_data
+    $accum: 
+@end verbatim
+    <options> is one of:
+@verbatim
+    desc: description of the object
+    prefix:
+    posib err: the method may return an error condition
+    c func:
+    const: the method is a const member
+    c only: only include in the external interface
+    c impl headers: extra headers that need to be included in the C impl
+    c impl: use this as the c impl instead of the default
+    cxx impl: use this as the cxx impl instead of the default
+    returns alt type: the constructor returns some type other than
+      the object from which it is a member of
+    no native: do not attempt to create a native implementation
+    treat as object: treat as an object rather than a pointer
+@end verbatim
+    The @code{%info} structure is initialized as follows:
+@verbatim
+    our %info =
+    (
+     root => { 
+       options => [],
+       groups => ['methods', 'group']},
+     methods => {
+       # methods is a collection of methods which will be inserted into
+       # a class after some simple substation rules.  A $ will be
+       # replaced with name of the class.
+       options => ['strip', 'prefix', 'c impl headers'],
+       groups => undef},
+     group => {
+       # a group is a colection of objects which should be grouped together
+       # this generally means they will be in the same source file
+       options => ['no native'],
+       groups => ['enum', 'struct', 'union', 'func', 'class', 'errors']},
+     enum => {
+       # basic C enum
+       options => ['desc', 'prefix'],
+       creates_type => 'enum'},
+     struct => {
+       # basic c struct
+       options => ['desc', 'treat as object'],
+       groups => undef,
+       creates_type => 'struct',},
+     union => {
+       # basic C union
+       options => ['desc', 'treat as object'],
+       groups => undef,
+       creates_type => 'union'},
+     class => {
+       # C++ class
+       options => ['c impl headers'],
+       groups => undef,
+       creates_type => 'class'},
+     errors => {}, # possible errors
+     method => {
+       # A class method
+       options => ['desc', 'posib err', 'c func', 'const',
+                   'c only', 'c impl', 'cxx impl'],
+       groups => undef},
+     constructor => {
+       # A class constructor
+       options => ['returns alt type', 'c impl', 'desc'],
+       groups => 'types'},
+     destructor => {
+       # A class destructor
+       options => [],
+       groups => undef},
+     );
+@end verbatim
+    In addition to the categories listed above a ``methods'' category by be
+    specified in under the class category. A ``methods'' category is created
+    for each methods group under the name ``<methods name> methods''. When
+    groups is undefined a type name may be specified in place of a category.
+
+  @code{%types}
+
+    types contains a master list of all types. This includes basic types and
+    ones created in @file{mk-src.in}. The basic types include:
+@verbatim
+    'void', 'bool', 'pointer', 'double',
+    'string', 'encoded string', 'string obj',
+    'char', 'unsigned char',
+    'short', 'unsigned short',
+    'int', 'unsigned int',
+    'long', 'unsigned long'
+@end verbatim
+  %methods
+
+    @code{%methods} is used for holding the ``methods'' information
+
+@section MkSrc::Util
+
+    This module contains various useful utility functions:
+@table @code
+    @item false
+        Returns 0.
+
+    @item true
+        Returns 1.
+
+    @item cmap EXPR LIST
+        Apply EXPR to each item in LIST and than concatenate the result into
+        a string
+
+    @item one_of STR LIST
+        Returns true if LIST contains at least one of STR.
+
+    @item to_upper STR
+        Convert STR to all uppercase and substitute spaces with underscores.
+
+    @item to_lower STR
+        Convert STR to all lowercase and substitute spaces with underscores.
+
+    @item to_mixed STR
+        Convert STR to mixed case where each new word startes with a
+        uppercase letter. For example "feed me" would become "FeedMe".
+@end table
+
+@section MkSrc::Read
+
+    @code{read}
+        Read in @file{mk-src.in} and return a data structure which has the
+        following format:
+@verbatim
+      <tree>
+      <tree> := <options>
+                data => <tree>
+    where each tree represents an entry in mk-src.in.  
+    The following two options are always provided:
+      name: the name of the entry
+      type: the category or type name
+    Additional options are the same as specified in %info
+@end verbatim
+
+@section MKSrc::Create
+
+@table @code
+    @item create_cc_file PARMS
+        Create a source file.
+@example
+     Required Parms: type, dir, name, data
+     Boolean Parms:  header, cxx
+     Optional Parms: namespace (required if cxx), pre_ext,
+                     accum
+@end example
+
+    @item create_file FILENAME DATA
+        Writes DATA to FILENAME but only if DATA differs from the content of
+        the file and the string:
+@example
+     Automatically generated file.
+@end example
+
+        is present in the existing file if it already exists.
+@end table
+
+@section Code Generation Modes
+
+    The code generation modes are currently one of the following:
+@example
+     cc:     Mode used to create types suitable for C interface
+     cc_cxx: Like cc but typenames don't have a leading Aspell prefix
+     cxx:    Mode used to create types suitable for CXX interface
+     native: Mode in which types are suitable for the internal
+             implementation
+     native_no_err: Like Native but with out PosibErr return types
+@end example
+
+@section MkSrc::CcHelper
+
+    Helper functions used by interface generation code:
+@example
+    to_c_return_type ITEM
+        .
+
+    c_error_cond ITEM
+        .
+@end example
+
+@table @code
+    @item make_func NAME @@TYPES PARMS ; %ACCUM
+        Creates a function prototype
+
+        Parms can be any of:
+@example
+          mode: code generation mode
+@end example
+
+    @item call_func NAME @@TYPES PARMS ; %ACCUM
+        Return a string to call a func. Will prefix the function with return
+        if the functions returns a non-void type;
+
+        Parms can be any of:
+@example
+          mode: code generation mode
+@end example
+
+    @item to_type_name ITEM PARMS ; %ACCUM
+        Converts item into a type name.
+
+        Parms can be any of:
+@example
+     mode: code generation mode
+     use_type: include the actual type
+     use_name: include the name on the type
+     pos: either "return" or "other"
+@end example
+
+    @item make_desc DESC ; LEVEL
+        Make a C comment out of DESC optionally indenting it LEVEL spaces.
+
+    @item make_c_method CLASS ITEM PARMS ; %ACCUM
+        Create the phototype for a C method which is really a function.
+
+        Parms is any of:
+@example
+     mode:      code generation mode
+     no_aspell: if true do not include aspell in the name
+     this_name: name for the parameter representing the
+                current object
+@end example
+
+    @item call_c_method CLASS ITEM PARMS ; %ACCUM
+        Like make_c_method but instead returns the appropriate string to
+        call the function. If the function returns a non-void type the
+        string will be prefixed with a return statement.
+
+    @item form_c_method CLASS ITEM PARMS ; %ACCUM
+        Like make_c_method except that it returns the array:
+@example
+     ($func, $data, $parms, $accum)
+@end example
+
+        which is suitable for passing into make_func. It will return an
+        empty array if it can not make a method from ITEM.
+
+    @item make_cxx_method ITEM PARMS ; %ACCUM
+        Create the phototype for a C++ method.
+
+        Parms is one of:
+@example
+     mode: code generation mode
+@end example
+@end table
+
+

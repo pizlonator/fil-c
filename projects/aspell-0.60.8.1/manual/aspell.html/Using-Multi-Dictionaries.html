@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Using Multi Dictionaries</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Using Multi Dictionaries">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="up" title="Working With Dictionaries">
+<link href="Dictionary-Naming.html#Dictionary-Naming" rel="next" title="Dictionary Naming">
+<link href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries" rel="prev" title="Format of the Personal and Replacement Dictionaries">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Using-Multi-Dictionaries"></a>
+<div class="header">
+<p>
+Next: <a href="Dictionary-Naming.html#Dictionary-Naming" accesskey="n" rel="next">Dictionary Naming</a>, Previous: <a href="Format-of-the-Personal-and-Replacement-Dictionaries.html#Format-of-the-Personal-and-Replacement-Dictionaries" accesskey="p" rel="prev">Format of the Personal and Replacement Dictionaries</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Using-Multi-Dictionaries-1"></a>
+<h3 class="section">5.8 Using Multi Dictionaries</h3>
+
+<p>As with previous versions of Aspell you can specify the main
+dictionary to use via the <samp>-d</samp> or <samp>--master</samp> option.
+However as of <acronym>Aspell .32</acronym> you can now also:
+</p>
+<ol>
+<li> Specify more than word list to use with the
+<samp>extra-dicts</samp> option.
+
+</li><li> Specify special <em>multi</em> dictionaries.
+</li></ol>
+
+<p>The <samp>extra-dicts</samp> is a list option.  To add a dictionary use
+<samp>add-extra-dicts</samp> or to remove a dictionary from the list
+use <samp>rem-extra-dicts</samp>.
+</p>
+<p>A <em>multi</em> dictionary is a special file which is basically a list
+of dictionary files to use.  A <em>multi</em> dictionary must end in
+<samp>.multi</samp> and has roughly the same format as a configuration file
+with the only accepted key being <samp>add</samp>.
+</p>
+
+
+
+</body>
+</html>

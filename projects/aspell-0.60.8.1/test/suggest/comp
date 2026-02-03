@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use autodie;
+
+use Symbol 'qualify_to_ref';
+
+open A, $ARGV[0];
+open B, $ARGV[1];
+my $level = $ARGV[2];
+$level = 0 unless defined $level;
+
+my %score;
+$score{orig} = [0,0,0,0,0,0];
+$score{new} = [0,0,0,0,0,0];
+sub get_line(*$) {
+    my $fh = qualify_to_ref(shift, caller);
+    my $id = shift;
+    local $_ = <$fh>;
+    chomp;
+    my @d = split "\t", $_, -1;
+    push @d, '' if @d == 4;
+    die "bad line: $_" unless @d == 5;
+    my %v = (key => "$d[0] => $d[1]",
+             mis => $d[0], cur => $d[1], pos => $d[2], num => $d[3], sugs => $d[4]);
+    $v{pos} = 'inf'  if $v{pos} == 0;
+    $score{$id}[0]++     if $v{pos} == 1;
+    $score{$id}[1]++     if $v{pos} <= 5;
+    $score{$id}[2]++    if $v{pos} <= 10;
+    $score{$id}[3]++    if $v{pos} <= 25;
+    $score{$id}[4]++    if $v{pos} <= 50;
+    $score{$id}[5]++ if $v{pos} < 'inf';
+    my @sugs = split ', ', $v{sugs};
+    foreach (@sugs) {$_ = "*$_*" if $_ eq $v{cur};}
+    $v{sugs} = join ', ', @sugs;
+    return %v;
+}
+
+my @tally = (0,0,0,0);
+my $fail = 0;
+
+while (!eof(A) && !eof(B)) {
+    my %a = get_line A, 'orig';
+    my %b = get_line B, 'new';
+    my $prefix = '  ';
+    if ($a{sugs} eq $b{sugs}) {
+        $tally[0]++;
+        next if ($level > 0);
+        print "$prefix$a{key}: same\n";
+        next;
+    } elsif ($a{pos} eq $b{pos}) {
+        $tally[1]++;
+        next if ($level > 1);
+        print "$prefix$a{key}: differ:\n";
+        $fail++;
+    } elsif ($a{pos} > $b{pos}) {
+        $tally[2]++;
+        next if ($level > 2);
+        $prefix = '. ';
+        print "$prefix$a{key}: better: $a{pos} > $b{pos}:\n";
+        $fail++;
+    } else {
+        $tally[3]++;
+        $prefix = '!!';
+        print "$prefix$a{key}: WORSE: $a{pos} < $b{pos}:\n";
+        $fail++;
+    }
+    printf "$prefix    %3d: $a{sugs}\n", $a{num};
+    printf "$prefix    %3d: $b{sugs}\n", $b{num};
+}
+
+my @fh = (*STDOUT);
+print STDERR "RESULTS DIFFER ($ARGV[0] $ARGV[1])!\n" if $fail;
+push @fh, *STDERR if $fail;
+for my $fh (@fh) {
+    printf $fh "STATS orig: ".join(" ", @{$score{orig}})."\n";
+    printf $fh "STATS diff: ".join(" ", map {sprintf("%+3d", $score{new}[$_] - $score{orig}[$_])} (0..5))."\n";
+    printf $fh "TOTALS:  same: %d,  differ: %d,  better: %d,  WORSE: %d\n", @tally;
+}
+
+exit 1 if $fail != 0;

@@ -1,0 +1,1101 @@
+\input texinfo   @c -*-texinfo-*-
+
+@setfilename aspell-dev.info
+@settitle Aspell Developer's Manual
+@setchapternewpage off
+@syncodeindex pg cp
+@documentencoding UTF-8
+@documentdescription
+Aspell spell checker developer's manual.
+@end documentdescription
+
+@copying
+This is the developer's manual for Aspell.
+
+Copyright @copyright{} 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License".
+@end quotation
+@end copying
+
+@dircategory GNU Packages
+@direntry
+* Aspell-dev: (aspell-dev).        For Aspell developers
+@end direntry
+
+@titlepage
+@title Aspell Developer's Manual
+@author Kevin Atkinson (@email{kevina@@gnu.org})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Style Guidelines, (dir), (dir)
+@top Notes
+This manual is designed for those who wish to develop Aspell.  It is
+currently very sketchy.  However, it should improve over time.
+
+@menu
+* Style Guidelines::            
+* How to Submit a Patch::       
+* C++ Standard Library::        
+* Templates::                   
+* Error Handling::              
+* Source Code Layout::         
+* Strings::                     
+* Smart Pointers::              
+* I/O::                         
+* Config Class::                
+* Filter Interface::            
+* Filter Modes::            
+* Data Structures::             
+* Mk-Src Script::               
+* How It All Works::
+* Copying::
+@end menu
+
+@end ifnottex
+
+@node Style Guidelines, How to Submit a Patch, Top, Top
+@chapter Style Guidelines
+
+* Style Guidelines::            
+* How to Submit a Patch::            
+* C++ Standard Library::        
+* Templates::                   
+* Error Handling::              
+* Source Code Layout::         
+* Strings::
+* Smart Pointers::              
+* I/O::                         
+* Config Class::                
+* Filter Interface::            
+* Filter Modes::            
+* Data Structures::             
+* Mk-Src Script::               
+* How It All Works::
+* Copying::
+
+As far as coding styles go I am really not that picky.  The important
+thing is to stay consistent.  However, please whatever you do, do not
+indent with more than 4 characters as I find indenting with more than
+that extremely difficult to read as most of the code ends up on the
+right side of the screen.
+
+@node How to Submit a Patch, C++ Standard Library, Style Guidelines, Top
+@chapter How to Submit a Patch
+
+Bug reports and patches should be submitted via GitHub Issues
+at @uref{https://github.com/GNUAspell/aspell/issues} rather than
+being posted to any of the mailing lists.
+
+The mailing lists are good if you need to check something out or need
+help or feedback from other readers, but they are not the best place to
+submit bugs or patches because they will likely get forgotten or lost
+within the mailing list traffic if not acted upon immediately.
+
+Please make the effort to use the tracker.
+
+@node C++ Standard Library, Templates, How to Submit a Patch, Top
+@chapter C++ Standard Library
+
+The C++ Standard library is not used directly except under very
+specific circumstances.  The string class and the STL are used
+indirectly through wrapper classes and all I/O is done using the
+standard C library with light right helper classes to make using C I/O
+a bit more C++ like.
+
+However the @code{new}, @code{new[]}, @code{delete} and
+@code{delete[]} operators are used to allocate memory when
+appropriate.
+
+@node Templates, Error Handling, C++ Standard Library, Top
+@chapter Templates
+
+Templates are used in Aspell when there is a clear advantage to doing
+so.  Whenever you use templates please use them carefully and try very
+hard not to create code bloat by generating a lot of unnecessary and
+duplicate code.
+
+@node Error Handling, Source Code Layout , Templates, Top
+@chapter Error Handling
+
+Exceptions are not used in Aspell as I find them more trouble than
+they are worth.  Instead an alternate method of error handling is used
+which is based around the PosibErr class.  PosibErr is a special Error
+handling device that will make sure that an error is properly handled.
+It is defined in @code{posib_err.hpp}.  PosibErr is expected to be
+used as the return type of the function. It will automatically be
+converted to the "normal" return type however if the normal returned
+type is accessed and there is an "unhandled" error condition it will
+abort. It will also abort if the object is destroyed with an
+"unhandled" error condition.  This includes ignoring the return type
+of a function returning an error condition.  An error condition is
+handled by simply checking for the presence of an error, calling
+ignore, or taking ownership of the error.
+
+The PosibErr class is used extensively throughout Aspell.  Please
+refer to the Aspell source for examples of using PosibErr until better
+documentation is written.
+
+@node Source Code Layout, Strings, Error Handling, Top
+@chapter Source Code Layout 
+
+@table @file
+@item common/
+ Common code used by all parts of Aspell.
+
+@item lib/
+ Library code used only by the actual Aspell library.
+
+@item data/
+ Data files used by Aspell.
+
+@item modules/
+ Aspell modules which are eventually meant to be pluggable.
+
+@table @file
+  @item speller/ 
+  @table @file
+    @item default/
+      Main speller Module.
+  @end table
+
+  @item filter/ 
+
+  @item tokenizer/
+@end table
+
+@item auto/
+Scripts and data files to automatically generate code used by Aspell.
+
+@item interface/
+Header files and such that external programs should use when in order
+to use the Aspell library.
+@table @file
+
+@item cc/
+The external C interface that programs should be using when they wish
+to use Aspell.
+@end table
+
+@item prog/
+Actual programs based on the Aspell library. The main Aspell utility
+is included here.
+
+@item scripts/
+Miscellaneous scripts used by Aspell.
+
+@item manual/
+
+@item examples/
+Example programs demonstrating the use of the Aspell library.
+@end table
+
+
+@node  Strings, Smart Pointers, Source Code Layout, Top
+@chapter Strings
+
+@section String
+
+The @code{String} class provided the same functionality of the C++
+string except for fewer constructors.  It also inherits @code{OStream}
+so that you can write to it with the @code{<<} operator.  It is
+defined in @code{string.hpp}.
+
+@section ParmString
+
+ParmString is a special string class that is designed to be used as a
+parameter for a function that is expecting a string.  It is defined in
+@code{parm_string.hpp}.  It will allow either a @code{const char *} or
+@code{String} class to be passed in.  It will automatically convert to
+a @code{const char *}.  The string can also be accessed via the
+@code{str} method.  Usage example:
+@verbatim
+void foo(ParmString s1, ParmString s2) {
+   const char * str0 = s1;
+   unsigned int size0 = s2.size()
+   if (s1 == s2 || s2 == "bar") {
+     ...
+   }
+}
+...
+String s1 = "...";
+foo(s1);
+const char * s2 = "...";
+foo(s2);
+@end verbatim
+
+This class should be used when a string is being passed in as a
+parameter.  It is faster than using @code{const String &} (as that
+will create an unnecessary temporary when a @code{const char *} is
+passed in), and is less annoying than using @code{const char *} (as it
+doesn't require the @code{c_str()} method to be used when a
+@code{String} is passed in).
+
+@section CharVector
+
+A character vector is basically a @code{Vector<char>} but it has a few
+additional methods for dealing with strings which @code{Vector} does
+not provide.  It, like @code{String}, is also inherits @code{OStream}
+so that you can write to it with the @code{<<} operator.  It is
+defined in @code{char_vector.hpp}.  Use it when ever you need a string
+which is guaranteed to be in a continuous block of memory which you
+can write to.
+
+@node Smart Pointers, I/O, Strings, Top
+@chapter Smart Pointers
+
+Smart pointers are used extensively in Aspell to
+simplify memory management tasks and to avoid memory leaks. 
+
+@section CopyPtr
+
+The @code{CopyPtr} class makes a deep copy of an object whenever it is
+copied.  The @code{CopyPtr} class is defined in @file{copy_ptr.hpp}.
+This header should be included wherever @code{CopyPtr} is used.  The
+complete definition of the object @code{CopyPtr} is pointing to does
+not need to be defined at this point.  The implementation is defined
+in @file{copy_ptr-t.hpp}.  The implementation header file should be
+included at a point in your code where the class @code{CopyPtr} is
+pointing to is completely defined.
+
+@section ClonePtr
+
+@code{ClonePtr} is like copy pointer except the @code{clone()} method
+is used instead of the copy constructor to make copies of an object.
+If is defined in @file{clone_ptr.hpp} and implemented in
+@file{clone_ptr-t.hpp}.
+
+@section StackPtr
+
+A @code{StackPtr} is designed to be used whenever the only pointer to
+a new object allocated with @command{new} is on the stack.  It is
+similar to the standard C++ @code{auto_ptr} but the semantics are a
+bit different.  It is defined in @file{stack_ptr.hpp} --- unlike
+@code{CopyPtr} or @code{ClonePtr} it is defined and implemented in
+this header file.
+
+@section GenericCopyPtr
+
+A generalized version of @code{CopyPtr} and @code{ClonePtr} which the
+two are based on.  It is defined in @file{generic_copy_ptr.hpp} and
+implemented in @file{generic_copy_ptr-t.hpp}.
+
+@node I/O, Config Class, Smart Pointers, Top
+@chapter I/O
+
+Aspell does not use C++ I/O classes and functions in any way since
+they do not provide a way to get at the underlying file number and can
+often be slower than the highly tuned C I/O functions found in the
+standard C library.  However, some lightweight wrapper classes are
+provided so that standard C I/O can be used in a more C++ like way.
+
+@section IStream/OStream
+
+These two base classes mimic some of the functionally of the C++
+functionally of the corresponding classes.  They are defined in
+@file{istream.hpp} and @file{ostream.hpp} respectively.  They are
+however based on standard C I/O and are not proper C++ streams.
+
+@section FStream
+
+Defined in @file{fstream.hpp}.
+
+
+@section Standard Streams
+
+@code{CIN}/@code{COUT}/@code{CERR}.  Defined in @file{iostream.hpp}.
+
+@node Config Class, Filter Interface, I/O, Top
+@chapter Config Class
+
+The @code{Config} class is used to hold configuration information.  It
+has a set of keys which it will accept.  Inserting or even trying to
+look at a key that it does not know will produce an error.  It is
+defined in @file{common/config.hpp}.
+
+
+@node Filter Interface, Filter Modes, Config Class, Top
+@chapter Filter Interface
+
+@section Overview
+@anchor{Filter Overview}
+
+In Aspell there are 5 types of filters:
+@enumerate
+@item
+@emph{Decoders} which take input in some standard format such as
+iso8859-1 or UTF-8 and convert it into a string of @code{FilterChars}.
+@item
+@emph{Decoding filters} which manipulate a string of
+@code{FilterChars} by decoding the text is some way such as converting
+an SGML character into its Unicode value.
+@item
+@emph{True filters} which manipulate a string of @code{FilterChars} to
+make it more suitable for spell checking.  These filters generally
+blank out text which should not be spell checked
+@item
+@emph{Encoding filters} which manipulate a string of
+@code{FilterChars} by encoding the text in some way such as converting
+certain Unicode characters to SGML characters.
+@item
+@emph{Encoders} which take a string of @code{FilterChars} and convert
+into a standard format such as iso8859-1 or UTF-8
+@end enumerate
+
+Which types of filters are used depends on the situation
+@enumerate
+@item
+When @emph{decoding words} for spell checking:
+@itemize @bullet
+@item
+The @emph{decoder} to convert from a standard format
+@item
+The @emph{decoding filter} to perform high level decoding if necessary
+@item
+The @emph{encoder} to convert into an internal format used by the
+speller module
+@end itemize
+
+@item
+When @emph{checking a document}
+@itemize @bullet
+@item
+The @emph{decoder} to convert from a standard format
+@item
+The @emph{decoding filter} to perform high level decoding if necessary
+@item
+A @emph{true filter} to filter out parts of the document which should
+not be spell checked
+@item
+The @emph{encoder} to convert into an internal format used by the
+speller module
+@end itemize
+
+@item
+When @emph{encoding words} such as those returned for suggestions:
+@itemize @bullet
+@item
+The @emph{decoder} to convert from the internal format used by the
+speller module
+@item
+The @emph{encoding filter} to perform high level encodings if
+necessary
+@item
+The @emph{encoder} to convert into a standard format
+@end itemize
+@end enumerate
+
+
+A @code{FilterChar} is a struct defined in
+@file{common/filter_char.hpp} which contains two members, a character,
+and a width.  Its purpose is to keep track of the width of the
+character in the original format.  This is important because when a
+misspelled word is found the exact location of the word needs to be
+returned to the application so that it can highlight it for the user.
+For example if the filters translated this:
+@verbatim
+Mr. foo said &quot;I hate my namme&quot;.
+@end verbatim
+
+to this
+@verbatim
+Mr. foo said "I hate my namme".
+@end verbatim
+
+without keeping track of the original width of the characters the application
+ will likely highlight 
+@code{e my }
+ as the misspelling because the spell checker will return 25 as the offset
+ instead of 30.
+ However with keeping track of the width using @code{FilterChar} the
+ spell checker 
+ will know that the real position is 30 since the quote is really 6 characters
+ wide.
+ In particular the text will be annotated something like the following:
+@verbatim
+1111111111111611111111111111161
+Mr. foo said "I hate my namme".
+@end verbatim
+
+The standard @emph{encoder} and @emph{decoder} filters are defined in
+@file{common/convert.cpp}.  There should generally not be any need to
+deal with them so they will not be discussed here.  The other three
+filters, the @emph{encoding filter}, the @emph{true filter}, and the
+@emph{decoding filter}, are all defined the exact same way; they are
+inherited from the @code{IndividualFilter} class.
+
+@section Adding a New Filter
+
+A new filter basically is added by placing the corresponding loadable
+object inside a directory reachable by Aspell via @option{filter-path}
+list.  Further it is necessary that the corresponding filter
+description file is located in one of the directories listed by the
+@option{option-path} list.
+
+The name of the loadable object has to conform to the following
+convention @file{lib@i{filtername}-filter.so} where
+@code{@i{filtername}} stands for the name of the filter which is
+passed to Aspell by the @option{add-filter} option.  The same applies
+to the filter description file which has to conform to the following
+naming scheme: @file{@i{filtername}-filter.opt}.
+
+To add a new loadable filter object create a new file.
+
+Basically the file should be a C++ file and end in @file{.cpp}.  The
+file should contain a new filter class inherited from
+@code{IndividualFilter} and a constructor function called
+@file{new_@i{filtertype}} (see @ref{Constructor Function}) returning a
+new filter object.  Further it is necessary to manually generate the
+filter description file.  Finally the resulting object has to be
+turned into a loadable filter object using libtool.
+
+Alternatively a new filter may extend the functionality of an existing
+filter. In this case the new filter has to be derived form the 
+corresponding valid filter class instead of the @code{IndividualFilter}
+class.
+
+@section IndividualFilter class
+
+All filters are required to inherit from the @code{IndividualFilter}
+class found in @file{indiv_filter.hpp}.  See that file for more
+details and the other filter modules for examples of how it is used.
+
+@section Constructor Function
+@anchor{Constructor Function}
+
+After the class is created a function must be created which will
+return a new filter allocated with @code{new}.  The function must have
+the following prototype:
+@example
+C_EXPORT IndividualFilter * new_aspell_@var{filtername}_@var{filtertype}
+@end example
+
+Filters are defined in groups where each group contains an
+@emph{encoding filter}, a @emph{true filter}, and a @emph{decoding
+filter} (see @ref{Filter Overview}).  Only one of them is required to
+be defined, however they all need a separate constructor function.
+
+@section Filter Description File
+@anchor{Filter Description File}
+
+This file contains the description of a filter which is loaded by
+Aspell immediately when the @option{add-filter} option is invoked.  If
+this file is missing Aspell will complain about it.  It consists of
+lines containing comments which must be started by a @kbd{#}
+character and lines containing key value pairs describing the filter.
+Each file at least has to contain the following two lines in the given
+order.
+ 
+@example
+ASPELL >=0.60
+DESCRIPTION this is short filter description
+@end example
+
+The first non blank, non comment line has to contain the keyword
+@code{ASPELL} followed by the version of Aspell which the filter is
+usable with.  To denote multiple Aspell versions the version number may
+be prefixed by `@kbd{<}', `@kbd{<=}', `@kbd{=}', `@kbd{>=}' or `@kbd{>}.
+If the range prefix is omitted `@kbd{=}' is assumed.  The
+@code{DESCRIPTION} of the filter should be under 50, begin in lower
+case, and note include any trailing punctuation characters.
+The keyword @code{DESCRIPTION} may be abbreviated by @code{DESC}.
+
+For each filter feature (see @ref{Filter Overview}) provided by the
+corresponding loadable object, the option file has to contain the
+following line:
+@example
+STATIC @code{@i{filtertype}}
+@end example
+@code{@i{filtertype}} stands for one of @code{decoder}, @code{filter}
+or @code{encoder} denoting the entire filter type.  This line allows
+to statically (see @ref{Link Filters Static}) link the filter into
+Aspell if requested by the user or by the system Aspell is built for.
+
+@example
+OPTION newoption
+DESCRIPTION this is a short description of newoption
+TYPE bool
+DEFAULT false
+ENDOPTION
+@end example
+
+An option is added by a line containing the keyword @code{OPTION}
+followed by the name of the option.  If this name is not prefixed by
+the name of the filter Aspell will implicitly do that.  For the
+@code{DESCRIPTION} of a filter option the same holds as for the filter
+description.  The @code{TYPE} of the option may be one of @code{bool},
+@code{int}, @code{string} or @code{list}.  If the @code{TYPE} is
+omitted @code{bool} is assumed.  The default value(s) for an option is
+specified via @code{DEFAULT} (short @code{DEF}) followed by the
+desired @code{TYPE} dependent default value.  The table @ref{Filter
+Default Values} shows the possible values for each @code{TYPE}.
+
+@anchor{Filter Default Values}
+@multitable {string} {Default} {any comma separated list of strings}
+@item @b{Type} @tab @b{Default} @tab @b{Available}
+@item bool @tab true    @tab true false
+@item int  @tab 0       @tab any number value
+@item string @tab       @tab any printable string
+@item list   @tab       @tab any comma separated list of strings 
+@end multitable
+
+Table 1. Shows the default values Aspell assumes if option
+@option{description} lacks a @code{DEFAULT} or @code{DEF} line.
+
+The @code{ENDOPTION} line may be omitted as it is assumed implicitly
+if a line containing @code{OPTION}, @code{STATIC}.
+
+@quotation
+@strong{Note@:} The keywords in a filter description file are case
+insensitive.  The above examples use the all uppercase for better
+distinguishing them from values and comments.  Further a filter
+description may contain blank lines to enhance their readability.
+@end quotation
+
+@quotation
+@strong{Note@:} An option of @code{list} type may contain multiple
+consecutive lines for default values starting with @code{DEFAULT} or
+@code{DEF}, to specify numerous default values.
+@end quotation
+
+
+@section Retrieve Options by a Filter
+
+An option always has to be retrieved by a filter using its full
+qualified name as the following example shows.
+ 
+
+@example
+config->retrieve_bool("filter-@i{filtername}-newoption"); 
+@end example
+
+The prefix @code{filter-} allows user to relate option uniquely to the
+specific filter when @code{@i{filtername}-newoption} ambiguous an
+existing option of Aspell.  The @code{@i{filtername}} stands for the
+name of the filter the option belongs to and @code{-@i{newoption}} is
+the name of the option as specified in the corresponding @file{.opt}
+file (see @ref{Filter Description File}
+
+
+@section Compiling and Linking
+
+See a good book on Unix programming on how to turn the filter source
+into a loadable object.
+
+
+@section Programmer's Interface
+@anchor{Programmer's Interface}
+
+
+@anchor{Recommended Standard Aspell} A more convenient way
+recommended, if filter is added to Aspell standard distribution to
+build a new filter is provided by Aspell's programmers interface for
+filter.  It is provided by the @file{loadable-filter-API.hpp} file.
+Including this file gives access to a collection of macros hiding
+nasty details about runtime construction of a filter and about filter
+debugging.  Table @ref{Interface Macros} shows the macros provided by
+the interface.  For details upon the entire macros see
+@file{loadable-filter-API.hpp}.  An example on how to use these macros
+can be found at @file{examples/loadable/ccpp-context.hpp} and
+@file{examples/loadable/ccpp-context.cpp}.
+
+@multitable @columnfractions .25 .06 .34 .34
+@item @b{Macro} @tab @b{Type} @tab @b{Description} @tab @b{Notes}
+@item ACTIVATE_ENCODER @tab M @tab makes the entire encoding
+filter callable by Aspell @tab do not call inside class declaration;
+these macros define new_<filtertype> function; 
+@item ACTIVATE_DECODER @tab M @tab makes the entire decoding
+filter callable by Aspell @tab @emph{as above}
+@item ACTIVATE_FILTER @tab M @tab makes the entire filter
+callable by Aspell @tab @emph{as above} 
+@item FDEBUGOPEN @tab D @tab Initialises the macros for debugging a
+filter and opens the debug file stream @tab These macros are only
+active if the @code{FILTER_PROGRESS_CONTROL} macro is defined and
+denotes the name of the file debug messages should be sent to.
+
+If debugging should go to Aspell standard debugging output (right now
+stderr) use empty string constant as filename
+@item FDEBUGNOTOPEN @tab D @tab Same as ``FDEBUGOPEN'' but
+only if debug file stream was not opened yet @tab @emph{as above}
+@item FDEBUGCLOSE @tab D @tab closes the debugging device opened by ``FDEBUGOPEN'' and reverts it to ``stderr''; @tab @emph{as above}
+@item FDEBUG @tab D @tab prints the filename and the line
+number it occurs @tab @emph{as above}
+@item FDEBUGPRINTF @tab D @tab special printf for debugging
+@tab @emph{as above} 
+@end multitable
+
+Table 2. Shows the macros provided by @file{loadable-filter-API.hpp}
+(@strong{M} mandatory, @strong{D} debugging) @anchor{Interface Macros}
+
+
+@section Adding a filter to Aspell standard distribution
+@anchor{Link Filters Static}
+
+Any filter which one day should be added to Aspell has to be built
+using the developer interface, described in @ref{Programmer's
+Interface}.  To add the filter the following steps have to be
+performed:
+
+@enumerate
+@item
+Decide whether the filter should be kept loadable if possible, or
+always be statically linked to Aspell.
+
+@item
+@anchor{Place Sources} Place the filter sources inside the entire
+directory of Aspell source tree.  Right now use
+@code{@i{$top_srcdir}/modules/filter}.
+ 
+@item
+Modify the @file{Makefile.am} file on the topmost directory of the
+Aspell distribution.  Follow the instructions given by the
+@code{#Filter Modules} section.
+ 
+@item
+Run @file{autoconf}, @file{automake}, @dots{}
+
+@item
+Reconfigure sources.
+ 
+@item
+@anchor{Build Sources} Clear away any remains of a previous build and
+rebuild sources.
+ 
+@item
+@anchor{Reinstall Aspell} Reinstall Aspell.
+ 
+@item
+@anchor{Test Filter Installed} Test if filter has been added properly
+otherwise return to steps 2--7
+@c Doesn't work@ref{Place Sources}-@ref{Reinstall Aspell}.
+ 
+@item
+Reconfigure sources with @option{enable-static} flag and repeat steps
+2--7
+@c Doesn't work @ref{Build Sources}-@ref{Test Filter Installed}
+until your filter builds and runs properly in case of static linkage.
+ 
+@item
+Add your source files to cvs, and commit all your changes.  Or in case
+you are not allowed to commit to cvs submit a patch (see @ref{How to
+Submit a Patch}) containing your changes.
+
+@end enumerate
+@c Following this comes the section ``Filter Modes''
+@node Filter Modes, Data Structures,Filter Interface, Top
+@chapter Filter Modes
+
+Filter modes are the preferred way to specify combinations of
+filters which are used regularly and thus abbreviate Aspell's
+command line arguments.
+
+A new filter mode is specified by a file named like the filter
+new mode and prefixed by @file{.amf} (Aspell Mode File). If such a file
+is accessible by the path set via filter-path option Aspell
+will try to load the contained mode specification.
+
+@section Aspell Mode File
+The first key in the made file has be the @code{mode} key.
+It is checked against the mode name part of the .amf file.
+If the @code{mode} key is missing mode file will be rejected.
+
+The same holds for the @code{aspell} key which specifies the
+version(s) of Aspell which is(are) required by the filter.
+
+If these two keys are followed by at least one @code{magic} key
+Aspell will be able to select the entire mode from extension and
+if required from contents of the file to spell implicitly.
+
+The last key of the required keys is the @code{des[c[ription]]}
+key. It gives a short description of the filter mode which will
+displayed when type @command{aspell help}.
+
+The rest of the file consists of the keys @code{filter} and
+@code{option} to load filters are set various options.
+
+@subsection Version Line
+
+Each version line must start with @code{aspell} and be followed by a
+version, optionally prefixed by a relational operator. The relation
+operator can be one of `<', `<=', `=', `>=' or '>' for allowing Aspell
+version with version number being lower, lower or equal, equal to,
+greater or equal or greater than required version number,
+respectfully. If the relation operator is omitted `=' is assumed.
+
+@subsection Magic Line
+
+The magic line contains a description which requirements files
+have to fulfill in order to implicitly activate the entire mode
+at least one such line is required.  Each magic line has the following
+format:
+@example
+MAGIC /<magic key>/<fileextension>[/<fileextension>]
+@end example
+
+The magic key consist of three `:' separated fields.
+The first two are byte counts the last is a regular expression.
+The first byte count indicates the first byte the regular expression
+will be applied to the second byte count indicates the number of
+bytes to test against the regular expression.
+
+If mode selection should only occurred on basis of the listed file
+extensions the magic key should consist of the ``<noregex>'' special
+string.
+
+At least one <fileextension> is required per MAGIC line.
+<fileextension> may not be empty and should not contain a leading `.'
+as this is assumed implicitly.
+
+Multiple MAGIC lines are allowed. Modes may be extended limited by additional
+<label>.amf files located in --filter-path
+Thus file extensions may be prefixed by `+' or `-' to indicate that
+the entire extension has to be added ore removed from this <magic key>
+if neither is specified than a `+' is assumed implicitly.
+
+@subsection Description Line
+
+The required description line will be printed when typing
+@command{aspell help}.  Keep it as short as possible.  Possible
+abbreviations are @code{des} and @code{desc}.
+
+@subsection Filter and Option Lines
+
+The @code{filter} and @code{option} keys load filters and set filter
+options.
+
+The value of the @code{filter} key is equal to the value of Aspell's
+@code{[add|rem]-filter} option. 
+
+Each @code{option} line has the following format:
+
+@example
+  OPTION <option> [<value>]
+@end example
+
+The format of the <option> and <value> is the same format as 
+found in the Aspell configuration file.
+
+@c Following this comes the section ``Data Structures''
+
+
+@c -*- end of new text -*-
+@c The section ``Config Options'' was here
+
+@node Data Structures, Mk-Src Script, Filter Modes, Top
+@chapter Data Structures
+
+Whenever possible you should try to use one of the data structures
+available.  If the data structures do not provide enough functionality
+for your needs you should consider enhancing them rather than writing
+something from scratch.
+
+@section Vector
+
+The @code{vector} class is defined in @file{vector.hpp} and works the
+same way as the standard STL @code{vector} does except that it doesn't
+have as many constructors.
+
+@section BasicList
+
+@code{BasicList} is a simple list structure which can either be
+implemented as a singly or doubly linked list.  It is defined in
+@file{basic_list.hpp}.
+
+@section StringMap
+
+@code{StringMap} is an associative array for strings.  You should try
+to use this when ever possible to avoid code bloat.  It is defined in
+@file{string_map.hpp}.
+
+
+@section Hash Tables
+
+Several hash tables are provided when @code{StringMap} is not
+appropriate.  These hash tables provide a @code{hash_set},
+@code{hash_multiset}, @code{hash_map} and @code{hash_multimap} which
+are very similar to SGI's STL implementation with a few exceptions.
+It is defined in @file{hash.hpp}.
+
+
+@section BlockSList
+
+@code{BlockSList} provided a pool of nodes which can be used for
+singly linked lists.  It is defined in @file{block_slist.hpp}.
+
+@node Mk-Src Script, How It All Works, Data Structures, Top
+@chapter Mk-Src Script
+
+A good deal of interface code is automatically generated by the
+@file{mk-src.pl} Perl script.  I am doing it this way to avoid having
+to write a lot of relative code for the C++ interface.  This should
+also make adding interface for other languages a lot less tedious and
+will allow the interface to automatically take advantage of new Aspell
+functionality as it is made available.  The @file{mk-src.pl} script
+uses @file{mk-src.in} as its input.
+
+@include mksrc.texi
+
+@node How It All Works, Part 1 - Compiled Dictionary Format, Mk-Src Script, Top
+@chapter How It All Works
+
+The details of how Aspell really works is a mystery to most users who
+want to participate in developing and improving Aspell, so it is best
+to fully explain Aspell's core algorithms and data structures to you.
+
+In explaining these, it is hoped to bring prospective developers up to
+speed more quickly and also help you understand the amount of thought
+put into this.  In time, you may be able to improve Aspell even more.
+
+There are many details to explain here, so these will need explaining
+in small segments.
+
+@menu
+* Part 1 - Compiled Dictionary Format::
+* Part 2 - Quickly Finding Similar Soundslike::
+* Part 3::
+@end menu
+
+@node Part 1 - Compiled Dictionary Format, Part 2 - Quickly Finding Similar Soundslike, How It All Works, How It All Works
+@section Part 1 - The Compiled Dictionary Format
+
+In this part you will see how the data is laid out in the compiled
+dictionary for Aspell 0.60.  See source file @file{readonly_ws.cpp}.
+
+Aspell's main compiled wordlist dictionary file is made as follows:
+
+@itemize
+@item header
+@item jump table for editdist 1
+@item jump table for editdist 2
+@item data block
+@item hash table
+@end itemize
+
+There is nothing particularly interesting about the header.  Just a
+bunch of meta information.
+
+The jump tables are described in the next section @dots{}
+
+Words in the data block are grouped based on the soundslike.  Each
+group is as follows:
+
+@example
+<8 bit: offset to next item><8 bit: soundslike size><soundslike>
+<null><words>
+@end example
+
+@noindent
+ Each word group is as follows: 
+
+@example
+<8 bit: flags><8 bit: offset to next word><8 bit: word size><word><null>
+[<affix info><null>]
+@end example
+
+The offset for the final word in each group points to the next word in
+the following group.  The offset for the final word and soundslike
+group in the dictionary is 0.
+
+There is some provisions for additional info to be stored with the word
+but for simplicity, it's left out here.  If soundslike data is not used
+then the soundslike block it not used.
+
+This format makes it easy to iterate over the data without using the
+hash table.
+
+Each soundslike group can be a maximum of about 256 bytes.  If this
+limit is reached then the soundslike group is split. Using 2 bytes for
+the soundslike offset would of solved this problem however 256 bytes
+is normally sufficient, thus I would of wasted some space by using an
+extra byte.  More importantly, Using 2 bytes means I would of had to
+worry about alignment issues.
+
+The soundslike groups are sorted in more or less alphabetic order.
+
+The hash table is a simple open address hash table.  The key is the
+dictionary word in all lowercase form with all accents removed (what is
+known as the "clean" form of the word).  The value stored in the table
+is a 32-bit offset to the beginning of the word.  A 32-bit integer
+offset is used rather than a pointer so that the compiled dictionary
+can be mmaped to make loading the dictionary very fast and so that the
+memory can be shared between processed, and on 64 bit platforms using
+pointers would have doubled the size of the hash table.
+
+Additional information for each word can be derived from each offset:
+
+@example
+word size: offset - 1
+offset to next word: offset - 2
+flags: offset - 3
+@end example
+
+I use helper functions for getting this information.  Doing it this way
+rather than having a data structure is slightly evil, but admittedly,
+I have my reasons.
+
+In the next section, you will see how Aspell uses the jump tables to
+search the list for @emph{soundslike} with @emph{edit-distance} of 1 or 2.
+
+@node Part 2 - Quickly Finding Similar Soundslike, Part 3, Part 1 - Compiled Dictionary Format, How It All Works
+@section Part 2 - Quickly Finding Similar Soundslike
+
+In order for Aspell to find suggestions for a misspelled word Aspell 1)
+creates a list of candidate words, 2) scores them, and 3) returns the most
+likely candidates.  One of the ways Aspell finds candidate words is to look
+for all words with a soundslike which is of a small edit distance from the
+soundslike of the original word.  The edit distance is the total number of
+deletions, insertions, exchanges, or adjacent swaps needed to make one
+string equivalent to the other. The exact distance chosen is either 1 or 2
+depending on a number of factors.  In this part I will focus on how Aspell
+find all such soundslike efficiently and how the jump tables play a key
+role.
+
+This section will focus on how Aspell finds all such soundslike
+efficiently and how the jump tables play a key role.
+
+The naive way to scan the list for all possible soundslike is to
+compute the edit-distance of every soundslike in the dictionary and
+then keep the ones within the threshold.  This is exactly what Aspell
+did prior to 0.60. before a faster method was created.  When a fast
+enough edit distance function is used this method turns out not to be
+unbearably slow, at least for English, but for other languages, with
+large word lists and no soundslike, this can be slow due to the number
+of items that need to be scanned.
+
+Aspell uses a special edit distance function which gives up if the
+distance is larger than the threshold, thus making it very fast.  The
+basic algorithm is as follows:
+
+@example
+limit_edit_distance(A,B,limit) = ed(A,B,0)
+  where ed(A,B,d) = d                              if A & B is empty.
+                  = infinity                       if d > limit
+                  = ed(A[2..],B[2..], d)           if A[1] == B[1]
+                  = min ( ed(A[2..],B[2..], d+1),
+                          ed(A,     B[2..], d+1),
+                          ed(A[2..],B,      d+1) ) otherwise
+@end example
+
+However the algorithm used also allows for swaps and is not recursive.
+Specialized versions are provided for an edit distance of one and two.
+The running time is asymptotically bounded above by @code{(3^l)*n}
+where @code{l} is the limit and @code{n} is the maximum of
+@code{strlen(A),strlen(B)}.  Based on informal tests, the @code{n}
+does not really matter and the running time is more like @code{(3^l)}.
+
+For complete details on this algorithm see the files
+@file{leditdist.hpp} and @file{leditdist.cpp} in the source
+distribution under @file{modules/speller/default}.
+
+So, by exploiting the properties of @code{limit_edit_distance} it is
+possible to avoid having to look at many of the soundslikes in the
+dictionary.  @code{Limit_edit_distance} is efficient because in many
+cases, it does not have to look at the entire word before it can
+determine that it isn't within the given threshold, and then by having
+it return the last position looked at, @emph{p}, it is possible to
+avoid having to look at similar soundslike which are not within the
+threshold.  That is, if two soundslike are the same up to the position
+@code{p}, then neither of them are within the given threshold.
+
+Aspell 0.60 exploits this property by using jump tables.  Each entry
+in the jump table contains two fields: the first @code{N} letters of a
+soundslike, and an offset.  The entries are sorted in lexicographic
+order based on the raw byte value.  Aspell maintains two jump tables.
+
+The first table contains the first 2 letters of a soundslike and the
+offset points into the second jump table.
+
+The second table contains the first 3 letters of a soundslike where
+the offset points to the location of the soundslike in the data block.
+The soundslike in the datablock are sorted so that a linear scan can
+be used to find all soundslike with the same prefix.  If the
+@code{limit_edit_distance} stops before reaching the end of a
+@emph{"soundslike"} in one of the jump tables then it is possible to
+skip all the soundslike in the data block with the same prefix.
+
+Thus, the scan for all @emph{soundslike} within a given edit distance
+goes something like this:
+
+@enumerate
+
+@item
+Compare the entry in the first jump table using
+@code{limit_edit_distance}.  If the @code{limit_edit_distance} scanned
+passed the end of the word, then go to the first entry in the second
+jump table with the same prefix, otherwise go to the next entry in the
+first jump table and repeat.
+
+@item
+Compare the entry in the second jump table.  If the
+@code{limit_edit_distance}  passed the end of the word, then go to the
+first @emph{soundslike} in the data block with this prefix, otherwise
+if the first two letters of the next entry are the same as the current
+one go to it and repeat.  If the first two letters are not the same
+then go to the next entry in the first jump table and repeat step 1.
+
+@item
+Compare the @emph{soundslike} in the data block.  If the edit
+distance is within the target distance, then add the word to the
+candidate list, otherwise don't.  Let @code{N} be the position where
+@code{limit_edit_distance} stopped, (starting at 0).  If @code{N} is
+less than 6, then skip over any soundslike that have the same first
+@code{N + 1} letters.  If after skipping over any similar
+@emph{soundslike} the next @emph{soundslike} does not have the same
+first three letters, then go to the next entry in the second jump table
+and repeat step 2, otherwise repeat this step with the next
+@emph{soundslike}.
+
+@end enumerate
+
+The part of skipping over @emph{soundslike} with the first @code{N + 1}
+letters in step 3 were added in Aspell 0.60.3.  The function
+responsible for most of this is found in function
+@code{ReadOnlyDict::SoundslikeElements::next} which is found in file
+@file{readonly_ws.cpp}.
+
+The next part will describe how Aspell deals with @emph{soundslike}
+lookup when affix compression is involved.
+
+@node Part 3, Copying, Part 2 - Quickly Finding Similar Soundslike, How It All Works
+@section Part 3
+
+Not written yet.
+
+@node Copying,  , Part 3, Top
+@appendix Copying
+
+Copyright @copyright{} 2002, 2003, 2004, 2006 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License".
+
+@menu
+* GNU Free Documentation License::
+@end menu
+
+@include fdl.texi
+
+
+@c @node Index,  , Copying, Top
+@c @unnumbered Index
+
+@c @printindex cp
+
+@bye
+

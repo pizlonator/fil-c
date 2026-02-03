@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: WIN32 Notes</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: WIN32 Notes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="ChangeLog.html#ChangeLog" rel="next" title="ChangeLog">
+<link href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" rel="prev" title="Upgrading from a Pre-0.50 snapshot">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="WIN32-Notes"></a>
+<div class="header">
+<p>
+Previous: <a href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" accesskey="p" rel="prev">Upgrading from a Pre-0.50 snapshot</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="WIN32-Notes-1"></a>
+<h3 class="appendixsec">B.10 WIN32 Notes</h3>
+
+<a name="Getting-the-WIN32-version"></a>
+<h4 class="appendixsubsec">B.10.1 Getting the WIN32 version</h4>
+
+<p>The native Aspell/WIN32 port is no longer being maintained.  The best
+way to get Aspell for Windows is to use the MSYS2 binaries.  MSYS2 is
+available at <a href="https://www.msys2.org/">https://www.msys2.org/</a>.
+</p>
+<p>Binaries for Aspell 0.50 are still available at
+<a href="http://aspell.net/win32/">http://aspell.net/win32/</a> but they are no longer supported.  If
+you are interested in updating them for Aspell 0.60 please let me
+know.
+</p>
+<a name="Building-the-WIN32-version"></a>
+<h4 class="appendixsubsec">B.10.2 Building the WIN32 version</h4>
+
+<p>There are two basically different ways of building Aspell using GCC
+for WIN32: You can either use the Cygwin compiler, which will produce
+binaries that depend on the POSIX layer in <samp>cygwin1.dll</samp>.  The
+other way is using MinGW GCC, those binaries use the native C runtime
+from Microsoft (MSVCRT.DLL).  
+</p>
+
+<a name="Building-Aspell-using-Cygwin"></a>
+<h4 class="appendixsubsubsec">B.10.2.1 Building Aspell using Cygwin</h4>
+
+<p>This works exactly like on other POSIX
+compatible systems using the &lsquo;<samp>./configure &amp;&amp; make &amp;&amp; make install</samp>&rsquo;
+cycle.  Some versions of Cygwin GCC will fail to link, this is caused
+by an incorrect <samp>libstdc++.la</samp> in the <samp>/lib</samp> directory.
+After removing or renaming this file, the build progress should work
+(GCC-2.95 and GCC-3.x should work).
+</p>
+<a name="Building-Aspell-using-MinGW"></a>
+<h4 class="appendixsubsubsec">B.10.2.2 Building Aspell using MinGW</h4>
+
+<p>There are several different ways to build Aspell using MinGW.  The
+easiest way is to use a Cygwin compiler but instruct it to build a
+native binary rather than a Cygwin one.  To do this configure with:
+</p>
+<div class="example">
+<pre class="example">./configure CFLAGS='-O2 -mno-cygwin' CXXFLAGS='-O2 -mno-cygwin'
+</pre></div>
+
+<p>You may also want to add the option
+<samp>--enable-win32-relocatable</samp> to use more windows friendly
+directories.  See <a href="#Win32_002dDirectories">Win32-Directories</a>.  In this case configure with:
+</p>
+<div class="smallexample">
+<pre class="smallexample">./configure CFLAGS='-O2 -mno-cygwin' CXXFLAGS='-O2 -mno-cygwin' --enable-win32-relocatable
+</pre></div>
+
+<p>It should also be possible to build Aspell using the MSYS environment.
+But this has not been very well tested.  If building with MSYS
+<em>do not</em> add &lsquo;<samp>CFLAGS &hellip;</samp>&rsquo; to configure.
+</p>
+<a name="Building-Aspell-without-using-Cygwin-or-MSYS"></a>
+<h4 class="appendixsubsubsec">B.10.2.3 Building Aspell without using Cygwin or MSYS</h4>
+
+<p>It is also possible to build Aspell without Cygwin of MinGW by using
+the files in the <samp>win32/</samp> subdirectory.  However, these files
+have not been updated to work with Aspell 0.60.  Thus the following
+instructions will not work without some effort.  If you do get Aspell
+to compile this way please send me the updated files so that I can
+include them with the next release.
+</p>
+<p>To compile Aspell with the MinGW
+compiler, you will need at least GCC-3.2 (as shipped with MinGW-2.0.3)
+and some GNU tools like <code>rm</code> and <code>cp</code>.  The origin of
+those tools doesn&rsquo;t matter, it has shown to work with any tools from
+MinGW/MSys, Cygwin or Linux.  To build Aspell, move into the
+<samp>win32</samp> subdirectory and type &lsquo;<samp>make</samp>&rsquo;.  You can enable some
+additional build options by either commenting out the definitions at
+the head of the Makefile or passing those values as environment
+variables or at the <code>make</code> command line.  Following options
+are supported:
+</p>
+<dl compact="compact">
+<dt><samp>DEBUGVERSION</samp></dt>
+<dd><p>If set to &quot;1&quot;, the binaries will include debugging information
+(resulting in a much bigger size).
+</p>
+</dd>
+<dt><samp>CURSESDIR</samp></dt>
+<dd><p>Enter the path to the pdcurses library here, in order to get a nicer
+console interface (see below).
+</p>
+</dd>
+<dt><samp>MSVCLIB</samp></dt>
+<dd><p>Enter the filename of MS <samp>lib.exe</samp> here, if you want to build
+libraries that can be imported from MS Visual C++.
+</p>
+</dd>
+<dt><samp>WIN32_RELOCATABLE</samp></dt>
+<dd><p>If set to &quot;1&quot;, Aspell will detect the prefix from the path where the
+DLL resides (see below for further details).
+</p>
+</dd>
+<dt><samp>TARGET</samp></dt>
+<dd><p>Sets a prefix to be used for cross compilation (e.g.
+<samp>/usr/local/bin/i586-mingw32msvc-</samp> to cross compile from Linux).
+</p></dd>
+</dl>
+
+<p>There are also a MinGW compilers available for Cygwin and Linux, both
+versions are able to compile Aspell using the prebuilt
+<samp>Makefile</samp>.  While the Cygwin port automatically detects the
+correct compiler, the Linux version depends on setting the
+<code>TARGET</code> variable in the <samp>Makefile</samp> (or environment) to the
+correct compiler prefix.
+</p>
+<p>Other compilers may work.  There is a patch for MS Visual C++ 6.0
+available at <a href="ftp://ftp.gnu.org/gnu/aspell">ftp://ftp.gnu.org/gnu/aspell</a>, but it needs a lot
+of changes to the Aspell sources.  It has also been reported that the
+Intel C++ compiler can be used for compilation.
+</p>
+<a name="g_t_0028PD_0029Curses"></a>
+<h4 class="appendixsubsec">B.10.3 (PD)Curses</h4>
+
+<p>In order to get the nice full screen interface when spell checking
+files, a curses implementation that does not require Cygwin is
+required.  The PDCurses (<a href="http://pdcurses.sourceforge.net">http://pdcurses.sourceforge.net</a>)
+implementation is known to work, other implementations may work
+however they have not been tested.  See the previous section for
+information on specifying the location of the curses library and
+include file.
+</p>
+<p>Curses notes:
+</p>
+<ul>
+<li> PDcurses built with MinGW needs to be compiled with
+<samp>-DPDC_STATIC_BUILD</samp> to avoid duplicate declaration of
+<samp>DllMain</samp> when compiling <samp>aspell.exe</samp>.
+
+</li><li> The curses enabled version can cause trouble in some shells (MSys
+<code>rxvt</code>, <code>emacs</code>) and will produce errors like
+&lsquo;<samp>initscr() LINES=1 COLS=1: too small</samp>&rsquo;.  Use a non-curses version
+for those purposes.
+</li></ul>
+
+<a name="Win32_002dDirectories"></a><a name="Directories"></a>
+<h4 class="appendixsubsec">B.10.4 Directories</h4>
+
+<p>If Aspell is configured with <samp>--enable-win32-relocatable</samp> or
+compiled with <samp>WIN32_RELOCATABLE=1</samp> when using a Makefile, it
+can be run from any directory: it will set <samp><var>prefix</var></samp>
+according to its install location (assuming it resides in
+<samp><var>prefix</var>\\bin</samp>).  Your personal wordlists will be saved in
+the <samp><var>prefix</var></samp> directory with their names changed from
+<samp>.aspell.<var>lang</var>.*</samp> to <samp><var>lang</var>.*</samp> (you can override
+the path by setting the <code>HOME</code> environment variable).
+</p>
+<a name="Installer"></a>
+<h4 class="appendixsubsec">B.10.5 Installer</h4>
+
+<p>The installer registers the DLLs as shared libraries, you should
+increase the reference counter to avoid the libraries being
+uninstalled if your application still depends on them (and decrease it
+again when uninstalling your program).  The reference counters are
+located under:
+</p><div class="example">
+<pre class="example">HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs
+</pre></div>
+
+<p>The install location and version numbers are stored under
+</p>
+<div class="example">
+<pre class="example">HKLM\SOFTWARE\Aspell
+</pre></div>
+
+<a name="WIN32-consoles"></a>
+<h4 class="appendixsubsec">B.10.6 WIN32 consoles</h4>
+
+<p>The console uses a different encoding than GUI applications, changing
+this to to a Windows encoding (e.g.  1252) is not supported on
+Win9x/Me.  On WinNT (and later) those codepages can be set by first
+changing the console font to &lsquo;<samp>lucida console</samp>&rsquo;, then changing the
+codepage using &lsquo;<samp>chcp 1252</samp>&rsquo;.
+</p>
+<p>Some alternative shells (e.g. MSys&rsquo; <code>rxvt</code> or Cygwin&rsquo;s
+<code>bash</code>) do a codepage conversion (if correctly set up), so
+running Aspell inside those shells might be a workaround for Win9x.
+</p>
+<hr>
+<div class="header">
+<p>
+Previous: <a href="Upgrading-from-a-Pre_002d0_002e50-snapshot.html#Upgrading-from-a-Pre_002d0_002e50-snapshot" accesskey="p" rel="prev">Upgrading from a Pre-0.50 snapshot</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

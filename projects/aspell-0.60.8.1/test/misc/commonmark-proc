@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use autodie;
+
+binmode(STDOUT, ":utf8");
+
+use JSON;
+
+$/ = undef;
+open F, "commonmark-examples.json";
+
+my $data = decode_json(<F>);
+
+my $i = 1;
+foreach my $obj (@$data) {
+    open F, ">tmp/$i.md";
+    binmode(F, ":utf8");
+    print F $obj->{markdown};
+    print F "\n";
+    close F;
+    $i++;
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: How Aspell Selects an Appropriate Dictionary</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: How Aspell Selects an Appropriate Dictionary">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Working-With-Dictionaries.html#Working-With-Dictionaries" rel="up" title="Working With Dictionaries">
+<link href="Listing-Available-Dictionaries.html#Listing-Available-Dictionaries" rel="next" title="Listing Available Dictionaries">
+<link href="Using-aspell_002dimport.html#Using-aspell_002dimport" rel="prev" title="Using aspell-import">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="How-Aspell-Selects-an-Appropriate-Dictionary"></a>
+<div class="header">
+<p>
+Next: <a href="Listing-Available-Dictionaries.html#Listing-Available-Dictionaries" accesskey="n" rel="next">Listing Available Dictionaries</a>, Previous: <a href="Using-aspell_002dimport.html#Using-aspell_002dimport" accesskey="p" rel="prev">Using aspell-import</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="How-Aspell-Selects-an-Appropriate-Dictionary-1"></a>
+<h3 class="section">5.2 How Aspell Selects an Appropriate Dictionary</h3>
+
+<p>If the <samp>master</samp> option is set in any fashion (via the command
+line, the <code>ASPELL_CONF</code> environment variable, or a configuration
+file) Aspell will look for a dictionary of that name.  If one could
+not be found, it will complain.
+</p>
+<p>Otherwise it will use the value of the <samp>lang</samp> option to search
+for an appropriate dictionary.  If more than one dictionary is found
+for the given language string then it will look for a dictionary with
+a matching variety if the <samp>variety</samp> option is set.  If it is not
+set it will look for a dictionary without a variety.  If after matching
+the <samp>lang</samp> and <samp>variety</samp> there is still more than one
+dictionary available it will find one with the size closest to the
+value of the <samp>size</samp> option.  The default size is 60.  If Aspell
+cannot find a dictionary based on the <samp>lang</samp> option then it
+will give up and complain.
+</p>
+<p>If the <samp>lang</samp> option is not explicitly set its value will be
+based on the <code>LC_MESSAGES</code> locale.  This locale is generally taken
+from the <code>LC_MESSAGES</code> environment variable or the <code>LANG</code>
+environment variable if <code>LC_MESSAGES</code> is not set.  However, if
+Aspell is being used as a library from within another program which
+already explicitly set the locale then it will use the locale of the
+library rather than the environment variables.  If Aspell cannot
+determine the language from the <code>LC_MESSAGES</code> locale than it will
+default to <code>en_US</code>.
+</p>
+<p>The list option <samp>dict-alias</samp> can be used to influence which dictionary
+is selected by creating an alias from one dictionary name to another.
+This option is most useful when there is more than one dictionary for a
+given language.  For example &lsquo;<samp>add-dict-alias en_US en_US-w_accents</samp>&rsquo;
+will cause Aspell to choose the accented version of the American English
+dictionary instead of the non-accented version.  To add an alias use:
+</p>
+<div class="example">
+<pre class="example">add-dict-alias <var>NAME</var> <var>VAL</var>
+</pre></div>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Listing-Available-Dictionaries.html#Listing-Available-Dictionaries" accesskey="n" rel="next">Listing Available Dictionaries</a>, Previous: <a href="Using-aspell_002dimport.html#Using-aspell_002dimport" accesskey="p" rel="prev">Using aspell-import</a>, Up: <a href="Working-With-Dictionaries.html#Working-With-Dictionaries" accesskey="u" rel="up">Working With Dictionaries</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

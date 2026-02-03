@@ -1,0 +1,10 @@
+MODE tex
+
+ASPELL >=0.60
+
+MAGIC /0:256:^[ \t]*\\documentclass\[[^\[\]]*\]\{[^\{\}]*\}/tex
+
+DESCRIPTION mode for checking TeX/LaTeX documents
+
+FILTER url
+FILTER tex

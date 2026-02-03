@@ -1,0 +1,308 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Through the C API</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Through the C API">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell" rel="up" title="Writing programs to use Aspell">
+<link href="Through-A-Pipe.html#Through-A-Pipe" rel="next" title="Through A Pipe">
+<link href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell" rel="prev" title="Writing programs to use Aspell">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Through-the-C-API"></a>
+<div class="header">
+<p>
+Next: <a href="Through-A-Pipe.html#Through-A-Pipe" accesskey="n" rel="next">Through A Pipe</a>, Up: <a href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell" accesskey="u" rel="up">Writing programs to use Aspell</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Through-the-C-API-1"></a>
+<h3 class="section">6.1 Through the C API</h3>
+
+<p>The Aspell library contains two main classes and several helper
+classes.  The two main classes are <code>AspellConfig</code> and
+<code>AspellSpeller</code>. The <code>AspellConfig</code> class is used to set
+initial defaults and to change spell checker specific options.  The
+<code>AspellSpeller</code> class does most of the real work.  The
+<code>C API</code> is responsible for managing the dictionaries, checking
+if a word is in the dictionary, and coming up with suggestions among
+other things. There are many helper classes the important ones are
+<code>AspellWordList</code>, <code>AspellMutableWordList</code>,
+<code>Aspell*Enumeration</code>.  The <code>AspellWordList</code> classes is used
+for accessing the suggestion list, as well as the personal and
+suggestion word list currently in use.  The
+<code>AspellMutableWordList</code> is used to manage the personal, and
+perhaps other, word lists.  The <code>Aspell*Enumeration</code> classes are
+used for iterating through a list.
+</p>
+<a name="Usage"></a>
+<h4 class="subsection">6.1.1 Usage</h4>
+
+<p>To use Aspell your application should include <samp>aspell.h</samp>.  In
+order to ensure that all the necessary libraries are linked in libtool
+should be used to perform the linking.  When using libtool simply
+linking with <code>-laspell</code> should be all that is necessary.  When
+using shared libraries you might be able to simply link
+<code>-laspell</code>, but this is not recommended.  This version of Aspell
+uses the CVS version of libtool however released versions of libtool
+should also work.
+</p>
+<p>When your application first starts you should get a new configuration
+class with the command:
+</p>
+<div class="smallexample">
+<pre class="smallexample">AspellConfig * spell_config = new_aspell_config();
+</pre></div>
+
+<p>which will create a new <code>AspellConfig</code> class.  It is allocated
+with <code>new</code> and it is your responsibility to delete it with
+<code>delete_aspell_config</code>.  Once you have the config class you
+should set some variables.  The most important one is the language
+variable.  To do so use the command:
+</p>
+<div class="smallexample">
+<pre class="smallexample">aspell_config_replace(spell_config, &quot;lang&quot;, &quot;en_US&quot;);
+</pre></div>
+
+<p>which will set the default language to use to American English.  The
+language is expected to be the standard two letter ISO 639 language
+code, with an optional two letter ISO 3166 country code after an
+underscore.  You can set the preferred size via the <samp>size</samp>
+option, any extra info via the <samp>variety</samp> option, and the
+encoding via the <samp>encoding</samp> option.  Other things you might
+want to set is the preferred spell checker to use, the search path for
+dictionaries, and the like &mdash; see <a href="The-Options.html#The-Options">The Options</a>, for a list of
+all available options.
+</p>
+<p>Whenever a new document is created a new <code>AspellSpeller</code> class
+should also be created.  There should be one speller class per
+document.  To create a new speller class use the
+<code>new_aspell_speller</code> and then cast it up using
+<code>to_aspell_speller</code> like so:
+</p>
+<div class="smallexample">
+<pre class="smallexample">AspellCanHaveError * possible_err = new_aspell_speller(spell_config);
+AspellSpeller * spell_checker = 0;
+if (aspell_error_number(possible_err) != 0)
+  puts(aspell_error_message(possible_err));
+else
+  spell_checker = to_aspell_speller(possible_err);
+</pre></div>
+
+<p>which will create a new <code>AspellSpeller</code> class using the defaults
+found in <code>spell_config</code>.  To find out which dictionary is
+selected the <samp>lang</samp>, <samp>size</samp>, and <samp>variety</samp> options
+may be examined.  To find out the exact name of the dictionary the
+<samp>master</samp> option may be examined as well as the
+<samp>master-flags</samp> options to see if there were any special flags
+that were passed on to the module.  The <samp>module</samp> option way
+also be examined to figure out which speller module was selected, but
+since there is only one this option will always be the same.
+</p>
+<p>If for some reason you want to use different defaults simply clone
+<code>spell_config</code> and change the setting like so:
+</p>
+<div class="smallexample">
+<pre class="smallexample">AspellConfig * spell_config2 = aspell_config_clone(spell_config);
+aspell_config_replace(spell_config2, &quot;lang&quot;,&quot;nl&quot;);
+possible_err = new_aspell_speller(spell_config2);
+delete_aspell_config(spell_config2);
+</pre></div>
+
+<p>Once the speller class is created you can use the <code>check</code> method
+to see if a word in the document is correct like so:
+</p>
+<div class="smallexample">
+<pre class="smallexample">int correct = aspell_speller_check(spell_checker, <var>word</var>, <var>size</var>);
+</pre></div>
+
+<p><var>word</var> is expected to be a <code>const char *</code> character string.
+<var>size</var> is the length of the string or <code>-1</code> if the string is
+null terminated.  <code>aspell_speller_check</code> will return <code>0</code> if it is not found
+and non-zero otherwise.
+</p>
+<p>If you are using the <code>ucs-2</code> or <code>ucs-4</code> encoding then the
+string is expected to be either a 2 or 4 byte wide integer
+(respectively) and the <code>_w</code> macro version should be used:
+</p>
+<div class="smallexample">
+<pre class="smallexample">int correct = aspell_speller_check_w(spell_checker, <var>word</var>, <var>size</var>);
+</pre></div>
+
+<p>The macro will cast the string to to the correct type and convert
+<var>size</var> into bytes for you and then a call the special wide version of the
+function that will make sure the encoding is correct for the type
+passed in.  For compatibility with older versions of Aspell the normal
+non-wide functions can still be used provided that the size of the
+string, in bytes, is also passed in.  Null terminated <code>ucs-2</code> or
+<code>ucs-4</code> are no longer supported when using the non-wide functions.
+</p>
+<p>If the word is not correct, then the <code>suggest</code> method can be used
+to come up with likely replacements.
+</p>
+<div class="smallexample">
+<pre class="smallexample">AspellWordList * suggestions = aspell_speller_suggest(spell_checker,
+                                                      <var>word</var>, <var>size</var>);
+AspellStringEnumeration * elements = aspell_word_list_elements(suggestions);
+const char * word;
+while ( (word = aspell_string_enumeration_next(aspell_elements)) != NULL )
+{
+  // add to suggestion list
+}
+delete_aspell_string_enumeration(elements);
+</pre></div>
+
+<p>Notice how <code>elements</code> is deleted but <code>suggestions</code> is not.
+The value returned by <code>suggestions</code> is only valid to the next
+call to <code>suggest</code>.
+</p>
+<p>If you are using the <code>ucs-2</code> or <code>ucs-4</code> encoding then, in
+addition to using the <code>_w</code> macro for the <code>suggest</code> method, you
+should also use the <code>_w</code> macro with the <code>next</code> method which
+will cast the string to the correct type for you.  For example, if you
+are using the <code>ucs-2</code> encoding and the string is a <code>const
+uint16_t *</code> then you should use:
+</p>
+<div class="smallexample">
+<pre class="smallexample">AspellWordList * suggestions = aspell_speller_suggest_w(spell_checker,
+                                                        <var>word</var>, <var>size</var>);
+AspellStringEnumeration * elements = aspell_word_list_elements(suggestions);
+const uint16_t * word;
+while ( (word = aspell_string_enumeration_next_w(uint16_t, aspell_elements)) != NULL )
+{
+  // add to suggestion list
+}
+delete_aspell_string_enumeration(elements);
+</pre></div>
+
+<p>Once a replacement is made the
+<code>store_repl</code> method should be used to communicate the replacement
+pair back to the spell checker (for the reason, see <a href="Notes-on-Storing-Replacement-Pairs.html#Notes-on-Storing-Replacement-Pairs">Notes on Storing Replacement Pairs</a>).  Its usage is as follows:
+</p>
+<div class="smallexample">
+<pre class="smallexample">aspell_speller_store_repl(spell_checker, <var>misspelled_word</var>, <var>size</var>,
+                          <var>correctly_spelled_word</var>, <var>size</var>);
+</pre></div>
+
+<p>If the user decided to add the word to the session or personal
+dictionary the the word can be be added using the
+<code>add_to_session</code> or <code>add_to_personal</code> methods respectively
+like so:
+</p>
+<div class="smallexample">
+<pre class="smallexample">aspell_speller_add_to_session|personal(spell_checker, <i>word</i>, <i>size</i>);
+</pre></div>
+
+<p>It is better to let the spell checker manage these words rather than
+doing it yourself so that the words have a chance of appearing in the
+suggestion list.
+</p>
+<p>Finally, when the document is closed the <code>AspellSpeller</code> class
+should be deleted like so:
+</p>
+<div class="smallexample">
+<pre class="smallexample">delete_aspell_speller(spell_checker);
+</pre></div>
+
+<a name="API-Reference"></a>
+<h4 class="subsection">6.1.2 API Reference</h4>
+
+<p>Methods that return a boolean result generally return <code>false</code> on
+error and <code>true</code> otherwise.  To find out what went wrong use the
+<code>error_number</code> and <code>error_message</code> methods.  Unless
+otherwise stated methods that return a <code>const char *</code> will return
+<code>NULL</code> on error.  In general, the character string returned is
+only valid until the next method which returns a <code>const char *</code>
+is called.
+</p>
+<p>For the details of the various classes please see the header files.
+In the future I will generate class references using some automated
+tool.
+</p>
+<a name="Examples"></a>
+<h4 class="subsection">6.1.3 Examples</h4>
+
+<p>Two simple examples are included in the examples directory.  The
+<code>example-c</code> program demonstrates most of the Aspell library
+functionality and the <code>list-dicts</code> lists the available
+dictionaries.
+</p>
+<a name="Notes-About-Thread-Safety"></a>
+<h4 class="subsection">6.1.4 Notes About Thread Safety</h4>
+
+<p>Aspell should be thread safe, when used properly, as long as the
+underlying compiler, C and C++ library is thread safe.  Aspell
+objects, including the AspellSpeller class, should not be used by
+multiple threads unless they are protected by locks or it is only
+accessed by read-only methods.  A method is read-only only if a
+<code>const</code> object is passed in.  Many methods that seam to be
+read-only are not because they may store state information in the
+object.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Through-A-Pipe.html#Through-A-Pipe" accesskey="n" rel="next">Through A Pipe</a>, Up: <a href="Writing-programs-to-use-Aspell.html#Writing-programs-to-use-Aspell" accesskey="u" rel="up">Writing programs to use Aspell</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

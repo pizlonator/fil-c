@@ -1,0 +1,1388 @@
+# Chinese simplified translation for aspell.
+# Copyright (C) 2011 Kevin Atkinson
+# This file is distributed under the same license as the aspell package.
+# Boyuan Yang <073plan@gmail.com>, 2017, 2019.
+# Wylmer Wang <wantinghard@gmail.com>, 2011, 2013.
+# lite <litekok@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aspell-0.60.8-pre2\n"
+"Report-Msgid-Bugs-To: kevina@gnu.org\n"
+"POT-Creation-Date: 2023-12-19 17:56-0500\n"
+"PO-Revision-Date: 2019-09-24 10:51-0400\n"
+"Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 2.2.3\n"
+
+#: common/info.cpp:232
+msgid "a number between 0 and 1"
+msgstr "一个 0 到 1 之间的数"
+
+#: common/info.cpp:569
+msgid "in the form \"<name> <value>\""
+msgstr "以“<名字> <值>”的形式"
+
+#: common/config.cpp:74
+msgid "string"
+msgstr "字符串"
+
+#: common/config.cpp:74
+msgid "integer"
+msgstr "整型"
+
+#: common/config.cpp:74
+msgid "boolean"
+msgstr "布尔型"
+
+#: common/config.cpp:74
+msgid "list"
+msgstr "列表"
+
+#. TRANSLATORS: "true" and "false" are literal
+#. * values and should not be translated.
+#: common/config.cpp:988
+msgid "either \"true\" or \"false\""
+msgstr "“true”或“false”"
+
+#: common/config.cpp:1007
+msgid "a positive integer"
+msgstr "一个正整数"
+
+#: common/config.cpp:1135
+msgid "# default: "
+msgstr "# 默认："
+
+#: common/config.cpp:1198
+#, c-format
+msgid ""
+"\n"
+"#######################################################################\n"
+"#\n"
+"# Filter: %s\n"
+"#   %s\n"
+"#\n"
+"# configured as follows:\n"
+"\n"
+msgstr ""
+"\n"
+"#######################################################################\n"
+"#\n"
+"# 过滤器: %s\n"
+"# %s\n"
+"#\n"
+"# 配置如下:\n"
+"\n"
+
+#: common/config.cpp:1296
+msgid "ASPELL_CONF env var"
+msgstr "ASPELL_CONF 环境变量"
+
+#. TRANSLATORS: The remaining strings in config.cpp should be kept
+#. under 50 characters, begin with a lower case character and not
+#. include any trailing punctuation marks.
+#: common/config.cpp:1380
+msgid "main configuration file"
+msgstr "主配置文件"
+
+#: common/config.cpp:1382
+msgid "location of main configuration file"
+msgstr "主配置文件的位置"
+
+#: common/config.cpp:1385
+msgid "location of language data files"
+msgstr "语言数据文件的位置"
+
+#: common/config.cpp:1387
+msgid "create dictionary aliases"
+msgstr "创建目录别名"
+
+#: common/config.cpp:1389
+msgid "location of the main word list"
+msgstr "主单词表的位置"
+
+#: common/config.cpp:1391
+msgid "encoding to expect data to be in"
+msgstr "数据应使用的编码"
+
+#: common/config.cpp:1393
+msgid "add or removes a filter"
+msgstr "添加或移除一个过滤器"
+
+#: common/config.cpp:1395
+msgid "path(s) aspell looks for filters"
+msgstr "aspell 查找过滤器的路径"
+
+#: common/config.cpp:1399
+msgid "filter mode"
+msgstr "过滤器模式"
+
+#: common/config.cpp:1401
+msgid "extra dictionaries to use"
+msgstr "要使用的外部词典"
+
+#: common/config.cpp:1403
+msgid "files with list of extra words to accept"
+msgstr ""
+
+#: common/config.cpp:1405
+msgid "location for personal files"
+msgstr "个人文件的位置"
+
+#: common/config.cpp:1407
+msgid "ignore words <= n chars"
+msgstr "忽略 <= n 个字符的词"
+
+#. TRANSLATORS: It is OK if this is longer than 50 chars
+#: common/config.cpp:1410
+msgid "ignore accents when checking words -- CURRENTLY IGNORED"
+msgstr "单词检查时忽略声调 - 当前已忽略"
+
+#: common/config.cpp:1412
+msgid "ignore case when checking words"
+msgstr "检查单词时忽略大小写"
+
+#: common/config.cpp:1414
+msgid "ignore commands to store replacement pairs"
+msgstr "忽略保存替换配对的命令"
+
+#: common/config.cpp:1416 common/config.cpp:1483
+msgid "extra information for the word list"
+msgstr "单词表的额外信息"
+
+#: common/config.cpp:1418
+msgid "keyboard definition to use for typo analysis"
+msgstr "用于错字分析的键盘定义"
+
+#: common/config.cpp:1420
+msgid "language code"
+msgstr "语言代码"
+
+#: common/config.cpp:1422
+msgid "deprecated, use lang instead"
+msgstr "已弃用，请改用 lang"
+
+#: common/config.cpp:1424
+msgid "location of local language data files"
+msgstr "本地语言数据文件的位置"
+
+#: common/config.cpp:1426
+msgid "base name of the main dictionary to use"
+msgstr "要使用的主词典的基名"
+
+#: common/config.cpp:1430
+msgid "set module name"
+msgstr "设置模块名称"
+
+#: common/config.cpp:1432
+msgid "search order for modules"
+msgstr "搜索模块的顺序"
+
+#: common/config.cpp:1434
+msgid "enable Unicode normalization"
+msgstr "启用 Unicode 规范化"
+
+#: common/config.cpp:1436
+msgid "Unicode normalization required for current lang"
+msgstr "当前语言所需的 Unicode 规范化"
+
+#. TRANSLATORS: the values after the ':' are literal
+#. values and should not be translated.
+#: common/config.cpp:1440
+msgid "Unicode normalization form: none, nfd, nfc, comp"
+msgstr "Unicode 规范化形式: none, nfd, nfc, comp"
+
+#: common/config.cpp:1442
+msgid "avoid lossy conversions when normalization"
+msgstr "规范化时避免有损转换"
+
+#: common/config.cpp:1444
+msgid "personal configuration file"
+msgstr "个人配置文件"
+
+#: common/config.cpp:1447
+msgid "personal dictionary file name"
+msgstr "个人词典文件名"
+
+#: common/config.cpp:1450
+msgid "prefix directory"
+msgstr "前缀目录"
+
+#: common/config.cpp:1452
+msgid "replacements list file name"
+msgstr "替换列表文件名"
+
+#: common/config.cpp:1455
+msgid "consider run-together words legal"
+msgstr "考虑同时出现单词的语法正确性"
+
+#: common/config.cpp:1457
+msgid "maximum number that can be strung together"
+msgstr "可以串在一起的最大数目"
+
+#: common/config.cpp:1459
+msgid "minimal length of interior words"
+msgstr "内部单词的最小长度"
+
+#: common/config.cpp:1461
+msgid "consider camel case words legal"
+msgstr "将驼峰式大小写单词视为正确"
+
+#: common/config.cpp:1463
+msgid "save replacement pairs on save all"
+msgstr "保存所有同时保存替换配对"
+
+#: common/config.cpp:1465
+msgid "set the prefix based on executable location"
+msgstr "根据可执行文件的位置设置前缀"
+
+#: common/config.cpp:1467
+msgid "size of the word list"
+msgstr "单词表的大小"
+
+#: common/config.cpp:1469
+msgid "no longer used"
+msgstr "不再使用"
+
+#: common/config.cpp:1471
+msgid "suggestion mode"
+msgstr "建议模式"
+
+#. TRANSLATORS: "sug-mode" is a literal value and should not be
+#. translated.
+#: common/config.cpp:1475
+msgid "use typo analysis, override sug-mode default"
+msgstr "使用错字分析，覆盖 sug-mode 默认值"
+
+#: common/config.cpp:1477
+msgid "use replacement tables, override sug-mode default"
+msgstr "使用替换表，覆盖 sug-mode 默认值"
+
+#: common/config.cpp:1479
+msgid "characters to insert when a word is split"
+msgstr "当一个单词被分割时插入的字符"
+
+#: common/config.cpp:1481
+msgid "use personal, replacement & session dictionaries"
+msgstr "使用个人，替换和会话词典"
+
+#: common/config.cpp:1485
+msgid "search path for word list information files"
+msgstr "单词表信息文件的搜索路径"
+
+#: common/config.cpp:1487
+msgid "enable warnings"
+msgstr "允许警告"
+
+#. TRANSLATORS: It is OK if this is longer than 50 chars
+#: common/config.cpp:1497
+msgid "indicator for affix flags in word lists -- CURRENTLY IGNORED"
+msgstr "在单词表中词缀标志的指示 - 目前已忽略"
+
+#: common/config.cpp:1499
+msgid "use affix compression when creating dictionaries"
+msgstr "创建字典时使用词缀压缩"
+
+#: common/config.cpp:1501
+msgid "remove invalid affix flags"
+msgstr "移除不合法的词缀标志"
+
+#: common/config.cpp:1503
+msgid "attempts to clean words so that they are valid"
+msgstr "尝试清理单词以确保它们有效"
+
+#: common/config.cpp:1505
+msgid "compute soundslike on demand rather than storing"
+msgstr "需要时计算 soundslike，而不是存储"
+
+#: common/config.cpp:1507
+msgid "partially expand affixes for better suggestions"
+msgstr "部分扩展词缀以得到更好的建议"
+
+#: common/config.cpp:1509
+msgid "skip invalid words"
+msgstr "跳过无效单词"
+
+#: common/config.cpp:1511
+msgid "check if affix flags are valid"
+msgstr "检查词缀标志是否有效"
+
+#: common/config.cpp:1513
+msgid "check if words are valid"
+msgstr "检查单词是否有效"
+
+#: common/config.cpp:1520
+msgid "create a backup file by appending \".bak\""
+msgstr "创建附带“.bak”的备份文件"
+
+#: common/config.cpp:1522
+msgid "use byte offsets instead of character offsets"
+msgstr "使用字节偏移量而非字符偏移量"
+
+#: common/config.cpp:1524
+msgid "create missing root/affix combinations"
+msgstr "创建丢失的根/词缀组合"
+
+#: common/config.cpp:1526
+msgid "keymapping for check mode: \"aspell\" or \"ispell\""
+msgstr "检查模式的键盘映射：“aspell”或“ispell”"
+
+#: common/config.cpp:1528
+msgid "reverse the order of the suggest list"
+msgstr "反向排序建议列表"
+
+#: common/config.cpp:1530
+msgid "suggest possible replacements"
+msgstr "建议可能的替换"
+
+#: common/config.cpp:1532
+msgid "time load time and suggest time in pipe mode"
+msgstr "计算管道模式下的加载时间和建议时间"
+
+#: common/convert.cpp:303 common/convert.cpp:497
+#, c-format
+msgid "This could also mean that the file \"%s\" could not be opened for reading or does not exist."
+msgstr "这也可能意味着文件“%s”无法打开读取或不存在。"
+
+#: common/convert.cpp:590 common/convert.cpp:702 common/convert.cpp:748
+#, c-format
+msgid "The Unicode code point U+%04X is unsupported."
+msgstr "不支持的 Unicode 码点 U+%04X 。"
+
+#: common/convert.cpp:887
+#, c-format
+msgid "Invalid UTF-8 sequence at position %ld."
+msgstr "位置  %ld 处的 UTF-8 序列无效。"
+
+#: common/errors.cpp:27
+msgid "Operation Not Supported: %what:1"
+msgstr "不支持的操作：%what:1"
+
+#: common/errors.cpp:43
+msgid "The method \"%what:1\" is unimplemented in \"%where:2\"."
+msgstr "方法“%what:1”在“%where:2”中没有实现。"
+
+#: common/errors.cpp:51
+#, c-format
+msgid "%file:1:"
+msgstr "%file:1:"
+
+#: common/errors.cpp:59
+#, c-format
+msgid "The file \"%file:1\" can not be opened"
+msgstr "无法打开文件“%file:1”"
+
+#: common/errors.cpp:67
+#, c-format
+msgid "The file \"%file:1\" can not be opened for reading."
+msgstr "无法打开文件“%file:1”进行读取。"
+
+#: common/errors.cpp:75
+#, c-format
+msgid "The file \"%file:1\" can not be opened for writing."
+msgstr "无法打开文件“%file:1”进行写入。"
+
+#: common/errors.cpp:83
+#, c-format
+msgid "The file name \"%file:1\" is invalid."
+msgstr "文件“%file:1”无效。"
+
+#: common/errors.cpp:91
+#, c-format
+msgid "The file \"%file:1\" is not in the proper format."
+msgstr "文件“%file:1”格式不正确。"
+
+#: common/errors.cpp:107
+#, c-format
+msgid "The directory \"%dir:1\" can not be opened for reading."
+msgstr "无法打开文件“%dir:1”进行读取。"
+
+#: common/errors.cpp:123
+msgid "The key \"%key:1\" is unknown."
+msgstr "键“%key:1”是未知的。"
+
+#: common/errors.cpp:131
+msgid "The value for option \"%key:1\" can not be changed."
+msgstr "选项“%key:1”的值不能改变。"
+
+#: common/errors.cpp:139
+msgid "The key \"%key:1\" is not %accepted:2 and is thus invalid."
+msgstr "键“%key:1”不能 %accepted:2 所以不合法。"
+
+#: common/errors.cpp:147
+msgid "The value \"%value:2\" is not %accepted:3 and is thus invalid for the key \"%key:1\"."
+msgstr "值“%value:2”不能 %accepted:3 所以“%key:1”不合法。"
+
+#: common/errors.cpp:163
+msgid "The key \"%key:1\" is not a string."
+msgstr "键“%key:1”不是一个字符串。"
+
+#: common/errors.cpp:171
+msgid "The key \"%key:1\" is not an integer."
+msgstr "键“%key:1”不是一个整数。"
+
+#: common/errors.cpp:179
+msgid "The key \"%key:1\" is not a boolean."
+msgstr "键“%key:1”不是一个布尔值。"
+
+#: common/errors.cpp:187
+msgid "The key \"%key:1\" is not a list."
+msgstr "键“%key:1”不是一个列表。"
+
+#: common/errors.cpp:195
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"reset-\"."
+msgstr "当键“%key:1”前缀为“reset-”时不带任何参数。"
+
+#: common/errors.cpp:203
+msgid "The key \"%key:1\" does not take any parameters when prefixed by an \"enable-\"."
+msgstr "当键“%key:1”前缀为“enable-”时不带任何参数。"
+
+#: common/errors.cpp:211
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"dont-\" or \"disable-\"."
+msgstr "当键“%key:1”前缀为“dont-”或“disable-”时不带任何参数。"
+
+#: common/errors.cpp:219
+msgid "The key \"%key:1\" does not take any parameters when prefixed by a \"clear-\"."
+msgstr "当键“%key:1”前缀为“clear-”时不带任何参数。"
+
+#: common/errors.cpp:235
+#, c-format
+msgid "The language \"%lang:1\" is not known."
+msgstr "语言“%lang:1”为未知。"
+
+#: common/errors.cpp:243
+#, c-format
+msgid "The soundslike \"%sl:2\" is not known."
+msgstr "soundslike “%sl:2”未知。"
+
+#: common/errors.cpp:251
+#, c-format
+msgid "The language \"%lang:1\" is not supported."
+msgstr "不支持语言“%lang:1”。"
+
+#: common/errors.cpp:259
+#, c-format
+msgid "No word lists can be found for the language \"%lang:1\"."
+msgstr "没有找到语言“%lang:1”的单词表。"
+
+#: common/errors.cpp:267
+#, c-format
+msgid "Expected language \"%lang:1\" but got \"%prev:2\"."
+msgstr "语言应为“%lang:1”但实际是“%prev:2”。"
+
+#: common/errors.cpp:283
+#, c-format
+msgid "Affix '%aff:1' is corrupt."
+msgstr "词缀 '%aff:1' 被损坏。"
+
+#: common/errors.cpp:291
+#, c-format
+msgid "The condition \"%cond:1\" is invalid."
+msgstr "条件“%cond:1”无效。"
+
+#: common/errors.cpp:299
+#, c-format
+msgid "The condition \"%cond:1\" does not guarantee that \"%strip:2\" can always be stripped."
+msgstr "条件“%cond:1”不能保证“%strip:2“总能被截取。"
+
+#: common/errors.cpp:307
+#, c-format
+msgid "The file \"%file:1\" is not in the proper format. Expected the file to be in \"%exp:2\" not \"%got:3\"."
+msgstr "文件“%file:1”格式不正确。文件应在“%exp:2”中，而不是“%got:3”。"
+
+#: common/errors.cpp:323
+#, c-format
+msgid "The encoding \"%encod:1\" is not known."
+msgstr "编码“%encod:1”为未知。"
+
+#: common/errors.cpp:331
+#, c-format
+msgid "The encoding \"%encod:1\" is not supported."
+msgstr "不支持编码“%encod:1”。"
+
+#: common/errors.cpp:339
+#, c-format
+msgid "The conversion from \"%encod:1\" to \"%encod2:2\" is not supported."
+msgstr "不支持从“%encod:1”转换到“%encod2:2”。"
+
+#: common/errors.cpp:379
+#, c-format
+msgid "The string \"%str:1\" is invalid."
+msgstr "字符串“%str:1”无效。"
+
+#: common/errors.cpp:387
+msgid "The word \"%word:1\" is invalid."
+msgstr "单词“%word:1”无效。"
+
+#: common/errors.cpp:395
+msgid "The affix flag '%aff:1' is invalid for word \"%word:2\"."
+msgstr "词缀标志‘%aff:1’对单词“%word:2”无效。"
+
+#: common/errors.cpp:403
+msgid "The affix flag '%aff:1' can not be applied to word \"%word:2\"."
+msgstr "词缀标志‘%aff:1’不能应用于单词“%word:2”。"
+
+#: common/errors.cpp:451
+msgid "not a version number"
+msgstr "不是版本号"
+
+#: common/errors.cpp:467
+msgid "dlopen returned \"%return:1\"."
+msgstr "dlopen 返回了“%return:1”。"
+
+#: common/errors.cpp:475
+#, c-format
+msgid "The file \"%filter:1\" does not contain any filters."
+msgstr "文件“%filter:1”不包含任何过滤器。"
+
+#: common/errors.cpp:483
+#, c-format
+msgid "The filter \"%filter:1\" does not exist."
+msgstr "过滤器“%filter:1”不存在。"
+
+#: common/errors.cpp:491 common/errors.cpp:587
+msgid "Confused by version control."
+msgstr "版本控制混乱。"
+
+#: common/errors.cpp:499
+msgid "Aspell version does not match filter's requirement."
+msgstr "Aspell 版本不匹配过滤器的需求。"
+
+#: common/errors.cpp:507
+msgid "Filter option already exists."
+msgstr "过滤器选项已经存在。"
+
+#: common/errors.cpp:515
+msgid "Use option modifiers only within named option."
+msgstr "仅在命名选项使用选项修正器。"
+
+#: common/errors.cpp:523
+msgid "Option modifier unknown."
+msgstr "未知选项修正器。"
+
+#: common/errors.cpp:531
+msgid "Error setting filter description."
+msgstr "设置过滤器描述出错。"
+
+#: common/errors.cpp:547
+msgid "Empty option specifier."
+msgstr "空白选项说明符。"
+
+#: common/errors.cpp:555
+#, c-format
+msgid "Option \"%option:1\" possibly specified prior to filter."
+msgstr "选项“%option:1”可能在过滤器前指定。"
+
+#: common/errors.cpp:563
+msgid "Unknown mode description key \"%key:1\"."
+msgstr "未知的模式描述键“%key:1”。"
+
+#: common/errors.cpp:571
+#, c-format
+msgid "Expecting \"%modekey:1\" key."
+msgstr "应为“%modekey:1”键。"
+
+#: common/errors.cpp:579
+msgid "Version specifier missing key: \"aspell\"."
+msgstr "版本说明缺少键值:“aspell”。"
+
+#: common/errors.cpp:595
+msgid "Aspell version does not match mode's requirement."
+msgstr "Aspell 版本与模式的要求不符。"
+
+#: common/errors.cpp:603
+msgid "Missing magic mode expression."
+msgstr "缺少魔法模式表达式。"
+
+#: common/errors.cpp:611
+#, c-format
+msgid "Empty extension at char %char:1."
+msgstr "在字符 %char:1 处的扩展为空。"
+
+#: common/errors.cpp:619
+#, c-format
+msgid "\"%mode:1\" error"
+msgstr "“%mode:1”错误"
+
+#: common/errors.cpp:627
+#, c-format
+msgid "Unknown mode: \"%mode:1\"."
+msgstr "未知模式：“%mode:1”。"
+
+#: common/errors.cpp:635
+#, c-format
+msgid "\"%mode:1\" error while extend Aspell modes. (out of memory?)"
+msgstr "扩展 Aspell 模式时“%mode:1”出错。(内存不足?)"
+
+#: common/errors.cpp:651
+#, c-format
+msgid "\"%mode:1\": no start for magic search given for magic \"%magic:2\"."
+msgstr "“%mode:1”: 用于魔法“%magic:2”的魔法搜索没有开始。 "
+
+#: common/errors.cpp:659
+#, c-format
+msgid "\"%mode:1\": no range for magic search given for magic \"%magic:2\"."
+msgstr "“%mode:1”: 用于魔法“%magic:2”的魔法搜索没有指定范围。"
+
+#: common/errors.cpp:667
+#, c-format
+msgid "\"%mode:1\": no magic expression available for magic \"%magic:2\"."
+msgstr "“%mode:1”: 没有可用的魔法“%magic:2”的魔法表达式。"
+
+#: common/errors.cpp:675
+msgid "\"%mode:1\": Magic \"%magic:2\": bad regular expression after location specifier; regexp reports: \"%regerr:3\"."
+msgstr "“%mode:1”: 魔法“%magic:2”: 在位置说明符后出现错误的正则表达式; 正则表达式输出:“%regerr:3”。"
+
+#: common/errors.cpp:691
+#, c-format
+msgid "\"%expression:1\" is not a valid regular expression."
+msgstr "“%expression:1”不是一个合法的正则表达式。"
+
+#: common/posib_err.cpp:114
+msgid "Unhandled Error: "
+msgstr "无法处理的错误："
+
+#: prog/aspell.cpp:99
+#, c-format
+msgid "Error: %s\n"
+msgstr "错误：%s\n"
+
+#: prog/aspell.cpp:104
+msgid "Error: "
+msgstr "错误："
+
+#: prog/aspell.cpp:205
+msgid "enter Email mode."
+msgstr "进入邮件模式。"
+
+#: prog/aspell.cpp:206
+msgid "enter HTML mode."
+msgstr "进入 HTML 模式。"
+
+#: prog/aspell.cpp:207
+msgid "enter TeX mode."
+msgstr "进入 TeX 模式。"
+
+#: prog/aspell.cpp:208
+msgid "enter Nroff mode."
+msgstr "进入 Nroff 模式。"
+
+#: prog/aspell.cpp:209
+msgid "enter Markdown mode."
+msgstr "进入 Markdown 模式。"
+
+#: prog/aspell.cpp:315
+#, c-format
+msgid "Invalid Option: %s"
+msgstr "无效选项：%s"
+
+#: prog/aspell.cpp:322
+#, fuzzy, c-format
+#| msgid " does not take any parameters."
+msgid "'%s' does not take any parameters."
+msgstr "不带任何参数。"
+
+#: prog/aspell.cpp:335 prog/aspell.cpp:395
+#, c-format
+msgid "You must specify a parameter for \"%s\"."
+msgstr "您必须为“%s”指定一个参数。"
+
+#: prog/aspell.cpp:384
+msgid "You must specify an action"
+msgstr "您必须指定一项操作"
+
+#: prog/aspell.cpp:392 prog/aspell.cpp:455 prog/aspell.cpp:477
+#, c-format
+msgid "Unknown Action: %s"
+msgstr "未知操作：%s"
+
+#: prog/aspell.cpp:398
+#, c-format
+msgid "Error: You must specify at least %d parameters for \"%s\".\n"
+msgstr "错误：您必须为“%2$s”提供至少“%1$d”个参数。\n"
+
+#: prog/aspell.cpp:640
+msgid "Invalid Input"
+msgstr "无效输入"
+
+#: prog/aspell.cpp:713
+#, c-format
+msgid "WARNING: Unable to enter Nroff mode: %s\n"
+msgstr "警告：无法进入 Nroff 模式：%s\n"
+
+#: prog/aspell.cpp:734
+msgid "Time to load word list: "
+msgstr "加载单词表的时间："
+
+#: prog/aspell.cpp:934
+#, c-format
+msgid "Suggestion Time: %f\n"
+msgstr "建议时间：%f\n"
+
+#: prog/aspell.cpp:977
+msgid "You must specify a file name."
+msgstr "您必须指定一个文件名。"
+
+#: prog/aspell.cpp:980
+msgid "Only one file name may be specified."
+msgstr "只可指定一个文件名。"
+
+#: prog/aspell.cpp:990
+#, c-format
+msgid "Could not open the file \"%s\" for reading"
+msgstr "无法打开文件“%s”进行读取"
+
+#: prog/aspell.cpp:1003
+#, c-format
+msgid "Invalid keymapping: %s"
+msgstr "无效的键盘映射: %s"
+
+#: prog/aspell.cpp:1018
+#, c-format
+msgid "\"%s\" is not a regular file"
+msgstr "“%s”不是一个普通文件"
+
+#: prog/aspell.cpp:1029
+#, c-format
+msgid "Could not open the file \"%s\" for writing. File not saved."
+msgstr "无法打开文件“%s”进行写入。文件未保存。"
+
+#: prog/aspell.cpp:1042
+msgid "Ignore"
+msgstr "忽略"
+
+#: prog/aspell.cpp:1043
+msgid "Ignore all"
+msgstr "全部忽略"
+
+#: prog/aspell.cpp:1044
+msgid "Replace"
+msgstr "替换"
+
+#: prog/aspell.cpp:1045
+msgid "Replace all"
+msgstr "全部替换"
+
+#: prog/aspell.cpp:1046
+msgid "Add"
+msgstr "添加"
+
+#: prog/aspell.cpp:1047
+msgid "Add Lower"
+msgstr "添加更少"
+
+#: prog/aspell.cpp:1048
+msgid "Abort"
+msgstr "中止"
+
+#: prog/aspell.cpp:1049
+msgid "Exit"
+msgstr "退出"
+
+#: prog/aspell.cpp:1125
+msgid "Are you sure you want to abort (y/n)? "
+msgstr "您确定要中止吗(y/n)？"
+
+#. TRANSLATORS: The user may input any of these characters to say "yes".
+#. MUST ONLY CONSIST OF ASCII CHARACTERS.
+#: prog/aspell.cpp:1129
+msgid "Yy"
+msgstr "Yy"
+
+#: prog/aspell.cpp:1157
+msgid "With: "
+msgstr "使用："
+
+#: prog/aspell.cpp:1174
+msgid "Sorry that is an invalid choice!"
+msgstr "抱歉，此选择无效！"
+
+#: prog/aspell.cpp:1545
+msgid "Can't merge a master word list yet. Sorry."
+msgstr "抱歉，当前无法合并一个主单词表。"
+
+#: prog/aspell.cpp:1569
+msgid "Sorry \"create/merge personal\" is currently unimplemented.\n"
+msgstr "抱歉，当前没有实现“创建/合并个人”。\n"
+
+#: prog/aspell.cpp:1578 prog/aspell.cpp:1634
+#, c-format
+msgid "Sorry I won't overwrite \"%s\""
+msgstr "抱歉，程序不能覆盖“%s”"
+
+#: prog/aspell.cpp:1625
+msgid "Sorry \"create/merge repl\" is currently unimplemented.\n"
+msgstr "抱歉，当前没有实现“创建/合并 repl”。\n"
+
+#: prog/aspell.cpp:1897
+#, c-format
+msgid "\"%s\" is not a valid flag for the \"munch-list\" command."
+msgstr "“%s”不是一个合法的“munch-list”命令标志。"
+
+#. TRANSLATORS: These should all be formated to fit in 80 column or
+#. less
+#: prog/aspell.cpp:2829
+msgid "Usage: aspell [options] <command>"
+msgstr "用法：aspell [选项] <命令>"
+
+#: prog/aspell.cpp:2830
+msgid "<command> is one of:"
+msgstr "<命令>是以下之一："
+
+#: prog/aspell.cpp:2831
+msgid "  -?|usage         display a brief usage message"
+msgstr "  -?|usage         显示简明用法消息"
+
+#: prog/aspell.cpp:2832
+msgid "  help             display a detailed help message"
+msgstr "  help             显示详尽帮助消息"
+
+#: prog/aspell.cpp:2833
+msgid "  -c|check <file>  spellchecks a file"
+msgstr "  -c|check <文件>  对一个文件进行拼写检查"
+
+#: prog/aspell.cpp:2834
+msgid "  -a|pipe          \"ispell -a\" compatibility mode"
+msgstr "  -a|pipe          “ispell -a”兼容模式"
+
+#: prog/aspell.cpp:2835
+msgid "  [dump] config    dumps the current configuration to stdout"
+msgstr "  [dump] config    转储当前配置到标准输出"
+
+#: prog/aspell.cpp:2836
+msgid "  config <key>     prints the current value of an option"
+msgstr "  config <key>     打印某个选项的当前值"
+
+#: prog/aspell.cpp:2837
+msgid "  [dump] dicts | filters | modes"
+msgstr "  [dump] dicts | filters | modes"
+
+#: prog/aspell.cpp:2838
+msgid "    lists available dictionaries / filters / filter modes"
+msgstr "    列出可用的字典/过滤器/过滤器模式"
+
+#: prog/aspell.cpp:2839
+msgid "[options] is any of the following:"
+msgstr "[选项]是以下之一："
+
+#: prog/aspell.cpp:2852
+msgid "  list             produce a list of misspelled words from standard input"
+msgstr "  list             从标准输入产生一个拼写错误的单词表"
+
+#: prog/aspell.cpp:2855
+msgid "  soundslike       returns the sounds like equivalent for each word entered"
+msgstr "  soundslike       返回每个输入单词近似的声音"
+
+#: prog/aspell.cpp:2856
+msgid "  munch            generate possible root words and affixes"
+msgstr "  munch            产生可能的词根和词缀"
+
+#: prog/aspell.cpp:2857
+msgid "  expand [1-4]     expands affix flags"
+msgstr "  expand [1-4]     扩展词缀标志"
+
+#: prog/aspell.cpp:2858
+msgid "  clean [strict]   cleans a word list so that every line is a valid word"
+msgstr "  clean [strict]   清除一个单词表，使每行都是一个合法单词"
+
+#: prog/aspell.cpp:2859
+msgid "  filter           filters input as if it was being spellchecked"
+msgstr ""
+
+#: prog/aspell.cpp:2860
+msgid "  -v|version       prints a version line"
+msgstr "  -v|version       打印一行版本信息"
+
+#: prog/aspell.cpp:2861
+msgid "  munch-list [simple] [single|multi] [keep]"
+msgstr " munch-list [simple] [single|multi] [keep]"
+
+#: prog/aspell.cpp:2862
+msgid "    reduce the size of a word list via affix compression"
+msgstr "    通过词缀压缩减少一个单词表的大小"
+
+#: prog/aspell.cpp:2863
+msgid "  conv <from> <to> [<norm-form>]"
+msgstr "  conv <from> <to> [<norm-form>]"
+
+#: prog/aspell.cpp:2864
+msgid "    converts from one encoding to another"
+msgstr "    从一种编码转换到另一个"
+
+#: prog/aspell.cpp:2865
+msgid "  norm (<norm-map> | <from> <norm-map> <to>) [<norm-form>]"
+msgstr "  norm (<norm-map> | <from> <norm-map> <to>) [<norm-form>]"
+
+#: prog/aspell.cpp:2866
+msgid "    perform Unicode normalization"
+msgstr "    执行Unicode正规化"
+
+#: prog/aspell.cpp:2869
+msgid "  dump|create|merge master|personal|repl [<name>]"
+msgstr "  dump|create|merge master|personal|repl [<name>]"
+
+#: prog/aspell.cpp:2870
+msgid "    dumps, creates or merges a master, personal, or replacement dictionary."
+msgstr "    转储，创建或合并主字典，个人字典，或置换字典。"
+
+#. TRANSLATORS: "none", "internal" and "strict" are literal values
+#. and should not be translated.
+#: prog/aspell.cpp:2874
+msgid "  <norm-form>      normalization form to use, either none, internal, or strict"
+msgstr "  <norm-form>      要使用的规范化形式，可以为none，internal，或 strict"
+
+#: prog/aspell.cpp:2884
+#, fuzzy, c-format
+#| msgid ""
+#| "\n"
+#| "Aspell %s.  Copyright 2000-2019 by Kevin Atkinson.\n"
+#| "\n"
+msgid ""
+"\n"
+"Aspell %s.  Copyright 2000-2023 by Kevin Atkinson.\n"
+"\n"
+msgstr ""
+"\n"
+"Aspell %s. 版权所有 2000-2019 Kevin Atkinson。\n"
+"\n"
+
+#: prog/aspell.cpp:2918
+msgid ""
+"Available Dictionaries:\n"
+"    Dictionaries can be selected directly via the \"-d\" or \"master\"\n"
+"    option.  They can also be selected indirectly via the \"lang\",\n"
+"    \"variety\", and \"size\" options.\n"
+msgstr ""
+"可用字典:\n"
+"    可以直接通过“-d”或“master”选项选择字典。\n"
+"    也可以间接通过“lang”,“variety”, 和“size”选项来选择它们。\n"
+
+#: prog/aspell.cpp:2939
+msgid ""
+"Available Filters (and associated options):\n"
+"    Filters can be added or removed via the \"filter\" option.\n"
+msgstr ""
+"可用过滤器（以及相关的选项）：\n"
+"    可以通过“过滤器”选项添加或删除过滤器。\n"
+
+#: prog/aspell.cpp:2946
+#, c-format
+msgid ""
+"\n"
+"  %s filter: %s\n"
+msgstr ""
+"\n"
+"%s 过滤器: %s\n"
+
+#. TRANSLATORS: This should be formated to fit in 80 column or less
+#: prog/aspell.cpp:2963
+msgid ""
+"Available Filter Modes:\n"
+"    Filter Modes are reconfigured combinations of filters optimized for\n"
+"    files of a specific type. A mode is selected via the \"mode\" option.\n"
+"    This will happen implicitly if Aspell is able to identify the file\n"
+"    type from the extension, and possibility the contents, of the file.\n"
+msgstr ""
+"可用的过滤模式：\n"
+"    过滤模式是某一特定类型的文件做组合优化的重新配置的组合。\n"
+"     通过“模式”选项来选择一个模式。如果 Aspell 能够通过\n"
+"    扩展名或文件可能的内容来识别该文件，会自动进行。\n"
+
+#: prog/check_funs.cpp:287
+msgid "Error: Stdin not a terminal."
+msgstr "错误：标准输入不是一个终端。"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:774
+msgid "Enter"
+msgstr "回车键"
+
+#: prog/check_funs.cpp:776
+msgid "Accept Changes"
+msgstr "接受改变"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:779
+msgid "Backspace"
+msgstr "退格键"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:781
+msgid "Control-H"
+msgstr "Ctrl-H"
+
+#: prog/check_funs.cpp:782
+msgid "Delete the previous character"
+msgstr "删除前一个字符"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:785
+msgid "Left"
+msgstr "左"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:787
+msgid "Control-B"
+msgstr "Ctrl-B"
+
+#: prog/check_funs.cpp:788
+msgid "Move Back one space"
+msgstr "向后移动一个空格"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:791
+msgid "Right"
+msgstr "右"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:793
+msgid "Control-F"
+msgstr "Ctrl-F"
+
+#: prog/check_funs.cpp:794
+msgid "Move Forward one space"
+msgstr "向前移动一个空格"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:797
+msgid "Home"
+msgstr "行首"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:799
+msgid "Control-A"
+msgstr "Ctrl-A"
+
+#: prog/check_funs.cpp:800
+msgid "Move to the beginning of the line"
+msgstr "移动到行的开头"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:803
+msgid "End"
+msgstr "行末"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:805
+msgid "Control-E"
+msgstr "Ctrl-E"
+
+#: prog/check_funs.cpp:806
+msgid "Move to the end of the line"
+msgstr "移动到行的结束"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:809
+msgid "Delete"
+msgstr "删除"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:811
+msgid "Control-D"
+msgstr "Ctrl-D"
+
+#: prog/check_funs.cpp:812
+msgid "Delete the next character"
+msgstr "删除下一个字符"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:816
+msgid "Control-K"
+msgstr "Ctrl-K"
+
+#: prog/check_funs.cpp:817
+msgid "Kill all characters to the EOL"
+msgstr "去掉到行末的所有字符"
+
+#. TRANSLATORS: This is a literal Key.
+#: prog/check_funs.cpp:821
+msgid "Control-C"
+msgstr "Ctrl-C"
+
+#: prog/check_funs.cpp:822
+msgid "Abort This Operation"
+msgstr "取消本次操作"
+
+#: modules/speller/default/language.cpp:103
+msgid "This is probably because: "
+msgstr "这可能是因为："
+
+#: modules/speller/default/language.cpp:110
+msgid "The required field \"name\" is missing."
+msgstr "缺少所需的字段“名称”。"
+
+#: modules/speller/default/language.cpp:524
+msgid "Empty string."
+msgstr "空白字符串。"
+
+#: modules/speller/default/language.cpp:533
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear at the beginning of a word."
+msgstr "字符 '%s' (U+%02X) 不会出现在单词的开始。"
+
+#: modules/speller/default/language.cpp:535
+#: modules/speller/default/language.cpp:544
+#, c-format
+msgid "The character '%s' (U+%02X) must be followed by an alphabetic character."
+msgstr "字符 '%s' (U+%02X) 后必须是一个字母字符。"
+
+#: modules/speller/default/language.cpp:537
+msgid "Does not contain any alphabetic characters."
+msgstr "不包含任何字母字符。"
+
+#: modules/speller/default/language.cpp:542
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear in the middle of a word."
+msgstr "字符 '%s' (U+%02X) 不能出现在单词的中间。"
+
+#: modules/speller/default/language.cpp:549
+msgid "The character '\\r' (U+0D) may not appear at the end of a word. This probably means means that the file is using MS-DOS EOL instead of Unix EOL."
+msgstr "字符 '\r' (U+0D) 不能出现在单词的结束。也许是使用了MS-DOS结束符，而不是Unix结束符。"
+
+#: modules/speller/default/language.cpp:552
+#, c-format
+msgid "The character '%s' (U+%02X) may not appear at the end of a word."
+msgstr "字符 '%s' (U+%02X) 不能出现在单词的结束。"
+
+#: modules/speller/default/language.cpp:584
+#, c-format
+msgid "Warning: Removing invalid affix '%s' from word %s.\n"
+msgstr "警告：将要从单词 %2$s 中删除非法的词缀 '%1$s'。\n"
+
+#: modules/speller/default/language.cpp:585
+#, c-format
+msgid "Warning: Removing inapplicable affix '%s' from word %s.\n"
+msgstr "警告：将要删除单词 %2$s中不可用的词缀 '%1$s'。\n"
+
+#: modules/speller/default/language.cpp:726
+#, c-format
+msgid "Warning: %s Skipping string.\n"
+msgstr "警告：%s 将跳过字符串。\n"
+
+#: modules/speller/default/language.cpp:780
+msgid "The total length is larger than 240 characters."
+msgstr "总长度超过了 240 个字符。"
+
+#: modules/speller/default/language.cpp:784
+#, c-format
+msgid "Warning: %s Skipping word.\n"
+msgstr "警告：%s 将跳过单词。\n"
+
+#: modules/speller/default/affix.cpp:426
+msgid "Possibly incorrect count."
+msgstr "可能计数不正确。"
+
+#: modules/speller/default/readonly_ws.cpp:362
+msgid "Incompatible hash function."
+msgstr "不兼容的散列(hash)函数。"
+
+#: modules/speller/default/readonly_ws.cpp:440
+msgid "Wrong endian order."
+msgstr "错误的字节序。"
+
+#: modules/speller/default/readonly_ws.cpp:463
+msgid "Wrong soundslike."
+msgstr "错误的 soundslike。"
+
+#: modules/speller/default/readonly_ws.cpp:469
+msgid "Wrong soundslike version."
+msgstr "错误的 soundslike 版本。"
+
+#: modules/speller/default/readonly_ws.cpp:936
+msgid "Affix flags found in word but no affix file given."
+msgstr "在单词中发现词缀标志，但没有给出词缀文件。"
+
+#: modules/speller/default/readonly_ws.cpp:974
+msgid "The total word length, with soundslike data, is larger than 240 characters."
+msgstr "带 soundslike 数据的总单词长度大于 240 个字符。"
+
+#: modules/speller/default/multi_ws.cpp:58
+msgid "There must be at least one \"add\" line."
+msgstr "必须有至少一行“添加”行。"
+
+#: modules/speller/default/suggest.cpp:1730
+msgid "one of ultra, fast, normal, slow, or bad-spellers"
+msgstr "ultra、fast、normal、slow 或 bad-spellers 其中之一"
+
+#: modules/speller/default/data.cpp:406
+msgid "is not one of the allowed types"
+msgstr "不是允许的类型之一。"
+
+#: modules/speller/default/speller_impl.cpp:334
+msgid "The personal word list is unavailable."
+msgstr "个人词汇表不可用。"
+
+#: modules/speller/default/speller_impl.cpp:341
+msgid "The session word list is unavailable."
+msgstr "会话词汇表不可用。"
+
+#: modules/speller/default/speller_impl.cpp:348
+msgid "The main word list is unavailable."
+msgstr "主词汇表是不可用的。"
+
+#: modules/filter/tex.cpp:255 modules/filter/tex.cpp:262
+msgid "a string of 'o','O','p',or 'P'"
+msgstr "'o','O','p',或 'P' 组成的一个字符串"
+
+#. TRANSLATORS: Like the strings in config.cpp, all strings in *-filter.opt
+#. should be under 50 characters, begin with a lower case character and 
+#. not include any trailing punctuation marks.
+#: modules/filter/context-filter.info:7
+msgid "experimental filter for hiding delimited contexts"
+msgstr "隐藏分隔的上下文的实验性过滤器"
+
+#: modules/filter/context-filter.info:13
+msgid "context delimiters (separated by spaces)"
+msgstr "上下文分隔符(由空格分隔)"
+
+#: modules/filter/context-filter.info:21
+msgid "swaps visible and invisible text"
+msgstr "交换可见和不可见的文本"
+
+#: modules/filter/email-filter.info:7
+msgid "filter for skipping quoted text in email messages"
+msgstr "电子邮件消息中跳过引用文字的过滤器"
+
+#: modules/filter/email-filter.info:13
+msgid "email quote characters"
+msgstr "电子邮件引号字符"
+
+#: modules/filter/email-filter.info:21
+msgid "num chars that can appear before the quote char"
+msgstr "可以出现在引号字符前的数字字符"
+
+#: modules/filter/html-filter.info:9
+msgid "filter for dealing with HTML documents"
+msgstr "处理 HTML 文档的过滤器"
+
+#: modules/filter/html-filter.info:15
+msgid "HTML attributes to always check"
+msgstr "总是检查的 HTML 属性"
+
+#: modules/filter/html-filter.info:21
+msgid "HTML tags to always skip the contents of"
+msgstr "总是忽略其内容的 HTML 标签"
+
+#: modules/filter/markdown-filter.info:8
+msgid "filter for Markdown/CommonMark documents"
+msgstr "用于处理 Markdown/CommonMark 文档的过滤器"
+
+#: modules/filter/markdown-filter.info:14
+msgid "skip link labels in link reference definitions"
+msgstr ""
+
+#: modules/filter/markdown-filter.info:20
+msgid "support tags that span multiple lines outside of HTML blocks"
+msgstr ""
+
+#: modules/filter/markdown-filter.info:26
+msgid "HTML tags that start an HTML block that allows blank lines"
+msgstr ""
+
+#: modules/filter/markdown-filter.info:34
+msgid "HTML tags that start an HTML block that ends with a blank line"
+msgstr ""
+
+#: modules/filter/nroff-filter.info:7
+msgid "filter for dealing with Nroff documents"
+msgstr "用于处理 Nroff 文档的过滤器"
+
+#: modules/filter/sgml-filter.info:9
+msgid "filter for dealing with generic SGML/XML documents"
+msgstr "用于处理通用 SGML/XML 文档的过滤器"
+
+#: modules/filter/sgml-filter.info:15
+msgid "SGML attributes to always check"
+msgstr "总是检查的 SGML 属性"
+
+#: modules/filter/sgml-filter.info:20
+msgid "SGML tags to always skip the contents of"
+msgstr "总是忽略其内容的 SGML 标签"
+
+#: modules/filter/tex-filter.info:7
+msgid "filter for dealing with TeX/LaTeX documents"
+msgstr "用于处理 TeX/LaTeX 文档的过滤器"
+
+#: modules/filter/tex-filter.info:15
+msgid "check TeX comments"
+msgstr "检查 TeX 注释"
+
+#: modules/filter/tex-filter.info:21
+msgid "TeX commands"
+msgstr "TeX 命令"
+
+#: modules/filter/texinfo-filter.info:7
+msgid "filter for dealing with Texinfo documents"
+msgstr "用于处理 Texinfo 文档的过滤器"
+
+#: modules/filter/texinfo-filter.info:13
+msgid "Texinfo commands to ignore the parameters of"
+msgstr "要忽略参数的 Texinfo 命令"
+
+#: modules/filter/texinfo-filter.info:41
+msgid "Texinfo environments to ignore"
+msgstr "要忽略的 Texinfo 环境"
+
+#: modules/filter/url-filter.info:7
+msgid "filter to skip URL like constructs"
+msgstr "跳过类似 URL 结构的过滤器"
+
+#: modules/filter/modes/ccpp.amf:8
+msgid "mode for checking C++ comments and string literals"
+msgstr "用于检查 C++ 注释和字符串字面值的模式"
+
+#: modules/filter/modes/comment.amf:5
+msgid "mode to check any lines starting with a #"
+msgstr "检查任何以 # 开头的行的模式"
+
+#: modules/filter/modes/email.amf:5
+msgid "mode for skipping quoted text in email messages"
+msgstr "在电子邮件中跳过引用文字的模式"
+
+#: modules/filter/modes/html.amf:10
+msgid "mode for checking HTML documents"
+msgstr "查看 HTML 文档的模式"
+
+#: modules/filter/modes/markdown.amf:9
+msgid "mode for checking Markdown/CommonMark documents"
+msgstr "检查 Markdown/CommonMark 文档的模式"
+
+#: modules/filter/modes/none.amf:5
+msgid "mode to disable all filters"
+msgstr "禁用所有过滤器的模式"
+
+#: modules/filter/modes/nroff.amf:7
+msgid "mode for checking Nroff documents"
+msgstr "检查 Nroff 文档的模式"
+
+#: modules/filter/modes/perl.amf:8
+msgid "mode for checking Perl comments and string literals"
+msgstr "检查 Perl 注释和字符串字面值的模式"
+
+#: modules/filter/modes/sgml.amf:8
+msgid "mode for checking generic SGML/XML documents"
+msgstr "检查通用 SGML/XML 文档的模式"
+
+#: modules/filter/modes/tex.amf:7
+msgid "mode for checking TeX/LaTeX documents"
+msgstr "检查 TeX/LaTeX 文档的模式"
+
+#: modules/filter/modes/texinfo.amf:7
+msgid "mode for checking Texinfo documents"
+msgstr "检查 Texinfo 文档的模式"
+
+#: modules/filter/modes/url.amf:5
+msgid "mode to skip URL like constructs (default mode)"
+msgstr "跳过类似 URL 结构的模式（缺省模式）"
+
+#~ msgid "edit distance to use, override sug-mode default"
+#~ msgstr "编辑要使用的距离，覆盖 sug-mode 默认值"
+
+#~ msgid "Sorry \"filter\" is currently unimplemented.\n"
+#~ msgstr "抱歉，当前没有实现“过滤器”。\n"

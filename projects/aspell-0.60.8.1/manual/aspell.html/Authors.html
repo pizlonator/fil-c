@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Authors</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Authors">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Copying.html#Copying" rel="next" title="Copying">
+<link href="ChangeLog.html#ChangeLog" rel="prev" title="ChangeLog">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Authors"></a>
+<div class="header">
+<p>
+Next: <a href="Copying.html#Copying" accesskey="n" rel="next">Copying</a>, Previous: <a href="ChangeLog.html#ChangeLog" accesskey="p" rel="prev">ChangeLog</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Authors-1"></a>
+<h2 class="appendix">Appendix D Authors</h2>
+
+<p>The following people or companies have contributed a non-trival amount of
+code to Aspell and thus own the Copyright to part of Aspell.
+</p>
+<dl compact="compact">
+<dt>Jose Da Silva</dt>
+<dd><p>Bug fixes and enhancements to <code>word-list-compress</code>.
+</p>
+</dd>
+<dt>Sergey Poznyakoff</dt>
+<dd><p>Wrote the Nroff filter.
+</p>
+</dd>
+<dt>Tom Snyder</dt>
+<dd><p>Enhanced the SGML filter to also support skipping sgml tags such as
+&quot;script&quot; blocks.
+</p>
+</dd>
+<dt>Kevin B. Hendricks (and Contributors)</dt>
+<dd><p>Wrote MySpell which is a simple spell checker library that supports
+affix compression.  Aspell affix compression code is based on his code.
+</p>
+</dd>
+<dt>Christoph Hintermüller</dt>
+<dd><p>Added support for loadable filters.
+</p>
+</dd>
+<dt>Melvin Hadasht</dt>
+<dd><p>Wrote a locale independent version of strtol and strtod.  
+Wrote the original loadable filter support however his code has been 
+completely rewritten by Christoph Hintermüller and Kevin Atkinson.
+</p>
+</dd>
+<dt>Björn Jacke</dt>
+<dd><p>Wrote the generic soundslike algorithm which gets all of its data from a
+file, thus eliminating almost all need for language specific code from
+Aspell.
+</p>
+</dd>
+<dt>Silicon Graphics Computer Systems, Inc.</dt>
+<dt>Hewlett-Packard Company</dt>
+<dd><p>Parts of the SGI STL code were used in various places throughout the
+Aspell source.
+</p>
+</dd>
+</dl>
+
+<p>In addition the authors of some of translated messages did not release
+their work into the Public Domain, and thus own the copyright to the
+translated text.  See the files <samp>*.po</samp> in the <samp>po</samp> directory
+for more details.
+</p>
+<p>The following people also contributed to the development of Aspell but do
+not own the Copyright to part of Aspell.
+</p>
+<dl compact="compact">
+<dt>Sergey Poznyakoff</dt>
+<dd><p>Added gettext support.
+</p>
+</dd>
+<dt>Chris Martin</dt>
+<dd><p>Converted the manual to texinfo.
+</p>
+</dd>
+<dt>Lawrence Philips</dt>
+<dd><p>Wrote the original metaphone algorithm; however, he released his work
+into the Public Domain.
+</p>
+</dd>
+<dt>Michael Kuhn</dt>
+<dd><p>Converted the metaphone algorithm into C code and made some enhancements
+to the original algorithm.  He also released his work into the Public
+Domain.
+</p>
+</dd>
+<dt>Geoff Kuenning (and contributers)</dt>
+<dd><p>The authors of Ispell.  Many of the ideas used in Aspell, especially with
+the affix code, were taken from Ispell.  However none of the original
+Ispell code is used in Aspell.
+</p>
+</dd>
+</dl>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Copying.html#Copying" accesskey="n" rel="next">Copying</a>, Previous: <a href="ChangeLog.html#ChangeLog" accesskey="p" rel="prev">ChangeLog</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

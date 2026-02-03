@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Introduction</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Introduction">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Support.html#Support" rel="next" title="Support">
+<link href="index.html#Top" rel="prev" title="Top">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Introduction"></a>
+<div class="header">
+<p>
+Next: <a href="Support.html#Support" accesskey="n" rel="next">Support</a>, Previous: <a href="index.html#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Introduction-1"></a>
+<h2 class="chapter">1 Introduction</h2>
+
+<p>GNU Aspell is a spell checker designed to eventually replace Ispell.  It
+can either be used as a library or as an independent spell checker.  Its
+main feature is that it does a much better job of suggesting possible
+replacements for a misspelled word than just about any other spell
+checker out there for the English language.  Unlike Ispell, Aspell can
+also easily check documents in UTF-8 without having to use a special
+dictionary.  Aspell will also do its best to respect the current locale
+setting.  Other advantages over Ispell include support for using
+multiple dictionaries at once and intelligently handling personal
+dictionaries when more than one Aspell process is open at once.
+</p>
+<p>The latest version of Aspell can always be found at <a href="http://aspell.net">http://aspell.net</a>
+</p>
+<a name="Comparison-to-other-spell-checker-engines"></a>
+<h3 class="section">1.1 Comparison to other spell checker engines</h3>
+
+<table>
+<tr><td></td><td>Aspell 0.60.8</td><td>Ispell 2.1.20</td><td>Hunspell 1.1.12</td><td>Microsoft Word 97</td></tr>
+<tr><td>Open Source</td><td>x</td><td>x</td><td>x</td><td></td></tr>
+<tr><td>Suggestion Intelligence</td><td>70-85</td><td>52</td><td>76</td><td>70</td></tr>
+<tr><td>Personal part of Suggestions</td><td>x</td><td>x</td><td>x</td><td>x</td></tr>
+<tr><td>Alternate Dictionaries</td><td>x</td><td>x</td><td>x</td><td>?</td></tr>
+<tr><td>International Support</td><td>x</td><td>x</td><td>x</td><td>?</td></tr>
+</table>
+
+<p>The Suggestion Intelligence is based on a small test kernel of
+misspelled/correct word pairs.  Go to <a href="http://aspell.net/test/cur/">http://aspell.net/test/cur/</a>
+for more info and how you can help contribute to the test kernel.
+</p>
+<p>If you have any other information you would like to add to this chart
+please contact me at <a href="mailto:kevina@gnu.org">kevina@gnu.org</a>.
+</p>
+<a name="Comparison-to-Ispell"></a>
+<h4 class="subsection">1.1.1 Comparison to Ispell</h4>
+
+<a name="Features-that-only-Aspell-has"></a>
+<h4 class="subsubsection">1.1.1.1 Features that only Aspell has</h4>
+
+<ul>
+<li> Is an actual library that other programs can link to instead of
+having to use it through a pipe.
+
+</li><li> Does a much better job of suggesting possible replacements for a
+misspelled word than Ispell does or for that matter many other spell
+checkers I have seen.  If you know a spell checker that does a better
+job please let me know.
+
+</li><li> Can learn from user&rsquo;s misspellings.
+
+</li><li> Can easily check documents in UTF-8 without having to use a special
+dictionary.
+
+</li><li> Has support for using multiple dictionaries at once.
+
+</li><li> Is multiprocess intelligent.  When a personal dictionary (or
+replacement list) is saved, it will now first update the list against
+the dictionary on disk in case another process modified it.
+
+</li><li> Can share the memory used in the main word list between processes.
+
+</li><li> A better, more complete word list for the English language.  Word
+lists are provided for American, British, and Canadian spelling.
+Special care has been taken to only include one spelling for each word
+in any particular word list.  The word list included in Ispell by
+contrast only included support for American and British and also tends
+to included multiple spellings for a word which can mask some spelling
+errors.
+</li></ul>
+
+<a name="Things-that_002c-currently_002c-only-Ispell-has"></a>
+<h4 class="subsubsection">1.1.1.2 Things that, currently, only Ispell has</h4>
+
+<ul>
+<li> Lower memory footprint
+
+</li><li> Ability to deal with arbitrary multi-character letters such as old
+ASCII encodings of accented letters.
+
+</li><li> Perhaps better support for spell checking (La)TeX files.
+
+</li></ul>
+
+<p>For a detailed description of how Aspell differs from Ispell, See <a href="Using-Aspell-as-a-Replacement-for-Ispell.html#Differences-From-Ispell">Differences From Ispell</a>.
+</p>
+<a name="Comparison-to-Hunspell"></a>
+<h4 class="subsection">1.1.2 Comparison to Hunspell</h4>
+
+<p>Hunspell is based on Myspell.  Myspell was created as a simple spell
+checker for use in OpenOffice.  Myspell&rsquo;s affix support was merged
+into Aspell 0.60 so Hunspell and Aspell can use the same affix file
+to some extent.
+</p>
+<p>Hunspell has better support for language peculiarities including
+compounding and complex morphology.  However the Hunspell (v1.7.0)
+utility currently has problems with apostrophe (<kbd>'</kbd>) in words.
+</p>
+<p>Aspell generally has better suggestions for non-phonetic languages
+such as English and French.  Aspell suggestion speed also tends to be
+significantly faster than Hunspell.  For a compression of suggestion
+quality and speed see <a href="http://aspell.net/test/">http://aspell.net/test/</a>.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Support.html#Support" accesskey="n" rel="next">Support</a>, Previous: <a href="index.html#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

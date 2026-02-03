@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+for f in 00-special 02-orig 05-common
+do
+    for mode in ultra fast normal slow bad-spellers
+    do
+        echo "** $f $mode"
+        time ./run-batch "../inst/bin/aspell --sug-mode=$mode" $f.tab $f-$mode-expect
+    done
+    for mode in ultra normal
+    do
+        echo "** $f $mode"
+        time ./run-batch "../inst/bin/aspell --keyboard=none --sug-mode=$mode" $f.tab $f-$mode-nokbd-expect
+    done
+done
+for f in 00-special
+do
+    for mode in ultra fast normal slow bad-spellers
+    do
+        echo "** $f $mode"
+        time ./run-batch "../inst/bin/aspell --sug-mode=$mode --camel-case" $f.tab $f-$mode-camel-expect
+    done
+done

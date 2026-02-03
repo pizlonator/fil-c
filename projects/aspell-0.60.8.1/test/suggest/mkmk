@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use autodie;
+
+my $targets = '';
+foreach my $f (qw (00-special 02-orig 05-common)) {
+    my @modes = qw(ultra fast normal slow bad-spellers);
+    foreach my $mode (@modes) {
+        last if $f eq '05-common' && $mode eq 'bad-spellers';
+        print <<"---";
+suggest-$f-${mode}: prep
+	suggest/run-batch "\${ASPELL_WRAP} \${ASPELL} --sug-mode=$mode" suggest/$f.tab tmp/$f-$mode-actual
+	suggest/comp suggest/$f-$mode-expect.res tmp/$f-$mode-actual.res 1 > tmp/$f-$mode.diff
+	rm tmp/$f-$mode.diff
+	echo "ok (suggest reg. $f $mode)" >> test-res
+---
+        $targets .= " suggest-$f-${mode}";
+    }
+    foreach my $mode (qw(ultra normal)) {
+        print <<"---";
+suggest-$f-${mode}-nokbd: prep
+	suggest/run-batch "\${ASPELL_WRAP} \${ASPELL} --keyboard=none --sug-mode=$mode" suggest/$f.tab tmp/$f-$mode-nokbd-actual
+	suggest/comp suggest/$f-$mode-nokbd-expect.res tmp/$f-$mode-nokbd-actual.res 1 > tmp/$f-$mode-nokbd.diff
+	rm tmp/$f-$mode-nokbd.diff
+	echo "ok (suggest reg. $f $mode nokbd)" >> test-res
+---
+        $targets .= " suggest-$f-${mode}-nokbd";
+    }
+}
+my $f = '00-special';
+foreach my $mode (qw(ultra fast normal slow bad-spellers)) {
+    print <<"---";
+suggest-$f-${mode}-camel: prep
+	suggest/run-batch "\${ASPELL_WRAP} \${ASPELL} --camel-case --sug-mode=$mode" suggest/$f.tab tmp/$f-$mode-camel-actual
+	suggest/comp suggest/$f-$mode-camel-expect.res tmp/$f-$mode-camel-actual.res 1 > tmp/$f-$mode-camel.diff
+	rm tmp/$f-$mode-camel.diff
+	echo "ok (suggest reg. $f $mode camel)" >> test-res
+---
+    $targets .= " suggest-$f-${mode}-camel";
+}
+
+print ".PHONY: $targets\n";
+print "suggest: $targets\n";
+
+

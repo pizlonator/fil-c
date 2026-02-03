@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -e
+set -x
+
+export PATH="`pwd`"/inst/bin:$PATH
+
+echo 'swimmer' | aspell -d en_US -a > tmp/res
+if cat tmp/res | fgrep '*'; then
+    echo "pass"
+else
+    echo "fail:"
+    cat tmp/res
+    exit 1
+fi
+
+echo 'swimer' | aspell -d en_US -a > tmp/res
+if cat tmp/res | fgrep '& swimer' | fgrep 'swimmer'; then
+    echo "pass"
+else
+    echo "fail:"
+    cat tmp/res
+    exit 1
+fi
+
+aspell -d en_US dump master | aspell -d en_US list > tmp/incorrect
+if [ -e tmp/incorrect -a ! -s tmp/incorrect ]; then
+    echo "pass"
+else
+    echo "fail:"
+    cat tmp/incorrect
+    exit 1
+fi
+

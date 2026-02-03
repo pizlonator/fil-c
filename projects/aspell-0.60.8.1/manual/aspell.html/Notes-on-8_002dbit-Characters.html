@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Notes on 8-bit Characters</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Notes on 8-bit Characters">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Implementation-Notes.html#Implementation-Notes" rel="up" title="Implementation Notes">
+<link href="Installing.html#Installing" rel="next" title="Installing">
+<link href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy" rel="prev" title="Aspell Suggestion Strategy">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Notes-on-8_002dbit-Characters"></a>
+<div class="header">
+<p>
+Previous: <a href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy" accesskey="p" rel="prev">Aspell Suggestion Strategy</a>, Up: <a href="Implementation-Notes.html#Implementation-Notes" accesskey="u" rel="up">Implementation Notes</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Notes-on-8_002dbit-Characters-1"></a>
+<h3 class="appendixsec">A.2 Notes on 8-bit Characters</h3>
+
+<p>There is a very good reason I use 8-bit characters in Aspell. Speed
+and simplicity. While many parts of my code can fairly easily be
+converted to some sort of wide character as my code is clean. Other
+parts cannot be.
+</p>
+<p>One of the reasons why is because in many, many places I use a direct
+lookup to find out various information about characters. With 8-bit
+characters this is very feasible because there is only 256 of
+them. With 16-bit wide characters this will waste a LOT of space. With
+32-bit characters this is just plain impossible. Converting the lookup
+tables to another form is certainly possible but degrades performance
+significantly.
+</p>
+<p>Furthermore, some of my algorithms rely on words consisting only on a
+small number of distinct characters (often around 30 when case and
+accents are not considered). When the possible character can consist
+of any Unicode character this number becomes several thousand, if
+that. In order for these algorithms to still be used, some sort of
+limit will need to be placed on the possible characters the word can
+contain. If I impose that limit, I might as well use some sort of
+8-bit characters set which will automatically place the limit on what
+the characters can be.
+</p>
+<p>There is also the issue of how I should store the word lists in
+memory? As a string of 32 bit wide characters. Now that is using up 4
+times more memory than characters would and for languages that can fit
+within an 8-bit character that is, in my view, a gross waste of
+memory. So maybe I should store them is some variable width format
+such as UTF-8. Unfortunately, way, way too many of the algorithms will
+simply not work with variable width characters without significant
+modification which will very likely degrade performance. So the
+solution is to work with the characters as 32-bit wide characters and
+then convert it to a shorter representation when storing them in the
+lookup tables. Now that can lead to an inefficiency. I could also use
+16 bit wide characters, however that may not be good enough to hold all
+future versions of Unicode and therefore has the same problems.
+</p>
+<p>As a response to the space waste used by storing word lists in some
+sort of wide format some one asked:
+</p>
+<blockquote>
+<p>Since hard drives are cheaper and cheaper, you could store a dictionary
+in a usable (uncompressed) form and use it directly with memory
+mapping. Then the efficiency would directly depend on the disk caching
+method, and only the used part of the dictionaries would really be
+loaded into memory. You would no more have to load plain dictionaries
+into main memory, you&rsquo;ll just want to compute some indexes (or
+something like that) after mapping.
+</p></blockquote>
+
+<p>However, the fact of the matter is that most of the dictionary will be
+read into memory anyway if it is available. If it is not available
+then there would be a good deal of disk swaps. Making characters
+32-bit wide will increase the chance that there are more disk swaps.
+So the bottom line is that it is more efficient to convert characters
+from something like UTF-8 into some sort of 8-bit character. I could
+also use some sort of disk space lookup table such as the Berkeley
+Database. However this will <strong>definitely</strong> degrade performance.
+</p>
+<p>The bottom line is that keeping Aspell 8-bit internally is a very well
+though out decision that is not likely to change any time soon. Feel
+free to challenge me on it, but, don&rsquo;t expect me to change my mind
+unless you can bring up some point that I have not thought of before
+and quite possibly a patch to solve cleanly convert Aspell to Unicode
+internally without a serious performance lost OR serious memory usage
+increase.
+</p>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="Aspell-Suggestion-Strategy.html#Aspell-Suggestion-Strategy" accesskey="p" rel="prev">Aspell Suggestion Strategy</a>, Up: <a href="Implementation-Notes.html#Implementation-Notes" accesskey="u" rel="up">Implementation Notes</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

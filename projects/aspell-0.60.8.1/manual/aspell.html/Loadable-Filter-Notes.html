@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Loadable Filter Notes</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Loadable Filter Notes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System" rel="next" title="Using 32-Bit Dictionaries on a 64-Bit System">
+<link href="Curses-Notes.html#Curses-Notes" rel="prev" title="Curses Notes">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Loadable-Filter-Notes"></a>
+<div class="header">
+<p>
+Next: <a href="Using-32_002dBit-Dictionaries-on-a-64_002dBit-System.html#Using-32_002dBit-Dictionaries-on-a-64_002dBit-System" accesskey="n" rel="next">Using 32-Bit Dictionaries on a 64-Bit System</a>, Previous: <a href="Curses-Notes.html#Curses-Notes" accesskey="p" rel="prev">Curses Notes</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Loadable-Filter-Notes-1"></a>
+<h3 class="appendixsec">B.4 Loadable Filter Notes</h3>
+
+<p>Support for being able to load additional filter modules at run-time
+has only been verified to work on Linux platforms.  If you get linker
+errors when trying to use a filter, then it is likely that loadable
+filter support is not working yet on your platform.  Thus, in order to
+get Aspell to work correctly you will need to avoid compiling the
+filters as individual modules by using the
+<samp>--enable-compile-in-filters</samp> <code>configure</code> option.
+</p>
+
+
+
+</body>
+</html>

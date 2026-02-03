@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Affix Compression</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Affix Compression">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" rel="up" title="Adding Support For Other Languages">
+<link href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words" rel="next" title="Controlling the Behavior of Compound Words">
+<link href="Replacement-Tables.html#Replacement-Tables" rel="prev" title="Replacement Tables">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Affix-Compression"></a>
+<div class="header">
+<p>
+Next: <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words" accesskey="n" rel="next">Controlling the Behavior of Compound Words</a>, Previous: <a href="Replacement-Tables.html#Replacement-Tables" accesskey="p" rel="prev">Replacement Tables</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Affix-Compression-1"></a>
+<h3 class="section">7.6 Affix Compression</h3>
+
+<p>Aspell, as of version 0.60, now has support for affix compression.
+The codebase comes from MySpell found in OpenOffice.
+</p>
+<p>To add support for affix compression add the following lines to the
+language data file.
+</p>
+<div class="example">
+<pre class="example">affix          <var>lang</var>
+affix-compress true
+</pre></div>
+
+<p>The line &lsquo;<samp>affix <var>lang</var></samp>&rsquo; adds support for recognizing affix
+information, and the line &lsquo;<samp>affix-compress true</samp>&rsquo; enables affix
+compression.
+</p>
+<p>The affix file is expected to be named <samp><var>lang</var>_affix.dat</samp>.  It is
+the exact same format as those used by MySpell.  More information can
+be found in the myspell/ directory of the distribution or at
+<a href="http://lingucomponent.openoffice.org/dictionary.html">http://lingucomponent.openoffice.org/dictionary.html</a>.
+</p>
+<p>Affix compression can also be used with soundslike lookup.  Aspell
+does this by only storing the soundslike for the root word.  When a
+word is misspelled it will search for a soundslike close to all
+possible roots of the misspelled word.
+</p>
+<p>When no soundslike information, or the simple soundslike, is used it
+may be beneficial to specify the option <samp>partially-expand</samp>
+which will partially expand a word with affix information so that the
+affix flags do not affect the first 3 letters of the word.  This will
+allow Aspell to get more accurate results when scanning the list for near
+misses since the full word can be used and not just the root.
+Specifying this option, however, will also effectively expand any
+prefixes.  Thus this option should not be used for prefix heavy
+languages such as Hebrew.
+</p>
+<p>An existing word list, without affix info, can be affix compressed
+using using &lsquo;<samp>aspell munch-list</samp>&rsquo;.
+</p>
+<a name="Format-of-the-Affix-File"></a>
+<h4 class="subsection">7.6.1 Format of the Affix File</h4>
+
+
+<p>An affix is either a  prefix or a suffix attached to root words to make
+other words.  For example supply -&gt; supplied by dropping the &quot;y&quot; and
+adding an &quot;ied&quot; (the suffix).
+</p>
+<p>Here is an example of how to define one specific suffix borrowed
+from the English affix file.
+</p>
+<div class="example">
+<pre class="example">SFX D Y 4
+SFX D   0     d          e
+SFX D   y     ied        [^aeiou]y
+SFX D   0     ed         [^ey]
+SFX D   0     ed         [aeiou]y
+</pre></div>
+
+<p>This file is space delimited and case sensitive.  So this information
+can be interpreted as follows:
+</p>
+<p>The first line has 4 fields:
+</p>
+<table>
+<tr><td width="5%">1</td><td width="15%"><tt>SFX</tt></td><td width="80%">indicates this is a suffix</td></tr>
+<tr><td width="5%">2</td><td width="15%"><tt>D</tt></td><td width="80%">is the name of the character which represents this suffix</td></tr>
+<tr><td width="5%">3</td><td width="15%"><tt>Y</tt></td><td width="80%">indicates it can be combined with prefixes (cross product)</td></tr>
+<tr><td width="5%">4</td><td width="15%"><tt>4</tt></td><td width="80%">indicates that sequence of 4 affix entries are needed to
+properly store the affix information</td></tr>
+</table>
+
+<p>The remaining lines describe the unique information for the 4 affix
+entries that make up this affix.  Each line can be interpreted
+as follows: (note fields 1 and 2 are used as a check against line 1 info)
+</p>
+<table>
+<tr><td width="5%">1</td><td width="15%"><tt>SFX</tt></td><td width="80%">indicates this is a suffix</td></tr>
+<tr><td width="5%">2</td><td width="15%"><tt>D</tt></td><td width="80%">is the name of the character which represents this affix</td></tr>
+<tr><td width="5%">3</td><td width="15%"><tt>y</tt></td><td width="80%">the string of chars to strip off before adding affix (a 0
+here indicates the NULL string)</td></tr>
+<tr><td width="5%">4</td><td width="15%"><tt>ied</tt></td><td width="80%">the string of affix characters to add (a 0 here
+indicates the NULL string)</td></tr>
+<tr><td width="5%">5</td><td width="15%"><tt>[^aeiou]y</tt></td><td width="80%">the conditions which must be met before the affix
+can be applied</td></tr>
+</table>
+
+<p>Field 5 is interesting.  Since this is a suffix, field 5 tells us that
+there are 2 conditions that must be met.  The first condition is that
+the next to the last character in the word must <em>not</em> be any of the
+following &quot;a&quot;, &quot;e&quot;, &quot;i&quot;, &quot;o&quot; or &quot;u&quot;.  The second condition is that
+the last character of the word must end in &quot;y&quot;.
+</p>
+<a name="When-Compared-With-Ispell"></a>
+<h4 class="subsection">7.6.2 When Compared With Ispell</h4>
+
+<p>Now for comparison purposes, here is the same information from the
+Ispell <samp>english.aff</samp> compression file which was used as the basis
+for the OOo one.
+</p>
+<div class="example">
+<pre class="example">flag *D:
+    E           &gt;       D               # As in create &gt; created
+    [^AEIOU]Y   &gt;       -Y,IED          # As in imply &gt; implied
+    [^EY]       &gt;       ED              # As in cross &gt; crossed
+    [AEIOU]Y    &gt;       ED              # As in convey &gt; conveyed
+</pre></div>
+
+<p>The Ispell information has exactly the same information but in a
+slightly different (case-insensitive) format:
+</p>
+<p>Here are the ways to see the mapping from Ispell .aff format to our
+OOo format.
+</p>
+<ol>
+<li> The Ispell english.aff has flag D under the &quot;suffix&quot; section so
+you know it is a suffix.
+
+</li><li> The D is the character assigned to this suffix
+
+</li><li> &lsquo;<samp>*</samp>&rsquo; indicates that it can be combined with prefixes
+
+</li><li> Each line following the : describes the affix entries needed
+to define this suffix
+
+<ul>
+<li> The first field is the conditions that must be met.
+</li><li> The second field is after the &gt; if a &quot;-&quot; occurs is the string to strip
+off (can be blank).
+</li><li> The third field is the string to add (the affix)
+</li></ul>
+</li></ol>
+
+<p>In addition all chars in Ispell aff files are in uppercase.
+</p>
+<a name="Specifying-Affix-Flags"></a>
+<h4 class="subsection">7.6.3 Specifying Affix Flags</h4>
+
+<p>Affix flags are specified in the word list by specifying them after
+the &lsquo;<samp>/</samp>&rsquo; character:
+</p>
+<div class="example">
+<pre class="example"><var>word</var>/<var>flags</var>
+</pre></div>
+
+<p>For example:
+</p>
+<div class="example">
+<pre class="example">create/DG
+</pre></div>
+
+<p>will associate the &lsquo;<samp>D</samp>&rsquo; and &lsquo;<samp>G</samp>&rsquo; flag with the word create.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words" accesskey="n" rel="next">Controlling the Behavior of Compound Words</a>, Previous: <a href="Replacement-Tables.html#Replacement-Tables" accesskey="p" rel="prev">Replacement Tables</a>, Up: <a href="Adding-Support-For-Other-Languages.html#Adding-Support-For-Other-Languages" accesskey="u" rel="up">Adding Support For Other Languages</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

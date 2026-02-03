@@ -1,0 +1,105 @@
+# TeX filter option file
+
+#This Filter is usable with the following version(s) of Aspell
+ASPELL >=0.51
+
+#This line will be printed when typing `Aspell help TeX'
+DESCRIPTION filter for dealing with TeX/LaTeX documents
+
+STATIC filter
+#STATIC encoder
+#STATIC decoder
+
+OPTION check-comments
+TYPE bool
+DESCRIPTION check TeX comments
+DEFAULT false
+ENDOPTION
+
+OPTION command
+TYPE list
+DESCRIPTION TeX commands
+DEFAULT addtocounter pp
+DEFAULT addtolength pp
+DEFAULT alpha p
+DEFAULT arabic p
+DEFAULT fnsymbol p
+DEFAULT roman p
+DEFAULT stepcounter p
+DEFAULT setcounter pp
+DEFAULT usecounter p
+DEFAULT value p
+DEFAULT newcounter po
+DEFAULT refstepcounter p
+DEFAULT label p
+DEFAULT pageref p
+DEFAULT ref p
+DEFAULT newcommand poOP
+DEFAULT renewcommand poOP
+DEFAULT newenvironment poOPP
+DEFAULT renewenvironment poOPP
+DEFAULT newtheorem poPo
+DEFAULT newfont pp
+DEFAULT documentclass op
+DEFAULT usepackage op
+DEFAULT begin po
+DEFAULT end p
+DEFAULT setlength pp
+DEFAULT addtolength pp
+DEFAULT settowidth pp
+DEFAULT settodepth pp
+DEFAULT settoheight pp
+DEFAULT enlargethispage p
+DEFAULT hyphenation p
+DEFAULT pagenumbering p
+DEFAULT pagestyle p
+DEFAULT addvspace p
+DEFAULT framebox ooP
+DEFAULT hspace p
+DEFAULT vspace p
+DEFAULT makebox ooP
+DEFAULT parbox ooopP
+DEFAULT raisebox pooP
+DEFAULT rule opp
+DEFAULT sbox pO
+DEFAULT savebox pooP
+DEFAULT usebox p
+DEFAULT include p
+DEFAULT includeonly p
+DEFAULT input p
+DEFAULT addcontentsline ppP
+DEFAULT addtocontents pP
+DEFAULT fontencoding p
+DEFAULT fontfamily p
+DEFAULT fontseries p
+DEFAULT fontshape p
+DEFAULT fontsize pp
+DEFAULT usefont pppp
+DEFAULT documentstyle op
+DEFAULT cite p
+DEFAULT nocite p
+DEFAULT psfig p
+DEFAULT selectlanguage p
+DEFAULT includegraphics op
+DEFAULT bibitem op
+DEFAULT geometry p
+ENDOPTION
+
+#OPTION multi-byte
+#TYPE list
+#DESCRIPTION multi character coded letters (<char>,<rep>[,<rep>[...]])
+#DEFAULT Ä,\\"A,"A
+#DEFAULT ä,\\"a,"a
+#DEFAULT Ö,\\"O,"O
+#DEFAULT ö,\\"o,"o
+#DEFAULT Ü,\\"U,"U
+#DEFAULT ü,\\"u,"u
+#DEFAULT ß,\\"s,"s
+#FLAGS utf-8
+#ENDOPTION
+
+#OPTION hyphen
+#TYPE list
+#DESCRIPTION characters used to encode hyphenation locations
+#DEFAULT \\-
+#ENDOPTION

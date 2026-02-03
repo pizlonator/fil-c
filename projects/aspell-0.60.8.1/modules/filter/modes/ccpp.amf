@@ -1,0 +1,18 @@
+MODE ccpp
+
+ASPELL >=0.60.1
+
+MAGIC /<noregex>/c/cc/cpp
+MAGIC /<noregex>/h/hpp
+
+DESCRIPTION mode for checking C++ comments and string literals
+
+FILTER url
+FILTER context
+OPTION clear-context-delimiters 
+OPTION add-context-delimiters /* */
+OPTION add-context-delimiters // \0
+OPTION add-context-delimiters " "
+OPTION disable-context-visible-first
+
+

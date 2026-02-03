@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: Upgrading from Aspell 0.50</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: Upgrading from Aspell 0.50">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Installing.html#Installing" rel="up" title="Installing">
+<link href="Upgrading-from-Aspell-_002e33_002fPspell-_002e12.html#Upgrading-from-Aspell-_002e33_002fPspell-_002e12" rel="next" title="Upgrading from Aspell .33/Pspell .12">
+<link href="Upgrading-from-Aspell-0_002e60_002e7.html#Upgrading-from-Aspell-0_002e60_002e7" rel="prev" title="Upgrading from Aspell 0.60.7">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="Upgrading-from-Aspell-0_002e50"></a>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-Aspell-_002e33_002fPspell-_002e12.html#Upgrading-from-Aspell-_002e33_002fPspell-_002e12" accesskey="n" rel="next">Upgrading from Aspell .33/Pspell .12</a>, Previous: <a href="Upgrading-from-Aspell-0_002e60_002e7.html#Upgrading-from-Aspell-0_002e60_002e7" accesskey="p" rel="prev">Upgrading from Aspell 0.60.7</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Upgrading-from-Aspell-0_002e50-1"></a>
+<h3 class="appendixsec">B.7 Upgrading from Aspell 0.50</h3>
+
+<p>The dictionary format has changed so dictionaries will need to be
+recompiled.
+</p>
+<p>All data, by default, is now included in <samp><var>libdir</var>/aspell-0.60</samp> so
+that multiple versions of Aspell can more peacefully coexist.  This
+included both the dictionaries and the language data files which were
+stored in <samp><var>sharedir</var>/aspell</samp> before Aspell 0.60.
+</p>
+<p>The format of the character data files has changed.  The new character
+data files are installed with Aspell so you should not have to worry
+about it unless you made a custom one.
+</p>
+<p>The dictionary option <samp>strip-accents</samp> has been removed.  For
+this reason the old English dictionary (up to 0.51) will no longer
+work.  A new English dictionary is now available which avoids using
+this option.  In addition the <samp>ignore-accents</samp> option is
+currently unimplemented.
+</p>
+<p>The flag <samp>-l</samp> is now a shortcut for <samp>--lang</samp>, instead of
+<samp>--list</samp> as it was with Aspell 0.50.
+</p>
+<a name="Binary-Compatibility"></a><a name="Binary-Compatibility-1"></a>
+<h4 class="appendixsubsec">B.7.1 Binary Compatibility</h4>
+
+<p>The Aspell 0.60 library is binary compatible with the Aspell 0.50
+library.  For this reason I chose <em>not</em> to increment the major
+version number (so-name) of the shared library by default which means
+programs that were compiled for Aspell 0.50 will also work for Aspell
+0.60.  However, this means that having both Aspell 0.50 and Aspell 0.60
+installed at the same time can be pragmatic.  If you wish to allow both
+Aspell 0.50 and 0.60 to be installed at the same time then you can use
+the configure option <samp>--incremented-soname</samp> which will increment
+so-name.  You should only use this option if you know what you are
+doing.  It is up to you to somehow ensure that both the Aspell 0.50 and
+0.60 executables can coexist.
+</p>
+<p>If after incrementing the so-name you wish to allow programs compiled
+for Aspell 0.50 to use Aspell 0.60 instead (thus implying that Aspell
+0.50 is not installed) then you can use a special compatibility library
+which can be found in the <samp>lib5</samp> directory.  This directory will
+not be entered when building or installing Aspell so you must manually
+build and install this library.  You should build it after the rest of
+Aspell is built.  The order in which this library is installed, with
+relation to the rest of Aspell, is also important.  If it is installed
+<em>after</em> the rest of Aspell then new programs will link to the old
+library (which will work for Aspell 0.50 or 0.60) when built, if
+installed <em>before</em>, new programs will link with the new library
+(Aspell 0.60 only).
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Upgrading-from-Aspell-_002e33_002fPspell-_002e12.html#Upgrading-from-Aspell-_002e33_002fPspell-_002e12" accesskey="n" rel="next">Upgrading from Aspell .33/Pspell .12</a>, Previous: <a href="Upgrading-from-Aspell-0_002e60_002e7.html#Upgrading-from-Aspell-0_002e60_002e7" accesskey="p" rel="prev">Upgrading from Aspell 0.60.7</a>, Up: <a href="Installing.html#Installing" accesskey="u" rel="up">Installing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

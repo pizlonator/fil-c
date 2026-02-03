@@ -1,0 +1,822 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This is the user's manual for Aspell
+
+GNU Aspell is a spell checker designed to eventually replace Ispell.
+It can either be used as a library or as an independent spell checker.
+
+Copyright © 2000-2019 Kevin Atkinson.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License". -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>GNU Aspell 0.60.8.1: The Options</title>
+
+<meta name="description" content="Aspell 0.60.8.1 spell checker user&rsquo;s manual.">
+<meta name="keywords" content="GNU Aspell 0.60.8.1: The Options">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Customizing-Aspell.html#Customizing-Aspell" rel="up" title="Customizing Aspell">
+<link href="Dumping-Configuration-Values.html#Dumping-Configuration-Values" rel="next" title="Dumping Configuration Values">
+<link href="Specifying-Options.html#Specifying-Options" rel="prev" title="Specifying Options">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+table:not([class]), table:not([class]) th, table:not([class]) td {
+    padding: 2px 0.3em 2px 0.3em;
+    border: thin solid #D0D0D0;
+    border-collapse: collapse;
+}
+
+-->
+</style>
+
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<a name="The-Options"></a>
+<div class="header">
+<p>
+Next: <a href="Dumping-Configuration-Values.html#Dumping-Configuration-Values" accesskey="n" rel="next">Dumping Configuration Values</a>, Previous: <a href="Specifying-Options.html#Specifying-Options" accesskey="p" rel="prev">Specifying Options</a>, Up: <a href="Customizing-Aspell.html#Customizing-Aspell" accesskey="u" rel="up">Customizing Aspell</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="The-Options-1"></a>
+<h3 class="section">4.2 The Options</h3>
+
+<p>The following is a list of available options broken down by category.
+Each entry has the following format:
+</p>
+<blockquote>
+<dl compact="compact">
+<dt><b><var>option</var>[,<var>single-letter-abbreviation</var>]</b></dt>
+<dd><p><i>(<var>type</var>)</i> <var>description</var>
+</p></dd>
+</dl>
+</blockquote>
+
+<p>Where single letter options are specified as they would appear at the
+command line, ie with the preceding dash.  Boolean single letter
+options are specified in the following format:
+</p>
+<blockquote>
+<p>-&lt;abbreviation to enable&gt;|-&lt;abbreviation to disable&gt;
+</p></blockquote>
+
+<p><var>option</var> is one of the following: <em>boolean</em>, <em>string</em>,
+<em>file</em>, <em>dir</em>, <em>integer</em>, or <em>list</em>.
+</p>
+<p><em>String</em>, <em>file</em>, <em>dir</em>, and <em>integer</em> types are all
+value options which can only take a specific type of value.
+</p>
+<a name="Dictionary-Options"></a>
+<h4 class="subsection">4.2.1 Dictionary Options</h4>
+
+<p>The following options may be used to control which dictionaries to use
+and how they behave (for more information see <a href="How-Aspell-Selects-an-Appropriate-Dictionary.html#How-Aspell-Selects-an-Appropriate-Dictionary">How Aspell Selects an Appropriate Dictionary</a>):
+</p>
+<dl compact="compact">
+<dt><b>master,-d</b></dt>
+<dd><p><i>(string)</i>
+Base name of the dictionary to use.  If this option is specified then
+Aspell will either use this dictionary or die.
+</p>
+</dd>
+<dt><b>dict-dir</b></dt>
+<dd><p><i>(dir)</i>
+Location of the main word list.
+</p>
+</dd>
+<dt><b>lang</b></dt>
+<dd><p><i>(string)</i>
+Language to use.  It follows the same format of the <code>LANG</code>
+environment variable on most systems.  It consists of the two letter
+<acronym>ISO 639</acronym> language code and an optional two letter
+<acronym>ISO 3166</acronym> country code after a dash or underscore.  The
+default value is based on the value of the <code>LC_MESSAGES</code> locale.
+</p>
+</dd>
+<dt><b>size</b></dt>
+<dd><p><i>(string)</i> 
+The preferred size of the word list.  This consists of a
+two char digit code describing the size of the list, with typical
+values of: 10=tiny, 20=really small, 30=small, 40=med-small, 50=med,
+60=med-large, 70=large, 80=huge, 90=insane.
+</p>
+</dd>
+<dt><b>variety</b></dt>
+<dd><p><i>(list)</i>
+Any extra information to distinguish two different words lists that
+have the same lang and size.
+</p>
+</dd>
+<dt><b>word-list-path</b></dt>
+<dd><p><i>(list)</i>
+Search path for word list information files.
+</p>
+
+</dd>
+<dt><b>personal,-p</b></dt>
+<dd><p><i>(file)</i>
+Personal word list file name.
+</p>
+</dd>
+<dt><b>wordlists</b></dt>
+<dd><p><i>(list)</i>
+</p>
+<p>UTF-8 files of additional words to accept.  Non-word characters will be
+removed from the start and end of each word and if the word is then
+considered valid for the current language it will be added.  Otherwise
+it will be silently ignored.
+</p>
+<p>The <samp>--dont-clean-words</samp> option can be used to prevent the
+removal of non-word characters.  The
+<samp>--dont-skip-invalid-words</samp> can be used to try harder to accept
+the word; if a word contains a character that the language can&rsquo;t
+handle it will still be ignored (for example a Cyrillic letter in a
+Latin based language).
+</p>
+<p>If words are not being added that you expect to, use the
+<code>aspell clean</code> to find out why.
+</p>
+</dd>
+<dt><b>repl</b></dt>
+<dd><p><i>(file)</i>
+Replacements list file name.
+</p>
+</dd>
+<dt><b>extra-dicts</b></dt>
+<dd><p><i>(list)</i>
+Extra dictionaries to use.
+</p>
+</dd>
+<dt><b>dict-alias</b></dt>
+<dd><p><i>(list)</i>
+create dictionary aliases.  Each entry has the form &lsquo;<samp><var>from</var>
+<var>to</var></samp>&rsquo;.  Will override any system dictionaries that are present.
+</p>
+</dd>
+<dt><b>dont-use-other-dicts</b></dt>
+<dd><p><i>(boolean)</i>
+</p>
+<p>Disable use of personal, replacement &amp; session dictionaries.  Any
+dictionaries specified using &lsquo;<samp>extra-dicts</samp>&rsquo; will still be used.
+</p>
+</dd>
+</dl>
+
+<a name="Encoding-Options"></a>
+<h4 class="subsection">4.2.2 Encoding Options</h4>
+
+<p>These options control the encoding the document is expected to be in and
+how it is displayed.
+</p>
+<dl compact="compact">
+<dt><b>encoding</b></dt>
+<dd><p><i>(string)</i>
+The encoding the input text is in.  Valid values include, but not
+limited to, &lsquo;<samp>iso-8859-*</samp>&rsquo;, &lsquo;<samp>utf-8</samp>&rsquo;, &lsquo;<samp>ucs-2</samp>&rsquo;,
+&lsquo;<samp>ucs-4</samp>&rsquo;.  When using the Aspell utility the default encoding is
+based on the current locale.  Thus if your locale currently uses the
+&lsquo;<samp>utf-8</samp>&rsquo; encoding than everything will be in <acronym>UTF-8</acronym>.  The
+&lsquo;<samp>ucs-2</samp>&rsquo; and &lsquo;<samp>ucs-4</samp>&rsquo; encodings are intended to be used by other
+programs using the Aspell library and is not supported by the Aspell
+utility.
+</p>
+</dd>
+<dt><b>normalize</b></dt>
+<dd><p><i>(boolean)</i>
+Perform Unicode normalization.  Enabled by default.
+</p>
+</dd>
+<dt><b>norm-strict</b></dt>
+<dd><p><i>(boolean)</i>
+Avoid lossy conversions when normalizing.  Lossy conversions includes
+compatibility mappings such as splitting the letter &lsquo;<samp>OE</samp>&rsquo; (U+152)
+into &lsquo;<samp>O</samp>&rsquo; and &lsquo;<samp>E</samp>&rsquo; (when the combined letter is not available),
+and mappings which will remove accents.  Disabled by default except when
+creating dictionaries.
+</p>
+</dd>
+<dt><b>norm-form</b></dt>
+<dd><p><i>(string)</i>
+The normalization form the output should be in.  This option primarily
+effects the normalization form of the suggestions as when spell
+checkering as the actual text is unchanged unless there is an error.
+Valid values are &lsquo;<samp>none</samp>&rsquo;, &lsquo;<samp>nfd</samp>&rsquo; for fully decomposition
+(Normalization Form D), &lsquo;<samp>nfc</samp>&rsquo; for Normalization Form C, or
+&lsquo;<samp>comp</samp>&rsquo; for fully composed.  &lsquo;<samp>comp</samp>&rsquo; is like &lsquo;<samp>nfc</samp>&rsquo; except
+that <em>full</em> composition is used rather than <em>canonical</em>
+composition.  The <samp>normalize</samp> option must be enabled for this
+option to be used.
+</p>
+</dd>
+<dt><b>norm-required</b></dt>
+<dd><p><i>(boolean)</i>
+Set to true when the current language requires Unicode normalization.
+This is generally the case when private use characters are used
+internally by Aspell or when Normalization Form C is not the same as
+full composition.
+</p>
+</dd>
+</dl>
+
+<a name="Checker-Options"></a>
+<h4 class="subsection">4.2.3 Checker Options</h4>
+
+<p>These options control the behavior of Aspell when checking
+documents.
+</p>
+<dl compact="compact">
+<dt><b>ignore,-W</b></dt>
+<dd><p><i>(integer)</i>
+Ignore words with N characters or less
+</p>
+</dd>
+<dt><b>ignore-repl</b></dt>
+<dd><p><i>(boolean)</i>
+Ignore commands to store replacement pairs.
+</p>
+</dd>
+<dt><b>save-repl</b></dt>
+<dd><p><i>(boolean)</i>
+Save the replacement word list on save all.
+</p>
+</dd>
+<dt><b>keyboard</b></dt>
+<dd><p><i>(file)</i>
+The base name of the keyboard definition file to use (see <a href="Notes-on-Typo_002dAnalysis.html#Notes-on-Typo_002dAnalysis">Notes on Typo-Analysis</a>)
+</p>
+</dd>
+<dt><b>sug-mode</b></dt>
+<dd><p><i>(mode)</i>
+Suggestion mode = &lsquo;<samp>ultra</samp>&rsquo; | &lsquo;<samp>fast</samp>&rsquo; | &lsquo;<samp>normal</samp>&rsquo; | &lsquo;<samp>slow</samp>&rsquo; |
+&lsquo;<samp>bad-spellers</samp>&rsquo; (see <a href="Notes-on-the-Different-Suggestion-Modes.html#Notes-on-the-Different-Suggestion-Modes">Notes on the Different Suggestion Modes</a>)
+</p>
+</dd>
+<dt><b>sug-split-char</b></dt>
+<dd><p><i>(list)</i>
+Characters to use when a word into two in the suggestion list.
+Setting this option to the empty list disables word splitting.
+</p>
+</dd>
+<dt><b>ignore-case</b></dt>
+<dd><p><i>(boolean)</i>
+Ignore case when checking words.
+</p>
+</dd>
+<dt><b>ignore-accents</b></dt>
+<dd><p><i>(boolean)</i>
+Ignore accents when checking words &ndash; <em>currently ignored</em>.
+</p>
+</dd>
+</dl>
+
+<a name="Filter-Options"></a><a name="Filter-Options-1"></a>
+<h4 class="subsection">4.2.4 Filter Options</h4>
+
+<p>These options control Aspell&rsquo;s filters that filter out text that
+should not be spell checked.
+</p>
+<dl compact="compact">
+<dt><b>mode</b></dt>
+<dd><p><i>(string)</i>
+Sets the filter mode.  A mode is a collection of individual filters
+that work well together.  Possible values include, but not limited to,
+&lsquo;<samp>none</samp>&rsquo;, &lsquo;<samp>url</samp>&rsquo; (the normal default), &lsquo;<samp>email</samp>&rsquo;, &lsquo;<samp>markdown</samp>&rsquo;,
+&lsquo;<samp>html</samp>&rsquo;, &lsquo;<samp>tex</samp>&rsquo;, <code>texinfo</code>, or &lsquo;<samp>nroff</samp>&rsquo; (default for &lsquo;<samp>aspell pipe</samp>&rsquo;).
+For a complete list use &lsquo;<samp>aspell dump modes</samp>&rsquo;.
+</p>
+<p>The shortcut options <samp>-e</samp> may be used for
+email, <samp>-H</samp> for HTML, <samp>-M</samp> for Markdown,
+<samp>-t</samp> for TeX, or <samp>-n</samp> for Nroff.
+</p>
+</dd>
+<dt><b>filter</b></dt>
+<dd><p><i>(list)</i>
+Individual filters to use, use &lsquo;<samp>aspell dump filters</samp>&rsquo; for a complete list.
+</p>
+</dd>
+<dt><b>filter-path</b></dt>
+<dd><p><i>(list)</i>
+Where to look when loading filter and filter modes.
+</p>
+</dd>
+</dl>
+
+
+
+<a name="None-filter-mode"></a>
+<h4 class="subsubsection">4.2.4.1 None filter mode</h4>
+
+<p>The <samp>none</samp> mode is exactly what it says.  It turns off all filters.
+</p>
+<a name="URL-filter"></a>
+<h4 class="subsubsection">4.2.4.2 URL filter</h4>
+
+<p>The <samp>url</samp> filter/mode skips over URLs, host names, and email
+addresses.  Because this filter is almost always useful and rarely
+does any harm it is enabled in all modes except <samp>none</samp>.  To
+turn it off either select the <samp>none</samp> mode or use
+<samp>rem-filter</samp> option <em>after</em> the desired mode is selected.
+</p>
+<a name="Email-filter"></a>
+<h4 class="subsubsection">4.2.4.3 Email filter</h4>
+
+<p>The <samp>email</samp> mode skips over quoted text.
+</p>
+
+<dl compact="compact">
+<dt><b>email-quote</b></dt>
+<dd><p><i>(list)</i>
+Email quote characters.  Defaults to &lsquo;<samp>&gt;</samp>&rsquo; and &lsquo;<samp>|</samp>&rsquo;.
+</p>
+</dd>
+<dt><b>email-margin</b></dt>
+<dd><p><i>(integer)</i>
+The number of characters that can appear before the quote character.
+Defaults to 10.
+</p></dd>
+</dl>
+
+<a name="Markdown-Filter"></a>
+<h4 class="subsubsection">4.2.4.4 Markdown Filter</h4>
+
+<p>The <samp>markdown</samp> filter/mode skips over code and links in Markdown
+documents.  The mode also handles HTML via the <samp>html</samp> filter
+which runs after the Markdown filter.
+</p>
+<p>Properly parsing Markdown requires reading the entire document in at
+once, which doesn&rsquo;t fit well into the existing filter framework so the
+filter parses the document a line at a time and makes a best guess
+when a line ends without enough information to correctly parse a
+tag.  For example in the following:
+</p><div class="example">
+<pre class="example">`This looks like inline code
+
+But it's not, because of the blank line.
+</pre></div>
+<p>the first line will be incorrectly skipped.
+</p>
+<dl compact="compact">
+<dt><b>markdown-multiline-tags</b></dt>
+<dd><p><i>(boolean)</i>
+Enables or disables support for HTML tags that might span multiple
+lines (outside of HTML blocks).  Enabled by default (to disable from
+the command line use &lsquo;<samp>--dont-markdown-multiline-tags</samp>&rsquo;).
+</p>
+</dd>
+<dt><b>markdown-skip-ref-labels</b></dt>
+<dd><p><i>(boolean)</i>
+Controls if ref labels are skipped.  For example, when this
+option is enabled &lsquo;<samp>[ref]</samp>&rsquo; will be skipped over in:
+</p><div class="example">
+<pre class="example">[link][ref]
+
+[ref]: #c2 &quot;Chapter 2&quot;
+</pre></div>
+<p>Enabled by default (to disable from
+the command line use &lsquo;<samp>--dont-markdown-skip-ref-labels</samp>&rsquo;).
+</p></dd>
+</dl>
+
+<p>The Markdown filter also supports the <samp>markdown-raw-start-tags</samp>
+and <samp>markdown-block-start-tags</samp> list options.  These options
+are a list of HTML tags that start an HTML block.  If the block starts
+with a tag listed in <samp>markdown-raw-start-tags</samp> then the block
+ends with the corresponding closing tag.  If the block starts with a
+tag listed in <samp>markdown-block-start-tags</samp> then the block ends
+with a blank line.  The defaults for these two options are taken from
+the CommonMark spec (version 0.29, 2019-04-06).
+</p>
+<a name="SGML-filter"></a>
+<h4 class="subsubsection">4.2.4.5 SGML filter</h4>
+
+<p>The SGML filter allows you to spell check SGML, HTML, XHTML, and XML
+files. In most cases everything within a tag &lsquo;<samp>&lt;tag attrib=value
+attrib2=&quot;a whole sentence&quot;&gt;</samp>&rsquo; will be skipped by the spell checker. The
+SGML/HTML/XML that Aspell supports is a slight superset of most DTDs
+(Document Type Definitions) and can spell check the often non-conforming
+HTML found on the web.
+</p>
+<p>This filter will also translate SGML characters of the form
+&lsquo;<samp>&amp;#num;</samp>&rsquo;.  Other SGML characters such as &lsquo;<samp>&amp;amp;</samp>&rsquo; will simply
+be skipped over so that the word &lsquo;<samp>amp</samp>&rsquo;, for example, will not be
+spell checked.  Eventually full support for properly translating SGML
+characters will be added.
+</p>
+<dl compact="compact">
+<dt><b>sgml-skip</b></dt>
+<dd><p><i>(list)</i>
+tags whose contents will also be skipped by the spell
+checker.  For example, if you wish to leave a misspelling in a document
+and not have them flagged as misspellings, you could surround them with
+a &lt;nospellcheck&gt; tag:
+</p><div class="example">
+<pre class="example">  &lt;TD&gt;&lt;FONT size=2&gt;&lt;NOSPELLCHECK&gt;leviosa&lt;/NOSPELLCHECK&gt;
+  is what Mr. Potter said&lt;/FONT&gt;&lt;/TD&gt;
+</pre></div>
+<p>And put that word in the skip config directive:
+</p><div class="example">
+<pre class="example">add-sgml-skip nospellcheck
+</pre></div>
+
+</dd>
+<dt><b>sgml-check</b></dt>
+<dd><p><i>(list)</i>
+attributes whose values you do want spell checked. By
+default, &rsquo;alt&rsquo; (&lt;img&gt; alternate text) is a member of the check list
+since it is text that is seen by a web page viewer. You may also want
+&rsquo;value&rsquo; to be on the check list since that is the text put on buttons:
+</p><div class="example">
+<pre class="example">add-sgml-check value
+</pre></div>
+<p>In this case &lsquo;<samp>&lt;input type=button value=&quot;Donr&quot;&gt;</samp>&rsquo; will be flagged as a
+misspelling.
+</p></dd>
+</dl>
+
+<a name="HTML-filter"></a>
+<h4 class="subsubsection">4.2.4.6 HTML filter</h4>
+
+<p>The <samp>html</samp> filter is like the SGML filter but specialized for
+HTML.
+</p>
+<dl compact="compact">
+<dt><b>html-check</b></dt>
+<dd><p><i>(list)</i>
+HTML attributes to always check, such as alt= (alternate text).
+</p>
+</dd>
+<dt><b>html-skip</b></dt>
+<dd><p><i>(list)</i>
+HTML tags to always skip the contents of, such as &lt;script&gt;.  Defaults
+to &rsquo;script&rsquo; and &rsquo;style&rsquo;.
+</p></dd>
+</dl>
+
+<a name="TeX_002fLaTeX-Filter"></a>
+<h4 class="subsubsection">4.2.4.7 TeX/LaTeX Filter</h4>
+
+<p>The <samp>tex</samp> (all lowercase) filter hides TeX/LaTeX commands and
+corresponding parameters that are not readable text in the output from
+Aspell.   It also skips over TeX comments by default.
+</p>
+
+<dl compact="compact">
+<dt><b>tex-command</b></dt>
+<dd><p><i>(list)</i>
+Controls which TeX commands should have certain parameters and/or
+options also skipped over.  Commands that are not specified will have
+all their parameters and/or options checked.  The format for each item
+is
+</p>
+<div class="example">
+<pre class="example">&lt;command&gt; &lt;a list of p,P,o and Os&gt;
+</pre></div>
+
+<p>The first item is simply the command name.  The second item controls
+which parameters to skip over.  A &rsquo;p&rsquo; skips over a parameter while a
+&rsquo;P&rsquo; doesn&rsquo;t.  Similarly an &rsquo;o&rsquo; will skip over an optional parameter
+while an &rsquo;O&rsquo; doesn&rsquo;t.  The first letter on the list will apply to the
+first parameter, the second letter will apply to the second parameter
+etc.  If there are more parameters than letters Aspell will simply
+check them as normal.  For example the option
+</p>
+<div class="example">
+<pre class="example">add-tex-command rule pp
+</pre></div>
+
+<p>will skip over the first two parameters of the <code>rule</code> command
+while the option
+</p>
+<div class="example">
+<pre class="example">add-tex-command foo Pop
+</pre></div>
+
+<p>will <em>check</em> the first parameter of the <code>foo</code> command, skip
+over the next optional parameter, if it is present, and will skip over
+the second parameter &mdash; even if the optional parameter is not present
+&mdash; and will check any additional parameters.
+</p>
+<p>A &lsquo;<samp>*</samp>&rsquo; at the end of the command is simply ignored.  For example
+the option
+</p>
+<div class="example">
+<pre class="example">add-tex-command enlargethispage p
+</pre></div>
+
+<p>will ignore the first parameter in both <samp>enlargethispage</samp> and
+<samp>enlargethispage*</samp>.
+</p>
+<p>The defaults are designed to work well with typical LaTeX documents.
+Use &lsquo;<samp>aspell --reset-tex-command config tex-command</samp>&rsquo; for the
+current defaults.
+</p>
+
+
+</dd>
+<dt><b>tex-check-comments</b></dt>
+<dd><p><i>(boolean)</i>
+Check TeX comments.  Defaults to false.
+</p>
+
+</dd>
+</dl>
+
+
+
+
+
+
+
+
+
+
+<a name="Texinfo-Filter"></a>
+<h4 class="subsubsection">4.2.4.8 Texinfo Filter</h4>
+
+<p>The <samp>texinfo</samp> filter allows you to spell check Texinfo
+files. It will skip over Texinfo commands and their parameters
+when appropriate. It will also skip over some Texinfo environments
+such as <code>example</code>.
+</p>
+<p>The Texinfo filter has special code to deal with the <code>@table</code>
+and related commands.  It will apply the formatting command to each of
+the <code>@item</code> or <code>@itemx</code> commands just like Texinfo
+will.  This means that if the formatting command is <code>@code</code>
+and and the <code>@code</code> command is a member of the
+<samp>texinfo-ignore</samp> option than the Texinfo filter will ignore the
+parameter of the <code>@item</code> command as if the parameter was also
+the parameter of the <code>@code</code> command.
+</p>
+<p>The Texinfo filter will also skip over the &lsquo;<samp>\input texinfo</samp>&rsquo; line.
+</p>
+<dl compact="compact">
+<dt><b>texinfo-ignore</b></dt>
+<dd><p><i>(list)</i> Texinfo command to ignore the parameters of.
+</p>
+</dd>
+<dt><b>texinfo-ignore-env</b></dt>
+<dd><p><i>(list)</i> Texinfo environments to ignore.
+</p>
+</dd>
+</dl>
+
+<a name="Nroff-Filter"></a>
+<h4 class="subsubsection">4.2.4.9 Nroff Filter</h4>
+
+<p>The <samp>nroff</samp> filter mode allows you to check the spelling of
+Nroff documents.
+It is enabled by default when &lsquo;<samp>aspell pipe</samp>&rsquo; is used.  When
+checking documents with &lsquo;<samp>aspell check</samp>&rsquo; it is automatically
+enabled if the first three characters of the file being checked are
+<code>.\&quot;</code> (a <code>nroff</code> comment marker) or the file name ends in
+a one of the following suffixes:
+</p>
+<ul>
+<li> single decimal digit from &lsquo;<samp>0</samp>&rsquo; to &lsquo;<samp>9</samp>&rsquo;
+</li><li> letter &lsquo;<samp>n</samp>&rsquo;
+</li><li> &lsquo;<samp>tmac</samp>&rsquo;
+</li></ul>
+
+<p>This filter mode skips following <code>nroff</code> language
+elements:
+</p>
+<ul>
+<li> Comments
+</li><li> Requests
+</li><li> Names of <code>nroff</code> registers (both traditional two-letter
+names and GNU nroff long names)
+</li><li> Arguments to the following requests: <code>ds</code>, <code>de</code>, <code>nr</code>,
+<code>do</code>, <code>so</code>.
+</li><li> Arguments to font switch (<code>\f</code>) and size switch (<code>\s</code>)
+escapes
+</li><li> Arguments to extended charset escape in both traditional
+(<code>\(</code>) and extended (<code>\[comp1 comp2 &hellip;]</code>) form.
+</li></ul>
+
+<a name="Context-Filter"></a>
+<h4 class="subsubsection">4.2.4.10 Context Filter</h4>
+
+<p>The <samp>context</samp> filter can be used to spell check source codes,
+HTML sources and other texts which consist of different contexts.
+Because this filter is meant to build other filter modes, there is no
+<samp>context</samp> mode.
+</p>
+<p>The filter distinguishes between visible and invisible contexts. The
+visible ones will be spell checked and the invisible ones will be
+ignored.
+</p>
+<dl compact="compact">
+<dt><b>context-visible-first</b></dt>
+<dd><p><i>(boolean)</i>
+Switches the context which should be visible to Aspell.  When false
+(the default) the initial context is hidden and only delimited ones
+are visible.  When true the initial context is visible while the
+delimited ones are hidden.
+</p>
+</dd>
+<dt><b>context-delimiters</b></dt>
+<dd><p><i>(list)</i>
+The context delimiters specified as a space separated pairs.  To
+indicate that a context is always closed by end of line use &lsquo;<samp>\0</samp>&rsquo;
+sequence as closing delimiter.
+For example the defaults (for historical reasons) are:
+</p><div class="example">
+<pre class="example">  add-context-delimiters /* */
+  add-context-delimiters // \0
+  add-context-delimiters &quot; &quot;
+</pre></div>
+<p>which (when <samp>context-visible-first</samp> is false) spell check C/C++
+comments and string literals.
+</p>
+</dd>
+</dl>
+
+<a name="Ccpp-Filter-Mode"></a>
+<h4 class="subsubsection">4.2.4.11 Ccpp Filter Mode</h4>
+
+<p>The <samp>ccpp</samp> filter mode is a context filter that will limit
+spell checking to C/C++ comments and string literals. Any code in
+between will be left alone.
+</p>
+<a name="Compound-Word-Options"></a>
+<h4 class="subsection">4.2.5 Compound Word Options</h4>
+
+<p>These may be used to control the behavior of compound  words (for
+more information see <a href="Controlling-the-Behavior-of-Compound-Words.html#Controlling-the-Behavior-of-Compound-Words">Controlling the Behavior of Compound Words</a>):
+</p>
+<dl compact="compact">
+<dt><b>run-together,-C|-B</b></dt>
+<dd><p><i>(boolean)</i>
+consider run-together words valid
+</p>
+</dd>
+<dt><b>run-together-limit</b></dt>
+<dd><p><i>(integer)</i>
+maximum number of words that can be strung together
+</p>
+</dd>
+<dt><b>run-together-min</b></dt>
+<dd><p><i>(integer)</i>
+minimal length of interior words
+</p>
+</dd>
+<dt><b>camel-case</b></dt>
+<dd><p><i>(boolean)</i>
+consider camelCase words valid
+</p></dd>
+</dl>
+
+<a name="Miscellaneous-Options"></a>
+<h4 class="subsection">4.2.6 Miscellaneous Options</h4>
+
+<p>Miscellaneous other options that don&rsquo;t fall under any other category
+</p><dl compact="compact">
+<dt><b>conf</b></dt>
+<dd><p><i>(file)</i>
+Main configuration file.  This file overrides Aspell&rsquo;s global defaults.
+</p>
+</dd>
+<dt><b>conf-dir</b></dt>
+<dd><p><i>(dir)</i>
+location of main configuration file
+</p>
+</dd>
+<dt><b>data-dir</b></dt>
+<dd><p><i>(dir)</i>
+location of language data files
+</p>
+</dd>
+<dt><b>local-data-dir</b></dt>
+<dd><p><i>(dir)</i>
+alternative location of language data files.  This directory is
+searched before <samp>data-dir</samp>.  It defaults to the same directory
+the actual main word list is in (which is not necessarily
+<samp>dict-dir</samp>)
+</p>
+</dd>
+<dt><b>home-dir</b></dt>
+<dd><p><i>(dir)</i>
+location for personal files
+</p>
+</dd>
+<dt><b>per-conf</b></dt>
+<dd><p><i>(file)</i>
+personal configuration file.  This file overrides options found in
+the global <samp>conf</samp> file
+</p>
+</dd>
+<dt><b>keyboard</b></dt>
+<dd><p><i>(file)</i>
+use this keyboard layout for suggesting possible words.  These spelling
+errors happen if a user accidental presses a key next to the intended
+correct key.  The default is keyboard standard.  If you are creating
+documents, you may want to set it according to your particular type of
+keyboard.  If spellchecking documents created elsewhere, you might
+want to set this to the keyboard type for that locale.  If you are not
+sure, just leave this as standard
+</p>
+</dd>
+<dt><b>prefix</b></dt>
+<dd><p><i>(dir)</i>
+prefix directory
+</p>
+</dd>
+<dt><b>set-prefix</b></dt>
+<dd><p><i>(boolean)</i>
+set the prefix based on executable location (only works on WIN32 and
+when compiled with <samp>--enable-win32-relocatable</samp>)
+</p></dd>
+</dl>
+
+<a name="Aspell-Utility-Options"></a>
+<h4 class="subsection">4.2.7 Aspell Utility Options</h4>
+
+<dl compact="compact">
+<dt><b>backup,-b|-x</b></dt>
+<dd><p><i>(boolean)</i>
+Create a backup file by appending <samp>.bak</samp> to the file name.  This
+applies when the command is <code>check</code> and the backup file is
+only created if any spelling modifications take place.
+</p>
+</dd>
+<dt><b>time</b></dt>
+<dd><p><i>(boolean)</i>
+Time load time and suggest time in <code>pipe</code> mode.
+</p>
+</dd>
+<dt><b>byte-offsets</b></dt>
+<dd><p><i>(boolean)</i>
+Use byte offsets instead of character offsets in <code>pipe</code> mode.
+</p>
+</dd>
+<dt><b>reverse</b></dt>
+<dd><p><i>(boolean)</i>
+Reverse the order of the suggestions list in <code>pipe</code> mode.
+</p>
+</dd>
+<dt><b>keymapping</b></dt>
+<dd><p><i>(string)</i>
+the keymapping to use.  Either <samp>aspell</samp> for the default mapping
+or <samp>ispell</samp> to use the same mapping that the Ispell utility
+uses.
+</p>
+</dd>
+<dt><b>guess</b></dt>
+<dd><p><i>(boolean)</i>
+make possible root/affix combinations not in the dictionary in
+<code>pipe</code> mode.
+</p>
+</dd>
+<dt><b>suggest</b></dt>
+<dd><p><i>(boolean)</i>
+Suggest possible replacements in <code>pipe</code> mode.  If false Aspell
+will simply report the misspelling and make no attempt at suggestions
+or possible corrections.
+</p></dd>
+</dl>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Dumping-Configuration-Values.html#Dumping-Configuration-Values" accesskey="n" rel="next">Dumping Configuration Values</a>, Previous: <a href="Specifying-Options.html#Specifying-Options" accesskey="p" rel="prev">Specifying Options</a>, Up: <a href="Customizing-Aspell.html#Customizing-Aspell" accesskey="u" rel="up">Customizing Aspell</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>
