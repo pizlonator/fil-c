@@ -183,7 +183,8 @@ namespace aspeller {
   template<class Parms>
   void VectorHashTable<Parms>::recalc_size() {
     size_ = 0;
-    for (iterator i = begin(); i != this->e; ++i, ++this->_size);
+    iterator e = end();
+    for (iterator i = begin(); i != e; ++i, ++this->size_);
   }
 
 }
