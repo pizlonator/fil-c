@@ -13212,7 +13212,7 @@ void filc_call_syscall_with_guarded_ptr(filc_thread* my_thread,
 {
     static const bool verbose = false;
     
-    static const uintptr_t min_address = (uintptr_t)1 << (uintptr_t)32;
+    static const uintptr_t min_address = 65536;
 
     /* It's possible that someone is calling an ioctl that takes an int or long argument. But, we
        don't know if the ioctl will actually interpret the argument as an int or long - it might
@@ -13224,6 +13224,8 @@ void filc_call_syscall_with_guarded_ptr(filc_thread* my_thread,
        If we ever find ioctls that require integers bigger than min_address, then they'd have to be
        special case by our wrapping. */
     if (filc_ptr_ptr(arg_ptr) < (void*)min_address) {
+        if (filc_ptr_object(arg_ptr) && filc_ptr_ptr(arg_ptr) >= filc_ptr_lower(arg_ptr))
+            pas_log("Unexpected arg_ptr = %s\n", filc_ptr_to_new_string(arg_ptr));
         PAS_ASSERT(!filc_ptr_object(arg_ptr) || filc_ptr_ptr(arg_ptr) < filc_ptr_lower(arg_ptr));
         filc_exit(my_thread);
         errno = 0;
