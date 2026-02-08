@@ -374,13 +374,13 @@ if [ "$MODE" != rootless ]; then
         echo "  - /mnt/lfs maps to ${SCRIPT_DIR}/pizlix/lfs on host (and /fil-c/pizlix/lfs in container)"
     elif [ -d /opt/fil ]; then
         EXTRA_ARGS="${EXTRA_ARGS} --volume /opt/fil:/opt/fil:rw"
-        echo "Entering Fil-C development container (rootful mode)..."
+        echo "Entering Fil-C development container (/opt/fil mode)..."
         echo "  - Running as real root"
         echo "  - /opt/fil mounted and shared with host"
         echo "  - Files created will be owned by root"
         echo "  - Working directory: /fil-c (maps to ${SCRIPT_DIR})"
     else
-        echo "Entering Fil-C development container (rootful mode)..."
+        echo "Entering Fil-C development container (/opt/fil mode)..."
         echo "  - Running as real root"
         echo "  - /opt/fil not found on host (not mounted)"
         echo "  - Working directory: /fil-c (maps to ${SCRIPT_DIR})"
