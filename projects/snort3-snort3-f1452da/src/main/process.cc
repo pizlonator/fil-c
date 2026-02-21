@@ -24,7 +24,7 @@
 
 #include <fcntl.h>
 #include <grp.h>
-#include <luajit.h>
+#include <lua.h>
 #include <openssl/crypto.h>
 #include <pcap.h>
 #include <pwd.h>
@@ -680,7 +680,7 @@ void StoreSnortInfoStrings()
 
 int DisplayBanner()
 {
-    const char* ljv = LUAJIT_VERSION;
+    const char* ljv = LUA_VERSION;
     while ( *ljv && !isdigit(*ljv) )
         ++ljv;
 
@@ -716,7 +716,7 @@ int DisplayBanner()
     LogMessage("           Using LibML version %s\n", libml::version());
 #endif
     LogMessage("           Using %s\n", pcap_lib_version());
-    LogMessage("           Using LuaJIT version %s\n", ljv);
+    LogMessage("           Using Lua version %s\n", ljv);
 #ifdef HAVE_LZMA
     LogMessage("           Using LZMA version %s\n", lzma_version_string());
 #endif

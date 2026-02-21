@@ -223,6 +223,8 @@ struct SSLv2_client_master_key_t
     uint8_t cipher_spec[3];
 };
 
+#pragma pack()
+
 struct SO_PUBLIC SSLV3ClientHelloData
 {
     ~SSLV3ClientHelloData();
@@ -248,12 +250,16 @@ struct SO_PUBLIC SSLV3ServerCertData
     int subject_info_strlen = 0;
 };
 
+#pragma pack(1)
+
 struct SO_PUBLIC TLSConnectionParams
 {
     int32_t curve = -1;
     int32_t cipher = -1;
     int32_t selected_tls_version = -1;
 };
+
+#pragma pack()
 
 struct SO_PUBLIC TLSConnectionData
 {
@@ -276,6 +282,8 @@ enum class SSLV3RecordType : uint8_t
     SERVER_HELLO_DONE = 14,
     CERTIFICATE_STATUS = 22
 };
+
+#pragma pack(1)
 
 /* Usually referred to as a Certificate Handshake. */
 struct ServiceSSLV3CertsRecord

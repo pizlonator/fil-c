@@ -554,7 +554,7 @@ void FileContext::log_file_event(Flow* flow, FilePolicyBase* policy)
             DataBus::publish(intrinsic_pub_id, IntrinsicEventIds::FILE_VERDICT, (const uint8_t*)"RESET", 5, flow);
             break;
         default:
-            log_needed = false;
+            DataBus::publish(intrinsic_pub_id, IntrinsicEventIds::FILE_VERDICT, (const uint8_t*)"LOG", 3, flow);
             break;
         }
 

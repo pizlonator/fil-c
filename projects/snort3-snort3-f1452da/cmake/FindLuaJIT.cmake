@@ -1,55 +1,49 @@
 #
-# Locate LuaJIT library
+# Locate Lua library (hacked to accept regular Lua in place of LuaJIT)
 # This module defines
 #  LUAJIT_FOUND, if false, do not try to link to Lua
 #  LUAJIT_LIBRARIES
 #  LUAJIT_INCLUDE_DIR, where to find lua.h
-#  LUAJIT_VERSION_STRING, the version of LuaJIT found
+#  LUAJIT_VERSION_STRING, the version of Lua found
 
 set(ERROR_MESSAGE
-    "\n\tCan't Find luajit!  Get it from
-    http://luajit.org/download.html or use the --with-luajit-*
-    options if you have it installed inn an unusual place.\n"
+    "\n\tCan't Find Lua!  Use the --with-luajit-*
+    options if you have it installed in an unusual place.\n"
 )
 
-find_package(PkgConfig)
-pkg_check_modules(PC_LUAJIT luajit)
-
-# Use LUAJIT_INCLUDE_DIR_HINT and LUAJIT_LIBRARY_DIR_HINT from configure_cmake.sh as primary hints
-# and then package config information after that.
-find_path(LUAJIT_INCLUDE_DIR luajit.h
-    HINTS ${LUAJIT_INCLUDE_DIR_HINT} ${PC_LUAJIT_INCLUDEDIR} ${PC_LUAJIT_INCLUDE_DIRS})
+# Use LUAJIT_INCLUDE_DIR_HINT and LUAJIT_LIBRARY_DIR_HINT from configure_cmake.sh as primary hints.
+# Look for lua.h instead of luajit.h.
+find_path(LUAJIT_INCLUDE_DIR lua.h
+    HINTS ${LUAJIT_INCLUDE_DIR_HINT} ${CMAKE_PREFIX_PATH}/include/lua5.4 ${CMAKE_PREFIX_PATH}/include)
 if (STATIC_LUAJIT)
-  find_library(LUAJIT_LIBRARIES NAMES libluajit-5.1.a
-    HINTS ${LUAJIT_LIBRARIES_DIR_HINT} ${PC_LUAJIT_LIBDIR} ${PC_LUAJIT_LIBRARY_DIRS})
+  find_library(LUAJIT_LIBRARIES NAMES liblua5.4.a liblua.a
+    HINTS ${LUAJIT_LIBRARIES_DIR_HINT} ${CMAKE_PREFIX_PATH}/lib)
 else()
-  find_library(LUAJIT_LIBRARIES NAMES luajit-5.1
-    HINTS ${LUAJIT_LIBRARIES_DIR_HINT} ${PC_LUAJIT_LIBDIR} ${PC_LUAJIT_LIBRARY_DIRS})
+  find_library(LUAJIT_LIBRARIES NAMES lua5.4 lua
+    HINTS ${LUAJIT_LIBRARIES_DIR_HINT} ${CMAKE_PREFIX_PATH}/lib)
 endif()
 
-if(LUAJIT_INCLUDE_DIR AND EXISTS "${LUAJIT_INCLUDE_DIR}/luajit.h")
-    file(STRINGS "${LUAJIT_INCLUDE_DIR}/luajit.h" luajit_version_str REGEX "^#define[ \t]+LUAJIT_VERSION[ \t]+\"LuaJIT .+\"")
+# Extract version from lua.h instead of luajit.h
+if(LUAJIT_INCLUDE_DIR AND EXISTS "${LUAJIT_INCLUDE_DIR}/lua.h")
+    file(STRINGS "${LUAJIT_INCLUDE_DIR}/lua.h" lua_version_major REGEX "^#define[ \t]+LUA_VERSION_MAJOR[ \t]+\".+\"")
+    file(STRINGS "${LUAJIT_INCLUDE_DIR}/lua.h" lua_version_minor REGEX "^#define[ \t]+LUA_VERSION_MINOR[ \t]+\".+\"")
+    file(STRINGS "${LUAJIT_INCLUDE_DIR}/lua.h" lua_version_release REGEX "^#define[ \t]+LUA_VERSION_RELEASE[ \t]+\".+\"")
 
-    string(REGEX REPLACE "^#define[ \t]+LUAJIT_VERSION[ \t]+\"LuaJIT ([^\"]+)\".*" "\\1" LUAJIT_VERSION_STRING "${luajit_version_str}")
-    unset(luajit_version_str)
+    string(REGEX REPLACE "^#define[ \t]+LUA_VERSION_MAJOR[ \t]+\"([^\"]+)\".*" "\\1" LUA_VMAJ "${lua_version_major}")
+    string(REGEX REPLACE "^#define[ \t]+LUA_VERSION_MINOR[ \t]+\"([^\"]+)\".*" "\\1" LUA_VMIN "${lua_version_minor}")
+    string(REGEX REPLACE "^#define[ \t]+LUA_VERSION_RELEASE[ \t]+\"([^\"]+)\".*" "\\1" LUA_VREL "${lua_version_release}")
+
+    set(LUAJIT_VERSION_STRING "${LUA_VMAJ}.${LUA_VMIN}.${LUA_VREL}")
+    unset(lua_version_major)
+    unset(lua_version_minor)
+    unset(lua_version_release)
 endif()
 
 include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set LUA_FOUND to TRUE if
-# all listed variables are TRUE
 find_package_handle_standard_args(LuaJIT
     REQUIRED_VARS LUAJIT_LIBRARIES LUAJIT_INCLUDE_DIR
     VERSION_VAR LUAJIT_VERSION_STRING
     FAIL_MESSAGE "${ERROR_MESSAGE}"
 )
 
-if (APPLE)
-    if(LUAJIT_VERSION_STRING VERSION_LESS "2.1")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LUAJIT_LIBRARIES} -pagezero_size 10000 -image_base 100000000")
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LUAJIT_LIBRARIES}")
-    endif()
-endif()
-
 mark_as_advanced(LUAJIT_INCLUDE_DIR LUAJIT_LIBRARIES)
-

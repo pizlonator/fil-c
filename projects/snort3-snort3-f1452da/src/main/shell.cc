@@ -85,7 +85,7 @@ static const char* versions[] = {
 static const char* dep_versions[] = {
     "SNORT_DEP_VERSIONS",
     "DAQ",
-    "LUAJIT",
+    "LUA",
     "OPENSSL",
     "LIBPCAP",
     "PCRE",
@@ -147,7 +147,7 @@ static void install_dependencies_strings(Shell* sh, lua_State* L)
         abort();
 
     std::vector<const char*> vs;
-    const char* ljv = LUAJIT_VERSION;
+    const char* ljv = LUA_VERSION;
     const char* osv = OpenSSL_version(SSLEAY_VERSION);
     const char* lpv = pcap_lib_version();
 
