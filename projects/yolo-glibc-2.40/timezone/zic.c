@@ -470,8 +470,8 @@ size_overflow(void)
   memory_exhausted(_("size overflow"));
 }
 
-ATTRIBUTE_REPRODUCIBLE static ptrdiff_t
-size_sum(size_t a, size_t b)
+static ptrdiff_t
+size_sum(size_t a, size_t b) ATTRIBUTE_REPRODUCIBLE
 {
 #ifdef ckd_add
   ptrdiff_t sum;
@@ -484,8 +484,8 @@ size_sum(size_t a, size_t b)
   size_overflow();
 }
 
-ATTRIBUTE_REPRODUCIBLE static ptrdiff_t
-size_product(ptrdiff_t nitems, ptrdiff_t itemsize)
+static ptrdiff_t
+size_product(ptrdiff_t nitems, ptrdiff_t itemsize) ATTRIBUTE_REPRODUCIBLE
 {
 #ifdef ckd_mul
   ptrdiff_t product;
@@ -499,8 +499,8 @@ size_product(ptrdiff_t nitems, ptrdiff_t itemsize)
   size_overflow();
 }
 
-ATTRIBUTE_REPRODUCIBLE static ptrdiff_t
-align_to(ptrdiff_t size, ptrdiff_t alignment)
+static ptrdiff_t
+align_to(ptrdiff_t size, ptrdiff_t alignment) ATTRIBUTE_REPRODUCIBLE
 {
   ptrdiff_t lo_bits = alignment - 1, sum = size_sum(size, lo_bits);
   return sum & ~lo_bits;
@@ -3627,8 +3627,8 @@ lowerit(char a)
 }
 
 /* case-insensitive equality */
-ATTRIBUTE_REPRODUCIBLE static bool
-ciequal(register const char *ap, register const char *bp)
+static bool
+ciequal(register const char *ap, register const char *bp) ATTRIBUTE_REPRODUCIBLE
 {
 	while (lowerit(*ap) == lowerit(*bp++))
 		if (*ap++ == '\0')
@@ -3636,8 +3636,8 @@ ciequal(register const char *ap, register const char *bp)
 	return false;
 }
 
-ATTRIBUTE_REPRODUCIBLE static bool
-itsabbr(register const char *abbr, register const char *word)
+static bool
+itsabbr(register const char *abbr, register const char *word) ATTRIBUTE_REPRODUCIBLE
 {
 	if (lowerit(*abbr) != lowerit(*word))
 		return false;
@@ -3652,8 +3652,8 @@ itsabbr(register const char *abbr, register const char *word)
 
 /* Return true if ABBR is an initial prefix of WORD, ignoring ASCII case.  */
 
-ATTRIBUTE_REPRODUCIBLE static bool
-ciprefix(char const *abbr, char const *word)
+static bool
+ciprefix(char const *abbr, char const *word) ATTRIBUTE_REPRODUCIBLE
 {
   do
     if (!*abbr)
@@ -3762,8 +3762,8 @@ time_overflow(void)
   exit(EXIT_FAILURE);
 }
 
-ATTRIBUTE_REPRODUCIBLE static zic_t
-oadd(zic_t t1, zic_t t2)
+static zic_t
+oadd(zic_t t1, zic_t t2) ATTRIBUTE_REPRODUCIBLE
 {
 #ifdef ckd_add
   zic_t sum;
@@ -3776,8 +3776,8 @@ oadd(zic_t t1, zic_t t2)
   time_overflow();
 }
 
-ATTRIBUTE_REPRODUCIBLE static zic_t
-tadd(zic_t t1, zic_t t2)
+static zic_t
+tadd(zic_t t1, zic_t t2) ATTRIBUTE_REPRODUCIBLE
 {
 #ifdef ckd_add
   zic_t sum;
