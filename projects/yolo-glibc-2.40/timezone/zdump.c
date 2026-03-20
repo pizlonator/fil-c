@@ -89,7 +89,7 @@ static bool	warned;
 static bool	errout;
 
 static char const *abbr(struct tm const *);
-ATTRIBUTE_REPRODUCIBLE static intmax_t delta(struct tm *, struct tm *);
+static intmax_t delta(struct tm *, struct tm *) ATTRIBUTE_REPRODUCIBLE;
 static void dumptime(struct tm const *);
 static time_t hunt(timezone_t, time_t, time_t, bool);
 static void show(timezone_t, char *, time_t, bool);
@@ -97,7 +97,7 @@ static void showextrema(timezone_t, char *, time_t, struct tm *, time_t);
 static void showtrans(char const *, struct tm const *, time_t, char const *,
 		      char const *);
 static const char *tformat(void);
-ATTRIBUTE_REPRODUCIBLE static time_t yeartot(intmax_t);
+static time_t yeartot(intmax_t) ATTRIBUTE_REPRODUCIBLE;
 
 /* Is C an ASCII digit?  */
 static bool
@@ -134,8 +134,8 @@ size_overflow(void)
 
 /* Return A + B, exiting if the result would overflow either ptrdiff_t
    or size_t.  A and B are both nonnegative.  */
-ATTRIBUTE_REPRODUCIBLE static ptrdiff_t
-sumsize(ptrdiff_t a, ptrdiff_t b)
+static ptrdiff_t
+sumsize(ptrdiff_t a, ptrdiff_t b) ATTRIBUTE_REPRODUCIBLE
 {
 #ifdef ckd_add
   ptrdiff_t sum;
