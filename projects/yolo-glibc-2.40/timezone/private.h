@@ -529,18 +529,7 @@ typedef unsigned long uintmax_t;
 # endif
 #endif
 
-#if HAVE___HAS_C_ATTRIBUTE
-# if __has_c_attribute(reproducible)
-#  define ATTRIBUTE_REPRODUCIBLE [[reproducible]]
-# endif
-#endif
-#ifndef ATTRIBUTE_REPRODUCIBLE
-# if 3 <= __GNUC__
-#  define ATTRIBUTE_REPRODUCIBLE __attribute__((pure))
-# else
-#  define ATTRIBUTE_REPRODUCIBLE /* empty */
-# endif
-#endif
+#define ATTRIBUTE_REPRODUCIBLE /* empty */
 
 #if HAVE___HAS_C_ATTRIBUTE
 # if __has_c_attribute(unsequenced)
