@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
- * Copyright Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -175,7 +175,7 @@ typedef struct {
 
 static bool for_each_segregated_heap_callback(pas_heap* heap, void* arg)
 {
-    for_each_segregated_heap_data* data = arg;
+    for_each_segregated_heap_data* data = (for_each_segregated_heap_data*)arg;
     return data->callback(
         &heap->segregated_heap, pas_heap_config_kind_get_config(heap->config_kind), data->arg);
 }
@@ -212,7 +212,7 @@ bool pas_all_heaps_for_each_segregated_heap(pas_all_heaps_for_each_segregated_he
 
 static bool get_num_free_bytes_for_each_heap_callback(pas_heap* heap, void* arg)
 {
-    size_t* result = arg;
+    size_t* result = (size_t*)arg;
     (*result) += pas_heap_get_num_free_bytes(heap);
     return true;
 }
@@ -256,7 +256,7 @@ static bool for_each_segregated_directory_size_directory_callback(
 
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
+    data = (for_each_segregated_directory_data*)arg;
 
     return data->callback(&directory->base, data->arg);
 }
@@ -266,7 +266,7 @@ static bool for_each_segregated_directory_shared_page_directory_callback(
 {
     for_each_segregated_directory_data* data;
 
-    data = arg;
+    data = (for_each_segregated_directory_data*)arg;
 
     if (pas_ptr_hash_set_set(&data->seen_shared_page_directories, directory, NULL,
                              &pas_large_utility_free_heap_allocation_config)) {
@@ -284,7 +284,7 @@ static bool for_each_segregated_directory_segregated_heap_callback(
 {
     for_each_segregated_directory_data* data;
 
-    data = arg;
+    data = (for_each_segregated_directory_data*)arg;
 
     if (!pas_segregated_heap_for_each_size_directory(
             heap, for_each_segregated_directory_size_directory_callback, data))
@@ -443,7 +443,7 @@ static bool compute_total_non_utility_segregated_summary_directory_callback(
     
     page_config = pas_segregated_page_config_kind_get_config(directory->page_config_kind);
 
-    result = arg;
+    result = (pas_heap_summary*)arg;
 
     for (index = pas_segregated_directory_size(directory); index--;) {
         pas_segregated_view view;
@@ -480,7 +480,7 @@ static bool compute_total_non_utility_bitfit_summary_heap_callback(pas_heap* hea
     pas_heap_summary* result;
     pas_bitfit_heap* bitfit_heap;
 
-    result = arg;
+    result = (pas_heap_summary*)arg;
 
     bitfit_heap = pas_compact_atomic_bitfit_heap_ptr_load(&heap->segregated_heap.bitfit_heap);
     if (!bitfit_heap)
@@ -507,7 +507,7 @@ static bool compute_total_non_utility_large_summary_heap_callback(pas_heap* heap
 {
     pas_heap_summary* result;
 
-    result = arg;
+    result = (pas_heap_summary*)arg;
 
     *result = pas_heap_summary_add(*result, pas_large_heap_compute_summary(&heap->large_heap));
     

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ static bool view_callback(pas_enumerator* enumerator,
 
     PAS_UNUSED_PARAM(index);
     
-    directory = arg;
+    directory = (pas_bitfit_directory*)arg;
 
     view = pas_compact_atomic_bitfit_view_ptr_load_remote(enumerator, view_ptr);
 
@@ -81,7 +81,7 @@ static bool view_callback(pas_enumerator* enumerator,
         enumerator, (void*)page_boundary);
     PAS_ASSERT_WITH_DETAIL(page);
 
-    page = pas_enumerator_read(enumerator, page, pas_bitfit_page_header_size(*page_config));
+    page = (pas_bitfit_page*)pas_enumerator_read(enumerator, page, pas_bitfit_page_header_size(*page_config));
     if (!page)
         return false;
 

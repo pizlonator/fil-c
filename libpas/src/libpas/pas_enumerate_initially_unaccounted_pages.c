@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,12 +62,12 @@ bool pas_enumerate_initially_unaccounted_pages(pas_enumerator* enumerator)
     uintptr_t* compact_heap_reservation_base;
     uintptr_t* compact_heap_reservation_bump;
 
-    compact_heap_reservation_base = pas_enumerator_read(
+    compact_heap_reservation_base = (uintptr_t*)pas_enumerator_read(
         enumerator, enumerator->root->compact_heap_reservation_base, sizeof(uintptr_t));
     if (!compact_heap_reservation_base)
         return false;
 
-    compact_heap_reservation_bump = pas_enumerator_read(
+    compact_heap_reservation_bump = (uintptr_t*)pas_enumerator_read(
         enumerator, enumerator->root->compact_heap_reservation_bump, sizeof(size_t));
     if (!compact_heap_reservation_bump)
         return false;
@@ -92,12 +93,12 @@ bool pas_enumerate_initially_unaccounted_pages(pas_enumerator* enumerator)
             NULL))
         return false;
 
-    large_sharing_tree = pas_enumerator_read(
+    large_sharing_tree = (pas_red_black_tree*)pas_enumerator_read(
         enumerator, enumerator->root->large_sharing_tree, sizeof(pas_red_black_tree));
     if (!large_sharing_tree)
         return false;
 
-    large_sharing_tree_jettisoned_nodes = pas_enumerator_read(
+    large_sharing_tree_jettisoned_nodes = (pas_red_black_tree_jettisoned_nodes*)pas_enumerator_read(
         enumerator,
         enumerator->root->large_sharing_tree_jettisoned_nodes,
         sizeof(pas_red_black_tree_jettisoned_nodes));
@@ -125,7 +126,7 @@ bool pas_enumerate_initially_unaccounted_pages(pas_enumerator* enumerator)
             enumerator, large_sharing_tree_jettisoned_nodes->remove_jettisoned),
         &enumerator->allocation_config);
 
-    while ((large_sharing_node = pas_ptr_worklist_pop(&worklist))) {
+    while ((large_sharing_node = (pas_large_sharing_node*)pas_ptr_worklist_pop(&worklist))) {
         /* Disregard cases where the sharing node says that it has live bytes and is decommitted.
            We assume that this might happen if the sharing pool is in flux and that this really means
            that the node represents committed memory. */

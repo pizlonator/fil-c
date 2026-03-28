@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,10 +65,10 @@ typedef struct {
                 PAS_INTRINSIC_MAX_SEGREGATED_OBJECT_SIZE, \
             .max_bitfit_object_size = \
                 PAS_INTRINSIC_MAX_BITFIT_OBJECT_SIZE, \
+            .mmap_capability = pas_may_mmap, \
             .view_cache_capacity_for_object_size = \
                 ((pas_basic_heap_config_definitions_arguments){__VA_ARGS__}).intrinsic_view_cache_capacity, \
-            .initialize_fresh_memory = NULL, \
-            .mmap_capability = pas_may_mmap \
+            .initialize_fresh_memory = NULL \
         }, \
         .page_caches = &name ## _page_caches \
     }; \
@@ -88,9 +89,9 @@ typedef struct {
                 PAS_PRIMITIVE_MAX_SEGREGATED_OBJECT_SIZE, \
             .max_bitfit_object_size = \
                 PAS_PRIMITIVE_MAX_BITFIT_OBJECT_SIZE, \
+            .mmap_capability = pas_may_mmap, \
             .view_cache_capacity_for_object_size = pas_heap_runtime_config_zero_view_cache_capacity, \
-            .initialize_fresh_memory = NULL, \
-            .mmap_capability = pas_may_mmap \
+            .initialize_fresh_memory = NULL \
         }, \
         .page_caches = &name ## _page_caches \
     }; \
@@ -111,9 +112,9 @@ typedef struct {
                 PAS_TYPED_MAX_SEGREGATED_OBJECT_SIZE, \
             .max_bitfit_object_size = \
                 PAS_TYPED_MAX_BITFIT_OBJECT_SIZE, \
+            .mmap_capability = pas_may_mmap, \
             .view_cache_capacity_for_object_size = pas_heap_runtime_config_zero_view_cache_capacity, \
-            .initialize_fresh_memory = NULL, \
-            .mmap_capability = pas_may_mmap \
+            .initialize_fresh_memory = NULL \
         }, \
         .page_caches = &name ## _page_caches \
     }; \
@@ -134,9 +135,9 @@ typedef struct {
                 PAS_FLEX_MAX_SEGREGATED_OBJECT_SIZE, \
             .max_bitfit_object_size = \
                 PAS_FLEX_MAX_BITFIT_OBJECT_SIZE, \
+            .mmap_capability = pas_may_mmap, \
             .view_cache_capacity_for_object_size = pas_heap_runtime_config_zero_view_cache_capacity, \
-            .initialize_fresh_memory = NULL, \
-            .mmap_capability = pas_may_mmap \
+            .initialize_fresh_memory = NULL \
         }, \
         .page_caches = &name ## _page_caches \
     }; \
@@ -149,8 +150,8 @@ typedef struct {
         \
         pas_segregated_page_config page_config; \
         pas_basic_heap_page_caches* page_caches; \
-        pas_megapage_cache* megapage_cache; \
-        pas_fast_megapage_kind megapage_kind; \
+        pas_megapage_cache* megapage_cache = NULL; \
+        pas_fast_megapage_kind megapage_kind = pas_small_other_fast_megapage_kind; \
         void* allocation; \
         \
         page_config = upcase_name ## _HEAP_CONFIG.small_segregated_config; \

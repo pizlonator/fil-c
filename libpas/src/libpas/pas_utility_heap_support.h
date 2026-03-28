@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +38,7 @@ union pas_utility_heap_allocator;
 typedef struct pas_utility_heap_support pas_utility_heap_support;
 typedef union pas_utility_heap_allocator pas_utility_heap_allocator;
 
+/* We strongly expect that it's correct to initialize this to all zero. */
 struct pas_utility_heap_support {
     pas_compact_atomic_segregated_size_directory_ptr
         index_to_size_directory[PAS_NUM_UTILITY_SIZE_CLASSES];
@@ -49,13 +51,6 @@ union pas_utility_heap_allocator {
     char fake_field_to_force_size[
         PAS_LOCAL_ALLOCATOR_SIZE(PAS_UTILITY_NUM_ALLOC_BITS)];
 };
-
-#define PAS_UTILITY_HEAP_SUPPORT_INITIALIZER { \
-        .index_to_size_directory = {[0 ... PAS_NUM_UTILITY_SIZE_CLASSES - 1] = \
-                                        PAS_COMPACT_ATOMIC_PTR_INITIALIZER}, \
-        .allocators = NULL, \
-        .slow_path_count = 0 \
-    }
 
 PAS_END_EXTERN_C;
 

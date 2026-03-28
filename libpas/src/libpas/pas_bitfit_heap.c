@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020-2022 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,7 +44,7 @@ pas_bitfit_heap* pas_bitfit_heap_create(pas_segregated_heap* segregated_heap,
     pas_bitfit_heap* result;
     pas_bitfit_page_config_variant variant;
 
-    result = pas_immortal_heap_allocate_with_alignment(
+    result = (pas_bitfit_heap*)pas_immortal_heap_allocate_with_alignment(
         sizeof(pas_bitfit_heap),
         sizeof(pas_versioned_field),
         "pas_bitfit_heap",
@@ -191,7 +192,7 @@ static bool for_each_live_object_callback(
 {
     for_each_live_object_data* data;
 
-    data = arg;
+    data = (for_each_live_object_data*)arg;
 
     return data->callback(data->heap, view, begin, size, data->arg);
 }

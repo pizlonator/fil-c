@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -590,11 +590,11 @@ static void ensure_size_lookup(pas_segregated_heap* heap,
     
     index_upper_bound = compute_small_index_upper_bound(heap, config);
     
-    index_to_size_directory = pas_large_expendable_memory_allocate(
+    index_to_size_directory = (pas_compact_atomic_segregated_size_directory_ptr*)pas_large_expendable_memory_allocate(
         sizeof(pas_compact_atomic_segregated_size_directory_ptr) * index_upper_bound,
         sizeof(pas_compact_atomic_segregated_size_directory_ptr),
         "pas_segregated_heap/index_to_size_directory");
-    index_to_allocator_index = pas_large_expendable_memory_allocate(
+    index_to_allocator_index = (pas_allocator_index*)pas_large_expendable_memory_allocate(
         sizeof(pas_allocator_index) * index_upper_bound,
         sizeof(pas_allocator_index),
         "pas_segregated_heap/index_to_allocator_index");
@@ -762,7 +762,7 @@ static void rematerialize_size_lookup_set_index_to_small_allocator_index(
 {
     pas_segregated_heap* heap;
 
-    heap = arg;
+    heap = (pas_segregated_heap*)arg;
 
     PAS_ASSERT(heap->index_to_small_allocator_index);
     PAS_ASSERT(index < heap->small_index_upper_bound);
@@ -774,7 +774,7 @@ static void rematerialize_size_lookup_set_index_to_small_size_directory(
 {
     pas_segregated_heap* heap;
 
-    heap = arg;
+    heap = (pas_segregated_heap*)arg;
 
     PAS_ASSERT(heap->index_to_small_size_directory);
     PAS_ASSERT(index < heap->small_index_upper_bound);
@@ -789,7 +789,7 @@ static void rematerialize_size_lookup_set_medium_directory_tuple(
     pas_segregated_heap_rare_data* data;
     pas_segregated_heap_medium_directory_tuple* tuples;
 
-    heap = arg;
+    heap = (pas_segregated_heap*)arg;
     data = pas_segregated_heap_rare_data_ptr_load(&heap->rare_data);
     PAS_ASSERT(data);
 
@@ -1017,7 +1017,7 @@ static bool check_part_of_all_heaps_callback(pas_heap* heap, void* arg)
     
     check_part_of_all_heaps_data* data;
 
-    data = arg;
+    data = (check_part_of_all_heaps_data*)arg;
 
     if (verbose) {
         pas_log("all_heaps told us about %p (segregated = %p), we expect %p\n",
@@ -1039,7 +1039,7 @@ static bool check_part_of_all_segregated_heaps_callback(
 
     PAS_UNUSED_PARAM(config);
 
-    data = arg;
+    data = (check_part_of_all_heaps_data*)arg;
 
     if (heap == data->heap) {
         data->did_find = true;
@@ -1085,7 +1085,7 @@ static void check_size_lookup_recomputation_set_index_to_small_allocator_index(
 {
     check_size_lookup_recomputation_data* data;
 
-    data = arg;
+    data = (check_size_lookup_recomputation_data*)arg;
 
     PAS_ASSERT(index < data->heap->small_index_upper_bound);
     PAS_ASSERT(data->heap->index_to_small_allocator_index);
@@ -1106,7 +1106,7 @@ static void check_size_lookup_recomputation_set_index_to_small_size_directory(
 {
     check_size_lookup_recomputation_data* data;
 
-    data = arg;
+    data = (check_size_lookup_recomputation_data*)arg;
 
     PAS_ASSERT(index < data->heap->small_index_upper_bound);
     PAS_ASSERT(data->heap->index_to_small_size_directory);
@@ -1134,7 +1134,7 @@ static void check_size_lookup_recomputation_set_medium_directory_tuple(
     pas_segregated_heap_rare_data* rare_data;
     pas_segregated_heap_medium_directory_tuple* tuples;
 
-    data = arg;
+    data = (check_size_lookup_recomputation_data*)arg;
 
     PAS_ASSERT(value->begin_index);
     PAS_ASSERT(medium_tuple_index == data->num_medium_directories);
@@ -1229,9 +1229,9 @@ static void check_size_lookup_recomputation(pas_segregated_heap* heap,
 
     data.heap = heap;
     data.is_all_good = true;
-    data.seen_index_to_small_allocator_index = pas_large_utility_free_heap_allocate(
+    data.seen_index_to_small_allocator_index = (unsigned*)pas_large_utility_free_heap_allocate(
         bitvector_size, "check_size_lookup_recomputation/seen_index_to_small_allocator_index");
-    data.seen_index_to_small_size_directory = pas_large_utility_free_heap_allocate(
+    data.seen_index_to_small_size_directory = (unsigned*)pas_large_utility_free_heap_allocate(
         bitvector_size, "check_size_lookup_recomputation/seen_index_to_small_size_directory");
     data.num_medium_directories = 0;
 
@@ -2026,7 +2026,7 @@ pas_segregated_heap_ensure_size_directory_for_size(
 
             rare_data = pas_segregated_heap_rare_data_ptr_load(&heap->rare_data);
             if (!rare_data) {
-                rare_data = pas_immortal_heap_allocate(
+                rare_data = (pas_segregated_heap_rare_data*)pas_immortal_heap_allocate(
                     sizeof(pas_segregated_heap_rare_data),
                     "pas_segregated_heap_rare_data",
                     pas_object_allocation);
@@ -2097,7 +2097,7 @@ pas_segregated_heap_ensure_size_directory_for_size(
             
                     new_capacity = (rare_data->medium_directories_capacity + 1) << 1;
             
-                    new_directories = pas_compact_expendable_memory_allocate(
+                    new_directories = (pas_segregated_heap_medium_directory_tuple*)pas_compact_expendable_memory_allocate(
                         sizeof(pas_segregated_heap_medium_directory_tuple) * new_capacity,
                         PAS_ALIGNOF(pas_segregated_heap_medium_directory_tuple),
                         "pas_segregated_heap_rare_data/medium_directories");
@@ -2226,7 +2226,7 @@ static bool for_each_committed_size_directory_callback(
     pas_segregated_directory* directory;
     size_t index;
     PAS_UNUSED_PARAM(heap);
-    data = arg;
+    data = (for_each_committed_page_data*)arg;
     directory = &size_directory->base;
     for (index = 0; index < pas_segregated_directory_size(directory); ++index) {
         if (pas_segregated_directory_is_committed(directory, index)) {
@@ -2270,7 +2270,7 @@ static bool for_each_view_index_directory_callback(pas_segregated_heap* heap,
     pas_segregated_directory* directory;
     size_t index;
     PAS_UNUSED_PARAM(heap);
-    data = arg;
+    data = (for_each_view_index_data*)arg;
     directory = &size_directory->base;
     for (index = 0; index < pas_segregated_directory_size(directory); ++index) {
         if (!data->callback(
@@ -2310,7 +2310,7 @@ static bool for_each_live_object_object_callback(pas_segregated_size_directory* 
                                                  uintptr_t begin,
                                                  void* arg)
 {
-    for_each_live_object_data* data = arg;
+    for_each_live_object_data* data = (for_each_live_object_data*)arg;
     PAS_UNUSED_PARAM(view);
     return data->callback(data->heap, begin, directory->object_size, data->arg);
 }
@@ -2338,7 +2338,7 @@ static bool for_each_live_object_bitfit_callback(
 
     PAS_UNUSED_PARAM(heap);
     PAS_UNUSED_PARAM(view);
-    data = arg;
+    data = (for_each_live_object_data*)arg;
     
     return data->callback(data->heap, begin, size, data->arg);
 }
@@ -2381,10 +2381,10 @@ static bool num_committed_views_directory_callback(
     void* arg)
 {
     num_committed_views_data* data;
-    
+
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
+    data = (num_committed_views_data*)arg;
     
     data->result += pas_segregated_directory_num_committed_views(&directory->base);
     
@@ -2413,11 +2413,11 @@ static bool num_empty_views_directory_callback(
     void* arg)
 {
     num_empty_views_data* data;
-    
+
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
-    
+    data = (num_empty_views_data*)arg;
+
     data->result += pas_segregated_directory_num_empty_views(&directory->base);
     
     return true;
@@ -2448,7 +2448,7 @@ static bool num_empty_granules_directory_callback(
 
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
+    data = (num_empty_granules_data*)arg;
 
     data->result += pas_segregated_directory_num_empty_granules(&directory->base);
 
@@ -2477,10 +2477,10 @@ static bool num_views_directory_callback(
     void* arg)
 {
     num_views_data* data;
-    
+
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
+    data = (num_views_data*)arg;
     
     data->result += pas_segregated_directory_size(&directory->base);
     
@@ -2508,8 +2508,8 @@ static bool compute_summary_directory_callback(
     
     PAS_UNUSED_PARAM(heap);
 
-    summary = arg;
-    
+    summary = (pas_heap_summary*)arg;
+
     *summary = pas_heap_summary_add(
         *summary,
         pas_segregated_directory_compute_summary(&directory->base));

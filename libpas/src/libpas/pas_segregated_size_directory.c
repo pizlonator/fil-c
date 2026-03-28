@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,12 +76,12 @@ pas_segregated_size_directory* pas_segregated_size_directory_create(
     }
 
     if (page_config) {
-        result = pas_immortal_heap_allocate(
+        result = (pas_segregated_size_directory*)pas_immortal_heap_allocate(
             sizeof(pas_segregated_size_directory),
             "pas_segregated_size_directory",
             pas_object_allocation);
     } else {
-        result = pas_immortal_heap_allocate_with_alignment(
+        result = (pas_segregated_size_directory*)pas_immortal_heap_allocate_with_alignment(
             pas_round_up_to_power_of_2(sizeof(pas_segregated_size_directory),
                                        PAS_ALIGNOF(pas_bitfit_size_class)) + sizeof(pas_bitfit_size_class),
             pas_max_uintptr(PAS_ALIGNOF(pas_segregated_size_directory), PAS_ALIGNOF(pas_bitfit_size_class)),
@@ -193,7 +193,7 @@ pas_segregated_size_directory_data* pas_segregated_size_directory_ensure_data(
     }
 
     if (page_config && page_config->base.page_size > page_config->base.granule_size) {
-        data = pas_immortal_heap_allocate(
+        data = (pas_segregated_size_directory_data*)pas_immortal_heap_allocate(
             sizeof(pas_extended_segregated_size_directory_data),
             "pas_extended_segregated_size_directory_data",
             pas_object_allocation);
@@ -201,7 +201,7 @@ pas_segregated_size_directory_data* pas_segregated_size_directory_ensure_data(
         pas_compact_tagged_page_granule_use_count_ptr_store(
             &((pas_extended_segregated_size_directory_data*)data)->full_use_counts, NULL);
     } else {
-        data = pas_immortal_heap_allocate(
+        data = (pas_segregated_size_directory_data*)pas_immortal_heap_allocate(
             sizeof(pas_segregated_size_directory_data),
             "pas_segregated_size_directory_data",
             pas_object_allocation);
@@ -358,7 +358,7 @@ void pas_segregated_size_directory_enable_exclusive_views(
     page_config = *page_config_ptr;
     
     alloc_bits_bytes = pas_segregated_page_config_num_alloc_bytes(page_config);
-    full_alloc_bits = pas_immortal_heap_allocate_with_manual_alignment(
+    full_alloc_bits = (unsigned*)pas_immortal_heap_allocate_with_manual_alignment(
         alloc_bits_bytes, sizeof(unsigned),
         "pas_segregated_size_directory_data/full_alloc_bits",
         pas_object_allocation);
@@ -407,7 +407,7 @@ void pas_segregated_size_directory_enable_exclusive_views(
 
         num_granules = page_config.base.page_size / page_config.base.granule_size;
 
-        full_use_counts = pas_immortal_heap_allocate_with_manual_alignment(
+        full_use_counts = (pas_page_granule_use_count*)pas_immortal_heap_allocate_with_manual_alignment(
             num_granules * sizeof(pas_page_granule_use_count),
             sizeof(pas_page_granule_use_count),
             "pas_extended_segregated_size_directory_data/full_use_counts",
@@ -628,7 +628,7 @@ take_last_empty_should_consider_view_parallel(
 {
     take_last_empty_data* data;
 
-    data = config->arg;
+    data = (take_last_empty_data*)config->arg;
 
     PAS_UNUSED_PARAM(data);
 
@@ -671,7 +671,7 @@ take_last_empty_consider_view(pas_segregated_directory_iterate_config* config)
     PAS_ASSERT(pas_segregated_view_is_exclusive(generic_view));
     view = pas_segregated_view_get_exclusive(generic_view);
     held_lock = NULL;
-    data = config->arg;
+    data = (take_last_empty_data*)config->arg;
 
     my_page_config_ptr = data->my_page_config_ptr;
     heap_lock_hold_mode = data->heap_lock_hold_mode;
@@ -968,7 +968,7 @@ pas_segregated_size_directory_get_allocator_from_tlc(
     
     PAS_ASSERT(tlc_result.did_succeed);
 
-    return pas_baseline_allocator_result_create_success(tlc_result.allocator, NULL);
+    return pas_baseline_allocator_result_create_success((pas_local_allocator*)tlc_result.allocator, NULL);
 }
 
 pas_heap_summary pas_segregated_size_directory_compute_summary_for_unowned_exclusive(
@@ -1009,7 +1009,7 @@ static bool for_each_live_object_object_callback(
 {
     for_each_live_object_data* data;
 
-    data = arg;
+    data = (for_each_live_object_data*)arg;
 
     PAS_ASSERT(data->directory->object_size == pas_range_size(range));
 
@@ -1101,7 +1101,7 @@ void pas_segregated_size_directory_dump_reference(
 void pas_segregated_size_directory_dump_for_spectrum(
     pas_stream* stream, void* directory)
 {
-    pas_segregated_size_directory_dump_reference(directory, stream);
+    pas_segregated_size_directory_dump_reference((pas_segregated_size_directory*)directory, stream);
 }
 
 #endif /* LIBPAS_ENABLED */

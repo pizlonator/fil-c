@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2019 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,7 +94,7 @@ static void consider_expanding(pas_simple_large_free_heap* heap, size_t num_thin
     
     new_free_list_size_in_bytes = new_capacity * sizeof(pas_large_free);
     
-    new_free_list = pas_bootstrap_free_heap_allocate_simple(
+    new_free_list = (pas_large_free*)pas_bootstrap_free_heap_allocate_simple(
         new_free_list_size_in_bytes,
         "pas_simple_large_free_heap/free_list",
         pas_object_allocation);
@@ -426,7 +426,7 @@ static void fix_free_list_if_necessary(pas_simple_large_free_heap* heap,
     
     if (verbose >= 2)
         pas_log("Allocating new free list with new_capacity = %zu:\n", new_capacity);
-    new_free_list = (void*)try_allocate_without_fixing(
+    new_free_list = (pas_large_free*)try_allocate_without_fixing(
         heap,
         new_capacity * sizeof(pas_large_free),
         pas_alignment_create_traditional(sizeof(void*)),

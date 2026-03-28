@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,7 +76,7 @@ static pas_aligned_allocation_result aligned_allocator(size_t size,
 {
     aligned_allocator_data* data;
     
-    data = arg;
+    data = (aligned_allocator_data*)arg;
     
     PAS_ASSERT(data);
     
@@ -326,7 +326,7 @@ typedef struct {
 static bool for_each_live_object_entry_callback(pas_large_map_entry entry,
                                                 void* arg)
 {
-    for_each_live_object_data* data = arg;
+    for_each_live_object_data* data = (for_each_live_object_data*)arg;
     
     if (entry.heap != data->heap)
         return true;

@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2026 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,21 +36,29 @@ FILC_YOLO_LIB_DIR ?= $(FILC_LIB_DIR)
 FILC_DYNAMIC_LINKER ?= $(FILC_YOLO_LIB_DIR)/ld-yolo-x86_64.so
 FILC_RUNTIME_LIBS ?= -lyoloc -lyolom
 
+# We build the runtime with clang by default because doing so produces ~1.2% better performance on
+# PizBench9019. But building with g++ is supported.
+# HOST_CLANG ?= g++
+# HOST_CLANG_EXTRA_FLAGS = -Wno-expansion-to-defined -Wno-pragmas \
+# 	-Wno-address-of-packed-member -Wno-missing-field-initializers \
+# 	-isystem `./find_gcc_include_dir.rb`
 HOST_CLANG ?= clang
+HOST_CLANG_EXTRA_FLAGS = -isystem `./find_clang_include_dir.rb`
+
 FILC_CLANG ?= ../build/bin/clang
 FILC_DRIVER_FLAGS ?=
 
 PASCC = $(HOST_CLANG) -march=x86-64-v2 -fPIC -pthread -nostdinc \
 	-isystem $(FILC_YOLO_INCLUDE) -isystem $(FILC_OS_INCLUDE) \
 	-isystem $(FILC_STDFIL_INCLUDE) \
-	-isystem `./find_clang_include_dir.rb`
+	$(HOST_CLANG_EXTRA_FLAGS)
 PASASM = $(HOST_CLANG) -march=x86-64-v2 -fPIC
 FILCC = $(FILC_CLANG) $(FILC_DRIVER_FLAGS)
 SHLD = $(HOST_CLANG) -Wl,-dynamic-linker,$(FILC_DYNAMIC_LINKER) \
 	-nostdlib -shared $(FILC_YOLO_LIB_DIR)/crti.o \
-	`./find_system_library_file.rb crtbeginS.o` -L$(FILC_YOLO_LIB_DIR)
-SHLDPOST = `./find_system_library_file.rb libgcc.a` $(FILC_RUNTIME_LIBS) \
-	`./find_system_library_file.rb crtendS.o` $(FILC_YOLO_LIB_DIR)/crtn.o
+	$(FILC_LIB_DIR)/crtbegin.o -L$(FILC_YOLO_LIB_DIR)
+SHLDPOST = $(FILC_LIB_DIR)/libyolort.a $(FILC_RUNTIME_LIBS) \
+	$(FILC_LIB_DIR)/crtend.o $(FILC_YOLO_LIB_DIR)/crtn.o
 
 DIRS_TO_CREATE = \
 	$(FILC_LIB_DIR) \

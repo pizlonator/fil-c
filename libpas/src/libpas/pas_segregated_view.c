@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2022 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -204,7 +205,7 @@ bool pas_segregated_view_is_owned(pas_segregated_view view)
             &pas_segregated_view_get_partial(view)->shared_view)->is_owned;
     default:
         PAS_ASSERT(!"Should not be reached");
-        return NULL;
+        return false;
     }
 }
 
@@ -572,7 +573,7 @@ pas_segregated_view pas_segregated_view_for_object(
     case pas_segregated_shared_handle_kind:
         return pas_segregated_partial_view_as_view(
             pas_segregated_shared_handle_partial_view_for_object(
-                pas_segregated_view_get_ptr(owning_view), begin, *page_config));
+                (pas_segregated_shared_handle*)pas_segregated_view_get_ptr(owning_view), begin, *page_config));
 
     default:
         PAS_ASSERT(!"Should not be reached");

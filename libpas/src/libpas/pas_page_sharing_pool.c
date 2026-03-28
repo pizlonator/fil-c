@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,8 +44,8 @@ pas_page_sharing_pool pas_physical_page_sharing_pool = {
     .first_delta = PAS_VERSIONED_FIELD_INITIALIZER,
     .delta = PAS_SEGMENTED_VECTOR_INITIALIZER,
     .participants = PAS_SEGMENTED_VECTOR_INITIALIZER,
-    .current_participant = NULL,
-    .participant_by_epoch = PAS_MIN_HEAP_INITIALIZER(pas_page_sharing_pool_min_heap)
+    .participant_by_epoch = PAS_MIN_HEAP_INITIALIZER(pas_page_sharing_pool_min_heap),
+    .current_participant = NULL
 };
 
 intptr_t pas_physical_page_sharing_pool_balance = 0;

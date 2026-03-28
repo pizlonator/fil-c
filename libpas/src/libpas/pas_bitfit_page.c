@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -247,7 +247,7 @@ static bool verify_for_each_object_callback(uintptr_t begin,
 {
     verify_for_each_object_data* data;
 
-    data = arg;
+    data = (verify_for_each_object_data*)arg;
 
     pas_page_granule_increment_uses_for_range(
         data->my_use_counts,

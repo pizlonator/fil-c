@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +41,7 @@ bmalloc_type* bmalloc_type_create(size_t size, size_t alignment, const char* nam
     PAS_ASSERT((unsigned)size == size);
     PAS_ASSERT((unsigned)alignment == alignment);
 
-    result = pas_immortal_heap_allocate(
+    result = (bmalloc_type*)pas_immortal_heap_allocate(
         sizeof(bmalloc_type),
         "bmalloc_type",
         pas_object_allocation);

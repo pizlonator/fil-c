@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2025-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -223,7 +223,7 @@ void filc_sampling_profiler_report(void)
     
     pas_lock_lock(&profiler_lock);
     unsigned length = profiler_function_map_instance.key_count;
-    profiler_function_entry* array = bmalloc_allocate(sizeof(profiler_function_entry) * length);
+    profiler_function_entry* array = (profiler_function_entry*)bmalloc_allocate(sizeof(profiler_function_entry) * length);
     unsigned src_index;
     unsigned dst_index;
     uint64_t total_count = profiler_total_count;

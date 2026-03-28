@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +45,7 @@ pas_heap* pas_ensure_heap_with_page_caches(
 
     pas_heap_lock_lock();
 
-    runtime_config = pas_immortal_heap_allocate(
+    runtime_config = (pas_basic_heap_runtime_config*)pas_immortal_heap_allocate(
         sizeof(pas_basic_heap_runtime_config),
         "pas_basic_heap_runtime_config",
         pas_object_allocation);

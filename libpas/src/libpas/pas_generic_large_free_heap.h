@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -145,7 +146,7 @@ pas_generic_large_free_heap_try_allocate_test_allocation_candidate(
     pas_generic_large_free_heap_try_allocate_test_allocation_candidate_data* data;
     pas_large_allocation_result candidate_result;
     
-    data = arg;
+    data = (pas_generic_large_free_heap_try_allocate_test_allocation_candidate_data*)arg;
     
     if (data->best_cursor && candidate.begin > data->best.allocation.begin)
         return false;

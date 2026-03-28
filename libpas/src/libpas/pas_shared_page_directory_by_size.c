@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,7 +76,7 @@ pas_segregated_shared_page_directory* pas_shared_page_directory_by_size_get(
         } else {
             unsigned inner_index;
             
-            data = pas_immortal_heap_allocate(
+            data = (pas_shared_page_directory_by_size_data*)pas_immortal_heap_allocate(
                 PAS_OFFSETOF(pas_shared_page_directory_by_size_data, directories)
                 + sizeof(pas_segregated_shared_page_directory) * num_directories,
                 "pas_shared_page_directory_by_size_data",
@@ -139,7 +140,7 @@ bool pas_shared_page_directory_by_size_for_each_remote(
     pas_shared_page_directory_by_size_data* data;
     unsigned index;
 
-    data = pas_enumerator_read_compact(enumerator, by_size->data);
+    data = (pas_shared_page_directory_by_size_data*)pas_enumerator_read_compact(enumerator, by_size->data);
     if (!data)
         return true;
 

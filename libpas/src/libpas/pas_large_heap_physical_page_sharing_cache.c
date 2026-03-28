@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,7 +62,7 @@ static pas_aligned_allocation_result large_aligned_allocator(size_t size,
     
     pas_heap_lock_assert_held();
     
-    data = arg;
+    data = (aligned_allocator_data*)arg;
     
     page_size = pas_page_malloc_alignment();
     

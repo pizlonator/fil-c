@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,7 +116,7 @@ typedef struct {
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_segregated_page_size, \
             .granule_size = \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_segregated_page_size, \
-			.non_committable_granule_bitvector = NULL, \
+			.non_committable_granule_bitvector = 0, \
             .max_object_size = PAS_MAX_OBJECT_SIZE(PAS_BASIC_SEGREGATED_PAYLOAD_SIZE_EXCLUSIVE( \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_segregated_min_align_shift, \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_segregated_page_size, \
@@ -183,7 +183,7 @@ typedef struct {
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).medium_page_size, \
             .granule_size = \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).granule_size, \
-			.non_committable_granule_bitvector = NULL, \
+			.non_committable_granule_bitvector = 0, \
             .max_object_size = PAS_MAX_OBJECT_SIZE( \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).medium_page_size), \
             .page_header_for_boundary = name ## _medium_segregated_page_header_for_boundary, \
@@ -236,7 +236,7 @@ typedef struct {
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_bitfit_page_size, \
             .granule_size = \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_bitfit_page_size, \
-			.non_committable_granule_bitvector = NULL, \
+			.non_committable_granule_bitvector = 0, \
             .max_object_size = PAS_MAX_BITFIT_OBJECT_SIZE( \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).small_bitfit_page_size - \
                 PAS_BITFIT_PAGE_HEADER_SIZE( \
@@ -278,7 +278,7 @@ typedef struct {
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).medium_page_size, \
             .granule_size = \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).granule_size, \
-			.non_committable_granule_bitvector = NULL, \
+			.non_committable_granule_bitvector = 0, \
             .max_object_size = PAS_MAX_BITFIT_OBJECT_SIZE( \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).medium_page_size, \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).medium_bitfit_min_align_shift), \
@@ -309,7 +309,7 @@ typedef struct {
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).marge_bitfit_page_size, \
             .granule_size = \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).granule_size, \
-			.non_committable_granule_bitvector = NULL, \
+			.non_committable_granule_bitvector = 0, \
             .max_object_size = PAS_MAX_BITFIT_OBJECT_SIZE( \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).marge_bitfit_page_size, \
                 ((pas_basic_heap_config_arguments){__VA_ARGS__}).marge_bitfit_min_align_shift), \
@@ -346,7 +346,7 @@ typedef struct {
         PAS_BASIC_HEAP_CONFIG_SEGREGATED_HEAP_FIELDS(name, __VA_ARGS__) \
         .aligned_allocator = pas_heap_config_utils_allocate_aligned, \
         .aligned_allocator_talks_to_sharing_pool = true, \
-        .deallocator = NULL, \
+        .deallocator = 0, \
         .root_data = &name ## _root_data, \
         .prepare_to_enumerate = name ## _prepare_to_enumerate, \
         .for_each_shared_page_directory = \

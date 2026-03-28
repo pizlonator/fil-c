@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,7 +50,7 @@ void pas_enumerable_range_list_append(pas_enumerable_range_list* list,
         
         PAS_ASSERT_WITH_DETAIL(!chunk || chunk->num_entries == PAS_ENUMERABLE_RANGE_LIST_CHUNK_SIZE);
 
-        new_chunk = pas_immortal_heap_allocate(sizeof(pas_enumerable_range_list_chunk),
+        new_chunk = (pas_enumerable_range_list_chunk*)pas_immortal_heap_allocate(sizeof(pas_enumerable_range_list_chunk),
                                                "pas_enumerable_range_list_chunk",
                                                pas_object_allocation);
         pas_compact_atomic_enumerable_range_list_chunk_ptr_store(&new_chunk->next, chunk);
@@ -102,7 +103,7 @@ bool pas_enumerable_range_list_iterate_remote(
     pas_enumerable_range_list* list;
     pas_enumerable_range_list_chunk* chunk;
 
-    list = pas_enumerator_read(enumerator, remote_list, sizeof(pas_enumerable_range_list));
+    list = (pas_enumerable_range_list*)pas_enumerator_read(enumerator, remote_list, sizeof(pas_enumerable_range_list));
     if (!list)
         return false;
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,9 @@
 #include <TargetConditionals.h>
 #endif
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <features.h>
 
 #ifdef __USE_GNU

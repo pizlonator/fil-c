@@ -1,6 +1,10 @@
 #ifndef _FUTEX_CALLS_H_
 #define _FUTEX_CALLS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define __NEED_struct_timespec
 
 #include <bits/alltypes.h>
@@ -13,6 +17,10 @@ int yolo_futex_timedwait(volatile int *addr, int val, int clock_id, const struct
 int yolo_futex_unlock_pi(volatile int *addr, int priv);
 int yolo_futex_lock_pi(volatile int *addr, int priv, const struct timespec *timeout);
 int yolo_futex_requeue(volatile int *addr, int priv, int wake_count, int requeue_count, volatile int *addr2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _FUTEX_CALLS_H_ */
 

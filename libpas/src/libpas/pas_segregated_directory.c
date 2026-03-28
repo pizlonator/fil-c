@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ pas_segregated_directory_get_data_slow(pas_segregated_directory* directory,
 
     result = pas_segregated_directory_data_ptr_load(&directory->data);
     if (!result) {
-        result = pas_immortal_heap_allocate_with_alignment(
+        result = (pas_segregated_directory_data*)pas_immortal_heap_allocate_with_alignment(
             sizeof(pas_segregated_directory_data),
             sizeof(pas_versioned_field),
             "pas_segregated_directory_data",
@@ -179,7 +179,7 @@ pas_segregated_directory_get_sharing_payload(pas_segregated_directory* directory
             payload = (pas_page_sharing_participant_payload*)(
                 encoded_payload & ~PAS_SEGREGATED_DIRECTORY_SHARING_PAYLOAD_IS_INITIALIZED_BIT);
             
-            payload = pas_immortal_heap_allocate(
+            payload = (pas_page_sharing_participant_payload*)pas_immortal_heap_allocate(
                 sizeof(pas_page_sharing_participant_payload),
                 "pas_segregated_directory_data/sharing_payload",
                 pas_object_allocation);
@@ -352,7 +352,7 @@ num_empty_views_should_consider_view_parallel(
 {
     num_empty_views_data* data;
 
-    data = config->arg;
+    data = (num_empty_views_data*)config->arg;
 
     data->result += pas_popcount_uint32(segment.empty_bits);
     

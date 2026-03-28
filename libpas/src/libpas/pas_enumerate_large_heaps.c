@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +41,7 @@ static bool range_list_iterate_add_large_payload_callback(pas_enumerator* enumer
 {
     pas_range_begin_min_heap* payloads;
 
-    payloads = arg;
+    payloads = (pas_range_begin_min_heap*)arg;
 
     PAS_ASSERT_WITH_DETAIL(!pas_range_is_empty(range));
 

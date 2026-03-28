@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,7 +60,7 @@ pas_thread_local_cache_node* pas_thread_local_cache_node_allocate(void)
         if (verbose)
             pas_log("Allocating TLC node with size/alignment = %zu.\n", size);
         
-        result = pas_immortal_heap_allocate_with_alignment(
+        result = (pas_thread_local_cache_node*)pas_immortal_heap_allocate_with_alignment(
             size, size,
             "pas_thread_local_cache_node",
             pas_object_allocation);

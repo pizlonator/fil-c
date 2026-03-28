@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +43,7 @@ bool pas_compute_summary_live_object_callback(uintptr_t begin,
     
     pas_heap_lock_assert_held();
     
-    summary_ptr = arg;
+    summary_ptr = (pas_heap_summary*)arg;
     
     my_summary = pas_large_sharing_pool_compute_summary(
         pas_range_create(begin, end),
@@ -65,8 +66,8 @@ bool pas_compute_summary_live_object_callback_without_physical_sharing(uintptr_t
     
     pas_heap_lock_assert_held();
     
-    summary_ptr = arg;
-    
+    summary_ptr = (pas_heap_summary*)arg;
+
     my_summary = pas_heap_summary_create_empty();
     my_summary.allocated = end - begin;
     my_summary.committed = end - begin;
@@ -94,8 +95,8 @@ bool pas_compute_summary_dead_object_callback(pas_large_free free,
 
     pas_heap_lock_assert_held();
     
-    summary_ptr = arg;
-    
+    summary_ptr = (pas_heap_summary*)arg;
+
     my_summary = pas_large_sharing_pool_compute_summary(
         pas_range_create(free.begin, free.end),
         pas_large_sharing_pool_compute_summary_known_free,
@@ -116,8 +117,8 @@ bool pas_compute_summary_dead_object_callback_without_physical_sharing(pas_large
 
     pas_heap_lock_assert_held();
     
-    summary_ptr = arg;
-    
+    summary_ptr = (pas_heap_summary*)arg;
+
     my_summary = pas_heap_summary_create_empty();
     my_summary.free = free.end - free.begin;
     my_summary.committed = free.end - free.begin;

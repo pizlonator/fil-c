@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,12 +75,12 @@ bool pas_heap_config_utils_for_each_shared_page_directory_remote(
     pas_basic_heap_page_caches* page_caches;
     pas_segregated_page_config_variant variant;
 
-    runtime_config = pas_enumerator_read(
+    runtime_config = (pas_basic_heap_runtime_config*)pas_enumerator_read(
         enumerator, heap->runtime_config, sizeof(pas_basic_heap_runtime_config));
     if (!runtime_config)
         return false;
 
-    page_caches = pas_enumerator_read(
+    page_caches = (pas_basic_heap_page_caches*)pas_enumerator_read(
         enumerator, runtime_config->page_caches, sizeof(pas_basic_heap_page_caches));
     if (!page_caches)
         return false;
@@ -155,36 +156,36 @@ void* pas_heap_config_utils_prepare_to_enumerate(pas_enumerator* enumerator,
     const pas_heap_config* config;
     pas_basic_heap_config_root_data* root_data;
 
-    configs = pas_enumerator_read(
+    configs = (const pas_heap_config**)pas_enumerator_read(
         enumerator, enumerator->root->heap_configs,
         sizeof(const pas_heap_config*) * pas_heap_config_kind_num_kinds);
     if (!configs)
         return NULL;
-    
-    config = pas_enumerator_read(enumerator, (void*)(uintptr_t)configs[my_config->kind], sizeof(pas_heap_config));
+
+    config = (const pas_heap_config*)pas_enumerator_read(enumerator, (void*)(uintptr_t)configs[my_config->kind], sizeof(pas_heap_config));
     if (!config)
         return NULL;
 
-    root_data = pas_enumerator_read(
+    root_data = (pas_basic_heap_config_root_data*)pas_enumerator_read(
         enumerator, config->root_data, sizeof(pas_basic_heap_config_root_data));
     if (!root_data)
         return NULL;
 
-    result = pas_enumerator_allocate(enumerator, sizeof(pas_basic_heap_config_enumerator_data));
+    result = (pas_basic_heap_config_enumerator_data*)pas_enumerator_allocate(enumerator, sizeof(pas_basic_heap_config_enumerator_data));
     
     pas_ptr_hash_map_construct(&result->page_header_table);
 
     if (!pas_basic_heap_config_enumerator_data_add_page_header_table(
             result,
             enumerator,
-            pas_enumerator_read(
+            (pas_page_header_table*)pas_enumerator_read(
                 enumerator, root_data->medium_page_header_table, sizeof(pas_page_header_table))))
         return NULL;
-    
+
     if (!pas_basic_heap_config_enumerator_data_add_page_header_table(
             result,
             enumerator,
-            pas_enumerator_read(
+            (pas_page_header_table*)pas_enumerator_read(
                 enumerator, root_data->marge_page_header_table, sizeof(pas_page_header_table))))
         return NULL;
     

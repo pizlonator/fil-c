@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -104,7 +104,7 @@ void pas_fast_megapage_table_set_by_index(pas_fast_megapage_table* table,
     
     PAS_ASSERT(new_index_end > new_index_begin);
     
-    new_instance = pas_immortal_heap_allocate(
+    new_instance = (pas_fast_megapage_table_impl*)pas_immortal_heap_allocate(
         size, "pas_fast_megapage_table/instance", pas_object_allocation);
     
     pas_zero_memory(new_instance, size);

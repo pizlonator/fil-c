@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +35,8 @@ struct pas_enumerator;
 typedef struct pas_enumerator pas_enumerator;
 
 PAS_API bool pas_enumerate_initially_unaccounted_pages(pas_enumerator* enumerator);
+
+PAS_END_EXTERN_C;
 
 #endif /* PAS_ENUMERATE_INITIALLY_UNACCOUNTED_PAGES_H */
 

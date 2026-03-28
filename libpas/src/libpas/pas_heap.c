@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ pas_heap* pas_heap_create(pas_heap_ref* heap_ref,
     PAS_ASSERT(pas_is_aligned(config->get_type_size(heap_ref->type),
                               config->get_type_alignment(heap_ref->type)));
     
-    heap = pas_immortal_heap_allocate(sizeof(pas_heap), "pas_heap", pas_object_allocation);
+    heap = (pas_heap*)pas_immortal_heap_allocate(sizeof(pas_heap), "pas_heap", pas_object_allocation);
     pas_zero_memory(heap, sizeof(pas_heap));
     heap->type = heap_ref->type;
     pas_segregated_heap_construct(
@@ -116,10 +116,10 @@ static bool for_each_live_object_small_object_callback(pas_segregated_heap* heap
 {
     for_each_live_object_data* data;
     
-    data = arg;
-    
+    data = (for_each_live_object_data*)arg;
+
     PAS_ASSERT(&data->heap->segregated_heap == heap);
-    
+
     return data->callback(data->heap, begin, size, data->arg);
 }
 
@@ -129,8 +129,8 @@ static bool for_each_live_object_large_object_callback(pas_large_heap* heap,
                                                        void* arg)
 {
     for_each_live_object_data* data;
-    
-    data = arg;
+
+    data = (for_each_live_object_data*)arg;
     
     PAS_ASSERT(&data->heap->large_heap == heap);
     

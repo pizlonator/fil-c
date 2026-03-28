@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@
 #include "pas_local_allocator_inlines.h"
 #include "pas_utility_heap_config.h"
 
-pas_utility_heap_support pas_utility_heap_support_instance = PAS_UTILITY_HEAP_SUPPORT_INITIALIZER;
+pas_utility_heap_support pas_utility_heap_support_instance;
 
 pas_heap_runtime_config pas_utility_heap_runtime_config = {
     .sharing_mode = pas_share_pages,
@@ -48,17 +48,17 @@ pas_heap_runtime_config pas_utility_heap_runtime_config = {
     .directory_size_bound_for_no_view_cache = PAS_UTILITY_BOUND_FOR_NO_VIEW_CACHE,
     .max_segregated_object_size = PAS_UTILITY_MAX_SEGREGATED_OBJECT_SIZE,
     .max_bitfit_object_size = PAS_UTILITY_MAX_BITFIT_OBJECT_SIZE,
+    .mmap_capability = pas_may_mmap,
     .view_cache_capacity_for_object_size = pas_heap_runtime_config_zero_view_cache_capacity,
-    .initialize_fresh_memory = NULL,
-    .mmap_capability = pas_may_mmap
+    .initialize_fresh_memory = NULL
 };
 
 pas_segregated_heap pas_utility_segregated_heap = {
     .runtime_config = &pas_utility_heap_runtime_config,
-    .basic_size_directory_and_head = PAS_COMPACT_ATOMIC_PTR_INITIALIZER,
-    .index_to_small_size_directory = pas_utility_heap_support_instance.index_to_size_directory,
-    .rare_data = PAS_COMPACT_ATOMIC_PTR_INITIALIZER,
     .index_to_small_allocator_index = NULL,
+    .index_to_small_size_directory = pas_utility_heap_support_instance.index_to_size_directory,
+    .basic_size_directory_and_head = PAS_COMPACT_ATOMIC_PTR_INITIALIZER,
+    .rare_data = PAS_COMPACT_ATOMIC_PTR_INITIALIZER,
     .small_index_upper_bound = PAS_NUM_UTILITY_SIZE_CLASSES,
 };
 
@@ -92,7 +92,7 @@ void* pas_utility_heap_try_allocate_with_alignment(
     if (!allocators) {
         size_t index_to_init;
         
-        allocators = pas_immortal_heap_allocate(
+        allocators = (pas_utility_heap_allocator*)pas_immortal_heap_allocate(
             sizeof(pas_utility_heap_allocator) * PAS_NUM_UTILITY_SIZE_CLASSES,
             "pas_utility_heap_allocators",
             pas_object_allocation);
@@ -121,7 +121,7 @@ void* pas_utility_heap_try_allocate_with_alignment(
         PAS_ASSERT(directory);
 
         is_not_in_thread_local_cache = true;
-        pas_local_allocator_construct(allocator, directory, is_not_in_thread_local_cache);
+        pas_local_allocator_construct(allocator, directory, (pas_local_allocator_location)is_not_in_thread_local_cache);
     }
 
     result = (void*)pas_local_allocator_try_allocate(
@@ -196,8 +196,8 @@ static bool for_each_live_object_small_object_callback(pas_segregated_heap* heap
 
     PAS_UNUSED_PARAM(heap);
     
-    data = arg;
-    
+    data = (for_each_live_object_data*)arg;
+
     return data->callback(begin, size, data->arg);
 }
 

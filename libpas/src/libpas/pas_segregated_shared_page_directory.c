@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2020 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -80,7 +80,7 @@ find_first_eligible_consider_view(
     find_first_eligible_data* data;
     pas_segregated_shared_view* view;
 
-    data = config->arg;
+    data = (find_first_eligible_data*)config->arg;
 
     if (verbose)
         pas_log("%p: considering shared view at %zu.\n", config->directory, config->index);
@@ -249,7 +249,7 @@ take_last_empty_consider_view(
     bit_reference = config->bit_reference;
     shared_view_index = config->index;
 
-    data = config->arg;
+    data = (take_last_empty_data*)config->arg;
 
     decommit_log = data->decommit_log;
     heap_lock_hold_mode = data->heap_lock_hold_mode;
@@ -615,7 +615,7 @@ void pas_segregated_shared_page_directory_dump_reference(
 void pas_segregated_shared_page_directory_dump_for_spectrum(
     pas_stream* stream, void* directory)
 {
-    pas_segregated_shared_page_directory_dump_reference(directory, stream);
+    pas_segregated_shared_page_directory_dump_reference((pas_segregated_shared_page_directory*)directory, stream);
 }
 
 #endif /* LIBPAS_ENABLED */

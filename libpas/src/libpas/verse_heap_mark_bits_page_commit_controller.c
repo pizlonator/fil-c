@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,7 +61,7 @@ verse_heap_mark_bits_page_commit_controller* verse_heap_mark_bits_page_commit_co
 	pas_heap_lock_assert_held();
 	PAS_ASSERT(pas_is_aligned(chunk_base, VERSE_HEAP_CHUNK_SIZE));
 
-	result = pas_immortal_heap_allocate(sizeof(verse_heap_mark_bits_page_commit_controller), "verse_heap_mark_bits_page_commit_controller", pas_object_allocation);
+	result = (verse_heap_mark_bits_page_commit_controller*)pas_immortal_heap_allocate(sizeof(verse_heap_mark_bits_page_commit_controller), "verse_heap_mark_bits_page_commit_controller", pas_object_allocation);
 
 	construct(result, chunk_base);
 
@@ -104,7 +104,7 @@ void verse_heap_mark_bits_page_commit_controller_for_each(
 	
 	verse_heap_mark_bits_page_commit_controller_vector_iterate(
 		&verse_heap_mark_bits_page_commit_controller_not_large_vector,
-		0, for_each_mark_bits_page_commit_controller_vector_callback, callback);
+		0, for_each_mark_bits_page_commit_controller_vector_callback, (void*)callback);
 
 	pas_heap_lock_lock();
 	for (index = 0; index < verse_heap_all_objects.num_large_entries; ++index) {

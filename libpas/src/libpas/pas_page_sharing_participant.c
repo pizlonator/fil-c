@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -105,9 +106,9 @@ uint64_t pas_page_sharing_participant_get_use_epoch(pas_page_sharing_participant
         return 0;
     case pas_page_sharing_participant_segregated_shared_page_directory:
     case pas_page_sharing_participant_segregated_size_directory:
-        return pas_segregated_directory_get_use_epoch(ptr);
+        return pas_segregated_directory_get_use_epoch((pas_segregated_directory*)ptr);
     case pas_page_sharing_participant_bitfit_directory:
-        return pas_bitfit_directory_get_use_epoch(ptr);
+        return pas_bitfit_directory_get_use_epoch((pas_bitfit_directory*)ptr);
     case pas_page_sharing_participant_large_sharing_pool:
         return pas_large_sharing_participant_payload.use_epoch;
     case pas_page_sharing_participant_simple_decommittable_large_free_heap:
@@ -159,7 +160,7 @@ bool pas_page_sharing_participant_is_eligible(pas_page_sharing_participant parti
         return false;
     case pas_page_sharing_participant_segregated_shared_page_directory:
     case pas_page_sharing_participant_segregated_size_directory:
-        return !!pas_segregated_directory_get_last_empty_plus_one(ptr).value;
+        return !!pas_segregated_directory_get_last_empty_plus_one((pas_segregated_directory*)ptr).value;
     case pas_page_sharing_participant_bitfit_directory:
         return !!((pas_bitfit_directory*)ptr)->last_empty_plus_one.value;
     case pas_page_sharing_participant_large_sharing_pool:
@@ -185,20 +186,20 @@ pas_page_sharing_participant_take_least_recently_used(
     switch (pas_page_sharing_participant_get_kind(participant)) {
     case pas_page_sharing_participant_null:
         PAS_ASSERT(!"Cannot take from null participant.");
-        return false;
+        return (pas_page_sharing_pool_take_result)false;
         
     case pas_page_sharing_participant_segregated_size_directory:
         return pas_segregated_size_directory_take_last_empty(
-            ptr, decommit_log, heap_lock_hold_mode);
+            (pas_segregated_size_directory*)ptr, decommit_log, heap_lock_hold_mode);
 
     case pas_page_sharing_participant_segregated_shared_page_directory:
         PAS_ASSERT(decommit_log);
         return pas_segregated_shared_page_directory_take_last_empty(
-            ptr, decommit_log, heap_lock_hold_mode);
+            (pas_segregated_shared_page_directory*)ptr, decommit_log, heap_lock_hold_mode);
 
     case pas_page_sharing_participant_bitfit_directory:
         PAS_ASSERT(decommit_log);
-        return pas_bitfit_directory_take_last_empty(ptr, decommit_log, heap_lock_hold_mode);
+        return pas_bitfit_directory_take_last_empty((pas_bitfit_directory*)ptr, decommit_log, heap_lock_hold_mode);
         
     case pas_page_sharing_participant_large_sharing_pool:
         PAS_ASSERT(decommit_log);

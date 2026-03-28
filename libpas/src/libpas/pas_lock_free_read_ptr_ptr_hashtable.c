@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,7 +72,7 @@ void pas_lock_free_read_ptr_ptr_hashtable_set(
         new_byte_size =
             PAS_OFFSETOF(pas_lock_free_read_ptr_ptr_hashtable_table, array) +
             sizeof(pas_pair) * new_size;
-        new_table = (void*)pas_bootstrap_free_heap_allocate_with_alignment(
+        new_table = (pas_lock_free_read_ptr_ptr_hashtable_table*)pas_bootstrap_free_heap_allocate_with_alignment(
             new_byte_size,
             pas_alignment_create_traditional(sizeof(pas_pair)),
             "pas_lock_free_read_ptr_ptr_hashtable/table",

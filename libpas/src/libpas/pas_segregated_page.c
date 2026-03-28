@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,9 +48,13 @@
 #include "pas_utility_heap_config.h"
 
 double pas_segregated_page_extra_wasteage_handicap_for_config_variant[
-    PAS_NUM_SEGREGATED_PAGE_CONFIG_VARIANTS] = {
-    [0 ... PAS_NUM_SEGREGATED_PAGE_CONFIG_VARIANTS - 1] = 1.
-};
+    PAS_NUM_SEGREGATED_PAGE_CONFIG_VARIANTS]
+#ifdef __cplusplus
+    = { 1., 1. }
+#else
+    = { [0 ... PAS_NUM_SEGREGATED_PAGE_CONFIG_VARIANTS - 1] = 1. }
+#endif
+    ;
 
 PAS_API bool pas_segregated_page_lock_with_unbias_impl(
     pas_segregated_page* page,
@@ -371,7 +375,7 @@ bool pas_segregated_page_take_empty_granules(
 
     PAS_ASSERT(free_granules.num_free_granules);
 
-    boundary = pas_segregated_page_boundary(page, page_config);
+    boundary = (char*)pas_segregated_page_boundary(page, page_config);
     PAS_UNUSED_PARAM(boundary);
     
     if (verbose)
@@ -584,7 +588,7 @@ static bool verify_granules_live_object_callback(pas_segregated_view view,
 
     PAS_UNUSED_PARAM(view);
 
-    data = arg;
+    data = (verify_granules_data*)arg;
 
     if (verbose) {
         pas_log("Got live object at %p, size %zu.\n",

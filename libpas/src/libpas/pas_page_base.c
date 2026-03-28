@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -130,9 +130,9 @@ void pas_page_base_add_free_range(pas_page_base* page,
 {
     const pas_page_base_config* page_config_ptr;
     pas_page_base_config page_config;
-    size_t* ineligible_for_decommit;
-    size_t* eligible_for_decommit;
-    size_t* decommitted;
+    size_t* ineligible_for_decommit = NULL;
+    size_t* eligible_for_decommit = NULL;
+    size_t* decommitted = NULL;
     size_t dummy;
     bool empty;
     pas_page_granule_use_count* use_counts;

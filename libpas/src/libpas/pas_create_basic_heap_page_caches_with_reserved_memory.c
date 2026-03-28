@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,7 +53,7 @@ pas_basic_heap_page_caches* pas_create_basic_heap_page_caches_with_reserved_memo
     provider = pas_reserved_memory_provider_create(
         begin, end, template_runtime_config->base.mmap_capability);
 
-    caches = pas_immortal_heap_allocate(
+    caches = (pas_basic_heap_page_caches*)pas_immortal_heap_allocate(
         sizeof(pas_basic_heap_page_caches),
         "pas_basic_heap_page_caches",
         pas_object_allocation);

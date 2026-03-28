@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@ static void initialize(void)
     pas_baseline_allocator* table;
     size_t index;
     pas_heap_lock_lock();
-    table = pas_immortal_heap_allocate(
+    table = (pas_baseline_allocator*)pas_immortal_heap_allocate(
         PAS_NUM_BASELINE_ALLOCATORS * sizeof(pas_baseline_allocator),
         "pas_baseline_allocator_table",
         pas_object_allocation);

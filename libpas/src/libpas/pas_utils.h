@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1175,6 +1175,18 @@ static inline pas_pair pas_compare_and_swap_pair_strong(void* raw_ptr,
 #endif
 }
 
+static inline pas_pair pas_atomic_load_pair(void* raw_ptr)
+{
+#if PAS_COMPILER(MSVC) || PAS_X86_64
+    return pas_compare_and_swap_pair_strong(raw_ptr, pas_pair_create(0, 0), pas_pair_create(0, 0));
+#elif PAS_COMPILER(CLANG)
+    /* Since it is __ATOMIC_RELAXED, we do not need to care about memory barrier even when the implementation uses LL/SC. */
+    return __c11_atomic_load((_Atomic pas_pair*)raw_ptr, __ATOMIC_SEQ_CST);
+#else
+    return __atomic_load_n((pas_pair*)raw_ptr, __ATOMIC_SEQ_CST);
+#endif
+}
+
 static inline pas_pair pas_atomic_load_pair_relaxed(void* raw_ptr)
 {
 #if PAS_COMPILER(MSVC) || PAS_X86_64
@@ -1650,7 +1662,7 @@ static inline int pas_getpid(void) { return _getpid(); }
 #else /* _WIN32 -> so !_WIN32 */
 typedef pthread_t pas_system_thread_id;
 static inline pas_system_thread_id pas_get_current_system_thread_id(void) { return pthread_self(); }
-#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC)
+#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC && PAS_COMPILER(CLANG))
 #define PAS_SYSTEM_THREAD_ID_FORMAT "%p"
 #define PAS_NULL_SYSTEM_THREAD_ID NULL
 static inline bool pas_system_thread_id_weak_cas(pas_system_thread_id* ptr,

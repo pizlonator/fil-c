@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,7 +53,7 @@ static bool count_static_heaps_callback(pas_heap* heap, void* arg)
 
     PAS_UNUSED_PARAM(heap);
 
-    count = arg;
+    count = (size_t*)arg;
 
     (*count)++;
 
@@ -68,7 +69,7 @@ static bool collect_static_heaps_callback(pas_heap* heap, void* arg)
 {
     collect_static_heaps_data* data;
 
-    data = arg;
+    data = (collect_static_heaps_data*)arg;
 
     PAS_ASSERT(data->index < data->root->num_static_heaps);
     PAS_ASSERT(heap);
@@ -99,7 +100,7 @@ void pas_root_construct(pas_root* root)
     root->num_static_heaps = 0;
     pas_all_heaps_for_each_static_heap(count_static_heaps_callback, &root->num_static_heaps);
     
-    root->static_heaps = pas_immortal_heap_allocate(
+    root->static_heaps = (pas_heap**)pas_immortal_heap_allocate(
         sizeof(pas_heap*) * root->num_static_heaps,
         "pas_root/static_heaps",
         pas_object_allocation);
@@ -115,7 +116,7 @@ void pas_root_construct(pas_root* root)
     root->large_map_hashtable_instance = &pas_large_map_hashtable_instance;
     root->large_map_hashtable_instance_in_flux_stash = &pas_large_map_hashtable_instance_in_flux_stash;
 
-    root->heap_configs = pas_immortal_heap_allocate(
+    root->heap_configs = (const pas_heap_config**)pas_immortal_heap_allocate(
         sizeof(const pas_heap_config*) * pas_heap_config_kind_num_kinds,
         "pas_root/heap_configs",
         pas_object_allocation);
@@ -136,7 +137,7 @@ pas_root* pas_root_create(void)
 {
     pas_root* result;
 
-    result = pas_immortal_heap_allocate(
+    result = (pas_root*)pas_immortal_heap_allocate(
         sizeof(pas_root),
         "pas_root",
         pas_object_allocation);
@@ -171,7 +172,7 @@ static void* enumerator_reader(pas_enumerator* enumerator, void* remote_address,
 
     PAS_UNUSED_PARAM(enumerator);
 
-    data = arg;
+    data = (enumerator_data*)arg;
 
     /* We should not be calling into the reader again after an error. */
     PAS_ASSERT(!data->err);
@@ -192,7 +193,7 @@ static void enumerator_recorder(pas_enumerator* enumerator, void* remote_address
     
     PAS_UNUSED_PARAM(enumerator);
 
-    data = arg;
+    data = (enumerator_data*)arg;
 
     switch (kind) {
     case pas_enumerator_meta_record:

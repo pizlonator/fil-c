@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2021-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,8 +68,8 @@ void pas_local_allocator_scavenger_data_commit_if_necessary_slow(
     pas_thread_local_cache* cache;
     pas_allocator_index index;
     pas_thread_local_cache_layout_node layout_node;
-    pas_lock_hold_mode scavenger_lock_hold_mode;
-    bool is_in_use;
+    pas_lock_hold_mode scavenger_lock_hold_mode = pas_lock_is_not_held; /* Make the compiler happy. */
+    bool is_in_use = false; /* Make the compiler happy. */
 
     PAS_ASSERT(expected_kind == pas_local_allocator_allocator_kind
                || expected_kind == pas_local_allocator_view_cache_kind);

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ pas_segregated_shared_view* pas_segregated_shared_view_create(size_t index)
 {
     pas_segregated_shared_view* result;
     
-    result = pas_immortal_heap_allocate(
+    result = (pas_segregated_shared_view*)pas_immortal_heap_allocate(
         sizeof(pas_segregated_shared_view),
         "pas_segregated_shared_view",
         pas_object_allocation);
@@ -215,7 +215,7 @@ static bool compute_summary_for_each_live_object_callback(
 
     PAS_UNUSED_PARAM(view);
 
-    data = arg;
+    data = (compute_summary_data*)arg;
 
     PAS_ASSERT(data->num_live_objects < PAS_MAX_OBJECTS_PER_PAGE);
 

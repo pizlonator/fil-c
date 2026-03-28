@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -80,7 +81,7 @@ bool pas_ptr_worklist_push(pas_ptr_worklist* worklist,
                                       sizeof(void*) * worklist->worklist_capacity,
                                       pas_object_allocation,
                                       allocation_config->arg);
-        worklist->worklist = new_worklist;
+        worklist->worklist = (void**)new_worklist;
         worklist->worklist_capacity = new_worklist_capacity;
 
         PAS_ASSERT(worklist->worklist_size < worklist->worklist_capacity);

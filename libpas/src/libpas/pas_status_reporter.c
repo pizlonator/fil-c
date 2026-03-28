@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -504,7 +504,7 @@ static bool dump_segregated_heap_directory_callback(
 
     PAS_UNUSED_PARAM(heap);
 
-    stream = arg;
+    stream = (pas_stream*)arg;
 
     pas_status_reporter_dump_segregated_size_directory(stream, directory);
 
@@ -593,7 +593,7 @@ static bool dump_all_heaps_heap_callback(pas_heap* heap, void* arg)
 {
     dump_all_heaps_data* data;
 
-    data = arg;
+    data = (dump_all_heaps_data*)arg;
 
     pas_status_reporter_dump_heap(data->stream, heap);
     data->count++;
@@ -616,7 +616,7 @@ static bool dump_all_shared_page_directories_directory_callback(
 {
     pas_stream* stream;
 
-    stream = arg;
+    stream = (pas_stream*)arg;
 
     pas_status_reporter_dump_segregated_shared_page_directory(stream, directory);
 
@@ -651,12 +651,12 @@ static bool dump_large_sharing_pool_node_callback(pas_large_sharing_node* node,
 {
     pas_stream* stream;
 
-    stream = arg;
+    stream = (pas_stream*)arg;
 
     pas_stream_printf(stream, "        %p...%p: %s, %zu/%zu live (%.0lf%%), %llu",
                       (void*)node->range.begin,
                       (void*)node->range.end,
-                      pas_commit_mode_get_string(node->is_committed),
+                      pas_commit_mode_get_string((pas_commit_mode)node->is_committed),
                       node->num_live_bytes,
                       pas_range_size(node->range),
                       100. * (double)node->num_live_bytes / (double)pas_range_size(node->range),
@@ -665,15 +665,15 @@ static bool dump_large_sharing_pool_node_callback(pas_large_sharing_node* node,
     if (node->synchronization_style != pas_physical_memory_is_locked_by_virtual_range_common_lock) {
         pas_stream_printf(
             stream, ", %s",
-            pas_physical_memory_synchronization_style_get_string(node->synchronization_style));
+            pas_physical_memory_synchronization_style_get_string((pas_physical_memory_synchronization_style)node->synchronization_style));
     }
     if (node->mmap_capability != pas_may_mmap) {
         pas_stream_printf(
             stream, ", %s",
-            pas_mmap_capability_get_string(node->mmap_capability));
+            pas_mmap_capability_get_string((pas_mmap_capability)node->mmap_capability));
     }
 	if (node->is_booted != pas_large_sharing_node_is_booted)
-		pas_stream_printf(stream, ", %s", pas_large_sharing_node_boot_mode_get_string(node->is_booted));
+		pas_stream_printf(stream, ", %s", pas_large_sharing_node_boot_mode_get_string((pas_large_sharing_node_boot_mode)node->is_booted));
 
     pas_stream_printf(stream, "\n");
 
@@ -738,8 +738,8 @@ static bool total_fragmentation_size_directory_callback(
 
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
-    
+    data = (total_fragmentation_data*)arg;
+
     for (index = 0; index < pas_segregated_directory_size(&directory->base); ++index) {
         pas_segregated_view view;
         size_t fragmentation;
@@ -768,7 +768,7 @@ static bool total_fragmentation_heap_callback(pas_heap* heap, void* arg)
 {
     total_fragmentation_data* data;
 
-    data = arg;
+    data = (total_fragmentation_data*)arg;
 
     pas_segregated_heap_for_each_size_directory(
         &heap->segregated_heap, total_fragmentation_size_directory_callback, data);
@@ -785,7 +785,7 @@ static bool total_fragmentation_shared_page_directory_callback(
 {
     total_fragmentation_data* data;
 
-    data = arg;
+    data = (total_fragmentation_data*)arg;
 
     data->segregated_shared_fragmentation += pas_heap_summary_fragmentation(
         pas_segregated_directory_compute_summary(&directory->base));
@@ -846,7 +846,7 @@ static bool tier_up_rate_size_directory_callback(
 
     PAS_UNUSED_PARAM(heap);
 
-    data = arg;
+    data = (tier_up_rate_data*)arg;
 
     if (pas_segregated_size_directory_data_ptr_load(&directory->data))
         data->num_directories_with_data++;
@@ -863,7 +863,7 @@ static bool tier_up_rate_heap_callback(pas_heap* heap, void* arg)
 {
     tier_up_rate_data* data;
 
-    data = arg;
+    data = (tier_up_rate_data*)arg;
 
     pas_segregated_heap_for_each_size_directory(
         &heap->segregated_heap, tier_up_rate_size_directory_callback, data);
@@ -1005,7 +1005,7 @@ void pas_status_reporter_dump_thread_local_caches(pas_stream* stream)
             
             pas_stream_printf(stream, "            %u: ", allocator_index);
             dump_scavenger_data_state(
-                stream, pas_thread_local_cache_get_local_allocator_direct(cache, allocator_index));
+                stream, (pas_local_allocator_scavenger_data*)pas_thread_local_cache_get_local_allocator_direct(cache, allocator_index));
             pas_stream_printf(stream, "\n");
         }
     }
@@ -1108,7 +1108,7 @@ static void dump_range_state(pas_stream* stream, pas_range range)
 	previous_index = 0; /* Tell the compiler not to worry. */
 	for (index = 0; index < committed_pages.size; ++index) {
 		pas_commit_mode commit_mode;
-		commit_mode = pas_committed_pages_vector_is_committed(&committed_pages, index);
+		commit_mode = (pas_commit_mode)pas_committed_pages_vector_is_committed(&committed_pages, index);
 		if (!has_previous || previous_commit_mode != commit_mode) {
 			if (has_previous)
 				dump_previous_range(stream, range, index, previous_commit_mode, previous_index);

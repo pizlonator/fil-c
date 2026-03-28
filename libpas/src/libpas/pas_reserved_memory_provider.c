@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +37,7 @@ pas_reserved_memory_provider* pas_reserved_memory_provider_create(uintptr_t begi
                                                                   pas_mmap_capability mmap_capability)
 {
     pas_reserved_memory_provider* result;
-    result = pas_immortal_heap_allocate(
+    result = (pas_reserved_memory_provider*)pas_immortal_heap_allocate(
         sizeof(pas_reserved_memory_provider),
         "pas_reserved_memory_provider",
         pas_object_allocation);
@@ -98,7 +99,7 @@ pas_allocation_result pas_reserved_memory_provider_try_allocate(
     PAS_UNUSED_PARAM(heap);
     PAS_UNUSED_PARAM(transaction);
 
-    provider = arg;
+    provider = (pas_reserved_memory_provider*)arg;
 
     initialize_config(&config);
 

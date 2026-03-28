@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -86,17 +86,18 @@ struct pas_local_allocator {
 #define PAS_LOCAL_ALLOCATOR_NULL_INITIALIZER(location) ((pas_local_allocator){ \
         .scavenger_data = \
             PAS_LOCAL_ALLOCATOR_SCAVENGER_DATA_INITIALIZER(pas_local_allocator_allocator_kind, location), \
+        .alignment_shift = 0, \
+        .config_kind = pas_local_allocator_config_kind_null, \
+        .current_word_is_valid = false, \
+        .is_stashing_alloc_bits = false, \
         .payload_end = 0, \
         .remaining = 0, \
         .object_size = 0, \
         .page_ish = 0, \
         .current_offset = 0, \
         .end_offset = 0, \
-        .view = NULL, \
-        .alignment_shift = 0, \
-        .current_word_is_valid = false, \
         .current_word = 0, \
-        .config_kind = pas_local_allocator_config_kind_null \
+        .view = NULL, \
     })
 
 #define PAS_LOCAL_ALLOCATOR_SIZE(num_alloc_bits) \

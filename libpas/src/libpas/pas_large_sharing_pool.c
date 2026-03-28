@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -176,7 +176,7 @@ static pas_large_sharing_node* create_node(
 {
     pas_large_sharing_node* result;
     
-    result = pas_utility_heap_allocate(
+    result = (pas_large_sharing_node*)pas_utility_heap_allocate(
         sizeof(pas_large_sharing_node),
         "pas_large_sharing_node");
     
@@ -260,7 +260,7 @@ static void boot_tree(void)
 
     if (verbose) {
         pas_log("root->synchronization_style = %s\n",
-                pas_physical_memory_synchronization_style_get_string(root->synchronization_style));
+                pas_physical_memory_synchronization_style_get_string((pas_physical_memory_synchronization_style)root->synchronization_style));
     }
 }
 
@@ -407,11 +407,11 @@ split_node_and_get_right_impl(pas_large_sharing_node* node,
     right_node = create_and_insert(
         pas_range_create(split_point, node->range.end),
         node->use_epoch,
-		node->is_booted,
-        node->is_committed,
+		(pas_large_sharing_node_boot_mode)node->is_booted,
+        (pas_commit_mode)node->is_committed,
         node->num_live_bytes ? node->range.end - split_point : 0,
-        node->synchronization_style,
-        node->mmap_capability);
+        (pas_physical_memory_synchronization_style)node->synchronization_style,
+        (pas_mmap_capability)node->mmap_capability);
     
     node->range.end = split_point;
     node->num_live_bytes = node->num_live_bytes ? split_point - node->range.begin : 0;
@@ -427,7 +427,7 @@ split_node_and_get_right_impl(pas_large_sharing_node* node,
                 node, node->range.begin, node->range.end,
                 right_node, right_node->range.begin, right_node->range.end);
         pas_log("right_node->synchronization_style = %s\n",
-                pas_physical_memory_synchronization_style_get_string(right_node->synchronization_style));
+                pas_physical_memory_synchronization_style_get_string((pas_physical_memory_synchronization_style)right_node->synchronization_style));
     }
 
     return right_node;
@@ -835,7 +835,7 @@ static bool try_splat_impl(pas_range range,
                                            mmap_capability);
                     if (PAS_DEBUG_SPECTRUM_USE_FOR_COMMIT) {
                         pas_debug_spectrum_add(
-                            dump_large_commit, dump_large_commit, affected_end - affected_begin);
+                            (void*)dump_large_commit, dump_large_commit, affected_end - affected_begin);
                     }
                     pas_physical_page_sharing_pool_take_later(affected_end - affected_begin);
                     break;
@@ -1219,7 +1219,7 @@ pas_large_sharing_pool_decommit_least_recently_used(
     }
     
     if (try_splat(node->range, splat_decommit, 0, NULL, decommit_log, NULL,
-                  node->synchronization_style, node->mmap_capability)) {
+                  (pas_physical_memory_synchronization_style)node->synchronization_style, (pas_mmap_capability)node->mmap_capability)) {
         if (verbose)
             pas_log("The splat worked.\n");
         return pas_page_sharing_pool_take_success;

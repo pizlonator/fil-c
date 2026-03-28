@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,7 +84,7 @@ static void insert_node(pas_fast_large_free_heap* heap,
     PAS_ASSERT(new_free.begin);
     PAS_ASSERT(new_free.end > new_free.begin);
     
-    node = pas_utility_heap_allocate(sizeof(pas_fast_large_free_heap_node),
+    node = (pas_fast_large_free_heap_node*)pas_utility_heap_allocate(sizeof(pas_fast_large_free_heap_node),
                                      "pas_fast_large_free_heap_node");
     node->free = new_free;
 

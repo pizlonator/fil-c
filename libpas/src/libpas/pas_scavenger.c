@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -95,7 +95,7 @@ static pas_scavenger_data* ensure_data_instance(pas_lock_hold_mode heap_lock_hol
     pas_heap_lock_lock_conditionally(heap_lock_hold_mode);
     instance = pas_scavenger_data_instance;
     if (!instance) {
-        instance = pas_immortal_heap_allocate(
+        instance = (pas_scavenger_data*)pas_immortal_heap_allocate(
             sizeof(pas_scavenger_data),
             "pas_scavenger_data",
             pas_object_allocation);

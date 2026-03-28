@@ -1821,8 +1821,8 @@ static inline void filc_object_array_impl_destruct(filc_object_array_impl* array
         bmalloc_deallocate(array->objects);
 }
 
-PAS_ALWAYS_INLINE filc_object* filc_object_array_impl_at(filc_object_array_impl* array,
-                                                         size_t index)
+static PAS_ALWAYS_INLINE filc_object* filc_object_array_impl_at(filc_object_array_impl* array,
+                                                                size_t index)
 {
     PAS_TESTING_ASSERT(index < array->num_objects);
     return array->objects[index];
@@ -2250,7 +2250,7 @@ static inline uintptr_t filc_aux_create(filc_object_flags flags, char* ptr)
 
 static uintptr_t filc_object_aux(filc_object* object)
 {
-    return __c11_atomic_load((_Atomic uintptr_t*)&object->aux, __ATOMIC_RELAXED);
+    return __atomic_load_n(&object->aux, __ATOMIC_RELAXED);
 }
 
 static inline char* filc_object_aux_ptr(filc_object* object)
@@ -2314,40 +2314,46 @@ static inline filc_lower_or_box* filc_object_ensure_lower_or_box_ptr_at_offset(f
 
 static inline filc_lower_or_box filc_lower_or_box_load_unfenced(filc_lower_or_box* ptr)
 {
-    return __c11_atomic_load((_Atomic filc_lower_or_box*)ptr, __ATOMIC_RELAXED);
+    return (filc_lower_or_box){
+        .encoded_value = __atomic_load_n(&ptr->encoded_value, __ATOMIC_RELAXED)
+    };
 }
 
 static inline filc_lower_or_box filc_lower_or_box_load(filc_lower_or_box* ptr)
 {
-    return __c11_atomic_load((_Atomic filc_lower_or_box*)ptr, __ATOMIC_SEQ_CST);
+    return (filc_lower_or_box){
+        .encoded_value = __atomic_load_n(&ptr->encoded_value, __ATOMIC_SEQ_CST)
+    };
 }
 
 static inline void filc_lower_or_box_store_unfenced_unbarriered(filc_lower_or_box* ptr,
                                                                 filc_lower_or_box value)
 {
-    __c11_atomic_store((_Atomic filc_lower_or_box*)ptr, value, __ATOMIC_RELAXED);
+    __atomic_store_n(&ptr->encoded_value, value.encoded_value, __ATOMIC_RELAXED);
 }
 
 static inline void filc_lower_or_box_store_unbarriered(filc_lower_or_box* ptr,
                                                        filc_lower_or_box value)
 {
-    __c11_atomic_store((_Atomic filc_lower_or_box*)ptr, value, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&ptr->encoded_value, value.encoded_value, __ATOMIC_SEQ_CST);
 }
 
 static inline bool filc_lower_or_box_cas_weak_unfenced_unbarriered(filc_lower_or_box* ptr,
                                                                    filc_lower_or_box expected,
                                                                    filc_lower_or_box new_value)
 {
-    return __c11_atomic_compare_exchange_weak(
-        (_Atomic filc_lower_or_box*)ptr, &expected, new_value, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return __atomic_compare_exchange_n(
+        &ptr->encoded_value, &expected.encoded_value, new_value.encoded_value,
+        true, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
 }
 
 static inline bool filc_lower_or_box_cas_weak_unbarriered(filc_lower_or_box* ptr,
                                                           filc_lower_or_box expected,
                                                           filc_lower_or_box new_value)
 {
-    return __c11_atomic_compare_exchange_weak(
-        (_Atomic filc_lower_or_box*)ptr, &expected, new_value, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    return __atomic_compare_exchange_n(
+        &ptr->encoded_value, &expected.encoded_value, new_value.encoded_value,
+        true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
 static inline bool filc_lower_or_box_is_null(filc_lower_or_box value)
@@ -2717,8 +2723,17 @@ static inline filc_alignment_header* filc_allocation_get_alignment_header(void* 
 
 static inline filc_object* filc_allocation_get_object(void* allocation)
 {
-    if (filc_allocation_starts_with_object(allocation))
+    if (filc_allocation_starts_with_object(allocation)) {
+        /* HACK: The presence of this cast causes clang to generate crap code. It's only needed for
+           g++.
+        
+           This can probably be removed if all of the Fil-C targets switch to a newer clang or g++. */
+#ifdef __cplusplus
+        return (filc_object*)allocation;
+#else
         return allocation;
+#endif
+    }
     return (filc_object*)((char*)allocation + filc_alignment_header_get_alignment(
                               filc_allocation_get_alignment_header(allocation))) - 1;
 }
@@ -2919,29 +2934,29 @@ static inline filc_ptr filc_ptr_for_special_payload(filc_thread* my_thread, void
 
 static inline void* filc_flight_ptr_load_ptr(filc_ptr* ptr)
 {
-    return __c11_atomic_load((void*_Atomic*)&ptr->ptr, __ATOMIC_RELAXED);
+    return __atomic_load_n(&ptr->ptr, __ATOMIC_RELAXED);
 }
 
 static inline void* filc_flight_ptr_load_lower(filc_ptr* ptr)
 {
-    return __c11_atomic_load((void*_Atomic*)&ptr->lower, __ATOMIC_RELAXED);
+    return __atomic_load_n(&ptr->lower, __ATOMIC_RELAXED);
 }
 
 static inline void filc_flight_ptr_store_ptr(filc_ptr* ptr, void* raw_ptr)
 {
-    __c11_atomic_store((void*_Atomic*)&ptr->ptr, raw_ptr, __ATOMIC_RELAXED);
+    __atomic_store_n(&ptr->ptr, raw_ptr, __ATOMIC_RELAXED);
 }
 
-static inline void filc_flight_ptr_store_lower(filc_ptr* ptr, filc_object* object)
+static inline void filc_flight_ptr_store_lower(filc_ptr* ptr, void* object)
 {
-    __c11_atomic_store((void*_Atomic*)&ptr->lower, object, __ATOMIC_RELAXED);
+    __atomic_store_n(&ptr->lower, object, __ATOMIC_RELAXED);
 }
 
 static inline bool filc_flight_ptr_unfenced_unbarriered_weak_cas_lower(
     filc_ptr* ptr, void* expected, void* new_lower)
 {
-    return __c11_atomic_compare_exchange_weak(
-        (void*_Atomic*)&ptr->lower, &expected, new_lower, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return __atomic_compare_exchange_n(
+        &ptr->lower, &expected, new_lower, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
 }
 
 /* This is useful when using ptr loads for the purpose of loading something that *might* be a ptr
@@ -2961,16 +2976,29 @@ static inline filc_ptr filc_flight_ptr_load_with_manual_tracking(filc_ptr* ptr)
                                                                   filc_flight_ptr_load_ptr(ptr));
 }
 
+static inline pas_pair filc_ptr_get_pair(filc_ptr ptr)
+{
+    return pas_pair_create((uintptr_t)ptr.ptr, (uintptr_t)ptr.lower);
+}
+
+static inline filc_ptr filc_ptr_create_with_pair(pas_pair pair)
+{
+    filc_ptr result;
+    result.ptr = (void*)pas_pair_low(pair);
+    result.lower = (void*)pas_pair_high(pair);
+    return result;
+}
+
 static inline filc_ptr filc_flight_ptr_load_atomic_with_manual_tracking(filc_ptr* ptr)
 {
-    filc_ptr result = __c11_atomic_load((_Atomic filc_ptr*)ptr, __ATOMIC_SEQ_CST);
+    filc_ptr result = filc_ptr_create_with_pair(pas_atomic_load_pair(ptr));
     filc_testing_validate_ptr(result);
     return result;
 }
 
 static inline filc_ptr filc_flight_ptr_load_atomic_unfenced_with_manual_tracking(filc_ptr* ptr)
 {
-    filc_ptr result = __c11_atomic_load((_Atomic filc_ptr*)ptr, __ATOMIC_RELAXED);
+    filc_ptr result = filc_ptr_create_with_pair(pas_atomic_load_pair_relaxed(ptr));
     filc_testing_validate_ptr(result);
     return result;
 }
@@ -2998,12 +3026,12 @@ static inline void filc_flight_ptr_store(filc_thread* my_thread, filc_ptr* ptr, 
 static inline void filc_flight_ptr_store_atomic_unfenced_without_barrier(filc_ptr* ptr,
                                                                          filc_ptr value)
 {
-    __c11_atomic_store((_Atomic filc_ptr*)ptr, value, __ATOMIC_RELAXED);
+    pas_atomic_store_pair_relaxed(ptr, filc_ptr_get_pair(value));
 }
 
 static inline void filc_flight_ptr_store_atomic_without_barrier(filc_ptr* ptr, filc_ptr new_value)
 {
-    __c11_atomic_store((_Atomic filc_ptr*)ptr, new_value, __ATOMIC_SEQ_CST);
+    pas_atomic_store_pair(ptr, filc_ptr_get_pair(new_value));
 }
 
 static inline void filc_flight_ptr_store_atomic_unfenced(filc_thread* my_thread,
@@ -3027,8 +3055,8 @@ static inline bool filc_flight_ptr_unbarriered_weak_cas(
         filc_ptr old_value = filc_flight_ptr_load_with_manual_tracking(ptr);
         if (old_value.ptr != expected.ptr)
             return false;
-        if (__c11_atomic_compare_exchange_weak(
-                (_Atomic filc_ptr*)ptr, &old_value, new_value, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+        if (pas_compare_and_swap_pair_weak(
+                ptr, filc_ptr_get_pair(old_value), filc_ptr_get_pair(new_value)))
             return true;
     }
 }
@@ -3050,9 +3078,8 @@ static inline filc_ptr filc_flight_ptr_unbarriered_strong_cas(
             actual_new_value = new_value;
         else
             actual_new_value = old_value;
-        if (__c11_atomic_compare_exchange_weak(
-                (_Atomic filc_ptr*)ptr, &old_value, actual_new_value,
-                __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+        if (pas_compare_and_swap_pair_weak(
+                ptr, filc_ptr_get_pair(old_value), filc_ptr_get_pair(actual_new_value)))
             return old_value;
     }
 }
@@ -3067,7 +3094,13 @@ static inline filc_ptr filc_flight_ptr_strong_cas(
 static inline filc_ptr filc_flight_ptr_xchg(filc_thread* my_thread, filc_ptr* ptr, filc_ptr new_value)
 {
     filc_store_barrier(my_thread, filc_ptr_object(new_value));
-    return __c11_atomic_exchange((_Atomic filc_ptr*)ptr, new_value, __ATOMIC_SEQ_CST);
+    for (;;) {
+        filc_ptr result = *ptr;
+        if (pas_compare_and_swap_pair_weak(ptr,
+                                           filc_ptr_get_pair(result),
+                                           filc_ptr_get_pair(new_value)))
+            return result;
+    }
 }
 
 #define FILC_PTR_ARRAY_INITIALIZER ((filc_ptr_array){ \
@@ -3976,7 +4009,15 @@ static PAS_ALWAYS_INLINE void filc_memset_small_word(void* ptr, uintptr_t value,
 static PAS_ALWAYS_INLINE void filc_memcpy_small_up(void* dst, void* src, size_t bytes)
 {
     char* cur_dst = (char*)dst;
+    /* HACK: clang ends up generating terrible code if we introduce this cast. We only need the cast
+       for g++.
+        
+       This can probably be removed if all of the Fil-C targets switch to a newer clang or g++. */
+#ifdef __cplusplus
+    char* end_dst = (char*)dst + bytes;
+#else
     char* end_dst = dst + bytes;
+#endif
     char* cur_src = (char*)src;
     while (cur_dst < end_dst) {
         *cur_dst++ = *cur_src++;
@@ -4063,7 +4104,7 @@ static PAS_ALWAYS_INLINE void filc_low_level_ptr_safe_bzero(void* raw_ptr, size_
     PAS_TESTING_ASSERT(pas_is_aligned(bytes, sizeof(void*)));
     words = bytes / sizeof(void*);
     while (words--)
-        __c11_atomic_store((void*_Atomic*)ptr++, NULL, __ATOMIC_RELAXED);
+        __atomic_store_n(ptr++, NULL, __ATOMIC_RELAXED);
 }
 
 static PAS_ALWAYS_INLINE void filc_low_level_ptr_safe_memcpy(void* raw_dst,
@@ -4078,9 +4119,9 @@ static PAS_ALWAYS_INLINE void filc_low_level_ptr_safe_memcpy(void* raw_dst,
     PAS_TESTING_ASSERT(pas_is_aligned(bytes, sizeof(void*)));
     words = bytes / sizeof(void*);
     while (words--) {
-        __c11_atomic_store(
-            (void*_Atomic*)dst++,
-            __c11_atomic_load((void*_Atomic*)src++, __ATOMIC_RELAXED),
+        __atomic_store_n(
+            dst++,
+            __atomic_load_n(src++, __ATOMIC_RELAXED),
             __ATOMIC_RELAXED);
     }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +103,7 @@ void pas_string_stream_vprintf(pas_string_stream* stream, const char* format, va
     
     new_size = (stream->next + (size_t)number_of_bytes_that_would_have_been_written) << 1;
     
-    new_buffer = stream->allocation_config.allocate(
+    new_buffer = (char*)stream->allocation_config.allocate(
         new_size, "pas_stream/buffer", pas_object_allocation, stream->allocation_config.arg);
     memcpy(new_buffer, stream->buffer, stream->next + 1);
     if (stream->buffer != stream->inline_buffer) {
@@ -137,7 +138,7 @@ char* pas_string_stream_take_string(pas_string_stream* stream)
     pas_allocation_config allocation_config;
     
     if (stream->buffer == stream->inline_buffer) {
-        result = stream->allocation_config.allocate(
+        result = (char*)stream->allocation_config.allocate(
             stream->next + 1, "pas_stream/taken_string", pas_object_allocation,
             stream->allocation_config.arg);
         memcpy(result, stream->inline_buffer, stream->next + 1);

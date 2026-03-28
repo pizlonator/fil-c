@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@ static void* allocate(size_t size, const char* name, pas_allocation_kind allocat
     PAS_UNUSED_PARAM(name);
     PAS_UNUSED_PARAM(allocation_kind);
 
-    enumerator = arg;
+    enumerator = (pas_enumerator*)arg;
 
     return pas_enumerator_allocate(enumerator, size);
 }
@@ -81,7 +81,7 @@ pas_enumerator* pas_enumerator_create(pas_root* remote_root_address,
 
     region = NULL;
 
-    result = pas_enumerator_region_allocate(&region, sizeof(pas_enumerator));
+    result = (pas_enumerator*)pas_enumerator_region_allocate(&region, sizeof(pas_enumerator));
     if (!result)
         return NULL;
 
@@ -91,23 +91,23 @@ pas_enumerator* pas_enumerator_create(pas_root* remote_root_address,
     result->allocation_config.deallocate = deallocate;
     result->allocation_config.arg = result;
 
-    result->heap_config_datas = pas_enumerator_allocate(
+    result->heap_config_datas = (void**)pas_enumerator_allocate(
         result, sizeof(void*) * pas_heap_config_kind_num_kinds);
     pas_zero_memory(result->heap_config_datas, sizeof(void*) * pas_heap_config_kind_num_kinds);
 
-    result->root = reader(result, remote_root_address, sizeof(pas_root), reader_arg);
+    result->root = (pas_root*)reader(result, remote_root_address, sizeof(pas_root), reader_arg);
     if (!result->root)
         goto fail;
 
     PAS_ASSERT_WITH_DETAIL(result->root->magic == PAS_ROOT_MAGIC);
     PAS_ASSERT_WITH_DETAIL(result->root->num_heap_configs == pas_heap_config_kind_num_kinds);
 
-    compact_heap_base = reader(
+    compact_heap_base = (uintptr_t*)reader(
         result, result->root->compact_heap_reservation_base, sizeof(uintptr_t), reader_arg);
     if (!compact_heap_base)
         goto fail;
 
-    compact_heap_size = reader(
+    compact_heap_size = (size_t*)reader(
         result, result->root->compact_heap_reservation_size, sizeof(size_t), reader_arg);
     if (!compact_heap_size)
         goto fail;
@@ -120,7 +120,7 @@ pas_enumerator* pas_enumerator_create(pas_root* remote_root_address,
     
     result->compact_heap_size = *compact_heap_size;
 
-    result->unaccounted_pages = pas_enumerator_allocate(result, sizeof(pas_ptr_hash_set));
+    result->unaccounted_pages = (pas_ptr_hash_set*)pas_enumerator_allocate(result, sizeof(pas_ptr_hash_set));
     pas_ptr_hash_set_construct(result->unaccounted_pages);
 
     result->reader = reader;
@@ -131,14 +131,14 @@ pas_enumerator* pas_enumerator_create(pas_root* remote_root_address,
     result->record_payload = record_payload;
     result->record_object = record_object;
 
-    configs = reader(
+    configs = (const pas_heap_config**)reader(
         result,
         result->root->heap_configs,
         sizeof(const pas_heap_config*) * pas_heap_config_kind_num_kinds,
         reader_arg);
     if (!configs)
         goto fail;
-    
+
     for (PAS_EACH_HEAP_CONFIG_KIND(config_kind)) {
         const pas_heap_config* config;
         const pas_heap_config* remote_config;
@@ -150,7 +150,7 @@ pas_enumerator* pas_enumerator_create(pas_root* remote_root_address,
 
         PAS_ASSERT_WITH_DETAIL(config);
 
-        remote_config = reader(result, (void*)(uintptr_t)configs[config->kind], sizeof(pas_heap_config), reader_arg);
+        remote_config = (const pas_heap_config*)reader(result, (void*)(uintptr_t)configs[config->kind], sizeof(pas_heap_config), reader_arg);
         if (!remote_config)
             goto fail;
 
@@ -383,13 +383,13 @@ bool pas_enumerator_for_each_heap(pas_enumerator* enumerator,
     pas_heap** first_heap;
     pas_heap** static_heaps;
 
-    first_heap = pas_enumerator_read(enumerator,
+    first_heap = (pas_heap**)pas_enumerator_read(enumerator,
                                      enumerator->root->all_heaps_first_heap,
                                      sizeof(pas_heap*));
     if (!first_heap)
         return false;
 
-    for (heap = pas_enumerator_read_compact(enumerator, *first_heap);
+    for (heap = (pas_heap*)pas_enumerator_read_compact(enumerator, *first_heap);
          heap;
          heap = pas_compact_heap_ptr_load_remote(enumerator,
                                                  &heap->next_heap)) {
@@ -397,14 +397,14 @@ bool pas_enumerator_for_each_heap(pas_enumerator* enumerator,
             return false;
     }
 
-    static_heaps = pas_enumerator_read(enumerator,
+    static_heaps = (pas_heap**)pas_enumerator_read(enumerator,
                                        enumerator->root->static_heaps,
                                        sizeof(pas_heap*) * enumerator->root->num_static_heaps);
     if (!static_heaps)
         return false;
 
     for (index = enumerator->root->num_static_heaps; index--;) {
-        heap = pas_enumerator_read(enumerator, static_heaps[index], sizeof(pas_heap));
+        heap = (pas_heap*)pas_enumerator_read(enumerator, static_heaps[index], sizeof(pas_heap));
         if (!heap)
             return false;
         

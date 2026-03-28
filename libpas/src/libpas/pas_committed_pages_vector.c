@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ void pas_committed_pages_vector_construct(pas_committed_pages_vector* vector,
 
     num_pages = size >> page_size_shift;
 
-    vector->raw_data = allocation_config->allocate(
+    vector->raw_data = (char*)allocation_config->allocate(
         num_pages, "pas_committed_pages_vector/raw_data", pas_object_allocation, allocation_config->arg);
     vector->size = num_pages;
 

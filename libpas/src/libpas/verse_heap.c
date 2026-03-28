@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -172,7 +172,7 @@ pas_heap* verse_heap_create(size_t min_align, size_t size, size_t alignment)
     verse_heap_object_set_set_construct(&config->object_sets);
     verse_heap_object_set_set_add_set(&config->object_sets, &verse_heap_all_objects);
 
-    heap = pas_immortal_heap_allocate(sizeof(pas_heap), "pas_heap", pas_object_allocation);
+    heap = (pas_heap*)pas_immortal_heap_allocate(sizeof(pas_heap), "pas_heap", pas_object_allocation);
     pas_zero_memory(heap, sizeof(pas_heap));
     heap->type = verse_heap_type_create(min_align);
     pas_segregated_heap_construct(&heap->segregated_heap, heap, &verse_heap_config, &config->base);
@@ -460,7 +460,7 @@ static PAS_ALWAYS_INLINE pas_allocation_result try_allocate_impl(
     }
     
     return pas_local_allocator_try_allocate(
-        allocator.allocator, size, alignment, VERSE_HEAP_CONFIG, &verse_heap_allocator_counts,
+        (pas_local_allocator*)allocator.allocator, size, alignment, VERSE_HEAP_CONFIG, &verse_heap_allocator_counts,
         result_filter);
 }
 

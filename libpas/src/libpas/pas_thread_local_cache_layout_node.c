@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -109,7 +109,7 @@ void pas_thread_local_cache_layout_node_commit_and_construct(pas_thread_local_ca
     
     if (pas_thread_local_cache_layout_node_represents_allocator(node)) {
         pas_local_allocator_construct(
-            pas_thread_local_cache_get_local_allocator_direct_for_initialization(
+            (pas_local_allocator*)pas_thread_local_cache_get_local_allocator_direct_for_initialization(
                 cache, pas_thread_local_cache_layout_node_get_allocator_index_for_allocator(node)),
             pas_thread_local_cache_layout_node_get_directory(node),
             pas_local_allocator_in_thread_local_cache);
@@ -117,7 +117,7 @@ void pas_thread_local_cache_layout_node_commit_and_construct(pas_thread_local_ca
     }
 
     pas_local_view_cache_construct(
-        pas_thread_local_cache_get_local_allocator_direct_for_initialization(
+        (pas_local_view_cache*)pas_thread_local_cache_get_local_allocator_direct_for_initialization(
             cache, pas_thread_local_cache_layout_node_get_allocator_index_for_view_cache(node)),
         pas_segregated_size_directory_view_cache_capacity(
             pas_thread_local_cache_layout_node_get_directory(node)));
@@ -139,7 +139,7 @@ void pas_thread_local_cache_layout_node_move(pas_thread_local_cache_layout_node 
         return;
     }
         
-    scavenger_data = pas_thread_local_cache_get_local_allocator_direct(from_cache, allocator_index);
+    scavenger_data = (pas_local_allocator_scavenger_data*)pas_thread_local_cache_get_local_allocator_direct(from_cache, allocator_index);
 
     if (pas_local_allocator_scavenger_data_kind(scavenger_data) == pas_local_allocator_decommitted_kind) {
         pas_thread_local_cache_layout_node_commit_and_construct(node, to_cache);
@@ -148,13 +148,13 @@ void pas_thread_local_cache_layout_node_move(pas_thread_local_cache_layout_node 
     
     if (pas_thread_local_cache_layout_node_represents_allocator(node)) {
         pas_local_allocator_move(
-            pas_thread_local_cache_get_local_allocator_direct_for_initialization(to_cache, allocator_index),
+            (pas_local_allocator*)pas_thread_local_cache_get_local_allocator_direct_for_initialization(to_cache, allocator_index),
             (pas_local_allocator*)scavenger_data);
         return;
     }
 
     pas_local_view_cache_move(
-        pas_thread_local_cache_get_local_allocator_direct_for_initialization(to_cache, allocator_index),
+        (pas_local_view_cache*)pas_thread_local_cache_get_local_allocator_direct_for_initialization(to_cache, allocator_index),
         (pas_local_view_cache*)scavenger_data);
 }
 
@@ -174,11 +174,11 @@ void pas_thread_local_cache_layout_node_stop(pas_thread_local_cache_layout_node 
         pas_log("Stopping allocator %p because pas_thread_local_cache_stop_local_allocators\n", allocator);
     
     if (pas_thread_local_cache_layout_node_represents_allocator(node)) {
-        pas_local_allocator_stop(allocator, page_lock_mode);
+        pas_local_allocator_stop((pas_local_allocator*)allocator, page_lock_mode);
         return;
     }
 
-    pas_local_view_cache_stop(allocator, page_lock_mode);
+    pas_local_view_cache_stop((pas_local_view_cache*)allocator, page_lock_mode);
 }
 
 bool pas_thread_local_cache_layout_node_is_committed(pas_thread_local_cache_layout_node node,

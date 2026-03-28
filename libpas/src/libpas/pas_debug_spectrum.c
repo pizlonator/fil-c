@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +49,7 @@ void pas_debug_spectrum_add(
         &pas_debug_spectrum, key, NULL, &pas_large_utility_free_heap_allocation_config);
 
     if (add_result.is_new_entry) {
-        entry = pas_immortal_heap_allocate(
+        entry = (pas_debug_spectrum_entry*)pas_immortal_heap_allocate(
             sizeof(pas_debug_spectrum_entry),
             "pas_debug_spectrum_entry",
             pas_object_allocation);
@@ -59,7 +60,7 @@ void pas_debug_spectrum_add(
         return;
     }
 
-    entry = add_result.entry->value;
+    entry = (pas_debug_spectrum_entry*)add_result.entry->value;
 
     PAS_ASSERT(entry->dump == dump);
     entry->count += count;
@@ -79,7 +80,7 @@ void pas_debug_spectrum_dump(pas_stream* stream)
         if (pas_ptr_hash_map_entry_is_empty_or_deleted(hash_entry))
             continue;
 
-        entry = hash_entry.value;
+        entry = (pas_debug_spectrum_entry*)hash_entry.value;
 
         if (!entry->count)
             continue;
@@ -103,7 +104,7 @@ void pas_debug_spectrum_reset(void)
         if (pas_ptr_hash_map_entry_is_empty_or_deleted(hash_entry))
             continue;
 
-        entry = hash_entry.value;
+        entry = (pas_debug_spectrum_entry*)hash_entry.value;
         entry->count = 0;
     }
 }

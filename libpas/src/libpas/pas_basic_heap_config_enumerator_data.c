@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,7 +51,7 @@ bool pas_add_remote_page_header_table_for_enumeration(
     if (verbose)
         pas_log("Have a page header hashtable at %p.\n", page_header_table->hashtable.table);
     
-    table = pas_enumerator_read(
+    table = (pas_lock_free_read_ptr_ptr_hashtable_table*)pas_enumerator_read(
         enumerator, page_header_table->hashtable.table,
         PAS_OFFSETOF(pas_lock_free_read_ptr_ptr_hashtable_table, array));
     if (!table)
@@ -59,7 +60,7 @@ bool pas_add_remote_page_header_table_for_enumeration(
     if (verbose)
         pas_log("The table has size %u.\n", table->table_size);
     
-    table = pas_enumerator_read(
+    table = (pas_lock_free_read_ptr_ptr_hashtable_table*)pas_enumerator_read(
         enumerator, page_header_table->hashtable.table,
         PAS_OFFSETOF(pas_lock_free_read_ptr_ptr_hashtable_table, array)
         + sizeof(pas_pair) * table->table_size);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2025-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,6 +31,7 @@
 
 #if PAS_ENABLE_FILC
 
+#include "filc_native.h"
 #include "pas_string_stream.h"
 #include <dlfcn.h>
 

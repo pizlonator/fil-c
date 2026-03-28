@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,7 +52,7 @@ pas_segregated_exclusive_view* pas_segregated_exclusive_view_create(
     if (verbose)
         pas_log("Creating exclusive view.\n");
 
-    result = pas_immortal_heap_allocate(
+    result = (pas_segregated_exclusive_view*)pas_immortal_heap_allocate(
         sizeof(pas_segregated_exclusive_view),
         "pas_segregated_exclusive_view",
         pas_object_allocation);

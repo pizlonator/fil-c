@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,7 +47,7 @@ pas_bitfit_directory_find_first_free_for_num_bits_iterate_callback(
 
     PAS_UNUSED_PARAM(index);
 
-    data = arg;
+    data = (pas_bitfit_directory_find_first_free_for_num_bits_iterate_data*)arg;
 
     entry = *entry_ptr;
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,7 +84,7 @@ static void commit(void* base, size_t size, void* arg)
 {
     pas_commit_span* span;
 
-    span = arg;
+    span = (pas_commit_span*)arg;
     
     pas_page_malloc_commit(base, size, span->mmap_capability);
 }
@@ -107,7 +108,7 @@ static void decommit(void* base, size_t size, void* arg)
 {
     decommit_data* data;
 
-    data = arg;
+    data = (decommit_data*)arg;
 
     if (verbose)
         pas_log("did_add_first = %d, base = %p, size = %zu\n", data->span->did_add_first, base, size);

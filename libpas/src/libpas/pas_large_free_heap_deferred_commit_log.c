@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -100,7 +101,7 @@ static void commit(pas_large_virtual_range range)
     pas_page_malloc_commit((void*)range.begin, pas_large_virtual_range_size(range), range.mmap_capability);
 
     if (PAS_DEBUG_SPECTRUM_USE_FOR_COMMIT)
-        pas_debug_spectrum_add(dump_large_commit, dump_large_commit, pas_large_virtual_range_size(range));
+        pas_debug_spectrum_add((void*)dump_large_commit, dump_large_commit, pas_large_virtual_range_size(range));
 }
 
 static void commit_all(

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,7 +62,7 @@ static pas_aligned_allocation_result megapage_cache_allocate_aligned(size_t size
     pas_zero_mode zero_mode;
     char* base;
     
-    data = arg;
+    data = (megapage_cache_allocate_aligned_data*)arg;
     cache = data->cache;
     cache_config = data->cache_config;
     

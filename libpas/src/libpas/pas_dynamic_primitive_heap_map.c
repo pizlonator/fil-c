@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ pas_dynamic_primitive_heap_map_find_slow(pas_dynamic_primitive_heap_map* map,
             heaps_for_size->size = size;
             heaps_for_size->num_heaps = 0;
             heaps_for_size->capacity = 4;
-            heaps_for_size->heaps = pas_large_utility_free_heap_allocate(
+            heaps_for_size->heaps = (pas_primitive_heap_ref**)pas_large_utility_free_heap_allocate(
                 heaps_for_size->capacity * sizeof(pas_primitive_heap_ref*),
                 "pas_dynamic_primitive_heap_map_heaps_for_size_table_entry/heaps");
         }
@@ -112,7 +112,7 @@ pas_dynamic_primitive_heap_map_find_slow(pas_dynamic_primitive_heap_map* map,
                     new_capacity = pas_min_uint32(heaps_for_size->capacity * 2,
                                                   map->max_heaps_per_size);
                     
-                    new_heaps = pas_large_utility_free_heap_allocate(
+                    new_heaps = (pas_primitive_heap_ref**)pas_large_utility_free_heap_allocate(
                         new_capacity * sizeof(pas_primitive_heap_ref*),
                         "pas_dynamic_primitive_heap_map_heaps_for_size_table_entry/heaps");
                     
@@ -129,14 +129,14 @@ pas_dynamic_primitive_heap_map_find_slow(pas_dynamic_primitive_heap_map* map,
                 
                 PAS_ASSERT(heaps_for_size->num_heaps < heaps_for_size->capacity);
 
-                key_data = pas_immortal_heap_allocate(
+                key_data = (pas_simple_type_with_key_data*)pas_immortal_heap_allocate(
                     sizeof(pas_simple_type_with_key_data),
                     "pas_dynamic_primitive_heap_map/type_with_key_data",
                     pas_object_allocation);
                 key_data->simple_type = pas_simple_type_create(1, 1);
                 key_data->key = key;
                 
-                result = pas_immortal_heap_allocate(
+                result = (pas_primitive_heap_ref*)pas_immortal_heap_allocate(
                     sizeof(pas_primitive_heap_ref), "pas_dnamic_primitive_heap_map/heap",
                     pas_object_allocation);
                 map->constructor(result,
@@ -150,7 +150,7 @@ pas_dynamic_primitive_heap_map_find_slow(pas_dynamic_primitive_heap_map* map,
                     PAS_ASSERT(map->num_heaps == map->heaps_capacity);
 
                     new_heaps_capacity = (map->heaps_capacity + 1) << 1;
-                    new_heaps = pas_large_utility_free_heap_allocate(
+                    new_heaps = (pas_primitive_heap_ref**)pas_large_utility_free_heap_allocate(
                         sizeof(pas_primitive_heap_ref*) * new_heaps_capacity,
                         "pas_dynamic_primitive_heap_map/heaps");
 

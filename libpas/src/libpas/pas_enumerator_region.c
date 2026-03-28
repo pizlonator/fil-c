@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ void* pas_enumerator_region_allocate(pas_enumerator_region** region_ptr,
         PAS_ASSERT_WITH_DETAIL(allocation_result.result == allocation_result.left_padding);
         PAS_ASSERT_WITH_DETAIL(!allocation_result.left_padding_size);
 
-        new_region = allocation_result.result;
+        new_region = (pas_enumerator_region*)allocation_result.result;
         new_region->previous = region;
         new_region->size =
             allocation_result.result_size + allocation_result.right_padding_size -

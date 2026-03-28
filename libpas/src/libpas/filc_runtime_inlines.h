@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2025-2026 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -132,7 +132,7 @@ static PAS_ALWAYS_INLINE void filc_ptr_table_mark_outgoing_ptrs(filc_ptr_table* 
             PAS_ASSERT(new_free_indices_capacity > ptr_table->free_indices_capacity);
 
             uintptr_t* new_free_indices =
-                bmalloc_allocate(sizeof(uintptr_t) * new_free_indices_capacity);
+                (uintptr_t*)bmalloc_allocate(sizeof(uintptr_t) * new_free_indices_capacity);
             memcpy(new_free_indices, ptr_table->free_indices,
                    sizeof(uintptr_t) * ptr_table->num_free_indices);
 
@@ -201,7 +201,7 @@ static PAS_ALWAYS_INLINE bool filc_weak_load_barrier(filc_thread* my_thread, fil
             filc_barrier_slow(my_thread, filc_ptr_object(result));
             return true;
         case filc_terminating:
-            pas_compare_and_swap_uint32_weak(&filc_current_marking_state,
+            pas_compare_and_swap_uint32_weak((uint32_t*)&filc_current_marking_state,
                                              (unsigned)filc_terminating,
                                              (unsigned)filc_marking);
             break;
