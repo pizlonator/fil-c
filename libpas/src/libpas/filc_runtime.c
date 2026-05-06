@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-2026 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,10 +11,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -497,8 +498,8 @@ void filc_initialize(filc_stack_limit stack_limit)
 
     /* The compiler hardcodes these constants. */
     PAS_ASSERT(FILC_FLIGHT_PTR_ALIGNMENT == 16);
-    PAS_ASSERT(FILC_OBJECT_AUX_PTR_SHIFT == 16);
-    PAS_ASSERT(FILC_OBJECT_AUX_FLAGS_MASK == 0xffff);
+    PAS_ASSERT(FILC_OBJECT_AUX_PTR_MASK == 0xfffffffffffflu);
+    PAS_ASSERT(FILC_OBJECT_AUX_FLAGS_SHIFT == 48);
     PAS_ASSERT(sizeof(filc_object) == 16);
     PAS_ASSERT(FILC_SPECIAL_TYPE_FUNCTION == 1);
     PAS_ASSERT(FILC_SPECIAL_TYPE_MASK == 15);
@@ -6327,6 +6328,9 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
 
     lock_global_initialization(my_thread);
 
+    filc_testing_validate_object(object, NULL);
+    PAS_ASSERT(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
+
     pas_allocation_config allocation_config;
     filc_global_initialization_work_item_hash_map_add_result add_result;
     
@@ -6370,15 +6374,6 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
         PAS_ASSERT(existing_object == object);
         goto return_false;
     }
-
-    /* For global variables the aux field is stored in the binary with the flags in the top 16 bits
-     * because we need to initialize the aux object pointer with a relocation and ELF doesn't support
-     * shifting by 16 bits in relocations (we avoid this for function capabilities, see
-     * filc_function_object). Fix that up here by rotating the bits into the correct place. */
-    object->aux = (object->aux << FILC_OBJECT_AUX_PTR_SHIFT) | (object->aux >> (64 - FILC_OBJECT_AUX_PTR_SHIFT));
-
-    filc_testing_validate_object(object, NULL);
-    PAS_ASSERT(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
 
     if (verbose)
         pas_log("going to initialize object = %s\n", filc_object_to_new_string(object));

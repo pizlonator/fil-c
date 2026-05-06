@@ -61,17 +61,8 @@ static constexpr size_t FlightPtrAlign = 16;
 static constexpr size_t WordSize = 8;
 static constexpr size_t WordSizeShift = 3;
 
-static constexpr uintptr_t ObjectAuxPtrShift = 16;
-static constexpr uintptr_t ObjectAuxFlagsMask = 0xffff;
-
-// Normally, an aux field has flags stored in the bottom ObjectAuxPtrShift bits
-// and the pointer is stored in the top bits. However, in global variable
-// initializers in object files, aux field flags are stored in the top bits and
-// the pointer is stored in the bottom ObjectAuxFlagsShiftForGlobalInit bits.
-// This is due to an ELF limitation; the aux field of global variables has its
-// usual representation at runtime. See filc_global_initialization_start()
-// where we fix up the aux field at startup.
-static constexpr uintptr_t ObjectAuxFlagsShiftForGlobalInit = 48;
+static constexpr uintptr_t ObjectAuxPtrMask = 0xfffffffffffflu;
+static constexpr uintptr_t ObjectAuxFlagsShift = 48;
 
 static constexpr size_t ObjectSize = 16;
 
@@ -1371,7 +1362,6 @@ class Pizlonator {
   StructType* InlineFrameTy;
   StructType* OriginWithEHTy;
   StructType* ObjectTy;
-  StructType* FunctionObjectTy;
   StructType* FrameTy;
   StructType* ThreadTy;
   StructType* ConstantRelocationTy;
@@ -1982,7 +1972,7 @@ class Pizlonator {
   Value* flagsForLower(Value* Lower, Instruction* InsertBefore) {
     Value* Aux = auxForLower(Lower, InsertBefore);
     Instruction* Flags = BinaryOperator::Create(
-      Instruction::And, Aux, ConstantInt::get(IntPtrTy, ObjectAuxFlagsMask), "filc_object_flags",
+      Instruction::LShr, Aux, ConstantInt::get(IntPtrTy, ObjectAuxFlagsShift), "filc_object_flags",
       InsertBefore);
     Flags->setDebugLoc(InsertBefore->getDebugLoc());
     return Flags;
@@ -1991,7 +1981,7 @@ class Pizlonator {
   Value* auxPtrForLower(Value* Lower, Instruction* InsertBefore) {
     Value* Aux = auxForLower(Lower, InsertBefore);
     Instruction* AuxPtrAsInt = BinaryOperator::Create(
-      Instruction::AShr, Aux, ConstantInt::get(IntPtrTy, ObjectAuxPtrShift), "filc_aux_ptr_as_int",
+      Instruction::And, Aux, ConstantInt::get(IntPtrTy, ObjectAuxPtrMask), "filc_aux_ptr_as_int",
       InsertBefore);
     AuxPtrAsInt->setDebugLoc(InsertBefore->getDebugLoc());
     Instruction* AuxPtr = new IntToPtrInst(AuxPtrAsInt, RawPtrTy, "filc_aux_ptr", InsertBefore);
@@ -9943,9 +9933,6 @@ public:
     OriginWithEHTy = StructType::create(
       { RawPtrTy, Int32Ty, Int32Ty, RawPtrTy }, "filc_origin_with_eh");
     ObjectTy = StructType::create({ RawPtrTy, RawPtrTy }, "filc_object");
-    // See the comment for filc_function_object in filc_runtime.h for how this works.
-    FunctionObjectTy = StructType::create({RawPtrTy, Int16Ty, RawPtrTy},
-                                          "filc_function_object", true);
     FrameTy = StructType::create({ RawPtrTy, RawPtrTy, RawPtrTy }, "filc_frame");
     UnsafeFuncTy = FunctionType::get(IntPtrTy, true);
 
@@ -10285,9 +10272,8 @@ public:
 
         PutImplIntoComdat(F, NewF);
 
-        GlobalVariable *NewObjectG = new GlobalVariable(
-            M, FunctionObjectTy, true, GlobalValue::InternalLinkage, nullptr,
-            "pizlonatedFO_" + F->getName());
+        GlobalVariable* NewObjectG = new GlobalVariable(
+          M, ObjectTy, true, GlobalValue::InternalLinkage, nullptr, "pizlonatedFO_" + F->getName());
         PutImplIntoComdat(F, NewObjectG);
         Constant* LowerAndUpper =
           ConstantExpr::getGetElementPtr(ObjectTy, NewObjectG, ConstantInt::get(IntPtrTy, 1));
@@ -10295,9 +10281,13 @@ public:
           ObjectFlagGlobal |
           ObjectFlagReadonly |
           (SpecialTypeFunction << ObjectFlagsSpecialShift);
-        Constant *NewObjC = ConstantStruct::get(
-            FunctionObjectTy,
-            {LowerAndUpper, ConstantInt::get(Int16Ty, ObjectFlags), NewF});
+        Constant* NewObjC = ConstantStruct::get(
+          ObjectTy,
+          { LowerAndUpper,
+            ConstantExpr::getGetElementPtr(
+              Int8Ty, NewF,
+              ConstantInt::get(
+                IntPtrTy, static_cast<uintptr_t>(ObjectFlags) << ObjectAuxFlagsShift)) });
         NewObjectG->setInitializer(NewObjC);
         FunctionToLower[F] = LowerAndUpper;
       }
@@ -10501,7 +10491,7 @@ public:
       StructType* ObjectGTy = StructType::get(C, ObjectGTyFields);
 
       GlobalVariable* NewDataG = new GlobalVariable(
-        M, ObjectGTy, false, GlobalValue::InternalLinkage, nullptr, "pizlonatedDO_" + G->getName());
+        M, ObjectGTy, IsConstant, GlobalValue::InternalLinkage, nullptr, "pizlonatedDO_" + G->getName());
       PutImplIntoComdat(G, NewDataG);
 
       uint16_t ObjectFlags = ObjectFlagGlobal;
@@ -10514,10 +10504,10 @@ public:
         NewObjCFields.push_back(ConstantAggregateZero::get(AlignmentTy));
       NewObjCFields.push_back(
         ConstantExpr::getGetElementPtr(ObjectGTy, NewDataG, ConstantInt::get(IntPtrTy, 1)));
-      NewObjCFields.push_back(ConstantExpr::getGetElementPtr(
+      NewObjCFields.push_back(
+        ConstantExpr::getGetElementPtr(
           Int8Ty, AuxPtr,
-          ConstantInt::get(IntPtrTy, static_cast<uintptr_t>(ObjectFlags)
-                                         << ObjectAuxFlagsShiftForGlobalInit)));
+          ConstantInt::get(IntPtrTy, static_cast<uintptr_t>(ObjectFlags) << ObjectAuxFlagsShift)));
       NewObjCFields.push_back(NewC);
       Constant* NewObjC = ConstantStruct::get(ObjectGTy, NewObjCFields);
       NewDataG->setInitializer(NewObjC);

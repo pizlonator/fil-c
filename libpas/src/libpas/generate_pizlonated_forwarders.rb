@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 #
 # Copyright (c) 2024-2026 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -11,10 +12,10 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
 # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -704,15 +705,15 @@ when "src/libpas/filc_native_forwarders.c"
             end
             outp.puts "filc_cc_sizer_total_size(&rets_sizer));"
             outp.puts "}"
-            outp.puts "static const filc_function_object function_object_#{signature.name} = {"
-            outp.puts "    .upper = ((char*)&function_object_#{signature.name}) + 16,"
-            outp.puts "    .flags = "
+            outp.puts "static const filc_object function_object_#{signature.name} = {"
+            outp.puts "    .upper = (void*)(&function_object_#{signature.name} + 1),"
+            outp.puts "    .aux = FILC_AUX_CREATE("
             outp.puts "        FILC_OBJECT_FLAGS_CREATE("
             outp.puts "            FILC_OBJECT_FLAG_GLOBAL |"
             outp.puts "            FILC_OBJECT_FLAG_READONLY,"
             outp.puts "            FILC_SPECIAL_TYPE_FUNCTION,"
             outp.puts "            0),"
-            outp.puts "    .fptr = (void*)native_thunk_#{signature.name}"
+            outp.puts "        native_thunk_#{signature.name})"
             outp.puts "};"
             outp.puts "filc_ptr pizlonated_#{signature.name}("
             outp.puts "    filc_thread* my_thread, const filc_origin* origin)"
