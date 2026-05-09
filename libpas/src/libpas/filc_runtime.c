@@ -507,7 +507,6 @@ void filc_initialize(filc_stack_limit stack_limit)
     PAS_ASSERT(FILC_OBJECT_FLAG_READONLY == 2);
     PAS_ASSERT(FILC_OBJECT_FLAG_FREE == 4);
     PAS_ASSERT(FILC_OBJECT_FLAG_GLOBAL_AUX == 16);
-    PAS_ASSERT(FILC_OBJECT_FLAG_CLOSURE == 64);
     PAS_ASSERT(FILC_OBJECT_FLAGS_SPECIAL_SHIFT == 7);
     PAS_ASSERT(FILC_OBJECT_FLAGS_ALIGN_SHIFT == 11);
     PAS_ASSERT(FILC_ATOMIC_BOX_BIT == 1);
@@ -1891,10 +1890,6 @@ void filc_object_flags_dump_with_comma(filc_object_flags flags, bool* comma, pas
     if (flags & FILC_OBJECT_FLAG_WEAK_KEY) {
         pas_stream_print_comma(stream, comma, ",");
         pas_stream_printf(stream, "weak_key");
-    }
-    if (flags & FILC_OBJECT_FLAG_CLOSURE) {
-        pas_stream_print_comma(stream, comma, ",");
-        pas_stream_printf(stream, "closure");
     }
     if (filc_object_flags_is_aligned(flags)) {
         pas_stream_print_comma(stream, comma, ",");
@@ -4408,7 +4403,7 @@ PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr)
 static void check_closure(filc_object* object, const filc_origin* origin)
 {
     FILC_CHECK(
-        filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE,
+        !(filc_object_get_flags(object) & FILC_OBJECT_FLAG_READONLY),
         origin,
         "object %s is not a closure.",
         filc_object_to_new_string(object));
@@ -6131,7 +6126,7 @@ filc_ptr filc_native_zcall(filc_thread* my_thread, filc_ptr callee_ptr, filc_ptr
 
     filc_lock_top_native_frame(my_thread);
     pizlonated_return_value result =
-        ((pizlonated_function)filc_ptr_ptr(callee_ptr))(
+        ((pizlonated_function)((filc_function*)filc_ptr_ptr(callee_ptr))->generic_entrypoint)(
             my_thread, filc_ptr_lower(callee_ptr), arg_size);
     PAS_ASSERT(!result.has_exception);
     filc_unlock_top_native_frame(my_thread);
@@ -7150,7 +7145,7 @@ typedef unsigned long long unwind_exception_class;
 
 struct unwind_exception {
     unwind_exception_class exception_class;
-    pizlonated_function exception_cleanup;
+    filc_function* exception_cleanup;
 };
 
 typedef struct unwind_exception unwind_exception;
@@ -7735,37 +7730,37 @@ void filc_native_zmake_setjmp_save_sigmask(filc_thread* my_thread, bool save_sig
 filc_ptr filc_native_zclosure_new(filc_thread* my_thread, filc_ptr function_ptr, filc_ptr data_ptr)
 {
     filc_check_function_call(function_ptr);
-    filc_object* object = (filc_object*)filc_thread_allocate(
+    filc_function* old_function = (filc_function*)filc_ptr_ptr(function_ptr);
+    filc_object* new_object = (filc_object*)filc_thread_allocate(
         my_thread, sizeof(filc_object) + sizeof(filc_closure)).begin;
-    object->upper = filc_object_lower_not_null(object);
-    object->aux = filc_aux_create(
-        filc_object_flags_create(FILC_OBJECT_FLAG_CLOSURE | FILC_OBJECT_FLAG_READONLY,
-                                 FILC_SPECIAL_TYPE_FUNCTION,
-                                 0),
-        (char*)filc_ptr_ptr(function_ptr));
-    filc_closure* closure = (filc_closure*)filc_object_special_payload_with_manual_tracking(object);
-    filc_flight_ptr_store(my_thread, &closure->data_ptr, data_ptr);
-    return filc_ptr_create_with_object_and_ptr_and_manual_tracking(
-        object, filc_ptr_ptr(function_ptr));
+    new_object->upper = filc_object_lower_not_null(new_object);
+    new_object->aux = filc_aux_create(
+        filc_object_flags_create(0, FILC_SPECIAL_TYPE_FUNCTION, 0),
+        filc_object_lower_not_null(new_object));
+    filc_closure* new_function = (filc_closure*)
+        filc_object_special_payload_with_manual_tracking(new_object);
+    new_function->base = *old_function;
+    filc_flight_ptr_store(my_thread, &new_function->data_ptr, data_ptr);
+    return filc_ptr_create_with_object_and_ptr_and_manual_tracking(new_object, new_function);
 }
 
-filc_ptr filc_native_zclosure_get_data(filc_thread* my_thread, filc_ptr closure_ptr)
+filc_ptr filc_native_zclosure_get_data(filc_thread* my_thread, filc_ptr function_ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
-    filc_check_function_call(closure_ptr);
-    check_closure(filc_ptr_object(closure_ptr), NULL);
-    filc_closure* closure = (filc_closure*)
-        filc_object_special_payload_with_manual_tracking(filc_ptr_object(closure_ptr));
-    return filc_flight_ptr_load_with_manual_tracking(&closure->data_ptr);
+    filc_check_function_call(function_ptr);
+    check_closure(filc_ptr_object(function_ptr), NULL);
+    filc_closure* function = (filc_closure*)
+        filc_object_special_payload_with_manual_tracking(filc_ptr_object(function_ptr));
+    return filc_flight_ptr_load_with_manual_tracking(&function->data_ptr);
 }
 
-void filc_native_zclosure_set_data(filc_thread* my_thread, filc_ptr closure_ptr, filc_ptr data_ptr)
+void filc_native_zclosure_set_data(filc_thread* my_thread, filc_ptr function_ptr, filc_ptr data_ptr)
 {
-    filc_check_function_call(closure_ptr);
-    check_closure(filc_ptr_object(closure_ptr), NULL);
-    filc_closure* closure = (filc_closure*)
-        filc_object_special_payload_with_manual_tracking(filc_ptr_object(closure_ptr));
-    filc_flight_ptr_store(my_thread, &closure->data_ptr, data_ptr);
+    filc_check_function_call(function_ptr);
+    check_closure(filc_ptr_object(function_ptr), NULL);
+    filc_closure* function = (filc_closure*)
+        filc_object_special_payload_with_manual_tracking(filc_ptr_object(function_ptr));
+    filc_flight_ptr_store(my_thread, &function->data_ptr, data_ptr);
 }
 
 static void cpuid_impl(unsigned leaf, unsigned count, filc_ptr eax_ptr, filc_ptr ebx_ptr,

@@ -3,7 +3,9 @@
 
 static void foo(const char* str)
 {
-    ZASSERT(!strcmp(zcallee_closure_data(), str));
+    void* p = zcallee_closure_data();
+    zprintf("p = %P\n", p);
+    ZASSERT(!strcmp(p, str));
 }
 
 int main()

@@ -71,6 +71,8 @@ struct filc_exception_and_ptr;
 struct filc_exception_and_void;
 struct filc_finalizer_queue;
 struct filc_frame;
+struct filc_function;
+struct filc_function_object;
 struct filc_function_origin;
 struct filc_global_initialization_work_item;
 struct filc_inline_frame;
@@ -129,6 +131,8 @@ typedef struct filc_exception_and_ptr filc_exception_and_ptr;
 typedef struct filc_exception_and_void filc_exception_and_void;
 typedef struct filc_finalizer_queue filc_finalizer_queue;
 typedef struct filc_frame filc_frame;
+typedef struct filc_function filc_function;
+typedef struct filc_function_object filc_function_object;
 typedef struct filc_function_origin filc_function_origin;
 typedef struct filc_global_initialization_work_item filc_global_initialization_work_item;
 typedef struct filc_inline_frame filc_inline_frame;
@@ -218,7 +222,10 @@ typedef uintptr_t filc_word;
    for alignment. That leaves 7 flags. */
 #define FILC_OBJECT_FLAG_GLOBAL           ((filc_object_flags)1)  /* Pointer to a global, so cannot be
                                                                      freed. */
-#define FILC_OBJECT_FLAG_READONLY         ((filc_object_flags)2)  /* Object is readonly. */
+#define FILC_OBJECT_FLAG_READONLY         ((filc_object_flags)2)  /* Object is readonly. Also, a
+                                                                     function that isn't readonly is
+                                                                     a closure. (This is mostly about
+                                                                     sharing bit.) */
 #define FILC_OBJECT_FLAG_FREE             ((filc_object_flags)4)  /* Object is freed. Freed objects
                                                                      also have their size set to zero,
                                                                      but otherwise retain all of the
@@ -240,10 +247,7 @@ typedef uintptr_t filc_word;
                                                                      marked. */
 #define FILC_OBJECT_FLAG_WEAK_KEY         ((filc_object_flags)32) /* The object is being used as a key
                                                                      in one or more weak maps. */
-#define FILC_OBJECT_FLAG_CLOSURE          ((filc_object_flags)64) /* Only applicable to functions.
-                                                                     Means that the function is a
-                                                                     closure, i.e. the capability has
-                                                                     a pointer field. */
+/* We have flag bit value 64 available. */
 #define FILC_OBJECT_FLAGS_SPECIAL_SHIFT   ((filc_object_flags)7)  /* The shift amount to get to the
                                                                      special type. */
 #define FILC_OBJECT_FLAGS_SPECIAL_MASK    ((filc_object_flags)FILC_SPECIAL_TYPE_MASK \
@@ -726,8 +730,24 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_cc_unit {
     char contents[FILC_CC_ALIGNMENT];
 };
 
+typedef uint64_t filc_signature;
+
+#define FILC_GENERIC_SIGNATURE ((filc_signature)0)
+
+struct filc_function {
+    void* fast_entrypoint;
+    pizlonated_function generic_entrypoint;
+    filc_signature signature;
+};
+
 struct filc_closure {
-    filc_ptr data_ptr;
+    filc_function base;
+    filc_ptr data_ptr; /* Used by closures. */
+};
+
+struct filc_function_object {
+    filc_object object;
+    filc_function function;
 };
 
 struct filc_signal_queue_chunk_header {
@@ -2596,7 +2616,7 @@ static inline void filc_object_validate_special_with_payload(filc_object* object
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK_MAP ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_FINALIZER_QUEUE ||
                (filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION
-                && (filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE)));
+                && !(filc_object_get_flags(object) & FILC_OBJECT_FLAG_READONLY)));
 }
 
 static inline void filc_object_testing_validate_special_with_payload(filc_object* object)
@@ -3960,8 +3980,6 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
 
 void filc_check_function_call(filc_ptr ptr);
 PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr);
-
-PAS_NO_RETURN void filc_check_closure_fail(void* lower, const filc_origin* origin);
 
 void filc_check_access_special(filc_ptr ptr, filc_special_type expected_type);
 

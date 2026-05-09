@@ -555,7 +555,7 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
     case FILC_SPECIAL_TYPE_DL_HANDLE:
         break;
     case FILC_SPECIAL_TYPE_FUNCTION:
-        if ((flags & FILC_OBJECT_FLAG_CLOSURE)) {
+        if (!(flags & FILC_OBJECT_FLAG_READONLY)) {
             filc_closure_mark_outgoing_ptrs(
                 (filc_closure*)filc_object_special_payload_with_manual_tracking(object),
                 marker, stack);
