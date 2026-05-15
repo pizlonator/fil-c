@@ -4400,6 +4400,12 @@ PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr)
     PAS_UNREACHABLE();
 }
 
+PAS_NO_RETURN void filc_comdat_link_fail(const char* name, uint64_t signature)
+{
+    filc_safety_panic(NULL, "linking comdat function %s with signature %llu failed.",
+                      name, (unsigned long long)signature);
+}
+
 static void check_closure(filc_object* object, const filc_origin* origin)
 {
     FILC_CHECK(

@@ -1044,7 +1044,8 @@ static ICmpInst::Predicate evaluateICmpRelation(Constant *V1, Constant *V2) {
       // query it from the Constant type.
       if (!GV->hasExternalWeakLinkage() && !isa<GlobalAlias>(GV) &&
           !NullPointerIsDefined(nullptr /* F */,
-                                GV->getType()->getAddressSpace()))
+                                GV->getType()->getAddressSpace()) &&
+          (!GV->hasComdat() || (!GV->hasLinkOnceLinkage() && !GV->hasWeakLinkage())))
         return ICmpInst::ICMP_UGT;
     }
   } else if (auto *CE1 = dyn_cast<ConstantExpr>(V1)) {

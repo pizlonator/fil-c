@@ -3450,7 +3450,8 @@ bool isKnownNonZero(const Value *V, const APInt &DemandedElts,
     // valid address for a global, so we can't assume anything.
     if (const GlobalValue *GV = dyn_cast<GlobalValue>(V)) {
       if (!GV->isAbsoluteSymbolRef() && !GV->hasExternalWeakLinkage() &&
-          GV->getType()->getAddressSpace() == 0)
+          GV->getType()->getAddressSpace() == 0 &&
+          (!GV->hasComdat() || (!GV->hasLinkOnceLinkage() && !GV->hasWeakLinkage())))
         return true;
     }
 

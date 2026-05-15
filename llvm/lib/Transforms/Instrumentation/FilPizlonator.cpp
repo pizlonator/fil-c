@@ -1396,6 +1396,37 @@ struct UnsafeExport {
     Name(Name), Aliasee(Aliasee) { }
 };
 
+struct NameAndSignature {
+  NameAndSignature() = default;
+
+  NameAndSignature(const std::string Name, uint64_t Signature):
+    Name(Name), Signature(Signature) {
+  }
+
+  explicit operator bool() const { return !Name.empty(); }
+
+  bool operator==(const NameAndSignature& Other) const {
+    return Name == Other.Name && Signature == Other.Signature;
+  }
+
+  size_t hash() const {
+    return std::hash<std::string>()(Name) + std::hash<uint64_t>()(Signature);
+  }
+
+  std::string Name;
+  uint64_t Signature { 0 };
+};
+
+} // anonymous namespace
+
+template<> struct std::hash<NameAndSignature> {
+  size_t operator()(const NameAndSignature& Key) const {
+    return Key.hash();
+  };
+};
+
+namespace {
+
 class Pizlonator {
   static constexpr unsigned TargetAS = 0;
   
@@ -1468,6 +1499,7 @@ class Pizlonator {
   FunctionCallee MaskedAccessCheckFail;
   FunctionCallee CheckFunctionCallFail;
   FunctionCallee CheckClosureFail;
+  FunctionCallee ComdatLinkFail;
   FunctionCallee Memset;
   FunctionCallee Memmove;
   FunctionCallee MemmoveAlreadyChecked;
@@ -1556,6 +1588,7 @@ class Pizlonator {
   std::unordered_map<GlobalValue*, GlobalVariable*> GlobalToGlobal;
   std::unordered_set<Value*> Getters;
   std::unordered_map<Function*, Function*> FunctionToHiddenFunction;
+  std::unordered_map<Function*, uint64_t> FunctionToSignature;
   std::unordered_map<Function*, Constant*> FunctionToLower;
 
   std::unordered_map<GlobalValue*, Comdat*> GlobalToComdat;
@@ -1575,6 +1608,7 @@ class Pizlonator {
 
   std::unordered_map<uint64_t, Function*> CallerEntrypointThunks;
   std::unordered_map<uint64_t, Function*> CalleeEntrypointThunks;
+  std::unordered_map<NameAndSignature, Function*> KnownTargetCallsiteThunks;
   
   BasicBlock* FirstRealBlock;
 
@@ -2721,6 +2755,20 @@ class Pizlonator {
         if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(&I)) {
           if (II->getIntrinsicID() == Intrinsic::vastart)
             return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool usesCallee(Function* F) {
+    for (BasicBlock& BB : *F) {
+      for (Instruction& I : BB) {
+        if (CallBase* CI = dyn_cast<CallBase>(&I)) {
+          if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+            if (F->getName() == "zcallee")
+              return true;
+          }
         }
       }
     }
@@ -6288,8 +6336,9 @@ class Pizlonator {
       assert(MyThread);
       Function* Getter = GlobalToGetter[G];
       assert(Getter);
-      if (Getter->isDeclaration() &&
-          (Getter->hasWeakAnyLinkage() || Getter->hasExternalWeakLinkage())) {
+      if (((Getter->hasWeakLinkage() || Getter->hasLinkOnceLinkage()) &&
+           GlobalToComdat.count(G)) ||
+          Getter->hasExternalWeakLinkage()) {
         ICmpInst* IsNull = new ICmpInst(
           InsertBefore, ICmpInst::ICMP_EQ, Getter, RawNull, "filc_weak_symbol_is_null");
         IsNull->setDebugLoc(InsertBefore->getDebugLoc());
@@ -8300,6 +8349,48 @@ class Pizlonator {
     return FastEntrypoint;
   }
 
+  Value* callGenericFromFastThunk(Value* CalleeLower, Function* Result,
+                                  const std::vector<ArgInfo>& AIs, Type* NormalizedRetType,
+                                  Instruction* Before) {
+    assert(Result->getFunctionType()->getNumParams() == AIs.size() + 2);
+    std::vector<Value*> Args;
+    for (size_t Idx = 0; Idx < AIs.size(); ++Idx) {
+      assert(AIs[Idx].AK == ArgKind::Direct);
+      assert(toFlightType(AIs[Idx].T) == Result->getArg(Idx + 2)->getType());
+      Args.push_back(Result->getArg(Idx + 2));
+    }
+    Value* ArgSize;
+    if (!AIs.empty())
+      ArgSize = storeCC(AIs, Args, Before, DebugLoc());
+    else
+      ArgSize = ConstantInt::get(IntPtrTy, 0);
+    Instruction* TheCall = CallInst::Create(
+      PizlonatedFuncTy, genericEntrypointForFunctionPayload(CalleeLower, Before),
+      { MyThread, CalleeLower, ArgSize },
+      "filc_generic_call", Before);
+    Instruction* HasException = ExtractValueInst::Create(
+      Int1Ty, TheCall, { 0 }, "filc_has_exception", Before);
+    Instruction* FastResult = InsertValueInst::Create(
+      UndefValue::get(Result->getFunctionType()->getReturnType()), HasException,
+      { 0 }, "filc_insert_has_exception", Before);
+    Instruction* ElseTerm = SplitBlockAndInsertIfElse(
+      expectFalse(HasException, Before), Before, false);
+    Instruction* RetSize = ExtractValueInst::Create(
+      IntPtrTy, TheCall, { 1 }, "filc_ret_size", ElseTerm);
+    Value* FastValueResult = FastResult;
+    if (NormalizedRetType != VoidTy) {
+      Value* GenericResult = loadCC(
+        NormalizedRetType, RetSize, CCRetsCheckFailure, ElseTerm, DebugLoc());
+      FastValueResult = insertAndNormalizeReturn(
+        NormalizedRetType, GenericResult, FastResult, ElseTerm);
+    }
+    PHINode* FastResultPHI = PHINode::Create(
+      Result->getFunctionType()->getReturnType(), 2, "filc_result_value_phi", Before);
+    FastResultPHI->addIncoming(FastResult, FastResult->getParent());
+    FastResultPHI->addIncoming(FastValueResult, ElseTerm->getParent());
+    return FastResultPHI;
+  }
+
   Function* callerEntrypointThunk(uint64_t Signature, const std::vector<ArgInfo>& AIs,
                                   Type* NormalizedRetType) {
     assert(Signature != GenericSignature);
@@ -8316,6 +8407,7 @@ class Pizlonator {
     assert(Callee.getFunctionType() == FuncTy);
     Function* Result = cast<Function>(Callee.getCallee());
     assert(Result->isDeclaration());
+    assert(Result->getFunctionType() == FuncTy);
     Result->setLinkage(GlobalValue::LinkOnceODRLinkage);
     Result->addFnAttr(Attribute::NoInline);
     Result->addFnAttr(Attribute::NoUnwind);
@@ -8332,43 +8424,8 @@ class Pizlonator {
     BasicBlock* RootB = BasicBlock::Create(C, "filc_caller_entrypoint_thunk_root", Result);
     ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FuncTy->getReturnType()), RootB);
 
-    assert(FuncTy->getNumParams() == AIs.size() + 2);
-    std::vector<Value*> Args;
-    for (size_t Idx = 0; Idx < AIs.size(); ++Idx) {
-      assert(AIs[Idx].AK == ArgKind::Direct);
-      assert(toFlightType(AIs[Idx].T) == Result->getArg(Idx + 2)->getType());
-      Args.push_back(Result->getArg(Idx + 2));
-    }
-    Value* ArgSize;
-    if (!AIs.empty())
-      ArgSize = storeCC(AIs, Args, Return, DebugLoc());
-    else
-      ArgSize = ConstantInt::get(IntPtrTy, 0);
-    Instruction* TheCall = CallInst::Create(
-      PizlonatedFuncTy, genericEntrypointForFunctionPayload(CalleeLower, Return),
-      { MyThread, CalleeLower, ArgSize },
-      "filc_generic_call", Return);
-    Instruction* HasException = ExtractValueInst::Create(
-      Int1Ty, TheCall, { 0 }, "filc_has_exception", Return);
-    Instruction* FastResult = InsertValueInst::Create(
-      UndefValue::get(FuncTy->getReturnType()), HasException, { 0 }, "filc_insert_has_exception",
-      Return);
-    Instruction* ElseTerm = SplitBlockAndInsertIfElse(
-      expectFalse(HasException, Return), Return, false);
-    Instruction* RetSize = ExtractValueInst::Create(
-      IntPtrTy, TheCall, { 1 }, "filc_ret_size", ElseTerm);
-    Value* FastValueResult = FastResult;
-    if (NormalizedRetType != VoidTy) {
-      Value* GenericResult = loadCC(
-        NormalizedRetType, RetSize, CCRetsCheckFailure, ElseTerm, DebugLoc());
-      FastValueResult = insertAndNormalizeReturn(
-        NormalizedRetType, GenericResult, FastResult, ElseTerm);
-    }
-    PHINode* FastResultPHI = PHINode::Create(
-      FuncTy->getReturnType(), 2, "filc_result_value_phi", Return);
-    FastResultPHI->addIncoming(FastResult, FastResult->getParent());
-    FastResultPHI->addIncoming(FastValueResult, ElseTerm->getParent());
-    Return->getOperandUse(0) = FastResultPHI;
+    Return->getOperandUse(0) =
+      callGenericFromFastThunk(CalleeLower, Result, AIs, NormalizedRetType, Return);
     
     MyThread = OldMyThread;
     OldF = OldOldF;
@@ -8454,6 +8511,157 @@ class Pizlonator {
     CalleeEntrypointThunks[Signature] = Result;
     return Result;
   }
+
+  Value* checkFunctionAndGetLower(Value* CalledOperand, Instruction* Before) {
+    Value* CalledLower = flightPtrLower(CalledOperand, Before);
+    ICmpInst* NullLower = new ICmpInst(
+      Before, ICmpInst::ICMP_EQ, CalledLower, RawNull, "filc_null_called_lower");
+    NullLower->setDebugLoc(Before->getDebugLoc());
+    Instruction* NewBlockTerm = SplitBlockAndInsertIfThen(
+      expectFalse(NullLower, Before), Before, true);
+    BasicBlock* NewBlock = NewBlockTerm->getParent();
+    CallInst::Create(
+      CheckFunctionCallFail, { CalledOperand }, "", NewBlockTerm)
+      ->setDebugLoc(Before->getDebugLoc());
+    ICmpInst* AtAuxPtr = new ICmpInst(
+      Before, ICmpInst::ICMP_EQ, flightPtrPtr(CalledOperand, Before),
+      auxPtrForLower(CalledLower, Before), "filc_call_at_lower");
+    AtAuxPtr->setDebugLoc(Before->getDebugLoc());
+    SplitBlockAndInsertIfElse(
+      expectTrue(AtAuxPtr, Before), Before, false, nullptr, nullptr, nullptr, NewBlock);
+    BinaryOperator* Masked = BinaryOperator::Create(
+      Instruction::And, flagsForLower(CalledLower, Before),
+      ConstantInt::get(IntPtrTy, SpecialTypeMask << ObjectFlagsSpecialShift),
+      "filc_call_mask_special_type", Before);
+    Masked->setDebugLoc(Before->getDebugLoc());
+    ICmpInst* IsFunction = new ICmpInst(
+      Before, ICmpInst::ICMP_EQ, Masked,
+      ConstantInt::get(IntPtrTy, SpecialTypeFunction << ObjectFlagsSpecialShift),
+      "filc_call_is_function");
+    IsFunction->setDebugLoc(Before->getDebugLoc());
+    SplitBlockAndInsertIfElse(
+      expectTrue(IsFunction, Before), Before, false, nullptr, nullptr, nullptr, NewBlock);
+    return CalledLower;
+  }
+
+  Value* knownTargetCallsiteThunk(Function* F, uint64_t Signature, const std::vector<ArgInfo>& AIs,
+                                  Type* NormalizedRetType, Instruction* Before) {
+    assert(computeSignature(AIs, NormalizedRetType) == Signature);
+
+    // In the case of linkonce, which is used for C++ inline functions, we will have a definition in
+    // the local module.
+    if (FunctionToSignature.count(F)) {
+      assert(FunctionToHiddenFunction.count(F));
+      Function* Result = FunctionToHiddenFunction[F];
+      if (FunctionToSignature[F] == Signature) {
+        assert(F->getLinkage() == GlobalValue::ExternalLinkage ||
+               F->getLinkage() == GlobalValue::InternalLinkage ||
+               F->getLinkage() == GlobalValue::PrivateLinkage ||
+               F->getLinkage() == GlobalValue::LinkOnceAnyLinkage ||
+               F->getLinkage() == GlobalValue::WeakAnyLinkage);
+        if ((F->getLinkage() == GlobalValue::LinkOnceAnyLinkage ||
+             F->getLinkage() == GlobalValue::WeakAnyLinkage)
+            && GlobalToComdat.count(F)) {
+          Instruction* IsNull = new ICmpInst(
+            Before, ICmpInst::ICMP_EQ, Result, RawNull, "filc_global_is_null");
+          IsNull->setDebugLoc(Before->getDebugLoc());
+          Instruction* ThenTerm = SplitBlockAndInsertIfThen(
+            expectFalse(IsNull, Before), Before, true);
+          CallInst::Create(
+            ComdatLinkFail, { getString(getFunctionName(F)), ConstantInt::get(Int64Ty, Signature) },
+            "", ThenTerm)
+            ->setDebugLoc(Before->getDebugLoc());
+        }
+        return Result;
+      }
+    }
+
+    NameAndSignature Key(std::string(F->getName()), Signature);
+    if (KnownTargetCallsiteThunks.count(Key))
+      return KnownTargetCallsiteThunks[Key];
+
+    std::ostringstream buf;
+    buf << "pizlonatedFI" << Signature << "_" << std::string(F->getName());
+    FunctionType* FuncTy;
+    if (Signature == GenericSignature)
+      FuncTy = PizlonatedFuncTy;
+    else
+      FuncTy = fastFunctionTypeForSignature(AIs, NormalizedRetType);
+    Function* Result = M.getFunction(buf.str());
+    if (Result) {
+      assert(!F->isDeclaration());
+      assert(Result->getFunctionType() == FuncTy);
+      assert(!Result->isDeclaration());
+    } else {
+      FunctionCallee ResultCallee = M.getOrInsertFunction(buf.str(), FuncTy);
+      assert(ResultCallee.getFunctionType() == FuncTy);
+      Result = cast<Function>(ResultCallee.getCallee());
+      assert(Result->isDeclaration());
+      switch (F->getLinkage()) {
+      case GlobalValue::ExternalLinkage:
+      case GlobalValue::LinkOnceAnyLinkage:
+      case GlobalValue::WeakAnyLinkage:
+      case GlobalValue::ExternalWeakLinkage:
+        Result->setLinkage(GlobalValue::WeakAnyLinkage);
+        Result->setVisibility(GlobalValue::HiddenVisibility);
+        break;
+      case GlobalValue::InternalLinkage:
+      case GlobalValue::PrivateLinkage:
+        Result->setLinkage(F->getLinkage());
+        break;
+      default:
+        llvm_unreachable("Invalid linkage type");
+        break;
+      }
+      Result->addFnAttr(Attribute::NoInline);
+      Result->addFnAttr(Attribute::NoUnwind);
+      
+      Value* OldMyThread = MyThread;
+      Function* OldOldF = OldF;
+      Function* OldNewF = NewF;
+      MyThread = Result->getArg(0);
+      OldF = nullptr;
+      NewF = Result;
+
+      BasicBlock* RootB = BasicBlock::Create(C, "filc_callee_entrypoint_thunk_root", Result);
+      ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FuncTy->getReturnType()), RootB);
+      
+      Value* Callee = constantToFlightValue(F, Return);
+      Value* CalledLower = checkFunctionAndGetLower(Callee, Return);
+      if (Signature == GenericSignature) {
+        Return->getOperandUse(0) = CallInst::Create(
+          PizlonatedFuncTy, genericEntrypointForFunctionPayload(CalledLower, Return),
+          { MyThread, CalledLower, Result->getArg(2) },
+          "filc_generic_call", Return);
+      } else {
+        Instruction* SignatureMatches = new ICmpInst(
+          Return, ICmpInst::ICMP_EQ, signatureForFunctionPayload(CalledLower, Return),
+          ConstantInt::get(Int64Ty, Signature), "filc_signature_matches");
+        Instruction* ThenTerm = SplitBlockAndInsertIfThen(
+          expectTrue(SignatureMatches, Return), Return, true);
+        std::vector<Value*> FastArgs;
+        FastArgs.push_back(MyThread);
+        FastArgs.push_back(CalledLower);
+        for (unsigned Idx = 2; Idx < FuncTy->getNumParams(); ++Idx)
+          FastArgs.push_back(Result->getArg(Idx));
+        Instruction* FastCall = CallInst::Create(
+          fastFunctionTypeForSignature(AIs, NormalizedRetType),
+          fastEntrypointForFunctionPayload(CalledLower, ThenTerm),
+          FastArgs, "filc_fast_call", ThenTerm);
+        ReplaceInstWithInst(ThenTerm, ReturnInst::Create(C, FastCall));
+        
+        Return->getOperandUse(0) =
+          callGenericFromFastThunk(CalledLower, Result, AIs, NormalizedRetType, Return);
+      }
+    
+      MyThread = OldMyThread;
+      OldF = OldOldF;
+      NewF = OldNewF;
+    }
+    
+    KnownTargetCallsiteThunks[Key] = Result;
+    return Result;
+  }
   
   // This lowers the instruction "in place", so all references to it are fixed up after this runs.
   void lowerInstruction(Instruction *I) {
@@ -8466,6 +8674,211 @@ class Pizlonator {
           P->getOperandUse(Index), P->getIncomingBlock(Index)->getTerminator());
       }
       P->mutateType(toFlightType(P->getType()));
+      return;
+    }
+
+    if (CallBase* CI = dyn_cast<CallBase>(I)) {
+      assert(isa<CallInst>(CI) || isa<InvokeInst>(CI));
+
+      // FIXME: It would be cool to emit a direct call to the function, if:
+      // - We know who the callee is.
+      // - The original called signature according to the call instruction matches the original
+      //   function type of the callee.
+      // - The callee is a definition in this module, so we can call the hidden function.
+      //
+      // The trouble with this is that to make this totally effective:
+      // - We'd want to eliminate the constant lowering of the callee, so we don't end up with a call
+      //   to the pizlonated_getter.
+      // - We'd want to call a version of the hidden function that "just" takes the arguments, without
+      //   any CC shenanigans.
+      //
+      // To achieve the latter requirement, I'd probably want to emit all functions as a collection of
+      // three functions:
+      // - Hidden function that is the actual implementation. It takes its arguments and a frame
+      //   pointer. It expects the caller to set up its frame and do all argument/return checking.
+      // - Hidden function that uses the Fil-C CC and sets up the frame, then calls the
+      //   implementation.
+      // - Hidden function that uses a direct CC and sets up the frame, then calls the implementation.
+      //
+      // We can rely on the implementation to get inlined into the other functions whenever either of
+      // these things is true:
+      // 1. The implementation is small.
+      // 2. Only the Fil-C CC, or only the direct CC, version are used.
+      //
+      // But this risks suboptimal codegen if the implementation isn't inlined. Yuck! The trick is that
+      // we want the Fil-C CC shenanigans to happen with the frame already set up, so we can't simply
+      // have the Fil-C CC version wrap the direct version.
+      
+      if (CI->isInlineAsm()) {
+        std::string Reason = "";
+        
+        lowerConstantOperands(CI);
+        
+        if (handleInlineAsm(CI, Reason))
+          return;
+
+        assert(!Reason.empty());
+        
+        assert(isa<CallInst>(CI));
+        std::string str;
+        raw_string_ostream outs(str);
+        outs << "cannot handle inline asm (" << Reason << "): " << *CI;
+        CallInst::Create(Error, { getString(str), getOrigin(I->getDebugLoc()) }, "", I)
+          ->setDebugLoc(I->getDebugLoc());
+        if (I->getType() != VoidTy) {
+          // We need to produce something to RAUW the call with, but it cannot be a constant, since
+          // that would upset lowerConstant.
+          Type* LowT = toFlightType(I->getType());
+          LoadInst* LI = new LoadInst(LowT, RawNull, "filc_fake_load", I);
+          LI->setDebugLoc(I->getDebugLoc());
+          CI->replaceAllUsesWith(LI);
+        }
+        CI->eraseFromParent();
+        return;
+      }
+
+      for (unsigned Index = CI->getNumOperands(); Index--;) {
+        if (&CI->getOperandUse(Index) == &CI->getCalledOperandUse())
+          continue;
+        lowerConstantOperand(CI->getOperandUse(Index), CI);
+      }
+      
+      if (verbose)
+        errs() << "Dealing with called operand: " << *CI->getCalledOperand() << "\n";
+
+      FunctionType *FT = CI->getFunctionType();
+      assert(InstTypeVectors.count(CI));
+      std::vector<Type*> ArgTypes = InstTypeVectors[CI];
+      assert(ArgTypes.size() == CI->arg_size());
+      std::vector<ArgInfo> AIs;
+      std::vector<Value*> Vs;
+      for (size_t Idx = 0; Idx < CI->arg_size(); ++Idx) {
+        if (CI->isByValArgument(Idx)) {
+          AIs.push_back(ArgInfo(CI->getParamByValType(Idx),
+                                ArgKind::ByVal,
+                                std::max(DL.getABITypeAlign(CI->getParamByValType(Idx)),
+                                         CI->getParamAlign(Idx).valueOrOne())));
+          Vs.push_back(CI->getArgOperand(Idx));
+        } else {
+          assert(!CI->isPassPointeeByValueArgument(Idx));
+          Type* ArgType = normalizeArgType(ArgTypes[Idx]);
+          AIs.push_back(ArgInfo(ArgType, ArgKind::Direct, DL.getABITypeAlign(ArgType)));
+          Vs.push_back(convertToNormalizedArgType(ArgTypes[Idx], CI->getArgOperand(Idx), CI));
+        }
+      }
+      assert(AIs.size() == Vs.size());
+      Type* NormalizedRetType = normalizeRetType(FT->getReturnType());
+      uint64_t Signature = computeSignature(AIs, NormalizedRetType);
+      Value* ArgSize = nullptr;
+      if (Signature == GenericSignature)
+        ArgSize = storeCC(AIs, Vs, CI, CI->getDebugLoc());
+
+      bool CanCatch;
+      LandingPadInst* LPI;
+      if (isa<CallInst>(CI)) {
+        CanCatch = true;
+        LPI = nullptr;
+      } else {
+        CanCatch = true;
+        assert(LPIs.count(cast<InvokeInst>(CI)));
+        LPI = LPIs[cast<InvokeInst>(CI)];
+      }
+
+      storeOrigin(getOrigin(CI->getDebugLoc(), CanCatch, LPI), CI);
+
+      CallInst* TheCall = nullptr;
+      Instruction* RetSize = nullptr;
+
+      auto CallGeneric = [&] (Value* CalledLower, Value* Callee) {
+        TheCall = CallInst::Create(
+          PizlonatedFuncTy, Callee,
+          { MyThread, CalledLower, ArgSize },
+          "filc_generic_call", CI);
+        RetSize = ExtractValueInst::Create(
+          IntPtrTy, TheCall, { 1 }, "filc_ret_size", CI);
+        RetSize->setDebugLoc(CI->getDebugLoc());
+      };
+
+      auto CallFast = [&] (Value* CalledLower, Value* Callee) {
+        std::vector<Value*> Args;
+        Args.push_back(MyThread);
+        Args.push_back(CalledLower);
+        for (Value* V : Vs)
+          Args.push_back(V);
+        TheCall = CallInst::Create(
+          fastFunctionTypeForSignature(AIs, NormalizedRetType), Callee, Args,
+          "filc_fast_call", CI);
+        RetSize = nullptr;
+      };
+      
+      if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+        assert(!shouldPassThrough(F));
+
+        Value* Callee = knownTargetCallsiteThunk(F, Signature, AIs, NormalizedRetType, CI);
+        
+        if (Signature == GenericSignature)
+          CallGeneric(UndefValue::get(RawPtrTy), Callee);
+        else
+          CallFast(UndefValue::get(RawPtrTy), Callee);
+      } else {
+        lowerConstantOperand(CI->getCalledOperandUse(), CI);
+
+        Value* CalledLower = checkFunctionAndGetLower(CI->getCalledOperand(), CI);
+
+        assert(!CI->hasOperandBundles());
+        if (Signature == GenericSignature)
+          CallGeneric(CalledLower, genericEntrypointForFunctionPayload(CalledLower, CI));
+        else {
+          Instruction* SignatureMatches = new ICmpInst(
+            CI, ICmpInst::ICMP_EQ, signatureForFunctionPayload(CalledLower, CI),
+            ConstantInt::get(Int64Ty, Signature), "filc_signature_matches");
+          SignatureMatches->setDebugLoc(CI->getDebugLoc());
+          Instruction* ThenTerm = SplitBlockAndInsertIfThen(
+            expectTrue(SignatureMatches, CI), CI, false);
+          Value* FastEntrypoint = fastEntrypointForFunctionPayload(CalledLower, ThenTerm);
+          PHINode* Entrypoint = PHINode::Create(RawPtrTy, 2, "filc_entrypoint_phi", CI);
+          Entrypoint->addIncoming(FastEntrypoint, ThenTerm->getParent());
+          Entrypoint->addIncoming(callerEntrypointThunk(Signature, AIs, NormalizedRetType),
+                                  SignatureMatches->getParent());
+          CallFast(CalledLower, Entrypoint);
+        }
+      }
+      
+      TheCall->setDebugLoc(CI->getDebugLoc());
+      Instruction* HasException = ExtractValueInst::Create(
+        Int1Ty, TheCall, { 0 }, "filc_has_exception", CI);
+      HasException->setDebugLoc(CI->getDebugLoc());
+
+      if (isa<CallInst>(CI) && CanCatch) {
+        SplitBlockAndInsertIfThen(
+          expectFalse(HasException, CI), CI, false, nullptr, nullptr, nullptr, ResumeB);
+      } else if (InvokeInst* II = dyn_cast<InvokeInst>(CI)) {
+        BranchInst::Create(
+          II->getUnwindDest(), II->getNormalDest(), expectFalse(HasException, II), II)
+          ->setDebugLoc(II->getDebugLoc());
+      }
+      
+      Instruction* PostInsertionPt;
+      if (isa<CallInst>(CI))
+        PostInsertionPt = CI;
+      else
+        PostInsertionPt = &*cast<InvokeInst>(CI)->getNormalDest()->getFirstInsertionPt();
+
+      if (FT->getReturnType() != VoidTy) {
+        if (Signature == GenericSignature) {
+          CI->replaceAllUsesWith(
+            denormalizeReturn(
+              FT->getReturnType(),
+              loadCC(NormalizedRetType, RetSize, CCRetsCheckFailure, PostInsertionPt,
+                     CI->getDebugLoc()),
+              PostInsertionPt));
+        } else {
+          CI->replaceAllUsesWith(
+            extractAndDenormalizeReturn(FT->getReturnType(), TheCall, PostInsertionPt));
+        }
+      }
+
+      CI->eraseFromParent();
       return;
     }
 
@@ -8621,209 +9034,6 @@ class Pizlonator {
 
     if (isa<CallBrInst>(I)) {
       llvm_unreachable("Don't support CallBr yet (and maybe never will)");
-      return;
-    }
-
-    if (CallBase* CI = dyn_cast<CallBase>(I)) {
-      assert(isa<CallInst>(CI) || isa<InvokeInst>(CI));
-
-      // FIXME: It would be cool to emit a direct call to the function, if:
-      // - We know who the callee is.
-      // - The original called signature according to the call instruction matches the original
-      //   function type of the callee.
-      // - The callee is a definition in this module, so we can call the hidden function.
-      //
-      // The trouble with this is that to make this totally effective:
-      // - We'd want to eliminate the constant lowering of the callee, so we don't end up with a call
-      //   to the pizlonated_getter.
-      // - We'd want to call a version of the hidden function that "just" takes the arguments, without
-      //   any CC shenanigans.
-      //
-      // To achieve the latter requirement, I'd probably want to emit all functions as a collection of
-      // three functions:
-      // - Hidden function that is the actual implementation. It takes its arguments and a frame
-      //   pointer. It expects the caller to set up its frame and do all argument/return checking.
-      // - Hidden function that uses the Fil-C CC and sets up the frame, then calls the
-      //   implementation.
-      // - Hidden function that uses a direct CC and sets up the frame, then calls the implementation.
-      //
-      // We can rely on the implementation to get inlined into the other functions whenever either of
-      // these things is true:
-      // 1. The implementation is small.
-      // 2. Only the Fil-C CC, or only the direct CC, version are used.
-      //
-      // But this risks suboptimal codegen if the implementation isn't inlined. Yuck! The trick is that
-      // we want the Fil-C CC shenanigans to happen with the frame already set up, so we can't simply
-      // have the Fil-C CC version wrap the direct version.
-      
-      if (CI->isInlineAsm()) {
-        std::string Reason = "";
-
-        if (handleInlineAsm(CI, Reason))
-          return;
-
-        assert(!Reason.empty());
-        
-        assert(isa<CallInst>(CI));
-        std::string str;
-        raw_string_ostream outs(str);
-        outs << "cannot handle inline asm (" << Reason << "): " << *CI;
-        CallInst::Create(Error, { getString(str), getOrigin(I->getDebugLoc()) }, "", I)
-          ->setDebugLoc(I->getDebugLoc());
-        if (I->getType() != VoidTy) {
-          // We need to produce something to RAUW the call with, but it cannot be a constant, since
-          // that would upset lowerConstant.
-          Type* LowT = toFlightType(I->getType());
-          LoadInst* LI = new LoadInst(LowT, RawNull, "filc_fake_load", I);
-          LI->setDebugLoc(I->getDebugLoc());
-          CI->replaceAllUsesWith(LI);
-        }
-        CI->eraseFromParent();
-        return;
-      }
-
-      if (verbose)
-        errs() << "Dealing with called operand: " << *CI->getCalledOperand() << "\n";
-
-      if (Function* F = dyn_cast<Function>(CI->getCalledOperand()))
-        assert(!shouldPassThrough(F));
-
-      FunctionType *FT = CI->getFunctionType();
-      assert(InstTypeVectors.count(CI));
-      std::vector<Type*> ArgTypes = InstTypeVectors[CI];
-      assert(ArgTypes.size() == CI->arg_size());
-      std::vector<ArgInfo> AIs;
-      std::vector<Value*> Vs;
-      for (size_t Idx = 0; Idx < CI->arg_size(); ++Idx) {
-        if (CI->isByValArgument(Idx)) {
-          AIs.push_back(ArgInfo(CI->getParamByValType(Idx),
-                                ArgKind::ByVal,
-                                std::max(DL.getABITypeAlign(CI->getParamByValType(Idx)),
-                                         CI->getParamAlign(Idx).valueOrOne())));
-          Vs.push_back(CI->getArgOperand(Idx));
-        } else {
-          assert(!CI->isPassPointeeByValueArgument(Idx));
-          Type* ArgType = normalizeArgType(ArgTypes[Idx]);
-          AIs.push_back(ArgInfo(ArgType, ArgKind::Direct, DL.getABITypeAlign(ArgType)));
-          Vs.push_back(convertToNormalizedArgType(ArgTypes[Idx], CI->getArgOperand(Idx), CI));
-        }
-      }
-      assert(AIs.size() == Vs.size());
-      Type* NormalizedRetType = normalizeRetType(FT->getReturnType());
-      uint64_t Signature = computeSignature(AIs, NormalizedRetType);
-      Value* ArgSize = nullptr;
-      if (Signature == GenericSignature)
-        ArgSize = storeCC(AIs, Vs, CI, CI->getDebugLoc());
-
-      bool CanCatch;
-      LandingPadInst* LPI;
-      if (isa<CallInst>(CI)) {
-        CanCatch = true;
-        LPI = nullptr;
-      } else {
-        CanCatch = true;
-        assert(LPIs.count(cast<InvokeInst>(CI)));
-        LPI = LPIs[cast<InvokeInst>(CI)];
-      }
-
-      storeOrigin(getOrigin(CI->getDebugLoc(), CanCatch, LPI), CI);
-
-      Value* CalledLower = flightPtrLower(CI->getCalledOperand(), CI);
-      ICmpInst* NullLower = new ICmpInst(
-        CI, ICmpInst::ICMP_EQ, CalledLower, RawNull, "filc_null_called_lower");
-      NullLower->setDebugLoc(CI->getDebugLoc());
-      Instruction* NewBlockTerm = SplitBlockAndInsertIfThen(expectFalse(NullLower, CI), CI, true);
-      BasicBlock* NewBlock = NewBlockTerm->getParent();
-      CallInst::Create(
-        CheckFunctionCallFail, { CI->getCalledOperand() }, "", NewBlockTerm)
-        ->setDebugLoc(CI->getDebugLoc());
-      ICmpInst* AtAuxPtr = new ICmpInst(
-        CI, ICmpInst::ICMP_EQ, flightPtrPtr(CI->getCalledOperand(), CI),
-        auxPtrForLower(CalledLower, CI), "filc_call_at_lower");
-      AtAuxPtr->setDebugLoc(CI->getDebugLoc());
-      SplitBlockAndInsertIfElse(
-        expectTrue(AtAuxPtr, CI), CI, false, nullptr, nullptr, nullptr, NewBlock);
-      BinaryOperator* Masked = BinaryOperator::Create(
-        Instruction::And, flagsForLower(CalledLower, CI),
-        ConstantInt::get(IntPtrTy, SpecialTypeMask << ObjectFlagsSpecialShift),
-        "filc_call_mask_special_type", CI);
-      Masked->setDebugLoc(CI->getDebugLoc());
-      ICmpInst* IsFunction = new ICmpInst(
-        CI, ICmpInst::ICMP_EQ, Masked,
-        ConstantInt::get(IntPtrTy, SpecialTypeFunction << ObjectFlagsSpecialShift),
-        "filc_call_is_function");
-      IsFunction->setDebugLoc(CI->getDebugLoc());
-      SplitBlockAndInsertIfElse(
-        expectTrue(IsFunction, CI), CI, false, nullptr, nullptr, nullptr, NewBlock);
-
-      assert(!CI->hasOperandBundles());
-      CallInst* TheCall;
-      Instruction* RetSize;
-      if (Signature == GenericSignature) {
-        TheCall = CallInst::Create(
-          PizlonatedFuncTy, genericEntrypointForFunctionPayload(CalledLower, CI),
-          { MyThread, CalledLower, ArgSize },
-          "filc_generic_call", CI);
-        RetSize = ExtractValueInst::Create(
-          IntPtrTy, TheCall, { 1 }, "filc_ret_size", CI);
-        RetSize->setDebugLoc(CI->getDebugLoc());
-      } else {
-        Instruction* SignatureMatches = new ICmpInst(
-          CI, ICmpInst::ICMP_EQ, signatureForFunctionPayload(CalledLower, CI),
-          ConstantInt::get(Int64Ty, Signature), "filc_signature_matches");
-        SignatureMatches->setDebugLoc(CI->getDebugLoc());
-        Instruction* ThenTerm = SplitBlockAndInsertIfThen(
-          expectTrue(SignatureMatches, CI), CI, false);
-        Value* FastEntrypoint = fastEntrypointForFunctionPayload(CalledLower, ThenTerm);
-        PHINode* Entrypoint = PHINode::Create(RawPtrTy, 2, "filc_entrypoint_phi", CI);
-        Entrypoint->addIncoming(FastEntrypoint, ThenTerm->getParent());
-        Entrypoint->addIncoming(callerEntrypointThunk(Signature, AIs, NormalizedRetType),
-                                SignatureMatches->getParent());
-        std::vector<Value*> Args;
-        Args.push_back(MyThread);
-        Args.push_back(CalledLower);
-        for (Value* V : Vs)
-          Args.push_back(V);
-        TheCall = CallInst::Create(
-          fastFunctionTypeForSignature(AIs, NormalizedRetType), Entrypoint, Args,
-          "filc_fast_call", CI);
-        RetSize = nullptr;
-      }
-      TheCall->setDebugLoc(CI->getDebugLoc());
-      Instruction* HasException = ExtractValueInst::Create(
-        Int1Ty, TheCall, { 0 }, "filc_has_exception", CI);
-      HasException->setDebugLoc(CI->getDebugLoc());
-
-      if (isa<CallInst>(CI) && CanCatch) {
-        SplitBlockAndInsertIfThen(
-          expectFalse(HasException, CI), CI, false, nullptr, nullptr, nullptr, ResumeB);
-      } else if (InvokeInst* II = dyn_cast<InvokeInst>(CI)) {
-        BranchInst::Create(
-          II->getUnwindDest(), II->getNormalDest(), expectFalse(HasException, II), II)
-          ->setDebugLoc(II->getDebugLoc());
-      }
-      
-      Instruction* PostInsertionPt;
-      if (isa<CallInst>(CI))
-        PostInsertionPt = CI;
-      else
-        PostInsertionPt = &*cast<InvokeInst>(CI)->getNormalDest()->getFirstInsertionPt();
-
-      if (FT->getReturnType() != VoidTy) {
-        if (Signature == GenericSignature) {
-          CI->replaceAllUsesWith(
-            denormalizeReturn(
-              FT->getReturnType(),
-              loadCC(NormalizedRetType, RetSize, CCRetsCheckFailure, PostInsertionPt,
-                     CI->getDebugLoc()),
-              PostInsertionPt));
-        } else {
-          CI->replaceAllUsesWith(
-            extractAndDenormalizeReturn(FT->getReturnType(), TheCall, PostInsertionPt));
-        }
-      }
-
-      CI->eraseFromParent();
       return;
     }
 
@@ -10666,6 +10876,8 @@ public:
       "filc_check_function_call_fail", VoidTy, FlightPtrTy);
     CheckClosureFail = M.getOrInsertFunction(
       "filc_check_closure_fail", VoidTy, RawPtrTy, RawPtrTy);
+    ComdatLinkFail = M.getOrInsertFunction(
+      "filc_comdat_link_fail", VoidTy, RawPtrTy, Int64Ty);
     OptimizedAlignmentContradiction = M.getOrInsertFunction(
       "filc_optimized_alignment_contradiction", VoidTy, FlightPtrTy, RawPtrTy);
     OptimizedAccessCheckFail = M.getOrInsertFunction(
@@ -10808,7 +11020,8 @@ public:
 
     auto PutImplIntoComdat = [&] (GlobalValue* OrigG, GlobalObject* NewG) {
       assert(NewG->getLinkage() == GlobalValue::InternalLinkage ||
-             NewG->getLinkage() == GlobalValue::PrivateLinkage);
+             NewG->getLinkage() == GlobalValue::PrivateLinkage ||
+             NewG->getLinkage() == OrigG->getLinkage());
       
       if (!GlobalToComdat.count(OrigG))
         return;
@@ -10856,15 +11069,29 @@ public:
           ImplFuncTy = PizlonatedFuncTy;
         else
           ImplFuncTy = fastFunctionTypeForSignature(AIs, NormalizedRetType);
+        bool UsesCallee = usesCallee(F);
         std::ostringstream buf;
-        buf << "pizlonatedFI" << Signature << "_" << std::string(F->getName());
+        buf << "pizlonatedFIP" << Signature << "_" << std::string(F->getName());
+        GlobalValue::LinkageTypes Linkage;
+        if (UsesCallee)
+          Linkage = GlobalValue::InternalLinkage;
+        else
+          Linkage = F->getLinkage();
         Function* NewF = Function::Create(
-          ImplFuncTy, GlobalValue::InternalLinkage, F->getAddressSpace(),
+          ImplFuncTy, Linkage, F->getAddressSpace(),
           buf.str(), &M);
         FunctionToHiddenFunction[F] = NewF;
+        if (!UsesCallee)
+          FunctionToSignature[F] = Signature;
         NewF->setSubprogram(F->getSubprogram());
 
         PutImplIntoComdat(F, NewF);
+
+        if (F->getLinkage() == GlobalValue::ExternalLinkage && !UsesCallee) {
+          std::ostringstream buf;
+          buf << "pizlonatedFI" << Signature << "_" << std::string(F->getName());
+          GlobalAlias::create(ImplFuncTy, 0, F->getLinkage(), buf.str(), NewF, &M);
+        }
 
         GlobalVariable* NewObjectG = new GlobalVariable(
           M, FunctionObjectTy, true, GlobalValue::InternalLinkage, nullptr,

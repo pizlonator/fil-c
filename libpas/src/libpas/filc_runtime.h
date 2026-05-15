@@ -3981,6 +3981,8 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
 void filc_check_function_call(filc_ptr ptr);
 PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr);
 
+PAS_NO_RETURN void filc_comdat_link_fail(const char* name, uint64_t signature);
+
 void filc_check_access_special(filc_ptr ptr, filc_special_type expected_type);
 
 PAS_NO_RETURN void filc_cc_args_check_failure(size_t actual_size, size_t expected_size,

@@ -391,7 +391,6 @@ typically spends <5% of its time sweeping.
 
 ## Conclusion
 
-I would like to thank my awesome employer, Epic Games, for allowing me to work on this in my spare
-time. Hence, Fil-C is (C) Epic Games, but all of its components are permissively-licensed open
-source. In short, Fil-C's compiler bits are Apache2 while the runtime bits are BSD.
+Fil-C is an open source project that I'm working on in my spare time. All of its components are
+permissively-licensed open source. Fil-C's compiler bits are Apache2 while the runtime bits are BSD.
 

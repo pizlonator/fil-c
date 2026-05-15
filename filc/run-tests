@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 #
 # Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -11,10 +12,10 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
 # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -129,7 +130,8 @@ $testDirectory.each_entry {
     expectedReturn = manifest["return"]
     raise unless expectedReturn == "success" or expectedReturn == "failure" or
         expectedReturn == "crash" or expectedReturn == "compileFailure" or
-        expectedReturn == "dontCrash" or expectedReturn == "exit13" or expectedReturn == "compileOnly"
+        expectedReturn == "dontCrash" or expectedReturn == "exit13" or
+        expectedReturn == "compileOnly" or expectedReturn == "linkFailure"
     expectedOutputs = handleArray(manifest["output-includes"])
     forbiddenOutputs = handleArray(manifest["output-excludes"])
     optFlags = manifest["optFlags"]
@@ -257,14 +259,24 @@ $testDirectory.each_entry {
             outp.print " #{manifest["extraLinkerArgs"]}"
         end
         outp.puts " filc/tests/utils.o >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
-        outp.puts "if [ $? -ne 0 ]"
-        outp.puts "then"
-        outp.puts("    echo " + Shellwords.shellescape(runScript.to_s + ": FAIL: couldn't link"))
-        outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
-        outp.puts "    exit 1"
-        outp.puts "fi"
+        if expectedReturn == "linkFailure"
+            outp.puts "if [ $? -eq 0 ]"
+            outp.puts "then"
+            outp.puts("    echo " + Shellwords.shellescape(runScript.to_s + ": FAIL: linked but shouldn't have"))
+            outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+            outp.puts "    exit 1"
+            outp.puts "fi"
+        else
+            outp.puts "if [ $? -ne 0 ]"
+            outp.puts "then"
+            outp.puts("    echo " + Shellwords.shellescape(runScript.to_s + ": FAIL: couldn't link"))
+            outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+            outp.puts "    exit 1"
+            outp.puts "fi"
+        end
     }
-    if expectedReturn != "compileFailure" and expectedReturn != "compileOnly"
+    if expectedReturn != "compileFailure" and expectedReturn != "compileOnly" and
+      expectedReturn != "linkFailure"
         extraArgs = handleArray(manifest["extraArgs"]).map {
             | arg |
             Shellwords.shellescape(arg)
@@ -378,7 +390,8 @@ $testDirectory.each_entry {
         outp.puts "#!/bin/sh"
         outp.puts "set -e"
         outp.puts "#{Shellwords.shellescape(compileScript)}"
-        if expectedReturn != "compileFailure" and expectedReturn != "compileOnly"
+        if expectedReturn != "compileFailure" and expectedReturn != "compileOnly" and
+          expectedReturn != "linkFailure"
             subRuns = manifest["subRuns"]
             if not subRuns or subRuns["default"]
                 outp.puts "#{Shellwords.shellescape(subRunScript)}"
@@ -395,7 +408,8 @@ $testDirectory.each_entry {
         end
     }
     compileScript.chmod(0755)
-    if expectedReturn != "compileFailure" and expectedReturn != "compileOnly"
+    if expectedReturn != "compileFailure" and expectedReturn != "compileOnly" and
+      expectedReturn != "linkFailure"
         justRunScript.chmod(0755)
         justRunReleaseScript.chmod(0755)
         subRunScript.chmod(0755)
