@@ -2766,7 +2766,7 @@ class Pizlonator {
       for (Instruction& I : BB) {
         if (CallBase* CI = dyn_cast<CallBase>(&I)) {
           if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
-            if (F->getName() == "zcallee")
+            if (F->getName() == "zcallee" || F->getName() == "zcallee_closure_data")
               return true;
           }
         }
