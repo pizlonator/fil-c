@@ -529,7 +529,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   static void InternalAttemptToUseMutexInFatalSignalHandler();
 
  private:
-  std::atomic<intptr_t> mu_;  // The Mutex state.
+  std::atomic<void*> mu_;  // The Mutex state.
 
   // Post()/Wait() versus associated PerThreadSem; in class for required
   // friendship with PerThreadSem.
@@ -1061,7 +1061,7 @@ class CondVar {
   bool WaitCommon(Mutex* absl_nonnull mutex,
                   synchronization_internal::KernelTimeout t);
   void Remove(base_internal::PerThreadSynch* absl_nonnull s);
-  std::atomic<intptr_t> cv_;  // Condition variable state.
+  std::atomic<void*> cv_;  // Condition variable state.
   CondVar(const CondVar&) = delete;
   CondVar& operator=(const CondVar&) = delete;
 };
