@@ -61,7 +61,7 @@
 // Apple macOS has sigaltstack, but using it makes backtrace() unusable.
 #if !(defined(TARGET_OS_OSX) && TARGET_OS_OSX) &&     \
     !(defined(TARGET_OS_WATCH) && TARGET_OS_WATCH) && \
-    !(defined(TARGET_OS_TV) && TARGET_OS_TV) && !defined(__QNX__)
+    !(defined(TARGET_OS_TV) && TARGET_OS_TV) && !defined(__QNX__) && !defined(__FILC__)
 #define ABSL_HAVE_SIGALTSTACK
 #endif
 #endif

@@ -30,6 +30,10 @@
 #define ABSL_STACKTRACE_INL_HEADER \
     "absl/debugging/internal/stacktrace_win32-inl.inc"
 
+#elif defined(__FILC__)
+/* We don't support stacktraces for now
+   FIXME: Fil-C has its own stacktrace machinery, so this could be made to work. */
+
 #elif defined(__APPLE__)
 #ifdef ABSL_HAVE_THREAD_LOCAL
 // Thread local support required for UnwindImpl.

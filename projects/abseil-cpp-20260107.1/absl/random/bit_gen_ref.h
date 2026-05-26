@@ -118,7 +118,7 @@ class BitGenRef {
                                   random_internal::is_urbg<URBG>::value &&
                                   !HasInvokeMock<URBG>::value)>* = nullptr>
   BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND)  // NOLINT
-      : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
+      : t_erased_gen_ptr_(static_cast<void*>(&gen)),
         mock_call_(NotAMock),
         generate_impl_fn_(ImplFn<URBG>) {}
 
@@ -127,7 +127,7 @@ class BitGenRef {
                                         random_internal::is_urbg<URBG>::value &&
                                         HasInvokeMock<URBG>::value)>* = nullptr>
   BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND)  // NOLINT
-      : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
+      : t_erased_gen_ptr_(static_cast<void*>(&gen)),
         mock_call_(&MockCall<URBG>),
         generate_impl_fn_(ImplFn<URBG>) {}
 
@@ -144,25 +144,25 @@ class BitGenRef {
   result_type operator()() { return generate_impl_fn_(t_erased_gen_ptr_); }
 
  private:
-  using impl_fn = result_type (*)(uintptr_t);
-  using mock_call_fn = bool (*)(uintptr_t, FastTypeIdType, void*, void*);
+  using impl_fn = result_type (*)(void*);
+  using mock_call_fn = bool (*)(void*, FastTypeIdType, void*, void*);
 
   template <typename URBG>
-  static result_type ImplFn(uintptr_t ptr) {
+  static result_type ImplFn(void* ptr) {
     // Ensure that the return values from operator() fill the entire
     // range promised by result_type, min() and max().
     absl::random_internal::FastUniformBits<result_type> fast_uniform_bits;
-    return fast_uniform_bits(*reinterpret_cast<URBG*>(ptr));
+    return fast_uniform_bits(*static_cast<URBG*>(ptr));
   }
 
   // Get a type-erased InvokeMock pointer.
   template <typename URBG>
-  static bool MockCall(uintptr_t gen_ptr, FastTypeIdType key_id, void* result,
+  static bool MockCall(void* gen_ptr, FastTypeIdType key_id, void* result,
                        void* arg_tuple) {
-    return reinterpret_cast<URBG*>(gen_ptr)->InvokeMock(key_id, result,
-                                                        arg_tuple);
+    return static_cast<URBG*>(gen_ptr)->InvokeMock(key_id, result,
+                                                   arg_tuple);
   }
-  static bool NotAMock(uintptr_t, FastTypeIdType, void*, void*) {
+  static bool NotAMock(void*, FastTypeIdType, void*, void*) {
     return false;
   }
 
@@ -172,7 +172,7 @@ class BitGenRef {
     return mock_call_(t_erased_gen_ptr_, key_id, args_tuple, result);
   }
 
-  uintptr_t t_erased_gen_ptr_;
+  void* t_erased_gen_ptr_;
   mock_call_fn mock_call_;
   impl_fn generate_impl_fn_;
 
