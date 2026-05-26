@@ -641,17 +641,17 @@ class ABSL_ATTRIBUTE_TRIVIAL_ABI Status final {
 
   // Returns whether rep contains an inlined representation.
   // See rep_ for details.
-  static constexpr bool IsInlined(void* rep);
+  static bool IsInlined(void* rep);
 
   // Indicates whether this Status was the rhs of a move operation. See rep_
   // for details.
-  static constexpr bool IsMovedFrom(void* rep);
-  static constexpr void* MovedFromRep();
+  static bool IsMovedFrom(void* rep);
+  static void* MovedFromRep();
 
   // Convert between error::Code and the inlined void* representation used
   // by rep_. See rep_ for details.
-  static constexpr void* CodeToInlinedRep(absl::StatusCode code);
-  static constexpr absl::StatusCode InlinedRepToCode(void* rep);
+  static void* CodeToInlinedRep(absl::StatusCode code);
+  static absl::StatusCode InlinedRepToCode(void* rep);
 
   // Converts between StatusRep* and the external void* representation used
   // by rep_. See rep_ for details.
@@ -891,20 +891,20 @@ inline void Status::ForEachPayload(
   RepToPointer(rep_)->ForEachPayload(visitor);
 }
 
-constexpr bool Status::IsInlined(void* rep) { return (reinterpret_cast<uintptr_t>(rep) & 1) != 0; }
+inline bool Status::IsInlined(void* rep) { return (reinterpret_cast<uintptr_t>(rep) & 1) != 0; }
 
-constexpr bool Status::IsMovedFrom(void* rep) { return (reinterpret_cast<uintptr_t>(rep) & 2) != 0; }
+inline bool Status::IsMovedFrom(void* rep) { return (reinterpret_cast<uintptr_t>(rep) & 2) != 0; }
 
-constexpr void* Status::CodeToInlinedRep(absl::StatusCode code) {
+inline void* Status::CodeToInlinedRep(absl::StatusCode code) {
   return reinterpret_cast<void*>((static_cast<uintptr_t>(code) << 2) + 1);
 }
 
-constexpr absl::StatusCode Status::InlinedRepToCode(void* rep) {
+inline absl::StatusCode Status::InlinedRepToCode(void* rep) {
   ABSL_ASSERT(IsInlined(rep));
   return static_cast<absl::StatusCode>(reinterpret_cast<uintptr_t>(rep) >> 2);
 }
 
-constexpr void* Status::MovedFromRep() {
+inline void* Status::MovedFromRep() {
   return zorptr(CodeToInlinedRep(absl::StatusCode::kInternal), 2);
 }
 

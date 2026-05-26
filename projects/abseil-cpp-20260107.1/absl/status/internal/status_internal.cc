@@ -196,7 +196,7 @@ StatusRep* absl_nonnull StatusRep::CloneAndUnref() const {
     // const_cast will never cast away const from a stack instance.
     //
     // CloneAndUnref is the only method that doesn't involve an external cast to
-    // get a mutable StatusRep* from the uintptr_t rep stored in Status.
+    // get a mutable StatusRep* from the void* rep stored in Status.
     return const_cast<StatusRep*>(this);
   }
   std::unique_ptr<status_internal::Payloads> payloads;

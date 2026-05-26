@@ -64,7 +64,7 @@
 extern void __cpuid(int[4], int);
 #else
 // MSVC-equivalent __cpuid intrinsic function.
-static void __cpuid(int cpu_info[4], int info_type) {
+static void my_cpuid(int cpu_info[4], int info_type) {
   __get_cpuid(info_type,
               reinterpret_cast<unsigned int*>(cpu_info + 0),
               reinterpret_cast<unsigned int*>(cpu_info + 1),
@@ -165,7 +165,7 @@ bool CPUSupportsRandenHwAes() {
 #if defined(ABSL_INTERNAL_USE_X86_CPUID)
   // 1. For x86: Use CPUID to detect the required AES instruction set.
   int regs[4];
-  __cpuid(reinterpret_cast<int*>(regs), 1);
+  my_cpuid(reinterpret_cast<int*>(regs), 1);
   return regs[2] & (1 << 25);  // AES
 
 #elif defined(ABSL_INTERNAL_USE_GETAUXVAL)

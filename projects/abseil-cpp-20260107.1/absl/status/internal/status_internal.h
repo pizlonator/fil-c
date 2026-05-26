@@ -87,7 +87,7 @@ class StatusRep {
   void SetPayload(absl::string_view type_url, absl::Cord payload);
   struct EraseResult {
     bool erased;
-    uintptr_t new_rep;
+    void* new_rep;
   };
   EraseResult ErasePayload(absl::string_view type_url);
   void ForEachPayload(
