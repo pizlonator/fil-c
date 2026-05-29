@@ -110,15 +110,8 @@ struct FailureSignalData {
 };
 
 ABSL_CONST_INIT static FailureSignalData failure_signal_data[] = {
-    {SIGSEGV, "SIGSEGV", FSD_PREVIOUS_INIT},
-    {SIGILL, "SIGILL", FSD_PREVIOUS_INIT},
-    {SIGFPE, "SIGFPE", FSD_PREVIOUS_INIT},
     {SIGABRT, "SIGABRT", FSD_PREVIOUS_INIT},
     {SIGTERM, "SIGTERM", FSD_PREVIOUS_INIT},
-#ifndef _WIN32
-    {SIGBUS, "SIGBUS", FSD_PREVIOUS_INIT},
-    {SIGTRAP, "SIGTRAP", FSD_PREVIOUS_INIT},
-#endif
 };
 
 #undef FSD_PREVIOUS_INIT

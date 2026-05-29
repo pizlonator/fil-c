@@ -32,6 +32,8 @@
 #include "absl/container/internal/container_memory.h"
 #include "absl/strings/string_view.h"
 
+#include <stdfil.h>
+
 // We can only add poisoning if we can detect consteval executions.
 #if defined(ABSL_HAVE_CONSTANT_EVALUATED) && \
     (defined(ABSL_HAVE_ADDRESS_SANITIZER) || \
@@ -461,7 +463,7 @@ constexpr char GetOrNull(absl::string_view data, size_t pos) {
 // guarantees that the least significant byte of cordz_info matches the first
 // byte of the inline data representation in `data`, which holds the inlined
 // size or the 'is_tree' bit.
-using cordz_info_t = int64_t;
+using cordz_info_t = void*;
 
 // Assert that the `cordz_info` pointer value perfectly overlaps the last half
 // of `data` and can hold a pointer value.
@@ -471,12 +473,8 @@ static_assert(sizeof(cordz_info_t) >= sizeof(intptr_t), "");
 // LittleEndianByte() creates a little endian representation of 'value', i.e.:
 // a little endian value where the first byte in the host's representation
 // holds 'value`, with all other bytes being 0.
-static constexpr cordz_info_t LittleEndianByte(unsigned char value) {
-#if defined(ABSL_IS_BIG_ENDIAN)
-  return static_cast<cordz_info_t>(value) << ((sizeof(cordz_info_t) - 1) * 8);
-#else
-  return value;
-#endif
+static cordz_info_t LittleEndianByte(unsigned char value) {
+  return reinterpret_cast<void*>(static_cast<uintptr_t>(value));
 }
 
 class InlineData {
@@ -488,7 +486,7 @@ class InlineData {
   // This is the 'null' / initial value of 'cordz_info'. The null value
   // is specifically big endian 1 as with 64-bit pointers, the last
   // byte of cordz_info overlaps with the last byte holding the tag.
-  static constexpr cordz_info_t kNullCordzInfo = LittleEndianByte(1);
+  static cordz_info_t kNullCordzInfo() { return LittleEndianByte(1); };
 
   // kTagOffset contains the offset of the control byte / tag. This constant is
   // intended mostly for debugging purposes: do not remove this constant as it
@@ -558,17 +556,17 @@ class InlineData {
   // Requires the current instance to hold a tree value.
   bool is_profiled() const {
     assert(is_tree());
-    return rep_.cordz_info() != kNullCordzInfo;
+    return rep_.cordz_info() != kNullCordzInfo();
   }
 
   // Returns true if either of the provided instances hold a cordz_info value.
   // This method is more efficient than the equivalent `data1.is_profiled() ||
   // data2.is_profiled()`. Requires both arguments to hold a tree.
+  // LOOOOL - that statement is false even in Yolo-C.
   static bool is_either_profiled(const InlineData& data1,
                                  const InlineData& data2) {
     assert(data1.is_tree() && data2.is_tree());
-    return (data1.rep_.cordz_info() | data2.rep_.cordz_info()) !=
-           kNullCordzInfo;
+    return data1.is_profiled() || data2.is_profiled();
   }
 
   // Returns the cordz_info sampling instance for this instance, or nullptr
@@ -576,10 +574,9 @@ class InlineData {
   // Requires the current instance to hold a tree value.
   CordzInfo* cordz_info() const {
     assert(is_tree());
-    intptr_t info = static_cast<intptr_t>(absl::little_endian::ToHost64(
-        static_cast<uint64_t>(rep_.cordz_info())));
-    assert(info & 1);
-    return reinterpret_cast<CordzInfo*>(info - 1);
+    void* info = rep_.cordz_info();
+    assert(reinterpret_cast<uintptr_t>(info) & 1);
+    return static_cast<CordzInfo*>(zandptr(info, ~static_cast<uintptr_t>(1)));
   }
 
   // Sets the current cordz_info sampling instance for this instance, or nullptr
@@ -587,15 +584,13 @@ class InlineData {
   // Requires the current instance to hold a tree value.
   void set_cordz_info(CordzInfo* cordz_info) {
     assert(is_tree());
-    uintptr_t info = reinterpret_cast<uintptr_t>(cordz_info) | 1;
-    rep_.set_cordz_info(
-        static_cast<cordz_info_t>(absl::little_endian::FromHost64(info)));
+    rep_.set_cordz_info(zorptr(cordz_info, 1));
   }
 
   // Resets the current cordz_info to null / empty.
   void clear_cordz_info() {
     assert(is_tree());
-    rep_.set_cordz_info(kNullCordzInfo);
+    rep_.set_cordz_info(kNullCordzInfo());
   }
 
   // Returns a read only pointer to the character data inside this instance.
@@ -697,18 +692,18 @@ class InlineData {
   struct Rep {
     // See cordz_info_t for forced alignment and size of `cordz_info` details.
     struct AsTree {
-      explicit constexpr AsTree(absl::cord_internal::CordRep* tree)
+      explicit AsTree(absl::cord_internal::CordRep* tree)
           : rep(tree) {}
-      cordz_info_t cordz_info = kNullCordzInfo;
+      cordz_info_t cordz_info = kNullCordzInfo();
       absl::cord_internal::CordRep* rep;
     };
 
     explicit Rep(DefaultInitType) {}
     constexpr Rep() : data{0} {}
     constexpr Rep(const Rep&) = default;
-    constexpr Rep& operator=(const Rep&) = default;
+    Rep& operator=(const Rep&) = default;
 
-    explicit constexpr Rep(CordRep* rep) : as_tree(rep) {}
+    explicit Rep(CordRep* rep) : as_tree(rep) {}
 
     explicit constexpr Rep(absl::string_view chars)
         : data{static_cast<char>((chars.size() << 1)),
@@ -774,7 +769,7 @@ class InlineData {
 
     void make_tree(CordRep* tree) {
       self()->as_tree.rep = tree;
-      self()->as_tree.cordz_info = kNullCordzInfo;
+      self()->as_tree.cordz_info = kNullCordzInfo();
     }
 
 #ifdef ABSL_INTERNAL_CORD_HAVE_SANITIZER

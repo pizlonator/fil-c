@@ -31,6 +31,8 @@
 #include "absl/base/internal/errno_saver.h"
 #include "absl/base/log_severity.h"
 
+#include <pizlonated_syscalls.h>
+
 // We know how to perform low-level writes to stderr in POSIX and Windows.  For
 // these platforms, we define the token ABSL_LOW_LEVEL_WRITE_SUPPORTED.
 // Much of raw_logging.cc becomes a no-op when we can't output messages,
@@ -186,7 +188,7 @@ void RawLogVA(absl::LogSeverity severity, const char* file, int line,
   // was suppressed.
   if (severity == absl::LogSeverity::kFatal) {
     abort_hook(file, line, buffer, prefix_end, buffer + kLogBufSize);
-    abort();
+    zsys_abort();
   }
 }
 

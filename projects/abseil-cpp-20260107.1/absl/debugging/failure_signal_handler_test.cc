@@ -30,6 +30,7 @@
 #include "absl/log/check.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include <stdfil.h>
 
 namespace {
 
@@ -136,10 +137,7 @@ TEST_P(FailureSignalHandlerDeathTest, AbslFatalSignalsWithWriterFn) {
 }
 
 constexpr int kFailureSignals[] = {
-    SIGSEGV, SIGILL,  SIGFPE, SIGABRT, SIGTERM,
-#ifndef _WIN32
-    SIGBUS,  SIGTRAP,
-#endif
+    SIGABRT, SIGTERM
 };
 
 std::string SignalParamToString(const ::testing::TestParamInfo<int>& info) {

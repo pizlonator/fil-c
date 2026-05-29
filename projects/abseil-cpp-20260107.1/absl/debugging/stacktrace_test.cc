@@ -351,7 +351,7 @@ TEST(StackTrace, CustomUnwinderPerformsFixup) {
   EXPECT_GT(g_fixup_calls, 0);
 }
 
-#if ABSL_HAVE_BUILTIN(__builtin_frame_address)
+#if ABSL_HAVE_BUILTIN(__builtin_frame_address) && !defined(__FILC__)
 struct FrameInfo {
   const void* return_address;
   uintptr_t frame_address;
@@ -432,7 +432,7 @@ TEST(StackTrace, CanonicalFrameAddresses) {
 #endif
 
 // This test is Linux specific.
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__FILC__)
 const void* g_return_address = nullptr;
 bool g_sigusr2_raised = false;
 
