@@ -42,6 +42,7 @@
 #include "misc.h"
 
 #include "ssherr.h"
+#include "xmalloc.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
