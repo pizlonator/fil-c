@@ -39,7 +39,7 @@ extern volatile crypto_int64 crypto_int64_optblocker;
 #define crypto_int16 int16_t
 #define crypto_int16_unsigned uint16_t
 
-
+#undef __GNUC__
 
 __attribute__((unused))
 static inline

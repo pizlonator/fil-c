@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -11,10 +12,10 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
 # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -516,7 +517,7 @@ test -d pizlonated-krb5
 rm -rf pizlonated-krb5
 hash -r
 
-tar -xf $FILCSRC/projects/openssh-9.8p1/pizlonated-openssh.tar.gz
+tar -xf $FILCSRC/projects/openssh-10.3p1/pizlonated-openssh.tar.gz
 cd pizlonated-openssh
 install -v -m700 -d /opt/fil/var/lib/sshd
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
@@ -533,9 +534,9 @@ make -j `nproc` sysconfdir=/opt/fil/share/examples/ssh install-sysconf
 install -v -m755    contrib/ssh-copy-id /opt/fil/bin
 install -v -m644    contrib/ssh-copy-id.1 \
                     /opt/fil/share/man/man1
-install -v -m755 -d /opt/fil/share/doc/openssh-9.8p1
+install -v -m755 -d /opt/fil/share/doc/openssh-10.3p1
 install -v -m644    INSTALL LICENCE OVERVIEW README* \
-                    /opt/fil/share/doc/openssh-9.8p1
+                    /opt/fil/share/doc/openssh-10.3p1
 cd ..
 rm -rf pizlonated-openssh
 hash -r
