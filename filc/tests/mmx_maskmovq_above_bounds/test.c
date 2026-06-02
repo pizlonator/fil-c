@@ -1,0 +1,14 @@
+#include <xmmintrin.h>
+#include <stdfil.h>
+
+int main() {
+    char buf[16];
+    for (int i = 0; i < 16; i++) buf[i] = 0xAA;
+    
+    // Store above allocation with all mask bits set - should fail
+    __m64 value = _mm_set1_pi8(0x42);
+    __m64 mask = _mm_set1_pi8(-1);  // All bits set - all elements enabled
+    _mm_maskmove_si64(value, mask, buf + 16);  // Above bounds - should trigger safety error
+    
+    return 0;
+}

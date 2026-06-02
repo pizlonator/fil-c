@@ -4168,6 +4168,22 @@ class Pizlonator {
         IAD.Mask = II->getArgOperand(1);
         IAD.Alignment = 1;
         break;
+      case Intrinsic::x86_sse2_maskmov_dqu:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 16);
+        IAD.Ptr = II->getArgOperand(2);  // Note: maskmov uses (data, mask, ptr) order
+        IAD.Mask = II->getArgOperand(1);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_mmx_maskmovq:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 8);
+        IAD.Ptr = II->getArgOperand(2);  // Note: maskmov uses (data, mask, ptr) order
+        IAD.Mask = II->getArgOperand(1);
+        IAD.Alignment = 1;
+        break;
       case Intrinsic::x86_sse3_ldu_dq:
         IAD.AK = AccessKind::Read;
         IAD.T = cast<FixedVectorType>(II->getType());
