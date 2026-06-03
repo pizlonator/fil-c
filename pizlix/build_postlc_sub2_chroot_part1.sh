@@ -63,13 +63,13 @@ cd ..
 rm -rf lz4-1.10.0
 hash -r
 
-tar -xf zstd-1.5.6.tar.gz
-cd zstd-1.5.6
+tar -xf pizlonated-zstd.tar.gz
+cd pizlonated-zstd
 ZSTD_NO_ASM=1 make prefix=/usr
 ZSTD_NO_ASM=1 make prefix=/usr install
 rm -v /usr/lib/libzstd.a
 cd ..
-rm -rf zstd-1.5.6
+rm -rf pizlonated-zstd
 hash -r
 
 tar -xf file-5.45.tar.gz

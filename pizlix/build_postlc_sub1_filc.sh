@@ -54,4 +54,5 @@ rm -vf projects/pizlonated-*.tar.gz
 ./package-source.sh projects/man-db-2.12.1 pizlonated-man-db
 ./package-source.sh projects/tar-1.35 pizlonated-tar
 ./package-source.sh projects/meson-1.5.1 pizlonated-meson
+./package-source.sh projects/zstd-1.5.6 pizlonated-zstd
 
