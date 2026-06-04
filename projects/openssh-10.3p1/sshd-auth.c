@@ -479,7 +479,7 @@ main(int ac, char **av)
 
 	/* Parse command-line arguments. */
 	while ((opt = getopt(ac, av,
-	    "C:E:b:c:f:g:h:k:o:p:u:46DGQRTdeiqrtV")) != -1) {
+	    "C:E:b:c:f:g:h:k:o:p:u:N:46DGQRTdeiqrtV")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
@@ -504,6 +504,7 @@ main(int ac, char **av)
 		case 'D':
 		case 'E':
 		case 'e':
+		case 'N':
 			/* ignore */
 			break;
 		case 'i':

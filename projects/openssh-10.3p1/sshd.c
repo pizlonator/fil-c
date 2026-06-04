@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <linux/vm_sockets.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/queue.h>
@@ -84,10 +85,17 @@
 #endif
 #include "monitor_wrap.h"
 
+/* This will only get set if we build with systemd. */
+static int systemd_num_listen_fds;
+
+#ifdef SYSTEMD_SOCKET_ACTIVATION
+#define SYSTEMD_LISTEN_FDS_START 3
+#endif
+
 /* Re-exec fds */
-#define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
-#define REEXEC_CONFIG_PASS_FD		(STDERR_FILENO + 2)
-#define REEXEC_MIN_FREE_FD		(STDERR_FILENO + 3)
+#define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1 + systemd_num_listen_fds)
+#define REEXEC_CONFIG_PASS_FD		(STDERR_FILENO + 2 + systemd_num_listen_fds)
+#define REEXEC_MIN_FREE_FD		(STDERR_FILENO + 3 + systemd_num_listen_fds)
 
 extern char *__progname;
 
@@ -112,6 +120,7 @@ static int saved_argc;
  */
 #define	MAX_LISTEN_SOCKS	16
 static int listen_socks[MAX_LISTEN_SOCKS];
+static int listen_socks_no_close[MAX_LISTEN_SOCKS];
 static int num_listen_socks = 0;
 
 /*
@@ -197,12 +206,16 @@ static char *listener_proctitle;
  * Close all listening sockets
  */
 static void
-close_listen_socks(void)
+close_listen_socks(int force)
 {
 	int i;
 
-	for (i = 0; i < num_listen_socks; i++)
+	for (i = 0; i < num_listen_socks; i++) {
+		if (listen_socks_no_close[i] > 0 && force <= 0)
+			continue;
+
 		close(listen_socks[i]);
+        }
 	num_listen_socks = 0;
 }
 
@@ -517,7 +530,7 @@ sighup_restart(void)
 	if (options.pid_file != NULL)
 		unlink(options.pid_file);
 	platform_pre_restart();
-	close_listen_socks();
+	close_listen_socks(/* force = */ 0);
 	close_startup_pipes();
 	ssh_signal(SIGHUP, SIG_IGN); /* will be restored after exec */
 	execv(saved_argv[0], saved_argv);
@@ -800,6 +813,132 @@ send_rexec_state(int fd)
 	exit(0);
 }
 
+#ifdef SYSTEMD_SOCKET_ACTIVATION
+/*
+ * Get file descriptors passed by systemd; this implements the protocol
+ * described in the NOTES section of sd_listen_fds(3), with a few exceptions
+ * to handle our needs in sshd.
+ */
+static int
+get_systemd_listen_fds(int *ret_listen_fds, const char **ret_listen_fds_str)
+{
+	pid_t listen_pid;
+	const char *listen_pid_str = NULL, *listen_fds_str = NULL, *errstr = NULL;
+	int fd, listen_fds = 0;
+
+	listen_pid_str = getenv("LISTEN_PID");
+	if (listen_pid_str == NULL)
+	        return -ENODATA;
+	listen_pid = (pid_t)strtonum(listen_pid_str, 2, INT_MAX, &errstr);
+	if (errstr != NULL)
+	        return -errno;
+	if (getpid() != listen_pid)
+	        return -ENODATA;
+
+	listen_fds_str = getenv("LISTEN_FDS");
+	if (listen_fds_str == NULL)
+		return -ENODATA;
+	listen_fds = (int)strtonum(listen_fds_str, 1,
+	    INT_MAX - SYSTEMD_LISTEN_FDS_START, &errstr);
+	if (errstr != NULL)
+		return -errno;
+
+	if (ret_listen_fds)
+		*ret_listen_fds = listen_fds;
+	if (ret_listen_fds_str)
+		*ret_listen_fds_str = listen_fds_str;
+
+	return 0;
+}
+
+/*
+ * Configure our socket fds that were passed from systemd
+ */
+static void
+setup_systemd_socket(int listen_sock)
+{
+	int flags, ret;
+	struct sockaddr_storage addr;
+	socklen_t len = sizeof(addr);
+	char *listen_on_str = NULL;
+	sa_family_t family;
+
+	if (getsockname(listen_sock, (struct sockaddr *)&addr, &len) != 0)
+		return;
+
+	if (num_listen_socks >= MAX_LISTEN_SOCKS)
+		fatal("Too many listen sockets. Enlarge MAX_LISTEN_SOCKS");
+
+	family = ((struct sockaddr *)&addr)->sa_family;
+
+	switch (family) {
+	case AF_INET:
+	case AF_INET6:
+		char host[NI_MAXHOST] = {}, strport[NI_MAXSERV] = {};
+
+	        ret = getnameinfo((struct sockaddr *)&addr, len,
+	                          host, sizeof(host),
+	                          strport, sizeof(strport),
+	                          NI_NUMERICHOST|NI_NUMERICSERV);
+	        if (ret != 0) {
+	                error("getnameinfo failed: %.100s", ssh_gai_strerror(ret));
+	                close(listen_sock);
+	                return;
+	        }
+
+	        xasprintf(&listen_on_str, "%s port %s.", host, strport);
+	        break;
+
+	case AF_VSOCK:
+	        struct sockaddr_vm *vm = (struct sockaddr_vm *)&addr;
+
+	        if (vm->svm_cid == VMADDR_CID_ANY)
+	                xasprintf(&listen_on_str, "vsock::%u", vm->svm_port);
+	        else
+	                xasprintf(&listen_on_str, "vsock:%u:%u", vm->svm_cid, vm->svm_port);
+	        break;
+
+	default:
+	        error("Unsupported address family %d, closing", family);
+	        close(listen_sock);
+	        return;
+	}
+
+	if (set_nonblock(listen_sock) == -1) {
+		close(listen_sock);
+	        free(listen_on_str);
+		return;
+	}
+
+	/* Socket options */
+	set_reuseaddr(listen_sock);
+
+	/* systemd sets FD_CLOEXEC on the fds it passes to us, but we need this
+	 * to stay open across re-exec. */
+	flags = fcntl(listen_sock, F_GETFD);
+	if (flags < 0) {
+		error("Failed to get fd flags: %s", strerror(errno));
+		close(listen_sock);
+	        free(listen_on_str);
+		return;
+	}
+
+	if (fcntl(listen_sock, F_SETFD, flags & ~FD_CLOEXEC) < 0) {
+		error("Failed to clear FD_CLOEXEC flag: %s", strerror(errno));
+		close(listen_sock);
+	        free(listen_on_str);
+		return;
+	}
+
+	listen_socks[num_listen_socks] = listen_sock;
+	listen_socks_no_close[num_listen_socks] = 1;
+	num_listen_socks++;
+
+	logit("Server listening on %s", listen_on_str);
+	free(listen_on_str);
+}
+#endif
+
 /*
  * Listen for TCP connections
  */
@@ -888,17 +1027,26 @@ server_listen(void)
 	    &options.per_source_penalty,
 	    options.per_source_penalty_exempt);
 
-	for (i = 0; i < options.num_listen_addrs; i++) {
-		listen_on_addrs(&options.listen_addrs[i]);
-		freeaddrinfo(options.listen_addrs[i].addrs);
-		free(options.listen_addrs[i].rdomain);
-		memset(&options.listen_addrs[i], 0,
-		    sizeof(options.listen_addrs[i]));
+#ifdef SYSTEMD_SOCKET_ACTIVATION
+	if (systemd_num_listen_fds > 0)
+	{
+		int i;
+		for (i = 0; i < systemd_num_listen_fds; i++)
+			setup_systemd_socket(SYSTEMD_LISTEN_FDS_START + i);
+	} else
+#endif
+	{
+		for (i = 0; i < options.num_listen_addrs; i++) {
+			listen_on_addrs(&options.listen_addrs[i]);
+			freeaddrinfo(options.listen_addrs[i].addrs);
+			free(options.listen_addrs[i].rdomain);
+			memset(&options.listen_addrs[i], 0,
+			    sizeof(options.listen_addrs[i]));
+		}
+		free(options.listen_addrs);
+		options.listen_addrs = NULL;
+		options.num_listen_addrs = 0;
 	}
-	free(options.listen_addrs);
-	options.listen_addrs = NULL;
-	options.num_listen_addrs = 0;
-
 	if (!num_listen_socks)
 		fatal("Cannot bind any address.");
 }
@@ -956,7 +1104,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 		if (received_sigterm) {
 			logit("Received signal %d; terminating.",
 			    (int) received_sigterm);
-			close_listen_socks();
+			close_listen_socks(/* force = */ 1);
 			if (options.pid_file != NULL)
 				unlink(options.pid_file);
 			exit(received_sigterm == SIGTERM ? 0 : 255);
@@ -978,7 +1126,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 		if (received_sighup) {
 			if (!lameduck) {
 				debug("Received SIGHUP; waiting for children");
-				close_listen_socks();
+				close_listen_socks(/* force = */ 0);
 				lameduck = 1;
 			}
 			if (listening <= 0) {
@@ -1161,7 +1309,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				 * connection without forking.
 				 */
 				debug("Server will not fork when running in debugging mode.");
-				close_listen_socks();
+				close_listen_socks(/* force = */ 0);
 				*sock_in = *newsock;
 				*sock_out = *newsock;
 				send_rexec_state(config_s[0]);
@@ -1191,7 +1339,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s,
 				 */
 				platform_post_fork_child();
 				close_startup_pipes();
-				close_listen_socks();
+				close_listen_socks(/* force = */ 1);
 				*sock_in = *newsock;
 				*sock_out = *newsock;
 				log_init(__progname,
@@ -1295,6 +1443,7 @@ main(int ac, char **av)
 	int devnull, config_s[2] = { -1 , -1 }, have_connection_info = 0;
 	int need_chroot = 1;
 	char *args, *fp, *line, *logfile = NULL, **rexec_argv = NULL;
+        const char *systemd_num_listen_fds_str;
 	struct stat sb;
 	u_int i, j;
 	mode_t new_umask;
@@ -1451,10 +1600,17 @@ main(int ac, char **av)
 			break;
 		}
 	}
+
+#ifdef SYSTEMD_SOCKET_ACTIVATION
+	r = get_systemd_listen_fds(&systemd_num_listen_fds, &systemd_num_listen_fds_str);
+	if (r < 0 && r != -ENODATA)
+		fatal("Failed to get systemd socket fds: %s", strerror(-r));
+#endif
+
 	if (!test_flag && !inetd_flag && !do_dump_cfg && !path_absolute(av[0]))
 		fatal("sshd requires execution with an absolute path");
 
-	closefrom(STDERR_FILENO + 1);
+	closefrom(STDERR_FILENO + 1 + systemd_num_listen_fds);
 
 	/* Reserve fds we'll need later for reexec things */
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
@@ -1767,7 +1923,8 @@ main(int ac, char **av)
 	/* Prepare arguments for sshd-session */
 	if (rexec_argc < 0)
 		fatal("rexec_argc %d < 0", rexec_argc);
-	rexec_argv = xcalloc(rexec_argc + 3, sizeof(char *));
+
+	rexec_argv = xcalloc(rexec_argc + 3 + (systemd_num_listen_fds > 0 ? 2 : 0), sizeof(char *));
 	/* Point to the sshd-session binary instead of sshd */
 	rexec_argv[0] = options.sshd_session_path;
 	for (i = 1; i < (u_int)rexec_argc; i++) {
@@ -1775,6 +1932,12 @@ main(int ac, char **av)
 		rexec_argv[i] = saved_argv[i];
 	}
 	rexec_argv[rexec_argc++] = "-R";
+
+	if (systemd_num_listen_fds > 0) {
+		rexec_argv[rexec_argc++] = "-N";
+		rexec_argv[rexec_argc++] = systemd_num_listen_fds_str;
+	}
+
 	rexec_argv[rexec_argc] = NULL;
 	if (stat(rexec_argv[0], &sb) != 0 || !(sb.st_mode & (S_IXOTH|S_IXUSR)))
 		fatal("%s does not exist or is not executable", rexec_argv[0]);

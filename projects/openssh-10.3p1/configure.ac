@@ -1008,6 +1008,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	)
 
 	AC_DEFINE([SYSTEMD_NOTIFY], [1], [Have sshd notify systemd on start/reload])
+	AC_DEFINE([SYSTEMD_SOCKET_ACTIVATION], [1], [Have sshd accept systemd socket activation])
 	inet6_default_4in6=yes
 	case `uname -r` in
 	1.*|2.0.*)
