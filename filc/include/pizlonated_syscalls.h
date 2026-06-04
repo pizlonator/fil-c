@@ -356,6 +356,7 @@ int zsys_query_module(const char* name, int which, void* buf, __SIZE_TYPE__ bufs
 int zsys_uselib(const char* library);
 int zsys_sigqueue(int pid, int sig, void* value);
 int zsys_openat(int dirfd, const char* path, int flags, ...);
+int zsys_openat2(int dirfd, const char* pathname, const void* how, __SIZE_TYPE__ size);
 int zsys_statfs(const char* path, void* buf);
 int zsys_fstatfs(int fd, void* buf);
 int zsys_statvfs(const char* path, void* buf);

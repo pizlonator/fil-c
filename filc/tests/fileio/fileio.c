@@ -52,6 +52,12 @@ struct my_statx {
 	uint64_t spare[14];
 };
 
+struct open_how {
+    unsigned long long flags;
+    unsigned long long mode;
+    unsigned long long resolve;
+};
+
 int main(int argc, char** argv)
 {
     int fd = zsys_open("filc/tests/fileio/test.txt", 0);
@@ -497,6 +503,40 @@ int main(int argc, char** argv)
     ZASSERT(!close(dst_fd));
     ZASSERT(!unlink("filc/test-output/fileio/copy_src2.txt"));
     ZASSERT(!unlink("filc/test-output/fileio/copy_dst2.txt"));
+
+    // Test openat2 syscall
+    {
+        // Create a test file
+        struct open_how how;
+        memset(&how, 0, sizeof(how));
+        how.flags = O_CREAT | O_WRONLY;
+        how.mode = 0644;
+        how.resolve = 0;
+        
+        int test_fd = syscall(
+            SYS_openat2, AT_FDCWD, "filc/test-output/fileio/openat2_test.txt", &how, sizeof(how));
+        ZASSERT(test_fd >= 2);
+        ZASSERT(write(test_fd, "hello", 5) == 5);
+        ZASSERT(!close(test_fd));
+        
+        // Test basic openat2
+        how.flags = O_RDONLY;
+        how.mode = 0;
+        how.resolve = 0;
+        
+        int fd2 = zsys_openat2(
+            AT_FDCWD, "filc/test-output/fileio/openat2_test.txt", &how, sizeof(how));
+        ZASSERT(fd2 >= 2);
+        
+        char read_buf[10];
+        memset(read_buf, 0, sizeof(read_buf));
+        ZASSERT(read(fd2, read_buf, sizeof(read_buf)) == 5);
+        ZASSERT(!memcmp(read_buf, "hello", 5));
+        ZASSERT(!close(fd2));
+        
+        // Clean up
+        ZASSERT(!unlink("filc/test-output/fileio/openat2_test.txt"));
+    }
 
     return 0;
 }

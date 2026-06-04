@@ -644,6 +644,10 @@ long zsys_syscall(long n, ...)
         callee = zsys_write;
         break;
 
+    case 437 /* SYS_openat2 */:
+        callee = zsys_openat2;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:

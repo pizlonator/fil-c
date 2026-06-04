@@ -12257,6 +12257,42 @@ int filc_native_zsys_openat(filc_thread* my_thread, int dirfd, filc_ptr path_ptr
     return FILC_SYSCALL(my_thread, openat(dirfd, path, flags, mode));
 }
 
+struct known_open_how {
+    uint64_t flags;
+    uint64_t mode;
+    uint64_t resolve;
+};
+
+int filc_native_zsys_openat2(filc_thread* my_thread, int dirfd, filc_ptr path_ptr, filc_ptr how_ptr,
+                             size_t size)
+{
+    static const bool verbose = false;
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    filc_check_read(how_ptr, size);
+
+    /* These shenanigans are necessary in case future kernel versions at a pointer field to
+       open_how. */
+    size_t actual_size = size;
+    if (size > sizeof(struct known_open_how)) {
+        char* bytes = (char*)filc_ptr_ptr(how_ptr);
+        for (size_t i = sizeof(struct known_open_how); i < size; i++) {
+            if (bytes[i]) {
+                filc_set_errno(E2BIG);
+                return -1;
+            }
+        }
+        actual_size = sizeof(struct known_open_how);
+    }
+    
+    if (verbose) {
+        pas_log("doing an openat2 with dirfd = %d, path = %s, size = %zu.\n",
+                dirfd, path, actual_size);
+    }
+
+    return FILC_SYSCALL(
+        my_thread, syscall(SYS_openat2, dirfd, path, filc_ptr_ptr(how_ptr), actual_size));
+}
+
 int filc_native_zsys_statfs(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr buf_ptr)
 {
     char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
