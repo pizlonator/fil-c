@@ -280,6 +280,27 @@ cd ..
 rm -rf pizlonated-zstd
 hash -r
 
+tar -xf $FILCSRC/projects/attr-2.5.2/pizlonated-attr.tar.gz
+cd pizlonated-attr
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure \
+    --prefix=/opt/fil --disable-static --sysconfdir=/etc --docdir=/opt/fil/share/doc/attr-2.5.2
+make -j `nproc`
+make -j `nproc` install
+cd ..
+rm -rf pizlonated-attr
+hash -r
+
+tar -xf $FILCSRC/pizlix/acl-2.3.2.tar.xz
+cd acl-2.3.2
+sed -i s/-Wl,--version-script,/-Wc,--version-script=/g Makefile.in
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure \
+    --prefix=/opt/fil --disable-static --docdir=/opt/fil/share/doc/acl-2.3.2
+make -j `nproc`
+make -j `nproc` install
+cd ..
+rm -rf acl-2.3.2
+hash -r
+
 tar -xf $FILCSRC/pizlix/pcre2-10.44.tar.bz2
 cd pcre2-10.44
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
