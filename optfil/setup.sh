@@ -245,21 +245,27 @@ selinux_label_of() {
 # 'user:role:type'. Prints the type on stdout. Returns 1 if the label is
 # empty / a sentinel like "?" / "(null)" / "(unknown)".
 #
-# Variables in this function do not leak to callers because it is always
-# invoked via command substitution, which runs in a subshell.
-selinux_type_of_label() {
+# The function body is wrapped in (...) so it runs in its own subshell,
+# meaning intermediate assignments never leak even if a future caller
+# forgets to use command substitution.
+selinux_type_of_label() (
     case "$1" in
         ""|"?"|"(null)"|"(unknown)") return 1 ;;
     esac
-    type_label_remainder="${1#*:}"
-    type_label_remainder="${type_label_remainder#*:}"
-    printf '%s\n' "${type_label_remainder%%:*}"
-}
+    remainder="${1#*:}"
+    remainder="${remainder#*:}"
+    printf '%s\n' "${remainder%%:*}"
+)
 
 # Register a persistent SELinux file context with semanage. Treats
-# "already defined" as success since semanage -a is otherwise not
-# idempotent.
+# "already defined" / "already exists" / "conflicts with existing" as
+# success since semanage -a is otherwise not idempotent.
 # Args: type, semanage path/regex, description (for messages).
+#
+# The semanage call is run under LC_ALL=C so that the message-matching
+# below works on systems with localized output. The match patterns are
+# the literal phrases semanage prints (with quoted spaces) rather than
+# broad "*already*" substrings, so unrelated errors aren't swallowed.
 #
 # Note on variable names: shell has no per-function scope, so locals
 # leak to callers. Each helper that may be called by another helper uses
@@ -269,11 +275,13 @@ selinux_register_context() {
     register_type=$1
     register_path=$2
     register_description=$3
-    register_error=$(semanage fcontext -a -t "$register_type" "$register_path" 2>&1)
+    register_error=$(LC_ALL=C semanage fcontext -a -t "$register_type" "$register_path" 2>&1)
     register_return_code=$?
     if [ "$register_return_code" != 0 ]; then
         case "$register_error" in
-            *already*defined*|*already*exists*|*duplicate*) register_return_code=0 ;;
+            *"already defined"*|*"already exists"*|*"conflicts with existing"*)
+                register_return_code=0
+                ;;
         esac
     fi
     if [ "$register_return_code" != 0 ]; then
@@ -356,7 +364,8 @@ selinux_label_file() {
     selinux_register_context "$file_expected_type" "$file_semanage_path" "$file_description" \
         || return 1
     file_restorecon_error=$(restorecon -v "$file_target" 2>&1)
-    if [ $? != 0 ]; then
+    file_restorecon_rc=$?
+    if [ "$file_restorecon_rc" != 0 ]; then
         echo "WARNING: restorecon failed for $file_description:"
         echo "    $file_restorecon_error"
         return 1
@@ -384,29 +393,39 @@ selinux_label_recursive() {
     selinux_register_context "$dir_expected_type" "$dir_semanage_path" "$dir_description" \
         || return 1
     dir_restorecon_error=$(restorecon -R -v "$dir_target" 2>&1)
-    if [ $? != 0 ]; then
+    dir_restorecon_rc=$?
+    if [ "$dir_restorecon_rc" != 0 ]; then
         echo "WARNING: restorecon -R failed for $dir_description:"
         echo "    $dir_restorecon_error"
         return 1
     fi
-    if [ -z "$dir_restorecon_error" ]; then
-        echo "$dir_description already has correct SELinux labels (no change needed)."
-    else
-        echo "Applied persistent SELinux label '$dir_expected_type' for $dir_description."
-    fi
+    # restorecon -v prints a line per relabel; we don't try to infer
+    # "nothing changed" from empty output because other policy rules in
+    # the recursive walk can also produce output unrelated to ours.
+    echo "Applied or verified persistent SELinux label '$dir_expected_type' for $dir_description."
     return 0
 }
 
 # --- SELinux main block ---
 
-# Detect whether SELinux is actually loaded by the kernel. This is more
-# reliable than selinuxenabled alone, which may not be installed even when
-# SELinux is active (e.g. policycoreutils not installed).
+# Detect whether SELinux is loaded and active on this kernel. Prefer
+# selinuxenabled when available because it is the canonical "is SELinux
+# in effect" check; fall back to reading /sys/fs/selinux/enforce
+# directly so we still work on systems where libselinux-utils is not
+# installed but the kernel does have SELinux mounted.
 SELINUX_KERNEL_ACTIVE=false
 SELINUX_ENFORCING=unknown
-if [ -d /sys/fs/selinux ] && [ -e /sys/fs/selinux/enforce ]; then
+if command -v selinuxenabled >/dev/null 2>&1; then
+    if selinuxenabled 2>/dev/null; then
+        SELINUX_KERNEL_ACTIVE=true
+    fi
+elif [ -d /sys/fs/selinux ] && [ -r /sys/fs/selinux/enforce ]; then
     SELINUX_KERNEL_ACTIVE=true
-    enforce_state=$(cat /sys/fs/selinux/enforce 2>/dev/null)
+fi
+if [ "$SELINUX_KERNEL_ACTIVE" = true ] && [ -r /sys/fs/selinux/enforce ]; then
+    # Trim trailing whitespace/newline; some kernels emit a single byte,
+    # some append a newline.
+    enforce_state=$(tr -d '[:space:]' < /sys/fs/selinux/enforce 2>/dev/null)
     case "$enforce_state" in
         1) SELINUX_ENFORCING=true ;;
         0) SELINUX_ENFORCING=false ;;
@@ -431,91 +450,118 @@ elif ! command -v semanage >/dev/null 2>&1 || ! command -v restorecon >/dev/null
 else
     echo "Applying persistent SELinux labels for /opt/fil binaries and libraries..."
 
-    # Find the canonical system path for each label reference. Different
-    # distros put the loader and libc in different places, so we probe a
-    # short list.
-    SYS_SSHD=/usr/sbin/sshd
+    # Probe for the canonical system path for each label reference. Use
+    # both -e (file exists, follows symlinks) and -h (is a symlink, even
+    # if dangling) so that broken-symlink references are surfaced by the
+    # validator rather than silently skipped here.
+    selinux_first_existing() {
+        for candidate; do
+            if [ -e "$candidate" ] || [ -h "$candidate" ]; then
+                printf '%s\n' "$candidate"
+                return 0
+            fi
+        done
+        return 1
+    }
 
-    SYS_CHKPWD=
-    for _p in /usr/sbin/unix_chkpwd /sbin/unix_chkpwd; do
-        if [ -e "$_p" ]; then SYS_CHKPWD=$_p; break; fi
-    done
+    SYS_SSHD=$(selinux_first_existing \
+        /usr/sbin/sshd \
+        /usr/libexec/openssh/sshd \
+        /usr/lib/openssh/sshd \
+        /sbin/sshd)
 
-    SYS_LOADER=
-    for _p in /lib64/ld-linux-x86-64.so.2 \
-              /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
-              /usr/lib64/ld-linux-x86-64.so.2 \
-              /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
-              /lib/ld-linux-x86-64.so.2; do
-        if [ -e "$_p" ]; then SYS_LOADER=$_p; break; fi
-    done
+    SYS_CHKPWD=$(selinux_first_existing \
+        /usr/sbin/unix_chkpwd \
+        /sbin/unix_chkpwd)
 
-    SYS_LIBC=
-    for _p in /lib64/libc.so.6 \
-              /lib/x86_64-linux-gnu/libc.so.6 \
-              /usr/lib64/libc.so.6 \
-              /usr/lib/x86_64-linux-gnu/libc.so.6 \
-              /lib/libc.so.6; do
-        if [ -e "$_p" ]; then SYS_LIBC=$_p; break; fi
-    done
+    SYS_LOADER=$(selinux_first_existing \
+        /lib64/ld-linux-x86-64.so.2 \
+        /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+        /usr/lib64/ld-linux-x86-64.so.2 \
+        /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+        /lib/ld-linux-x86-64.so.2)
 
-    selinux_targets_failed=0
-    selinux_targets_total=0
+    # For lib_t we probe a list of widely-shipped libraries rather than
+    # libc, because some distributions' SELinux policies use a more
+    # specific type for libc itself (e.g. libc_so_t or ld_so_t) even
+    # though ordinary shared libraries still get lib_t.
+    SYS_LIB=$(selinux_first_existing \
+        /lib64/libz.so.1 \
+        /lib/x86_64-linux-gnu/libz.so.1 \
+        /usr/lib64/libz.so.1 \
+        /usr/lib/x86_64-linux-gnu/libz.so.1 \
+        /lib64/libm.so.6 \
+        /lib/x86_64-linux-gnu/libm.so.6 \
+        /usr/lib64/libcrypt.so.1 \
+        /usr/lib/x86_64-linux-gnu/libcrypt.so.1)
 
-    # /opt/fil/sbin/sshd -> sshd_exec_t (matching /usr/sbin/sshd).
-    selinux_targets_total=$((selinux_targets_total + 1))
-    selinux_label_file \
+    selinux_attempts_succeeded=0
+    selinux_attempts_failed=0
+
+    # Run one rule. Updates the counters above and returns 0 on success.
+    selinux_run_rule() {
+        if "$@"; then
+            selinux_attempts_succeeded=$((selinux_attempts_succeeded + 1))
+            return 0
+        else
+            selinux_attempts_failed=$((selinux_attempts_failed + 1))
+            return 1
+        fi
+    }
+
+    # /opt/fil/sbin/sshd -> sshd_exec_t.
+    selinux_run_rule selinux_label_file \
         "/opt/fil/sbin/sshd" \
         "$SYS_SSHD" \
         sshd_exec_t \
         "/opt/fil/sbin/sshd" \
-        "/opt/fil/sbin/sshd" \
-        || selinux_targets_failed=$((selinux_targets_failed + 1))
+        "/opt/fil/sbin/sshd"
 
     # /opt/fil/sbin/unix_chkpwd -> chkpwd_exec_t. Needed for PAM password
     # checking when sshd runs in its sandboxed domain.
     if [ -e /opt/fil/sbin/unix_chkpwd ]; then
-        selinux_targets_total=$((selinux_targets_total + 1))
-        selinux_label_file \
+        selinux_run_rule selinux_label_file \
             "/opt/fil/sbin/unix_chkpwd" \
             "$SYS_CHKPWD" \
             chkpwd_exec_t \
             "/opt/fil/sbin/unix_chkpwd" \
-            "/opt/fil/sbin/unix_chkpwd" \
-            || selinux_targets_failed=$((selinux_targets_failed + 1))
+            "/opt/fil/sbin/unix_chkpwd"
     fi
 
-    # /opt/fil/lib/ld-yolo-x86_64.so -> ld_so_t. This is the Fil-C dynamic
-    # loader; it needs the loader type rather than the generic library
-    # type so that exec-time domain transitions work. We register this
-    # rule with a literal-path regex so SELinux's specificity matching
-    # picks it over the broader library rule below.
-    selinux_targets_total=$((selinux_targets_total + 1))
-    selinux_label_file \
+    # Library rule MUST be registered BEFORE the loader rule. libselinux's
+    # selabel_lookup_common walks file_contexts.local from end to
+    # beginning, returning the first matching entry. Whichever rule is
+    # registered LAST is checked FIRST. We want the loader-specific rule
+    # to win for the loader file, so we register the broad library rule
+    # first and the literal-path loader rule second.
+
+    # /opt/fil/lib/*.so* -> lib_t (recursive).
+    selinux_run_rule selinux_label_recursive \
+        "/opt/fil/lib shared libraries" \
+        "$SYS_LIB" \
+        lib_t \
+        '/opt/fil/lib/.+\.so(\..+)?' \
+        "/opt/fil/lib"
+
+    # /opt/fil/lib/ld-yolo-x86_64.so -> ld_so_t. Registered after the
+    # library rule (see comment above) so that semanage's most-recent
+    # entry wins for the loader file at restorecon time.
+    selinux_run_rule selinux_label_file \
         "/opt/fil/lib/ld-yolo-x86_64.so (loader)" \
         "$SYS_LOADER" \
         ld_so_t \
         '/opt/fil/lib/ld-yolo-x86_64\.so' \
-        "/opt/fil/lib/ld-yolo-x86_64.so" \
-        || selinux_targets_failed=$((selinux_targets_failed + 1))
+        "/opt/fil/lib/ld-yolo-x86_64.so"
 
-    # /opt/fil/lib/*.so* -> lib_t (recursive). The loader rule above is
-    # more specific and overrides this for the loader itself.
-    selinux_targets_total=$((selinux_targets_total + 1))
-    selinux_label_recursive \
-        "/opt/fil/lib shared libraries" \
-        "$SYS_LIBC" \
-        lib_t \
-        '/opt/fil/lib/.+\.so(\..+)?' \
-        "/opt/fil/lib" \
-        || selinux_targets_failed=$((selinux_targets_failed + 1))
+    selinux_attempts_total=$((selinux_attempts_succeeded + selinux_attempts_failed))
 
-    if [ "$selinux_targets_failed" = 0 ]; then
+    if [ "$selinux_attempts_failed" = 0 ]; then
         SSHD_SELINUX_OK=true
-        echo "SELinux labeling complete ($selinux_targets_total rules applied or already in place)."
+        echo "SELinux labeling complete ($selinux_attempts_succeeded rules applied" \
+             "or already in place)."
     else
         echo
-        echo "WARNING: $selinux_targets_failed of $selinux_targets_total SELinux label"
+        echo "WARNING: $selinux_attempts_failed of $selinux_attempts_total SELinux label"
         echo "rules could not be applied (see warnings above)."
         if [ "$SELINUX_ENFORCING" = false ]; then
             echo "SELinux is in permissive mode on this system, so /opt/fil/sbin/sshd"
@@ -727,11 +773,14 @@ else
             fi
 
             # Ensure the sshd privilege separation home directory exists. sshd
-            # may fail at runtime if /opt/fil/var/lib/sshd is missing.
+            # may fail at runtime if /opt/fil/var/lib/sshd is missing. The
+            # mode is 0711 to match the convention OpenSSH expects for its
+            # privsep chroot (some OpenSSH versions refuse to start if the
+            # privsep home is unexpectedly group/world writable).
             if [ ! -d /opt/fil/var/lib/sshd ]; then
                 mkdir_err=$(mkdir -p /opt/fil/var/lib/sshd 2>&1)
                 if [ $? = 0 ]; then
-                    chmod 0755 /opt/fil/var/lib/sshd 2>/dev/null
+                    chmod 0711 /opt/fil/var/lib/sshd 2>/dev/null
                     echo "Created /opt/fil/var/lib/sshd (sshd privilege separation home)"
                 else
                     echo "WARNING: Failed to create /opt/fil/var/lib/sshd: $mkdir_err"
@@ -833,24 +882,90 @@ SSHD_SYSTEMD_STATUS=na
 
 set +e
 
-if [ "$SSHD_SELINUX_OK" != true ] || [ "$SSHD_SSH_OK" != true ]; then
-    echo "Skipping systemd setup because an earlier step did not complete cleanly:"
-    if [ "$SSHD_SELINUX_OK" != true ]; then
-        echo "  - SELinux labeling for /opt/fil/sbin/sshd"
-    fi
-    if [ "$SSHD_SSH_OK" != true ]; then
-        echo "  - SSH configuration / key / privilege-separation setup"
-    fi
-    echo "(see the warnings above). Wiring sshd into systemd before these are sorted"
-    echo "out could leave you with a broken sshd service. After fixing the underlying"
-    echo "issue you can retry with: ./setup.sh --ssh-setup"
-    SSHD_SYSTEMD_STATUS=skipped
-elif [ ! -d /run/systemd/system ]; then
+# --- systemd helpers ---
+
+# Is a unit's effective ExecStart already configured to run
+# /opt/fil/sbin/sshd? systemctl show -p ExecStart prints the property as
+# a structured value like 'ExecStart={ path=/usr/sbin/sshd ; argv[]=...';
+# we match the specific path= and argv[]= fields rather than the whole
+# line so that a unit which only *mentions* the path elsewhere does not
+# false-positive.
+systemd_unit_uses_fil_sshd() {
+    show=$(systemctl show -p ExecStart "$1" 2>/dev/null)
+    case "$show" in
+        *"path=/opt/fil/sbin/sshd"*|*"argv[]=/opt/fil/sbin/sshd"*) return 0 ;;
+    esac
+    return 1
+}
+
+# Is a unit currently active? Avoid --quiet because that flag is newer
+# than the systemd version on some long-lived enterprise distros; check
+# the exit status with stdout redirected to /dev/null instead.
+systemd_unit_active() {
+    systemctl is-active "$1" >/dev/null 2>&1
+}
+
+# Join systemd unit-file line continuations. Lines that end with `\`
+# (optionally followed by whitespace) are concatenated with the next
+# line. The output stream has one logical directive per line, which is
+# what the drop-in generator wants to scan.
+systemd_join_continuations() {
+    awk '
+        /\\[[:space:]]*$/ {
+            sub(/\\[[:space:]]*$/, "")
+            accumulator = accumulator $0
+            next
+        }
+        { print accumulator $0; accumulator = "" }
+        END { if (accumulator != "") print accumulator }
+    '
+}
+
+# Generate the drop-in body for one existing unit. Stdin is the
+# systemctl-cat output (with continuations already joined). For each
+# Exec{Start,StartPre,StartPost,Reload,Stop,StopPost} line whose value
+# mentions $SYS_SSHD, emit a `Key=` clear followed by a `Key=...
+# replaced` line. The sed substitution is anchored at start-of-line or
+# whitespace and ended at whitespace or end-of-line so that a path
+# embedded in a config argument (e.g. -f /tmp/usr/sbin/sshd.conf) is
+# not corrupted.
+systemd_emit_dropin_lines() {
+    sshd_path=$1
+    # Escape ERE metacharacters that could appear in unusual sshd paths
+    # before splicing into the substitution pattern. We use sed -E (ERE)
+    # below; the '|' delimiter conflicts with ERE alternation, so we use
+    # '#' instead and escape any literal '#' in the path.
+    sshd_path_for_sed=$(printf '%s\n' "$sshd_path" \
+        | sed 's#[][\\/.&^$*?+(){}|#]#\\&#g')
+    while IFS= read -r line; do
+        trimmed=$(printf '%s' "$line" | sed 's/^[[:space:]]*//')
+        case "$trimmed" in
+            ExecStart=*|ExecStartPre=*|ExecStartPost=*|ExecReload=*|ExecStop=*|ExecStopPost=*)
+                case "$trimmed" in
+                    *"$sshd_path"*)
+                        key="${trimmed%%=*}"
+                        # Match the path only when preceded by start-of-line,
+                        # '=', or whitespace, and followed by whitespace or
+                        # end-of-line; this leaves paths embedded inside an
+                        # argument (e.g. -f /tmp/usr/sbin/sshd.conf) alone.
+                        replaced=$(printf '%s' "$trimmed" \
+                            | sed -E "s#(^|[=[:space:]])${sshd_path_for_sed}([[:space:]]|\$)#\\1/opt/fil/sbin/sshd\\2#g")
+                        printf '%s=\n%s\n' "$key" "$replaced"
+                        ;;
+                esac
+                ;;
+        esac
+    done
+}
+
+# --- systemd main block ---
+
+if [ ! -d /run/systemd/system ]; then
     echo "systemd is not running on this system - /opt/fil/sbin/sshd will not be"
     echo "wired into any init system. You can run it directly or set up your own"
     echo "service definition by hand."
 else
-    # systemd is running. Look for existing sshd unit and socket.
+    # Detect existing unit and socket.
     EXISTING_UNIT=""
     for unit in sshd.service ssh.service; do
         if systemctl cat "$unit" >/dev/null 2>&1; then
@@ -867,121 +982,132 @@ else
         fi
     done
 
-    if [ -n "$EXISTING_UNIT" ]; then
-        # Case E: existing service unit. Idempotency: is the effective
-        # ExecStart already pointing at /opt/fil/sbin/sshd?
-        CURRENT_EXEC=$(systemctl show -p ExecStart "$EXISTING_UNIT" 2>/dev/null | head -1)
-        case "$CURRENT_EXEC" in
-            *"/opt/fil/sbin/sshd"*)
-                echo "$EXISTING_UNIT is already configured to use /opt/fil/sbin/sshd -"
-                echo "no systemd override needed."
-                SSHD_SYSTEMD_STATUS=ok
-                # If the service is currently active, restart it so any other
-                # changes from this run (e.g. a fresh SELinux label) take effect.
-                if systemctl is-active --quiet "$EXISTING_UNIT" 2>/dev/null; then
-                    echo "$EXISTING_UNIT is currently active - restarting to pick up any changes."
+    # Idempotent fast-path: if an existing unit is already configured to
+    # run /opt/fil/sbin/sshd, just report that and optionally restart.
+    # This check runs *before* the SELinux/SSH gating so that a re-run of
+    # --ssh-setup which had a transient SELinux failure still reports the
+    # systemd state correctly instead of pretending it does not know.
+    if [ -n "$EXISTING_UNIT" ] && systemd_unit_uses_fil_sshd "$EXISTING_UNIT"; then
+        echo "$EXISTING_UNIT is already configured to use /opt/fil/sbin/sshd -"
+        echo "no systemd override needed."
+        SSHD_SYSTEMD_STATUS=ok
+        if systemd_unit_active "$EXISTING_UNIT"; then
+            echo "$EXISTING_UNIT is currently active - restarting to pick up any changes."
+            restart_err=$(systemctl restart "$EXISTING_UNIT" 2>&1)
+            restart_rc=$?
+            if [ "$restart_rc" = 0 ] && systemd_unit_active "$EXISTING_UNIT"; then
+                echo "Restarted $EXISTING_UNIT."
+            else
+                echo "WARNING: $EXISTING_UNIT did not come back up cleanly after restart."
+                if [ -n "$restart_err" ]; then
+                    echo "    $restart_err"
+                fi
+                echo "Check 'journalctl -u $EXISTING_UNIT' for details."
+                SSHD_SYSTEMD_STATUS=failed
+            fi
+        fi
+    elif [ "$SSHD_SELINUX_OK" != true ] || [ "$SSHD_SSH_OK" != true ]; then
+        # Anything beyond the idempotent fast-path needs to mutate
+        # systemd state. If the SELinux or SSH config steps did not
+        # complete cleanly, the new sshd is unlikely to start, so bail.
+        echo "Skipping systemd setup because an earlier step did not complete cleanly:"
+        if [ "$SSHD_SELINUX_OK" != true ]; then
+            echo "  - SELinux labeling for /opt/fil"
+        fi
+        if [ "$SSHD_SSH_OK" != true ]; then
+            echo "  - SSH configuration / key / privilege-separation setup"
+        fi
+        echo "(see the warnings above). Wiring sshd into systemd before these are sorted"
+        echo "out could leave you with a broken sshd service. After fixing the underlying"
+        echo "issue you can retry with: ./setup.sh --ssh-setup"
+        SSHD_SYSTEMD_STATUS=skipped
+    elif [ -n "$EXISTING_UNIT" ]; then
+        # Case E: existing service unit, points at distribution sshd.
+        # Write a drop-in that redirects Exec* lines to /opt/fil/sbin/sshd.
+        sshd_to_replace=${SYS_SSHD:-/usr/sbin/sshd}
+        echo "Found existing $EXISTING_UNIT pointing at the distribution sshd"
+        echo "($sshd_to_replace). Will create a systemd drop-in at:"
+        echo "    /etc/systemd/system/$EXISTING_UNIT.d/fil-c.conf"
+        echo "that redirects ExecStart/ExecStartPre/ExecReload lines that mention"
+        echo "$sshd_to_replace to /opt/fil/sbin/sshd. Other directives in the"
+        echo "distribution unit (EnvironmentFile, KillMode, hardening flags, etc.)"
+        echo "are left unchanged."
+        echo
+        echo "WARNING: After writing the drop-in, this will run 'systemctl"
+        echo "daemon-reload' and 'systemctl restart $EXISTING_UNIT', which will"
+        echo "RESTART THE SSH SERVICE. Under normal conditions (the distribution"
+        echo "unit uses KillMode=process) restarting sshd does not interrupt"
+        echo "already-connected SSH sessions, only the main listener. Make sure"
+        echo "you have a way back in if something goes wrong before proceeding."
+        echo
+
+        if [ "$UNATTENDED" = false ]; then
+            echo "Type YES (in all caps) to proceed with SSH systemd setup, or anything"
+            echo "else to skip. (You can re-run this later with: ./setup.sh --ssh-setup)"
+            read -r systemd_response
+        elif [ "$FULL_SETUP" = true ]; then
+            systemd_response=YES
+        else
+            systemd_response=NO
+            echo "Skipping systemd setup (--unattended without --full-setup)."
+            echo "You can run systemd setup later with: ./setup.sh --ssh-setup"
+        fi
+
+        if [ "$systemd_response" = "YES" ]; then
+            echo
+            DROP_IN_DIR="/etc/systemd/system/$EXISTING_UNIT.d"
+            DROP_IN="$DROP_IN_DIR/fil-c.conf"
+
+            mkdir_err=$(mkdir -p "$DROP_IN_DIR" 2>&1)
+            if [ $? != 0 ]; then
+                echo "WARNING: Failed to create $DROP_IN_DIR: $mkdir_err"
+                SSHD_SYSTEMD_STATUS=failed
+            else
+                {
+                    echo "# Generated by Fil-C setup.sh"
+                    echo "# Remove with: systemctl revert $EXISTING_UNIT"
+                    echo "[Service]"
+                    systemctl cat "$EXISTING_UNIT" 2>/dev/null \
+                        | systemd_join_continuations \
+                        | systemd_emit_dropin_lines "$sshd_to_replace"
+                } > "$DROP_IN"
+                echo "Wrote $DROP_IN with contents:"
+                sed 's/^/    /' "$DROP_IN"
+                echo
+
+                reload_err=$(systemctl daemon-reload 2>&1)
+                reload_rc=$?
+                if [ "$reload_rc" != 0 ]; then
+                    echo "WARNING: 'systemctl daemon-reload' failed: $reload_err"
+                    SSHD_SYSTEMD_STATUS=failed
+                else
+                    echo "Reloaded systemd."
                     restart_err=$(systemctl restart "$EXISTING_UNIT" 2>&1)
-                    if [ $? = 0 ]; then
-                        echo "Restarted $EXISTING_UNIT."
-                    else
+                    restart_rc=$?
+                    if [ "$restart_rc" != 0 ]; then
                         echo "WARNING: Failed to restart $EXISTING_UNIT: $restart_err"
                         echo "Check 'journalctl -u $EXISTING_UNIT' for details."
-                    fi
-                fi
-                ;;
-            *)
-                echo "Found existing $EXISTING_UNIT pointing at the distribution sshd."
-                echo "Will create a systemd drop-in at:"
-                echo "    /etc/systemd/system/$EXISTING_UNIT.d/fil-c.conf"
-                echo "that redirects ExecStart/ExecStartPre/ExecReload lines that mention"
-                echo "/usr/sbin/sshd to /opt/fil/sbin/sshd. Other directives in the"
-                echo "distribution unit (EnvironmentFile, KillMode, hardening flags, etc.)"
-                echo "are left unchanged."
-                echo
-                echo "WARNING: After writing the drop-in, this will run 'systemctl"
-                echo "daemon-reload' and 'systemctl restart $EXISTING_UNIT', which will"
-                echo "RESTART THE SSH SERVICE. Under normal conditions (the distribution"
-                echo "unit uses KillMode=process) restarting sshd does not interrupt"
-                echo "already-connected SSH sessions, only the main listener. Make sure"
-                echo "you have a way back in if something goes wrong before proceeding."
-                echo
-
-                if [ "$UNATTENDED" = false ]; then
-                    echo "Type YES (in all caps) to proceed with systemd setup, or anything"
-                    echo "else to skip. (You can re-run this later with: ./setup.sh --ssh-setup)"
-                    read -r systemd_response
-                elif [ "$FULL_SETUP" = true ]; then
-                    systemd_response=YES
-                else
-                    systemd_response=NO
-                    echo "Skipping systemd setup (--unattended without --full-setup)."
-                    echo "You can run systemd setup later with: ./setup.sh --ssh-setup"
-                fi
-
-                if [ "$systemd_response" = "YES" ]; then
-                    echo
-                    DROP_IN_DIR="/etc/systemd/system/$EXISTING_UNIT.d"
-                    DROP_IN="$DROP_IN_DIR/fil-c.conf"
-
-                    mkdir_err=$(mkdir -p "$DROP_IN_DIR" 2>&1)
-                    if [ $? != 0 ]; then
-                        echo "WARNING: Failed to create $DROP_IN_DIR: $mkdir_err"
+                        SSHD_SYSTEMD_STATUS=failed
+                    elif ! systemd_unit_active "$EXISTING_UNIT"; then
+                        echo "WARNING: After restart, $EXISTING_UNIT is not active."
+                        echo "Check 'journalctl -u $EXISTING_UNIT' for details."
+                        SSHD_SYSTEMD_STATUS=failed
+                    elif ! systemd_unit_uses_fil_sshd "$EXISTING_UNIT"; then
+                        echo "WARNING: After restart, $EXISTING_UNIT does not appear to be"
+                        echo "running /opt/fil/sbin/sshd. Inspect:"
+                        echo "    systemctl show -p ExecStart $EXISTING_UNIT"
+                        echo "Check 'journalctl -u $EXISTING_UNIT' for details."
                         SSHD_SYSTEMD_STATUS=failed
                     else
-                        {
-                            echo "# Generated by Fil-C setup.sh"
-                            echo "# Remove with: systemctl revert $EXISTING_UNIT"
-                            echo "[Service]"
-                            systemctl cat "$EXISTING_UNIT" 2>/dev/null | while IFS= read -r line; do
-                                trimmed=$(printf '%s' "$line" | sed 's/^[[:space:]]*//')
-                                case "$trimmed" in
-                                    Exec*=*"/usr/sbin/sshd"*)
-                                        key="${trimmed%%=*}"
-                                        replaced=$(printf '%s' "$trimmed" | sed 's|/usr/sbin/sshd|/opt/fil/sbin/sshd|g')
-                                        printf '%s=\n%s\n' "$key" "$replaced"
-                                        ;;
-                                esac
-                            done
-                        } > "$DROP_IN"
-                        echo "Wrote $DROP_IN with contents:"
-                        sed 's/^/    /' "$DROP_IN"
-                        echo
-
-                        reload_err=$(systemctl daemon-reload 2>&1)
-                        if [ $? != 0 ]; then
-                            echo "WARNING: 'systemctl daemon-reload' failed: $reload_err"
-                            SSHD_SYSTEMD_STATUS=failed
-                        else
-                            echo "Reloaded systemd."
-                            restart_err=$(systemctl restart "$EXISTING_UNIT" 2>&1)
-                            if [ $? != 0 ]; then
-                                echo "WARNING: Failed to restart $EXISTING_UNIT: $restart_err"
-                                echo "Check 'journalctl -u $EXISTING_UNIT' for details."
-                                SSHD_SYSTEMD_STATUS=failed
-                            else
-                                echo "Restarted $EXISTING_UNIT."
-                                NEW_EXEC=$(systemctl show -p ExecStart "$EXISTING_UNIT" 2>/dev/null | head -1)
-                                case "$NEW_EXEC" in
-                                    *"/opt/fil/sbin/sshd"*)
-                                        echo "Verified: $EXISTING_UNIT is now configured to run /opt/fil/sbin/sshd."
-                                        SSHD_SYSTEMD_STATUS=ok
-                                        ;;
-                                    *)
-                                        echo "WARNING: After restart, $EXISTING_UNIT does not appear to be"
-                                        echo "running /opt/fil/sbin/sshd. ExecStart line is:"
-                                        echo "    $NEW_EXEC"
-                                        echo "Check 'journalctl -u $EXISTING_UNIT' for details."
-                                        SSHD_SYSTEMD_STATUS=failed
-                                        ;;
-                                esac
-                            fi
-                        fi
+                        echo "Verified: $EXISTING_UNIT is now active and running" \
+                             "/opt/fil/sbin/sshd."
+                        SSHD_SYSTEMD_STATUS=ok
                     fi
-                else
-                    SSHD_SYSTEMD_STATUS=skipped
                 fi
-                ;;
-        esac
+            fi
+        else
+            SSHD_SYSTEMD_STATUS=skipped
+        fi
     elif [ -n "$EXISTING_SOCKET" ]; then
         # Case D: socket but no service. Weird, refuse to touch it.
         echo "WARNING: Found $EXISTING_SOCKET but no sshd.service or ssh.service."
@@ -1000,7 +1126,7 @@ else
         echo
 
         if [ "$UNATTENDED" = false ]; then
-            echo "Type YES (in all caps) to proceed with systemd setup, or anything"
+            echo "Type YES (in all caps) to proceed with SSH systemd setup, or anything"
             echo "else to skip. (You can re-run this later with: ./setup.sh --ssh-setup)"
             read -r systemd_response
         elif [ "$FULL_SETUP" = true ]; then
@@ -1013,6 +1139,11 @@ else
 
         if [ "$systemd_response" = "YES" ]; then
             echo
+            # Type=notify is supported by the Fil-C OpenSSH build (it
+            # includes the Debian systemd-notify patches), and means
+            # systemctl start only returns once sshd has bound its
+            # listening sockets, so a crash-on-bind is reported as a
+            # start failure rather than silently succeeding.
             cat > /etc/systemd/system/sshd.service <<'EOF'
 # Generated by Fil-C setup.sh
 [Unit]
@@ -1021,9 +1152,11 @@ Documentation=man:sshd(8) man:sshd_config(5)
 After=network.target
 
 [Service]
+Type=notify
 ExecStart=/opt/fil/sbin/sshd -D
 KillMode=process
 Restart=on-failure
+RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
@@ -1031,18 +1164,27 @@ EOF
             echo "Wrote /etc/systemd/system/sshd.service"
 
             reload_err=$(systemctl daemon-reload 2>&1)
-            if [ $? != 0 ]; then
+            reload_rc=$?
+            if [ "$reload_rc" != 0 ]; then
                 echo "WARNING: 'systemctl daemon-reload' failed: $reload_err"
                 SSHD_SYSTEMD_STATUS=failed
             else
                 enable_err=$(systemctl enable sshd.service 2>&1)
-                if [ $? != 0 ]; then
-                    echo "WARNING: Failed to enable sshd.service: $enable_err"
-                fi
+                enable_rc=$?
                 start_err=$(systemctl start sshd.service 2>&1)
-                if [ $? != 0 ]; then
-                    echo "WARNING: Failed to start sshd.service: $start_err"
+                start_rc=$?
+                if [ "$start_rc" != 0 ] || ! systemd_unit_active sshd.service; then
+                    echo "WARNING: sshd.service did not come up cleanly."
+                    if [ -n "$start_err" ]; then
+                        echo "    $start_err"
+                    fi
                     echo "Check 'journalctl -u sshd.service' for details."
+                    SSHD_SYSTEMD_STATUS=failed
+                elif [ "$enable_rc" != 0 ]; then
+                    echo "WARNING: sshd.service is running but enable failed:"
+                    echo "    $enable_err"
+                    echo "It will not start automatically on next boot. Resolve the"
+                    echo "underlying problem and retry with: ./setup.sh --ssh-setup"
                     SSHD_SYSTEMD_STATUS=failed
                 else
                     echo "Started and enabled sshd.service."
