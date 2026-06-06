@@ -173,6 +173,101 @@ tar -xf "$OLDPWD/fil.tar.xz"
 echo
 echo "Checking SSH configuration..."
 
+# SELinux labeling for /opt/fil/sbin/sshd
+# ========================================
+# Tracks whether the Installation Complete section should suggest using
+# /opt/fil/sbin/sshd under systemd. Set to false only when SELinux is enabled
+# but we could not (or refused to) apply a label, which would likely prevent
+# the binary from running under systemd.
+SSHD_SELINUX_OK=true
+
+set +e
+
+if ! command -v selinuxenabled >/dev/null 2>&1 || ! command -v chcon >/dev/null 2>&1; then
+    echo "No SELinux labeling tools detected - no SELinux labeling needed for"
+    echo "/opt/fil/sbin/sshd."
+elif ! selinuxenabled 2>/dev/null; then
+    echo "SELinux is not enabled on this system - no SELinux labeling needed for"
+    echo "/opt/fil/sbin/sshd."
+elif [ ! -e /usr/sbin/sshd ]; then
+    echo "No /usr/sbin/sshd found to use as a SELinux label reference - skipping"
+    echo "SELinux labeling of /opt/fil/sbin/sshd."
+else
+    SELINUX_REF_LABEL=$(stat -c '%C' /usr/sbin/sshd 2>/dev/null)
+    case "$SELINUX_REF_LABEL" in
+        ""|"?"|"(null)"|"unlabeled_t"*)
+            echo "/usr/sbin/sshd has no recognizable SELinux label ('$SELINUX_REF_LABEL') -"
+            echo "no SELinux labeling needed for /opt/fil/sbin/sshd."
+            ;;
+        *)
+            SELINUX_REF_TYPE=$(printf '%s\n' "$SELINUX_REF_LABEL" | awk -F: '{print $3}')
+            case "$SELINUX_REF_TYPE" in
+                sshd_exec_t)
+                    if chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd 2>/dev/null; then
+                        echo "Applied SELinux label '$SELINUX_REF_LABEL' to /opt/fil/sbin/sshd"
+                        echo "(matching /usr/sbin/sshd)."
+                    else
+                        SSHD_SELINUX_OK=false
+                        echo "WARNING: Failed to apply SELinux label to /opt/fil/sbin/sshd."
+                        echo
+                        echo "The reference label on /usr/sbin/sshd is:"
+                        echo "    $SELINUX_REF_LABEL"
+                        echo
+                        echo "Without this label, /opt/fil/sbin/sshd will likely fail to start under"
+                        echo "systemd, because sshd is expected to run in the sshd_t domain on SELinux"
+                        echo "systems. You can try applying the label manually:"
+                        echo
+                        echo "    chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd"
+                        echo
+                        echo "For a persistent label that survives restorecon and SELinux relabel:"
+                        echo
+                        echo "    semanage fcontext -a -t $SELINUX_REF_TYPE '/opt/fil/sbin/sshd'"
+                        echo "    restorecon -v /opt/fil/sbin/sshd"
+                    fi
+                    ;;
+                *)
+                    SSHD_SELINUX_OK=false
+                    echo "WARNING: /usr/sbin/sshd has an unrecognized SELinux label:"
+                    echo "    $SELINUX_REF_LABEL"
+                    echo
+                    echo "This installer recognizes 'sshd_exec_t' as the standard SELinux type for"
+                    echo "sshd executables. Since /usr/sbin/sshd has a different type, the installer"
+                    echo "is refusing to label /opt/fil/sbin/sshd automatically - it does not know"
+                    echo "whether copying this label would be safe or correct for your distribution's"
+                    echo "SELinux policy."
+                    echo
+                    echo "Without a correct SELinux label, /opt/fil/sbin/sshd will likely fail to"
+                    echo "start under systemd, or fail to function correctly when it does start,"
+                    echo "because sshd is expected to run in a specific SELinux domain on this"
+                    echo "system."
+                    echo
+                    echo "To make /opt/fil/sbin/sshd work, you can try copying the same label that"
+                    echo "/usr/sbin/sshd has by running:"
+                    echo
+                    echo "    chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd"
+                    echo
+                    echo "or, equivalently, by setting the label explicitly:"
+                    echo
+                    echo "    chcon $SELINUX_REF_LABEL /opt/fil/sbin/sshd"
+                    echo
+                    echo "For a persistent label that survives restorecon and SELinux relabel:"
+                    echo
+                    echo "    semanage fcontext -a -t $SELINUX_REF_TYPE '/opt/fil/sbin/sshd'"
+                    echo "    restorecon -v /opt/fil/sbin/sshd"
+                    echo
+                    echo "If /opt/fil/sbin/sshd still does not work after that, consult your"
+                    echo "distribution's SELinux policy documentation. If you do not apply an"
+                    echo "SELinux label, /opt/fil/sbin/sshd will probably not work when run from"
+                    echo "systemd on this system."
+                    ;;
+            esac
+            ;;
+    esac
+fi
+
+set -e
+echo
+
 # Phase 1: Detection
 # ==================
 
@@ -431,8 +526,16 @@ echo
 echo "To use Fil-C, add /opt/fil/bin to your PATH:"
 echo "  export PATH=/opt/fil/bin:\$PATH"
 echo
-echo "You can use the memory-safe OpenSSH server at:"
-echo "  /opt/fil/sbin/sshd"
+if [ "$SSHD_SELINUX_OK" = true ]; then
+    echo "You can replace your system sshd with the memory-safe /opt/fil/sbin/sshd under"
+    echo "systemd - see sshd_setup.md (in this directory) for full instructions."
+else
+    echo "You can use the memory-safe OpenSSH server at:"
+    echo "  /opt/fil/sbin/sshd"
+    echo
+    echo "WARNING: SELinux labeling for /opt/fil/sbin/sshd was not completed (see above)."
+    echo "Running it under systemd is unlikely to work until you apply a SELinux label."
+fi
 echo
 echo "To compile C programs with Fil-C:"
 echo "  filcc -o program program.c -g -O"
