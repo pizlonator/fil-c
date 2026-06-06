@@ -524,6 +524,7 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ meson \
     -D sysconfdir=/etc
 ninja
 ninja install
+chmod -v 4755 /opt/fil/sbin/unix_chkpwd
 cd ../..
 test -d pizlonated-pam
 rm -rf pizlonated-pam

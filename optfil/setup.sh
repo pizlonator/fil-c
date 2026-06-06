@@ -217,16 +217,187 @@ fi
 echo
 echo "Checking SSH configuration..."
 
-# SELinux labeling for /opt/fil/sbin/sshd
-# ========================================
+# SELinux labeling for /opt/fil binaries and libraries
+# ====================================================
+# We use semanage to register persistent file context entries and
+# restorecon to apply them. Labels survive future restorecon runs and full
+# SELinux relabels because they live in the policy database.
+#
 # Tracks whether the Installation Complete section should suggest using
 # /opt/fil/sbin/sshd under systemd, and whether the systemd setup phase
-# below should even attempt to run. Default false; explicit success paths
-# set them to true.
+# below should even attempt to run. Default false; the SELinux block sets
+# it to true when (a) SELinux is not active at all, or (b) every label
+# rule succeeded.
 SSHD_SELINUX_OK=false
 SSHD_SSH_OK=true
 
 set +e
+
+# --- SELinux helpers ---
+
+# Return the SELinux context of $1 (following symlinks). Prints "?" or
+# empty if the file has no security context.
+selinux_label_of() {
+    stat -L -c '%C' "$1" 2>/dev/null
+}
+
+# Extract the type field from a label like 'user:role:type:level' or
+# 'user:role:type'. Prints the type on stdout. Returns 1 if the label is
+# empty / a sentinel like "?" / "(null)" / "(unknown)".
+#
+# Variables in this function do not leak to callers because it is always
+# invoked via command substitution, which runs in a subshell.
+selinux_type_of_label() {
+    case "$1" in
+        ""|"?"|"(null)"|"(unknown)") return 1 ;;
+    esac
+    type_label_remainder="${1#*:}"
+    type_label_remainder="${type_label_remainder#*:}"
+    printf '%s\n' "${type_label_remainder%%:*}"
+}
+
+# Register a persistent SELinux file context with semanage. Treats
+# "already defined" as success since semanage -a is otherwise not
+# idempotent.
+# Args: type, semanage path/regex, description (for messages).
+#
+# Note on variable names: shell has no per-function scope, so locals
+# leak to callers. Each helper that may be called by another helper uses
+# names prefixed by the helper's role (e.g. register_*) so that callers
+# can freely use their own names without collision.
+selinux_register_context() {
+    register_type=$1
+    register_path=$2
+    register_description=$3
+    register_error=$(semanage fcontext -a -t "$register_type" "$register_path" 2>&1)
+    register_return_code=$?
+    if [ "$register_return_code" != 0 ]; then
+        case "$register_error" in
+            *already*defined*|*already*exists*|*duplicate*) register_return_code=0 ;;
+        esac
+    fi
+    if [ "$register_return_code" != 0 ]; then
+        echo "WARNING: semanage failed for $register_description:"
+        echo "    $register_error"
+        return 1
+    fi
+    return 0
+}
+
+# Validate that $1 (system reference) has SELinux type $2 (expected). If
+# not, print a warning naming $3 (target description) and return 1.
+# Returns 0 only if the reference is present, labeled, and has the
+# expected type.
+selinux_validate_ref_type() {
+    validate_reference=$1
+    validate_expected_type=$2
+    validate_description=$3
+    if [ -z "$validate_reference" ]; then
+        echo "WARNING: No system reference found for $validate_description - cannot"
+        echo "determine the expected SELinux type. Skipping persistent label."
+        return 1
+    fi
+    if [ ! -e "$validate_reference" ] && [ ! -h "$validate_reference" ]; then
+        echo "WARNING: System reference $validate_reference does not exist - cannot"
+        echo "determine the expected SELinux type for $validate_description. Skipping"
+        echo "persistent label."
+        return 1
+    fi
+    validate_reference_label=$(selinux_label_of "$validate_reference")
+    if ! validate_actual_type=$(selinux_type_of_label "$validate_reference_label"); then
+        echo "WARNING: $validate_reference has no SELinux label ('$validate_reference_label')"
+        echo "- cannot determine the expected type for $validate_description. Skipping"
+        echo "persistent label."
+        return 1
+    fi
+    if [ "$validate_actual_type" != "$validate_expected_type" ]; then
+        echo "WARNING: $validate_reference has SELinux type '$validate_actual_type'"
+        echo "(this installer expects '$validate_expected_type'). The SELinux policy on"
+        echo "this system does not appear to be one this installer recognizes. Skipping"
+        echo "persistent label for $validate_description. You can apply the label"
+        echo "manually if you know what type to use:"
+        echo "    semanage fcontext -a -t '<your_type>' '$validate_reference'"
+        echo "    restorecon -v <path-or-dir-here>"
+        return 1
+    fi
+    return 0
+}
+
+# Apply persistent SELinux label for a single file target.
+# Args:
+#   $1 description (for messages)
+#   $2 system reference path (used to read the expected label)
+#   $3 expected SELinux type (sanity-checked against the reference)
+#   $4 semanage path/regex (where the rule is registered)
+#   $5 target file (where restorecon is run)
+selinux_label_file() {
+    file_description=$1
+    file_reference=$2
+    file_expected_type=$3
+    file_semanage_path=$4
+    file_target=$5
+    if [ ! -e "$file_target" ]; then
+        echo "WARNING: $file_target does not exist - skipping $file_description."
+        return 1
+    fi
+    selinux_validate_ref_type "$file_reference" "$file_expected_type" "$file_description" \
+        || return 1
+    file_reference_label=$(selinux_label_of "$file_reference")
+    file_current_label=$(selinux_label_of "$file_target")
+    if [ "$file_current_label" = "$file_reference_label" ]; then
+        # Already correctly labeled; still register persistence so the
+        # label survives a future restorecon or relabel.
+        selinux_register_context "$file_expected_type" "$file_semanage_path" "$file_description" \
+            || return 1
+        echo "$file_description already has SELinux label '$file_reference_label'" \
+             "(no change needed)."
+        return 0
+    fi
+    selinux_register_context "$file_expected_type" "$file_semanage_path" "$file_description" \
+        || return 1
+    file_restorecon_error=$(restorecon -v "$file_target" 2>&1)
+    if [ $? != 0 ]; then
+        echo "WARNING: restorecon failed for $file_description:"
+        echo "    $file_restorecon_error"
+        return 1
+    fi
+    echo "Applied persistent SELinux label '$file_reference_label' to $file_description."
+    return 0
+}
+
+# Apply persistent SELinux label recursively for a directory. Same args
+# as selinux_label_file but the final arg is the directory; restorecon
+# is run with -R. No per-file idempotency fast-path; semanage and
+# restorecon are themselves idempotent.
+selinux_label_recursive() {
+    dir_description=$1
+    dir_reference=$2
+    dir_expected_type=$3
+    dir_semanage_path=$4
+    dir_target=$5
+    if [ ! -d "$dir_target" ]; then
+        echo "WARNING: $dir_target does not exist - skipping $dir_description."
+        return 1
+    fi
+    selinux_validate_ref_type "$dir_reference" "$dir_expected_type" "$dir_description" \
+        || return 1
+    selinux_register_context "$dir_expected_type" "$dir_semanage_path" "$dir_description" \
+        || return 1
+    dir_restorecon_error=$(restorecon -R -v "$dir_target" 2>&1)
+    if [ $? != 0 ]; then
+        echo "WARNING: restorecon -R failed for $dir_description:"
+        echo "    $dir_restorecon_error"
+        return 1
+    fi
+    if [ -z "$dir_restorecon_error" ]; then
+        echo "$dir_description already has correct SELinux labels (no change needed)."
+    else
+        echo "Applied persistent SELinux label '$dir_expected_type' for $dir_description."
+    fi
+    return 0
+}
+
+# --- SELinux main block ---
 
 # Detect whether SELinux is actually loaded by the kernel. This is more
 # reliable than selinuxenabled alone, which may not be installed even when
@@ -244,135 +415,119 @@ fi
 
 if [ "$SELINUX_KERNEL_ACTIVE" = false ]; then
     echo "SELinux is not active on this system - no SELinux labeling needed for"
-    echo "/opt/fil/sbin/sshd."
+    echo "/opt/fil."
     SSHD_SELINUX_OK=true
-elif ! command -v chcon >/dev/null 2>&1; then
-    echo "WARNING: SELinux is active on this system, but the 'chcon' tool is not"
-    echo "available. The installer cannot label /opt/fil/sbin/sshd automatically."
+elif ! command -v semanage >/dev/null 2>&1 || ! command -v restorecon >/dev/null 2>&1; then
+    echo "WARNING: SELinux is active on this system, but the persistent labeling"
+    echo "tools (semanage and/or restorecon) are not available. The installer"
+    echo "cannot label /opt/fil/sbin/sshd or the Fil-C runtime libraries"
+    echo "automatically."
     echo
-    echo "Install your distribution's SELinux user-space tools and label by hand"
-    echo "if you intend to run /opt/fil/sbin/sshd under systemd. On Rocky/RHEL/Fedora:"
+    echo "Install your distribution's SELinux user-space tools and re-run this"
+    echo "step. On Rocky/RHEL/Fedora:"
     echo
-    echo "    dnf install policycoreutils libselinux-utils"
-    echo "    chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd"
-elif [ ! -e /opt/fil/sbin/sshd ]; then
-    echo "WARNING: /opt/fil/sbin/sshd was not present after extraction. Skipping"
-    echo "SELinux labeling. This may indicate an incomplete or corrupt distribution."
-elif [ ! -e /usr/sbin/sshd ] && [ ! -h /usr/sbin/sshd ]; then
-    echo "No /usr/sbin/sshd found to use as a SELinux label reference - skipping"
-    echo "SELinux labeling of /opt/fil/sbin/sshd. If sshd fails to run under systemd,"
-    echo "you may need to apply a SELinux label by hand."
-    SSHD_SELINUX_OK=true
+    echo "    dnf install policycoreutils policycoreutils-python-utils"
+    echo "    ./setup.sh --ssh-setup"
 else
-    SELINUX_REF_LABEL=$(stat -L -c '%C' /usr/sbin/sshd 2>/dev/null)
-    case "$SELINUX_REF_LABEL" in
-        ""|"?"|"(null)"|"(unknown)")
-            echo "/usr/sbin/sshd has no SELinux label ('$SELINUX_REF_LABEL') - no SELinux"
-            echo "labeling needed for /opt/fil/sbin/sshd."
-            SSHD_SELINUX_OK=true
-            ;;
-        *)
-            # Extract the type field via parameter expansion. Handles both
-            # 4-field labels (user:role:type:level) and 3-field labels
-            # (user:role:type) without an MCS/MLS level.
-            _selinux_tmp="${SELINUX_REF_LABEL#*:}"
-            _selinux_tmp="${_selinux_tmp#*:}"
-            SELINUX_REF_TYPE="${_selinux_tmp%%:*}"
-            case "$SELINUX_REF_TYPE" in
-                sshd_exec_t)
-                    CURRENT_FIL_LABEL=$(stat -L -c '%C' /opt/fil/sbin/sshd 2>/dev/null)
-                    if [ "$CURRENT_FIL_LABEL" = "$SELINUX_REF_LABEL" ]; then
-                        echo "/opt/fil/sbin/sshd already has the correct SELinux label"
-                        echo "('$SELINUX_REF_LABEL') - no SELinux labeling needed."
-                        SSHD_SELINUX_OK=true
-                        SELINUX_CHCON_RC=0
-                    else
-                        SELINUX_CHCON_ERR=$(chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd 2>&1)
-                        SELINUX_CHCON_RC=$?
-                    fi
-                    if [ "$SELINUX_CHCON_RC" = 0 ] && [ "$SSHD_SELINUX_OK" != true ]; then
-                        echo "Applied SELinux label '$SELINUX_REF_LABEL' to /opt/fil/sbin/sshd"
-                        echo "(matching /usr/sbin/sshd)."
-                        SSHD_SELINUX_OK=true
-                    elif [ "$SELINUX_CHCON_RC" != 0 ]; then
-                        echo "WARNING: Failed to apply SELinux label to /opt/fil/sbin/sshd."
-                        if [ -n "$SELINUX_CHCON_ERR" ]; then
-                            echo "    chcon error: $SELINUX_CHCON_ERR"
-                        fi
-                        echo
-                        echo "The reference label on /usr/sbin/sshd is:"
-                        echo "    $SELINUX_REF_LABEL"
-                        echo
-                        if [ "$SELINUX_ENFORCING" = false ]; then
-                            echo "Without this label, /opt/fil/sbin/sshd will likely run with the wrong"
-                            echo "SELinux context. Because SELinux is in permissive mode on this system,"
-                            echo "that probably will not prevent sshd from starting, but it will produce"
-                            echo "SELinux denials in the audit log."
-                        else
-                            echo "Without this label, /opt/fil/sbin/sshd will likely fail to start under"
-                            echo "systemd, because sshd is expected to run in the sshd_t domain on SELinux"
-                            echo "systems."
-                        fi
-                        echo
-                        echo "You can try applying the label manually:"
-                        echo
-                        echo "    chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd"
-                        echo
-                        echo "For a persistent label that survives restorecon and SELinux relabel:"
-                        echo
-                        echo "    semanage fcontext -a -t '$SELINUX_REF_TYPE' '/opt/fil/sbin/sshd'"
-                        echo "    restorecon -v /opt/fil/sbin/sshd"
-                    fi
-                    ;;
-                ""|unlabeled_t)
-                    echo "/usr/sbin/sshd has no usable SELinux type ('$SELINUX_REF_LABEL') -"
-                    echo "no SELinux labeling needed for /opt/fil/sbin/sshd."
-                    SSHD_SELINUX_OK=true
-                    ;;
-                *)
-                    echo "WARNING: /usr/sbin/sshd has an unrecognized SELinux label:"
-                    echo "    $SELINUX_REF_LABEL"
-                    echo
-                    echo "This installer recognizes 'sshd_exec_t' as the standard SELinux type for"
-                    echo "sshd executables. Since /usr/sbin/sshd has a different type, the installer"
-                    echo "is refusing to label /opt/fil/sbin/sshd automatically - it does not know"
-                    echo "whether copying this label would be safe or correct for your distribution's"
-                    echo "SELinux policy."
-                    echo
-                    if [ "$SELINUX_ENFORCING" = false ]; then
-                        echo "Without a correct SELinux label, /opt/fil/sbin/sshd will likely run with"
-                        echo "the wrong SELinux context. Because SELinux is in permissive mode on this"
-                        echo "system, that probably will not prevent sshd from starting, but it will"
-                        echo "produce SELinux denials in the audit log."
-                    else
-                        echo "Without a correct SELinux label, /opt/fil/sbin/sshd will likely fail to"
-                        echo "start under systemd, or fail to function correctly when it does start,"
-                        echo "because sshd is expected to run in a specific SELinux domain on this"
-                        echo "system."
-                    fi
-                    echo
-                    echo "To make /opt/fil/sbin/sshd work, you can try copying the same label that"
-                    echo "/usr/sbin/sshd has by running:"
-                    echo
-                    echo "    chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd"
-                    echo
-                    echo "or, equivalently, by setting the label explicitly:"
-                    echo
-                    echo "    chcon '$SELINUX_REF_LABEL' /opt/fil/sbin/sshd"
-                    echo
-                    echo "For a persistent label that survives restorecon and SELinux relabel:"
-                    echo
-                    echo "    semanage fcontext -a -t '$SELINUX_REF_TYPE' '/opt/fil/sbin/sshd'"
-                    echo "    restorecon -v /opt/fil/sbin/sshd"
-                    echo
-                    echo "If /opt/fil/sbin/sshd still does not work after that, consult your"
-                    echo "distribution's SELinux policy documentation. If you do not apply an"
-                    echo "SELinux label, /opt/fil/sbin/sshd will probably not work when run from"
-                    echo "systemd on this system."
-                    ;;
-            esac
-            ;;
-    esac
+    echo "Applying persistent SELinux labels for /opt/fil binaries and libraries..."
+
+    # Find the canonical system path for each label reference. Different
+    # distros put the loader and libc in different places, so we probe a
+    # short list.
+    SYS_SSHD=/usr/sbin/sshd
+
+    SYS_CHKPWD=
+    for _p in /usr/sbin/unix_chkpwd /sbin/unix_chkpwd; do
+        if [ -e "$_p" ]; then SYS_CHKPWD=$_p; break; fi
+    done
+
+    SYS_LOADER=
+    for _p in /lib64/ld-linux-x86-64.so.2 \
+              /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+              /usr/lib64/ld-linux-x86-64.so.2 \
+              /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+              /lib/ld-linux-x86-64.so.2; do
+        if [ -e "$_p" ]; then SYS_LOADER=$_p; break; fi
+    done
+
+    SYS_LIBC=
+    for _p in /lib64/libc.so.6 \
+              /lib/x86_64-linux-gnu/libc.so.6 \
+              /usr/lib64/libc.so.6 \
+              /usr/lib/x86_64-linux-gnu/libc.so.6 \
+              /lib/libc.so.6; do
+        if [ -e "$_p" ]; then SYS_LIBC=$_p; break; fi
+    done
+
+    selinux_targets_failed=0
+    selinux_targets_total=0
+
+    # /opt/fil/sbin/sshd -> sshd_exec_t (matching /usr/sbin/sshd).
+    selinux_targets_total=$((selinux_targets_total + 1))
+    selinux_label_file \
+        "/opt/fil/sbin/sshd" \
+        "$SYS_SSHD" \
+        sshd_exec_t \
+        "/opt/fil/sbin/sshd" \
+        "/opt/fil/sbin/sshd" \
+        || selinux_targets_failed=$((selinux_targets_failed + 1))
+
+    # /opt/fil/sbin/unix_chkpwd -> chkpwd_exec_t. Needed for PAM password
+    # checking when sshd runs in its sandboxed domain.
+    if [ -e /opt/fil/sbin/unix_chkpwd ]; then
+        selinux_targets_total=$((selinux_targets_total + 1))
+        selinux_label_file \
+            "/opt/fil/sbin/unix_chkpwd" \
+            "$SYS_CHKPWD" \
+            chkpwd_exec_t \
+            "/opt/fil/sbin/unix_chkpwd" \
+            "/opt/fil/sbin/unix_chkpwd" \
+            || selinux_targets_failed=$((selinux_targets_failed + 1))
+    fi
+
+    # /opt/fil/lib/ld-yolo-x86_64.so -> ld_so_t. This is the Fil-C dynamic
+    # loader; it needs the loader type rather than the generic library
+    # type so that exec-time domain transitions work. We register this
+    # rule with a literal-path regex so SELinux's specificity matching
+    # picks it over the broader library rule below.
+    selinux_targets_total=$((selinux_targets_total + 1))
+    selinux_label_file \
+        "/opt/fil/lib/ld-yolo-x86_64.so (loader)" \
+        "$SYS_LOADER" \
+        ld_so_t \
+        '/opt/fil/lib/ld-yolo-x86_64\.so' \
+        "/opt/fil/lib/ld-yolo-x86_64.so" \
+        || selinux_targets_failed=$((selinux_targets_failed + 1))
+
+    # /opt/fil/lib/*.so* -> lib_t (recursive). The loader rule above is
+    # more specific and overrides this for the loader itself.
+    selinux_targets_total=$((selinux_targets_total + 1))
+    selinux_label_recursive \
+        "/opt/fil/lib shared libraries" \
+        "$SYS_LIBC" \
+        lib_t \
+        '/opt/fil/lib/.+\.so(\..+)?' \
+        "/opt/fil/lib" \
+        || selinux_targets_failed=$((selinux_targets_failed + 1))
+
+    if [ "$selinux_targets_failed" = 0 ]; then
+        SSHD_SELINUX_OK=true
+        echo "SELinux labeling complete ($selinux_targets_total rules applied or already in place)."
+    else
+        echo
+        echo "WARNING: $selinux_targets_failed of $selinux_targets_total SELinux label"
+        echo "rules could not be applied (see warnings above)."
+        if [ "$SELINUX_ENFORCING" = false ]; then
+            echo "SELinux is in permissive mode on this system, so /opt/fil/sbin/sshd"
+            echo "may still run but will produce denials in the audit log."
+        else
+            echo "/opt/fil/sbin/sshd is unlikely to work correctly under systemd until"
+            echo "the failing rules are resolved. After fixing the underlying issue"
+            echo "(often: installing missing user-space tools, or matching your"
+            echo "distribution's policy types), retry with:"
+            echo "    ./setup.sh --ssh-setup"
+        fi
+    fi
 fi
 
 set -e

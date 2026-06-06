@@ -84,19 +84,47 @@ your existing setup was already sufficient. If you used `-u` without
 `--full-setup`, then the installer would not have done anything to your
 SSH configuration.
 
-The installer attempted to apply the right SELinux label to
-`/opt/fil/sbin/sshd`. The logic is conservative. If SELinux is not active
-in the kernel, the installer does nothing. If SELinux is active but the
-`chcon` tool is not installed, the installer warns you and asks you to
-install the SELinux user-space tools and label the binary by hand. If
-SELinux is active and the tools are present, the installer reads the
-label from `/usr/sbin/sshd` and, if that label has the standard
-`sshd_exec_t` type, copies the same label onto `/opt/fil/sbin/sshd`
-using `chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd`. If the label
-on `/usr/sbin/sshd` has a different type, the installer refuses to guess
-and prints detailed instructions for what to try by hand. This is one of
-the cases where you may need to do the SELinux labeling yourself before
-the binary should work under systemd.
+The installer attempted to apply persistent SELinux labels for the
+Fil-C binaries and runtime libraries under `/opt/fil`. The logic is
+conservative. If SELinux is not active in the kernel, the installer
+does nothing. If SELinux is active but the persistent labeling tools
+(`semanage` and `restorecon`) are not installed, the installer warns
+you and asks you to install the SELinux user-space tools and re-run
+the SSH setup phase with `./setup.sh --ssh-setup` rather than trying
+to limp along with `chcon` alone (which does not survive a future
+`restorecon` or a full SELinux relabel).
+
+When SELinux is active and the tools are present, the installer
+registers persistent file context entries with `semanage fcontext -a`
+and then applies them with `restorecon`. There are four label rules,
+each one validated against a system reference path before the
+installer commits to anything. The reference type must match what the
+installer recognizes for that role; if it does not, the installer
+refuses to label that target and prints what type it expected. The
+four rules are: `/opt/fil/sbin/sshd` should match the type of
+`/usr/sbin/sshd` (expected `sshd_exec_t`); `/opt/fil/sbin/unix_chkpwd`
+should match `/usr/sbin/unix_chkpwd` (expected `chkpwd_exec_t`), which
+is needed for PAM password checking from sshd's sandboxed domain;
+`/opt/fil/lib/ld-yolo-x86_64.so` should match the system dynamic
+loader (expected `ld_so_t`), with the installer probing the common
+loader paths (`/lib64/ld-linux-x86-64.so.2`, the Debian/Ubuntu
+multiarch path, and so on) to find one; and the shared libraries
+under `/opt/fil/lib` should match the type that the system uses for
+libc (expected `lib_t`), again with several candidate paths probed.
+
+The shared-library rule is registered as a regex
+(`/opt/fil/lib/.+\.so(\..+)?`), and the loader rule is registered as
+a literal path, so SELinux's specificity matching picks the loader
+rule for the loader and the library rule for everything else. If any
+one rule fails (for example, because the system reference has an
+unrecognized type), the installer skips that rule and continues with
+the others, but it will not declare the SELinux setup successful
+overall, and it will refuse to proceed with the systemd setup that
+comes after, since starting sshd with partial labels can produce
+hard-to-debug failures. After fixing the underlying problem you can
+re-run the labeling step with `./setup.sh --ssh-setup`, which is
+idempotent: it will report which labels are already in place and only
+apply the ones that need changing.
 
 Finally, if systemd is running on your machine and the earlier SELinux
 and SSH configuration steps completed cleanly, the installer wired
@@ -279,32 +307,39 @@ Fil-C build of OpenSSH. Open a second terminal and test a login before
 doing anything else.
 
 If the service fails to start on a system that uses SELinux, the most
-likely cause is that the new binary is missing the SELinux label that
-sshd is expected to have. The installer tries to handle this
-automatically, as described above, but if it printed a warning about an
-unrecognized label on `/usr/sbin/sshd`, or could not find the SELinux
-tools, you will need to fix this by hand before the service will work.
-The simplest fix is to copy whatever label the stock sshd has:
-
-```bash
-sudo chcon --reference=/usr/sbin/sshd /opt/fil/sbin/sshd
-```
-
-That sets the label for now, but a future `restorecon` run or full
-SELinux relabel will undo it, because the persistent file context
-database does not know about `/opt/fil/sbin/sshd`. To make the label
-stick across relabels, register it with `semanage`. Replace `sshd_exec_t`
-below with whatever type your distribution actually uses, which you can
-read off the output of `ls -Z /usr/sbin/sshd`.
+likely cause is that one or more of the Fil-C files under `/opt/fil` is
+missing the SELinux label it needs. The installer tries to handle this
+automatically by registering persistent file context entries for the
+sshd binary, the `unix_chkpwd` PAM helper, the Fil-C dynamic loader,
+and the Fil-C shared libraries, but if it printed warnings about
+unrecognized reference types, or could not find `semanage` and
+`restorecon`, you will need to apply the labels by hand. The four
+rules the installer would have registered are listed below. Replace
+the type names with whatever your distribution actually uses if they
+differ from these defaults; you can read the system reference types
+off the output of `ls -Z` on each reference path.
 
 ```bash
 sudo semanage fcontext -a -t sshd_exec_t '/opt/fil/sbin/sshd'
-sudo restorecon -v /opt/fil/sbin/sshd
+sudo semanage fcontext -a -t chkpwd_exec_t '/opt/fil/sbin/unix_chkpwd'
+sudo semanage fcontext -a -t ld_so_t '/opt/fil/lib/ld-yolo-x86_64\.so'
+sudo semanage fcontext -a -t lib_t '/opt/fil/lib/.+\.so(\..+)?'
+sudo restorecon -v /opt/fil/sbin/sshd /opt/fil/sbin/unix_chkpwd
+sudo restorecon -R -v /opt/fil/lib
 ```
+
+The order of the loader and library rules matters less than it looks,
+because SELinux matches the most specific entry rather than the
+first-registered one, but registering the loader rule (which uses a
+literal path) before the library rule (which uses a regex) is a
+defensive convention.
 
 If `semanage` is not installed, you can install it with `dnf install
 policycoreutils-python-utils` on Rocky and Fedora, or the equivalent
-package on your distribution.
+package on your distribution. Using `chcon` instead of `semanage` is
+also possible but is not persistent: a future `restorecon` or full
+SELinux relabel will revert the labels because the policy database
+will not know about `/opt/fil`.
 
 After the labeling change, restart the service again and check
 `journalctl -u sshd` if it still misbehaves. The journal will usually

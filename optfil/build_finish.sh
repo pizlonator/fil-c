@@ -54,6 +54,7 @@ cp -v ../README.md $package_name/
 cp -v ../LLVM-LICENSE.txt $package_name/
 cp -v ../libpas/LICENSE.txt $package_name/PAS-LICENSE.txt
 cp -v setup.sh $package_name/
+cp -v sshd_setup.md $package_name/
 
 # Copy all project license files
 licenses_dir=$package_name/additional_licenses
