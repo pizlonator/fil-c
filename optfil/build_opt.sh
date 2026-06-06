@@ -835,7 +835,7 @@ hash -r
 
 tar -xf $FILCSRC/projects/rsync-3.4.3/pizlonated-rsync.tar.gz
 cd pizlonated-rsync
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-rsh=/opt/fil/bin/ssh
 make -j `nproc`
 make -j `nproc` install
 cd ..
