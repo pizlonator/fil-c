@@ -30,6 +30,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <sstream>
+#include <cctype>
 
 using namespace llvm;
 
@@ -7940,21 +7941,558 @@ class Pizlonator {
     return false;
   }
 
+  bool validateSafeInlineAsm(CallBase* CI, InlineAsm* IA, std::string& Reason) {
+    // Whitespace helpers.
+    auto isSpace = [](char c) -> bool {
+      return c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f';
+    };
+    auto trim = [&](StringRef s) -> std::string {
+      size_t start = 0;
+      while (start < s.size() && isSpace(s[start]))
+        ++start;
+      size_t end = s.size();
+      while (end > start && isSpace(s[end - 1]))
+        --end;
+      return s.substr(start, end - start).str();
+    };
+    auto toLowerStr = [&](StringRef s) -> std::string {
+      std::string r = s.str();
+      for (char& c : r)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      return r;
+    };
+
+    // Map a register name to its family (ax, cx, r8, ...).
+    auto getRegFamily = [&](StringRef reg) -> std::string {
+      std::string r = toLowerStr(reg);
+      static const std::unordered_map<std::string, std::string> familyMap = []{
+        std::unordered_map<std::string, std::string> m;
+        m["al"] = "ax"; m["ah"] = "ax"; m["ax"] = "ax"; m["eax"] = "ax"; m["rax"] = "ax";
+        m["bl"] = "bx"; m["bh"] = "bx"; m["bx"] = "bx"; m["ebx"] = "bx"; m["rbx"] = "bx";
+        m["cl"] = "cx"; m["ch"] = "cx"; m["cx"] = "cx"; m["ecx"] = "cx"; m["rcx"] = "cx";
+        m["dl"] = "dx"; m["dh"] = "dx"; m["dx"] = "dx"; m["edx"] = "dx"; m["rdx"] = "dx";
+        m["sil"] = "si"; m["si"] = "si"; m["esi"] = "si"; m["rsi"] = "si";
+        m["dil"] = "di"; m["di"] = "di"; m["edi"] = "di"; m["rdi"] = "di";
+        m["bpl"] = "bp"; m["bp"] = "bp"; m["ebp"] = "bp"; m["rbp"] = "bp";
+        m["spl"] = "sp"; m["sp"] = "sp"; m["esp"] = "sp"; m["rsp"] = "sp";
+        for (int i = 8; i <= 15; ++i) {
+          std::string base = "r" + std::to_string(i);
+          m[base] = base;
+          m[base + "b"] = base;
+          m[base + "w"] = base;
+          m[base + "d"] = base;
+          m[base + "l"] = base;
+        }
+        return m;
+      }();
+      auto it = familyMap.find(r);
+      if (it != familyMap.end())
+        return it->second;
+      return "";
+    };
+
+    // Parse the constraint string.
+    struct ParsedConstraint {
+      enum Kind { Clobber, Output, Input } Kind;
+      std::string String;
+      bool IsRegister = false;
+      std::string Family; // non-empty for fixed-register constraints
+      int MatchingTarget = -1;
+    };
+
+    std::vector<ParsedConstraint> Constraints;
+    bool HasCCClobber = false;
+
+    std::string ConstraintStr = IA->getConstraintString();
+    for (size_t idx = 0, end = ConstraintStr.size(); idx < end; ) {
+      size_t comma = ConstraintStr.find(',', idx);
+      if (comma == std::string::npos)
+        comma = end;
+      std::string cstr = trim(ConstraintStr.substr(idx, comma - idx));
+      if (!cstr.empty()) {
+        ParsedConstraint pc;
+        pc.String = cstr;
+        pc.Kind = ParsedConstraint::Input;
+        pc.IsRegister = false;
+        pc.MatchingTarget = -1;
+
+        if (cstr[0] == '~') {
+          pc.Kind = ParsedConstraint::Clobber;
+          if (cstr.size() < 3 || cstr[1] != '{' || cstr.back() != '}') {
+            Reason = "malformed clobber constraint: " + cstr;
+            return false;
+          }
+          std::string name = toLowerStr(cstr.substr(2, cstr.size() - 3));
+          if (name == "cc")
+            HasCCClobber = true;
+          else if (name == "memory" || name == "dirflag" || name == "fpsr" ||
+                   name == "flags" || !getRegFamily(name).empty()) {
+            // memory and fixed-register clobbers are allowed.
+          } else {
+            Reason = "unsupported clobber for safe inline asm: " + cstr;
+            return false;
+          }
+        } else {
+          size_t pos = 0;
+          bool isOutput = false;
+          while (pos < cstr.size()) {
+            if (cstr[pos] == '=') {
+              isOutput = true;
+              ++pos;
+            } else if (cstr[pos] == '&' || cstr[pos] == '%') {
+              ++pos;
+            } else if (cstr[pos] == '+') {
+              isOutput = true;
+              ++pos;
+            } else {
+              break;
+            }
+          }
+          if (pos >= cstr.size()) {
+            Reason = "empty constraint after prefixes: " + cstr;
+            return false;
+          }
+          if (cstr[pos] == '*') {
+            Reason = "indirect constraint not allowed in safe inline asm: " + cstr;
+            return false;
+          }
+          pc.Kind = isOutput ? ParsedConstraint::Output : ParsedConstraint::Input;
+          std::string rest = cstr.substr(pos);
+          if (rest == "r") {
+            pc.IsRegister = true;
+          } else if (rest.size() >= 2 && rest.front() == '{' && rest.back() == '}') {
+            std::string regname = toLowerStr(rest.substr(1, rest.size() - 2));
+            std::string family = getRegFamily(regname);
+            if (family.empty()) {
+              Reason = "unknown fixed register constraint: " + cstr;
+              return false;
+            }
+            pc.IsRegister = true;
+            pc.Family = family;
+          } else {
+            bool allDigits = true;
+            for (char c : rest) {
+              if (!std::isdigit(static_cast<unsigned char>(c))) {
+                allDigits = false;
+                break;
+              }
+            }
+            if (allDigits && !rest.empty()) {
+              int target = 0;
+              for (char c : rest)
+                target = target * 10 + (c - '0');
+              pc.MatchingTarget = target;
+            } else {
+              Reason = "unsupported constraint for safe inline asm: " + cstr;
+              return false;
+            }
+          }
+        }
+        Constraints.push_back(pc);
+      }
+      idx = comma + 1;
+    }
+
+    // Resolve matching constraints.
+    for (auto& pc : Constraints) {
+      if (pc.MatchingTarget < 0)
+        continue;
+      size_t target = static_cast<size_t>(pc.MatchingTarget);
+      if (target >= Constraints.size()) {
+        Reason = "matching constraint out of range: " + pc.String;
+        return false;
+      }
+      const ParsedConstraint& targetPc = Constraints[target];
+      if (targetPc.Kind != ParsedConstraint::Output) {
+        Reason = "matching constraint does not point at output: " + pc.String;
+        return false;
+      }
+      if (!targetPc.IsRegister) {
+        Reason = "matching constraint points at non-register output: " + pc.String;
+        return false;
+      }
+      pc.IsRegister = true;
+      pc.Family = targetPc.Family;
+    }
+
+    // Build sets of register families covered by input/output constraints.
+    std::unordered_set<std::string> InputFamilies;
+    std::unordered_set<std::string> OutputFamilies;
+    for (const auto& pc : Constraints) {
+      if (!pc.IsRegister)
+        continue;
+      if (pc.Kind == ParsedConstraint::Input && !pc.Family.empty())
+        InputFamilies.insert(pc.Family);
+      else if (pc.Kind == ParsedConstraint::Output && !pc.Family.empty())
+        OutputFamilies.insert(pc.Family);
+    }
+
+    if (verbose) {
+      errs() << "Safe inline asm constraint analysis:\n";
+      errs() << "  Input families:";
+      for (const auto& f : InputFamilies)
+        errs() << " " << f;
+      errs() << "\n";
+      errs() << "  Output families:";
+      for (const auto& f : OutputFamilies)
+        errs() << " " << f;
+      errs() << "\n";
+      errs() << "  Has cc clobber: " << HasCCClobber << "\n";
+    }
+
+    enum OperandRole { RoleInput, RoleOutput, RoleBoth };
+
+    auto parseMnemonic = [&](const std::string& mnem, std::string& baseMnemonic,
+                             bool& setsFlags, std::vector<OperandRole>& roles) -> bool {
+      StringRef m(mnem);
+
+      if (m.starts_with("cmov")) {
+        StringRef suffix = m.drop_front(4);
+        if (suffix.empty())
+          return false;
+        static const std::unordered_set<std::string> conds = {
+          "o", "no",
+          "b", "c", "nae", "nb", "nc", "ae",
+          "e", "z", "ne", "nz",
+          "be", "na", "nbe", "a",
+          "s", "ns",
+          "p", "pe", "np", "po",
+          "l", "nge", "nl", "ge",
+          "le", "ng", "nle", "g"
+        };
+        StringRef cond = suffix;
+        if (suffix.size() >= 2 && (suffix.back() == 'b' || suffix.back() == 'w' ||
+                                   suffix.back() == 'l' || suffix.back() == 'q')) {
+          StringRef maybeCond = suffix.drop_back();
+          if (conds.count(maybeCond.str()))
+            cond = maybeCond;
+        }
+        if (!conds.count(cond.str()))
+          return false;
+        baseMnemonic = "cmov";
+        setsFlags = false;
+        roles = {RoleInput, RoleOutput};
+        return true;
+      }
+
+      if (m == "cpuid" || m == "xgetbv") {
+        baseMnemonic = mnem;
+        setsFlags = false;
+        roles.clear();
+        return true;
+      }
+
+      StringRef base = m;
+      if (!base.empty() && (base.back() == 'b' || base.back() == 'w' ||
+                            base.back() == 'l' || base.back() == 'q'))
+        base = base.drop_back();
+
+      static const std::unordered_map<std::string, std::pair<bool, std::vector<OperandRole>>> info = {
+        {"sar", {true, {RoleInput, RoleBoth}}},
+        {"shr", {true, {RoleInput, RoleBoth}}},
+        {"and", {true, {RoleInput, RoleBoth}}},
+        {"shl", {true, {RoleInput, RoleBoth}}},
+        {"xor", {true, {RoleInput, RoleBoth}}},
+        {"mov", {false, {RoleInput, RoleOutput}}},
+        {"test", {true, {RoleInput, RoleInput}}},
+        {"cmp", {true, {RoleInput, RoleInput}}},
+        {"bsf", {true, {RoleInput, RoleOutput}}},
+      };
+      auto it = info.find(base.str());
+      if (it == info.end())
+        return false;
+      baseMnemonic = base.str();
+      setsFlags = it->second.first;
+      roles = it->second.second;
+      return true;
+    };
+
+    // Split asm string into lines on \n and ;.
+    std::string AsmStr = IA->getAsmString();
+    std::vector<std::string> lines;
+    {
+      std::string cur;
+      for (char c : AsmStr) {
+        if (c == '\n' || c == ';') {
+          lines.push_back(trim(cur));
+          cur.clear();
+        } else
+          cur += c;
+      }
+      lines.push_back(trim(cur));
+    }
+
+    enum OperandKind { OKReg, OKPlaceholder, OKImmediate, OKMemory };
+    auto classifyOperand = [&](const std::string& op, int& placeholderIndex,
+                               std::string& family,
+                               size_t numConstraints) -> OperandKind {
+      placeholderIndex = -1;
+      family.clear();
+      if (op.empty())
+        return OKMemory;
+      if (op[0] == '%') {
+        StringRef reg = StringRef(op).drop_front(1);
+        family = getRegFamily(reg);
+        if (family.empty())
+          return OKMemory;
+        return OKReg;
+      }
+      if (op[0] == '$') {
+        if (op.size() >= 2 && op[1] == '$')
+          return OKImmediate;
+        size_t pos = 1;
+        if (pos < op.size() && op[pos] == '{') {
+          size_t end = op.find('}', pos);
+          if (end == std::string::npos)
+            return OKImmediate;
+          std::string inner = op.substr(pos + 1, end - pos - 1);
+          size_t colon = inner.find(':');
+          if (colon != std::string::npos)
+            inner = inner.substr(0, colon);
+          if (inner.empty())
+            return OKImmediate;
+          for (char c : inner) {
+            if (!std::isdigit(static_cast<unsigned char>(c)))
+              return OKImmediate;
+          }
+          int idx = 0;
+          for (char c : inner)
+            idx = idx * 10 + (c - '0');
+          placeholderIndex = idx;
+        } else if (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos]))) {
+          size_t numStart = pos;
+          while (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos])))
+            ++pos;
+          if (pos != op.size())
+            return OKImmediate;
+          int idx = 0;
+          for (size_t i = numStart; i < pos; ++i)
+            idx = idx * 10 + (op[i] - '0');
+          if (static_cast<size_t>(idx) >= numConstraints)
+            return OKImmediate;
+          placeholderIndex = idx;
+        } else {
+          return OKImmediate;
+        }
+        return OKPlaceholder;
+      }
+      return OKMemory;
+    };
+
+    bool AnySetsFlags = false;
+
+    for (const std::string& rawLine : lines) {
+      std::string line = trim(rawLine);
+      if (line.empty())
+        continue;
+
+      size_t sp = line.find_first_of(" \t\r\v\f");
+      std::string mnemonic = toLowerStr(trim(line.substr(0, sp)));
+      std::string rest = (sp == std::string::npos) ? "" : trim(line.substr(sp));
+
+      if (mnemonic.empty()) {
+        Reason = "missing mnemonic in asm line";
+        return false;
+      }
+
+      std::string baseMnemonic;
+      bool setsFlags = false;
+      std::vector<OperandRole> roles;
+      if (!parseMnemonic(mnemonic, baseMnemonic, setsFlags, roles)) {
+        Reason = "unsupported mnemonic for safe inline asm: " + mnemonic;
+        return false;
+      }
+
+      std::vector<std::string> operands;
+      {
+        std::string cur;
+        for (char c : rest) {
+          if (c == ',') {
+            operands.push_back(trim(cur));
+            cur.clear();
+          } else
+            cur += c;
+        }
+        operands.push_back(trim(cur));
+      }
+      while (!operands.empty() && operands.back().empty())
+        operands.pop_back();
+
+      if (baseMnemonic == "cpuid") {
+        if (!operands.empty()) {
+          Reason = "cpuid takes no operands";
+          return false;
+        }
+        if (!InputFamilies.count("ax")) {
+          Reason = "cpuid input eax not covered by input constraint";
+          return false;
+        }
+        if (!InputFamilies.count("cx")) {
+          Reason = "cpuid input ecx not covered by input constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("ax")) {
+          Reason = "cpuid output eax not covered by output constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("bx")) {
+          Reason = "cpuid output ebx not covered by output constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("cx")) {
+          Reason = "cpuid output ecx not covered by output constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("dx")) {
+          Reason = "cpuid output edx not covered by output constraint";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "xgetbv") {
+        if (!operands.empty()) {
+          Reason = "xgetbv takes no operands";
+          return false;
+        }
+        if (!InputFamilies.count("cx")) {
+          Reason = "xgetbv input ecx not covered by input constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("ax")) {
+          Reason = "xgetbv output eax not covered by output constraint";
+          return false;
+        }
+        if (!OutputFamilies.count("dx")) {
+          Reason = "xgetbv output edx not covered by output constraint";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "sar" || baseMnemonic == "shr" ||
+          baseMnemonic == "shl") {
+        if (operands.size() == 1)
+          roles = {RoleBoth};
+        else if (operands.size() != 2) {
+          Reason = mnemonic + " expects one or two operands";
+          return false;
+        }
+      } else if (operands.size() != 2) {
+        Reason = mnemonic + " expects two operands";
+        return false;
+      }
+
+      if (setsFlags)
+        AnySetsFlags = true;
+
+      for (size_t i = 0; i < operands.size(); ++i) {
+        const std::string& op = operands[i];
+        if (op.find_first_of("()[]") != std::string::npos) {
+          Reason = "memory/indirect operand not allowed in safe inline asm: " + op;
+          return false;
+        }
+        int ph = -1;
+        std::string family;
+        OperandKind kind = classifyOperand(op, ph, family, Constraints.size());
+        switch (kind) {
+        case OKMemory:
+          Reason = "unsupported operand in safe inline asm: " + op;
+          return false;
+        case OKImmediate:
+          break;
+        case OKReg: {
+          if (i >= roles.size()) {
+            Reason = "unexpected register operand position";
+            return false;
+          }
+          OperandRole role = roles[i];
+          if (role == RoleInput) {
+            if (!InputFamilies.count(family)) {
+              Reason = "literal register " + op + " not covered by input constraint";
+              return false;
+            }
+          } else if (role == RoleOutput) {
+            if (!OutputFamilies.count(family)) {
+              Reason = "literal register " + op + " not covered by output constraint";
+              return false;
+            }
+          } else {
+            if (!InputFamilies.count(family) || !OutputFamilies.count(family)) {
+              Reason = "literal register " + op + " not covered by input/output constraints";
+              return false;
+            }
+          }
+          break;
+        }
+        case OKPlaceholder:
+          if (ph < 0 || static_cast<size_t>(ph) >= Constraints.size()) {
+            Reason = "operand placeholder out of range: " + op;
+            return false;
+          }
+          if (!Constraints[ph].IsRegister) {
+            Reason = "operand placeholder refers to non-register constraint: " + op;
+            return false;
+          }
+          if ((baseMnemonic == "sar" || baseMnemonic == "shr" || baseMnemonic == "shl") &&
+              roles[i] == RoleInput) {
+            if (Constraints[ph].Family != "cx") {
+              Reason = "variable shift count requires cl/cx/ecx/rcx input constraint";
+              return false;
+            }
+            if (!InputFamilies.count("cx")) {
+              Reason = "variable shift count requires cl/cx/ecx/rcx input constraint";
+              return false;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    if (AnySetsFlags && !HasCCClobber) {
+      Reason = "assembly sets flags but \"cc\" clobber is missing";
+      return false;
+    }
+
+    return true;
+  }
+
   bool handleInlineAsm(CallBase* CI, std::string& Reason) {
     if (verbose)
       errs() << "Dealing with inline asm call: " << *CI << "\n";
-    
+
     InlineAsm* IA = cast<InlineAsm>(CI->getCalledOperand());
+    bool IsEmptyAsm = true;
     for (char c : IA->getAsmString()) {
-      if (c != ' ' &&
-          c != '\t' &&
-          c != '\n' &&
-          c != '\r') {
-        Reason = "nontrivial assembly, cannot analyze";
-        return false;
+      if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+        IsEmptyAsm = false;
+        break;
       }
     }
-    
+
+    if (!IsEmptyAsm) {
+      if (IA->getDialect() != InlineAsm::AD_ATT) {
+        Reason = "only AT&T dialect inline assembly is supported";
+        return false;
+      }
+      if (hasPtrs(CI->getType())) {
+        Reason = "inline assembly with pointer return type is not supported";
+        return false;
+      }
+      for (size_t Index = CI->arg_size(); Index--;) {
+        if (hasPtrs(CI->getArgOperand(Index)->getType())) {
+          Reason = "inline assembly with pointer argument is not supported";
+          return false;
+        }
+      }
+      if (!validateSafeInlineAsm(CI, IA, Reason))
+        return false;
+      if (verbose)
+        errs() << "Passing through safe inline asm call.\n";
+      return true;
+    }
+
     // If the inline asm doesn't deal in pointers, then we can just pass it through.
     if (!hasPtrs(CI->getType())) {
       bool hasPtrArg = false;
