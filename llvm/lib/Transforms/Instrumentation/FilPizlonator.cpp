@@ -8211,10 +8211,18 @@ class Pizlonator {
         {"shl", {true, {RoleInput, RoleBoth}}},
         {"xor", {true, {RoleInput, RoleBoth}}},
         {"add", {true, {RoleInput, RoleBoth}}},
+        {"adc", {true, {RoleInput, RoleBoth}}},
+        {"adcx", {true, {RoleInput, RoleBoth}}},
+        {"adox", {true, {RoleInput, RoleBoth}}},
         {"mov", {false, {RoleInput, RoleOutput}}},
         {"test", {true, {RoleInput, RoleInput}}},
         {"cmp", {true, {RoleInput, RoleInput}}},
         {"bsf", {true, {RoleInput, RoleOutput}}},
+        {"andn", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"bextr", {true, {RoleInput, RoleInput, RoleOutput}}},
+        {"blsi", {true, {RoleInput, RoleOutput}}},
+        {"blsmsk", {true, {RoleInput, RoleOutput}}},
+        {"blsr", {true, {RoleInput, RoleOutput}}},
       };
       auto it = info.find(base.str());
       if (it == info.end())
@@ -8391,12 +8399,9 @@ class Pizlonator {
           baseMnemonic == "shl") {
         if (operands.size() == 1)
           roles = {RoleBoth};
-        else if (operands.size() != 2) {
-          Reason = mnemonic + " expects one or two operands";
-          return false;
-        }
-      } else if (operands.size() != 2) {
-        Reason = mnemonic + " expects two operands";
+      }
+      if (operands.size() != roles.size()) {
+        Reason = mnemonic + " expects " + std::to_string(roles.size()) + " operands";
         return false;
       }
 

@@ -24,9 +24,9 @@ Remember: if you're done making a Fil-C change, make sure to run `./build_all_fa
 
 Some pitfalls to consider:
 
-- DO NOT try to list all files in filc/tests directly; always spawn a subagent to do it and summarize, or use run_bash to list files that match some pattern.
+- DO NOT try to list all files in filc/tests directly; use run_bash to list files that match some pattern. DO NOT run grep or rg commands on filc/tests without restricting which subdirectories it looks at, since the results will be massive otherwise.
 - DO NOT try to read the entire FilPizlonator.cpp, filc_runtime.h, or filc_runtime.c files directly. Always spawn a subagent to do it and summarize, or read only those pieces of those files that you're interested in.
-- DO NOT run ninja commands or make commands directly. Use ./build_base.sh to build everything, ./build_all_fast.sh to build and test everything, and if you want to build clang directly, use ./build_clang.sh. Or if you change files in libpas/ and you want to just rebuild the runtime, use ./build_runtime.sh
+- DO NOT run ninja commands directly in the LLVM `build`. Use ./build_base.sh to build everything, ./build_all_fast.sh to build and test everything, and if you want to build clang directly, use ./build_clang.sh. Or if you change files in libpas/ and you want to just rebuild the runtime, use ./build_runtime.sh
 - Fil-C tests DO NOT use LLVM's testing infrastructure (like lit). Do not try to run lit. Use filc/run-tests.
 
 Note that CLAUDE.md, README.md, and Manifesto.md have more information. However, if instructions in those docs contradict anything in this doc, then this doc takes precedence.
