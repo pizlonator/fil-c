@@ -7983,6 +7983,22 @@ class Pizlonator {
           m[base + "d"] = base;
           m[base + "l"] = base;
         }
+        for (int i = 0; i <= 7; ++i) {
+          std::string base = "mm" + std::to_string(i);
+          m[base] = base;
+        }
+        for (int i = 0; i <= 31; ++i) {
+          std::string xmm = "xmm" + std::to_string(i);
+          m[xmm] = xmm;
+          std::string ymm = "ymm" + std::to_string(i);
+          m[ymm] = ymm;
+          std::string zmm = "zmm" + std::to_string(i);
+          m[zmm] = zmm;
+        }
+        for (int i = 0; i <= 7; ++i) {
+          std::string base = "k" + std::to_string(i);
+          m[base] = base;
+        }
         return m;
       }();
       auto it = familyMap.find(r);
@@ -8067,7 +8083,8 @@ class Pizlonator {
           }
           pc.Kind = isOutput ? ParsedConstraint::Output : ParsedConstraint::Input;
           std::string rest = cstr.substr(pos);
-          if (rest == "r") {
+          if (rest == "r" || rest == "x" || rest == "y" || rest == "v" ||
+              rest == "Yk") {
             pc.IsRegister = true;
           } else if (rest.size() >= 2 && rest.front() == '{' && rest.back() == '}') {
             std::string regname = toLowerStr(rest.substr(1, rest.size() - 2));
@@ -8219,6 +8236,13 @@ class Pizlonator {
         {"cmp", {true, {RoleInput, RoleInput}}},
         {"bsf", {true, {RoleInput, RoleOutput}}},
         {"andn", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"addpd", {false, {RoleInput, RoleBoth}}},
+        {"addps", {false, {RoleInput, RoleBoth}}},
+        {"addsd", {false, {RoleInput, RoleBoth}}},
+        {"addss", {false, {RoleInput, RoleBoth}}},
+        {"addsubpd", {false, {RoleInput, RoleBoth}}},
+        {"addsubps", {false, {RoleInput, RoleBoth}}},
+        {"aesdec", {false, {RoleBoth, RoleInput}}},
         {"bextr", {true, {RoleInput, RoleInput, RoleOutput}}},
         {"blsi", {true, {RoleInput, RoleOutput}}},
         {"blsmsk", {true, {RoleInput, RoleOutput}}},
