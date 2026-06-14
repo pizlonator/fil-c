@@ -31,6 +31,7 @@
 #include <unordered_set>
 #include <sstream>
 #include <cctype>
+#include <climits>
 
 using namespace llvm;
 
@@ -8123,6 +8124,13 @@ class Pizlonator {
       idx = comma + 1;
     }
 
+    // Operand placeholders refer to outputs and inputs, not clobbers.
+    size_t numOperandConstraints = 0;
+    for (const auto& pc : Constraints) {
+      if (pc.Kind != ParsedConstraint::Clobber)
+        ++numOperandConstraints;
+    }
+
     // Resolve matching constraints.
     for (auto& pc : Constraints) {
       if (pc.MatchingTarget < 0)
@@ -8294,16 +8302,42 @@ class Pizlonator {
       lines.push_back(trim(cur));
     }
 
-    enum OperandKind { OKReg, OKPlaceholder, OKImmediate, OKMemory };
+    enum OperandKind { OKReg, OKPlaceholder, OKImmediate, OKMemory, OKError };
     auto classifyOperand = [&](const std::string& op, int& placeholderIndex,
                                std::string& family,
-                               size_t numConstraints) -> OperandKind {
+                               size_t numConstraints,
+                               std::string& error) -> OperandKind {
       placeholderIndex = -1;
       family.clear();
+      error.clear();
       if (op.empty())
         return OKMemory;
       if (op[0] == '%') {
         StringRef reg = StringRef(op).drop_front(1);
+        // A numeric %N reference is an operand placeholder, not a register.
+        bool allDigits = !reg.empty();
+        for (char c : reg) {
+          if (!std::isdigit(static_cast<unsigned char>(c))) {
+            allDigits = false;
+            break;
+          }
+        }
+        if (allDigits) {
+          unsigned long long idx = 0;
+          for (char c : reg) {
+            idx = idx * 10 + static_cast<unsigned long long>(c - '0');
+            if (idx > static_cast<unsigned long long>(INT_MAX)) {
+              error = "operand placeholder index too large: " + op;
+              return OKError;
+            }
+          }
+          if (idx >= numConstraints) {
+            error = "operand placeholder out of range: " + op;
+            return OKError;
+          }
+          placeholderIndex = static_cast<int>(idx);
+          return OKPlaceholder;
+        }
         family = getRegFamily(reg);
         if (family.empty())
           return OKMemory;
@@ -8315,34 +8349,61 @@ class Pizlonator {
         size_t pos = 1;
         if (pos < op.size() && op[pos] == '{') {
           size_t end = op.find('}', pos);
-          if (end == std::string::npos)
-            return OKImmediate;
+          if (end == std::string::npos || end != op.size() - 1) {
+            error = "malformed operand placeholder: " + op;
+            return OKError;
+          }
           std::string inner = op.substr(pos + 1, end - pos - 1);
           size_t colon = inner.find(':');
           if (colon != std::string::npos)
             inner = inner.substr(0, colon);
-          if (inner.empty())
-            return OKImmediate;
-          for (char c : inner) {
-            if (!std::isdigit(static_cast<unsigned char>(c)))
-              return OKImmediate;
+          if (inner.empty()) {
+            error = "empty operand placeholder: " + op;
+            return OKError;
           }
-          int idx = 0;
-          for (char c : inner)
-            idx = idx * 10 + (c - '0');
-          placeholderIndex = idx;
+          bool allDigits = true;
+          for (char c : inner) {
+            if (!std::isdigit(static_cast<unsigned char>(c))) {
+              allDigits = false;
+              break;
+            }
+          }
+          if (!allDigits) {
+            error = "unknown operand name in inline asm: " + inner;
+            return OKError;
+          }
+          unsigned long long idx = 0;
+          for (char c : inner) {
+            idx = idx * 10 + static_cast<unsigned long long>(c - '0');
+            if (idx > static_cast<unsigned long long>(INT_MAX)) {
+              error = "operand placeholder index too large: " + op;
+              return OKError;
+            }
+          }
+          if (idx >= numConstraints) {
+            error = "operand placeholder out of range: " + op;
+            return OKError;
+          }
+          placeholderIndex = static_cast<int>(idx);
         } else if (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos]))) {
           size_t numStart = pos;
           while (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos])))
             ++pos;
           if (pos != op.size())
             return OKImmediate;
-          int idx = 0;
-          for (size_t i = numStart; i < pos; ++i)
-            idx = idx * 10 + (op[i] - '0');
-          if (static_cast<size_t>(idx) >= numConstraints)
-            return OKImmediate;
-          placeholderIndex = idx;
+          unsigned long long idx = 0;
+          for (size_t i = numStart; i < pos; ++i) {
+            idx = idx * 10 + static_cast<unsigned long long>(op[i] - '0');
+            if (idx > static_cast<unsigned long long>(INT_MAX)) {
+              error = "operand placeholder index too large: " + op;
+              return OKError;
+            }
+          }
+          if (idx >= numConstraints) {
+            error = "operand placeholder out of range: " + op;
+            return OKError;
+          }
+          placeholderIndex = static_cast<int>(idx);
         } else {
           return OKImmediate;
         }
@@ -8462,10 +8523,15 @@ class Pizlonator {
         }
         int ph = -1;
         std::string family;
-        OperandKind kind = classifyOperand(op, ph, family, Constraints.size());
+        std::string operandError;
+        OperandKind kind = classifyOperand(op, ph, family, numOperandConstraints,
+                                           operandError);
         switch (kind) {
         case OKMemory:
           Reason = "unsupported operand in safe inline asm: " + op;
+          return false;
+        case OKError:
+          Reason = operandError;
           return false;
         case OKImmediate:
           break;
@@ -8487,7 +8553,7 @@ class Pizlonator {
           break;
         }
         case OKPlaceholder:
-          if (ph < 0 || static_cast<size_t>(ph) >= Constraints.size()) {
+          if (ph < 0 || static_cast<size_t>(ph) >= numOperandConstraints) {
             Reason = "operand placeholder out of range: " + op;
             return false;
           }
