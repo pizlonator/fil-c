@@ -11,7 +11,7 @@ __attribute__((target("aes"))) int main(void)
         0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f);
     __m128i expected = _mm_aesdeclast_si128(a, b);
 
-    asm volatile("vaesdeclast %2, %0, %0" : "+x"(a) : "x"(b));
+    asm volatile("vaesdeclast %1, %0, %1" : "+x"(a) : "x"(b));
 
     int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(a, expected));
     zprintf("%d\n", mask);
