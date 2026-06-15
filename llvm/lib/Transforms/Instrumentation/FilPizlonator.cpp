@@ -8250,10 +8250,10 @@ class Pizlonator {
         {"addss", {false, {RoleInput, RoleBoth}}},
         {"addsubpd", {false, {RoleInput, RoleBoth}}},
         {"addsubps", {false, {RoleInput, RoleBoth}}},
-        {"aesdec", {false, {RoleBoth, RoleInput}}},
-        {"aesdeclast", {false, {RoleBoth, RoleInput}}},
-        {"aesenc", {false, {RoleBoth, RoleInput}}},
-        {"aesenclast", {false, {RoleBoth, RoleInput}}},
+        {"aesdec", {false, {RoleInput, RoleBoth}}},
+        {"aesdeclast", {false, {RoleInput, RoleBoth}}},
+        {"aesenc", {false, {RoleInput, RoleBoth}}},
+        {"aesenclast", {false, {RoleInput, RoleBoth}}},
         {"aesimc", {false, {RoleInput, RoleOutput}}},
         {"andnpd", {false, {RoleInput, RoleBoth}}},
         {"andnps", {false, {RoleInput, RoleBoth}}},
@@ -8267,8 +8267,8 @@ class Pizlonator {
         {"vandnps", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandpd", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandps", {false, {RoleInput, RoleInput, RoleOutput}}},
-        {"aeskeygenassist", {false, {RoleOutput, RoleInput, RoleInput}}},
-        {"vaeskeygenassist", {false, {RoleOutput, RoleInput, RoleInput}}},
+        {"aeskeygenassist", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vaeskeygenassist", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vaesdeclast", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vaesimc", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vaesenc", {false, {RoleInput, RoleInput, RoleOutput}}},
@@ -8559,6 +8559,11 @@ class Pizlonator {
           }
           if (!Constraints[ph].IsRegister) {
             Reason = "operand placeholder refers to non-register constraint: " + op;
+            return false;
+          }
+          if ((roles[i] == RoleOutput || roles[i] == RoleBoth) &&
+              Constraints[ph].Kind != ParsedConstraint::Output) {
+            Reason = "operand placeholder used as output but constraint is input-only: " + op;
             return false;
           }
           if ((baseMnemonic == "sar" || baseMnemonic == "shr" || baseMnemonic == "shl") &&
