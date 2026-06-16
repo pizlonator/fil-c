@@ -8242,15 +8242,28 @@ class Pizlonator {
           m == "cdqe" || m == "cwd" || m == "cdq" || m == "cqo" ||
           m == "clc" || m == "cld" || m == "cmc" || m == "fabs" ||
           m == "fchs" || m == "fclex" || m == "fnclex" || m == "fcos" ||
-          m == "fninit" ||
-          m == "fcom" || m == "fcomi" || m == "fucomi" ||
+          m == "frndint" || m == "fsin" || m == "fsqrt" ||
+          m == "fninit" || m == "fnop" ||
+          m == "fwait" || m == "wait" ||
+          m == "fcom" || m == "fucom" || m == "fcomi" || m == "fucomi" ||
+          m == "ftst" || m == "fxam" || m == "fxch" ||
           m == "fdiv" || m == "fdivr" ||
           m == "fmul" ||
+          m == "fsub" || m == "fsubr" ||
+          m == "fprem" || m == "fprem1" ||
+          m == "fscale" ||
           m == "fincstp") {
         baseMnemonic = mnem;
         setsFlags = (m == "clc" || m == "cld" || m == "cmc" ||
                      m == "fcomi" || m == "fucomi");
         roles.clear();
+        return true;
+      }
+
+      if (m == "fnstsw" || m == "fstsw") {
+        baseMnemonic = m;
+        setsFlags = false;
+        roles = {RoleOutput};
         return true;
       }
 
@@ -8270,6 +8283,7 @@ class Pizlonator {
         {"adcx", {true, {RoleInput, RoleBoth}}},
         {"adox", {true, {RoleInput, RoleBoth}}},
         {"mov", {false, {RoleInput, RoleOutput}}},
+        {"fst", {false, {RoleOutput}}},
         {"test", {true, {RoleInput, RoleInput}}},
         {"cmp", {true, {RoleInput, RoleInput}}},
         {"cmppd", {false, {RoleInput, RoleInput, RoleBoth}}},
@@ -8631,20 +8645,82 @@ class Pizlonator {
         continue;
       }
 
-      if (baseMnemonic == "fcos") {
+      if (baseMnemonic == "fcos" || baseMnemonic == "fsin" ||
+          baseMnemonic == "fsqrt") {
         if (!operands.empty()) {
-          Reason = "fcos takes no operands";
+          Reason = baseMnemonic + " takes no operands";
           return false;
         }
-        // fcos reads the source from ST(0) and writes the result to ST(0). It
-        // also sets the FPU condition flags (C1/C2). Reading ST(0) is harmless,
-        // but the destination and fpsr must be declared as outputs/clobbers.
+        // fcos/fsin/fsqrt read the source from ST(0) and write the result to ST(0).
+        // They also set the FPU condition flags (C1/C2 for fcos/fsin, C1 for
+        // fsqrt). Reading ST(0) is harmless, but the destination and fpsr must be
+        // declared as outputs/clobbers.
         if (!isOutputOrClobber("st")) {
-          Reason = "fcos output st not covered by output constraint or clobber";
+          Reason = baseMnemonic + " output st not covered by output constraint or clobber";
           return false;
         }
         if (!HasFPSRClobber) {
-          Reason = "fcos modifies the floating-point status register; \"fpsr\" clobber is required";
+          Reason = baseMnemonic + " modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "frndint") {
+        if (!operands.empty()) {
+          Reason = "frndint takes no operands";
+          return false;
+        }
+        // frndint reads the source from ST(0) and writes the rounded result to
+        // ST(0). It also sets the FPU condition flags (C1). Reading ST(0) is
+        // harmless, but the destination and fpsr must be declared as
+        // outputs/clobbers.
+        if (!isOutputOrClobber("st")) {
+          Reason = "frndint output st not covered by output constraint or clobber";
+          return false;
+        }
+        if (!HasFPSRClobber) {
+          Reason = "frndint modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "fprem" || baseMnemonic == "fprem1") {
+        if (!operands.empty()) {
+          Reason = baseMnemonic + " takes no operands";
+          return false;
+        }
+        // fprem/fprem1 read ST(0) and ST(1) and write the remainder to ST(0).
+        // They also set the FPU condition flags (C0/C1/C2/C3). Reading
+        // ST(0)/ST(1) is harmless, but the destination and fpsr must be
+        // declared as outputs/clobbers.
+        if (!isOutputOrClobber("st")) {
+          Reason = baseMnemonic + " output st not covered by output constraint or clobber";
+          return false;
+        }
+        if (!HasFPSRClobber) {
+          Reason = baseMnemonic + " modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "fscale") {
+        if (!operands.empty()) {
+          Reason = "fscale takes no operands";
+          return false;
+        }
+        // fscale reads ST(0) and ST(1) and writes the scaled result to ST(0).
+        // It also sets the FPU condition flags (C1). Reading ST(0)/ST(1) is
+        // harmless, but the destination and fpsr must be declared as
+        // outputs/clobbers.
+        if (!isOutputOrClobber("st")) {
+          Reason = "fscale output st not covered by output constraint or clobber";
+          return false;
+        }
+        if (!HasFPSRClobber) {
+          Reason = "fscale modifies the floating-point status register; \"fpsr\" clobber is required";
           return false;
         }
         continue;
@@ -8693,16 +8769,96 @@ class Pizlonator {
         continue;
       }
 
-      if (baseMnemonic == "fcom") {
+      if (baseMnemonic == "fcom" || baseMnemonic == "fucom") {
         if (!operands.empty()) {
-          Reason = "fcom takes no operands";
+          Reason = baseMnemonic + " takes no operands";
           return false;
         }
-        // fcom reads ST(0) and ST(1) and sets the FPU condition flags in the
-        // floating-point status register. The user must declare the fpsr clobber.
+        // fcom/fucom read ST(0) and ST(1) and set the FPU condition flags in
+        // the floating-point status register. The user must declare the fpsr
+        // clobber.
         if (!HasFPSRClobber) {
-          Reason = "fcom modifies the floating-point status register; \"fpsr\" clobber is required";
+          Reason = baseMnemonic + " modifies the floating-point status register; \"fpsr\" clobber is required";
           return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "ftst") {
+        if (!operands.empty()) {
+          Reason = "ftst takes no operands";
+          return false;
+        }
+        // ftst reads ST(0) and compares it with 0.0, setting the FPU condition
+        // flags in the floating-point status register. The user must declare the
+        // fpsr clobber.
+        if (!HasFPSRClobber) {
+          Reason = "ftst modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "fxam") {
+        if (!operands.empty()) {
+          Reason = "fxam takes no operands";
+          return false;
+        }
+        // fxam reads ST(0) and reports its class in the FPU condition flags
+        // (C0/C1/C2/C3) in the floating-point status register. It does not
+        // modify ST(0). The user must declare the fpsr clobber.
+        if (!HasFPSRClobber) {
+          Reason = "fxam modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "fxch") {
+        if (operands.size() > 1) {
+          Reason = "fxch expects 0 or 1 operands";
+          return false;
+        }
+        // fxch exchanges ST(0) with ST(1) (no operand) or with ST(i). Both
+        // registers are read and written, so the st family must be covered by an
+        // output constraint or clobber. The instruction also modifies the FPU
+        // condition flags (C1 is set to 0; C0/C2/C3 are undefined), so the fpsr
+        // clobber is required.
+        if (!isOutputOrClobber("st")) {
+          Reason = "fxch output st not covered by output constraint or clobber";
+          return false;
+        }
+        if (!HasFPSRClobber) {
+          Reason = "fxch modifies the floating-point status register; \"fpsr\" clobber is required";
+          return false;
+        }
+        if (!operands.empty()) {
+          const std::string& op = operands[0];
+          int ph = -1;
+          std::string family;
+          std::string operandError;
+          OperandKind kind = classifyOperand(op, ph, family, numOperandConstraints,
+                                             operandError);
+          switch (kind) {
+          case OKMemory:
+            Reason = "unsupported operand in safe inline asm: " + op;
+            return false;
+          case OKError:
+            Reason = operandError;
+            return false;
+          case OKImmediate:
+            Reason = "immediate operand not allowed in fxch: " + op;
+            return false;
+          case OKReg:
+            if (family != "st") {
+              Reason = "fxch operand must be an x87 register: " + op;
+              return false;
+            }
+            break;
+          case OKPlaceholder:
+            Reason = "operand placeholder not allowed in fxch: " + op;
+            return false;
+          }
         }
         continue;
       }
@@ -8736,10 +8892,11 @@ class Pizlonator {
       };
 
       if (baseMnemonic == "fdiv" || baseMnemonic == "fdivr" ||
-          baseMnemonic == "fmul") {
-        // Only the explicit-operand forms of FDIV/FDIVR/FMUL are supported.
+          baseMnemonic == "fmul" || baseMnemonic == "fsub" ||
+          baseMnemonic == "fsubr") {
+        // Only the explicit-operand forms of FDIV/FDIVR/FMUL/FSUB/FSUBR are supported.
         // The no-operand popping forms and the popping suffixed forms (FDIVP,
-        // FDIVRP, FMULP) manipulate the x87 register stack and are rejected.
+        // FDIVRP, FMULP, FSUBP, FSUBRP) manipulate the x87 register stack and are rejected.
         if (operands.empty()) {
           Reason = baseMnemonic + " with no operands pops the x87 register stack and is not supported";
           return false;
