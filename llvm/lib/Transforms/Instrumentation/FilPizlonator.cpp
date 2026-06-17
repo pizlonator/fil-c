@@ -1429,6 +1429,44 @@ template<> struct std::hash<NameAndSignature> {
 
 namespace {
 
+// Infer the size in bits of an x86 register operand from its name. Returns 0
+// if the size cannot be determined.
+static int inferRegSize(StringRef reg) {
+  std::string r = reg.lower();
+  if (r == "al" || r == "bl" || r == "cl" || r == "dl" ||
+      r == "ah" || r == "bh" || r == "ch" || r == "dh" ||
+      r == "spl" || r == "bpl" || r == "sil" || r == "dil" ||
+      r == "r8b" || r == "r9b" || r == "r10b" || r == "r11b" ||
+      r == "r12b" || r == "r13b" || r == "r14b" || r == "r15b")
+    return 8;
+  if (r == "ax" || r == "bx" || r == "cx" || r == "dx" ||
+      r == "si" || r == "di" || r == "bp" || r == "sp" ||
+      (r.size() >= 2 && r.back() == 'w'))
+    return 16;
+  if (r == "eax" || r == "ebx" || r == "ecx" || r == "edx" ||
+      r == "esi" || r == "edi" || r == "ebp" || r == "esp" ||
+      (r.size() >= 2 && r.back() == 'd'))
+    return 32;
+  if (r == "rax" || r == "rbx" || r == "rcx" || r == "rdx" ||
+      r == "rsi" || r == "rdi" || r == "rbp" || r == "rsp" ||
+      (r.size() >= 2 && r[0] == 'r' &&
+       std::isdigit(static_cast<unsigned char>(r[1]))))
+    return 64;
+  return 0;
+}
+
+// Infer the operand size in bits from a trailing AT&T size suffix.
+// Returns 0 for an unknown or missing suffix.
+static int inferSizeFromSuffix(char suffix) {
+  switch (suffix) {
+  case 'b': return 8;
+  case 'w': return 16;
+  case 'l': return 32;
+  case 'q': return 64;
+  default: return 0;
+  }
+}
+
 class Pizlonator {
   static constexpr unsigned TargetAS = 0;
   
@@ -8275,11 +8313,6 @@ class Pizlonator {
         return true;
       }
 
-      StringRef base = m;
-      if (!base.empty() && (base.back() == 'b' || base.back() == 'w' ||
-                            base.back() == 'l' || base.back() == 'q'))
-        base = base.drop_back();
-
       static const std::unordered_map<std::string, std::pair<bool, std::vector<OperandRole>>> info = {
         {"sar", {true, {RoleInput, RoleBoth}}},
         {"shr", {true, {RoleInput, RoleBoth}}},
@@ -8302,13 +8335,9 @@ class Pizlonator {
         {"cvtdq2pd", {false, {RoleInput, RoleOutput}}},
         {"cvtdq2ps", {false, {RoleInput, RoleOutput}}},
         {"cvtpd2ps", {false, {RoleInput, RoleOutput}}},
-        // cvtpd2dq ends in 'q', so the parser strips the suffix and looks up cvtpd2d.
         {"cvtpd2d", {false, {RoleInput, RoleOutput}}},
-        // cvttpd2dq ends in 'q', so the parser strips the suffix and looks up cvttpd2d.
         {"cvttpd2d", {false, {RoleInput, RoleOutput}}},
-        // cvtps2dq ends in 'q', so the parser strips the suffix and looks up cvtps2d.
         {"cvtps2d", {false, {RoleInput, RoleOutput}}},
-        // cvttps2dq ends in 'q', so the parser strips the suffix and looks up cvttps2d.
         {"cvttps2d", {false, {RoleInput, RoleOutput}}},
         {"cvtpd2pi", {false, {RoleInput, RoleOutput}}},
         {"cvttpd2pi", {false, {RoleInput, RoleOutput}}},
@@ -8326,8 +8355,12 @@ class Pizlonator {
         {"cvtsi2ss", {false, {RoleInput, RoleOutput}}},
         {"cvtss2sd", {false, {RoleInput, RoleBoth}}},
         {"extractps", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"insertps", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"vinsertps", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"dec", {true, {RoleBoth}}},
+        {"inc", {true, {RoleBoth}}},
         {"div", {true, {RoleInput}}},
+        {"imul", {true, {RoleInput}}},
         {"cmpxchg", {true, {RoleInput, RoleBoth}}},
         {"crc32", {true, {RoleInput, RoleBoth}}},
         {"bsf", {true, {RoleInput, RoleOutput}}},
@@ -8343,12 +8376,26 @@ class Pizlonator {
         {"addss", {false, {RoleInput, RoleBoth}}},
         {"addsubpd", {false, {RoleInput, RoleBoth}}},
         {"addsubps", {false, {RoleInput, RoleBoth}}},
+        {"haddpd", {false, {RoleInput, RoleBoth}}},
+        {"haddps", {false, {RoleInput, RoleBoth}}},
+        {"vhaddpd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vhaddps", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"hsubpd", {false, {RoleInput, RoleBoth}}},
+        {"hsubps", {false, {RoleInput, RoleBoth}}},
+        {"vhsubpd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vhsubps", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"divpd", {false, {RoleInput, RoleBoth}}},
         {"divps", {false, {RoleInput, RoleBoth}}},
         {"divsd", {false, {RoleInput, RoleBoth}}},
         {"divss", {false, {RoleInput, RoleBoth}}},
         {"dppd", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"dpps", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"gf2p8affineinvq", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"vgf2p8affineinvq", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
+        {"gf2p8affineq", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"vgf2p8affineq", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
+        {"gf2p8mul", {false, {RoleInput, RoleBoth}}},
+        {"vgf2p8mul", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"aesdec", {false, {RoleInput, RoleBoth}}},
         {"aesdeclast", {false, {RoleInput, RoleBoth}}},
         {"aesenc", {false, {RoleInput, RoleBoth}}},
@@ -8383,6 +8430,19 @@ class Pizlonator {
         {"blsr", {true, {RoleInput, RoleOutput}}},
         {"bswap", {false, {RoleBoth}}},
       };
+
+      StringRef base = m;
+      // Only strip a trailing size suffix when the stripped base is present in
+      // the allowlist. This handles instructions like imull/imulq and the cvt*2dq
+      // family, while keeping base names that happen to end in b/w/l/q (e.g. imul).
+      if (!base.empty() &&
+          (base.back() == 'b' || base.back() == 'w' ||
+           base.back() == 'l' || base.back() == 'q')) {
+        StringRef stripped = base.drop_back();
+        if (info.count(stripped.str()))
+          base = stripped;
+      }
+
       auto it = info.find(base.str());
       if (it == info.end())
         return false;
@@ -9062,40 +9122,24 @@ class Pizlonator {
           Reason = "div expects one operand";
           return false;
         }
+        {
+          int ph = -1;
+          std::string family;
+          std::string operandError;
+          OperandKind kind = classifyOperand(operands[0], ph, family,
+                                             numOperandConstraints,
+                                             operandError);
+          if (kind == OKImmediate) {
+            Reason = "immediate operand not allowed in one-operand div: " +
+                     operands[0];
+            return false;
+          }
+        }
         int size = 0;
-        if (!mnemonic.empty()) {
-          char suffix = mnemonic.back();
-          if (suffix == 'b')
-            size = 8;
-          else if (suffix == 'w')
-            size = 16;
-          else if (suffix == 'l')
-            size = 32;
-          else if (suffix == 'q')
-            size = 64;
-        }
-        if (size == 0 && !operands[0].empty() && operands[0][0] == '%') {
-          std::string reg = toLowerStr(operands[0].substr(1));
-          if (reg == "al" || reg == "bl" || reg == "cl" || reg == "dl" ||
-              reg == "ah" || reg == "bh" || reg == "ch" || reg == "dh" ||
-              reg == "r8b" || reg == "r9b" || reg == "r10b" || reg == "r11b" ||
-              reg == "r12b" || reg == "r13b" || reg == "r14b" || reg == "r15b")
-            size = 8;
-          else if (reg == "ax" || reg == "bx" || reg == "cx" || reg == "dx" ||
-                   reg == "si" || reg == "di" || reg == "bp" || reg == "sp" ||
-                   (reg.size() >= 2 && reg.substr(reg.size() - 1) == "w"))
-            size = 16;
-          else if (reg == "eax" || reg == "ebx" || reg == "ecx" || reg == "edx" ||
-                   reg == "esi" || reg == "edi" || reg == "ebp" || reg == "esp" ||
-                   (reg.size() >= 2 && reg.substr(reg.size() - 1) == "d"))
-            size = 32;
-          else if (reg == "rax" || reg == "rbx" || reg == "rcx" || reg == "rdx" ||
-                   reg == "rsi" || reg == "rdi" || reg == "rbp" || reg == "rsp" ||
-                   (reg.size() >= 2 && reg.substr(reg.size() - 1) == "q") ||
-                   (reg.size() >= 2 && reg[0] == 'r' &&
-                    std::isdigit(static_cast<unsigned char>(reg[1]))))
-            size = 64;
-        }
+        if (!mnemonic.empty())
+          size = inferSizeFromSuffix(mnemonic.back());
+        if (size == 0 && !operands[0].empty() && operands[0][0] == '%')
+          size = inferRegSize(operands[0].substr(1));
         if (!isOutputOrClobber("ax")) {
           Reason = "div output/clobber ax not covered by output constraint or clobber";
           return false;
@@ -9105,6 +9149,53 @@ class Pizlonator {
             Reason = "div output/clobber dx not covered by output constraint or clobber";
             return false;
           }
+        }
+      }
+
+      if (baseMnemonic == "imul") {
+        if (operands.size() != 1 && operands.size() != 2 &&
+            operands.size() != 3) {
+          Reason = "imul expects 1, 2, or 3 operands";
+          return false;
+        }
+        if (operands.size() == 1) {
+          // One-operand IMUL reads the accumulator and the explicit operand,
+          // and writes AX (byte) or DX:AX/EDX:EAX/RDX:RAX (larger sizes).
+          roles = {RoleInput};
+          {
+            int ph = -1;
+            std::string family;
+            std::string operandError;
+            OperandKind kind = classifyOperand(operands[0], ph, family,
+                                               numOperandConstraints,
+                                               operandError);
+            if (kind == OKImmediate) {
+              Reason = "immediate operand not allowed in one-operand imul: " +
+                       operands[0];
+              return false;
+            }
+          }
+          int size = 0;
+          if (!mnemonic.empty())
+            size = inferSizeFromSuffix(mnemonic.back());
+          if (size == 0 && !operands[0].empty() && operands[0][0] == '%')
+            size = inferRegSize(operands[0].substr(1));
+          if (!isOutputOrClobber("ax")) {
+            Reason = "imul output/clobber ax not covered by output constraint or clobber";
+            return false;
+          }
+          if (size == 0 || size > 8) {
+            if (!isOutputOrClobber("dx")) {
+              Reason = "imul output/clobber dx not covered by output constraint or clobber";
+              return false;
+            }
+          }
+        } else if (operands.size() == 2) {
+          // imul src, dst: dst is read/written.
+          roles = {RoleInput, RoleBoth};
+        } else if (operands.size() == 3) {
+          // imul imm, src, dst.
+          roles = {RoleInput, RoleInput, RoleBoth};
         }
       }
 
