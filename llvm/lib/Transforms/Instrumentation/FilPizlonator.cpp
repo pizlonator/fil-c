@@ -8041,12 +8041,24 @@ class Pizlonator {
         m["st"] = "st(0)";
         for (int i = 0; i <= 7; ++i)
           m["st(" + std::to_string(i) + ")"] = "st(" + std::to_string(i) + ")";
+        m["cs"] = "cs";
+        m["ss"] = "ss";
+        m["ds"] = "ds";
+        m["es"] = "es";
+        m["fs"] = "fs";
+        m["gs"] = "gs";
         return m;
       }();
       auto it = familyMap.find(r);
       if (it != familyMap.end())
         return it->second;
       return "";
+    };
+
+    // Return true if the given family is a segment register.
+    auto isSegmentFamily = [&](const std::string& family) -> bool {
+      return family == "cs" || family == "ss" || family == "ds" ||
+             family == "es" || family == "fs" || family == "gs";
     };
 
     // Return true if the given family is one of the x87 stack registers.
@@ -8107,6 +8119,10 @@ class Pizlonator {
               Reason = "sp/bp registers cannot be used as safe inline asm clobbers: " + cstr;
               return false;
             }
+            if (isSegmentFamily(family)) {
+              Reason = "segment registers cannot be used as safe inline asm clobbers: " + cstr;
+              return false;
+            }
             ClobberFamilies.insert(family);
           }
         } else {
@@ -8147,6 +8163,10 @@ class Pizlonator {
             }
             if (family == "sp" || family == "bp") {
               Reason = "sp/bp registers cannot be used as safe inline asm constraints: " + cstr;
+              return false;
+            }
+            if (isSegmentFamily(family)) {
+              Reason = "segment registers cannot be used as safe inline asm constraints: " + cstr;
               return false;
             }
             pc.IsRegister = true;
@@ -8286,7 +8306,9 @@ class Pizlonator {
 
       if (m == "cpuid" || m == "xgetbv" || m == "cbw" || m == "cwde" ||
           m == "cdqe" || m == "cwd" || m == "cdq" || m == "cqo" ||
-          m == "clc" || m == "cld" || m == "cmc" || m == "fabs" ||
+          m == "clc" || m == "cld" || m == "cmc" || m == "lahf" ||
+          m == "lfence" || m == "mfence" || m == "sfence" ||
+          m == "fabs" ||
           m == "fchs" || m == "fclex" || m == "fnclex" || m == "fcos" ||
           m == "frndint" || m == "fsin" || m == "fsqrt" ||
           m == "fninit" || m == "fnop" ||
@@ -8365,6 +8387,7 @@ class Pizlonator {
         {"crc32", {true, {RoleInput, RoleBoth}}},
         {"bsf", {true, {RoleInput, RoleOutput}}},
         {"bsr", {true, {RoleInput, RoleOutput}}},
+        {"lzcnt", {true, {RoleInput, RoleOutput}}},
         {"bt", {true, {RoleInput, RoleInput}}},
         {"btc", {true, {RoleInput, RoleBoth}}},
         {"btr", {true, {RoleInput, RoleBoth}}},
@@ -8390,6 +8413,11 @@ class Pizlonator {
         {"divss", {false, {RoleInput, RoleBoth}}},
         {"dppd", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"dpps", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"maxpd", {false, {RoleInput, RoleBoth}}},
+        {"maxps", {false, {RoleInput, RoleBoth}}},
+        {"maxsd", {false, {RoleInput, RoleBoth}}},
+        {"maxss", {false, {RoleInput, RoleBoth}}},
+        {"minpd", {false, {RoleInput, RoleBoth}}},
         {"gf2p8affineinvq", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"vgf2p8affineinvq", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"gf2p8affineq", {false, {RoleInput, RoleInput, RoleBoth}}},
@@ -8429,6 +8457,9 @@ class Pizlonator {
         {"blsmsk", {true, {RoleInput, RoleOutput}}},
         {"blsr", {true, {RoleInput, RoleOutput}}},
         {"bswap", {false, {RoleBoth}}},
+        {"lar", {true, {RoleInput, RoleOutput}}},
+        {"lsl", {true, {RoleInput, RoleOutput}}},
+        {"lea", {false, {RoleInput, RoleOutput}}},
       };
 
       StringRef base = m;
@@ -8468,6 +8499,85 @@ class Pizlonator {
     }
 
     enum OperandKind { OKReg, OKPlaceholder, OKImmediate, OKMemory, OKError };
+
+    // Parse a $N or ${N} operand placeholder starting at s[pos] (s[pos] must be '$').
+    // On success, returns true and sets placeholderIndex to the operand index and
+    // consumed to the number of characters consumed (including '$').  On failure,
+    // returns false.  If the '$' begins a malformed placeholder, error is set.
+    auto parsePlaceholder = [&](const std::string& s, size_t pos,
+                                int& placeholderIndex, size_t& consumed,
+                                size_t numConstraints,
+                                std::string& error) -> bool {
+      placeholderIndex = -1;
+      consumed = 0;
+      error.clear();
+      if (pos >= s.size() || s[pos] != '$')
+        return false;
+      size_t i = pos + 1;
+      if (i < s.size() && s[i] == '{') {
+        size_t end = s.find('}', i);
+        if (end == std::string::npos) {
+          error = "malformed operand placeholder";
+          return false;
+        }
+        std::string inner = s.substr(i + 1, end - i - 1);
+        size_t colon = inner.find(':');
+        if (colon != std::string::npos)
+          inner = inner.substr(0, colon);
+        if (inner.empty()) {
+          error = "empty operand placeholder";
+          return false;
+        }
+        bool allDigits = true;
+        for (char c : inner) {
+          if (!std::isdigit(static_cast<unsigned char>(c))) {
+            allDigits = false;
+            break;
+          }
+        }
+        if (!allDigits) {
+          error = "unknown operand name in inline asm: " + inner;
+          return false;
+        }
+        unsigned long long idx = 0;
+        for (char c : inner) {
+          idx = idx * 10 + static_cast<unsigned long long>(c - '0');
+          if (idx > static_cast<unsigned long long>(INT_MAX)) {
+            error = "operand placeholder index too large";
+            return false;
+          }
+        }
+        if (idx >= numConstraints) {
+          error = "operand placeholder out of range";
+          return false;
+        }
+        placeholderIndex = static_cast<int>(idx);
+        consumed = end - pos + 1;
+        return true;
+      }
+      if (i < s.size() && std::isdigit(static_cast<unsigned char>(s[i]))) {
+        size_t numStart = i;
+        while (i < s.size() && std::isdigit(static_cast<unsigned char>(s[i])))
+          ++i;
+        unsigned long long idx = 0;
+        for (size_t j = numStart; j < i; ++j) {
+          idx = idx * 10 + static_cast<unsigned long long>(s[j] - '0');
+          if (idx > static_cast<unsigned long long>(INT_MAX)) {
+            error = "operand placeholder index too large";
+            return false;
+          }
+        }
+        if (idx >= numConstraints) {
+          error = "operand placeholder out of range";
+          return false;
+        }
+        placeholderIndex = static_cast<int>(idx);
+        consumed = i - pos;
+        return true;
+      }
+      return false;
+    };
+
     auto classifyOperand = [&](const std::string& op, int& placeholderIndex,
                                std::string& family,
                                size_t numConstraints,
@@ -8511,70 +8621,80 @@ class Pizlonator {
       if (op[0] == '$') {
         if (op.size() >= 2 && op[1] == '$')
           return OKImmediate;
-        size_t pos = 1;
-        if (pos < op.size() && op[pos] == '{') {
-          size_t end = op.find('}', pos);
-          if (end == std::string::npos || end != op.size() - 1) {
+        size_t consumed = 0;
+        std::string placeholderError;
+        bool isBrace = op.size() >= 2 && op[1] == '{';
+        if (parsePlaceholder(op, 0, placeholderIndex, consumed, numConstraints,
+                             placeholderError)) {
+          if (consumed == op.size())
+            return OKPlaceholder;
+          // A brace-style placeholder must occupy the whole operand;
+          // trailing characters are a malformed placeholder.
+          if (isBrace) {
             error = "malformed operand placeholder: " + op;
             return OKError;
           }
-          std::string inner = op.substr(pos + 1, end - pos - 1);
-          size_t colon = inner.find(':');
-          if (colon != std::string::npos)
-            inner = inner.substr(0, colon);
-          if (inner.empty()) {
-            error = "empty operand placeholder: " + op;
-            return OKError;
-          }
-          bool allDigits = true;
-          for (char c : inner) {
-            if (!std::isdigit(static_cast<unsigned char>(c))) {
-              allDigits = false;
-              break;
-            }
-          }
-          if (!allDigits) {
-            error = "unknown operand name in inline asm: " + inner;
-            return OKError;
-          }
-          unsigned long long idx = 0;
-          for (char c : inner) {
-            idx = idx * 10 + static_cast<unsigned long long>(c - '0');
-            if (idx > static_cast<unsigned long long>(INT_MAX)) {
-              error = "operand placeholder index too large: " + op;
-              return OKError;
-            }
-          }
-          if (idx >= numConstraints) {
-            error = "operand placeholder out of range: " + op;
-            return OKError;
-          }
-          placeholderIndex = static_cast<int>(idx);
-        } else if (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos]))) {
-          size_t numStart = pos;
-          while (pos < op.size() && std::isdigit(static_cast<unsigned char>(op[pos])))
-            ++pos;
-          if (pos != op.size())
-            return OKImmediate;
-          unsigned long long idx = 0;
-          for (size_t i = numStart; i < pos; ++i) {
-            idx = idx * 10 + static_cast<unsigned long long>(op[i] - '0');
-            if (idx > static_cast<unsigned long long>(INT_MAX)) {
-              error = "operand placeholder index too large: " + op;
-              return OKError;
-            }
-          }
-          if (idx >= numConstraints) {
-            error = "operand placeholder out of range: " + op;
-            return OKError;
-          }
-          placeholderIndex = static_cast<int>(idx);
-        } else {
           return OKImmediate;
         }
-        return OKPlaceholder;
+        if (!placeholderError.empty()) {
+          error = placeholderError + ": " + op;
+          return OKError;
+        }
+        return OKImmediate;
       }
       return OKMemory;
+    };
+
+    // Detect whether a placeholder (%N, $N, or ${N}) starts at s[pos].
+    // On success, returns true with placeholderIndex set and consumed set to the
+    // number of characters consumed.  On failure, returns false; error is only set
+    // when the character at pos begins a syntactically malformed or out-of-range
+    // placeholder.  Escaped '$$' is treated as a literal and returns false.
+    auto classifyOperandAt = [&](const std::string& s, size_t pos,
+                                 int& placeholderIndex, size_t& consumed,
+                                 size_t numConstraints,
+                                 std::string& error) -> bool {
+      placeholderIndex = -1;
+      consumed = 0;
+      error.clear();
+      if (pos >= s.size())
+        return false;
+      if (s[pos] == '%') {
+        size_t i = pos + 1;
+        // Recognize register-size modifiers like %b0, %w0, %k0.
+        if (i < s.size() &&
+            (s[i] == 'b' || s[i] == 'h' || s[i] == 'w' || s[i] == 'k' ||
+             s[i] == 'q'))
+          ++i;
+        if (i >= s.size() ||
+            !std::isdigit(static_cast<unsigned char>(s[i])))
+          return false;
+        unsigned long long idx = 0;
+        while (i < s.size() &&
+               std::isdigit(static_cast<unsigned char>(s[i]))) {
+          idx = idx * 10 + static_cast<unsigned long long>(s[i] - '0');
+          if (idx > static_cast<unsigned long long>(INT_MAX)) {
+            error = "operand placeholder index too large";
+            return false;
+          }
+          ++i;
+        }
+        if (idx >= numConstraints) {
+          error = "operand placeholder out of range";
+          return false;
+        }
+        placeholderIndex = static_cast<int>(idx);
+        consumed = i - pos;
+        return true;
+      }
+      if (s[pos] == '$') {
+        // Escaped '$$' is a literal dollar sign, not a placeholder.
+        if (pos + 1 < s.size() && s[pos + 1] == '$')
+          return false;
+        return parsePlaceholder(s, pos, placeholderIndex, consumed,
+                                numConstraints, error);
+      }
+      return false;
     };
 
     bool AnySetsFlags = false;
@@ -8604,12 +8724,34 @@ class Pizlonator {
       std::vector<std::string> operands;
       {
         std::string cur;
-        for (char c : rest) {
-          if (c == ',') {
+        int depth = 0;
+        bool inBracePlaceholder = false;
+        for (size_t i = 0; i < rest.size(); ++i) {
+          char c = rest[i];
+          if (c == '(' || c == '[') {
+            ++depth;
+          } else if (c == ')' || c == ']') {
+            if (depth <= 0) {
+              Reason = "malformed/unbalanced bracketing in asm operands: " + rest;
+              return false;
+            }
+            --depth;
+          } else if (c == '{' && i > 0 && rest[i - 1] == '$') {
+            ++depth;
+            inBracePlaceholder = true;
+          } else if (c == '}' && inBracePlaceholder) {
+            if (depth <= 0) {
+              Reason = "malformed/unbalanced brace placeholder in asm operands: " + rest;
+              return false;
+            }
+            --depth;
+            inBracePlaceholder = false;
+          } else if (c == ',' && depth == 0) {
             operands.push_back(trim(cur));
             cur.clear();
-          } else
-            cur += c;
+            continue;
+          }
+          cur += c;
         }
         operands.push_back(trim(cur));
       }
@@ -8693,6 +8835,21 @@ class Pizlonator {
         // output or clobber.
         if (!isOutputOrClobber("dx")) {
           Reason = baseMnemonic + " output dx not covered by output constraint or clobber";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "lahf") {
+        if (!operands.empty()) {
+          Reason = "lahf takes no operands";
+          return false;
+        }
+        // LAHF loads AH from EFLAGS (SF, ZF, AF, PF, CF). Reading the flags is
+        // harmless, but the destination (ah, part of the ax family) must be
+        // declared as an output or clobber.
+        if (!isOutputOrClobber("ax")) {
+          Reason = "lahf output ah not covered by output constraint or clobber";
           return false;
         }
         continue;
@@ -9207,6 +9364,89 @@ class Pizlonator {
       if (operands.size() != roles.size()) {
         Reason = mnemonic + " expects " + std::to_string(roles.size()) + " operands";
         return false;
+      }
+
+      if (baseMnemonic == "lea") {
+        // LEA computes an effective address from a memory-addressing expression
+        // but does not access memory. The source operand may contain parentheses
+        // or brackets, which are otherwise rejected as memory operands. Validate
+        // the addressing expression and destination here, then skip the generic
+        // operand checks for this instruction.
+
+        // Destination must be a register or placeholder; it cannot be a memory operand.
+        const std::string& dst = operands[1];
+        if (dst.find_first_of("()[]") != std::string::npos) {
+          Reason = "lea destination cannot be a memory operand";
+          return false;
+        }
+
+        // Source addressing expression may use input register placeholders
+        // (%N, $N, or ${N}).
+        for (size_t i = 0; i < operands[0].size(); ) {
+          int ph = -1;
+          size_t consumed = 0;
+          std::string placeholderError;
+          if (!classifyOperandAt(operands[0], i, ph, consumed,
+                                 numOperandConstraints, placeholderError)) {
+            if (!placeholderError.empty()) {
+              Reason = placeholderError;
+              return false;
+            }
+            ++i;
+            continue;
+          }
+          if (!Constraints[ph].IsRegister) {
+            Reason = "lea source operand placeholder refers to non-register constraint";
+            return false;
+          }
+          if (Constraints[ph].Kind != ParsedConstraint::Input) {
+            Reason = "lea source operand placeholder must refer to an input register";
+            return false;
+          }
+          i += consumed;
+        }
+
+        // Validate the destination operand.
+        {
+          int ph = -1;
+          std::string family;
+          std::string operandError;
+          OperandKind kind = classifyOperand(dst, ph, family, numOperandConstraints,
+                                             operandError);
+          switch (kind) {
+          case OKMemory:
+            Reason = "lea destination cannot be a memory operand";
+            return false;
+          case OKError:
+            Reason = operandError;
+            return false;
+          case OKImmediate:
+            Reason = "lea destination cannot be an immediate";
+            return false;
+          case OKReg:
+            if (!OutputFamilies.count(family) && !ClobberFamilies.count(family)) {
+              Reason = "lea destination register not covered by output constraint or clobber";
+              return false;
+            }
+            break;
+          case OKPlaceholder:
+            if (ph < 0 || static_cast<size_t>(ph) >= numOperandConstraints) {
+              Reason = "lea destination operand placeholder out of range";
+              return false;
+            }
+            if (!Constraints[ph].IsRegister) {
+              Reason = "lea destination operand placeholder refers to non-register constraint";
+              return false;
+            }
+            if (Constraints[ph].Kind != ParsedConstraint::Output) {
+              Reason = "lea destination operand placeholder must refer to an output register";
+              return false;
+            }
+            break;
+          }
+        }
+
+        continue;
       }
 
       if (setsFlags)
