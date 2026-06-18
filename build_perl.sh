@@ -59,7 +59,7 @@ cd fil-tests
 ../../../../pizfix/bin/perl threads.pl
 ../../../../pizfix/bin/perl storable_demo.pl
 
-cd ../../../openssl-3.3.1/extracted-source
+cd ../../../openssl-3.5.7/extracted-source
 ../../../pizfix/bin/perl "-I." "-Iproviders/common/der" "-Mconfigdata" "-Mconfigdata" "-Mconfigdata" "-Moids_to_c" "util/dofile.pl" "-oMakefile" providers/common/include/prov/der_digests.h.in
 
 cd ../../..
