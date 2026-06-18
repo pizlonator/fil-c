@@ -8346,12 +8346,46 @@ class Pizlonator {
         {"adcx", {true, {RoleInput, RoleBoth}}},
         {"adox", {true, {RoleInput, RoleBoth}}},
         {"mov", {false, {RoleInput, RoleOutput}}},
+        {"movapd", {false, {RoleInput, RoleOutput}}},
+        {"movaps", {false, {RoleInput, RoleOutput}}},
+        {"movupd", {false, {RoleInput, RoleOutput}}},
+        {"movups", {false, {RoleInput, RoleOutput}}},
+        {"movd", {false, {RoleInput, RoleOutput}}},
+        {"movdqa", {false, {RoleInput, RoleOutput}}},
+        {"movdqu", {false, {RoleInput, RoleOutput}}},
+        {"movdq2q", {false, {RoleInput, RoleOutput}}},
+        {"movq", {false, {RoleInput, RoleOutput}}},
+        {"movq2dq", {false, {RoleInput, RoleOutput}}},
+        {"movsd", {false, {RoleInput, RoleOutput}}},
+        {"movss", {false, {RoleInput, RoleOutput}}},
+        {"movddup", {false, {RoleInput, RoleOutput}}},
+        {"movshdup", {false, {RoleInput, RoleOutput}}},
+        {"movsldup", {false, {RoleInput, RoleOutput}}},
+        {"movsbw", {false, {RoleInput, RoleOutput}}},
+        {"movsbl", {false, {RoleInput, RoleOutput}}},
+        {"movsbq", {false, {RoleInput, RoleOutput}}},
+        {"movswl", {false, {RoleInput, RoleOutput}}},
+        {"movswq", {false, {RoleInput, RoleOutput}}},
+        {"movslq", {false, {RoleInput, RoleOutput}}},
+        {"movsx", {false, {RoleInput, RoleOutput}}},
+        {"movsxd", {false, {RoleInput, RoleOutput}}},
+        {"movzx", {false, {RoleInput, RoleOutput}}},
+        {"movzbw", {false, {RoleInput, RoleOutput}}},
+        {"movzbl", {false, {RoleInput, RoleOutput}}},
+        {"movzbq", {false, {RoleInput, RoleOutput}}},
+        {"movzwl", {false, {RoleInput, RoleOutput}}},
+        {"movzwq", {false, {RoleInput, RoleOutput}}},
+        {"movhlps", {false, {RoleInput, RoleOutput}}},
+        {"movlhps", {false, {RoleInput, RoleOutput}}},
+        {"movmskpd", {false, {RoleInput, RoleOutput}}},
+        {"movmskps", {false, {RoleInput, RoleOutput}}},
         {"fst", {false, {RoleOutput}}},
         {"test", {true, {RoleInput, RoleInput}}},
         {"cmp", {true, {RoleInput, RoleInput}}},
         {"cmppd", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"cmpps", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"cmpss", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"cmpsd", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"comisd", {true, {RoleInput, RoleInput}}},
         {"comiss", {true, {RoleInput, RoleInput}}},
         {"cvtdq2pd", {false, {RoleInput, RoleOutput}}},
@@ -8382,6 +8416,7 @@ class Pizlonator {
         {"dec", {true, {RoleBoth}}},
         {"inc", {true, {RoleBoth}}},
         {"div", {true, {RoleInput}}},
+        {"mul", {true, {RoleInput}}},
         {"imul", {true, {RoleInput}}},
         {"cmpxchg", {true, {RoleInput, RoleBoth}}},
         {"crc32", {true, {RoleInput, RoleBoth}}},
@@ -8397,6 +8432,8 @@ class Pizlonator {
         {"addps", {false, {RoleInput, RoleBoth}}},
         {"addsd", {false, {RoleInput, RoleBoth}}},
         {"addss", {false, {RoleInput, RoleBoth}}},
+        {"mulpd", {false, {RoleInput, RoleBoth}}},
+        {"mulps", {false, {RoleInput, RoleBoth}}},
         {"addsubpd", {false, {RoleInput, RoleBoth}}},
         {"addsubps", {false, {RoleInput, RoleBoth}}},
         {"haddpd", {false, {RoleInput, RoleBoth}}},
@@ -8407,6 +8444,8 @@ class Pizlonator {
         {"hsubps", {false, {RoleInput, RoleBoth}}},
         {"vhsubpd", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vhsubps", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vmovshdup", {false, {RoleInput, RoleOutput}}},
+        {"vmovsldup", {false, {RoleInput, RoleOutput}}},
         {"divpd", {false, {RoleInput, RoleBoth}}},
         {"divps", {false, {RoleInput, RoleBoth}}},
         {"divsd", {false, {RoleInput, RoleBoth}}},
@@ -8418,6 +8457,10 @@ class Pizlonator {
         {"maxsd", {false, {RoleInput, RoleBoth}}},
         {"maxss", {false, {RoleInput, RoleBoth}}},
         {"minpd", {false, {RoleInput, RoleBoth}}},
+        {"minps", {false, {RoleInput, RoleBoth}}},
+        {"minsd", {false, {RoleInput, RoleBoth}}},
+        {"minss", {false, {RoleInput, RoleBoth}}},
+        {"mpsadbw", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"gf2p8affineinvq", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"vgf2p8affineinvq", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"gf2p8affineq", {false, {RoleInput, RoleInput, RoleBoth}}},
@@ -8441,6 +8484,7 @@ class Pizlonator {
         {"vblendps", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"vdppd", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"vdpps", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
+        {"vmpsadbw", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"vandnpd", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandnps", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandpd", {false, {RoleInput, RoleInput, RoleOutput}}},
@@ -8699,6 +8743,24 @@ class Pizlonator {
 
     bool AnySetsFlags = false;
 
+    auto isControlOrDebugRegOperand = [&](const std::string& op) -> bool {
+      if (op.size() < 4 || op[0] != '%')
+        return false;
+      char kind = static_cast<char>(std::tolower(static_cast<unsigned char>(op[1])));
+      if (kind != 'c' && kind != 'd')
+        return false;
+      char second = static_cast<char>(std::tolower(static_cast<unsigned char>(op[2])));
+      if (kind == 'c' && second != 'r')
+        return false;
+      if (kind == 'd' && second != 'b')
+        return false;
+      for (size_t i = 3; i < op.size(); ++i) {
+        if (!std::isdigit(static_cast<unsigned char>(op[i])))
+          return false;
+      }
+      return true;
+    };
+
     for (const std::string& rawLine : lines) {
       std::string line = trim(rawLine);
       if (line.empty())
@@ -8757,6 +8819,34 @@ class Pizlonator {
       }
       while (!operands.empty() && operands.back().empty())
         operands.pop_back();
+
+      // MOVSD is an overloaded mnemonic: with XMM operands it is the SSE scalar
+      // move (safe), but with no operands it is the string move instruction
+      // (unsafe because it accesses [RSI]/[RDI]). Reject the no-operand form.
+      if (baseMnemonic == "movsd" && operands.empty()) {
+        Reason = "movsd with no operands is the string move instruction, which is not allowed in safe inline asm";
+        return false;
+      }
+
+      // CMPSD is an overloaded mnemonic: with XMM operands it is the SSE scalar
+      // compare (safe), but with no operands it is the string compare instruction
+      // (unsafe because it accesses [RSI]/[RDI]). Reject the no-operand form.
+      if (baseMnemonic == "cmpsd" && operands.empty()) {
+        Reason = "cmpsd with no operands is the string compare instruction and accesses memory";
+        return false;
+      }
+
+      // MOV is overloaded: the general-purpose register move is safe, but the
+      // control-register and debug-register forms are privileged and have
+      // side effects. Reject those variants explicitly.
+      if (baseMnemonic == "mov") {
+        for (const std::string& op : operands) {
+          if (isControlOrDebugRegOperand(op)) {
+            Reason = "mov to/from control or debug registers is not allowed in safe inline asm: " + op;
+            return false;
+          }
+        }
+      }
 
       auto isOutputOrClobber = [&](const std::string& family) -> bool {
         return OutputFamilies.count(family) || ClobberFamilies.count(family);
@@ -9293,7 +9383,7 @@ class Pizlonator {
           }
         }
         int size = 0;
-        if (!mnemonic.empty())
+        if (mnemonic.size() > 3)
           size = inferSizeFromSuffix(mnemonic.back());
         if (size == 0 && !operands[0].empty() && operands[0][0] == '%')
           size = inferRegSize(operands[0].substr(1));
@@ -9304,6 +9394,45 @@ class Pizlonator {
         if (size == 0 || size > 8) {
           if (!isOutputOrClobber("dx")) {
             Reason = "div output/clobber dx not covered by output constraint or clobber";
+            return false;
+          }
+        }
+      }
+
+      if (baseMnemonic == "mul") {
+        // mul multiplies the implicit accumulator (AL/AX/EAX/RAX) by the
+        // explicit operand. The product goes to AX (byte) or DX:AX/EDX:EAX/
+        // RDX:RAX (larger sizes). Every register written must be declared as
+        // an output or clobber. mul also leaves the condition codes undefined.
+        if (operands.size() != 1) {
+          Reason = "mul expects one operand";
+          return false;
+        }
+        {
+          int ph = -1;
+          std::string family;
+          std::string operandError;
+          OperandKind kind = classifyOperand(operands[0], ph, family,
+                                             numOperandConstraints,
+                                             operandError);
+          if (kind == OKImmediate) {
+            Reason = "immediate operand not allowed in one-operand mul: " +
+                     operands[0];
+            return false;
+          }
+        }
+        int size = 0;
+        if (mnemonic.size() > 3)
+          size = inferSizeFromSuffix(mnemonic.back());
+        if (size == 0 && !operands[0].empty() && operands[0][0] == '%')
+          size = inferRegSize(operands[0].substr(1));
+        if (!isOutputOrClobber("ax")) {
+          Reason = "mul output/clobber ax not covered by output constraint or clobber";
+          return false;
+        }
+        if (size == 0 || size > 8) {
+          if (!isOutputOrClobber("dx")) {
+            Reason = "mul output/clobber dx not covered by output constraint or clobber";
             return false;
           }
         }
@@ -9333,7 +9462,7 @@ class Pizlonator {
             }
           }
           int size = 0;
-          if (!mnemonic.empty())
+          if (mnemonic.size() > 4)
             size = inferSizeFromSuffix(mnemonic.back());
           if (size == 0 && !operands[0].empty() && operands[0][0] == '%')
             size = inferRegSize(operands[0].substr(1));

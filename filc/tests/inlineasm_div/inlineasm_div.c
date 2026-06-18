@@ -47,5 +47,27 @@ int main(void)
     ZASSERT(quotient64 == 14);
     ZASSERT(remainder64 == 2);
 
+    /* Bare mnemonic: size inferred from the explicit 8-bit operand register. */
+    uint16_t dividend8_bare = 100;
+    register uint8_t divisor8_bare asm("cl") = 7;
+    uint16_t result8_bare;
+    asm volatile("div %%cl"
+                 : "=a"(result8_bare)
+                 : "a"(dividend8_bare), "r"(divisor8_bare)
+                 : "cc");
+    ZASSERT((result8_bare & 0xff) == 14);
+    ZASSERT((result8_bare >> 8) == 2);
+
+    /* Bare mnemonic: size inferred from the explicit 16-bit operand register. */
+    uint16_t dividend16_bare = 100;
+    register uint16_t divisor16_bare asm("cx") = 7;
+    uint16_t quotient16_bare, remainder16_bare;
+    asm volatile("div %%cx"
+                 : "=a"(quotient16_bare), "=d"(remainder16_bare)
+                 : "a"(dividend16_bare), "d"(0), "r"(divisor16_bare)
+                 : "cc");
+    ZASSERT(quotient16_bare == 14);
+    ZASSERT(remainder16_bare == 2);
+
     return 0;
 }

@@ -1,0 +1,82 @@
+We previously added quite sophisticated inline assembly support to FilPizlonator.cpp.
+
+See inlineasm.txt and fix-cpuid.txt for what we have done so far. See T800.txt and README.md to understand the project.
+
+We also created a list of instructions in x86, along with URLs to descriptions of those instructions, and whether we have implemented the instruction or decided not to implement it. The file is instructions_list.txt. This is a huge file; do not try to read it all.
+
+Here's an example entry of an instruction we have not considered yet:
+
+BNDCU https://www.felixcloutier.com/x86/bndcu:bndcn.html
+
+Here's an example entry of an instruction we have decided not to implement:
+
+AAA https://www.felixcloutier.com/x86/aaa.html REJECT
+
+Here's an example entry of an instruction we have implemented:
+
+BLSR https://www.felixcloutier.com/x86/blsr.html ACCEPT
+
+Note that there are some instructions we have implemented, but that do not have an ACCEPT or REJECT on them, because they were implemented before we started tracking instructions_list.txt.
+
+Note that there are some instructions we have implemented according to instructions_list.txt but then we removed support for them. In many such cases, we also added tests to assert that the instruction is unsupported. Therefore, the presence of ACCEPT really just means that the instruction was considered already and that you do not have to consider it. Likewise, it's possible that an instruction with REJECT was later implemented. So, the real interesting distinction is whether an instruction has neither ACCEPT nor REJECT (in which case it's an instruction we still need to consider) or an instruction has either ACCEPT or REJECT (in which case the instruction has already been handled one way or another, either by implementing it or deciding not to).
+
+Make sure that:
+
+There is a script that finds the first line in this file that does not have a third column, and reports back the full row. It should be called ./find_next_instruction. It prints output as: "LINENUM: LINE_CONTENT" where LINENUM is the 1-based line number. It should fail if there are no more instructions to consider. It should also fail if there is a local file called instructions_stop, and the failure mode should indicate that the user asked us to stop implementing instructions. If the find_next_instruction script doesn't exist, write it and make sure it works correctly.
+
+There is another script called ./accept_instruction that takes either an instruction name or a line number, and for that instruction or exact line, changes its row in that file to have an ACCEPT in the third column. The line number may be passed as "--line N" or just "N" (1-based). This script should fail if the instruction or line is not found in the file. If it doesn't exist, write it and make sure it works correctly.
+
+There is another script called ./reject_instruction that takes either an instruction name or a line number, and for that instruction or exact line, changes its row in that file to have an REJECT in the third column. The line number may be passed as "--line N" or just "N" (1-based). This script should fail if the instruction or line is not found in the file. If it doesn't exist, write it and make sure it works correctly.
+
+IMPORTANT: Some instruction mnemonics are overloaded and have radically different behaviors depending on operands. For example, MOVSD with no operands is the string move instruction (move one doubleword from [RSI] to [RDI]), while MOVSD with XMM operands is the SSE scalar move; likewise, CMPSD with no operands is the string compare instruction (compare one doubleword at [RSI] with [RDI]), while CMPSD with XMM operands is the SSE scalar compare. The same mnemonic can therefore appear on multiple lines in instructions_list.txt with different URLs/semantics. Because of this, the subagent MUST target the exact line reported by ./find_next_instruction using the line number (e.g., ./accept_instruction --line 383 or ./reject_instruction --line 382), NOT the bare instruction name. Targeting the name would update the first matching row, which may be the wrong semantics. The subagent MUST also check the operand form of the instruction in addition to the URL, because the URL alone does not distinguish overloaded encodings.
+
+ALSO IMPORTANT: The subagent MUST look up and read the felixcloutier.com URL listed on the exact line reported by ./find_next_instruction. Do not assume you know what the instruction does based on the mnemonic alone, especially for overloaded mnemonics. The URL describes the specific encoding/semantics of that line; read it before deciding whether the instruction is safe.
+
+Note that find_next_instruction, accept_instruction, reject_instruction, and instructions_list.txt are not meant to be in the git repository. These are local files.
+
+Once you have either verified that the scripts exist, or written them and tested them, move on to the next phase of your job:
+
+Spawn a subagent instructing it to run ./find_next_instruction EXACTLY ONCE and then evaluate that instruction:
+
+- Is this instruction safe?
+    - Control flow instructions are not safe.
+    - Calls are not safe.
+    - Trapping to kernel is not safe. (Trapping as in SIGTRAP/SIGFPE/SIGBUS/SIGSEGV/SIGILL is safe, because the Fil-C runtime does not allow those to be caught. In particular, UD traps are safe.)
+    - Memory accesses are not OK. Pushing/popping is definitely not OK.
+    - Pushing and popping the x87 ST stack is not OK. Modifying ST registers in place, without changing the stack top, is OK provided that those registers are listed as clobbered either via a constraint like "=t" or explicitly by saying that for example "st" is clobbered. Note that we say that pushing/popping the x87 stack is not OK because there's no easy way to say that the stack depth got clobbered in GCC inline asm syntax (the closest you could say is that all of the ST registers are clobbered).
+    - Side effects aside from modifying registers or raising uncatchable signals are not safe.
+- Can the instruction be done without a memory operand?
+    - We do not support memory accesses in inline assembly.
+    - No point in supporting an instruction if the only way to write it involves a memory access.
+
+NOTE: instructions that use MMX, SSE, AVX, or AVX2 are generally safe. It's possible that to support SSE or other instructions that use fancy registers, you'll need to make more significant changes to FilPizlonator.cpp's validateSafeInlineAsm. Make those changes if you have to. Just because FilPizlonator doesn't support some kind of register constraint currently doesn't mean that the instruction is unsafe. Instructions are only unsafe if they cause control flow, make calls, cause traps that aren't surfaced as SIGTRAP/SIGFPE/SIGBUS/SIGSEGV/SIGILL, access memory, or cause other non-register effects or effects not captured in the constraints.
+
+NOTE: AVX512 cannot be tested on this computer, so skip those (reject them, and generally reject any instructions that don't work on this computer).
+
+NOTE: Some instructions don't work in 64-bit mode. Reject those, since Fil-C is x86_64-specific.
+
+NOTE: Some instructions have implicit register operands. If the instruction only reads the register, then this is fine! Fil-C inlineasm semantics and threat model say that it's OK for inline assembly to read any register and use it as input, since the inline assembly is effect-free. If the instruction writes to the implicit register operand, then it's only OK if it's possible for the user to specify the register as a clobber using `asm` syntax. In that case, make sure that we have the ability to parse the clobber from LLVM constraints. THIS POINT IS IMPORTANT TO CONVEY TO THE SUBAGENT, because I believe the subagent previously made a mistake about BLENDVPD on the grounds that it uses %xmm0 and that it's not possible to list it as a clobber.
+
+NOTE: x87 constraints can be confusing, since in GCC inline asm syntax, a constraint like "t" or "=t" translates to "st" (which really means "st(0)") in LLVM IR, and a constraint like "u" translates to "st(1)". Moreover, in LLVM IR, the "fpsr" clobber must be explicitly specified but clang will add that clobber for you automatically - so you can't really test what happens if that clobber isn't specified from C code.
+
+NOTE: You really have to read T800.txt to understand how to build and test Fil-C.
+
+Make sure that the subagents knows to only `./build_clang.sh` and then `run-test -t <their new test>`. The subagent should not waste time by rebuilding everything or retesting everything.
+
+IMPORTANT: `filc/run-tests -t` accepts exactly ONE test name at a time. Passing multiple `-t` options (e.g., `filc/run-tests -t test1 -t test2 -t test3`) only runs the last one, because each `-t` overwrites the previous value. If you need to run multiple tests, invoke `filc/run-tests -t <testname>` separately for each one, or use `filc/run-tests -f <pattern>` to run a matching set.
+
+If find_next_instruction fails because there are no instructions to consider, return to the parent agent informing it that there are no more instructions.
+
+If the instruction is not safe, then the subagent should invoke ./reject_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Additionally, if the unsafe instruction variant can be expressed in inline assembly (i.e., the assembler accepts it), the subagent MUST add a failure test under filc/tests/ named like inlineasm_bad_<mnemonic>_<reason>/ that uses the unsafe instruction in inline asm and has a manifest expecting failure with output containing "filc safety error". The test must actually fail because FilPizlonator.cpp rejects the instruction, not for an unrelated reason (verify with filc/run-tests -t <testname>). Then return back to the parent agent.
+
+If the instruction is safe, then add it to the allowlist in FilPizlonator.cpp and add a test to filc/tests for it. Then run ./accept_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Make sure to stage (git add) the new test.
+
+If the instruction is already in FilPizlonator.cpp and filc/tests, then just run ./accept_instruction --line <LINENUM> on that exact line.
+
+Once the instruction is accepted or rejected, return back to the parent agent and BRIEFLY, IN AS FEW WORDS AS POSSIBLE report which instruction it worked on and whether it was rejected, accepted and had already been implemented, accepted and newly implemented, or there were no more instructions.
+
+Then the toplevel agent should spawn another identical subagent.
+
+Stop if the subagent gets stuck repeatedly processing the same exact instruction as the previous subagent already processed. Stop if the subagent reports that there are no more instructions to process. Stop if the subagent reports that the instructions_stop file told it to stop, or if you see that the instructions_stop file exists.
+
+
