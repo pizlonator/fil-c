@@ -171,6 +171,9 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
+#ifndef FIPS_mode
+#define FIPS_mode() 0
+#endif
 #endif
 
 #include "defines.h"

@@ -65,6 +65,8 @@
 #define	KEX_SNTRUP761X25519_SHA512	"sntrup761x25519-sha512"
 #define	KEX_SNTRUP761X25519_SHA512_OLD	"sntrup761x25519-sha512@openssh.com"
 #define	KEX_MLKEM768X25519_SHA256	"mlkem768x25519-sha256"
+#define	KEX_MLKEM768NISTP256_SHA256     "mlkem768nistp256-sha256"
+#define	KEX_MLKEM1024NISTP384_SHA384    "mlkem1024nistp384-sha384"
 
 #define COMP_NONE	0
 #define COMP_DELAYED	2
@@ -103,6 +105,8 @@ enum kex_exchange {
 	KEX_C25519_SHA256,
 	KEX_KEM_SNTRUP761X25519_SHA512,
 	KEX_KEM_MLKEM768X25519_SHA256,
+	KEX_KEM_MLKEM768NISTP256_SHA256,
+	KEX_KEM_MLKEM1024NISTP384_SHA384,
 #ifdef GSSAPI
 	KEX_GSS_GRP1_SHA1,
 	KEX_GSS_GRP14_SHA1,
@@ -203,6 +207,9 @@ struct kex {
 	u_char sntrup761_client_key[crypto_kem_sntrup761_SECRETKEYBYTES]; /* KEM */
 	u_char mlkem768_client_key[crypto_kem_mlkem768_SECRETKEYBYTES]; /* KEM */
 	struct sshbuf *client_pub;
+	/* FIXME */
+	EVP_PKEY *ec_hybrid_client_key; /* NIST hybrids */
+	u_char mlkem1024_client_key[crypto_kem_mlkem1024_SECRETKEYBYTES]; /* ML-KEM 1024 + NIST */
 };
 
 int	 kex_name_valid(const char *);
@@ -281,6 +288,18 @@ int	 kex_kem_mlkem768x25519_keypair(struct kex *);
 int	 kex_kem_mlkem768x25519_enc(struct kex *, const struct sshbuf *,
     struct sshbuf **, struct sshbuf **);
 int	 kex_kem_mlkem768x25519_dec(struct kex *, const struct sshbuf *,
+    struct sshbuf **);
+
+int	 kex_kem_mlkem768nistp256_keypair(struct kex *);
+int	 kex_kem_mlkem768nistp256_enc(struct kex *, const struct sshbuf *,
+    struct sshbuf **, struct sshbuf **);
+int	 kex_kem_mlkem768nistp256_dec(struct kex *, const struct sshbuf *,
+    struct sshbuf **);
+
+int	 kex_kem_mlkem1024nistp384_keypair(struct kex *);
+int	 kex_kem_mlkem1024nistp384_enc(struct kex *, const struct sshbuf *,
+    struct sshbuf **, struct sshbuf **);
+int	 kex_kem_mlkem1024nistp384_dec(struct kex *, const struct sshbuf *,
     struct sshbuf **);
 
 int	 kex_dh_keygen(struct kex *);

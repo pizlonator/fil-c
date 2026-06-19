@@ -62,4 +62,5 @@ struct ssh;
 
 void    compat_banner(struct ssh *, const char *);
 char	*compat_kex_proposal(struct ssh *, const char *);
+int is_mlkem768_available(void);
 #endif

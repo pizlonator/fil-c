@@ -82,4 +82,8 @@ int	crypto_kem_sntrup761_keypair(unsigned char *pk, unsigned char *sk);
 #define crypto_kem_mlkem768_CIPHERTEXTBYTES 1088
 #define crypto_kem_mlkem768_BYTES 32
 
+#define crypto_kem_mlkem1024_PUBLICKEYBYTES 1568
+#define crypto_kem_mlkem1024_SECRETKEYBYTES 3168
+#define crypto_kem_mlkem1024_CIPHERTEXTBYTES 1568
+
 #endif /* crypto_api_h */

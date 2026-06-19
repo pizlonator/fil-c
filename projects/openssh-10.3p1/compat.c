@@ -142,8 +142,9 @@ char *
 compat_kex_proposal(struct ssh *ssh, const char *p)
 {
 	char *cp = NULL, *cp2 = NULL;
+	int mlkem_available = is_mlkem768_available();
 
-	if ((ssh->compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
+	if ((ssh->compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0 && mlkem_available == 2)
 		return xstrdup(p);
 	debug2_f("original KEX proposal: %s", p);
 	if ((ssh->compat & SSH_BUG_CURVE25519PAD) != 0)
@@ -158,6 +159,25 @@ compat_kex_proposal(struct ssh *ssh, const char *p)
 		free(cp);
 		cp = cp2;
 	}
+	if (mlkem_available == 2)
+		return cp ? cp : xstrdup(p);
+	if (mlkem_available == 1 && FIPS_mode()) {
+		if ((cp2 = match_filter_denylist(cp ? cp : p,
+		    "mlkem768x25519-sha256")) == NULL)
+			fatal("match_filter_denylist failed");
+		free(cp);
+		cp = cp2;
+	}
+	if (mlkem_available == 0) {
+		if ((cp2 = match_filter_denylist(cp ? cp : p,
+		    "mlkem768x25519-sha256,"
+		    "mlkem768nistp256-sha256,"
+		    "mlkem1024nistp384-sha384")) == NULL)
+			fatal("match_filter_denylist failed");
+		free(cp);
+		cp = cp2;
+	}
+
 	if (cp == NULL || *cp == '\0')
 		fatal("No supported key exchange algorithms found");
 	debug2_f("compat KEX proposal: %s", cp);
