@@ -36,7 +36,11 @@ Note that find_next_instruction, accept_instruction, reject_instruction, and ins
 
 Once you have either verified that the scripts exist, or written them and tested them, move on to the next phase of your job:
 
-Spawn a subagent instructing it to run ./find_next_instruction EXACTLY ONCE and then evaluate that instruction:
+Spawn a subagent instructing it to run ./find_next_instruction exactly once and then:
+
+1. Checks instructions_list.txt if there are UP TO 10 (and NEVER MORE THAN 10) instructions after it that are substantially similar. For example, there are ~8 instructions with the prefix PADD that all basically do the same thing, take similar operands, and likely have similar safety properties. It's also possible that there are no instructions that are substantially similar to the one returned by find_next_instruction! In this step, it's the subagent's job to identify the group of instructions that the subagent will implement in one go.
+
+2. Evaluate those instructions for safety one at a time:
 
 - Is this instruction safe?
     - Control flow instructions are not safe.
@@ -67,13 +71,13 @@ IMPORTANT: `filc/run-tests -t` accepts exactly ONE test name at a time. Passing 
 
 If find_next_instruction fails because there are no instructions to consider, return to the parent agent informing it that there are no more instructions.
 
-If the instruction is not safe, then the subagent should invoke ./reject_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Additionally, if the unsafe instruction variant can be expressed in inline assembly (i.e., the assembler accepts it), the subagent MUST add a failure test under filc/tests/ named like inlineasm_bad_<mnemonic>_<reason>/ that uses the unsafe instruction in inline asm and has a manifest expecting failure with output containing "filc safety error". The test must actually fail because FilPizlonator.cpp rejects the instruction, not for an unrelated reason (verify with filc/run-tests -t <testname>). Then return back to the parent agent.
+For unsafe instructiouns, the subagent should invoke ./reject_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Additionally, if the unsafe instruction variant can be expressed in inline assembly (i.e., the assembler accepts it), the subagent MUST add a failure test under filc/tests/ named like inlineasm_bad_<mnemonic>_<reason>/ that uses the unsafe instruction in inline asm and has a manifest expecting failure with output containing "filc safety error". The test must actually fail because FilPizlonator.cpp rejects the instruction, not for an unrelated reason (verify with filc/run-tests -t <testname>). Then return back to the parent agent.
 
-If the instruction is safe, then add it to the allowlist in FilPizlonator.cpp and add a test to filc/tests for it. Then run ./accept_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Make sure to stage (git add) the new test.
+For the safe instructions, add them to the allowlist in FilPizlonator.cpp and add a test to filc/tests for it. Then run ./accept_instruction --line <LINENUM> (using the exact line number reported by ./find_next_instruction). Make sure to stage (git add) the new test.
 
-If the instruction is already in FilPizlonator.cpp and filc/tests, then just run ./accept_instruction --line <LINENUM> on that exact line.
+If an instruction is already in FilPizlonator.cpp and filc/tests, then just run ./accept_instruction --line <LINENUM> on that exact line.
 
-Once the instruction is accepted or rejected, return back to the parent agent and BRIEFLY, IN AS FEW WORDS AS POSSIBLE report which instruction it worked on and whether it was rejected, accepted and had already been implemented, accepted and newly implemented, or there were no more instructions.
+Once the instructions in the batch are accepted or rejected, return back to the parent agent and BRIEFLY, IN AS FEW WORDS AS POSSIBLE report which instructions it worked on and whether they were rejected, accepted and had already been implemented, accepted and newly implemented, or there were no more instructions.
 
 Then the toplevel agent should spawn another identical subagent.
 

@@ -8304,9 +8304,23 @@ class Pizlonator {
         return true;
       }
 
+      if (m == "nop" || m == "nopw" || m == "nopl" || m == "nopq") {
+        // The bare "nop" is the single-byte no-op. The suffixed forms
+        // (nopw/nopl/nopq) are multi-byte hint NOPs; with a memory operand
+        // they compute the effective address but perform no load/store (like
+        // lea). Normalize them to a single "nop" base mnemonic so the
+        // memory-operand handling below applies uniformly. These never set
+        // flags and take no operands in their bare form.
+        baseMnemonic = "nop";
+        setsFlags = false;
+        roles.clear();
+        return true;
+      }
+
       if (m == "cpuid" || m == "xgetbv" || m == "cbw" || m == "cwde" ||
           m == "cdqe" || m == "cwd" || m == "cdq" || m == "cqo" ||
-          m == "clc" || m == "cld" || m == "cmc" || m == "lahf" ||
+          m == "clc" || m == "cld" || m == "cmc" ||
+          m == "lahf" ||
           m == "lfence" || m == "mfence" || m == "sfence" ||
           m == "fabs" ||
           m == "fchs" || m == "fclex" || m == "fnclex" || m == "fcos" ||
@@ -8341,6 +8355,7 @@ class Pizlonator {
         {"and", {true, {RoleInput, RoleBoth}}},
         {"shl", {true, {RoleInput, RoleBoth}}},
         {"xor", {true, {RoleInput, RoleBoth}}},
+        {"or", {true, {RoleInput, RoleBoth}}},
         {"add", {true, {RoleInput, RoleBoth}}},
         {"adc", {true, {RoleInput, RoleBoth}}},
         {"adcx", {true, {RoleInput, RoleBoth}}},
@@ -8415,6 +8430,7 @@ class Pizlonator {
         {"vinsertps", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
         {"dec", {true, {RoleBoth}}},
         {"inc", {true, {RoleBoth}}},
+        {"neg", {true, {RoleBoth}}},
         {"div", {true, {RoleInput}}},
         {"mul", {true, {RoleInput}}},
         {"imul", {true, {RoleInput}}},
@@ -8434,6 +8450,9 @@ class Pizlonator {
         {"addss", {false, {RoleInput, RoleBoth}}},
         {"mulpd", {false, {RoleInput, RoleBoth}}},
         {"mulps", {false, {RoleInput, RoleBoth}}},
+        {"mulsd", {false, {RoleInput, RoleBoth}}},
+        {"mulss", {false, {RoleInput, RoleBoth}}},
+        {"mulx", {false, {RoleInput, RoleOutput, RoleOutput}}},
         {"addsubpd", {false, {RoleInput, RoleBoth}}},
         {"addsubps", {false, {RoleInput, RoleBoth}}},
         {"haddpd", {false, {RoleInput, RoleBoth}}},
@@ -8476,6 +8495,8 @@ class Pizlonator {
         {"andnps", {false, {RoleInput, RoleBoth}}},
         {"andpd", {false, {RoleInput, RoleBoth}}},
         {"andps", {false, {RoleInput, RoleBoth}}},
+        {"orpd", {false, {RoleInput, RoleBoth}}},
+        {"orps", {false, {RoleInput, RoleBoth}}},
         {"blendpd", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"blendps", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"blendvpd", {false, {RoleInput, RoleBoth}}},
@@ -8489,6 +8510,8 @@ class Pizlonator {
         {"vandnps", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandpd", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vandps", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vorpd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vorps", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"aeskeygenassist", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vaeskeygenassist", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"vaesdeclast", {false, {RoleInput, RoleInput, RoleOutput}}},
@@ -8501,6 +8524,7 @@ class Pizlonator {
         {"blsmsk", {true, {RoleInput, RoleOutput}}},
         {"blsr", {true, {RoleInput, RoleOutput}}},
         {"bswap", {false, {RoleBoth}}},
+        {"not", {false, {RoleBoth}}},
         {"lar", {true, {RoleInput, RoleOutput}}},
         {"lsl", {true, {RoleInput, RoleOutput}}},
         {"lea", {false, {RoleInput, RoleOutput}}},
@@ -9490,6 +9514,53 @@ class Pizlonator {
         if (operands.size() == 1)
           roles = {RoleBoth};
       }
+
+      if (baseMnemonic == "nop" && !operands.empty()) {
+        // Multi-byte NOP encodings (e.g. "nop (%rax)", "nopq (%rax)") take a
+        // memory-addressing expression as an operand but do NOT actually access
+        // memory - the operand is purely syntactic, exactly like LEA's source.
+        // The CPU computes the effective address but performs no load/store.
+        // Validate the addressing expression here and skip the generic
+        // operand/memory checks (which would otherwise reject the parentheses).
+        // The bare "nop" (no operands) is handled by the normal flow below.
+        if (operands.size() != 1) {
+          Reason = "nop expects 0 or 1 operands";
+          return false;
+        }
+        const std::string& src = operands[0];
+        if (src.find_first_of("()[]") == std::string::npos) {
+          Reason = "nop operand must be a memory-addressing expression";
+          return false;
+        }
+        // The addressing expression may use input register placeholders
+        // (%N, $N, or ${N}), just like LEA's source. Literal registers (e.g.
+        // %rax) are permitted since nop does not read or write them.
+        for (size_t i = 0; i < src.size(); ) {
+          int ph = -1;
+          size_t consumed = 0;
+          std::string placeholderError;
+          if (!classifyOperandAt(src, i, ph, consumed,
+                                 numOperandConstraints, placeholderError)) {
+            if (!placeholderError.empty()) {
+              Reason = placeholderError;
+              return false;
+            }
+            ++i;
+            continue;
+          }
+          if (!Constraints[ph].IsRegister) {
+            Reason = "nop operand placeholder refers to non-register constraint";
+            return false;
+          }
+          if (Constraints[ph].Kind != ParsedConstraint::Input) {
+            Reason = "nop operand placeholder must refer to an input register";
+            return false;
+          }
+          i += consumed;
+        }
+        continue;
+      }
+
       if (operands.size() != roles.size()) {
         Reason = mnemonic + " expects " + std::to_string(roles.size()) + " operands";
         return false;
