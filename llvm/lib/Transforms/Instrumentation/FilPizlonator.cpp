@@ -8151,8 +8151,8 @@ class Pizlonator {
           }
           pc.Kind = isOutput ? ParsedConstraint::Output : ParsedConstraint::Input;
           std::string rest = cstr.substr(pos);
-          if (rest == "r" || rest == "x" || rest == "y" || rest == "v" ||
-              rest == "Yk") {
+          if (rest == "r" || rest == "q" || rest == "Q" || rest == "x" ||
+              rest == "y" || rest == "v" || rest == "Yk") {
             pc.IsRegister = true;
           } else if (rest.size() >= 2 && rest.front() == '{' && rest.back() == '}') {
             std::string regname = toLowerStr(rest.substr(1, rest.size() - 2));
@@ -8304,6 +8304,33 @@ class Pizlonator {
         return true;
       }
 
+      if (m.starts_with("set")) {
+        // SETcc (set byte on condition) sets the destination r/m8 operand to 0
+        // or 1 based on the EFLAGS condition codes. It reads the flags (an
+        // implicit read, which is safe) but does not modify them. The single
+        // operand is the destination byte register (a write). SETcc always
+        // operates on bytes, so there is no size suffix to strip.
+        StringRef suffix = m.drop_front(3);
+        if (suffix.empty())
+          return false;
+        static const std::unordered_set<std::string> conds = {
+          "o", "no",
+          "b", "c", "nae", "nb", "nc", "ae",
+          "e", "z", "ne", "nz",
+          "be", "na", "nbe", "a",
+          "s", "ns",
+          "p", "pe", "np", "po",
+          "l", "nge", "nl", "ge",
+          "le", "ng", "nle", "g"
+        };
+        if (!conds.count(suffix.str()))
+          return false;
+        baseMnemonic = "setcc";
+        setsFlags = false;
+        roles = {RoleOutput};
+        return true;
+      }
+
       if (m == "nop" || m == "nopw" || m == "nopl" || m == "nopq") {
         // The bare "nop" is the single-byte no-op. The suffixed forms
         // (nopw/nopl/nopq) are multi-byte hint NOPs; with a memory operand
@@ -8320,14 +8347,17 @@ class Pizlonator {
       if (m == "cpuid" || m == "xgetbv" || m == "cbw" || m == "cwde" ||
           m == "cdqe" || m == "cwd" || m == "cdq" || m == "cqo" ||
           m == "clc" || m == "cld" || m == "cmc" ||
-          m == "lahf" ||
+          m == "stc" ||
+          m == "lahf" || m == "sahf" ||
           m == "lfence" || m == "mfence" || m == "sfence" ||
+          m == "serialize" ||
           m == "fabs" ||
           m == "fchs" || m == "fclex" || m == "fnclex" || m == "fcos" ||
           m == "frndint" || m == "fsin" || m == "fsqrt" ||
           m == "fninit" || m == "fnop" ||
           m == "fwait" || m == "wait" ||
           m == "pause" ||
+          m == "rdtsc" || m == "rdtscp" || m == "rdpkru" ||
           m == "fcom" || m == "fucom" || m == "fcomi" || m == "fucomi" ||
           m == "ftst" || m == "fxam" || m == "fxch" ||
           m == "fdiv" || m == "fdivr" ||
@@ -8338,6 +8368,8 @@ class Pizlonator {
           m == "fincstp") {
         baseMnemonic = mnem;
         setsFlags = (m == "clc" || m == "cld" || m == "cmc" ||
+                     m == "stc" ||
+                     m == "sahf" ||
                      m == "fcomi" || m == "fucomi");
         roles.clear();
         return true;
@@ -8355,10 +8387,34 @@ class Pizlonator {
         {"shr", {true, {RoleInput, RoleBoth}}},
         {"and", {true, {RoleInput, RoleBoth}}},
         {"shl", {true, {RoleInput, RoleBoth}}},
+        // SAL is an alias for SHL (shift left logical). Same encoding, same
+        // operand structure: AT&T order is count, dest.
+        {"sal", {true, {RoleInput, RoleBoth}}},
+        {"rcl", {true, {RoleInput, RoleBoth}}},
+        {"rcr", {true, {RoleInput, RoleBoth}}},
+        {"rol", {true, {RoleInput, RoleBoth}}},
+        {"ror", {true, {RoleInput, RoleBoth}}},
+        // SHLD/SHRD are double-precision shifts. They shift the destination
+        // (read/written) while shifting in bits from a second source register.
+        // The count is an imm8 or CL. AT&T order: count, src, dest.
+        {"shld", {true, {RoleInput, RoleInput, RoleBoth}}},
+        {"shrd", {true, {RoleInput, RoleInput, RoleBoth}}},
+        // RORX (BMI2) rotates the source register right by an immediate count
+        // without affecting flags. AT&T operand order: $imm, src, dest.
+        {"rorx", {false, {RoleInput, RoleInput, RoleOutput}}},
+        // SARX/SHLX/SHRX (BMI2) shift the source register by a count held in a
+        // general-purpose register, without affecting flags. Unlike the classic
+        // shifts the count may be any GPR (not just CL). AT&T order:
+        // count, src, dest.
+        {"sarx", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"shlx", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"shrx", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"xor", {true, {RoleInput, RoleBoth}}},
         {"or", {true, {RoleInput, RoleBoth}}},
         {"add", {true, {RoleInput, RoleBoth}}},
         {"adc", {true, {RoleInput, RoleBoth}}},
+        {"sbb", {true, {RoleInput, RoleBoth}}},
+        {"sub", {true, {RoleInput, RoleBoth}}},
         {"adcx", {true, {RoleInput, RoleBoth}}},
         {"adox", {true, {RoleInput, RoleBoth}}},
         {"mov", {false, {RoleInput, RoleOutput}}},
@@ -8440,6 +8496,7 @@ class Pizlonator {
         {"bsf", {true, {RoleInput, RoleOutput}}},
         {"bsr", {true, {RoleInput, RoleOutput}}},
         {"lzcnt", {true, {RoleInput, RoleOutput}}},
+        {"popcnt", {true, {RoleInput, RoleOutput}}},
         {"bt", {true, {RoleInput, RoleInput}}},
         {"btc", {true, {RoleInput, RoleBoth}}},
         {"btr", {true, {RoleInput, RoleBoth}}},
@@ -8449,6 +8506,10 @@ class Pizlonator {
         {"addps", {false, {RoleInput, RoleBoth}}},
         {"addsd", {false, {RoleInput, RoleBoth}}},
         {"addss", {false, {RoleInput, RoleBoth}}},
+        {"subpd", {false, {RoleInput, RoleBoth}}},
+        {"subps", {false, {RoleInput, RoleBoth}}},
+        {"subsd", {false, {RoleInput, RoleBoth}}},
+        {"subss", {false, {RoleInput, RoleBoth}}},
         {"mulpd", {false, {RoleInput, RoleBoth}}},
         {"mulps", {false, {RoleInput, RoleBoth}}},
         {"mulsd", {false, {RoleInput, RoleBoth}}},
@@ -8480,6 +8541,26 @@ class Pizlonator {
         {"minps", {false, {RoleInput, RoleBoth}}},
         {"minsd", {false, {RoleInput, RoleBoth}}},
         {"minss", {false, {RoleInput, RoleBoth}}},
+        {"rcpps", {false, {RoleInput, RoleOutput}}},
+        {"rcpss", {false, {RoleInput, RoleBoth}}},
+        {"vrcpps", {false, {RoleInput, RoleOutput}}},
+        {"vrcpss", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"rsqrtps", {false, {RoleInput, RoleOutput}}},
+        {"rsqrtss", {false, {RoleInput, RoleBoth}}},
+        {"vrsqrtps", {false, {RoleInput, RoleOutput}}},
+        {"vrsqrtss", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"sqrtps", {false, {RoleInput, RoleOutput}}},
+        {"sqrtpd", {false, {RoleInput, RoleOutput}}},
+        {"vsqrtps", {false, {RoleInput, RoleOutput}}},
+        {"vsqrtpd", {false, {RoleInput, RoleOutput}}},
+        {"sqrtss", {false, {RoleInput, RoleBoth}}},
+        {"sqrtsd", {false, {RoleInput, RoleBoth}}},
+        {"vsqrtss", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"vsqrtsd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"roundpd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"roundps", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"roundsd", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"roundss", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"mpsadbw", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"gf2p8affineinvq", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"vgf2p8affineinvq", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
@@ -8494,6 +8575,18 @@ class Pizlonator {
         {"aesenc", {false, {RoleInput, RoleBoth}}},
         {"aesenclast", {false, {RoleInput, RoleBoth}}},
         {"aesimc", {false, {RoleInput, RoleOutput}}},
+        // SHA (SHA-NI) instructions. These operate on XMM registers and have no
+        // memory access when used with register operands. AT&T operand order is
+        // src, dest for the two-operand forms; SHA1RNDS4 also takes an imm8
+        // (src, src, dest). SHA256RNDS2 reads XMM0 implicitly as an input;
+        // reading an undeclared register is harmless.
+        {"sha1msg1", {false, {RoleInput, RoleBoth}}},
+        {"sha1msg2", {false, {RoleInput, RoleBoth}}},
+        {"sha1nexte", {false, {RoleInput, RoleBoth}}},
+        {"sha1rnds4", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"sha256msg1", {false, {RoleInput, RoleBoth}}},
+        {"sha256msg2", {false, {RoleInput, RoleBoth}}},
+        {"sha256rnds2", {false, {RoleInput, RoleBoth}}},
         {"andnpd", {false, {RoleInput, RoleBoth}}},
         {"andnps", {false, {RoleInput, RoleBoth}}},
         {"andpd", {false, {RoleInput, RoleBoth}}},
@@ -8518,10 +8611,13 @@ class Pizlonator {
         {"palignr", {false, {RoleInput, RoleInput, RoleBoth}}},
         {"pand", {false, {RoleInput, RoleBoth}}},
         {"pandn", {false, {RoleInput, RoleBoth}}},
+        {"por", {false, {RoleInput, RoleBoth}}},
+        {"pxor", {false, {RoleInput, RoleBoth}}},
         {"pavgb", {false, {RoleInput, RoleBoth}}},
         {"pavgw", {false, {RoleInput, RoleBoth}}},
         {"pblendvb", {false, {RoleInput, RoleBoth}}},
         {"pblendw", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"ptest", {true, {RoleInput, RoleInput}}},
         {"pcmpeqb", {false, {RoleInput, RoleBoth}}},
         {"pcmpeqd", {false, {RoleInput, RoleBoth}}},
         {"pcmpeqq", {false, {RoleInput, RoleBoth}}},
@@ -8602,11 +8698,134 @@ class Pizlonator {
         {"vpmaxud", {false, {RoleInput, RoleInput, RoleOutput}}},
         {"pmaxuw", {false, {RoleInput, RoleBoth}}},
         {"vpmaxuw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminsb", {false, {RoleInput, RoleBoth}}},
+        {"vpminsb", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminsd", {false, {RoleInput, RoleBoth}}},
+        {"vpminsd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminsw", {false, {RoleInput, RoleBoth}}},
+        {"vpminsw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminub", {false, {RoleInput, RoleBoth}}},
+        {"vpminub", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminud", {false, {RoleInput, RoleBoth}}},
+        {"vpminud", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pminuw", {false, {RoleInput, RoleBoth}}},
+        {"vpminuw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pmovmskb", {false, {RoleInput, RoleOutput}}},
+        {"vpmovmskb", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxbw", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxbd", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxbq", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxwd", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxwq", {false, {RoleInput, RoleOutput}}},
+        {"pmovsxdq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxbw", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxbd", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxbq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxwd", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxwq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovsxdq", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxbw", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxbd", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxbq", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxwd", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxwq", {false, {RoleInput, RoleOutput}}},
+        {"pmovzxdq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxbw", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxbd", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxbq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxwd", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxwq", {false, {RoleInput, RoleOutput}}},
+        {"vpmovzxdq", {false, {RoleInput, RoleOutput}}},
+        {"pmuldq", {false, {RoleInput, RoleBoth}}},
+        {"pmulhrsw", {false, {RoleInput, RoleBoth}}},
+        {"pmulhuw", {false, {RoleInput, RoleBoth}}},
+        {"pmulhw", {false, {RoleInput, RoleBoth}}},
+        {"pmulld", {false, {RoleInput, RoleBoth}}},
+        {"pmullw", {false, {RoleInput, RoleBoth}}},
+        {"pmuludq", {false, {RoleInput, RoleBoth}}},
+        {"prefetchw", {false, {RoleInput}}},
+        {"prefetcht0", {false, {RoleInput}}},
+        {"prefetcht1", {false, {RoleInput}}},
+        {"prefetcht2", {false, {RoleInput}}},
+        {"prefetchnta", {false, {RoleInput}}},
+        {"psadbw", {false, {RoleInput, RoleBoth}}},
+        {"pshufb", {false, {RoleInput, RoleBoth}}},
+        {"pshufd", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pshufhw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pshuflw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        {"pshufw", {false, {RoleInput, RoleInput, RoleOutput}}},
+        // SHUFPD/SHUFPS (SSE2/SSE): packed interleave shuffle of pairs of
+        // doubles/floats. AT&T order: $imm8, src2, dst(src1). The imm8
+        // selects from each input pair; the destination is read and written.
+        // Register-only operands are fine (no memory access needed).
+        {"shufpd", {false, {RoleInput, RoleInput, RoleBoth}}},
+        {"shufps", {false, {RoleInput, RoleInput, RoleBoth}}},
+        // VSHUFPD/VSHUFPS (AVX): three-source forms with a separate
+        // destination. AT&T order: $imm8, src3, src2, dst.
+        {"vshufpd", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
+        {"vshufps", {false, {RoleInput, RoleInput, RoleInput, RoleOutput}}},
+        {"psignb", {false, {RoleInput, RoleBoth}}},
+        {"psignd", {false, {RoleInput, RoleBoth}}},
+        {"psignw", {false, {RoleInput, RoleBoth}}},
+        {"pslld", {false, {RoleInput, RoleBoth}}},
+        {"psllq", {false, {RoleInput, RoleBoth}}},
+        {"psllw", {false, {RoleInput, RoleBoth}}},
+        {"psrad", {false, {RoleInput, RoleBoth}}},
+        {"psraw", {false, {RoleInput, RoleBoth}}},
+        {"psrld", {false, {RoleInput, RoleBoth}}},
+        {"psrlq", {false, {RoleInput, RoleBoth}}},
+        {"psrlw", {false, {RoleInput, RoleBoth}}},
+        {"psubb", {false, {RoleInput, RoleBoth}}},
+        {"psubd", {false, {RoleInput, RoleBoth}}},
+        {"psubq", {false, {RoleInput, RoleBoth}}},
+        {"psubsb", {false, {RoleInput, RoleBoth}}},
+        {"psubsw", {false, {RoleInput, RoleBoth}}},
+        {"psubusb", {false, {RoleInput, RoleBoth}}},
+        {"psubusw", {false, {RoleInput, RoleBoth}}},
+        {"psubw", {false, {RoleInput, RoleBoth}}},
+        {"punpckhbw", {false, {RoleInput, RoleBoth}}},
+        {"punpckhdq", {false, {RoleInput, RoleBoth}}},
+        {"punpckhqdq", {false, {RoleInput, RoleBoth}}},
+        {"punpckhwd", {false, {RoleInput, RoleBoth}}},
+        {"punpcklbw", {false, {RoleInput, RoleBoth}}},
+        {"punpckldq", {false, {RoleInput, RoleBoth}}},
+        {"punpcklqdq", {false, {RoleInput, RoleBoth}}},
+        {"punpcklwd", {false, {RoleInput, RoleBoth}}},
         {"bswap", {false, {RoleBoth}}},
         {"not", {false, {RoleBoth}}},
         {"lar", {true, {RoleInput, RoleOutput}}},
         {"lsl", {true, {RoleInput, RoleOutput}}},
         {"lea", {false, {RoleInput, RoleOutput}}},
+        // RDFSBASE/RDGSBASE read the FS/GS segment base address (an implicit
+        // read, which is safe) and write it into a single general-purpose
+        // destination register. No memory access, no flags, no control flow.
+        // They are 64-bit-mode-only and require CR4.FSGSBASE; if unsupported
+        // they #UD (SIGILL), which is a safe uncatchable trap.
+        {"rdfsbase", {false, {RoleOutput}}},
+        {"rdgsbase", {false, {RoleOutput}}},
+        // RDPID reads IA32_TSC_AUX into a single general-purpose destination
+        // register. No memory access, no flags, no control flow.
+        {"rdpid", {false, {RoleOutput}}},
+        // RDRAND reads a hardware random number into a single general-purpose
+        // destination register and sets CF. No memory access, no control flow.
+        {"rdrand", {true, {RoleOutput}}},
+        // RDSSPD/RDSSPQ copy the shadow stack pointer (SSP) into a single
+        // general-purpose destination register. No memory access, no flags,
+        // no control flow. They are NOPs when CET shadow stacks are not enabled.
+        {"rdsspd", {false, {RoleOutput}}},
+        {"rdsspq", {false, {RoleOutput}}},
+        // SLDT/SMSW/STR store a system register (the LDTR selector, the CR0
+        // machine status word, and the TR selector respectively) into a single
+        // general-purpose destination register. They are read-only with respect
+        // to system state: they do not modify any system register, perform no
+        // memory access, set no flags, and have no control-flow effect. They
+        // are non-privileged store instructions; when CR4.UMIP is enabled the
+        // kernel traps and emulates them (returning sanitized values), which is
+        // still safe. If somehow unsupported they #GP (SIGSEGV), a safe
+        // uncatchable trap.
+        {"sldt", {false, {RoleOutput}}},
+        {"smsw", {false, {RoleOutput}}},
+        {"str", {false, {RoleOutput}}},
       };
 
       StringRef base = m;
@@ -8864,6 +9083,45 @@ class Pizlonator {
       return true;
     };
 
+    // Validate a memory-addressing expression operand (one that contains
+    // parentheses or brackets) such as LEA's source, a multi-byte NOP's
+    // operand, or a PREFETCH hint's operand. Such operands are purely
+    // syntactic from a memory-safety standpoint: the CPU computes the
+    // effective address from the expression but either performs no load/store
+    // at all (LEA, NOP) or performs a non-faulting hint access that has no
+    // observable effect on program behavior and cannot trap (PREFETCH, whose
+    // only exception is #UD for a LOCK prefix). Every operand placeholder in
+    // the expression must refer to an input register constraint; literal
+    // registers are permitted because reading an undeclared register is
+    // harmless. `what` is used to build human-readable error messages.
+    auto validateAddressingExpr = [&](const std::string& expr,
+                                      const std::string& what) -> bool {
+      for (size_t i = 0; i < expr.size(); ) {
+        int ph = -1;
+        size_t consumed = 0;
+        std::string placeholderError;
+        if (!classifyOperandAt(expr, i, ph, consumed,
+                               numOperandConstraints, placeholderError)) {
+          if (!placeholderError.empty()) {
+            Reason = placeholderError;
+            return false;
+          }
+          ++i;
+          continue;
+        }
+        if (!Constraints[ph].IsRegister) {
+          Reason = what + " operand placeholder refers to non-register constraint";
+          return false;
+        }
+        if (Constraints[ph].Kind != ParsedConstraint::Input) {
+          Reason = what + " operand placeholder must refer to an input register";
+          return false;
+        }
+        i += consumed;
+      }
+      return true;
+    };
+
     for (const std::string& rawLine : lines) {
       std::string line = trim(rawLine);
       if (line.empty())
@@ -9069,6 +9327,77 @@ class Pizlonator {
         // declared as an output or clobber.
         if (!isOutputOrClobber("ax")) {
           Reason = "lahf output ah not covered by output constraint or clobber";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "sahf") {
+        if (!operands.empty()) {
+          Reason = "sahf takes no operands";
+          return false;
+        }
+        // SAHF loads EFLAGS (SF, ZF, AF, PF, CF) from AH. Reading AH is
+        // harmless, but the instruction sets the arithmetic flags, so the "cc"
+        // clobber is required (checked below via AnySetsFlags).
+        continue;
+      }
+
+      if (baseMnemonic == "rdtsc") {
+        if (!operands.empty()) {
+          Reason = "rdtsc takes no operands";
+          return false;
+        }
+        // RDTSC reads the time-stamp counter into EDX:EAX. Reading the TSC is
+        // harmless, but both EAX and EDX must be declared as outputs/clobbers.
+        if (!isOutputOrClobber("ax")) {
+          Reason = "rdtsc output eax not covered by output constraint or clobber";
+          return false;
+        }
+        if (!isOutputOrClobber("dx")) {
+          Reason = "rdtsc output edx not covered by output constraint or clobber";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "rdtscp") {
+        if (!operands.empty()) {
+          Reason = "rdtscp takes no operands";
+          return false;
+        }
+        // RDTSCP reads the TSC into EDX:EAX and IA32_TSC_AUX into ECX. Reading
+        // is harmless, but EAX, EDX, and ECX must be declared as outputs/clobbers.
+        if (!isOutputOrClobber("ax")) {
+          Reason = "rdtscp output eax not covered by output constraint or clobber";
+          return false;
+        }
+        if (!isOutputOrClobber("dx")) {
+          Reason = "rdtscp output edx not covered by output constraint or clobber";
+          return false;
+        }
+        if (!isOutputOrClobber("cx")) {
+          Reason = "rdtscp output ecx not covered by output constraint or clobber";
+          return false;
+        }
+        continue;
+      }
+
+      if (baseMnemonic == "rdpkru") {
+        if (!operands.empty()) {
+          Reason = "rdpkru takes no operands";
+          return false;
+        }
+        // RDPKRU reads ECX (must be 0), writes the PKRU value to EAX, and clears
+        // EDX. Reading ECX is harmless, but EAX and EDX must be declared as
+        // outputs/clobbers. If ECX != 0 the instruction #GP faults (SIGSEGV),
+        // which is a safe uncatchable trap.
+        if (!isOutputOrClobber("ax")) {
+          Reason = "rdpkru output eax not covered by output constraint or clobber";
+          return false;
+        }
+        if (!isOutputOrClobber("dx")) {
+          Reason = "rdpkru output edx not covered by output constraint or clobber";
           return false;
         }
         continue;
@@ -9615,7 +9944,9 @@ class Pizlonator {
       }
 
       if (baseMnemonic == "sar" || baseMnemonic == "shr" ||
-          baseMnemonic == "shl") {
+          baseMnemonic == "shl" || baseMnemonic == "sal" ||
+          baseMnemonic == "rcl" || baseMnemonic == "rcr" ||
+          baseMnemonic == "rol" || baseMnemonic == "ror") {
         if (operands.size() == 1)
           roles = {RoleBoth};
       }
@@ -9640,29 +9971,43 @@ class Pizlonator {
         // The addressing expression may use input register placeholders
         // (%N, $N, or ${N}), just like LEA's source. Literal registers (e.g.
         // %rax) are permitted since nop does not read or write them.
-        for (size_t i = 0; i < src.size(); ) {
-          int ph = -1;
-          size_t consumed = 0;
-          std::string placeholderError;
-          if (!classifyOperandAt(src, i, ph, consumed,
-                                 numOperandConstraints, placeholderError)) {
-            if (!placeholderError.empty()) {
-              Reason = placeholderError;
-              return false;
-            }
-            ++i;
-            continue;
-          }
-          if (!Constraints[ph].IsRegister) {
-            Reason = "nop operand placeholder refers to non-register constraint";
-            return false;
-          }
-          if (Constraints[ph].Kind != ParsedConstraint::Input) {
-            Reason = "nop operand placeholder must refer to an input register";
-            return false;
-          }
-          i += consumed;
+        if (!validateAddressingExpr(src, "nop"))
+          return false;
+        continue;
+      }
+
+      if (baseMnemonic == "prefetchw" || baseMnemonic == "prefetcht0" ||
+          baseMnemonic == "prefetcht1" || baseMnemonic == "prefetcht2" ||
+          baseMnemonic == "prefetchnta") {
+        // PREFETCH* instructions take a single m8 memory-addressing
+        // expression but perform no real load/store: they are non-faulting
+        // cache hints that do not affect program behavior (the only exception
+        // is #UD for a LOCK prefix, which Fil-C treats as safe). The
+        // addressing expression is purely syntactic, exactly like LEA's
+        // source: the CPU computes the effective address from it but no
+        // bounds-checked access occurs. Users supply the address as an
+        // integer register, e.g.:
+        //   asm volatile("prefetchw (%0)" : : "r"((intptr_t)ptr));
+        //
+        // FIXME: the address currently must be passed as an integer because
+        // handleInlineAsm rejects pointer operands (and pointer return types)
+        // before calling validateSafeInlineAsm. Eventually we should unify
+        // the pointer-operand handling in handleInlineAsm (used for blank
+        // inline asm, which takes pains to pass both the raw pointer and the
+        // capability through to the asm) with the non-pointer-operand
+        // handling here, so that a pointer-typed operand could be used
+        // directly without the (intptr_t) cast.
+        if (operands.size() != 1) {
+          Reason = baseMnemonic + " expects 1 operand";
+          return false;
         }
+        const std::string& src = operands[0];
+        if (src.find_first_of("()[]") == std::string::npos) {
+          Reason = baseMnemonic + " operand must be a memory-addressing expression";
+          return false;
+        }
+        if (!validateAddressingExpr(src, baseMnemonic))
+          return false;
         continue;
       }
 
@@ -9687,29 +10032,8 @@ class Pizlonator {
 
         // Source addressing expression may use input register placeholders
         // (%N, $N, or ${N}).
-        for (size_t i = 0; i < operands[0].size(); ) {
-          int ph = -1;
-          size_t consumed = 0;
-          std::string placeholderError;
-          if (!classifyOperandAt(operands[0], i, ph, consumed,
-                                 numOperandConstraints, placeholderError)) {
-            if (!placeholderError.empty()) {
-              Reason = placeholderError;
-              return false;
-            }
-            ++i;
-            continue;
-          }
-          if (!Constraints[ph].IsRegister) {
-            Reason = "lea source operand placeholder refers to non-register constraint";
-            return false;
-          }
-          if (Constraints[ph].Kind != ParsedConstraint::Input) {
-            Reason = "lea source operand placeholder must refer to an input register";
-            return false;
-          }
-          i += consumed;
-        }
+        if (!validateAddressingExpr(operands[0], "lea source"))
+          return false;
 
         // Validate the destination operand.
         {
@@ -9808,14 +10132,28 @@ class Pizlonator {
             Reason = "operand placeholder used as output but constraint is input-only: " + op;
             return false;
           }
-          if ((baseMnemonic == "sar" || baseMnemonic == "shr" || baseMnemonic == "shl") &&
-              roles[i] == RoleInput) {
+          // Variable shift/rotate count must be supplied in CL/CX/ECX/RCX.
+          // For the classic 2-operand shifts/rotates the sole RoleInput operand
+          // is the count. For SHLD/SHRD there are two inputs (count then src);
+          // only the first operand (i == 0) is the count.
+          bool countNeedsCL = false;
+          if (roles[i] == RoleInput) {
+            if (baseMnemonic == "sar" || baseMnemonic == "shr" ||
+                baseMnemonic == "shl" || baseMnemonic == "sal" ||
+                baseMnemonic == "rcl" || baseMnemonic == "rcr" ||
+                baseMnemonic == "rol" || baseMnemonic == "ror")
+              countNeedsCL = true;
+            else if ((baseMnemonic == "shld" || baseMnemonic == "shrd") &&
+                     i == 0)
+              countNeedsCL = true;
+          }
+          if (countNeedsCL) {
             if (Constraints[ph].Family != "cx") {
-              Reason = "variable shift count requires cl/cx/ecx/rcx input constraint";
+              Reason = "variable shift/rotate count requires cl/cx/ecx/rcx input constraint";
               return false;
             }
             if (!InputFamilies.count("cx")) {
-              Reason = "variable shift count requires cl/cx/ecx/rcx input constraint";
+              Reason = "variable shift/rotate count requires cl/cx/ecx/rcx input constraint";
               return false;
             }
           }
