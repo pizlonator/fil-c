@@ -711,6 +711,18 @@ void* zsys_create_module(const char* name, __SIZE_TYPE__ size)
     return 0;
 }
 
+int zsys_query_module(const char* name, int which, void* buf, __SIZE_TYPE__ bufsize,
+    __SIZE_TYPE__* ret)
+{
+    (void)name;
+    (void)which;
+    (void)buf;
+    (void)bufsize;
+    (void)ret;
+    zerror("query_module not supported.");
+    return -1;
+}
+
 int zsys_get_kernel_syms(void* table)
 {
     /* We don't support this because this syscall has been removed. */
