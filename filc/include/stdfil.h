@@ -35,8 +35,14 @@ extern "C" {
 } /* tell emacs what's up */
 #endif
 
-/* The convention is that the major version gets multiplied by 10000. So if there was a version
-   1.23, then FILC_VERSION would be 10023. */
+/* The convention is that the major version gets multiplied by 10000, and the low three digits are
+   the minor version.
+   
+   Examples:
+   
+   - If the version was 0.666 then FILC_VERSION would be 666u.
+   
+   - If the version was 1.23, then FILC_VERSION would be 10023. */
 #define FILC_VERSION 679u
 
 /* This header defines standard Fil-C APIs that are not part of C or C++ but are intended to be stable
