@@ -58,7 +58,7 @@ std::string getLLVMRevision() {
 }
 
 std::string getClangVendor() {
-  return "Fil-C 0.679 ";
+  return "Fil-C 0.680 ";
 }
 
 std::string getClangFullRepositoryVersion() {
